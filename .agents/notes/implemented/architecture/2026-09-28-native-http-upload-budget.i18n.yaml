@@ -1,0 +1,6 @@
+# Bilingual-pair consistency record (docs/i18n/README.md): the git blob hash of each
+# side as of the last confirmed-consistent state. Both languages carry equal authority;
+# after editing either side, bring the other along and re-record with:
+#   pnpm run verify-translation-pairing --write .agents/notes/implemented/architecture/2026-09-28-native-http-upload-budget.md
+2026-09-28-native-http-upload-budget.md: d19c58e9530a125b91256afab8a6680f7771f337
+2026-09-28-native-http-upload-budget.zh.md: 30b3ad93968e149282287b83a5b6d85385e3e0c1

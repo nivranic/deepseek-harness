@@ -4,54 +4,294 @@
   "upstreamSha": "c291e7961a515f6d7af9304e7fd1d257929aef26",
   "candidateTrackedChanges": [
     {
+      "path": ".agents/notes/implemented/architecture/2026-09-27-android-file-attachments.i18n.yaml",
+      "sha256": "c0fbe340b0cd65b233aeef653f72ef5f7849cb46b5d9bf3c9ebe2fb7d1bb0e47"
+    },
+    {
+      "path": ".agents/notes/implemented/architecture/2026-09-27-android-file-attachments.md",
+      "sha256": "63ba12598c313867afbb349923076f263d5a630264a5c6a6b0a75fea8571aa04"
+    },
+    {
+      "path": ".agents/notes/implemented/architecture/2026-09-27-android-file-attachments.zh.md",
+      "sha256": "2a5c532e33ffcc8f44a63ee8517153807dbcd4385a018b452e4afa1eac55fda8"
+    },
+    {
+      "path": ".agents/notes/implemented/architecture/2026-09-27-android-photo-attachments.i18n.yaml",
+      "sha256": "72893aa04ecd5df4131eb7ab9a4ac768240297f1f9cc661b21d7c97d7e03d81e"
+    },
+    {
+      "path": ".agents/notes/implemented/architecture/2026-09-27-android-photo-attachments.md",
+      "sha256": "58ea01643903a9555ff27a364e178f03a3b3674a7db83dd9791adfc7a7553f67"
+    },
+    {
+      "path": ".agents/notes/implemented/architecture/2026-09-27-android-photo-attachments.zh.md",
+      "sha256": "4083715832908ce0098ff1767fb079d6b6baa0e746b5640d7e9100135187ea93"
+    },
+    {
+      "path": ".agents/notes/implemented/architecture/2026-09-28-android-share-intake.i18n.yaml",
+      "sha256": "1e874ea5aea6e60d7a6da9c5e022abaf72684f3663cb72cd568ec5d407e44f34"
+    },
+    {
+      "path": ".agents/notes/implemented/architecture/2026-09-28-android-share-intake.md",
+      "sha256": "708b3733962a4bbbed9da7a59976cab73c63d91000133e1974fa1fa8e7135ca5"
+    },
+    {
+      "path": ".agents/notes/implemented/architecture/2026-09-28-android-share-intake.zh.md",
+      "sha256": "648738d8ef9da40a302380503d8d7ca3cccc0e3355ffb6f7affaecd9a91a1c9c"
+    },
+    {
       "path": "IMPLEMENTATION_STATUS.md",
-      "sha256": "ab7757f33f5841b878b91a6fb8dfae206bb356e012682402fa644fd3d2d7f2e5"
+      "sha256": "7e03398fad9bdd5cb3acf88b7bb11be0b5d5ec7af6bd015a51b6285b4b0ac3cf"
     },
     {
       "path": "apps/android/README.i18n.yaml",
-      "sha256": "b219542bd3aa7e5c5efd95a854d5194c8dd17fd7c5d05cc8bdfd354044c7bebd"
+      "sha256": "907af3d3992ce722b79b2145191ccb9e868b5f1e707c95a28821da1844bacc6a"
     },
     {
       "path": "apps/android/README.md",
-      "sha256": "12d43d0c50f9e66a8b576929ca34bc3267838a78be0864a5e44f4b7cf7f91766"
+      "sha256": "50c2a750c3793870389510c9feeeb8a625e8cbbbac0a4c950bdfdafc91890918"
     },
     {
       "path": "apps/android/README.zh.md",
-      "sha256": "70d204471115ce7c58d038db9e9e04087d9ffd9d9bb91a2e873130fcf071b91e"
+      "sha256": "82b06292ee8f7274a0b029d2c896ece494b8717dc4ba16ae8acadea287894ff7"
     },
     {
       "path": "apps/android/app/src/androidTest/kotlin/ai/deepseek/dsh/companion/NativeCompanionAcceptanceTest.kt",
-      "sha256": "3d2fcaa85aba807263a0961ce7bd893b032d2de32aa94cfc09af18830d6580e6"
+      "sha256": "633dd2b341a09d73ee84a81a871f5c4065014e15d10baf572f85db5fe66ee65f"
+    },
+    {
+      "path": "apps/android/app/src/main/kotlin/ai/deepseek/dsh/companion/HostCapabilityDetails.kt",
+      "sha256": "6b989ae4d2a391a2280aa9e658c661d1a3b057a259ac265300c425400bca7da4"
     },
     {
       "path": "apps/android/app/src/main/kotlin/ai/deepseek/dsh/companion/MainActivity.kt",
-      "sha256": "9d97c440cf4b0be4c157ea801b3bb7ddc556d033825a690a64b16edbad0d46ad"
+      "sha256": "bbf96daaaf3c946e00b8e135cfac1ccd5a4400db969b4d975a4369d5df30c249"
+    },
+    {
+      "path": "apps/android/app/src/main/kotlin/ai/deepseek/dsh/companion/NativeShareCard.kt",
+      "sha256": "b9555660536ba71255de0bba415686d0146f798b1ad38b39e6254c111fc533a7"
     },
     {
       "path": "apps/android/app/src/main/res/values/native_companion.xml",
-      "sha256": "11f0a980d0515554602c9c7c7219dccad85929b0ac593f50cf350c85c6d7c17b"
+      "sha256": "7889dff1cd7d1d0011abfd7509a65e8c8246af1ac14006b3b6f8f2346ac3d8d3"
     },
     {
-      "path": "apps/android/core/src/main/kotlin/ai/deepseek/dsh/companion/CompanionInput.kt",
-      "sha256": "6067f6df709de0afc75454972d48f4a18e601ca19a71e8a185030398208a1604"
+      "path": "apps/android/core/src/main/kotlin/ai/deepseek/dsh/companion/NativeFileAttachmentsModel.kt",
+      "sha256": "8bccb565cba3d50138dfbc6f031828db73fff049334053e5c056570c02a99d58"
     },
     {
-      "path": "apps/android/core/src/test/kotlin/ai/deepseek/dsh/companion/NativeFileDraftTest.kt",
-      "sha256": "000009f0c8f94f5779a43b9d169f90b1b9f005141252a09265507476b8407045"
+      "path": "apps/android/core/src/main/kotlin/ai/deepseek/dsh/gateway/NativeGatewayClient.kt",
+      "sha256": "e8bc2108efec39f0ce84d649af761a2f55f146f4b96518a3cee137d7adcf00c4"
+    },
+    {
+      "path": "apps/android/core/src/main/kotlin/ai/deepseek/dsh/gateway/NativeGatewayDiagnostics.kt",
+      "sha256": "10a01836b4a2b3e30c7ecedcfb71a1b99cfe791abedf185f2fd1fe84ee83503f"
+    },
+    {
+      "path": "apps/android/core/src/test/kotlin/ai/deepseek/dsh/companion/NativeFileAttachmentsModelTest.kt",
+      "sha256": "c27d0412fecef2ad8050bfddbeff9f7c934970771e3d57915c6bf3066b54c7d4"
+    },
+    {
+      "path": "apps/android/core/src/test/kotlin/ai/deepseek/dsh/companion/NativeShareAttachmentsModelTest.kt",
+      "sha256": "353dd3781f95e894e9d85b5794c63378e66d9cfd1e801ce99a1154391cd39832"
+    },
+    {
+      "path": "apps/web/tsconfig.json",
+      "sha256": "95c5737fc232fe1afb7609f0d6347beeb9e878f09d828344b824cd920107076b"
     },
     {
       "path": "artifacts/upstream-first/evidence.json",
-      "sha256": "b54cc232490e5bb9913b724c19fa75a74772587c8c4aaba48216245710c4f46c"
+      "sha256": "47801f590733d39cffd97a3f93c1e63c614ec94d36a13b73f55a3269e666ea99"
+    },
+    {
+      "path": "artifacts/upstream-first/handoff/LATEST.json",
+      "sha256": "cd643c2de09f78df550ad36b9f8256646eba196766f00cb4d21d806de974ad38"
     },
     {
       "path": "artifacts/upstream-first/write-reports.mjs",
-      "sha256": "a7bb571c6c38443e88122b8f37d706b8e7d4204b3972044317bff48541a45087"
+      "sha256": "2ec94f6a67930f2ae6841704d914aaa353c91f8af977a44cb320c44780fabcd3"
+    },
+    {
+      "path": "docs/config-catalog.i18n.yaml",
+      "sha256": "6c56f0ab86c72c3f5b67a5a583e99c7ae72315a5aefdfea66028e7436f2d7057"
+    },
+    {
+      "path": "docs/config-catalog.md",
+      "sha256": "ff03add7fe80bf65142fba37dbe83f561fa384f308b14dc8d1eba4357c2b2a5c"
+    },
+    {
+      "path": "docs/i18n/README.i18n.yaml",
+      "sha256": "a21f455ba9e57d09636728cce3bd0274ee35a4b44db32481e9aef0381bcf1d21"
+    },
+    {
+      "path": "docs/i18n/README.md",
+      "sha256": "fb3b8c56088cf02e4dbcf8961b67ea18eae2434b4fb2b735626fc8a869b4fcee"
+    },
+    {
+      "path": "docs/i18n/README.zh.md",
+      "sha256": "08ae8aade4e1b9f8f92a001853c56655bf38db96ce28fdfef21aec9e1fe4dfcd"
+    },
+    {
+      "path": "docs/subsystems/typert.i18n.yaml",
+      "sha256": "6e27f1d31e0c2690125230fdc8e58e0893d1b26da3bfb5800c4755dac96365db"
+    },
+    {
+      "path": "docs/subsystems/typert.md",
+      "sha256": "cd7f2dd1222fb9428e8ed7b78b820c9cf18743eb19f2306baaabb4ad4cda7939"
+    },
+    {
+      "path": "docs/subsystems/typert.zh.md",
+      "sha256": "0fbcaa6f3f2e5dfa643a3b9fe1fc546714d86afde6973a0bcc5e0252dfc97143"
+    },
+    {
+      "path": "packages/api/gateway/README.i18n.yaml",
+      "sha256": "221e3325be77459ddf72f863aa65cc73f49cd1f42640ebd920848f4e753dab35"
+    },
+    {
+      "path": "packages/api/gateway/README.md",
+      "sha256": "fbd964d902957d3f01a8e84928f765bbcc29918bba39b3e25141b0fd0b3283e0"
+    },
+    {
+      "path": "packages/api/gateway/README.zh.md",
+      "sha256": "dd45edf6b73b09937411c557b90e69b01260ab0d18c085a2da07c1b1573918ba"
+    },
+    {
+      "path": "packages/api/gateway/src/index.ts",
+      "sha256": "4c6ad3fd06ea906486d16327bcc418fc2138d9be4cff7076f0906755d8e0b9e0"
+    },
+    {
+      "path": "packages/api/gateway/src/types.ts",
+      "sha256": "1877a8f119e3ddf40f325f58152f675949e7cb8ffbe57231d3f6309c8e142e08"
+    },
+    {
+      "path": "packages/api/gateway/tests/gateway-stream.host.spec.ts",
+      "sha256": "4e29296886400edcd978b3e9be52b622b701b6bc7c46ba31fc92a7be7a02838b"
+    },
+    {
+      "path": "packages/api/gateway/tests/gateway.host.spec.ts",
+      "sha256": "046c0700872728d6798f1ca086a155fff11fb7ef49e67af34b33bbcb500c55b0"
+    },
+    {
+      "path": "packages/api/native-remote/README.i18n.yaml",
+      "sha256": "471535a6cbde17b5ba69134d75d8cbff5e1a7b7be6a2fd3bf6a15c5b8261ecc3"
+    },
+    {
+      "path": "packages/api/native-remote/README.md",
+      "sha256": "5e145fed63f75465e47daec613b9922a9ad57123612d687311feb05754d54657"
+    },
+    {
+      "path": "packages/api/native-remote/README.zh.md",
+      "sha256": "ebb69b3a75a91fca1a28181c51ecfb4907d3628c7e0ba5a68eaffd83e7c04a90"
+    },
+    {
+      "path": "packages/api/native-remote/src/capabilities.ts",
+      "sha256": "43d3914b274130f5877cb0d02901d5e7ce4a5675ec4f6b5d7f210512a979e815"
+    },
+    {
+      "path": "packages/api/native-remote/src/index.ts",
+      "sha256": "e6f5a7c8927e2b29fcead72ddbf28b9bbe96b53290fd25a7a40440de648e3980"
+    },
+    {
+      "path": "packages/api/native-remote/src/types.ts",
+      "sha256": "b6f8bc1005609ffe4e9441faa3ade17f1129f4d276b7edb3c6ee976b0144db2f"
+    },
+    {
+      "path": "packages/api/native-remote/tests/transport.host.spec.ts",
+      "sha256": "ab8a311e46216d48a2047b30c0f1b1dca95ec7ac4f7a309b5aa383f4f750b893"
+    },
+    {
+      "path": "packages/extensions/tool-cordis/src/api-catalog.ts",
+      "sha256": "1b27c89095f7a987acfdd1382bc1195c3f428e3cd782d8643161ab3485fc1dc7"
+    },
+    {
+      "path": "scripts/gen-cordis-catalog.ts",
+      "sha256": "bc7e595a7b3a5ee6766149e54d941f0e70e1ea294cd64540895b1243baab2857"
+    },
+    {
+      "path": "scripts/translation-pairing.ts",
+      "sha256": "33739c5251a0d6d1e58da1721a4b0b4a995b2c1ecfc09b695d066f67407b36cd"
+    },
+    {
+      "path": "scripts/type-equiv.manifest.json",
+      "sha256": "a3bf23f01863f8b2257baf46d3ceb99791f8a8379ec58a9bf95b6592272e7803"
+    },
+    {
+      "path": "tsconfig.host.json",
+      "sha256": "dc23b7a709ed9e8033f991c0c09b77d9af7ba93cfc602cd1c85af6584ba9e6d4"
     }
   ],
   "candidateUntrackedSourceChanges": [
     {
-      "path": "apps/web/tests/android-attachment-receipt-recovery.e2e.ts",
-      "sha256": "cc070481e3845ee2befb03fe2c2df89c4287370a1e981b20ab4fa02a5c9b1770"
+      "path": "apps/web/tests/android-native-upload-budget.e2e.ts",
+      "sha256": "469c6446715c995edd6d3b3e83de897963d977fdf7f2af0c89bef158cf006ae0"
+    },
+    {
+      "path": "apps/web/tests/native-remote-isolation.e2e.ts",
+      "sha256": "6ab7d214c0dc7ce877ef4ab8106b1fdcf4ac6555b0611cde8780ec0e9762b2de"
+    },
+    {
+      "path": "artifacts/upstream-first/handoff/2026-09-29-01/resume-evidence/native-upload-budget-scope-feasibility.config.ts",
+      "sha256": "3fb48244589abb3cdd7fe88a613e52c10ee7c0039ce546749690364aeb6a5634"
+    },
+    {
+      "path": "artifacts/upstream-first/handoff/2026-09-29-01/resume-evidence/native-upload-budget-scope-feasibility.spec.ts",
+      "sha256": "3278ea6631e59b89c95c77e12b4bc934b71d70913f29ed577b9fc10a0abd0030"
+    },
+    {
+      "path": "artifacts/upstream-first/handoff/2026-09-29-01/resume-evidence/prepare-native-upload-budget.mjs",
+      "sha256": "4808078a44a50a4f9e97eb184f5879bc7fcf49b9aea8b95f15505a5aea1fb083"
+    },
+    {
+      "path": "artifacts/upstream-first/handoff/2026-09-29-01/resume-evidence/verify-native-upload-budget-prepare-draft.mjs",
+      "sha256": "758056150cd2f21bfee48a4974a49753fb2736d84834204d19cd347abd91a6a7"
+    },
+    {
+      "path": "artifacts/upstream-first/handoff/2026-09-29-01/uncommitted-files/apps/web/tests/android-native-upload-budget.e2e.ts",
+      "sha256": "469c6446715c995edd6d3b3e83de897963d977fdf7f2af0c89bef158cf006ae0"
+    },
+    {
+      "path": "artifacts/upstream-first/handoff/2026-09-29-01/uncommitted-files/apps/web/tests/native-remote-isolation.e2e.ts",
+      "sha256": "cef59aca6ea78788d89e8d964d2a4324125d8a6f1992628124d03f0f5fb148b2"
+    },
+    {
+      "path": "artifacts/upstream-first/handoff/2026-09-29-01/uncommitted-files/packages/api/gateway/src/index.ts",
+      "sha256": "a09d15cdcf67ba05f20acb7f239444558677e48eca92097384720f5c8c86e1b9"
+    },
+    {
+      "path": "artifacts/upstream-first/handoff/2026-09-29-01/uncommitted-files/packages/api/gateway/src/types.ts",
+      "sha256": "1877a8f119e3ddf40f325f58152f675949e7cb8ffbe57231d3f6309c8e142e08"
+    },
+    {
+      "path": "artifacts/upstream-first/handoff/2026-09-29-01/uncommitted-files/packages/api/gateway/tests/gateway-stream.host.spec.ts",
+      "sha256": "4e29296886400edcd978b3e9be52b622b701b6bc7c46ba31fc92a7be7a02838b"
+    },
+    {
+      "path": "artifacts/upstream-first/handoff/2026-09-29-01/uncommitted-files/packages/api/gateway/tests/gateway.host.spec.ts",
+      "sha256": "046c0700872728d6798f1ca086a155fff11fb7ef49e67af34b33bbcb500c55b0"
+    },
+    {
+      "path": "artifacts/upstream-first/handoff/2026-09-29-01/uncommitted-files/packages/api/native-remote/src/capabilities.ts",
+      "sha256": "43d3914b274130f5877cb0d02901d5e7ce4a5675ec4f6b5d7f210512a979e815"
+    },
+    {
+      "path": "artifacts/upstream-first/handoff/2026-09-29-01/uncommitted-files/packages/api/native-remote/src/index.ts",
+      "sha256": "e6f5a7c8927e2b29fcead72ddbf28b9bbe96b53290fd25a7a40440de648e3980"
+    },
+    {
+      "path": "artifacts/upstream-first/handoff/2026-09-29-01/uncommitted-files/packages/api/native-remote/src/types.ts",
+      "sha256": "b6f8bc1005609ffe4e9441faa3ade17f1129f4d276b7edb3c6ee976b0144db2f"
+    },
+    {
+      "path": "artifacts/upstream-first/handoff/2026-09-29-01/uncommitted-files/packages/api/native-remote/tests/transport.host.spec.ts",
+      "sha256": "ab8a311e46216d48a2047b30c0f1b1dca95ec7ac4f7a309b5aa383f4f750b893"
+    },
+    {
+      "path": "artifacts/upstream-first/handoff/2026-09-29-01/uncommitted-files/scripts/gen-cordis-catalog.ts",
+      "sha256": "bc7e595a7b3a5ee6766149e54d941f0e70e1ea294cd64540895b1243baab2857"
+    },
+    {
+      "path": "artifacts/upstream-first/handoff/2026-09-29-01/verify.mjs",
+      "sha256": "16bec32509b9a62fdd4a5165679ff5732ce16a0e271d5a4e187a1b9e4432b031"
     }
   ],
   "validationStatus": "PASS",
@@ -9801,6 +10041,84 @@
     },
     {
       "status": "PASS",
+      "command": "command summary: gradlew -PdshNativeAcceptance :core:test --tests <7 suites incl. NativeGatewayUploadBudgetTest + NativeHttpRequestBudgetTest> :app:assembleDebug :app:assembleDebugAndroidTest; Core 57 tests / 7 suites, no failures/errors/skips; the same run built the final APK pair",
+      "log": ".artifacts/native-upload-budget-android-initial.log",
+      "sourceRecord": "artifacts/upstream-first/native-upload-budget-source.json"
+    },
+    {
+      "status": "PASS",
+      "command": "command summary: pnpm exec vitest run --config vitest.web.config.ts apps/web/tests/native-remote-isolation.e2e.ts; real Host complete-body boundary, 1 file / 3 passed (normal-profile factory RPC+stream caller scope with root listener present and absent, and real staged uploads at B-1/B accepted, B+1 refused by the real bridge with HTTP 413, viewer/revoked denied, no storage side effects)",
+      "log": ".artifacts/native-upload-budget-host-proof-r3.log",
+      "sourceRecord": "artifacts/upstream-first/native-upload-budget-source.json"
+    },
+    {
+      "status": "PASS",
+      "command": "command summary: DSH_ANDROID_ADB/DSH_ANDROID_SERIAL/DSH_SNAPSHOT=replay pnpm exec vitest run --config vitest.web.config.ts apps/web/tests/android-native-upload-budget.e2e.ts; Installed Android SAF complete-body budget refusal preserves input and explicit smaller send; 1 files / 1 passed",
+      "log": ".artifacts/native-upload-budget-android-saf-r1.log",
+      "sourceRecord": "artifacts/upstream-first/native-upload-budget-source.json"
+    },
+    {
+      "status": "PASS",
+      "command": "command summary: DSH_ANDROID_ADB/DSH_ANDROID_SERIAL/DSH_SNAPSHOT=replay pnpm exec vitest run --config vitest.web.config.ts apps/web/tests/android-file-attachments.e2e.ts; Files SAF attachment regression; 1 files / 1 passed",
+      "log": ".artifacts/native-upload-budget-regression-files.log",
+      "sourceRecord": "artifacts/upstream-first/native-upload-budget-source.json"
+    },
+    {
+      "status": "PASS",
+      "command": "command summary: DSH_ANDROID_ADB/DSH_ANDROID_SERIAL/DSH_SNAPSHOT=replay pnpm exec vitest run --config vitest.web.config.ts apps/web/tests/android-attachment-receipt-recovery.e2e.ts; Attachment receipt recovery regression; 1 files / 1 passed",
+      "log": ".artifacts/native-upload-budget-regression-receipt-recovery.log",
+      "sourceRecord": "artifacts/upstream-first/native-upload-budget-source.json"
+    },
+    {
+      "status": "PASS",
+      "command": "command summary: DSH_ANDROID_ADB/DSH_ANDROID_SERIAL/DSH_SNAPSHOT=replay pnpm exec vitest run --config vitest.web.config.ts apps/web/tests/android-share-intake.e2e.ts; Share intake atomic adoption regression; 1 files / 1 passed",
+      "log": ".artifacts/native-upload-budget-regression-share-intake.log",
+      "sourceRecord": "artifacts/upstream-first/native-upload-budget-source.json"
+    },
+    {
+      "status": "PASS",
+      "command": "pnpm run typecheck",
+      "log": ".artifacts/native-upload-budget-typecheck-final.log",
+      "sourceRecord": "artifacts/upstream-first/native-upload-budget-source.json"
+    },
+    {
+      "status": "PASS",
+      "command": "pnpm exec tsx scripts/run-oxlint.ts <12 changed TS files>",
+      "log": ".artifacts/native-upload-budget-oxlint-fix1.log",
+      "sourceRecord": "artifacts/upstream-first/native-upload-budget-source.json"
+    },
+    {
+      "status": "PASS",
+      "command": "node --check artifacts/upstream-first/write-reports.mjs",
+      "log": ".artifacts/native-upload-budget-syntax.log",
+      "sourceRecord": "artifacts/upstream-first/native-upload-budget-source.json"
+    },
+    {
+      "status": "PASS",
+      "command": "pnpm run test:docs; 17 gates",
+      "log": ".artifacts/native-upload-budget-testdocs-fix2.log",
+      "sourceRecord": "artifacts/upstream-first/native-upload-budget-source.json"
+    },
+    {
+      "status": "PASS",
+      "command": "pnpm run doc-sync; 36 gates",
+      "log": ".artifacts/native-upload-budget-docsync-fix2.log",
+      "sourceRecord": "artifacts/upstream-first/native-upload-budget-source.json"
+    },
+    {
+      "status": "PASS",
+      "command": "node --test artifacts/upstream-first/specification-traceability.test.mjs artifacts/upstream-first/verify-audit.test.mjs; both files, 19 tests",
+      "log": ".artifacts/native-upload-budget-audit-tests.log",
+      "sourceRecord": "artifacts/upstream-first/native-upload-budget-source.json"
+    },
+    {
+      "status": "PASS",
+      "command": "node artifacts/upstream-first/verify-audit.mjs --require-gate0",
+      "log": ".artifacts/native-upload-budget-gate0.log",
+      "sourceRecord": "artifacts/upstream-first/native-upload-budget-source.json"
+    },
+    {
+      "status": "PASS",
       "command": "Workspace and Conversation source regression before shared readiness correction",
       "tests": 599,
       "log": ".artifacts/workspace-admission-tests-final.log",
@@ -10531,7 +10849,277 @@
       ]
     }
   },
+  "nativeUploadBudget": {
+    "status": "PASS",
+    "sourceRecord": "artifacts/upstream-first/native-upload-budget-source.json",
+    "scope": "Native upload complete-body budget: gateway createDeviceConnection caller-context factory, native-remote http-request-budget capability and view-permission method, Android pre-send refusal on the exact final UTF-8 JSON bytes with real-Host 413 and permission independence; streaming, image batches and physical devices remain open",
+    "repositoryKnownCodes": 84,
+    "uniqueOwners": 14,
+    "missingSemanticCommentsAdded": 49,
+    "packagedFiniteCodeSchema": true,
+    "sourceDeclarationsRemainExtensible": true,
+    "unknownCodeDiagnosticsPreserved": true,
+    "detailsPayloadSchema": false,
+    "nativeClientQualified": false,
+    "runtimeBehaviorChanged": true,
+    "newSessionEvents": false,
+    "phase3Complete": false,
+    "fullGoalComplete": false,
+    "resultInvalidMeaningMatchesEmitter": true,
+    "historicalSchedulerArchivePreserved": true,
+    "compilerIndependentDetailsGraphs": true,
+    "hostAndClientSeparate": true,
+    "builtModelMatchesSource": true,
+    "portableDetailsPayloadSchema": false,
+    "readonlyArrayAndTupleEmission": true,
+    "parsedReadonlyContainersFrozen": true,
+    "portableValidationIssueFields": true,
+    "compilerResolvedErrorDetails": true,
+    "resolvedFaceCodePairs": 144,
+    "overlappingSchemasCompared": 60,
+    "detailsSchemaPublished": false,
+    "formalEnvelopeSchemaEmitted": true,
+    "envelopeSchemaKnownBranches": 84,
+    "envelopeUnknownCodeExcludesKnownCodes": true,
+    "envelopeTupleDetailsRejected": true,
+    "envelopeLocalPackConsumed": true,
+    "envelopeRegistryPublished": false,
+    "remoteFailureClassification": true,
+    "classifiedCodes": 28,
+    "unknownCodeDefaultOpaque": true,
+    "gatewayClientConsumesClassification": true,
+    "classificationInventoryVerified": true,
+    "kotlinContractColumn": true,
+    "kotlinSchemaTests": 8,
+    "kotlinMirrorProjection": true,
+    "swiftColumn": false,
+    "androidShellMigrated": false,
+    "phase10Started": true,
+    "failureClasses": 9,
+    "invalidInputClass": true,
+    "uiAdoptionStarted": true,
+    "uiSurfacesAdoptingClassification": 2,
+    "swiftContractColumn": true,
+    "swiftSchemaTests": 4,
+    "swiftPayloadValidation": false,
+    "interactionReplyPermissions": true,
+    "interactionPermissionHostEnforced": true,
+    "interactionPermissionConfigurable": true,
+    "deviceTrustRolesReplaceSwitch": false,
+    "androidCoreMigrated": true,
+    "androidCoreTestClasses": 37,
+    "androidAppSourcesMigrated": true,
+    "androidAppConfigured": true,
+    "androidShellCompiled": false,
+    "androidScannerChainBlocked": true,
+    "swiftCheckExecutable": true,
+    "swiftLaneRunner": "macos-15-arm64",
+    "swiftLaneRecovered": true,
+    "diagnosticsOnlyTier": true,
+    "diagnosticsOnlyAdmittedEndpoints": 2,
+    "unknownVersionRejectUnchanged": true,
+    "responsivePhoneDrawer": true,
+    "phoneTierSidebarTrackZero": true,
+    "drawerWidthPx": 280,
+    "drawerDismissalPaths": 2,
+    "leftInputRegionSessionMaybe": true,
+    "frameColumnsExplicitlyPlaced": true,
+    "scannerAarBuilt": true,
+    "scannerAarStaticVerification": "PASS",
+    "scannerAarSourceSha": "8ca9f6ebf33de3912292416b85f5b510c88de9a3",
+    "assembleDebugGatePassed": true,
+    "emulatorMainActivityResumed": true,
+    "gatewayFailureConsumption": true,
+    "envelopeDetailsPreservedBothPaths": true,
+    "sharedClassificationDrivesPresentation": true,
+    "unknownCodesStayOpaque": true,
+    "uiSubagentClassificationAdopted": true,
+    "adoptingSurfacesCount": 5,
+    "queueDockClassificationAdopted": true,
+    "jobsFailureClassThreaded": true,
+    "sessionJobWireFieldAdditive": true,
+    "androidRefusalLaneDriven": true,
+    "ed25519KeyGenerationBundled": true,
+    "filesFollowStreamStarted": true,
+    "jobsProducerAdoptionVoid": true,
+    "linkAccessTakeoverDecided": true,
+    "remotePackagesStayRetired": true,
+    "gatewayOwnsDeviceAccess": true,
+    "deviceTrustSeamLanded": true,
+    "pairingIssuanceLive": true,
+    "knownErrorCodes": 89,
+    "deviceGrantsDurable": true,
+    "pairingCodesProcessLocalByDesign": true,
+    "deviceRolesMatchSection21Table": true,
+    "roleMappedReplyPermissions": true,
+    "signedAdmission": true,
+    "connectionStatesCompleteSection18": true,
+    "deviceRevokedStatePresent": true,
+    "protocolInteropMatrixPinned": true,
+    "section14VersionAxisEvidence": true,
+    "perRequestDeviceAdmission": true,
+    "capabilityRequiredPermissionVocabulary": true,
+    "remoteExecutionAuthorizationGated": true,
+    "sessionCapabilitiesDeclarePermissions": true,
+    "sessionReadWriteSplits": true,
+    "businessPermissionAdoptionStarted": true,
+    "workspaceCapabilitiesDeclarePermissions": true,
+    "remainingOwnersDeclarePermissions": true,
+    "admissionReplayLedger": true,
+    "androidClientSignsAdmissions": true,
+    "deviceIdentityConfirmation": true,
+    "devicesSettingsSurface": true,
+    "branchGateDebt": true,
+    "safeAreaInsets": true,
+    "keyboardAvoidance": true,
+    "foldableFrame": true,
+    "runningLocation": true,
+    "phoneTopBar": true,
+    "designLanguage": true,
+    "hostNaming": true,
+    "commandRisk": true,
+    "approvalFacts": true,
+    "followResume": true,
+    "viewLocation": true,
+    "composerGate": true,
+    "hostDiagnostics": true,
+    "supportBundle": true,
+    "telemetryConsent": true,
+    "diagnosticsRecorder": true,
+    "sessionHeadersEntry": true,
+    "settingsEntry": true,
+    "telemetryGate": true,
+    "savedHosts": true,
+    "degradedProbes": true,
+    "permissionTierChip": true,
+    "durableRetainedAnswers": true,
+    "unifiedDiffPreview": true,
+    "binaryFactCard": true,
+    "retargetableEndpoint": true,
+    "rosterSwitch": true,
+    "rosterUi": true,
+    "interruptedTransfer": true,
+    "mimeInference": true,
+    "hostSelectionObserver": true,
+    "diffReadableCopy": true,
+    "diffRichViewer": true,
+    "browserHostOrigin": true,
+    "deviceAdmissionLifecycle": true,
+    "nativePairing": true,
+    "nativeRemoteTls": true,
+    "nativePairingPresentation": true,
+    "androidNativeGatewayCore": true,
+    "androidNativeCompanion": true,
+    "androidNativeLifecycle": true,
+    "androidRepairing": true,
+    "androidCredentialRecovery": true,
+    "androidSessionList": true,
+    "androidInputRetention": true,
+    "androidInputPersistence": true,
+    "androidPromptRetry": true,
+    "androidHostRoster": true,
+    "androidViewLocation": true,
+    "androidCursorResume": true,
+    "androidResourceAdoption": true,
+    "androidNativeDiagnostics": true,
+    "nativeScannerAdoption": true,
+    "nativeScannerCandidate": true,
+    "nativeScannerSameSourceVerified": true,
+    "nativeScannerRepeatByteIdentical": true,
+    "nativeScannerBinarySymbolScan": true,
+    "androidCapabilityPresentation": true,
+    "androidCapabilityGenerationIsolation": true,
+    "androidCapabilityReadOnlyRefresh": true,
+    "androidOperationCapabilities": true,
+    "androidKnownOperationPreflight": true,
+    "androidCapabilityDraftRetention": true,
+    "androidSubagentTimeline": true,
+    "androidSelectedParentCatalog": true,
+    "androidChildObservationRetirement": true,
+    "androidCompleteResourceSave": true,
+    "androidResourceSavePickerOwnership": true,
+    "androidResourceSaveIndependentBytes": true,
+    "androidEncryptedDownloadCheckpoints": true,
+    "androidExplicitDownloadContinuation": true,
+    "androidDownloadJvmInterruptionRecovery": true,
+    "androidPersistentDownloadAdoption": true,
+    "androidDownloadDiskExport": true,
+    "androidInstalledDownloadProcessRecovery": true,
+    "androidDownloadHostIsolation": true,
+    "androidAcceptanceApkAdmission": true,
+    "androidFilesPickerAttachments": true,
+    "androidDurableFilePromptIntents": true,
+    "androidFileDraftProcessRecovery": true,
+    "androidFilePickerAuthority": true,
+    "hostStagedImageAdmission": true,
+    "androidPhotosPickerAttachments": true,
+    "androidDurableMixedAttachmentIntents": true,
+    "androidPhotoDraftProcessRecovery": true,
+    "androidCameraStagedImages": true,
+    "androidCameraOwnedOutputCleanup": true,
+    "androidCameraProcessRecovery": true,
+    "androidShareExplicitConfirmation": true,
+    "androidShareAtomicDraftAdoption": true,
+    "androidShareRestorationIsolation": true,
+    "androidViewDeepLinksCurrentHostNavigation": true,
+    "androidViewDeepLinksDeliveryIsolation": true,
+    "androidViewDeepLinksInputPreservation": true,
+    "androidPushForegroundRecovery": true,
+    "androidPushBackgroundProducerRetention": true,
+    "androidPushNotificationConsumption": true,
+    "androidNotificationPermission": true,
+    "androidNotificationSettingsRecovery": true,
+    "androidNotificationProcessRequestOwnership": true,
+    "androidAttachmentReceiptRecovery": true,
+    "androidAttachmentPendingDraftIsolation": true,
+    "nativeUploadBudget": true,
+    "limitations": [
+      "Current Core ran 57 tests across 7 suites with no failures, errors or skips. NativeGatewayUploadBudgetTest (7) and NativeHttpRequestBudgetTest (3) are part of that total, not another run. Every Core XML is directly hashed as current built evidence; the Kotlin sources predate that single Gradle run, which also built the final installed APK pair.",
+      "The local pre-send check is advisory only. A client bypassing Android still receives the real bridge 413 or a permission denial; no shared Remote error code was added and real HTTP 413 remains a carrier failure.",
+      "The 512 KiB source-file, 1 MiB args and 8-attachment local limits are unchanged; a larger Host budget never raises them. The budget is an inclusive limit on the complete signed UTF-8 JSON body including device admission, excluding HTTP headers, TLS and chunk framing.",
+      "The budget is re-read once per explicit fileUploads/upload invocation; it is not cached across requests and never falls back to a default when the capability is missing, the version is unknown or the response is invalid. fileUploads/upload cannot distinguish SAF from shared intake, so share files pass the same endpoint and their atomic local adoption is covered by regression rather than a new scenario.",
+      "The handoff-era interrupted run header only; no results, superseded by r2/r3.",
+      "First formal full-file run: 1 failed | 2 passed. The failing test accessed resolved.agent.ctx.fileUploads, an illegal Cordis service access outside the provider ancestry; fixed to the host root.fileUploads handle with assertions unchanged.",
+      "Increment-author-era catalog attempt failing with uv_os_get_passwd ENOMEM; not reproduced this round, retained as the recorded environment evidence.",
+      "Catalog generation deterministically blocked by the JSDoc completeness gate on the createDeviceConnection implementation; resolved by mirroring the interface contract JSDoc, after which the main entry wrote 3 artifacts and the compat entry checked up to date.",
+      "Pre-JSDoc-edit Host-face build (passed); superseded by the r3 rebuild after the source edit.",
+      "Pre-JSDoc-edit Client-face build (passed); superseded by the r3 rebuild. Gateway lib/index.js still needed the Client face for the public entry.",
+      "Invalid PowerShell aggregation producing null totals; the accepted 57/7 receipt is parsed from the bound XML files.",
+      "One-time backup manifest for 668 verified stray source-side JS/d.ts/map emissions removed after the test-face tsconfig fix; its cleanup helper must not be rerun.",
+      "First full typecheck (passed) before the pairing-script and test edits; the accepted check is the final rerun.",
+      "First focused oxlint with the await-thenable error on the isolation e2e; fixed via listener.await() and confirmed by the fix1 log.",
+      "16 passed / 1 failed intermediate state while re-recording pairing sidecars; superseded by testdocs-fix2 (17/0).",
+      "35 passed / 1 failed intermediate state; superseded by docsync-fix2 (36/0).",
+      "Final verify-translation-pairing corpus check: all pairs consistent after the narrow frozen-handoff exclusion; live bilingual coverage unchanged.",
+      "First write-reports execution failed: 22 mutable .mimosa session-state files were captured into the v1 record and their hashes drifted; capture now excludes .mimosa/ exactly like .glm-router/. The failed log and the preserved poisoned record document the repair.",
+      "The withdrawn first capture containing mutable .mimosa entries; kept byte-preserved as repair evidence, never sealed or published.",
+      "Second write-reports attempt failed with a TDZ ReferenceError: the advance shared-block end anchor pointed past the notification block in the current layout, moving it ahead of the androidAttachmentReceiptRecoveryHistory declaration. The anchor was corrected to the notification path const and the block order repaired to budget, attachment, notification; syntax re-checked.",
+      "Third write-reports attempt failed the record helpers check because the anchor fix, the drafts literal fix and the new diagnostics were edited after the intermediate capture; the drift was caught by the record validation itself. The intermediate record bytes are preserved unbound and capture was rebuilt against the fixed helpers before the successful regeneration run.",
+      "The formal Host proof needed two fixes retained as diagnostics: the test file accessed resolved.agent.ctx.fileUploads outside the provider ancestry (fixed to the host root.fileUploads handle) and the createDeviceConnection implementation lacked the JSDoc the catalog gate requires (fixed by mirroring the interface contract). No assertion was weakened or skipped.",
+      "The observed business ledger for the installed scenario is two nativeRemote/httpRequestBudget reads, one fileUploads/upload and one session/prompt, producing exactly one durable user message; two identical settled HTTP snapshots and a frozen invoke ledger guard against reporting a 413-refused request as never sent.",
+      "The frozen handoff snapshot trees are excluded from live translation pairing by a narrow path-prefix exclusion in scripts/translation-pairing.ts, matching the existing frozen-tree exclusions; live bilingual coverage is unchanged and the full corpus checks consistent.",
+      "The first budget-refused screenshot shows the pending card footer at the list top while the 700-character pending body sits above the viewport cut; its preservation is proved by the passing input-snapshot assertions, not by the image itself.",
+      "The native fixture uses keyless recorded replay. It does not establish real-model acceptance. The pre-existing Push cursor investigation remains OPEN_UNCLASSIFIED and Scanner qualification stays same-host/shared-cache with GO-2026-5932 open; Session writer V3 and completeRc=false persist.",
+      "The budget-refused screenshot shows the red REQUEST_TOO_LARGE guidance matching the native_companion.xml string, the new draft fully preserved in the composer, no attachment entry for the refused 1280-byte file, and the pending card footer at the top of the list; the 700-character pending body itself sits above the viewport cut and is proved by the passing data assertions, not by the image.",
+      "The smaller-file-ready screenshot shows the pending card gone after explicit discard, an 8-byte attachment entry with a remove control, the draft intact and no residual error line.",
+      "The sent-smaller-file screenshot shows exactly one user/message card containing the draft text and the 8-byte file, an emptied composer with a disabled send control and no error line."
+    ],
+    "nextRequiredWork": {
+      "specification": "artifacts/upstream-first/original-specification.md",
+      "traceability": "artifacts/upstream-first/specification-traceability.json",
+      "remaining": [
+        "Classify the next cursor failure using the preserved diagnostics, or establish a controlled reproduction before changing its owner. Do not close this investigation merely because subsequent runs pass.",
+        "Qualify image upload budgets, streaming and resumable uploads, physical devices and third-party senders independently; the local complete-body check is advisory and Host or proxy rejection remains authoritative.",
+        "Qualify image and mixed-attachment recovery, Host-restart invalidation, large/resumable uploads and physical devices independently; receipt recovery does not close broader attachment or Mobile Release acceptance.",
+        "Continue notification channel, settings revocation/process-death, persistent denial, physical-device, relay-backed delivery and precise Host/Session notification target qualification. Actual Recents and physical network/mux recovery remain separate work.",
+        "Continue Swift attachment adoption, cross-platform sharing and link entry, larger streamed uploads, upload retry/receipt expiry recovery, Host limit negotiation and the remaining requirement matrices without changing Host-owned authorization.",
+        "Retain scanner clean-cache/cross-machine, race, physical/16-KiB device, signed release, CodeQL and Apple gaps. Session writer V3 and completeRc=false persist; remote CI is distinct from local evidence. No memory update or handoff package."
+      ]
+    }
+  },
   "androidAttachmentReceiptRecovery": {
+    "historical": true,
+    "followup": "artifacts/upstream-first/native-upload-budget-source.json",
     "status": "PASS",
     "sourceRecord": "artifacts/upstream-first/android-attachment-receipt-recovery-source.json",
     "scope": "Android small-file attachment receipt recovery after real same-Host Session disposal/resume: precise refusal, original pending retry, later draft preservation, explicit discard/remove/SAF reselection and one durable accepted message; whole-section and Mobile Release acceptance remain open",
@@ -28986,7 +29574,7 @@
       "The known Windows symlink EPERM expanded-suite failure from the cancellation increment was not rerun or resolved"
     ]
   },
-  "latestSourceRecord": "artifacts/upstream-first/android-attachment-receipt-recovery-source.json",
+  "latestSourceRecord": "artifacts/upstream-first/native-upload-budget-source.json",
   "cancelTarget": {
     "historical": true,
     "followup": "artifacts/upstream-first/rename-revision-source.json",
@@ -29469,7 +30057,7 @@
     "files": [
       {
         "path": "artifacts/upstream-first/write-reports.mjs",
-        "sha256": "a7bb571c6c38443e88122b8f37d706b8e7d4204b3972044317bff48541a45087"
+        "sha256": "2ec94f6a67930f2ae6841704d914aaa353c91f8af977a44cb320c44780fabcd3"
       },
       {
         "path": "artifacts/upstream-first/verify-audit.mjs",

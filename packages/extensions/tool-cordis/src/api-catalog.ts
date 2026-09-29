@@ -1462,6 +1462,13 @@ export const SERVICE_API: readonly ServiceApiEntry[] = [
         returns: 'public identity facts, without certificate or private-key material.',
         throws: ['while the listener is not ready or has been disposed.'],
       },
+      {
+        signature: '@Remote(\'httpRequestBudget\') httpRequestBudget(): NativeHttpRequestBudget',
+        description: 'Read this listener\'s buffered HTTP body limit without granting upload permission.',
+        parameters: [],
+        returns: 'the inclusive byte limit used by this listener\'s HTTP bridge.',
+        throws: ['while the listener is not ready or has been disposed.'],
+      },
     ],
   },
   {
@@ -2888,9 +2895,10 @@ export const SERVICE_API: readonly ServiceApiEntry[] = [
         parameters: [],
       },
       {
-        signature: 'readonly deviceConnection: TypertGateway[\'deviceConnection\'] = { rpc: (endpoint, payload, signal) => this.dispatchRpc(endpoint, payload, signal, true), stream: { open: (endpoint, payload, signal) => this.openWireStream(endpoint, payload, signal, true), failure: error => rpcError(error), }, }',
-        description: 'Device-authenticated carrier; pairing redemption alone may precede identity.',
+        signature: 'createDeviceConnection(): TypertGatewayDeviceConnection',
+        description: 'Capture the caller\'s Cordis context for a native carrier. Direct methods resolve services in that context on every call. Device identity is required except for one-time pairing redemption; browser cookies cannot authorize it.',
         parameters: [],
+        returns: 'RPC and stream callbacks retaining the caller\'s service scope.',
       },
       {
         signature: 'registerRemoteEvents( source: TypertRemoteEventSource, host: RemoteEventHostInfo, ): () => Promise<void>',
@@ -5014,6 +5022,10 @@ export const TYPE_API: readonly TypeApiEntry[] = [
     declaration: 'export interface ModelReasoningEffort {\n    readonly id: string;\n    readonly name: string;\n    readonly description?: string;\n}',
   },
   {
+    name: 'NativeHttpRequestBudget',
+    declaration: 'export interface NativeHttpRequestBudget {\n    readonly maxRequestBodyBytes: number;\n}',
+  },
+  {
     name: 'NativeRemoteInfo',
     declaration: 'export interface NativeRemoteInfo {\n    readonly bindHost: \'127.0.0.1\' | \'0.0.0.0\' | \'::1\' | \'::\';\n    readonly port: number;\n    readonly spkiFingerprint: string;\n}',
   },
@@ -6550,12 +6562,12 @@ export const TYPE_API: readonly TypeApiEntry[] = [
     declaration: 'export interface TypertEventModel extends TypertDocumentation {\n    readonly name: string;\n    readonly mode?: string;\n    readonly signature: string;\n}',
   },
   {
-    name: 'TypertGateway',
-    declaration: 'export interface TypertGateway {\n    readonly wireStream: TypertGatewayWireStream;\n    readonly deviceConnection: {\n        readonly rpc: ConnectionRpcHandler;\n        readonly stream: TypertGatewayWireStream;\n    };\n    capabilities(): readonly string[];\n    registerRemoteEvents(source: TypertRemoteEventSource, host: RemoteEventHostInfo): () => Promise<void>;\n    invoke(request: InvokeRemoteRequest): Promise<unknown>;\n    stream(request: InvokeRemoteRequest): Promise<AsyncIterable<unknown>>;\n}',
-  },
-  {
     name: 'TypertGatewayBinding',
     declaration: 'export interface TypertGatewayBinding<Service extends object = object> {\n    readonly service: Service;\n    readonly serviceKey: string;\n    readonly namespace: string;\n    readonly capabilities?: readonly TypertRemoteCapability[];\n}',
+  },
+  {
+    name: 'TypertGatewayDeviceConnection',
+    declaration: 'export interface TypertGatewayDeviceConnection {\n    readonly rpc: ConnectionRpcHandler;\n    readonly stream: TypertGatewayWireStream;\n}',
   },
   {
     name: 'TypertGatewayWireStream',

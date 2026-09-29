@@ -29,6 +29,7 @@ import {
 import type {
   InvokeRemoteRequest,
   TypertGateway,
+  TypertGatewayDeviceConnection,
   TypertGatewayErrorCode,
   TypertGatewayWireStream,
   TypertRemoteEventDispatch,
@@ -67,6 +68,7 @@ import {
 export type {
   InvokeRemoteRequest,
   TypertGateway,
+  TypertGatewayDeviceConnection,
   TypertGatewayErrorCode,
   TypertGatewayWireStream,
   TypertRemoteEventContext,
@@ -229,13 +231,20 @@ export class TypertGatewayService extends Service implements TypertGateway {
     failure: error => rpcError(error),
   }
 
-  /** Device-authenticated carrier; pairing redemption alone may precede identity. */
-  readonly deviceConnection: TypertGateway['deviceConnection'] = {
-    rpc: (endpoint, payload, signal) => this.dispatchRpc(endpoint, payload, signal, true),
-    stream: {
-      open: (endpoint, payload, signal) => this.openWireStream(endpoint, payload, signal, true),
-      failure: error => rpcError(error),
-    },
+  /**
+   * Capture the caller's Cordis context for a native carrier. Direct methods
+   * resolve services in that context on every call. Device identity is required
+   * except for one-time pairing redemption; browser cookies cannot authorize it.
+   * @returns RPC and stream callbacks retaining the caller's service scope.
+   */
+  createDeviceConnection(): TypertGatewayDeviceConnection {
+    return {
+      rpc: (endpoint, payload, signal) => this.dispatchRpc(endpoint, payload, signal, true),
+      stream: {
+        open: (endpoint, payload, signal) => this.openWireStream(endpoint, payload, signal, true),
+        failure: error => rpcError(error),
+      },
+    }
   }
 
   private srcClaims: ReadonlySet<string> | undefined

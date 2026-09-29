@@ -1,0 +1,70 @@
+{
+  "status": "PASS",
+  "scope": "Report bindings and audit for the native upload complete-body budget increment: caller-context gateway factory, view-permission budget method and Android pre-send refusal on the final UTF-8 JSON bytes; the remaining specification sections stay open; full Upstream-First objective remains in progress",
+  "gate0": {
+    "validation": "PASS",
+    "gate0": "PASS",
+    "paths": 1938,
+    "components": 129,
+    "specificationCoverage": {
+      "status": "PASS",
+      "numberedSections": 81,
+      "nonEmptySourceLines": 1983,
+      "acceptanceProven": false
+    }
+  },
+  "sourceRecord": {
+    "path": "artifacts/upstream-first/native-upload-budget-source.json",
+    "sha256": "0df18390c56f0a34e7143018da8e957686cbd2f38cec8fdbc399d75460d29047"
+  },
+  "generator": {
+    "path": "artifacts/upstream-first/write-reports.mjs",
+    "sha256": "2ec94f6a67930f2ae6841704d914aaa353c91f8af977a44cb320c44780fabcd3"
+  },
+  "binding": {
+    "path": "artifacts/upstream-first/native-upload-budget-binding.json",
+    "sha256": "310160b9f7fd89646fda38c6cc1a211dbb5330a9011fde7065a608f3e5158187"
+  },
+  "helpers": [
+    {
+      "path": ".artifacts/advance-native-upload-budget-reports.mjs",
+      "sha256": "430c7dee95229407e68ee9dbc651ef0a8d004bea18724e600c3b9eea55fe1be6"
+    },
+    {
+      "path": ".artifacts/capture-native-upload-budget-validation.mjs",
+      "sha256": "37f68c3b95b299d76014423b05476e98fc70c5b092a3d8c7add285b2226c0d54"
+    }
+  ],
+  "reports": [
+    {
+      "path": "IMPLEMENTATION_STATUS.md",
+      "sha256": "7e03398fad9bdd5cb3acf88b7bb11be0b5d5ec7af6bd015a51b6285b4b0ac3cf"
+    },
+    {
+      "path": "artifacts/upstream-first/evidence.json",
+      "sha256": "2e282591cc83a33b2892c7f79c7e9f3319c16e4287ab1338ed231d7fce093e1b"
+    }
+  ],
+  "checks": [
+    {
+      "path": ".artifacts/native-upload-budget-binding.log",
+      "sha256": "d23a109310c1d772721f686ca49cfea4de28b1a27ddb27973c059726b47829c4"
+    },
+    {
+      "path": ".artifacts/native-upload-budget-audit-final.log",
+      "sha256": "70ff0b54dc7dbb3ee9817651e75ece3347d2d7f85fcf9cc2201a8332eb8dc42c"
+    },
+    {
+      "path": ".artifacts/native-upload-budget-gate0-final.log",
+      "sha256": "505d74ef938f5d34d85490d37e0176ba804d93272fcf465ce2544a02c56b3f90"
+    },
+    {
+      "path": ".artifacts/native-upload-budget-report-diff-check.log",
+      "sha256": "e3b0c44298fc1c149afbf4c8996fb92427ae41e4649b934ca495991b7852b855"
+    },
+    {
+      "path": ".artifacts/native-upload-budget-report-generation.log",
+      "sha256": "6616630463c8eb3ffd69d218e03ffc25be7852a2f9e639de6ae42558801b921d"
+    }
+  ]
+}

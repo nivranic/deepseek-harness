@@ -1,0 +1,4 @@
+{"case":"A-plus-isolated-B","classification":"BASELINE_DEFECT_REPRODUCED","distinctLiveListenerPorts":true,"realTlsPinChecked":true,"ownerPairingOnB":true,"aReturnedA":true,"bReturnedA":true,"bDidNotReturnB":true,"budgetFeatureImplemented":false}
+{"case":"A-plus-isolated-B","cleanupAwaited":true,"aSurvivedBDisposal":true}
+{"case":"isolated-B-only","classification":"BASELINE_DEFECT_REPRODUCED","realTlsPinChecked":true,"ownerPairingOnB":true,"rootHasNoNativeRemote":true,"localBDescribeAvailable":true,"signedHttpDescribeRefused":true,"actualCode":"gateway/permission-denied","budgetFeatureImplemented":false}
+{"case":"isolated-B-only","cleanupAwaited":true}

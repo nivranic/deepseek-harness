@@ -182,21 +182,28 @@ type TypertGatewayErrorCode =
 ```
 
 ```ts type-equiv
+/** Device-authenticated RPC and streams bound to the factory caller's Cordis context. */
+interface TypertGatewayDeviceConnection {
+  /** Decode and authorize one device RPC; unsigned pairing redemption is the sole exception. */
+  readonly rpc: ConnectionRpcHandler
+  /** Open device-owned streams; device grants remain revocable throughout iteration. */
+  readonly stream: TypertGatewayWireStream
+}
+```
+
+```ts type-equiv
 /** Host dispatcher consumed by Connection adapters. */
 interface TypertGateway {
   /** Carrier adapter shared by WebSocket and in-process transports. */
   readonly wireStream: TypertGatewayWireStream
 
   /**
-   * Native carrier adapter requiring device identity for every operation except
-   * one-time pairing redemption. Local browser cookies cannot authorize it.
+   * Capture the caller's Cordis context for a native carrier. Direct methods
+   * resolve services in that context on every call. Device identity is required
+   * except for one-time pairing redemption; browser cookies cannot authorize it.
+   * @returns RPC and stream callbacks retaining the caller's service scope.
    */
-  readonly deviceConnection: {
-    /** Decode and authorize one device RPC; unsigned pairing redemption is the sole exception. */
-    readonly rpc: ConnectionRpcHandler
-    /** Open device-owned streams; device grants remain revocable throughout iteration. */
-    readonly stream: TypertGatewayWireStream
-  }
+  createDeviceConnection(): TypertGatewayDeviceConnection
 
   /**
    * Read explicit capability ids from active Remote bindings whose required
@@ -235,7 +242,23 @@ interface TypertGateway {
 <a id="native-tls-source"></a>
 ## Native TLS source
 
-[Native Remote Connection](../../packages/api/native-remote/README.md) mounts a separate, opt-in TLS listener. Gateway deviceConnection requires signed identities for RPC and logical streams, except one-time pairing redemption. Device-owned business streams observe grant revocation throughout admission and iteration. NativeRemoteInfo exposes only the configured bindHost, actual port, and SPKI fingerprint to authenticated operators and device administrators; it never exposes private-key material.
+[Native Remote Connection](../../packages/api/native-remote/README.md) mounts a separate, opt-in TLS listener. Each listener calls the Gateway's ordinary createDeviceConnection factory in its own Cordis context. The returned RPC and stream callbacks preserve that context and require signed identities, except for one-time pairing redemption. Device-owned business streams observe grant revocation throughout admission and iteration. NativeRemoteInfo exposes only the configured bindHost, actual port, and SPKI fingerprint to authenticated operators and device administrators; it never exposes private-key material.
+
+The independent native-remote.http-request-budget.v1 capability exposes nativeRemote/httpRequestBudget with view permission. Its limit belongs to that ready Native listener, not a Web or Desktop carrier. Clients can compare their complete encoded body with the observed value, but the Host still checks actual bytes and current authorization. Administrative listener metadata continues to require device.admin.
+
+### NativeHttpRequestBudget
+
+```ts type-equiv
+/** Buffered HTTP request admission configured on one ready native TLS listener. */
+interface NativeHttpRequestBudget {
+  /**
+   * Inclusive byte limit, a positive safe integer, for the complete UTF-8 JSON
+   * body including the RPC envelope and device admission. Excludes HTTP
+   * headers, TLS, and chunk framing; does not limit decoded file bytes alone.
+   */
+  readonly maxRequestBodyBytes: number
+}
+```
 
 ### NativeRemoteInfo
 
@@ -422,6 +445,13 @@ A separately configured HTTPS listener with no browser assets, cookies, or local
  * @throws while the listener is not ready or has been disposed.
  */
 @Remote('describe') describe(): NativeRemoteInfo
+
+/**
+ * Read this listener's buffered HTTP body limit without granting upload permission.
+ * @returns the inclusive byte limit used by this listener's HTTP bridge.
+ * @throws while the listener is not ready or has been disposed.
+ */
+@Remote('httpRequestBudget') httpRequestBudget(): NativeHttpRequestBudget
 ```
 
 Source: [`packages/api/native-remote/src/index.ts`](../../packages/api/native-remote/src/index.ts)
@@ -499,6 +529,14 @@ Source: [`packages/typert/registry/src/service.ts`](../../packages/typert/regist
 Resolve strict generated definitions or conservative SRC markers against current Cordis Services and Typert providers.
 
 ```ts cordis-catalog
+/**
+ * Capture the caller's Cordis context for a native carrier. Direct methods
+ * resolve services in that context on every call. Device identity is required
+ * except for one-time pairing redemption; browser cookies cannot authorize it.
+ * @returns RPC and stream callbacks retaining the caller's service scope.
+ */
+createDeviceConnection(): TypertGatewayDeviceConnection
+
 /**
  * Register the sole application-selected forwarded-event source.
  * @param source - stream factory installed by the Remote assembly.

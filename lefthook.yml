@@ -32,7 +32,10 @@ pre-commit:
       run: node_modules/.bin/tsx scripts/gen-third-party-notices.ts && git add THIRD_PARTY_NOTICES.md
 
     - name: whitespace (staged)
-      run: git diff --cached --check
+      # Handoff packages are SHA-sealed frozen evidence; their tracked.patch
+      # snapshots carry diff-context trailing whitespace that cannot be corrected
+      # without breaking the sealed bytes. Source-tree hygiene stays enforced.
+      run: git diff --cached --check -- . ':(exclude)artifacts/upstream-first/handoff/**'
 
     - name: vendor manifest guard
       run: scripts/check-vendor-manifest.sh

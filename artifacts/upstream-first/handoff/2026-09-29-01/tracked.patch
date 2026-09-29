@@ -1,0 +1,1289 @@
+diff --git a/.agents/notes/implemented/architecture/2026-09-27-android-file-attachments.md b/.agents/notes/implemented/architecture/2026-09-27-android-file-attachments.md
+index 1f17a14bfc..bc6969b80d 100644
+--- a/.agents/notes/implemented/architecture/2026-09-27-android-file-attachments.md
++++ b/.agents/notes/implemented/architecture/2026-09-27-android-file-attachments.md
+@@ -10,11 +10,11 @@ A local document must reach the selected Host before a prompt can reference it.
+ 
+ ## Decision
+ 
+-The Session composer exposes **+ → 文件** when the Host advertises `file-upload.stage.v1` and Session control is available. It opens `ACTION_OPEN_DOCUMENT` with `*/*` for one file. `NativeFileAttachmentPicker` is Activity-ViewModel-owned and retains the original `NativeFileAttachmentsModel` and single-use `NativeFileSelection` across rotation. A restored process has no selection authority. A cancelled picker remains occupied until its result returns, preventing a second selection from consuming the old result. Duplicate, cancelled and retired results cannot open a source for a different Session generation or Host.
++The Session composer exposes **+ → 文件** when the Host advertises both `file-upload.stage.v1` and `native-remote.http-request-budget.v1` and Session control is available. It opens `ACTION_OPEN_DOCUMENT` with `*/*` for one file. `NativeFileAttachmentPicker` is Activity-ViewModel-owned and retains the original `NativeFileAttachmentsModel` and single-use `NativeFileSelection` across rotation. A restored process has no selection authority. A cancelled picker remains occupied until its result returns, preventing a second selection from consuming the old result. Duplicate, cancelled and retired results cannot open a source for a different Session generation or Host.
+ 
+ `AndroidNativeFileAttachmentSource` reads display metadata and opens the selected content URI only when the core model invokes it on its I/O dispatcher. The application takes no persistent URI grant, stores no source URI in input checkpoints and never deletes the source document. Source streams close before their work completes. Session changes invalidate the selected generation; cancellation and Host retirement await owned provider I/O and RPC work. A blocking provider can delay that wait.
+ 
+-`NativeFileAttachmentsModel` accepts files up to 512 KiB, shares a maximum of 8 files and images per draft, and bounds the UTF-8 encoded upload-arguments JSON at 1 MiB. These are application-supplied local limits. The JSON limit excludes the signed RPC envelope; the Host independently limits the complete request body, and no limit negotiation occurs. The model base64-encodes the admitted bytes and calls `fileUploads/upload` through the selected model's signed wire. It does not use the Host's streaming route or support resumable upload offsets.
++`NativeFileAttachmentsModel` accepts files up to 512 KiB, shares a maximum of 8 files and images per draft, and bounds the UTF-8 encoded upload-arguments JSON at 1 MiB. These application-supplied limits remain independent of the Host's complete request-body limit. The model base64-encodes the admitted bytes and calls `fileUploads/upload` through the selected model's signed wire. The Native client also reads the receiving listener's current body budget and checks the complete signed request before dispatch; the [request-budget decision](2026-09-28-native-http-upload-budget.md) owns that check and its failure semantics. File intake does not use the Host's streaming route or support resumable upload offsets.
+ 
+ The returned receipt and file metadata enter the selected Session draft as a `SessionFileAttachment`. A completed upload has a removable filename-and-size card; selecting, reading or uploading disables send and pending-prompt retry. A prompt can contain files without text. Removal changes only the local draft and never deletes Host bytes. Failure notices use fixed localized categories without source paths or raw provider exceptions. `DomainFold` presents received durable file blocks as filename-and-byte-count summaries.
+ 
+diff --git a/.agents/notes/implemented/architecture/2026-09-27-android-file-attachments.zh.md b/.agents/notes/implemented/architecture/2026-09-27-android-file-attachments.zh.md
+index e3945391b7..0006bcf9f3 100644
+--- a/.agents/notes/implemented/architecture/2026-09-27-android-file-attachments.zh.md
++++ b/.agents/notes/implemented/architecture/2026-09-27-android-file-attachments.zh.md
+@@ -10,11 +10,11 @@ Status: implemented
+ 
+ ## 决定
+ 
+-Host 声明 `file-upload.stage.v1` 且 Session 控制可用时，Session 输入区提供 **+ → 文件**。它使用 `ACTION_OPEN_DOCUMENT` 和 `*/*` 一次选择一个文件。`NativeFileAttachmentPicker` 由 Activity ViewModel 持有，跨旋转保留原始 `NativeFileAttachmentsModel` 和一次性的 `NativeFileSelection`。恢复的进程不具有选择授权。已取消选择器在结果返回前仍占用位置，避免第二次选择消费旧结果。重复、取消和已退役的结果不能为另一 Session 代次或 Host 打开源文件。
++Host 同时声明 `file-upload.stage.v1` 与 `native-remote.http-request-budget.v1` 且 Session 控制可用时，Session 输入区提供 **+ → 文件**。它使用 `ACTION_OPEN_DOCUMENT` 和 `*/*` 一次选择一个文件。`NativeFileAttachmentPicker` 由 Activity ViewModel 持有，跨旋转保留原始 `NativeFileAttachmentsModel` 和一次性的 `NativeFileSelection`。恢复的进程不具有选择授权。已取消选择器在结果返回前仍占用位置，避免第二次选择消费旧结果。重复、取消和已退役的结果不能为另一 Session 代次或 Host 打开源文件。
+ 
+ `AndroidNativeFileAttachmentSource` 仅在核心模型的 I/O dispatcher 调用时读取显示元数据并打开所选 content URI。应用不取得持久 URI 授权，不在输入检查点中保存源 URI，也不删除源文档。源流在所属工作完成前关闭。Session 切换使所选代次失效；取消和 Host 退役等待所属提供方 I/O 与 RPC 工作结束。阻塞的提供方可能延长等待。
+ 
+-`NativeFileAttachmentsModel` 接受不超过 512 KiB 的文件，文件与图片合计每份草稿最多接受 8 个附件，并将 UTF-8 编码后的上传参数 JSON 限制为 1 MiB。这些是应用提供的本地限制。JSON 限制不包含带签名的 RPC envelope；Host 独立限制完整请求体，两者不进行限额协商。模型将通过准入的字节编码为 base64，通过所选模型的签名 wire 调用 `fileUploads/upload`。它不使用 Host 流式路由，也不支持可恢复上传偏移。
++`NativeFileAttachmentsModel` 接受不超过 512 KiB 的文件，文件与图片合计每份草稿最多接受 8 个附件，并将 UTF-8 编码后的上传参数 JSON 限制为 1 MiB。这些应用提供的限制与 Host 的完整请求体限制保持独立。模型将通过准入的字节编码为 base64，通过所选模型的签名 wire 调用 `fileUploads/upload`。Native client 还会读取实际接收监听器的当前请求体预算，并在派发前检查完整签名请求；[请求体预算决定](2026-09-28-native-http-upload-budget.zh.md)拥有该检查及其失败语义。文件入口不使用 Host 流式路由，也不支持可恢复上传偏移。
+ 
+ 返回的回执与文件元数据以 `SessionFileAttachment` 进入所选 Session 草稿。上传完成后显示可移除的文件名与大小卡片；选择、读取或上传期间禁用发送及待确认 prompt 重试。prompt 可以只含文件而不含文本。移除只修改本地草稿，不删除 Host 字节。失败提示使用固定本地化类别，不包含源路径或提供方原始异常。`DomainFold` 将收到的持久文件块呈现为文件名与字节数摘要。
+ 
+diff --git a/.agents/notes/implemented/architecture/2026-09-27-android-photo-attachments.md b/.agents/notes/implemented/architecture/2026-09-27-android-photo-attachments.md
+index d350733395..542e50c94c 100644
+--- a/.agents/notes/implemented/architecture/2026-09-27-android-photo-attachments.md
++++ b/.agents/notes/implemented/architecture/2026-09-27-android-photo-attachments.md
+@@ -10,7 +10,7 @@ A selected photo needs Host image validation and normalization before a durable
+ 
+ ## Decision
+ 
+-The Session composer exposes **+ → 照片** when Session control and `image-upload.stage.v1` are advertised. `file-upload.stage.v1` independently controls **+ → 文件**. The photo entry requests one image through AndroidX `PickVisualMedia(ImageOnly)`. Files and photos share one active selection owner, so cancellation, Activity recreation, Session replacement and Host retirement preserve the same single-use authority described in the [file-attachment decision](2026-09-27-android-file-attachments.md). The application takes no persistent URI grant and saves no source URI; process restoration cannot reopen or upload a selected source.
++The Session composer exposes **+ → 照片** when Session control and `image-upload.stage.v1` are advertised. **+ → 文件** independently requires both `file-upload.stage.v1` and `native-remote.http-request-budget.v1`. The photo entry requests one image through AndroidX `PickVisualMedia(ImageOnly)`. Files and photos share one active selection owner, so cancellation, Activity recreation, Session replacement and Host retirement preserve the same single-use authority described in the [file-attachment decision](2026-09-27-android-file-attachments.md). The application takes no persistent URI grant and saves no source URI; process restoration cannot reopen or upload a selected source.
+ 
+ Android accepts PNG, JPEG, WebP and GIF source MIME types; unknown types and HEIC are refused without conversion. The application limits each source to 512 KiB, the combined draft to 8 attachments, and UTF-8 upload-arguments JSON to 1 MiB. The JSON limit excludes the signed RPC envelope, and these limits are not negotiated with the Host. Reading and upload remain explicit, bounded work; a blocking content provider can delay cancellation cleanup. A shared `SessionAttachmentAdmission` reservation rejects send and retry at model entry points throughout selection, reading, upload and cancellation cleanup. Owned job or lifetime completion releases the reservation, including cancellation before a coroutine body starts.
+ 
+diff --git a/.agents/notes/implemented/architecture/2026-09-27-android-photo-attachments.zh.md b/.agents/notes/implemented/architecture/2026-09-27-android-photo-attachments.zh.md
+index dd4d9dec33..7666592d37 100644
+--- a/.agents/notes/implemented/architecture/2026-09-27-android-photo-attachments.zh.md
++++ b/.agents/notes/implemented/architecture/2026-09-27-android-photo-attachments.zh.md
+@@ -10,7 +10,7 @@ Status: implemented
+ 
+ ## 决策
+ 
+-Session 控制与 `image-upload.stage.v1` 均已声明时，Session 输入区提供 **+ → 照片**；`file-upload.stage.v1` 独立控制 **+ → 文件**。照片入口通过 AndroidX `PickVisualMedia(ImageOnly)` 请求一张图片。文件与照片共用一个活动选择持有者，因此取消、Activity 重建、Session 替换和 Host 退役遵循[文件附件决定](2026-09-27-android-file-attachments.zh.md)中的一次性授权。应用不取得持久 URI 授权，也不保存源 URI；进程恢复不能重新打开或上传所选来源。
++Session 控制与 `image-upload.stage.v1` 均已声明时，Session 输入区提供 **+ → 照片**；**+ → 文件** 独立要求同时具备 `file-upload.stage.v1` 与 `native-remote.http-request-budget.v1`。照片入口通过 AndroidX `PickVisualMedia(ImageOnly)` 请求一张图片。文件与照片共用一个活动选择持有者，因此取消、Activity 重建、Session 替换和 Host 退役遵循[文件附件决定](2026-09-27-android-file-attachments.zh.md)中的一次性授权。应用不取得持久 URI 授权，也不保存源 URI；进程恢复不能重新打开或上传所选来源。
+ 
+ Android 接受 PNG、JPEG、WebP 和 GIF 源 MIME 类型；未知类型和 HEIC 直接拒绝，不进行转换。应用限制每个源文件最多 512 KiB、混合草稿最多 8 个附件、UTF-8 上传参数 JSON 最多 1 MiB。JSON 限制不包含带签名的 RPC envelope，这些限制也不与 Host 协商。读取与上传保持为显式、有界的工作；阻塞的内容提供方可能延长取消清理。共享的 `SessionAttachmentAdmission` 占用在选择、读取、上传及取消清理期间，从模型入口拒绝发送与重试。所属任务或生命周期完成后释放占用，包括协程主体启动前已被取消的情况。
+ 
+diff --git a/.agents/notes/implemented/architecture/2026-09-28-android-share-intake.md b/.agents/notes/implemented/architecture/2026-09-28-android-share-intake.md
+index 038207f479..8642d1dffc 100644
+--- a/.agents/notes/implemented/architecture/2026-09-28-android-share-intake.md
++++ b/.agents/notes/implemented/architecture/2026-09-28-android-share-intake.md
+@@ -18,7 +18,7 @@ A new share entering review clears composer focus and dismisses the software key
+ 
+ Intent parsing prefers the ordered `EXTRA_STREAM` payload; only its absence selects URI entries from `ClipData`. It does not concatenate both representations or deduplicate repeated occurrences. Sources must be `content` URIs with an authority and no user information; malformed extras, nested Intents, selectors and the application's private camera-provider URIs are refused. The application never takes persistable source grants, deletes shared documents or stores source bytes in input checkpoints.
+ 
+-Incoming text is limited to 64 KiB of UTF-8, incoming and combined-draft attachments to 8, each source to 512 KiB, and each encoded upload-arguments JSON to 1 MiB. The JSON limit excludes the signed RPC envelope; these application limits are not negotiated with the Host. MIME resolution occurs on the I/O dispatcher after confirmation. A declared image must resolve to supported PNG, JPEG, WebP or GIF; unknown or unsupported image types fail instead of falling back to generic files. Other items use the provider MIME to choose image or file admission. The resolved kind must be allowed before the application queries its name or opens its bytes.
++Incoming text is limited to 64 KiB of UTF-8, incoming and combined-draft attachments to 8, each source to 512 KiB, and each encoded upload-arguments JSON to 1 MiB. The JSON limit excludes the signed RPC envelope; these application limits are not negotiated with the Host. File uploads also apply the [Native request-body budget](2026-09-28-native-http-upload-budget.md) before dispatch, without changing the batch's atomic local adoption or adding image-body budgeting. MIME resolution occurs on the I/O dispatcher after confirmation. A declared image must resolve to supported PNG, JPEG, WebP or GIF; unknown or unsupported image types fail instead of falling back to generic files. Other items use the provider MIME to choose image or file admission. The resolved kind must be allowed before the application queries its name or opens its bytes.
+ 
+ The [view-link decision](2026-09-28-android-view-deep-links.md) owns `ACTION_VIEW` navigation. URLs received through Share remain text. Neither external entry replaces the other's pending operation; a busy refusal requires explicit retry or a new delivery after the existing work ends.
+ 
+diff --git a/.agents/notes/implemented/architecture/2026-09-28-android-share-intake.zh.md b/.agents/notes/implemented/architecture/2026-09-28-android-share-intake.zh.md
+index b4e699f26f..96e364bbbe 100644
+--- a/.agents/notes/implemented/architecture/2026-09-28-android-share-intake.zh.md
++++ b/.agents/notes/implemented/architecture/2026-09-28-android-share-intake.zh.md
+@@ -18,7 +18,7 @@ Status: implemented
+ 
+ Intent 解析优先采用有序 `EXTRA_STREAM` 载荷；只有不存在该载荷时才读取 `ClipData` 中的 URI 条目。两种表示不会拼接，重复出现的条目也不去重。来源必须是具有 authority 且不含用户信息的 `content` URI；格式错误的 extras、嵌套 Intent、selector 和应用私有相机提供方 URI 均被拒绝。应用不取得持久源授权，不删除共享文档，也不把源字节存入输入检查点。
+ 
+-传入文本限制为 64 KiB UTF-8，传入及合并后草稿的附件限制为 8 个，每个来源限制为 512 KiB，每次编码上传参数 JSON 限制为 1 MiB。JSON 限制不包含带签名的 RPC envelope；这些应用限制不与 Host 协商。确认后才在 I/O dispatcher 解析 MIME。声明为图片的来源必须解析为支持的 PNG、JPEG、WebP 或 GIF；未知或不支持的图片类型直接失败，不降级为通用文件。其他条目按提供方 MIME 选择图片或文件准入。解析后的类别必须受允许，应用才会查询名称或打开字节。
++传入文本限制为 64 KiB UTF-8，传入及合并后草稿的附件限制为 8 个，每个来源限制为 512 KiB，每次编码上传参数 JSON 限制为 1 MiB。JSON 限制不包含带签名的 RPC envelope；这些应用限制不与 Host 协商。文件上传还在派发前检查 [Native 请求体预算](2026-09-28-native-http-upload-budget.zh.md)，不改变批次的本地原子采纳，也不增加图片请求体预算。确认后才在 I/O dispatcher 解析 MIME。声明为图片的来源必须解析为支持的 PNG、JPEG、WebP 或 GIF；未知或不支持的图片类型直接失败，不降级为通用文件。其他条目按提供方 MIME 选择图片或文件准入。解析后的类别必须受允许，应用才会查询名称或打开字节。
+ 
+ [查看位置链接决定](2026-09-28-android-view-deep-links.zh.md)拥有 `ACTION_VIEW` 导航。分享收到的 URL 仍为文本。两个外部入口都不能替换对方的待处理操作；繁忙拒绝后，需要在既有工作结束时显式重试或重新投递。
+ 
+diff --git a/apps/android/README.md b/apps/android/README.md
+index deeb6b37d1..e4076b5224 100644
+--- a/apps/android/README.md
++++ b/apps/android/README.md
+@@ -35,7 +35,9 @@ The Subagents pane lists children of the currently open Session. Open a child to
+ 
+ Session drafts and Question answers share encrypted input storage isolated by Host id, pinned fingerprint, and device grant. Saved input and the last ordinary Session survive process restart; restoring them only opens observations. Explicit submissions remain model-owned and wait for a saved checkpoint. Failed prompts retain their complete original text/attachment intent and request id independently of newer edits. Acknowledgements and matching Host receipts clear only the accepted intent; closed or revised Questions retire obsolete answers. Save failure blocks submission and offers retry. Unreadable input remains intact until explicit backup-and-reset recovery. The [input persistence decision](../../.agents/notes/implemented/architecture/2026-09-26-android-encrypted-input-checkpoints.md) owns format and recovery semantics; the [recorded scenario](../web/tests/android-input-persistence.e2e.ts) exercises process restoration and damaged encrypted storage.
+ 
+-In the Session composer, choose **+ → 文件** for one system document or **+ → 照片** for one image through Android Photo Picker. Files and images share one ordered, removable attachment list; a message can contain attachments without text. Selection, reading and upload disable sending and pending-message retry. Removing a card changes only the local draft. The application admits at most 8 attachments per draft and 512 KiB per source; these local limits are not negotiated with the Host. File and photo entries independently require `file-upload.stage.v1` and `image-upload.stage.v1`. Photos accept PNG, JPEG, WebP and GIF; HEIC is refused. Restored receipts trigger neither upload nor send. The [file decision](../../.agents/notes/implemented/architecture/2026-09-27-android-file-attachments.md) owns document-picker intake; the [photo decision](../../.agents/notes/implemented/architecture/2026-09-27-android-photo-attachments.md) owns image intake, mixed ordering and verification limits.
++In the Session composer, choose **+ → 文件** for one system document or **+ → 照片** for one image through Android Photo Picker. Files and images share one ordered, removable attachment list; a message can contain attachments without text. Selection, reading and upload disable sending and pending-message retry. Removing a card changes only the local draft. The application admits at most 8 attachments per draft and 512 KiB per source; these local limits are not negotiated with the Host. Files require both `file-upload.stage.v1` and `native-remote.http-request-budget.v1`; Photos independently requires `image-upload.stage.v1`. Photos accept PNG, JPEG, WebP and GIF; HEIC is refused. Restored receipts trigger neither upload nor send. The [file decision](../../.agents/notes/implemented/architecture/2026-09-27-android-file-attachments.md) owns document-picker intake; the [photo decision](../../.agents/notes/implemented/architecture/2026-09-27-android-photo-attachments.md) owns image intake, mixed ordering and verification limits.
++
++After local file admission, the Native client reads the selected listener's HTTP body budget for each file upload, including files accepted through Share. The client checks the complete encoded request and refuses an oversized body before sending the file. The existing draft and pending send remain intact; choose a smaller source explicitly to try again. A missing budget capability, invalid budget or failed budget read stops the upload without using an earlier value or scheduling a retry. A successful budget read does not guarantee Host acceptance. Images retain their separate upload path.
+ 
+ When the Host reports a missing staged receipt, the failure notice explains explicit recovery. Copy any text you need before discarding the pending send: discarding also removes its corresponding draft if it has not been edited; a different newer draft survives. Remove any old attachments still present, select them again, then send explicitly. The [receipt-recovery decision](../../.agents/notes/implemented/architecture/2026-09-28-android-attachment-receipt-recovery.md) owns error recognition and the verification limits. The [installed recovery scenario](../web/tests/android-attachment-receipt-recovery.e2e.ts) covers a SAF file after Session disposal within the same running Host; the notice does not diagnose a timeout or Host restart.
+ 
+diff --git a/apps/android/README.zh.md b/apps/android/README.zh.md
+index dbdf50cd06..b559b1d0b9 100644
+--- a/apps/android/README.zh.md
++++ b/apps/android/README.zh.md
+@@ -35,7 +35,9 @@ Host 传输场景为 [android-gateway.e2e.ts](../web/tests/android-gateway.e2e.t
+ 
+ Session 草稿与 Question 答案共享加密输入存储，按 Host id、固定指纹及设备授权隔离。已保存输入与最后查看的普通 Session 可以跨进程重启恢复；恢复只开启观察。显式提交仍由模型持有，并等待输入保存。失败 prompt 独立保留原始文本/附件完整意图及请求 id，不受新编辑影响。确认及匹配的 Host 回执仅清理已接受意图；关闭或修订后的 Question 移除过期答案。保存失败阻止提交并提供重试。不可读取的输入保持原样，直到用户显式备份并重建。[输入持久化决策](../../.agents/notes/implemented/architecture/2026-09-26-android-encrypted-input-checkpoints.zh.md)拥有格式与恢复语义；[录制场景](../web/tests/android-input-persistence.e2e.ts)验证进程恢复和加密存储损坏。
+ 
+-在 Session 输入区选择 **+ → 文件**，通过系统文档选择器选择一个文件；选择 **+ → 照片**，通过 Android Photo Picker 选择一张图片。文件与图片共用一个有序、可移除的附件列表；消息可以只含附件而不含文本。选择、读取和上传期间禁用发送及待确认消息重试。移除卡片只修改本地草稿。应用限制每份草稿最多 8 个附件、每个源文件最多 512 KiB；这些本地限制不与 Host 协商。文件与照片入口分别要求 `file-upload.stage.v1` 和 `image-upload.stage.v1`。照片接受 PNG、JPEG、WebP 和 GIF，拒绝 HEIC。恢复回执不会自动上传或发送。[文件决定](../../.agents/notes/implemented/architecture/2026-09-27-android-file-attachments.zh.md)拥有文档选择器入口；[照片决定](../../.agents/notes/implemented/architecture/2026-09-27-android-photo-attachments.zh.md)拥有图片入口、混合顺序与验证边界。
++在 Session 输入区选择 **+ → 文件**，通过系统文档选择器选择一个文件；选择 **+ → 照片**，通过 Android Photo Picker 选择一张图片。文件与图片共用一个有序、可移除的附件列表；消息可以只含附件而不含文本。选择、读取和上传期间禁用发送及待确认消息重试。移除卡片只修改本地草稿。应用限制每份草稿最多 8 个附件、每个源文件最多 512 KiB；这些本地限制不与 Host 协商。文件要求同时具备 `file-upload.stage.v1` 和 `native-remote.http-request-budget.v1`；照片独立要求 `image-upload.stage.v1`。照片接受 PNG、JPEG、WebP 和 GIF，拒绝 HEIC。恢复回执不会自动上传或发送。[文件决定](../../.agents/notes/implemented/architecture/2026-09-27-android-file-attachments.zh.md)拥有文档选择器入口；[照片决定](../../.agents/notes/implemented/architecture/2026-09-27-android-photo-attachments.zh.md)拥有图片入口、混合顺序与验证边界。
++
++文件通过本地准入后，Native client 在每次文件上传时读取所选监听器的 HTTP 请求体预算，通过分享接收的文件也遵循该规则。client 检查完整编码请求，并在发送文件前拒绝超预算请求体。现有草稿与待确认发送保持不变；用户须显式选择更小来源后再尝试。缺少预算 capability、预算无效或读取失败时停止上传，不使用旧值或安排重试。预算读取成功不保证 Host 接受请求。图片保留独立上传路径。
+ 
+ Host 报告暂存回执不存在时，失败提示说明显式恢复步骤。丢弃待确认发送前，请先复制需要保留的文字：丢弃会同时删除未再编辑的对应草稿，不同的新草稿则保留。移除草稿中仍存在的旧附件，重新选择，再显式发送。[回执恢复决定](../../.agents/notes/implemented/architecture/2026-09-28-android-attachment-receipt-recovery.zh.md)拥有错误识别与验证边界。[已安装恢复场景](../web/tests/android-attachment-receipt-recovery.e2e.ts)覆盖同一运行中 Host 释放 Session 后的 SAF 文件恢复；提示不诊断超时或 Host 重启。
+ 
+diff --git a/apps/android/app/src/androidTest/kotlin/ai/deepseek/dsh/companion/NativeCompanionAcceptanceTest.kt b/apps/android/app/src/androidTest/kotlin/ai/deepseek/dsh/companion/NativeCompanionAcceptanceTest.kt
+index 374387d0fe..e2a74dfd68 100644
+--- a/apps/android/app/src/androidTest/kotlin/ai/deepseek/dsh/companion/NativeCompanionAcceptanceTest.kt
++++ b/apps/android/app/src/androidTest/kotlin/ai/deepseek/dsh/companion/NativeCompanionAcceptanceTest.kt
+@@ -1425,6 +1425,31 @@ class NativeCompanionAcceptanceTest {
+                                 check(pending.draft.text == command.getValue("text").jsonPrimitive.content)
+                                 value = JsonPrimitive(pending.draft.requestId)
+                             }
++                            "assertPromptTransportFailure" -> {
++                                val model = companionModel().session
++                                compose.waitUntil(30_000) {
++                                    !model.sending.value && model.sendFailure.value?.category == ConnectionFailure.TRANSPORT
++                                }
++                                check(model.sendFailure.value?.refusal == null)
++                                check(model.input.value.pendingPrompts.size == 1)
++                                compose.onNodeWithTag("session-send-error").assertIsDisplayed()
++                            }
++                            "nativeHttpSnapshot" -> {
++                                val wire = CompanionRuntime.wire
++                                fun snapshot() = (wire.diagnosticSnapshot() as WireDiagnosticSnapshot.Native).value
++                                compose.waitUntil(20_000) {
++                                    snapshot().let { !it.closed && it.pendingHttpCallbacks == 0 &&
++                                        it.descriptionState == ai.deepseek.dsh.gateway.NativeDescriptionState.AVAILABLE }
++                                }
++                                check(CompanionRuntime.wire === wire)
++                                val observed = snapshot()
++                                check(!observed.closed && observed.pendingHttpCallbacks == 0)
++                                value = buildJsonObject {
++                                    put("started", observed.startedHttpCalls)
++                                    put("finished", observed.finishedHttpCalls)
++                                    put("generation", CompanionRuntime.generation)
++                                }
++                            }
+                             "replacePromptDraft" -> compose.onNodeWithTag("session-draft")
+                                 .performTextReplacement(command.getValue("text").jsonPrimitive.content)
+                             "hidePromptKeyboard" -> {
+diff --git a/apps/android/app/src/main/kotlin/ai/deepseek/dsh/companion/HostCapabilityDetails.kt b/apps/android/app/src/main/kotlin/ai/deepseek/dsh/companion/HostCapabilityDetails.kt
+index 4a4e03ce1e..18c57f9074 100644
+--- a/apps/android/app/src/main/kotlin/ai/deepseek/dsh/companion/HostCapabilityDetails.kt
++++ b/apps/android/app/src/main/kotlin/ai/deepseek/dsh/companion/HostCapabilityDetails.kt
+@@ -72,6 +72,7 @@ internal fun HostCapabilityDetails(observation: NativeHostObservation, generatio
+                             NativeObservedCapability.FILE_TEXT -> R.string.native_capabilities_file_text
+                             NativeObservedCapability.FILE_BYTES -> R.string.native_capabilities_file_bytes
+                             NativeObservedCapability.FILE_UPLOAD -> R.string.native_capabilities_file_upload
++                            NativeObservedCapability.HTTP_REQUEST_BUDGET -> R.string.native_capabilities_http_request_budget
+                             NativeObservedCapability.IMAGE_UPLOAD -> R.string.native_capabilities_image_upload
+                             NativeObservedCapability.SUBAGENT_CATALOG -> R.string.native_capabilities_subagent_catalog
+                         }
+diff --git a/apps/android/app/src/main/kotlin/ai/deepseek/dsh/companion/MainActivity.kt b/apps/android/app/src/main/kotlin/ai/deepseek/dsh/companion/MainActivity.kt
+index 24e58d13c0..126cbc8809 100644
+--- a/apps/android/app/src/main/kotlin/ai/deepseek/dsh/companion/MainActivity.kt
++++ b/apps/android/app/src/main/kotlin/ai/deepseek/dsh/companion/MainActivity.kt
+@@ -612,7 +612,7 @@ internal fun SessionsTab(model: CompanionViewModel, capabilities: Set<NativeCapa
+     val canList = capabilities.supports(NativeCapability.SESSION_LIST)
+     val canFollow = capabilities.supports(NativeCapability.SESSION_FOLLOW)
+     val canControl = capabilities.supports(NativeCapability.SESSION_CONTROL)
+-    val canUpload = capabilities.supports(NativeCapability.FILE_UPLOAD)
++    val canUpload = capabilities.supports(NativeCapability.FILE_UPLOAD) && capabilities.supports(NativeCapability.HTTP_REQUEST_BUDGET)
+     val canUploadImages = capabilities.supports(NativeCapability.IMAGE_UPLOAD)
+     val scope = rememberCoroutineScope()
+     val sessions by model.session.sessions.collectAsStateWithLifecycle()
+@@ -733,7 +733,9 @@ internal fun SessionsTab(model: CompanionViewModel, capabilities: Set<NativeCapa
+                 model.session.removeAttachment(sessionId, it)
+             }
+             NativeFileAttachmentNotice(model.attachments, attachmentState, sessionId, fileAttachmentPicker)
+-            if (!canUpload) Text(androidx.compose.ui.res.stringResource(R.string.native_attachment_unsupported),
++            if (!canUpload) Text(androidx.compose.ui.res.stringResource(
++                if (capabilities.supports(NativeCapability.FILE_UPLOAD)) R.string.native_attachment_budget_unavailable
++                else R.string.native_attachment_unsupported),
+                 Modifier.padding(horizontal = 12.dp).testTag("session-attachment-unavailable"), style = MaterialTheme.typography.bodySmall)
+             if (!canUploadImages) Text(androidx.compose.ui.res.stringResource(R.string.native_attachment_photo_unavailable),
+                 Modifier.padding(horizontal = 12.dp).testTag("session-photo-unavailable"), style = MaterialTheme.typography.bodySmall)
+diff --git a/apps/android/app/src/main/kotlin/ai/deepseek/dsh/companion/NativeShareCard.kt b/apps/android/app/src/main/kotlin/ai/deepseek/dsh/companion/NativeShareCard.kt
+index 3f1369f7d8..fa21c6c34f 100644
+--- a/apps/android/app/src/main/kotlin/ai/deepseek/dsh/companion/NativeShareCard.kt
++++ b/apps/android/app/src/main/kotlin/ai/deepseek/dsh/companion/NativeShareCard.kt
+@@ -47,7 +47,9 @@ internal fun NativeShareCard(owner: NativeShareIntake, model: CompanionViewModel
+     }
+     val payload = owner.payload
+     val kinds = buildSet {
+-        if (capabilities?.contains(Capability.FILE_UPLOAD) == true) add(NativeAttachmentKind.FILE)
++        if (capabilities?.contains(Capability.FILE_UPLOAD) == true && capabilities.contains(Capability.HTTP_REQUEST_BUDGET)) {
++            add(NativeAttachmentKind.FILE)
++        }
+         if (capabilities?.contains(Capability.IMAGE_UPLOAD) == true) add(NativeAttachmentKind.IMAGE)
+     }
+     fun admissionReason(): Int? = when {
+diff --git a/apps/android/app/src/main/res/values/native_companion.xml b/apps/android/app/src/main/res/values/native_companion.xml
+index a9b3aa0725..5735d8fe89 100644
+--- a/apps/android/app/src/main/res/values/native_companion.xml
++++ b/apps/android/app/src/main/res/values/native_companion.xml
+@@ -142,6 +142,7 @@
+     <string name="native_download_remove">移除本地下载</string>
+     <string name="native_download_remove_help">仅移除此设备保留的下载内容和进度，Host 文件及已保存到其他位置的文件不会改变。</string>
+     <string name="native_capabilities_file_upload">上传文件附件</string>
++    <string name="native_capabilities_http_request_budget">查询原生请求大小限制</string>
+     <string name="native_attachment_add">添加附件</string>
+     <string name="native_capabilities_image_upload">上传图片附件</string>
+     <string name="native_attachment_photo">照片</string>
+@@ -166,6 +167,7 @@
+     <string name="native_attachment_too_many">附件数量已达上限，请移除文件后再试。</string>
+     <string name="native_attachment_invalid">所选文件无效，请重新选择。</string>
+     <string name="native_attachment_request_too_large">所选文件无法在本次上传中提交，请选择更小的文件。</string>
++    <string name="native_attachment_budget_unavailable">当前 Host 未提供上传请求大小限制，暂时无法添加文件附件。</string>
+     <string name="native_attachment_source_failed">无法读取所选文件，请检查文件访问权限后重新选择。</string>
+     <string name="native_attachment_upload_failed">文件上传失败，请检查连接后重新选择。</string>
+     <string name="native_attachment_persistence_failed">附件未能保存到本地输入，请重试保存后重新选择。</string>
+diff --git a/apps/android/core/src/main/kotlin/ai/deepseek/dsh/companion/NativeFileAttachmentsModel.kt b/apps/android/core/src/main/kotlin/ai/deepseek/dsh/companion/NativeFileAttachmentsModel.kt
+index 9cf45d7f3f..3ea9cfad62 100644
+--- a/apps/android/core/src/main/kotlin/ai/deepseek/dsh/companion/NativeFileAttachmentsModel.kt
++++ b/apps/android/core/src/main/kotlin/ai/deepseek/dsh/companion/NativeFileAttachmentsModel.kt
+@@ -1,5 +1,6 @@
+ package ai.deepseek.dsh.companion
+ 
++import ai.deepseek.dsh.gateway.NativeHttpRequestTooLarge
+ import ai.deepseek.dsh.link.LinkClientException
+ import ai.deepseek.dsh.link.WireValue
+ import java.io.ByteArrayOutputStream
+@@ -318,7 +319,11 @@ class NativeFileAttachmentsModel(private val wire: WireDriving, private val sess
+     }
+ 
+     private suspend fun uploadPrepared(prepared: PreparedUpload): SessionAttachment {
+-        val result = wire.call(if (prepared.kind == NativeAttachmentKind.IMAGE) "fileUploads/uploadImage" else "fileUploads/upload", prepared.args)
++        val result = try {
++            wire.call(if (prepared.kind == NativeAttachmentKind.IMAGE) "fileUploads/uploadImage" else "fileUploads/upload", prepared.args)
++        } catch (_: NativeHttpRequestTooLarge) {
++            throw Rejected(NativeFileAttachmentIssue.REQUEST_TOO_LARGE)
++        }
+         currentCoroutineContext().ensureActive()
+         return parseReceipt(result, prepared.kind, prepared.sourceBytes)
+     }
+diff --git a/apps/android/core/src/main/kotlin/ai/deepseek/dsh/gateway/NativeGatewayClient.kt b/apps/android/core/src/main/kotlin/ai/deepseek/dsh/gateway/NativeGatewayClient.kt
+index b6db210dce..b0aef2e252 100644
+--- a/apps/android/core/src/main/kotlin/ai/deepseek/dsh/gateway/NativeGatewayClient.kt
++++ b/apps/android/core/src/main/kotlin/ai/deepseek/dsh/gateway/NativeGatewayClient.kt
+@@ -28,6 +28,7 @@ data class NativeGatewayConfig(val transport: LinkTransportConfig, val bufferedF
+ 
+ /** Pinned HTTPS Connection RPC and one shared Gateway WebSocket per client generation.
+  * No cookies, redirects, or historical Link routes participate in authorization.
++ * Each file upload queries this listener's current body limit and checks the complete signed UTF-8 bytes before dispatch.
+  * A slow stream fails explicitly when its bounded buffer fills; values are never silently dropped.
+  * Closing retires all work; [closeAndAwait] also waits for transport callbacks to settle.
+  */
+@@ -128,7 +129,11 @@ class NativeGatewayClient private constructor(
+     override suspend fun call(method: String, args: Map<String, WireValue>): WireValue {
+         ensureNegotiated()
+         requireAdvertisedOperation(method)
+-        return rpc(method, args)
++        val budget = if (method == "fileUploads/upload") {
++            requireAdvertisedOperation("nativeRemote/httpRequestBudget")
++            NativeHttpRequestBudget.parse(rpc("nativeRemote/httpRequestBudget", emptyMap()))
++        } else null
++        return rpc(method, args, budget)
+     }
+ 
+     override fun stream(endpoint: String, payload: Map<String, WireValue>): Flow<WireValue> = flow {
+@@ -232,10 +237,12 @@ class NativeGatewayClient private constructor(
+         Unit
+     }
+ 
+-    private suspend fun rpc(method: String, args: Map<String, WireValue>): WireValue {
++    private suspend fun rpc(method: String, args: Map<String, WireValue>, budget: NativeHttpRequestBudget? = null): WireValue {
+         require(method.matches(Regex("[A-Za-z$][A-Za-z0-9$-]*/[A-Za-z][A-Za-z0-9-]*"))) { "invalid Remote method" }
+         val id = UUID.randomUUID().toString()
+         val body = synchronized(lock) { requireOpen(); NativeGatewayProtocol.request(id, method, args, identity) }
++            .toByteArray(Charsets.UTF_8)
++        budget?.requireFits(body)
+         val request = Request.Builder().url(endpoint + "/api/" + method)
+             // Signed mutations cannot be replayed after an ambiguous idle-socket failure.
+             // End each HTTP connection; the separately owned mux stays persistent.
+diff --git a/apps/android/core/src/main/kotlin/ai/deepseek/dsh/gateway/NativeGatewayDiagnostics.kt b/apps/android/core/src/main/kotlin/ai/deepseek/dsh/gateway/NativeGatewayDiagnostics.kt
+index 55c9b17463..80f553c8fb 100644
+--- a/apps/android/core/src/main/kotlin/ai/deepseek/dsh/gateway/NativeGatewayDiagnostics.kt
++++ b/apps/android/core/src/main/kotlin/ai/deepseek/dsh/gateway/NativeGatewayDiagnostics.kt
+@@ -24,7 +24,7 @@ enum class NativeObservedCapability(val wire: String) {
+     WORKSPACE_FOLLOW("workspace.follow.v1"), FILE_STAT("workspace-files.stat.v1"),
+     FILE_LIST("workspace-files.list.v1"), FILE_TEXT("workspace-files.read-text.v1"),
+     FILE_BYTES("workspace-files.read-bytes.v1"), FILE_UPLOAD("file-upload.stage.v1"), IMAGE_UPLOAD("image-upload.stage.v1"),
+-    SUBAGENT_CATALOG("subagent.catalog.v1");
++    SUBAGENT_CATALOG("subagent.catalog.v1"), HTTP_REQUEST_BUDGET("native-remote.http-request-budget.v1");
+ 
+     companion object {
+         /** Native-owned operations mirror their Remote owner's advertised method sets. */
+@@ -41,6 +41,7 @@ enum class NativeObservedCapability(val wire: String) {
+             "fileUploads/upload" -> FILE_UPLOAD
+             "fileUploads/uploadImage" -> IMAGE_UPLOAD
+             "subagents/list" -> SUBAGENT_CATALOG
++            "nativeRemote/httpRequestBudget" -> HTTP_REQUEST_BUDGET
+             // Gateway event transport and extension methods have no native-owned operation requirement here.
+             else -> null
+         }
+diff --git a/apps/android/core/src/test/kotlin/ai/deepseek/dsh/companion/NativeFileAttachmentsModelTest.kt b/apps/android/core/src/test/kotlin/ai/deepseek/dsh/companion/NativeFileAttachmentsModelTest.kt
+index dfeb21a0e8..a906beb4a3 100644
+--- a/apps/android/core/src/test/kotlin/ai/deepseek/dsh/companion/NativeFileAttachmentsModelTest.kt
++++ b/apps/android/core/src/test/kotlin/ai/deepseek/dsh/companion/NativeFileAttachmentsModelTest.kt
+@@ -1,5 +1,7 @@
+ package ai.deepseek.dsh.companion
+ 
++import ai.deepseek.dsh.gateway.NativeHttpRequestTooLarge
++import ai.deepseek.dsh.link.LinkClientException
+ import ai.deepseek.dsh.link.WireValue
+ import java.io.ByteArrayInputStream
+ import java.util.Base64
+@@ -115,6 +117,73 @@ class NativeFileAttachmentsModelTest {
+         model.closeAndAwait()
+     }
+ 
++    @Test fun `complete request budget refusal closes the source and preserves pending intent and the newer draft`() = runTest {
++        val wire = FakeWire()
++        val entered = CompletableDeferred<Unit>(); val release = CompletableDeferred<Unit>()
++        wire.stub("fileUploads/upload") { entered.complete(Unit); release.await(); throw NativeHttpRequestTooLarge(2049, 2048) }
++        val inputs = CompanionInputState.memory()
++        val session = SessionModel(wire, backgroundScope, inputs = inputs); session.openSession("selected")
++        val original = SessionDraft("old intent", "pending-original", listOf(SessionFileAttachment("retained", "id", "old.bin", 1)))
++        inputs.update { it.copy(drafts = mapOf("selected" to original),
++            pendingPrompts = mapOf(original.requestId to PendingPrompt("selected", original))) }
++        val model = NativeFileAttachmentsModel(wire, session, inputs, backgroundScope,
++            NativeFileAttachmentLimits(4, 4096, 2), StandardTestDispatcher(testScheduler))
++        val source = Source(byteArrayOf(1))
++        val upload = model.accept(assertNotNull(model.prepare()), source)
++        entered.await()
++        session.updateDraft("selected", "newer text")
++        val preserved = inputs.state.value
++        release.complete(Unit); upload.join()
++        assertEquals(NativeFileAttachmentIssue.REQUEST_TOO_LARGE, model.state.value.issue)
++        assertNull(model.state.value.refusal)
++        assertEquals(preserved, inputs.state.value)
++        assertEquals(1, source.opens); assertEquals(1, source.closes)
++        assertEquals(listOf("fileUploads/upload"), wire.calls.map { it.first })
++        model.closeAndAwait()
++    }
++
++    @Test fun `budget wire failures preserve their existing failure category and all unsent input`() = runTest {
++        for ((failure, category) in listOf(
++            LinkClientException.BadWire("invalid budget") to ConnectionFailure.INVALID_RESPONSE,
++            LinkClientException.Carrier(503, "budget unavailable") to ConnectionFailure.TRANSPORT,
++            LinkClientException.Refused("gateway/permission-denied", "budget refused",
++                WireValue.ObjectValue(mapOf("scope" to WireValue.StringValue("view")))) to ConnectionFailure.REFUSED,
++        )) {
++            val wire = FakeWire(); wire.stub("fileUploads/upload") { throw failure }
++            val inputs = CompanionInputState.memory()
++            val session = SessionModel(wire, backgroundScope, inputs = inputs); session.openSession("selected")
++            val original = SessionDraft("pending text", "pending-original")
++            inputs.update { it.copy(drafts = mapOf("selected" to SessionDraft("new draft", "new-request")),
++                pendingPrompts = mapOf(original.requestId to PendingPrompt("selected", original))) }
++            val preserved = inputs.state.value
++            val model = NativeFileAttachmentsModel(wire, session, inputs, backgroundScope,
++                NativeFileAttachmentLimits(4, 4096, 2), StandardTestDispatcher(testScheduler))
++            val source = Source(byteArrayOf(1))
++            model.accept(assertNotNull(model.prepare()), source).join()
++            assertEquals(NativeFileAttachmentIssue.UPLOAD_FAILED, model.state.value.issue)
++            assertEquals(category, model.state.value.failure)
++            assertEquals((failure as? LinkClientException.Refused)?.let(GatewayFailureEnvelope::from), model.state.value.refusal)
++            assertEquals(preserved, inputs.state.value)
++            assertEquals(1, source.closes)
++            assertEquals(listOf("fileUploads/upload"), wire.calls.map { it.first })
++            model.closeAndAwait()
++        }
++    }
++
++    @Test fun `the local 512 KiB source ceiling rejects before transport can offer any larger allowance`() = runTest {
++        val wire = FakeWire(); wire.stub("fileUploads/upload") { error("oversized sources must not reach budget discovery") }
++        val inputs = CompanionInputState.memory()
++        val session = SessionModel(wire, backgroundScope, inputs = inputs); session.openSession("selected")
++        val model = NativeFileAttachmentsModel(wire, session, inputs, backgroundScope,
++            NativeFileAttachmentLimits(524_288, 1_048_576, 8), StandardTestDispatcher(testScheduler))
++        val source = Source(ByteArray(524_289))
++        model.accept(assertNotNull(model.prepare()), source).join()
++        assertEquals(NativeFileAttachmentIssue.TOO_LARGE, model.state.value.issue)
++        assertEquals(1, source.opens); assertEquals(1, source.closes)
++        assertTrue(wire.calls.isEmpty()); assertTrue(inputs.state.value.drafts.isEmpty())
++        model.closeAndAwait()
++    }
++
+     @Test fun `cancelled selection and a retired Host ignore unopened source callbacks`() = runTest {
+         val wire = FakeWire()
+         val inputs = CompanionInputState.memory()
+diff --git a/apps/android/core/src/test/kotlin/ai/deepseek/dsh/companion/NativeShareAttachmentsModelTest.kt b/apps/android/core/src/test/kotlin/ai/deepseek/dsh/companion/NativeShareAttachmentsModelTest.kt
+index cc5757236c..8ba0a0f92a 100644
+--- a/apps/android/core/src/test/kotlin/ai/deepseek/dsh/companion/NativeShareAttachmentsModelTest.kt
++++ b/apps/android/core/src/test/kotlin/ai/deepseek/dsh/companion/NativeShareAttachmentsModelTest.kt
+@@ -1,5 +1,6 @@
+ package ai.deepseek.dsh.companion
+ 
++import ai.deepseek.dsh.gateway.NativeHttpRequestTooLarge
+ import java.io.IOException
+ import kotlinx.coroutines.*
+ import kotlinx.coroutines.test.*
+@@ -56,6 +57,32 @@ class NativeShareAttachmentsModelTest {
+         }
+     }
+ 
++    @Test fun `a later file budget refusal prevents partial batch adoption and preserves newer input and pending intent`() = runTest {
++        val fixture = ShareFixture(this); fixture.open()
++        val pending = SessionDraft("old pending", "pending-original")
++        fixture.inputs.update { it.copy(drafts = mapOf("session" to SessionDraft("initial draft", "initial-request")),
++            pendingPrompts = mapOf(pending.requestId to PendingPrompt("session", pending))) }
++        val entered = CompletableDeferred<Unit>(); val release = CompletableDeferred<Unit>()
++        fixture.wire.stubSequence("fileUploads/upload", listOf(
++            { fixture.receipt(image = false) },
++            { entered.complete(Unit); release.await(); throw NativeHttpRequestTooLarge(2049, 2048) },
++        ))
++        val first = SharedSource(); val second = SharedSource()
++        val importing = fixture.importBatch("never append", listOf(NativeShareItem(first), NativeShareItem(second)))
++        entered.await()
++        fixture.session.updateDraft("session", "edited during budget query")
++        val preserved = fixture.inputs.state.value
++        release.complete(Unit)
++        val result = assertIs<NativeShareResult.NotAdopted>(importing.awaitResult())
++        assertEquals(NativeShareIssue.ATTACHMENT_FAILED, result.issue)
++        assertEquals(NativeFileAttachmentIssue.REQUEST_TOO_LARGE, result.attachmentIssue)
++        assertNull(result.refusal)
++        assertEquals(preserved, fixture.inputs.state.value)
++        assertEquals(1, first.closes); assertEquals(1, second.closes)
++        assertEquals(listOf("fileUploads/upload", "fileUploads/upload"), fixture.wire.calls.map { it.first })
++        fixture.model.closeAndAwait()
++    }
++
+     @Test fun `text and combined count limits reject before provider metadata or upload`() = runTest {
+         val fixture = ShareFixture(this, limits = NativeFileAttachmentLimits(4, 4096, 1)); fixture.open()
+         val source = SharedSource()
+diff --git a/apps/web/tsconfig.json b/apps/web/tsconfig.json
+index 4b98cbde34..18720ab600 100644
+--- a/apps/web/tsconfig.json
++++ b/apps/web/tsconfig.json
+@@ -73,6 +73,7 @@
+     "tests/hosts-settings.e2e.ts",
+     "tests/device-interaction-reply.e2e.ts",
+     "tests/native-remote-question.e2e.ts",
++    "tests/native-remote-isolation.e2e.ts",
+     "tests/android-gateway.e2e.ts",
+     "tests/android-gateway-driver.ts",
+     "tests/android-companion-ui-driver.ts",
+diff --git a/docs/subsystems/typert.md b/docs/subsystems/typert.md
+index 93ba67717c..b47287b974 100644
+--- a/docs/subsystems/typert.md
++++ b/docs/subsystems/typert.md
+@@ -181,6 +181,16 @@ type TypertGatewayErrorCode =
+   | 'gateway/signature-invalid'
+ ```
+ 
++```ts type-equiv
++/** Device-authenticated RPC and streams bound to the factory caller's Cordis context. */
++interface TypertGatewayDeviceConnection {
++  /** Decode and authorize one device RPC; unsigned pairing redemption is the sole exception. */
++  readonly rpc: ConnectionRpcHandler
++  /** Open device-owned streams; device grants remain revocable throughout iteration. */
++  readonly stream: TypertGatewayWireStream
++}
++```
++
+ ```ts type-equiv
+ /** Host dispatcher consumed by Connection adapters. */
+ interface TypertGateway {
+@@ -188,15 +198,12 @@ interface TypertGateway {
+   readonly wireStream: TypertGatewayWireStream
+ 
+   /**
+-   * Native carrier adapter requiring device identity for every operation except
+-   * one-time pairing redemption. Local browser cookies cannot authorize it.
++   * Capture the caller's Cordis context for a native carrier. Direct methods
++   * resolve services in that context on every call. Device identity is required
++   * except for one-time pairing redemption; browser cookies cannot authorize it.
++   * @returns RPC and stream callbacks retaining the caller's service scope.
+    */
+-  readonly deviceConnection: {
+-    /** Decode and authorize one device RPC; unsigned pairing redemption is the sole exception. */
+-    readonly rpc: ConnectionRpcHandler
+-    /** Open device-owned streams; device grants remain revocable throughout iteration. */
+-    readonly stream: TypertGatewayWireStream
+-  }
++  createDeviceConnection(): TypertGatewayDeviceConnection
+ 
+   /**
+    * Read explicit capability ids from active Remote bindings whose required
+@@ -235,7 +242,23 @@ interface TypertGateway {
+ <a id="native-tls-source"></a>
+ ## Native TLS source
+ 
+-[Native Remote Connection](../../packages/api/native-remote/README.md) mounts a separate, opt-in TLS listener. Gateway deviceConnection requires signed identities for RPC and logical streams, except one-time pairing redemption. Device-owned business streams observe grant revocation throughout admission and iteration. NativeRemoteInfo exposes only the configured bindHost, actual port, and SPKI fingerprint to authenticated operators and device administrators; it never exposes private-key material.
++[Native Remote Connection](../../packages/api/native-remote/README.md) mounts a separate, opt-in TLS listener. Each listener calls the Gateway's ordinary createDeviceConnection factory in its own Cordis context. The returned RPC and stream callbacks preserve that context and require signed identities, except for one-time pairing redemption. Device-owned business streams observe grant revocation throughout admission and iteration. NativeRemoteInfo exposes only the configured bindHost, actual port, and SPKI fingerprint to authenticated operators and device administrators; it never exposes private-key material.
++
++The independent native-remote.http-request-budget.v1 capability exposes nativeRemote/httpRequestBudget with view permission. Its limit belongs to that ready Native listener, not a Web or Desktop carrier. Clients can compare their complete encoded body with the observed value, but the Host still checks actual bytes and current authorization. Administrative listener metadata continues to require device.admin.
++
++### NativeHttpRequestBudget
++
++```ts type-equiv
++/** Buffered HTTP request admission configured on one ready native TLS listener. */
++interface NativeHttpRequestBudget {
++  /**
++   * Inclusive byte limit, a positive safe integer, for the complete UTF-8 JSON
++   * body including the RPC envelope and device admission. Excludes HTTP
++   * headers, TLS, and chunk framing; does not limit decoded file bytes alone.
++   */
++  readonly maxRequestBodyBytes: number
++}
++```
+ 
+ ### NativeRemoteInfo
+ 
+diff --git a/docs/subsystems/typert.zh.md b/docs/subsystems/typert.zh.md
+index a7a13bfd8d..d8ff0ed527 100644
+--- a/docs/subsystems/typert.zh.md
++++ b/docs/subsystems/typert.zh.md
+@@ -181,6 +181,16 @@ type TypertGatewayErrorCode =
+   | 'gateway/signature-invalid'
+ ```
+ 
++```ts type-equiv
++/** Device-authenticated RPC and streams bound to the factory caller's Cordis context. */
++interface TypertGatewayDeviceConnection {
++  /** Decode and authorize one device RPC; unsigned pairing redemption is the sole exception. */
++  readonly rpc: ConnectionRpcHandler
++  /** Open device-owned streams; device grants remain revocable throughout iteration. */
++  readonly stream: TypertGatewayWireStream
++}
++```
++
+ ```ts type-equiv
+ /** Host dispatcher consumed by Connection adapters. */
+ interface TypertGateway {
+@@ -188,15 +198,12 @@ interface TypertGateway {
+   readonly wireStream: TypertGatewayWireStream
+ 
+   /**
+-   * Native carrier adapter requiring device identity for every operation except
+-   * one-time pairing redemption. Local browser cookies cannot authorize it.
++   * Capture the caller's Cordis context for a native carrier. Direct methods
++   * resolve services in that context on every call. Device identity is required
++   * except for one-time pairing redemption; browser cookies cannot authorize it.
++   * @returns RPC and stream callbacks retaining the caller's service scope.
+    */
+-  readonly deviceConnection: {
+-    /** Decode and authorize one device RPC; unsigned pairing redemption is the sole exception. */
+-    readonly rpc: ConnectionRpcHandler
+-    /** Open device-owned streams; device grants remain revocable throughout iteration. */
+-    readonly stream: TypertGatewayWireStream
+-  }
++  createDeviceConnection(): TypertGatewayDeviceConnection
+ 
+   /**
+    * Read explicit capability ids from active Remote bindings whose required
+@@ -235,7 +242,23 @@ interface TypertGateway {
+ <a id="native-tls-source"></a>
+ ## 原生 TLS 入口
+ 
+-[原生 Remote Connection](../../packages/api/native-remote/README.zh.md) 挂载独立、按需启用的 TLS 监听器。Gateway deviceConnection 要求 RPC 和逻辑流携带签名身份，唯一例外是一次性配对兑换。设备业务流在准入及迭代期间持续观察授权撤销。NativeRemoteInfo 向已认证操作者和设备管理员提供配置的 bindHost、实际 port 与 SPKI 指纹，不暴露私钥材料。
++[原生 Remote Connection](../../packages/api/native-remote/README.zh.md) 挂载独立、按需启用的 TLS 监听器。每个监听器在自己的 Cordis context 中调用 Gateway 的普通 createDeviceConnection factory。返回的 RPC 与 stream 回调保留该 context，并要求签名身份，唯一例外是一次性配对兑换。设备业务流在准入及迭代期间持续观察授权撤销。NativeRemoteInfo 向已认证操作者和设备管理员提供配置的 bindHost、实际 port 与 SPKI 指纹，不暴露私钥材料。
++
++独立的 native-remote.http-request-budget.v1 capability 通过 view 权限公开 nativeRemote/httpRequestBudget。其上限属于该就绪的 Native 监听器，不描述 Web 或 Desktop carrier。客户端可以用观察值检查完整编码请求体，但 Host 仍检查实际字节与当前授权。管理类监听器信息继续要求 device.admin。
++
++### NativeHttpRequestBudget
++
++```ts type-equiv
++/** Buffered HTTP request admission configured on one ready native TLS listener. */
++interface NativeHttpRequestBudget {
++  /**
++   * Inclusive byte limit, a positive safe integer, for the complete UTF-8 JSON
++   * body including the RPC envelope and device admission. Excludes HTTP
++   * headers, TLS, and chunk framing; does not limit decoded file bytes alone.
++   */
++  readonly maxRequestBodyBytes: number
++}
++```
+ 
+ ### NativeRemoteInfo
+ 
+diff --git a/packages/api/gateway/README.md b/packages/api/gateway/README.md
+index 44364da856..3411e0170b 100644
+--- a/packages/api/gateway/README.md
++++ b/packages/api/gateway/README.md
+@@ -71,7 +71,7 @@ Protocol-2 interaction outcomes echo `interactionRevision` for results, delegati
+ 
+ Every `$events/result` for a device-owned stream requires fresh signed admission from that same device. Missing proof, a different device or a device identity attached to an anonymous browser stream fails with `gateway/permission-denied` and `reason: device-identity`; invalid, expired or replayed signatures retain Device Trust failures. Rejection preserves the delivery, and cancellation or revocation during verification cannot settle the interaction. Device revocation is observed before admission starts through stream teardown; it prevents late readiness and discards queued frames.
+ 
+-The native TLS source consumes `deviceConnection`, which requires signed device identity for every RPC and logical stream except one-time `deviceTrust/redeemPairing`. Local `wireStream` and Connection registrations retain browser trust ownership. Signed business streams verify admission on first iteration, observe revocation before awaiting it, and keep that observation through iterator teardown; revocation cancels pending reads and prevents later values. Physical mux establishment grants no business authority. See [Native Remote Connection](../native-remote/README.md) for TLS identity and listener limits.
++Each native TLS source calls `createDeviceConnection()` through its own Cordis context. The returned RPC and stream callbacks retain that calling context and resolve direct-method receivers there on each operation; they share the Gateway's existing state. This ordinary service factory is not a Remote method. Its callbacks require signed device identity for every RPC and logical stream except one-time `deviceTrust/redeemPairing`. Local `wireStream` and Connection registrations retain browser trust ownership. Signed business streams verify admission on first iteration, observe revocation before awaiting it, and keep that observation through iterator teardown; revocation cancels pending reads and prevents later values. Physical mux establishment grants no business authority. See [Native Remote Connection](../native-remote/README.md) for TLS identity and listener limits.
+ 
+ A versioned request envelope may also carry a signed device admission beside `args` (`{apiProtocolVersion, args, device: {deviceId, timestamp, nonce, signature}}`; version 1 never carries one). The Gateway verifies it through the same admission ladder and gates the endpoint on the owning capability's declared `requiredPermission`: a device role without it — and a device-identified call on an undeclared capability — is refused with `gateway/permission-denied` before dispatch, while anonymous requests never take this path.
+ 
+diff --git a/packages/api/gateway/README.zh.md b/packages/api/gateway/README.zh.md
+index 231e90822b..a7152480f3 100644
+--- a/packages/api/gateway/README.zh.md
++++ b/packages/api/gateway/README.zh.md
+@@ -71,7 +71,7 @@ Gateway 接受协议 1 的 `{ args }` 请求，也接受与 `args` 并列的显
+ 
+ 设备流的每条 `$events/result` 必须携带原设备的新签名准入。缺失签名、设备不匹配或将设备身份用于匿名浏览器流，均以 `gateway/permission-denied` 与 `reason: device-identity` 拒绝；签名无效、过期或重放保留 Device Trust 的拒绝码。拒绝不消费投递，校验期间取消或撤销也不能结算交互。设备撤销观察在准入等待前建立，直到流结束；撤销阻止迟到的 ready 并丢弃排队帧。
+ 
+-原生 TLS 入口使用 `deviceConnection`，除一次性 `deviceTrust/redeemPairing` 外，每次 RPC 与逻辑流都必须携带签名设备身份。本地 `wireStream` 与 Connection 注册继续由浏览器信任机制控制。签名业务流在首次迭代时验证准入，在等待准入前订阅撤销，并持续到迭代器关闭；撤销取消待定读取并阻止后续值。物理 mux 建连不授予业务权限。TLS 身份和监听限制见[原生 Remote Connection](../native-remote/README.zh.md)。
++每个原生 TLS 入口通过自己的 Cordis context 调用 `createDeviceConnection()`。返回的 RPC 与 stream 回调保留该调用 context，每次操作都在其中解析直接方法的 receiver，并共享 Gateway 的既有状态。这个普通 service factory 不是 Remote 方法。除一次性 `deviceTrust/redeemPairing` 外，其回调要求每次 RPC 与逻辑流携带签名设备身份。本地 `wireStream` 与 Connection 注册继续由浏览器信任机制控制。签名业务流在首次迭代时验证准入，在等待准入前订阅撤销，并持续到迭代器关闭；撤销取消待定读取并阻止后续值。物理 mux 建连不授予业务权限。TLS 身份和监听限制见[原生 Remote Connection](../native-remote/README.zh.md)。
+ 
+ 版本化请求信封也可在 `args` 旁携带签名设备准入（`{apiProtocolVersion, args, device: {deviceId, timestamp, nonce, signature}}`；版本 1 永不携带）。网关经同一准入阶梯验证，并按所属能力声明的 `requiredPermission` 门控端点：不持有该权限的设备角色——以及调用未声明能力的设备标识请求——在派发前以 `gateway/permission-denied` 拒绝；匿名请求从不走此路径。
+ 
+diff --git a/packages/api/gateway/src/index.ts b/packages/api/gateway/src/index.ts
+index da43368f92..204e626d78 100644
+--- a/packages/api/gateway/src/index.ts
++++ b/packages/api/gateway/src/index.ts
+@@ -29,6 +29,7 @@ import {
+ import type {
+   InvokeRemoteRequest,
+   TypertGateway,
++  TypertGatewayDeviceConnection,
+   TypertGatewayErrorCode,
+   TypertGatewayWireStream,
+   TypertRemoteEventDispatch,
+@@ -67,6 +68,7 @@ import {
+ export type {
+   InvokeRemoteRequest,
+   TypertGateway,
++  TypertGatewayDeviceConnection,
+   TypertGatewayErrorCode,
+   TypertGatewayWireStream,
+   TypertRemoteEventContext,
+@@ -229,13 +231,14 @@ export class TypertGatewayService extends Service implements TypertGateway {
+     failure: error => rpcError(error),
+   }
+ 
+-  /** Device-authenticated carrier; pairing redemption alone may precede identity. */
+-  readonly deviceConnection: TypertGateway['deviceConnection'] = {
+-    rpc: (endpoint, payload, signal) => this.dispatchRpc(endpoint, payload, signal, true),
+-    stream: {
+-      open: (endpoint, payload, signal) => this.openWireStream(endpoint, payload, signal, true),
+-      failure: error => rpcError(error),
+-    },
++  createDeviceConnection(): TypertGatewayDeviceConnection {
++    return {
++      rpc: (endpoint, payload, signal) => this.dispatchRpc(endpoint, payload, signal, true),
++      stream: {
++        open: (endpoint, payload, signal) => this.openWireStream(endpoint, payload, signal, true),
++        failure: error => rpcError(error),
++      },
++    }
+   }
+ 
+   private srcClaims: ReadonlySet<string> | undefined
+diff --git a/packages/api/gateway/src/types.ts b/packages/api/gateway/src/types.ts
+index ce927f716c..b0a31a2506 100644
+--- a/packages/api/gateway/src/types.ts
++++ b/packages/api/gateway/src/types.ts
+@@ -102,6 +102,14 @@ export interface TypertGatewayWireStream {
+   }
+ }
+ 
++/** Device-authenticated RPC and streams bound to the factory caller's Cordis context. */
++export interface TypertGatewayDeviceConnection {
++  /** Decode and authorize one device RPC; unsigned pairing redemption is the sole exception. */
++  readonly rpc: ConnectionRpcHandler
++  /** Open device-owned streams; device grants remain revocable throughout iteration. */
++  readonly stream: TypertGatewayWireStream
++}
++
+ /** Stable infrastructure and boundary failures emitted before or after business execution. */
+ export type TypertGatewayErrorCode =
+   | 'gateway/ambiguous-endpoint'
+@@ -128,15 +136,12 @@ export interface TypertGateway {
+   readonly wireStream: TypertGatewayWireStream
+ 
+   /**
+-   * Native carrier adapter requiring device identity for every operation except
+-   * one-time pairing redemption. Local browser cookies cannot authorize it.
++   * Capture the caller's Cordis context for a native carrier. Direct methods
++   * resolve services in that context on every call. Device identity is required
++   * except for one-time pairing redemption; browser cookies cannot authorize it.
++   * @returns RPC and stream callbacks retaining the caller's service scope.
+    */
+-  readonly deviceConnection: {
+-    /** Decode and authorize one device RPC; unsigned pairing redemption is the sole exception. */
+-    readonly rpc: ConnectionRpcHandler
+-    /** Open device-owned streams; device grants remain revocable throughout iteration. */
+-    readonly stream: TypertGatewayWireStream
+-  }
++  createDeviceConnection(): TypertGatewayDeviceConnection
+ 
+   /**
+    * Read explicit capability ids from active Remote bindings whose required
+diff --git a/packages/api/gateway/tests/gateway-stream.host.spec.ts b/packages/api/gateway/tests/gateway-stream.host.spec.ts
+index e1bd9e68a4..719b880674 100644
+--- a/packages/api/gateway/tests/gateway-stream.host.spec.ts
++++ b/packages/api/gateway/tests/gateway-stream.host.spec.ts
+@@ -89,7 +89,7 @@ class FeedService extends Service {
+   readonly signals: AbortSignal[] = []
+   returns = 0
+ 
+-  constructor(ctx: Context) {
++  constructor(ctx: Context, private readonly owner?: string) {
+     super(ctx, 'feed')
+   }
+ 
+@@ -97,7 +97,7 @@ class FeedService extends Service {
+   async *follow(label: string, signal: AbortSignal): AsyncIterable<string> {
+     this.signals.push(signal)
+     try {
+-      yield `${label}:ready`
++      yield `${this.owner ?? label}:ready`
+       await new Promise<void>((resolve) => {
+         if (signal.aborted) resolve()
+         else signal.addEventListener('abort', () => { resolve() }, { once: true })
+@@ -1434,17 +1434,49 @@ describe('Typert Gateway device admission', () => {
+ 
+   it.each(['$events', 'feed/follow'])('requires device identity on the native %s stream', async (endpoint) => {
+     const ctx = await setupDevices()
+-    const stream = ctx.typertGateway.deviceConnection.stream.open(
++    const stream = ctx.typertGateway.createDeviceConnection().stream.open(
+       endpoint, { apiProtocolVersion: 2, args: {} }, new AbortController().signal,
+     )
+     await expect(stream)
+       .rejects.toMatchObject({ code: 'gateway/permission-denied', details: { endpoint, reason: 'device-identity' } })
+   })
+ 
++  it.each(['src', 'strict'] as const)('retains each native adapter caller scope for %s streams and cancellation', async (mode) => {
++    const ctx = await setupDevices()
++    await ctx.plugin(FeedService, 'root')
++    const child = ctx.isolate('feed')
++    await child.plugin(FeedService, 'isolated')
++    if (mode === 'strict') ctx.typert.register({
++      package: '@fixture/feed', face: 'host', schemas: [],
++      model: { services: [], events: [], objects: [] }, invocations: descriptors(),
++    })
++    const rootAdapter = ctx.typertGateway.createDeviceConnection()
++    const childAdapter = child.typertGateway.createDeviceConnection()
++    const viewer = await pairDevice(ctx, 'viewer')
++    for (const [adapter, owner, context] of [[childAdapter, 'isolated', child], [rootAdapter, 'root', ctx], [childAdapter, 'isolated', child]] as const) {
++      const abort = new AbortController()
++      const iterator = (await adapter.stream.open('feed/follow', {
++        apiProtocolVersion: 2, args: { label: 'request-label' }, device: admissionOf(viewer),
++      }, abort.signal))[Symbol.asyncIterator]()
++      const service = context.get('feed') as unknown as FeedService
++      const previousReturns = service.returns
++      try {
++        expect((await iterator.next()).value).toBe(`${owner}:ready`)
++        abort.abort()
++        await iterator.return?.()
++        expect(service.signals.at(-1)?.aborted).toBe(true)
++        expect(service.returns).toBe(previousReturns + 1)
++      } finally {
++        abort.abort()
++        await iterator.return?.()
++      }
++    }
++  })
++
+   it('stops a pending business-stream read when its device is revoked', async () => {
+     const { ctx, service } = await setupDeviceFeed()
+     const device = await pairDevice(ctx, 'viewer')
+-    const stream = await ctx.typertGateway.deviceConnection.stream.open('feed/follow', {
++    const stream = await ctx.typertGateway.createDeviceConnection().stream.open('feed/follow', {
+       apiProtocolVersion: 2, args: { label: 'native' }, device: admissionOf(device),
+     }, new AbortController().signal)
+     const iterator = stream[Symbol.asyncIterator]()
+@@ -1466,10 +1498,10 @@ describe('Typert Gateway device admission', () => {
+     const other = await pairDevice(ctx, 'viewer')
+     const source = new RemoteEventSourceProbe()
+     const unregister = ctx.typertGateway.registerRemoteEvents(source.source, REMOTE_HOST)
+-    const events = (await ctx.typertGateway.deviceConnection.stream.open('$events', {
++    const events = (await ctx.typertGateway.createDeviceConnection().stream.open('$events', {
+       apiProtocolVersion: 2, args: { device: admissionOf(device) },
+     }, new AbortController().signal))[Symbol.asyncIterator]()
+-    const feed = (await ctx.typertGateway.deviceConnection.stream.open('feed/sync', {
++    const feed = (await ctx.typertGateway.createDeviceConnection().stream.open('feed/sync', {
+       apiProtocolVersion: 2, args: { label: 'native' }, device: admissionOf(device),
+     }, new AbortController().signal))[Symbol.asyncIterator]()
+     try {
+@@ -1490,7 +1522,7 @@ describe('Typert Gateway device admission', () => {
+   it('does not emit a buffered business value after device revocation', async () => {
+     const { ctx } = await setupDeviceFeed()
+     const device = await pairDevice(ctx, 'viewer')
+-    const stream = await ctx.typertGateway.deviceConnection.stream.open('feed/sync', {
++    const stream = await ctx.typertGateway.createDeviceConnection().stream.open('feed/sync', {
+       apiProtocolVersion: 2, args: { label: 'native' }, device: admissionOf(device),
+     }, new AbortController().signal)
+     const iterator = stream[Symbol.asyncIterator]()
+@@ -1516,7 +1548,7 @@ describe('Typert Gateway device admission', () => {
+       return admitted
+     })
+     const abort = new AbortController()
+-    const stream = await ctx.typertGateway.deviceConnection.stream.open('feed/follow', {
++    const stream = await ctx.typertGateway.createDeviceConnection().stream.open('feed/follow', {
+       apiProtocolVersion: 2, args: { label: 'late' }, device: admissionOf(device),
+     }, abort.signal)
+     const iterator = stream[Symbol.asyncIterator]()
+diff --git a/packages/api/gateway/tests/gateway.host.spec.ts b/packages/api/gateway/tests/gateway.host.spec.ts
+index ff77a7ae77..d46ef0b7de 100644
+--- a/packages/api/gateway/tests/gateway.host.spec.ts
++++ b/packages/api/gateway/tests/gateway.host.spec.ts
+@@ -66,7 +66,7 @@ const emptyModel: TypertContribution['model'] = {
+ class HostDiscoveryService extends Service {
+   readonly typertRemote
+ 
+-  constructor(ctx: Context) {
++  constructor(ctx: Context, private readonly hostId = 'matrix-fixture') {
+     super(ctx, 'hostDiscovery')
+     this.typertRemote = bindTypertRemote(this, 'hostDiscovery', {
+       namespace: 'host',
+@@ -79,7 +79,7 @@ class HostDiscoveryService extends Service {
+ 
+   @Remote
+   describe(): { readonly hostId: string } {
+-    return { hostId: 'matrix-fixture' }
++    return { hostId: this.hostId }
+   }
+ 
+   @Remote
+@@ -1827,22 +1827,50 @@ describe('Typert Gateway per-request device admission', () => {
+     const signal = new AbortController().signal
+     try {
+       for (const endpoint of ['host/describe', 'vault/grant', 'deviceTrust/issuePairing', 'deviceTrust/admitDevice', '$events/result']) {
+-        await expect(ctx.typertGateway.deviceConnection.rpc(endpoint, { apiProtocolVersion: 2, args: {} }, signal))
++        await expect(ctx.typertGateway.createDeviceConnection().rpc(endpoint, { apiProtocolVersion: 2, args: {} }, signal))
+           .resolves.toMatchObject({ ok: false, error: {
+             code: 'gateway/permission-denied', details: { endpoint, reason: 'device-identity' },
+           } })
+       }
+       await expect(handler('host/describe', { args: {} }, signal)).resolves.toMatchObject({ ok: true })
+       const viewer = await pairDevice(ctx, 'viewer')
+-      await expect(ctx.typertGateway.deviceConnection.rpc('host/describe', deviceEnvelope(viewer, {}), signal))
++      await expect(ctx.typertGateway.createDeviceConnection().rpc('host/describe', deviceEnvelope(viewer, {}), signal))
+         .resolves.toMatchObject({ ok: true })
+-      await expect(ctx.typertGateway.deviceConnection.rpc('vault/grant', deviceEnvelope(viewer, {}), signal))
++      await expect(ctx.typertGateway.createDeviceConnection().rpc('vault/grant', deviceEnvelope(viewer, {}), signal))
+         .resolves.toMatchObject({ ok: false, error: { code: 'gateway/permission-denied', details: { required: 'device.admin' } } })
+     } finally {
+       await ctx.fiber.dispose()
+     }
+   })
+ 
++  it.each(['src', 'strict'] as const)('retains each native adapter caller scope for %s RPC', async (mode) => {
++    const { ctx } = await setupTrust()
++    try {
++      const child = ctx.isolate('hostDiscovery')
++      const fiber = child.plugin(HostDiscoveryService, 'isolated-host')
++      await fiber
++      if (mode === 'strict') registerStrict(ctx, [{
++        id: '@fixture/gateway#host/describe', service: 'hostDiscovery', namespace: 'host', method: 'describe',
++        invocation: { kind: 'direct' }, parameters: [],
++        result: strictCodec('@fixture/gateway#HostIdentity', z.object({ hostId: z.string() })),
++      }])
++      const rootAdapter = ctx.typertGateway.createDeviceConnection()
++      const childAdapter = child.typertGateway.createDeviceConnection()
++      const viewer = await pairDevice(ctx, 'viewer')
++      const signal = new AbortController().signal
++      for (const [adapter, hostId] of [[childAdapter, 'isolated-host'], [rootAdapter, 'matrix-fixture'], [childAdapter, 'isolated-host']] as const) {
++        await expect(adapter.rpc('host/describe', deviceEnvelope(viewer, {}), signal))
++          .resolves.toEqual({ ok: true, value: { hostId } })
++      }
++      await fiber.dispose()
++      await expect(childAdapter.rpc('host/describe', deviceEnvelope(viewer, {}), signal)).resolves.toMatchObject({ ok: false })
++      await expect(rootAdapter.rpc('host/describe', deviceEnvelope(viewer, {}), signal))
++        .resolves.toEqual({ ok: true, value: { hostId: 'matrix-fixture' } })
++    } finally {
++      await ctx.fiber.dispose()
++    }
++  })
++
+   it('allows only one-time redemption to bootstrap an unsigned native device', async () => {
+     const { ctx } = await setupTrust()
+     try {
+@@ -1851,7 +1879,7 @@ describe('Typert Gateway per-request device admission', () => {
+       const payload = { apiProtocolVersion: 2, args: { request: {
+         code: issuance.code, deviceName: 'native', devicePublicKey: key.publicKeyB64,
+       } } }
+-      const rpc = ctx.typertGateway.deviceConnection.rpc
++      const rpc = ctx.typertGateway.createDeviceConnection().rpc
+       await expect(rpc('deviceTrust/redeemPairing', payload, new AbortController().signal))
+         .resolves.toMatchObject({ ok: true, value: { role: 'viewer' } })
+       await expect(rpc('deviceTrust/redeemPairing', payload, new AbortController().signal))
+@@ -1869,7 +1897,7 @@ describe('Typert Gateway per-request device admission', () => {
+       const payload = deviceEnvelope(owner, {})
+       const legacy = { ...payload, apiProtocolVersion: undefined }
+       Reflect.deleteProperty(legacy, 'apiProtocolVersion')
+-      const rpc = ctx.typertGateway.deviceConnection.rpc
++      const rpc = ctx.typertGateway.createDeviceConnection().rpc
+       const signal = new AbortController().signal
+       await expect(rpc('vault/grant', legacy, signal))
+         .resolves.toMatchObject({ ok: false, error: { code: 'gateway/permission-denied' } })
+diff --git a/packages/api/native-remote/README.md b/packages/api/native-remote/README.md
+index f509e95a91..53fbf51d00 100644
+--- a/packages/api/native-remote/README.md
++++ b/packages/api/native-remote/README.md
+@@ -32,6 +32,10 @@ The [Devices settings section](../../client/ui-settings-devices/README.md) displ
+ 
+ RPC uses Connection's `client-request` envelope at `/api/<endpoint>`. `deviceTrust/redeemPairing` is the sole unsigned operation; every other call carries versioned Gateway metadata with a fresh signed device admission. The shared `/api/remote.mux` WebSocket requires a signed admission for each logical stream, including `$events`. Cookies confer no authority. Requests carrying Origin or Fetch Metadata headers are rejected, and the source does not implement CORS.
+ 
++Native clients read `nativeRemote/httpRequestBudget` through capability `native-remote.http-request-budget.v1`, which requires `view`. Its `maxRequestBodyBytes` is the receiving Native listener's inclusive limit for the complete buffered UTF-8 JSON body, including RPC metadata and signed device admission. It excludes HTTP headers, TLS and chunk framing. The value is a positive safe integer derived from the listener's validated configuration; an unavailable listener fails instead of returning a default. Administrative `describe` metadata still requires `device.admin`.
++
++The budget is a configuration observation, not upload permission, a reservation or a source-file limit. Read it through the same verified Native endpoint used for the upload. The listener still enforces the actual request size and current device authorization; a stricter reverse proxy can reject a locally admitted request. The value does not describe another Web or Desktop carrier and does not enable streaming or resumable uploads.
++
+ -----
+ 
+ <a id="understand-the-implementation"></a>
+@@ -42,7 +46,7 @@ RPC uses Connection's `client-request` envelope at `/api/<endpoint>`. `deviceTru
+ 
+ The credentials grant `api-native-remote/tls-identity` stores a self-signed P-256 certificate and PKCS#8 private key through the composed provider. Concurrent creation is serialized by its record writer. Startup renews a certificate near expiry using the same private key, preserving the paired SPKI; malformed or mismatched material fails startup instead of silently replacing identity. Changing the key requires clients to confirm a new pin.
+ 
+-Connection owns RPC envelope parsing and bounded HTTP buffering. Gateway's device adapter owns admission, capability permissions, reply ownership, and stream revocation. The TLS listener owns sockets and their teardown; the shared mux applies per-message and per-connection stream limits. The [architecture decision](../../../.agents/notes/implemented/architecture/2026-09-25-native-remote-connection-source.md) owns these responsibilities and certificate-library constraints.
++Connection owns RPC envelope parsing and bounded HTTP buffering. Each listener obtains its device adapter from the Gateway's `createDeviceConnection()` factory through its own Cordis context, preserving that context for direct Remote receivers. Gateway retains admission, capability permissions, reply ownership, and stream revocation. The TLS listener owns sockets and their teardown; the shared mux applies per-message and per-connection stream limits. The [architecture decision](../../../.agents/notes/implemented/architecture/2026-09-25-native-remote-connection-source.md) owns these responsibilities and certificate-library constraints.
+ 
+ </details>
+ 
+diff --git a/packages/api/native-remote/README.zh.md b/packages/api/native-remote/README.zh.md
+index aa2f8fa16a..fac3b57c1a 100644
+--- a/packages/api/native-remote/README.zh.md
++++ b/packages/api/native-remote/README.zh.md
+@@ -32,6 +32,10 @@ kind: "package-reference"
+ 
+ RPC 在 `/api/<endpoint>` 使用 Connection 的 `client-request` envelope。`deviceTrust/redeemPairing` 是唯一允许未签名调用的操作；其他调用均须携带版本化 Gateway 元数据与新的设备签名准入。共享的 `/api/remote.mux` WebSocket 要求每条逻辑流携带签名准入，包括 `$events`。Cookie 不授予权限。带 Origin 或 Fetch Metadata 头的请求会被拒绝，入口不实现 CORS。
+ 
++原生客户端通过要求 `view` 的 capability `native-remote.http-request-budget.v1` 读取 `nativeRemote/httpRequestBudget`。其 `maxRequestBodyBytes` 是实际接收 Native 监听器对完整缓冲 UTF-8 JSON 请求体的最大允许字节数，允许等于上限，包含 RPC 元数据和设备签名准入，不包含 HTTP headers、TLS 与 chunk framing。该值是从监听器已校验配置派生的正 safe integer；监听器不可用时失败，不返回默认值。管理类 `describe` 信息仍要求 `device.admin`。
++
++预算是一次配置观察，不是上传权限、容量预留或源文件上限。客户端须通过上传使用的同一已验证 Native endpoint 读取它。监听器仍执行实际请求大小和当前设备授权检查；更严格的反向代理仍可拒绝本地已准入的请求。该值不描述其他 Web 或 Desktop carrier，也不提供流式或断点续传上传。
++
+ -----
+ 
+ <a id="understand-the-implementation"></a>
+@@ -42,7 +46,7 @@ RPC 在 `/api/<endpoint>` 使用 Connection 的 `client-request` envelope。`dev
+ 
+ 凭据 grant `api-native-remote/tls-identity` 经组合的 provider 保存自签名 P-256 证书及 PKCS#8 私钥。记录写入器串行化并发创建。启动时对临近过期的证书使用同一私钥续期，保留已配对的 SPKI；格式无效或不匹配的材料使启动失败，不静默替换身份。更换密钥要求客户端确认新指纹。
+ 
+-Connection 负责 RPC envelope 解析和有界 HTTP 缓冲。Gateway 设备适配器负责准入、能力权限、回复归属及流撤销。TLS 监听器负责套接字和关闭；共享 mux 应用每条消息和每连接流数量限制。[架构决策](../../../.agents/notes/implemented/architecture/2026-09-25-native-remote-connection-source.zh.md)记录这些职责及证书库约束。
++Connection 负责 RPC envelope 解析和有界 HTTP 缓冲。每个监听器通过自己的 Cordis context 调用 Gateway 的 `createDeviceConnection()` factory，取得为直接 Remote receiver 保留该 context 的设备 adapter。Gateway 继续负责准入、能力权限、回复归属及流撤销。TLS 监听器负责套接字和关闭；共享 mux 应用每条消息和每连接流数量限制。[架构决策](../../../.agents/notes/implemented/architecture/2026-09-25-native-remote-connection-source.zh.md)记录这些职责及证书库约束。
+ 
+ </details>
+ 
+diff --git a/packages/api/native-remote/src/capabilities.ts b/packages/api/native-remote/src/capabilities.ts
+index 8ba3a57ad2..e747f626eb 100644
+--- a/packages/api/native-remote/src/capabilities.ts
++++ b/packages/api/native-remote/src/capabilities.ts
+@@ -1,7 +1,8 @@
+ /** Operations exposed by an explicitly mounted native listener. */
+ import type { TypertRemoteCapability } from '@deepseek-ai/dsh-typert-protocol'
+ 
+-/** Only device administrators may read pairing transport metadata. */
++/** Listener body budgets require viewing permission; pairing metadata remains administrator-only. */
+ export const NATIVE_REMOTE_CAPABILITIES = [
+   { id: 'native-remote.info.v1', methods: ['describe'], requiredPermission: 'device.admin' },
++  { id: 'native-remote.http-request-budget.v1', methods: ['httpRequestBudget'], requiredPermission: 'view' },
+ ] as const satisfies readonly TypertRemoteCapability[]
+diff --git a/packages/api/native-remote/src/index.ts b/packages/api/native-remote/src/index.ts
+index 6621441c4a..7e29c2cd14 100644
+--- a/packages/api/native-remote/src/index.ts
++++ b/packages/api/native-remote/src/index.ts
+@@ -12,9 +12,9 @@ import { Remote, TypertRemoteService } from '@deepseek-ai/dsh-typert-protocol'
+ import type {} from '@deepseek-ai/dsh-api-device-trust'
+ import { loadTlsIdentity, type CertificateConfig } from './tls-identity.ts'
+ import { NATIVE_REMOTE_CAPABILITIES } from './capabilities.ts'
+-import type { NativeRemoteInfo } from './types.ts'
++import type { NativeHttpRequestBudget, NativeRemoteInfo } from './types.ts'
+ 
+-export type { NativeRemoteInfo, NativePairingPayload } from './types.ts'
++export type { NativeHttpRequestBudget, NativeRemoteInfo, NativePairingPayload } from './types.ts'
+ 
+ /** Explicit deployment bounds for the opt-in listener. */
+ export interface Config extends CertificateConfig {
+@@ -94,10 +94,21 @@ export class NativeRemoteService extends TypertRemoteService {
+     return { ...this.info }
+   }
+ 
++  /**
++   * Read this listener's buffered HTTP body limit without granting upload permission.
++   * @returns the inclusive byte limit used by this listener's HTTP bridge.
++   * @throws while the listener is not ready or has been disposed.
++   */
++  @Remote('httpRequestBudget')
++  httpRequestBudget(): NativeHttpRequestBudget {
++    if (this.info === undefined) throw new Error('native-remote: listener is not ready')
++    return { maxRequestBodyBytes: this.config.maxRequestBodyBytes }
++  }
++
+   /** Load a durable identity before accepting native requests; teardown drains every owned connection. */
+   protected async [Service.init](): Promise<void> {
+     const identity = await loadTlsIdentity(this.ctx.credentials, this.config)
+-    const adapter = this.ctx.typertGateway.deviceConnection
++    const adapter = this.ctx.typertGateway.createDeviceConnection()
+     const handler = createRpcFetchHandler('/api', adapter.rpc)
+     const mux = new RemoteStreamMuxServer(adapter.stream.open, adapter.stream.failure, this.config.websocketHeartbeatIntervalMs, {
+       maxPayloadBytes: this.config.maxWebSocketMessageBytes, maxStreamsPerConnection: this.config.maxStreamsPerConnection,
+diff --git a/packages/api/native-remote/src/types.ts b/packages/api/native-remote/src/types.ts
+index 602b069523..fc1b4d5fd0 100644
+--- a/packages/api/native-remote/src/types.ts
++++ b/packages/api/native-remote/src/types.ts
+@@ -3,6 +3,16 @@
+ import type { DeviceRole } from '@deepseek-ai/dsh-api-device-trust/types'
+ import type { HostId } from '@deepseek-ai/dsh-api-host-description/types'
+ 
++/** Buffered HTTP request admission configured on one ready native TLS listener. */
++export interface NativeHttpRequestBudget {
++  /**
++   * Inclusive byte limit, a positive safe integer, for the complete UTF-8 JSON
++   * body including the RPC envelope and device admission. Excludes HTTP
++   * headers, TLS, and chunk framing; does not limit decoded file bytes alone.
++   */
++  readonly maxRequestBodyBytes: number
++}
++
+ /** Public listener facts available to an authenticated device administrator. */
+ export interface NativeRemoteInfo {
+   /** Configured literal interface; an all-interface address is not a pairing destination. */
+diff --git a/packages/api/native-remote/tests/transport.host.spec.ts b/packages/api/native-remote/tests/transport.host.spec.ts
+index 72ddb7d3c5..f0cfba6781 100644
+--- a/packages/api/native-remote/tests/transport.host.spec.ts
++++ b/packages/api/native-remote/tests/transport.host.spec.ts
+@@ -1,4 +1,4 @@
+-import { afterEach, describe, expect, it } from 'vitest'
++import { afterEach, describe, expect, it, vi } from 'vitest'
+ import { Context, Service } from '@deepseek-ai/cordis'
+ import { createHash, generateKeyPairSync, randomUUID, sign, X509Certificate } from 'node:crypto'
+ import { mkdtemp, rm } from 'node:fs/promises'
+@@ -29,15 +29,30 @@ const config: Config = {
+ class FixtureService extends Service {
+   readonly typertRemote = bindTypertRemote(this, 'nativeFixture', {
+     namespace: 'fixture', capabilities: [
+-      { id: 'fixture.read.v1', methods: ['read'], requiredPermission: 'view' },
++      { id: 'fixture.read.v1', methods: ['read', 'follow'], requiredPermission: 'view' },
+       { id: 'fixture.admin.v1', methods: ['admin'], requiredPermission: 'device.admin' },
+     ],
+   })
+ 
+-  constructor(ctx: Context) { super(ctx, 'nativeFixture') }
++  readonly closed: string[] = []
++
++  constructor(ctx: Context, private readonly owner = 'native-read') { super(ctx, 'nativeFixture') }
+ 
+   @Remote
+-  read(): string { return 'native-read' }
++  read(): string { return this.owner }
++
++  @Remote({ mode: 'stream' })
++  async *follow(signal: AbortSignal): AsyncIterable<string> {
++    try {
++      yield this.owner
++      await new Promise<void>((resolve) => {
++        if (signal.aborted) resolve()
++        else signal.addEventListener('abort', () => { resolve() }, { once: true })
++      })
++    } finally {
++      this.closed.push(this.owner)
++    }
++  }
+ 
+   @Remote
+   admin(): string { return 'native-admin' }
+@@ -47,7 +62,7 @@ afterEach(async () => {
+   for (const close of cleanup.splice(0).reverse()) await close()
+ })
+ 
+-async function bootNative(overrides: Partial<Config> = {}) {
++async function bootContext() {
+   const root = await mkdtemp(join(tmpdir(), 'native-remote-'))
+   cleanup.push(() => rm(root, { recursive: true, force: true }))
+   const ctx = new Context()
+@@ -60,6 +75,11 @@ async function bootNative(overrides: Partial<Config> = {}) {
+   await ctx.plugin(Typert)
+   await ctx.plugin(Gateway)
+   await ctx.plugin(FixtureService)
++  return ctx
++}
++
++async function bootNative(overrides: Partial<Config> = {}) {
++  const ctx = await bootContext()
+   const fiber = ctx.plugin(NativeRemote, { ...config, ...overrides })
+   await fiber
+   return { ctx, fiber, info: ctx.nativeRemote.describe() }
+@@ -86,7 +106,9 @@ async function post(info: NativeRemoteInfo, endpoint: string, payload: unknown,
+   return new Promise<{ status: number; body: string }>((resolve, reject) => {
+     const req = request({ host: '127.0.0.1', port: info.port, path: `/api/${endpoint}`, method: 'POST',
+       createConnection: () => socket,
+-      headers: { 'content-type': 'application/json', 'content-length': String(Buffer.byteLength(body)), connection: 'close', ...headers },
++      headers: { 'content-type': 'application/json',
++        ...(headers['transfer-encoding'] === 'chunked' ? {} : { 'content-length': String(Buffer.byteLength(body)) }),
++        connection: 'close', ...headers },
+     }, (res) => {
+       const chunks: Buffer[] = []
+       res.on('data', (chunk: Buffer) => { chunks.push(chunk) })
+@@ -94,7 +116,10 @@ async function post(info: NativeRemoteInfo, endpoint: string, payload: unknown,
+       res.on('end', () => { resolve({ status: res.statusCode ?? 0, body: Buffer.concat(chunks).toString() }) })
+     })
+     req.on('error', reject)
+-    req.end(body)
++    if (headers['transfer-encoding'] === 'chunked') {
++      req.write(body.slice(0, 16))
++      req.end(body.slice(16))
++    } else req.end(body)
+   })
+ }
+ 
+@@ -119,6 +144,81 @@ async function paired(ctx: Context, info: NativeRemoteInfo, role: DeviceRole = '
+ }
+ 
+ describe('native encrypted Connection source', () => {
++  it('rejects two listeners in the same service scope without replacing the first', async () => {
++    const { ctx, info } = await bootNative()
++    await expect(ctx.plugin(NativeRemote, config)).rejects.toThrow('service "nativeRemote" has been registered')
++    const owner = await paired(ctx, info, 'owner')
++    expect(JSON.parse((await post(info, 'nativeRemote/describe', { apiProtocolVersion: 2, args: {}, device: owner.admission() })).body))
++      .toMatchObject({ result: { ok: true, value: info } })
++  })
++
++  it.each([true, false])('routes signed TLS requests through the listener scope with root listener = %s', async (withRoot) => {
++    const ctx = await bootContext()
++    if (withRoot) await ctx.plugin(NativeRemote, config)
++    const child = ctx.isolate('nativeRemote').isolate('nativeFixture')
++    await child.plugin(FixtureService, 'isolated-read')
++    const fiber = child.plugin(NativeRemote, { ...config, maxRequestBodyBytes: 32_768 })
++    await fiber
++    const info = child.nativeRemote.describe()
++    const adapter = child.typertGateway.createDeviceConnection()
++    const owner = await paired(ctx, info, 'owner')
++    const rootInfo = ctx.get('nativeRemote')?.describe()
++    if (rootInfo !== undefined) expect(info.port).not.toBe(rootInfo.port)
++    for (const destination of [info, ...(rootInfo === undefined ? [] : [rootInfo]), info]) {
++      const response = await post(destination, 'nativeRemote/describe', { apiProtocolVersion: 2, args: {}, device: owner.admission() })
++      expect(JSON.parse(response.body)).toMatchObject({ result: { ok: true, value: destination } })
++      expect(JSON.parse((await post(destination, 'nativeRemote/httpRequestBudget', { apiProtocolVersion: 2, args: {}, device: owner.admission() })).body))
++        .toMatchObject({ result: { ok: true, value: { maxRequestBodyBytes: destination === info ? 32_768 : config.maxRequestBodyBytes } } })
++    }
++    expect(JSON.parse((await post(info, 'fixture/read', { apiProtocolVersion: 2, args: {}, device: owner.admission() })).body))
++      .toMatchObject({ result: { ok: true, value: 'isolated-read' } })
++    await fiber.dispose()
++    await expect(adapter.rpc('nativeRemote/describe', { apiProtocolVersion: 2, args: {}, device: owner.admission() }, new AbortController().signal))
++      .resolves.toMatchObject({ ok: false })
++    await expect(adapter.rpc('nativeRemote/httpRequestBudget', { apiProtocolVersion: 2, args: {}, device: owner.admission() }, new AbortController().signal))
++      .resolves.toMatchObject({ ok: false })
++    expect(child.typertGateway.capabilities()).not.toContain('native-remote.http-request-budget.v1')
++    await expect(pinnedSocket(info)).rejects.toMatchObject({ code: 'ECONNREFUSED' })
++    if (rootInfo !== undefined) {
++      expect(JSON.parse((await post(rootInfo, 'nativeRemote/describe', { apiProtocolVersion: 2, args: {}, device: owner.admission() })).body))
++        .toMatchObject({ result: { ok: true, value: rootInfo } })
++    }
++  })
++
++  it('routes native streams to isolated receivers and drains them on revocation and disposal', async () => {
++    const { ctx, info: rootInfo } = await bootNative()
++    const child = ctx.isolate('nativeRemote').isolate('nativeFixture')
++    await child.plugin(FixtureService, 'isolated-stream')
++    const fiber = child.plugin(NativeRemote, config)
++    await fiber
++    const info = child.nativeRemote.describe()
++    const viewer = await paired(ctx, info)
++    const socket = await pinnedSocket(info)
++    const ws = new WebSocket(`wss://127.0.0.1:${info.port}/api/remote.mux`, { createConnection: () => socket })
++    cleanup.push(async () => { ws.terminate(); if (ws.readyState !== WebSocket.CLOSED) await once(ws, 'close') })
++    await once(ws, 'open')
++    const opened = once(ws, 'message')
++    ws.send(JSON.stringify({ type: 'open', streamId: 'isolated', endpoint: 'fixture/follow',
++      payload: { apiProtocolVersion: 2, args: {}, device: viewer.admission() } }))
++    expect(JSON.parse(String((await opened)[0]))).toEqual({ type: 'item', streamId: 'isolated', value: 'isolated-stream' })
++    const revoked = once(ws, 'message')
++    await ctx.deviceTrust.revokeDevice({ deviceId: viewer.deviceId })
++    expect(JSON.parse(String((await revoked)[0]))).toMatchObject({ type: 'error', streamId: 'isolated', error: { code: 'device/already-revoked' } })
++    const service = child.get('nativeFixture') as unknown as FixtureService
++    await vi.waitFor(() => { expect(service.closed).toEqual(['isolated-stream']) })
++    const owner = await paired(ctx, info, 'owner')
++    const reopened = once(ws, 'message')
++    ws.send(JSON.stringify({ type: 'open', streamId: 'disposing', endpoint: 'fixture/follow',
++      payload: { apiProtocolVersion: 2, args: {}, device: owner.admission() } }))
++    expect(JSON.parse(String((await reopened)[0]))).toMatchObject({ type: 'item', value: 'isolated-stream' })
++    const closed = once(ws, 'close')
++    await fiber.dispose()
++    await closed
++    expect(service.closed).toEqual(['isolated-stream', 'isolated-stream'])
++    expect(JSON.parse((await post(rootInfo, 'fixture/read', { apiProtocolVersion: 2, args: {}, device: owner.admission() })).body))
++      .toMatchObject({ result: { ok: true, value: 'native-read' } })
++  })
++
+   it('exposes public pairing metadata only to device administrators', async () => {
+     const { ctx, info, fiber } = await bootNative()
+     expect(ctx.typertGateway.capabilities()).toContain('native-remote.info.v1')
+@@ -132,6 +232,36 @@ describe('native encrypted Connection source', () => {
+     await fiber.dispose()
+     expect(ctx.typertGateway.capabilities()).not.toContain('native-remote.info.v1')
+   })
++
++  it('exposes the HTTP body budget to every viewing role while requiring live device admission', async () => {
++    const { ctx, info, fiber } = await bootNative({ maxRequestBodyBytes: 4096 })
++    expect(ctx.typertGateway.capabilities()).toContain('native-remote.http-request-budget.v1')
++    const service = ctx.nativeRemote
++    for (const role of ['viewer', 'collaborator', 'owner'] as const) {
++      const device = await paired(ctx, info, role)
++      const payload = () => ({ apiProtocolVersion: 2, args: {}, device: device.admission() })
++      expect(JSON.parse((await post(info, 'nativeRemote/httpRequestBudget', payload())).body))
++        .toMatchObject({ result: { ok: true, value: { maxRequestBodyBytes: 4096 } } })
++      if (role !== 'owner') expect(JSON.parse((await post(info, 'nativeRemote/describe', payload())).body))
++        .toMatchObject({ result: { ok: false, error: { code: 'gateway/permission-denied' } } })
++      await ctx.deviceTrust.revokeDevice({ deviceId: device.deviceId })
++      expect(JSON.parse((await post(info, 'nativeRemote/httpRequestBudget', payload())).body))
++        .toMatchObject({ result: { ok: false, error: { code: 'device/already-revoked' } } })
++    }
++    expect(JSON.parse((await post(info, 'nativeRemote/httpRequestBudget', { apiProtocolVersion: 2, args: {} })).body))
++      .toMatchObject({ result: { ok: false, error: { code: 'gateway/permission-denied' } } })
++    await fiber.dispose()
++    expect(() => service.httpRequestBudget()).toThrow('listener is not ready')
++    expect(ctx.typertGateway.capabilities()).not.toContain('native-remote.http-request-budget.v1')
++  })
++
++  it.each([1, Number.MAX_SAFE_INTEGER])('accepts a safe HTTP body limit of %s without allocating that budget', (maxRequestBodyBytes) => {
++    expect(NativeRemote.Config({ ...config, maxRequestBodyBytes }).maxRequestBodyBytes).toBe(maxRequestBodyBytes)
++  })
++
++  it.each([0, -1, 1.5, Number.MAX_SAFE_INTEGER + 1, NaN, Infinity, -Infinity])('rejects an invalid HTTP body limit of %s at configuration', (maxRequestBodyBytes) => {
++    expect(() => NativeRemote.Config({ ...config, maxRequestBodyBytes })).toThrow()
++  })
+   it.each([
+     [{ headersTimeoutMs: 6000 }, 'headersTimeoutMs must not exceed requestTimeoutMs'],
+     [{ certificateRenewBeforeDays: 7 }, 'certificateRenewBeforeDays must be shorter than certificateLifetimeDays'],
+@@ -176,9 +306,10 @@ describe('native encrypted Connection source', () => {
+     }
+   })
+ 
+-  it('enforces the HTTP body bound before Gateway dispatch', async () => {
++  it.each(['declared', 'chunked'] as const)('enforces the %s HTTP body bound before Gateway dispatch', async (mode) => {
+     const { ctx, info } = await bootNative({ maxRequestBodyBytes: 32 })
+-    const response = await post(info, 'deviceTrust/redeemPairing', { args: { large: 'x'.repeat(100) } })
++    const response = await post(info, 'deviceTrust/redeemPairing', { args: { large: 'x'.repeat(100) } },
++      mode === 'chunked' ? { 'transfer-encoding': 'chunked' } : {})
+     expect(response.status).toBe(413)
+     expect(ctx.deviceTrust.listDevices()).toHaveLength(0)
+   })
+diff --git a/scripts/gen-cordis-catalog.ts b/scripts/gen-cordis-catalog.ts
+index 8d8b8f445d..e1daba8fe2 100644
+--- a/scripts/gen-cordis-catalog.ts
++++ b/scripts/gen-cordis-catalog.ts
+@@ -691,8 +691,10 @@ export const LINK_MAP: Readonly<Record<string, string>> = {
+   DirectoryPickerCapability: 'workspace.md',
+   DirectoryListing: 'workspace.md',
+   TypertContribution: 'invariants.md',
++  TypertGatewayDeviceConnection: 'typert.md',
+   TypertRemoteEventSource: 'typert.md',
+   NativeRemoteInfo: 'typert.md',
++  NativeHttpRequestBudget: 'typert.md',
+   NativePairingPayload: 'typert.md',
+   RemoteEventHostInfo: 'typert.md',
+   HostDescriptor: 'typert.md',
+diff --git a/scripts/type-equiv.manifest.json b/scripts/type-equiv.manifest.json
+index 302c2ce858..d77af23d9e 100644
+--- a/scripts/type-equiv.manifest.json
++++ b/scripts/type-equiv.manifest.json
+@@ -1911,6 +1911,11 @@
+       "symbol": "TypertGatewayErrorCode",
+       "source": "packages/api/gateway/src/types.ts"
+     },
++    {
++      "doc": "docs/subsystems/typert.md",
++      "symbol": "TypertGatewayDeviceConnection",
++      "source": "packages/api/gateway/src/types.ts"
++    },
+     {
+       "doc": "docs/subsystems/typert.md",
+       "symbol": "TypertGateway",
+@@ -2211,6 +2216,11 @@
+       "symbol": "SupportBundle",
+       "source": "packages/api/host-diagnostics/src/types.ts"
+     },
++    {
++      "doc": "docs/subsystems/typert.md",
++      "symbol": "NativeHttpRequestBudget",
++      "source": "packages/api/native-remote/src/types.ts"
++    },
+     {
+       "doc": "docs/subsystems/typert.md",
+       "symbol": "NativeRemoteInfo",
+diff --git a/tsconfig.host.json b/tsconfig.host.json
+index 2007ddba69..835b405bdd 100644
+--- a/tsconfig.host.json
++++ b/tsconfig.host.json
+@@ -76,6 +76,7 @@
+     "apps/web/tests/hosts-settings.e2e.ts",
+     "apps/web/tests/device-interaction-reply.e2e.ts",
+     "apps/web/tests/native-remote-question.e2e.ts",
++    "apps/web/tests/native-remote-isolation.e2e.ts",
+     "apps/web/tests/android-gateway.e2e.ts",
+     "apps/web/tests/android-gateway-driver.ts",
+     "apps/web/tests/android-companion-ui-driver.ts",

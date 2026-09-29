@@ -1,0 +1,72 @@
+{
+  "schemaVersion": 1,
+  "handoffId": "2026-09-29-01",
+  "predecessorHandoff": "2026-09-25-01",
+  "predecessorManualSha256": "0e5a866593a0c8860bf914864b984f4402055d3af923cb37cdfd77b6b05b1d51",
+  "capturedAt": "2026-09-29T01:14:18.032390+00:00",
+  "timezone": "Asia/Hong_Kong",
+  "threadId": "01a0d683-d6ce-77f0-b946-b99408ba2e12",
+  "goalStatus": "paused",
+  "goalStatusBasis": "Live get_goal result during this handoff",
+  "fullGoalComplete": false,
+  "completeRc": false,
+  "sessionWriterVersion": 3,
+  "worktree": "E:/Mix/project/deepseek-harness/.worktrees/upstream-first",
+  "branch": "agents/upstream-first",
+  "head": "74b476627a950189b348a5771bb205c508f8230f",
+  "remoteVerifiedSha": "74b476627a950189b348a5771bb205c508f8230f",
+  "remoteVerification": "Read-only ls-remote during this handoff; no fetch or push",
+  "remote": "https://github.com/nivranic/deepseek-harness",
+  "latestSealedRecord": {
+    "path": "artifacts/upstream-first/android-attachment-receipt-recovery-source.json",
+    "sha256": "a6885018a5c9d2ca9564314993f9edff2d1af832023244979fd2842101feb14d"
+  },
+  "unsealedIncrement": {
+    "key": "native-upload-budget",
+    "beforeArchive": ".artifacts/native-upload-budget-before/archive.json",
+    "beforeArchiveSha256": "a239e9736694a7e9e531f121ee440d806a042842d7549847e1cf4b306a533c5b",
+    "beforeFiles": 6924,
+    "captureStarted": false
+  },
+  "coreTests": {
+    "tests": 57,
+    "failures": 0,
+    "errors": 0,
+    "skipped": 0,
+    "suites": 7
+  },
+  "currentApks": [
+    {
+      "path": "apps/android/app/build/outputs/apk/debug/app-debug.apk",
+      "sha256": "226fa8ca0f96f3dd403e9c0bc2cdcfd47351b71a17f2cabbffd38c8531a02018",
+      "bytes": 67767538
+    },
+    {
+      "path": "apps/android/app/build/outputs/apk/androidTest/debug/app-debug-androidTest.apk",
+      "sha256": "6e6b7e82df5175f2b5ea783c26129f9f1fcc2b951a5018a934689ed94cba6719",
+      "bytes": 3041848
+    }
+  ],
+  "ci": {
+    "runId": 36355618789,
+    "dispatch": 204,
+    "lastSavedStatus": "queued",
+    "liveCiRefreshedForHandoff": false
+  },
+  "authorization": "User authorized Camera and subsequent verified increments to normal push and ci.yml dispatch on agents/upstream-first.",
+  "processObservation": "Agent listing contains only root; narrow elevated process query found no matching budget test/catalog command. No global processes were stopped.",
+  "sourceRecordCount": 201,
+  "beforeManifestCount": 191,
+  "protectedMainWorktreeStatus": [
+    "?? GOAL_PROGRESS_SUMMARY_2026-09-14.md",
+    "?? IMPLEMENTATION_VERIFICATION_V2.md"
+  ],
+  "notPerformedDuringHandoff": [
+    "product implementation",
+    "product tests/builds",
+    "seal generation",
+    "commit/push/CI dispatch",
+    "memory writes",
+    "history cleanup"
+  ]
+}

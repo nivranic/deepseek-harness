@@ -182,21 +182,28 @@ type TypertGatewayErrorCode =
 ```
 
 ```ts type-equiv
+/** Device-authenticated RPC and streams bound to the factory caller's Cordis context. */
+interface TypertGatewayDeviceConnection {
+  /** Decode and authorize one device RPC; unsigned pairing redemption is the sole exception. */
+  readonly rpc: ConnectionRpcHandler
+  /** Open device-owned streams; device grants remain revocable throughout iteration. */
+  readonly stream: TypertGatewayWireStream
+}
+```
+
+```ts type-equiv
 /** Host dispatcher consumed by Connection adapters. */
 interface TypertGateway {
   /** Carrier adapter shared by WebSocket and in-process transports. */
   readonly wireStream: TypertGatewayWireStream
 
   /**
-   * Native carrier adapter requiring device identity for every operation except
-   * one-time pairing redemption. Local browser cookies cannot authorize it.
+   * Capture the caller's Cordis context for a native carrier. Direct methods
+   * resolve services in that context on every call. Device identity is required
+   * except for one-time pairing redemption; browser cookies cannot authorize it.
+   * @returns RPC and stream callbacks retaining the caller's service scope.
    */
-  readonly deviceConnection: {
-    /** Decode and authorize one device RPC; unsigned pairing redemption is the sole exception. */
-    readonly rpc: ConnectionRpcHandler
-    /** Open device-owned streams; device grants remain revocable throughout iteration. */
-    readonly stream: TypertGatewayWireStream
-  }
+  createDeviceConnection(): TypertGatewayDeviceConnection
 
   /**
    * Read explicit capability ids from active Remote bindings whose required
@@ -235,7 +242,23 @@ interface TypertGateway {
 <a id="native-tls-source"></a>
 ## 原生 TLS 入口
 
-[原生 Remote Connection](../../packages/api/native-remote/README.zh.md) 挂载独立、按需启用的 TLS 监听器。Gateway deviceConnection 要求 RPC 和逻辑流携带签名身份，唯一例外是一次性配对兑换。设备业务流在准入及迭代期间持续观察授权撤销。NativeRemoteInfo 向已认证操作者和设备管理员提供配置的 bindHost、实际 port 与 SPKI 指纹，不暴露私钥材料。
+[原生 Remote Connection](../../packages/api/native-remote/README.zh.md) 挂载独立、按需启用的 TLS 监听器。每个监听器在自己的 Cordis context 中调用 Gateway 的普通 createDeviceConnection factory。返回的 RPC 与 stream 回调保留该 context，并要求签名身份，唯一例外是一次性配对兑换。设备业务流在准入及迭代期间持续观察授权撤销。NativeRemoteInfo 向已认证操作者和设备管理员提供配置的 bindHost、实际 port 与 SPKI 指纹，不暴露私钥材料。
+
+独立的 native-remote.http-request-budget.v1 capability 通过 view 权限公开 nativeRemote/httpRequestBudget。其上限属于该就绪的 Native 监听器，不描述 Web 或 Desktop carrier。客户端可以用观察值检查完整编码请求体，但 Host 仍检查实际字节与当前授权。管理类监听器信息继续要求 device.admin。
+
+### NativeHttpRequestBudget
+
+```ts type-equiv
+/** Buffered HTTP request admission configured on one ready native TLS listener. */
+interface NativeHttpRequestBudget {
+  /**
+   * Inclusive byte limit, a positive safe integer, for the complete UTF-8 JSON
+   * body including the RPC envelope and device admission. Excludes HTTP
+   * headers, TLS, and chunk framing; does not limit decoded file bytes alone.
+   */
+  readonly maxRequestBodyBytes: number
+}
+```
 
 ### NativeRemoteInfo
 
@@ -422,6 +445,13 @@ A separately configured HTTPS listener with no browser assets, cookies, or local
  * @throws while the listener is not ready or has been disposed.
  */
 @Remote('describe') describe(): NativeRemoteInfo
+
+/**
+ * Read this listener's buffered HTTP body limit without granting upload permission.
+ * @returns the inclusive byte limit used by this listener's HTTP bridge.
+ * @throws while the listener is not ready or has been disposed.
+ */
+@Remote('httpRequestBudget') httpRequestBudget(): NativeHttpRequestBudget
 ```
 
 Source: [`packages/api/native-remote/src/index.ts`](../../packages/api/native-remote/src/index.ts)
@@ -499,6 +529,14 @@ Source: [`packages/typert/registry/src/service.ts`](../../packages/typert/regist
 Resolve strict generated definitions or conservative SRC markers against current Cordis Services and Typert providers.
 
 ```ts cordis-catalog
+/**
+ * Capture the caller's Cordis context for a native carrier. Direct methods
+ * resolve services in that context on every call. Device identity is required
+ * except for one-time pairing redemption; browser cookies cannot authorize it.
+ * @returns RPC and stream callbacks retaining the caller's service scope.
+ */
+createDeviceConnection(): TypertGatewayDeviceConnection
+
 /**
  * Register the sole application-selected forwarded-event source.
  * @param source - stream factory installed by the Remote assembly.

@@ -1,0 +1,14 @@
+<?xml version="1.0" encoding="UTF-8"?>
+<testsuite name="ai.deepseek.dsh.companion.CompanionHostControllerTest" tests="8" skipped="0" failures="0" errors="0" timestamp="2026-09-27T22:56:58.078Z" hostname="WADEPRUDENCE" time="0.511">
+  <properties/>
+  <testcase name="cancellation during preparation retires candidate without persisting selection()" classname="ai.deepseek.dsh.companion.CompanionHostControllerTest" time="0.405"/>
+  <testcase name="a closed owner rejects new clients and retires their resources()" classname="ai.deepseek.dsh.companion.CompanionHostControllerTest" time="0.005"/>
+  <testcase name="unsaved old edits reject switching before replacing any identity()" classname="ai.deepseek.dsh.companion.CompanionHostControllerTest" time="0.021"/>
+  <testcase name="restart restores selected grant without saving or sending and corrupt catalog requires explicit recovery()" classname="ai.deepseek.dsh.companion.CompanionHostControllerTest" time="0.016"/>
+  <testcase name="two Hosts retain independent drafts answers and pending prompt identities for the same Session()" classname="ai.deepseek.dsh.companion.CompanionHostControllerTest" time="0.024"/>
+  <testcase name="failed catalog save retains old transport input and durable selection and retires candidate()" classname="ai.deepseek.dsh.companion.CompanionHostControllerTest" time="0.014"/>
+  <testcase name="post commit retirement failure exposes committed identity as unavailable()" classname="ai.deepseek.dsh.companion.CompanionHostControllerTest" time="0.01"/>
+  <testcase name="cancellation at durable commit still adopts and waits for old transport retirement()" classname="ai.deepseek.dsh.companion.CompanionHostControllerTest" time="0.013"/>
+  <system-out><![CDATA[]]></system-out>
+  <system-err><![CDATA[]]></system-err>
+</testsuite>
