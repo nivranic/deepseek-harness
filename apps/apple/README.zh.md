@@ -8,7 +8,9 @@ DeepSeek Harness 的下游 Apple 薄壳工程。设备首先是 Remote Companion
 
 `contract` Swift 包镜像当前候选的 Remote 失败分类：`RemoteFailureClass` 与 `RemoteFailureClasses.classify(code)` 镜像 `@deepseek-ai/dsh-typert-protocol` 的 TypeScript 权威。没有共享语义的码——包括更新 Host 的所有未来码——解析为 `unknown`，必须保持为可呈现的不透明诊断。类只命名 Client 接下来可做的事；从不授予能力、权限、重试策略或协议版本准入。
 
-自检可执行程序断言镜像与生成投影（`remote-failure-classes.json`）一致、每个已分类码都被 [Remote 失败 JSON Schema](../../packages/typert/protocol/remote-errors.schema.json) 声明、schema 的不透明未知分支排除全部 84 个已知码、未分类词汇解析为 `unknown`。夹具经 `node scripts/gen-remote-failure-classes-json.mjs` 再生成；已提交产物由自检验证，漂移即失败。在 `apps/apple/contract` 内用 `swift run dsh-contract-check` 运行（需要 macOS + Xcode；CI 在 macOS lane 上运行）。
+自检可执行程序断言镜像与生成投影（`remote-failure-classes.json`）一致、每个已分类码都被 [Remote 失败 JSON Schema](../../packages/typert/protocol/remote-errors.schema.json) 声明、schema 的不透明未知分支排除全部 92 个已知码、未分类词汇解析为 `unknown`。夹具经 `node scripts/gen-remote-failure-classes-json.mjs` 再生成；已提交产物由自检验证，漂移即失败。在 `apps/apple/contract` 内用 `swift run dsh-contract-check` 运行（需要 macOS + Xcode；CI 在 macOS lane 上运行）。
+
+本契约同时采纳第 28 节原生 Host 名册词汇：`NativeHostRoster.decode` 镜像 Android core 的 `FileNativeHostStore`——精确字段集、非空白字符串、`native-gateway-v1` 传输格式、四个配对角色、64 位小写十六进制钉定指纹、32 字节签名密钥、规范可达 HTTPS origin、互异 Host 键（`NativeHostRoster.hostKey`，`[hostId, pinnedFingerprint]` 的 SHA-256）、以及必须指向已存身份的 active 键。Kotlin 权威与本镜像消费同一批夹具（`fixtures/native-host-roster/`，一份规范文档加 14 个拒绝用例）；`NativeHostCatalogTest` 把完全相同的字节送入 Android store，两个实现的接受与拒绝保持对等。
 
 ## 已知限制与后续工作
 

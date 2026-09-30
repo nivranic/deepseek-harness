@@ -22,9 +22,13 @@
 
 [历史来源记录](artifacts/upstream-first/gateway-consumption-source.json)把外壳的契约消费接缝落地：LinkWire 不再丢弃其本就校验过的信封 details（单次结果与流失败帧两径保留），LinkClientException.Refused 携带 code、envelopeMessage 与结构化 details 透出；GatewayFailurePresentation 消费共享 RemoteFailureClasses 镜像——已知类别得到唯一的下一步动作与呈现文案，词汇表之外的码保持不透明诊断（code 与 message 原样、details 留存信封）；文件查看器先查分类器再走私有 lite-fold 细化。契约测试 + core 185/185（含 LinkClientTest 信封保留用例），:app:assembleDebug 通过门禁，重建 APK 在本地 AVD 安装启动零崩溃。局限：未驱动真实 Host↔设备拒绝交换（需 Host 配对夹具）；呈现文案为外壳本地中文常量（独立模块，不适用 web/desktop 字典模式）。
 
+## Apple 契约采纳第 28 节原生 Host 名册词汇（§28）
+
+[当前来源记录](artifacts/upstream-first/apple-roster-swift-source.json)关闭 §28 剩余工作中的「Swift 采用」项：`NativeHostRoster.swift` 采纳 Android core `FileNativeHostStore` 的名册 JSON 词汇与全部解码不变量（根/行精确字段集、非空白字符串、native-gateway-v1 传输格式、四配对角色、64 位小写十六进制钉定指纹、恰 32 字节 base64 签名密钥、规范可达 HTTPS origin（无 userinfo/query/fragment、空或根路径、合法端口、排除 any-address；去尾斜杠）、互异 Host 键、active 键指向已存身份且名册空时恰缺席），`hostKey` 镜像 SHA-256(「[hostId,指纹]」) 且独立于设备授予；两处平台解析差异显式处理（JSONSerialization 布尔桥接 NSNumber(true)==1 先拒、IPv6 any-address 的 [::]/:: 两拼法都拒）。共享夹具 `fixtures/native-host-roster/`（1 规范文档 + 14 拒绝用例）为对等证据：Swift 自检 main.swift 解码规范文档并按规则拒绝全部无效用例，`NativeHostCatalogTest` 新用例把完全相同字节送入 Android store（gradle :core:test 375 全绿）；Swift 半边本机无工具链、只在 macOS CI lane 编译运行（swiftCiRecovery 先例，桌面复查过渡）。apple README 双语记录采纳并修正既有 84→92 码计数漂移。名册写入/重新配对语义仍归 Android core（Swift 镜像为契约层只读校验），Swift 侧 CI 执行证据待 PR 通道运行收口，完整目标未完成。
+
 ## 第 34 节差异预览的分屏视图（§34）
 
-[当前来源记录](artifacts/upstream-first/diff-split-view-source.json)给差异预览补上第二种第 34 节呈现：纯配对模块 `diff/split.ts`（无 React/DOM）把已解析的 unified 行转为分屏行——上下文行出现在两侧，每个无上下文衔接的删除/新增连续段按位配对（首删对首增），较长一侧尾部对着缺席对侧，前导/hunk/note 行保持整行并保留 unified 索引使文件链接与语法高亮按源行寻址；`DiffBody` 在现有工具栏加按 tab 生效的视图切换（aria-pressed），所有视口默认 unified 满足手机默认、桌面按需切分屏，分屏行复用同一虚拟化器（一个配对行仍是一个虚拟行），每半各带行号/符号/变色与经该侧 unified 索引查得的共享语法 span，整行分屏行与 unified 同渲染保留当前文件打开。证明：纯配对单测（按位对齐/纯删纯增/长侧尾部/边界冲刷/索引保留）、组件测试（默认视图、data-diff-view 与 data-diff-side-kind 语义的切换往返、空白对侧）、真浏览器车道 diff-preview.e2e.ts 扩展（切入分屏、配对半边各行号、旧左新右几何布局、切回 unified，golden 增分屏行）。README 双语以分屏契约替换「分栏 diff 仍为未实现的可选项」。跨 tab/持久化视图偏好与配对行内词级高亮保持开放，完整目标未完成。
+[历史来源记录](artifacts/upstream-first/diff-split-view-source.json)给差异预览补上第二种第 34 节呈现：纯配对模块 `diff/split.ts`（无 React/DOM）把已解析的 unified 行转为分屏行——上下文行出现在两侧，每个无上下文衔接的删除/新增连续段按位配对（首删对首增），较长一侧尾部对着缺席对侧，前导/hunk/note 行保持整行并保留 unified 索引使文件链接与语法高亮按源行寻址；`DiffBody` 在现有工具栏加按 tab 生效的视图切换（aria-pressed），所有视口默认 unified 满足手机默认、桌面按需切分屏，分屏行复用同一虚拟化器（一个配对行仍是一个虚拟行），每半各带行号/符号/变色与经该侧 unified 索引查得的共享语法 span，整行分屏行与 unified 同渲染保留当前文件打开。证明：纯配对单测（按位对齐/纯删纯增/长侧尾部/边界冲刷/索引保留）、组件测试（默认视图、data-diff-view 与 data-diff-side-kind 语义的切换往返、空白对侧）、真浏览器车道 diff-preview.e2e.ts 扩展（切入分屏、配对半边各行号、旧左新右几何布局、切回 unified，golden 增分屏行）。README 双语以分屏契约替换「分栏 diff 仍为未实现的可选项」。跨 tab/持久化视图偏好与配对行内词级高亮保持开放，完整目标未完成。
 
 ## 第 28 节名册的已保存 Host 本地重命名（§28）
 

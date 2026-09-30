@@ -129,4 +129,27 @@ class NativeHostCatalogTest {
         assertEquals(NativeHostCatalog(), store.load())
         assertEquals("unreadable", file.parentFile.listFiles()!!.single { it != file }.readText())
     }
+
+    /** The Apple contract consumes the same roster documents this store accepts and rejects. */
+    private fun appleRosterFixtures(): File = generateSequence(File(System.getProperty("user.dir")!!)) { dir -> dir.parentFile }
+        .map { dir -> File(dir, "apps/apple/contract/fixtures/native-host-roster") }
+        .firstOrNull { it.isDirectory }
+        ?: fail("apple roster fixtures not found from ${System.getProperty("user.dir")}")
+
+    @Test fun `apple contract roster fixtures match this store's acceptance and rejection`() {
+        val fixtures = appleRosterFixtures().listFiles()!!.sortedBy { it.name }
+        assertEquals(listOf("valid.json"), fixtures.filterNot { it.name.startsWith("invalid-") }.map { it.name })
+        assertEquals(14, fixtures.count { it.name.startsWith("invalid-") })
+        fun load(bytes: ByteArray) = file().let { target ->
+            target.writeBytes(bytes)
+            FileNativeHostStore(target, PlainCredentialsCipher, 65536).load()
+        }
+        val catalog = load(fixtures.first { it.name == "valid.json" }.readBytes())!!
+        assertEquals(2, catalog.hosts.size)
+        assertEquals(nativeHostKey(catalog.hosts.first { it.hostId == "host-desk" }), catalog.active)
+        assertEquals("https://lab.example.com:8443", catalog.hosts[1].endpoint)
+        for (case in fixtures.filter { it.name.startsWith("invalid-") }) {
+            assertFails("fixture ${case.name} must be rejected") { load(case.readBytes()) }
+        }
+    }
 }

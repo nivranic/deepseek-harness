@@ -1,0 +1,26 @@
+{
+  "version": 1,
+  "active": "1d7f2e7255f819dc0c3f3d0fa9cac1b7a1be29948704c67ceda1530ea8e03a40",
+  "hosts": [
+    {
+      "hostId": "host-desk",
+      "hostName": "  ",
+      "deviceId": "device-1",
+      "role": "owner",
+      "endpoint": "https://desk.example.com",
+      "pinnedFingerprint": "aaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaa",
+      "signingKeyBase64": "BwcHBwcHBwcHBwcHBwcHBwcHBwcHBwcHBwcHBwcHBwc=",
+      "transportFormat": "native-gateway-v1"
+    },
+    {
+      "hostId": "host-lab",
+      "hostName": "Lab",
+      "deviceId": "device-1",
+      "role": "viewer",
+      "endpoint": "https://lab.example.com:8443/",
+      "pinnedFingerprint": "0123456789abcdef0123456789abcdef0123456789abcdef0123456789abcdef",
+      "signingKeyBase64": "CQkJCQkJCQkJCQkJCQkJCQkJCQkJCQkJCQkJCQkJCQk=",
+      "transportFormat": "native-gateway-v1"
+    }
+  ]
+}

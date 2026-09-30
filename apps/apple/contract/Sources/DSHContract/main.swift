@@ -57,4 +57,36 @@ guard excluded.count == 92 else {
 }
 print("PASS opaque unknown branch excludes all 92 known codes")
 
+// Native Host roster adoption: the Swift mirror accepts the Android core's
+// canonical roster document and rejects every documented violation of its
+// vocabulary and invariants with the same rule names.
+let rosterFixtures = fixtures.appendingPathComponent("native-host-roster", isDirectory: true)
+let rosterNames = try FileManager.default.contentsOfDirectory(atPath: rosterFixtures.path).sorted()
+guard rosterNames.contains("valid.json"),
+    rosterNames.filter({ $0.hasPrefix("invalid-") }).count == 14 else {
+    checkFailure("expected the valid roster fixture plus 14 invalid cases, found \(rosterNames)")
+}
+let valid = try NativeHostRoster.decode(try readFixture("native-host-roster/valid.json"))
+guard valid.hosts.count == 2, valid.active == NativeHostRoster.hostKey(hostId: "host-desk", pinnedFingerprint: String(repeating: "a", count: 64)),
+    valid.hosts[1].endpoint == "https://lab.example.com:8443" else {
+    checkFailure("the canonical roster decoded with wrong content: \(valid)")
+}
+print("PASS roster mirror decodes the canonical document (2 hosts, active key, trailing-slash origin)")
+
+for name in rosterNames where name.hasPrefix("invalid-") {
+    do {
+        _ = try NativeHostRoster.decode(try readFixture("native-host-roster/" + name))
+        checkFailure("invalid roster case \(name) was accepted")
+    } catch let error as NativeHostRosterError {
+        guard !error.rule.isEmpty else { checkFailure("invalid roster case \(name) rejected without a rule") }
+    }
+}
+print("PASS roster mirror rejects all \(rosterNames.filter { $0.hasPrefix("invalid-") }.count) invalid cases by rule")
+
+guard NativeHostRoster.hostKey(hostId: "host-desk", pinnedFingerprint: String(repeating: "a", count: 64))
+    != NativeHostRoster.hostKey(hostId: "host-desk", pinnedFingerprint: String(repeating: "b", count: 64)) else {
+    checkFailure("the Host key must bind the fingerprint, not just the hostId")
+}
+print("PASS roster Host key binds the verified Host identity")
+
 exit(0)
