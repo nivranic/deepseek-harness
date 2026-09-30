@@ -4,7 +4,7 @@
 /// Kotlin implementation is the authority; this mirror adopts the same JSON
 /// vocabulary and invariants so an Apple client can read the same document.
 import Foundation
-import Crypto
+import CryptoKit
 
 /// One saved Host identity; every field is a non-blank string on the wire.
 public struct NativeHostCredentials: Equatable, Sendable {
