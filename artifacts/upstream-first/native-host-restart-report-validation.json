@@ -1,0 +1,70 @@
+{
+  "status": "PASS",
+  "scope": "Report bindings and audit for the native Host restart increment: real Host SIGKILL restart reconnection, staged-receipt invalidation with explicit recovery and durable identity/bytes survival; the remaining specification sections stay open; full Upstream-First objective remains in progress",
+  "gate0": {
+    "validation": "PASS",
+    "gate0": "PASS",
+    "paths": 1938,
+    "components": 129,
+    "specificationCoverage": {
+      "status": "PASS",
+      "numberedSections": 81,
+      "nonEmptySourceLines": 1983,
+      "acceptanceProven": false
+    }
+  },
+  "sourceRecord": {
+    "path": "artifacts/upstream-first/native-host-restart-source.json",
+    "sha256": "e68eaf546cc826e6734bdc7f13191b2a27d50df503aebda8e33077ba19ece834"
+  },
+  "generator": {
+    "path": "artifacts/upstream-first/write-reports.mjs",
+    "sha256": "5ee0ef237d1e98f146ed1423b315a4021b2fb042dd09ef69353eaed3bfe69fea"
+  },
+  "binding": {
+    "path": "artifacts/upstream-first/native-host-restart-binding.json",
+    "sha256": "492750e0887c87f4de7ddbcaf539c6a635ae12bc19362bd20bc59b054a376f98"
+  },
+  "helpers": [
+    {
+      "path": ".artifacts/advance-native-host-restart-reports.mjs",
+      "sha256": "9a9ae32bb98ebeba632c96a9856b7823555b0a5c4138adeb8cb8c985433f756f"
+    },
+    {
+      "path": ".artifacts/capture-native-host-restart-validation.mjs",
+      "sha256": "b616391480b4238b6802c836741f482e3ea2bc18a154eed5d6bc4fc407a7402a"
+    }
+  ],
+  "reports": [
+    {
+      "path": "IMPLEMENTATION_STATUS.md",
+      "sha256": "5af9d788dfce0e70f70cfad2041efbf118bfebebfd64caefc1106efb1ac274c1"
+    },
+    {
+      "path": "artifacts/upstream-first/evidence.json",
+      "sha256": "77464ec214dba5d094fd9ff14b07ee2250932e78a04a6894cfae43b3b81b5b42"
+    }
+  ],
+  "checks": [
+    {
+      "path": ".artifacts/native-host-restart-binding.log",
+      "sha256": "19bb3ab50b83f83e4d1d6a30ca87d88c93e4946b89e0b19eb6b1833d6516e830"
+    },
+    {
+      "path": ".artifacts/native-host-restart-audit-final.log",
+      "sha256": "bab0601256c3026d8a62ae462558ee0c9165c288612b93cce6d7001bc7218e11"
+    },
+    {
+      "path": ".artifacts/native-host-restart-gate0-final.log",
+      "sha256": "505d74ef938f5d34d85490d37e0176ba804d93272fcf465ce2544a02c56b3f90"
+    },
+    {
+      "path": ".artifacts/native-host-restart-report-diff-check.log",
+      "sha256": "e3b0c44298fc1c149afbf4c8996fb92427ae41e4649b934ca495991b7852b855"
+    },
+    {
+      "path": ".artifacts/native-host-restart-report-generation.log",
+      "sha256": "6616630463c8eb3ffd69d218e03ffc25be7852a2f9e639de6ae42558801b921d"
+    }
+  ]
+}

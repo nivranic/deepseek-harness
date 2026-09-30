@@ -38,6 +38,7 @@
     "apps/web/tests/interaction-expiry.e2e.ts",
     "apps/web/tests/host-restart.e2e.ts",
     "apps/web/tests/host-restart.fixture.ts",
+    "apps/web/tests/android-host-restart.fixture.ts",
     "apps/web/tests/tool-reused-id.snapshot.ts",
     "apps/web/tests/question-retry.snapshot.ts",
     "apps/web/tests/tool-reused-id.fixture.ts",

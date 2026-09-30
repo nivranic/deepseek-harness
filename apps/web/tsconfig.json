@@ -40,6 +40,7 @@
     "tests/interaction-expiry.e2e.ts",
     "tests/host-restart.e2e.ts",
     "tests/host-restart.fixture.ts",
+    "tests/android-host-restart.fixture.ts",
     "tests/tool-reused-id.snapshot.ts",
     "tests/question-retry.snapshot.ts",
     "tests/tool-reused-id.fixture.ts",

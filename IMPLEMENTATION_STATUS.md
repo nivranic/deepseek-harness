@@ -22,9 +22,17 @@
 
 [历史来源记录](artifacts/upstream-first/gateway-consumption-source.json)把外壳的契约消费接缝落地：LinkWire 不再丢弃其本就校验过的信封 details（单次结果与流失败帧两径保留），LinkClientException.Refused 携带 code、envelopeMessage 与结构化 details 透出；GatewayFailurePresentation 消费共享 RemoteFailureClasses 镜像——已知类别得到唯一的下一步动作与呈现文案，词汇表之外的码保持不透明诊断（code 与 message 原样、details 留存信封）；文件查看器先查分类器再走私有 lite-fold 细化。契约测试 + core 185/185（含 LinkClientTest 信封保留用例），:app:assembleDebug 通过门禁，重建 APK 在本地 AVD 安装启动零崩溃。局限：未驱动真实 Host↔设备拒绝交换（需 Host 配对夹具）；呈现文案为外壳本地中文常量（独立模块，不适用 web/desktop 字典模式）。
 
+## Android 真实 Host 重启：暂存回执失效与持久身份恢复
+
+[当前来源记录](artifacts/upstream-first/native-host-restart-source.json)验证 Host 进程 SIGKILL 重启与已配对 Android companion 的组合轴：子进程 Host（apps/cli --profile hostrestart，隔离 DSH_HOME，固定 native 端口）经 fixture 私有 IPC 签发配对、创建会话并上报 describe 事实；设备侧 SAF 上传暂存回执并 flush 后杀死 Host，同端口重启，adb reverse 摘除重建触发重连。断言固定的真实语义：暂存回执进程本地（FILE_NOT_STAGED 拒绝），显式恢复路径（丢弃 pending、移除失效附件、重选、新回执、一次发送）走通；durable 状态跨重启逐项相等（hostId、spkiFingerprint、固定端口、设备授权、attachments/v1 上传字节 sha256），重启后重新通告 native-remote.http-request-budget.v1 且重选上传在派发前重查预算；durable 会话日志恰一条用户来源消息、一个 completed 回合、一次 mock 模型请求。产品代码零改动：仅新增 fixture+e2e 与两行 tsconfig 面注册（host-restart.fixture 同模式），已安装 APK 与图片预算增量一致。
+
+验证：e2e 三方独立运行 exit 0（子代理 r3/r4 与主会话复跑 r5，各约 30 秒）；typecheck 0、oxlint 0/0、test:docs 17/0、doc-sync 36/0、审计 19/19（specification-traceability 与 verify-audit 双文件）、Gate 0 PASS；三张截图（reconnected-session、rejected-old-receipt、final-send）与 observation.json 落盘 .artifacts/android-host-restart-ui/。如实记录：本增量截图的像素级视觉核验未验证——识图通道 key 过期（401）且本会话网关丢弃 image block，主模型降级 Read 同样无像素感知，用户级规则禁止改走其他 OCR；恢复通道（有效 zhipu key 或 reno/config.local.json）后应补做并更新本记录。
+
+局限：验证覆盖被测模拟器、子进程 Host profile 与 TLS 路径；物理设备、iOS companion、上传或流进行中的 Host 重启、并发多设备重连、回执持久化设计仍开放；6045bfb6e4 的独立 CI 隔离运行因 workflow_dispatch 不接受 sha ref 且临时 ref 超授权而未取得（f313431302 的 run 覆盖其内容树）；封存机制新增已知约束：write-reports 的 candidateTrackedChanges 嵌上一代 evidence 自身哈希，封存完成后不得重跑生成器而不重绑回执（0bcf1ace8d 已按空集代重绑并经提交后幂等自证）。
+
 ## Android 原生图片上传预算：与文件同源的完整请求体准入
 
-[当前来源记录](artifacts/upstream-first/native-image-upload-budget-source.json)把完整请求体预算准入扩展到 uploadImage：Native 客户端对每个显式图片上传通过同一已验证 Native 客户端读取接收监听器预算一次，校验后在构造 HTTP 调用前对最终发送的完整 UTF-8 字节做拒绝判定，超限映射 REQUEST_TOO_LARGE，不重试、不追加 receipt、不替换草稿与 pending。输入区照片操作同时要求 image-upload.stage.v1 与 native-remote.http-request-budget.v1，仅缺预算能力时提示缺少 Host 上传限制而非图片支持。support export 夹具补记 native-remote.http-request-budget.v1 能力行：该行由文件预算增量引入，其过滤单测轮（57/7）未覆盖全量 SupportExportTest，本次全量 Core 首次暴露并修复。
+[历史来源记录](artifacts/upstream-first/native-image-upload-budget-source.json)把完整请求体预算准入扩展到 uploadImage：Native 客户端对每个显式图片上传通过同一已验证 Native 客户端读取接收监听器预算一次，校验后在构造 HTTP 调用前对最终发送的完整 UTF-8 字节做拒绝判定，超限映射 REQUEST_TOO_LARGE，不重试、不追加 receipt、不替换草稿与 pending。输入区照片操作同时要求 image-upload.stage.v1 与 native-remote.http-request-budget.v1，仅缺预算能力时提示缺少 Host 上传限制而非图片支持。support export 夹具补记 native-remote.http-request-budget.v1 能力行：该行由文件预算增量引入，其过滤单测轮（57/7）未覆盖全量 SupportExportTest，本次全量 Core 首次暴露并修复。
 
 验证：全量 core:test 450 用例 0 失败（含 UploadBudget 9 用例：每次显式图片上传新预算、超一字节 POST 前拒绝、拒绝或能力缺失的 Host 阻断而非回退无上限请求体、prompt 不查询）；已安装图片预算场景 1/1（1280 字节 padded PNG 编码参数在 2048 内而完整签名请求体超限，本地拒绝时预算恰好读 1 次、图片 POST 0、草稿保留；删除被拒来源照片后小图显式发送成功，Host 存储与会话授权读取字节匹配，唯一持久用户消息含单个 ImageBlock；两次相同且已收束的 HTTP 计数快照与冻结 invoke 账本并发护栏）；回归 Photos（照片门控变更必需）、Files、receipt 恢复、分享采纳 4/4；typecheck、oxlint 0/0、test:docs 17、doc-sync 36、审计 19/19、Gate 0 PASS。三张计划截图经视觉通道实际查看：拒绝错误行与保留草稿、单图片附件条目含详情行、唯一消息与清空输入区均与预期一致。
 
