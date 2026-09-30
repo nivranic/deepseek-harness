@@ -31,6 +31,7 @@
     "apps/web/tests/subagent-capabilities.e2e.ts",
     "apps/web/tests/feedback-capabilities.e2e.ts",
     "apps/web/tests/file-upload-capabilities.e2e.ts",
+    "apps/web/tests/file-upload-dedupe.e2e.ts",
     "apps/web/tests/plugin-inventory-capabilities.e2e.ts",
     "apps/web/tests/dynamic-cordis-capabilities.e2e.ts",
     "apps/web/tests/interaction-closed.e2e.ts",

@@ -9,17 +9,15 @@
   "queuedUploadNeverDispatched": true,
   "oldResponsesSuppressed": true,
   "noAutomaticRetry": true,
-  "explicitRetrySucceeded": true,
+  "retryRestagedByDigest": true,
   "uploaded": [
     "active-one.txt",
     "active-two.txt",
-    "ready.txt",
     "ready.txt"
   ],
   "committed": [
     "active-one.txt",
     "active-two.txt",
-    "ready.txt",
     "ready.txt"
   ],
   "modelRequests": 0

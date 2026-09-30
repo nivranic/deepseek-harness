@@ -22,9 +22,13 @@
 
 [历史来源记录](artifacts/upstream-first/gateway-consumption-source.json)把外壳的契约消费接缝落地：LinkWire 不再丢弃其本就校验过的信封 details（单次结果与流失败帧两径保留），LinkClientException.Refused 携带 code、envelopeMessage 与结构化 details 透出；GatewayFailurePresentation 消费共享 RemoteFailureClasses 镜像——已知类别得到唯一的下一步动作与呈现文案，词汇表之外的码保持不透明诊断（code 与 message 原样、details 留存信封）；文件查看器先查分类器再走私有 lite-fold 细化。契约测试 + core 185/185（含 LinkClientTest 信封保留用例），:app:assembleDebug 通过门禁，重建 APK 在本地 AVD 安装启动零崩溃。局限：未驱动真实 Host↔设备拒绝交换（需 Host 配对夹具）；呈现文案为外壳本地中文常量（独立模块，不适用 web/desktop 字典模式）。
 
+## 真浏览器上传去重命中验证与命名空间访问修复（§35、§28）
+
+[当前来源记录](artifacts/upstream-first/browser-dedupe-verification-source.json)以无模型真浏览器车道（真 chromium 跑交付版 web scaffold）关闭浏览器去重的开放验证项：同页面同字节二次选取只发一次 `fileUploads/uploadDedupe` RPC、零载体请求，存储对象 mtime 与大小不变（零重写），记忆显示名作为新别名发布到对象旁；异字节与全新页面上下文都付完整载体，钉住页面级记忆生命周期；真实 Host descriptor 广告 `file-upload.dedupe.v1`。车道首次运行暴露探测在组合页面从未可调用——`FileUploadRuntime` 直接属性读 `ctx.remote.fileUploads` 被 Cordis 反射守卫按调用者 fiber 拒绝（单测 harness 提供的 remote 对象掩盖了守卫）；修复为类与 client 入口声明 `remote.fileUploads` 注入（ui-commands/ui-model-selection 先例）并以 `ctx.get` 归属服务自身 fiber 解析，命名空间未挂载时大声失败 `host/capability-unavailable`，单测 harness 按 ui-model-selection 方式 `ctx.reflect.provide`。探测可调用后撤回重试车道换真值：已投递字节重试按摘要重暂存不再二次载体（`retryRestagedByDigest`）。车道注册循兄弟模式（client 程序排除、host 面程序列入）。本地两处漂移经 HEAD stash 复现确证既有不在本增量处理：parse.ts 的 micromark-util-types 双版本类型身份错误（本地全新 client 构建）与 round 车道平台状态栏 aria 金色；CI 全新安装两者皆绿。worker 本地载体计数缝与跨标签页行为保持开放，完整目标未完成。
+
 ## Android 摘要记忆跨进程持久化：重启后的首次重传即去重（§35、§28）
 
-[当前来源记录](artifacts/upstream-first/native-digest-memory-source.json)给 companion 的已上传摘要记忆一个持久归宿：core 新增 `NativeUploadDigestMemory` 接口与 `FileNativeUploadDigestMemory`（有界明文 JSON 文档，version 1、容量 256、仅收小写 hex SHA-256，同目录原子替换；缺失或损坏按空读取，代价是一次完整上传而非被阻塞的上传），`NativeFileAttachmentsModel` 可选注入——`load()` 播种进程内集合、完整上传成功后 `remember` 持久化、去重命中不写盘；`CompanionModelSet` 透传，应用侧每个已恢复安装装配一个（`CompanionRuntime.uploadDigests` 惰性单例，restore 目录下 `upload-digests.json`，注入两处 model-set 构造点，未配对读取为无记忆）。不扩展加密输入快照（用户数据固定字段集与旧格式拒绝策略不与提示性缓存耦合）。JVM 新增 5 例（round-trip/容量环形+近度刷新/损坏回退/格式拒绝+坏条目忽略/跨「进程」实例经持久记忆首传即探测去重），core 459 全绿；验收 APK 随改动重建（scanner 守门变量 + -PdshNativeAcceptance），真实 Host 重启 e2e 双轮保持绿，持久路径与已封存去重语义可组合。按 principal 分文件作用域、容量调优与存储级浏览器记忆保持开放，完整目标未完成。
+[历史来源记录](artifacts/upstream-first/native-digest-memory-source.json)给 companion 的已上传摘要记忆一个持久归宿：core 新增 `NativeUploadDigestMemory` 接口与 `FileNativeUploadDigestMemory`（有界明文 JSON 文档，version 1、容量 256、仅收小写 hex SHA-256，同目录原子替换；缺失或损坏按空读取，代价是一次完整上传而非被阻塞的上传），`NativeFileAttachmentsModel` 可选注入——`load()` 播种进程内集合、完整上传成功后 `remember` 持久化、去重命中不写盘；`CompanionModelSet` 透传，应用侧每个已恢复安装装配一个（`CompanionRuntime.uploadDigests` 惰性单例，restore 目录下 `upload-digests.json`，注入两处 model-set 构造点，未配对读取为无记忆）。不扩展加密输入快照（用户数据固定字段集与旧格式拒绝策略不与提示性缓存耦合）。JVM 新增 5 例（round-trip/容量环形+近度刷新/损坏回退/格式拒绝+坏条目忽略/跨「进程」实例经持久记忆首传即探测去重），core 459 全绿；验收 APK 随改动重建（scanner 守门变量 + -PdshNativeAcceptance），真实 Host 重启 e2e 双轮保持绿，持久路径与已封存去重语义可组合。按 principal 分文件作用域、容量调优与存储级浏览器记忆保持开放，完整目标未完成。
 
 ## 浏览器上传去重：记忆摘要的载体免传输寻址（§35、§28）
 

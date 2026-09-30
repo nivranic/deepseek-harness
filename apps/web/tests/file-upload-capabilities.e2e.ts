@@ -94,13 +94,15 @@ it('withdraws upload receipts and queued work, preserves files and requires expl
     await expect.poll(() => page.getByRole('button', { name: /^Retry upload/u }).count()).toBe(4)
     expect([...uploaded].sort()).toEqual(['active-one.txt', 'active-two.txt', 'ready.txt'])
     await page.getByRole('button', { name: 'Retry uploading ready.txt' }).click()
-    await expect.poll(() => [...uploaded].sort()).toEqual(['active-one.txt', 'active-two.txt', 'ready.txt', 'ready.txt'])
+    // The retry re-stages by digest: this page uploaded the bytes successfully
+    // before the withdrawal, so the deduplication operation answers the retry
+    // without a second carrier transfer.
     await expect.poll(() => page.getByTitle('ready.txt').textContent()).toContain('TXT')
     expect(await page.getByRole('button', { name: /^Retry upload/u }).count()).toBe(3)
     const actual = { discoveryControlled: true, rawResponseDeliveryControlled: true, noUnsupportedUpload: true,
       stalePickerRejected: true, imageDraftRetained: true, composerDraftRetained: true, readyReceiptWithdrawn: true,
       queuedUploadNeverDispatched: true, oldResponsesSuppressed: true, noAutomaticRetry: true,
-      explicitRetrySucceeded: true, uploaded: [...uploaded].sort(), committed: [...committed].sort(), modelRequests: 0 }
+      retryRestagedByDigest: true, uploaded: [...uploaded].sort(), committed: [...committed].sort(), modelRequests: 0 }
     await mkdir(output, { recursive: true })
     await page.screenshot({ path: output + '/restored.png', fullPage: true })
     await writeFile(output + '/actual.json', JSON.stringify(actual, null, 2) + '\n')

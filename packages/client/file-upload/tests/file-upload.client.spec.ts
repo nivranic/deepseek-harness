@@ -10,7 +10,10 @@ const HOST = { home: undefined, platform: undefined, isLoopback: true, capabilit
 
 function prepareRuntime(ctx: Context): void {
   ctx.provide('connection', { generation: { getSnapshot: () => undefined, subscribe: () => () => {} } })
-  if (ctx.get('remote') === undefined) ctx.provide('remote', { $host: HOST } as never)
+  if (ctx.get('remote') === undefined) {
+    ctx.provide('remote', { $host: HOST } as never)
+    ctx.reflect.provide('remote.fileUploads', {})
+  }
 }
 
 interface UploadGlobal {
@@ -411,10 +414,9 @@ describe('Session-addressed file upload', () => {
       },
     }))
     const host = options.capabilities === undefined ? HOST : { ...HOST, capabilities: options.capabilities }
-    ctx.provide('remote', {
-      $host: host,
-      fileUploads: { upload: remote, ...(options.dedupe === undefined ? {} : { uploadDedupe: options.dedupe }) },
-    } as never)
+    const fileUploads = { upload: remote, ...(options.dedupe === undefined ? {} : { uploadDedupe: options.dedupe }) }
+    ctx.provide('remote', { $host: host, fileUploads } as never)
+    ctx.reflect.provide('remote.fileUploads', fileUploads)
     prepareRuntime(ctx)
     const fiber = ctx.plugin(FileUploadRuntime)
     await fiber
@@ -557,7 +559,9 @@ describe('Deduplicated browser uploads', () => {
       ok: true,
       value: { receiptId: 'dedupe-receipt', file: { attachmentId: 'remote-file', name: 'file', bytes: 4 } },
     }))
-    ctx.provide('remote', { $host: { ...HOST, capabilities: DEDUPE_HOST }, fileUploads: { upload: remote, uploadDedupe: dedupe } } as never)
+    const fileUploads = { upload: remote, uploadDedupe: dedupe }
+    ctx.provide('remote', { $host: { ...HOST, capabilities: DEDUPE_HOST }, fileUploads } as never)
+    ctx.reflect.provide('remote.fileUploads', fileUploads)
     prepareRuntime(ctx)
     const fiber = ctx.plugin(FileUploadRuntime)
     await fiber
@@ -614,7 +618,9 @@ describe('Deduplicated browser uploads', () => {
       value: { receiptId: 'remote-receipt', file: { attachmentId: 'remote-file', name: 'file', bytes: 1 } },
     }))
     const dedupe = vi.fn()
-    ctx.provide('remote', { $host: HOST, fileUploads: { upload: remote, uploadDedupe: dedupe } } as never)
+    const fileUploads = { upload: remote, uploadDedupe: dedupe }
+    ctx.provide('remote', { $host: HOST, fileUploads } as never)
+    ctx.reflect.provide('remote.fileUploads', fileUploads)
     prepareRuntime(ctx)
     await ctx.plugin(FileUploadRuntime)
     await ctx.fileUpload.upload(SESSION_ID, new Uint8Array([5]), 'd.bin')
@@ -631,6 +637,7 @@ describe('file upload Connection lifetime', () => {
     const remote = { $host: { ...HOST, capabilities }, fileUploads: { upload: vi.fn(async () => ({ ok: true })) } }
     const ctx = new Context()
     ctx.provide('remote', remote as never)
+    ctx.reflect.provide('remote.fileUploads', remote.fileUploads)
     ctx.provide('connection', { generation: { getSnapshot: () => undefined, subscribe: (listener: () => void) => {
       listeners.add(listener)
       return () => { listeners.delete(listener) }

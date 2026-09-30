@@ -1,0 +1,70 @@
+{
+  "status": "PASS",
+  "scope": "Report bindings and audit for the browser dedupe verification increment: a real-browser lane re-stages a remembered digest through the digest-addressed operation without re-sending the carrier body while the Cordis namespace-access fix keeps the probe callable and fails loud when the namespace is missing; the remaining specification sections stay open; full Upstream-First objective remains in progress",
+  "gate0": {
+    "validation": "PASS",
+    "gate0": "PASS",
+    "paths": 1938,
+    "components": 129,
+    "specificationCoverage": {
+      "status": "PASS",
+      "numberedSections": 81,
+      "nonEmptySourceLines": 1983,
+      "acceptanceProven": false
+    }
+  },
+  "sourceRecord": {
+    "path": "artifacts/upstream-first/browser-dedupe-verification-source.json",
+    "sha256": "18b658fdd97db3607061b8f2aae0cae25c0437e65bbe57199a071eb4e347661c"
+  },
+  "generator": {
+    "path": "artifacts/upstream-first/write-reports.mjs",
+    "sha256": "13116a86b7d72735e68d8255264eb88a7653900532162a9318cf31e351d1fabf"
+  },
+  "binding": {
+    "path": "artifacts/upstream-first/browser-dedupe-verification-binding.json",
+    "sha256": "b3ab5d5a8c55dcf0bdcc5487d2cf9105f98b038f65977bf95a1a707a2f2b720d"
+  },
+  "helpers": [
+    {
+      "path": ".artifacts/advance-browser-dedupe-verification-reports.mjs",
+      "sha256": "fa4f77cc0f79326739d676000b5dda0eaa45d73f20b6fb7b04fd516f51f91b55"
+    },
+    {
+      "path": ".artifacts/capture-browser-dedupe-verification-validation.mjs",
+      "sha256": "2ac05de61e97e913fe1afd16d51c4a21e7b27f59d225c977a8a0084a82ff83cb"
+    }
+  ],
+  "reports": [
+    {
+      "path": "IMPLEMENTATION_STATUS.md",
+      "sha256": "dddfce8a04e0f9f8fc4e50f51d8e960248a2a7865e60b65db34c67731236e8df"
+    },
+    {
+      "path": "artifacts/upstream-first/evidence.json",
+      "sha256": "7648aaf26a928e5f5fc09a61417fd2d967196c4da11af64548907b8f33a9f8ef"
+    }
+  ],
+  "checks": [
+    {
+      "path": ".artifacts/browser-dedupe-verification-binding.log",
+      "sha256": "06e460e87f88607a5a7e44973459e71b9c6069303308f1dff10f713ee39cd768"
+    },
+    {
+      "path": ".artifacts/browser-dedupe-verification-audit-final.log",
+      "sha256": "3898a48f2b4dfda5d3745b76109898aedec2781a47e05cbd20c6ece182c840a8"
+    },
+    {
+      "path": ".artifacts/browser-dedupe-verification-gate0-final.log",
+      "sha256": "505d74ef938f5d34d85490d37e0176ba804d93272fcf465ce2544a02c56b3f90"
+    },
+    {
+      "path": ".artifacts/browser-dedupe-verification-report-diff-check.log",
+      "sha256": "e3b0c44298fc1c149afbf4c8996fb92427ae41e4649b934ca495991b7852b855"
+    },
+    {
+      "path": ".artifacts/browser-dedupe-verification-report-generation.log",
+      "sha256": "fe010532f71a6341467ae5719b29ac19470895de1d481156335b8f70a3273ed5"
+    }
+  ]
+}

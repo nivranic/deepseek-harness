@@ -170,6 +170,8 @@ interface FileUploadTransport {
 
 /** Cordis service that owns one background carrier per upload operation. */
 export class FileUploadRuntime extends Service implements FileUploadService {
+  static inject = ['remote', 'remote.fileUploads']
+
   readonly available: boolean
   private readonly transport: FileUploadTransport
   private readonly lifetime = { controller: new AbortController(), disposed: false }
@@ -232,7 +234,7 @@ export class FileUploadRuntime extends Service implements FileUploadService {
         const digest = await digestBody(data, activeSignal)
         if (!current()) throw this.connectionChanged()
         if (FileUploadRuntime.uploadedDigests.has(digest)) {
-          const remembered = await (this.ctx as FileUploadRemoteContext).remote.fileUploads.uploadDedupe(
+          const remembered = await this.fileUploadsRemote().uploadDedupe(
             sessionId,
             { digest, ...(name === undefined ? {} : { name }) },
             activeSignal,
@@ -285,7 +287,7 @@ export class FileUploadRuntime extends Service implements FileUploadService {
     const bytes = data instanceof Uint8Array ? data : new Uint8Array(await data.arrayBuffer())
     activeSignal.throwIfAborted()
     if (!current()) throw this.connectionChanged()
-    return (this.ctx as FileUploadRemoteContext).remote.fileUploads.upload(
+    return this.fileUploadsRemote().upload(
       sessionId,
       {
         data: bytesToBase64(bytes),
@@ -293,6 +295,17 @@ export class FileUploadRuntime extends Service implements FileUploadService {
       },
       activeSignal,
     )
+  }
+
+  /**
+   * Resolve the mounted fileUploads namespace through `get` so the access
+   * stays attributed to this service's own fiber; a direct `ctx.remote.fileUploads`
+   * property read is guarded by the caller's inject chain.
+   */
+  private fileUploadsRemote(): FileUploadRemoteContext['remote']['fileUploads'] {
+    const namespace = this.ctx.get('remote.fileUploads') as FileUploadRemoteContext['remote']['fileUploads'] | undefined
+    if (namespace === undefined) throw new RemoteError('host/capability-unavailable', 'fileUploads Remote namespace is not mounted', { capability: 'file-upload.stage.v1' })
+    return namespace
   }
 
   private connectionChanged(): RemoteError<'gateway/connection-unavailable'> {
