@@ -111,6 +111,42 @@ describe('DiffBody', () => {
     fireEvent.click(button)
     expect(openResource).toHaveBeenCalledTimes(1)
   })
+
+  it('defaults to the unified view and toggles into paired split rows and back', () => {
+    const view = render(<DiffBody {...props('--- a/x.ts\n+++ b/x.ts\n@@ -1,4 +1,4 @@\n keep\n-old\n+new\n tail')} />)
+    const root = view.container.querySelector('[data-diff-preview]') as HTMLElement
+    expect(root.getAttribute('data-diff-view')).toBe('unified')
+    expect(root.querySelector('[data-diff-side]')).toBeNull()
+    const toggle = screen.getByRole('button', { name: en.viewSplit }) as HTMLButtonElement
+    expect(toggle.getAttribute('aria-pressed')).toBe('false')
+    fireEvent.click(toggle)
+    expect(root.getAttribute('data-diff-view')).toBe('split')
+    expect(screen.getByRole('button', { name: en.viewUnified }).getAttribute('aria-pressed')).toBe('true')
+    const oldHalf = root.querySelector('[data-diff-side-kind="del"]') as HTMLElement
+    const nextHalf = root.querySelector('[data-diff-side-kind="add"]') as HTMLElement
+    expect(oldHalf.closest('[data-diff-row]')?.getAttribute('data-diff-row')).toBe('pair')
+    expect(nextHalf.getAttribute('data-diff-side')).toBe('next')
+    expect(oldHalf.textContent).toBe('2-old')
+    expect(nextHalf.textContent).toBe('2+new')
+    const contextPairs = root.querySelectorAll('[data-diff-side-kind="context"]')
+    expect(contextPairs.length).toBe(4)
+    const hunk = root.querySelector('[data-diff-row="hunk"]') as HTMLElement
+    expect(hunk.querySelector('[data-diff-side]')).toBeNull()
+    fireEvent.click(screen.getByRole('button', { name: en.viewUnified }))
+    expect(root.getAttribute('data-diff-view')).toBe('unified')
+    expect(root.querySelector('[data-diff-side]')).toBeNull()
+    expect(root.querySelector('[data-diff-row="del"]')).not.toBeNull()
+  })
+
+  it('keeps an absent opposite side blank in the split view', () => {
+    const view = render(<DiffBody {...props('@@ -1,3 +1,2 @@\n ctx\n-gone\n-extra\n+new')} />)
+    fireEvent.click(screen.getByRole('button', { name: en.viewSplit }))
+    const pairs = view.container.querySelectorAll('[data-diff-row="pair"]')
+    const unpaired = pairs[pairs.length - 1] as HTMLElement
+    expect(unpaired.querySelector('[data-diff-side="old"]')?.getAttribute('data-diff-side-kind')).toBe('del')
+    expect(unpaired.querySelector('[data-diff-side="next"]')?.getAttribute('data-diff-side-kind')).toBe('empty')
+    expect(unpaired.querySelector('[data-diff-side="next"]')?.textContent).toBe(' ')
+  })
 })
 
 

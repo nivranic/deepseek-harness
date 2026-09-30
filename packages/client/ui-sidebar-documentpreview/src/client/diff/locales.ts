@@ -17,6 +17,8 @@ export const zh = {
   copied: '已复制',
   copyFailed: '无法复制到剪贴板',
   openFile: '打开文件 {path}',
+  viewSplit: '分屏视图',
+  viewUnified: '统一视图',
 }
 
 /** English dictionary with the same keys. */
@@ -28,4 +30,6 @@ export const en = {
   copied: 'Copied',
   copyFailed: 'Could not copy to clipboard',
   openFile: 'Open file {path}',
+  viewSplit: 'Split view',
+  viewUnified: 'Unified view',
 } satisfies Record<keyof typeof zh, string>

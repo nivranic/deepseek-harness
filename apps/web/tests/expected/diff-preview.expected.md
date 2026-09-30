@@ -6,6 +6,7 @@
 - TypeScript additions: multiple shared-theme syntax colors
 - Python grammar: lazy load updates the existing Diff rows
 - Phone viewport: unified rows and copy action inside the viewport
+- Split view: paired old/new halves with per-side gutters; toggles back to unified
 - Open file: addressed Session source and unknown-suffix binary preview
 - Copy diff: original patch with prefixes, headers and no display gutters
 - Paging: 64 -> 101 loaded rows; fewer than 64 rows mounted through the virtual scrollport

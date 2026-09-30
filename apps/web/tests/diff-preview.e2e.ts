@@ -102,6 +102,18 @@ describe.skipIf(MODE === 'record')('web e2e: unified Diff preview', () => {
     expect(await preview.locator('[data-diff-scrollport]').count()).toBe(1)
     await page.screenshot({ path: `${SHOTS}/phone-${MODE}-${process.pid}.png`, fullPage: true })
     await page.setViewportSize({ width: 1680, height: 1000 })
+    await expect.poll(() => preview.getAttribute('data-diff-view')).toBe('unified')
+    await preview.getByRole('button', { name: 'Split view', exact: true }).click()
+    await expect.poll(() => preview.getAttribute('data-diff-view')).toBe('split')
+    const removedHalf = preview.locator('[data-diff-side-kind="del"]')
+    const addedHalf = preview.locator('[data-diff-side-kind="add"]')
+    await expect.poll(() => removedHalf.count()).toBeGreaterThan(0)
+    expect(await removedHalf.first().textContent()).toBe('1-old')
+    expect(await addedHalf.first().textContent()).toBe('1+new')
+    expect(await removedHalf.first().evaluate(node => node.getBoundingClientRect().right
+      <= (node.parentElement?.children[1] as HTMLElement).getBoundingClientRect().left)).toBe(true)
+    await preview.getByRole('button', { name: 'Unified view', exact: true }).click()
+    await expect.poll(() => preview.getAttribute('data-diff-view')).toBe('unified')
     const sourceLink = preview.getByRole('button', { name: 'Open file two.ts', exact: true })
     await page.keyboard.press('Tab')
     await sourceLink.focus()
@@ -131,6 +143,7 @@ describe.skipIf(MODE === 'record')('web e2e: unified Diff preview', () => {
       '- TypeScript additions: multiple shared-theme syntax colors',
       '- Python grammar: lazy load updates the existing Diff rows',
       '- Phone viewport: unified rows and copy action inside the viewport',
+      '- Split view: paired old/new halves with per-side gutters; toggles back to unified',
       '- Open file: addressed Session source and unknown-suffix binary preview',
       '- Copy diff: original patch with prefixes, headers and no display gutters',
       '- Paging: 64 -> 101 loaded rows; fewer than 64 rows mounted through the virtual scrollport',

@@ -5,94 +5,63 @@
   "candidateTrackedChanges": [
     {
       "path": "IMPLEMENTATION_STATUS.md",
-      "sha256": "c665be5565e61c148977807dee703706d421d80a318075ca183706323499156b"
+      "sha256": "d03e2373b349f15f195cec88941f0e2e1517716a6042f8e0b57de2ccc7d34637"
     },
     {
-      "path": "apps/web/tests/expected/hosts-settings.expected.md",
-      "sha256": "0a4823c1c631c47170ee59bcb9dee45cc8a9946c04875e9b12944f1827d1a8df"
+      "path": "apps/web/tests/diff-preview.e2e.ts",
+      "sha256": "0fc0d127b4abb24316f9cb03d3b9727f4305e0a0bc22b3ac62e862843ea6bc21"
     },
     {
-      "path": "apps/web/tests/hosts-settings.e2e.ts",
-      "sha256": "fbb6daebb073bb9f430b6532e7379cc02496c90dfd132dc0348e4aba475a9101"
+      "path": "apps/web/tests/expected/diff-preview.expected.md",
+      "sha256": "796d6e091d863fe17a3d50722afa8c5e1b32abbfd2315236264735f198468684"
     },
     {
       "path": "artifacts/upstream-first/evidence.json",
-      "sha256": "ad63c686607948969d8c00c49a69124fb71e4ff7ab109b7deb8b130baa82e32a"
+      "sha256": "7cecd9654864fa228cfd0fb27bc985c50be84a0b0c2ea4eaa52aaa06f1b1db71"
     },
     {
       "path": "artifacts/upstream-first/write-reports.mjs",
-      "sha256": "3c3d408420806228dd8235ab3ac9aba6715ff0d428690ade7450e58347761c62"
+      "sha256": "cf37babb18be98bcf38b367e0ad44aa1b0f65e2482bd33df6bf28fcad31fcdbe"
     },
     {
-      "path": "packages/client/connection/README.i18n.yaml",
-      "sha256": "71fac1fc23683281fd0dc5be0fa0bd27f1b34e6b60d603cd0c0b5aa73c870053"
+      "path": "packages/client/ui-sidebar-documentpreview/README.i18n.yaml",
+      "sha256": "f8e4ce4f40bbf0ef4835abe99aeaa79c79e0e535028b56fe04013e2a9c0ac94e"
     },
     {
-      "path": "packages/client/connection/README.md",
-      "sha256": "130d5c2907e4b772932e4af30913c7f57d4d19cb67081b8d8c9b57c756c730af"
+      "path": "packages/client/ui-sidebar-documentpreview/README.md",
+      "sha256": "211524dae8911b6c0fccbd935e1f246c4d48bb458cb36321e95a8993f728bbad"
     },
     {
-      "path": "packages/client/connection/README.zh.md",
-      "sha256": "a0ee24574668cb03c2d22f0e423716e1c96bca9325df2cbd300412048af32a38"
+      "path": "packages/client/ui-sidebar-documentpreview/README.zh.md",
+      "sha256": "5ec33986e3220092488045eff117a85ffbd968ca1014fa871c1e8c8cf5d5feee"
     },
     {
-      "path": "packages/client/connection/src/client/index.ts",
-      "sha256": "0fac64cb1e462b67b105241c1fdb1e82e41e9c74c5f0f03a4b2c29945a3e0a27"
+      "path": "packages/client/ui-sidebar-documentpreview/src/client/diff/DiffBody.module.css",
+      "sha256": "7e71102c61aeda06e44720094893a2e53c0285728aa4c42e6a44bf48e0187ad0"
     },
     {
-      "path": "packages/client/connection/src/client/saved-hosts.ts",
-      "sha256": "3ad25c111c2d7a5148cc4b2dd9ed34c88dd8825794e2f5236cd745dc60fad0f4"
+      "path": "packages/client/ui-sidebar-documentpreview/src/client/diff/DiffBody.tsx",
+      "sha256": "2ac2e3633080976df890cd0d78bdb7850c80e939d1f10a1f08ee5c2a85c57c5e"
     },
     {
-      "path": "packages/client/connection/tests/saved-hosts.client.spec.ts",
-      "sha256": "65701a97bc85635b09f8f0925eaaca30cac138e4595e79f254c98163903e2808"
+      "path": "packages/client/ui-sidebar-documentpreview/src/client/diff/locales.ts",
+      "sha256": "d0657b323342127ef25ac5751c6e4bc74fe56ba12429ddd3a8edab23b89663a8"
     },
     {
-      "path": "packages/client/ui-settings-hosts/README.i18n.yaml",
-      "sha256": "c89dd1fad34b8e0b56c9cf001335b4049ed47c5fdd56655034a476343488e163"
-    },
-    {
-      "path": "packages/client/ui-settings-hosts/README.md",
-      "sha256": "caa4a7900167022616cf6e1c9f7a0d64fef538692ba6391c4fbf19a5b29ba3d3"
-    },
-    {
-      "path": "packages/client/ui-settings-hosts/README.zh.md",
-      "sha256": "16803d801315862b0ae7fa0af651a7dc5efc2e10be78ace927e8987b8b6c2a85"
-    },
-    {
-      "path": "packages/client/ui-settings-hosts/src/client/HostsSettingsSection.module.css",
-      "sha256": "1b0ea34652a4a81602f421c7f081ada5f9d0340446ab319d3bf6ddb68a05d290"
-    },
-    {
-      "path": "packages/client/ui-settings-hosts/src/client/HostsSettingsSection.tsx",
-      "sha256": "b5b0cd33dfb10443d9fbb10d1902e91d057c73fb35f0f4e954fddbe94e7f7172"
-    },
-    {
-      "path": "packages/client/ui-settings-hosts/src/client/index.ts",
-      "sha256": "d89ac32614e703d63ba6a485adc30f002ce206b70e4228e94419e36bdf74f159"
-    },
-    {
-      "path": "packages/client/ui-settings-hosts/src/client/locales.ts",
-      "sha256": "65c38bb7c8604d744fe99740b531a7d16838db8621e0b4dd081671263569fb3d"
-    },
-    {
-      "path": "packages/client/ui-settings-hosts/tests/browser-plugin.client.spec.tsx",
-      "sha256": "93947515fec04ea5c34592ff6b79806c0e798a687d2e2586e39d0366775280ee"
-    },
-    {
-      "path": "packages/client/ui-settings-hosts/tests/components.client.spec.tsx",
-      "sha256": "508c5d584fa007e3ab3393cb8127bd24c3402c45245b491276275e5b2441179a"
-    },
-    {
-      "path": "packages/client/ui-settings-hosts/tests/observation.client.spec.tsx",
-      "sha256": "e7164b00a42251263deb24147859a43d58cc61b40735f817fc975ce0a94f9911"
-    },
-    {
-      "path": "packages/extensions/cordis-client-runner/src/client/api-catalog.ts",
-      "sha256": "7e26b9b1d93a52b6a7a27435a504d2dd61345563c55f36eee90dc423491a03d5"
+      "path": "packages/client/ui-sidebar-documentpreview/tests/diff-body.client.spec.tsx",
+      "sha256": "175a8d22fa7190ea6c4b85c7a3409184ced2f59c3e37ad8616513ceb307f0994"
     }
   ],
-  "candidateUntrackedSourceChanges": [],
+  "candidateUntrackedSourceChanges": [
+    {
+      "path": "packages/client/ui-sidebar-documentpreview/src/client/diff/split.ts",
+      "sha256": "e7ceb6df4e28338e2946a24130801dfe5838d4e676754c6f862921dad9eae8fe"
+    },
+    {
+      "path": "packages/client/ui-sidebar-documentpreview/tests/diff-split.client.spec.ts",
+      "sha256": "50ff412effe0d119ced0d2ea083169f1f24f0cbc124ce016f603e917bde2461f"
+    }
+  ],
   "validationStatus": "PASS",
   "validationScope": "report SHA, path coverage and state consistency only",
   "gate0": "PASS",
@@ -10248,6 +10217,48 @@
     },
     {
       "status": "PASS",
+      "command": "pnpm exec vitest run --config vitest.web.config.ts apps/web/tests/diff-preview.e2e.ts; First real-browser round of the diff-preview lane with the split flow: the preview defaults to the unified view, the Split view toggle switches data-diff-view to split with paired old/new halves carrying per-side gutters and markers while the removed half renders left of the added half, and Unified view toggles back as the lane still distinguishes file headers and changes and copies full or loaded patch text; 1 files / 1 passed",
+      "log": ".artifacts/diff-split-view-e2e-r1.log",
+      "sourceRecord": "artifacts/upstream-first/diff-split-view-source.json"
+    },
+    {
+      "status": "PASS",
+      "command": "pnpm exec vitest run --config vitest.web.config.ts apps/web/tests/diff-preview.e2e.ts; Second real-browser round re-running the same diff-preview lane from a fresh browser context: header, gutter, syntax, copy and split-toggle behaviour stay deterministic together; 1 files / 1 passed",
+      "log": ".artifacts/diff-split-view-e2e-r2.log",
+      "sourceRecord": "artifacts/upstream-first/diff-split-view-source.json"
+    },
+    {
+      "status": "PASS",
+      "command": "tsc -b tsconfig.host.json over the host face; the log seals the clean exit trailer",
+      "log": ".artifacts/diff-split-view-typecheck.log",
+      "sourceRecord": "artifacts/upstream-first/diff-split-view-source.json"
+    },
+    {
+      "status": "PASS",
+      "command": "pnpm run test:docs; 17 gates",
+      "log": ".artifacts/diff-split-view-testdocs.log",
+      "sourceRecord": "artifacts/upstream-first/diff-split-view-source.json"
+    },
+    {
+      "status": "PASS",
+      "command": "pnpm run doc-sync; 36 gates",
+      "log": ".artifacts/diff-split-view-docsync.log",
+      "sourceRecord": "artifacts/upstream-first/diff-split-view-source.json"
+    },
+    {
+      "status": "PASS",
+      "command": "command summary: vitest documentpreview diff matrix over packages/client/ui-sidebar-documentpreview/tests/diff-boundaries.client.spec.ts packages/client/ui-sidebar-documentpreview/tests/diff-parse.client.spec.ts packages/client/ui-sidebar-documentpreview/tests/diff-split.client.spec.ts packages/client/ui-sidebar-documentpreview/tests/diff-files.client.spec.ts packages/client/ui-sidebar-documentpreview/tests/diff-syntax.client.spec.ts packages/client/ui-sidebar-documentpreview/tests/diff-registration.client.spec.ts packages/client/ui-sidebar-documentpreview/tests/diff-body.client.spec.tsx; 7 files / 46 passed",
+      "log": ".artifacts/diff-split-view-audit-tests.log",
+      "sourceRecord": "artifacts/upstream-first/diff-split-view-source.json"
+    },
+    {
+      "status": "PASS",
+      "command": "node artifacts/upstream-first/verify-audit.mjs --require-gate0",
+      "log": ".artifacts/diff-split-view-gate0-final.log",
+      "sourceRecord": "artifacts/upstream-first/diff-split-view-source.json"
+    },
+    {
+      "status": "PASS",
       "command": "Workspace and Conversation source regression before shared readiness correction",
       "tests": 599,
       "log": ".artifacts/workspace-admission-tests-final.log",
@@ -10978,7 +10989,264 @@
       ]
     }
   },
+  "diffSplitView": {
+    "status": "PASS",
+    "sourceRecord": "artifacts/upstream-first/diff-split-view-source.json",
+    "scope": "Diff split view axis: the section 34 diff preview gains its second presentation — a pure pairing module (diff/split.ts, no React or DOM) projects parsed unified rows into split rows where context lines appear on both sides, each context-free run of removed and added lines pairs positionally (first removal with first addition), the longer side tail pairs against an absent opposite, and preamble, hunk and note rows stay full-width keeping their unified index so file links and syntax spans keep addressing the source rows; DiffBody adds a per-tab view toggle (aria-pressed) to the existing toolbar with unified as the default on every viewport, split rows reuse the same virtualizer (one paired line stays one virtual row), and each half renders its own gutter, marker and change colouring with the shared syntax spans looked up through the side unified index while full-width split rows render exactly as unified rows keeping the current-file open action. Unit coverage spans pure pairing (positional replacement alignment, pure deletions and insertions, longer-side tails, boundary flushes at hunk and preamble edges, unified-index retention, empty input) and component behaviour (default unified view, the data-diff-view and data-diff-side-kind toggle round trip, the blank opposite side); the real-browser diff-preview lane extends with split legs — toggle into split, paired halves with per-side gutters, old-left/new-right geometry, toggle back to unified — and the golden grows the split line. The package README pair replaces the deferred split-diff sentence with the split contract. Cross-tab and persisted view preferences and intra-line word highlighting stay open",
+    "repositoryKnownCodes": 84,
+    "uniqueOwners": 14,
+    "missingSemanticCommentsAdded": 49,
+    "packagedFiniteCodeSchema": true,
+    "sourceDeclarationsRemainExtensible": true,
+    "unknownCodeDiagnosticsPreserved": true,
+    "detailsPayloadSchema": false,
+    "nativeClientQualified": false,
+    "runtimeBehaviorChanged": true,
+    "newSessionEvents": false,
+    "phase3Complete": false,
+    "fullGoalComplete": false,
+    "resultInvalidMeaningMatchesEmitter": true,
+    "historicalSchedulerArchivePreserved": true,
+    "compilerIndependentDetailsGraphs": true,
+    "hostAndClientSeparate": true,
+    "builtModelMatchesSource": true,
+    "portableDetailsPayloadSchema": false,
+    "readonlyArrayAndTupleEmission": true,
+    "parsedReadonlyContainersFrozen": true,
+    "portableValidationIssueFields": true,
+    "compilerResolvedErrorDetails": true,
+    "resolvedFaceCodePairs": 144,
+    "overlappingSchemasCompared": 60,
+    "detailsSchemaPublished": false,
+    "formalEnvelopeSchemaEmitted": true,
+    "envelopeSchemaKnownBranches": 84,
+    "envelopeUnknownCodeExcludesKnownCodes": true,
+    "envelopeTupleDetailsRejected": true,
+    "envelopeLocalPackConsumed": true,
+    "envelopeRegistryPublished": false,
+    "remoteFailureClassification": true,
+    "classifiedCodes": 28,
+    "unknownCodeDefaultOpaque": true,
+    "gatewayClientConsumesClassification": true,
+    "classificationInventoryVerified": true,
+    "kotlinContractColumn": true,
+    "kotlinSchemaTests": 8,
+    "kotlinMirrorProjection": true,
+    "swiftColumn": false,
+    "androidShellMigrated": false,
+    "phase10Started": true,
+    "failureClasses": 9,
+    "invalidInputClass": true,
+    "uiAdoptionStarted": true,
+    "uiSurfacesAdoptingClassification": 2,
+    "swiftContractColumn": true,
+    "swiftSchemaTests": 4,
+    "swiftPayloadValidation": false,
+    "interactionReplyPermissions": true,
+    "interactionPermissionHostEnforced": true,
+    "interactionPermissionConfigurable": true,
+    "deviceTrustRolesReplaceSwitch": false,
+    "androidCoreMigrated": true,
+    "androidCoreTestClasses": 37,
+    "androidAppSourcesMigrated": true,
+    "androidAppConfigured": true,
+    "androidShellCompiled": false,
+    "androidScannerChainBlocked": true,
+    "swiftCheckExecutable": true,
+    "swiftLaneRunner": "macos-15-arm64",
+    "swiftLaneRecovered": true,
+    "diagnosticsOnlyTier": true,
+    "diagnosticsOnlyAdmittedEndpoints": 2,
+    "unknownVersionRejectUnchanged": true,
+    "responsivePhoneDrawer": true,
+    "phoneTierSidebarTrackZero": true,
+    "drawerWidthPx": 280,
+    "drawerDismissalPaths": 2,
+    "leftInputRegionSessionMaybe": true,
+    "frameColumnsExplicitlyPlaced": true,
+    "scannerAarBuilt": true,
+    "scannerAarStaticVerification": "PASS",
+    "scannerAarSourceSha": "8ca9f6ebf33de3912292416b85f5b510c88de9a3",
+    "assembleDebugGatePassed": true,
+    "emulatorMainActivityResumed": true,
+    "gatewayFailureConsumption": true,
+    "envelopeDetailsPreservedBothPaths": true,
+    "sharedClassificationDrivesPresentation": true,
+    "unknownCodesStayOpaque": true,
+    "uiSubagentClassificationAdopted": true,
+    "adoptingSurfacesCount": 5,
+    "queueDockClassificationAdopted": true,
+    "jobsFailureClassThreaded": true,
+    "sessionJobWireFieldAdditive": true,
+    "androidRefusalLaneDriven": true,
+    "ed25519KeyGenerationBundled": true,
+    "filesFollowStreamStarted": true,
+    "jobsProducerAdoptionVoid": true,
+    "linkAccessTakeoverDecided": true,
+    "remotePackagesStayRetired": true,
+    "gatewayOwnsDeviceAccess": true,
+    "deviceTrustSeamLanded": true,
+    "pairingIssuanceLive": true,
+    "knownErrorCodes": 89,
+    "deviceGrantsDurable": true,
+    "pairingCodesProcessLocalByDesign": true,
+    "deviceRolesMatchSection21Table": true,
+    "roleMappedReplyPermissions": true,
+    "signedAdmission": true,
+    "connectionStatesCompleteSection18": true,
+    "deviceRevokedStatePresent": true,
+    "protocolInteropMatrixPinned": true,
+    "section14VersionAxisEvidence": true,
+    "perRequestDeviceAdmission": true,
+    "capabilityRequiredPermissionVocabulary": true,
+    "remoteExecutionAuthorizationGated": true,
+    "sessionCapabilitiesDeclarePermissions": true,
+    "sessionReadWriteSplits": true,
+    "businessPermissionAdoptionStarted": true,
+    "workspaceCapabilitiesDeclarePermissions": true,
+    "remainingOwnersDeclarePermissions": true,
+    "admissionReplayLedger": true,
+    "androidClientSignsAdmissions": true,
+    "deviceIdentityConfirmation": true,
+    "devicesSettingsSurface": true,
+    "branchGateDebt": true,
+    "safeAreaInsets": true,
+    "keyboardAvoidance": true,
+    "foldableFrame": true,
+    "runningLocation": true,
+    "phoneTopBar": true,
+    "designLanguage": true,
+    "hostNaming": true,
+    "commandRisk": true,
+    "approvalFacts": true,
+    "followResume": true,
+    "viewLocation": true,
+    "composerGate": true,
+    "hostDiagnostics": true,
+    "supportBundle": true,
+    "telemetryConsent": true,
+    "diagnosticsRecorder": true,
+    "sessionHeadersEntry": true,
+    "settingsEntry": true,
+    "telemetryGate": true,
+    "savedHosts": true,
+    "degradedProbes": true,
+    "permissionTierChip": true,
+    "durableRetainedAnswers": true,
+    "unifiedDiffPreview": true,
+    "binaryFactCard": true,
+    "retargetableEndpoint": true,
+    "rosterSwitch": true,
+    "rosterUi": true,
+    "interruptedTransfer": true,
+    "mimeInference": true,
+    "hostSelectionObserver": true,
+    "diffReadableCopy": true,
+    "diffRichViewer": true,
+    "browserHostOrigin": true,
+    "deviceAdmissionLifecycle": true,
+    "nativePairing": true,
+    "nativeRemoteTls": true,
+    "nativePairingPresentation": true,
+    "androidNativeGatewayCore": true,
+    "androidNativeCompanion": true,
+    "androidNativeLifecycle": true,
+    "androidRepairing": true,
+    "androidCredentialRecovery": true,
+    "androidSessionList": true,
+    "androidInputRetention": true,
+    "androidInputPersistence": true,
+    "androidPromptRetry": true,
+    "androidHostRoster": true,
+    "androidViewLocation": true,
+    "androidCursorResume": true,
+    "androidResourceAdoption": true,
+    "androidNativeDiagnostics": true,
+    "nativeScannerAdoption": true,
+    "nativeScannerCandidate": true,
+    "nativeScannerSameSourceVerified": true,
+    "nativeScannerRepeatByteIdentical": true,
+    "nativeScannerBinarySymbolScan": true,
+    "androidCapabilityPresentation": true,
+    "androidCapabilityGenerationIsolation": true,
+    "androidCapabilityReadOnlyRefresh": true,
+    "androidOperationCapabilities": true,
+    "androidKnownOperationPreflight": true,
+    "androidCapabilityDraftRetention": true,
+    "androidSubagentTimeline": true,
+    "androidSelectedParentCatalog": true,
+    "androidChildObservationRetirement": true,
+    "androidCompleteResourceSave": true,
+    "androidResourceSavePickerOwnership": true,
+    "androidResourceSaveIndependentBytes": true,
+    "androidEncryptedDownloadCheckpoints": true,
+    "androidExplicitDownloadContinuation": true,
+    "androidDownloadJvmInterruptionRecovery": true,
+    "androidPersistentDownloadAdoption": true,
+    "androidDownloadDiskExport": true,
+    "androidInstalledDownloadProcessRecovery": true,
+    "androidDownloadHostIsolation": true,
+    "androidAcceptanceApkAdmission": true,
+    "androidFilesPickerAttachments": true,
+    "androidDurableFilePromptIntents": true,
+    "androidFileDraftProcessRecovery": true,
+    "androidFilePickerAuthority": true,
+    "hostStagedImageAdmission": true,
+    "androidPhotosPickerAttachments": true,
+    "androidDurableMixedAttachmentIntents": true,
+    "androidPhotoDraftProcessRecovery": true,
+    "androidCameraStagedImages": true,
+    "androidCameraOwnedOutputCleanup": true,
+    "androidCameraProcessRecovery": true,
+    "androidShareExplicitConfirmation": true,
+    "androidShareAtomicDraftAdoption": true,
+    "androidShareRestorationIsolation": true,
+    "androidViewDeepLinksCurrentHostNavigation": true,
+    "androidViewDeepLinksDeliveryIsolation": true,
+    "androidViewDeepLinksInputPreservation": true,
+    "androidPushForegroundRecovery": true,
+    "androidPushBackgroundProducerRetention": true,
+    "androidPushNotificationConsumption": true,
+    "androidNotificationPermission": true,
+    "androidNotificationSettingsRecovery": true,
+    "androidNotificationProcessRequestOwnership": true,
+    "androidAttachmentReceiptRecovery": true,
+    "androidAttachmentPendingDraftIsolation": true,
+    "nativeUploadBudget": true,
+    "nativeImageUploadBudget": true,
+    "nativeHostRestart": true,
+    "nativeUploadDedupe": true,
+    "browserUploadDedupe": true,
+    "nativeDigestMemory": true,
+    "browserDedupeVerification": true,
+    "hostsRosterRename": true,
+    "diffSplitView": true,
+    "limitations": [
+      "The verification evidence is the documentpreview diff Vitest matrix (46 tests across the boundaries, parse, split, files, syntax, registration and body specs, default reporter) plus two real-browser rounds over the delivered web scaffold with real chromium, each running the diff-preview lane (1 file / 1 test). No physical-device or installed-APK acceptance is claimed; the increment is browser TypeScript only.",
+      "The split view toggle is per tab and resets to unified on reopen: no cross-tab or persisted preference exists, and paired lines carry no intra-line word highlighting.",
+      "The prior generation sealed one ui-sidebar client bundle this increment legitimately rebuilt (the prepare replacedPriorBuildOutputs ruling): that prior path:sha entry has no replayable bytes on disk, in any archive or in HEAD, so the demoted record skips exactly it in its digest loop and shape-checks it the way prepare does; every other demoted byte keeps direct or archived verification.",
+      "The pre-existing Push cursor investigation remains OPEN_UNCLASSIFIED and Scanner qualification stays same-host/shared-cache with GO-2026-5932 open; Session writer V3 and completeRc=false persist."
+    ],
+    "nextRequiredWork": {
+      "specification": "artifacts/upstream-first/original-specification.md",
+      "traceability": "artifacts/upstream-first/specification-traceability.json",
+      "remaining": [
+        "Classify the next cursor failure using the preserved diagnostics, or establish a controlled reproduction before changing its owner. Do not close this investigation merely because subsequent runs pass.",
+        "Keep cross-tab and persisted view preferences and intra-line word highlighting inside a paired split row open independently; the per-tab split toggle does not close them.",
+        "Cover per-browser-profile isolation boundaries, cross-device name synchronization and manual roster ordering independently; the local rename seam does not close them.",
+        "Give the streaming carrier a deduplication path and cover cross-tab digest behavior; the real-browser deduplication-hit lane does not close them.",
+        "Qualify image and mixed-attachment recovery, large/resumable uploads, per-principal digest scoping, capacity tuning, storage-backed browser digest memory and physical-device Host restarts independently; the durable companion digest-memory file does not close broader attachment or Mobile Release acceptance.",
+        "Qualify image and mixed-attachment recovery, large/resumable uploads, per-principal digest scoping, capacity tuning, storage-backed browser digest memory and physical-device Host restarts independently; the durable companion digest-memory file does not close broader attachment or Mobile Release acceptance.",
+        "Qualify streaming and resumable uploads, physical devices and third-party senders independently; the local complete-body check is advisory and Host or proxy rejection remains authoritative.",
+        "Continue notification channel, settings revocation/process-death, persistent denial, physical-device, relay-backed delivery and precise Host/Session notification target qualification. Actual Recents and physical network/mux recovery remain separate work.",
+        "Continue Swift attachment adoption, cross-platform sharing and link entry, larger streamed uploads, upload retry/receipt expiry recovery, Host limit negotiation and the remaining requirement matrices without changing Host-owned authorization.",
+        "Retain scanner clean-cache/cross-machine, race, physical/16-KiB device, signed release, CodeQL and Apple gaps. Session writer V3 and completeRc=false persist; remote CI is distinct from local evidence. No memory update or handoff package."
+      ]
+    }
+  },
   "hostsRosterRename": {
+    "historical": true,
+    "followup": "artifacts/upstream-first/diff-split-view-source.json",
     "status": "PASS",
     "sourceRecord": "artifacts/upstream-first/hosts-roster-rename-source.json",
     "scope": "Hosts roster rename axis: the section 28 roster gains a client-chosen row name — SavedHost grows an optional customName and hostDisplayName owns the presentation priority customName to displayName to hostId for row titles and the switch notice; SavedHostsStore.rename(hostId, customName|undefined) sets or clears the name in place (row order never moves — recency is a connection fact, not a naming fact; absent ids and no-change calls leave the roster untouched and notify nobody; real changes persist and notify like record/remove); record() carries an existing customName across a generation refresh so the choice survives reconnects, and parseRow admits the field as string-if-present so rows persisted before the rename parse unchanged while bad values drop with the row; ConnectionHandle.renameSavedHost mirrors forgetSavedHost as a pure roster seam with no connection effect. The settings section follows the devices-section inline-rename pattern: the draft seeds from the presented name, an empty draft is rejected with a row-level alert, saving trims, Enter saves, and Reset name appears only while a custom name exists. The real-browser hosts-settings lane extends with the golden Rename row: the empty draft is rejected, a padded Desk draft trims and persists as customName in dsh-saved-hosts.v1, and Reset name returns the pre-rename presented name and removes customName from the persisted row. Unit coverage spans store semantics (in-place set and clear, silent no-change, reconnect retention, parse admission), section presentation (empty rejection, notice name, reset wiring, hidden without a custom name) and plugin wiring to the persisted roster with subscription-driven rerender on external renames. The cordis inspect catalog regenerates with the new method contracts; the connection and ui-settings-hosts READMEs replace the no-roster-editing limitation entries. Per-browser-profile coverage isolation, cross-device name synchronization and manual roster ordering stay open",
@@ -31472,7 +31740,7 @@
       "The known Windows symlink EPERM expanded-suite failure from the cancellation increment was not rerun or resolved"
     ]
   },
-  "latestSourceRecord": "artifacts/upstream-first/hosts-roster-rename-source.json",
+  "latestSourceRecord": "artifacts/upstream-first/diff-split-view-source.json",
   "cancelTarget": {
     "historical": true,
     "followup": "artifacts/upstream-first/rename-revision-source.json",
@@ -31955,7 +32223,7 @@
     "files": [
       {
         "path": "artifacts/upstream-first/write-reports.mjs",
-        "sha256": "3c3d408420806228dd8235ab3ac9aba6715ff0d428690ade7450e58347761c62"
+        "sha256": "cf37babb18be98bcf38b367e0ad44aa1b0f65e2482bd33df6bf28fcad31fcdbe"
       },
       {
         "path": "artifacts/upstream-first/verify-audit.mjs",
