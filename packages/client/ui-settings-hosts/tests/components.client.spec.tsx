@@ -42,6 +42,16 @@ function bench(rows = ROWS, selected?: string) {
     }),
     useLocalHost: vi.fn(() => { target.set(undefined) }),
     forget: vi.fn((hostId: string) => { roster.set(roster.getSnapshot().filter(row => row.hostId !== hostId)) }),
+    rename: vi.fn((hostId: string, customName: string | undefined) => {
+      roster.set(roster.getSnapshot().map((row) => {
+        if (row.hostId !== hostId) return row
+        const refreshed: SavedHost = {
+          hostId: row.hostId, displayName: row.displayName, platform: row.platform,
+          origin: row.origin, lastConnectedAt: row.lastConnectedAt,
+        }
+        return customName === undefined ? refreshed : { ...refreshed, customName }
+      }))
+    }),
     formatTime: time => `T${time}`,
   }
   const props = {
@@ -81,6 +91,38 @@ describe('HostsSettingsSection', () => {
     expect(screen.getByText(en.switchedTo.replace('{name}', 'Workstation'))).toBeDefined()
     act(() => { h.target.set('https://other.local') })
     expect(screen.queryByText(en.switchedTo.replace('{name}', 'Workstation'))).toBeNull()
+  })
+
+  it('renames a row from its presented name and rejects an empty draft', () => {
+    const h = bench()
+    render(<HostsSettingsSection {...h.props} />)
+    fireEvent.click(document.querySelector<HTMLElement>('[data-host-id="work"] [data-host-rename]')!)
+    const input = screen.getByRole('textbox', { name: en.rename }) as HTMLInputElement
+    expect(input.value).toBe('Workstation')
+    fireEvent.change(input, { target: { value: '   ' } })
+    fireEvent.click(screen.getByRole('button', { name: en.renameSave }))
+    expect(h.face.rename).not.toHaveBeenCalled()
+    expect(screen.getByText(en.renameEmpty)).toBeDefined()
+    fireEvent.change(input, { target: { value: ' Desk ' } })
+    fireEvent.click(screen.getByRole('button', { name: en.renameSave }))
+    expect(h.face.rename).toHaveBeenCalledExactlyOnceWith('work', 'Desk')
+    expect(screen.getByText('Desk')).toBeDefined()
+    expect(screen.queryByRole('textbox', { name: en.rename })).toBeNull()
+  })
+
+  it('presents a custom name in the switch notice and offers reset back to descriptor facts', () => {
+    const h = bench([{ ...ROWS[0]!, customName: 'Desk' }, ROWS[1]!])
+    render(<HostsSettingsSection {...h.props} pageOrigin="https://work.local" />)
+    expect(screen.getByText('Desk')).toBeDefined()
+    fireEvent.click(screen.getByRole('button', { name: en.switch }))
+    expect(screen.getByText(en.switchedTo.replace('{name}', 'Desk'))).toBeDefined()
+    fireEvent.click(document.querySelector<HTMLElement>('[data-host-id="work"] [data-host-rename-reset]')!)
+    expect(h.face.rename).toHaveBeenCalledExactlyOnceWith('work', undefined)
+  })
+
+  it('hides the reset action until a custom name exists', () => {
+    render(<HostsSettingsSection {...bench().props} />)
+    expect(document.querySelector('[data-host-id="work"] [data-host-rename-reset]')).toBeNull()
   })
 
   it('forgets exactly one row and reacts to the published roster', () => {

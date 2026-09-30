@@ -1,5 +1,5 @@
 ---
-description: "dsh web 客户端 Web Settings 的已保存主机名册区：本地名册行 + 进入第 28 节接缝的切换动作、当前选择标记、回到本页 Host，以及跨会话的选择持久化。"
+description: "dsh web 客户端 Web Settings 的已保存主机名册区：本地名册行 + 进入第 28 节接缝的切换动作、当前选择标记、回到本页 Host、本地重命名，以及跨会话的选择持久化。"
 kind: "package-reference"
 ---
 
@@ -9,7 +9,7 @@ kind: "package-reference"
 
 ## 概述
 
-**主机**区展示本页保存的 Host：显示名、平台、origin 与上次连接时间。同源书签可在页内选择并跨刷新持久化；其他 origin 通过独立主机页面访问，行内不提供切换。本页会话没有可路由 origin。
+**主机**区展示本页保存的 Host：呈现名（用户命名优先，否则描述符名）、平台、origin 与上次连接时间。同源书签可在页内选择并跨刷新持久化；其他 origin 通过独立主机页面访问，行内不提供切换。本页会话没有可路由 origin。
 
 ## 目录
 
@@ -29,16 +29,16 @@ kind: "package-reference"
 
 ### 切换 Host
 
-在 Settings 打开**主机**区。同源行的**切换**调用 `connection.selectSavedHost`；选中行显示「已选择」，**回到本页 Host**清除选择与持久化 id。**忘记**移除书签及其持久化选择，但不断开活动连接。跨源行只提供独立页面链接；若目标页要求授权，请使用该 Host 当前的启动链接。授权不会使当前页面获得跨源 API 权限。
+在 Settings 打开**主机**区。同源行的**切换**调用 `connection.selectSavedHost`；选中行显示「已选择」，**回到本页 Host**清除选择与持久化 id。**重命名**编辑行的本地名称——空草稿被拒绝，保存时去除首尾空白；存在自定义名后可**恢复原名**回到描述符事实。**忘记**移除书签及其持久化选择，但不断开活动连接。跨源行只提供独立页面链接；若目标页要求授权，请使用该 Host 当前的启动链接。授权不会使当前页面获得跨源 API 权限。
 
 -----
 
 <a id="understand-the-implementation"></a>
 ## 理解实现
 
-一个 React 区加其注册；全部数据为本地。功能包只导入 Connection 类型，选择、回本页 Host 与忘记均调用注入服务；Connection 拥有选择持久化。
+一个 React 区加其注册；全部数据为本地。功能包只导入 Connection 类型，选择、回本页 Host、重命名与忘记均调用注入服务；Connection 拥有选择持久化。
 
-- **注入面** —— 框架选择器钩子观察已保存名册与 `connection.target`。外部选择立即更新本区。切换使用 [`connection.selectSavedHost`](../connection/README.zh.md)；未知 id 不改变连接与持久化。
+- **注入面** —— 框架选择器钩子观察已保存名册与 `connection.target`。外部选择、重命名与移除立即更新本区。切换使用 [`connection.selectSavedHost`](../connection/README.zh.md)；未知 id 不改变连接与持久化。
 - **持久化** —— Connection 在载体启动前恢复同源选择，清除无法使用的持久化选择并保留书签；[Connection README](../connection/README.zh.md)拥有存储规则。
 
 -----
@@ -66,7 +66,7 @@ kind: "package-reference"
 
 - 浏览器存储可能不可用或已满；当前选择仍可使用，但刷新可能丢失改动。
 - 页内跨源连接不受本地 Web 载体支持。原生 Remote 必须通过独立 Connection Source 与 Device Trust 接入。
-- 除「忘记」外无名册编辑；排序保持最近优先。
+- 不提供手动名册排序；排序保持最近优先，重命名不移动行。
 
 不发布运行时不变式伴生入口：本区展示 Connection 管理的名册与选择状态，不维护独立的 Host 投影。
 

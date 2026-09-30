@@ -76,7 +76,21 @@ describe.skipIf(MODE === 'record')('web e2e: saved-Host settings', () => {
     expect(await page.evaluate(() => localStorage.getItem('dsh-selected-host.v1'))).toBeNull()
     await external.getByRole('button', { name: 'Forget', exact: true }).click()
     await expect.poll(() => external.count()).toBe(0)
-    expect(await current.count()).toBe(1)
+    await expect.poll(() => current.count()).toBe(1)
+    const nameOf = current.locator('span[class*="hostName"]')
+    const presentedName = (await nameOf.innerText()).trim()
+    await current.getByRole('button', { name: 'Rename', exact: true }).click()
+    const editor = current.getByRole('textbox', { name: 'Rename', exact: true })
+    await editor.fill('   ')
+    await current.getByRole('button', { name: 'Save', exact: true }).click()
+    await expect.poll(() => section.getByText('The name cannot be empty', { exact: true }).isVisible()).toBe(true)
+    await editor.fill('  Desk  ')
+    await current.getByRole('button', { name: 'Save', exact: true }).click()
+    await expect.poll(() => nameOf.innerText()).toBe('Desk')
+    await expect.poll(() => page.evaluate(() => localStorage.getItem('dsh-saved-hosts.v1'))).toContain('"customName":"Desk"')
+    await current.getByRole('button', { name: 'Reset name', exact: true }).click()
+    await expect.poll(() => nameOf.innerText()).toBe(presentedName)
+    await expect.poll(() => page.evaluate(() => localStorage.getItem('dsh-saved-hosts.v1'))).not.toContain('customName')
     await mkdir(SHOTS, { recursive: true })
     await page.screenshot({ path: `${SHOTS}/hosts-${MODE}-${process.pid}.png`, fullPage: true })
     expect(tripwire.pageErrors).toEqual([])
@@ -92,6 +106,7 @@ describe.skipIf(MODE === 'record')('web e2e: saved-Host settings', () => {
       '- Selection: Selected; switch hidden; id persisted',
       '- Return: Using the page Host; persisted selection cleared',
       '- Forget: external bookmark removed; page Host retained',
+      '- Rename: empty draft rejected; Desk overrides and persists; Reset name returns the descriptor name',
     ].join('\n'), MODE)
   })
 

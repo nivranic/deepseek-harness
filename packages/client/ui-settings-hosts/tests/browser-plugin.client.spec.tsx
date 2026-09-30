@@ -94,6 +94,22 @@ describe('ui-settings-hosts browser plugin', () => {
     await b.ctx.fiber.dispose()
   })
 
+  it('renames through the handle into the persisted roster', async () => {
+    const b = await bench()
+    declare(b.slots)
+    await b.ctx.plugin({ inject: [...inject], apply }).await()
+    const entry = b.slots.entries('settings.section')[0]!
+    const face = (entry.inject as unknown as () => HostsSettingsSectionInjected)()
+    const rename = vi.spyOn(b.connection.savedHosts, 'rename')
+    face.rename('h-1', 'Desk')
+    face.rename('h-1', undefined)
+    expect(rename).toHaveBeenNthCalledWith(1, 'h-1', 'Desk')
+    expect(rename).toHaveBeenNthCalledWith(2, 'h-1', undefined)
+    const persisted = JSON.parse(b.storage.get('dsh-saved-hosts.v1')!) as readonly { customName?: string }[]
+    expect(persisted[0]).not.toHaveProperty('customName')
+    await b.ctx.fiber.dispose()
+  })
+
   it('keeps a switch that misses the roster off the connection and the storage', async () => {
     const b = await bench()
     declare(b.slots)

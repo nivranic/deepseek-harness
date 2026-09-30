@@ -62,6 +62,45 @@ describe('SavedHostsStore', () => {
     expect(new SavedHostsStore(memoryPersistence('not-json')).list()).toEqual([])
   })
 
+  it('rename sets and clears a custom name in place, keeps order, and notifies only on change', () => {
+    const persistence = memoryPersistence()
+    const store = new SavedHostsStore(persistence)
+    store.record(host('work-pc', 100, 'Work PC'))
+    store.record(host('home-pc', 200))
+    let notifications = 0
+    store.subscribe(() => { notifications += 1 })
+    expect(store.rename('absent', 'Nope')).toBe(false)
+    expect(store.rename('work-pc', 'Desk')).toBe(true)
+    expect(store.rename('work-pc', 'Desk')).toBe(false)
+    expect(notifications).toBe(1)
+    expect(store.list().map(row => row.hostId)).toEqual(['home-pc', 'work-pc'])
+    expect(store.list()[1]?.customName).toBe('Desk')
+    const reloaded = new SavedHostsStore(persistence)
+    expect(reloaded.list()[1]?.customName).toBe('Desk')
+    expect(store.rename('work-pc', undefined)).toBe(true)
+    expect(store.list()[1]).not.toHaveProperty('customName')
+    expect(new SavedHostsStore(persistence).list()[1]?.customName).toBeUndefined()
+  })
+
+  it('record refreshes descriptor facts but keeps the client-chosen name', () => {
+    const store = new SavedHostsStore()
+    store.record(host('work-pc', 100, 'Work PC'))
+    store.rename('work-pc', 'Desk')
+    store.record(host('work-pc', 300, 'Renamed Host'))
+    const row = store.list()[0]
+    expect(row?.customName).toBe('Desk')
+    expect(row?.displayName).toBe('Renamed Host')
+    expect(row?.lastConnectedAt).toBe(300)
+  })
+
+  it('drops persisted rows whose customName is not a string', () => {
+    const persistence = memoryPersistence(JSON.stringify([
+      host('good', 10),
+      { ...host('bad', 20), customName: 42 },
+    ]))
+    expect(new SavedHostsStore(persistence).list().map(row => row.hostId)).toEqual(['good'])
+  })
+
   it('remove deletes exactly one row and notifies subscribers; absent ids change nothing', () => {
     const store = new SavedHostsStore()
     store.record(host('work-pc', 100))

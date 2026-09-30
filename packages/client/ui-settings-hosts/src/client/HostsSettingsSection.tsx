@@ -21,6 +21,8 @@ export interface HostsSettingsSectionInjected {
   readonly useLocalHost: () => void
   /** Forget a roster row without stopping its current connection. */
   readonly forget: (hostId: string) => void
+  /** Rename a roster row locally; `undefined` returns it to descriptor facts. */
+  readonly rename: (hostId: string, customName: string | undefined) => void
   /** Localized wall-clock text in the active locale. */
   readonly formatTime: (epochMs: number) => string
 }
@@ -33,9 +35,14 @@ export type HostsSettingsSectionProps =
 
 type Translate = HostsSettingsSectionProps['t']
 
+/** The name a row presents: the client's choice first, then descriptor facts. */
+export function hostDisplayName(row: SavedHost): string {
+  return row.customName ?? row.displayName ?? row.hostId
+}
+
 /** One saved-Host row: identity, origin, timing, and its actions. */
 function HostRow(
-  { row, selected, pageOrigin, formatTime, t, onSwitch, onForget }: {
+  { row, selected, pageOrigin, formatTime, t, onSwitch, onForget, onRename }: {
     readonly row: SavedHost
     readonly selected: boolean
     readonly pageOrigin: string | undefined
@@ -43,13 +50,32 @@ function HostRow(
     readonly t: Translate
     readonly onSwitch: (hostId: string) => void
     readonly onForget: (hostId: string) => void
+    readonly onRename: (hostId: string, customName: string | undefined) => void
   },
 ): ReactNode {
   const inProcess = row.origin === 'in-process'
+  const [renaming, setRenaming] = useState(false)
+  const [draft, setDraft] = useState('')
+  const [rowError, setRowError] = useState<string | undefined>(undefined)
+  const beginRename = (): void => {
+    setRenaming(true)
+    setDraft(hostDisplayName(row))
+    setRowError(undefined)
+  }
+  const saveRename = (): void => {
+    const name = draft.trim()
+    if (name === '') {
+      setRowError(t('renameEmpty'))
+      return
+    }
+    setRowError(undefined)
+    onRename(row.hostId, name)
+    setRenaming(false)
+  }
   return (
     <li className={css.host} data-host-id={row.hostId} data-host-selected={selected ? '' : undefined}>
       <div className={css.hostTop}>
-        <span className={css.hostName}>{row.displayName ?? row.hostId}</span>
+        <span className={css.hostName}>{hostDisplayName(row)}</span>
         {selected && <Tag tone="success">{t('current')}</Tag>}
         {row.platform !== undefined && <Tag tone="neutral">{row.platform}</Tag>}
         {inProcess && <Tag tone="neutral">{t('inProcess')}</Tag>}
@@ -64,26 +90,53 @@ function HostRow(
           <a href={row.origin} target="_blank" rel="noopener noreferrer">{t('openHost')}</a>
         </p>
       )}
-      <div className={css.actions}>
-        {!selected && !inProcess && row.origin === pageOrigin && (
-          <button type="button" data-host-switch onClick={() => { onSwitch(row.hostId) }}>{t('switch')}</button>
+      {renaming
+        ? (
+          <div className={css.renameRow}>
+            <input
+              value={draft}
+              aria-label={t('rename')}
+              onChange={(event) => { setDraft(event.target.value); setRowError(undefined) }}
+              onKeyDown={(event) => {
+                if (event.key === 'Enter') saveRename()
+              }}
+            />
+            <button type="button" data-host-rename-save onClick={saveRename}>{t('renameSave')}</button>
+            <button type="button" onClick={() => {
+              setRenaming(false)
+              setRowError(undefined)
+            }}>{t('renameCancelled')}</button>
+          </div>
+        )
+        : (
+          <div className={css.actions}>
+            {!selected && !inProcess && row.origin === pageOrigin && (
+              <button type="button" data-host-switch onClick={() => { onSwitch(row.hostId) }}>{t('switch')}</button>
+            )}
+            <button type="button" data-host-rename onClick={beginRename}>{t('rename')}</button>
+            {row.customName !== undefined && (
+              <button type="button" data-host-rename-reset onClick={() => { onRename(row.hostId, undefined) }}>
+                {t('renameReset')}
+              </button>
+            )}
+            <button type="button" data-host-forget onClick={() => { onForget(row.hostId) }}>{t('forget')}</button>
+          </div>
         )}
-        <button type="button" data-host-forget onClick={() => { onForget(row.hostId) }}>{t('forget')}</button>
-      </div>
+      {rowError !== undefined && <p className={css.failure} role="alert">{rowError}</p>}
     </li>
   )
 }
 
 /** The saved-Host roster settings section: the section 28 switching surface. */
 export function HostsSettingsSection(
-  { t, useSavedHosts, useSelectedOrigin, pageOrigin, switchTo, useLocalHost, forget, formatTime }: HostsSettingsSectionProps,
+  { t, useSavedHosts, useSelectedOrigin, pageOrigin, switchTo, useLocalHost, forget, rename, formatTime }: HostsSettingsSectionProps,
 ): ReactNode {
   const [notice, setNotice] = useState<{ origin: string; name: string } | undefined>(undefined)
   const list = useSavedHosts(value => value)
   const selected = useSelectedOrigin(value => value)
   const onSwitch = (hostId: string): void => {
     const row = switchTo(hostId)
-    setNotice(row === undefined ? undefined : { origin: row.origin, name: row.displayName ?? row.hostId })
+    setNotice(row === undefined ? undefined : { origin: row.origin, name: hostDisplayName(row) })
   }
 
   return (
@@ -118,6 +171,7 @@ export function HostsSettingsSection(
               t={t}
               onSwitch={onSwitch}
               onForget={forget}
+              onRename={rename}
             />
           ))}
         </ul>

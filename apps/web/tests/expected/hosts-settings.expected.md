@@ -5,3 +5,4 @@
 - Selection: Selected; switch hidden; id persisted
 - Return: Using the page Host; persisted selection cleared
 - Forget: external bookmark removed; page Host retained
+- Rename: empty draft rejected; Desk overrides and persists; Reset name returns the descriptor name

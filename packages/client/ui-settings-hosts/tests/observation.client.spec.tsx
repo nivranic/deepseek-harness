@@ -25,6 +25,9 @@ it('rerenders external target and roster changes through framework-bound hooks',
   await runtime.mount({ inject: [...inject], apply })
   const view = runtime.renderSlot('settings.section', { close: () => {} })
   await screen.findByText('Observed Host')
+  act(() => { connection.savedHosts.rename('observer-host', 'Renamed Host') })
+  await screen.findByText('Renamed Host')
+  expect(screen.queryByText('Observed Host')).toBeNull()
   act(() => { connection.retarget('https://observed.local') })
   await waitFor(() => {
     expect(view.container.querySelector('[data-host-id="observer-host"]')?.hasAttribute('data-host-selected')).toBe(true)

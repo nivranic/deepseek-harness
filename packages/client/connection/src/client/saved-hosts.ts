@@ -15,6 +15,8 @@ export interface SavedHost {
   readonly hostId: string
   /** Descriptor display name as the generation carried it. */
   readonly displayName: string | undefined
+  /** Client-chosen display name overriding {@link displayName} until renamed away; survives reconnects. */
+  readonly customName?: string
   /** Host Node.js platform as the generation carried it. */
   readonly platform: string | undefined
   /** Origin this client reached the Host through. */
@@ -52,9 +54,10 @@ export function browserSavedHostsPersistence(): SavedHostsPersistence | undefine
 /** Durable-boundary validation for one persisted row. */
 function parseRow(value: unknown): SavedHost | undefined {
   if (typeof value !== 'object' || value === null) return undefined
-  const { hostId, displayName, platform, origin, lastConnectedAt } = value as Record<string, unknown>
+  const { hostId, displayName, customName, platform, origin, lastConnectedAt } = value as Record<string, unknown>
   if (typeof hostId !== 'string' || hostId.length === 0) return undefined
   if (displayName !== undefined && typeof displayName !== 'string') return undefined
+  if (customName !== undefined && typeof customName !== 'string') return undefined
   if (platform !== undefined && typeof platform !== 'string') return undefined
   if (typeof origin !== 'string' || origin.length === 0) return undefined
   if (origin !== 'in-process') {
@@ -68,7 +71,7 @@ function parseRow(value: unknown): SavedHost | undefined {
     if ((url.protocol !== 'https:' && url.protocol !== 'http:') || url.origin !== origin) return undefined
   }
   if (typeof lastConnectedAt !== 'number' || !Number.isFinite(lastConnectedAt)) return undefined
-  return { hostId, displayName, platform, origin, lastConnectedAt }
+  return { hostId, displayName, ...(customName === undefined ? {} : { customName }), platform, origin, lastConnectedAt }
 }
 
 /**
@@ -107,14 +110,42 @@ export class SavedHostsStore {
   }
 
   /**
-   * Upsert one Host: an existing hostId row moves to the front with refreshed facts.
+   * Upsert one Host: an existing hostId row moves to the front with refreshed
+   * facts; a client-chosen {@link SavedHost.customName} survives the refresh.
    * @param host - identity facts from an established generation.
    */
   record(host: SavedHost): void {
-    const rows = [host, ...this.rows.filter(row => row.hostId !== host.hostId)]
+    const existing = this.rows.find(row => row.hostId === host.hostId)
+    const refreshed = existing?.customName === undefined ? host : { ...host, customName: existing.customName }
+    const rows = [refreshed, ...this.rows.filter(row => row.hostId !== host.hostId)]
     this.rows = sortRows(rows).slice(0, MAX_SAVED_HOSTS)
     this.persist()
     this.changed()
+  }
+
+  /**
+   * Rename one saved Host in place: a non-empty string overrides the descriptor
+   * name, `undefined` returns the row to descriptor facts. Row order is a
+   * connection-recency fact and never moves on a rename.
+   * @param hostId - roster key to rename.
+   * @param customName - client-chosen display name, or undefined to clear it.
+   * @returns whether a roster row changed.
+   */
+  rename(hostId: string, customName: string | undefined): boolean {
+    const row = this.rows.find(item => item.hostId === hostId)
+    if (row === undefined || row.customName === customName) return false
+    const renamed: SavedHost = {
+      hostId: row.hostId,
+      displayName: row.displayName,
+      platform: row.platform,
+      origin: row.origin,
+      lastConnectedAt: row.lastConnectedAt,
+      ...(customName === undefined ? {} : { customName }),
+    }
+    this.rows = this.rows.map(item => item === row ? renamed : item)
+    this.persist()
+    this.changed()
+    return true
   }
 
   /**

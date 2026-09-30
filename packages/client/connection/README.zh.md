@@ -59,7 +59,7 @@ API Gateway Client 把内部 `$events` 逻辑流注册为唯一 generation sourc
 
 `ctx.connection.retarget(origin)` 把一个绝对 http(s) URL 校验并归约为 origin，使每次浏览器 HTTP 调用都以该 origin 为目标——解析器逐次调用重读，切换无需重建 RPC——并如同 `reconnect()` 一样替换当前连接尝试；`undefined` 回到页面 origin，`targetOrigin()` 读取当前选择。`connection.target` 通过 `getSnapshot` 与 `subscribe` 暴露同一值；选择改变后，在旧世代退出时通知，单个观察者失败不妨碍后续观察者。已建立的浏览器世代记录所选 origin，未显式选择时使用 HTTP 页面 origin；注入式与 fixture 载体记录 `in-process`。注入式传输（`__DSH_TRANSPORT__`）与 fixture 测试台持有自己的载体，因此该选择只重定向浏览器 HTTP 路径。该底层机制不授予浏览器跨源权限；本地 Web 仍拒绝跨源 API，请在目标 Host 自己的页面访问它。
 
-`connection.selectSavedHost(hostId)` 重定向到书签并持久化其身份；未知 hostId、`in-process` 行或普通 Web 载体的跨源书签不改变二者。`connection.usePageHost()` 回到本页并清除持久化。`connection.forgetSavedHost(hostId)` 移除书签及其持久化选择，但不替换当前连接。功能插件调用这些注入服务方法，不导入 Connection 运行时。浏览器存储访问或配额失败时，名册与选择保留在内存。恢复的行必须使用规范 HTTP(S) origin 或 `in-process`，并遵守名册数量上限。
+`connection.selectSavedHost(hostId)` 重定向到书签并持久化其身份；未知 hostId、`in-process` 行或普通 Web 载体的跨源书签不改变二者。`connection.usePageHost()` 回到本页并清除持久化。`connection.forgetSavedHost(hostId)` 移除书签及其持久化选择，但不替换当前连接。`connection.renameSavedHost(hostId, customName)` 原位设置或清除行的用户命名——顺序不变，且该命名在后续 `record` 刷新描述符事实时保留。功能插件调用这些注入服务方法，不导入 Connection 运行时。浏览器存储访问或配额失败时，名册与选择保留在内存。恢复的行必须使用规范 HTTP(S) origin 或 `in-process`，并遵守名册数量上限。
 
 `browserSelectedHostPersistence()` 以 `dsh-selected-host.v1` 持久化选中的 hostId（守卫 localStorage、校验非空串）；`apply()` 在任何载体建立前把持久化选中应用为初始选择——行缺失、`in-process` 或普通 Web 载体的跨源选择会清除持久化 id 并保持页面 Host，书签仍保留。HTTP 同源选择在无循环时纯赋值；fixture 与注入式载体继续由各自组合负责。
 

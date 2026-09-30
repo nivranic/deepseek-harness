@@ -44,6 +44,7 @@ export function apply(ctx: ClientContext): void {
       switchTo: hostId => connection.selectSavedHost(hostId),
       useLocalHost: () => { connection.usePageHost() },
       forget: (hostId) => { connection.forgetSavedHost(hostId) },
+      rename: (hostId, customName) => { connection.renameSavedHost(hostId, customName) },
       formatTime: epochMs => new Intl.DateTimeFormat(ctx.locale.getSnapshot().active, { dateStyle: 'medium', timeStyle: 'short' }).format(epochMs),
     }
     // Keep the component identity stable across Slot renders.
