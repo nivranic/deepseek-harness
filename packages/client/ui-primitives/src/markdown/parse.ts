@@ -18,16 +18,33 @@ import { cjkFriendlyStrong } from './cjkFriendlyStrong.ts'
 import { mathCompatibility } from './mathCompatibility.ts'
 
 /**
+ * mdast-util-from-markdown pins its own micromark-util-types patch, which the
+ * micromark extension packages may resolve to a different patch of; the mixed
+ * extension lists are typed through the exact option shape fromMarkdown
+ * itself expects so both resolutions compose.
+ */
+type MarkdownOptions = NonNullable<Parameters<typeof fromMarkdown>[1]>
+type MicromarkExtensions = MarkdownOptions extends { extensions?: infer E } ? E : never
+type MdastExtensions = MarkdownOptions extends { mdastExtensions?: infer E } ? E : never
+
+function markdownOptions(
+  extensions: readonly unknown[],
+  mdastExtensions: readonly unknown[],
+): MarkdownOptions {
+  return {
+    extensions: extensions as MicromarkExtensions,
+    mdastExtensions: mdastExtensions as MdastExtensions,
+  }
+}
+
+/**
  * Parse GFM markdown (the streaming arm's grammar: no math, so incomplete
  * TeX never flashes KaTeX errors mid-stream).
  * @param text - Markdown source.
  * @returns The mdast root.
  */
 export function parseGfm(text: string): Root {
-  return fromMarkdown(text, {
-    extensions: [gfm(), cjkFriendlyStrong()],
-    mdastExtensions: [gfmFromMarkdown()],
-  })
+  return fromMarkdown(text, markdownOptions([gfm(), cjkFriendlyStrong()], [gfmFromMarkdown()]))
 }
 
 /**
@@ -37,8 +54,8 @@ export function parseGfm(text: string): Root {
  * @returns The mdast root.
  */
 export function parseGfmWithMath(text: string): Root {
-  return fromMarkdown(text, {
-    extensions: [gfm(), cjkFriendlyStrong(), mathCompatibility(), math()],
-    mdastExtensions: [gfmFromMarkdown(), mathFromMarkdown()],
-  })
+  return fromMarkdown(text, markdownOptions(
+    [gfm(), cjkFriendlyStrong(), mathCompatibility(), math()],
+    [gfmFromMarkdown(), mathFromMarkdown()],
+  ))
 }
