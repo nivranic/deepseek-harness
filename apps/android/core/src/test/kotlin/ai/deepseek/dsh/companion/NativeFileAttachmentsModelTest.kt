@@ -204,8 +204,32 @@ class NativeFileAttachmentsModelTest {
         java.security.MessageDigest.getInstance("SHA-256").digest(bytes).joinToString("") { "%02x".format(it) }
 
     private fun attachmentModel(wire: FakeWire, inputs: CompanionInputState, session: SessionModel,
-                                scope: kotlinx.coroutines.CoroutineScope, scheduler: TestCoroutineScheduler) =
-        NativeFileAttachmentsModel(wire, session, inputs, scope, NativeFileAttachmentLimits(8, 4096, 4), StandardTestDispatcher(scheduler))
+                                scope: kotlinx.coroutines.CoroutineScope, scheduler: TestCoroutineScheduler,
+                                digestMemory: NativeUploadDigestMemory? = null) =
+        NativeFileAttachmentsModel(wire, session, inputs, scope, NativeFileAttachmentLimits(8, 4096, 4), StandardTestDispatcher(scheduler), digestMemory)
+
+    @Test fun `a fresh model instance deduplicates through the durable digest memory of a previous process`() = runTest {
+        val bytes = byteArrayOf(3, 1, 4)
+        val wire = FakeWire()
+        wire.stub("fileUploads/upload") { result(3, "first") }
+        wire.stub("fileUploads/uploadDedupe") { result(3, "second") }
+        val memory = FileNativeUploadDigestMemory(
+            java.io.File(java.nio.file.Files.createTempDirectory("dsh-model-memory-").toFile(), "upload-digests.json"))
+        val firstInputs = CompanionInputState.memory()
+        val firstSession = SessionModel(wire, backgroundScope, inputs = firstInputs); firstSession.openSession("selected")
+        val firstModel = attachmentModel(wire, firstInputs, firstSession, backgroundScope, testScheduler, memory)
+        firstModel.accept(assertNotNull(firstModel.prepare()), Source(bytes)).join()
+        firstModel.closeAndAwait()
+        assertEquals(listOf("fileUploads/upload"), wire.calls.map { it.first })
+        // A new process keeps only the durable memory; the re-upload probes before sending bytes.
+        val secondInputs = CompanionInputState.memory()
+        val secondSession = SessionModel(wire, backgroundScope, inputs = secondInputs); secondSession.openSession("selected")
+        val secondModel = attachmentModel(wire, secondInputs, secondSession, backgroundScope, testScheduler, memory)
+        secondModel.accept(assertNotNull(secondModel.prepare()), Source(bytes)).join()
+        secondModel.closeAndAwait()
+        assertEquals(listOf("fileUploads/upload", "fileUploads/uploadDedupe"), wire.calls.map { it.first })
+        assertEquals("second", secondInputs.state.value.drafts["selected"]?.attachments?.last()?.receiptId)
+    }
 
     @Test fun `re-uploading remembered bytes skips re-sending them through the deduplication path`() = runTest {
         val bytes = byteArrayOf(0, -1, 4)

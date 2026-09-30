@@ -1,0 +1,6 @@
+# Bilingual-pair consistency record (docs/i18n/README.md): the git blob hash of each
+# side as of the last confirmed-consistent state. Both languages carry equal authority;
+# after editing either side, bring the other along and re-record with:
+#   pnpm run verify-translation-pairing --write .agents/notes/implemented/architecture/2026-09-30-native-digest-memory.md
+2026-09-30-native-digest-memory.md: e9dfc3890301c1e88e211105c6fd7e8a32bc3a36
+2026-09-30-native-digest-memory.zh.md: d1204f5d271f0dc2c77271d8b13aab586b52138b

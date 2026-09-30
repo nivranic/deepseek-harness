@@ -1,0 +1,70 @@
+{
+  "status": "PASS",
+  "scope": "Report bindings and audit for the native digest memory increment: the companion persists uploaded digests in a bounded per-installation file that seeds a fresh process and makes the first re-upload after a Host restart a digest-addressed deduplication hit with the lost receipt replaced; the remaining specification sections stay open; full Upstream-First objective remains in progress",
+  "gate0": {
+    "validation": "PASS",
+    "gate0": "PASS",
+    "paths": 1938,
+    "components": 129,
+    "specificationCoverage": {
+      "status": "PASS",
+      "numberedSections": 81,
+      "nonEmptySourceLines": 1983,
+      "acceptanceProven": false
+    }
+  },
+  "sourceRecord": {
+    "path": "artifacts/upstream-first/native-digest-memory-source.json",
+    "sha256": "455c8ec0fee8fd24e6670a1e4c235cfdee423472b3c5bdb811a7e500546e984d"
+  },
+  "generator": {
+    "path": "artifacts/upstream-first/write-reports.mjs",
+    "sha256": "83e672718489b82b959bdda04c50b2d9d8cac1fbe613d01d17ef7e4e84082717"
+  },
+  "binding": {
+    "path": "artifacts/upstream-first/native-digest-memory-binding.json",
+    "sha256": "d7e13bac7659b60dc58e2595ec9a8f7348514c56831125fd5805e843cb343f66"
+  },
+  "helpers": [
+    {
+      "path": ".artifacts/advance-native-digest-memory-reports.mjs",
+      "sha256": "6e574a6dd2b7051950afcd909186251560a84912f14b7b330bbc992cd322bb5a"
+    },
+    {
+      "path": ".artifacts/capture-native-digest-memory-validation.mjs",
+      "sha256": "e6a6d181e1c99543030cda19ff6ef3ceafb2f7ba197fc89306d4155032bdd2e4"
+    }
+  ],
+  "reports": [
+    {
+      "path": "IMPLEMENTATION_STATUS.md",
+      "sha256": "306a614864ec08b00c5ad82041491087159daaeb615462aee794998deb269524"
+    },
+    {
+      "path": "artifacts/upstream-first/evidence.json",
+      "sha256": "77214c797631a35cae9779551f9560f5d3a51505d0858cff5e70779cb3006d9f"
+    }
+  ],
+  "checks": [
+    {
+      "path": ".artifacts/native-digest-memory-binding.log",
+      "sha256": "090e9cbf5e5f7b8ecda484193d61af69da1113372a69240b54a9392ab0bb9c93"
+    },
+    {
+      "path": ".artifacts/native-digest-memory-audit-final.log",
+      "sha256": "30ec7040794076272a16e52a84a1a6134020ab97329463a18e645392ab84b11e"
+    },
+    {
+      "path": ".artifacts/native-digest-memory-gate0-final.log",
+      "sha256": "505d74ef938f5d34d85490d37e0176ba804d93272fcf465ce2544a02c56b3f90"
+    },
+    {
+      "path": ".artifacts/native-digest-memory-report-diff-check.log",
+      "sha256": "e3b0c44298fc1c149afbf4c8996fb92427ae41e4649b934ca495991b7852b855"
+    },
+    {
+      "path": ".artifacts/native-digest-memory-report-generation.log",
+      "sha256": "fe010532f71a6341467ae5719b29ac19470895de1d481156335b8f70a3273ed5"
+    }
+  ]
+}

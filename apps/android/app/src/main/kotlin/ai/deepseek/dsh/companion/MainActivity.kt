@@ -138,7 +138,7 @@ class CompanionViewModel : ViewModel() {
         private set
 
     private val transition = Mutex()
-    private var models by mutableStateOf(CompanionModelSet(CompanionRuntime.wire, viewModelScope, CompanionRuntime.inputs, CompanionRuntime.downloadFiles()))
+    private var models by mutableStateOf(CompanionModelSet(CompanionRuntime.wire, viewModelScope, CompanionRuntime.inputs, CompanionRuntime.downloadFiles(), CompanionRuntime.uploadDigests))
     var generation by mutableStateOf(CompanionRuntime.generation)
         private set
     var pairingRequested by mutableStateOf(false)
@@ -181,7 +181,7 @@ class CompanionViewModel : ViewModel() {
     }
 
     private fun publishModels() {
-        models = CompanionModelSet(CompanionRuntime.wire, viewModelScope, CompanionRuntime.inputs, CompanionRuntime.downloadFiles())
+        models = CompanionModelSet(CompanionRuntime.wire, viewModelScope, CompanionRuntime.inputs, CompanionRuntime.downloadFiles(), CompanionRuntime.uploadDigests)
         generation = CompanionRuntime.generation
         paired = CompanionRuntime.restored
         pairingRequested = false
@@ -292,6 +292,12 @@ object CompanionRuntime {
     val wire: WireDriving get() = controller?.wire ?: unpairedWire
     var restoreDirectory: java.io.File? = null
         private set
+    private var digestMemory: NativeUploadDigestMemory? = null
+    /** One durable digest memory per restored installation; unpaired state reads as none. */
+    val uploadDigests: NativeUploadDigestMemory? get() {
+        val directory = restoreDirectory ?: return null
+        return digestMemory ?: FileNativeUploadDigestMemory(java.io.File(directory, "upload-digests.json")).also { digestMemory = it }
+    }
     var legacyImportAvailable by mutableStateOf(false)
         private set
     var restoreNeedsPairing by mutableStateOf(false)

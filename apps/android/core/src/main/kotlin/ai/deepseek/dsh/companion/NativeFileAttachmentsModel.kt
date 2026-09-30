@@ -48,7 +48,8 @@ data class NativeFileAttachmentState(val sessionId: String? = null, val phase: N
 class NativeFileAttachmentsModel(private val wire: WireDriving, private val session: SessionModel,
                                  private val inputs: CompanionInputState, parent: CoroutineScope,
                                  private val limits: NativeFileAttachmentLimits,
-                                 private val dispatcher: CoroutineDispatcher = Dispatchers.IO) {
+                                 private val dispatcher: CoroutineDispatcher = Dispatchers.IO,
+                                 private val digestMemory: NativeUploadDigestMemory? = null) {
     private val lock = Any()
     private val lifetime = SupervisorJob(parent.coroutineContext[Job])
     private val scope = CoroutineScope(parent.coroutineContext + lifetime)
@@ -63,6 +64,10 @@ class NativeFileAttachmentsModel(private val wire: WireDriving, private val sess
     private val uploadedDigests = mutableSetOf<String>()
     private val mutableState = MutableStateFlow(NativeFileAttachmentState())
     val state: StateFlow<NativeFileAttachmentState> = mutableState
+
+    init {
+        digestMemory?.load()?.let { remembered -> synchronized(lock) { uploadedDigests.addAll(remembered) } }
+    }
     val maxFileBytes: Long get() = limits.maxFileBytes
 
     init {
@@ -353,6 +358,7 @@ class NativeFileAttachmentsModel(private val wire: WireDriving, private val sess
         val attachment = parseReceipt(result, prepared.kind, prepared.sourceBytes)
         if (prepared.kind == NativeAttachmentKind.FILE && prepared.digest != null) {
             synchronized(lock) { uploadedDigests.add(prepared.digest) }
+            digestMemory?.remember(prepared.digest)
         }
         return attachment
     }
