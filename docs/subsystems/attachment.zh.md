@@ -258,6 +258,18 @@ imageHostPath(ref: ImageAttachmentRef): string | undefined
 saveFile(input: SaveFileAttachment): Promise<FileAttachmentRef>
 
 /**
+ * Resolve one already-stored file object by digest and publish the alias for
+ * the caller's display name. The digest only locates the object: the stored
+ * bytes are re-verified before any reference is returned. Backends without
+ * object lookup keep this default miss so callers fall back to a full upload.
+ * @param digest - lowercase hex SHA-256 of the exact file bytes.
+ * @param name - optional display name sanitized into the stored leaf name.
+ * @returns the durable reference for the verified object, or undefined when
+ * no intact stored object matches.
+ */
+ensureFileByDigest(digest: string, name?: string): Promise<FileAttachmentRef | undefined>
+
+/**
  * Durably commit one file byte-for-byte from bounded chunks. Providers must
  * apply backpressure and must not collect the complete file in memory.
  * Backends without streamed verbatim storage keep this default rejection.
@@ -318,6 +330,18 @@ registerAgentResolver(resolve: AgentResolver): () => void
  * @returns the staged receipt and durable file reference.
  */
 @Remote('upload') async upload(agent: Agent, request: EncodedFileUploadRequest, signal: AbortSignal): Promise<FileUploadValue>
+
+/**
+ * Stage one already-stored file by digest without re-receiving its bytes.
+ * The digest only locates the object: the Host re-verifies the stored bytes
+ * before issuing a receipt. A missing or corrupt object refuses with
+ * `FILE_DIGEST_NOT_KNOWN` so the caller falls back to a full upload.
+ * @param agent - receiving Agent resolved from the Remote Agent scope.
+ * @param request - lowercase hex digest of the exact bytes and optional display name.
+ * @param signal - caller cancellation before the receipt is staged.
+ * @returns the staged receipt and the durable file reference.
+ */
+@Remote('uploadDedupe') async uploadDedupe(agent: Agent, request: EncodedFileDedupeRequest, signal: AbortSignal): Promise<FileUploadValue>
 
 /**
  * Validate and normalize one image, then stage its reference for a prompt in this Session.

@@ -29,6 +29,8 @@ Mount the package before a consumer that injects `fileUpload`, then call `ctx.fi
 
 The Host also accepts `fileUploads/uploadImage({ data, mediaType, name? })` under `image-upload.stage.v1` with `prompt.send` permission. It validates and normalizes canonical base64 image input through the attachment service, returning `receiptId` and the normalized `image` reference for an ordered `staged-image` prompt part. This encoded Remote operation is independent of the browser file transport.
 
+The Host also accepts `fileUploads/uploadDedupe({ digest, name? })` under `file-upload.dedupe.v1` with `prompt.send` permission. The digest only locates the object: the Host re-verifies the stored bytes before answering, publishes the alias for the sanitized display name, and returns a fresh `receiptId` with the durable `file` reference. A missing or corrupt object refuses with `FILE_DIGEST_NOT_KNOWN` so the caller falls back to a full upload; a malformed digest refuses with `FILE_DIGEST_INVALID`.
+
 File staging requires `file-upload.stage.v1` on the current Host. The Client captures the connection before reading bytes or starting either carrier; replacement or disposal cancels active work and rejects late receipts and progress. Capability support does not grant authorization, undo a completed Host upload, or make retry idempotent. Consumers decide whether to keep their browser-owned drafts for an explicit retry. Device permissions follow the section 21 table: staging requires `prompt.send`, because an upload participates in composing a later prompt. A device role without the declared permission is refused before dispatch; anonymous callers are unaffected.
 
 ```yaml

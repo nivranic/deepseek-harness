@@ -15,8 +15,8 @@ import { Remote, RemoteError, TypertRemoteService } from '@deepseek-ai/dsh-typer
 import { handleFileUploadHttp } from './http-route.ts'
 import { FILE_UPLOAD_PATH } from './protocol.ts'
 import type {
-  EncodedFileUploadRequest, EncodedImageUploadRequest, FileUploadReceiptId, FileUploadValue,
-  ImageUploadReceiptId, ImageUploadValue,
+  EncodedFileDedupeRequest, EncodedFileUploadRequest, EncodedImageUploadRequest,
+  FileUploadReceiptId, FileUploadValue, ImageUploadReceiptId, ImageUploadValue,
 } from './types.ts'
 
 export type * from './types.ts'
@@ -121,6 +121,39 @@ export class FileUploads extends TypertRemoteService {
         ...(request.name === undefined ? {} : { name: request.name }),
       }),
     }))
+    return { receiptId: staged.receiptId as FileUploadReceiptId, file: staged.upload.file }
+  }
+
+  /**
+   * Stage one already-stored file by digest without re-receiving its bytes.
+   * The digest only locates the object: the Host re-verifies the stored bytes
+   * before issuing a receipt. A missing or corrupt object refuses with
+   * `FILE_DIGEST_NOT_KNOWN` so the caller falls back to a full upload.
+   * @param agent - receiving Agent resolved from the Remote Agent scope.
+   * @param request - lowercase hex digest of the exact bytes and optional display name.
+   * @param signal - caller cancellation before the receipt is staged.
+   * @returns the staged receipt and the durable file reference.
+   */
+  @Remote('uploadDedupe')
+  async uploadDedupe(agent: Agent, request: EncodedFileDedupeRequest, signal: AbortSignal): Promise<FileUploadValue> {
+    signal.throwIfAborted()
+    if (!/^[a-f0-9]{64}$/u.test(request.digest)) {
+      throw new RemoteError(
+        'session/attachment-invalid' as never,
+        'File digest must be a lowercase hex SHA-256.',
+        { reason: 'FILE_DIGEST_INVALID' } as never,
+      )
+    }
+    this.assertOrdinaryAgent(agent, 'file')
+    const existing = await this.ctx.attachments.ensureFileByDigest(request.digest, request.name)
+    if (existing === undefined) {
+      throw new RemoteError(
+        'session/attachment-invalid' as never,
+        `Host stores no intact file with digest ${request.digest}.`,
+        { reason: 'FILE_DIGEST_NOT_KNOWN' } as never,
+      )
+    }
+    const staged = await this.commit(agent, 'file', () => Promise.resolve({ kind: 'file' as const, file: existing }))
     return { receiptId: staged.receiptId as FileUploadReceiptId, file: staged.upload.file }
   }
 

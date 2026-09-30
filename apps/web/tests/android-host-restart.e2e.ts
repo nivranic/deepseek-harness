@@ -1,7 +1,7 @@
 /** A real Host SIGKILL restart reconnects the paired Android companion while invalidating its staged upload receipts. */
 import { execFile, spawn, type ChildProcess } from 'node:child_process'
 import { createHash, randomUUID } from 'node:crypto'
-import { mkdir, mkdtemp, readFile, rm, writeFile } from 'node:fs/promises'
+import { mkdir, mkdtemp, readFile, rm, stat, writeFile } from 'node:fs/promises'
 import { tmpdir } from 'node:os'
 import { join } from 'node:path'
 import { createRequire } from 'node:module'
@@ -18,6 +18,7 @@ import { startAndroidCompanionUiDriver } from './android-companion-ui-driver.ts'
 const execute = promisify(execFile)
 const digest = (bytes: Uint8Array) => createHash('sha256').update(bytes).digest('hex')
 const BUDGET_CAPABILITY = 'native-remote.http-request-budget.v1'
+const DEDUPE_CAPABILITY = 'file-upload.dedupe.v1'
 
 /** Public identity facts one Host process reports over private IPC. */
 interface HostFacts {
@@ -105,7 +106,10 @@ it.skipIf(!process.env.DSH_ANDROID_ADB)('Android reconnects after a real Host SI
     { id: 'agent-presets', config: { default: 'standard', includeUserRoot: false } },
     { id: 'directory-picker', disabled: true },
     { insert: [
-      { id: 'native-remote', name: '@deepseek-ai/dsh-api-native-remote', config: {
+      // An absolute entry keeps plugin-package-inventory identity resolution working: the
+      // resolver walks up from the module to its package manifest, while a bare name would
+      // require an installed node_modules link this isolated profile never has.
+      { id: 'native-remote', name: pathToFileURL(join(REPO_ROOT, 'packages', 'api', 'native-remote', 'src', 'index.ts')).href, config: {
         host: '127.0.0.1', port: nativePort, maxConnections: 16,
         maxRequestBodyBytes: 1048576, maxWebSocketMessageBytes: 1048576, maxStreamsPerConnection: 32,
         requestTimeoutMs: 30000, headersTimeoutMs: 10000, handshakeTimeoutMs: 10000, websocketHeartbeatIntervalMs: 2000,
@@ -256,6 +260,7 @@ it.skipIf(!process.env.DSH_ANDROID_ADB)('Android reconnects after a real Host SI
     const httpBeforeKill = await http()
     expect(httpBeforeKill.started).toBe(httpBeforeKill.finished)
     // The uploaded bytes are durable Host storage; the receipt is only process-local staging.
+    const storedBeforeKill = await stat(storedPath)
     expect(digest(await readFile(storedPath))).toBe(fileDigest)
     await request('flush', { sessionId })
     stage = 'host-sigkill'
@@ -270,6 +275,7 @@ it.skipIf(!process.env.DSH_ANDROID_ADB)('Android reconnects after a real Host SI
     expect(second.spkiFingerprint).toBe(first.spkiFingerprint)
     expect(second.nativePort).toBe(nativePort)
     expect(second.capabilities).toContain(BUDGET_CAPABILITY)
+    expect(second.capabilities).toContain(DEDUPE_CAPABILITY)
     expect(second.devices).toBe(1)
     expect(digest(await readFile(storedPath))).toBe(fileDigest)
     const described = await request('describe') as { kind: 'describe' } & HostFacts
@@ -319,7 +325,12 @@ it.skipIf(!process.env.DSH_ANDROID_ADB)('Android reconnects after a real Host SI
     ])
     expect(replacement.attachments[0]!.receiptId).not.toBe(beforeRestart.attachments[0]!.receiptId)
     expect(replacement.requestId).not.toBe(beforeRestart.requestId)
-    // A fresh SAF upload through the restarted Host re-queried the advertised body budget before dispatch.
+    // The surviving companion remembers the digest it already uploaded, so the re-upload
+    // resolves through uploadDedupe: the stored object is never rewritten after the restart.
+    const storedAfterDedupe = await stat(storedPath)
+    expect(storedAfterDedupe.mtimeMs).toBe(storedBeforeKill.mtimeMs)
+    expect(storedAfterDedupe.size).toBe(storedBeforeKill.size)
+    // The deduplication probe and the reconnect still issue fresh HTTP calls through the restarted Host.
     const httpAfterRestart = await http()
     expect(httpAfterRestart.started).toBe(httpAfterRestart.finished)
     expect(httpAfterRestart.started).toBeGreaterThan(httpBeforeKill.started)
@@ -357,6 +368,8 @@ it.skipIf(!process.env.DSH_ANDROID_ADB)('Android reconnects after a real Host SI
       durableAcrossRestart: { hostId: true, spkiFingerprint: true, nativePort, storedFileBytes: true, deviceGrant: true },
       newProcess: { pid: second.pid, previousPid: first.pid },
       budgetCapabilityReadvertised: true,
+      dedupeCapabilityReadvertised: true,
+      reuploadRewroteStoredObject: false,
       httpCalls: { beforeKill: httpBeforeKill.started, afterRestart: httpAfterRestart.started },
       replacedReceipt: { old: beforeRestart.attachments[0]!.receiptId, replacement: replacement.attachments[0]!.receiptId },
       durableUserMessages: 1,

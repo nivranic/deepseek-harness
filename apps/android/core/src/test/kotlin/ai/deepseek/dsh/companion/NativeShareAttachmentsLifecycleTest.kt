@@ -56,7 +56,7 @@ class NativeShareAttachmentsLifecycleTest {
         ))
         val third = SharedSource()
         try {
-            val importing = fixture.importBatch("shared", listOf(NativeShareItem(SharedSource()), NativeShareItem(SharedSource()), NativeShareItem(third)))
+            val importing = fixture.importBatch("shared", listOf(NativeShareItem(SharedSource(byteArrayOf(1))), NativeShareItem(SharedSource(byteArrayOf(2))), NativeShareItem(third)))
             entered.await()
             val cancelling = async { fixture.model.cancelAndAwait() }; runCurrent()
             assertFalse(cancelling.isCompleted); assertFalse(fixture.session.sendDraft()); assertNull(fixture.model.prepare())

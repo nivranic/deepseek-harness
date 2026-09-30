@@ -7,7 +7,8 @@ import { afterEach, describe, expect, it } from 'vitest'
 import { AttachmentId } from '@deepseek-ai/dsh-attachment'
 import type { FileAttachmentRef } from '@deepseek-ai/dsh-attachment'
 import {
-  fileLeafName, readFileStreamVerbatim, saveFileStreamVerbatim, saveFileVerbatim, storedFilePath,
+  ensureFileByDigest, fileLeafName, readFileStreamVerbatim, saveFileStreamVerbatim, saveFileVerbatim,
+  storedFilePath,
 } from '../src/file-store.ts'
 import { publishImmutableAlias } from '../src/store.ts'
 
@@ -257,6 +258,44 @@ describe('readFileStreamVerbatim', () => {
     const duringReason = new Error('cancelled during read')
     during.abort(duringReason)
     await expect(stream.next()).rejects.toBe(duringReason)
+  })
+})
+
+describe('ensureFileByDigest', () => {
+  it('resolves a stored object by digest, publishes the alias, and never rewrites bytes', async () => {
+    const root = await makeRoot()
+    const data = Uint8Array.of(1, 2, 3, 4)
+    await saveFileVerbatim(root, { data, name: 'first.txt' })
+    const objectPath = join(root, 'file-objects', sha256(data).slice(0, 2), sha256(data))
+    const objectStat = await stat(objectPath)
+
+    const resolved = await ensureFileByDigest(root, sha256(data), 'C:\\Users\\me\\second.txt')
+    expect(resolved).toEqual({
+      attachmentId: AttachmentId(`sha256:${sha256(data)}`),
+      name: 'second.txt',
+      bytes: 4,
+    })
+    expect(await readFile(join(root, 'files', sha256(data).slice(0, 2), sha256(data), 'second.txt')))
+      .toEqual(Buffer.from(data))
+    const afterResolve = await stat(objectPath)
+    expect(afterResolve.mtimeMs).toBe(objectStat.mtimeMs)
+  })
+
+  it('reports a miss for an unknown digest without creating anything', async () => {
+    const root = await makeRoot()
+    await expect(ensureFileByDigest(root, 'ab'.repeat(32))).resolves.toBeUndefined()
+    await expect(stat(root)).rejects.toMatchObject({ code: 'ENOENT' })
+  })
+
+  it('reports a miss when the stored object no longer matches its digest', async () => {
+    const root = await makeRoot()
+    const data = Uint8Array.of(9, 8, 7)
+    await saveFileVerbatim(root, { data, name: 'corrupt.bin' })
+    const objectPath = join(root, 'file-objects', sha256(data).slice(0, 2), sha256(data))
+    // The stored object is read-only; rewriting it in place models bit rot below the API.
+    await chmod(objectPath, 0o600)
+    await writeFile(objectPath, Buffer.from('swapped'))
+    await expect(ensureFileByDigest(root, sha256(data), 'corrupt.bin')).resolves.toBeUndefined()
   })
 })
 

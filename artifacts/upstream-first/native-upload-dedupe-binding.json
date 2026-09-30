@@ -1,0 +1,16 @@
+{
+  "status": "PASS",
+  "controls": 3,
+  "sourceRecord": {
+    "path": "artifacts/upstream-first/native-upload-dedupe-source.json",
+    "sha256": "876e7455c24f67c0e02e46f98e64d695cd97464e85d2feb867845905a0f1a73d"
+  },
+  "generator": {
+    "path": "artifacts/upstream-first/write-reports.mjs",
+    "sha256": "c8f4c002b369a9b0cf921841c8f7f024fc69d53b4040788a8c05218de2531809"
+  },
+  "helper": {
+    "path": ".artifacts/check-native-upload-dedupe-binding.mjs",
+    "sha256": "47cec63e98e2af6b082ae59286ed3b5559af8283dcdc93ba08e97e4ac5f5fc66"
+  }
+}

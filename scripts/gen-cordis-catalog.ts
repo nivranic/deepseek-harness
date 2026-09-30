@@ -363,6 +363,7 @@ export const LINK_MAP: Readonly<Record<string, string>> = {
   SessionUpdateQueueRequest: 'session.md',
   SessionUpdateQueueValue: 'session.md',
   EncodedFileUploadRequest: 'attachment.md',
+  EncodedFileDedupeRequest: 'attachment.md',
   EncodedImageUploadRequest: 'attachment.md',
   AgentResolver: 'attachment.md',
   PromptFileBinding: 'attachment.md',

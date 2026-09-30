@@ -67,7 +67,7 @@ class NativeShareAttachmentsModelTest {
             { fixture.receipt(image = false) },
             { entered.complete(Unit); release.await(); throw NativeHttpRequestTooLarge(2049, 2048) },
         ))
-        val first = SharedSource(); val second = SharedSource()
+        val first = SharedSource(byteArrayOf(1)); val second = SharedSource(byteArrayOf(2))
         val importing = fixture.importBatch("never append", listOf(NativeShareItem(first), NativeShareItem(second)))
         entered.await()
         fixture.session.updateDraft("session", "edited during budget query")
@@ -173,7 +173,7 @@ class NativeShareAttachmentsModelTest {
         val fixture = ShareFixture(this); fixture.open(); fixture.session.updateDraft("session", "keep")
         fixture.wire.stub("fileUploads/upload") { fixture.receipt(image = false, id = "duplicate") }
         val original = fixture.inputs.state.value.drafts.getValue("session")
-        val result = fixture.importBatch("shared", listOf(NativeShareItem(SharedSource()), NativeShareItem(SharedSource()))).awaitResult()
+        val result = fixture.importBatch("shared", listOf(NativeShareItem(SharedSource(byteArrayOf(1))), NativeShareItem(SharedSource(byteArrayOf(2))))).awaitResult()
         assertEquals(ConnectionFailure.INVALID_RESPONSE, assertIs<NativeShareResult.NotAdopted>(result).failure)
         assertEquals(original, fixture.inputs.state.value.drafts["session"]); fixture.model.closeAndAwait()
     }

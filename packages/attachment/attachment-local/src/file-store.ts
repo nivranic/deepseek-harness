@@ -2,13 +2,14 @@
 
 import { createHash } from 'node:crypto'
 import { createReadStream } from 'node:fs'
+import { stat } from 'node:fs/promises'
 import { join } from 'node:path'
 import { AttachmentError, AttachmentId } from '@deepseek-ai/dsh-attachment'
 import type {
   FileAttachmentRef, SaveFileAttachment, SaveFileStreamAttachment,
 } from '@deepseek-ai/dsh-attachment'
 import {
-  publishImmutableAlias, publishImmutableObject, publishImmutableObjectStream,
+  digestFile, publishImmutableAlias, publishImmutableObject, publishImmutableObjectStream,
 } from './store.ts'
 
 const FILE_ID_PATTERN = /^sha256:([a-f0-9]{64})$/
@@ -101,6 +102,40 @@ export async function saveFileVerbatim(
   const objectPath = storedFileObjectPath(root, sha256)
   await publishImmutableObject(root, objectPath, input.data, sha256)
   await publishImmutableAlias(root, objectPath, storedFilePath(root, ref), sha256)
+  return ref
+}
+
+/**
+ * Resolve one stored immutable object by digest and publish the caller's alias.
+ * The digest only locates the object: the stored bytes are re-verified before
+ * any reference is returned, so a caller's declaration never substitutes for
+ * verification of the object itself. A digest mismatch is reported as a miss;
+ * a full upload then collides with the same object and fails loudly instead.
+ * @param root - absolute `DSH_HOME/attachments/v1` root.
+ * @param digest - lowercase hex SHA-256 of the exact file bytes.
+ * @param name - optional display name sanitized into the stored leaf name.
+ * @returns the durable reference, or undefined when no stored object matches.
+ */
+export async function ensureFileByDigest(
+  root: string,
+  digest: string,
+  name?: string,
+): Promise<FileAttachmentRef | undefined> {
+  const objectPath = storedFileObjectPath(root, digest)
+  let bytes: number
+  try {
+    bytes = (await stat(objectPath)).size
+  } catch (error) {
+    if (error instanceof Error && 'code' in error && error.code === 'ENOENT') return undefined
+    throw error
+  }
+  if (await digestFile(objectPath) !== digest) return undefined
+  const ref: FileAttachmentRef = {
+    attachmentId: AttachmentId(`sha256:${digest}`),
+    name: fileLeafName(name),
+    bytes,
+  }
+  await publishImmutableAlias(root, objectPath, storedFilePath(root, ref), digest)
   return ref
 }
 

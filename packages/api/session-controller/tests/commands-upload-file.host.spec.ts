@@ -34,6 +34,7 @@ async function uploadHarness(origin?: 'subagent'): Promise<{
   saveFile: ReturnType<typeof vi.fn>
   saveFileStream: ReturnType<typeof vi.fn>
   saveImages: ReturnType<typeof vi.fn>
+  ensureFileByDigest: ReturnType<typeof vi.fn>
   disposeAgent: () => void
   uploadRoute: (request: Request) => Promise<Response>
   serializeImageAdmission: ReturnType<typeof vi.fn>
@@ -76,9 +77,10 @@ async function uploadHarness(origin?: 'subagent'): Promise<{
   })
   const saveImages = vi.fn((): Promise<readonly ImageAttachmentRef[]> =>
     Promise.reject(new Error('fixture did not expect image persistence')))
+  const ensureFileByDigest = vi.fn((): Promise<FileAttachmentRef | undefined> => Promise.resolve(undefined))
   ctx.provide('attachments', Object.setPrototypeOf(
     {
-      saveFile, saveFileStream, saveImages,
+      saveFile, saveFileStream, saveImages, ensureFileByDigest,
       imageLimits: {
         maxImageBytes: 4, maxImagesPerMessage: 2, maxMessageImageBytes: 4,
         maxImagePixels: 4, maxImageDimension: 2, mediaTypes: ['image/png'],
@@ -120,6 +122,7 @@ async function uploadHarness(origin?: 'subagent'): Promise<{
     saveFile,
     saveFileStream,
     saveImages,
+    ensureFileByDigest,
     disposeAgent,
     uploadRoute,
     serializeImageAdmission,
@@ -140,6 +143,63 @@ describe('Session file uploads', () => {
     const { uploadRoute } = await uploadHarness()
     await expect(uploadRoute(new Request('http://host/upload')))
       .resolves.toMatchObject({ status: 405 })
+  })
+
+  it('stages a stored digest without re-receiving bytes and binds it like a full upload', async () => {
+    const { ctx, uploads, agent, saveFile, ensureFileByDigest } = await uploadHarness()
+    const digest = 'ab'.repeat(32)
+    const stored: FileAttachmentRef = {
+      attachmentId: AttachmentId(`sha256:${digest}`), name: 'report.pdf', bytes: 9,
+    }
+    ensureFileByDigest.mockResolvedValueOnce(stored)
+    const receipt = await uploads.uploadDedupe(
+      agent, { digest, name: 'report.pdf' }, new AbortController().signal,
+    )
+    expect(ensureFileByDigest).toHaveBeenCalledWith(digest, 'report.pdf')
+    expect(saveFile).not.toHaveBeenCalled()
+    expect(receipt.file).toBe(stored)
+    expect(uploads.resolve(agent, receipt.receiptId)).toBe(stored)
+    const commandHandler = vi.fn((_invocation: unknown) => ({ kind: 'success' as const }))
+    ctx.commands.register({
+      name: 'reuse', description: 'Use a deduplicated file', risk: 'low',
+      input: { hint: '<task>', attachments: true }, handler: commandHandler,
+    })
+    await ctx.commands.execute(
+      agent,
+      '/reuse inspect',
+      [{ type: 'file', receiptId: receipt.receiptId }],
+      new AbortController().signal,
+    )
+    expect(commandHandler.mock.calls[0]?.[0]).toMatchObject({
+      attachments: [{ type: 'file', attachment: stored }],
+    })
+  })
+
+  it('refuses an unknown digest so the caller falls back to a full upload', async () => {
+    const { uploads, agent, saveFile, ensureFileByDigest } = await uploadHarness()
+    await expect(uploads.uploadDedupe(agent, { digest: 'ab'.repeat(32) }, new AbortController().signal))
+      .rejects.toMatchObject({ code: 'session/attachment-invalid', details: { reason: 'FILE_DIGEST_NOT_KNOWN' } })
+    expect(ensureFileByDigest).toHaveBeenCalledWith('ab'.repeat(32), undefined)
+    expect(saveFile).not.toHaveBeenCalled()
+  })
+
+  it('rejects a malformed digest before touching the store', async () => {
+    const { uploads, agent, ensureFileByDigest } = await uploadHarness()
+    await expect(uploads.uploadDedupe(
+      agent, { digest: `ZZ${'a'.repeat(62)}` }, new AbortController().signal,
+    )).rejects.toMatchObject({ code: 'session/attachment-invalid', details: { reason: 'FILE_DIGEST_INVALID' } })
+    expect(ensureFileByDigest).not.toHaveBeenCalled()
+  })
+
+  it('rejects subagent deduplicated uploads before any store lookup', async () => {
+    const child = await uploadHarness('subagent')
+    await expect(child.uploads.uploadDedupe(
+      child.agent, { digest: 'ab'.repeat(32) }, new AbortController().signal,
+    )).rejects.toMatchObject({
+      code: 'subagent/attachment-invalid',
+      details: { reason: 'SUBAGENT_FILE_UNSUPPORTED' },
+    })
+    expect(child.ensureFileByDigest).not.toHaveBeenCalled()
   })
 
   it('stages one verbatim upload and preserves its order with an admitted image', async () => {

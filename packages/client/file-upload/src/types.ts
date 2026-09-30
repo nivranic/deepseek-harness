@@ -11,6 +11,14 @@ export interface EncodedFileUploadRequest {
   readonly name?: string
 }
 
+/** Digest-addressed upload that skips re-receiving bytes the Host already stores. */
+export interface EncodedFileDedupeRequest {
+  /** Lowercase hex SHA-256 of the exact file bytes of a prior upload. */
+  readonly digest: string
+  /** Optional display name; the Host sanitizes it into the stored leaf name. */
+  readonly name?: string
+}
+
 /** Durable receipt for one staged file upload. */
 export interface FileUploadValue {
   /** Per-upload authority accepted only inside the receiving Agent scope. */

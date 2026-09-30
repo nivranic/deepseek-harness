@@ -5,6 +5,7 @@ import ai.deepseek.dsh.link.LinkClientException
 import ai.deepseek.dsh.link.WireValue
 import java.io.ByteArrayOutputStream
 import java.io.InputStream
+import java.security.MessageDigest
 import java.util.Base64
 import kotlinx.coroutines.*
 import kotlinx.coroutines.flow.MutableStateFlow
@@ -58,6 +59,8 @@ class NativeFileAttachmentsModel(private val wire: WireDriving, private val sess
     private var activeShare: NativeShareRequest? = null
     private var retiring: Deferred<Unit>? = null
     private val selections = mutableSetOf<NativeFileSelection>()
+    /** Digests this process uploaded successfully; guarded by [lock]. A re-upload of one skips re-sending its bytes. */
+    private val uploadedDigests = mutableSetOf<String>()
     private val mutableState = MutableStateFlow(NativeFileAttachmentState())
     val state: StateFlow<NativeFileAttachmentState> = mutableState
     val maxFileBytes: Long get() = limits.maxFileBytes
@@ -281,7 +284,8 @@ class NativeFileAttachmentsModel(private val wire: WireDriving, private val sess
         }
     }
 
-    private data class PreparedUpload(val kind: NativeAttachmentKind, val sourceBytes: Int, val args: Map<String, WireValue>)
+    private data class PreparedUpload(val sessionId: String, val kind: NativeAttachmentKind, val sourceBytes: Int,
+                                      val args: Map<String, WireValue>, val digest: String?, val displayName: String?)
 
     /** Read one bounded source on the I/O dispatcher, retaining only one encoded upload at a time. */
     private suspend fun prepareUpload(sessionId: String, source: NativeFileAttachmentSource, kind: NativeAttachmentKind,
@@ -315,17 +319,51 @@ class NativeFileAttachmentsModel(private val wire: WireDriving, private val sess
         if (WireValue.ObjectValue(args).toJsonElement().toString().toByteArray(Charsets.UTF_8).size > limits.maxEncodedArgsBytes) {
             throw Rejected(NativeFileAttachmentIssue.REQUEST_TOO_LARGE)
         }
-        return PreparedUpload(kind, bytes.size, args)
+        val digest = if (kind == NativeAttachmentKind.FILE) {
+            MessageDigest.getInstance("SHA-256").digest(bytes).joinToString("") { "%02x".format(it) }
+        } else null
+        return PreparedUpload(sessionId, kind, bytes.size, args, digest, name)
     }
 
     private suspend fun uploadPrepared(prepared: PreparedUpload): SessionAttachment {
+        if (prepared.kind == NativeAttachmentKind.FILE && prepared.digest != null
+            && synchronized(lock) { prepared.digest in uploadedDigests }) {
+            val dedupeRequest = mutableMapOf<String, WireValue>("digest" to WireValue.StringValue(prepared.digest))
+            if (prepared.displayName != null) dedupeRequest["name"] = WireValue.StringValue(prepared.displayName)
+            val remembered = try {
+                wire.call("fileUploads/uploadDedupe", mapOf(
+                    "agentId" to WireValue.StringValue(prepared.sessionId),
+                    "request" to WireValue.ObjectValue(dedupeRequest),
+                ))
+            } catch (refused: LinkClientException.Refused) {
+                if (!isDigestFallback(refused)) throw refused
+                null
+            }
+            if (remembered != null) {
+                currentCoroutineContext().ensureActive()
+                return parseReceipt(remembered, prepared.kind, prepared.sourceBytes)
+            }
+        }
         val result = try {
             wire.call(if (prepared.kind == NativeAttachmentKind.IMAGE) "fileUploads/uploadImage" else "fileUploads/upload", prepared.args)
         } catch (_: NativeHttpRequestTooLarge) {
             throw Rejected(NativeFileAttachmentIssue.REQUEST_TOO_LARGE)
         }
         currentCoroutineContext().ensureActive()
-        return parseReceipt(result, prepared.kind, prepared.sourceBytes)
+        val attachment = parseReceipt(result, prepared.kind, prepared.sourceBytes)
+        if (prepared.kind == NativeAttachmentKind.FILE && prepared.digest != null) {
+            synchronized(lock) { uploadedDigests.add(prepared.digest) }
+        }
+        return attachment
+    }
+
+    /** A remembered digest skips re-sending bytes the Host already stored; any other refusal stays fatal. */
+    private fun isDigestFallback(refused: LinkClientException.Refused): Boolean = when (refused.code) {
+        "session/attachment-invalid" ->
+            WireShape.string(refused.details ?: WireValue.ObjectValue(emptyMap()), "reason") == "FILE_DIGEST_NOT_KNOWN"
+        "host/capability-unavailable" ->
+            WireShape.string(refused.details ?: WireValue.ObjectValue(emptyMap()), "capability") == "file-upload.dedupe.v1"
+        else -> false
     }
 
     /** Retire even after parent cancellation, awaiting every content stream and request before Host replacement. */

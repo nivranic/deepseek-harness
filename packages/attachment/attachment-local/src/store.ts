@@ -387,7 +387,12 @@ async function publishStagedObject(
   }
 }
 
-async function digestFile(path: string): Promise<string> {
+/**
+ * Hash one stored object below the attachment root without loading it fully.
+ * @param path - absolute object path below the versioned attachment root.
+ * @returns lowercase hex SHA-256 of the object's exact bytes.
+ */
+export async function digestFile(path: string): Promise<string> {
   const hash = createHash('sha256')
   for await (const chunk of createReadStream(path) as AsyncIterable<Buffer>) hash.update(chunk)
   return hash.digest('hex')

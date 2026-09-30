@@ -529,6 +529,12 @@ export const SERVICE_API: readonly ServiceApiEntry[] = [
         returns: 'the durable content-addressed file reference.',
       },
       {
+        signature: 'ensureFileByDigest(digest: string, name?: string): Promise<FileAttachmentRef | undefined>',
+        description: 'Resolve one already-stored file object by digest and publish the alias for the caller\'s display name. The digest only locates the object: the stored bytes are re-verified before any reference is returned. Backends without object lookup keep this default miss so callers fall back to a full upload.',
+        parameters: [{ name: 'digest', description: 'lowercase hex SHA-256 of the exact file bytes.' }, { name: 'name', description: 'optional display name sanitized into the stored leaf name.' }],
+        returns: 'the durable reference for the verified object, or undefined when no intact stored object matches.',
+      },
+      {
         signature: 'saveFileStream(input: SaveFileStreamAttachment): Promise<FileAttachmentRef>',
         description: 'Durably commit one file byte-for-byte from bounded chunks. Providers must apply backpressure and must not collect the complete file in memory. Backends without streamed verbatim storage keep this default rejection.',
         parameters: [{ name: 'input', description: 'ordered exact bytes, optional cancellation, and display name.' }],
@@ -976,6 +982,12 @@ export const SERVICE_API: readonly ServiceApiEntry[] = [
         description: 'Persist one encoded upload and stage it under the Agent receiver selected by Typert.',
         parameters: [{ name: 'agent', description: 'receiving Agent resolved from the Remote Agent scope.' }, { name: 'request', description: 'canonical base64 bytes and optional display name.' }, { name: 'signal', description: 'caller cancellation before storage begins.' }],
         returns: 'the staged receipt and durable file reference.',
+      },
+      {
+        signature: '@Remote(\'uploadDedupe\') async uploadDedupe(agent: Agent, request: EncodedFileDedupeRequest, signal: AbortSignal): Promise<FileUploadValue>',
+        description: 'Stage one already-stored file by digest without re-receiving its bytes. The digest only locates the object: the Host re-verifies the stored bytes before issuing a receipt. A missing or corrupt object refuses with `FILE_DIGEST_NOT_KNOWN` so the caller falls back to a full upload.',
+        parameters: [{ name: 'agent', description: 'receiving Agent resolved from the Remote Agent scope.' }, { name: 'request', description: 'lowercase hex digest of the exact bytes and optional display name.' }, { name: 'signal', description: 'caller cancellation before the receipt is staged.' }],
+        returns: 'the staged receipt and the durable file reference.',
       },
       {
         signature: '@Remote(\'uploadImage\') async uploadImage(agent: Agent, request: EncodedImageUploadRequest, signal: AbortSignal): Promise<ImageUploadValue>',
@@ -4440,6 +4452,10 @@ export const TYPE_API: readonly TypeApiEntry[] = [
   {
     name: 'EncodedFileAttachment',
     declaration: 'export interface EncodedFileAttachment {\n    data: string;\n    name?: string;\n}',
+  },
+  {
+    name: 'EncodedFileDedupeRequest',
+    declaration: 'export interface EncodedFileDedupeRequest {\n    readonly digest: string;\n    readonly name?: string;\n}',
   },
   {
     name: 'EncodedFileUploadRequest',

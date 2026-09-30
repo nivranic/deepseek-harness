@@ -72,6 +72,7 @@ internal fun HostCapabilityDetails(observation: NativeHostObservation, generatio
                             NativeObservedCapability.FILE_TEXT -> R.string.native_capabilities_file_text
                             NativeObservedCapability.FILE_BYTES -> R.string.native_capabilities_file_bytes
                             NativeObservedCapability.FILE_UPLOAD -> R.string.native_capabilities_file_upload
+                            NativeObservedCapability.FILE_UPLOAD_DEDUPE -> R.string.native_capabilities_file_upload_dedupe
                             NativeObservedCapability.HTTP_REQUEST_BUDGET -> R.string.native_capabilities_http_request_budget
                             NativeObservedCapability.IMAGE_UPLOAD -> R.string.native_capabilities_image_upload
                             NativeObservedCapability.SUBAGENT_CATALOG -> R.string.native_capabilities_subagent_catalog

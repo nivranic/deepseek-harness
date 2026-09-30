@@ -20,7 +20,7 @@ import type { NormalizationPolicy } from './normalization.ts'
 import { CompressionLimiter, compressionFailure } from './compression-limiter.ts'
 import { commitPreparedImageFile, normalizedImagePath, prepareImageFile, readImageFile, validateImageFile } from './store.ts'
 import {
-  readFileStreamVerbatim, saveFileStreamVerbatim, saveFileVerbatim, storedFilePath,
+  ensureFileByDigest, readFileStreamVerbatim, saveFileStreamVerbatim, saveFileVerbatim, storedFilePath,
 } from './file-store.ts'
 import { readRequestImageFile, requestImageVariantId } from './request-image.ts'
 
@@ -231,6 +231,10 @@ export class LocalAttachmentStore extends AttachmentStore {
 
   override async saveFile(input: SaveFileAttachment): Promise<FileAttachmentRef> {
     return saveFileVerbatim(this.root, input)
+  }
+
+  override ensureFileByDigest(digest: string, name?: string): Promise<FileAttachmentRef | undefined> {
+    return ensureFileByDigest(this.root, digest, name)
   }
 
   override async saveFileStream(input: SaveFileStreamAttachment): Promise<FileAttachmentRef> {

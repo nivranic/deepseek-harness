@@ -201,6 +201,22 @@ export abstract class AttachmentStore extends Service {
   }
 
   /**
+   * Resolve one already-stored file object by digest and publish the alias for
+   * the caller's display name. The digest only locates the object: the stored
+   * bytes are re-verified before any reference is returned. Backends without
+   * object lookup keep this default miss so callers fall back to a full upload.
+   * @param digest - lowercase hex SHA-256 of the exact file bytes.
+   * @param name - optional display name sanitized into the stored leaf name.
+   * @returns the durable reference for the verified object, or undefined when
+   * no intact stored object matches.
+   */
+  ensureFileByDigest(digest: string, name?: string): Promise<FileAttachmentRef | undefined> {
+    void digest
+    void name
+    return Promise.resolve(undefined)
+  }
+
+  /**
    * Durably commit one file byte-for-byte from bounded chunks. Providers must
    * apply backpressure and must not collect the complete file in memory.
    * Backends without streamed verbatim storage keep this default rejection.

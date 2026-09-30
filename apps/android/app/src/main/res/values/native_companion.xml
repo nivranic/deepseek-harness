@@ -142,6 +142,7 @@
     <string name="native_download_remove">移除本地下载</string>
     <string name="native_download_remove_help">仅移除此设备保留的下载内容和进度，Host 文件及已保存到其他位置的文件不会改变。</string>
     <string name="native_capabilities_file_upload">上传文件附件</string>
+    <string name="native_capabilities_file_upload_dedupe">按摘要重新暂存已上传文件</string>
     <string name="native_capabilities_http_request_budget">查询原生请求大小限制</string>
     <string name="native_attachment_add">添加附件</string>
     <string name="native_capabilities_image_upload">上传图片附件</string>

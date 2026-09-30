@@ -199,4 +199,86 @@ class NativeFileAttachmentsModelTest {
         val records = Json.parseToJsonElement("""[{"type":"event","event":{"type":"user/message","seq":1,"data":{"id":"m","role":"user","content":[{"type":"text","text":"Look"},{"type":"file","attachment":{"attachmentId":"f","name":"报告.bin","bytes":4}},{"type":"file","attachment":{"attachmentId":"e","name":"empty.txt","bytes":0}}],"source":{"kind":"user"}}}}]""").jsonArray
         assertEquals("Look\n文件 报告.bin（4 字节）\n文件 empty.txt（0 字节）", foldDomain(records).items.last().text)
     }
+
+    private fun hexSha256(bytes: ByteArray): String =
+        java.security.MessageDigest.getInstance("SHA-256").digest(bytes).joinToString("") { "%02x".format(it) }
+
+    private fun attachmentModel(wire: FakeWire, inputs: CompanionInputState, session: SessionModel,
+                                scope: kotlinx.coroutines.CoroutineScope, scheduler: TestCoroutineScheduler) =
+        NativeFileAttachmentsModel(wire, session, inputs, scope, NativeFileAttachmentLimits(8, 4096, 4), StandardTestDispatcher(scheduler))
+
+    @Test fun `re-uploading remembered bytes skips re-sending them through the deduplication path`() = runTest {
+        val bytes = byteArrayOf(0, -1, 4)
+        val wire = FakeWire()
+        wire.stub("fileUploads/upload") { result(3, "first") }
+        wire.stub("fileUploads/uploadDedupe") { result(3, "second") }
+        val inputs = CompanionInputState.memory()
+        val session = SessionModel(wire, backgroundScope, inputs = inputs); session.openSession("selected")
+        val model = attachmentModel(wire, inputs, session, backgroundScope, testScheduler)
+        model.accept(assertNotNull(model.prepare()), Source(bytes)).join()
+        assertEquals("first", inputs.state.value.drafts["selected"]?.attachments?.single()?.receiptId)
+        model.accept(assertNotNull(model.prepare()), Source(bytes, "副本.bin")).join()
+        assertEquals(listOf("fileUploads/upload", "fileUploads/uploadDedupe"), wire.calls.map { it.first })
+        val request = wire.calls.last().second.getValue("request")
+        assertEquals(hexSha256(bytes), WireShape.string(request, "digest"))
+        assertEquals("副本.bin", WireShape.string(request, "name"))
+        assertEquals("second", inputs.state.value.drafts["selected"]?.attachments?.last()?.receiptId)
+        model.closeAndAwait()
+    }
+
+    @Test fun `an unknown remembered digest falls back to exactly one full upload`() = runTest {
+        val bytes = byteArrayOf(7)
+        val wire = FakeWire()
+        wire.stub("fileUploads/upload") { result(1, "full") }
+        wire.stubSequence("fileUploads/uploadDedupe", listOf<suspend () -> WireValue> {
+            throw LinkClientException.Refused("session/attachment-invalid", "no stored file",
+                value("""{"reason":"FILE_DIGEST_NOT_KNOWN"}"""))
+        })
+        val inputs = CompanionInputState.memory()
+        val session = SessionModel(wire, backgroundScope, inputs = inputs); session.openSession("selected")
+        val model = attachmentModel(wire, inputs, session, backgroundScope, testScheduler)
+        model.accept(assertNotNull(model.prepare()), Source(bytes)).join()
+        model.accept(assertNotNull(model.prepare()), Source(bytes)).join()
+        assertEquals(listOf("fileUploads/upload", "fileUploads/uploadDedupe", "fileUploads/upload"), wire.calls.map { it.first })
+        assertEquals("full", inputs.state.value.drafts["selected"]?.attachments?.last()?.receiptId)
+        model.closeAndAwait()
+    }
+
+    @Test fun `a Host without the deduplication capability keeps the remembered-digest path on the full upload`() = runTest {
+        val bytes = byteArrayOf(9)
+        val wire = FakeWire()
+        wire.stub("fileUploads/upload") { result(1, "full") }
+        wire.stubSequence("fileUploads/uploadDedupe", listOf<suspend () -> WireValue> {
+            throw LinkClientException.Refused("host/capability-unavailable", "not advertised",
+                value("""{"capability":"file-upload.dedupe.v1"}"""))
+        })
+        val inputs = CompanionInputState.memory()
+        val session = SessionModel(wire, backgroundScope, inputs = inputs); session.openSession("selected")
+        val model = attachmentModel(wire, inputs, session, backgroundScope, testScheduler)
+        model.accept(assertNotNull(model.prepare()), Source(bytes)).join()
+        model.accept(assertNotNull(model.prepare()), Source(bytes)).join()
+        assertEquals(listOf("fileUploads/upload", "fileUploads/uploadDedupe", "fileUploads/upload"), wire.calls.map { it.first })
+        assertEquals("full", inputs.state.value.drafts["selected"]?.attachments?.last()?.receiptId)
+        model.closeAndAwait()
+    }
+
+    @Test fun `an unrelated deduplication refusal stays fatal instead of silently re-uploading`() = runTest {
+        val bytes = byteArrayOf(5)
+        val wire = FakeWire()
+        wire.stub("fileUploads/upload") { result(1, "first") }
+        wire.stubSequence("fileUploads/uploadDedupe", listOf<suspend () -> WireValue> {
+            throw LinkClientException.Refused("session/attachment-invalid", "malformed digest",
+                value("""{"reason":"FILE_DIGEST_INVALID"}"""))
+        })
+        val inputs = CompanionInputState.memory()
+        val session = SessionModel(wire, backgroundScope, inputs = inputs); session.openSession("selected")
+        val model = attachmentModel(wire, inputs, session, backgroundScope, testScheduler)
+        model.accept(assertNotNull(model.prepare()), Source(bytes)).join()
+        assertEquals("first", inputs.state.value.drafts["selected"]?.attachments?.single()?.receiptId)
+        model.accept(assertNotNull(model.prepare()), Source(bytes)).join()
+        assertEquals(listOf("fileUploads/upload", "fileUploads/uploadDedupe"), wire.calls.map { it.first })
+        assertEquals(NativeFileAttachmentPhase.FAILED, model.state.value.phase)
+        assertEquals("first", inputs.state.value.drafts["selected"]?.attachments?.single()?.receiptId)
+        model.closeAndAwait()
+    }
 }
