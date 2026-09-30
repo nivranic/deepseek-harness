@@ -74,7 +74,7 @@ extension NativeHostRoster {
         try requireKeys(root, ["version", "active", "hosts"], "root fields")
         // JSONSerialization bridges true/false as NSNumber, and NSNumber(value: true)
         // compares equal to 1; Kotlin's intOrNull rejects booleans, so reject them first.
-        guard let version = (root["version"] as? NSNumber), root["version"] as? Bool == nil, version == 1 else {
+        guard let version = (root["version"] as? NSNumber), (root["version"] as? Bool) == nil, version == 1 else {
             throw NativeHostRosterError("unsupported Host catalog version")
         }
         guard let rows = root["hosts"] as? [Any] else { throw NativeHostRosterError("Host catalog array required") }
@@ -95,7 +95,7 @@ extension NativeHostRoster {
                 transportFormat: try text(object, "transportFormat"))
             guard credentials.transportFormat == nativeCredentialFormat,
                 NativePairingRoles.all.contains(credentials.role),
-                fingerprintRegex.matches(credentials.pinnedFingerprint) else {
+                isLowercaseHex64(credentials.pinnedFingerprint) else {
                 throw NativeHostRosterError("invalid native Host identity")
             }
             guard let key = Data(base64Encoded: credentials.signingKeyBase64), key.count == 32 else {
@@ -122,7 +122,10 @@ extension NativeHostRoster {
     }
 }
 
-private let fingerprintRegex = try! NSRegularExpression(pattern: "^[a-f0-9]{64}$")
+/// Kotlin's `[a-f0-9]{64}` fingerprint pattern, as a character predicate.
+private func isLowercaseHex64(_ value: String) -> Bool {
+    value.count == 64 && value.allSatisfy { $0.isHexDigit && !$0.isUppercase }
+}
 
 private func jsonObject(_ data: Data) throws -> [String: Any] {
     guard let value = try JSONSerialization.jsonObject(with: data) as? [String: Any] else {
@@ -157,5 +160,5 @@ private func nativeOrigin(_ value: String) throws -> String {
         !(["0.0.0.0", "::", "[::]"].contains(host)) else {
         throw NativeHostRosterError("native endpoint must be a reachable HTTPS origin")
     }
-    return String(value.hasSuffix("/") ? value.dropLast() : value)
+    return value.hasSuffix("/") ? String(value.dropLast()) : value
 }
