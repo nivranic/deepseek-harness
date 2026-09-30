@@ -66,6 +66,7 @@
     "lib/typert.remote-client.d.ts"
   ],
   "dependencies": {
+    "@noble/hashes": "^2.3.0",
     "zod": "^4.4.3",
     "@deepseek-ai/dsh-typert-protocol": "workspace:^",
     "@deepseek-ai/dsh-brand": "workspace:^"

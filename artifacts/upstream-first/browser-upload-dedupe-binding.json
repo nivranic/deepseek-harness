@@ -1,0 +1,16 @@
+{
+  "status": "PASS",
+  "controls": 3,
+  "sourceRecord": {
+    "path": "artifacts/upstream-first/browser-upload-dedupe-source.json",
+    "sha256": "e1fe55bec67255b741575538af32e9fb51b2328d389e2e5e14c5afa556ee1c6a"
+  },
+  "generator": {
+    "path": "artifacts/upstream-first/write-reports.mjs",
+    "sha256": "4da0e66e29b951ce1de9303f037829c8ccd970e0df7c964da3a4176354e9e2f3"
+  },
+  "helper": {
+    "path": ".artifacts/check-browser-upload-dedupe-binding.mjs",
+    "sha256": "f3741649900133c08115a3344681f8f6d8e1bd7e8c4cc4f5d970f279488cf64c"
+  }
+}

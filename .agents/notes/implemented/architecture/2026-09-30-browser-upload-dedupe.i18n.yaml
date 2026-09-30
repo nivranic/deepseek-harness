@@ -1,0 +1,6 @@
+# Bilingual-pair consistency record (docs/i18n/README.md): the git blob hash of each
+# side as of the last confirmed-consistent state. Both languages carry equal authority;
+# after editing either side, bring the other along and re-record with:
+#   pnpm run verify-translation-pairing --write .agents/notes/implemented/architecture/2026-09-30-browser-upload-dedupe.md
+2026-09-30-browser-upload-dedupe.md: 3cc0c36a36a7a2f5432b49c4dd097786b4aec918
+2026-09-30-browser-upload-dedupe.zh.md: acaf8d9812a2ae6627da4c8c93b93e8ab766db2a

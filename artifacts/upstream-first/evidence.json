@@ -5,135 +5,43 @@
   "candidateTrackedChanges": [
     {
       "path": "IMPLEMENTATION_STATUS.md",
-      "sha256": "c303cdef54e0560cb5feb1ba8f34411e2c289c6574bfacdee3278df0cf6b7ba9"
-    },
-    {
-      "path": "apps/android/app/src/main/kotlin/ai/deepseek/dsh/companion/HostCapabilityDetails.kt",
-      "sha256": "9f2635dfbbde89a9b48e63e547819635e7d79156ecb415ff3a2813f7fb2c1a4d"
-    },
-    {
-      "path": "apps/android/app/src/main/res/values/native_companion.xml",
-      "sha256": "1c15a62c1797f47937c13caf6a9edd9c540aadef1c415b83ae708ff91a57107c"
-    },
-    {
-      "path": "apps/android/core/src/main/kotlin/ai/deepseek/dsh/companion/NativeFileAttachmentsModel.kt",
-      "sha256": "328d496d6881dadb44dcf1660995120cd1c0f3825591ea77fa368895abe0a645"
-    },
-    {
-      "path": "apps/android/core/src/main/kotlin/ai/deepseek/dsh/gateway/NativeGatewayDiagnostics.kt",
-      "sha256": "00ba76cd38417eca7999dd24c1203fcb0e5ee978be77becbc6647745174d70be"
-    },
-    {
-      "path": "apps/android/core/src/test/kotlin/ai/deepseek/dsh/companion/NativeFileAttachmentsModelTest.kt",
-      "sha256": "95dacb30c23fd8c3c768845a3a93f61b26063802746253c0bdff9a42d8756b54"
-    },
-    {
-      "path": "apps/android/core/src/test/kotlin/ai/deepseek/dsh/companion/NativeShareAttachmentsLifecycleTest.kt",
-      "sha256": "25bcc111bf4fb797f0c412a65900f34101e63c66ab6d1a5493051f5187ffc9e0"
-    },
-    {
-      "path": "apps/android/core/src/test/kotlin/ai/deepseek/dsh/companion/NativeShareAttachmentsModelTest.kt",
-      "sha256": "e87ed447044bd02bb6ddfd4eb2e59d7c14713b7f3f38ae1d279522683610f209"
-    },
-    {
-      "path": "apps/android/core/src/test/resources/support-native-gateway.json",
-      "sha256": "c735e278409831a1a9175ba22e4c880297cf9282d3fed79a045a8f2c31d72c94"
-    },
-    {
-      "path": "apps/web/tests/android-host-restart.e2e.ts",
-      "sha256": "c8a04e9af02f2f87f14d0c21d3cffb5a14145149b12fa98aa02efc92cd492292"
+      "sha256": "db06b1180388588efbbeb4c671ad346dfd70db64b9189fc2fcf803e2a74e087a"
     },
     {
       "path": "artifacts/upstream-first/evidence.json",
-      "sha256": "9145bc3a5d483440de00a1a0eeb554c48b5fa54ff7adf715f11a5cd5195300a4"
+      "sha256": "3a4b0914aa8cb640a76849f50db466746211fe09168d2300a1d4c3d9eb098f6e"
     },
     {
       "path": "artifacts/upstream-first/write-reports.mjs",
-      "sha256": "c8f4c002b369a9b0cf921841c8f7f024fc69d53b4040788a8c05218de2531809"
-    },
-    {
-      "path": "docs/subsystems/attachment.i18n.yaml",
-      "sha256": "e19e890950e3c320d3fe23fc39cd825daf08b9185b005b16bdfb2c6957949de1"
-    },
-    {
-      "path": "docs/subsystems/attachment.md",
-      "sha256": "ac2a3ff11def7122df570e3486052254a8f70f02871702c46926c0009279f3d6"
-    },
-    {
-      "path": "docs/subsystems/attachment.zh.md",
-      "sha256": "34d343bb8599e2f610b8623e549dbee7aaab865b0632db0092f20aacdad3afc2"
-    },
-    {
-      "path": "packages/api/session-controller/tests/commands-upload-file.host.spec.ts",
-      "sha256": "274d439b06cb44d9c2ba103bdf57d724fb2b4619abfd67a0e7b5e2e940dcdfeb"
-    },
-    {
-      "path": "packages/attachment/attachment-local/src/file-store.ts",
-      "sha256": "3b65913cced4beacd2564809149496b1f38cf0a3928d8c45d954a49b42223179"
-    },
-    {
-      "path": "packages/attachment/attachment-local/src/index.ts",
-      "sha256": "2e19a2934016e45b29e1334d5381d1c9c41e737f8a193c8c5ba61aff1b3e9122"
-    },
-    {
-      "path": "packages/attachment/attachment-local/src/store.ts",
-      "sha256": "a523b933691f5366a6abd5563f48f6247b00432d027471ca23e19a0edd236170"
-    },
-    {
-      "path": "packages/attachment/attachment-local/tests/file-store.spec.ts",
-      "sha256": "7b95a16058f51cc01535859d8c439fb8234438b2be5806d230e449b2616c3876"
-    },
-    {
-      "path": "packages/attachment/attachment/README.i18n.yaml",
-      "sha256": "47a2bde4858f7422b7f046de7fd7d3451ecbf2787dfa7c668964c281d06eab2e"
-    },
-    {
-      "path": "packages/attachment/attachment/README.md",
-      "sha256": "28343391201330687b1af4e5c98da6dd9069a1d7e88b3a84ca4e3d1e8a9206a3"
-    },
-    {
-      "path": "packages/attachment/attachment/README.zh.md",
-      "sha256": "f8beea303482bdf1e871d1a4c96afc3250f58770343e689924db35c324b0a88c"
-    },
-    {
-      "path": "packages/attachment/attachment/src/index.ts",
-      "sha256": "b9b3e176a2457b5a5471037f90e9bf046b59dadf6423177655e5ace623d6273e"
-    },
-    {
-      "path": "packages/attachment/attachment/tests/index.spec.ts",
-      "sha256": "ac1b7bb14f22df6f4fcffd38b9673521146f8c05793e54c78bbe377b7b9b896a"
+      "sha256": "4da0e66e29b951ce1de9303f037829c8ccd970e0df7c964da3a4176354e9e2f3"
     },
     {
       "path": "packages/client/file-upload/README.i18n.yaml",
-      "sha256": "eb2054f04f64386830deadfb8ab57a22b4c8a76eb6b838b3cb5395a4258913c8"
+      "sha256": "506eca955deaeae17fb2c0cd71e83d5efd52c3932ee5a5dbf0ee805647b52972"
     },
     {
       "path": "packages/client/file-upload/README.md",
-      "sha256": "e63550aca6a6fa00e5c05e431376c2e68f1fa985b5931cc5cdf3c32853d7a9c6"
+      "sha256": "959e7fbf6112d45251f0a982922430a192f7059049eb18f2748e7c88cdf0620c"
     },
     {
       "path": "packages/client/file-upload/README.zh.md",
-      "sha256": "a94b3b9c0c3012e54a6f1da8b98b1a0d7e0d757d8a2371da8b7d632ee8e62afd"
+      "sha256": "a2ba1925abbb03b0b15f4d48c6aae2aedb2d5569b23e94f250012e6f0b7dd80a"
     },
     {
-      "path": "packages/client/file-upload/src/capabilities.ts",
-      "sha256": "bed395646042961b5b6262cc7959fc8b2e9f83e4a112b1b256207f9468f08de8"
+      "path": "packages/client/file-upload/package.json",
+      "sha256": "bbc7dee87b5ed8c3b99f95ae5a13c352d0482d21dd7fbded6d73b3b3f65a3980"
     },
     {
-      "path": "packages/client/file-upload/src/index.ts",
-      "sha256": "048d3d79c81f46989fb3ff3a35e7e437bdef75f79accbec61d2bf1d6201def35"
+      "path": "packages/client/file-upload/src/client/runtime.ts",
+      "sha256": "ce0e798dfb5af600531b6353ed1e56164b1f5f8f1bab03f356626defe432532e"
     },
     {
-      "path": "packages/client/file-upload/src/types.ts",
-      "sha256": "3c5ae20b78a6037ef9e22cf276c7b98f8dc1be641d3287290934c1ae43191416"
+      "path": "packages/client/file-upload/tests/file-upload.client.spec.ts",
+      "sha256": "1df6f1310a65495608451ba0e01135e7aa983be0570a149ef54d02824133c904"
     },
     {
-      "path": "packages/extensions/tool-cordis/src/api-catalog.ts",
-      "sha256": "843c8c3dee466b6e73170d136f84ecf2c7ccd202c427bf88fc0999650046ab2b"
-    },
-    {
-      "path": "scripts/gen-cordis-catalog.ts",
-      "sha256": "bb48823b211d6e0b6dc380f46f928b74cc043369f3681c35511e36c0b3344ca0"
+      "path": "pnpm-lock.yaml",
+      "sha256": "0926aad05a8be292b319d4ac7181879209676629353a3902fa22846916f08513"
     }
   ],
   "candidateUntrackedSourceChanges": [],
@@ -10124,6 +10032,42 @@
     },
     {
       "status": "PASS",
+      "command": "command summary: vitest client unit run over packages/client/file-upload/tests/file-upload.client.spec.ts packages/client/file-upload/tests/file-upload-http.host.spec.ts; File-upload client unit matrix: remembered-digest probe hit without a carrier, one full-upload fallback on FILE_DIGEST_NOT_KNOWN, unrelated-refusal passthrough and the no-capability no-probe gate; 2 files / 28 passed",
+      "log": ".artifacts/browser-upload-dedupe-client-tests.log",
+      "sourceRecord": "artifacts/upstream-first/browser-upload-dedupe-source.json"
+    },
+    {
+      "status": "PASS",
+      "command": "npm run build:lib:host && npm run typecheck:contracts-ready",
+      "log": ".artifacts/browser-upload-dedupe-typecheck.log",
+      "sourceRecord": "artifacts/upstream-first/browser-upload-dedupe-source.json"
+    },
+    {
+      "status": "PASS",
+      "command": "pnpm run test:docs; 17 gates",
+      "log": ".artifacts/browser-upload-dedupe-testdocs.log",
+      "sourceRecord": "artifacts/upstream-first/browser-upload-dedupe-source.json"
+    },
+    {
+      "status": "PASS",
+      "command": "pnpm run doc-sync; 36 gates",
+      "log": ".artifacts/browser-upload-dedupe-docsync.log",
+      "sourceRecord": "artifacts/upstream-first/browser-upload-dedupe-source.json"
+    },
+    {
+      "status": "PASS",
+      "command": "node --test artifacts/upstream-first/specification-traceability.test.mjs artifacts/upstream-first/verify-audit.test.mjs; both files, 19 tests",
+      "log": ".artifacts/browser-upload-dedupe-audit-tests.log",
+      "sourceRecord": "artifacts/upstream-first/browser-upload-dedupe-source.json"
+    },
+    {
+      "status": "PASS",
+      "command": "node artifacts/upstream-first/verify-audit.mjs --require-gate0",
+      "log": ".artifacts/browser-upload-dedupe-gate0-final.log",
+      "sourceRecord": "artifacts/upstream-first/browser-upload-dedupe-source.json"
+    },
+    {
+      "status": "PASS",
       "command": "Workspace and Conversation source regression before shared readiness correction",
       "tests": 599,
       "log": ".artifacts/workspace-admission-tests-final.log",
@@ -10854,7 +10798,257 @@
       ]
     }
   },
+  "browserUploadDedupe": {
+    "status": "PASS",
+    "sourceRecord": "artifacts/upstream-first/browser-upload-dedupe-source.json",
+    "scope": "Browser upload dedupe axis: the file-upload Client runtime keeps a page-level uploadedDigests memory of every successfully uploaded body digest and, when the Host advertises file-upload.dedupe.v1 and the input is a Blob or exact bytes, hashes the body in bounded 1 MiB chunks (@noble/hashes sha2 with cancellation between chunks) and addresses a remembered digest through remote.fileUploads.uploadDedupe before any carrier starts, so a hit stages the receipt with zero bytes transferred and no byte progress; FILE_DIGEST_NOT_KNOWN falls back to exactly one full upload and re-learns the digest, every other refusal passes through as-is without silent re-upload, one-shot ReadableStream inputs are never hashed and always stream, and a Host without the capability skips hashing so the first upload stays byte-for-byte the previous behavior; the refusal branch narrows the Host-injected attachment refusal code through a tolerant shape because it sits outside the statically declared failure union; product code changed in the file-upload client runtime, its four new unit cases, the package dependency trio and the lockfile; real-browser end-to-end exercise, streaming-carrier dedupe and cross-process digest memory remain open",
+    "repositoryKnownCodes": 84,
+    "uniqueOwners": 14,
+    "missingSemanticCommentsAdded": 49,
+    "packagedFiniteCodeSchema": true,
+    "sourceDeclarationsRemainExtensible": true,
+    "unknownCodeDiagnosticsPreserved": true,
+    "detailsPayloadSchema": false,
+    "nativeClientQualified": false,
+    "runtimeBehaviorChanged": true,
+    "newSessionEvents": false,
+    "phase3Complete": false,
+    "fullGoalComplete": false,
+    "resultInvalidMeaningMatchesEmitter": true,
+    "historicalSchedulerArchivePreserved": true,
+    "compilerIndependentDetailsGraphs": true,
+    "hostAndClientSeparate": true,
+    "builtModelMatchesSource": true,
+    "portableDetailsPayloadSchema": false,
+    "readonlyArrayAndTupleEmission": true,
+    "parsedReadonlyContainersFrozen": true,
+    "portableValidationIssueFields": true,
+    "compilerResolvedErrorDetails": true,
+    "resolvedFaceCodePairs": 144,
+    "overlappingSchemasCompared": 60,
+    "detailsSchemaPublished": false,
+    "formalEnvelopeSchemaEmitted": true,
+    "envelopeSchemaKnownBranches": 84,
+    "envelopeUnknownCodeExcludesKnownCodes": true,
+    "envelopeTupleDetailsRejected": true,
+    "envelopeLocalPackConsumed": true,
+    "envelopeRegistryPublished": false,
+    "remoteFailureClassification": true,
+    "classifiedCodes": 28,
+    "unknownCodeDefaultOpaque": true,
+    "gatewayClientConsumesClassification": true,
+    "classificationInventoryVerified": true,
+    "kotlinContractColumn": true,
+    "kotlinSchemaTests": 8,
+    "kotlinMirrorProjection": true,
+    "swiftColumn": false,
+    "androidShellMigrated": false,
+    "phase10Started": true,
+    "failureClasses": 9,
+    "invalidInputClass": true,
+    "uiAdoptionStarted": true,
+    "uiSurfacesAdoptingClassification": 2,
+    "swiftContractColumn": true,
+    "swiftSchemaTests": 4,
+    "swiftPayloadValidation": false,
+    "interactionReplyPermissions": true,
+    "interactionPermissionHostEnforced": true,
+    "interactionPermissionConfigurable": true,
+    "deviceTrustRolesReplaceSwitch": false,
+    "androidCoreMigrated": true,
+    "androidCoreTestClasses": 37,
+    "androidAppSourcesMigrated": true,
+    "androidAppConfigured": true,
+    "androidShellCompiled": false,
+    "androidScannerChainBlocked": true,
+    "swiftCheckExecutable": true,
+    "swiftLaneRunner": "macos-15-arm64",
+    "swiftLaneRecovered": true,
+    "diagnosticsOnlyTier": true,
+    "diagnosticsOnlyAdmittedEndpoints": 2,
+    "unknownVersionRejectUnchanged": true,
+    "responsivePhoneDrawer": true,
+    "phoneTierSidebarTrackZero": true,
+    "drawerWidthPx": 280,
+    "drawerDismissalPaths": 2,
+    "leftInputRegionSessionMaybe": true,
+    "frameColumnsExplicitlyPlaced": true,
+    "scannerAarBuilt": true,
+    "scannerAarStaticVerification": "PASS",
+    "scannerAarSourceSha": "8ca9f6ebf33de3912292416b85f5b510c88de9a3",
+    "assembleDebugGatePassed": true,
+    "emulatorMainActivityResumed": true,
+    "gatewayFailureConsumption": true,
+    "envelopeDetailsPreservedBothPaths": true,
+    "sharedClassificationDrivesPresentation": true,
+    "unknownCodesStayOpaque": true,
+    "uiSubagentClassificationAdopted": true,
+    "adoptingSurfacesCount": 5,
+    "queueDockClassificationAdopted": true,
+    "jobsFailureClassThreaded": true,
+    "sessionJobWireFieldAdditive": true,
+    "androidRefusalLaneDriven": true,
+    "ed25519KeyGenerationBundled": true,
+    "filesFollowStreamStarted": true,
+    "jobsProducerAdoptionVoid": true,
+    "linkAccessTakeoverDecided": true,
+    "remotePackagesStayRetired": true,
+    "gatewayOwnsDeviceAccess": true,
+    "deviceTrustSeamLanded": true,
+    "pairingIssuanceLive": true,
+    "knownErrorCodes": 89,
+    "deviceGrantsDurable": true,
+    "pairingCodesProcessLocalByDesign": true,
+    "deviceRolesMatchSection21Table": true,
+    "roleMappedReplyPermissions": true,
+    "signedAdmission": true,
+    "connectionStatesCompleteSection18": true,
+    "deviceRevokedStatePresent": true,
+    "protocolInteropMatrixPinned": true,
+    "section14VersionAxisEvidence": true,
+    "perRequestDeviceAdmission": true,
+    "capabilityRequiredPermissionVocabulary": true,
+    "remoteExecutionAuthorizationGated": true,
+    "sessionCapabilitiesDeclarePermissions": true,
+    "sessionReadWriteSplits": true,
+    "businessPermissionAdoptionStarted": true,
+    "workspaceCapabilitiesDeclarePermissions": true,
+    "remainingOwnersDeclarePermissions": true,
+    "admissionReplayLedger": true,
+    "androidClientSignsAdmissions": true,
+    "deviceIdentityConfirmation": true,
+    "devicesSettingsSurface": true,
+    "branchGateDebt": true,
+    "safeAreaInsets": true,
+    "keyboardAvoidance": true,
+    "foldableFrame": true,
+    "runningLocation": true,
+    "phoneTopBar": true,
+    "designLanguage": true,
+    "hostNaming": true,
+    "commandRisk": true,
+    "approvalFacts": true,
+    "followResume": true,
+    "viewLocation": true,
+    "composerGate": true,
+    "hostDiagnostics": true,
+    "supportBundle": true,
+    "telemetryConsent": true,
+    "diagnosticsRecorder": true,
+    "sessionHeadersEntry": true,
+    "settingsEntry": true,
+    "telemetryGate": true,
+    "savedHosts": true,
+    "degradedProbes": true,
+    "permissionTierChip": true,
+    "durableRetainedAnswers": true,
+    "unifiedDiffPreview": true,
+    "binaryFactCard": true,
+    "retargetableEndpoint": true,
+    "rosterSwitch": true,
+    "rosterUi": true,
+    "interruptedTransfer": true,
+    "mimeInference": true,
+    "hostSelectionObserver": true,
+    "diffReadableCopy": true,
+    "diffRichViewer": true,
+    "browserHostOrigin": true,
+    "deviceAdmissionLifecycle": true,
+    "nativePairing": true,
+    "nativeRemoteTls": true,
+    "nativePairingPresentation": true,
+    "androidNativeGatewayCore": true,
+    "androidNativeCompanion": true,
+    "androidNativeLifecycle": true,
+    "androidRepairing": true,
+    "androidCredentialRecovery": true,
+    "androidSessionList": true,
+    "androidInputRetention": true,
+    "androidInputPersistence": true,
+    "androidPromptRetry": true,
+    "androidHostRoster": true,
+    "androidViewLocation": true,
+    "androidCursorResume": true,
+    "androidResourceAdoption": true,
+    "androidNativeDiagnostics": true,
+    "nativeScannerAdoption": true,
+    "nativeScannerCandidate": true,
+    "nativeScannerSameSourceVerified": true,
+    "nativeScannerRepeatByteIdentical": true,
+    "nativeScannerBinarySymbolScan": true,
+    "androidCapabilityPresentation": true,
+    "androidCapabilityGenerationIsolation": true,
+    "androidCapabilityReadOnlyRefresh": true,
+    "androidOperationCapabilities": true,
+    "androidKnownOperationPreflight": true,
+    "androidCapabilityDraftRetention": true,
+    "androidSubagentTimeline": true,
+    "androidSelectedParentCatalog": true,
+    "androidChildObservationRetirement": true,
+    "androidCompleteResourceSave": true,
+    "androidResourceSavePickerOwnership": true,
+    "androidResourceSaveIndependentBytes": true,
+    "androidEncryptedDownloadCheckpoints": true,
+    "androidExplicitDownloadContinuation": true,
+    "androidDownloadJvmInterruptionRecovery": true,
+    "androidPersistentDownloadAdoption": true,
+    "androidDownloadDiskExport": true,
+    "androidInstalledDownloadProcessRecovery": true,
+    "androidDownloadHostIsolation": true,
+    "androidAcceptanceApkAdmission": true,
+    "androidFilesPickerAttachments": true,
+    "androidDurableFilePromptIntents": true,
+    "androidFileDraftProcessRecovery": true,
+    "androidFilePickerAuthority": true,
+    "hostStagedImageAdmission": true,
+    "androidPhotosPickerAttachments": true,
+    "androidDurableMixedAttachmentIntents": true,
+    "androidPhotoDraftProcessRecovery": true,
+    "androidCameraStagedImages": true,
+    "androidCameraOwnedOutputCleanup": true,
+    "androidCameraProcessRecovery": true,
+    "androidShareExplicitConfirmation": true,
+    "androidShareAtomicDraftAdoption": true,
+    "androidShareRestorationIsolation": true,
+    "androidViewDeepLinksCurrentHostNavigation": true,
+    "androidViewDeepLinksDeliveryIsolation": true,
+    "androidViewDeepLinksInputPreservation": true,
+    "androidPushForegroundRecovery": true,
+    "androidPushBackgroundProducerRetention": true,
+    "androidPushNotificationConsumption": true,
+    "androidNotificationPermission": true,
+    "androidNotificationSettingsRecovery": true,
+    "androidNotificationProcessRequestOwnership": true,
+    "androidAttachmentReceiptRecovery": true,
+    "androidAttachmentPendingDraftIsolation": true,
+    "nativeUploadBudget": true,
+    "nativeImageUploadBudget": true,
+    "nativeHostRestart": true,
+    "nativeUploadDedupe": true,
+    "browserUploadDedupe": true,
+    "limitations": [
+      "The browser client evidence is the unit matrix: four new cases in file-upload.client.spec.ts (probe hit without a carrier, one full-upload fallback on FILE_DIGEST_NOT_KNOWN, unrelated-refusal passthrough, no-probe without the capability) for 28 tests across the two client spec files. No real-browser end-to-end exercise of the deduplication hit path is claimed.",
+      "Digest memory is page-scoped: a page reload or another page re-uploads in full. Cross-reload or cross-process digest memory stays open by design, matching the receipt lifetime; the streaming carrier keeps a streaming contract because a one-shot ReadableStream cannot be re-read and is never hashed.",
+      "The probe runs only for re-readable Blob or exact-byte inputs against a Host advertising file-upload.dedupe.v1; a Host without the capability skips hashing entirely, and the refusal branch narrows the Host-injected attachment refusal code through a tolerant shape because it sits outside the statically declared failure union.",
+      "The pre-existing Push cursor investigation remains OPEN_UNCLASSIFIED and Scanner qualification stays same-host/shared-cache with GO-2026-5932 open; Session writer V3 and completeRc=false persist."
+    ],
+    "nextRequiredWork": {
+      "specification": "artifacts/upstream-first/original-specification.md",
+      "traceability": "artifacts/upstream-first/specification-traceability.json",
+      "remaining": [
+        "Classify the next cursor failure using the preserved diagnostics, or establish a controlled reproduction before changing its owner. Do not close this investigation merely because subsequent runs pass.",
+        "Exercise the deduplication hit in a real browser end-to-end and give the streaming carrier a deduplication path; the page-scoped digest memory and the unit matrix do not close them.",
+        "Qualify image and mixed-attachment recovery, large/resumable uploads, cross-process digest memory and physical-device Host restarts independently; the browser streaming-body dedupe does not close broader attachment or Mobile Release acceptance.",
+        "Qualify streaming and resumable uploads, physical devices and third-party senders independently; the local complete-body check is advisory and Host or proxy rejection remains authoritative.",
+        "Continue notification channel, settings revocation/process-death, persistent denial, physical-device, relay-backed delivery and precise Host/Session notification target qualification. Actual Recents and physical network/mux recovery remain separate work.",
+        "Continue Swift attachment adoption, cross-platform sharing and link entry, larger streamed uploads, upload retry/receipt expiry recovery, Host limit negotiation and the remaining requirement matrices without changing Host-owned authorization.",
+        "Retain scanner clean-cache/cross-machine, race, physical/16-KiB device, signed release, CodeQL and Apple gaps. Session writer V3 and completeRc=false persist; remote CI is distinct from local evidence. No memory update or handoff package."
+      ]
+    }
+  },
   "nativeUploadDedupe": {
+    "historical": true,
+    "followup": "artifacts/upstream-first/browser-upload-dedupe-source.json",
     "status": "PASS",
     "sourceRecord": "artifacts/upstream-first/native-upload-dedupe-source.json",
     "scope": "Native upload dedupe axis: fileUploads/uploadDedupe re-stages already stored bytes by digest after re-hashing the stored object (FILE_DIGEST_NOT_KNOWN and FILE_DIGEST_INVALID refusals, subagent sessions refused before any storage query, non-local seam defaults to miss), the Android companion remembers successful FILE upload digests in process and probes dedupe before re-uploading remembered bytes with exactly one full-upload fallback on miss or unadvertised capability while other refusals stay fatal; the installed emulator SIGKILL-restart e2e asserts the stored object is not rewritten, the receipt is replaced, the dedupe capability is re-advertised after restart and one send completes; product code changed across the attachment seam, Android core and the e2e; browser streaming-body dedupe, cross-process digest memory and physical devices remain open",
@@ -30339,7 +30533,7 @@
       "The known Windows symlink EPERM expanded-suite failure from the cancellation increment was not rerun or resolved"
     ]
   },
-  "latestSourceRecord": "artifacts/upstream-first/native-upload-dedupe-source.json",
+  "latestSourceRecord": "artifacts/upstream-first/browser-upload-dedupe-source.json",
   "cancelTarget": {
     "historical": true,
     "followup": "artifacts/upstream-first/rename-revision-source.json",
@@ -30822,7 +31016,7 @@
     "files": [
       {
         "path": "artifacts/upstream-first/write-reports.mjs",
-        "sha256": "c8f4c002b369a9b0cf921841c8f7f024fc69d53b4040788a8c05218de2531809"
+        "sha256": "4da0e66e29b951ce1de9303f037829c8ccd970e0df7c964da3a4176354e9e2f3"
       },
       {
         "path": "artifacts/upstream-first/verify-audit.mjs",

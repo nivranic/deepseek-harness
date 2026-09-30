@@ -7,9 +7,11 @@ import type { RemoteResult } from '@deepseek-ai/dsh-typert-protocol'
 import type { SessionId } from '@deepseek-ai/dsh-session/types'
 import type { RemoteHostFacts } from '@deepseek-ai/dsh-api-gateway/client'
 import type { ConnectionHandle } from '@deepseek-ai/dsh-client-connection/client'
+import { sha256 } from '@noble/hashes/sha2.js'
 import { FILE_UPLOAD_PATH } from '../protocol.ts'
 import type {
-  ClientFileUploadHooks, EncodedFileUploadRequest, FileUploadFetch, FileUploadValue,
+  ClientFileUploadHooks, EncodedFileDedupeRequest, EncodedFileUploadRequest, FileUploadFetch,
+  FileUploadValue,
 } from '../types.ts'
 import type { FileUploadBody, FileUploadService } from './contract.ts'
 
@@ -33,6 +35,11 @@ interface FileUploadRemoteContext extends Context {
       upload(
         sessionId: SessionId,
         request: EncodedFileUploadRequest,
+        signal?: AbortSignal,
+      ): Promise<RemoteResult<FileUploadValue>>
+      uploadDedupe(
+        sessionId: SessionId,
+        request: EncodedFileDedupeRequest,
         signal?: AbortSignal,
       ): Promise<RemoteResult<FileUploadValue>>
     }
@@ -167,6 +174,9 @@ export class FileUploadRuntime extends Service implements FileUploadService {
   private readonly transport: FileUploadTransport
   private readonly lifetime = { controller: new AbortController(), disposed: false }
 
+  /** Digests of bodies this page uploaded successfully; a re-upload of one skips re-sending bytes. */
+  static uploadedDigests = new Set<string>()
+
   /** @param ctx - providing Client context. */
   constructor(ctx: Context) {
     super(ctx, 'fileUpload')
@@ -214,36 +224,75 @@ export class FileUploadRuntime extends Service implements FileUploadService {
     onProgress?: (progress: { readonly loaded: number; readonly total?: number }) => void,
   ): Promise<RemoteResult<FileUploadValue>> {
     return this.withConnection(async (activeSignal, current) => {
-      if (!(data instanceof Uint8Array) && this.available) {
-        const query = new URLSearchParams({ sessionId })
-        if (name !== undefined) query.set('name', name)
-        const response = await this.transport.post({
-          path: `${FILE_UPLOAD_PATH}?${query.toString()}`,
-          body: data,
-          headers: { 'content-type': 'application/octet-stream' },
-          signal: activeSignal,
-          onProgress: (progress) => { if (current()) onProgress?.(progress) },
-        })
-        if (response.status !== 200) {
-          throw new Error(`file upload transport failed with HTTP ${String(response.status)}`)
+      // A remembered digest addresses bytes the Host already stores: probe the deduplication
+      // operation first and skip the carrier entirely on a hit. One-shot streams cannot be
+      // re-read for hashing, so they always take the streaming carrier.
+      if ((data instanceof Blob || data instanceof Uint8Array)
+        && (this.ctx as FileUploadRemoteContext).remote.$host.capabilities?.includes('file-upload.dedupe.v1') === true) {
+        const digest = await digestBody(data, activeSignal)
+        if (!current()) throw this.connectionChanged()
+        if (FileUploadRuntime.uploadedDigests.has(digest)) {
+          const remembered = await (this.ctx as FileUploadRemoteContext).remote.fileUploads.uploadDedupe(
+            sessionId,
+            { digest, ...(name === undefined ? {} : { name }) },
+            activeSignal,
+          )
+          if (remembered.ok) return remembered
+          // The Host injects attachment refusal codes outside the statically declared failure union.
+          const { code, details } = remembered.error as {
+            readonly code: string
+            readonly details?: { readonly reason?: unknown }
+          }
+          if (code !== 'session/attachment-invalid' || details?.reason !== 'FILE_DIGEST_NOT_KNOWN') {
+            return remembered
+          }
         }
-        return parseFileUploadResult(response.body)
+        const uploaded = await this.carryBody(sessionId, data, name, activeSignal, current, onProgress)
+        if (uploaded.ok) FileUploadRuntime.uploadedDigests.add(digest)
+        return uploaded
       }
-      if (!(data instanceof Uint8Array) && !(data instanceof Blob)) {
-        throw new Error('stream file upload requires a background carrier')
-      }
-      const bytes = data instanceof Uint8Array ? data : new Uint8Array(await data.arrayBuffer())
-      activeSignal.throwIfAborted()
-      if (!current()) throw this.connectionChanged()
-      return (this.ctx as FileUploadRemoteContext).remote.fileUploads.upload(
-        sessionId,
-        {
-          data: bytesToBase64(bytes),
-          ...(name === undefined ? {} : { name }),
-        },
-        activeSignal,
-      )
+      return this.carryBody(sessionId, data, name, activeSignal, current, onProgress)
     }, signal)
+  }
+
+  /** Move the body through its carrier and return the staged receipt result. */
+  private async carryBody(
+    sessionId: SessionId,
+    data: Blob | Uint8Array | ReadableStream<Uint8Array>,
+    name: string | undefined,
+    activeSignal: AbortSignal,
+    current: () => boolean,
+    onProgress?: (progress: { readonly loaded: number; readonly total?: number }) => void,
+  ): Promise<RemoteResult<FileUploadValue>> {
+    if (!(data instanceof Uint8Array) && this.available) {
+      const query = new URLSearchParams({ sessionId })
+      if (name !== undefined) query.set('name', name)
+      const response = await this.transport.post({
+        path: `${FILE_UPLOAD_PATH}?${query.toString()}`,
+        body: data,
+        headers: { 'content-type': 'application/octet-stream' },
+        signal: activeSignal,
+        onProgress: (progress) => { if (current()) onProgress?.(progress) },
+      })
+      if (response.status !== 200) {
+        throw new Error(`file upload transport failed with HTTP ${String(response.status)}`)
+      }
+      return parseFileUploadResult(response.body)
+    }
+    if (!(data instanceof Uint8Array) && !(data instanceof Blob)) {
+      throw new Error('stream file upload requires a background carrier')
+    }
+    const bytes = data instanceof Uint8Array ? data : new Uint8Array(await data.arrayBuffer())
+    activeSignal.throwIfAborted()
+    if (!current()) throw this.connectionChanged()
+    return (this.ctx as FileUploadRemoteContext).remote.fileUploads.upload(
+      sessionId,
+      {
+        data: bytesToBase64(bytes),
+        ...(name === undefined ? {} : { name }),
+      },
+      activeSignal,
+    )
   }
 
   private connectionChanged(): RemoteError<'gateway/connection-unavailable'> {
@@ -367,6 +416,23 @@ function isFixturePage(): boolean {
   return typeof pageLocation === 'object' && pageLocation !== null
     && 'search' in pageLocation && typeof pageLocation.search === 'string'
     && new URLSearchParams(pageLocation.search).has('fixture')
+}
+
+const DIGEST_CHUNK_BYTES = 1 << 20
+
+/** Hash one re-readable body in bounded chunks without collecting it in memory. */
+async function digestBody(data: Blob | Uint8Array, signal: AbortSignal): Promise<string> {
+  const hash = sha256.create()
+  if (data instanceof Uint8Array) {
+    hash.update(data)
+  } else {
+    for (let offset = 0; offset < data.size; offset += DIGEST_CHUNK_BYTES) {
+      signal.throwIfAborted()
+      hash.update(new Uint8Array(await data.slice(offset, offset + DIGEST_CHUNK_BYTES).arrayBuffer()))
+    }
+  }
+  signal.throwIfAborted()
+  return hash.digest().reduce((hex, byte) => hex + byte.toString(16).padStart(2, '0'), '')
 }
 
 function parseFileUploadResult(body: string): RemoteResult<FileUploadValue> {

@@ -399,6 +399,8 @@ describe('Session-addressed file upload', () => {
 
   async function scopedService(options: {
     readonly remote?: ReturnType<typeof vi.fn>
+    readonly dedupe?: ReturnType<typeof vi.fn>
+    readonly capabilities?: readonly string[]
   } = {}) {
     const ctx = new Context()
     const remote = options.remote ?? vi.fn(() => Promise.resolve({
@@ -408,7 +410,11 @@ describe('Session-addressed file upload', () => {
         file: { attachmentId: 'remote-file', name: 'file', bytes: 3 },
       },
     }))
-    ctx.provide('remote', { $host: HOST, fileUploads: { upload: remote } } as never)
+    const host = options.capabilities === undefined ? HOST : { ...HOST, capabilities: options.capabilities }
+    ctx.provide('remote', {
+      $host: host,
+      fileUploads: { upload: remote, ...(options.dedupe === undefined ? {} : { uploadDedupe: options.dedupe }) },
+    } as never)
     prepareRuntime(ctx)
     const fiber = ctx.plugin(FileUploadRuntime)
     await fiber
@@ -527,6 +533,95 @@ describe('Session-addressed file upload', () => {
       },
     })
     await failed.fiber.dispose()
+  })
+})
+
+describe('Deduplicated browser uploads', () => {
+  const SESSION_ID = 's1' as SessionId
+  const DEDUPE_HOST = ['file-upload.stage.v1', 'file-upload.dedupe.v1']
+
+  afterEach(() => {
+    FileUploadRuntime.uploadedDigests.clear()
+  })
+
+  async function scopedService(options: {
+    readonly remote?: ReturnType<typeof vi.fn>
+    readonly dedupe?: ReturnType<typeof vi.fn>
+  } = {}) {
+    const ctx = new Context()
+    const remote = options.remote ?? vi.fn(() => Promise.resolve({
+      ok: true,
+      value: { receiptId: 'remote-receipt', file: { attachmentId: 'remote-file', name: 'file', bytes: 4 } },
+    }))
+    const dedupe = options.dedupe ?? vi.fn(() => Promise.resolve({
+      ok: true,
+      value: { receiptId: 'dedupe-receipt', file: { attachmentId: 'remote-file', name: 'file', bytes: 4 } },
+    }))
+    ctx.provide('remote', { $host: { ...HOST, capabilities: DEDUPE_HOST }, fileUploads: { upload: remote, uploadDedupe: dedupe } } as never)
+    prepareRuntime(ctx)
+    const fiber = ctx.plugin(FileUploadRuntime)
+    await fiber
+    return { ctx, fiber, remote, dedupe, service: ctx.fileUpload }
+  }
+
+  it('stages a remembered body through uploadDedupe without touching a carrier', async () => {
+    const { remote, dedupe, service } = await scopedService()
+    const first = await service.upload(SESSION_ID, new Uint8Array([1, 2, 3, 4]), 'a.bin')
+    expect(first.ok).toBe(true)
+    expect(remote).toHaveBeenCalledTimes(1)
+    expect(dedupe).not.toHaveBeenCalled()
+    const second = await service.upload(SESSION_ID, new Uint8Array([1, 2, 3, 4]), 'a.bin')
+    expect(second).toEqual({
+      ok: true,
+      value: { receiptId: 'dedupe-receipt', file: { attachmentId: 'remote-file', name: 'file', bytes: 4 } },
+    })
+    expect(dedupe).toHaveBeenCalledTimes(1)
+    expect(remote).toHaveBeenCalledTimes(1)
+    const [sessionId, request] = dedupe.mock.calls[0] as [string, { readonly digest: string; readonly name: string }]
+    expect(sessionId).toBe(SESSION_ID)
+    expect(request.name).toBe('a.bin')
+    expect(request.digest).toMatch(/^[a-f0-9]{64}$/u)
+  })
+
+  it('falls back to one full upload when the Host no longer stores the digest', async () => {
+    const { remote, service } = await scopedService({
+      dedupe: vi.fn(() => Promise.resolve({
+        ok: false,
+        error: { code: 'session/attachment-invalid', message: 'missing', details: { reason: 'FILE_DIGEST_NOT_KNOWN' } },
+      })),
+    })
+    await service.upload(SESSION_ID, new Uint8Array([9]), 'b.bin')
+    await service.upload(SESSION_ID, new Uint8Array([9]), 'b.bin')
+    expect(remote).toHaveBeenCalledTimes(2)
+  })
+
+  it('returns an unrelated deduplication refusal without re-uploading silently', async () => {
+    const refusal = {
+      ok: false as const,
+      error: { code: 'session/attachment-invalid', message: 'malformed', details: { reason: 'FILE_DIGEST_INVALID' } },
+    }
+    const { remote, service } = await scopedService({ dedupe: vi.fn(() => Promise.resolve(refusal)) })
+    await service.upload(SESSION_ID, new Uint8Array([7]), 'c.bin')
+    const second = await service.upload(SESSION_ID, new Uint8Array([7]), 'c.bin')
+    expect(second).toEqual(refusal)
+    expect(remote).toHaveBeenCalledTimes(1)
+  })
+
+  it('never probes when the Host does not advertise the deduplication capability', async () => {
+    const ctx = new Context()
+    const remote = vi.fn(() => Promise.resolve({
+      ok: true,
+      value: { receiptId: 'remote-receipt', file: { attachmentId: 'remote-file', name: 'file', bytes: 1 } },
+    }))
+    const dedupe = vi.fn()
+    ctx.provide('remote', { $host: HOST, fileUploads: { upload: remote, uploadDedupe: dedupe } } as never)
+    prepareRuntime(ctx)
+    await ctx.plugin(FileUploadRuntime)
+    await ctx.fileUpload.upload(SESSION_ID, new Uint8Array([5]), 'd.bin')
+    await ctx.fileUpload.upload(SESSION_ID, new Uint8Array([5]), 'd.bin')
+    expect(dedupe).not.toHaveBeenCalled()
+    expect(remote).toHaveBeenCalledTimes(2)
+    await ctx.fiber.dispose()
   })
 })
 

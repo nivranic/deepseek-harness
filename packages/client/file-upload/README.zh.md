@@ -31,6 +31,8 @@ Host 还通过 `image-upload.stage.v1` 接受 `fileUploads/uploadImage({ data, m
 
 Host 还通过 `file-upload.dedupe.v1` 接受 `fileUploads/uploadDedupe({ digest, name? })`，要求 `prompt.send` 权限。摘要只负责定位对象：Host 在应答前重新校验存储字节，为净化后的显示名发布别名，并返回全新 `receiptId` 与持久 `file` 引用。对象缺失或损坏以 `FILE_DIGEST_NOT_KNOWN` 拒绝，调用方据此回退完整上传；格式非法的摘要以 `FILE_DIGEST_INVALID` 拒绝。
 
+浏览器 Client 对可重读主体应用同一探测：本页已成功上传过其摘要的 `Blob` 或精确字节输入先经 `uploadDedupe` 寻址，命中时完全不经过载体；`FILE_DIGEST_NOT_KNOWN` 精确回退一次完整上传，其余拒绝原样返回。一次性流不计算摘要，始终走流式载体。摘要计算以有界分块把可重读主体再多读一遍，去重上传不报告字节进度，因为没有任何字节被传输。
+
 文件暂存要求当前 Host 声明 `file-upload.stage.v1`。Client 在读取字节或启动任一载体前捕获连接；连接替换或服务卸载会取消活动工作，拒绝迟到的回执与进度。能力支持不授予权限，不撤销已完成的 Host 上传，也不使重试具备幂等性。消费方决定是否保留浏览器持有的草稿供用户显式重试。 设备权限遵循第 21 节表格：暂存声明 `prompt.send`，因为上传参与后续 prompt 的组装。 缺少已声明权限的设备角色在派发前被拒绝；匿名调用不受影响。
 
 ```yaml
