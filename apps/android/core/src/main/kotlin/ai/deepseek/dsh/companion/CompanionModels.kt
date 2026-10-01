@@ -24,8 +24,8 @@ import kotlinx.serialization.json.JsonArray
 import java.util.concurrent.ConcurrentHashMap
 import java.util.concurrent.atomic.AtomicReference
 
-/** One session row in the list. */
-data class SessionRow(val id: String, val title: String, val updatedAt: Double?)
+/** One session row in the list; `cwd` is the Host-side workspace directory when the row publishes it. */
+data class SessionRow(val id: String, val title: String, val updatedAt: Double?, val cwd: String? = null)
 
 /** One routable model as the Host catalog publishes it. */
 data class NativeCatalogModel(val id: String, val name: String)
@@ -89,20 +89,29 @@ internal class StreamTransitionOwner(private val scope: CoroutineScope) {
     private val observation = AtomicReference(Observation(0, ConnectionSnapshot(ConnectionState.IDLE, 0, 0, null)))
     private val active = AtomicReference<Job?>()
     private val pending = ConcurrentHashMap.newKeySet<Job>()
+    private val mutableSnapshots = MutableStateFlow(observation.get().snapshot)
 
     val connectionSnapshot: ConnectionSnapshot get() = observation.get().snapshot
+
+    /** Compose-observable mirror of the atomic snapshot; every transition posts the post-update value. */
+    val snapshots: StateFlow<ConnectionSnapshot> = mutableSnapshots
+
+    private fun mirror() {
+        mutableSnapshots.value = observation.get().snapshot
+    }
 
     fun isCurrent(value: Long): Boolean = observation.get().generation == value
 
     private fun advanceGeneration(state: ConnectionState): Long = observation.updateAndGet {
         Observation(it.generation + 1, it.snapshot.copy(state = state, lastFailure = null))
-    }.generation
+    }.also { mirror() }.generation
 
     private fun update(value: Long, change: (ConnectionSnapshot) -> ConnectionSnapshot) {
         observation.updateAndGet {
             if (it.generation != value || it.snapshot.state == ConnectionState.STOPPING || it.snapshot.state == ConnectionState.STOPPED) it
             else it.copy(snapshot = change(it.snapshot))
         }
+        mirror()
     }
 
     fun attempt(value: Long) = update(value) {
@@ -131,6 +140,7 @@ internal class StreamTransitionOwner(private val scope: CoroutineScope) {
             observation.updateAndGet {
                 if (it.snapshot.state == ConnectionState.STOPPING) it.copy(snapshot = it.snapshot.copy(state = ConnectionState.STOPPED)) else it
             }
+            mirror()
         } finally {
             transition.unlock()
         }
@@ -399,11 +409,18 @@ class SessionModel(
 
     private val followOwner = StreamTransitionOwner(scope)
     val connectionSnapshot: ConnectionSnapshot get() = followOwner.connectionSnapshot
+
+    /** Live follow-stream connection state for Compose observers; equals [connectionSnapshot] at rest. */
+    val connectionSnapshots: StateFlow<ConnectionSnapshot> get() = followOwner.snapshots
     private var followGeneration = 0L
     /** The current Session selection's generation; reconnects preserve it and a null open Session invalidates it. */
     val selectionGeneration: Long get() = followGeneration
     private val _deliveredFiles = MutableStateFlow<List<NativeDeliveredFile>>(emptyList())
     val deliveredFiles: StateFlow<List<NativeDeliveredFile>> = _deliveredFiles
+    private val _permissionPreset = MutableStateFlow<String?>(null)
+
+    /** Latest permission preset the open session's visible records name; null until one is published. */
+    val permissionPreset: StateFlow<String?> = _permissionPreset
     private val journal = NativeSessionJournal(wire, scope, historyLimits) { generation, id, records, replacement ->
         if (followOwner.isCurrent(generation)) {
             val current = _open.value
@@ -411,10 +428,24 @@ class SessionModel(
                 records.forEach { acknowledgeRecordedPrompt(id, it) }
                 val delivered = nativeDeliveredFiles(records)
                 _deliveredFiles.value = if (replacement) delivered else _deliveredFiles.value + delivered
+                val preset = latestPermissionPreset(records)
+                if (replacement || preset != null) _permissionPreset.value = preset
                 val values = JsonArray(records.map { it.toJsonElement() })
                 _open.value = current.copy(state = if (replacement) foldDomain(values) else foldInto(current.state, values))
             }
         }
+    }
+
+    /** Newest `permission/preset` in a record batch; a replacement window with none is authoritative null. */
+    private fun latestPermissionPreset(records: List<WireValue>): String? {
+        var preset: String? = null
+        for (record in records) {
+            val event = WireShape.objectValue(record, "event") ?: continue
+            if (WireShape.string(event, "type") != "permission/preset") continue
+            val data = WireShape.objectValue(event, "data") ?: continue
+            WireShape.string(data, "preset")?.let { preset = it }
+        }
+        return preset
     }
     val history: StateFlow<NativeHistoryState> = journal.state
     private val _viewAnchor = MutableStateFlow<NativeViewAnchor?>(null)
@@ -464,6 +495,7 @@ class SessionModel(
                     id = id,
                     title = WireShape.string(row, "title") ?: "未命名会话",
                     updatedAt = WireShape.number(row, "updatedAt"),
+                    cwd = WireShape.string(row, "cwd"),
                 )
             }
             _listState.value = SessionListState.Ready
@@ -479,6 +511,7 @@ class SessionModel(
     /** Open one session: fold its follow stream from a fresh snapshot. */
     suspend fun openSession(sessionId: String) {
         if (inputs.persistence.value != InputPersistenceStatus.RESTORE_FAILED) inputs.update { it.copy(lastSessionId = sessionId) }
+        _permissionPreset.value = null
         replaceFollow(
             sessionId,
             mapOf(

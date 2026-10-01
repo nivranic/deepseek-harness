@@ -147,6 +147,17 @@
     <string name="native_capabilities_model_steer">转向发送</string>
     <string name="native_capabilities_model_catalog">读取模型目录</string>
     <string name="native_capabilities_model_select">选择会话模型</string>
+    <string name="native_session_location_runtime">完整运行时</string>
+    <string name="native_connection_state_idle">空闲</string>
+    <string name="native_connection_state_opening">连接中</string>
+    <string name="native_connection_state_reconnecting">重连中</string>
+    <string name="native_connection_state_ended">已断开</string>
+    <string name="native_connection_state_stopping">停止中</string>
+    <string name="native_connection_state_stopped">已停止</string>
+    <string name="native_permission_preset_read_only">仅可查看</string>
+    <string name="native_permission_preset_workspace_write">工作区内修改</string>
+    <string name="native_permission_preset_full_access">完全权限</string>
+    <string name="native_permission_preset_custom">自定义</string>
     <string name="native_attachment_add">添加附件</string>
     <string name="native_capabilities_image_upload">上传图片附件</string>
     <string name="native_attachment_photo">照片</string>

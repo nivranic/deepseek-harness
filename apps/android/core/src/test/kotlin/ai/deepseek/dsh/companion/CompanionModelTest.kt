@@ -208,6 +208,37 @@ class CompanionModelTest {
     }
 
     @Test
+    fun sessionRowsCarryThePublishedWorkspaceDirectory() = runTest {
+        val wire = FakeWire()
+        wire.stub("session/list") {
+            wire("""{"items":[{"sessionId":"s1","title":"Refactor","cwd":"E:/work/space"},{"sessionId":"s2","title":"Notes"}]}""")
+        }
+        val model = SessionModel(wire, TestScope())
+        model.loadSessions()
+        assertEquals(listOf(SessionRow("s1", "Refactor", null, "E:/work/space"), SessionRow("s2", "Notes", null, null)), model.sessions.value)
+    }
+
+    @Test
+    fun openTracksTheLatestPermissionPresetAndConnectionState() = runTest {
+        val wire = FakeWire()
+        val model = SessionModel(wire, CoroutineScope(UnconfinedTestDispatcher(testScheduler)))
+        assertEquals(ConnectionState.IDLE, model.connectionSnapshots.value.state)
+        assertNull(model.permissionPreset.value)
+        model.openSession("s1")
+        assertEquals(ConnectionState.OPENING, model.connectionSnapshots.value.state)
+        wire.emit(wire("""{"type":"snapshot","header":{"id":"s1"},"hasMore":false,"cursor":1,"records":[{"type":"event","event":{"type":"permission/preset","seq":1,"time":1759017600001,"data":{"preset":"workspace-write"}}}]}"""))
+        advanceUntilIdle()
+        assertEquals(ConnectionState.OPEN, model.connectionSnapshots.value.state)
+        assertEquals("workspace-write", model.permissionPreset.value)
+        wire.emit(event(2, "permission/preset", """{"preset":"danger-full-access"}"""))
+        advanceUntilIdle()
+        assertEquals("danger-full-access", model.permissionPreset.value)
+        model.openSession("s2")
+        assertNull(model.permissionPreset.value)
+        model.close()
+    }
+
+    @Test
     fun openFoldsSnapshotAndEventsIntoTheDomainState() = runTest {
         val wire = FakeWire()
         val model = SessionModel(wire, CoroutineScope(UnconfinedTestDispatcher(testScheduler)))

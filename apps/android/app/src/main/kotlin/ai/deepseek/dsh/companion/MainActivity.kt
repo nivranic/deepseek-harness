@@ -675,6 +675,7 @@ internal fun SessionsTab(model: CompanionViewModel, capabilities: Set<NativeCapa
                 scope.launch { model.session.returnToList() }
             }) { Text(androidx.compose.ui.res.stringResource(R.string.native_session_return_list)) }
         }
+        if (open != null) SessionLocationFacts(model)
         if (open == null && canList) when (val state = listState) {
             SessionListState.Idle -> Unit
             SessionListState.Loading -> Text(androidx.compose.ui.res.stringResource(R.string.native_sessions_loading), Modifier.padding(16.dp))
@@ -913,6 +914,57 @@ private fun SessionModelSelection(model: CompanionViewModel, capabilities: Set<N
             Button(onClick = { showPicker = false }) { Text("关闭") }
         },
     )
+}
+
+/** §29 session-location facts: one line naming the Host, workspace, permission tier, and any
+ * non-open connection state word; a second line publishes the runtime mode and full workspace path. */
+@Composable
+private fun SessionLocationFacts(model: CompanionViewModel) {
+    val session = model.session.open.collectAsStateWithLifecycle().value ?: return
+    val hosts by CompanionRuntime.hostState.collectAsStateWithLifecycle()
+    val sessions by model.session.sessions.collectAsStateWithLifecycle()
+    val preset by model.session.permissionPreset.collectAsStateWithLifecycle()
+    val snapshot by model.session.connectionSnapshots.collectAsStateWithLifecycle()
+    val cwd = sessions.firstOrNull { it.id == session.sessionId }?.cwd
+    val segments = buildList {
+        hosts.selected?.let { add(it.name.ifBlank { it.hostId }) }
+        cwd?.let { add(workspaceBasename(it)) }
+        preset?.let { add(permissionPresetLabel(it)) }
+        sessionLocationStateWord(snapshot.state).takeIf { it.isNotEmpty() }?.let { add(it) }
+    }
+    if (segments.isEmpty()) return
+    Text(segments.joinToString(" · "), Modifier.fillMaxWidth().padding(horizontal = 16.dp)
+        .testTag("session-location-facts"), style = MaterialTheme.typography.bodySmall)
+    if (cwd != null) Text(
+        androidx.compose.ui.res.stringResource(R.string.native_session_location_runtime) + " · " + cwd,
+        Modifier.fillMaxWidth().padding(horizontal = 16.dp).testTag("session-location-detail"),
+        style = MaterialTheme.typography.bodySmall, color = MaterialTheme.colorScheme.outline,
+    )
+}
+
+/** Last non-empty segment of a Host-side workspace directory; both separators are legal. */
+private fun workspaceBasename(cwd: String): String = cwd.split('/', '\\').lastOrNull { it.isNotBlank() } ?: cwd
+
+/** The §18-family follow-stream state word; the open state itself adds no word. */
+@Composable
+private fun sessionLocationStateWord(state: ConnectionState): String = when (state) {
+    ConnectionState.OPEN -> ""
+    ConnectionState.IDLE -> androidx.compose.ui.res.stringResource(R.string.native_connection_state_idle)
+    ConnectionState.OPENING -> androidx.compose.ui.res.stringResource(R.string.native_connection_state_opening)
+    ConnectionState.RECONNECTING -> androidx.compose.ui.res.stringResource(R.string.native_connection_state_reconnecting)
+    ConnectionState.ENDED -> androidx.compose.ui.res.stringResource(R.string.native_connection_state_ended)
+    ConnectionState.STOPPING -> androidx.compose.ui.res.stringResource(R.string.native_connection_state_stopping)
+    ConnectionState.STOPPED -> androidx.compose.ui.res.stringResource(R.string.native_connection_state_stopped)
+}
+
+/** Built-in presets get their shared vocabulary word; host presets show their raw id. */
+@Composable
+private fun permissionPresetLabel(preset: String): String = when (preset) {
+    "read-only" -> androidx.compose.ui.res.stringResource(R.string.native_permission_preset_read_only)
+    "workspace-write" -> androidx.compose.ui.res.stringResource(R.string.native_permission_preset_workspace_write)
+    "danger-full-access" -> androidx.compose.ui.res.stringResource(R.string.native_permission_preset_full_access)
+    "custom" -> androidx.compose.ui.res.stringResource(R.string.native_permission_preset_custom)
+    else -> preset
 }
 
 @Composable

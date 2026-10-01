@@ -627,6 +627,14 @@ class NativeCompanionAcceptanceTest {
                                 val node = compose.onNodeWithTag("session-model-selected").fetchSemanticsNode()
                                 value = JsonPrimitive(node.config[androidx.compose.ui.semantics.SemanticsProperties.Text].joinToString())
                             }
+                            "assertLocationFacts" -> {
+                                val node = compose.onNodeWithTag("session-location-facts").fetchSemanticsNode()
+                                value = JsonPrimitive(node.config[androidx.compose.ui.semantics.SemanticsProperties.Text].joinToString())
+                            }
+                            "assertLocationDetail" -> {
+                                val node = compose.onNodeWithTag("session-location-detail").fetchSemanticsNode()
+                                value = JsonPrimitive(node.config[androidx.compose.ui.semantics.SemanticsProperties.Text].joinToString())
+                            }
                             "openSystemFileShare" -> {
                                 val names = command.getValue("names").jsonArray.map { it.jsonPrimitive.content }
                                 require(names.size in 1..2 && names.all { it.matches(Regex("dsh-native-share-[a-f0-9-]+-(image\\.png|file\\.bin)")) })
