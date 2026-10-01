@@ -295,6 +295,8 @@ export interface ConversationSessionHeaderInjected {
     readonly conversationViews: ObservableSnapshot<readonly ViewTab[]>
     /** Established generation's Host facts (running location); undefined while none. */
     readonly hostFacts: ObservableSnapshot<ConnectionHostInfo | undefined>
+    /** Live connection readiness (§29 online state); undefined before the first observation. */
+    readonly connectionState: ObservableSnapshot<ConnectionState | undefined>
   }
   /** Select a Session through the Session Controller. */
   open: (sessionId: SessionId) => void

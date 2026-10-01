@@ -337,6 +337,7 @@ function mount(fixture: Awaited<ReturnType<typeof bench>>) {
     createSnapshotStore<readonly ViewTab[]>(tabsOf(slots)),
   )
   const useHostFacts: ConversationSessionHeaderProps['useHostFacts'] = selector => selector(undefined)
+  const useConnectionState: ConversationSessionHeaderProps['useConnectionState'] = selector => selector(undefined)
   const useInput = bindSnapshotSelector(createSnapshotStore<InputState>({
     draft: '', attachmentIds: [], draftRev: 0, phase: 'plain', occurrences: [], queue: [],
   }))
@@ -355,6 +356,7 @@ function mount(fixture: Awaited<ReturnType<typeof bench>>) {
     useConversation,
     useConversationViews,
     useHostFacts,
+    useConnectionState,
     useSessions,
     usePanelInfo, useResource,
     useSessionPendingInteraction,

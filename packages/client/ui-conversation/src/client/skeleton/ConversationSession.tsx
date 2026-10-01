@@ -4,6 +4,7 @@ import { useEffect } from 'react'
 import clsx from 'clsx'
 import type { SessionListState, SessionSummary } from '@deepseek-ai/dsh-api-session-controller/client'
 import type { SessionId } from '@deepseek-ai/dsh-session/types'
+import type { ConnectionHostInfo, ConnectionState } from '@deepseek-ai/dsh-client-connection/client'
 import type {
   ConversationSessionHeaderSlotProps, ConversationSessionSlotProps,
 } from '../contract/slots.ts'
@@ -52,13 +53,68 @@ function equalBreadcrumbs(left: readonly Breadcrumb[], right: readonly Breadcrum
     })
 }
 
+/** Connection states that keep retrying; the chip dot marks them as transient. */
+const TRANSIENT_LOCATION_STATES: ReadonlySet<ConnectionState> = new Set(['connecting', 'authenticating', 'reconnecting'])
+
+/** Blocked states the dot flags until recovery or re-pairing intervenes. */
+const BLOCKED_LOCATION_STATES: ReadonlySet<ConnectionState> = new Set([
+  'offline', 'host-not-ready', 'auth-expired', 'device-revoked', 'identity-changed', 'incompatible', 'fatal',
+])
+
+/** Last path segment of a workspace location; blank when the path carries none. */
+function workspaceNameOf(cwd: string | undefined): string | undefined {
+  return cwd?.split(/[\\/]/u).filter(Boolean).at(-1)
+}
+
+/**
+ * Section 29's lean running-location chip. Visible text stays Host, platform, workspace
+ * name, permission tier, and any non-ready state word; the title additionally publishes
+ * the runtime mode and the full workspace path so every location fact is reachable.
+ * @param props - Host facts, workspace path, permission projection, online state, locale.
+ * @returns the chip element, or nothing while no Host generation exists.
+ */
+function RunningLocationChip({ host, workspacePath, permissions, connectionState, t }: {
+  host: ConnectionHostInfo
+  workspacePath: string | undefined
+  permissions: { readonly currentValue: string } | undefined
+  connectionState: ConnectionState | undefined
+  t: ConversationSessionHeaderProps['t']
+}) {
+  const workspaceName = workspaceNameOf(workspacePath)
+  const stateWord = connectionState !== undefined && connectionState !== 'ready'
+    ? t(`session.locationState.${connectionState}`)
+    : undefined
+  const visible = [
+    host.descriptor !== undefined
+      ? t('session.runningLocationNamed', { name: host.descriptor.displayName, platform: host.platform })
+      : t('session.runningLocation', { platform: host.platform }),
+    ...workspaceName !== undefined ? [workspaceName] : [],
+    ...permissions !== undefined ? [permissionTierLabel(permissions.currentValue, t)] : [],
+    ...stateWord !== undefined ? [stateWord] : [],
+  ].join(' · ')
+  const detail = [
+    visible,
+    ...host.descriptor !== undefined ? [t('session.runtimeMode.full')] : [],
+    ...workspacePath !== undefined ? [workspacePath] : [],
+  ].join(' · ')
+  const dot = connectionState !== undefined && BLOCKED_LOCATION_STATES.has(connectionState) ? css.headerHostDotBlocked
+    : connectionState !== undefined && TRANSIENT_LOCATION_STATES.has(connectionState) ? css.headerHostDotTransient
+      : css.headerHostDot
+  return (
+    <span className={css.headerHost} data-conversation-running-location="" title={detail}>
+      <span className={dot} aria-hidden="true" />
+      {visible}
+    </span>
+  )
+}
+
 /**
  * Renders Session header chrome above the resident conversation scrollport.
  * @param props - Strict Session store, view ledger, navigation, render, and locale shares.
  * @returns the hidden blank-session header or visible title and tabs.
  */
 export function ConversationSessionHeader({
-  sessionId, useSession, useSessions, useConversation, useConversationViews, useHostFacts, useProjection, useStore,
+  sessionId, useSession, useSessions, useConversation, useConversationViews, useHostFacts, useConnectionState, useProjection, useStore,
   renderSlot, open, selectView, t,
 }: ConversationSessionHeaderProps) {
   const tabs = useConversationViews(value => value)
@@ -68,6 +124,11 @@ export function ConversationSessionHeader({
   const session = useSession(s => s)
   const conversation = useConversation(s => s)
   const host = useHostFacts(value => value)
+  // Section 29 keeps the chip lean but publishes every location fact: the
+  // workspace rides the visible text, and runtime mode plus the full workspace
+  // path ride the title alongside the live online state.
+  const workspacePath = useSessions(s => s.byId[sessionId]?.cwd)
+  const connectionState = useConnectionState(value => value)
   // Section 10's running-location chip carries the current permission tier;
   // a permission-less Host or Draft leaves the chip as Host facts alone.
   const permissions = useProjection('permissions')
@@ -139,15 +200,8 @@ export function ConversationSessionHeader({
               </div>
             </div>
             <div className={css.headerUtilities}>
-              {host !== undefined && (
-                <span className={css.headerHost} data-conversation-running-location="">
-                  <span className={css.headerHostDot} aria-hidden="true" />
-                  {host.descriptor !== undefined
-                    ? t('session.runningLocationNamed', { name: host.descriptor.displayName, platform: host.platform })
-                    : t('session.runningLocation', { platform: host.platform })}
-                  {permissions !== undefined && ` · ${permissionTierLabel(permissions.currentValue, t)}`}
-                </span>
-              )}
+              {host !== undefined && <RunningLocationChip host={host} workspacePath={workspacePath}
+                permissions={permissions} connectionState={connectionState} t={t} />}
               {renderSlot('conversation.session.header.utilities', {})}
             </div>
             <div className={css.headerCorner} data-conversation-header-corner="">

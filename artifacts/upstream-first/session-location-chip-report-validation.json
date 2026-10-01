@@ -1,0 +1,70 @@
+{
+  "status": "PASS",
+  "scope": "Report bindings and audit for the session location chip increment: the section 29 web Session header chip publishes every location fact (Host facts, workspace directory name, permission tier, localized online-state word, plus runtime mode and full workspace path on the title) observed through the injected ConnectionHandle.state observable with section 18 dot tones; the same commit corrects the stale section 34 split-diff open clause; acceptance is the web vitest matrix (43 files / 616 tests) plus typecheck, oxlint, doc-sync and gate0 with no device round; follow cursor, view-location handoff, multi-Host switching and real-device acceptance stay open; full Upstream-First objective remains in progress",
+  "gate0": {
+    "validation": "PASS",
+    "gate0": "PASS",
+    "paths": 1938,
+    "components": 129,
+    "specificationCoverage": {
+      "status": "PASS",
+      "numberedSections": 81,
+      "nonEmptySourceLines": 1983,
+      "acceptanceProven": false
+    }
+  },
+  "sourceRecord": {
+    "path": "artifacts/upstream-first/session-location-chip-source.json",
+    "sha256": "d8131eac3062c3358dfdc47cf456141f7b3c8d99bdb01a1d7735e371dcdc9ab7"
+  },
+  "generator": {
+    "path": "artifacts/upstream-first/write-reports.mjs",
+    "sha256": "5a60852b6e191310228840bc51e314c4990878baa39f8f75e2b16842a7e34267"
+  },
+  "binding": {
+    "path": "artifacts/upstream-first/session-location-chip-binding.json",
+    "sha256": "372edba194debb9018a53017c9c4a98886e59c978fe8fb8d9b288fec66c9a204"
+  },
+  "helpers": [
+    {
+      "path": ".artifacts/advance-session-location-chip-reports.mjs",
+      "sha256": "4427ec38394c98658325e95d19b4f3237f4c8c58fc1d074cea3a7490c95e3938"
+    },
+    {
+      "path": ".artifacts/capture-session-location-chip-validation.mjs",
+      "sha256": "811fb51a71aeb9d66d94831905755b7dfb4e7264689ee6172648fe7c80c7d653"
+    }
+  ],
+  "reports": [
+    {
+      "path": "IMPLEMENTATION_STATUS.md",
+      "sha256": "79970bff33175f4f41528a3ffe456e290777e50f5d5bd561c542b544cf1c58c7"
+    },
+    {
+      "path": "artifacts/upstream-first/evidence.json",
+      "sha256": "292c7650a843a013d7bb056ea0628ccdd036923bad19a645bce174e3827f8fe2"
+    }
+  ],
+  "checks": [
+    {
+      "path": ".artifacts/session-location-chip-binding.log",
+      "sha256": "85ba6021d3a39040567168ac071bb3e55260f7fa4be2adbab5aba0c854e3f21d"
+    },
+    {
+      "path": ".artifacts/session-location-chip-audit-final.log",
+      "sha256": "b23bb5b32a711c5a66688ce99e1d826b179ea5b86d96ed93390de3c3b1c59010"
+    },
+    {
+      "path": ".artifacts/session-location-chip-gate0-final.log",
+      "sha256": "505d74ef938f5d34d85490d37e0176ba804d93272fcf465ce2544a02c56b3f90"
+    },
+    {
+      "path": ".artifacts/session-location-chip-report-diff-check.log",
+      "sha256": "e3b0c44298fc1c149afbf4c8996fb92427ae41e4649b934ca495991b7852b855"
+    },
+    {
+      "path": ".artifacts/session-location-chip-report-generation.log",
+      "sha256": "fe010532f71a6341467ae5719b29ac19470895de1d481156335b8f70a3273ed5"
+    }
+  ]
+}

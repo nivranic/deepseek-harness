@@ -208,6 +208,7 @@ function mount(
           useConversation={useConversation}
           useConversationViews={useConversationViews}
           useHostFacts={useHostFacts}
+          useConnectionState={select => select(options.connectionState)}
           useChat={useChat}
           useTrajectory={useTrajectory}
           useSessions={props.useSessions}
@@ -520,7 +521,7 @@ describe('ConversationRoot resident composer', () => {
       headerHostFacts: { home: '/home/u', platform: 'linux' },
     })
     const chip = b.view.container.querySelector('[data-conversation-running-location]')
-    expect(chip?.textContent).toBe('运行位置 linux')
+    expect(chip?.textContent).toBe('运行位置 linux · one')
     expect(chip?.querySelector('[aria-hidden="true"]')).not.toBeNull()
     expect(b.slotCalls).toContain('conversation.session.header.leading')
   })
@@ -534,7 +535,7 @@ describe('ConversationRoot resident composer', () => {
       },
     })
     const chip = b.view.container.querySelector('[data-conversation-running-location]')
-    expect(chip?.textContent).toBe('运行位置 Workstation · win32')
+    expect(chip?.textContent).toBe('运行位置 Workstation · win32 · one')
   })
 
   it('appends the permission tier to the running-location chip (§10)', () => {
@@ -547,20 +548,82 @@ describe('ConversationRoot resident composer', () => {
       permissionsProjection: 'workspace-write',
     })
     const chip = b.view.container.querySelector('[data-conversation-running-location]')
-    expect(chip?.textContent).toBe('运行位置 Workstation · win32 · 工作区内修改')
+    expect(chip?.textContent).toBe('运行位置 Workstation · win32 · one · 工作区内修改')
 
     const custom = mount(sessionSnapshotOf(), undefined, undefined, {
       headerHostFacts: { home: '/home/u', platform: 'linux' },
       permissionsProjection: 'corp-strict-tier',
     })
     expect(custom.view.container.querySelector('[data-conversation-running-location]')?.textContent)
-      .toBe('运行位置 linux · Corp Strict Tier')
+      .toBe('运行位置 linux · one · Corp Strict Tier')
 
     const none = mount(sessionSnapshotOf(), undefined, undefined, {
       headerHostFacts: { home: '/home/u', platform: 'linux' },
     })
     expect(none.view.container.querySelector('[data-conversation-running-location]')?.textContent)
-      .toBe('运行位置 linux')
+      .toBe('运行位置 linux · one')
+  })
+
+  it('publishes runtime mode and the full workspace path on the chip title (§29)', () => {
+    const described = mount(sessionSnapshotOf(), undefined, undefined, {
+      headerHostFacts: {
+        home: '/home/u',
+        platform: 'win32',
+        descriptor: {
+          hostId: 'h1' as never, displayName: 'Workstation', capabilities: [], runtimeMode: 'full',
+        } as never,
+      },
+    })
+    const chip = described.view.container.querySelector('[data-conversation-running-location]')
+    expect(chip?.getAttribute('title')).toBe('运行位置 Workstation · win32 · one · 完整运行时 · /projects/one')
+
+    const undescribed = mount(sessionSnapshotOf(), undefined, undefined, {
+      headerHostFacts: { home: '/home/u', platform: 'linux' },
+    })
+    expect(undescribed.view.container.querySelector('[data-conversation-running-location]')?.getAttribute('title'))
+      .toBe('运行位置 linux · one · /projects/one')
+
+    const unlisted = mount(sessionSnapshotOf(), undefined, undefined, {
+      omitSummaryRow: true,
+      headerHostFacts: { home: '/home/u', platform: 'linux' },
+    })
+    const unlistedChip = unlisted.view.container.querySelector('[data-conversation-running-location]')
+    expect(unlistedChip?.textContent).toBe('运行位置 linux')
+    expect(unlistedChip?.getAttribute('title')).toBe('运行位置 linux')
+  })
+
+  it('carries the live online state on the running-location chip (§29)', () => {
+    const ready = mount(sessionSnapshotOf(), undefined, undefined, {
+      headerHostFacts: { home: '/home/u', platform: 'linux' },
+      connectionState: 'ready',
+    })
+    const readyChip = ready.view.container.querySelector('[data-conversation-running-location]')
+    expect(readyChip?.textContent).toBe('运行位置 linux · one')
+    expect(readyChip?.querySelector('[aria-hidden="true"]')?.className).toContain('headerHostDot')
+    expect(readyChip?.querySelector('[aria-hidden="true"]')?.className).not.toContain('Transient')
+    expect(readyChip?.querySelector('[aria-hidden="true"]')?.className).not.toContain('Blocked')
+
+    const unobserved = mount(sessionSnapshotOf(), undefined, undefined, {
+      headerHostFacts: { home: '/home/u', platform: 'linux' },
+    })
+    expect(unobserved.view.container.querySelector('[data-conversation-running-location]')
+      ?.querySelector('[aria-hidden="true"]')?.className).toContain('headerHostDot')
+
+    const transient = mount(sessionSnapshotOf(), undefined, undefined, {
+      headerHostFacts: { home: '/home/u', platform: 'linux' },
+      connectionState: 'reconnecting',
+    })
+    const transientChip = transient.view.container.querySelector('[data-conversation-running-location]')
+    expect(transientChip?.textContent).toBe('运行位置 linux · one · 重连中')
+    expect(transientChip?.querySelector('[aria-hidden="true"]')?.className).toContain('headerHostDotTransient')
+
+    const blocked = mount(sessionSnapshotOf(), undefined, undefined, {
+      headerHostFacts: { home: '/home/u', platform: 'linux' },
+      connectionState: 'offline',
+    })
+    const blockedChip = blocked.view.container.querySelector('[data-conversation-running-location]')
+    expect(blockedChip?.textContent).toBe('运行位置 linux · one · 已离线')
+    expect(blockedChip?.querySelector('[aria-hidden="true"]')?.className).toContain('headerHostDotBlocked')
   })
 
   it('keeps intermediate subagent breadcrumbs at the compact title size', () => {
