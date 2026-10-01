@@ -5,93 +5,53 @@
   "candidateTrackedChanges": [
     {
       "path": "IMPLEMENTATION_STATUS.md",
-      "sha256": "6b4c9fb21a31c5b495aaf70361dbd19cd8d6e11de5d3e249fad459db8b10cb10"
+      "sha256": "e2d19d145c2977d8472889cadb22630c79596f0e254a1c74f52e9f464e01f73b"
     },
     {
       "path": "apps/android/app/src/androidTest/kotlin/ai/deepseek/dsh/companion/NativeCompanionAcceptanceTest.kt",
-      "sha256": "35d4ff919e0365cb0b71096d1ddf105006a86ba7cdf1fa7f05488969b9171806"
+      "sha256": "5c0f59ec33989c4ff0bf01142e0cab178249ff7a3db92d0e208bb4296a57fda7"
     },
     {
       "path": "apps/android/app/src/main/kotlin/ai/deepseek/dsh/companion/HostCapabilityDetails.kt",
-      "sha256": "06b1ae49bf78560309dcfec47f0528bc166af2d79578c3e21aee1048b195c007"
+      "sha256": "ed13deda5bd13d911f5737dfb6855d63687d128a28dc239790bd4094c3865cf5"
     },
     {
       "path": "apps/android/app/src/main/kotlin/ai/deepseek/dsh/companion/MainActivity.kt",
-      "sha256": "2bc25e0703f6b1e0d68c0f5734a9379dd6804dde6c7e9ff04d735014721725a2"
+      "sha256": "cec5c2dbb1bf7b64dcf25443c4e585f99d342884feeb3469bca10cc87e2f8218"
     },
     {
       "path": "apps/android/app/src/main/res/values/native_companion.xml",
-      "sha256": "812a033cd3ee676074ff98db0bbedca26d1ea48945fe7d434912cf0ecc4dec1b"
+      "sha256": "7067c703e1160ec287d9bdfed92cdbd3683d4e2f17034a43c15d087153d12f34"
     },
     {
       "path": "apps/android/core/src/main/kotlin/ai/deepseek/dsh/companion/CompanionModels.kt",
-      "sha256": "ea1de20acdaad101a4285d666acf2202b96b3fd77e0983208aab8e24cfbc1b8a"
+      "sha256": "04714454061dc8270388b525fe5970c2c8c472b1ca5708a87ae80c9c04fca829"
     },
     {
       "path": "apps/android/core/src/main/kotlin/ai/deepseek/dsh/gateway/NativeGatewayDiagnostics.kt",
-      "sha256": "7fbad60b2553c7a4542f7d9772fc1c35e74ed64b16a4504e0901866213591479"
+      "sha256": "36bccda598b9266ec9c5617048bb22394a6f31045ddf6724346b9005f4ff2d27"
     },
     {
       "path": "apps/android/core/src/test/resources/support-native-gateway.json",
-      "sha256": "98dfd271ec0de263c6696b1e75ff2965687b897a862a1f9bc8355670dbeafcd0"
-    },
-    {
-      "path": "apps/web/tests/host-description.e2e.ts",
-      "sha256": "81f28209bc2059072ace9c2b0f5feb641297d1ebc2ab6a12373d94aee5bf66ca"
+      "sha256": "6df0d1a149467c3fdf9e53636eaba1243b440ddfb8af6938029a216b521cc5a0"
     },
     {
       "path": "artifacts/upstream-first/evidence.json",
-      "sha256": "6c1b6f785ca6e987afe911383d3ed30259145a0d60a39f75d852435a8eab22ea"
+      "sha256": "596aa3ef6eef37c25e17fd9066695a4e46a52d6d82352c98188e2278847a04df"
     },
     {
       "path": "artifacts/upstream-first/specification-traceability.json",
-      "sha256": "65fa0d8903ea5e150725b438b17b2d94eca51ca58e0369d7314c42743534863f"
+      "sha256": "c7415cd5be3e8002561aba4f275ac6314ec598395275c04beb9ff2ef1ab68cc9"
     },
     {
       "path": "artifacts/upstream-first/write-reports.mjs",
-      "sha256": "8ca7482f68476c4e1db2507dd04c08ba31b892ffcc6666cbbce97e9f08a2bc50"
-    },
-    {
-      "path": "packages/api/session-controller/src/capabilities.ts",
-      "sha256": "86d90d71291af78758eb8c3b3509525bf9ddd4c636e5027aa35a2d0f8d8f868e"
-    },
-    {
-      "path": "packages/client/ui-conversation/src/client/contract/slots.ts",
-      "sha256": "7b02c18af4ec45ce05cd6fe3db481afe6fc590a5625be626c24310a932fa2746"
-    },
-    {
-      "path": "packages/client/ui-conversation/src/client/input/control-capabilities.ts",
-      "sha256": "27a833b5934234c7572580e9e02868d8f2c39e7f190577d62abb4c467530682b"
-    },
-    {
-      "path": "packages/client/ui-conversation/src/client/skeleton/InputBar.tsx",
-      "sha256": "da28746b03e93f01d0c3f2281fb4f630f79d1bfe5963d8c4ed040d7f6fc98275"
-    },
-    {
-      "path": "packages/client/ui-conversation/tests/control-capabilities.client.spec.ts",
-      "sha256": "f67e2723a6b4048a81fbf17270e6491c270f0bb2ff169cc0578b48664de3526f"
-    },
-    {
-      "path": "packages/client/ui-conversation/tests/input-bar.client.spec.tsx",
-      "sha256": "21ef6ed0b2b5ed5c9cadfdfd7810a2f46a33a968373caf73b2256586a378650f"
-    },
-    {
-      "path": "packages/client/ui-conversation/tests/input-matrix.client.spec.tsx",
-      "sha256": "c51404559a3366f41cdc02caa7de439c11980bb523e509457fb094dd28d9bcac"
-    },
-    {
-      "path": "packages/client/ui-conversation/tests/input-scenarios.client.spec.tsx",
-      "sha256": "6f1c1ccb9d63c2f9c71226e2158c4767257cdb100f688b7c78e352221bac970e"
-    },
-    {
-      "path": "packages/client/ui-conversation/tests/skeleton.client.spec.tsx",
-      "sha256": "0b71772aa77e697aa8491074d24c0d8ab9a16bbde0c6a81a2df7e50f79d57145"
+      "sha256": "4991f9e1e795b4fb9852131fd7c087c996cb92a968712d509d5518698fe584ad"
     }
   ],
   "candidateUntrackedSourceChanges": [
     {
-      "path": "apps/web/tests/android-steer.e2e.ts",
-      "sha256": "9b6fd85485e6c8698d3e292b4eeda7ed00e7b4dfc1e13c68188f8729a4131332"
+      "path": "apps/web/tests/android-model-select.e2e.ts",
+      "sha256": "e5ade7b5625368186c231946f3903535c1e83cce4c21dce7e7bf7143653c745c"
     }
   ],
   "validationStatus": "PASS",
@@ -10465,6 +10425,60 @@
     },
     {
       "status": "PASS",
+      "command": "vitest run over the fifteen web lanes (repo root, vitest.web.config.ts, local AVD emulator-5554 with native-acceptance APKs rebuilt from current sources; new model-select lane plus the fourteen composer-surface regression lanes); Executed vitest web lane round on the local AVD emulator-5554 with the native-acceptance APKs rebuilt and reinstalled from current sources: the new android-model-select lane pairs the real companion to a providers-only header-only replay Host and proves exactly one device-signed session/selectModel dispatch (args.request.provider/model), the host-side model/selection session event and the device-side by-name confirmation with no prompt or turn involved, while the fourteen composer-surface regression lanes stay green in the same serial round (steer, prompt-retry both legs, input persistence/retention, companion question, host roster, host question, capability presentation, operation capabilities, session list, file/photo/camera attachments, share intake), with the five environment-caused first-attempt failures grounded by their recorded reruns; 15 lanes / 16 tests green",
+      "log": ".artifacts/model-select-native-verified.log",
+      "sourceRecord": "artifacts/upstream-first/model-select-source.json"
+    },
+    {
+      "status": "PASS",
+      "command": "full per-lane log of the fifteen-lane serial round (fourteen regression lane runs with their recorded reruns)",
+      "log": ".artifacts/model-select-regressions.log",
+      "sourceRecord": "artifacts/upstream-first/model-select-source.json"
+    },
+    {
+      "status": "PASS",
+      "command": "standalone vitest round of the new android-model-select lane (1 file / 1 test green, exit 0)",
+      "log": ".artifacts/model-select-lane.log",
+      "sourceRecord": "artifacts/upstream-first/model-select-source.json"
+    },
+    {
+      "status": "PASS",
+      "command": "gradlew -p apps/android :core:test :contract:test (Windows host, JDK 17); Executed Kotlin JVM round running gradlew :core:test :contract:test on the Windows host (JDK 17) with the rebuilt sources: BUILD SUCCESSFUL with :core:test executed against the extended support-native-gateway.json fixture (model.catalog.v1:false and model.select.v1:false client-allowlist keys in enum order after model.steer.v1:false) and :contract:test green as UP-TO-DATE on unchanged inputs, and the round's own XML report aggregate over apps/android/{core,contract} sums 73 suites / 469 tests with zero failures, errors and skips; 1 round / 469 tests green",
+      "log": ".artifacts/model-select-core-tests.log",
+      "sourceRecord": "artifacts/upstream-first/model-select-source.json"
+    },
+    {
+      "status": "PASS",
+      "command": "npx vitest run --config vitest.config.ts packages/client/ui-trajectory packages/client/ui-conversation (repo root); 43 files / 618 tests green via the Test Files/Tests summary lines, unchanged from model-steer as this increment touches no web client code",
+      "log": ".artifacts/model-select-audit-tests.log",
+      "sourceRecord": "artifacts/upstream-first/model-select-source.json"
+    },
+    {
+      "status": "PASS",
+      "command": "pnpm run typecheck (clean TYPECHECK_EXIT=0, including the SessionModelSelection composable and the catalog data classes) and tsx scripts/run-oxlint.ts . (Found 0 warnings and 0 errors, LINT_EXIT=0)",
+      "log": ".artifacts/model-select-types-lint.log",
+      "sourceRecord": "artifacts/upstream-first/model-select-source.json"
+    },
+    {
+      "status": "PASS",
+      "command": "pnpm run test:docs (doc-quick, 17 gates passed / 0 failed) and pnpm run doc-sync (36 gates passed / 0 failed), both exit 0",
+      "log": ".artifacts/model-select-docs.log",
+      "sourceRecord": "artifacts/upstream-first/model-select-source.json"
+    },
+    {
+      "status": "PASS",
+      "command": "pnpm run doc-sync — 36 gates passed / 0 failed, exit 0",
+      "log": ".artifacts/model-select-doc-sync.log",
+      "sourceRecord": "artifacts/upstream-first/model-select-source.json"
+    },
+    {
+      "status": "PASS",
+      "command": "node artifacts/upstream-first/verify-audit.mjs --require-gate0",
+      "log": ".artifacts/model-select-gate0-final.log",
+      "sourceRecord": "artifacts/upstream-first/model-select-source.json"
+    },
+    {
+      "status": "PASS",
       "command": "Workspace and Conversation source regression before shared readiness correction",
       "tests": 599,
       "log": ".artifacts/workspace-admission-tests-final.log",
@@ -11195,7 +11209,273 @@
       ]
     }
   },
+  "modelSelect": {
+    "status": "PASS",
+    "sourceRecord": "artifacts/upstream-first/model-select-source.json",
+    "scope": "Model select axis: the section 30 model-select half — every Host already advertised model.select.v1 and model.catalog.v1 with a web picker present, but the Android companion had no select UI — now lands on the shared capability contract. Android observes the two capabilities through NativeObservedCapability.MODEL_CATALOG/MODEL_SELECT (the gateway diagnostics table maps the session/modelCatalog and session/selectModel endpoints onto them, and the support-export snapshot gains both false client-allowlist keys in enum order after model.steer.v1), SessionModel grows selectModel sending the {request:{sessionId, provider, model}} envelope (the same shape as cancelActive) and modelCatalog parsing groups/default into NativeCatalogModel/NativeCatalogGroup/NativeModelCatalog with a zero-argument call — the strict descriptor rejects any extra arg key, so the empty args map is the method-signature fact the lane's first debugging round proved — and the session screen renders the 模型 entry outside the composer row (the model-steer one-row composer constraint) gated by the MODEL_SELECT advertisement, remembering catalog/loading/failed/selected per Session, loading the catalog on first open into an AlertDialog picker and confirming the chosen model by name with the session-model-selected tag. Acceptance is the fifteen-lane serial round on the local AVD emulator with the native-acceptance APKs rebuilt from current sources: the new android-model-select lane pairs the real companion to a providers-only header-only plan-narrow-viewport replay Host (selection drives no model call, so the scaffold validates the fixture call-free at boot instead of asserting script consumption at teardown) and proves exactly one device-signed session/selectModel dispatch carrying args.request.provider/model, the host-side model/selection session event and the device-side by-name confirmation with no prompt or turn involved, plus the fourteen composer-surface regression lanes green (five first-attempt failures on the absent Playwright browser build and the emulator-lease EEXIST contention are environment, not product, and ground by their recorded reruns); the gradle :core:test/:contract:test round (BUILD SUCCESSFUL, 73 suites / 469 tests / 0 failures over the round's own XML reports), the web vitest matrix over the two affected client packages unchanged at 43 files / 618 tests (this increment touches no web client code), typecheck, oxlint, doc-quick, doc-sync and gate0; the traceability record rewrites the section 30 remaining to both halves delivered with the model-select lane and note among the evidence paths. The decision is recorded in the 2026-10-01-android-model-select note triple. The reasoningEffort selection surface, the apple-side entry and the same-candidate real-device qualification stay open, and the full objective remains in progress",
+    "repositoryKnownCodes": 84,
+    "uniqueOwners": 14,
+    "missingSemanticCommentsAdded": 49,
+    "packagedFiniteCodeSchema": true,
+    "sourceDeclarationsRemainExtensible": true,
+    "unknownCodeDiagnosticsPreserved": true,
+    "detailsPayloadSchema": false,
+    "nativeClientQualified": false,
+    "runtimeBehaviorChanged": true,
+    "newSessionEvents": false,
+    "phase3Complete": false,
+    "fullGoalComplete": false,
+    "resultInvalidMeaningMatchesEmitter": true,
+    "historicalSchedulerArchivePreserved": true,
+    "compilerIndependentDetailsGraphs": true,
+    "hostAndClientSeparate": true,
+    "builtModelMatchesSource": true,
+    "portableDetailsPayloadSchema": false,
+    "readonlyArrayAndTupleEmission": true,
+    "parsedReadonlyContainersFrozen": true,
+    "portableValidationIssueFields": true,
+    "compilerResolvedErrorDetails": true,
+    "resolvedFaceCodePairs": 144,
+    "overlappingSchemasCompared": 60,
+    "detailsSchemaPublished": false,
+    "formalEnvelopeSchemaEmitted": true,
+    "envelopeSchemaKnownBranches": 84,
+    "envelopeUnknownCodeExcludesKnownCodes": true,
+    "envelopeTupleDetailsRejected": true,
+    "envelopeLocalPackConsumed": true,
+    "envelopeRegistryPublished": false,
+    "remoteFailureClassification": true,
+    "classifiedCodes": 28,
+    "unknownCodeDefaultOpaque": true,
+    "gatewayClientConsumesClassification": true,
+    "classificationInventoryVerified": true,
+    "kotlinContractColumn": true,
+    "kotlinSchemaTests": 8,
+    "kotlinMirrorProjection": true,
+    "swiftColumn": false,
+    "androidShellMigrated": false,
+    "phase10Started": true,
+    "failureClasses": 9,
+    "invalidInputClass": true,
+    "uiAdoptionStarted": true,
+    "uiSurfacesAdoptingClassification": 2,
+    "swiftContractColumn": true,
+    "swiftSchemaTests": 4,
+    "swiftPayloadValidation": false,
+    "interactionReplyPermissions": true,
+    "interactionPermissionHostEnforced": true,
+    "interactionPermissionConfigurable": true,
+    "deviceTrustRolesReplaceSwitch": false,
+    "androidCoreMigrated": true,
+    "androidCoreTestClasses": 37,
+    "androidAppSourcesMigrated": true,
+    "androidAppConfigured": true,
+    "androidShellCompiled": false,
+    "androidScannerChainBlocked": true,
+    "swiftCheckExecutable": true,
+    "swiftLaneRunner": "macos-15-arm64",
+    "swiftLaneRecovered": true,
+    "diagnosticsOnlyTier": true,
+    "diagnosticsOnlyAdmittedEndpoints": 2,
+    "unknownVersionRejectUnchanged": true,
+    "responsivePhoneDrawer": true,
+    "phoneTierSidebarTrackZero": true,
+    "drawerWidthPx": 280,
+    "drawerDismissalPaths": 2,
+    "leftInputRegionSessionMaybe": true,
+    "frameColumnsExplicitlyPlaced": true,
+    "scannerAarBuilt": true,
+    "scannerAarStaticVerification": "PASS",
+    "scannerAarSourceSha": "8ca9f6ebf33de3912292416b85f5b510c88de9a3",
+    "assembleDebugGatePassed": true,
+    "emulatorMainActivityResumed": true,
+    "gatewayFailureConsumption": true,
+    "envelopeDetailsPreservedBothPaths": true,
+    "sharedClassificationDrivesPresentation": true,
+    "unknownCodesStayOpaque": true,
+    "uiSubagentClassificationAdopted": true,
+    "adoptingSurfacesCount": 5,
+    "queueDockClassificationAdopted": true,
+    "jobsFailureClassThreaded": true,
+    "sessionJobWireFieldAdditive": true,
+    "androidRefusalLaneDriven": true,
+    "ed25519KeyGenerationBundled": true,
+    "filesFollowStreamStarted": true,
+    "jobsProducerAdoptionVoid": true,
+    "linkAccessTakeoverDecided": true,
+    "remotePackagesStayRetired": true,
+    "gatewayOwnsDeviceAccess": true,
+    "deviceTrustSeamLanded": true,
+    "pairingIssuanceLive": true,
+    "knownErrorCodes": 89,
+    "deviceGrantsDurable": true,
+    "pairingCodesProcessLocalByDesign": true,
+    "deviceRolesMatchSection21Table": true,
+    "roleMappedReplyPermissions": true,
+    "signedAdmission": true,
+    "connectionStatesCompleteSection18": true,
+    "deviceRevokedStatePresent": true,
+    "protocolInteropMatrixPinned": true,
+    "section14VersionAxisEvidence": true,
+    "perRequestDeviceAdmission": true,
+    "capabilityRequiredPermissionVocabulary": true,
+    "remoteExecutionAuthorizationGated": true,
+    "sessionCapabilitiesDeclarePermissions": true,
+    "sessionReadWriteSplits": true,
+    "businessPermissionAdoptionStarted": true,
+    "workspaceCapabilitiesDeclarePermissions": true,
+    "remainingOwnersDeclarePermissions": true,
+    "admissionReplayLedger": true,
+    "androidClientSignsAdmissions": true,
+    "deviceIdentityConfirmation": true,
+    "devicesSettingsSurface": true,
+    "branchGateDebt": true,
+    "safeAreaInsets": true,
+    "keyboardAvoidance": true,
+    "foldableFrame": true,
+    "runningLocation": true,
+    "phoneTopBar": true,
+    "designLanguage": true,
+    "hostNaming": true,
+    "commandRisk": true,
+    "approvalFacts": true,
+    "followResume": true,
+    "viewLocation": true,
+    "composerGate": true,
+    "hostDiagnostics": true,
+    "supportBundle": true,
+    "telemetryConsent": true,
+    "diagnosticsRecorder": true,
+    "sessionHeadersEntry": true,
+    "settingsEntry": true,
+    "telemetryGate": true,
+    "savedHosts": true,
+    "degradedProbes": true,
+    "permissionTierChip": true,
+    "durableRetainedAnswers": true,
+    "unifiedDiffPreview": true,
+    "binaryFactCard": true,
+    "retargetableEndpoint": true,
+    "rosterSwitch": true,
+    "rosterUi": true,
+    "interruptedTransfer": true,
+    "mimeInference": true,
+    "hostSelectionObserver": true,
+    "diffReadableCopy": true,
+    "diffRichViewer": true,
+    "browserHostOrigin": true,
+    "deviceAdmissionLifecycle": true,
+    "nativePairing": true,
+    "nativeRemoteTls": true,
+    "nativePairingPresentation": true,
+    "androidNativeGatewayCore": true,
+    "androidNativeCompanion": true,
+    "androidNativeLifecycle": true,
+    "androidRepairing": true,
+    "androidCredentialRecovery": true,
+    "androidSessionList": true,
+    "androidInputRetention": true,
+    "androidInputPersistence": true,
+    "androidPromptRetry": true,
+    "androidHostRoster": true,
+    "androidViewLocation": true,
+    "androidCursorResume": true,
+    "androidResourceAdoption": true,
+    "androidNativeDiagnostics": true,
+    "nativeScannerAdoption": true,
+    "nativeScannerCandidate": true,
+    "nativeScannerSameSourceVerified": true,
+    "nativeScannerRepeatByteIdentical": true,
+    "nativeScannerBinarySymbolScan": true,
+    "androidCapabilityPresentation": true,
+    "androidCapabilityGenerationIsolation": true,
+    "androidCapabilityReadOnlyRefresh": true,
+    "androidOperationCapabilities": true,
+    "androidKnownOperationPreflight": true,
+    "androidCapabilityDraftRetention": true,
+    "androidSubagentTimeline": true,
+    "androidSelectedParentCatalog": true,
+    "androidChildObservationRetirement": true,
+    "androidCompleteResourceSave": true,
+    "androidResourceSavePickerOwnership": true,
+    "androidResourceSaveIndependentBytes": true,
+    "androidEncryptedDownloadCheckpoints": true,
+    "androidExplicitDownloadContinuation": true,
+    "androidDownloadJvmInterruptionRecovery": true,
+    "androidPersistentDownloadAdoption": true,
+    "androidDownloadDiskExport": true,
+    "androidInstalledDownloadProcessRecovery": true,
+    "androidDownloadHostIsolation": true,
+    "androidAcceptanceApkAdmission": true,
+    "androidFilesPickerAttachments": true,
+    "androidDurableFilePromptIntents": true,
+    "androidFileDraftProcessRecovery": true,
+    "androidFilePickerAuthority": true,
+    "hostStagedImageAdmission": true,
+    "androidPhotosPickerAttachments": true,
+    "androidDurableMixedAttachmentIntents": true,
+    "androidPhotoDraftProcessRecovery": true,
+    "androidCameraStagedImages": true,
+    "androidCameraOwnedOutputCleanup": true,
+    "androidCameraProcessRecovery": true,
+    "androidShareExplicitConfirmation": true,
+    "androidShareAtomicDraftAdoption": true,
+    "androidShareRestorationIsolation": true,
+    "androidViewDeepLinksCurrentHostNavigation": true,
+    "androidViewDeepLinksDeliveryIsolation": true,
+    "androidViewDeepLinksInputPreservation": true,
+    "androidPushForegroundRecovery": true,
+    "androidPushBackgroundProducerRetention": true,
+    "androidPushNotificationConsumption": true,
+    "androidNotificationPermission": true,
+    "androidNotificationSettingsRecovery": true,
+    "androidNotificationProcessRequestOwnership": true,
+    "androidAttachmentReceiptRecovery": true,
+    "androidAttachmentPendingDraftIsolation": true,
+    "nativeUploadBudget": true,
+    "nativeImageUploadBudget": true,
+    "nativeHostRestart": true,
+    "nativeUploadDedupe": true,
+    "browserUploadDedupe": true,
+    "nativeDigestMemory": true,
+    "browserDedupeVerification": true,
+    "hostsRosterRename": true,
+    "diffSplitView": true,
+    "appleRosterSwift": true,
+    "androidHostQuestion": true,
+    "sessionLocationChip": true,
+    "modelSteer": true,
+    "modelSelect": true,
+    "limitations": [
+      "The device evidence is the vitest web lane round over the fifteen lanes on the local AVD emulator with native-acceptance APKs rebuilt from current sources (android-model-select new; the fourteen composer-surface regression lanes green with five first-attempt failures on the absent Playwright chromium_headless_shell-1228 browser build and the emulator-lease EEXIST contention — both environment, not product — grounded by their recorded reruns inside the sealed logs) plus the gradle :core:test/:contract:test round (BUILD SUCCESSFUL; :core:test executed against the extended fixture, :contract:test green as UP-TO-DATE on unchanged inputs; the round's own XML reports aggregate 73 suites / 469 tests / 0 failures); the acceptance is limited to the emulator and the nativeacceptance application id, so real hardware stays open.",
+      "The model/selection acceptance pairs the device to a providers-only header-only replay Host because a selection drives no model call; the lane proves the signed session/selectModel dispatch, the model/selection session event and the device-side confirmation, but the Host-side route resolution behind a live model call is not exercised.",
+      "This generation's prepare ruling derives exactly 517 replaced android build outputs — the two rebuilt acceptance APKs with their two output-metadata pairs and the 513 core build outputs (test-results XMLs, binary results.bin and build artifacts) — which no disk, archive or committed copy can replay; the demoted model-steer record shape-checks them through the generator's new modelSteerReplacedBuildOutputs per-record key set while the generator's cumulative replacedPriorBuildOutputs set keeps its nine inherited keys, and the byte-identical contract.jar still replays from disk."
+    ],
+    "nextRequiredWork": {
+      "specification": "artifacts/upstream-first/original-specification.md",
+      "traceability": "artifacts/upstream-first/specification-traceability.json",
+      "remaining": [
+        "Keep the reasoningEffort selection surface, the apple-side capability-gated entry and the same-candidate real-device qualification open for the section 30 model capabilities — the wire already accepts reasoningEffort with no client UI anywhere, and the select acceptance is emulator-and-nativeacceptance-id only.",
+        "Keep the Android model-select composition entry and real-device qualification open for the section 30 model capabilities — model.select.v1 is advertised with the web picker present but the Android side has no select UI, and the steer acceptance is emulator-and-nativeacceptance-id only.",
+        "Keep follow cursor, view-location handoff, multi-Host switching and real-device acceptance open for the section 29 location metadata — the chip publishes the five location facts on the web client only and no device round runs this generation.",
+        "Keep real hardware, the Swift shell, background/push delivery and full Session location metadata open for the Question isolation lane — the acceptance is emulator-and-nativeacceptance-id only, and the Approval interaction type shares the same inbox and per-principal model without a dedicated physical lane.",
+        "Classify the next cursor failure using the preserved diagnostics, or establish a controlled reproduction before changing its owner. Do not close this investigation merely because subsequent runs pass.",
+        "The Swift roster mirror has no local execution on Windows hosts and no completed macOS CI run inside this chain; keep Swift-side execution evidence open, and keep roster write and re-pair semantics Android-core behavior with the Swift mirror reading and validating only.",
+        "Keep cross-tab and persisted view preferences and intra-line word highlighting inside a paired split row open independently; the per-tab split toggle does not close them.",
+        "Cover per-browser-profile isolation boundaries, cross-device name synchronization and manual roster ordering independently; the local rename seam does not close them.",
+        "Give the streaming carrier a deduplication path and cover cross-tab digest behavior; the real-browser deduplication-hit lane does not close them.",
+        "Qualify image and mixed-attachment recovery, large/resumable uploads, per-principal digest scoping, capacity tuning, storage-backed browser digest memory and physical-device Host restarts independently; the durable companion digest-memory file does not close broader attachment or Mobile Release acceptance.",
+        "Qualify image and mixed-attachment recovery, large/resumable uploads, per-principal digest scoping, capacity tuning, storage-backed browser digest memory and physical-device Host restarts independently; the durable companion digest-memory file does not close broader attachment or Mobile Release acceptance.",
+        "Qualify streaming and resumable uploads, physical devices and third-party senders independently; the local complete-body check is advisory and Host or proxy rejection remains authoritative.",
+        "Continue notification channel, settings revocation/process-death, persistent denial, physical-device, relay-backed delivery and precise Host/Session notification target qualification. Actual Recents and physical network/mux recovery remain separate work.",
+        "Continue Swift attachment adoption, cross-platform sharing and link entry, larger streamed uploads, upload retry/receipt expiry recovery, Host limit negotiation and the remaining requirement matrices without changing Host-owned authorization.",
+        "Retain scanner clean-cache/cross-machine, race, physical/16-KiB device, signed release, CodeQL and Apple gaps. Session writer V3 and completeRc=false persist; remote CI is distinct from local evidence. No memory update or handoff package."
+      ]
+    }
+  },
   "modelSteer": {
+    "historical": true,
+    "followup": "artifacts/upstream-first/model-select-source.json",
     "status": "PASS",
     "sourceRecord": "artifacts/upstream-first/model-steer-source.json",
     "scope": "Model steer axis: the section 30 open item — the legacy steer promise rode the session/prompt mode argument bare, with no advertised capability, an implicit web address rule and a hardcoded Android queue mode — now rides the shared capability contract. SESSION_REMOTE_CAPABILITIES advertises model.steer.v1 over the existing prompt method, deliberately overlapping session.control.v1 on the same prompt.send permission so the gateway's first-matching-capability lookup is order-independent; HostDescriptor capabilities list the new id and the host-description e2e pins it. The web composer gates the explicit steer submission by capability: ComposerControlAvailability gains steer as the advertisement and an admitting prompt path together, the InputBar renders the steer submission only when both hold, and one-shot subagent addresses queue instead of steering. Android observes the capability through NativeObservedCapability.MODEL_STEER (no separate endpoint — the promise rides prompt), renders a steer entry beside the queue send with a two-character label that keeps the one-row composer the acceptance lanes exercise against the soft keyboard (a full-width label overflowed the row, squeezed the draft field and collapsed the session list — the regression the prompt-retry leg caught and the fix's evidence trail records), and submitPrompt grows a steer parameter selecting the wire mode while the default queue wire stays byte-identical; the support-export snapshot gains the model.steer.v1:false client-allowlist key. Acceptance is the fourteen-lane composer-surface serial round on the local AVD emulator against a replay Host — the new android-steer lane proves exactly one device-signed session/prompt dispatch carrying mode steer whose recorded turn settles plus the cleared pending prompt, camera-attachments grounds its single load flake by the recorded standalone rerun — the gradle :core:test/:contract:test aggregate (73 suites / 469 tests), the web vitest matrix over the two affected client packages (43 files / 618 tests, including the new gating and unadvertised-queue cases) plus typecheck, oxlint, doc-sync and gate0; the traceability record rewrites the section 30 remaining to the delivered steer half with eight evidence paths. The decision is recorded in the 2026-10-01-model-steer note triple. The Android model-select composition entry and real-device qualification stay open, and the full objective remains in progress",
@@ -32994,7 +33274,7 @@
       "The known Windows symlink EPERM expanded-suite failure from the cancellation increment was not rerun or resolved"
     ]
   },
-  "latestSourceRecord": "artifacts/upstream-first/model-steer-source.json",
+  "latestSourceRecord": "artifacts/upstream-first/model-select-source.json",
   "cancelTarget": {
     "historical": true,
     "followup": "artifacts/upstream-first/rename-revision-source.json",
@@ -33477,7 +33757,7 @@
     "files": [
       {
         "path": "artifacts/upstream-first/write-reports.mjs",
-        "sha256": "8ca7482f68476c4e1db2507dd04c08ba31b892ffcc6666cbbce97e9f08a2bc50"
+        "sha256": "4991f9e1e795b4fb9852131fd7c087c996cb92a968712d509d5518698fe584ad"
       },
       {
         "path": "artifacts/upstream-first/verify-audit.mjs",

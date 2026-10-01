@@ -76,6 +76,8 @@ internal fun HostCapabilityDetails(observation: NativeHostObservation, generatio
                             NativeObservedCapability.HTTP_REQUEST_BUDGET -> R.string.native_capabilities_http_request_budget
                             NativeObservedCapability.IMAGE_UPLOAD -> R.string.native_capabilities_image_upload
                             NativeObservedCapability.MODEL_STEER -> R.string.native_capabilities_model_steer
+                            NativeObservedCapability.MODEL_CATALOG -> R.string.native_capabilities_model_catalog
+                            NativeObservedCapability.MODEL_SELECT -> R.string.native_capabilities_model_select
                             NativeObservedCapability.SUBAGENT_CATALOG -> R.string.native_capabilities_subagent_catalog
                         }
                         val support = if (capability in protocol.capabilities) R.string.native_capabilities_supported else R.string.native_capabilities_absent

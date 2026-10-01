@@ -1,0 +1,66 @@
+{
+  "status": "PASS",
+  "scope": "Report bindings and audit for the model select increment: the section 30 model-select half lands on the Android companion — MODEL_CATALOG/MODEL_SELECT observed capabilities with the gateway diagnostics endpoints and both false support-export keys, selectModel over the {request:{sessionId, provider, model}} envelope and the zero-argument modelCatalog parsing groups/default, the capability-gated 模型 entry outside the composer row with per-Session catalog/loading/failed/selected state and by-name confirmation; acceptance is the fifteen-lane serial round on the local AVD emulator with rebuilt native-acceptance APKs (android-model-select new over the providers-only header-only replay Host, fourteen composer-surface regressions green with five environment-caused first-attempt failures grounded by recorded reruns) plus the gradle BUILD SUCCESSFUL round with the 73/469 XML aggregate, the web vitest matrix unchanged at 43 files / 618 tests, typecheck, oxlint, doc-quick, doc-sync and gate0; the reasoningEffort surface, the apple-side entry and real-device qualification stay open; full Upstream-First objective remains in progress",
+  "gate0": {
+    "validation": "PASS",
+    "gate0": "PASS",
+    "paths": 1938,
+    "components": 129,
+    "specificationCoverage": {
+      "status": "PASS",
+      "numberedSections": 81,
+      "nonEmptySourceLines": 1983,
+      "acceptanceProven": false
+    }
+  },
+  "sourceRecord": {
+    "path": "artifacts/upstream-first/model-select-source.json",
+    "sha256": "931d74b2e3f2e3fb717c83325014b0eaa35253da9a86c3b212822245a6355584"
+  },
+  "generator": {
+    "path": "artifacts/upstream-first/write-reports.mjs",
+    "sha256": "4991f9e1e795b4fb9852131fd7c087c996cb92a968712d509d5518698fe584ad"
+  },
+  "binding": {
+    "path": "artifacts/upstream-first/model-select-binding.json",
+    "sha256": "7dd6e928b7dfa886668af6401391178e27e7e7585f8dbe8f398e794e5dab8ec8"
+  },
+  "helpers": [
+    {
+      "path": ".artifacts/advance-model-select-reports.mjs",
+      "sha256": "f7ed04bebe8027f32f9fd137d016340d140ef1a1353b857fc4e14ce58508b880"
+    },
+    {
+      "path": ".artifacts/capture-model-select-validation.mjs",
+      "sha256": "c336899990b5fe068f7afb772ef0f9d54e6c0df883bd05f47e5ffcfcb66881be"
+    }
+  ],
+  "reports": [
+    {
+      "path": "IMPLEMENTATION_STATUS.md",
+      "sha256": "e2d19d145c2977d8472889cadb22630c79596f0e254a1c74f52e9f464e01f73b"
+    },
+    {
+      "path": "artifacts/upstream-first/evidence.json",
+      "sha256": "d93316572f8e78f616e45342246083bce327a043b48e46c8ecba66b7e25fd98b"
+    }
+  ],
+  "checks": [
+    {
+      "path": ".artifacts/model-select-binding.log",
+      "sha256": "88a83e2b7cc6727249559c134ae9904f7f1a07c97478101edf1a04f24701eb0d"
+    },
+    {
+      "path": ".artifacts/model-select-audit-final.log",
+      "sha256": "8105e696f9a67f5b0d93164a32d348a9ef5f71f92e3bfd38de87ce15b12a26f5"
+    },
+    {
+      "path": ".artifacts/model-select-gate0-final.log",
+      "sha256": "505d74ef938f5d34d85490d37e0176ba804d93272fcf465ce2544a02c56b3f90"
+    },
+    {
+      "path": ".artifacts/model-select-report-generation.log",
+      "sha256": "fe010532f71a6341467ae5719b29ac19470895de1d481156335b8f70a3273ed5"
+    }
+  ]
+}

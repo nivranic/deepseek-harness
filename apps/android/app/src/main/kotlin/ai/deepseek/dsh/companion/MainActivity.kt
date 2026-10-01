@@ -655,6 +655,7 @@ internal fun SessionsTab(model: CompanionViewModel, capabilities: Set<NativeCapa
     }
     Column(Modifier.fillMaxSize()) {
         if (canFollow) SessionViewLocationActions(model, timeline)
+        SessionModelSelection(model, capabilities)
         if (!canList && open == null || !canFollow) MissingNativeCapability(capabilities)
         Row(Modifier.fillMaxWidth()) {
             Text(
@@ -851,6 +852,65 @@ private fun SessionViewLocationActions(model: CompanionViewModel, timeline: Lazy
                 onClick = { importGeneration++; importJob?.cancel(); importing = false; showImport = false; encoded = "" }) {
                 Text(androidx.compose.ui.res.stringResource(R.string.native_pairing_cancel))
             }
+        },
+    )
+}
+
+/** §30 model selection: an advertised model.select.v1 opens the Host catalog picker; the
+ * Host resolves and normalizes every selection, the device only sends the intent. */
+@Composable
+private fun SessionModelSelection(model: CompanionViewModel, capabilities: Set<NativeCapability>?) {
+    val session = model.session
+    val scope = rememberCoroutineScope()
+    val open by session.open.collectAsStateWithLifecycle()
+    var showPicker by remember(session) { mutableStateOf(false) }
+    var catalog by remember(session) { mutableStateOf<NativeModelCatalog?>(null) }
+    var loading by remember(session) { mutableStateOf(false) }
+    var failed by remember(session) { mutableStateOf(false) }
+    var selected by remember(session) { mutableStateOf<String?>(null) }
+    if (open == null || !capabilities.supports(NativeCapability.MODEL_SELECT)) return
+    Button(modifier = Modifier.padding(horizontal = 12.dp).testTag("session-model-select"), onClick = {
+        if (!showPicker && catalog == null) {
+            loading = true; failed = false
+            scope.launch {
+                try { catalog = session.modelCatalog() }
+                catch (_: Exception) { failed = true }
+                finally { loading = false }
+            }
+        }
+        showPicker = true
+    }) { Text("模型") }
+    if (selected != null) Text("已选择 $selected", Modifier.padding(horizontal = 16.dp).testTag("session-model-selected"))
+    if (showPicker) AlertDialog(
+        onDismissRequest = { showPicker = false },
+        title = { Text("模型选择") },
+        text = {
+            Column(verticalArrangement = Arrangement.spacedBy(8.dp)) {
+                if (loading) Text("正在加载目录…")
+                if (failed) Text("目录加载失败", color = MaterialTheme.colorScheme.error)
+                catalog?.let { loaded ->
+                    for (group in loaded.groups) {
+                        Text(group.name, style = MaterialTheme.typography.titleSmall)
+                        for (entry in group.models) {
+                            Button(modifier = Modifier.fillMaxWidth().testTag("catalog-model-${entry.id}"),
+                                enabled = !loading, onClick = {
+                                    failed = false
+                                    scope.launch {
+                                        try {
+                                            session.selectModel(group.id, entry.id)
+                                            selected = entry.name
+                                            showPicker = false
+                                        } catch (cancelled: CancellationException) { throw cancelled }
+                                        catch (_: Exception) { failed = true }
+                                    }
+                                }) { Text(entry.name) }
+                        }
+                    }
+                }
+            }
+        },
+        confirmButton = {
+            Button(onClick = { showPicker = false }) { Text("关闭") }
         },
     )
 }

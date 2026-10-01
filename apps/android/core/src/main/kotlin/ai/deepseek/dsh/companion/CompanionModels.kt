@@ -27,6 +27,19 @@ import java.util.concurrent.atomic.AtomicReference
 /** One session row in the list. */
 data class SessionRow(val id: String, val title: String, val updatedAt: Double?)
 
+/** One routable model as the Host catalog publishes it. */
+data class NativeCatalogModel(val id: String, val name: String)
+
+/** One provider group in the Host model catalog. */
+data class NativeCatalogGroup(val id: String, val name: String, val models: List<NativeCatalogModel>)
+
+/** Host-generation model catalog plus the deployment default selection. */
+data class NativeModelCatalog(
+    val groups: List<NativeCatalogGroup>,
+    val defaultProvider: String,
+    val defaultModel: String,
+)
+
 /** The open session: its id and the folded domain state. */
 data class OpenSession(val sessionId: String, val state: DomainState)
 
@@ -613,6 +626,37 @@ class SessionModel(
             "session/cancel",
             mapOf("request" to WireValue.ObjectValue(mapOf("sessionId" to WireValue.StringValue(session.sessionId)))),
         )
+    }
+
+    /** Install one Session-local model selection; the Host resolves and normalizes the route. */
+    suspend fun selectModel(provider: String, model: String) {
+        val session = _open.value ?: return
+        wire.call(
+            "session/selectModel",
+            mapOf("request" to WireValue.ObjectValue(mapOf(
+                "sessionId" to WireValue.StringValue(session.sessionId),
+                "provider" to WireValue.StringValue(provider),
+                "model" to WireValue.StringValue(model),
+            ))),
+        )
+    }
+
+    /** Read the Host-generation model catalog for the composition picker.
+     * modelCatalog takes no wire arguments; the strict descriptor rejects any arg key. */
+    suspend fun modelCatalog(): NativeModelCatalog {
+        val value = wire.call("session/modelCatalog", emptyMap())
+        val groups = (WireShape.array(value, "groups") ?: emptyList()).mapNotNull { group ->
+            val id = WireShape.string(group, "id") ?: return@mapNotNull null
+            val models = (WireShape.array(group, "models") ?: emptyList()).mapNotNull { entry ->
+                val modelId = WireShape.string(entry, "id") ?: return@mapNotNull null
+                NativeCatalogModel(modelId, WireShape.string(entry, "name") ?: modelId)
+            }
+            NativeCatalogGroup(id, WireShape.string(group, "name") ?: id, models)
+        }
+        val default = WireShape.objectValue(value, "default")
+        return NativeModelCatalog(groups,
+            default?.let { WireShape.string(it, "provider") } ?: "",
+            default?.let { WireShape.string(it, "model") } ?: "")
     }
 
     private fun follow(payload: Map<String, WireValue>, generation: Long): Job =

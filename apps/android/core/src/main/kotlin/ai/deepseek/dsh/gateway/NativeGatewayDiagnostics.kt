@@ -26,7 +26,7 @@ enum class NativeObservedCapability(val wire: String) {
     FILE_BYTES("workspace-files.read-bytes.v1"), FILE_UPLOAD("file-upload.stage.v1"),
     FILE_UPLOAD_DEDUPE("file-upload.dedupe.v1"), IMAGE_UPLOAD("image-upload.stage.v1"),
     SUBAGENT_CATALOG("subagent.catalog.v1"), HTTP_REQUEST_BUDGET("native-remote.http-request-budget.v1"),
-    MODEL_STEER("model.steer.v1");
+    MODEL_STEER("model.steer.v1"), MODEL_CATALOG("model.catalog.v1"), MODEL_SELECT("model.select.v1");
 
     companion object {
         /** Native-owned operations mirror their Remote owner's advertised method sets. */
@@ -45,6 +45,8 @@ enum class NativeObservedCapability(val wire: String) {
             "fileUploads/uploadImage" -> IMAGE_UPLOAD
             "subagents/list" -> SUBAGENT_CATALOG
             "nativeRemote/httpRequestBudget" -> HTTP_REQUEST_BUDGET
+            "session/modelCatalog" -> MODEL_CATALOG
+            "session/selectModel" -> MODEL_SELECT
             // Gateway event transport and extension methods have no native-owned operation requirement here.
             else -> null
         }
