@@ -567,6 +567,17 @@ class NativeCompanionAcceptanceTest {
                                 compose.onNodeWithText("自定义回答").performScrollTo().assertTextContains(command.getValue("custom").jsonPrimitive.content)
                                 waitFor(hasText("提交回答") and isEnabled())
                             }
+                            "assertNoQuestion" -> {
+                                compose.onNodeWithTag("native-tab-1").performClick()
+                                val interactions = companionModel().interactions
+                                compose.waitUntil(20_000) { interactions.clientId.value.isNotEmpty() }
+                                compose.waitUntil(20_000) { compose.onAllNodesWithText("提交回答").fetchSemanticsNodes(false).isEmpty() }
+                                compose.runOnIdle {
+                                    assert(interactions.inbox.value.isEmpty()) { "pending interactions must stay scoped to their own Host" }
+                                }
+                                val absent = command.getValue("absent").jsonPrimitive.content
+                                assert(compose.onAllNodesWithText(absent).fetchSemanticsNodes(false).isEmpty()) { "question content must stay scoped to its own Host: $absent" }
+                            }
                             "submitQuestionDraft" -> {
                                 compose.onNodeWithText("提交回答").performScrollTo().performClick()
                                 try {
