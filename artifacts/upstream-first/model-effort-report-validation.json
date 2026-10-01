@@ -1,0 +1,66 @@
+{
+  "status": "PASS",
+  "scope": "Report bindings and audit for the model effort increment: the section 30 reasoningEffort half closes on Android — NativeCatalogModel parses the catalog wire's model.reasoning (efforts [{id,name}] plus defaultEffort), selectModel attaches the reasoningEffort request field only when non-null so a no-effort selection keeps the wire bytes identical, and the picker renders each reasoning model's efforts as a catalog-effort-<id> button row whose taps carry the effort while the model row takes the default and the confirmation names both; acceptance is the seventeen-lane serial round on the local AVD emulator with rebuilt native-acceptance APKs (android-model-effort new over the providers-only header-only replay Host proving exactly one device-signed session/selectModel dispatch with reasoningEffort \"max\", the same-effort model/selection event and the model-and-effort confirmation, sixteen prior lanes green all first-attempt, with the honest gate-stage record — the TS2379 typecheck first run, the note-pairing first test:docs run and the audit round first launched against the web-only include set — in the sealed narration) plus the gradle BUILD SUCCESSFUL round with the 72/463 core XML aggregate and the new JVM test, the web vitest matrix unchanged at 43 files / 618 tests, typecheck, oxlint, doc-quick, doc-sync and gate0; the Apple-side entry with its efforts and real hardware stay open; full Upstream-First objective remains in progress",
+  "gate0": {
+    "validation": "PASS",
+    "gate0": "PASS",
+    "paths": 1938,
+    "components": 129,
+    "specificationCoverage": {
+      "status": "PASS",
+      "numberedSections": 81,
+      "nonEmptySourceLines": 1983,
+      "acceptanceProven": false
+    }
+  },
+  "sourceRecord": {
+    "path": "artifacts/upstream-first/model-effort-source.json",
+    "sha256": "b13cd660012d70e182fc67b2743975a5d234bee06c2652913fe988d8dc529994"
+  },
+  "generator": {
+    "path": "artifacts/upstream-first/write-reports.mjs",
+    "sha256": "352b07ce66a64ceefb6a90dec752681d1ebfe98d11009ad26d625049275ecfe9"
+  },
+  "binding": {
+    "path": "artifacts/upstream-first/model-effort-binding.json",
+    "sha256": "50a83d3ca867b45d6534ab4876f739b45a072d63c8fd0ff50f406e3e2da44376"
+  },
+  "helpers": [
+    {
+      "path": ".artifacts/advance-model-effort-reports.mjs",
+      "sha256": "aa79c40d5cb18fd57f885973a8574dde4bd011e6c1d95e715b2df2fb5a8ca6c9"
+    },
+    {
+      "path": ".artifacts/capture-model-effort-validation.mjs",
+      "sha256": "3c22dfdbd09a50f46b8e0559da8618c1b52dcfd58eeb07378ba3c56671163e27"
+    }
+  ],
+  "reports": [
+    {
+      "path": "IMPLEMENTATION_STATUS.md",
+      "sha256": "9fa42030ed7e339372b9997c6e98dacbde9126c5a35c398882d1e7b54cd05baa"
+    },
+    {
+      "path": "artifacts/upstream-first/evidence.json",
+      "sha256": "cbeec3538a3d20e5afdf2ef74f15d1f64b9772483afcea0b9fa91b083bbd8200"
+    }
+  ],
+  "checks": [
+    {
+      "path": ".artifacts/model-effort-binding.log",
+      "sha256": "8872769df9dd7a62b8bdf5eb3dcda73ff2c4be8b24310a90205d3e7da334cd55"
+    },
+    {
+      "path": ".artifacts/model-effort-audit-final.log",
+      "sha256": "124017a8322a3edb06d0fd231143c0a173f60d53742afeca90cc7b62be960f1f"
+    },
+    {
+      "path": ".artifacts/model-effort-gate0-final.log",
+      "sha256": "505d74ef938f5d34d85490d37e0176ba804d93272fcf465ce2544a02c56b3f90"
+    },
+    {
+      "path": ".artifacts/model-effort-report-generation.log",
+      "sha256": "fe010532f71a6341467ae5719b29ac19470895de1d481156335b8f70a3273ed5"
+    }
+  ]
+}

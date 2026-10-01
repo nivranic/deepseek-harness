@@ -3750,9 +3750,12 @@
         "apps/android/core/src/main/kotlin/ai/deepseek/dsh/companion/CompanionModels.kt",
         "apps/android/core/src/main/kotlin/ai/deepseek/dsh/gateway/NativeGatewayDiagnostics.kt",
         "apps/android/core/src/test/resources/support-native-gateway.json",
-        ".agents/notes/implemented/architecture/2026-10-01-android-model-select.md"
+        ".agents/notes/implemented/architecture/2026-10-01-android-model-select.md",
+        "apps/web/tests/android-model-effort.e2e.ts",
+        "apps/android/core/src/test/kotlin/ai/deepseek/dsh/companion/CompanionModelTest.kt",
+        ".agents/notes/implemented/feature/2026-10-02-android-model-effort.md"
       ],
-      "remaining": "第 30 节两个半面均已交付：steer 半面——HostDescriptor capabilities 现广播 model.steer.v1（与 session.control.v1 在 prompt 方法上重叠声明同一 prompt.send 权限，首匹配查找与顺序无关），Web 按能力渲染显式转向提交（广播 ∧ 可接纳 prompt 路径缺一不可，一次性子代理地址排队不转向），Android 经 NativeObservedCapability.MODEL_STEER 观察该能力并在排队发送旁渲染转向入口，submitPrompt 以 steer 参数选择 wire mode、默认 queue wire 逐字节不变；本地 AVD 真实 companion 对回放 Host 的物理车道证明恰一条携带 mode:\"steer\" 的设备签名 session/prompt dispatch 且录制 turn settle。model-select 半面——model.select.v1/model.catalog.v1 已广播、Web 选择器已存在，Android 经 MODEL_CATALOG/MODEL_SELECT 观察能力，会话屏（composer 行之外）按广播渲染模型入口，selectModel 走 request 信封、modelCatalog 零参以空 args 调用；AVD 物理车道以 providers-only header-only 回放 Host（选择不驱动模型调用）证明恰一条设备签名 session/selectModel dispatch、model/selection 会话事件与设备端按名确认。仍开放：reasoningEffort 选择面（wire 已接受、无任何 client UI）、apple 侧按能力渲染的入口、同候选真机验收；不授予整节 PASS。",
+      "remaining": "第 30 节两个半面均已交付：steer 半面——HostDescriptor capabilities 现广播 model.steer.v1（与 session.control.v1 在 prompt 方法上重叠声明同一 prompt.send 权限，首匹配查找与顺序无关），Web 按能力渲染显式转向提交（广播 ∧ 可接纳 prompt 路径缺一不可，一次性子代理地址排队不转向），Android 经 NativeObservedCapability.MODEL_STEER 观察该能力并在排队发送旁渲染转向入口，submitPrompt 以 steer 参数选择 wire mode、默认 queue wire 逐字节不变；本地 AVD 真实 companion 对回放 Host 的物理车道证明恰一条携带 mode:\"steer\" 的设备签名 session/prompt dispatch 且录制 turn settle。model-select 半面——model.select.v1/model.catalog.v1 已广播、Web 选择器已存在，Android 经 MODEL_CATALOG/MODEL_SELECT 观察能力，会话屏（composer 行之外）按广播渲染模型入口，selectModel 走 request 信封、modelCatalog 零参以空 args 调用；reasoningEffort 选择面本代收口：NativeCatalogModel 解析目录 wire 的 model.reasoning（efforts 与 defaultEffort），选择器在各推理模型行下渲染力度按钮（catalog-effort-<id>），点模型行按 defaultEffort、点力度按钮按该力度发送，仅非空时附加 reasoningEffort 字段（无力度选择 wire 字节不变）；AVD 物理车道以 providers-only header-only 回放 Host（零模型调用）证明恰一条携带 reasoningEffort:\"max\" 的设备签名 session/selectModel dispatch、携带同一力度的 model/selection 事件与设备端按模型名与力度命名的确认。Web 选择器早已暴露各模型力度（ModelSelect 读取 model.reasoning）——此前 remaining 所述\"无任何 client UI\"系记录失准，本代勘误。仍开放：apple 侧按能力渲染的入口（含力度）、同候选真机验收；不授予整节 PASS。",
       "evidenceLimit": "这些路径是已定位的候选证据；尚未逐条证明本节每一项要求，不授予整节 PASS。"
     },
     {

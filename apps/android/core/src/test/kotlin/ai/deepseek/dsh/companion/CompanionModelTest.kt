@@ -239,6 +239,28 @@ class CompanionModelTest {
     }
 
     @Test
+    fun modelCatalogParsesReasoningEffortsAndSelectModelCarriesThem() = runTest {
+        val wire = FakeWire()
+        wire.stub("session/modelCatalog") {
+            wire("""{"groups":[{"id":"deepseek-official","name":"DeepSeek","models":[{"id":"m","name":"M","reasoning":{"efforts":[{"id":"low","name":"低"},{"id":"max","name":"最高"}],"defaultEffort":"low"}}]}],"default":{"provider":"deepseek-official","model":"m"}}""")
+        }
+        wire.stub("session/selectModel") { wire("""{"selected":{"provider":"deepseek-official","model":"m"}}""") }
+        val model = SessionModel(wire, CoroutineScope(UnconfinedTestDispatcher(testScheduler)))
+        model.openSession("s1")
+        wire.emit(wire("""{"type":"snapshot","header":{"id":"s1"},"hasMore":false,"cursor":0,"records":[]}"""))
+        advanceUntilIdle()
+        val catalog = model.modelCatalog()
+        val entry = catalog.groups.single().models.single()
+        assertEquals(NativeModelReasoning(listOf(NativeEffortChoice("low", "低"), NativeEffortChoice("max", "最高")), "low"), entry.reasoning)
+        model.selectModel("deepseek-official", "m")
+        model.selectModel("deepseek-official", "m", reasoningEffort = "max")
+        val requests = wire.calls.filter { it.first == "session/selectModel" }.map { (it.second["request"] as WireValue.ObjectValue).entries }
+        assertFalse("reasoningEffort" in requests[0])
+        assertEquals("max", (requests[1]["reasoningEffort"] as WireValue.StringValue).value)
+        model.close()
+    }
+
+    @Test
     fun openFoldsSnapshotAndEventsIntoTheDomainState() = runTest {
         val wire = FakeWire()
         val model = SessionModel(wire, CoroutineScope(UnconfinedTestDispatcher(testScheduler)))

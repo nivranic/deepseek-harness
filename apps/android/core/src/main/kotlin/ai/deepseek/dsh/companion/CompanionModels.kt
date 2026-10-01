@@ -27,8 +27,14 @@ import java.util.concurrent.atomic.AtomicReference
 /** One session row in the list; `cwd` is the Host-side workspace directory when the row publishes it. */
 data class SessionRow(val id: String, val title: String, val updatedAt: Double?, val cwd: String? = null)
 
+/** One selectable reasoning effort for an exact model route. */
+data class NativeEffortChoice(val id: String, val name: String)
+
+/** Selectable reasoning metadata for one exact model route; absent models take no effort. */
+data class NativeModelReasoning(val efforts: List<NativeEffortChoice>, val defaultEffort: String?)
+
 /** One routable model as the Host catalog publishes it. */
-data class NativeCatalogModel(val id: String, val name: String)
+data class NativeCatalogModel(val id: String, val name: String, val reasoning: NativeModelReasoning? = null)
 
 /** One provider group in the Host model catalog. */
 data class NativeCatalogGroup(val id: String, val name: String, val models: List<NativeCatalogModel>)
@@ -662,15 +668,16 @@ class SessionModel(
     }
 
     /** Install one Session-local model selection; the Host resolves and normalizes the route. */
-    suspend fun selectModel(provider: String, model: String) {
+    suspend fun selectModel(provider: String, model: String, reasoningEffort: String? = null) {
         val session = _open.value ?: return
         wire.call(
             "session/selectModel",
-            mapOf("request" to WireValue.ObjectValue(mapOf(
-                "sessionId" to WireValue.StringValue(session.sessionId),
-                "provider" to WireValue.StringValue(provider),
-                "model" to WireValue.StringValue(model),
-            ))),
+            mapOf("request" to WireValue.ObjectValue(buildMap {
+                put("sessionId", WireValue.StringValue(session.sessionId))
+                put("provider", WireValue.StringValue(provider))
+                put("model", WireValue.StringValue(model))
+                if (reasoningEffort != null) put("reasoningEffort", WireValue.StringValue(reasoningEffort))
+            })),
         )
     }
 
@@ -682,7 +689,16 @@ class SessionModel(
             val id = WireShape.string(group, "id") ?: return@mapNotNull null
             val models = (WireShape.array(group, "models") ?: emptyList()).mapNotNull { entry ->
                 val modelId = WireShape.string(entry, "id") ?: return@mapNotNull null
-                NativeCatalogModel(modelId, WireShape.string(entry, "name") ?: modelId)
+                val reasoning = WireShape.objectValue(entry, "reasoning")?.let { metadata ->
+                    NativeModelReasoning(
+                        efforts = (WireShape.array(metadata, "efforts") ?: emptyList()).mapNotNull { choice ->
+                            val effortId = WireShape.string(choice, "id") ?: return@mapNotNull null
+                            NativeEffortChoice(effortId, WireShape.string(choice, "name") ?: effortId)
+                        },
+                        defaultEffort = WireShape.string(metadata, "defaultEffort"),
+                    )
+                }
+                NativeCatalogModel(modelId, WireShape.string(entry, "name") ?: modelId, reasoning)
             }
             NativeCatalogGroup(id, WireShape.string(group, "name") ?: id, models)
         }

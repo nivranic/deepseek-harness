@@ -623,6 +623,10 @@ class NativeCompanionAcceptanceTest {
                                 compose.onNodeWithTag("catalog-model-" + command.getValue("model").jsonPrimitive.content).performClick()
                                 waitFor(hasTestTag("session-model-selected"))
                             }
+                            "selectEffortFromPicker" -> {
+                                compose.onNodeWithTag("catalog-effort-" + command.getValue("effort").jsonPrimitive.content).performClick()
+                                waitFor(hasTestTag("session-model-selected"))
+                            }
                             "assertModelSelected" -> {
                                 val node = compose.onNodeWithTag("session-model-selected").fetchSemanticsNode()
                                 value = JsonPrimitive(node.config[androidx.compose.ui.semantics.SemanticsProperties.Text].joinToString())

@@ -898,13 +898,33 @@ private fun SessionModelSelection(model: CompanionViewModel, capabilities: Set<N
                                     failed = false
                                     scope.launch {
                                         try {
-                                            session.selectModel(group.id, entry.id)
+                                            session.selectModel(group.id, entry.id, entry.reasoning?.defaultEffort)
                                             selected = entry.name
                                             showPicker = false
                                         } catch (cancelled: CancellationException) { throw cancelled }
                                         catch (_: Exception) { failed = true }
                                     }
                                 }) { Text(entry.name) }
+                            // Effort choices ride the model row: tapping an effort selects the
+                            // model at that effort; a model without reasoning offers none.
+                            entry.reasoning?.let { reasoning ->
+                                Row(Modifier.fillMaxWidth(), horizontalArrangement = Arrangement.spacedBy(8.dp)) {
+                                    for (effort in reasoning.efforts) {
+                                        Button(modifier = Modifier.weight(1f).testTag("catalog-effort-${effort.id}"),
+                                            enabled = !loading, onClick = {
+                                                failed = false
+                                                scope.launch {
+                                                    try {
+                                                        session.selectModel(group.id, entry.id, effort.id)
+                                                        selected = "${entry.name} · ${effort.name}"
+                                                        showPicker = false
+                                                    } catch (cancelled: CancellationException) { throw cancelled }
+                                                    catch (_: Exception) { failed = true }
+                                                }
+                                            }) { Text(effort.name) }
+                                    }
+                                }
+                            }
                         }
                     }
                 }
