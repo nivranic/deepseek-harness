@@ -5,12 +5,13 @@ import { createComposerControlSource } from '../src/client/input/control-capabil
 
 const CHILD: SubagentAddress = { parentSessionId: 'p' as never, childSessionId: 'c' as never, mode: 'continuable' }
 
-function bench(capabilities: readonly string[], address: SubagentAddress | undefined = CHILD) {
+function bench(capabilities: readonly string[], address: SubagentAddress | 'none' = CHILD) {
+  const resolved = address === 'none' ? undefined : address
   let host: RemoteHostFacts = { home: undefined, platform: undefined, isLoopback: true, capabilities }
   const cancel = vi.fn(() => Promise.resolve())
   const listeners = new Set<() => void>()
   const source = createComposerControlSource({
-    host: () => host, address: () => address, alive: () => true, cancel,
+    host: () => host, address: () => resolved, alive: () => true, cancel,
     subscribe: (listener) => { listeners.add(listener); return () => { listeners.delete(listener) } },
   })
   const replace = (next: readonly string[] = capabilities) => {
@@ -38,6 +39,19 @@ describe('addressed composer support', () => {
   it('keeps one-shot history read-only even when the Host supports continuation', () => {
     const b = bench(['subagent.prompt.v1', 'subagent.interrupt.v1'], { ...CHILD, mode: 'one-shot' })
     expect(b.source.getSnapshot()).toMatchObject({ prompt: false, interrupt: false })
+  })
+
+  it('requires the steer advertisement on top of an admitting prompt path (§30)', () => {
+    const ordinary = bench(['session.control.v1'], 'none')
+    expect(ordinary.source.getSnapshot()).toMatchObject({ prompt: true, steer: false })
+    const steering = bench(['session.control.v1', 'model.steer.v1'], 'none')
+    expect(steering.source.getSnapshot()).toMatchObject({ prompt: true, steer: true })
+    const advertisedAlone = bench(['model.steer.v1'], 'none')
+    expect(advertisedAlone.source.getSnapshot()).toMatchObject({ prompt: false, steer: false })
+    const child = bench(['subagent.prompt.v1', 'model.steer.v1'], CHILD)
+    expect(child.source.getSnapshot()).toMatchObject({ prompt: true, steer: true })
+    const oneShot = bench(['subagent.prompt.v1', 'model.steer.v1'], { ...CHILD, mode: 'one-shot' })
+    expect(oneShot.source.getSnapshot()).toMatchObject({ prompt: false, steer: false })
   })
 
   it('rejects a retained Stop callback on an equally capable replacement', async () => {

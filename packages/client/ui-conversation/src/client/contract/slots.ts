@@ -351,6 +351,8 @@ export interface ComposerControlAvailability {
   readonly prompt: boolean
   readonly interrupt: boolean
   readonly fileUpload: boolean
+  /** Whether the addressed target accepts steer-mode prompts (model.steer.v1, §30). */
+  readonly steer: boolean
   readonly current: () => boolean
   readonly stop: (() => void) | undefined
 }

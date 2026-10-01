@@ -614,6 +614,7 @@ class NativeCompanionAcceptanceTest {
                                 compose.onNodeWithTag("session-draft").performTextInput(command.getValue("text").jsonPrimitive.content)
                             }
                             "submitPromptDraft" -> compose.onNodeWithText("发送").performClick()
+                            "submitPromptSteer" -> compose.onNodeWithTag("session-steer").performClick()
                             "openSystemFileShare" -> {
                                 val names = command.getValue("names").jsonArray.map { it.jsonPrimitive.content }
                                 require(names.size in 1..2 && names.all { it.matches(Regex("dsh-native-share-[a-f0-9-]+-(image\\.png|file\\.bin)")) })

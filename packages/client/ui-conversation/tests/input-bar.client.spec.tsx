@@ -98,6 +98,8 @@ interface BenchOptions {
   addFiles?: (files: readonly File[]) => string | null
   commandMenuOpen?: boolean
   busyEnter?: 'queue' | 'steer'
+  /** Whether the Host advertises model.steer.v1 (§30); absent = advertised. */
+  steerAdvertised?: boolean
   toggleCommandMenu?: (selection: { start: number; end: number }) => void
 }
 
@@ -167,7 +169,8 @@ function bench(over?: BenchOptions) {
   }) as never
   const props: InputBarProps = {
     controlAvailable: true,
-    interruptAvailable: true, fileUploadAvailable: true, currentAuthority: () => true,
+    interruptAvailable: true, fileUploadAvailable: true,
+    steerAvailable: over?.steerAdvertised !== false, currentAuthority: () => true,
     usePanelInfo: selector => selector({ activePanelId: null }),
     sessionId: SID,
     SessionProvider: ({ children }) => children,
@@ -641,6 +644,21 @@ describe('Enter semantics', () => {
     const busyMeta = bench({ running: true, draft: 'steer with cmd' })
     fireEvent.keyDown(busyMeta.textarea, { key: 'Enter', metaKey: true })
     expect(busyMeta.sink).toHaveBeenCalledWith('steer with cmd', [], 'steer', expect.any(AbortSignal))
+  })
+
+  it('an unadvertised steer capability queues every running submission (§30)', () => {
+    const busyCtrl = bench({ running: true, draft: 'queue it', steerAdvertised: false })
+    fireEvent.keyDown(busyCtrl.textarea, { key: 'Enter', ctrlKey: true })
+    expect(busyCtrl.sink).toHaveBeenCalledWith('queue it', [], 'queue', expect.any(AbortSignal))
+
+    const preferred = bench({ running: true, draft: 'preferred steer', busyEnter: 'steer', steerAdvertised: false })
+    fireEvent.keyDown(preferred.textarea, { key: 'Enter' })
+    expect(preferred.sink).toHaveBeenCalledWith('preferred steer', [], 'queue', expect.any(AbortSignal))
+
+    const wholeQueue = bench({ running: true, queue: [row('q-1')], steerQueue: vi.fn(), steerAdvertised: false })
+    fireEvent.keyDown(wholeQueue.textarea, { key: 'Enter', metaKey: true })
+    expect(wholeQueue.steerQueue).not.toHaveBeenCalled()
+    expect(wholeQueue.sink).not.toHaveBeenCalled()
   })
 
   it('empty-draft Cmd/Ctrl+Enter steers the whole queue instead of submitting', () => {

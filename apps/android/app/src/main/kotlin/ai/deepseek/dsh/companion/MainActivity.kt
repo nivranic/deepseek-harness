@@ -748,6 +748,9 @@ internal fun SessionsTab(model: CompanionViewModel, capabilities: Set<NativeCapa
                 else R.string.native_attachment_photo_unavailable),
                 Modifier.padding(horizontal = 12.dp).testTag("session-photo-unavailable"), style = MaterialTheme.typography.bodySmall)
         }
+        // §30 adds the steer submission beside the queue send with a two-character label: the
+        // one-row composer is the layout the acceptance lanes exercise against the soft keyboard,
+        // and a longer label would overflow the row on phone widths and collapse the session list.
         Row(Modifier.fillMaxWidth().padding(12.dp), horizontalArrangement = Arrangement.spacedBy(8.dp)) {
             if (canControl && (canUpload || canUploadImages)) NativeFileAttachmentAddButton(
                 enabled = open != null && editable && !sending && !attachmentBusy && !fileAttachmentPicker.busy,
@@ -757,6 +760,9 @@ internal fun SessionsTab(model: CompanionViewModel, capabilities: Set<NativeCapa
             if (canControl) Button(modifier = Modifier.testTag("session-send"), onClick = {
                 model.session.submitDraft()
             }, enabled = open != null && editable && (draft.isNotEmpty() || attachedFiles.isNotEmpty()) && !sending && !attachmentBusy) { Text("发送") }
+            if (canControl && capabilities.supports(NativeCapability.MODEL_STEER)) Button(modifier = Modifier.testTag("session-steer"), onClick = {
+                model.session.submitDraft(steer = true)
+            }, enabled = open != null && editable && (draft.isNotEmpty() || attachedFiles.isNotEmpty()) && !sending && !attachmentBusy) { Text("转向") }
             if (canControl) Button(modifier = Modifier.testTag("session-cancel"), enabled = open != null, onClick = { scope.launch {
                 cancelFailed = false
                 try { model.session.cancelActive() }

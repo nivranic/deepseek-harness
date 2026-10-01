@@ -45,13 +45,15 @@ export type InputBarProps = ComposerBarProps & {
   interruptAvailable: boolean
   /** Generic-file staging is independent of inline image attachments. */
   fileUploadAvailable: boolean
+  /** Whether the admitted Host advertises steer-mode prompts (model.steer.v1, §30). */
+  steerAvailable: boolean
   /** Reject delayed file-picker results after their originating Host changes. */
   currentAuthority: () => boolean
 }
 
 export const InputBar = memo(function InputBar({
   useSession, useInput, inputActions, keyboard, addFiles, removeAttachment, resolveDraftAttachments,
-  retryFileUpload, controlAvailable, interruptAvailable, fileUploadAvailable, currentAuthority,
+  retryFileUpload, controlAvailable, interruptAvailable, fileUploadAvailable, steerAvailable, currentAuthority,
   toggleCommandMenu, stop, command, t,
   renderSlot, useBusyEnter, useFileUploads, useNotices, useLexicon, useMenuLauncher,
   useProjection, sessionId, variant, disabled: inert = false, blocked,
@@ -149,7 +151,9 @@ export const InputBar = memo(function InputBar({
   const workspaceTrigger = inert && !removed && onRequestWorkspace !== undefined
   const editorDisabled = removed || (locked && !workspaceTrigger)
   const editable = live && !locked && !machineBusy
-  const steeringAvailable = subagent === null || subagent.address.mode === 'continuable'
+  // §30 renders steer by capability: the Host must advertise model.steer.v1 and the
+  // addressed target must accept new turns (ordinary Session or continuable child).
+  const steeringAvailable = steerAvailable && (subagent === null || subagent.address.mode === 'continuable')
   const canSteerQueue = !locked && !machineBusy && !commandMenuOpen && empty && running && steeringAvailable
     && input.queue.some(row => row.placement === 'queued')
 
@@ -599,5 +603,6 @@ export function ControlAwareInputBar({ useControlCapability, ...props }:
   ComposerBarProps & InjectFace<ComposerCapabilityInjected>) {
   const control = useControlCapability(value => value)
   return <InputBar {...props} controlAvailable={control.prompt} interruptAvailable={control.interrupt}
-    fileUploadAvailable={control.fileUpload} currentAuthority={control.current} stop={control.stop} />
+    fileUploadAvailable={control.fileUpload} steerAvailable={control.steer}
+    currentAuthority={control.current} stop={control.stop} />
 }

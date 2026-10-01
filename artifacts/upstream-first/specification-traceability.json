@@ -3737,9 +3737,18 @@
       "candidateEvidence": [
         "COMPATIBILITY_MATRIX.md",
         "artifacts/upstream-first/upload-home-replay-source.json",
-        "artifacts/upstream-first/dynamic-cordis-runtime-source.json"
+        "artifacts/upstream-first/dynamic-cordis-runtime-source.json",
+        "packages/api/session-controller/src/capabilities.ts",
+        "packages/client/ui-conversation/src/client/input/control-capabilities.ts",
+        "packages/client/ui-conversation/tests/control-capabilities.client.spec.ts",
+        "packages/client/ui-conversation/tests/input-bar.client.spec.tsx",
+        "apps/web/tests/host-description.e2e.ts",
+        "apps/web/tests/android-steer.e2e.ts",
+        "apps/android/core/src/main/kotlin/ai/deepseek/dsh/companion/CompanionModels.kt",
+        "apps/android/core/src/main/kotlin/ai/deepseek/dsh/gateway/NativeGatewayDiagnostics.kt",
+        "apps/android/core/src/test/resources/support-native-gateway.json"
       ],
-      "remaining": "发现、独立能力与部分协议已有证据；仍需完整多版本/多语言矩阵、设备撤销状态、闭合错误语义和变更身份确认。",
+      "remaining": "第 30 节 steer 半面已交付：HostDescriptor capabilities 现广播 model.steer.v1（与 session.control.v1 在 prompt 方法上重叠声明同一 prompt.send 权限，首匹配查找与顺序无关），Web 按能力渲染显式转向提交（广播 ∧ 可接纳 prompt 路径缺一不可，一次性子代理地址排队不转向），Android 经 NativeObservedCapability.MODEL_STEER 观察该能力并在排队发送旁渲染转向入口，submitPrompt 以 steer 参数选择 wire mode、默认 queue wire 逐字节不变；本地 AVD 真实 companion 对回放 Host 的物理车道证明恰一条携带 mode:\"steer\" 的设备签名 session/prompt dispatch 且录制 turn settle。model.select.v1 已广播且 Web 选择器已存在。仍开放：Android 侧 model-select 采编入口、同候选真机验收；不授予整节 PASS。",
       "evidenceLimit": "这些路径是已定位的候选证据；尚未逐条证明本节每一项要求，不授予整节 PASS。"
     },
     {

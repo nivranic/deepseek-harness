@@ -13,6 +13,10 @@ export const SESSION_REMOTE_CAPABILITIES = [
   { id: 'session.attachment.v1', methods: ['attachment'], requiredPermission: 'prompt.send' },
   { id: 'model.catalog.v1', methods: ['modelCatalog'], requiredPermission: 'view' },
   { id: 'model.select.v1', methods: ['selectModel'], requiredPermission: 'prompt.send' },
+  // The steer promise rides the prompt method's mode argument; `prompt` deliberately
+  // overlaps session.control.v1 and both declare 'prompt.send', so the gateway's
+  // first-matching-capability permission lookup is order-independent here.
+  { id: 'model.steer.v1', methods: ['prompt'], requiredPermission: 'prompt.send' },
 ] as const satisfies readonly TypertRemoteCapability[]
 
 /** File candidate discovery; access checks remain with the composed provider. */

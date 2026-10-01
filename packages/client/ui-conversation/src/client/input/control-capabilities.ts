@@ -39,6 +39,9 @@ export function createComposerControlSource(deps: ComposerControlDeps): Observab
     snapshot = {
       prompt,
       interrupt,
+      // §30 renders steer by capability: the Host must advertise model.steer.v1 and
+      // the addressed target must accept new turns (ordinary Session or continuable child).
+      steer: supports('model.steer.v1') && prompt,
       fileUpload: !child && supports('file-upload.stage.v1'),
       current: () => deps.alive() && deps.host() === host && deps.address() === address,
       stop: !interrupt || cancel === undefined ? undefined : () => {

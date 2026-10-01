@@ -5,54 +5,95 @@
   "candidateTrackedChanges": [
     {
       "path": "IMPLEMENTATION_STATUS.md",
-      "sha256": "79970bff33175f4f41528a3ffe456e290777e50f5d5bd561c542b544cf1c58c7"
+      "sha256": "6b4c9fb21a31c5b495aaf70361dbd19cd8d6e11de5d3e249fad459db8b10cb10"
+    },
+    {
+      "path": "apps/android/app/src/androidTest/kotlin/ai/deepseek/dsh/companion/NativeCompanionAcceptanceTest.kt",
+      "sha256": "35d4ff919e0365cb0b71096d1ddf105006a86ba7cdf1fa7f05488969b9171806"
+    },
+    {
+      "path": "apps/android/app/src/main/kotlin/ai/deepseek/dsh/companion/HostCapabilityDetails.kt",
+      "sha256": "06b1ae49bf78560309dcfec47f0528bc166af2d79578c3e21aee1048b195c007"
+    },
+    {
+      "path": "apps/android/app/src/main/kotlin/ai/deepseek/dsh/companion/MainActivity.kt",
+      "sha256": "2bc25e0703f6b1e0d68c0f5734a9379dd6804dde6c7e9ff04d735014721725a2"
+    },
+    {
+      "path": "apps/android/app/src/main/res/values/native_companion.xml",
+      "sha256": "812a033cd3ee676074ff98db0bbedca26d1ea48945fe7d434912cf0ecc4dec1b"
+    },
+    {
+      "path": "apps/android/core/src/main/kotlin/ai/deepseek/dsh/companion/CompanionModels.kt",
+      "sha256": "ea1de20acdaad101a4285d666acf2202b96b3fd77e0983208aab8e24cfbc1b8a"
+    },
+    {
+      "path": "apps/android/core/src/main/kotlin/ai/deepseek/dsh/gateway/NativeGatewayDiagnostics.kt",
+      "sha256": "7fbad60b2553c7a4542f7d9772fc1c35e74ed64b16a4504e0901866213591479"
+    },
+    {
+      "path": "apps/android/core/src/test/resources/support-native-gateway.json",
+      "sha256": "98dfd271ec0de263c6696b1e75ff2965687b897a862a1f9bc8355670dbeafcd0"
+    },
+    {
+      "path": "apps/web/tests/host-description.e2e.ts",
+      "sha256": "81f28209bc2059072ace9c2b0f5feb641297d1ebc2ab6a12373d94aee5bf66ca"
     },
     {
       "path": "artifacts/upstream-first/evidence.json",
-      "sha256": "960ddedc0d117c9f40375ccb5808b6fc21595263f71a46917a9035344f989716"
+      "sha256": "6c1b6f785ca6e987afe911383d3ed30259145a0d60a39f75d852435a8eab22ea"
     },
     {
       "path": "artifacts/upstream-first/specification-traceability.json",
-      "sha256": "a199fea7d02514897a6f594baa6451a650ca42ee256897dd0061cb0e77112e3f"
+      "sha256": "65fa0d8903ea5e150725b438b17b2d94eca51ca58e0369d7314c42743534863f"
     },
     {
       "path": "artifacts/upstream-first/write-reports.mjs",
-      "sha256": "5a60852b6e191310228840bc51e314c4990878baa39f8f75e2b16842a7e34267"
+      "sha256": "8ca7482f68476c4e1db2507dd04c08ba31b892ffcc6666cbbce97e9f08a2bc50"
     },
     {
-      "path": "packages/client/ui-conversation/src/client/apply.ts",
-      "sha256": "8728e63fc05ce5726a1b5920e8ef298a86541a7ee5846ae60f5c30e07c3693c8"
+      "path": "packages/api/session-controller/src/capabilities.ts",
+      "sha256": "86d90d71291af78758eb8c3b3509525bf9ddd4c636e5027aa35a2d0f8d8f868e"
     },
     {
       "path": "packages/client/ui-conversation/src/client/contract/slots.ts",
-      "sha256": "0cfba398671e67be988ff1c112e56c7a3a914de434fc79cdf00016d8c0c0cd02"
+      "sha256": "7b02c18af4ec45ce05cd6fe3db481afe6fc590a5625be626c24310a932fa2746"
     },
     {
-      "path": "packages/client/ui-conversation/src/client/locales.ts",
-      "sha256": "c69a67d275020dceb4dea87a1006503ae8f99605e7726846ca60da0fba067a9d"
+      "path": "packages/client/ui-conversation/src/client/input/control-capabilities.ts",
+      "sha256": "27a833b5934234c7572580e9e02868d8f2c39e7f190577d62abb4c467530682b"
     },
     {
-      "path": "packages/client/ui-conversation/src/client/skeleton/ConversationRoot.module.css",
-      "sha256": "bce2339452d3f598f19aec01c86400f0cf20a09eda664073f996e8c917801159"
+      "path": "packages/client/ui-conversation/src/client/skeleton/InputBar.tsx",
+      "sha256": "da28746b03e93f01d0c3f2281fb4f630f79d1bfe5963d8c4ed040d7f6fc98275"
     },
     {
-      "path": "packages/client/ui-conversation/src/client/skeleton/ConversationSession.tsx",
-      "sha256": "6c9ce063e2f183047c30cf2e47349cb39164149aada4864216249a5859ac0a2c"
+      "path": "packages/client/ui-conversation/tests/control-capabilities.client.spec.ts",
+      "sha256": "f67e2723a6b4048a81fbf17270e6491c270f0bb2ff169cc0578b48664de3526f"
     },
     {
-      "path": "packages/client/ui-conversation/tests/assembly-surfaces.client.spec.tsx",
-      "sha256": "a8bade30b5fb3a1b74a29a774ff0632c39e88b0a0535d330763f146690133487"
+      "path": "packages/client/ui-conversation/tests/input-bar.client.spec.tsx",
+      "sha256": "21ef6ed0b2b5ed5c9cadfdfd7810a2f46a33a968373caf73b2256586a378650f"
+    },
+    {
+      "path": "packages/client/ui-conversation/tests/input-matrix.client.spec.tsx",
+      "sha256": "c51404559a3366f41cdc02caa7de439c11980bb523e509457fb094dd28d9bcac"
+    },
+    {
+      "path": "packages/client/ui-conversation/tests/input-scenarios.client.spec.tsx",
+      "sha256": "6f1c1ccb9d63c2f9c71226e2158c4767257cdb100f688b7c78e352221bac970e"
     },
     {
       "path": "packages/client/ui-conversation/tests/skeleton.client.spec.tsx",
-      "sha256": "20cf5a4d0994e54b179ee0641779c27a187ba7eff55c8ba30917662ca96c4808"
-    },
-    {
-      "path": "packages/client/ui-trajectory/tests/views.client.spec.tsx",
-      "sha256": "33e76a49be52463f7bf781b64bdc28f98971efc7c343485260006dd8c89084b3"
+      "sha256": "0b71772aa77e697aa8491074d24c0d8ab9a16bbde0c6a81a2df7e50f79d57145"
     }
   ],
-  "candidateUntrackedSourceChanges": [],
+  "candidateUntrackedSourceChanges": [
+    {
+      "path": "apps/web/tests/android-steer.e2e.ts",
+      "sha256": "9b6fd85485e6c8698d3e292b4eeda7ed00e7b4dfc1e13c68188f8729a4131332"
+    }
+  ],
   "validationStatus": "PASS",
   "validationScope": "report SHA, path coverage and state consistency only",
   "gate0": "PASS",
@@ -10382,6 +10423,48 @@
     },
     {
       "status": "PASS",
+      "command": "vitest run over the fourteen composer-surface web lanes (repo root, vitest.web.config.ts, local AVD emulator-5554 with native-acceptance APKs against a replay Host); Executed vitest web lane round on the local AVD emulator-5554 with the native-acceptance APKs against a replay Host: the new android-steer lane proves exactly one device-signed session/prompt dispatch carrying mode steer whose recorded turn settles plus the cleared pending prompt, and the thirteen composer-surface regression lanes (prompt-retry both legs, input persistence/retention, companion question, host roster, host question, capability presentation, operation capabilities, session list, file/photo/camera attachments, share intake) stay green in the same serial session, with camera-attachments grounded by its recorded standalone rerun after one load-induced flake; 14 lanes / 15 tests green",
+      "log": ".artifacts/model-steer-native-verified.log",
+      "sourceRecord": "artifacts/upstream-first/model-steer-source.json"
+    },
+    {
+      "status": "PASS",
+      "command": "gradlew -p apps/android :core:test :contract:test (Windows host, JDK 17); Executed Kotlin JVM round re-running both companion suites through gradlew :core:test :contract:test on the Windows host (JDK 17): the XML report aggregate over apps/android/{core,contract} sums 73 suites / 469 tests with zero failures, errors and skips, and the same round records the support-native-gateway.json fixture gaining the model.steer.v1:false client-allowlist key with counts unchanged; 1 round / 469 tests green",
+      "log": ".artifacts/model-steer-core-tests.log",
+      "sourceRecord": "artifacts/upstream-first/model-steer-source.json"
+    },
+    {
+      "status": "PASS",
+      "command": "npx vitest run --config vitest.config.ts packages/client/ui-trajectory packages/client/ui-conversation (repo root); 43 files / 618 tests green via the Test Files/Tests summary lines",
+      "log": ".artifacts/model-steer-audit-tests.log",
+      "sourceRecord": "artifacts/upstream-first/model-steer-source.json"
+    },
+    {
+      "status": "PASS",
+      "command": "affected-lane summary of the sealed rounds: the fourteen-lane composer-surface serial round (steer lane new, camera flake grounded by its standalone rerun), the Kotlin JVM 73/469 aggregate and the audit vitest 43/618 round over ui-trajectory and ui-conversation",
+      "log": ".artifacts/model-steer-tests.log",
+      "sourceRecord": "artifacts/upstream-first/model-steer-source.json"
+    },
+    {
+      "status": "PASS",
+      "command": "pnpm run typecheck (tsc -b client + host faces, incl. the steer slot and InputBar prop completion) and node --import tsx/esm scripts/run-oxlint.ts .; exit 0 / 0 warnings / 0 errors",
+      "log": ".artifacts/model-steer-types-lint.log",
+      "sourceRecord": "artifacts/upstream-first/model-steer-source.json"
+    },
+    {
+      "status": "PASS",
+      "command": "pnpm run test:docs (17 gates); pnpm run doc-sync (36 gates); node --test specification-traceability.test.mjs (6 pass / 0 fail); node verify-audit.mjs --require-gate0 (exit 0)",
+      "log": ".artifacts/model-steer-docs.log",
+      "sourceRecord": "artifacts/upstream-first/model-steer-source.json"
+    },
+    {
+      "status": "PASS",
+      "command": "node artifacts/upstream-first/verify-audit.mjs --require-gate0",
+      "log": ".artifacts/model-steer-gate0-final.log",
+      "sourceRecord": "artifacts/upstream-first/model-steer-source.json"
+    },
+    {
+      "status": "PASS",
       "command": "Workspace and Conversation source regression before shared readiness correction",
       "tests": 599,
       "log": ".artifacts/workspace-admission-tests-final.log",
@@ -11112,7 +11195,272 @@
       ]
     }
   },
+  "modelSteer": {
+    "status": "PASS",
+    "sourceRecord": "artifacts/upstream-first/model-steer-source.json",
+    "scope": "Model steer axis: the section 30 open item — the legacy steer promise rode the session/prompt mode argument bare, with no advertised capability, an implicit web address rule and a hardcoded Android queue mode — now rides the shared capability contract. SESSION_REMOTE_CAPABILITIES advertises model.steer.v1 over the existing prompt method, deliberately overlapping session.control.v1 on the same prompt.send permission so the gateway's first-matching-capability lookup is order-independent; HostDescriptor capabilities list the new id and the host-description e2e pins it. The web composer gates the explicit steer submission by capability: ComposerControlAvailability gains steer as the advertisement and an admitting prompt path together, the InputBar renders the steer submission only when both hold, and one-shot subagent addresses queue instead of steering. Android observes the capability through NativeObservedCapability.MODEL_STEER (no separate endpoint — the promise rides prompt), renders a steer entry beside the queue send with a two-character label that keeps the one-row composer the acceptance lanes exercise against the soft keyboard (a full-width label overflowed the row, squeezed the draft field and collapsed the session list — the regression the prompt-retry leg caught and the fix's evidence trail records), and submitPrompt grows a steer parameter selecting the wire mode while the default queue wire stays byte-identical; the support-export snapshot gains the model.steer.v1:false client-allowlist key. Acceptance is the fourteen-lane composer-surface serial round on the local AVD emulator against a replay Host — the new android-steer lane proves exactly one device-signed session/prompt dispatch carrying mode steer whose recorded turn settles plus the cleared pending prompt, camera-attachments grounds its single load flake by the recorded standalone rerun — the gradle :core:test/:contract:test aggregate (73 suites / 469 tests), the web vitest matrix over the two affected client packages (43 files / 618 tests, including the new gating and unadvertised-queue cases) plus typecheck, oxlint, doc-sync and gate0; the traceability record rewrites the section 30 remaining to the delivered steer half with eight evidence paths. The decision is recorded in the 2026-10-01-model-steer note triple. The Android model-select composition entry and real-device qualification stay open, and the full objective remains in progress",
+    "repositoryKnownCodes": 84,
+    "uniqueOwners": 14,
+    "missingSemanticCommentsAdded": 49,
+    "packagedFiniteCodeSchema": true,
+    "sourceDeclarationsRemainExtensible": true,
+    "unknownCodeDiagnosticsPreserved": true,
+    "detailsPayloadSchema": false,
+    "nativeClientQualified": false,
+    "runtimeBehaviorChanged": true,
+    "newSessionEvents": false,
+    "phase3Complete": false,
+    "fullGoalComplete": false,
+    "resultInvalidMeaningMatchesEmitter": true,
+    "historicalSchedulerArchivePreserved": true,
+    "compilerIndependentDetailsGraphs": true,
+    "hostAndClientSeparate": true,
+    "builtModelMatchesSource": true,
+    "portableDetailsPayloadSchema": false,
+    "readonlyArrayAndTupleEmission": true,
+    "parsedReadonlyContainersFrozen": true,
+    "portableValidationIssueFields": true,
+    "compilerResolvedErrorDetails": true,
+    "resolvedFaceCodePairs": 144,
+    "overlappingSchemasCompared": 60,
+    "detailsSchemaPublished": false,
+    "formalEnvelopeSchemaEmitted": true,
+    "envelopeSchemaKnownBranches": 84,
+    "envelopeUnknownCodeExcludesKnownCodes": true,
+    "envelopeTupleDetailsRejected": true,
+    "envelopeLocalPackConsumed": true,
+    "envelopeRegistryPublished": false,
+    "remoteFailureClassification": true,
+    "classifiedCodes": 28,
+    "unknownCodeDefaultOpaque": true,
+    "gatewayClientConsumesClassification": true,
+    "classificationInventoryVerified": true,
+    "kotlinContractColumn": true,
+    "kotlinSchemaTests": 8,
+    "kotlinMirrorProjection": true,
+    "swiftColumn": false,
+    "androidShellMigrated": false,
+    "phase10Started": true,
+    "failureClasses": 9,
+    "invalidInputClass": true,
+    "uiAdoptionStarted": true,
+    "uiSurfacesAdoptingClassification": 2,
+    "swiftContractColumn": true,
+    "swiftSchemaTests": 4,
+    "swiftPayloadValidation": false,
+    "interactionReplyPermissions": true,
+    "interactionPermissionHostEnforced": true,
+    "interactionPermissionConfigurable": true,
+    "deviceTrustRolesReplaceSwitch": false,
+    "androidCoreMigrated": true,
+    "androidCoreTestClasses": 37,
+    "androidAppSourcesMigrated": true,
+    "androidAppConfigured": true,
+    "androidShellCompiled": false,
+    "androidScannerChainBlocked": true,
+    "swiftCheckExecutable": true,
+    "swiftLaneRunner": "macos-15-arm64",
+    "swiftLaneRecovered": true,
+    "diagnosticsOnlyTier": true,
+    "diagnosticsOnlyAdmittedEndpoints": 2,
+    "unknownVersionRejectUnchanged": true,
+    "responsivePhoneDrawer": true,
+    "phoneTierSidebarTrackZero": true,
+    "drawerWidthPx": 280,
+    "drawerDismissalPaths": 2,
+    "leftInputRegionSessionMaybe": true,
+    "frameColumnsExplicitlyPlaced": true,
+    "scannerAarBuilt": true,
+    "scannerAarStaticVerification": "PASS",
+    "scannerAarSourceSha": "8ca9f6ebf33de3912292416b85f5b510c88de9a3",
+    "assembleDebugGatePassed": true,
+    "emulatorMainActivityResumed": true,
+    "gatewayFailureConsumption": true,
+    "envelopeDetailsPreservedBothPaths": true,
+    "sharedClassificationDrivesPresentation": true,
+    "unknownCodesStayOpaque": true,
+    "uiSubagentClassificationAdopted": true,
+    "adoptingSurfacesCount": 5,
+    "queueDockClassificationAdopted": true,
+    "jobsFailureClassThreaded": true,
+    "sessionJobWireFieldAdditive": true,
+    "androidRefusalLaneDriven": true,
+    "ed25519KeyGenerationBundled": true,
+    "filesFollowStreamStarted": true,
+    "jobsProducerAdoptionVoid": true,
+    "linkAccessTakeoverDecided": true,
+    "remotePackagesStayRetired": true,
+    "gatewayOwnsDeviceAccess": true,
+    "deviceTrustSeamLanded": true,
+    "pairingIssuanceLive": true,
+    "knownErrorCodes": 89,
+    "deviceGrantsDurable": true,
+    "pairingCodesProcessLocalByDesign": true,
+    "deviceRolesMatchSection21Table": true,
+    "roleMappedReplyPermissions": true,
+    "signedAdmission": true,
+    "connectionStatesCompleteSection18": true,
+    "deviceRevokedStatePresent": true,
+    "protocolInteropMatrixPinned": true,
+    "section14VersionAxisEvidence": true,
+    "perRequestDeviceAdmission": true,
+    "capabilityRequiredPermissionVocabulary": true,
+    "remoteExecutionAuthorizationGated": true,
+    "sessionCapabilitiesDeclarePermissions": true,
+    "sessionReadWriteSplits": true,
+    "businessPermissionAdoptionStarted": true,
+    "workspaceCapabilitiesDeclarePermissions": true,
+    "remainingOwnersDeclarePermissions": true,
+    "admissionReplayLedger": true,
+    "androidClientSignsAdmissions": true,
+    "deviceIdentityConfirmation": true,
+    "devicesSettingsSurface": true,
+    "branchGateDebt": true,
+    "safeAreaInsets": true,
+    "keyboardAvoidance": true,
+    "foldableFrame": true,
+    "runningLocation": true,
+    "phoneTopBar": true,
+    "designLanguage": true,
+    "hostNaming": true,
+    "commandRisk": true,
+    "approvalFacts": true,
+    "followResume": true,
+    "viewLocation": true,
+    "composerGate": true,
+    "hostDiagnostics": true,
+    "supportBundle": true,
+    "telemetryConsent": true,
+    "diagnosticsRecorder": true,
+    "sessionHeadersEntry": true,
+    "settingsEntry": true,
+    "telemetryGate": true,
+    "savedHosts": true,
+    "degradedProbes": true,
+    "permissionTierChip": true,
+    "durableRetainedAnswers": true,
+    "unifiedDiffPreview": true,
+    "binaryFactCard": true,
+    "retargetableEndpoint": true,
+    "rosterSwitch": true,
+    "rosterUi": true,
+    "interruptedTransfer": true,
+    "mimeInference": true,
+    "hostSelectionObserver": true,
+    "diffReadableCopy": true,
+    "diffRichViewer": true,
+    "browserHostOrigin": true,
+    "deviceAdmissionLifecycle": true,
+    "nativePairing": true,
+    "nativeRemoteTls": true,
+    "nativePairingPresentation": true,
+    "androidNativeGatewayCore": true,
+    "androidNativeCompanion": true,
+    "androidNativeLifecycle": true,
+    "androidRepairing": true,
+    "androidCredentialRecovery": true,
+    "androidSessionList": true,
+    "androidInputRetention": true,
+    "androidInputPersistence": true,
+    "androidPromptRetry": true,
+    "androidHostRoster": true,
+    "androidViewLocation": true,
+    "androidCursorResume": true,
+    "androidResourceAdoption": true,
+    "androidNativeDiagnostics": true,
+    "nativeScannerAdoption": true,
+    "nativeScannerCandidate": true,
+    "nativeScannerSameSourceVerified": true,
+    "nativeScannerRepeatByteIdentical": true,
+    "nativeScannerBinarySymbolScan": true,
+    "androidCapabilityPresentation": true,
+    "androidCapabilityGenerationIsolation": true,
+    "androidCapabilityReadOnlyRefresh": true,
+    "androidOperationCapabilities": true,
+    "androidKnownOperationPreflight": true,
+    "androidCapabilityDraftRetention": true,
+    "androidSubagentTimeline": true,
+    "androidSelectedParentCatalog": true,
+    "androidChildObservationRetirement": true,
+    "androidCompleteResourceSave": true,
+    "androidResourceSavePickerOwnership": true,
+    "androidResourceSaveIndependentBytes": true,
+    "androidEncryptedDownloadCheckpoints": true,
+    "androidExplicitDownloadContinuation": true,
+    "androidDownloadJvmInterruptionRecovery": true,
+    "androidPersistentDownloadAdoption": true,
+    "androidDownloadDiskExport": true,
+    "androidInstalledDownloadProcessRecovery": true,
+    "androidDownloadHostIsolation": true,
+    "androidAcceptanceApkAdmission": true,
+    "androidFilesPickerAttachments": true,
+    "androidDurableFilePromptIntents": true,
+    "androidFileDraftProcessRecovery": true,
+    "androidFilePickerAuthority": true,
+    "hostStagedImageAdmission": true,
+    "androidPhotosPickerAttachments": true,
+    "androidDurableMixedAttachmentIntents": true,
+    "androidPhotoDraftProcessRecovery": true,
+    "androidCameraStagedImages": true,
+    "androidCameraOwnedOutputCleanup": true,
+    "androidCameraProcessRecovery": true,
+    "androidShareExplicitConfirmation": true,
+    "androidShareAtomicDraftAdoption": true,
+    "androidShareRestorationIsolation": true,
+    "androidViewDeepLinksCurrentHostNavigation": true,
+    "androidViewDeepLinksDeliveryIsolation": true,
+    "androidViewDeepLinksInputPreservation": true,
+    "androidPushForegroundRecovery": true,
+    "androidPushBackgroundProducerRetention": true,
+    "androidPushNotificationConsumption": true,
+    "androidNotificationPermission": true,
+    "androidNotificationSettingsRecovery": true,
+    "androidNotificationProcessRequestOwnership": true,
+    "androidAttachmentReceiptRecovery": true,
+    "androidAttachmentPendingDraftIsolation": true,
+    "nativeUploadBudget": true,
+    "nativeImageUploadBudget": true,
+    "nativeHostRestart": true,
+    "nativeUploadDedupe": true,
+    "browserUploadDedupe": true,
+    "nativeDigestMemory": true,
+    "browserDedupeVerification": true,
+    "hostsRosterRename": true,
+    "diffSplitView": true,
+    "appleRosterSwift": true,
+    "androidHostQuestion": true,
+    "sessionLocationChip": true,
+    "modelSteer": true,
+    "limitations": [
+      "The device evidence is the vitest web lane round over the fourteen composer-surface lanes on the local AVD emulator with native-acceptance APKs against a replay Host (android-steer new; prompt-retry both legs; camera-attachments failed once in the serial round and grounded by its 63.1s standalone full-lane-green rerun recorded in the sealed log) plus the gradle :core:test/:contract:test aggregate and audit round (73 suites / 469 tests / 0 failures); the acceptance is limited to the emulator and the nativeacceptance application id, so real hardware stays open.",
+      "The host-description.e2e.ts capabilities lane fails locally because the locally composed scaffold advertises 80+ capabilities against the lane's 17-entry session-plane list; stashing this increment reproduced the identical failure at HEAD, so the divergence is pre-existing and local-only and the PR-channel CI run owns the authoritative verdict for that lane.",
+      "This generation's prepare ruling derives exactly two replacedPriorBuildOutputs keys — the two ui-conversation slots.d.ts built declarations the §30 steer slot re-emitted — which no disk, archive or committed copy can replay; the demoted session-location-chip record shape-checks them through its own per-record key set in the generator while the generator's cumulative replacedPriorBuildOutputs set keeps its nine inherited keys, and the overwritten Kotlin test-report XMLs stay replayable through the before archives.",
+      "Every Host advertises model.steer.v1 today, so the unadvertised path is exercised by the web unit tests only (capability withholding is a code-level change, not a configuration knob)."
+    ],
+    "nextRequiredWork": {
+      "specification": "artifacts/upstream-first/original-specification.md",
+      "traceability": "artifacts/upstream-first/specification-traceability.json",
+      "remaining": [
+        "Keep the Android model-select composition entry and real-device qualification open for the section 30 model capabilities — model.select.v1 is advertised with the web picker present but the Android side has no select UI, and the steer acceptance is emulator-and-nativeacceptance-id only.",
+        "Keep follow cursor, view-location handoff, multi-Host switching and real-device acceptance open for the section 29 location metadata — the chip publishes the five location facts on the web client only and no device round runs this generation.",
+        "Keep real hardware, the Swift shell, background/push delivery and full Session location metadata open for the Question isolation lane — the acceptance is emulator-and-nativeacceptance-id only, and the Approval interaction type shares the same inbox and per-principal model without a dedicated physical lane.",
+        "Classify the next cursor failure using the preserved diagnostics, or establish a controlled reproduction before changing its owner. Do not close this investigation merely because subsequent runs pass.",
+        "The Swift roster mirror has no local execution on Windows hosts and no completed macOS CI run inside this chain; keep Swift-side execution evidence open, and keep roster write and re-pair semantics Android-core behavior with the Swift mirror reading and validating only.",
+        "Keep cross-tab and persisted view preferences and intra-line word highlighting inside a paired split row open independently; the per-tab split toggle does not close them.",
+        "Cover per-browser-profile isolation boundaries, cross-device name synchronization and manual roster ordering independently; the local rename seam does not close them.",
+        "Give the streaming carrier a deduplication path and cover cross-tab digest behavior; the real-browser deduplication-hit lane does not close them.",
+        "Qualify image and mixed-attachment recovery, large/resumable uploads, per-principal digest scoping, capacity tuning, storage-backed browser digest memory and physical-device Host restarts independently; the durable companion digest-memory file does not close broader attachment or Mobile Release acceptance.",
+        "Qualify image and mixed-attachment recovery, large/resumable uploads, per-principal digest scoping, capacity tuning, storage-backed browser digest memory and physical-device Host restarts independently; the durable companion digest-memory file does not close broader attachment or Mobile Release acceptance.",
+        "Qualify streaming and resumable uploads, physical devices and third-party senders independently; the local complete-body check is advisory and Host or proxy rejection remains authoritative.",
+        "Continue notification channel, settings revocation/process-death, persistent denial, physical-device, relay-backed delivery and precise Host/Session notification target qualification. Actual Recents and physical network/mux recovery remain separate work.",
+        "Continue Swift attachment adoption, cross-platform sharing and link entry, larger streamed uploads, upload retry/receipt expiry recovery, Host limit negotiation and the remaining requirement matrices without changing Host-owned authorization.",
+        "Retain scanner clean-cache/cross-machine, race, physical/16-KiB device, signed release, CodeQL and Apple gaps. Session writer V3 and completeRc=false persist; remote CI is distinct from local evidence. No memory update or handoff package."
+      ]
+    }
+  },
   "sessionLocationChip": {
+    "historical": true,
+    "followup": "artifacts/upstream-first/model-steer-source.json",
     "status": "PASS",
     "sourceRecord": "artifacts/upstream-first/session-location-chip-source.json",
     "scope": "Session location chip axis: the section 29 open item — the web Session header published only the Host facts of the running location — now publishes every location fact the section requires. The chip's visible text carries the Host facts (descriptor display name and platform, or platform alone), the workspace directory name (the last segment of the session summary cwd) and the current permission tier; while the connection is not ready it appends a localized online-state short word from the new session.locationState.* vocabulary (ten bilingual keys); the title attribute additionally carries the runtime mode (session.runtimeMode.full, read from the Host descriptor) and the full workspace path, so absent segments stay absent by the same semantics the chip already used for absent Host facts. The header observes the live online state through the connectionState ObservableSnapshot injected into the ConversationSessionHeader slot (the ConnectionHandle.state observable, the same source the root composer gate observes) instead of a second projection, and colors the status dot by the section 18 connection vocabulary: ready and unobserved keep the success tone, connecting/authenticating/reconnecting take the business tone, and the seven blocked states take the warning tone with their short word. Acceptance is the web vitest matrix over the two affected client packages (43 files / 616 tests, including the new section 29 matrix cases for title publication, absent-workspace omission, the live online-state word and the three dot tones) plus typecheck, oxlint, doc-sync and gate0; the traceability record adds the two evidence paths and narrows the section 29 open tail to follow cursor, handoff and the remaining section acceptance, while the stale section 34 open clause is corrected to record the already-delivered desktop split diff. The decision is recorded in the 2026-10-01-session-location-chip note triple. No device round runs this generation; follow cursor, view-location handoff, multi-Host switching and real-device acceptance stay open, and the full objective remains in progress",
@@ -32646,7 +32994,7 @@
       "The known Windows symlink EPERM expanded-suite failure from the cancellation increment was not rerun or resolved"
     ]
   },
-  "latestSourceRecord": "artifacts/upstream-first/session-location-chip-source.json",
+  "latestSourceRecord": "artifacts/upstream-first/model-steer-source.json",
   "cancelTarget": {
     "historical": true,
     "followup": "artifacts/upstream-first/rename-revision-source.json",
@@ -33129,7 +33477,7 @@
     "files": [
       {
         "path": "artifacts/upstream-first/write-reports.mjs",
-        "sha256": "5a60852b6e191310228840bc51e314c4990878baa39f8f75e2b16842a7e34267"
+        "sha256": "8ca7482f68476c4e1db2507dd04c08ba31b892ffcc6666cbbce97e9f08a2bc50"
       },
       {
         "path": "artifacts/upstream-first/verify-audit.mjs",

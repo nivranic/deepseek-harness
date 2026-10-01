@@ -267,6 +267,7 @@ function mount(
           controlAvailable
           interruptAvailable
           fileUploadAvailable
+          steerAvailable
           currentAuthority={() => true}
           sessionId={SID}
           SessionProvider={({ children }) => children}

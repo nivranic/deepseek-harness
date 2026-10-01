@@ -25,7 +25,8 @@ enum class NativeObservedCapability(val wire: String) {
     FILE_LIST("workspace-files.list.v1"), FILE_TEXT("workspace-files.read-text.v1"),
     FILE_BYTES("workspace-files.read-bytes.v1"), FILE_UPLOAD("file-upload.stage.v1"),
     FILE_UPLOAD_DEDUPE("file-upload.dedupe.v1"), IMAGE_UPLOAD("image-upload.stage.v1"),
-    SUBAGENT_CATALOG("subagent.catalog.v1"), HTTP_REQUEST_BUDGET("native-remote.http-request-budget.v1");
+    SUBAGENT_CATALOG("subagent.catalog.v1"), HTTP_REQUEST_BUDGET("native-remote.http-request-budget.v1"),
+    MODEL_STEER("model.steer.v1");
 
     companion object {
         /** Native-owned operations mirror their Remote owner's advertised method sets. */

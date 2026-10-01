@@ -144,6 +144,7 @@
     <string name="native_capabilities_file_upload">上传文件附件</string>
     <string name="native_capabilities_file_upload_dedupe">按摘要重新暂存已上传文件</string>
     <string name="native_capabilities_http_request_budget">查询原生请求大小限制</string>
+    <string name="native_capabilities_model_steer">转向发送</string>
     <string name="native_attachment_add">添加附件</string>
     <string name="native_capabilities_image_upload">上传图片附件</string>
     <string name="native_attachment_photo">照片</string>

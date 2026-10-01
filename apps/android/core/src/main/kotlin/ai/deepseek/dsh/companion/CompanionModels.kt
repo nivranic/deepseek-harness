@@ -344,15 +344,17 @@ class SessionModel(
             else current.drafts + (sessionId to SessionDraft(text, "companion-${java.util.UUID.randomUUID()}", files)))
     }
 
-    /** Only a positive Host acknowledgement clears the exact submitted draft; newer edits survive. */
-    suspend fun sendDraft(): Boolean {
+    /** Only a positive Host acknowledgement clears the exact submitted draft; newer edits survive.
+     * Steer mode interrupts the running turn (or runs next-step when idle); the Host owns that decision.
+     */
+    suspend fun sendDraft(steer: Boolean = false): Boolean {
         val sessionId = _open.value?.sessionId ?: return false
         val draft = input.value.drafts[sessionId] ?: return false
-        return submitPrompt(sessionId, draft, retainIntent = true)
+        return submitPrompt(sessionId, draft, retainIntent = true, steer = steer)
     }
 
     /** Start an explicit UI submission in model lifetime so tab disposal cannot cancel its acknowledgement. */
-    fun submitDraft(): Job = scope.launch(start = CoroutineStart.UNDISPATCHED) { sendDraft() }
+    fun submitDraft(steer: Boolean = false): Job = scope.launch(start = CoroutineStart.UNDISPATCHED) { sendDraft(steer) }
 
     /** Retry the persisted original intent explicitly, even when the composer contains newer edits. */
     fun retryPrompt(requestId: String): Job = scope.launch(start = CoroutineStart.UNDISPATCHED) {
@@ -546,7 +548,7 @@ class SessionModel(
     }
 
     private suspend fun submitPrompt(sessionId: String, draft: SessionDraft, images: List<Pair<String, String>> = emptyList(),
-                                     retainIntent: Boolean = false): Boolean {
+                                     retainIntent: Boolean = false, steer: Boolean = false): Boolean {
         synchronized(submissionAdmission) {
             if ((draft.text.isEmpty() && draft.attachments.isEmpty() && images.isEmpty()) || attachmentAdmission != null || !sendLock.tryLock()) return false
             _sending.value = true
@@ -582,7 +584,7 @@ class SessionModel(
                         mapOf(
                             "requestId" to WireValue.StringValue(requestId),
                             "sessionId" to WireValue.StringValue(sessionId),
-                            "mode" to WireValue.StringValue("queue"),
+                            "mode" to WireValue.StringValue(if (steer) "steer" else "queue"),
                             "content" to WireValue.ArrayValue(content),
                         ),
                     ),
