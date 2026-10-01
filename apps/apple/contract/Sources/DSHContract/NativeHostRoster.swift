@@ -73,8 +73,9 @@ extension NativeHostRoster {
         let root = try jsonObject(data)
         try requireKeys(root, ["version", "active", "hosts"], "root fields")
         // JSONSerialization bridges true/false as NSNumber, and NSNumber(value: true)
-        // compares equal to 1; Kotlin's intOrNull rejects booleans, so reject them first.
-        guard let version = (root["version"] as? NSNumber), (root["version"] as? Bool) == nil, version == 1 else {
+        // compares equal to 1; `as? Bool` also succeeds for small integers on macOS,
+        // so discriminate JSON booleans by the CoreFoundation boolean type instead.
+        guard let version = (root["version"] as? NSNumber), CFGetTypeID(version) != CFBooleanGetTypeID(), version == 1 else {
             throw NativeHostRosterError("unsupported Host catalog version")
         }
         guard let rows = root["hosts"] as? [Any] else { throw NativeHostRosterError("Host catalog array required") }
