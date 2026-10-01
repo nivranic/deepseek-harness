@@ -1,0 +1,66 @@
+{
+  "status": "PASS",
+  "scope": "Report bindings and audit for the apple model catalog increment: the section 30 apple contract column adopts the model-selection vocabulary — NativeModelCatalog.decode mirrors SessionModel.modelCatalog with the Kotlin authority's exact leniency (string-id drops, id-fallback names, non-object reasoning absent, non-string default members empty, malformed JSON failing, non-object documents empty), NativeEffortChoice/NativeModelReasoning carry the effort vocabulary, and NativeModelSelection.wireBody() mirrors the selectModel envelope with reasoningEffort riding only when non-nil so an effort-free selection stays byte-identical; acceptance is the Windows-host gradle round alone (BUILD SUCCESSFUL; :core:test executed with NativeModelCatalogFixtureTest driving the real parser through FakeWire over the shared fixture set — counts pinned 1/3/1 in both columns — after a green filtered first run; :contract:test UP-TO-DATE replaying the prior bytes; rewritten core XML 73/464, untouched contract XML 1/9) with the Swift mirror honestly not compiled on this host (macos-15 CI swift-contract lane owns that evidence) and the first gradle redirect mishap disclosed in the native-verified summary; the web vitest matrix stays at 43 files / 618 tests (no web client change), typecheck, oxlint, doc-quick, doc-sync and gate0 pass; the Apple shell UI entry and the real-device qualification stay open; full Upstream-First objective remains in progress",
+  "gate0": {
+    "validation": "PASS",
+    "gate0": "PASS",
+    "paths": 1938,
+    "components": 129,
+    "specificationCoverage": {
+      "status": "PASS",
+      "numberedSections": 81,
+      "nonEmptySourceLines": 1983,
+      "acceptanceProven": false
+    }
+  },
+  "sourceRecord": {
+    "path": "artifacts/upstream-first/apple-model-catalog-source.json",
+    "sha256": "86f77a7e29afe8c6669069610921a0be7c4712a7f9b52efb542b447ec352a6af"
+  },
+  "generator": {
+    "path": "artifacts/upstream-first/write-reports.mjs",
+    "sha256": "d8b0d1d65da8114b0eceb1778c85e5ad167562b832a21ffd1ee4e63b4b6c8f9e"
+  },
+  "binding": {
+    "path": "artifacts/upstream-first/apple-model-catalog-binding.json",
+    "sha256": "c4b9713dfaf0866fe4fdbfdfd6f3f72d00e450481dad12848358a5c00d059d25"
+  },
+  "helpers": [
+    {
+      "path": ".artifacts/advance-apple-model-catalog-reports.mjs",
+      "sha256": "2a6e72ae0b28d7fe03b8fc3f7661fdb9670e1371ea3122c6394b5485440e847c"
+    },
+    {
+      "path": ".artifacts/capture-apple-model-catalog-validation.mjs",
+      "sha256": "97461def56e9dda6f000af11ad6d5bdb5cdc1de70201ca83f9bd1c3bcb175d22"
+    }
+  ],
+  "reports": [
+    {
+      "path": "IMPLEMENTATION_STATUS.md",
+      "sha256": "53d6ed426f43ded0da7b6c7103fc8781646d856be51393b4c28e720617e5d997"
+    },
+    {
+      "path": "artifacts/upstream-first/evidence.json",
+      "sha256": "f52b0a81406826dc142d3c1960fbdc5331c5cefde9ee11f7a162a914560d2cdf"
+    }
+  ],
+  "checks": [
+    {
+      "path": ".artifacts/apple-model-catalog-binding.log",
+      "sha256": "9923e4e05ed47bbf621a7161bfce62877c8429a31b7adfe1aea7fc838d06a3a4"
+    },
+    {
+      "path": ".artifacts/apple-model-catalog-audit-final.log",
+      "sha256": "28878f66e61c9b84f9acbfc54e88261cbc21edcf27a5b79060e52cafe9b71732"
+    },
+    {
+      "path": ".artifacts/apple-model-catalog-gate0-final.log",
+      "sha256": "505d74ef938f5d34d85490d37e0176ba804d93272fcf465ce2544a02c56b3f90"
+    },
+    {
+      "path": ".artifacts/apple-model-catalog-report-generation.log",
+      "sha256": "fe010532f71a6341467ae5719b29ac19470895de1d481156335b8f70a3273ed5"
+    }
+  ]
+}

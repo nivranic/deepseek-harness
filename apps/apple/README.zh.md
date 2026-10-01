@@ -12,6 +12,8 @@ DeepSeek Harness 的下游 Apple 薄壳工程。设备首先是 Remote Companion
 
 本契约同时采纳第 28 节原生 Host 名册词汇：`NativeHostRoster.decode` 镜像 Android core 的 `FileNativeHostStore`——精确字段集、非空白字符串、`native-gateway-v1` 传输格式、四个配对角色、64 位小写十六进制钉定指纹、32 字节签名密钥、规范可达 HTTPS origin、互异 Host 键（`NativeHostRoster.hostKey`，`[hostId, pinnedFingerprint]` 的 SHA-256）、以及必须指向已存身份的 active 键。Kotlin 权威与本镜像消费同一批夹具（`fixtures/native-host-roster/`，一份规范文档加 14 个拒绝用例）；`NativeHostCatalogTest` 把完全相同的字节送入 Android store，两个实现的接受与拒绝保持对等。
 
+本契约同时采纳第 30 节模型选择词汇：`NativeModelCatalog.decode` 镜像 Android core 的 `SessionModel.modelCatalog`——provider 分组的可路由模型，且宽容语义一致（无字符串 id 的条目被丢弃、名称回退为 id、非对象 `reasoning` 字段视为缺席、default 的非字符串成员读为空），`NativeModelSelection.wireBody()` 镜像 `SessionModel.selectModel`（`session/selectModel` 请求信封，`reasoningEffort` 仅在存在时携带——不带力度的选择与力度出现前的 wire 字节一致）。共享夹具集（`fixtures/native-model-catalog/`，一份规范文档、三个宽容边界用例、一个残缺用例）经 Kotlin 侧 `NativeModelCatalogFixtureTest` 与本侧自检双向消费，两个解析器的丢弃与回退保持一致。
+
 ## 已知限制与后续工作
 
 Swift 侧未重实现 schema payload 校验；本包只固定分类与 schema 结构证据。未声明任何原生外壳、模拟器或真机资格、商店打包或多版本行为。wrapper 需要 macOS；本工程无法在 Windows/Linux 主机构建。

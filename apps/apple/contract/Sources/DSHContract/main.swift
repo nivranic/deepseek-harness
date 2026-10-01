@@ -89,4 +89,80 @@ guard NativeHostRoster.hostKey(hostId: "host-desk", pinnedFingerprint: String(re
 }
 print("PASS roster Host key binds the verified Host identity")
 
+// Native model catalog adoption: the Swift mirror parses the Android core's
+// session/modelCatalog response with the same leniency (typed drops and id
+// fallbacks, never silent type coercion) and builds the same session/selectModel
+// request envelope, the reasoning effort riding only when present.
+let catalogFixtures = fixtures.appendingPathComponent("native-model-catalog", isDirectory: true)
+let catalogNames = try FileManager.default.contentsOfDirectory(atPath: catalogFixtures.path).sorted()
+guard catalogNames.contains("valid.json"),
+    catalogNames.filter({ $0.hasPrefix("edge-") }).count == 3,
+    catalogNames.filter({ $0.hasPrefix("invalid-") }).count == 1 else {
+    checkFailure("expected the canonical catalog fixture plus 3 edge cases and 1 invalid case, found \(catalogNames)")
+}
+let catalog = try NativeModelCatalog.decode(try readFixture("native-model-catalog/valid.json"))
+let visionReasoning = catalog.groups.first?.models.last?.reasoning
+guard catalog.groups.count == 2,
+    catalog.groups.first?.name == "DeepSeek 官方",
+    catalog.groups.first?.models.count == 2,
+    catalog.groups.first?.models.first?.reasoning == nil,
+    visionReasoning?.efforts.map({ $0.id }) == ["off", "max", "low"],
+    visionReasoning?.efforts.last?.name == "low",
+    visionReasoning?.defaultEffort == "high",
+    catalog.groups.last?.name == "custom-group",
+    catalog.defaultProvider == "deepseek-official",
+    catalog.defaultModel == "deepseek-v4-flash" else {
+    checkFailure("the canonical model catalog decoded with wrong content: \(catalog)")
+}
+print("PASS model-catalog mirror decodes the canonical document (efforts with id-fallback names, nullable default)")
+
+let missingIds = try NativeModelCatalog.decode(try readFixture("native-model-catalog/edge-missing-ids.json"))
+let missingIdsExpected = NativeModelCatalog(groups: [
+    NativeCatalogGroup(id: "g1", name: "g1", models: [
+        NativeCatalogModel(id: "m1", name: "m1"),
+        NativeCatalogModel(id: "m2", name: "m2", reasoning: NativeModelReasoning(
+            efforts: [NativeEffortChoice(id: "e1", name: "e1")], defaultEffort: nil)),
+    ]),
+], defaultProvider: "", defaultModel: "")
+guard missingIds == missingIdsExpected else {
+    checkFailure("rows without a string id must drop and non-string defaults read as nil: \(missingIds)")
+}
+let typeFallbacks = try NativeModelCatalog.decode(try readFixture("native-model-catalog/edge-type-fallbacks.json"))
+let typeFallbacksExpected = NativeModelCatalog(groups: [
+    NativeCatalogGroup(id: "g", name: "g", models: [
+        NativeCatalogModel(id: "m", name: "m", reasoning: nil),
+    ]),
+], defaultProvider: "", defaultModel: "")
+guard typeFallbacks == typeFallbacksExpected else {
+    checkFailure("non-string names must fall back to ids and non-object reasoning read as absent: \(typeFallbacks)")
+}
+let empty = try NativeModelCatalog.decode(try readFixture("native-model-catalog/edge-empty.json"))
+guard empty == NativeModelCatalog(groups: [], defaultProvider: "", defaultModel: "") else {
+    checkFailure("an empty document must decode to an empty catalog: \(empty)")
+}
+print("PASS model-catalog mirror drops and falls back exactly like the Android parser")
+
+do {
+    _ = try NativeModelCatalog.decode(try readFixture("native-model-catalog/invalid-malformed.json"))
+    checkFailure("malformed catalog JSON must be rejected")
+} catch {
+    // Any parse error is the expected outcome for truncated JSON.
+}
+print("PASS model-catalog mirror rejects malformed catalog JSON")
+
+let withEffort = NativeModelSelection(
+    sessionId: "s1", provider: "deepseek-official",
+    model: "deepseek-v4-flash-vision-exp", reasoningEffort: "max").wireBody()
+let effortRequest = withEffort["request"] as? [String: Any]
+let withoutEffort = NativeModelSelection(sessionId: "s1", provider: "p", model: "m").wireBody()
+let plainRequest = withoutEffort["request"] as? [String: Any]
+guard effortRequest?.count == 4,
+    (effortRequest?["reasoningEffort"] as? String) == "max",
+    (effortRequest?["sessionId"] as? String) == "s1",
+    plainRequest?.count == 3,
+    plainRequest?["reasoningEffort"] == nil else {
+    checkFailure("the selectModel request envelope drifted; the effort must ride only when present")
+}
+print("PASS selectModel request envelope mirrors the Android wire (effort-free selection carries no extra key)")
+
 exit(0)
