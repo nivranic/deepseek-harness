@@ -39,10 +39,12 @@ import type {
   TypertRemoteEventSource,
 } from './types.ts'
 import {
+  RemoteStreamConnectionHandle,
   RemoteStreamMuxServer,
   rejectRemoteStreamUpgrade,
 } from './stream-server.ts'
 export { RemoteStreamMuxServer } from './stream-server.ts'
+export type { RemoteStreamConnectionHandle } from './stream-server.ts'
 export { REMOTE_STREAM_MUX_PATH } from './stream-protocol.ts'
 import {
   REMOTE_EVENT_STREAM_ENDPOINT,
@@ -241,9 +243,42 @@ export class TypertGatewayService extends Service implements TypertGateway {
     return {
       rpc: (endpoint, payload, signal) => this.dispatchRpc(endpoint, payload, signal, true),
       stream: {
-        open: (endpoint, payload, signal) => this.openWireStream(endpoint, payload, signal, true),
+        open: (endpoint, payload, signal, connection) => this.openWireStream(endpoint, payload, signal, true, connection),
         failure: error => rpcError(error),
       },
+    }
+  }
+
+  /**
+   * Terminate every physical Remote stream connection a device currently holds.
+   * The carrier sockets are destroyed without a close handshake, so every
+   * logical stream on them ends as carrier loss and clients follow their
+   * reconnect policy; the device's admission itself is untouched.
+   * @param request - device identity whose live connections end now.
+   * @returns how many physical connections were destroyed; zero when the device holds none.
+   */
+  terminateDeviceConnections(request: { deviceId: DeviceId }): { terminated: number } {
+    const bound = this.deviceConnections.get(request.deviceId)
+    if (bound === undefined) return { terminated: 0 }
+    this.deviceConnections.delete(request.deviceId)
+    for (const connection of bound) connection.terminate()
+    return { terminated: bound.size }
+  }
+
+  /** Bind one physical connection to the device whose admitted stream opened on it. */
+  private bindDeviceConnection(deviceId: DeviceId, connection: RemoteStreamConnectionHandle): () => void {
+    let bound = this.deviceConnections.get(deviceId)
+    if (bound === undefined) {
+      bound = new Set()
+      this.deviceConnections.set(deviceId, bound)
+    }
+    bound.add(connection)
+    return () => {
+      // A replacement binding may already have replaced the entry; only the
+      // owning set may remove the handle.
+      if (this.deviceConnections.get(deviceId) !== bound) return
+      bound.delete(connection)
+      if (bound.size === 0) this.deviceConnections.delete(deviceId)
     }
   }
 
@@ -252,6 +287,8 @@ export class TypertGatewayService extends Service implements TypertGateway {
   private readonly remoteEventClients = new Map<RemoteEventClientId, RemoteEventClient>()
   private readonly pendingRemoteEvents = new Map<RemoteEventId, PendingRemoteEvent>()
   private readonly interactionReplyPermissions: ReadonlySet<string>
+  /** Physical stream connections bound to the device whose admitted stream opened on them. */
+  private readonly deviceConnections = new Map<DeviceId, Set<RemoteStreamConnectionHandle>>()
 
   /**
    * Register the Gateway against the active Typert registry.
@@ -278,7 +315,7 @@ export class TypertGatewayService extends Service implements TypertGateway {
     })
     ctx.inject(['connection', 'webServer'], (webCtx) => {
       const mux = new RemoteStreamMuxServer(
-        (endpoint, payload, signal) => this.openWireStream(endpoint, payload, signal),
+        (endpoint, payload, signal, connection) => this.openWireStream(endpoint, payload, signal, false, connection),
         this.wireStream.failure,
         resolved.websocketHeartbeatIntervalMs,
       )
@@ -525,6 +562,7 @@ export class TypertGatewayService extends Service implements TypertGateway {
     payload: unknown,
     signal: AbortSignal,
     requireDevice = false,
+    connection?: RemoteStreamConnectionHandle,
   ): Promise<AsyncIterable<unknown>> {
     const decoded = decodeRemoteRequest(endpoint, payload)
     if (decoded.diagnosticsOnly && !DIAGNOSTICS_ONLY_ENDPOINTS.has(endpoint)) throw this.diagnosticsOnlyRejection(endpoint)
@@ -534,10 +572,10 @@ export class TypertGatewayService extends Service implements TypertGateway {
       if (requireDevice && (!isObject(args) || Reflect.get(args, 'device') === undefined)) {
         throw this.deviceIdentityRequired(endpoint)
       }
-      return this.openRemoteEvents(payload, signal, decoded.version)
+      return this.openRemoteEvents(payload, signal, decoded.version, connection)
     }
     if (decoded.device !== undefined) {
-      return this.openDeviceBusinessStream(endpoint, payload, parseDeviceAdmission(decoded.device), signal)
+      return this.openDeviceBusinessStream(endpoint, payload, parseDeviceAdmission(decoded.device), signal, connection)
     }
     if (requireDevice) throw this.deviceIdentityRequired(endpoint)
     return this.stream(remoteRequest(endpoint, payload, signal))
@@ -555,6 +593,7 @@ export class TypertGatewayService extends Service implements TypertGateway {
     payload: unknown,
     device: DeviceAdmissionWire,
     signal: AbortSignal,
+    connection?: RemoteStreamConnectionHandle,
   ): AsyncGenerator {
     const revoked = new AbortController()
     const stop = this.ctx.on('deviceTrust/grantsRevoked', ({ revokedAt, deviceIds }) => {
@@ -567,9 +606,11 @@ export class TypertGatewayService extends Service implements TypertGateway {
     const checkCancellation = (): void => {
       if (lifetime.aborted) throw remoteCancelled(endpoint, lifetime.reason)
     }
+    let unbind: (() => void) | undefined
     try {
       checkCancellation()
       await this.admitRpcDevice(endpoint, device)
+      if (connection !== undefined) unbind = this.bindDeviceConnection(device.deviceId as DeviceId, connection)
       checkCancellation()
       const source = await this.stream(remoteRequest(endpoint, payload, lifetime))
       for await (const value of source) {
@@ -580,6 +621,7 @@ export class TypertGatewayService extends Service implements TypertGateway {
       if (revoked.signal.aborted) throw revoked.signal.reason
       throw error
     } finally {
+      unbind?.()
       stop()
     }
   }
@@ -588,6 +630,7 @@ export class TypertGatewayService extends Service implements TypertGateway {
     payload: unknown,
     signal: AbortSignal,
     version: RemoteProtocolVersion = 1,
+    connection?: RemoteStreamConnectionHandle,
   ): AsyncGenerator<
     RemoteEventEmitFrame | RemoteEventInvocationFrame | RemoteEventCancellationFrame
     | RemoteEventReadyFrame
@@ -626,9 +669,11 @@ export class TypertGatewayService extends Service implements TypertGateway {
       if (client !== undefined) this.removeRemoteEventClient(client)
     })
     const lifetime = AbortSignal.any([signal, registration.lifetime.signal, revocation.signal])
+    let unbind: (() => void) | undefined
     try {
       lifetime.throwIfAborted()
       const replyPermissions = device === undefined ? this.interactionReplyPermissions : await this.admitDeviceClient(device)
+      if (device !== undefined && connection !== undefined) unbind = this.bindDeviceConnection(device.deviceId as DeviceId, connection)
       lifetime.throwIfAborted()
       let clientId = randomUUID() as RemoteEventClientId
       while (this.remoteEventClients.has(clientId)) clientId = randomUUID() as RemoteEventClientId
@@ -644,6 +689,7 @@ export class TypertGatewayService extends Service implements TypertGateway {
       }
       yield* client.queue.iterate(lifetime)
     } finally {
+      unbind?.()
       stopRevocation?.()
       if (client !== undefined) this.removeRemoteEventClient(client)
     }

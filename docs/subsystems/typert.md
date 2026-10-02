@@ -206,6 +206,15 @@ interface TypertGateway {
   createDeviceConnection(): TypertGatewayDeviceConnection
 
   /**
+   * Terminate every physical Remote stream connection a device currently
+   * holds. Carriers are destroyed without a close handshake, so each logical
+   * stream ends as carrier loss; the device's admission and grants survive.
+   * @param request - device identity whose live connections end now.
+   * @returns how many physical connections were destroyed; zero when none.
+   */
+  terminateDeviceConnections(request: { deviceId: DeviceId }): { terminated: number }
+
+  /**
    * Read explicit capability ids from active Remote bindings whose required
    * methods are available. Withdrawn strict definitions are not advertised.
    * This describes operations, not a caller's authorization to invoke them.
@@ -538,6 +547,16 @@ Resolve strict generated definitions or conservative SRC markers against current
 createDeviceConnection(): TypertGatewayDeviceConnection
 
 /**
+ * Terminate every physical Remote stream connection a device currently holds.
+ * The carrier sockets are destroyed without a close handshake, so every
+ * logical stream on them ends as carrier loss and clients follow their
+ * reconnect policy; the device's admission itself is untouched.
+ * @param request - device identity whose live connections end now.
+ * @returns how many physical connections were destroyed; zero when the device holds none.
+ */
+terminateDeviceConnections(request: { deviceId: DeviceId }): { terminated: number }
+
+/**
  * Register the sole application-selected forwarded-event source.
  * @param source - stream factory installed by the Remote assembly.
  * @param host - stable Host facts included in each Client generation's opening frame.
@@ -567,6 +586,8 @@ async invoke(request: InvokeRemoteRequest): Promise<unknown>
  */
 async stream(request: InvokeRemoteRequest): Promise<AsyncIterable<unknown>>
 ```
+
+Types: [DeviceId](device-trust.md)
 
 Source: [`packages/api/gateway/src/index.ts`](../../packages/api/gateway/src/index.ts)
 <!-- END GENERATED cordis-surface -->

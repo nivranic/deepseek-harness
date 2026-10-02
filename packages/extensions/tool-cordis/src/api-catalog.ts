@@ -2913,6 +2913,12 @@ export const SERVICE_API: readonly ServiceApiEntry[] = [
         returns: 'RPC and stream callbacks retaining the caller\'s service scope.',
       },
       {
+        signature: 'terminateDeviceConnections(request: { deviceId: DeviceId }): { terminated: number }',
+        description: 'Terminate every physical Remote stream connection a device currently holds. The carrier sockets are destroyed without a close handshake, so every logical stream on them ends as carrier loss and clients follow their reconnect policy; the device\'s admission itself is untouched.',
+        parameters: [{ name: 'request', description: 'device identity whose live connections end now.' }],
+        returns: 'how many physical connections were destroyed; zero when the device holds none.',
+      },
+      {
         signature: 'registerRemoteEvents( source: TypertRemoteEventSource, host: RemoteEventHostInfo, ): () => Promise<void>',
         description: 'Register the sole application-selected forwarded-event source.',
         parameters: [{ name: 'source', description: 'stream factory installed by the Remote assembly.' }, { name: 'host', description: 'stable Host facts included in each Client generation\'s opening frame.' }],
@@ -5254,6 +5260,10 @@ export const TYPE_API: readonly TypeApiEntry[] = [
     declaration: 'export type RemoteInteractionSessionId = Branded<\'RemoteInteractionSessionId\'>;',
   },
   {
+    name: 'RemoteStreamConnectionHandle',
+    declaration: 'export interface RemoteStreamConnectionHandle {\n    terminate(): void;\n}',
+  },
+  {
     name: 'RemoteValidationIssue',
     declaration: 'export interface RemoteValidationIssue {\n    readonly code: string;\n    readonly message: string;\n    readonly path: readonly (string | number)[];\n}',
   },
@@ -6587,7 +6597,7 @@ export const TYPE_API: readonly TypeApiEntry[] = [
   },
   {
     name: 'TypertGatewayWireStream',
-    declaration: 'export interface TypertGatewayWireStream {\n    readonly open: (endpoint: string, payload: unknown, signal: AbortSignal) => Promise<AsyncIterable<unknown>>;\n    readonly failure: (error: unknown) => {\n        readonly code: string;\n        readonly message: string;\n        readonly details: object;\n    };\n}',
+    declaration: 'export interface TypertGatewayWireStream {\n    readonly open: (endpoint: string, payload: unknown, signal: AbortSignal, connection?: RemoteStreamConnectionHandle) => Promise<AsyncIterable<unknown>>;\n    readonly failure: (error: unknown) => {\n        readonly code: string;\n        readonly message: string;\n        readonly details: object;\n    };\n}',
   },
   {
     name: 'TypertMemberModel',

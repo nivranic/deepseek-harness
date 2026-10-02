@@ -4,6 +4,7 @@ import { afterEach, describe, expect, it, vi } from 'vitest'
 import WebSocket from 'ws'
 import {
   RemoteStreamMuxServer,
+  type RemoteStreamConnectionHandle,
   type RemoteStreamFailureMapper,
   type RemoteStreamOpener,
   type RemoteStreamMuxLimits,
@@ -114,6 +115,23 @@ describe('Remote stream mux server carrier lifecycle', () => {
       client.close()
       await closed
     }
+  })
+
+  it('passes the owning connection to the opener and terminates it as carrier loss', async () => {
+    const returned = vi.fn()
+    const handles: RemoteStreamConnectionHandle[] = []
+    const open = vi.fn(async (_endpoint: string, _payload: unknown, signal: AbortSignal, connection: RemoteStreamConnectionHandle) => {
+      handles.push(connection)
+      return cleanlyCancelled(signal, returned)
+    })
+    const entry = await startMux(open, 2_000)
+    const client = await connect(entry.url)
+    client.send(openFrame('a'))
+    await vi.waitFor(() => { expect(handles.length).toBe(1) })
+    const closed = once(client, 'close')
+    handles[0]!.terminate()
+    await closed
+    await vi.waitFor(() => { expect(returned).toHaveBeenCalledOnce() })
   })
 
   it('rejects binary, malformed, and duplicate logical-stream messages', async () => {

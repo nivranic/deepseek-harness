@@ -635,6 +635,18 @@ class NativeCompanionAcceptanceTest {
                                 val node = compose.onNodeWithTag("session-location-facts").fetchSemanticsNode()
                                 value = JsonPrimitive(node.config[androidx.compose.ui.semantics.SemanticsProperties.Text].joinToString())
                             }
+                            "waitLocationFactsContains" -> {
+                                val expected = command.getValue("text").jsonPrimitive.content
+                                compose.waitUntil(20_000) {
+                                    compose.onAllNodesWithTag("session-location-facts", useUnmergedTree = false)
+                                        .fetchSemanticsNodes(false)
+                                        .firstOrNull()
+                                        ?.config
+                                        ?.get(androidx.compose.ui.semantics.SemanticsProperties.Text)
+                                        ?.joinToString()
+                                        ?.contains(expected) == true
+                                }
+                            }
                             "assertLocationDetail" -> {
                                 val node = compose.onNodeWithTag("session-location-detail").fetchSemanticsNode()
                                 value = JsonPrimitive(node.config[androidx.compose.ui.semantics.SemanticsProperties.Text].joinToString())

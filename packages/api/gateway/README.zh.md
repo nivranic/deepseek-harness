@@ -73,6 +73,8 @@ Gateway 接受协议 1 的 `{ args }` 请求，也接受与 `args` 并列的显�
 
 每个原生 TLS 入口通过自己的 Cordis context 调用 `createDeviceConnection()`。返回的 RPC 与 stream 回调保留该调用 context，每次操作都在其中解析直接方法的 receiver，并共享 Gateway 的既有状态。这个普通 service factory 不是 Remote 方法。除一次性 `deviceTrust/redeemPairing` 外，其回调要求每次 RPC 与逻辑流携带签名设备身份。本地 `wireStream` 与 Connection 注册继续由浏览器信任机制控制。签名业务流在首次迭代时验证准入，在等待准入前订阅撤销，并持续到迭代器关闭；撤销取消待定读取并阻止后续值。物理 mux 建连不授予业务权限。TLS 身份和监听限制见[原生 Remote Connection](../native-remote/README.zh.md)。
 
+`terminateDeviceConnections({deviceId})` 是 Host 平面的连接卫生面：无关闭握手地销毁该设备当前持有的全部物理流载体，其上的每条逻辑流都以载体丢失终结，客户端按自身的重连策略处理。设备的准入与授权不受影响——这不是撤销。网关在某设备的已准入流于一条物理连接上打开时把该连接绑定到该设备，并在其已准入流全部结束后解绑；不持有活连接的设备终止数为零。
+
 版本化请求信封也可在 `args` 旁携带签名设备准入（`{apiProtocolVersion, args, device: {deviceId, timestamp, nonce, signature}}`；版本 1 永不携带）。网关经同一准入阶梯验证，并按所属能力声明的 `requiredPermission` 门控端点：不持有该权限的设备角色——以及调用未声明能力的设备标识请求——在派发前以 `gateway/permission-denied` 拒绝；匿名请求从不走此路径。
 
 `interactionTimeoutMs.approval` 和 `.question` 可分别限制被转发交互的存活时间，单位为毫秒，范围为 1 至 2,147,483,647。未配置的类型没有 Gateway 期限。期限从 Gateway 创建待处理记录时起算；`expiresAt` 使用 Host 时间，重连时保持不变。经过时长的定时器，或重放、接受回答前对 Host 截止时间的检查，会使请求过期，因此时钟回拨不会延长已启动的计时，回调延迟也不会放行到期后的回答。结算、调用方取消或事件源取消均清理定时器。过期以 `interaction-expired` 拒绝 Host 调用，并向协议 2 消费者发送 `expired` 终结记录；协议 1 接收原有取消字段。迟到回答返回 `interaction-closed`。Approval 将回答方拒绝映射为既有的失败关闭结果 `unavailable`，Question 则传播过期错误。此转发调用之外的本地回答方不受影响；过期记录不跨 Host 重启保存。

@@ -1492,6 +1492,50 @@ describe('Typert Gateway device admission', () => {
     }
   })
 
+  it('terminates a device\'s physical connections as carrier loss without touching other devices', { timeout: 10_000 }, async () => {
+    const { ctx, service } = await setupDeviceFeed()
+    const device = await pairDevice(ctx, 'viewer')
+    const other = await pairDevice(ctx, 'viewer')
+    expect(ctx.typertGateway.terminateDeviceConnections({ deviceId: device.deviceId })).toEqual({ terminated: 0 })
+
+    const origin = `ws://127.0.0.1:${String(ctx.webServer.port)}/api/remote.mux`
+    type Admitted = { deviceId: DeviceId; key: ReturnType<typeof ed25519> }
+    const openDeviceFeed = (socket: WebSocket, streamId: string, label: string, admitted: Admitted): void => {
+      socket.send(JSON.stringify({
+        type: 'open', streamId, endpoint: 'feed/follow',
+        payload: { apiProtocolVersion: 2, args: { label }, device: admissionOf(admitted) },
+      }))
+    }
+    const socket = new WebSocket(origin, { headers: { cookie: browserCookie(ctx) } })
+    await once(socket, 'open')
+    const frames: Record<string, unknown>[] = []
+    socket.on('message', (data) => { frames.push(JSON.parse(rawText(data)) as Record<string, unknown>) })
+    openDeviceFeed(socket, 'follow', 'native', device)
+    const otherSocket = new WebSocket(origin, { headers: { cookie: browserCookie(ctx) } })
+    await once(otherSocket, 'open')
+    const otherFrames: Record<string, unknown>[] = []
+    otherSocket.on('message', (data) => { otherFrames.push(JSON.parse(rawText(data)) as Record<string, unknown>) })
+    openDeviceFeed(otherSocket, 'other', 'other', other)
+    await vi.waitFor(() => {
+      expect(frames).toEqual([{ type: 'item', streamId: 'follow', value: 'native:ready' }])
+      expect(otherFrames).toEqual([{ type: 'item', streamId: 'other', value: 'other:ready' }])
+    })
+
+    const closed = once(socket, 'close')
+    expect(ctx.typertGateway.terminateDeviceConnections({ deviceId: device.deviceId })).toEqual({ terminated: 1 })
+    await closed
+    expect(otherSocket.readyState).toBe(WebSocket.OPEN)
+    await vi.waitFor(() => { expect(service.returns).toBe(1) })
+    expect(service.signals[0]?.aborted).toBe(true)
+    expect(service.signals[1]?.aborted).toBe(false)
+    // The terminated binding is gone; the admission itself survives for a reconnect.
+    expect(ctx.typertGateway.terminateDeviceConnections({ deviceId: device.deviceId })).toEqual({ terminated: 0 })
+    expect(ctx.deviceTrust.listDevices().some(grant => grant.deviceId === device.deviceId)).toBe(true)
+
+    otherSocket.close()
+    await once(otherSocket, 'close')
+  })
+
   it('keeps event and business streams alive when a different device is revoked', async () => {
     const { ctx } = await setupDeviceFeed()
     const device = await pairDevice(ctx, 'viewer')

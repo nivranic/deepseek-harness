@@ -14,7 +14,17 @@ export type RemoteStreamOpener = (
   endpoint: string,
   payload: unknown,
   signal: AbortSignal,
+  connection: RemoteStreamConnectionHandle,
 ) => Promise<AsyncIterable<unknown>>
+
+/** Host-side handle to one physical multiplexed Remote stream connection. */
+export interface RemoteStreamConnectionHandle {
+  /**
+   * Destroy the carrier socket without a close handshake; every logical
+   * stream on it ends as a socket loss, which clients read as carrier loss.
+   */
+  terminate(): void
+}
 
 /** Convert an invocation or carrier failure to a stable wire value. */
 export type RemoteStreamFailureMapper = (error: unknown) => RemoteStreamFailure
@@ -111,7 +121,7 @@ interface ActiveStream {
   done: Promise<void>
 }
 
-class RemoteStreamMuxConnection {
+class RemoteStreamMuxConnection implements RemoteStreamConnectionHandle {
   private readonly streams = new Map<string, ActiveStream>()
   private writes = Promise.resolve()
 
@@ -121,6 +131,10 @@ class RemoteStreamMuxConnection {
     private readonly failure: RemoteStreamFailureMapper,
     private readonly maxStreams?: number,
   ) {}
+
+  terminate(): void {
+    this.socket.terminate()
+  }
 
   async run(): Promise<void> {
     const closed = new Promise<void>((resolve) => {
@@ -175,7 +189,7 @@ class RemoteStreamMuxConnection {
     active: ActiveStream,
   ): Promise<void> {
     try {
-      const source = await this.open(endpoint, payload, active.abort.signal)
+      const source = await this.open(endpoint, payload, active.abort.signal, this)
       for await (const value of source) {
         await this.send({ type: 'item', streamId, value })
       }

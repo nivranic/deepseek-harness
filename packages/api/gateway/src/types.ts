@@ -4,7 +4,9 @@
  */
 
 import type { Context } from '@deepseek-ai/cordis'
+import type { DeviceId } from '@deepseek-ai/dsh-api-device-trust/types'
 import type { ConnectionRpcHandler } from '@deepseek-ai/dsh-client-connection'
+import type { RemoteStreamConnectionHandle } from './stream-server.ts'
 import type { RemoteEventHostInfo, RemoteInteractionOrigin } from './stream-protocol.ts'
 
 /** One Remote method request after a carrier has decoded its envelope. */
@@ -82,12 +84,15 @@ export interface TypertGatewayWireStream {
    * @param endpoint - canonical Remote endpoint or Gateway-owned stream name.
    * @param payload - decoded carrier payload.
    * @param signal - logical-stream cancellation.
+   * @param connection - handle of the physical carrier the stream opened on, when
+   * the caller owns one; admitted device streams bind it for connection hygiene.
    * @returns validated stream values.
    */
   readonly open: (
     endpoint: string,
     payload: unknown,
     signal: AbortSignal,
+    connection?: RemoteStreamConnectionHandle,
   ) => Promise<AsyncIterable<unknown>>
 
   /**
@@ -142,6 +147,15 @@ export interface TypertGateway {
    * @returns RPC and stream callbacks retaining the caller's service scope.
    */
   createDeviceConnection(): TypertGatewayDeviceConnection
+
+  /**
+   * Terminate every physical Remote stream connection a device currently
+   * holds. Carriers are destroyed without a close handshake, so each logical
+   * stream ends as carrier loss; the device's admission and grants survive.
+   * @param request - device identity whose live connections end now.
+   * @returns how many physical connections were destroyed; zero when none.
+   */
+  terminateDeviceConnections(request: { deviceId: DeviceId }): { terminated: number }
 
   /**
    * Read explicit capability ids from active Remote bindings whose required
