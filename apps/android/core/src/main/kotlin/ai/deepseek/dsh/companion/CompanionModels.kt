@@ -257,6 +257,7 @@ class SessionModel(
     private val reconnectDelayMillis: Long = 1_000,
     private val inputs: CompanionInputState = CompanionInputState.memory(),
     private val historyLimits: NativeHistoryLimits = NativeHistoryLimits(pageMessages = 50, maxBufferedBytes = 8_388_608),
+    private val journalStore: NativeJournalStoring? = null,
 ) {
     private val _sessions = MutableStateFlow<List<SessionRow>>(emptyList())
     val sessions: StateFlow<List<SessionRow>> = _sessions
@@ -429,6 +430,8 @@ class SessionModel(
     val permissionPreset: StateFlow<String?> = _permissionPreset
     private val journal = NativeSessionJournal(wire, scope, historyLimits) { generation, id, records, replacement ->
         if (followOwner.isCurrent(generation)) {
+            // Replacement moments carry the complete window; that is the §25 persisted checkpoint.
+            if (replacement) persistJournalWindow()
             val current = _open.value
             if (current?.sessionId == id) {
                 records.forEach { acknowledgeRecordedPrompt(id, it) }
@@ -444,6 +447,11 @@ class SessionModel(
 
     /** Newest `permission/preset` in a record batch; a replacement window with none is authoritative null. */
     private fun latestPermissionPreset(records: List<WireValue>): String? = NativeLocationFacts.latestPreset(records)
+
+    /** Persist one complete window; called from replacement publications and the close paths. */
+    private fun persistJournalWindow() {
+        journalStore?.let { store -> journal.checkpoint()?.let(store::save) }
+    }
     val history: StateFlow<NativeHistoryState> = journal.state
     private val _viewAnchor = MutableStateFlow<NativeViewAnchor?>(null)
     val viewAnchor: StateFlow<NativeViewAnchor?> = _viewAnchor
@@ -535,6 +543,7 @@ class SessionModel(
     fun close() {
         _deliveredFiles.value = emptyList()
         viewRequest.getAndSet(null)?.cancel()
+        persistJournalWindow()
         journal.close()
         _viewAnchor.value = null
         followOwner.stop { publishAttachmentTarget(null) }
@@ -545,6 +554,7 @@ class SessionModel(
         _deliveredFiles.value = emptyList()
         val view = viewRequest.getAndSet(null)
         view?.cancel()
+        persistJournalWindow()
         val reads = journal.close()
         _viewAnchor.value = null
         followOwner.stopAndAwait { publishAttachmentTarget(null) }
@@ -560,6 +570,13 @@ class SessionModel(
                 synchronized(submissionAdmission) { followGeneration = generation }
                 _viewAnchor.value = null
                 journal.reset(generation, sessionId, target)
+                // A persisted window from a previous process seeds the same owner before
+                // its first follow; the follow then carries the §25 fromSeq resume cursor.
+                journalStore?.load()?.let { persisted ->
+                    if (persisted.sessionId == sessionId && persisted.address == target) {
+                        journal.installPersisted(generation, sessionId, target, persisted)
+                    }
+                }
                 follow(payload + ("request" to WireValue.ObjectValue(NativeFollowResume.withMaxMessages(
                     request.entries, historyLimits.pageMessages))), generation)
             },

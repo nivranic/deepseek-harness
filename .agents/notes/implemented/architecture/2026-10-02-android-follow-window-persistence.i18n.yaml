@@ -1,0 +1,6 @@
+# Bilingual-pair consistency record (docs/i18n/README.md): the git blob hash of each
+# side as of the last confirmed-consistent state. Both languages carry equal authority;
+# after editing either side, bring the other along and re-record with:
+#   pnpm run verify-translation-pairing --write .agents/notes/implemented/architecture/2026-10-02-android-follow-window-persistence.md
+2026-10-02-android-follow-window-persistence.md: 0e4dd9112d96f9103adc6ae8857cd707dea6baff
+2026-10-02-android-follow-window-persistence.zh.md: 639164b265d690984ff425146e22d2a5bce290ef

@@ -61,6 +61,26 @@ class NativeSessionJournal(
         address = target
     }
 
+    /** Install a persisted window as this owner's starting state before its first follow;
+     * the next snapshot still validates against it through the ordinary resume merge. */
+    fun installPersisted(generation: Long, id: String, target: WireValue.ObjectValue, persisted: NativeJournalWindow) = synchronized(lock) {
+        check(generation == owner && id == sessionId && address == target && window == null)
+        check(persisted.sessionId == id && persisted.address == target)
+        validateRecords(persisted.records)
+        val last = persisted.records.lastOrNull()?.let(::sequence)
+        check(last == null || last >= persisted.cut)
+        val bytes = measure(persisted.records)
+        checkLimit(bytes)
+        window = Window(persisted.cut, persisted.records, persisted.hasMore, bytes)
+    }
+
+    /** One durable copy of the current window for the store; null without an owned window. */
+    fun checkpoint(): NativeJournalWindow? = synchronized(lock) {
+        val current = window ?: return null
+        val target = address ?: return null
+        NativeJournalWindow(sessionId, target, current.cut, current.hasMore, current.records)
+    }
+
     /** Cancel all owned reads and return the jobs a suspending owner must await; transport ownership stays outside. */
     fun close(): List<Job> = synchronized(lock) {
         invalidate()

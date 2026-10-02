@@ -138,7 +138,7 @@ class CompanionViewModel : ViewModel() {
         private set
 
     private val transition = Mutex()
-    private var models by mutableStateOf(CompanionModelSet(CompanionRuntime.wire, viewModelScope, CompanionRuntime.inputs, CompanionRuntime.downloadFiles(), CompanionRuntime.uploadDigests))
+    private var models by mutableStateOf(CompanionModelSet(CompanionRuntime.wire, viewModelScope, CompanionRuntime.inputs, CompanionRuntime.downloadFiles(), CompanionRuntime.uploadDigests, CompanionRuntime.followJournal))
     var generation by mutableStateOf(CompanionRuntime.generation)
         private set
     var pairingRequested by mutableStateOf(false)
@@ -181,7 +181,7 @@ class CompanionViewModel : ViewModel() {
     }
 
     private fun publishModels() {
-        models = CompanionModelSet(CompanionRuntime.wire, viewModelScope, CompanionRuntime.inputs, CompanionRuntime.downloadFiles(), CompanionRuntime.uploadDigests)
+        models = CompanionModelSet(CompanionRuntime.wire, viewModelScope, CompanionRuntime.inputs, CompanionRuntime.downloadFiles(), CompanionRuntime.uploadDigests, CompanionRuntime.followJournal)
         generation = CompanionRuntime.generation
         paired = CompanionRuntime.restored
         pairingRequested = false
@@ -302,6 +302,16 @@ object CompanionRuntime {
         private set
     var restoreNeedsPairing by mutableStateOf(false)
         private set
+    private var journalStore: NativeJournalStoring? = null
+    /** One durable follow-window store per restored installation; unpaired state reads as none. */
+    val followJournal: NativeJournalStoring? get() {
+        if (!restored) return null
+        val principal = controller?.principal ?: return null
+        val directory = restoreDirectory ?: return null
+        return journalStore ?: FileNativeJournalStore(
+            java.io.File(directory, "native-journal"), principal, AndroidKeystoreCipher("dsh-native-journal"), 1_048_576,
+        ).also { journalStore = it }
+    }
 
     /** Restore the encrypted catalog once; legacy single-Host credentials require explicit import. */
     suspend fun restore(directory: java.io.File): Boolean = transition.withLock {

@@ -16,7 +16,8 @@ import kotlinx.coroutines.flow.collectLatest
 class CompanionModelSet(wire: WireDriving, parent: CoroutineScope,
                         val inputs: CompanionInputState = CompanionInputState.memory(),
                         downloadFiles: NativeDownloadFiles? = null,
-                        digestMemory: NativeUploadDigestMemory? = null) {
+                        digestMemory: NativeUploadDigestMemory? = null,
+                        journalStore: NativeJournalStoring? = null) {
     private val lifetime = SupervisorJob(parent.coroutineContext[Job])
     private val scope = CoroutineScope(parent.coroutineContext + lifetime)
     private val ownedWire = object : WireDriving {
@@ -32,7 +33,7 @@ class CompanionModelSet(wire: WireDriving, parent: CoroutineScope,
         }
     }
 
-    val session = SessionModel(ownedWire, scope, inputs = inputs)
+    val session = SessionModel(ownedWire, scope, inputs = inputs, journalStore = journalStore)
     val attachments = NativeFileAttachmentsModel(ownedWire, session, inputs, scope,
         NativeFileAttachmentLimits(maxFileBytes = 524_288, maxEncodedArgsBytes = 1_048_576, maxFiles = 8),
         digestMemory = digestMemory)
