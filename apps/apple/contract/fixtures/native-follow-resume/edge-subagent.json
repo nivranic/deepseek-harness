@@ -1,0 +1,19 @@
+{
+ "kind": "subagent",
+ "parentSessionId": "p-1",
+ "childSessionId": "c-9",
+ "mode": "timeline",
+ "maxMessages": 50,
+ "fromSeq": null,
+ "body": {
+  "request": {
+   "address": {
+    "kind": "subagent",
+    "parentSessionId": "p-1",
+    "childSessionId": "c-9",
+    "mode": "timeline"
+   },
+   "maxMessages": 50
+  }
+ }
+}

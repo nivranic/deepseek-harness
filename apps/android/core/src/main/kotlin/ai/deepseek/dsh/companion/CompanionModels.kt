@@ -513,11 +513,7 @@ class SessionModel(
             sessionId,
             mapOf(
                 "request" to WireValue.ObjectValue(
-                    mapOf(
-                        "address" to WireValue.ObjectValue(
-                            mapOf("kind" to WireValue.StringValue("session"), "sessionId" to WireValue.StringValue(sessionId)),
-                        ),
-                    ),
+                    NativeFollowResume.sessionRequest(sessionId),
                 ),
             ),
         )
@@ -529,16 +525,7 @@ class SessionModel(
             childSessionId,
             mapOf(
                 "request" to WireValue.ObjectValue(
-                    mapOf(
-                        "address" to WireValue.ObjectValue(
-                            mapOf(
-                                "kind" to WireValue.StringValue("subagent"),
-                                "parentSessionId" to WireValue.StringValue(parentSessionId),
-                                "childSessionId" to WireValue.StringValue(childSessionId),
-                                "mode" to WireValue.StringValue(mode),
-                            ),
-                        ),
-                    ),
+                    NativeFollowResume.subagentRequest(parentSessionId, childSessionId, mode),
                 ),
             ),
         )
@@ -573,8 +560,8 @@ class SessionModel(
                 synchronized(submissionAdmission) { followGeneration = generation }
                 _viewAnchor.value = null
                 journal.reset(generation, sessionId, target)
-                follow(payload + ("request" to WireValue.ObjectValue(request.entries +
-                    ("maxMessages" to WireValue.NumberValue(historyLimits.pageMessages.toDouble())))), generation)
+                follow(payload + ("request" to WireValue.ObjectValue(NativeFollowResume.withMaxMessages(
+                    request.entries, historyLimits.pageMessages))), generation)
             },
             publish = { _deliveredFiles.value = emptyList(); publishAttachmentTarget(OpenSession(sessionId, DomainState())) },
             invalidate = { _deliveredFiles.value = emptyList(); publishAttachmentTarget(null) },
@@ -708,7 +695,7 @@ class SessionModel(
                     val cursor = journal.beginFollow(generation)
                     val request = payload.getValue("request") as WireValue.ObjectValue
                     val resumed = if (cursor == null) payload else payload + ("request" to
-                        WireValue.ObjectValue(request.entries + ("fromSeq" to WireValue.NumberValue(cursor.toDouble()))))
+                        WireValue.ObjectValue(NativeFollowResume.withResumeCursor(request.entries, cursor)))
                     wire.stream("session/follow", resumed).collect { frame ->
                         if (followOwner.isCurrent(generation)) {
                             foldFrame(frame, generation)

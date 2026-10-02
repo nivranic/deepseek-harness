@@ -261,4 +261,61 @@ for name in ["invalid-unknown-prefix.json", "invalid-not-base64url.json", "inval
 }
 print("PASS view-location mirror rejects every invalid payload class at its parse boundary")
 
+// Native follow-resume adoption: the Swift mirror builds the §25 session/follow
+// request envelope with the same rules as the Android core (a positive
+// maxMessages page size, a non-negative fromSeq resume cursor riding only when
+// present), structurally equal to the wire the Companion sends — structural,
+// not byte, equality is the request-envelope contract.
+let followFixtures = fixtures.appendingPathComponent("native-follow-resume", isDirectory: true)
+let followNames = try FileManager.default.contentsOfDirectory(atPath: followFixtures.path).sorted()
+guard followNames.contains("valid.json"),
+    followNames.filter({ $0.hasPrefix("edge-") }).count == 3,
+    followNames.filter({ $0.hasPrefix("invalid-") }).count == 1 else {
+    checkFailure("expected the canonical follow fixture plus 3 edge cases and 1 invalid case, found \(followNames)")
+}
+func wireEqual(_ left: Any, _ right: Any) -> Bool {
+    if let l = left as? [String: Any], let r = right as? [String: Any] {
+        return l.count == r.count && l.allSatisfy { wireEqual($0.value, r[$0.key] ?? NSNull()) }
+    }
+    if let l = left as? String { return (right as? String) == l }
+    if let l = left as? NSNumber { return (right as? NSNumber) == l }
+    return left is NSNull && right is NSNull
+}
+func followDoc(_ name: String) throws -> [String: Any] {
+    let root = try JSONSerialization.jsonObject(with: try readFixture("native-follow-resume/" + name)) as? [String: Any] ?? [:]
+    let address: [String: Any]
+    if (root["kind"] as? String) == "subagent" {
+        address = NativeFollowResume.subagentAddress(
+            parentSessionId: root["parentSessionId"] as? String ?? "",
+            childSessionId: root["childSessionId"] as? String ?? "",
+            mode: root["mode"] as? String ?? "")
+    } else {
+        address = NativeFollowResume.sessionAddress(sessionId: root["sessionId"] as? String ?? "")
+    }
+    return try NativeFollowResume.request(address: address,
+        maxMessages: (root["maxMessages"] as? NSNumber)?.intValue ?? 0,
+        cursor: (root["fromSeq"] as? NSNumber).map { Int64($0.intValue) })
+}
+for name in followNames where !name.hasPrefix("invalid-") {
+    let expected = try JSONSerialization.jsonObject(with: try readFixture("native-follow-resume/" + name)) as? [String: Any] ?? [:]
+    guard wireEqual(try followDoc(name), (expected["body"] as? [String: Any]) ?? [:]) else {
+        checkFailure("the follow envelope for \(name) drifted from the pinned body")
+    }
+}
+print("PASS follow-resume mirror builds the canonical and edge envelopes structurally equal to the pinned bodies")
+
+do {
+    _ = try followDoc("invalid-negative-seq.json")
+    checkFailure("the negative resume cursor fixture must be rejected")
+} catch NativeFollowResumeError.fromSeq {
+    // The exact error case is the expected outcome.
+}
+do {
+    _ = try NativeFollowResume.request(address: NativeFollowResume.sessionAddress(sessionId: "s-3"), maxMessages: 0, cursor: nil)
+    checkFailure("a zero page size must be rejected")
+} catch NativeFollowResumeError.maxMessages {
+    // The exact error case is the expected outcome.
+}
+print("PASS follow-resume mirror rejects negative resume cursors and zero page sizes")
+
 exit(0)
