@@ -165,4 +165,50 @@ guard effortRequest?.count == 4,
 }
 print("PASS selectModel request envelope mirrors the Android wire (effort-free selection carries no extra key)")
 
+// Native session-location facts adoption: the Swift mirror derives the §29 five
+// fact sources with the same rules as the Android core (blank Host names fall
+// back to hostIds, workspace basenames split both separators and skip blank
+// segments, the newest permission/preset record wins, only the six §18-family
+// state words name themselves, and the detail line needs a workspace).
+let locationFixtures = fixtures.appendingPathComponent("native-location-facts", isDirectory: true)
+let locationNames = try FileManager.default.contentsOfDirectory(atPath: locationFixtures.path).sorted()
+guard locationNames.contains("valid.json"),
+    locationNames.filter({ $0.hasPrefix("edge-") }).count == 4,
+    locationNames.filter({ $0.hasPrefix("invalid-") }).count == 1 else {
+    checkFailure("expected the canonical location fixture plus 4 edge cases and 1 invalid case, found \(locationNames)")
+}
+let locationValid = try NativeLocationFacts.decode(try readFixture("native-location-facts/valid.json"))
+guard locationValid == NativeLocationFacts.Derived(
+    facts: ["Work PC", "deepseek-harness", "read-only", "reconnecting"],
+    detail: "full · E:\\Mix\\project\\deepseek-harness") else {
+    checkFailure("the canonical location document derived wrong facts: \(locationValid)")
+}
+print("PASS location-facts mirror derives the canonical facts and detail lines")
+
+let blankFallbacks = try NativeLocationFacts.decode(try readFixture("native-location-facts/edge-blank-fallbacks.json"))
+guard blankFallbacks == NativeLocationFacts.Derived(facts: ["lab-2", "/"], detail: "full · /") else {
+    checkFailure("blank names must fall back to hostIds and all-blank basenames to the whole path: \(blankFallbacks)")
+}
+let absent = try NativeLocationFacts.decode(try readFixture("native-location-facts/edge-absent-facts.json"))
+guard absent == NativeLocationFacts.Derived(facts: [], detail: nil) else {
+    checkFailure("an all-absent document must derive no facts and no detail: \(absent)")
+}
+let presetKept = try NativeLocationFacts.decode(try readFixture("native-location-facts/edge-preset-kept.json"))
+guard presetKept == NativeLocationFacts.Derived(facts: ["custom-host-preset"], detail: nil) else {
+    checkFailure("a permission/preset event without a string preset must keep the earlier value: \(presetKept)")
+}
+let unknownState = try NativeLocationFacts.decode(try readFixture("native-location-facts/edge-unknown-state.json"))
+guard unknownState == NativeLocationFacts.Derived(facts: ["Desk", "src"], detail: "full · src") else {
+    checkFailure("unknown state words must drop and other event types stay ignored: \(unknownState)")
+}
+print("PASS location-facts mirror keeps the Android fallbacks, preset precedence, and state-word drop")
+
+do {
+    _ = try NativeLocationFacts.decode(try readFixture("native-location-facts/invalid-malformed.json"))
+    checkFailure("malformed location JSON must be rejected")
+} catch {
+    // Any parse error is the expected outcome for truncated JSON.
+}
+print("PASS location-facts mirror rejects malformed location JSON")
+
 exit(0)

@@ -5,75 +5,43 @@
   "candidateTrackedChanges": [
     {
       "path": "IMPLEMENTATION_STATUS.md",
-      "sha256": "eba66f8c23d6aa2ba2607af80eccb1a6c336819c1e80cb3c92976d718ac956c9"
+      "sha256": "24cdd04a39bbf279b4756c3f9578d936f57bde796dbecc1dd089229912f9ed38"
     },
     {
-      "path": "apps/web/tests/expected/hosts-settings.expected.md",
-      "sha256": "7a6f0c42279cdf0144270e41e113f34756fbb149aa4c0b1e77916454b840ba1c"
+      "path": "apps/android/app/src/main/kotlin/ai/deepseek/dsh/companion/MainActivity.kt",
+      "sha256": "16dc46f329a187082997ae3db5889c820c4678b426ea67e1ccebfa082eb3c43f"
     },
     {
-      "path": "apps/web/tests/hosts-settings.e2e.ts",
-      "sha256": "5464bf2e12c6d845e86337fe858fcdc4c74fe93f812a9e0819fa6cfc40426ce5"
+      "path": "apps/android/core/src/main/kotlin/ai/deepseek/dsh/companion/CompanionModels.kt",
+      "sha256": "96412f1fb570502ffc3da4aeb22c9f7f836e5280255fa655bf30fb6875e379e0"
+    },
+    {
+      "path": "apps/apple/README.i18n.yaml",
+      "sha256": "43f79b3a8fa7c47f7843323cecee896793b3ad31d0082f9050551b07e8433b69"
+    },
+    {
+      "path": "apps/apple/README.md",
+      "sha256": "8444e405fbd89bddcbbdd852b5fbfa135b4977b1570eb0e27bade9f2871ba173"
+    },
+    {
+      "path": "apps/apple/README.zh.md",
+      "sha256": "142b5249131407f7d3d4a5e16c501640a0f20b1ab9683fb899eb3dd96f110a71"
+    },
+    {
+      "path": "apps/apple/contract/Sources/DSHContract/main.swift",
+      "sha256": "900df32d5f04a8fa40ab59f0826330b0b4cce069e4470d6d96f80f8cb7567639"
     },
     {
       "path": "artifacts/upstream-first/evidence.json",
-      "sha256": "b3e7306a4d4be00d604be1b7c772bee1586e5cf5fbe65534fb559cc77f2f0da5"
+      "sha256": "51f4dbfb3a08ed85107d545e63071fcc0cee2eb03f14d7661604457163f292f0"
     },
     {
       "path": "artifacts/upstream-first/specification-traceability.json",
-      "sha256": "fd76ae8a219525c2f0263b5591261808fb8eaf653ed1273c921eeb7bab6e7a7a"
+      "sha256": "998a99a7dada966c9e9e2b43a10270a933c53e41492d2750682878feb5ae2668"
     },
     {
       "path": "artifacts/upstream-first/write-reports.mjs",
-      "sha256": "2057c563773dd3bf85f8b926582f039c84e79e9081702be811b0eabe8d4c0e25"
-    },
-    {
-      "path": "packages/client/connection/src/client/index.ts",
-      "sha256": "28209674adeb0184ba1486ba297fae9d56d7b12c1e68bdd74cb03ebe09f9aced"
-    },
-    {
-      "path": "packages/client/connection/src/client/saved-hosts.ts",
-      "sha256": "621a238e29e4d22690629903164cdf7d5ac153019e9b6f2873caa0a4bfddbea5"
-    },
-    {
-      "path": "packages/client/connection/tests/saved-hosts.client.spec.ts",
-      "sha256": "af931ba110a4f898bb69b5eb60b4e91a18b7334edca52737274045741029dd31"
-    },
-    {
-      "path": "packages/client/ui-settings-hosts/README.i18n.yaml",
-      "sha256": "ad34eecf69a6cdc76acd77074ed928e6c2ef0037a5c1ebca4408c7bf85f27ab3"
-    },
-    {
-      "path": "packages/client/ui-settings-hosts/README.md",
-      "sha256": "789b5bd303d7577139fbf3e7e4724726f6c52a2b7d231ff34fddbc99e232da44"
-    },
-    {
-      "path": "packages/client/ui-settings-hosts/README.zh.md",
-      "sha256": "1f42053f31bc2c9cb2f35483f6816fd82ed307bf0cfa68bfd22cfc3005ac52af"
-    },
-    {
-      "path": "packages/client/ui-settings-hosts/src/client/HostsSettingsSection.tsx",
-      "sha256": "f213eda826b5a279f2e463576061985584681f4d0a563a4f562f25d13307c0e0"
-    },
-    {
-      "path": "packages/client/ui-settings-hosts/src/client/index.ts",
-      "sha256": "30d92c9bdfd158edd04ff8f75d47d07b953aecce7b0f6460f1d7b48cd433f34f"
-    },
-    {
-      "path": "packages/client/ui-settings-hosts/src/client/locales.ts",
-      "sha256": "3524d48dcf45817d81b4d655b7699650fe5e36da4d35b66164f606359c0a13f2"
-    },
-    {
-      "path": "packages/client/ui-settings-hosts/tests/browser-plugin.client.spec.tsx",
-      "sha256": "82432a9f57e1dc0d494b30771beb0adcac6d77027ee875816ee979dc04014979"
-    },
-    {
-      "path": "packages/client/ui-settings-hosts/tests/components.client.spec.tsx",
-      "sha256": "dc7c95452c2d6bdfe6d32d6d37ae9bd185bea969a79611f9703dbe5ef4cc52ff"
-    },
-    {
-      "path": "packages/extensions/cordis-client-runner/src/client/api-catalog.ts",
-      "sha256": "4bdc85f307b879ce82f3dcdfbc1860d2b3fc69aa2d141ebf976e80ab9f8b93d9"
+      "sha256": "b0232b002a99895a3214731fea02f8b83a1db26d7d8df9814693758d444768de"
     }
   ],
   "candidateUntrackedSourceChanges": [],
@@ -10784,6 +10752,54 @@
     },
     {
       "status": "PASS",
+      "command": "gradle Kotlin JVM round on apps/android (Windows host): ./gradlew :core:test — the new core object and its NativeLocationFactsFixtureTest compiled in-round, the full core suite executed, and the round's rewritten XML reports under apps/android/core/build/test-results aggregate 74 suites / 465 tests / 0 failures / 0 errors / 0 skips; Executed the Kotlin JVM suite round on the Windows host: ./gradlew :core:test exited BUILD SUCCESSFUL with :core:compileKotlin, :core:compileTestKotlin and :core:test all executed — the round compiled the new core object NativeLocationFacts.kt and its fixture test in-round, then ran the full core suite whose rewritten XML reports under apps/android/core/build/test-results aggregate 74 suites / 465 tests with zero failures, errors and skips, up one suite and one test from the hosts-roster-reorder baseline through the new NativeLocationFactsFixtureTest (which walks up from the working directory to apps/apple/contract/fixtures/native-location-facts, pins the 1 canonical / 4 edge / 1 invalid fixture counts, drives the real core object over each fixture for the facts line and detail line including the blank-name fallback to hostId, the all-blank basename fallback to the whole path, the all-absent document, the preset-kept precedence and the unknown-state drop, and asserts the malformed document fails to parse); an earlier :core:test invocation died at compilation on the missing WireValue import and its fix predates this sealed round (narrated in iteration-notes.log); 1 file / 465 tests green",
+      "log": ".artifacts/apple-location-facts-gradle.log",
+      "sourceRecord": "artifacts/upstream-first/apple-location-facts-source.json"
+    },
+    {
+      "status": "PASS",
+      "command": "gradle app-compile round on apps/android (Windows host): ./gradlew :app:compileDebugKotlin — :app:verifyScannerResources passing under the scanner gate env (DSH_ANDROID_SCANNER_DIRECTORY=.artifacts/native-scanner-candidate-output, DSH_ANDROID_SCANNER_SOURCE set), :app:compileDebugKotlin executed proving the MainActivity delegation compiles, no assembleDebug so no APK rebuild; Executed the app compile round on the Windows host: ./gradlew :app:compileDebugKotlin exited BUILD SUCCESSFUL with :app:verifyScannerResources passing under its required gate environment (DSH_ANDROID_SCANNER_DIRECTORY pointing at .artifacts/native-scanner-candidate-output and DSH_ANDROID_SCANNER_SOURCE; the first attempt failed on the missing env — a known class disclosed in iteration-notes.log — and this is the env-carrying re-run) and :app:compileDebugKotlin executing, proving the MainActivity composable's delegation to the core object (presentedHostName/workspaceBasename segments and the removed private basename helper) compiles; no assembleDebug ran, so no APK was rebuilt and the -PdshNativeAcceptance trap class was deliberately avoided; this round is compile verification only, hence zero tests; 1 file / 0 tests green",
+      "log": ".artifacts/apple-location-facts-app-compile.log",
+      "sourceRecord": "artifacts/upstream-first/apple-location-facts-source.json"
+    },
+    {
+      "status": "PASS",
+      "command": "vitest run --config vitest.config.ts over the client spec include (repo root); 43 files / 618 tests green via the Test Files/Tests summary lines in both sealed rounds (audit-tests.log with the EXIT_CODE=0 trailer, audit-final.log fresh without one), unchanged from hosts-roster-reorder as this increment touches no web client code — the first round's single client-bundle timeout under parallel typecheck/lint/compile load is kept raw as audit-tests-r1.log process evidence (1 failed | 617 passed, EXIT_CODE=1) and the sealed rounds are the serial re-runs",
+      "log": ".artifacts/apple-location-facts-audit-tests.log",
+      "sourceRecord": "artifacts/upstream-first/apple-location-facts-source.json"
+    },
+    {
+      "status": "PASS",
+      "command": "npm run build:lib:host && npm run typecheck:contracts-ready and npm run lint:contracts-ready — the sealed combined round with both halves green: typecheck clean (no TypeScript error diagnostics, TYPECHECK_EXIT=0) and lint clean (Found 0 warnings and 0 errors, LINT_EXIT=0); this increment touches no TypeScript or JavaScript package source, so the round was clean on its first run",
+      "log": ".artifacts/apple-location-facts-types-lint.log",
+      "sourceRecord": "artifacts/upstream-first/apple-location-facts-source.json"
+    },
+    {
+      "status": "PASS",
+      "command": "pnpm run test:docs (doc-quick, 17 gates passed / 0 failed) and pnpm run doc-sync (36 gates passed / 0 failed; the apple README pair and the note pair both carry re-recorded pairing hashes after the bilingual section 29 paragraph landed)",
+      "log": ".artifacts/apple-location-facts-docs.log",
+      "sourceRecord": "artifacts/upstream-first/apple-location-facts-source.json"
+    },
+    {
+      "status": "PASS",
+      "command": "pnpm run doc-sync — 36 gates passed / 0 failed",
+      "log": ".artifacts/apple-location-facts-doc-sync.log",
+      "sourceRecord": "artifacts/upstream-first/apple-location-facts-source.json"
+    },
+    {
+      "status": "PASS",
+      "command": "node artifacts/upstream-first/verify-audit.mjs --require-gate0",
+      "log": ".artifacts/apple-location-facts-gate0-final.log",
+      "sourceRecord": "artifacts/upstream-first/apple-location-facts-source.json"
+    },
+    {
+      "status": "PASS",
+      "command": "node .artifacts/prepare-apple-location-facts.mjs — the before archive written from the hosts-roster-reorder record in one pass (7380 files, 0 reused) with the unresolved-scan allowlist deriving exactly 66 replaced android build outputs",
+      "log": ".artifacts/apple-location-facts-prepare.log",
+      "sourceRecord": "artifacts/upstream-first/apple-location-facts-source.json"
+    },
+    {
+      "status": "PASS",
       "command": "Workspace and Conversation source regression before shared readiness correction",
       "tests": 599,
       "log": ".artifacts/workspace-admission-tests-final.log",
@@ -11514,7 +11530,285 @@
       ]
     }
   },
+  "appleLocationFacts": {
+    "status": "PASS",
+    "sourceRecord": "artifacts/upstream-first/apple-location-facts-source.json",
+    "scope": "§29 Swift 侧位置事实契约列增量：session-location-facts 一代交付 Android 半面后 §29 remaining 曾留\"真机、Swift 外壳与位置事实\"开放，本代以契约列对等证据收口 Swift 位置事实半面。Android 侧五元位置事实推导规则自调用点抽取为 core 纯对象 NativeLocationFacts——presentedHostName（名册名称空白回退 hostId、无条目不加事实）、workspaceBasename（双分隔符下最后一个非空白段、全空白回退全路径）、latestPreset（最新 permission/preset 记录获胜、缺字符串 preset 的匹配事件保留先前值）、stateWord（open 状态不加词、六个第 18 节族状态词自名、未知词丢弃）、factsLine（仅在场标识符）与 detailLine（仅在有工作区时存在：协议固定 full 运行时词加全路径，原生网关只接纳 full）；CompanionModels.latestPermissionPreset 改单行委托，MainActivity composable 保留本地化渲染但委托 core 对象并删除私有 basename 与内联名回退（单一权威；app 模块已有同名 SessionLocationFacts composable，故取 NativeLocationFacts 与 Swift 镜像同名对称）。Apple 契约新增同构镜像 NativeLocationFacts.swift：六函数一一对应（basename 用 omittingEmptySubsequences:false+last(where: 非全空白) 精确对齐 Kotlin 空白段语义、空白判定用 whitespacesAndNewlines、嵌套数组按 catalog 先例逐元素 compactMap），Input/Derived 值类型加整文档 decode（非对象 host 视为无 Host、非字符串 cwd/state 视为缺席、非数组 journal 视为空、残缺 JSON 抛出、非对象根读为全缺席）。共享夹具 fixtures/native-location-facts/（规范 1/边界 4/残缺 1，两列同钉计数）经 Kotlin NativeLocationFactsFixtureTest（自工作目录上溯定位夹具、驱动真实 core 对象、五夹具推导断言逐字一致、残缺拒绝）与 Swift main.swift 自检段（1/4/1 计数+五断言+残缺拒绝）双向消费。证明：:core:test 74 套件/465 测试（含新夹具测试，XML 聚合 0 失败 0 错误 0 跳过）、:app:compileDebugKotlin 经 scanner 门禁 env 后 BUILD SUCCESSFUL（MainActivity 委托改动编译验证、未打包避 APK 陷阱）、审计 43 文件/618 断言（首轮 1 超时留证 -r1、串行复跑双轮全绿）、typecheck/lint 0/0、test:docs 17、doc-sync 36、gate0 双形态 PASS、traceability §29 remaining 收口 Swift 位置事实+4 evidence 路径（node --test 6/6）。验收边界：Swift 镜像未在本 Windows 主机编译（无本地工具链，PR 通道 swift-contract 自检为权威）、无真机轮；完整目标未完成",
+    "repositoryKnownCodes": 84,
+    "uniqueOwners": 14,
+    "missingSemanticCommentsAdded": 49,
+    "packagedFiniteCodeSchema": true,
+    "sourceDeclarationsRemainExtensible": true,
+    "unknownCodeDiagnosticsPreserved": true,
+    "detailsPayloadSchema": false,
+    "nativeClientQualified": false,
+    "runtimeBehaviorChanged": true,
+    "newSessionEvents": false,
+    "phase3Complete": false,
+    "fullGoalComplete": false,
+    "resultInvalidMeaningMatchesEmitter": true,
+    "historicalSchedulerArchivePreserved": true,
+    "compilerIndependentDetailsGraphs": true,
+    "hostAndClientSeparate": true,
+    "builtModelMatchesSource": true,
+    "portableDetailsPayloadSchema": false,
+    "readonlyArrayAndTupleEmission": true,
+    "parsedReadonlyContainersFrozen": true,
+    "portableValidationIssueFields": true,
+    "compilerResolvedErrorDetails": true,
+    "resolvedFaceCodePairs": 144,
+    "overlappingSchemasCompared": 60,
+    "detailsSchemaPublished": false,
+    "formalEnvelopeSchemaEmitted": true,
+    "envelopeSchemaKnownBranches": 84,
+    "envelopeUnknownCodeExcludesKnownCodes": true,
+    "envelopeTupleDetailsRejected": true,
+    "envelopeLocalPackConsumed": true,
+    "envelopeRegistryPublished": false,
+    "remoteFailureClassification": true,
+    "classifiedCodes": 28,
+    "unknownCodeDefaultOpaque": true,
+    "gatewayClientConsumesClassification": true,
+    "classificationInventoryVerified": true,
+    "kotlinContractColumn": true,
+    "kotlinSchemaTests": 8,
+    "kotlinMirrorProjection": true,
+    "swiftColumn": false,
+    "androidShellMigrated": false,
+    "phase10Started": true,
+    "failureClasses": 9,
+    "invalidInputClass": true,
+    "uiAdoptionStarted": true,
+    "uiSurfacesAdoptingClassification": 2,
+    "swiftContractColumn": true,
+    "swiftSchemaTests": 4,
+    "swiftPayloadValidation": false,
+    "interactionReplyPermissions": true,
+    "interactionPermissionHostEnforced": true,
+    "interactionPermissionConfigurable": true,
+    "deviceTrustRolesReplaceSwitch": false,
+    "androidCoreMigrated": true,
+    "androidCoreTestClasses": 37,
+    "androidAppSourcesMigrated": true,
+    "androidAppConfigured": true,
+    "androidShellCompiled": false,
+    "androidScannerChainBlocked": true,
+    "swiftCheckExecutable": true,
+    "swiftLaneRunner": "macos-15-arm64",
+    "swiftLaneRecovered": true,
+    "diagnosticsOnlyTier": true,
+    "diagnosticsOnlyAdmittedEndpoints": 2,
+    "unknownVersionRejectUnchanged": true,
+    "responsivePhoneDrawer": true,
+    "phoneTierSidebarTrackZero": true,
+    "drawerWidthPx": 280,
+    "drawerDismissalPaths": 2,
+    "leftInputRegionSessionMaybe": true,
+    "frameColumnsExplicitlyPlaced": true,
+    "scannerAarBuilt": true,
+    "scannerAarStaticVerification": "PASS",
+    "scannerAarSourceSha": "8ca9f6ebf33de3912292416b85f5b510c88de9a3",
+    "assembleDebugGatePassed": true,
+    "emulatorMainActivityResumed": true,
+    "gatewayFailureConsumption": true,
+    "envelopeDetailsPreservedBothPaths": true,
+    "sharedClassificationDrivesPresentation": true,
+    "unknownCodesStayOpaque": true,
+    "uiSubagentClassificationAdopted": true,
+    "adoptingSurfacesCount": 5,
+    "queueDockClassificationAdopted": true,
+    "jobsFailureClassThreaded": true,
+    "sessionJobWireFieldAdditive": true,
+    "androidRefusalLaneDriven": true,
+    "ed25519KeyGenerationBundled": true,
+    "filesFollowStreamStarted": true,
+    "jobsProducerAdoptionVoid": true,
+    "linkAccessTakeoverDecided": true,
+    "remotePackagesStayRetired": true,
+    "gatewayOwnsDeviceAccess": true,
+    "deviceTrustSeamLanded": true,
+    "pairingIssuanceLive": true,
+    "knownErrorCodes": 89,
+    "deviceGrantsDurable": true,
+    "pairingCodesProcessLocalByDesign": true,
+    "deviceRolesMatchSection21Table": true,
+    "roleMappedReplyPermissions": true,
+    "signedAdmission": true,
+    "connectionStatesCompleteSection18": true,
+    "deviceRevokedStatePresent": true,
+    "protocolInteropMatrixPinned": true,
+    "section14VersionAxisEvidence": true,
+    "perRequestDeviceAdmission": true,
+    "capabilityRequiredPermissionVocabulary": true,
+    "remoteExecutionAuthorizationGated": true,
+    "sessionCapabilitiesDeclarePermissions": true,
+    "sessionReadWriteSplits": true,
+    "businessPermissionAdoptionStarted": true,
+    "workspaceCapabilitiesDeclarePermissions": true,
+    "remainingOwnersDeclarePermissions": true,
+    "admissionReplayLedger": true,
+    "androidClientSignsAdmissions": true,
+    "deviceIdentityConfirmation": true,
+    "devicesSettingsSurface": true,
+    "branchGateDebt": true,
+    "safeAreaInsets": true,
+    "keyboardAvoidance": true,
+    "foldableFrame": true,
+    "runningLocation": true,
+    "phoneTopBar": true,
+    "designLanguage": true,
+    "hostNaming": true,
+    "commandRisk": true,
+    "approvalFacts": true,
+    "followResume": true,
+    "viewLocation": true,
+    "composerGate": true,
+    "hostDiagnostics": true,
+    "supportBundle": true,
+    "telemetryConsent": true,
+    "diagnosticsRecorder": true,
+    "sessionHeadersEntry": true,
+    "settingsEntry": true,
+    "telemetryGate": true,
+    "savedHosts": true,
+    "degradedProbes": true,
+    "permissionTierChip": true,
+    "durableRetainedAnswers": true,
+    "unifiedDiffPreview": true,
+    "binaryFactCard": true,
+    "retargetableEndpoint": true,
+    "rosterSwitch": true,
+    "rosterUi": true,
+    "interruptedTransfer": true,
+    "mimeInference": true,
+    "hostSelectionObserver": true,
+    "diffReadableCopy": true,
+    "diffRichViewer": true,
+    "browserHostOrigin": true,
+    "deviceAdmissionLifecycle": true,
+    "nativePairing": true,
+    "nativeRemoteTls": true,
+    "nativePairingPresentation": true,
+    "androidNativeGatewayCore": true,
+    "androidNativeCompanion": true,
+    "androidNativeLifecycle": true,
+    "androidRepairing": true,
+    "androidCredentialRecovery": true,
+    "androidSessionList": true,
+    "androidInputRetention": true,
+    "androidInputPersistence": true,
+    "androidPromptRetry": true,
+    "androidHostRoster": true,
+    "androidViewLocation": true,
+    "androidCursorResume": true,
+    "androidResourceAdoption": true,
+    "androidNativeDiagnostics": true,
+    "nativeScannerAdoption": true,
+    "nativeScannerCandidate": true,
+    "nativeScannerSameSourceVerified": true,
+    "nativeScannerRepeatByteIdentical": true,
+    "nativeScannerBinarySymbolScan": true,
+    "androidCapabilityPresentation": true,
+    "androidCapabilityGenerationIsolation": true,
+    "androidCapabilityReadOnlyRefresh": true,
+    "androidOperationCapabilities": true,
+    "androidKnownOperationPreflight": true,
+    "androidCapabilityDraftRetention": true,
+    "androidSubagentTimeline": true,
+    "androidSelectedParentCatalog": true,
+    "androidChildObservationRetirement": true,
+    "androidCompleteResourceSave": true,
+    "androidResourceSavePickerOwnership": true,
+    "androidResourceSaveIndependentBytes": true,
+    "androidEncryptedDownloadCheckpoints": true,
+    "androidExplicitDownloadContinuation": true,
+    "androidDownloadJvmInterruptionRecovery": true,
+    "androidPersistentDownloadAdoption": true,
+    "androidDownloadDiskExport": true,
+    "androidInstalledDownloadProcessRecovery": true,
+    "androidDownloadHostIsolation": true,
+    "androidAcceptanceApkAdmission": true,
+    "androidFilesPickerAttachments": true,
+    "androidDurableFilePromptIntents": true,
+    "androidFileDraftProcessRecovery": true,
+    "androidFilePickerAuthority": true,
+    "hostStagedImageAdmission": true,
+    "androidPhotosPickerAttachments": true,
+    "androidDurableMixedAttachmentIntents": true,
+    "androidPhotoDraftProcessRecovery": true,
+    "androidCameraStagedImages": true,
+    "androidCameraOwnedOutputCleanup": true,
+    "androidCameraProcessRecovery": true,
+    "androidShareExplicitConfirmation": true,
+    "androidShareAtomicDraftAdoption": true,
+    "androidShareRestorationIsolation": true,
+    "androidViewDeepLinksCurrentHostNavigation": true,
+    "androidViewDeepLinksDeliveryIsolation": true,
+    "androidViewDeepLinksInputPreservation": true,
+    "androidPushForegroundRecovery": true,
+    "androidPushBackgroundProducerRetention": true,
+    "androidPushNotificationConsumption": true,
+    "androidNotificationPermission": true,
+    "androidNotificationSettingsRecovery": true,
+    "androidNotificationProcessRequestOwnership": true,
+    "androidAttachmentReceiptRecovery": true,
+    "androidAttachmentPendingDraftIsolation": true,
+    "nativeUploadBudget": true,
+    "nativeImageUploadBudget": true,
+    "nativeHostRestart": true,
+    "nativeUploadDedupe": true,
+    "browserUploadDedupe": true,
+    "nativeDigestMemory": true,
+    "browserDedupeVerification": true,
+    "hostsRosterRename": true,
+    "diffSplitView": true,
+    "appleRosterSwift": true,
+    "androidHostQuestion": true,
+    "sessionLocationChip": true,
+    "modelSteer": true,
+    "modelSelect": true,
+    "sessionLocationFacts": true,
+    "modelEffort": true,
+    "appleModelCatalog": true,
+    "gatewayOutage": true,
+    "hostsRosterReorder": true,
+    "appleLocationFacts": true,
+    "limitations": [
+      "The Apple evidence is contract-column parity, not a compiled shell: this Windows host carries no Swift toolchain, so NativeLocationFacts.swift was never built locally — the Kotlin core object is the authority, the shared 1/4/1 fixture set pins both columns' derivations byte-for-byte, and the PR-channel swift-contract self-check owns the compile evidence.",
+      "This generation's failed rounds are narrated in .artifacts/apple-location-facts-iteration-notes.log rather than sealed as diagnostic observation logs: the audit first round timed out on one tsdown-artifact test (client-bundle.client.spec under parallel typecheck/lint/compile load — environment contention, not a product defect; kept raw as audit-tests-r1.log with 1 failed | 617 passed and EXIT_CODE=1, then re-run serially into the two sealed green rounds), the first :core:test invocation died at compilation on the missing WireValue import, and the first :app:compileDebugKotlin invocation failed on the missing scanner gate environment before the env-carrying sealed re-run.",
+      "This generation's prepare ruling derives exactly 66 replaced android build outputs by the unresolved scan over the hosts-roster-reorder record's own builtFiles: every entry lives under apps/android/, is untracked, and no longer replays from disk after this generation's gradle runs rewrote the Kotlin build products, so no disk, archive or committed copy can ever replay them; the demoted hosts-roster-reorder record shape-checks them through the generator's new hostsRosterReorderReplacedBuildOutputs per-record key set while the generator's cumulative replacedPriorBuildOutputs set keeps its nine inherited keys (re-inserted verbatim by span extraction, never transcribed)."
+    ],
+    "nextRequiredWork": {
+      "specification": "artifacts/upstream-first/original-specification.md",
+      "traceability": "artifacts/upstream-first/specification-traceability.json",
+      "remaining": [
+        "Keep the section 29 location-facts qualification open beyond the contract-column parity now proven — the Swift mirror is contract-column evidence only (not compiled on this Windows host; the PR-channel swift-contract self-check owns the compile), no physical device drove either shell on this increment, and background/push, follow cursor and view-location handoff stay open alongside the physical-device columns.",
+        "Keep the section 28 roster-editing qualification open for the non-web columns — the manual arrangement is proven in the real-browser hosts-settings lane plus the three client suites (store, component, plugin) and the regenerated api-catalog mirrors only; no Android or Apple roster surface was driven on this increment, and the per-profile browser-storage arrangement is deliberately not synced across devices.",
+        "Keep the §29 real-device qualification and the Swift-side carrier column open for the host-side termination half — the primitive is proven on the local AVD against a providers-only header-only replay Host plus the JVM suites and the web scaffold's built-lib path only; no real hardware and no Apple client were driven on this increment.",
+        "Keep the Apple-side shell UI entry (capability-rendered model selection with its reasoning efforts) and the same-candidate real-device qualification open for the section 30 model-selection half — the contract column adoption is fixture-and-CI-lane verified only, with no shell surface driven on this increment.",
+        "Keep the Apple-side model-selection entry with its reasoning efforts and the real-device qualification of the same catalog candidates open for the section 30 effort half — the effort acceptance is emulator-and-nativeacceptance-id only.",
+        "Keep the deterministic device-level outage lane (needs a Host-side stream-kill primitive), the real-device and Swift-shell location-facts surfaces, and the follow cursor/handoff work open for the section 29 location facts — the state-word machinery is JVM-covered only and the facts acceptance is emulator-and-nativeacceptance-id only.",
+        "Keep the reasoningEffort selection surface, the apple-side capability-gated entry and the same-candidate real-device qualification open for the section 30 model capabilities — the wire already accepts reasoningEffort with no client UI anywhere, and the select acceptance is emulator-and-nativeacceptance-id only.",
+        "Keep the Android model-select composition entry and real-device qualification open for the section 30 model capabilities — model.select.v1 is advertised with the web picker present but the Android side has no select UI, and the steer acceptance is emulator-and-nativeacceptance-id only.",
+        "Keep follow cursor, view-location handoff, multi-Host switching and real-device acceptance open for the section 29 location metadata — the chip publishes the five location facts on the web client only and no device round runs this generation.",
+        "Keep real hardware, the Swift shell, background/push delivery and full Session location metadata open for the Question isolation lane — the acceptance is emulator-and-nativeacceptance-id only, and the Approval interaction type shares the same inbox and per-principal model without a dedicated physical lane.",
+        "Classify the next cursor failure using the preserved diagnostics, or establish a controlled reproduction before changing its owner. Do not close this investigation merely because subsequent runs pass.",
+        "The Swift roster mirror has no local execution on Windows hosts and no completed macOS CI run inside this chain; keep Swift-side execution evidence open, and keep roster write and re-pair semantics Android-core behavior with the Swift mirror reading and validating only.",
+        "Keep cross-tab and persisted view preferences and intra-line word highlighting inside a paired split row open independently; the per-tab split toggle does not close them.",
+        "Cover per-browser-profile isolation boundaries, cross-device name synchronization and manual roster ordering independently; the local rename seam does not close them.",
+        "Give the streaming carrier a deduplication path and cover cross-tab digest behavior; the real-browser deduplication-hit lane does not close them.",
+        "Qualify image and mixed-attachment recovery, large/resumable uploads, per-principal digest scoping, capacity tuning, storage-backed browser digest memory and physical-device Host restarts independently; the durable companion digest-memory file does not close broader attachment or Mobile Release acceptance.",
+        "Qualify image and mixed-attachment recovery, large/resumable uploads, per-principal digest scoping, capacity tuning, storage-backed browser digest memory and physical-device Host restarts independently; the durable companion digest-memory file does not close broader attachment or Mobile Release acceptance.",
+        "Qualify streaming and resumable uploads, physical devices and third-party senders independently; the local complete-body check is advisory and Host or proxy rejection remains authoritative.",
+        "Continue notification channel, settings revocation/process-death, persistent denial, physical-device, relay-backed delivery and precise Host/Session notification target qualification. Actual Recents and physical network/mux recovery remain separate work.",
+        "Continue Swift attachment adoption, cross-platform sharing and link entry, larger streamed uploads, upload retry/receipt expiry recovery, Host limit negotiation and the remaining requirement matrices without changing Host-owned authorization.",
+        "Retain scanner clean-cache/cross-machine, race, physical/16-KiB device, signed release, CodeQL and Apple gaps. Session writer V3 and completeRc=false persist; remote CI is distinct from local evidence. No memory update or handoff package."
+      ]
+    }
+  },
   "hostsRosterReorder": {
+    "historical": true,
+    "followup": "artifacts/upstream-first/apple-location-facts-source.json",
     "status": "PASS",
     "sourceRecord": "artifacts/upstream-first/hosts-roster-reorder-source.json",
     "scope": "§28 已保存 Host 名册手动重排纯 client 增量：重命名一代留作待办的手动重排（该代曾记\"与最近优先不变量冲突\"）本代收口。SavedHost 增可选 order（客户端选择的位置，sortRows 先按 order（order ?? +Infinity）、有序块内及其后按最近连接降序）；SavedHostsStore.moveHost(hostId, direction) 与相邻行交换后给整册每行显式打戳——一次移动即整册进入手动模式，编排全量且稳定而非部分有序，边界与未知移动不改动、不通知、返回 false；record() 保 order 如保 customName（描述事实随新生成刷新、行保持手动位置、从未移动的新行按新近度落在有序块之后），rename() 原地重写携带 order，parseRow 在 order 存在时校验其为有限数——重排前的持久化行原样解析，损坏值随其所在行丢弃。连接面 ConnectionHandle.moveSavedHost(hostId, direction) 与 renameSavedHost 同构：名册缝、无连接效应；区块面每行新增 上移/下移 动作（data-host-move-up/down，首末位置禁用，first/last 由 map 下标传入），zh/en 字典增 moveUp/moveDown。证明：存储套件 13 断言（相邻交换+全行打戳+跨存储生命周期持久化、边界/未知静默、编排经受刷新/重命名/无序到达存活、解析准入）、组件套件（边界按钮禁用、点击经注入动作换序、据发布名册重渲）、插件套件（face.move 经句柄入持久化名册、order 戳 [0,1]）、真实浏览器车道 hosts-settings.e2e（DOM 序断言、上移使外部 Host 居前+边界禁用+dsh-saved-hosts.v1 出现 \"order\":0 戳、下移恢复新近度序 \"order\":1、golden 增 Reorder 行）；cordis inspect 目录经 gen-cordis-inspect-catalog 再生成（moveSavedHost/moveHost/SavedHost.order 三镜像），ui-settings-hosts README 双语限制行改写并重录 pairing，traceability §28 remaining 收口本地编辑与手动重排（node --test 6/6）。验收：审计双轮 6 文件/44 断言（vitest.config.ts）、真实浏览器车道 1 文件/2 断言（本代唯一设备面验收轮，三跑到绿迭代如实记录于 iteration-notes.log）、typecheck/lint 0/0、test:docs 17、doc-sync 36、gate0 双形态 PASS、根 build 记录 238 client artifacts；完整目标未完成",
@@ -34939,7 +35233,7 @@
       "The known Windows symlink EPERM expanded-suite failure from the cancellation increment was not rerun or resolved"
     ]
   },
-  "latestSourceRecord": "artifacts/upstream-first/hosts-roster-reorder-source.json",
+  "latestSourceRecord": "artifacts/upstream-first/apple-location-facts-source.json",
   "cancelTarget": {
     "historical": true,
     "followup": "artifacts/upstream-first/rename-revision-source.json",
@@ -35422,7 +35716,7 @@
     "files": [
       {
         "path": "artifacts/upstream-first/write-reports.mjs",
-        "sha256": "2057c563773dd3bf85f8b926582f039c84e79e9081702be811b0eabe8d4c0e25"
+        "sha256": "b0232b002a99895a3214731fea02f8b83a1db26d7d8df9814693758d444768de"
       },
       {
         "path": "artifacts/upstream-first/verify-audit.mjs",

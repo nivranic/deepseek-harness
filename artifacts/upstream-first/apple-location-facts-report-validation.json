@@ -1,0 +1,66 @@
+{
+  "status": "PASS",
+  "scope": "Report bindings and audit for the apple location facts increment: the Swift half of the section 29 location facts closes as contract-column parity — the five Android location-fact derivation rules move into the core pure object NativeLocationFacts (presentedHostName with the blank-name hostId fallback, workspaceBasename over both separators with the whole-path fallback, latestPreset with the newest-record-wins and kept-earlier-value precedence, stateWord over the six section 18-family words with open silent and unknown dropped, plus the identifiers-only factsLine and the workspace-gated detailLine carrying the protocol-fixed full runtime word), CompanionModels' latestPermissionPreset becomes a one-line delegation and MainActivity's composable delegates its segments to the core object with the private basename helper deleted; the Apple mirror NativeLocationFacts.swift adopts the same rules with whole-document decode (non-object host as no Host, non-string cwd/state as absent, non-array journal as empty, malformed JSON throws, non-object root as all-absent) with the catalog-precedent element-wise journal cast and the omittingEmptySubsequences:false basename split matching the Kotlin blank-segment semantics; the shared 1/4/1 fixture set is consumed by the Kotlin NativeLocationFactsFixtureTest driving the real core object and by the Swift self-check section so both derivations agree; the executed rounds are the Kotlin JVM suite round (:core:test, XML reports aggregating 74 suites / 465 tests with zero failures/errors/skips, up one suite and one test through the new fixture test) and the app compile round (:app:compileDebugKotlin through the scanner gate env, no APK packaged), with the Swift mirror honestly not compiled on this Windows host — the PR-channel swift-contract lane owns that evidence; the audit matrix stays at 43 files / 618 tests (the first round's single client-bundle timeout kept raw as audit-tests-r1.log process evidence, serial re-runs sealed), typecheck and lint are both clean (TYPECHECK_EXIT=0, LINT_EXIT=0), doc-quick, doc-sync and gate0 pass, and traceability section 29 closes the Swift location-facts phrase with four new candidate evidence paths; physical devices, the compiled Swift shell, background/push, follow cursor and view-location handoff stay open; full Upstream-First objective remains in progress",
+  "gate0": {
+    "validation": "PASS",
+    "gate0": "PASS",
+    "paths": 1938,
+    "components": 129,
+    "specificationCoverage": {
+      "status": "PASS",
+      "numberedSections": 81,
+      "nonEmptySourceLines": 1983,
+      "acceptanceProven": false
+    }
+  },
+  "sourceRecord": {
+    "path": "artifacts/upstream-first/apple-location-facts-source.json",
+    "sha256": "4aecac99c2e569ff4b1542d325fe1ad88291355a6f421da4fd7c2d2e5450b2d0"
+  },
+  "generator": {
+    "path": "artifacts/upstream-first/write-reports.mjs",
+    "sha256": "b0232b002a99895a3214731fea02f8b83a1db26d7d8df9814693758d444768de"
+  },
+  "binding": {
+    "path": "artifacts/upstream-first/apple-location-facts-binding.json",
+    "sha256": "952c1d85fd644990fab4de59872015a370ba7d4f6273f08734cf6db2c1fe6906"
+  },
+  "helpers": [
+    {
+      "path": ".artifacts/advance-apple-location-facts-reports.mjs",
+      "sha256": "9583d24cdffa7ba1de49a61ecc50924faaa3c47f0ea13f7b0920e1c4be017259"
+    },
+    {
+      "path": ".artifacts/capture-apple-location-facts-validation.mjs",
+      "sha256": "1f673537f6caf9e23b1dc77685ca60b77a1b5387fd3677ce46a375835090cc72"
+    }
+  ],
+  "reports": [
+    {
+      "path": "IMPLEMENTATION_STATUS.md",
+      "sha256": "24cdd04a39bbf279b4756c3f9578d936f57bde796dbecc1dd089229912f9ed38"
+    },
+    {
+      "path": "artifacts/upstream-first/evidence.json",
+      "sha256": "e9cf1380e1226f6367318354646c766fdf823901a87604c50ffcda0adf23804f"
+    }
+  ],
+  "checks": [
+    {
+      "path": ".artifacts/apple-location-facts-binding.log",
+      "sha256": "412353a218d6deb6d84f0d64e39e581593fa8a6cd7d267ae8ea06fd261b35734"
+    },
+    {
+      "path": ".artifacts/apple-location-facts-audit-final.log",
+      "sha256": "9400480b2a8b9a337da10ebf4547706a15e8dc7a3ecd7512744803ae72d8b4b5"
+    },
+    {
+      "path": ".artifacts/apple-location-facts-gate0-final.log",
+      "sha256": "505d74ef938f5d34d85490d37e0176ba804d93272fcf465ce2544a02c56b3f90"
+    },
+    {
+      "path": ".artifacts/apple-location-facts-report-generation.log",
+      "sha256": "fe010532f71a6341467ae5719b29ac19470895de1d481156335b8f70a3273ed5"
+    }
+  ]
+}

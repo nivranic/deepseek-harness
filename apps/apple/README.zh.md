@@ -14,6 +14,8 @@ DeepSeek Harness 的下游 Apple 薄壳工程。设备首先是 Remote Companion
 
 本契约同时采纳第 30 节模型选择词汇：`NativeModelCatalog.decode` 镜像 Android core 的 `SessionModel.modelCatalog`——provider 分组的可路由模型，且宽容语义一致（无字符串 id 的条目被丢弃、名称回退为 id、非对象 `reasoning` 字段视为缺席、default 的非字符串成员读为空），`NativeModelSelection.wireBody()` 镜像 `SessionModel.selectModel`（`session/selectModel` 请求信封，`reasoningEffort` 仅在存在时携带——不带力度的选择与力度出现前的 wire 字节一致）。共享夹具集（`fixtures/native-model-catalog/`，一份规范文档、三个宽容边界用例、一个残缺用例）经 Kotlin 侧 `NativeModelCatalogFixtureTest` 与本侧自检双向消费，两个解析器的丢弃与回退保持一致。
 
+本契约同时采纳第 29 节会话位置事实：`NativeLocationFacts` 镜像 Android core 的 `NativeLocationFacts` 对象——相同的在场规则与回退（名册名称空白时回退 hostId、工作区目录名取双分隔符下最后一个非空白段并回退全路径、最新的 `permission/preset` 记录获胜而缺字符串 preset 的匹配事件保留先前值、仅六个第 18 节族状态词自名、细节行仅在有工作区时存在即协议固定的完整运行时词加全路径）。本地化词汇仍归客户端所有；契约只说标识符。共享夹具集（`fixtures/native-location-facts/`，一份规范文档、四个边界用例、一个残缺用例）经 Kotlin 侧 `NativeLocationFactsFixtureTest` 与本侧自检双向消费，两侧推导保持一致。
+
 ## 已知限制与后续工作
 
 Swift 侧未重实现 schema payload 校验；本包只固定分类与 schema 结构证据。未声明任何原生外壳、模拟器或真机资格、商店打包或多版本行为。wrapper 需要 macOS；本工程无法在 Windows/Linux 主机构建。

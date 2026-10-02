@@ -1,0 +1,8 @@
+{
+  "host": { "name": "Desk", "hostId": "d-1" },
+  "cwd": "src",
+  "journal": [
+    { "event": { "type": "permission/other", "data": { "preset": "ignored" } } }
+  ],
+  "connectionState": "hibernating"
+}

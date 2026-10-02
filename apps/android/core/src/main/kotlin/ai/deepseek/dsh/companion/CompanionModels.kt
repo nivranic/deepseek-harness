@@ -443,16 +443,7 @@ class SessionModel(
     }
 
     /** Newest `permission/preset` in a record batch; a replacement window with none is authoritative null. */
-    private fun latestPermissionPreset(records: List<WireValue>): String? {
-        var preset: String? = null
-        for (record in records) {
-            val event = WireShape.objectValue(record, "event") ?: continue
-            if (WireShape.string(event, "type") != "permission/preset") continue
-            val data = WireShape.objectValue(event, "data") ?: continue
-            WireShape.string(data, "preset")?.let { preset = it }
-        }
-        return preset
-    }
+    private fun latestPermissionPreset(records: List<WireValue>): String? = NativeLocationFacts.latestPreset(records)
     val history: StateFlow<NativeHistoryState> = journal.state
     private val _viewAnchor = MutableStateFlow<NativeViewAnchor?>(null)
     val viewAnchor: StateFlow<NativeViewAnchor?> = _viewAnchor

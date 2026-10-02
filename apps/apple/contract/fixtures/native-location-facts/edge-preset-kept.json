@@ -1,0 +1,9 @@
+{
+  "host": null,
+  "cwd": null,
+  "journal": [
+    { "event": { "type": "permission/preset", "data": { "preset": "custom-host-preset" } } },
+    { "event": { "type": "permission/preset", "data": { "preset": 42 } } }
+  ],
+  "connectionState": null
+}

@@ -947,8 +947,8 @@ private fun SessionLocationFacts(model: CompanionViewModel) {
     val snapshot by model.session.connectionSnapshots.collectAsStateWithLifecycle()
     val cwd = sessions.firstOrNull { it.id == session.sessionId }?.cwd
     val segments = buildList {
-        hosts.selected?.let { add(it.name.ifBlank { it.hostId }) }
-        cwd?.let { add(workspaceBasename(it)) }
+        hosts.selected?.let { add(NativeLocationFacts.presentedHostName(it.name, it.hostId)) }
+        cwd?.let { add(NativeLocationFacts.workspaceBasename(it)) }
         preset?.let { add(permissionPresetLabel(it)) }
         sessionLocationStateWord(snapshot.state).takeIf { it.isNotEmpty() }?.let { add(it) }
     }
@@ -961,9 +961,6 @@ private fun SessionLocationFacts(model: CompanionViewModel) {
         style = MaterialTheme.typography.bodySmall, color = MaterialTheme.colorScheme.outline,
     )
 }
-
-/** Last non-empty segment of a Host-side workspace directory; both separators are legal. */
-private fun workspaceBasename(cwd: String): String = cwd.split('/', '\\').lastOrNull { it.isNotBlank() } ?: cwd
 
 /** The §18-family follow-stream state word; the open state itself adds no word. */
 @Composable
