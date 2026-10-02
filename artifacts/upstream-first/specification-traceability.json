@@ -3398,9 +3398,12 @@
         "apps/android/core/src/test/kotlin/ai/deepseek/dsh/companion/NativeViewLocationTest.kt",
         "apps/android/core/src/test/kotlin/ai/deepseek/dsh/companion/NativeSessionJournalTest.kt",
         "apps/android/core/src/test/kotlin/ai/deepseek/dsh/companion/NativeViewLocationModelTest.kt",
-        "apps/web/tests/android-view-location.e2e.ts"
+        "apps/web/tests/android-view-location.e2e.ts",
+        "apps/apple/contract/Sources/DSHContract/NativeViewLocation.swift",
+        "apps/android/core/src/test/kotlin/ai/deepseek/dsh/companion/NativeViewLocationFixtureTest.kt",
+        ".agents/notes/implemented/architecture/2026-10-02-apple-view-location.md"
       ],
-      "remaining": "Handoff 第一阶段已按第 26 节落地：查看位置载荷（dsh-session-view.v1 前缀 base64url，解析边界 fail-loud）携带 Host 身份、SessionId 与含端持久锚点；ClientSessions.encodeViewLocation 在连接 Host 上捕获载荷，openViewLocation 校验载荷恰好指向当前连接的 Host（不同 Host/未准入即拒绝，绝不外泄请求）后选会话、打开并经轮次跳转加载器揭示锚点——只转移查看位置，不迁移执行 runtime（§27 语义由架构排除，§11 行已落档）。配套 §25 fromSeq 续传（前一增量）提供重开基础。多 Host 显式 active Host 与切换期 Composer 禁用（§28）仍待后续增量；跨设备真实 QR/链接投放通道属外壳工作，未含本增量。 Android 已接入 Web v1 查看位置编解码，匹配当前可信 Host 后打开既有 Session，通过固定快照截止点的有界分页显示旧锚点。显式复制使用可见持久记录；跳转不新建 Session、不提交 prompt、不迁移运行时。分页与实时事件合并，过期响应及超限数据被拒绝，模型退出等待取消读取结束。88 轮真实 Host 预置历史场景验证错误 Host 无请求、失败后显式重试及 Web 解码兼容。Android 同一内存 Session 已支持 fromSeq 续传；深链接、平台分享路由、Swift、物理设备及本节其他要求不因此取得 PASS。",
+      "remaining": "Handoff 第一阶段已按第 26 节落地：查看位置载荷（dsh-session-view.v1 前缀 base64url，解析边界 fail-loud）携带 Host 身份、SessionId 与含端持久锚点；ClientSessions.encodeViewLocation 在连接 Host 上捕获载荷，openViewLocation 校验载荷恰好指向当前连接的 Host（不同 Host/未准入即拒绝，绝不外泄请求）后选会话、打开并经轮次跳转加载器揭示锚点——只转移查看位置，不迁移执行 runtime（§27 语义由架构排除，§11 行已落档）。配套 §25 fromSeq 续传（前一增量）提供重开基础。多 Host 显式 active Host 与切换期 Composer 禁用（§28）仍待后续增量；跨设备真实 QR/链接投放通道属外壳工作，未含本增量。 Android 已接入 Web v1 查看位置编解码，匹配当前可信 Host 后打开既有 Session，通过固定快照截止点的有界分页显示旧锚点。显式复制使用可见持久记录；跳转不新建 Session、不提交 prompt、不迁移运行时。分页与实时事件合并，过期响应及超限数据被拒绝，模型退出等待取消读取结束。88 轮真实 Host 预置历史场景验证错误 Host 无请求、失败后显式重试及 Web 解码兼容。Android 同一内存 Session 已支持 fromSeq 续传；Swift 侧已以契约列对等证据收口：NativeViewLocations.swift 镜像 dsh-session-view.v1 编解码语法（顺序 ASCII JSON 字段+前缀 base64url、解析边界 fail-loud、CF 类型标识守卫拒绝布尔锚点、-0 与超安全整数拒绝），共享夹具 1/3/6 两列钉相同载荷字节（Kotlin 75 套件驱动真实编解码器，PR 通道 swift-contract 自检）。深链接、平台分享路由、物理设备及本节其他要求不因此取得 PASS。",
       "evidenceLimit": "这些路径是已定位的候选证据；尚未逐条证明本节每一项要求，不授予整节 PASS。"
     },
     {

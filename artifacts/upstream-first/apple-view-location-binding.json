@@ -1,0 +1,16 @@
+{
+  "status": "PASS",
+  "controls": 3,
+  "sourceRecord": {
+    "path": "artifacts/upstream-first/apple-view-location-source.json",
+    "sha256": "44458545ee46b14d33167f3df9599915f71c3cdce82dc26b86128a0506f611fa"
+  },
+  "generator": {
+    "path": "artifacts/upstream-first/write-reports.mjs",
+    "sha256": "e4f5146ca96d0af1665018535e5d63391e61c79cfdb1ab8ecd33571486d131b7"
+  },
+  "helper": {
+    "path": ".artifacts/check-apple-view-location-binding.mjs",
+    "sha256": "c3a017a0c961fab2ca8c3c6ab084fa91c8835bc1a2123bdd856e758a0e4e9400"
+  }
+}

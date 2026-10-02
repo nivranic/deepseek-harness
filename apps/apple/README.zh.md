@@ -16,6 +16,8 @@ DeepSeek Harness 的下游 Apple 薄壳工程。设备首先是 Remote Companion
 
 本契约同时采纳第 29 节会话位置事实：`NativeLocationFacts` 镜像 Android core 的 `NativeLocationFacts` 对象——相同的在场规则与回退（名册名称空白时回退 hostId、工作区目录名取双分隔符下最后一个非空白段并回退全路径、最新的 `permission/preset` 记录获胜而缺字符串 preset 的匹配事件保留先前值、仅六个第 18 节族状态词自名、细节行仅在有工作区时存在即协议固定的完整运行时词加全路径）。本地化词汇仍归客户端所有；契约只说标识符。共享夹具集（`fixtures/native-location-facts/`，一份规范文档、四个边界用例、一个残缺用例）经 Kotlin 侧 `NativeLocationFactsFixtureTest` 与本侧自检双向消费，两侧推导保持一致。
 
+本契约同时采纳第 26 节查看位置 handoff 词汇：`NativeViewLocations` 镜像 Android core（及 Web Client 的 `dsh-session-view.v1` 编解码器）——encode 以精确顺序的 ASCII JSON 字段写出单个带前缀 base64url 文档，decode 在每个解析边界 fail-loud（未知语法、非 base64url、非法 JSON、字段集不恰为 hostId/sessionId/anchorSeq 三者、非字符串或空 id、负数/小数/布尔/-0/超安全整数锚点）且绝不静默强制转换。共享夹具集（`fixtures/native-view-location/`，一份规范往返含钉死字节、三个边界用例——零锚点、id 转义字符、最大安全整数——与六个无效类）经 Kotlin 侧 `NativeViewLocationFixtureTest` 与本侧自检双向消费，两个编解码器读写相同的载荷字节。调用方尺寸限制与 Companion 深链接包装仍归客户端所有。
+
 ## 已知限制与后续工作
 
 Swift 侧未重实现 schema payload 校验；本包只固定分类与 schema 结构证据。未声明任何原生外壳、模拟器或真机资格、商店打包或多版本行为。wrapper 需要 macOS；本工程无法在 Windows/Linux 主机构建。

@@ -211,4 +211,54 @@ do {
 }
 print("PASS location-facts mirror rejects malformed location JSON")
 
+// Native view-location adoption: the Swift mirror encodes and decodes the §26
+// handoff payload with the same grammar as the Android core and the Web Client
+// (exact ordered ASCII JSON fields, prefixed base64url, exactly three keys on
+// decode, safe-integer anchors with -0 rejected, fail-loud parse boundaries).
+let viewFixtures = fixtures.appendingPathComponent("native-view-location", isDirectory: true)
+let viewNames = try FileManager.default.contentsOfDirectory(atPath: viewFixtures.path).sorted()
+guard viewNames.contains("valid.json"),
+    viewNames.filter({ $0.hasPrefix("edge-") }).count == 3,
+    viewNames.filter({ $0.hasPrefix("invalid-") }).count == 6 else {
+    checkFailure("expected the canonical view-location fixture plus 3 edge cases and 6 invalid cases, found \(viewNames)")
+}
+func viewDoc(_ name: String) throws -> (location: NativeViewLocation?, encoded: String) {
+    let root = try JSONSerialization.jsonObject(with: try readFixture("native-view-location/" + name)) as? [String: Any] ?? [:]
+    let encoded = root["encoded"] as? String ?? ""
+    let location = (root["location"] as? [String: Any]).map { doc in
+        NativeViewLocation(hostId: doc["hostId"] as? String ?? "",
+            sessionId: doc["sessionId"] as? String ?? "",
+            anchorSeq: Int64((doc["anchorSeq"] as? NSNumber)?.doubleValue ?? -1))
+    }
+    return (location, encoded)
+}
+let viewValid = try viewDoc("valid.json")
+guard try NativeViewLocations.decode(viewValid.encoded) == viewValid.location,
+    NativeViewLocations.encode(viewValid.location!) == viewValid.encoded else {
+    checkFailure("the canonical view-location payload must round-trip to the pinned bytes")
+}
+let viewZero = try viewDoc("edge-anchor-zero.json")
+let viewEscaped = try viewDoc("edge-escaped-ids.json")
+let viewMax = try viewDoc("edge-max-safe-integer.json")
+guard try NativeViewLocations.decode(viewZero.encoded) == viewZero.location,
+    NativeViewLocations.encode(viewZero.location!) == viewZero.encoded,
+    try NativeViewLocations.decode(viewEscaped.encoded) == viewEscaped.location,
+    NativeViewLocations.encode(viewEscaped.location!) == viewEscaped.encoded,
+    try NativeViewLocations.decode(viewMax.encoded) == viewMax.location,
+    NativeViewLocations.encode(viewMax.location!) == viewMax.encoded else {
+    checkFailure("the zero anchor, escaped ids, and max-safe-integer payloads must round-trip to the pinned bytes")
+}
+print("PASS view-location mirror round-trips the canonical and edge payloads to identical bytes")
+
+for name in ["invalid-unknown-prefix.json", "invalid-not-base64url.json", "invalid-not-json.json",
+    "invalid-wrong-fields.json", "invalid-bad-anchor.json", "invalid-anchor-negative-zero.json"] {
+    do {
+        _ = try NativeViewLocations.decode(try viewDoc(name).encoded)
+        checkFailure("\(name) must be rejected by the v1 grammar")
+    } catch {
+        // Every parse boundary failing loud is the expected outcome.
+    }
+}
+print("PASS view-location mirror rejects every invalid payload class at its parse boundary")
+
 exit(0)
