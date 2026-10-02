@@ -1,0 +1,16 @@
+{
+  "status": "PASS",
+  "controls": 3,
+  "sourceRecord": {
+    "path": "artifacts/upstream-first/hosts-roster-reorder-source.json",
+    "sha256": "323af8d4ffb735dc95ea641217c3b8aad6b07a06d050a748bb76a8007563fb40"
+  },
+  "generator": {
+    "path": "artifacts/upstream-first/write-reports.mjs",
+    "sha256": "2057c563773dd3bf85f8b926582f039c84e79e9081702be811b0eabe8d4c0e25"
+  },
+  "helper": {
+    "path": ".artifacts/check-hosts-roster-reorder-binding.mjs",
+    "sha256": "6e77660e967c9a3a41b4f7ee0ba21b6f34e36c08b747227d5cda513ffae9ea19"
+  }
+}

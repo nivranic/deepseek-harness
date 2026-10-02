@@ -74,6 +74,18 @@ describe.skipIf(MODE === 'record')('web e2e: saved-Host settings', () => {
     await section.getByRole('button', { name: 'Back to the page Host', exact: true }).click()
     await expect.poll(() => current.getAttribute('data-host-selected')).toBeNull()
     expect(await page.evaluate(() => localStorage.getItem('dsh-selected-host.v1'))).toBeNull()
+    const rows = section.locator('[data-host-id]')
+    const hostIds = async (): Promise<(string | undefined)[]> =>
+      rows.evaluateAll(nodes => nodes.map(node => (node as HTMLElement).dataset.hostId))
+    await expect.poll(async () => await hostIds()).toEqual([hostId, 'saved-external'])
+    await external.getByRole('button', { name: 'Move up', exact: true }).click()
+    await expect.poll(async () => await hostIds()).toEqual(['saved-external', hostId])
+    expect(await external.getByRole('button', { name: 'Move up', exact: true }).isDisabled()).toBe(true)
+    expect(await current.getByRole('button', { name: 'Move down', exact: true }).isDisabled()).toBe(true)
+    await expect.poll(() => page.evaluate(() => localStorage.getItem('dsh-saved-hosts.v1'))).toContain('"order":0')
+    await external.getByRole('button', { name: 'Move down', exact: true }).click()
+    await expect.poll(async () => await hostIds()).toEqual([hostId, 'saved-external'])
+    await expect.poll(() => page.evaluate(() => localStorage.getItem('dsh-saved-hosts.v1'))).toContain('"order":1')
     await external.getByRole('button', { name: 'Forget', exact: true }).click()
     await expect.poll(() => external.count()).toBe(0)
     await expect.poll(() => current.count()).toBe(1)
@@ -105,6 +117,7 @@ describe.skipIf(MODE === 'record')('web e2e: saved-Host settings', () => {
       '- Page Host: no cross-origin guidance',
       '- Selection: Selected; switch hidden; id persisted',
       '- Return: Using the page Host; persisted selection cleared',
+      '- Reorder: Move up puts the external Host first with boundary buttons disabled and explicit order stamps; Move down restores the recency order',
       '- Forget: external bookmark removed; page Host retained',
       '- Rename: empty draft rejected; Desk overrides and persists; Reset name returns the descriptor name',
     ].join('\n'), MODE)

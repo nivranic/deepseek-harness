@@ -110,6 +110,23 @@ describe('ui-settings-hosts browser plugin', () => {
     await b.ctx.fiber.dispose()
   })
 
+  it('moves through the handle into the persisted roster order', async () => {
+    const b = await bench()
+    declare(b.slots)
+    await b.ctx.plugin({ inject: [...inject], apply }).await()
+    b.connection.savedHosts.record({
+      hostId: 'h-2', displayName: 'Laptop', platform: 'linux', origin: location.origin, lastConnectedAt: 2,
+    })
+    const entry = b.slots.entries('settings.section')[0]!
+    const face = (entry.inject as unknown as () => HostsSettingsSectionInjected)()
+    face.move('h-1', 'up')
+    const persisted = JSON.parse(b.storage.get('dsh-saved-hosts.v1')!) as readonly { hostId: string; order?: number }[]
+    expect(persisted.map(row => row.hostId)).toEqual(['h-1', 'h-2'])
+    expect(persisted.map(row => row.order)).toEqual([0, 1])
+    expect(face.hooks.savedHosts.getSnapshot().map(row => row.hostId)).toEqual(['h-1', 'h-2'])
+    await b.ctx.fiber.dispose()
+  })
+
   it('keeps a switch that misses the roster off the connection and the storage', async () => {
     const b = await bench()
     declare(b.slots)

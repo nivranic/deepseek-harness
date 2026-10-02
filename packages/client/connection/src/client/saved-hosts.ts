@@ -23,6 +23,8 @@ export interface SavedHost {
   readonly origin: string
   /** Epoch milliseconds of the most recent established generation to this Host. */
   readonly lastConnectedAt: number
+  /** Client-chosen position overriding recency ordering until moved away; survives reconnects. */
+  readonly order?: number
 }
 
 /** Roster bound: the most recently connected Hosts survive a record. */
@@ -54,7 +56,7 @@ export function browserSavedHostsPersistence(): SavedHostsPersistence | undefine
 /** Durable-boundary validation for one persisted row. */
 function parseRow(value: unknown): SavedHost | undefined {
   if (typeof value !== 'object' || value === null) return undefined
-  const { hostId, displayName, customName, platform, origin, lastConnectedAt } = value as Record<string, unknown>
+  const { hostId, displayName, customName, platform, origin, lastConnectedAt, order } = value as Record<string, unknown>
   if (typeof hostId !== 'string' || hostId.length === 0) return undefined
   if (displayName !== undefined && typeof displayName !== 'string') return undefined
   if (customName !== undefined && typeof customName !== 'string') return undefined
@@ -71,7 +73,12 @@ function parseRow(value: unknown): SavedHost | undefined {
     if ((url.protocol !== 'https:' && url.protocol !== 'http:') || url.origin !== origin) return undefined
   }
   if (typeof lastConnectedAt !== 'number' || !Number.isFinite(lastConnectedAt)) return undefined
-  return { hostId, displayName, ...(customName === undefined ? {} : { customName }), platform, origin, lastConnectedAt }
+  if (order !== undefined && (typeof order !== 'number' || !Number.isFinite(order))) return undefined
+  return {
+    hostId, displayName, platform, origin, lastConnectedAt,
+    ...(customName === undefined ? {} : { customName }),
+    ...(order === undefined ? {} : { order }),
+  }
 }
 
 /**
@@ -116,7 +123,15 @@ export class SavedHostsStore {
    */
   record(host: SavedHost): void {
     const existing = this.rows.find(row => row.hostId === host.hostId)
-    const refreshed = existing?.customName === undefined ? host : { ...host, customName: existing.customName }
+    const keep = (customName: string | undefined, order: number | undefined): SavedHost => {
+      if (customName === undefined && order === undefined) return host
+      return {
+        ...host,
+        ...(customName === undefined ? {} : { customName }),
+        ...(order === undefined ? {} : { order }),
+      }
+    }
+    const refreshed = existing === undefined ? host : keep(existing.customName, existing.order)
     const rows = [refreshed, ...this.rows.filter(row => row.hostId !== host.hostId)]
     this.rows = sortRows(rows).slice(0, MAX_SAVED_HOSTS)
     this.persist()
@@ -141,8 +156,35 @@ export class SavedHostsStore {
       origin: row.origin,
       lastConnectedAt: row.lastConnectedAt,
       ...(customName === undefined ? {} : { customName }),
+      ...(row.order === undefined ? {} : { order: row.order }),
     }
     this.rows = this.rows.map(item => item === row ? renamed : item)
+    this.persist()
+    this.changed()
+    return true
+  }
+
+  /**
+   * Move one saved Host one position against the presented order: the swap
+   * stamps an explicit {@link SavedHost.order} on every row, so the manual
+   * arrangement survives reconnect refreshes and reloads. Boundary and
+   * unknown moves leave the roster unchanged without notifying.
+   * @param hostId - roster key to move.
+   * @param direction - `up` towards the front, `down` towards the end.
+   * @returns whether the roster order changed.
+   */
+  moveHost(hostId: string, direction: 'up' | 'down'): boolean {
+    const index = this.rows.findIndex(item => item.hostId === hostId)
+    const target = direction === 'up' ? index - 1 : index + 1
+    if (index < 0 || target < 0 || target >= this.rows.length) return false
+    const rows = [...this.rows]
+    const moving = rows[index]
+    const neighbor = rows[target]
+    // Both indices are inside the roster after the guard; the check only narrows the indexed access.
+    if (moving === undefined || neighbor === undefined) return false
+    rows[index] = neighbor
+    rows[target] = moving
+    this.rows = rows.map((row, position) => ({ ...row, order: position }))
     this.persist()
     this.changed()
     return true
@@ -161,7 +203,7 @@ export class SavedHostsStore {
 
   /**
    * Subscribe to roster changes.
-   * @param listener - runs after every record or remove.
+   * @param listener - runs after every record, rename, move, or remove.
    * @returns disposer removing this listener.
    */
   subscribe(listener: () => void): () => void {
@@ -184,9 +226,13 @@ export class SavedHostsStore {
   }
 }
 
-/** Most recent connection first; the record timestamp is the only sort key. */
+/** A client-chosen position first, most recent connection first within and after it. */
 function sortRows(rows: readonly SavedHost[]): readonly SavedHost[] {
-  return [...rows].sort((left, right) => right.lastConnectedAt - left.lastConnectedAt)
+  return [...rows].sort((left, right) => {
+    const leftOrder = left.order ?? Number.POSITIVE_INFINITY
+    const rightOrder = right.order ?? Number.POSITIVE_INFINITY
+    return leftOrder !== rightOrder ? leftOrder - rightOrder : right.lastConnectedAt - left.lastConnectedAt
+  })
 }
 
 /** What a switch action needs: the roster rows plus the connection's retarget seam. */

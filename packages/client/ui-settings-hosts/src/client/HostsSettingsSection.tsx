@@ -23,6 +23,8 @@ export interface HostsSettingsSectionInjected {
   readonly forget: (hostId: string) => void
   /** Rename a roster row locally; `undefined` returns it to descriptor facts. */
   readonly rename: (hostId: string, customName: string | undefined) => void
+  /** Move a roster row one position; the manual arrangement persists. */
+  readonly move: (hostId: string, direction: 'up' | 'down') => void
   /** Localized wall-clock text in the active locale. */
   readonly formatTime: (epochMs: number) => string
 }
@@ -42,7 +44,7 @@ export function hostDisplayName(row: SavedHost): string {
 
 /** One saved-Host row: identity, origin, timing, and its actions. */
 function HostRow(
-  { row, selected, pageOrigin, formatTime, t, onSwitch, onForget, onRename }: {
+  { row, selected, pageOrigin, formatTime, t, onSwitch, onForget, onRename, onMove, first, last }: {
     readonly row: SavedHost
     readonly selected: boolean
     readonly pageOrigin: string | undefined
@@ -51,6 +53,9 @@ function HostRow(
     readonly onSwitch: (hostId: string) => void
     readonly onForget: (hostId: string) => void
     readonly onRename: (hostId: string, customName: string | undefined) => void
+    readonly onMove: (hostId: string, direction: 'up' | 'down') => void
+    readonly first: boolean
+    readonly last: boolean
   },
 ): ReactNode {
   const inProcess = row.origin === 'in-process'
@@ -113,6 +118,12 @@ function HostRow(
             {!selected && !inProcess && row.origin === pageOrigin && (
               <button type="button" data-host-switch onClick={() => { onSwitch(row.hostId) }}>{t('switch')}</button>
             )}
+            <button type="button" data-host-move-up disabled={first} onClick={() => { onMove(row.hostId, 'up') }}>
+              {t('moveUp')}
+            </button>
+            <button type="button" data-host-move-down disabled={last} onClick={() => { onMove(row.hostId, 'down') }}>
+              {t('moveDown')}
+            </button>
             <button type="button" data-host-rename onClick={beginRename}>{t('rename')}</button>
             {row.customName !== undefined && (
               <button type="button" data-host-rename-reset onClick={() => { onRename(row.hostId, undefined) }}>
@@ -129,7 +140,7 @@ function HostRow(
 
 /** The saved-Host roster settings section: the section 28 switching surface. */
 export function HostsSettingsSection(
-  { t, useSavedHosts, useSelectedOrigin, pageOrigin, switchTo, useLocalHost, forget, rename, formatTime }: HostsSettingsSectionProps,
+  { t, useSavedHosts, useSelectedOrigin, pageOrigin, switchTo, useLocalHost, forget, rename, move, formatTime }: HostsSettingsSectionProps,
 ): ReactNode {
   const [notice, setNotice] = useState<{ origin: string; name: string } | undefined>(undefined)
   const list = useSavedHosts(value => value)
@@ -161,7 +172,7 @@ export function HostsSettingsSection(
       {list.length === 0 && <p className={css.status}>{t('empty')}</p>}
       {list.length > 0 && (
         <ul className={css.hosts}>
-          {list.map(row => (
+          {list.map((row, index) => (
             <HostRow
               key={row.hostId}
               row={row}
@@ -172,6 +183,9 @@ export function HostsSettingsSection(
               onSwitch={onSwitch}
               onForget={forget}
               onRename={rename}
+              onMove={move}
+              first={index === 0}
+              last={index === list.length - 1}
             />
           ))}
         </ul>

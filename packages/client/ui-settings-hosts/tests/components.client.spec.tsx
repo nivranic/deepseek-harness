@@ -52,6 +52,16 @@ function bench(rows = ROWS, selected?: string) {
         return customName === undefined ? refreshed : { ...refreshed, customName }
       }))
     }),
+    move: vi.fn((hostId: string, direction: 'up' | 'down') => {
+      const rows = [...roster.getSnapshot()]
+      const index = rows.findIndex(row => row.hostId === hostId)
+      const target = direction === 'up' ? index - 1 : index + 1
+      if (index < 0 || target < 0 || target >= rows.length) return
+      const [moved, displaced] = [rows[target]!, rows[index]!] as const
+      rows[index] = moved
+      rows[target] = displaced
+      roster.set(rows)
+    }),
     formatTime: time => `T${time}`,
   }
   const props = {
@@ -131,6 +141,23 @@ describe('HostsSettingsSection', () => {
     fireEvent.click(document.querySelector<HTMLElement>('[data-host-id="local"] [data-host-forget]')!)
     expect(h.face.forget).toHaveBeenCalledExactlyOnceWith('local')
     expect(document.querySelector('[data-host-id="local"]')).toBeNull()
+  })
+
+  it('moves a row through the action with boundary buttons disabled and re-renders the roster', () => {
+    const h = bench()
+    render(<HostsSettingsSection {...h.props} />)
+    const rowIds = (): (string | undefined)[] =>
+      [...document.querySelectorAll('[data-host-id]')].map(node => (node as HTMLElement).dataset.hostId)
+    const button = (row: string, kind: 'up' | 'down'): HTMLButtonElement =>
+      document.querySelector(`[data-host-id="${row}"] [data-host-move-${kind}]`) as HTMLButtonElement
+    expect(rowIds()).toEqual(['work', 'local'])
+    expect(button('work', 'up').disabled).toBe(true)
+    expect(button('work', 'down').disabled).toBe(false)
+    expect(button('local', 'up').disabled).toBe(false)
+    expect(button('local', 'down').disabled).toBe(true)
+    fireEvent.click(button('work', 'down'))
+    expect(h.face.move).toHaveBeenCalledExactlyOnceWith('work', 'down')
+    expect(rowIds()).toEqual(['local', 'work'])
   })
 
   it('returns to the page Host through the action and observable snapshot', () => {

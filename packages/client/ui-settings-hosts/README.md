@@ -66,7 +66,7 @@ None; this package neither assembles nor sends a provider request.
 
 - Browser storage can be unavailable or full; the live selection remains usable, but a reload may lose the change.
 - The local Web carrier does not support in-page cross-origin connections. Native Remote access requires a separate Connection Source with Device Trust.
-- No manual roster reordering; sorting stays most-recent-first, and renames never move a row.
+- Manual reordering moves one row at a time through Move up/Move down; the manual arrangement is per-profile in browser storage and is not synced across devices. Renames never move a row.
 
 No runtime invariant companion is published: this section renders Connection-owned roster and selection state without maintaining an independent Host projection.
 

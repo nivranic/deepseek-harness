@@ -5,95 +5,78 @@
   "candidateTrackedChanges": [
     {
       "path": "IMPLEMENTATION_STATUS.md",
-      "sha256": "5558dab6d6b376f87652f7b5a13909da8ccfa0041ea439a83417632037284001"
+      "sha256": "eba66f8c23d6aa2ba2607af80eccb1a6c336819c1e80cb3c92976d718ac956c9"
     },
     {
-      "path": "apps/android/app/src/androidTest/kotlin/ai/deepseek/dsh/companion/NativeCompanionAcceptanceTest.kt",
-      "sha256": "096391ddc01456647b793ec21d72ed623b7511c09b7c4d4bb2e30bae640cd404"
+      "path": "apps/web/tests/expected/hosts-settings.expected.md",
+      "sha256": "7a6f0c42279cdf0144270e41e113f34756fbb149aa4c0b1e77916454b840ba1c"
     },
     {
-      "path": "apps/web/tests/android-session-location.e2e.ts",
-      "sha256": "cccd89b589702296cf6a4fe28a7389c0e164a4f2f6028e7c805ea21a821dc29c"
-    },
-    {
-      "path": "apps/web/tests/expected/android-session-location.expected.md",
-      "sha256": "1f48d4eaad3fc0adfd0d2c9a5deae6d7c4f9c20a7b88d00f05620cc09c2c2d2c"
+      "path": "apps/web/tests/hosts-settings.e2e.ts",
+      "sha256": "5464bf2e12c6d845e86337fe858fcdc4c74fe93f812a9e0819fa6cfc40426ce5"
     },
     {
       "path": "artifacts/upstream-first/evidence.json",
-      "sha256": "4795649a2eb5aecde21189f505eeb8e947c200b81f71eecc561643e91fef4435"
+      "sha256": "b3e7306a4d4be00d604be1b7c772bee1586e5cf5fbe65534fb559cc77f2f0da5"
     },
     {
       "path": "artifacts/upstream-first/specification-traceability.json",
-      "sha256": "8f390a8f536c3d4746feacf8183f5ad2e62cb0d190d96038d043550852c09c6f"
+      "sha256": "fd76ae8a219525c2f0263b5591261808fb8eaf653ed1273c921eeb7bab6e7a7a"
     },
     {
       "path": "artifacts/upstream-first/write-reports.mjs",
-      "sha256": "85788f796b7b0ed3aa461dd4b7c432ff1a4e5ca6e858896c31ce8e09de33c09b"
+      "sha256": "2057c563773dd3bf85f8b926582f039c84e79e9081702be811b0eabe8d4c0e25"
     },
     {
-      "path": "docs/config-catalog.i18n.yaml",
-      "sha256": "53ddb8f7ab0578a3515297f57de9555253bef9c84826860c79f65a23a415154f"
+      "path": "packages/client/connection/src/client/index.ts",
+      "sha256": "28209674adeb0184ba1486ba297fae9d56d7b12c1e68bdd74cb03ebe09f9aced"
     },
     {
-      "path": "docs/config-catalog.md",
-      "sha256": "2da0f26679ccceab20ccd3b9f3b52610251816e9e2463ded7f7c38f7ddc493df"
+      "path": "packages/client/connection/src/client/saved-hosts.ts",
+      "sha256": "621a238e29e4d22690629903164cdf7d5ac153019e9b6f2873caa0a4bfddbea5"
     },
     {
-      "path": "docs/subsystems/typert.i18n.yaml",
-      "sha256": "da7b8643ffbcf0ed91ac4b81f5556feb9ce12ee1bb1d701cabc9a775b54c844e"
+      "path": "packages/client/connection/tests/saved-hosts.client.spec.ts",
+      "sha256": "af931ba110a4f898bb69b5eb60b4e91a18b7334edca52737274045741029dd31"
     },
     {
-      "path": "docs/subsystems/typert.md",
-      "sha256": "4e27ab597f87bd0ca83e7b609ab8f929fa3538333a442ef8263ce1d4c7283e6b"
+      "path": "packages/client/ui-settings-hosts/README.i18n.yaml",
+      "sha256": "ad34eecf69a6cdc76acd77074ed928e6c2ef0037a5c1ebca4408c7bf85f27ab3"
     },
     {
-      "path": "docs/subsystems/typert.zh.md",
-      "sha256": "9508e92f6ff16bc274d90fef23b839f102a8fb0e8b7f5c47db5f55dfe45f922b"
+      "path": "packages/client/ui-settings-hosts/README.md",
+      "sha256": "789b5bd303d7577139fbf3e7e4724726f6c52a2b7d231ff34fddbc99e232da44"
     },
     {
-      "path": "packages/api/gateway/README.i18n.yaml",
-      "sha256": "e1f30f3216263b127afeea423a0188addc6031ce98ea8785116b579d117af9f8"
+      "path": "packages/client/ui-settings-hosts/README.zh.md",
+      "sha256": "1f42053f31bc2c9cb2f35483f6816fd82ed307bf0cfa68bfd22cfc3005ac52af"
     },
     {
-      "path": "packages/api/gateway/README.md",
-      "sha256": "a0f8e29244ee48ed5c69765daf76736e6226c855054cc24ebd9fb957887253df"
+      "path": "packages/client/ui-settings-hosts/src/client/HostsSettingsSection.tsx",
+      "sha256": "f213eda826b5a279f2e463576061985584681f4d0a563a4f562f25d13307c0e0"
     },
     {
-      "path": "packages/api/gateway/README.zh.md",
-      "sha256": "9fba09a19cace88574945a1c7b5e085bced2c0ef5700f3385d4442219e41b44b"
+      "path": "packages/client/ui-settings-hosts/src/client/index.ts",
+      "sha256": "30d92c9bdfd158edd04ff8f75d47d07b953aecce7b0f6460f1d7b48cd433f34f"
     },
     {
-      "path": "packages/api/gateway/src/index.ts",
-      "sha256": "c8a85b3d2dcaa655ffe39b92b8c0171ff8bcd10aab60df11f5a76342247c0c0f"
+      "path": "packages/client/ui-settings-hosts/src/client/locales.ts",
+      "sha256": "3524d48dcf45817d81b4d655b7699650fe5e36da4d35b66164f606359c0a13f2"
     },
     {
-      "path": "packages/api/gateway/src/stream-server.ts",
-      "sha256": "e2551dab3287313bf0ee4734e47fe05ab37a49a911cf08de8cb593142040aff4"
+      "path": "packages/client/ui-settings-hosts/tests/browser-plugin.client.spec.tsx",
+      "sha256": "82432a9f57e1dc0d494b30771beb0adcac6d77027ee875816ee979dc04014979"
     },
     {
-      "path": "packages/api/gateway/src/types.ts",
-      "sha256": "bfafa5060a09c5efdbf3fbc451bbaabd2d54e1a8c5a7bad82ee36a3749ebbbfa"
+      "path": "packages/client/ui-settings-hosts/tests/components.client.spec.tsx",
+      "sha256": "dc7c95452c2d6bdfe6d32d6d37ae9bd185bea969a79611f9703dbe5ef4cc52ff"
     },
     {
-      "path": "packages/api/gateway/tests/gateway-stream.host.spec.ts",
-      "sha256": "b46736e7e7b59136a3d822a98b2f37cd819078b07fad0e33be3f8e7685d5456f"
-    },
-    {
-      "path": "packages/api/gateway/tests/stream-server.host.spec.ts",
-      "sha256": "153b04abc14ce3e0d8e76e698356c39cc364d17d05c2c449fa5effaf3016244f"
-    },
-    {
-      "path": "packages/extensions/tool-cordis/src/api-catalog.ts",
-      "sha256": "8e1481043f5c440a0d9867e375dea11148152b24dc840e1c3582ed1f08302ced"
+      "path": "packages/extensions/cordis-client-runner/src/client/api-catalog.ts",
+      "sha256": "4bdc85f307b879ce82f3dcdfbc1860d2b3fc69aa2d141ebf976e80ab9f8b93d9"
     }
   ],
-  "candidateUntrackedSourceChanges": [
-    {
-      "path": "apps/web/tests/android-connection-outage.e2e.ts",
-      "sha256": "6a6391983482df4dbb95c186a9567755fdb82282b2ea9dbf160010b75d03686a"
-    }
-  ],
+  "candidateUntrackedSourceChanges": [],
   "validationStatus": "PASS",
   "validationScope": "report SHA, path coverage and state consistency only",
   "gate0": "PASS",
@@ -10753,6 +10736,54 @@
     },
     {
       "status": "PASS",
+      "command": "vitest run over the hosts-settings browser lane (repo root, vitest.web.config.ts, real system Chrome via DSH_PLAYWRIGHT_EXECUTABLE_PATH; the reorder leg proves the DOM order swap, the boundary-disabled move buttons and the persisted \"order\" stamps, and the second test keeps the cross-origin bookmark retention proof); Executed the real-browser hosts-settings e2e lane round (repo root, vitest.web.config.ts, system Chrome reached through DSH_PLAYWRIGHT_EXECUTABLE_PATH after the bundled Playwright chromium_headless_shell-1228 binary proved missing on this host): the reorder leg proves the §28 manual arrangement end to end on the real DOM — the [hostId, saved-external] roster order asserted before the move, Move up putting the external Host first with both boundary move buttons disabled, the dsh-saved-hosts.v1 localStorage gaining the \"order\":0 stamp, then Move down restoring the recency order with \"order\":1 — while the second test keeps the cross-origin bookmark retention proof; the round is this generation's only device-face acceptance round and took three runs to green with every failure honestly narrated in .artifacts/hosts-roster-reorder-iteration-notes.log (missing Playwright browser binary, the web scaffold consuming the stale built client libs until the root pnpm run build, and the golden inline list missing its new Reorder row); 1 file / 2 tests green",
+      "log": ".artifacts/hosts-roster-reorder-lane.log",
+      "sourceRecord": "artifacts/upstream-first/hosts-roster-reorder-source.json"
+    },
+    {
+      "status": "PASS",
+      "command": "vitest run --config vitest.config.ts over the six affected client spec files (repo root: connection saved-hosts and saved-hosts-storage, ui-settings-hosts components/browser-plugin/observation, cordis-client-runner api-catalog); 6 files / 44 tests green via the Test Files/Tests summary lines in both sealed rounds (audit-tests.log with the EXIT_CODE=0 trailer, audit-final.log fresh without one)",
+      "log": ".artifacts/hosts-roster-reorder-audit-tests.log",
+      "sourceRecord": "artifacts/upstream-first/hosts-roster-reorder-source.json"
+    },
+    {
+      "status": "PASS",
+      "command": "npm run build:lib:host && npm run typecheck:contracts-ready and npm run lint:contracts-ready — the sealed combined round with both halves green: typecheck clean (no TypeScript error diagnostics, TYPECHECK_EXIT=0) and lint clean (Found 0 warnings and 0 errors, LINT_EXIT=0); the first lint round's five new-code failures were fixed before this sealed round and are narrated in iteration-notes.log",
+      "log": ".artifacts/hosts-roster-reorder-types-lint.log",
+      "sourceRecord": "artifacts/upstream-first/hosts-roster-reorder-source.json"
+    },
+    {
+      "status": "PASS",
+      "command": "pnpm run test:docs (doc-quick, 17 gates passed / 0 failed) and pnpm run doc-sync (36 gates passed / 0 failed; verify-translation-pairing failed once before README.zh.md was brought along and the pairing re-recorded — narrated in iteration-notes.log)",
+      "log": ".artifacts/hosts-roster-reorder-docs.log",
+      "sourceRecord": "artifacts/upstream-first/hosts-roster-reorder-source.json"
+    },
+    {
+      "status": "PASS",
+      "command": "pnpm run doc-sync — 36 gates passed / 0 failed",
+      "log": ".artifacts/hosts-roster-reorder-doc-sync.log",
+      "sourceRecord": "artifacts/upstream-first/hosts-roster-reorder-source.json"
+    },
+    {
+      "status": "PASS",
+      "command": "node artifacts/upstream-first/verify-audit.mjs --require-gate0",
+      "log": ".artifacts/hosts-roster-reorder-gate0-final.log",
+      "sourceRecord": "artifacts/upstream-first/hosts-roster-reorder-source.json"
+    },
+    {
+      "status": "PASS",
+      "command": "pnpm run build (repo root) — the web scaffold loads the BUILT client libs, so the root build is required after client source edits before any e2e attempt; the round records its 238 client artifacts and exits zero (the stale-lib symptom without it: the Move up button missing from the old bundle, disclosed in iteration-notes.log)",
+      "log": ".artifacts/hosts-roster-reorder-build.log",
+      "sourceRecord": "artifacts/upstream-first/hosts-roster-reorder-source.json"
+    },
+    {
+      "status": "PASS",
+      "command": "node .artifacts/prepare-hosts-roster-reorder.mjs — the before archive written from the gateway-outage record in one pass (7400 files, 0 reused) with the unresolved-scan allowlist deriving exactly 47 replaced lib build outputs",
+      "log": ".artifacts/hosts-roster-reorder-prepare.log",
+      "sourceRecord": "artifacts/upstream-first/hosts-roster-reorder-source.json"
+    },
+    {
+      "status": "PASS",
       "command": "Workspace and Conversation source regression before shared readiness correction",
       "tests": 599,
       "log": ".artifacts/workspace-admission-tests-final.log",
@@ -11483,7 +11514,283 @@
       ]
     }
   },
+  "hostsRosterReorder": {
+    "status": "PASS",
+    "sourceRecord": "artifacts/upstream-first/hosts-roster-reorder-source.json",
+    "scope": "§28 已保存 Host 名册手动重排纯 client 增量：重命名一代留作待办的手动重排（该代曾记\"与最近优先不变量冲突\"）本代收口。SavedHost 增可选 order（客户端选择的位置，sortRows 先按 order（order ?? +Infinity）、有序块内及其后按最近连接降序）；SavedHostsStore.moveHost(hostId, direction) 与相邻行交换后给整册每行显式打戳——一次移动即整册进入手动模式，编排全量且稳定而非部分有序，边界与未知移动不改动、不通知、返回 false；record() 保 order 如保 customName（描述事实随新生成刷新、行保持手动位置、从未移动的新行按新近度落在有序块之后），rename() 原地重写携带 order，parseRow 在 order 存在时校验其为有限数——重排前的持久化行原样解析，损坏值随其所在行丢弃。连接面 ConnectionHandle.moveSavedHost(hostId, direction) 与 renameSavedHost 同构：名册缝、无连接效应；区块面每行新增 上移/下移 动作（data-host-move-up/down，首末位置禁用，first/last 由 map 下标传入），zh/en 字典增 moveUp/moveDown。证明：存储套件 13 断言（相邻交换+全行打戳+跨存储生命周期持久化、边界/未知静默、编排经受刷新/重命名/无序到达存活、解析准入）、组件套件（边界按钮禁用、点击经注入动作换序、据发布名册重渲）、插件套件（face.move 经句柄入持久化名册、order 戳 [0,1]）、真实浏览器车道 hosts-settings.e2e（DOM 序断言、上移使外部 Host 居前+边界禁用+dsh-saved-hosts.v1 出现 \"order\":0 戳、下移恢复新近度序 \"order\":1、golden 增 Reorder 行）；cordis inspect 目录经 gen-cordis-inspect-catalog 再生成（moveSavedHost/moveHost/SavedHost.order 三镜像），ui-settings-hosts README 双语限制行改写并重录 pairing，traceability §28 remaining 收口本地编辑与手动重排（node --test 6/6）。验收：审计双轮 6 文件/44 断言（vitest.config.ts）、真实浏览器车道 1 文件/2 断言（本代唯一设备面验收轮，三跑到绿迭代如实记录于 iteration-notes.log）、typecheck/lint 0/0、test:docs 17、doc-sync 36、gate0 双形态 PASS、根 build 记录 238 client artifacts；完整目标未完成",
+    "repositoryKnownCodes": 84,
+    "uniqueOwners": 14,
+    "missingSemanticCommentsAdded": 49,
+    "packagedFiniteCodeSchema": true,
+    "sourceDeclarationsRemainExtensible": true,
+    "unknownCodeDiagnosticsPreserved": true,
+    "detailsPayloadSchema": false,
+    "nativeClientQualified": false,
+    "runtimeBehaviorChanged": true,
+    "newSessionEvents": false,
+    "phase3Complete": false,
+    "fullGoalComplete": false,
+    "resultInvalidMeaningMatchesEmitter": true,
+    "historicalSchedulerArchivePreserved": true,
+    "compilerIndependentDetailsGraphs": true,
+    "hostAndClientSeparate": true,
+    "builtModelMatchesSource": true,
+    "portableDetailsPayloadSchema": false,
+    "readonlyArrayAndTupleEmission": true,
+    "parsedReadonlyContainersFrozen": true,
+    "portableValidationIssueFields": true,
+    "compilerResolvedErrorDetails": true,
+    "resolvedFaceCodePairs": 144,
+    "overlappingSchemasCompared": 60,
+    "detailsSchemaPublished": false,
+    "formalEnvelopeSchemaEmitted": true,
+    "envelopeSchemaKnownBranches": 84,
+    "envelopeUnknownCodeExcludesKnownCodes": true,
+    "envelopeTupleDetailsRejected": true,
+    "envelopeLocalPackConsumed": true,
+    "envelopeRegistryPublished": false,
+    "remoteFailureClassification": true,
+    "classifiedCodes": 28,
+    "unknownCodeDefaultOpaque": true,
+    "gatewayClientConsumesClassification": true,
+    "classificationInventoryVerified": true,
+    "kotlinContractColumn": true,
+    "kotlinSchemaTests": 8,
+    "kotlinMirrorProjection": true,
+    "swiftColumn": false,
+    "androidShellMigrated": false,
+    "phase10Started": true,
+    "failureClasses": 9,
+    "invalidInputClass": true,
+    "uiAdoptionStarted": true,
+    "uiSurfacesAdoptingClassification": 2,
+    "swiftContractColumn": true,
+    "swiftSchemaTests": 4,
+    "swiftPayloadValidation": false,
+    "interactionReplyPermissions": true,
+    "interactionPermissionHostEnforced": true,
+    "interactionPermissionConfigurable": true,
+    "deviceTrustRolesReplaceSwitch": false,
+    "androidCoreMigrated": true,
+    "androidCoreTestClasses": 37,
+    "androidAppSourcesMigrated": true,
+    "androidAppConfigured": true,
+    "androidShellCompiled": false,
+    "androidScannerChainBlocked": true,
+    "swiftCheckExecutable": true,
+    "swiftLaneRunner": "macos-15-arm64",
+    "swiftLaneRecovered": true,
+    "diagnosticsOnlyTier": true,
+    "diagnosticsOnlyAdmittedEndpoints": 2,
+    "unknownVersionRejectUnchanged": true,
+    "responsivePhoneDrawer": true,
+    "phoneTierSidebarTrackZero": true,
+    "drawerWidthPx": 280,
+    "drawerDismissalPaths": 2,
+    "leftInputRegionSessionMaybe": true,
+    "frameColumnsExplicitlyPlaced": true,
+    "scannerAarBuilt": true,
+    "scannerAarStaticVerification": "PASS",
+    "scannerAarSourceSha": "8ca9f6ebf33de3912292416b85f5b510c88de9a3",
+    "assembleDebugGatePassed": true,
+    "emulatorMainActivityResumed": true,
+    "gatewayFailureConsumption": true,
+    "envelopeDetailsPreservedBothPaths": true,
+    "sharedClassificationDrivesPresentation": true,
+    "unknownCodesStayOpaque": true,
+    "uiSubagentClassificationAdopted": true,
+    "adoptingSurfacesCount": 5,
+    "queueDockClassificationAdopted": true,
+    "jobsFailureClassThreaded": true,
+    "sessionJobWireFieldAdditive": true,
+    "androidRefusalLaneDriven": true,
+    "ed25519KeyGenerationBundled": true,
+    "filesFollowStreamStarted": true,
+    "jobsProducerAdoptionVoid": true,
+    "linkAccessTakeoverDecided": true,
+    "remotePackagesStayRetired": true,
+    "gatewayOwnsDeviceAccess": true,
+    "deviceTrustSeamLanded": true,
+    "pairingIssuanceLive": true,
+    "knownErrorCodes": 89,
+    "deviceGrantsDurable": true,
+    "pairingCodesProcessLocalByDesign": true,
+    "deviceRolesMatchSection21Table": true,
+    "roleMappedReplyPermissions": true,
+    "signedAdmission": true,
+    "connectionStatesCompleteSection18": true,
+    "deviceRevokedStatePresent": true,
+    "protocolInteropMatrixPinned": true,
+    "section14VersionAxisEvidence": true,
+    "perRequestDeviceAdmission": true,
+    "capabilityRequiredPermissionVocabulary": true,
+    "remoteExecutionAuthorizationGated": true,
+    "sessionCapabilitiesDeclarePermissions": true,
+    "sessionReadWriteSplits": true,
+    "businessPermissionAdoptionStarted": true,
+    "workspaceCapabilitiesDeclarePermissions": true,
+    "remainingOwnersDeclarePermissions": true,
+    "admissionReplayLedger": true,
+    "androidClientSignsAdmissions": true,
+    "deviceIdentityConfirmation": true,
+    "devicesSettingsSurface": true,
+    "branchGateDebt": true,
+    "safeAreaInsets": true,
+    "keyboardAvoidance": true,
+    "foldableFrame": true,
+    "runningLocation": true,
+    "phoneTopBar": true,
+    "designLanguage": true,
+    "hostNaming": true,
+    "commandRisk": true,
+    "approvalFacts": true,
+    "followResume": true,
+    "viewLocation": true,
+    "composerGate": true,
+    "hostDiagnostics": true,
+    "supportBundle": true,
+    "telemetryConsent": true,
+    "diagnosticsRecorder": true,
+    "sessionHeadersEntry": true,
+    "settingsEntry": true,
+    "telemetryGate": true,
+    "savedHosts": true,
+    "degradedProbes": true,
+    "permissionTierChip": true,
+    "durableRetainedAnswers": true,
+    "unifiedDiffPreview": true,
+    "binaryFactCard": true,
+    "retargetableEndpoint": true,
+    "rosterSwitch": true,
+    "rosterUi": true,
+    "interruptedTransfer": true,
+    "mimeInference": true,
+    "hostSelectionObserver": true,
+    "diffReadableCopy": true,
+    "diffRichViewer": true,
+    "browserHostOrigin": true,
+    "deviceAdmissionLifecycle": true,
+    "nativePairing": true,
+    "nativeRemoteTls": true,
+    "nativePairingPresentation": true,
+    "androidNativeGatewayCore": true,
+    "androidNativeCompanion": true,
+    "androidNativeLifecycle": true,
+    "androidRepairing": true,
+    "androidCredentialRecovery": true,
+    "androidSessionList": true,
+    "androidInputRetention": true,
+    "androidInputPersistence": true,
+    "androidPromptRetry": true,
+    "androidHostRoster": true,
+    "androidViewLocation": true,
+    "androidCursorResume": true,
+    "androidResourceAdoption": true,
+    "androidNativeDiagnostics": true,
+    "nativeScannerAdoption": true,
+    "nativeScannerCandidate": true,
+    "nativeScannerSameSourceVerified": true,
+    "nativeScannerRepeatByteIdentical": true,
+    "nativeScannerBinarySymbolScan": true,
+    "androidCapabilityPresentation": true,
+    "androidCapabilityGenerationIsolation": true,
+    "androidCapabilityReadOnlyRefresh": true,
+    "androidOperationCapabilities": true,
+    "androidKnownOperationPreflight": true,
+    "androidCapabilityDraftRetention": true,
+    "androidSubagentTimeline": true,
+    "androidSelectedParentCatalog": true,
+    "androidChildObservationRetirement": true,
+    "androidCompleteResourceSave": true,
+    "androidResourceSavePickerOwnership": true,
+    "androidResourceSaveIndependentBytes": true,
+    "androidEncryptedDownloadCheckpoints": true,
+    "androidExplicitDownloadContinuation": true,
+    "androidDownloadJvmInterruptionRecovery": true,
+    "androidPersistentDownloadAdoption": true,
+    "androidDownloadDiskExport": true,
+    "androidInstalledDownloadProcessRecovery": true,
+    "androidDownloadHostIsolation": true,
+    "androidAcceptanceApkAdmission": true,
+    "androidFilesPickerAttachments": true,
+    "androidDurableFilePromptIntents": true,
+    "androidFileDraftProcessRecovery": true,
+    "androidFilePickerAuthority": true,
+    "hostStagedImageAdmission": true,
+    "androidPhotosPickerAttachments": true,
+    "androidDurableMixedAttachmentIntents": true,
+    "androidPhotoDraftProcessRecovery": true,
+    "androidCameraStagedImages": true,
+    "androidCameraOwnedOutputCleanup": true,
+    "androidCameraProcessRecovery": true,
+    "androidShareExplicitConfirmation": true,
+    "androidShareAtomicDraftAdoption": true,
+    "androidShareRestorationIsolation": true,
+    "androidViewDeepLinksCurrentHostNavigation": true,
+    "androidViewDeepLinksDeliveryIsolation": true,
+    "androidViewDeepLinksInputPreservation": true,
+    "androidPushForegroundRecovery": true,
+    "androidPushBackgroundProducerRetention": true,
+    "androidPushNotificationConsumption": true,
+    "androidNotificationPermission": true,
+    "androidNotificationSettingsRecovery": true,
+    "androidNotificationProcessRequestOwnership": true,
+    "androidAttachmentReceiptRecovery": true,
+    "androidAttachmentPendingDraftIsolation": true,
+    "nativeUploadBudget": true,
+    "nativeImageUploadBudget": true,
+    "nativeHostRestart": true,
+    "nativeUploadDedupe": true,
+    "browserUploadDedupe": true,
+    "nativeDigestMemory": true,
+    "browserDedupeVerification": true,
+    "hostsRosterRename": true,
+    "diffSplitView": true,
+    "appleRosterSwift": true,
+    "androidHostQuestion": true,
+    "sessionLocationChip": true,
+    "modelSteer": true,
+    "modelSelect": true,
+    "sessionLocationFacts": true,
+    "modelEffort": true,
+    "appleModelCatalog": true,
+    "gatewayOutage": true,
+    "hostsRosterReorder": true,
+    "limitations": [
+      "The browser evidence is the real-Chrome hosts-settings lane round plus the three client suites: the reorder leg drives the real DOM order swap, the boundary-disabled move buttons and the persisted \"order\" stamps through the scaffold's built client libs, but no Android or Apple roster surface was driven on this increment, and the arrangement is per-profile browser storage by design — it is not synced across devices or carriers.",
+      "This generation's gate-stage iterations are narrated in .artifacts/hosts-roster-reorder-iteration-notes.log rather than sealed as failed-round logs, because none of the failed outputs was written to disk: the first lint round failed on five new-code lines (two max-len, one member-delimiter-style, two no-non-null-assertion — re-wrapped or narrowed and re-run green inside the sealed types-lint.log round with TYPECHECK_EXIT=0 and LINT_EXIT=0), the e2e leg took three runs to green (the bundled Playwright chromium binary missing and the system Chrome used via DSH_PLAYWRIGHT_EXECUTABLE_PATH, the web scaffold consuming the stale built client libs until the root pnpm run build, and the golden inline list missing its new Reorder row), and verify-translation-pairing failed once before README.zh.md was brought along and the pairing re-recorded.",
+      "This generation's prepare ruling derives exactly 47 replaced lib build outputs — 19 .tsbuildinfo incremental caches and 28 bundle/dts products — by the unresolved scan over the gateway-outage record's own builtFiles: every entry lives under a lib/ directory, is untracked, and no longer replays from disk after this generation's root rebuild, so no disk, archive or committed copy can ever replay them; the demoted gateway-outage record shape-checks them through the generator's new gatewayOutageReplacedBuildOutputs per-record key set while the generator's cumulative replacedPriorBuildOutputs set keeps its nine inherited keys."
+    ],
+    "nextRequiredWork": {
+      "specification": "artifacts/upstream-first/original-specification.md",
+      "traceability": "artifacts/upstream-first/specification-traceability.json",
+      "remaining": [
+        "Keep the section 28 roster-editing qualification open for the non-web columns — the manual arrangement is proven in the real-browser hosts-settings lane plus the three client suites (store, component, plugin) and the regenerated api-catalog mirrors only; no Android or Apple roster surface was driven on this increment, and the per-profile browser-storage arrangement is deliberately not synced across devices.",
+        "Keep the §29 real-device qualification and the Swift-side carrier column open for the host-side termination half — the primitive is proven on the local AVD against a providers-only header-only replay Host plus the JVM suites and the web scaffold's built-lib path only; no real hardware and no Apple client were driven on this increment.",
+        "Keep the Apple-side shell UI entry (capability-rendered model selection with its reasoning efforts) and the same-candidate real-device qualification open for the section 30 model-selection half — the contract column adoption is fixture-and-CI-lane verified only, with no shell surface driven on this increment.",
+        "Keep the Apple-side model-selection entry with its reasoning efforts and the real-device qualification of the same catalog candidates open for the section 30 effort half — the effort acceptance is emulator-and-nativeacceptance-id only.",
+        "Keep the deterministic device-level outage lane (needs a Host-side stream-kill primitive), the real-device and Swift-shell location-facts surfaces, and the follow cursor/handoff work open for the section 29 location facts — the state-word machinery is JVM-covered only and the facts acceptance is emulator-and-nativeacceptance-id only.",
+        "Keep the reasoningEffort selection surface, the apple-side capability-gated entry and the same-candidate real-device qualification open for the section 30 model capabilities — the wire already accepts reasoningEffort with no client UI anywhere, and the select acceptance is emulator-and-nativeacceptance-id only.",
+        "Keep the Android model-select composition entry and real-device qualification open for the section 30 model capabilities — model.select.v1 is advertised with the web picker present but the Android side has no select UI, and the steer acceptance is emulator-and-nativeacceptance-id only.",
+        "Keep follow cursor, view-location handoff, multi-Host switching and real-device acceptance open for the section 29 location metadata — the chip publishes the five location facts on the web client only and no device round runs this generation.",
+        "Keep real hardware, the Swift shell, background/push delivery and full Session location metadata open for the Question isolation lane — the acceptance is emulator-and-nativeacceptance-id only, and the Approval interaction type shares the same inbox and per-principal model without a dedicated physical lane.",
+        "Classify the next cursor failure using the preserved diagnostics, or establish a controlled reproduction before changing its owner. Do not close this investigation merely because subsequent runs pass.",
+        "The Swift roster mirror has no local execution on Windows hosts and no completed macOS CI run inside this chain; keep Swift-side execution evidence open, and keep roster write and re-pair semantics Android-core behavior with the Swift mirror reading and validating only.",
+        "Keep cross-tab and persisted view preferences and intra-line word highlighting inside a paired split row open independently; the per-tab split toggle does not close them.",
+        "Cover per-browser-profile isolation boundaries, cross-device name synchronization and manual roster ordering independently; the local rename seam does not close them.",
+        "Give the streaming carrier a deduplication path and cover cross-tab digest behavior; the real-browser deduplication-hit lane does not close them.",
+        "Qualify image and mixed-attachment recovery, large/resumable uploads, per-principal digest scoping, capacity tuning, storage-backed browser digest memory and physical-device Host restarts independently; the durable companion digest-memory file does not close broader attachment or Mobile Release acceptance.",
+        "Qualify image and mixed-attachment recovery, large/resumable uploads, per-principal digest scoping, capacity tuning, storage-backed browser digest memory and physical-device Host restarts independently; the durable companion digest-memory file does not close broader attachment or Mobile Release acceptance.",
+        "Qualify streaming and resumable uploads, physical devices and third-party senders independently; the local complete-body check is advisory and Host or proxy rejection remains authoritative.",
+        "Continue notification channel, settings revocation/process-death, persistent denial, physical-device, relay-backed delivery and precise Host/Session notification target qualification. Actual Recents and physical network/mux recovery remain separate work.",
+        "Continue Swift attachment adoption, cross-platform sharing and link entry, larger streamed uploads, upload retry/receipt expiry recovery, Host limit negotiation and the remaining requirement matrices without changing Host-owned authorization.",
+        "Retain scanner clean-cache/cross-machine, race, physical/16-KiB device, signed release, CodeQL and Apple gaps. Session writer V3 and completeRc=false persist; remote CI is distinct from local evidence. No memory update or handoff package."
+      ]
+    }
+  },
   "gatewayOutage": {
+    "historical": true,
+    "followup": "artifacts/upstream-first/hosts-roster-reorder-source.json",
     "status": "PASS",
     "sourceRecord": "artifacts/upstream-first/gateway-outage-source.json",
     "scope": "Host 侧设备载体终止原语轴：session-location-facts 一代三轮物理排查裁定的确定性断线缺口（adb reverse 移除对空闲 follow 流不可检测、同 Session 重开复用活流、穿过已移除隧道的新连接仍能成功）本代在网关侧收口。RemoteStreamMuxConnection 向流 opener 暴露窄接口 RemoteStreamConnectionHandle（唯一方法 terminate() 无关闭握手销毁载体套接字——真实断线在客户端眼中的物理形态）；网关在某设备的已准入流打开的物理连接上绑定设备（业务流 admitRpcDevice 后、$events admitDeviceClient 后，集合同一性守卫防陈旧解绑误删替换条目）并在其已准入流全部结束后解绑；公开 host 平面方法 terminateDeviceConnections({deviceId}) 销毁该设备全部活载体并返回数量——准入与授权不动，这是连接卫生不是撤销。TypertGateway 声明接口同步扩展（ctx.typertGateway 表面由此门控，类方法不声明即不可见且过不了仓库构建），TypertGatewayWireStream.open 增可选第 4 参 connection 且 createDeviceConnection 适配器透传——该透传是 Android 链路的关键：设备经 native-remote TLS 载体上的同一 mux 协议接入（NativeRemoteService 自建 RemoteStreamMuxServer 走该适配器），适配器不透传则绑定永不发生。Android companion 零代码改动：既有状态机把载体丢失读作传输中断，重连延迟期间呈现重连中状态词后以同一准入身份重开 session/follow；androidTest 新增 waitLocationFactsContains op（设备内 waitUntil 轮询 facts 行包含子串）。新车道 android-connection-outage.e2e.ts（沿用 location 车道双 scaffold providers-only 结构，openWireStream spy 全参透传计 follow 重开）证明稳定事实行→terminate 返回恰 1→重连中状态词→恢复原样且 follow 重开、准入未撤销；location 车道的不可行注释与 golden 勘误指向本原语；网关 README 双语各增连接卫生段并重录 pairing，traceability §29 remaining 收口确定性断线并补五条证据路径（node --test 6/6）。验收：AVD 十八车道串行回归全绿（旧十六车道+model-effort+新车道，勘误后 location 另有独立重跑）、网关套件 492（含新增跨设备终止与句柄两测试）、Kotlin JVM 双套件 BUILD SUCCESSFUL（core 73/464、contract 1/9 零失败）、审计 43/618、typecheck 干净、oxlint 首轮两处 max-len 失手拆行后复跑零告警、doc-quick/doc-sync/gate0 绿；实现三次迭代（spy 丢 connection 参、types 声明接口缺失、适配器不透传——后两次为设计发现的真缺口）与首次安装路径失手如实记录于 native-verified 摘要；完整目标未完成",
@@ -34632,7 +34939,7 @@
       "The known Windows symlink EPERM expanded-suite failure from the cancellation increment was not rerun or resolved"
     ]
   },
-  "latestSourceRecord": "artifacts/upstream-first/gateway-outage-source.json",
+  "latestSourceRecord": "artifacts/upstream-first/hosts-roster-reorder-source.json",
   "cancelTarget": {
     "historical": true,
     "followup": "artifacts/upstream-first/rename-revision-source.json",
@@ -35115,7 +35422,7 @@
     "files": [
       {
         "path": "artifacts/upstream-first/write-reports.mjs",
-        "sha256": "85788f796b7b0ed3aa461dd4b7c432ff1a4e5ca6e858896c31ce8e09de33c09b"
+        "sha256": "2057c563773dd3bf85f8b926582f039c84e79e9081702be811b0eabe8d4c0e25"
       },
       {
         "path": "artifacts/upstream-first/verify-audit.mjs",

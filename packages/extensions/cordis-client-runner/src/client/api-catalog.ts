@@ -531,7 +531,7 @@ export const TYPE_API: readonly TypeApiEntry[] = [
   },
   {
     name: 'ConnectionHandle',
-    declaration: 'export interface ConnectionHandle {\n    readonly isLoopback: boolean;\n    readonly generation: ConnectionGenerationState;\n    readonly state: ConnectionStateSource;\n    readonly target: ConnectionTargetState;\n    readonly rpc: ClientConnectionRpc;\n    readonly savedHosts: SavedHostsStore;\n    selectSavedHost(hostId: string): SavedHost | undefined;\n    usePageHost(): void;\n    forgetSavedHost(hostId: string): void;\n    renameSavedHost(hostId: string, customName: string | undefined): void;\n    reconnect(): void;\n    targetOrigin(): string | undefined;\n    retarget(origin: string | undefined): void;\n    registerGenerationSource(source: ConnectionGenerationSource): () => void;\n    start(sinks: ConnectionSinks, config?: ConnectionRecoveryConfig): ConnectionLoop;\n}',
+    declaration: 'export interface ConnectionHandle {\n    readonly isLoopback: boolean;\n    readonly generation: ConnectionGenerationState;\n    readonly state: ConnectionStateSource;\n    readonly target: ConnectionTargetState;\n    readonly rpc: ClientConnectionRpc;\n    readonly savedHosts: SavedHostsStore;\n    selectSavedHost(hostId: string): SavedHost | undefined;\n    usePageHost(): void;\n    forgetSavedHost(hostId: string): void;\n    renameSavedHost(hostId: string, customName: string | undefined): void;\n    moveSavedHost(hostId: string, direction: \'up\' | \'down\'): void;\n    reconnect(): void;\n    targetOrigin(): string | undefined;\n    retarget(origin: string | undefined): void;\n    registerGenerationSource(source: ConnectionGenerationSource): () => void;\n    start(sinks: ConnectionSinks, config?: ConnectionRecoveryConfig): ConnectionLoop;\n}',
   },
   {
     name: 'ConnectionHostInfo',
@@ -779,7 +779,7 @@ export const TYPE_API: readonly TypeApiEntry[] = [
   },
   {
     name: 'SavedHost',
-    declaration: 'export interface SavedHost {\n    readonly hostId: string;\n    readonly displayName: string | undefined;\n    readonly customName?: string;\n    readonly platform: string | undefined;\n    readonly origin: string;\n    readonly lastConnectedAt: number;\n}',
+    declaration: 'export interface SavedHost {\n    readonly hostId: string;\n    readonly displayName: string | undefined;\n    readonly customName?: string;\n    readonly platform: string | undefined;\n    readonly origin: string;\n    readonly lastConnectedAt: number;\n    readonly order?: number;\n}',
   },
   {
     name: 'SavedHostsPersistence',
@@ -787,7 +787,7 @@ export const TYPE_API: readonly TypeApiEntry[] = [
   },
   {
     name: 'SavedHostsStore',
-    declaration: 'export class SavedHostsStore {\n    constructor(private readonly persistence?: SavedHostsPersistence);\n    list(): readonly SavedHost[];\n    record(host: SavedHost): void;\n    rename(hostId: string, customName: string | undefined): boolean;\n    remove(hostId: string): void;\n    subscribe(listener: () => void): () => void;\n}',
+    declaration: 'export class SavedHostsStore {\n    constructor(private readonly persistence?: SavedHostsPersistence);\n    list(): readonly SavedHost[];\n    record(host: SavedHost): void;\n    rename(hostId: string, customName: string | undefined): boolean;\n    moveHost(hostId: string, direction: \'up\' | \'down\'): boolean;\n    remove(hostId: string): void;\n    subscribe(listener: () => void): () => void;\n}',
   },
   {
     name: 'ScopeOf',

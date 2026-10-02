@@ -176,6 +176,14 @@ export interface ConnectionHandle {
    * @param customName - client-chosen display name, or undefined to clear it.
    */
   renameSavedHost(hostId: string, customName: string | undefined): void
+  /**
+   * Move a saved Host one position in the roster's presented order without
+   * touching the active connection: the swap stamps an explicit order on every
+   * row, so the manual arrangement survives reconnects and reloads.
+   * @param hostId - saved Host identity to move.
+   * @param direction - `up` towards the front, `down` towards the end.
+   */
+  moveSavedHost(hostId: string, direction: 'up' | 'down'): void
   /** Reset retry progression and replace the current attempt immediately. */
   reconnect(): void
   /**
@@ -372,6 +380,9 @@ export function apply(ctx: Context): void {
     },
     renameSavedHost(hostId, customName) {
       savedHosts.rename(hostId, customName)
+    },
+    moveSavedHost(hostId, direction) {
+      savedHosts.moveHost(hostId, direction)
     },
     retarget(origin) {
       const next = origin === undefined ? undefined : httpOriginOf(origin)

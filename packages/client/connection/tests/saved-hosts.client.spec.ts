@@ -93,6 +93,64 @@ describe('SavedHostsStore', () => {
     expect(row?.lastConnectedAt).toBe(300)
   })
 
+  it('move swaps adjacent rows, stamps an explicit order on every row, and persists it', () => {
+    const persistence = memoryPersistence()
+    const store = new SavedHostsStore(persistence)
+    store.record(host('work-pc', 100))
+    store.record(host('home-pc', 200))
+    store.record(host('lab', 300))
+    let notifications = 0
+    store.subscribe(() => { notifications += 1 })
+    expect(store.moveHost('home-pc', 'up')).toBe(true)
+    expect(store.list().map(row => row.hostId)).toEqual(['home-pc', 'lab', 'work-pc'])
+    expect(store.list().map(row => row.order)).toEqual([0, 1, 2])
+    expect(store.moveHost('home-pc', 'down')).toBe(true)
+    expect(store.list().map(row => row.hostId)).toEqual(['lab', 'home-pc', 'work-pc'])
+    expect(notifications).toBe(2)
+    const reloaded = new SavedHostsStore(persistence)
+    expect(reloaded.list().map(row => row.hostId)).toEqual(['lab', 'home-pc', 'work-pc'])
+  })
+
+  it('boundary and unknown moves leave the roster unchanged without notifying', () => {
+    const store = new SavedHostsStore()
+    store.record(host('work-pc', 100))
+    store.record(host('home-pc', 200))
+    let notifications = 0
+    store.subscribe(() => { notifications += 1 })
+    expect(store.moveHost('home-pc', 'up')).toBe(false)
+    expect(store.moveHost('work-pc', 'down')).toBe(false)
+    expect(store.moveHost('absent', 'up')).toBe(false)
+    expect(notifications).toBe(0)
+    expect(store.list().map(row => row.hostId)).toEqual(['home-pc', 'work-pc'])
+  })
+
+  it('a manual arrangement survives reconnect refreshes, renames, and unordered arrivals', () => {
+    const persistence = memoryPersistence()
+    const store = new SavedHostsStore(persistence)
+    store.record(host('work-pc', 100))
+    store.record(host('home-pc', 200))
+    store.record(host('lab', 300))
+    store.moveHost('work-pc', 'up')
+    store.record(host('work-pc', 900))
+    store.record(host('lab', 50))
+    store.rename('work-pc', 'Desk')
+    store.record(host('fresh', 1000))
+    expect(store.list().map(row => row.hostId)).toEqual(['lab', 'work-pc', 'home-pc', 'fresh'])
+    expect(store.list().map(row => row.order)).toEqual([0, 1, 2, undefined])
+    const reloaded = new SavedHostsStore(persistence)
+    expect(reloaded.list().map(row => row.hostId)).toEqual(['lab', 'work-pc', 'home-pc', 'fresh'])
+    expect(reloaded.list()[1]?.customName).toBe('Desk')
+  })
+
+  it('drops persisted rows whose order is not a finite number', () => {
+    const persistence = memoryPersistence(JSON.stringify([
+      host('good', 10),
+      { ...host('bad', 20), order: 'first' },
+      { ...host('zero', 30), order: 0 },
+    ]))
+    expect(new SavedHostsStore(persistence).list().map(row => row.hostId)).toEqual(['zero', 'good'])
+  })
+
   it('drops persisted rows whose customName is not a string', () => {
     const persistence = memoryPersistence(JSON.stringify([
       host('good', 10),
