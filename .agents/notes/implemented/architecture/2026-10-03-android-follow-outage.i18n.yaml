@@ -1,0 +1,6 @@
+# Bilingual-pair consistency record (docs/i18n/README.md): the git blob hash of each
+# side as of the last confirmed-consistent state. Both languages carry equal authority;
+# after editing either side, bring the other along and re-record with:
+#   pnpm run verify-translation-pairing --write .agents/notes/implemented/architecture/2026-10-03-android-follow-outage.md
+2026-10-03-android-follow-outage.md: 81bec09bbd67cc63ad0df69b0b197461f83259b2
+2026-10-03-android-follow-outage.zh.md: 086139dd249710a0a7e491108769f63640142380

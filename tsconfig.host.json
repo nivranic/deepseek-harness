@@ -22,6 +22,7 @@
     "apps/web/tests/android-resource-adoption.e2e.ts",
     "apps/web/tests/android-cursor-resume.e2e.ts",
     "apps/web/tests/android-follow-window-persistence.e2e.ts",
+    "apps/web/tests/android-follow-window-outage.e2e.ts",
     "apps/web/tests/validation-details.snapshot.ts",
     "apps/web/tests/checkpoint-order.snapshot.ts",
     "apps/web/tests/host-description.e2e.ts",

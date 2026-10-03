@@ -1,0 +1,145 @@
+/** The persisted follow window survives a Host-terminated carrier and resumes with its cursor. */
+import { mkdir, writeFile } from 'node:fs/promises'
+import { fileURLToPath } from 'node:url'
+import { symbols } from '@deepseek-ai/cordis'
+import { expect, it, vi } from 'vitest'
+import type {} from '@deepseek-ai/dsh-api-native-remote'
+import type {} from '@deepseek-ai/dsh-api-device-trust'
+import type {} from '@deepseek-ai/dsh-api-host-description'
+import type { SessionFollowFrame, SessionFollowRequest } from '@deepseek-ai/dsh-api-session-controller'
+import { createUserMessage } from '@deepseek-ai/dsh-llm'
+import { compareOrRefreshGolden, launchWebScaffold, seedSession, webSnapshotMode } from './scaffold.ts'
+import { createChatScrollFixture } from './chat-scroll-fixture.ts'
+import { startAndroidCompanionUiDriver } from './android-companion-ui-driver.ts'
+
+/** Host-plane carrier-hygiene surface used by this lane to destroy the device's transport. */
+interface GatewayHostPlane {
+  terminateDeviceConnections(request: { deviceId: string }): { terminated: number }
+}
+
+const MODE = webSnapshotMode()
+it.skipIf(!process.env.DSH_ANDROID_ADB || MODE === 'record')('Android resumes a persisted follow window after carrier loss', async () => {
+  const scaffold = await launchWebScaffold({
+    extraOverlayPath: fileURLToPath(new URL('./fixtures/native-remote.patch.yml', import.meta.url)),
+    extraInstallAnchors: [fileURLToPath(new URL('./fixtures/native-remote/package.json', import.meta.url))],
+  })
+  let driver: Awaited<ReturnType<typeof startAndroidCompanionUiDriver>> | undefined
+  const failures: unknown[] = []
+  const snapshots: Extract<SessionFollowFrame, { type: 'snapshot' }>[] = []
+  const requests: SessionFollowRequest[] = []
+  const mutations: string[] = []
+  const stream = scaffold.ctx.typertGateway.stream.bind(scaffold.ctx.typertGateway)
+  const invoke = scaffold.ctx.typertGateway.invoke.bind(scaffold.ctx.typertGateway)
+  const followSpy = vi.spyOn(scaffold.ctx.typertGateway, 'stream').mockImplementation(async (request) => {
+    if (request.namespace !== 'session' || request.method !== 'follow') return stream(request)
+    requests.push(request.args.request as SessionFollowRequest)
+    return (async function* () {
+      for await (const frame of await stream(request)) {
+        const snapshot = frame as SessionFollowFrame
+        if (snapshot.type === 'snapshot') snapshots.push(snapshot)
+        yield frame
+      }
+    })()
+  })
+  const invokeSpy = vi.spyOn(scaffold.ctx.typertGateway, 'invoke').mockImplementation((request) => {
+    if (['prompt', 'create', 'handoff', 'cancel', 'reply'].includes(request.method)) mutations.push(`${request.namespace}/${request.method}`)
+    return invoke(request)
+  })
+  const receiver = scaffold.ctx.typertGateway as unknown as GatewayHostPlane & { [symbols.original]?: GatewayHostPlane }
+  const gateway = receiver[symbols.original] ?? receiver
+  let stage = 'seed'
+  const lastOp = { name: 'none' }
+  const command = async (request: object) => {
+    lastOp.name = (request as { op?: string }).op ?? 'unknown'
+    const result = await driver!.request(request)
+    expect(result, `${stage}/${lastOp.name}: ${JSON.stringify(result)}`).toMatchObject({ type: 'ok' })
+    return result.value
+  }
+  /** A whole-window assertion scrolls the retained list; the driver's per-request timer can drop
+   * that slow response while the operation still completes server-side, and on deeper windows the
+   * Compose scroll verifier itself can bail after the window facts already match — both are
+   * re-observation classes, so a bounded retry ladder settles them (process-death lane lesson). */
+  const windowWithRetry = async (args: { first: unknown; last: unknown; attempts: unknown }) => {
+    for (let attempt = 1; attempt <= 3; attempt++) {
+      try { return await command({ op: 'assertSessionWindow', ...args }) } catch (error) {
+        const text = String(error)
+        if (attempt === 3 || (!text.includes('timed out') && !text.includes('session-window-scroll'))) throw error
+        await new Promise(resolve => setTimeout(resolve, 3_000 * attempt))
+      }
+    }
+    throw new Error('unreachable')
+  }
+  try {
+    const fixture = createChatScrollFixture({ markerPrefix: 'NATIVE_OUTAGE', title: 'Native outage window', turns: 30 })
+    const sessionId = await seedSession(scaffold, fixture.log, 'native-follow-outage')
+    await scaffold.ctx.sessionController.resolveAgent(sessionId)
+    const session = scaffold.ctx.sessions.get(sessionId)
+    if (session === undefined) throw new Error('native outage fixture has no live Session')
+    const info = scaffold.ctx.nativeRemote.describe()
+    const host = scaffold.ctx.hostDescription.describe()
+    driver = await startAndroidCompanionUiDriver(process.env.DSH_ANDROID_ADB!, process.env.DSH_ANDROID_SERIAL ?? '', info.port)
+    const issued = scaffold.ctx.deviceTrust.issuePairing('collaborator')
+    stage = 'pair'
+    await command({ op: 'pair', payload: {
+      kind: 'dsh-native-pairing', version: 1, endpoint: `https://127.0.0.1:${info.port}`,
+      hostId: host.hostId, displayName: host.displayName, spkiFingerprint: info.spkiFingerprint,
+      code: issued.code, expiresAt: issued.expiresAt, role: issued.role,
+    } })
+    const deviceId = scaffold.ctx.deviceTrust.listDevices()[0]!.deviceId
+    await command({ op: 'openSession', sessionId })
+    await command({ op: 'fillPromptDraft', text: 'Unsent across carrier loss' })
+    const first = await command({ op: 'loadOlderHistory' })
+    expect(snapshots).toHaveLength(1)
+    expect(requests[0]?.fromSeq).toBeUndefined()
+    const cursor = snapshots[0]!.cursor
+    const appendRecords = async (marker: string, count: number) => {
+      for (let index = 0; index < count; index++) {
+        session.append('user/message', createUserMessage({
+          content: [{ type: 'text', text: `${marker}_${index}` }], source: { kind: 'user' },
+        }), { surfaceOp: 'append' })
+      }
+      await scaffold.ctx.sessions.flush(session)
+    }
+    stage = 'pre-outage-appends'
+    await appendRecords('BEFORE_OUTAGE', 3)
+    stage = 'pre-outage-window'
+    await windowWithRetry({ first, last: cursor + 3, attempts: 1 })
+    stage = 'carrier-loss'
+    const terminated = gateway.terminateDeviceConnections({ deviceId })
+    expect(terminated.terminated, 'the Host destroyed the device carrier').toBeGreaterThanOrEqual(1)
+    stage = 'reopened-window'
+    await expect.poll(() => requests.length, { timeout: 30_000 }).toBeGreaterThanOrEqual(2)
+    expect(requests[1]?.fromSeq, 'the reopen carries the last applied durable sequence').toBe(cursor + 3)
+    stage = 'post-outage-live'
+    await appendRecords('AFTER_OUTAGE', 3)
+    await windowWithRetry({ first, last: cursor + 6, attempts: 2 })
+    await command({ op: 'assertPromptDraft', text: 'Unsent across carrier loss' })
+    expect(mutations).toEqual([])
+    expect(scaffold.ctx.deviceTrust.listDevices()).toHaveLength(1)
+    const folder = fileURLToPath(new URL('../../../.artifacts/screenshots/android-follow-window/', import.meta.url))
+    await mkdir(folder, { recursive: true })
+    await writeFile(`${folder}/outage.png`, Buffer.from(await command({ op: 'screenshot' }) as string, 'base64'))
+    await command({ op: 'close' })
+    expect(await driver.stop()).toBe(0)
+    await compareOrRefreshGolden(fileURLToPath(new URL('./expected/android-follow-window-outage.expected.md', import.meta.url)), [
+      '# Android persisted follow window across carrier loss', '',
+      '- A real Host serves a seeded Session; Android loads one older history page and three further records before the outage.',
+      '- The Host-side terminateDeviceConnections primitive destroys the paired device\'s stream carrier — a real transport break that the device detects on its own, with no adb-reverse removal involved.',
+      '- The re-opened follow request carries the last applied durable sequence; nothing was appended during the outage, so no outage-time Host write is claimed.',
+      '- After reconnection three more records arrive on the re-opened stream and fold into the retained page without a gap or duplicate.',
+      '- Unsent input and the single device grant survive the carrier loss; reconnection sends no prompt, creation, cancellation, reply, or runtime Handoff mutation.',
+      '- This scenario qualifies carrier-loss resume for the persisted window; foreground/push recovery and real devices remain open.',
+    ].join('\n'), MODE)
+  } catch (error) {
+    console.info('Android outage window stage', stage, 'lastOp', lastOp.name,
+      'requests', JSON.stringify(requests.map((request, index) => ({ index, fromSeq: request.fromSeq ?? null }))),
+      'snapshots', JSON.stringify(snapshots.map((snapshot, index) => ({ index, cursor: snapshot.cursor, first: snapshot.records[0]?.event.seq ?? null, length: snapshot.records.length }))))
+    failures.push(error)
+  }
+  finally {
+    await driver?.kill().catch((error: unknown) => { failures.push(error) })
+    followSpy.mockRestore(); invokeSpy.mockRestore()
+    await scaffold.close().catch((error: unknown) => { failures.push(error) })
+  }
+  if (failures.length) throw new AggregateError(failures, 'Android outage window failed')
+}, 300_000)
