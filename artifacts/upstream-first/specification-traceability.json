@@ -3603,9 +3603,12 @@
         "packages/client/ui-settings-hosts/src/client/HostsSettingsSection.tsx",
         "packages/client/ui-settings-hosts/tests/components.client.spec.tsx",
         "packages/client/ui-settings-hosts/tests/browser-plugin.client.spec.tsx",
-        ".agents/notes/implemented/architecture/2026-10-02-hosts-roster-reorder.md"
+        ".agents/notes/implemented/architecture/2026-10-02-hosts-roster-reorder.md",
+        "packages/client/connection/tests/host-switch.client.spec.ts",
+        "packages/client/ui-conversation/tests/host-switch.client.spec.ts",
+        ".agents/notes/implemented/architecture/2026-10-03-active-host-switch.md"
       ],
-      "remaining": "Web 名册、Host 选择与同源限制沿用已有证据；独立 TLS Native Remote 与 Device Trust 已由 Kotlin 和隔离 Android 应用采用。Android 重新配对先停止旧模型，在内存验证后原子替换本地身份；失败取消可用原身份重新观察，成功后创建空缓存模型。Swift 名册读取已有契约级对等证据；本地编辑（重命名）与手动重排（SavedHost.order 序戳，record/rename 保序，Move up/Move down 边界禁用，dsh-saved-hosts.v1 持久化）已交付并经三层套件与真实浏览器车道验收；不授予整节 PASS。 Android 现用整体加密名册同时提交 Host 凭据与选择；界面显示当前 Host 与地址，模型退出后切换，进程重启恢复选择但不自动发送。双真实 Host 的同 id Session 草稿隔离及所选 Host 单次发送已验证，旧原生文件需显式导入，损坏名册不回退旧身份。Question 与待确认输入跨主体隔离已在本地 AVD 双真实 Host 物理车道验收（Host 切换、进程重启、仅所选 Host 单次应答送达）；真机、Swift 外壳、后台/推送、完整 Session 位置元数据及整节其余验收仍开放。",
+      "remaining": "Web 名册、Host 选择与同源限制沿用已有证据；独立 TLS Native Remote 与 Device Trust 已由 Kotlin 和隔离 Android 应用采用。Android 重新配对先停止旧模型，在内存验证后原子替换本地身份；失败取消可用原身份重新观察，成功后创建空缓存模型。Swift 名册读取已有契约级对等证据；本地编辑（重命名）与手动重排（SavedHost.order 序戳，record/rename 保序，Move up/Move down 边界禁用，dsh-saved-hosts.v1 持久化）已交付并经三层套件与真实浏览器车道验收；不授予整节 PASS。 Android 现用整体加密名册同时提交 Host 凭据与选择；界面显示当前 Host 与地址，模型退出后切换，进程重启恢复选择但不自动发送。双真实 Host 的同 id Session 草稿隔离及所选 Host 单次发送已验证，旧原生文件需显式导入，损坏名册不回退旧身份。Question 与待确认输入跨主体隔离已在本地 AVD 双真实 Host 物理车道验收（Host 切换、进程重启、仅所选 Host 单次应答送达）。§28 切换期三连要求（明确显示 active Host／切 Host 时 Composer 暂时 disabled／禁止 UI 已显示 B 而请求仍发往 A）已由两条车道钉住：connection 包 host-switch 车道用门控双源在真实插件上走完 A 就绪→retarget(B)→旧代同步退休→新代在 B 建立的整周期——target/generation/state 三观察源全程采样不存在「target=B 而 generation 为 A」与「generation 为 B 而 target 非 B」的观测，切换后再无面向 A 的连接尝试，名册当前行与所选 origin 一致；ui-conversation 包 host-switch 车道用真实 createComposerControlSource 走网关 $host 形态（A facts→无能力壳→B facts）钉 prompt true→false→true——切换窗内 Composer 经 controlAvailable=false 禁用、新代建立后恢复且跟随 B 自身能力（A 独有上传能力不复现）；InputBar 禁用公式面（controlAvailable=false 即禁用）沿用既有覆盖。显示与路由一致由结构保证（retarget 先翻路由、事实单代绑定），车道为其钉住声称。；真机、Swift 外壳、后台/推送、完整 Session 位置元数据及整节其余验收仍开放。",
       "evidenceLimit": "这些路径是已定位的候选证据；尚未逐条证明本节每一项要求，不授予整节 PASS。"
     },
     {
