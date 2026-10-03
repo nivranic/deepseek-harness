@@ -12,6 +12,7 @@ import { conversationPhase } from '../contract/snapshot.ts'
 import { resolveActiveView } from '../view-selection.ts'
 import css from './ConversationRoot.module.css'
 import { permissionTierLabel } from './PermissionSelect.tsx'
+import { HeaderOverflowMenu, usePhoneTier } from './HeaderOverflowMenu.tsx'
 
 /** Full props composed from the strict session body contract. */
 export type ConversationSessionProps = ConversationSessionSlotProps
@@ -132,6 +133,7 @@ export function ConversationSessionHeader({
   // Section 10's running-location chip carries the current permission tier;
   // a permission-less Host or Draft leaves the chip as Host facts alone.
   const permissions = useProjection('permissions')
+  const phoneTier = usePhoneTier()
   const hideChrome = session.blank && conversationPhase(session, conversation) === 'blank'
 
   return (
@@ -196,13 +198,17 @@ export function ConversationSessionHeader({
                 {ancestry.length === 0 && <span className={css.crumbCurrent}>{sessionId}</span>}
               </nav>
               <div className={css.headerActions}>
-                {renderSlot('conversation.session.header.actions', {})}
+                {!phoneTier && renderSlot('conversation.session.header.actions', {})}
               </div>
             </div>
             <div className={css.headerUtilities}>
               {host !== undefined && <RunningLocationChip host={host} workspacePath={workspacePath}
                 permissions={permissions} connectionState={connectionState} t={t} />}
-              {renderSlot('conversation.session.header.utilities', {})}
+              {phoneTier
+                ? <HeaderOverflowMenu t={t}
+                  actions={renderSlot('conversation.session.header.actions', {})}
+                  utilities={renderSlot('conversation.session.header.utilities', {})} />
+                : renderSlot('conversation.session.header.utilities', {})}
             </div>
             <div className={css.headerCorner} data-conversation-header-corner="">
               {renderSlot('conversation.session.header.corner', {})}

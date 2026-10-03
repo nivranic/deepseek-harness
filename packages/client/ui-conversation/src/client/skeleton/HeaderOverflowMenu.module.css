@@ -1,0 +1,71 @@
+.root {
+  display: flex;
+  flex: none;
+  align-items: center;
+}
+
+/* Icon-only trigger: same quiet tertiary label treatment as the neighboring
+   header controls; the affordance is the glyph, so no text label rides along. */
+.trigger {
+  display: inline-flex;
+  align-items: center;
+  justify-content: center;
+  min-width: 28px;
+  min-height: 28px;
+  padding: 0;
+  border: 0;
+  border-radius: 6px;
+  background: transparent;
+  color: var(--dsw-alias-label-tertiary);
+  cursor: pointer;
+}
+
+.trigger:hover,
+.trigger:focus-visible {
+  color: var(--dsw-alias-label-secondary);
+}
+
+/* Portaled panel: the standard menu card, wide enough for the header's own
+   rows (the schedule catalog's 336px list) and clamped by the anchor hook. */
+.panel {
+  position: fixed;
+  z-index: 100;
+  box-sizing: border-box;
+  display: flex;
+  flex-direction: column;
+  gap: 2px;
+  width: 336px;
+  max-width: min(336px, calc(100vw - 32px));
+  max-height: min(420px, calc(100vh - 140px));
+  margin: 0;
+  padding: 8px;
+  overflow: auto;
+  border: 0;
+  border-radius: 20px;
+  background: var(--dsw-specific-menu);
+  --dsh-scrollbar-thumb: var(--dsw-alias-scrollbar-bg-l2);
+  --dsh-scrollbar-thumb-hover: var(--dsw-alias-scrollbar-hover-l2);
+  --dsw-elevation-stroke-color: var(--dsw-alias-border-l1);
+  box-shadow: var(--dsw-elevation-prominent);
+}
+
+/* Each source list keeps its own row group; a hairline separates actions
+   from utilities so the panel reads as the header's two rows, stacked. */
+.group {
+  display: flex;
+  flex-direction: column;
+  gap: 2px;
+}
+
+.group + .group {
+  padding-top: 6px;
+  margin-top: 6px;
+  border-top: 1px solid var(--dsw-alias-border-l1);
+}
+
+.empty {
+  padding: 8px 10px;
+  color: var(--dsw-alias-label-tertiary);
+  font-size: 12px;
+  line-height: 18px;
+}

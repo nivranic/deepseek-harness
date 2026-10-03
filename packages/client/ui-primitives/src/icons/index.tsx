@@ -990,3 +990,12 @@ export const IconShieldOutline16 = ({ size = 16, className }: IconProps) => (
     <path d={SHIELD_OUTLINE_PATH} stroke="currentColor" strokeWidth={SHIELD_OUTLINE_STROKE} strokeLinejoin="round" />
   </svg>
 )
+
+/** Vertical overflow dots (⋮) on the 16 grid; the phone-tier header menu trigger. */
+export const IconOverflowVertical16 = ({ size = 16, className }: IconProps) => (
+  <svg aria-hidden="true" width={size} height={size} className={className} viewBox="0 0 16 16" fill="none" xmlns="http://www.w3.org/2000/svg">
+    <circle cx="8" cy="3.4" r="1.4" fill="currentColor" />
+    <circle cx="8" cy="8" r="1.4" fill="currentColor" />
+    <circle cx="8" cy="12.6" r="1.4" fill="currentColor" />
+  </svg>
+)

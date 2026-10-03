@@ -1886,9 +1886,12 @@
       "owner": "共享 Client 响应式与原生输入",
       "candidateEvidence": [
         "PLATFORM_VERIFICATION.md",
-        "docs/plans/2026-09-14-upstream-first.zh.md"
+        "docs/plans/2026-09-14-upstream-first.zh.md",
+        "packages/client/ui-conversation/src/client/skeleton/HeaderOverflowMenu.tsx",
+        "packages/client/ui-conversation/tests/header-overflow.client.spec.tsx",
+        ".agents/notes/implemented/architecture/2026-10-03-header-overflow.md"
       ],
-      "remaining": "运行位置已落地（§10）：ready frame 携带 Host Node.js platform（网关与客户端严格解析，pre-release 无 wire 兼容承诺），Connection generation 暴露 ConnectionHostInfo，会话页 strict header 的 utilities 行以 locale 键显示「运行位置 <platform>」chip——generation 未就绪即消失，手机端不会误以为命令在本机执行（§11 第一原则的呈现面）；Kotlin Link 契约镜像同步。手机顶栏已落地：strict header 新增 leading 座位，ui-sidebar 在其中注册仅手机媒体查询显示的「← 会话」返回按钮（打开载有会话列表的抽屉），运行位置 chip 携带已建立 generation 的状态圆点（Host ●）；overflow 菜单（⋮）仍开放——其条目取决于尚不存在的工具栏集合，如实不预造。设备命名已接入：host.describe 校验过的 descriptor（含 displayName）本就随 generation 就绪发布，运行位置 chip 在有名字时显示「运行位置 {name} · {platform}」（无 discovery 面的组装回退纯 platform）；权限档显示已落地：permissions 投影有值时运行位置 chip 追加本地化档位（内建档位本地化、Host 自定义档位人性化名称，无投影/草稿态不追加）；溢出菜单（⋮）条目仍需工具栏集合；完整尺寸/主题/状态/访问性矩阵与 iOS/Android 真机输入、后台及原生附件验收仍缺。",
+      "remaining": "运行位置已落地（§10）：ready frame 携带 Host Node.js platform（网关与客户端严格解析，pre-release 无 wire 兼容承诺），Connection generation 暴露 ConnectionHostInfo，会话页 strict header 的 utilities 行以 locale 键显示「运行位置 <platform>」chip——generation 未就绪即消失，手机端不会误以为命令在本机执行（§11 第一原则的呈现面）；Kotlin Link 契约镜像同步。手机顶栏已落地：strict header 新增 leading 座位，ui-sidebar 在其中注册仅手机媒体查询显示的「← 会话」返回按钮（打开载有会话列表的抽屉），运行位置 chip 携带已建立 generation 的状态圆点（Host ●）；overflow 菜单（⋮）已交付：手机档（≤599.5px 媒体查询，与既有手机档 affordance 同档）下 strict header 的两个次要行——actions 列表与运行位置 chip 之外的 utilities 列表——收进 utilities 行末端的 ⋮ 触发器（portal 面板纵排两列表、Escape 关闭并还焦、两表皆空显示本地化空态行）；chip 与单座位 corner 占用者留在栏内。此前「条目取决于尚不存在的工具栏集合」的阻塞经查为自造指称——规格 81 节任何处都未定义 ⋮ 条目，聚合现存两列表是唯一有真实控件来源的读法，设计裁定随 note 记录。设备命名已接入：host.describe 校验过的 descriptor（含 displayName）本就随 generation 就绪发布，运行位置 chip 在有名字时显示「运行位置 {name} · {platform}」（无 discovery 面的组装回退纯 platform）；权限档显示已落地：permissions 投影有值时运行位置 chip 追加本地化档位（内建档位本地化、Host 自定义档位人性化名称，无投影/草稿态不追加）；完整尺寸/主题/状态/访问性矩阵与 iOS/Android 真机输入、后台及原生附件验收仍缺。",
       "evidenceLimit": "这些路径是已定位的候选证据；尚未逐条证明本节每一项要求，不授予整节 PASS。"
     },
     {
