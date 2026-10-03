@@ -168,9 +168,18 @@ export async function startAndroidCompanionUiDriver(
         }
         hostReachable = reachable
       },
+      /** Bring the instrumented singleTask application back to the foreground without routing any intent. */
+      bringToFront: async () => {
+        if (retired) throw new Error('Android UI driver is retired')
+        await run('shell', 'am', 'start', '-n',
+          'com.deepseek.harness.companion.nativeacceptance/ai.deepseek.dsh.companion.MainActivity')
+      },
       request: (command: object): Promise<DriverFrame> => new Promise((resolve, reject) => {
         const id = String(++sequence)
-        const timer = setTimeout(() => { pending.delete(id); reject(new Error('Android UI command timed out')) }, 40_000)
+        // Whole-window assertions scroll up to the Host's ~192-record bound; on a loaded
+        // emulator that op measured ~60s while still completing server-side, so the per-request
+        // budget sits above that class instead of the lane retrying around a dropped response.
+        const timer = setTimeout(() => { pending.delete(id); reject(new Error('Android UI command timed out')) }, 90_000)
         pending.set(id, {
           resolve: (frame) => { clearTimeout(timer); resolve(frame) },
           reject: (error) => { clearTimeout(timer); reject(error) },

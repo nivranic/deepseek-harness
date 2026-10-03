@@ -1,0 +1,16 @@
+{
+  "status": "PASS",
+  "controls": 3,
+  "sourceRecord": {
+    "path": "artifacts/upstream-first/android-follow-foreground-source.json",
+    "sha256": "33f9b9588e08179599ea00480f91e040a41dc996e5f336e00f40a28e77a4f4c0"
+  },
+  "generator": {
+    "path": "artifacts/upstream-first/write-reports.mjs",
+    "sha256": "7a9199ffb20a9a10c4bab149027eb20a0379e117a33ac9f78fa4c9174001d808"
+  },
+  "helper": {
+    "path": ".artifacts/check-android-follow-foreground-binding.mjs",
+    "sha256": "cb532a39e5514c465780cd178377b7230f35b62173810793a962ca35d479718f"
+  }
+}
