@@ -1,0 +1,16 @@
+{
+  "status": "PASS",
+  "controls": 3,
+  "sourceRecord": {
+    "path": "artifacts/upstream-first/android-follow-lane-source.json",
+    "sha256": "576f0172d61cf23fbba0ed16a7e62b6f14d69be3898751ab4daeb3ebc23bfdee"
+  },
+  "generator": {
+    "path": "artifacts/upstream-first/write-reports.mjs",
+    "sha256": "29453fe6cc56cfcf9b4a2e3feffaea8854acbafa76c6c3a2d53c979f8d297a9a"
+  },
+  "helper": {
+    "path": ".artifacts/check-android-follow-lane-binding.mjs",
+    "sha256": "d5361eced1d2be3555ea248e94758a948a975e92264f3ddc1135b96e26edd15f"
+  }
+}
