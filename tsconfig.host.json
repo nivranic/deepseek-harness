@@ -24,7 +24,7 @@
     "apps/web/tests/android-follow-window-persistence.e2e.ts",
     "apps/web/tests/android-follow-window-outage.e2e.ts",
     "apps/web/tests/android-follow-window-foreground.e2e.ts",
-    "apps/web/tests/validation-details.snapshot.ts",
+    "apps/web/tests/validation-details.e2e.ts",
     "apps/web/tests/checkpoint-order.snapshot.ts",
     "apps/web/tests/host-description.e2e.ts",
     "apps/web/tests/file-capabilities.e2e.ts",

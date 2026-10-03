@@ -23,7 +23,7 @@
   // cannot see both sides of the cordis Context merges).
   "exclude": [
     "tests/android-*.e2e.ts",
-    "tests/validation-details.snapshot.ts",
+    "tests/validation-details.e2e.ts",
     "tests/checkpoint-order.snapshot.ts",
     "tests/host-description.e2e.ts",
     "tests/file-capabilities.e2e.ts",
