@@ -6,7 +6,7 @@
  */
 import type { Context } from '@deepseek-ai/cordis'
 import type { SubagentAddress } from '@deepseek-ai/dsh-subagent/client'
-import type { SessionId } from '@deepseek-ai/dsh-session/types'
+import type { SessionId, SessionSeq } from '@deepseek-ai/dsh-session/types'
 import type { WorkspaceId } from '@deepseek-ai/dsh-workspace/types'
 import type { RemoteResult } from '@deepseek-ai/dsh-typert-protocol'
 import type { AgentContext } from '../scope.ts'
@@ -120,4 +120,21 @@ export interface ISessions {
    * @returns binding, or undefined for a session neither listed nor already scoped.
    */
   binding(id: SessionId): SessionBinding | undefined
+  /**
+   * Capture the connected Host, one Session, and a durable anchor as a §26
+   * view-location handoff payload (transfer the viewing position, never the runtime).
+   * @param sessionId - session whose position is handed off.
+   * @param anchorSeq - inclusive durable seq the receiving UI reveals.
+   * @returns the encoded payload safe for links, clipboards, and QR codes.
+   */
+  encodeViewLocation(sessionId: SessionId, anchorSeq: SessionSeq): string
+  /**
+   * Open the session named by a §26 view-location payload on the connected
+   * Host and reveal its anchor through the jump loader. The payload targets
+   * exactly one Host: a different connected Host, or none yet admitted, fails
+   * loud instead of leaking the request to the wrong Host.
+   * @param encoded - payload produced by {@link ISessions.encodeViewLocation}.
+   * @returns the opened session with the anchor position revealed.
+   */
+  openViewLocation(encoded: string): Promise<SessionFace>
 }

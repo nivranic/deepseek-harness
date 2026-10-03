@@ -72,6 +72,11 @@
     - id: ui-open-in-app
       name: '@deepseek-ai/dsh-client-ui-open-in-app'
 
+    # §26 view-location handoff: the Session-header capture action copying a
+    # cross-device link, and the one-shot received-link open (#dsh-view=…).
+    - id: ui-view-handoff
+      name: '@deepseek-ai/dsh-client-ui-view-handoff'
+
     - id: workspace
       name: '@deepseek-ai/dsh-workspace'
 

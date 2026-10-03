@@ -2,7 +2,8 @@
 import type { Context } from '@deepseek-ai/cordis'
 import type { AttachmentIdType } from '@deepseek-ai/dsh-attachment'
 import {
-  createScope, MutableSessionEventSource, scopeOf, SESSION_SEARCH_RESULT_LIMIT,
+  createScope, decodeSessionViewLocation, encodeSessionViewLocation, MutableSessionEventSource,
+  scopeOf, SESSION_SEARCH_RESULT_LIMIT,
 } from '@deepseek-ai/dsh-api-session-controller/client'
 import type {
   AgentContext, ISessions, ProjectionsFace, SessionBinding, SessionFace, SessionListState,
@@ -11,13 +12,18 @@ import type {
 } from '@deepseek-ai/dsh-api-session-controller/client'
 import type { SessionRequestId } from '@deepseek-ai/dsh-api-session-controller/types'
 import type { SubagentAddress } from '@deepseek-ai/dsh-subagent/client'
+import { brandString } from '@deepseek-ai/dsh-brand'
+import type { HostId } from '@deepseek-ai/dsh-api-host-description/types'
 import { createSnapshotStore } from '@deepseek-ai/dsh-client-store'
 import type { ObservableSnapshot, SnapshotStore } from '@deepseek-ai/dsh-client-store'
-import type { SessionId } from '@deepseek-ai/dsh-session/types'
+import type { SessionId, SessionSeq } from '@deepseek-ai/dsh-session/types'
 import { sessionSnapshot } from './fixtures.ts'
 import type {
   SessionFixture, SessionFixtureSnapshot, Stabilizer,
 } from './fixtures.ts'
+
+/** The single Host identity §26 payloads name in the double (there is no roster to disagree with). */
+const TEST_HOST_ID = brandString<HostId>('dsh-test-host')
 
 /**
  * The fixture-backed session face: lifecycle reads delegate to the fixture's
@@ -154,10 +160,11 @@ export class FixtureSession implements SessionFace {
 
   /**
    * Fail-loud stub; supply `loadThrough` on the fixture's session face to exercise it.
+   * @param seq - durable seq the real loader pages backwards to.
    * @returns never — always throws.
    */
-  loadThrough(): never {
-    throw new Error(`test session "${this.sessionId}": loadThrough is not stubbed — supply it on the fixture's session face`)
+  loadThrough(seq: SessionSeq): never {
+    throw new Error(`test session "${this.sessionId}": loadThrough is not stubbed (asked to reach seq ${seq}) — supply it on the fixture's session face`)
   }
 
   /**
@@ -206,7 +213,7 @@ export class TestSessions implements ISessions {
   /** Calls observed on the service-level face, newest last. */
   readonly calls: {
     method: 'create' | 'open' | 'openSubagent' | 'setSubagentCatalogOpen' | 'refreshSubagents'
-      | 'clear' | 'refresh' | 'search' | 'fork'
+      | 'clear' | 'refresh' | 'search' | 'fork' | 'encodeViewLocation' | 'openViewLocation'
     args: unknown[]
   }[] = []
 
@@ -394,6 +401,37 @@ export class TestSessions implements ISessions {
     if (record === undefined) return undefined
     record.binding ??= this.bindingOf(id as SessionId, record)
     return record.binding
+  }
+
+  /**
+   * §26 capture through the production codec; the double has one Host, so
+   * every payload names it (wrong-Host rejection is transport-side behavior).
+   * @param id - session whose position is handed off.
+   * @param anchorSeq - inclusive durable seq the receiving UI reveals.
+   * @returns the encoded view-location payload.
+   */
+  encodeViewLocation(id: SessionId, anchorSeq: SessionSeq): string {
+    this.calls.push({ method: 'encodeViewLocation', args: [id, anchorSeq] })
+    return encodeSessionViewLocation({ hostId: TEST_HOST_ID, sessionId: id, anchorSeq })
+  }
+
+  /**
+   * §26 receive: decode, select the named fixture, and reveal the anchor
+   * through its `loadThrough` (an unstubbed fixture session names itself).
+   * @param encoded - payload from {@link TestSessions.encodeViewLocation}.
+   * @returns the targeted fixture session.
+   */
+  async openViewLocation(encoded: string): Promise<SessionFace> {
+    this.calls.push({ method: 'openViewLocation', args: [encoded] })
+    const location = decodeSessionViewLocation(encoded)
+    const record = this.records.get(location.sessionId)
+    if (record === undefined) {
+      throw new Error(`view location targets unknown test session "${location.sessionId}"`)
+    }
+    this.open(location.sessionId)
+    const session: SessionFace = record.session
+    await session.loadThrough(location.anchorSeq)
+    return session
   }
 
   /**
