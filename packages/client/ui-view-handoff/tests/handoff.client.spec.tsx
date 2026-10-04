@@ -98,6 +98,40 @@ describe('view-handoff capture side', () => {
   })
 })
 
+describe('view-handoff QR popover', () => {
+  it('opens on click and renders the portaled QR carrying the fragment link', async () => {
+    mountAction({ admitted: true, lastTurnSeq: 41 })
+    const button = screen.getByRole('button', { name: en.action })
+    expect(button.getAttribute('aria-expanded')).toBe('false')
+    fireEvent.click(button)
+    await vi.waitFor(() => { expect(document.querySelector('svg title')?.textContent).toBe(en.scan) })
+    expect(button.getAttribute('aria-expanded')).toBe('true')
+    expect(document.body.querySelector('[aria-label="' + en.scan + '"] svg')).not.toBeNull()
+  })
+
+  it('closes on Escape and returns focus to the trigger', async () => {
+    const { container } = mountAction({ admitted: true, lastTurnSeq: 41 })
+    const button = screen.getByRole('button', { name: en.action })
+    fireEvent.click(button)
+    await vi.waitFor(() => { expect(document.querySelector('svg title')?.textContent).toBe(en.scan) })
+    const root = container.firstChild as HTMLElement
+    fireEvent.keyDown(root, { key: 'Escape' })
+    expect(document.querySelector('svg title')).toBeNull()
+    expect(button.getAttribute('aria-expanded')).toBe('false')
+    expect(document.activeElement).toBe(button)
+  })
+
+  it('dismisses on a pointer press outside the action and panel', async () => {
+    mountAction({ admitted: true, lastTurnSeq: 41 })
+    const button = screen.getByRole('button', { name: en.action })
+    fireEvent.click(button)
+    await vi.waitFor(() => { expect(document.querySelector('svg title')?.textContent).toBe(en.scan) })
+    fireEvent.pointerDown(document.body)
+    expect(document.querySelector('svg title')).toBeNull()
+    expect(button.getAttribute('aria-expanded')).toBe('false')
+  })
+})
+
 describe('view-handoff controller', () => {
   it('derives admission from the generation descriptor and builds fragment links', () => {
     const source = generationSource()

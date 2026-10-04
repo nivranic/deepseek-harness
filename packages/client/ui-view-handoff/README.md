@@ -29,7 +29,7 @@ Mount this plugin in the Web composition (the [`dsh-web-app`](../../bundle/web-a
 
 ### What to expect
 
-The action shows a share glyph and the localized label; clicking encodes the payload, builds `origin + pathname + #dsh-view=<payload>`, and copies the link — the button dresses as copied for two seconds. A clipboard refusal keeps the link reachable through the button's tooltip alongside the failure note. Opening a received link consumes the fragment immediately (one-shot: a wrong-Host failure cannot loop on refresh), waits for Host admission, then opens through the sessions service; a payload naming another Host fails loud in the console and no request leaves the page.
+The action shows a share glyph and the localized label; clicking encodes the payload, builds `origin + pathname + #dsh-view=<payload>`, copies the link — the button dresses as copied for two seconds — and opens a popover anchored under the action rendering that exact link as a scannable QR code (`qrcode.react` SVG, the same rendering as the device-pairing panel), so a phone camera is a delivery channel alongside paste. The popover follows the repo's anchored-panel recipe: bottom-anchored with a measuring pass, outside-pointer and Escape dismissal, focus returned to the trigger, `aria-haspopup="dialog"`. A clipboard refusal keeps the link reachable through the button's tooltip alongside the failure note. Opening a received link consumes the fragment immediately (one-shot: a wrong-Host failure cannot loop on refresh), waits for Host admission, then opens through the sessions service; a payload naming another Host fails loud in the console and no request leaves the page.
 
 -----
 
@@ -67,7 +67,7 @@ None; this package neither assembles nor sends a provider request.
 
 <a id="known-limitations-and-deferred-work"></a>
 
-- **The link carries no transport of its own.** Delivery across devices still needs a messaging channel a person controls (chat, mail, QR rendering); the payload is deliberately URL-safe for all of them, and QR rendering stays future shell work.
+- **The link carries no transport of its own.** Delivery across devices still needs a channel a person controls; the popover's QR covers the scan-by-camera path, and pasting into chat or mail stays equally valid — the payload is deliberately URL-safe for all of them.
 - **The anchor is the last Turn's start.** A session with no completed Turn start has no position worth handing off and shows no action; partial streaming state is not captured.
 - **Admission wait is unbounded.** A received link opened before any Host connects stays pending until one does (the fragment is already consumed); a page the person abandons simply never opens it.
 

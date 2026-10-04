@@ -8,6 +8,7 @@ export const zh = {
   'action': '继续到其他设备',
   'copied': '已复制查看位置链接',
   'copyFailed': '复制失败，链接已显示',
+  'scan': '在其他设备上扫码继续查看',
 } satisfies Record<string, string>
 
 /** The view-handoff namespace key union. */
@@ -18,4 +19,5 @@ export const en: Record<ViewHandoffKey, string> = {
   'action': 'Continue on another device',
   'copied': 'View-location link copied',
   'copyFailed': 'Copy failed; link shown instead',
+  'scan': 'Scan on another device to continue viewing',
 }
