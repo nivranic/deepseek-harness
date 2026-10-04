@@ -36,7 +36,10 @@ const toolMessage = {
 const validPayloads: Readonly<Record<string, SessionFormatJsonValue>> = {
   'agent-preset/selected': { agentPreset: 'default' },
   'agent/inbox/spliced': { target: 'next-turn', start: 0, inserted: [userMessage] },
-  'approval/asked': { id: 'approval-1', toolName: 'bash', callId: 'call-1', reason: 'needed' },
+  'approval/asked': {
+    id: 'approval-1', toolName: 'bash', callId: 'call-1', reason: 'needed', risk: 'high',
+    escalation: { requestedMode: 'danger-full-access', effectiveMode: 'workspace-write' },
+  },
   'approval/decided': { id: 'approval-1', outcome: 'allowed-once' },
   'approval/policy': { policy: 'ask', source: 'delegation' },
   'assistant/chunk': { turn: 1, step: 0, chunk: { type: 'text-delta', index: 0, text: 'x' } },

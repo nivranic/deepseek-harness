@@ -316,6 +316,7 @@ function panelProps(
     'detail.aria': 'Approval details',
     escalation: `Tool ${pending.toolName} asks`,
     'fact.operation': 'Operation',
+    'fact.target': 'Target',
     'fact.host': 'Host',
     'fact.workspace': 'Workspace',
     'fact.risk': 'Risk',
@@ -325,6 +326,10 @@ function panelProps(
     'risk.moderate': 'Moderate risk',
     'risk.high': 'High risk',
     'risk.critical': 'Critical risk',
+    'escalation.to': 'escalate to {mode} (currently {from})',
+    'mode.read-only': 'read-only',
+    'mode.workspace-write': 'workspace-write',
+    'mode.danger-full-access': 'full access',
     reject: 'Reject',
     allowOnce: 'Allow once',
   }
@@ -334,7 +339,8 @@ function panelProps(
     useHostFacts: (selector: (host: unknown) => unknown) => selector(hostFacts),
     useWorkspaces: (selector: (state: unknown) => unknown) => selector(workspaceState),
     sessionId: id('s1'),
-    t: (key: string) => messages[key] ?? key,
+    t: (key: string, params?: Record<string, string>) =>
+      (messages[key] ?? key).replace(/\{(\w+)\}/g, (_, name: string) => params?.[name] ?? `{${name}}`),
   } as unknown as ApprovalComposerProps
 }
 
@@ -407,6 +413,38 @@ describe('ApprovalPanel', () => {
     const bareFacts = bareView.container.querySelector('[data-approval-facts]')
     // Only the operation row survives without generation, workspace, tier, or reason.
     expect(bareFacts?.textContent).toBe('Operationbash')
+  })
+
+  it('renders the structured escalation tier and the correlated target string', () => {
+    hostFacts = undefined
+    workspaceState = { items: [], archivedSessionIds: [], state: 'idle', phase: 'ready', error: null }
+    const pending = new PendingApproval(id('s1'), {
+      toolName: 'bash',
+      callId: 'call-9' as ToolCallId,
+      escalation: { requestedMode: 'danger-full-access', effectiveMode: 'workspace-write' },
+    })
+    const renderSlot = vi.fn((key: string) =>
+      key === 'conversation.approval.target' ? 'rm -rf /tmp/cache' : null)
+    const { container } = render(<ApprovalPanel {...panelProps(pending, renderSlot)} />)
+    const facts = container.querySelector('[data-approval-facts]')
+    expect(facts?.textContent).toBe(
+      'Operationbash'
+      + 'Targetrm -rf /tmp/cache'
+      + 'Permission escalationescalate to full access (currently workspace-write)',
+    )
+    expect(renderSlot).toHaveBeenCalledWith('conversation.approval.target', {
+      callId: 'call-9',
+    })
+    cleanup()
+
+    // Without structured facts the row keeps the asker's free-text reason.
+    const reasonOnly = new PendingApproval(id('s1'), {
+      toolName: 'bash',
+      reason: 'hook says ask',
+    })
+    const reasonView = render(<ApprovalPanel {...panelProps(reasonOnly)} />)
+    expect(reasonView.container.querySelector('[data-approval-facts]')?.textContent)
+      .toBe('OperationbashPermission escalationhook says ask')
   })
 
   it('re-enables actions when answering fails', async () => {

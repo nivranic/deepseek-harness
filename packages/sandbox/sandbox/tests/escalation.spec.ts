@@ -81,6 +81,20 @@ describe('approveEscalation', () => {
     expect(seen[0]?.reason).toBe('escalate sandbox to workspace-write: the user asked to write in the workspace')
   })
 
+  it('carries the structured escalation facts and mode-derived risk tier to the approver', async () => {
+    const seen: { risk?: string; escalation?: { requestedMode: string; effectiveMode: string } }[] = []
+    await approveEscalation(
+      req({ requestedMode: 'danger-full-access', effectiveMode: 'workspace-write' }),
+      ingredients({ approver: approver('allowed-once', r => seen.push(r as { risk?: string; escalation?: { requestedMode: string; effectiveMode: string } })) }),
+    )
+    expect(seen[0]?.risk).toBe('high')
+    expect(seen[0]?.escalation).toEqual({ requestedMode: 'danger-full-access', effectiveMode: 'workspace-write' })
+    const moderate: { risk?: string }[] = []
+    await approveEscalation(req(), ingredients({ approver: approver('allowed-once', r => moderate.push(r as { risk?: string })) }))
+    expect(moderate[0]?.risk).toBe('moderate')
+    expect(moderate[0]).toMatchObject({ escalation: { requestedMode: 'workspace-write', effectiveMode: 'read-only' } })
+  })
+
   it('a non-widening request fails closed with its own text and never asks', async () => {
     const seen: unknown[] = []
     const spy = ingredients({ approver: approver('allowed-once', r => seen.push(r)) })

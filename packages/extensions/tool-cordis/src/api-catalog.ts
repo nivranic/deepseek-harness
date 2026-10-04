@@ -3868,6 +3868,10 @@ export const TYPE_API: readonly TypeApiEntry[] = [
     declaration: 'export type ApiSessionAgentResult = {\n    readonly agent: Agent;\n} | {\n    readonly error: ApiSessionAgentError;\n};',
   },
   {
+    name: 'ApprovalEscalationFact',
+    declaration: 'export interface ApprovalEscalationFact {\n    readonly requestedMode: ApprovalSandboxMode;\n    readonly effectiveMode: ApprovalSandboxMode;\n}',
+  },
+  {
     name: 'ApprovalOutcome',
     declaration: 'export type ApprovalOutcome = \'allowed-once\' | \'rejected\' | \'cancelled\' | \'unavailable\';',
   },
@@ -3881,11 +3885,15 @@ export const TYPE_API: readonly TypeApiEntry[] = [
   },
   {
     name: 'ApprovalRequestEvent',
-    declaration: 'export interface ApprovalRequestEvent {\n    readonly agent: Agent;\n    readonly toolName: string;\n    readonly callId?: ToolCallId;\n    readonly reason?: string;\n    readonly risk?: ApprovalRisk;\n    readonly signal?: AbortSignal;\n}',
+    declaration: 'export interface ApprovalRequestEvent {\n    readonly agent: Agent;\n    readonly toolName: string;\n    readonly callId?: ToolCallId;\n    readonly reason?: string;\n    readonly risk?: ApprovalRisk;\n    readonly escalation?: ApprovalEscalationFact;\n    readonly signal?: AbortSignal;\n}',
   },
   {
     name: 'ApprovalRisk',
     declaration: 'export type ApprovalRisk = \'low\' | \'moderate\' | \'high\' | \'critical\';',
+  },
+  {
+    name: 'ApprovalSandboxMode',
+    declaration: 'export type ApprovalSandboxMode = \'read-only\' | \'workspace-write\' | \'danger-full-access\';',
   },
   {
     name: 'AskUserQuestionAnswer',

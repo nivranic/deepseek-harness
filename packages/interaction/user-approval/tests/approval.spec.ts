@@ -74,6 +74,26 @@ describe('ApprovalService.request', () => {
     expect(decided?.data['id']).toBe(asked?.data['id'])
   })
 
+  it('keeps the risk tier and structured escalation facts in the asked audit event', async () => {
+    const ctx = await mounted()
+    const { agent, appended } = fakeAgent()
+
+    const outcome = await ctx.approval.request(requestOf(agent, {
+      callId: ToolCallId('call-7'),
+      reason: 'escalate sandbox to danger-full-access: need system access',
+      risk: 'high',
+      escalation: { requestedMode: 'danger-full-access', effectiveMode: 'workspace-write' },
+    }))
+
+    expect(outcome).toBe('unavailable')
+    expect(appended[0]?.data).toMatchObject({
+      toolName: 'echo',
+      callId: 'call-7',
+      risk: 'high',
+      escalation: { requestedMode: 'danger-full-access', effectiveMode: 'workspace-write' },
+    })
+  })
+
   it('omits absent optional fields from the asked audit event', async () => {
     const ctx = await mounted()
     const { agent, appended } = fakeAgent()

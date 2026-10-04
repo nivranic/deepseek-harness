@@ -144,7 +144,8 @@ export type SessionEvent<T extends SessionEventType = SessionEventType> = {
  * tool the question is about, `callId` the exact tool call when the asker
  * had one, `reason` the asker's human-readable explanation (e.g. a hook's
  * permission-decision reason), `risk` the asker's Host-assessed tier when
- * it classified one.
+ * it classified one, `escalation` the structured sandbox facts when the
+ * ask is a sandbox escalation.
  */
 'approval/asked': {
   id: ApprovalRequestId
@@ -152,12 +153,13 @@ export type SessionEvent<T extends SessionEventType = SessionEventType> = {
   callId?: ToolCallId
   reason?: string
   risk?: ApprovalRisk
+  escalation?: ApprovalEscalationFact
 }
 ```
 
 类型：[ToolCallId](subsystems/core.zh.md)
 
-来源：[`packages/interaction/user-approval/src/types.ts:44`](../packages/interaction/user-approval/src/types.ts)
+来源：[`packages/interaction/user-approval/src/types.ts:75`](../packages/interaction/user-approval/src/types.ts)
 
 <a id="approvaldecided--log-only"></a>
 
@@ -175,7 +177,7 @@ export type SessionEvent<T extends SessionEventType = SessionEventType> = {
 }
 ```
 
-来源：[`packages/interaction/user-approval/src/types.ts:55`](../packages/interaction/user-approval/src/types.ts)
+来源：[`packages/interaction/user-approval/src/types.ts:88`](../packages/interaction/user-approval/src/types.ts)
 
 <a id="approvalpolicy--log-only"></a>
 

@@ -34,6 +34,12 @@ export function assertReleasedPayloadSemantics(event: SessionFormatEvent, versio
       nonEmptyString(data['toolName'], `${label} toolName`)
       if (data['callId'] !== undefined) nonEmptyString(data['callId'], `${label} callId`)
       if (data['reason'] !== undefined) stringValue(data['reason'], `${label} reason`)
+      if (data['risk'] !== undefined) literalValue(data['risk'], ['low', 'moderate', 'high', 'critical'], `${label} risk`)
+      if (data['escalation'] !== undefined) {
+        const escalation = exactRecord(data['escalation'], `${label} escalation`, ['requestedMode', 'effectiveMode'])
+        literalValue(escalation['requestedMode'], ['read-only', 'workspace-write', 'danger-full-access'], `${label} escalation requestedMode`)
+        literalValue(escalation['effectiveMode'], ['read-only', 'workspace-write', 'danger-full-access'], `${label} escalation effectiveMode`)
+      }
       return
     case 'approval/decided':
       nonEmptyString(data['id'], `${label} id`)

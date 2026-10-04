@@ -4427,9 +4427,13 @@
       "owner": "Host Command/Tool 风险事实",
       "candidateEvidence": [
         "SECURITY_STATUS.md",
-        "packages/interaction/commands/README.md"
+        "packages/interaction/commands/README.md",
+        "packages/client/ui-approval/src/client/ApprovalPanel.tsx",
+        "packages/client/ui-chat/src/client/chat/ApprovalTarget.tsx",
+        "packages/interaction/user-approval/src/types.ts",
+        ".agents/notes/implemented/architecture/2026-10-04-approval-facts-complete.md"
       ],
-      "remaining": "风险等级已按第 37 节落地：CommandDefinition/CommandDescriptor 新增必填 Host 评定 risk 档位（low/moderate/high/critical，注册边界对词表外值 fail-loud），Host 命令层拥有分级——/permission=high（可切 danger-full-access）、/compact、/goal、/export=moderate、/plan、/feedback=low；描述符经既有 catalog wire 到达客户端，composer 菜单行以 locale 键（risk.* 四档双语）渲染尾部徽章（ui-input-trigger 通用 tag 座位），客户端只展示不做判断。§38 审批 UI 的 Risk 行自此有数据源；完整审批信息（操作/目标/Host/Workspace/权限提升/命令预览）仍待审批表面逐项呈现。",
+      "remaining": "风险等级已按第 37 节落地：CommandDefinition/CommandDescriptor 新增必填 Host 评定 risk 档位（low/moderate/high/critical，注册边界对词表外值 fail-loud），Host 命令层拥有分级——/permission=high（可切 danger-full-access）、/compact、/goal、/export=moderate、/plan、/feedback=low；描述符经既有 catalog wire 到达客户端，composer 菜单行以 locale 键（risk.* 四档双语）渲染尾部徽章（ui-input-trigger 通用 tag 座位），客户端只展示不做判断。§38 审批 UI 的 Risk 行自此有数据源。完整审批信息的逐项呈现已交付：审批面板现列出操作、目标（经 callId 关联派生的关联 Tool 调用命令或路径——沿 2026-07-06 seam 裁定不向 wire 载荷复制工具参数，经新数据座位 conversation.approval.target 由 ui-chat 实现）、Host（连接级 generation descriptor）、Workspace（sessionId 匹配）、风险档（asker 条件行）、权限提升（升级询问渲染结构化的请求/当前沙箱档位——载荷新增 escalation {requestedMode, effectiveMode} 由沙箱升级闸门填充，非升级询问保留自由文本理由兜底）与命令预览标题（detail 座位）。配套修复两个数据链缺陷：approval/asked 持久事件此前丢 risk（wire 有、日志无）现已展开落盘；已发布 v0 载荷清单表与语义校验器接纳并从严校验 risk 档位与 escalation 记录（此前任何带 risk 的日志都会被格式工件校验拒绝——潜在缺陷实证后修复）。hook 来源询问的风险档位分级与真实多设备验收仍开放，不授予整节 PASS。",
       "evidenceLimit": "这些路径是已定位的候选证据；尚未逐条证明本节每一项要求，不授予整节 PASS。"
     },
     {

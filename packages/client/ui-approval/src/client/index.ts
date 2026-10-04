@@ -51,6 +51,7 @@ async function answerApproval(
       : { callId: request.callId }),
     ...(request.reason === undefined ? {} : { reason: request.reason }),
     ...(request.risk === undefined ? {} : { risk: request.risk }),
+    ...(request.escalation === undefined ? {} : { escalation: request.escalation }),
     ...(request.signal === undefined ? {} : { signal: request.signal }),
   })
   const completed = Promise.withResolvers<void>()
@@ -97,6 +98,7 @@ export function apply(ctx: ClientContext): void {
     locale: NS,
     children: {
       'conversation.approval.detail': { kind: 'single', scope: 'session' },
+      'conversation.approval.target': { kind: 'single', scope: 'session' },
     },
   }, ApprovalPanel))
   ctx.remote.$on('approval/request', function (request, next) {

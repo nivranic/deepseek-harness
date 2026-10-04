@@ -40,7 +40,7 @@ export const RELEASED_V0_EVENT_DISPOSITIONS: Readonly<Record<string, ReleasedV0P
     ['target', 'start', 'inserted'],
     ['removedCount', 'outcome'],
   ),
-  'approval/asked': disposition(['id', 'toolName'], ['callId', 'reason']),
+  'approval/asked': disposition(['id', 'toolName'], ['callId', 'reason', 'risk', 'escalation']),
   'approval/decided': disposition(['id', 'outcome']),
   'approval/policy': disposition(['policy'], ['source']),
   'assistant/chunk': disposition(['turn', 'step', 'chunk']),

@@ -1,5 +1,5 @@
 /** Approval composer and optional correlated-detail contracts. */
-import type { ApprovalRisk } from '@deepseek-ai/dsh-user-approval/types'
+import type { ApprovalEscalationFact, ApprovalRisk } from '@deepseek-ai/dsh-user-approval/types'
 import type { ConnectionHostInfo } from '@deepseek-ai/dsh-client-connection/client'
 import type { ToolCallId } from '@deepseek-ai/dsh-llm'
 import type { SessionId } from '@deepseek-ai/dsh-session/types'
@@ -42,6 +42,12 @@ declare module '@deepseek-ai/dsh-client-ui-slots' {
       scope: 'session'
       owner: ApprovalDetailOwnerProps
     }
+    /** Optional target string for the Tool call correlated with an approval request. */
+    'conversation.approval.target': {
+      kind: 'single'
+      scope: 'session'
+      owner: ApprovalDetailOwnerProps
+    }
   }
 }
 
@@ -69,6 +75,8 @@ export interface ApprovalPresentationRequest {
   readonly reason?: string
   /** Host-assessed risk tier of the action under approval, when the asker classified one. */
   readonly risk?: ApprovalRisk
+  /** Structured sandbox-escalation facts, when the ask is a sandbox escalation. */
+  readonly escalation?: ApprovalEscalationFact
   /** Cancellation projected from the Host waterfall. */
   readonly signal?: AbortSignal
 }
@@ -92,6 +100,8 @@ export class PendingApproval {
   readonly reason: string | undefined
   /** Host-assessed risk tier, when the asker classified one. */
   readonly risk: ApprovalRisk | undefined
+  /** Structured sandbox-escalation facts, when the ask is a sandbox escalation. */
+  readonly escalation: ApprovalEscalationFact | undefined
   /** Result returned by the Remote Event listener to the Host waterfall. */
   readonly result: Promise<ApprovalDecision>
 
@@ -114,6 +124,7 @@ export class PendingApproval {
     this.callId = request.callId
     this.reason = request.reason
     this.risk = request.risk
+    this.escalation = request.escalation
     const completion = Promise.withResolvers<ApprovalDecision>()
     this.result = completion.promise
     this.#resolve = completion.resolve
@@ -178,7 +189,7 @@ export class PendingApproval {
 /** Full props of the approval composer takeover. */
 export type ApprovalComposerProps =
   PropsRuntime<'conversation.composer'>
-  & PropsRenderSlots<'conversation.approval.detail'>
+  & PropsRenderSlots<'conversation.approval.detail' | 'conversation.approval.target'>
   & InjectFace<ApprovalPanelInjected>
   & { matched: PendingApproval }
   & PropsLocale<'approval'>

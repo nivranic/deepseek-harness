@@ -17,22 +17,28 @@ export function ApprovalPanel(props: ApprovalComposerProps) {
   const detail = approval.callId === undefined
     ? null
     : props.renderSlot('conversation.approval.detail', { callId: approval.callId })
+  const targetNode = approval.callId === undefined
+    ? null
+    : props.renderSlot('conversation.approval.target', { callId: approval.callId })
+  const target = typeof targetNode === 'string' ? targetNode : undefined
   return (
     <ApprovalFlow
       key={approval.key}
       pending={approval}
       host={host === undefined ? undefined : host.descriptor?.displayName ?? host.platform}
       workspace={workspace?.title}
+      target={target}
       detail={detail}
       t={props.t}
     />
   )
 }
 
-function ApprovalFlow({ pending, host, workspace, detail, t }: {
+function ApprovalFlow({ pending, host, workspace, target, detail, t }: {
   pending: PendingApproval
   host: string | undefined
   workspace: string | undefined
+  target: string | undefined
   detail: ReactNode
   t: ApprovalComposerProps['t']
 }) {
@@ -45,10 +51,16 @@ function ApprovalFlow({ pending, host, workspace, detail, t }: {
   // every fact row that has data is named beside the decision.
   const facts = ([
     [t('fact.operation'), pending.toolName],
+    [t('fact.target'), target ?? ''],
     [t('fact.host'), host ?? ''],
     [t('fact.workspace'), workspace ?? ''],
     [t('fact.risk'), pending.risk === undefined ? '' : t(`risk.${pending.risk}`)],
-    [t('fact.escalation'), pending.reason ?? ''],
+    [t('fact.escalation'), pending.escalation === undefined
+      ? pending.reason ?? ''
+      : t('escalation.to', {
+        mode: t(`mode.${pending.escalation.requestedMode}`),
+        from: t(`mode.${pending.escalation.effectiveMode}`),
+      })],
   ] as readonly (readonly [string, string])[]).filter(([, value]) => value !== '')
   return (
     <div className={css.root} data-approval-key={pending.key}>

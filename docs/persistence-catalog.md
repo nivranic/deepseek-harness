@@ -142,7 +142,8 @@ Source: [`packages/preset/agent-presets/src/session.ts:28`](../packages/preset/a
  * tool the question is about, `callId` the exact tool call when the asker
  * had one, `reason` the asker's human-readable explanation (e.g. a hook's
  * permission-decision reason), `risk` the asker's Host-assessed tier when
- * it classified one.
+ * it classified one, `escalation` the structured sandbox facts when the
+ * ask is a sandbox escalation.
  */
 'approval/asked': {
   id: ApprovalRequestId
@@ -150,12 +151,13 @@ Source: [`packages/preset/agent-presets/src/session.ts:28`](../packages/preset/a
   callId?: ToolCallId
   reason?: string
   risk?: ApprovalRisk
+  escalation?: ApprovalEscalationFact
 }
 ```
 
 Types: [ToolCallId](subsystems/core.md)
 
-Source: [`packages/interaction/user-approval/src/types.ts:53`](../packages/interaction/user-approval/src/types.ts)
+Source: [`packages/interaction/user-approval/src/types.ts:75`](../packages/interaction/user-approval/src/types.ts)
 
 <a id="approvaldecided--log-only"></a>
 
@@ -173,7 +175,7 @@ Source: [`packages/interaction/user-approval/src/types.ts:53`](../packages/inter
 }
 ```
 
-Source: [`packages/interaction/user-approval/src/types.ts:65`](../packages/interaction/user-approval/src/types.ts)
+Source: [`packages/interaction/user-approval/src/types.ts:88`](../packages/interaction/user-approval/src/types.ts)
 
 <a id="approvalpolicy--log-only"></a>
 

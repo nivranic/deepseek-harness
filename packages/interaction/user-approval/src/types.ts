@@ -39,6 +39,27 @@ export type ApprovalOutcome = 'allowed-once' | 'rejected' | 'cancelled' | 'unava
  */
 export type ApprovalRisk = 'low' | 'moderate' | 'high' | 'critical'
 
+/**
+ * Sandbox mode names, mirroring `SandboxMode` in `@deepseek-ai/dsh-sandbox`
+ * (kept closed so the wire fact cannot carry a made-up mode) — structurally
+ * identical so the sandbox's own values assign without either package
+ * importing the other, the same seam idiom `EscalationOutcome` uses.
+ */
+export type ApprovalSandboxMode = 'read-only' | 'workspace-write' | 'danger-full-access'
+
+/**
+ * Structured sandbox-escalation facts for asks that ARE escalations: the
+ * requested target mode and the call's effective mode it must strictly widen.
+ * Approval-intrinsic metadata of the ask itself — it does not duplicate tool
+ * arguments (the correlated Tool call remains the source for those).
+ */
+export interface ApprovalEscalationFact {
+  /** Sandbox mode the ask requests, already schema-pinned to the closed target vocabulary. */
+  readonly requestedMode: ApprovalSandboxMode
+  /** Sandbox mode the correlated call runs under before any grant. */
+  readonly effectiveMode: ApprovalSandboxMode
+}
+
 declare module '@deepseek-ai/dsh-session/types' {
   interface SessionEventMap {
     /**
@@ -48,7 +69,8 @@ declare module '@deepseek-ai/dsh-session/types' {
      * tool the question is about, `callId` the exact tool call when the asker
      * had one, `reason` the asker's human-readable explanation (e.g. a hook's
      * permission-decision reason), `risk` the asker's Host-assessed tier when
-     * it classified one.
+     * it classified one, `escalation` the structured sandbox facts when the
+     * ask is a sandbox escalation.
      */
     'approval/asked': {
       id: ApprovalRequestId
@@ -56,6 +78,7 @@ declare module '@deepseek-ai/dsh-session/types' {
       callId?: ToolCallId
       reason?: string
       risk?: ApprovalRisk
+      escalation?: ApprovalEscalationFact
     }
     /**
      * The outcome of a prior `approval/asked` (same `id`) — log-only audit.
@@ -81,6 +104,8 @@ export interface ApprovalRequestEvent {
   readonly reason?: string
   /** Host-assessed risk tier of the action under approval, when the asker classified one. */
   readonly risk?: ApprovalRisk
+  /** Structured sandbox-escalation facts, when the ask is a sandbox escalation. */
+  readonly escalation?: ApprovalEscalationFact
   /** Cancellation lifetime of the pending request. */
   readonly signal?: AbortSignal
 }

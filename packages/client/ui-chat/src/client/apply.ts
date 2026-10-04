@@ -25,6 +25,7 @@ import type {
 import type { ChatSnapshot } from './contract/snapshot.ts'
 import { EMPTY_CHAT_SNAPSHOT } from './contract/snapshot.ts'
 import { ApprovalCommand } from './chat/ApprovalCommand.tsx'
+import { ApprovalTarget } from './chat/ApprovalTarget.tsx'
 import { ChatView } from './chat/ChatView.tsx'
 import { registerChatNodeRenderers } from './chat/register-node-renderers.ts'
 import { StatsPills } from './chat/StatsPills.tsx'
@@ -179,5 +180,8 @@ export function apply(ctx: Context): void {
 
   ctx.slots.inject('conversation.approval.detail', () =>
     ctx.slots.register({ name: 'conversation.approval.detail' }, ApprovalCommand))
+
+  ctx.slots.inject('conversation.approval.target', () =>
+    ctx.slots.register({ name: 'conversation.approval.target' }, ApprovalTarget))
 
 }
