@@ -3,12 +3,15 @@
 import type { Context as ClientContext } from '@deepseek-ai/cordis'
 import type { ModelCatalog } from '@deepseek-ai/dsh-api-remotes/client'
 import { createSnapshotStore, type SnapshotStore } from '@deepseek-ai/dsh-client-store'
+import { classifyRemoteFailure, type RemoteFailureClass } from '@deepseek-ai/dsh-typert-protocol'
 
 /** Observable lifecycle of the shared model catalog. */
 export interface ModelCatalogState {
   value: ModelCatalog | null
   status: 'idle' | 'loading' | 'ready' | 'error'
   error: string | null
+  /** Shared §45 classification of the load failure; `null` while none, `unknown` keeps the raw message. */
+  errorClass: RemoteFailureClass | null
 }
 
 /** Loads at most one model catalog for the current Host generation. */
@@ -18,6 +21,7 @@ export class ModelCatalogDirectory {
     value: null,
     status: 'idle',
     error: null,
+    errorClass: null,
   })
 
   private generation = 0
@@ -43,13 +47,14 @@ export class ModelCatalogDirectory {
     this.store.update((draft) => {
       draft.status = 'loading'
       draft.error = null
+      draft.errorClass = null
     })
     const operation = this.ctx.remote.session.modelCatalog().then((response) => {
       if (!response.ok) {
         throw response.error
       }
       if (generation === this.generation) {
-        this.store.set({ value: response.value, status: 'ready', error: null })
+        this.store.set({ value: response.value, status: 'ready', error: null, errorClass: null })
       }
       return response.value
     }).catch((error: unknown) => {
@@ -57,6 +62,7 @@ export class ModelCatalogDirectory {
         this.store.update((draft) => {
           draft.status = 'error'
           draft.error = error instanceof Error ? error.message : String(error)
+          draft.errorClass = classifyRemoteFailure(error)
         })
       }
       throw error
@@ -75,7 +81,7 @@ export class ModelCatalogDirectory {
     this.generation += 1
     this.inflight = undefined
     const value = clear ? null : this.store.getSnapshot().value
-    this.store.set({ value, status: 'idle', error: null })
+    this.store.set({ value, status: 'idle', error: null, errorClass: null })
   }
 
   /** Invalidate and reload the catalog after a Host-side model input changes. */

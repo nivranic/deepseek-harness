@@ -41,4 +41,13 @@ export const en = {
   'markdown.truncatedCharacters': '… truncated at {total} characters',
   'number.thousand': '{value}K',
   'number.million': '{value}M',
+  'failure.authentication': 'Re-authentication is required before retrying',
+  'failure.permission': 'This device is not permitted to perform the operation',
+  'failure.compatibility': 'Version or capability mismatch; reconnect the Host',
+  'failure.conflict': 'Local state is stale; refresh and retry',
+  'failure.host-state': 'The Host cannot handle this request right now; retry later',
+  'failure.carrier-invalid': 'The connection is no longer valid; reconnect',
+  'failure.transport': 'Transport interrupted; retrying is safe and the Host decides the outcome',
+  'failure.unavailable': 'The target does not exist or is no longer available',
+  'failure.raw': '{message}',
 } satisfies Record<CommonKey, string>

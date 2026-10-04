@@ -46,6 +46,7 @@ function state(overrides: Partial<ModelDirectoryState> = {}): ModelDirectoryStat
     failures: [],
     status: 'ready',
     error: null,
+    errorClass: null,
     ...overrides,
   }
 }
@@ -179,7 +180,7 @@ describe('ModelSelect reasoning effort', () => {
     }]
     const directory = createSnapshotStore<ModelDirectoryState>(state({ groups }))
     const select = vi.fn(async () => {
-      directory.set(state({ groups, status: 'error', error: 'session/model-unavailable: session already contains images' }))
+      directory.set(state({ groups, status: 'error', error: 'session already contains images' }))
       return false
     })
     render(<ModelSelect
@@ -195,9 +196,33 @@ describe('ModelSelect reasoning effort', () => {
     fireEvent.click(screen.getByRole('menuitem', { name: /模型/ }))
     fireEvent.click(screen.getByRole('menuitemradio', { name: /DeepSeek-V4-Pro/ }))
     const toast = await screen.findByRole('alert')
-    expect(toast.textContent).toContain('模型操作失败：session/model-unavailable: session already contains images')
+    expect(toast.textContent).toContain('模型操作失败：session already contains images')
     // The selection failure does not render the in-menu load strip (no Retry).
     expect(screen.queryByRole('button', { name: '重试' })).toBeNull()
+  })
+
+  it('presents a classified directory failure with the shared copy instead of the raw action line', async () => {
+    const groups = [{
+      id: 'deepseek-official',
+      name: 'DeepSeek',
+      models: [{ id: 'deepseek-v4-flash', name: 'DeepSeek-V4-Flash', reasoning }],
+    }]
+    const directory = createSnapshotStore<ModelDirectoryState>(
+      state({ groups, status: 'error', error: 'denied body', errorClass: 'permission' }),
+    )
+    render(<ModelSelect
+      locked={false}
+      available
+      directory={directory}
+      load={vi.fn()}
+      select={vi.fn().mockResolvedValue(true)}
+      t={t}
+    />)
+
+    fireEvent.click(screen.getByRole('button', { name: /选择模型|当前/ }))
+    fireEvent.click(screen.getByRole('menuitem', { name: /模型/ }))
+    expect(screen.getByText('当前设备没有执行此操作的权限')).toBeTruthy()
+    expect(screen.queryByText(/denied body/u)).toBeNull()
   })
 
   it('portals the placed menu card to body and closes only on truly-outside mousedown', () => {

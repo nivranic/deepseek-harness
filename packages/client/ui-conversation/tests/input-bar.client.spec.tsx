@@ -466,7 +466,9 @@ describe('image draft rail', () => {
     const other = bench({
       promptError: { op: 'send', error: new RemoteError('gateway/internal', 'boom', {}) },
     })
-    expect(other.view.getByRole('alert').textContent).toContain('boom (gateway/internal)')
+    // Unclassified codes keep the raw message through the shared raw template.
+    expect(other.view.getByRole('alert').textContent).toContain('boom')
+    expect(other.view.getByRole('alert').textContent).not.toContain('(gateway/internal)')
   })
 
   it('marks the attachment slot unavailable while the composer is locked', () => {
@@ -1566,7 +1568,8 @@ describe('strips and variants', () => {
       })
       // The toast body-portals (transformed ancestors must not trap it), so
       // queries go through the view's document-bound helpers.
-      expect(send.view.getByRole('alert').textContent).toContain('boom (session/agent-busy)')
+      expect(send.view.getByRole('alert').textContent).toContain('boom')
+      expect(send.view.getByRole('alert').textContent).not.toContain('(session/agent-busy)')
       expect(send.view.queryByRole('button', { name: 'Retry' })).toBeNull()
       act(() => { vi.advanceTimersByTime(4000) })
       expect(send.view.queryByRole('alert')).toBeNull()

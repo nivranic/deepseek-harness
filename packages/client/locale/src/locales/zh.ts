@@ -39,6 +39,15 @@ export const zh = {
   'markdown.truncatedCharacters': '… 已截断，共 {total} 字符',
   'number.thousand': '{value}K',
   'number.million': '{value}M',
+  'failure.authentication': '需要重新认证后才能重试',
+  'failure.permission': '当前设备没有执行此操作的权限',
+  'failure.compatibility': '版本或能力不匹配，需要重新连接 Host',
+  'failure.conflict': '本地状态已过期，刷新后重试',
+  'failure.host-state': 'Host 暂时无法处理此请求，可稍后重试',
+  'failure.carrier-invalid': '连接已失效，需要重新连接',
+  'failure.transport': '传输中断，可重试；结果以 Host 为准',
+  'failure.unavailable': '目标不存在或已不可用',
+  'failure.raw': '{message}',
 } satisfies Record<string, string>
 
 /** The common vocabulary key union (zh is the key-set source of truth). */

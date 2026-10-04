@@ -1,0 +1,66 @@
+{
+  "status": "PASS",
+  "scope": "Report bindings and audit for the failure copy increment: the section 45 first-stage shared Remote-failure copy — the dual-track spec survey found five copy-less Remote render clusters (ui-conversation hub steerQueue and InputBar promptError toast, ui-goal GoalBar action failures, ui-workspace three dialogs, ui-model-selection dual stores) while the already-classified consumers (QueueDock 4 classes + static fallback, DevicesSettingsSection all 8 classes + failure.raw, SubagentHeaderLineage 4 classes, ui-jobs precomputed failureClass, ui-deliverables producer side) stay untouched, and Track B rules the provider code domain open (arbitrary string codes, dynamic HTTP_*, adapter-minted codes) outside §45's closed vocabulary with only the four AUTH localizations kept (displayFailure twice, MessageItem, TrajectoryTable) and request-inspection errorCode carrying zero consumers. The ruling lands the canonical nine failure keys once in client-locale's shared common dictionary (failure.authentication/permission/compatibility/conflict/host-state/carrier-invalid/transport/unavailable/raw — one dictionary one home, no per-package copy drift), with LocaleKeysOf<N> = NS keys | CommonKeyOf on the type face and the runtime lookup chain consulting common after the entry namespace misses. The delivery is the client-locale helper with the new dsh-typert-protocol runtime dependency (acyclic): remoteFailureCopy(error, t) classifies through classifyRemoteFailure then delegates to remoteFailureClassCopy(cls, message, t) (8 classes → t('failure.X'), default → t('failure.raw', {message})); rawMessageOf reads an Error's message, a {message} plain object's field (local failures such as GoalLocalFailure are plain objects) or the string form; the contravariance trap is solved by the narrow-union RemoteFailureTranslate parameter so any namespace-bound t satisfies structurally and the type check enforces dictionary coverage; the five-cluster migration keeps two strict refinements (InputBar's two attachment codes stay with attachmentErrorText, the session-rename conflict keeps its feature copy) and the model-selection dual stores gain errorClass with directoryErrorText class-first at three render points; the lane packages/client/locale/tests/failure-copy.client.spec.tsx covers class routing across the eight classes, the unknown-class raw template, RemoteError/Error/string/plain-object classification and both dictionaries carrying all nine keys with the {message}-interpolatable raw template — its RemoteError details shapes pinned against remote-error-codes.schema.json after three honest passes — with the serial double round green; the sealed types-lint round is the clean single-pass run (TYPECHECK_EXIT=0, LINT_EXIT=0) with the lane-level rework (the contravariant signature fix, the rawMessageOf plain-object extraction, the details-shape passes, oxlint and delimiter fixes, the alert-role and activation-armed button adjustments) recorded in .artifacts/failure-copy-iteration-notes.log; the documentation evidence is one MERGED docsync log carrying doc-quick 17 gates and doc-sync 36 passed 0 failed (an honest deviation from the previous generations' two-file split, shell-echo command form inside), the pairing re-record at 910 pairs, the audit client list widened 47/631 to 54/682 through the tmp-build-audit-list-fc.mjs glob (the locale package's six pre-existing spec files had never entered the audit lineage while this generation's core change lands exactly in that package) with the serial double round green, gate0 in both forms, and traceability section 45 rewritten with candidateEvidence 18 to 25 (node --test 6/6); the same-round gradle acceptance round (scanner env with -PdshNativeAcceptance, BUILD SUCCESSFUL) replayed WARM with 2 executed of 89 actionable tasks and 87 up-to-date — an honestly recorded form that is neither the previous generation's 47-executed cold start nor the one-executed shape — while :app:assembleRelease, :app:assembleDebug, :app:compileDebugKotlin and the whole :core: chain stayed UP-TO-DATE because nothing under apps/android changed this generation (no device lane ran and the emulator stayed off), the empty-derived byte proof compares both APKs byte-identically against the view-handoff record's (gen-27) builtFiles entries (verified IDENTICAL before and after the round), the prepare-side unresolved scan derived an empty replaced-build-output allowlist (7547 files, 0 replaced) and the generator gained no new replaced set, and the still-valid XML reports aggregate 77 suites / 477 tests with zero failures/errors/skips; the provider-code-domain localization, folding the already-classified consumers into the shared dictionary, released-Client multi-version behavior, the device matrix and the section's other requirements stay open; full Upstream-First objective remains in progress",
+  "gate0": {
+    "validation": "PASS",
+    "gate0": "PASS",
+    "paths": 1938,
+    "components": 129,
+    "specificationCoverage": {
+      "status": "PASS",
+      "numberedSections": 81,
+      "nonEmptySourceLines": 1983,
+      "acceptanceProven": false
+    }
+  },
+  "sourceRecord": {
+    "path": "artifacts/upstream-first/failure-copy-source.json",
+    "sha256": "e3af68a2a7804a7e1b1d535a6c80e2307ec675af9d769a3dbf08660419f71c8d"
+  },
+  "generator": {
+    "path": "artifacts/upstream-first/write-reports.mjs",
+    "sha256": "0004c9d9db8a11731492520c8c4067014f068eb0c481953a1cd63f54b8b6e490"
+  },
+  "binding": {
+    "path": "artifacts/upstream-first/failure-copy-binding.json",
+    "sha256": "77f2300e48d80548de4491822ea9aaf14405285e73526f3430533e0a2c37a219"
+  },
+  "helpers": [
+    {
+      "path": ".artifacts/advance-failure-copy-reports.mjs",
+      "sha256": "dfb7c5b94234dca9217650f4a068cfb9fe87506827a415db3db98ee304bab1fb"
+    },
+    {
+      "path": ".artifacts/capture-failure-copy-validation.mjs",
+      "sha256": "25ce741aba9cba0732dfb4c0c458ff9425249e5dbebe86b27d5dda61b7b2a3e1"
+    }
+  ],
+  "reports": [
+    {
+      "path": "IMPLEMENTATION_STATUS.md",
+      "sha256": "ed52b177ba670815b1e8b990e3fb7b8fd7ef92e1c548bc3182599f4e2dab6a1d"
+    },
+    {
+      "path": "artifacts/upstream-first/evidence.json",
+      "sha256": "ec37eba39383f32e727c22fca52bfd05efe074a4692d22f725e0954bff20a914"
+    }
+  ],
+  "checks": [
+    {
+      "path": ".artifacts/failure-copy-binding.log",
+      "sha256": "87aceda540cb880c854fd21d9971924f6767eb17fb8bcc2f1a17c2a9695069cb"
+    },
+    {
+      "path": ".artifacts/failure-copy-audit-final.log",
+      "sha256": "8ace212ba3fbc2f6da96d685b3166cf27d566255565aaa716a846ede4d5e35be"
+    },
+    {
+      "path": ".artifacts/failure-copy-gate0-final.log",
+      "sha256": "505d74ef938f5d34d85490d37e0176ba804d93272fcf465ce2544a02c56b3f90"
+    },
+    {
+      "path": ".artifacts/failure-copy-report-generation.log",
+      "sha256": "fe010532f71a6341467ae5719b29ac19470895de1d481156335b8f70a3273ed5"
+    }
+  ]
+}

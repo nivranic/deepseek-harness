@@ -19,6 +19,7 @@ import { SessionSeq, type SessionId } from '@deepseek-ai/dsh-session/types'
 import type { PropsRenderSlots } from '@deepseek-ai/dsh-client-ui-slots'
 import { RemoteError, SlotTestRuntime, TestRemote, usePinnedBrowserLanguages } from '@deepseek-ai/dsh-client-test-runtime'
 import { LocaleRuntime } from '@deepseek-ai/dsh-client-locale/client'
+import { en as commonEn, zh as commonZh } from '@deepseek-ai/dsh-client-locale/src/locales/index.ts'
 import { apply, inject } from '@deepseek-ai/dsh-client-ui-workspace/client'
 
 // The service reads its initial locale from the browser; these specs assert
@@ -43,6 +44,9 @@ async function createRuntime(): Promise<SlotTestRuntime> {
   remote.$host = { home: undefined, platform: undefined, isLoopback: true, capabilities: ['session.manage.v1', 'workspace.follow.v1', 'workspace.manage.v1', 'workspace.sessions.v1'] }
   runtime.ctx.provide('remote.directoryPicker', directoryPicker as never)
   const locale = new LocaleRuntime(runtime.ctx)
+  // The browser entry's locale plugin registers the shared common vocabulary;
+  // the assembled failure copy resolves through it.
+  locale.register('common', { zh: commonZh, en: commonEn })
   runtime.ctx.provide('locale', locale)
   runtime.slots.installLocale(locale)
   return runtime

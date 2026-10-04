@@ -6,6 +6,7 @@
 import { Context } from '@deepseek-ai/cordis'
 import { describe, expect, it, vi } from 'vitest'
 import { makeTranslate, RemoteError, SlotTestRuntime, TestRemote } from '@deepseek-ai/dsh-client-test-runtime'
+import { zh as commonZh } from '@deepseek-ai/dsh-client-locale/src/locales/zh.ts'
 import type {
   BeginSubmissionInput, PendingSubmissionRetirement, QueuedMessage,
 } from '@deepseek-ai/dsh-api-session-controller/client'
@@ -39,7 +40,7 @@ async function bench(maxConcurrentFileUploads = 2) {
   })
   // config.input is required (the apply shares its hub with the inject
   // factories); the bench passes its own instance explicitly.
-  const hub = new InputHub(runtime.ctx, makeTranslate(zh, {}))
+  const hub = new InputHub(runtime.ctx, makeTranslate(zh, commonZh))
   const fiber = runtime.ctx.plugin(ConversationController, {
     input: hub,
     blocks: new ComposerBlockRegistry(),
@@ -846,12 +847,14 @@ describe('InputHub queue steering (empty-draft accelerated Enter)', () => {
       draft.queue = [row('q-1'), row('q-2')]
     })
     b.updateQueue.mockResolvedValueOnce({
-      ok: false, error: new RemoteError('gateway/internal', 'broken', {}),
+      ok: false, error: new RemoteError('gateway/permission-denied', 'denied body', { endpoint: 'session/updateQueue', reason: 'device-identity' }),
     } as never)
     b.shell.steerQueue()
     await vi.waitFor(() => {
+      // The same Steer failure the queue dock presents through the shared
+      // classification — one operation, one semantics on both surfaces.
       expect(b.shell.notices.getSnapshot()).toEqual(
-        expect.objectContaining({ level: 'error', text: '插话发送失败，请重试。' }),
+        expect.objectContaining({ level: 'error', text: '当前设备没有执行此操作的权限' }),
       )
     })
     expect(b.updateQueue).toHaveBeenCalledTimes(1)

@@ -28,6 +28,7 @@ import type {} from '@deepseek-ai/dsh-goal/client'
 // wire types: apiproxy's sessions contract declares it, and client-runtime's
 // api-remotes import already places it in every client program.
 import type { InjectFace, Translate } from '@deepseek-ai/dsh-client-ui-slots'
+import { remoteFailureCopy } from '@deepseek-ai/dsh-client-locale/client'
 import type { ComposerBarProps, ComposerCapabilityInjected } from '../contract/slots.ts'
 import { ComposerContentEditable } from '../input/editor/ComposerContentEditable.tsx'
 import { DecoratorPortals } from '../input/editor/DecoratorPortals.tsx'
@@ -109,14 +110,15 @@ export const InputBar = memo(function InputBar({
   // an unresolved promptError deliberately re-announces it once — the failure
   // is still pending, and a transient banner is its only surface. Attachment
   // rejections show product copy keyed by the wire reason — whichever domain
-  // refused them; other codes are developer-facing and keep the raw message
-  // plus code.
+  // refused them; every other Remote code presents through the shared §45
+  // failure classification (unknown codes keep the raw message via the
+  // common template).
   useEffect(() => {
     if (promptError === null) return
     const { error } = promptError
     showToast(error.code === 'session/attachment-invalid' || error.code === 'subagent/attachment-invalid'
       ? attachmentErrorText(t, error.details.reason, imageLimits)
-      : `${error.message} (${error.code})`)
+      : remoteFailureCopy(error, t))
   }, [promptError, showToast, t, imageLimits])
   useEffect(() => {
     if (notice?.level === 'error') showToast(notice.text)

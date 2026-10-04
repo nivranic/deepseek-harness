@@ -4,6 +4,7 @@ import { afterEach, beforeEach, describe, expect, it, vi } from 'vitest'
 import { act, cleanup, fireEvent, waitFor, within } from '@testing-library/react'
 import { useState } from 'react'
 import { LocaleRuntime } from '@deepseek-ai/dsh-client-locale/client'
+import { en as commonEn, zh as commonZh } from '@deepseek-ai/dsh-client-locale/src/locales/index.ts'
 import type { ISession } from '@deepseek-ai/dsh-api-session-controller/client'
 import type { ConnectionHostInfo } from '@deepseek-ai/dsh-client-connection/client'
 import type { PropsRenderSlots } from '@deepseek-ai/dsh-client-ui-slots'
@@ -80,6 +81,7 @@ async function bench(opts?: { blank?: boolean; generationHost?: ConnectionHostIn
   } as never)
   runtime.ctx.provide('settingsScope', { bind: () => stubSettingsScope().scope } as never)
   const locale = new LocaleRuntime(runtime.ctx)
+  locale.register('common', { zh: commonZh, en: commonEn })
   runtime.ctx.provide('locale', locale)
   runtime.slots.installLocale(locale)
   await runtime.sessions.add({
@@ -111,6 +113,7 @@ describe('resident composer', () => {
     } as never)
     runtime.ctx.provide('settingsScope', { bind: () => stubSettingsScope().scope } as never)
     const locale = new LocaleRuntime(runtime.ctx)
+    locale.register('common', { zh: commonZh, en: commonEn })
     runtime.ctx.provide('locale', locale)
     runtime.slots.installLocale(locale)
     await runtime.root.declare(LAYOUT_CHILDREN, AppRoot)
@@ -147,6 +150,7 @@ describe('resident composer', () => {
     } as never)
     runtime.ctx.provide('settingsScope', { bind: () => stubSettingsScope().scope } as never)
     const locale = new LocaleRuntime(runtime.ctx)
+    locale.register('common', { zh: commonZh, en: commonEn })
     runtime.ctx.provide('locale', locale)
     runtime.slots.installLocale(locale)
     await runtime.workspaces.update((draft) => {
@@ -221,6 +225,7 @@ describe('prompt rejection through the assembled composer', () => {
     } as never)
     runtime.ctx.provide('settingsScope', { bind: () => stubSettingsScope().scope } as never)
     const locale = new LocaleRuntime(runtime.ctx)
+    locale.register('common', { zh: commonZh, en: commonEn })
     runtime.ctx.provide('locale', locale)
     runtime.slots.installLocale(locale)
     const prompt = vi.fn<ISession['prompt']>(async () => ({
@@ -252,7 +257,9 @@ describe('prompt rejection through the assembled composer', () => {
       }
     })
     const alert = await view.findByRole('alert')
-    expect(alert.textContent).toContain('prompt rejected before acceptance (session/agent-busy)')
+    // Unclassified codes keep the raw message through the shared raw template.
+    expect(alert.textContent).toContain('prompt rejected before acceptance')
+    expect(alert.textContent).not.toContain('(session/agent-busy)')
     await waitFor(() => {
       expect(shell.snapshot.draft).toBe('do not lose this')
     })

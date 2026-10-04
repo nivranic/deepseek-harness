@@ -23,7 +23,9 @@ import {
   IconDataOutline16, IconWarningOutline16, Toast,
 } from '@deepseek-ai/dsh-client-ui-primitives'
 import type { InjectFace, PropsLocale } from '@deepseek-ai/dsh-client-ui-slots'
+import { remoteFailureClassCopy } from '@deepseek-ai/dsh-client-locale/client'
 import type { ModelSelectInjected } from './slots.ts'
+import type { ModelDirectoryState } from './directory.ts'
 import css from './ModelSelect.module.css'
 
 /** Which pane the dropdown shows: the two-row root or one drilled-in list. */
@@ -38,6 +40,23 @@ interface EffortChoice {
 
 /** Unplaced portal card: hidden but laid out at a fixed origin so offsetWidth/offsetHeight are real (Menu primitive's measure pass). */
 const MEASURE_STYLE: CSSProperties = { visibility: 'hidden', left: 0, top: 0 }
+
+/**
+ * One §45 presentation of the directory failure: the shared class copy when
+ * the failure classified, the feature's action line with the raw message
+ * otherwise.
+ * @param state - the directory snapshot holding the failure.
+ * @param t - the locale seat.
+ * @returns the localized error line.
+ */
+function directoryErrorText(
+  state: { error: string | null; errorClass: ModelDirectoryState['errorClass'] },
+  t: PropsLocale<'model'>['t'],
+): string {
+  return state.errorClass !== null && state.errorClass !== 'unknown'
+    ? remoteFailureClassCopy(state.errorClass, state.error ?? '', t)
+    : t('error.action', { message: state.error ?? '' })
+}
 
 /**
  * Render the composer model seat.
@@ -207,10 +226,10 @@ export function ModelSelect(
       if (rootRef.current !== null) close(true)
       return
     }
-    const message = directory.getSnapshot().error
-    if (message !== null) {
+    const snapshot = directory.getSnapshot()
+    if (snapshot.error !== null) {
       toastSeq.current += 1
-      setToast({ seq: toastSeq.current, text: t('error.action', { message }) })
+      setToast({ seq: toastSeq.current, text: directoryErrorText(snapshot, t) })
     }
   }
 
@@ -321,7 +340,7 @@ export function ModelSelect(
               )}
               {state.error !== null && lastActionRef.current === 'load' && (
                 <div className={css.error}>
-                  <span>{t('error.action', { message: state.error })}</span>
+                  <span>{directoryErrorText(state, t)}</span>
                   <button type="button" className={css.retry} onClick={reload}>{t('retry')}</button>
                 </div>
               )}
@@ -374,7 +393,7 @@ export function ModelSelect(
             <>
               {state.error !== null && lastActionRef.current === 'load' && (
                 <div className={css.error}>
-                  <span>{t('error.action', { message: state.error })}</span>
+                  <span>{directoryErrorText(state, t)}</span>
                   <button type="button" className={css.retry} onClick={reload}>{t('action.reload')}</button>
                 </div>
               )}

@@ -85,11 +85,16 @@ The provisional locale comes from the browser (`navigator.languages` matched by 
 
 The typed object form requires complete dictionaries for both built-in locales. The per-locale form lets language packs register each namespace independently. For each key, lookup walks the active language's declared fallback chain in the requested namespace, repeats that chain in `common`, then displays the key itself. Bound translate functions retain stable identity per namespace so they can ride inject surfaces without breaking memoization.
 
+### Shared failure copy
+
+The `common` vocabulary carries the §45 Remote-failure keys (`failure.authentication` … `failure.raw`): one class-keyed copy set every Client surface renders the same failure through. `remoteFailureCopy(error, t)` classifies a caught value with the typert failure vocabulary and returns the class copy — or, for `unknown` classes and non-Remote values, routes the raw diagnostic through the `failure.raw` template. `remoteFailureClassCopy(cls, message, t)` serves surfaces that classify at store time (a class field on a translator-free store). Any namespace-bound translate satisfies the parameter structurally, because the failure keys are common keys every key domain includes.
+
 ### Source map
 
 | File | Role |
 |---|---|
 | [`src/client/index.ts`](src/client/index.ts) | `LocaleRuntime`, dictionary registry, Language row registration, `locale/change` event |
+| [`src/client/failure-copy.ts`](src/client/failure-copy.ts) | §45 shared Remote-failure copy: classify, then class copy or raw template |
 | [`src/index.ts`](src/index.ts) | Node half: registers the `locale` settings namespace |
 | [`src/locale-settings.ts`](src/locale-settings.ts) | The durable schema for `locale.preference` |
 | [`src/locales/`](src/locales/) | The shipped `zh`/`en` dictionaries |

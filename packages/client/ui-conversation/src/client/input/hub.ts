@@ -13,6 +13,7 @@ import type {
 } from '@deepseek-ai/dsh-api-session-controller/client'
 import type { SessionId } from '@deepseek-ai/dsh-session/types'
 import type { TranslateNS } from '@deepseek-ai/dsh-client-locale/client'
+import { remoteFailureCopy } from '@deepseek-ai/dsh-client-locale/client'
 import { queueReadFaceOf } from './queue-store.ts'
 import type {
   ComposerKeyboard, DraftAttachmentId, DraftAttachmentSerializationResult, InputTriggerController,
@@ -222,7 +223,9 @@ export class InputHub implements SessionInputResolver {
       const result = await session.updateQueue(item.id, { kind: 'steer' })
       if (result.ok) continue
       if (result.error.code === 'session/steer-unavailable' || result.error.code === 'session/queue-item-not-found') return
-      shell.notify('error', this.t('queue.steerFailed'))
+      // The same Steer failure the queue dock presents through the shared
+      // classification — one operation, one semantics on both surfaces.
+      shell.notify('error', remoteFailureCopy(result.error, this.t))
       return
     }
   }

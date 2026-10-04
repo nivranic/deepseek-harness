@@ -15,6 +15,7 @@ import {
   IconPauseOutline16, IconPlayOutline16, IconTrashOutline16, Tooltip,
 } from '@deepseek-ai/dsh-client-ui-primitives'
 import type { InjectFace, PropsLocale, TranslateNS } from '@deepseek-ai/dsh-client-ui-slots'
+import { remoteFailureCopy } from '@deepseek-ai/dsh-client-locale/client'
 import type { GoalActionResult, GoalBarActions, GoalBarInjected } from './slots.ts'
 import type { GoalKey } from './locales.ts'
 import css from './GoalBar.module.css'
@@ -66,9 +67,14 @@ export function GoalBar({ goal, activation, onEdit, onPause, onResume, onClear, 
     const result = await action()
     pendingRef.current = false
     setPending(false)
-    if (!result.ok) setActionError(`${result.error.message} (${result.error.code})`)
+    if (!result.ok) {
+      // Remote failures present through the shared §45 classification; the
+      // goal-local failure codes resolve to the raw-message template (their
+      // product copy is open work).
+      setActionError(remoteFailureCopy(result.error, t))
+    }
     return result
-  }, [])
+  }, [t])
 
   const handleEdit = useCallback(async () => {
     const trimmed = draft.trim()

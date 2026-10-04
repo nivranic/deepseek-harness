@@ -5,121 +5,121 @@
   "candidateTrackedChanges": [
     {
       "path": "IMPLEMENTATION_STATUS.md",
-      "sha256": "c2ac982388edcf71b199445d32168c5839612898610ede9ea5400d682c827a8a"
+      "sha256": "e0e4060567bfe0cb44e8c59dd6890ae4893159bdfdded13d7fd61d938acc31ef"
     },
     {
       "path": "artifacts/upstream-first/evidence.json",
-      "sha256": "4c32ff44b3bb1f0fb4245aeface6fbf3753234f640cd7304e35f55558c976448"
+      "sha256": "80a3abf7aa36d1fd1457b10decd4c76620f45351064e9588c17be7ffcbaa25ad"
     },
     {
       "path": "artifacts/upstream-first/specification-traceability.json",
-      "sha256": "cf57b677b1060c2b4c377d599d47c9275d941d1c4020e7c182098a65779f81e8"
+      "sha256": "18a300b64a46855c370d5be2bc6c9d5ec98b73889574b9f9f3c2a28ea0a073fb"
     },
     {
       "path": "artifacts/upstream-first/write-reports.mjs",
-      "sha256": "cfbd6502c7c4a2932dd87852944c2eb799813d4018c666bd24f465db505cc076"
+      "sha256": "40224462bb490a0aab1154589f80b51d86cb9df3733661c83e760f1e04383efc"
     },
     {
-      "path": "docs/config-catalog.i18n.yaml",
-      "sha256": "5a7a7071904b5bb5a9640a9a45872ab4de9186a97720af17f5635fc57945be4b"
+      "path": "packages/client/locale/README.i18n.yaml",
+      "sha256": "93b6da65d1c3a4e2394123caec2e0cf5386803eeb8344ea743e04b57f766fc46"
     },
     {
-      "path": "docs/config-catalog.md",
-      "sha256": "11ad73a9b095fedc8a09b7513c6efbe039cb5603dabeef4ef4b65b9943b38fed"
+      "path": "packages/client/locale/README.md",
+      "sha256": "f14b682c58ce9d057306e85b7a38ae78f34807cd22c1fc8f9a19f41bc2357c44"
     },
     {
-      "path": "docs/config-catalog.zh.md",
-      "sha256": "a324569c3803f2284600071573b80054b09ed86be6d577427a5cb5611979421d"
+      "path": "packages/client/locale/README.zh.md",
+      "sha256": "7d9b76df6f5dcd06e900085d238a71a600341fb5c25e91f7d79085e02342063e"
     },
     {
-      "path": "docs/module-graph.i18n.yaml",
-      "sha256": "ed7754591d69a8f4fcc7a14c19e7c6286b7a61fa6eea2975b3dad9df9ec8bd22"
+      "path": "packages/client/locale/package.json",
+      "sha256": "d54020503baec80bf8f900afd867f5a517622ca46cd94eda642e5ddcfa847483"
     },
     {
-      "path": "docs/module-graph.md",
-      "sha256": "e1cf537aae070cb90da1d5b6c12bef067f63c568923ef321ae7f89c81dc4b4d1"
+      "path": "packages/client/locale/src/client/index.ts",
+      "sha256": "73e7bf5f076e9d668e6242519092f34dce2921250b89dbbe1644398f8348cef9"
     },
     {
-      "path": "docs/module-graph.zh.md",
-      "sha256": "a1d451f663b8b51bb8950fbae0362fc496ef13be63f15f757d9acb1d13d4b068"
+      "path": "packages/client/locale/src/locales/en.ts",
+      "sha256": "9ed192316a5146bc8ceb0c0a88f0d19ae01a928f206cc8cfc51aa31d91e76854"
     },
     {
-      "path": "packages/api/session-controller/src/client/contract/sessions.ts",
-      "sha256": "781f7dae4ac312916f15fa677224816d32ed59061f09f09537cf9ded83162da9"
+      "path": "packages/client/locale/src/locales/zh.ts",
+      "sha256": "e6ecbd793a7f92e2643b1c13101a33b87234d67d9e573699dff8b4adf4f12437"
     },
     {
-      "path": "packages/bundle/web-app/cordis.patch.yml",
-      "sha256": "dda2bd8d801199adc8e50d7b69a8f39da378d0df603cd08619a0c5ec9cd2d66a"
+      "path": "packages/client/ui-conversation/src/client/input/hub.ts",
+      "sha256": "b30f7c05db2b713a0d1742cef119b4b2eeb61bb9ca69deb0ae97a1bda2e4b6b9"
     },
     {
-      "path": "packages/bundle/web-app/package.json",
-      "sha256": "c3220e967976e8391ff8366a05a0d25e693c85ba96ba98081427bbffa3a2f4ca"
+      "path": "packages/client/ui-conversation/src/client/skeleton/InputBar.tsx",
+      "sha256": "cf2242b2f442af71c5c40f7b41fc912402adb0c65a4e6fdc361d11a9cdae052e"
     },
     {
-      "path": "packages/client/ui-conversation/tests/conversation-registry.client.spec.ts",
-      "sha256": "39b6f1d1c588393b9655afef728d856b5cc3ad6e8110d788593ac5b6f4d8742c"
+      "path": "packages/client/ui-conversation/tests/assembly-surfaces.client.spec.tsx",
+      "sha256": "ca92593a70196a5a784c4d2e1750ad78f7c860e27df925a824ff6ecb323acd35"
     },
     {
-      "path": "packages/extensions/cordis-client-runner/src/client/slot-catalog.ts",
-      "sha256": "7fd314fecebeca876620e57aece33e2a7445c7aea1b3d014a2ffbb45bc61a702"
+      "path": "packages/client/ui-conversation/tests/input-bar.client.spec.tsx",
+      "sha256": "5e6e91ab621529d42215ed4eb45ba4cebf123e6d94bb2b2621b5e5ae106531c7"
     },
     {
-      "path": "packages/test-support/client-runtime/src/sessions.ts",
-      "sha256": "893fb9dcdccf8e72d1cfa9bb618bc308fc34eee3b176920472da84148e8ef82d"
+      "path": "packages/client/ui-conversation/tests/service-orchestration.client.spec.ts",
+      "sha256": "ed5dc383dcf75adfb6f1d014d64e3268e3a1a2e28a96b76ae656cbe9add2c4b7"
     },
     {
-      "path": "packages/test-support/client-runtime/tests/runtime.client.spec.tsx",
-      "sha256": "c297ab995f72d317d567116dda3fd9c61093d3bc61f61deb81061b5bbad8f4fc"
+      "path": "packages/client/ui-conversation/tests/skeleton.client.spec.tsx",
+      "sha256": "c12ad50e43cf4439686606791f102c12bb377f09565934d969a5f6d43c26df48"
+    },
+    {
+      "path": "packages/client/ui-goal/src/client/GoalBar.tsx",
+      "sha256": "a94331f21395de910f2d6564b85be27a40a1c3c4dc9f64cb005c4830e9f6db27"
+    },
+    {
+      "path": "packages/client/ui-goal/tests/goalbar.client.spec.tsx",
+      "sha256": "266471cecef3c42157000df5f3fedbd0ca83ee66e6477fe244969563073d1f9f"
+    },
+    {
+      "path": "packages/client/ui-model-selection/src/client/ModelSelect.tsx",
+      "sha256": "fed81839a65f3a1f9c2a1384b32fec14f8179360caafc85e5aa98c4fcc5635ea"
+    },
+    {
+      "path": "packages/client/ui-model-selection/src/client/catalog.ts",
+      "sha256": "7cda989b8aaf7df1df1372d71455b6052cd8dcc5fb32af587ed08e26529efd8f"
+    },
+    {
+      "path": "packages/client/ui-model-selection/src/client/directory.ts",
+      "sha256": "a7e13e91df057bbf4209d3d7a3ea5c6dddc4db886ca957b1d3150f0a603ba72d"
+    },
+    {
+      "path": "packages/client/ui-model-selection/tests/catalog.client.spec.ts",
+      "sha256": "e532eba04c69c908e53bd9a546cc370d6a4bb9fc5faca0fedebecba13dcdb68c"
+    },
+    {
+      "path": "packages/client/ui-model-selection/tests/model-select.client.spec.tsx",
+      "sha256": "c270f875dc44f9b079b5977b97e0cbfd2c0f2d62b8f4bd7d4dbdc29659f42c6b"
+    },
+    {
+      "path": "packages/client/ui-workspace/src/client/rows/WorkspaceBrowser.tsx",
+      "sha256": "4d16ef8ca4314fc689d312bec1be3bc60e18c134006bde6ddcd51c7c2173cf15"
+    },
+    {
+      "path": "packages/client/ui-workspace/tests/rename-assembly.client.spec.tsx",
+      "sha256": "b8b59666abbef16917a524db1f00e3cc6e1774b59c2c1b646cf37319b4986f7e"
     },
     {
       "path": "pnpm-lock.yaml",
-      "sha256": "15d0be0ca497fcc3f2fedf67c522e7dbc540e0a4dc151ab38b0dd458ba01d1ca"
-    },
-    {
-      "path": "scripts/verify-package-readme-model-experience.ts",
-      "sha256": "491c3629ca335b1eb9814c4bb693a437fa1aff7042d3a2a4c441118ce01984e0"
-    },
-    {
-      "path": "tsconfig.base.json",
-      "sha256": "969c19acc43d3dc8ac3cfb9a21445cb01f133c9fb43ef9ef990e7cdc385c3ba8"
-    },
-    {
-      "path": "tsconfig.client.json",
-      "sha256": "722e913f4328838793c1c2675369b94052b92decc4521cc89e4157d3a49ebf50"
+      "sha256": "91aa234dbdb2ef7fb7e81f217efb81a4cea71b33e6dcfee9140187eb91bf1b81"
     }
   ],
   "candidateUntrackedSourceChanges": [
     {
-      "path": "packages/client/ui-view-handoff/src/client/HandoffAction.tsx",
-      "sha256": "444aeee2f748c387ae9ffc4f3cce01b6e6094a0014d327b3e3ba4201a8c6ef18"
+      "path": "packages/client/locale/src/client/failure-copy.ts",
+      "sha256": "84b97ff0256758a55af87b8eae0694c74d4239e41e7083ea9e0db70db1705597"
     },
     {
-      "path": "packages/client/ui-view-handoff/src/client/controller.ts",
-      "sha256": "6a3dc94d45854d6829fde7eb9979e88b593b45e009cb357b44f7e966bf8e156a"
-    },
-    {
-      "path": "packages/client/ui-view-handoff/src/client/index.ts",
-      "sha256": "f4bb616e8078e0f3593d6bf4f39dbde3093aaac0d6662ae8215ec56a1c216467"
-    },
-    {
-      "path": "packages/client/ui-view-handoff/src/client/locales.ts",
-      "sha256": "757e60b21b65d1e58ffc5aebb16ed77358898c6fb4961405c05cf2a1176929a8"
-    },
-    {
-      "path": "packages/client/ui-view-handoff/src/css-modules.d.ts",
-      "sha256": "e28410d74a0d763364c04fa690c2ca2202ad3019c74f8f5205e8dc6cba69c02f"
-    },
-    {
-      "path": "packages/client/ui-view-handoff/src/index.ts",
-      "sha256": "7b24336046b62209e628d46529209257459d32a1b1a245084caeeff820cf04e2"
-    },
-    {
-      "path": "packages/client/ui-view-handoff/tests/handoff.client.spec.tsx",
-      "sha256": "b6e9eb3a598b3df7b95fd136dc2f432114e5f8ea28e5f9b06035facb6a80da9d"
-    },
-    {
-      "path": "packages/client/ui-view-handoff/tsdown.config.ts",
-      "sha256": "55ef3f771bbb9551119dcf37a28622e303178e94c525556ba2688af493b1fdfb"
+      "path": "packages/client/locale/tests/failure-copy.client.spec.ts",
+      "sha256": "7ae03b59ec528f1f4341e8cd354e61a5740cf43bf343149d975a6664dbb5d9bd"
     }
   ],
   "validationStatus": "PASS",
@@ -11261,6 +11261,48 @@
     },
     {
       "status": "PASS",
+      "command": "gradle acceptance round on apps/android (Windows host, scanner env with -PdshNativeAcceptance): BUILD SUCCESSFUL with 89 actionable tasks of which 2 executed and 87 up-to-date — a warm-replay form honestly different from both the previous generation 47-executed cold-started release chain and the one-executed shape before it (:app:assembleRelease itself stayed UP-TO-DATE, alongside :app:assembleDebug, :app:compileDebugKotlin and the whole :core: chain) because nothing under apps/android changed this generation (the TypeScript client sources changed; no Kotlin, no device lane ran and the emulator stayed off; the debug and androidTest APK bytes verified IDENTICAL against the view-handoff record builtFiles entries before and after the round — .artifacts/failure-copy-apk-bytes.log), and the still-valid core XML reports under apps/android/core/build/test-results aggregate 77 suites / 477 tests / 0 failures / 0 errors / 0 skips (recorded in .artifacts/failure-copy-core-results.json); Executed the scanner-env gradle acceptance round on apps/android (Windows host): ./gradlew under -PdshNativeAcceptance came back BUILD SUCCESSFUL with 89 actionable tasks of which 2 executed and 87 up-to-date — a warm-replay form honestly different from both the previous generation's cold-started release chain (47 executed) and the one-executed shape before it: this round left :app:assembleRelease UP-TO-DATE alongside :app:assembleDebug, :app:compileDebugKotlin and the whole :core: chain, because this generation changes nothing under apps/android (the increment is the client-locale failure-copy helper with the nine common failure keys and the typert-protocol runtime dependency, the zh/en dictionary entries, the five migrated Remote render clusters, the model-selection errorClass stores and the traceability §45 rewrite — TypeScript client sources changed, no Kotlin or Swift). No device lane ran this generation and the emulator stayed off, so the empty-derived byte proof compares against the prior generation's own record: the debug APK and the androidTest APK both replay byte-identically with the view-handoff record's (gen-27) builtFiles sha256 entries (verified IDENTICAL before and after the round, .artifacts/failure-copy-apk-bytes.log), and the round's still-valid core XML reports under apps/android/core/build/test-results (an UP-TO-DATE :core:test leaves the last executed round's reports in place) aggregate 77 suites / 477 tests with zero failures, errors and skips (aggregated into .artifacts/failure-copy-core-results.json) — the round reports 477 tests through that XML aggregate (the model-steer Kotlin JVM round precedent), not through any executed test; 1 file / 477 tests green",
+      "log": ".artifacts/failure-copy-gradle.log",
+      "sourceRecord": "artifacts/upstream-first/failure-copy-source.json"
+    },
+    {
+      "status": "PASS",
+      "command": "vitest run --config vitest.config.ts over the extracted 54-file client spec list (.artifacts/failure-copy-audit-file-list.txt — the view-handoff list the prior audit sealed, grown by the locale package whole tests directory: the six pre-existing spec files that had never entered the audit lineage plus the one new failure-copy lane file, assembled through the tmp-build-audit-list-fc.mjs glob after the Mimosa hook honestly blocked a Bash compound command carrying a source path); the serial double round went 54 files / 682 tests green on both first passes via the Test Files/Tests summary lines (audit-tests.log with the EXIT_CODE=0 trailer and audit-final.log, no -r1 rerun log exists), up from 47/631",
+      "log": ".artifacts/failure-copy-audit-tests.log",
+      "sourceRecord": "artifacts/upstream-first/failure-copy-source.json"
+    },
+    {
+      "status": "PASS",
+      "command": "npm run typecheck:contracts-ready and npm run lint:contracts-ready — the sealed clean single-pass combined round with both halves green: typecheck clean (no TypeScript error diagnostics, TYPECHECK_EXIT=0) and lint clean (Found 0 warnings and 0 errors, LINT_EXIT=0); this generation honest rework all lived in the client lane — the contravariant signature fix, the rawMessageOf plain-object extraction, the three-pass RemoteError details shape pinned against remote-error-codes.schema.json, the oxlint and member-delimiter findings, the alert-role-free menu row and the activation-armed GoalBar button — whose lists live in .artifacts/failure-copy-iteration-notes.log (vitest does not typecheck, so the lane itself was green throughout)",
+      "log": ".artifacts/failure-copy-types-lint.log",
+      "sourceRecord": "artifacts/upstream-first/failure-copy-source.json"
+    },
+    {
+      "status": "PASS",
+      "command": "pnpm run test:docs (doc-quick, 17 gates passed / 0 failed) and pnpm run doc-sync (36 gates passed / 0 failed; the regenerated client-locale README pair with its zh mirror, the README pair skeleton alignment and the 910-pair translation-pairing re-record) — both rounds recorded in ONE merged docsync log this generation, an honest deviation from the previous generations two-file split, the command lines carrying the shell-echo form inside",
+      "log": ".artifacts/failure-copy-docsync.log",
+      "sourceRecord": "artifacts/upstream-first/failure-copy-source.json"
+    },
+    {
+      "status": "PASS",
+      "command": "pnpm run doc-sync — 36 gates passed / 0 failed (the same merged docsync log)",
+      "log": ".artifacts/failure-copy-docsync.log",
+      "sourceRecord": "artifacts/upstream-first/failure-copy-source.json"
+    },
+    {
+      "status": "PASS",
+      "command": "node artifacts/upstream-first/verify-audit.mjs --require-gate0",
+      "log": ".artifacts/failure-copy-gate0-final.log",
+      "sourceRecord": "artifacts/upstream-first/failure-copy-source.json"
+    },
+    {
+      "status": "PASS",
+      "command": "node .artifacts/prepare-failure-copy.mjs — the before archive written from the view-handoff record in one pass (7547 files, 0 reused) with the unresolved-scan allowlist deriving exactly 0 replaced android build outputs (this generation rebuilt nothing, ran no device lane and never started the emulator: the single gradle round was a warm replay — 2 executed, 87 up-to-date — that rebuilt no android build product, and every android build output of the prior record still replays byte-identically from disk, both APK bytes verified IDENTICAL against that record builtFiles entries before and after the round)",
+      "log": ".artifacts/failure-copy-prepare.log",
+      "sourceRecord": "artifacts/upstream-first/failure-copy-source.json"
+    },
+    {
+      "status": "PASS",
       "command": "Workspace and Conversation source regression before shared readiness correction",
       "tests": 599,
       "log": ".artifacts/workspace-admission-tests-final.log",
@@ -11991,7 +12033,305 @@
       ]
     }
   },
+  "failureCopy": {
+    "status": "PASS",
+    "sourceRecord": "artifacts/upstream-first/failure-copy-source.json",
+    "scope": "§45「UI 文案统一接入」第一梯队交付代：canonical 失败文案九键入 client-locale 的 common 共享词典（failure.authentication/permission/compatibility/conflict/host-state/carrier-invalid/transport/unavailable/raw）——一份词典一个家、无逐包复制漂移；类型面 LocaleKeysOf<N> = NS keys | CommonKeyOf（ui-slots/src/index.ts），运行时查找链条目 NS 未命中后咨询 common（client-locale client/index.ts）。规格钉准（双轨并行勘察）：Track A 普查出五处无文案的 Remote 渲染簇——ui-conversation hub steerQueue 与 InputBar promptError toast、ui-goal GoalBar 动作失败、ui-workspace WorkspaceBrowser 三对话框（工作区重命名/会话重命名/删除）、ui-model-selection catalog/directory 双 store；既有分类消费面（QueueDock 4 类+静态兜底、DevicesSettingsSection 全 8 类+failure.raw、SubagentHeaderLineage 4 类、ui-jobs 预计算 failureClass、ui-deliverables producer 侧）已达标不动。Track B 划 provider 码域边界：provider 域开放（LlmFailure.code 任意 string、动态 HTTP_* 码、适配器自由造码）不属 §45 封闭词汇，仅 AUTH 本地化四处消费保留原状（displayFailure 两实现、MessageItem、TrajectoryTable）；request-inspection errorCode 零消费。实现：新 helper 落 client-locale（新增 dsh-typert-protocol runtime 依赖，无环）——remoteFailureCopy(error, t) 经 classifyRemoteFailure 委托 remoteFailureClassCopy(cls, message, t)（8 类→t('failure.X')，default→t('failure.raw', {message})）；rawMessageOf 三分支（Error→message、{message} 纯对象→结构化读取——本地失败如 GoalLocalFailure 是纯对象、其余→String）；函数参数逆变以窄联合签名 RemoteFailureTranslate 解决（任一 NS 绑定 t 结构性满足，类型检查强制词典覆盖）。五簇迁移保留两处特例（InputBar 2 个 attachment 码走 attachmentErrorText、session rename conflict 走特征文案——严格更精确）；model-selection 双 store 加 errorClass 字段、三渲染点经 directoryErrorText 类优先。车道 packages/client/locale/tests/failure-copy.client.spec.ts 覆盖类路由×8、unknown raw 模板、RemoteError/Error/string/纯对象分类（RemoteError details 形状经三轮按 remote-error-codes.schema.json x-typescript-details 定形）、双词典九键完整+raw 模板含 {message}；既有车道同步更新（goalbar 分类与本地失败用例、service-orchestration steer 类文案断言、skeleton/input-bar raw 断言、assembly-surfaces 与 rename-assembly 补 common 注册、model-select errorClass 快照、catalog errorClass 相等）。车道返修如实：函数参数逆变修正（初版收 untyped Translate 不可赋值→窄联合签名）、rawMessageOf 补纯对象提取（String() 得 [object Object]）、RemoteError details 三轮、oxlint 块体箭头参数括号、member-delimiter-style 内联类型分号、菜单错误条无 alert role 改 getByText、GoalBar 暂停钮需 activation armed 改恢复钮、初版 rerenderGoal 不存在拆两独立 it（清单入 iteration-notes 四节）。tracked 改动 24 处：specification-traceability.json（§45 remaining 改写+第一梯队交付段+candidateEvidence 18→25；node --test 6/6）、client-locale 七件（package.json 依赖、README 三语、client/index.ts 导出+查找链、zh/en 九键）、ui-conversation 六件（hub、InputBar、四 spec）、ui-goal 两件（GoalBar、goalbar spec）、ui-model-selection 五件（ModelSelect、catalog、directory、两 spec）、ui-workspace 两件（WorkspaceBrowser、rename-assembly spec）、pnpm-lock.yaml。门禁全绿如实：types-lint 0/0 一轮（TYPECHECK_EXIT=0/LINT_EXIT=0）；test:docs 17+doc-sync 36 passed 0 failed 合并记录于同一 docsync 日志（本代与上代分立两文件不同，命令行为 shell-echo 形态——如实 deviation）；pairing 两处重录 910 对全一致（client-locale README 双语与 note 三件套各一对）；审计 client 清单经 tmp-build-audit-list-fc.mjs（glob packages/client/locale/tests 并入 prior 47 文件）扩为 54 文件——locale 包六个既有测试文件（apply/document-language/host/language-row/locale/settings-store）此前从未进入审计血统，本代核心改动正落在该包、整目录纳入；串行双轮 54 文件/682 测试两连绿（较上代 47/631）；gate0 双形态 PASS。本代无 Kotlin/Swift 改动：gradle 验收轮（scanner env+-PdshNativeAcceptance）BUILD SUCCESSFUL 89 任务 2 executed 87 up-to-date（warm 重放形态——与上代冷启 47 executed 不同，非 1-executed 形态，如实记录），空派生以字节证明：两枚 APK（debug+androidTest）与 view-handoff（gen-27）记录 sha256 逐字节一致（gradle 前后各验一次均 IDENTICAL）、core XML 聚合 77 套件/477 测试 0 失败 0 错误 0 跳过；prepare 空集派生（7547/0）、write-reports 不新增 replaced 集合（既有 13 集合不动）。provider 码域本地化、QueueDock 等既有消费面收编、已发布 Client 多版本 N/N-1/N-2 行为及设备矩阵仍开放，不授予整节 PASS；完整目标未完成",
+    "repositoryKnownCodes": 84,
+    "uniqueOwners": 14,
+    "missingSemanticCommentsAdded": 49,
+    "packagedFiniteCodeSchema": true,
+    "sourceDeclarationsRemainExtensible": true,
+    "unknownCodeDiagnosticsPreserved": true,
+    "detailsPayloadSchema": false,
+    "nativeClientQualified": false,
+    "runtimeBehaviorChanged": true,
+    "newSessionEvents": false,
+    "phase3Complete": false,
+    "fullGoalComplete": false,
+    "resultInvalidMeaningMatchesEmitter": true,
+    "historicalSchedulerArchivePreserved": true,
+    "compilerIndependentDetailsGraphs": true,
+    "hostAndClientSeparate": true,
+    "builtModelMatchesSource": true,
+    "portableDetailsPayloadSchema": false,
+    "readonlyArrayAndTupleEmission": true,
+    "parsedReadonlyContainersFrozen": true,
+    "portableValidationIssueFields": true,
+    "compilerResolvedErrorDetails": true,
+    "resolvedFaceCodePairs": 144,
+    "overlappingSchemasCompared": 60,
+    "detailsSchemaPublished": false,
+    "formalEnvelopeSchemaEmitted": true,
+    "envelopeSchemaKnownBranches": 84,
+    "envelopeUnknownCodeExcludesKnownCodes": true,
+    "envelopeTupleDetailsRejected": true,
+    "envelopeLocalPackConsumed": true,
+    "envelopeRegistryPublished": false,
+    "remoteFailureClassification": true,
+    "classifiedCodes": 28,
+    "unknownCodeDefaultOpaque": true,
+    "gatewayClientConsumesClassification": true,
+    "classificationInventoryVerified": true,
+    "kotlinContractColumn": true,
+    "kotlinSchemaTests": 8,
+    "kotlinMirrorProjection": true,
+    "swiftColumn": false,
+    "androidShellMigrated": false,
+    "phase10Started": true,
+    "failureClasses": 9,
+    "invalidInputClass": true,
+    "uiAdoptionStarted": true,
+    "uiSurfacesAdoptingClassification": 2,
+    "swiftContractColumn": true,
+    "swiftSchemaTests": 4,
+    "swiftPayloadValidation": false,
+    "interactionReplyPermissions": true,
+    "interactionPermissionHostEnforced": true,
+    "interactionPermissionConfigurable": true,
+    "deviceTrustRolesReplaceSwitch": false,
+    "androidCoreMigrated": true,
+    "androidCoreTestClasses": 37,
+    "androidAppSourcesMigrated": true,
+    "androidAppConfigured": true,
+    "androidShellCompiled": false,
+    "androidScannerChainBlocked": true,
+    "swiftCheckExecutable": true,
+    "swiftLaneRunner": "macos-15-arm64",
+    "swiftLaneRecovered": true,
+    "diagnosticsOnlyTier": true,
+    "diagnosticsOnlyAdmittedEndpoints": 2,
+    "unknownVersionRejectUnchanged": true,
+    "responsivePhoneDrawer": true,
+    "phoneTierSidebarTrackZero": true,
+    "drawerWidthPx": 280,
+    "drawerDismissalPaths": 2,
+    "leftInputRegionSessionMaybe": true,
+    "frameColumnsExplicitlyPlaced": true,
+    "scannerAarBuilt": true,
+    "scannerAarStaticVerification": "PASS",
+    "scannerAarSourceSha": "8ca9f6ebf33de3912292416b85f5b510c88de9a3",
+    "assembleDebugGatePassed": true,
+    "emulatorMainActivityResumed": true,
+    "gatewayFailureConsumption": true,
+    "envelopeDetailsPreservedBothPaths": true,
+    "sharedClassificationDrivesPresentation": true,
+    "unknownCodesStayOpaque": true,
+    "uiSubagentClassificationAdopted": true,
+    "adoptingSurfacesCount": 5,
+    "queueDockClassificationAdopted": true,
+    "jobsFailureClassThreaded": true,
+    "sessionJobWireFieldAdditive": true,
+    "androidRefusalLaneDriven": true,
+    "ed25519KeyGenerationBundled": true,
+    "filesFollowStreamStarted": true,
+    "jobsProducerAdoptionVoid": true,
+    "linkAccessTakeoverDecided": true,
+    "remotePackagesStayRetired": true,
+    "gatewayOwnsDeviceAccess": true,
+    "deviceTrustSeamLanded": true,
+    "pairingIssuanceLive": true,
+    "knownErrorCodes": 89,
+    "deviceGrantsDurable": true,
+    "pairingCodesProcessLocalByDesign": true,
+    "deviceRolesMatchSection21Table": true,
+    "roleMappedReplyPermissions": true,
+    "signedAdmission": true,
+    "connectionStatesCompleteSection18": true,
+    "deviceRevokedStatePresent": true,
+    "protocolInteropMatrixPinned": true,
+    "section14VersionAxisEvidence": true,
+    "perRequestDeviceAdmission": true,
+    "capabilityRequiredPermissionVocabulary": true,
+    "remoteExecutionAuthorizationGated": true,
+    "sessionCapabilitiesDeclarePermissions": true,
+    "sessionReadWriteSplits": true,
+    "businessPermissionAdoptionStarted": true,
+    "workspaceCapabilitiesDeclarePermissions": true,
+    "remainingOwnersDeclarePermissions": true,
+    "admissionReplayLedger": true,
+    "androidClientSignsAdmissions": true,
+    "deviceIdentityConfirmation": true,
+    "devicesSettingsSurface": true,
+    "branchGateDebt": true,
+    "safeAreaInsets": true,
+    "keyboardAvoidance": true,
+    "foldableFrame": true,
+    "runningLocation": true,
+    "phoneTopBar": true,
+    "designLanguage": true,
+    "hostNaming": true,
+    "commandRisk": true,
+    "approvalFacts": true,
+    "followResume": true,
+    "viewLocation": true,
+    "composerGate": true,
+    "hostDiagnostics": true,
+    "supportBundle": true,
+    "telemetryConsent": true,
+    "diagnosticsRecorder": true,
+    "sessionHeadersEntry": true,
+    "settingsEntry": true,
+    "telemetryGate": true,
+    "savedHosts": true,
+    "degradedProbes": true,
+    "permissionTierChip": true,
+    "durableRetainedAnswers": true,
+    "unifiedDiffPreview": true,
+    "binaryFactCard": true,
+    "retargetableEndpoint": true,
+    "rosterSwitch": true,
+    "rosterUi": true,
+    "interruptedTransfer": true,
+    "mimeInference": true,
+    "hostSelectionObserver": true,
+    "diffReadableCopy": true,
+    "diffRichViewer": true,
+    "browserHostOrigin": true,
+    "deviceAdmissionLifecycle": true,
+    "nativePairing": true,
+    "nativeRemoteTls": true,
+    "nativePairingPresentation": true,
+    "androidNativeGatewayCore": true,
+    "androidNativeCompanion": true,
+    "androidNativeLifecycle": true,
+    "androidRepairing": true,
+    "androidCredentialRecovery": true,
+    "androidSessionList": true,
+    "androidInputRetention": true,
+    "androidInputPersistence": true,
+    "androidPromptRetry": true,
+    "androidHostRoster": true,
+    "androidViewLocation": true,
+    "androidCursorResume": true,
+    "androidResourceAdoption": true,
+    "androidNativeDiagnostics": true,
+    "nativeScannerAdoption": true,
+    "nativeScannerCandidate": true,
+    "nativeScannerSameSourceVerified": true,
+    "nativeScannerRepeatByteIdentical": true,
+    "nativeScannerBinarySymbolScan": true,
+    "androidCapabilityPresentation": true,
+    "androidCapabilityGenerationIsolation": true,
+    "androidCapabilityReadOnlyRefresh": true,
+    "androidOperationCapabilities": true,
+    "androidKnownOperationPreflight": true,
+    "androidCapabilityDraftRetention": true,
+    "androidSubagentTimeline": true,
+    "androidSelectedParentCatalog": true,
+    "androidChildObservationRetirement": true,
+    "androidCompleteResourceSave": true,
+    "androidResourceSavePickerOwnership": true,
+    "androidResourceSaveIndependentBytes": true,
+    "androidEncryptedDownloadCheckpoints": true,
+    "androidExplicitDownloadContinuation": true,
+    "androidDownloadJvmInterruptionRecovery": true,
+    "androidPersistentDownloadAdoption": true,
+    "androidDownloadDiskExport": true,
+    "androidInstalledDownloadProcessRecovery": true,
+    "androidDownloadHostIsolation": true,
+    "androidAcceptanceApkAdmission": true,
+    "androidFilesPickerAttachments": true,
+    "androidDurableFilePromptIntents": true,
+    "androidFileDraftProcessRecovery": true,
+    "androidFilePickerAuthority": true,
+    "hostStagedImageAdmission": true,
+    "androidPhotosPickerAttachments": true,
+    "androidDurableMixedAttachmentIntents": true,
+    "androidPhotoDraftProcessRecovery": true,
+    "androidCameraStagedImages": true,
+    "androidCameraOwnedOutputCleanup": true,
+    "androidCameraProcessRecovery": true,
+    "androidShareExplicitConfirmation": true,
+    "androidShareAtomicDraftAdoption": true,
+    "androidShareRestorationIsolation": true,
+    "androidViewDeepLinksCurrentHostNavigation": true,
+    "androidViewDeepLinksDeliveryIsolation": true,
+    "androidViewDeepLinksInputPreservation": true,
+    "androidPushForegroundRecovery": true,
+    "androidPushBackgroundProducerRetention": true,
+    "androidPushNotificationConsumption": true,
+    "androidNotificationPermission": true,
+    "androidNotificationSettingsRecovery": true,
+    "androidNotificationProcessRequestOwnership": true,
+    "androidAttachmentReceiptRecovery": true,
+    "androidAttachmentPendingDraftIsolation": true,
+    "nativeUploadBudget": true,
+    "nativeImageUploadBudget": true,
+    "nativeHostRestart": true,
+    "nativeUploadDedupe": true,
+    "browserUploadDedupe": true,
+    "nativeDigestMemory": true,
+    "browserDedupeVerification": true,
+    "hostsRosterRename": true,
+    "diffSplitView": true,
+    "appleRosterSwift": true,
+    "androidHostQuestion": true,
+    "sessionLocationChip": true,
+    "modelSteer": true,
+    "modelSelect": true,
+    "sessionLocationFacts": true,
+    "modelEffort": true,
+    "appleModelCatalog": true,
+    "gatewayOutage": true,
+    "hostsRosterReorder": true,
+    "appleLocationFacts": true,
+    "appleViewLocation": true,
+    "appleFollowResume": true,
+    "androidFollowWindow": true,
+    "androidFollowLane": true,
+    "androidFollowOutage": true,
+    "androidFollowForeground": true,
+    "activeHostSwitch": true,
+    "headerOverflow": true,
+    "viewHandoff": true,
+    "failureCopy": true,
+    "limitations": [
+      "The failure-copy lane is a client-level qualification of the shared dictionary and helper routing, not a physical-device or end-to-end one: the lane exercises the class routing across the eight closed classes, the unknown-class raw template, the RemoteError/Error/string/plain-object classification and both dictionaries carrying all nine keys in jsdom, so surface-by-surface visual verification on real devices, the provider code-domain localization and folding the already-classified consumers into the shared dictionary stay open and keep the section from an overall PASS.",
+      "The generation record is preserved honestly: the lane needed real rework before it settled — the helper's first signature took the untyped Translate<K = string> and could not accept any namespace-bound translate (function parameters are contravariant, fixed by the narrow-union RemoteFailureTranslate), rawMessageOf first missed the plain-object branch (String() rendered [object Object] for wire-shaped local failures such as GoalLocalFailure), the RemoteError details shapes took three passes until pinned against remote-error-codes.schema.json, plus oxlint and member-delimiter findings, a menu error row without alert role, the activation-armed GoalBar button and a non-existent rerenderGoal helper — every list lives verbatim in the four-section narration (.artifacts/failure-copy-iteration-notes.log, the hosts-roster-reorder precedent form) together with the audit client list widening 47/631 to 54/682 through the tmp-build-audit-list-fc.mjs glob (the Mimosa hook honestly blocked a Bash compound command carrying a source path; the locale package's six pre-existing spec files had never entered the audit lineage while this generation's core change lands exactly in that package) and both first passes green, and the documentation evidence being ONE MERGED docsync log carrying doc-quick 17 and doc-sync 36 (an honest deviation from the previous generations' two-file split, shell-echo command form inside).",
+      "This generation's prepare ruling derives an EMPTY replaced-build-output allowlist by the unresolved scan over the view-handoff record's own builtFiles: no device lane ran, the emulator stayed off, and the single gradle acceptance round was a warm replay (2 executed, 87 up-to-date — :app:assembleRelease itself stayed UP-TO-DATE) that rebuilt no android build product; both APK bytes verified IDENTICAL against that prior record's own (gen-27) builtFiles sha256 entries from disk before and after the round. The generator therefore gains no new per-record key set this generation — its existing thirteen sets ride the moved shared span unchanged, the demoted view-handoff record replays through the normal direct digest path with the standard .tsbuildinfo skip, and the cumulative replacedPriorBuildOutputs set keeps its nine inherited keys (re-inserted verbatim by span extraction, never transcribed); the demoted apple-follow-resume record keeps its 112-key pinned skip (unchanged from the prior generations — this generation rebuilt nothing, so the drift status is unchanged)."
+    ],
+    "nextRequiredWork": {
+      "specification": "artifacts/upstream-first/original-specification.md",
+      "traceability": "artifacts/upstream-first/specification-traceability.json",
+      "remaining": [
+        "Keep the section 45 failure-copy qualification open beyond the first-stage dictionary delivery now shipped — the canonical nine failure keys live once in client-locale's shared common dictionary (failure.authentication/permission/compatibility/conflict/host-state/carrier-invalid/transport/unavailable/raw) with LocaleKeysOf<N> = NS keys | CommonKeyOf on the type face and the runtime common-namespace fallback, the remoteFailureCopy/remoteFailureClassCopy helper classifies through classifyRemoteFailure and routes unknown to the {message} raw template, the five copy-less clusters (hub steerQueue, InputBar promptError with the two attachment refinements, GoalBar runAction, WorkspaceBrowser three dialogs with the session-rename conflict refinement, model-selection dual stores with class-first directoryErrorText) render through it, and the already-classified consumers stay untouched; the provider code-domain localization (LlmFailure.code, dynamic HTTP_* codes, adapter-minted codes), folding QueueDock/DevicesSettingsSection/SubagentHeaderLineage/ui-jobs/ui-deliverables into the shared dictionary, released-Client multi-version N/N-1/N-2 behavior, the device matrix and the section's other requirements stay open.",
+        "Keep the section 26 view-location handoff qualification open beyond the Web generation and receive sides now delivered — the ui-view-handoff package injects the 「继续到其他设备」 action into the conversation.session.header.actions slot (visible only once a Host is admitted and the Chat timeline holds a last-turn turn/start anchor), copies the current page origin+pathname+#dsh-view=<payload> fragment link (a fragment never travels to a server), and the receiving page consumes that fragment once (read-then-clear) and opens it through openViewLocation only after admission with fail-loud no-retry errors; deep links, platform share routing, QR rendering, physical devices and the section's other requirements stay open.",
+        "Keep the section 10 phone-bar qualification open beyond the phone-tier overflow affordance now delivered — the ⋮ trigger aggregates the strict header's two secondary lists (the actions list and the utilities list beyond the running-location chip) behind one portaled panel on the phone tier (the max-width 599.5px media query every existing phone-only affordance uses) with Escape close-and-refocus and a localized empty line, while the running-location chip and the single-seat corner occupant stay in the bar; the full size/theme/state/accessibility matrix and iOS/Android real-device input, background and native-attachment acceptance stay open.",
+        "Keep the section 28 Multi-Host switch-window qualification open beyond the two client lanes now proven — the connection lane walks the whole A-ready to retarget(B) to synchronous old-generation retirement to new-generation-on-B cycle on the real Connection plugin with gated dual sources, sampling target/generation/state on every flush, and the ui-conversation lane drives the real createComposerControlSource through the gateway $host facts sequence pinning prompt true to false to true with capability facts following the current generation; physical devices, the Swift shell, background/push behaviors, real two-Host switches on hardware and the rest of the section's acceptance stay open.",
+        "Keep the section 25 persisted-window qualification open beyond the backgrounded-reconnect and foreground-presentation lane now proven — the lane destroys the paired device stream carrier Host-side while the application is backgrounded, proves the backgrounded process re-opens follow with its durable cursor and consumes backgrounded appends, and presents the merged window intact on a plain launcher return, but OS background-kill behaviors (Doze and real background reclamation), FCM delivery, physical devices, deep links, platform share routing and the rest of both sections' acceptance stay open.",
+        "Keep the section 25 persisted-window qualification open beyond the physical-carrier-loss lane now proven — the lane destroys the paired device stream carrier Host-side via terminateDeviceConnections and proves the reopen carries the last applied durable sequence with no outage-time appends or claims, but the foreground-push recovery, physical devices, deep links, platform share routing and the rest of both sections' acceptance stay open.",
+        "Keep the section 25 persisted-window qualification open beyond the installed-state process-death lane now proven — the emulator lane force-stops the installed application between the interruption's appends and reopens with the persisted cursor, the Host's three omitted-tail records and the merged older page, but the section 25 physical-network interruption and foreground-push recovery acceptance, physical devices, deep links, platform share routing and the rest of both sections' acceptance stay open.",
+        "Keep the section 25 persisted-window qualification open beyond the core-level close now proven — the encrypted follow-window store, the installPersisted/checkpoint seams and the SessionModel wiring are core-level evidence only (no emulator or physical device drove a real process restart this increment, :app:compileDebugKotlin is a compile lane rather than a run, and the double-instance restart case is the core-level proof), the emulator install-state restart lane, the section 25 physical-network / foreground-push recovery acceptance, deep links, platform share routing and the rest of both sections' acceptance stay open.",
+        "Keep the section 25 follow-resume qualification open beyond the contract-column parity now proven — the Swift mirror is contract-column evidence only (not compiled on this Windows host; the PR-channel swift-contract self-check owns the compile), no physical device drove either shell on this increment, and the Apple shell consumption of the follow-resume builder, the section 25 persisted-window / physical-network / foreground-push recovery acceptance, deep links, platform share routing and the rest of both sections' acceptance stay open.",
+        "Keep the section 26 view-location qualification open beyond the contract-column parity now proven — the Swift mirror is contract-column evidence only (not compiled on this Windows host; the PR-channel swift-contract self-check owns the compile), no physical device drove either shell on this increment, and the Apple shell consumption of the payload, the section 25 follow-resume Swift item, deep links, platform share routing and the rest of both sections' acceptance stay open.",
+        "Keep the section 29 location-facts qualification open beyond the contract-column parity now proven — the Swift mirror is contract-column evidence only (not compiled on this Windows host; the PR-channel swift-contract self-check owns the compile), no physical device drove either shell on this increment, and background/push, follow cursor and view-location handoff stay open alongside the physical-device columns.",
+        "Keep the section 28 roster-editing qualification open for the non-web columns — the manual arrangement is proven in the real-browser hosts-settings lane plus the three client suites (store, component, plugin) and the regenerated api-catalog mirrors only; no Android or Apple roster surface was driven on this increment, and the per-profile browser-storage arrangement is deliberately not synced across devices.",
+        "Keep the §29 real-device qualification and the Swift-side carrier column open for the host-side termination half — the primitive is proven on the local AVD against a providers-only header-only replay Host plus the JVM suites and the web scaffold's built-lib path only; no real hardware and no Apple client were driven on this increment.",
+        "Keep the Apple-side shell UI entry (capability-rendered model selection with its reasoning efforts) and the same-candidate real-device qualification open for the section 30 model-selection half — the contract column adoption is fixture-and-CI-lane verified only, with no shell surface driven on this increment.",
+        "Keep the Apple-side model-selection entry with its reasoning efforts and the real-device qualification of the same catalog candidates open for the section 30 effort half — the effort acceptance is emulator-and-nativeacceptance-id only.",
+        "Keep the deterministic device-level outage lane (needs a Host-side stream-kill primitive), the real-device and Swift-shell location-facts surfaces, and the follow cursor/handoff work open for the section 29 location facts — the state-word machinery is JVM-covered only and the facts acceptance is emulator-and-nativeacceptance-id only.",
+        "Keep the reasoningEffort selection surface, the apple-side capability-gated entry and the same-candidate real-device qualification open for the section 30 model capabilities — the wire already accepts reasoningEffort with no client UI anywhere, and the select acceptance is emulator-and-nativeacceptance-id only.",
+        "Keep the Android model-select composition entry and real-device qualification open for the section 30 model capabilities — model.select.v1 is advertised with the web picker present but the Android side has no select UI, and the steer acceptance is emulator-and-nativeacceptance-id only.",
+        "Keep follow cursor, view-location handoff, multi-Host switching and real-device acceptance open for the section 29 location metadata — the chip publishes the five location facts on the web client only and no device round runs this generation.",
+        "Keep real hardware, the Swift shell, background/push delivery and full Session location metadata open for the Question isolation lane — the acceptance is emulator-and-nativeacceptance-id only, and the Approval interaction type shares the same inbox and per-principal model without a dedicated physical lane.",
+        "Classify the next cursor failure using the preserved diagnostics, or establish a controlled reproduction before changing its owner. Do not close this investigation merely because subsequent runs pass.",
+        "The Swift roster mirror has no local execution on Windows hosts and no completed macOS CI run inside this chain; keep Swift-side execution evidence open, and keep roster write and re-pair semantics Android-core behavior with the Swift mirror reading and validating only.",
+        "Keep cross-tab and persisted view preferences and intra-line word highlighting inside a paired split row open independently; the per-tab split toggle does not close them.",
+        "Cover per-browser-profile isolation boundaries, cross-device name synchronization and manual roster ordering independently; the local rename seam does not close them.",
+        "Give the streaming carrier a deduplication path and cover cross-tab digest behavior; the real-browser deduplication-hit lane does not close them.",
+        "Qualify image and mixed-attachment recovery, large/resumable uploads, per-principal digest scoping, capacity tuning, storage-backed browser digest memory and physical-device Host restarts independently; the durable companion digest-memory file does not close broader attachment or Mobile Release acceptance.",
+        "Qualify image and mixed-attachment recovery, large/resumable uploads, per-principal digest scoping, capacity tuning, storage-backed browser digest memory and physical-device Host restarts independently; the durable companion digest-memory file does not close broader attachment or Mobile Release acceptance.",
+        "Qualify streaming and resumable uploads, physical devices and third-party senders independently; the local complete-body check is advisory and Host or proxy rejection remains authoritative.",
+        "Continue notification channel, settings revocation/process-death, persistent denial, physical-device, relay-backed delivery and precise Host/Session notification target qualification. Actual Recents and physical network/mux recovery remain separate work.",
+        "Continue Swift attachment adoption, cross-platform sharing and link entry, larger streamed uploads, upload retry/receipt expiry recovery, Host limit negotiation and the remaining requirement matrices without changing Host-owned authorization.",
+        "Retain scanner clean-cache/cross-machine, race, physical/16-KiB device, signed release, CodeQL and Apple gaps. Session writer V3 and completeRc=false persist; remote CI is distinct from local evidence. No memory update or handoff package."
+      ]
+    }
+  },
   "viewHandoff": {
+    "historical": true,
+    "followup": "artifacts/upstream-first/failure-copy-source.json",
     "status": "PASS",
     "sourceRecord": "artifacts/upstream-first/view-handoff-source.json",
     "scope": "§26 第一阶段 Handoff 的 Web 生成端与接收端交付代：规格钉准——编解码两端（ClientSessions.encodeViewLocation/openViewLocation，含端持久锚点、fail-loud 校验、绝不外泄请求）、Android 消费与 Swift 契约镜像此前已交付，但 Web 自身两头皆缺（会话页无捕获入口、收到链接的页面不作为），本代补齐。锚点裁定=Chat 时间线最后轮次 turn/start seq（loadThrough 契约原文 \"a turn's turn/start seq\" 同源，「复制的正是将被揭示的位置」）；链接裁定=当前页 origin+pathname+#dsh-view=<payload>（URL fragment 从不随请求发给服务器——「只承载查看位置、不承载传输」的最小真实通道）；QR 渲染与真实跨设备投放通道仍属外壳工作（README Limitations 与 traceability §26 remaining 均如实保留）。实现：新包 @deepseek-ai/dsh-client-ui-view-handoff（ui-open-in-app 配方，web-app profile 装载）——生成端经 slots 占用 conversation.session.header.actions（order 20）注入「继续到其他设备」动作，仅当已准入 Host（generation 带 descriptor，与 encodeViewLocation 的 requireConnectedHostId 同信号）且存在最后轮次锚点时可见；接收端 apply 时一次性消费 fragment（读后即清、刷新不循环），waitForAdmission 推迟 openViewLocation 使 payload 永不触达错误 Host，失败 console.error+回调不重试；剪贴板拒绝降级 title 呈现链接。ISessions 契约面显式加宽两动词（接口自述 \"the explicit act of widening what features may do to the sessions domain\"），TestSessions 经真实编解码器实现（TEST_HOST_ID=brandString('dsh-test-host')、calls 联合类型加两名）、FixtureSession.loadThrough fail-loud stub 补 seq 报出；包根入口为空 apply node 半（首版 export * 拉运行时依赖入 Host 面致 package-dependencies 违例，已修正——client 面经 exports[\"./client\"]）。车道 packages/client/ui-view-handoff/tests/handoff.client.spec.tsx 五例：隐藏条件、编码锚点+链接复制+copied dress、剪贴板拒绝 title 降级、admitted 派生+buildLink、一次性消费+准入后打开+失败不重试；两连绿，邻域回归 4 套件 41 绿、波及套件 76 绿。tracked 改动 18 处：tsconfig.base.json（paths）、tsconfig.client.json（solution reference）、packages/bundle/web-app/cordis.patch.yml+package.json（插件行+依赖）、pnpm-lock.yaml、packages/api/session-controller/src/client/contract/sessions.ts（ISessions 加宽）、packages/test-support/client-runtime/src/sessions.ts+tests/runtime.client.spec.tsx（TestSessions 实现两动词+stub seq）、packages/client/ui-conversation/tests/conversation-registry.client.spec.ts（内联 fixture 补两动词 fail-loud）、artifacts/upstream-first/specification-traceability.json（§26 remaining 改写+candidateEvidence 11→16；node --test 6/6）、docs/config-catalog.{md,zh.md,i18n.yaml}+docs/module-graph.{md,zh.md,i18n.yaml}（再生成+zh 镜像行，pairing 重录 910 对全一致）、packages/extensions/cordis-client-runner/src/client/slot-catalog.ts（client-catalog 再生成）、scripts/verify-package-readme-model-experience.ts（登记 packages/client/ui-view-handoff none 条目）。门禁多轮收敛如实（types-lint 四轮至 0/0：references 指包根应指 tsconfig.client.json face、../../session 应为 ../../core/session、ISessions 面加宽波及三实现者、根入口 re-export 等，清单入 iteration-notes）；test:docs 17、doc-sync 36、审计串行双轮 47 文件/631 断言（46/626+新车道，两轮首跑全绿）、gate0 双形态 PASS、traceability 6/6。hygiene 14 过/2 失败且均为继承基线（主会话 stash 探针钉死 HEAD 即红）：file-upload admitEncodedImages 未分类（政策注释明令 agent 不得自加例外须人工审查——如实上报开放通道）、vendor rescope 指向 2026-09-29 封存工件快照内旧名 token（封存证据不可编辑，如实上报）；本包自身 publint/invariants/dependencies 全净。快照判定：test:snapshot 四文件（corpus/acp/sdk/headless）经 stash 探针定性为 HEAD 基线红（corpus=checkpoint 导入 validation-details.snapshot.ts 未收录清单、acp=本机 config_option 环境漂移、sdk/headless=宿主重放漂移族），零本增量暴露面，记录不修改。本代无 Kotlin/Swift 改动：gradle 验收轮（scanner env+-PdshNativeAcceptance）BUILD SUCCESSFUL（89 任务 47 executed——release 管线冷启如实记录，非 1-executed 形态），空派生以字节证明：两枚 APK（debug+androidTest）与 gen-26 header-overflow 记录 sha256 逐字节一致（androidTest 装配不在本轮任务图，其字节对该记录自磁盘核证）、core XML 聚合 77 套件/477 测试 0 失败 0 错误 0 跳过；prepare 空集派生（7525/0）、write-reports 不新增 replaced 集合（既有 13 集合不动）。深链接、平台分享路由、QR 渲染、物理设备及本节其他要求仍开放，不授予整节 PASS；完整目标未完成",
@@ -38286,7 +38626,7 @@
       "The known Windows symlink EPERM expanded-suite failure from the cancellation increment was not rerun or resolved"
     ]
   },
-  "latestSourceRecord": "artifacts/upstream-first/view-handoff-source.json",
+  "latestSourceRecord": "artifacts/upstream-first/failure-copy-source.json",
   "cancelTarget": {
     "historical": true,
     "followup": "artifacts/upstream-first/rename-revision-source.json",
@@ -38769,7 +39109,7 @@
     "files": [
       {
         "path": "artifacts/upstream-first/write-reports.mjs",
-        "sha256": "cfbd6502c7c4a2932dd87852944c2eb799813d4018c666bd24f465db505cc076"
+        "sha256": "40224462bb490a0aab1154589f80b51d86cb9df3733661c83e760f1e04383efc"
       },
       {
         "path": "artifacts/upstream-first/verify-audit.mjs",

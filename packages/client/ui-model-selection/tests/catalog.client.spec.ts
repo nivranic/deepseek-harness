@@ -82,14 +82,14 @@ describe('ModelCatalogDirectory', () => {
     subject.refresh()
     await vi.waitFor(() => {
       expect(subject.store.getSnapshot()).toEqual({
-        value: catalog('old'), status: 'error', error: 'refresh failed',
+        value: catalog('old'), status: 'error', error: 'refresh failed', errorClass: 'unknown',
       })
     })
 
     subject.resetGeneration()
     await vi.waitFor(() => {
       expect(subject.store.getSnapshot()).toEqual({
-        value: null, status: 'error', error: 'reset failed',
+        value: null, status: 'error', error: 'reset failed', errorClass: 'unknown',
       })
     })
   })

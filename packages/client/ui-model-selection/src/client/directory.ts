@@ -9,6 +9,7 @@ import type {
 } from '@deepseek-ai/dsh-api-session-controller/types'
 import type { SessionId } from '@deepseek-ai/dsh-api-remotes/client'
 import type { TypertClientRemote } from '@deepseek-ai/dsh-typert-protocol'
+import { classifyRemoteFailure, type RemoteFailureClass } from '@deepseek-ai/dsh-typert-protocol'
 import type { ObservableSnapshot, SnapshotStore } from '@deepseek-ai/dsh-client-store'
 import { createSnapshotStore } from '@deepseek-ai/dsh-client-store'
 import type { ModelCatalogDirectory } from './catalog.ts'
@@ -33,13 +34,15 @@ export interface ModelDirectoryState {
   status: 'idle' | 'loading' | 'ready' | 'selecting' | 'error'
   /** Whole-request or selection failure text; null when none. */
   error: string | null
+  /** Shared §45 classification of the failure; `null` while none, `unknown` keeps the raw message. */
+  errorClass: RemoteFailureClass | null
 }
 
 /** One session's shared directory controller; disposed with the session scope. */
 export class ModelDirectory {
   /** The shared snapshot both entries render from (uSES-safe store). */
   readonly store: SnapshotStore<ModelDirectoryState> = createSnapshotStore<ModelDirectoryState>({
-    current: null, routable: null, groups: [], failures: [], status: 'idle', error: null,
+    current: null, routable: null, groups: [], failures: [], status: 'idle', error: null, errorClass: null,
   })
 
   /** Latest selection operation wins; an older response never overwrites a newer one. */
@@ -88,7 +91,7 @@ export class ModelDirectory {
   async select(selection: ModelSelection): Promise<void> {
     this.assertAvailable()
     const generation = ++this.generation
-    this.store.update((s) => { s.status = 'selecting'; s.error = null })
+    this.store.update((s) => { s.status = 'selecting'; s.error = null; s.errorClass = null })
     const result = await this.sessions.selectModel({
       sessionId: this.sessionId,
       provider: selection.provider,
@@ -102,10 +105,14 @@ export class ModelDirectory {
       return
     }
     if (!result.ok) {
-      this.store.update((s) => { s.status = 'error'; s.error = `${result.error.code}: ${result.error.message}` })
+      this.store.update((s) => {
+        s.status = 'error'
+        s.error = result.error.message
+        s.errorClass = classifyRemoteFailure(result.error)
+      })
       throw result.error
     }
-    this.store.update((s) => { s.status = 'ready'; s.error = null })
+    this.store.update((s) => { s.status = 'ready'; s.error = null; s.errorClass = null })
     this.syncInputs()
   }
 
@@ -118,6 +125,7 @@ export class ModelDirectory {
     this.store.update((state) => {
       if (state.status === 'selecting') state.status = 'idle'
       state.error = null
+      state.errorClass = null
     })
     this.syncInputs()
   }
@@ -139,7 +147,7 @@ export class ModelDirectory {
     if (this.disposed) return
     if (!this.available()) {
       this.resolved = false
-      this.store.set({ current: null, routable: null, groups: [], failures: [], status: 'idle', error: null })
+      this.store.set({ current: null, routable: null, groups: [], failures: [], status: 'idle', error: null, errorClass: null })
       return
     }
     const catalog = this.catalog.store.getSnapshot()
@@ -150,6 +158,7 @@ export class ModelDirectory {
           this.store.update((state) => {
             state.status = 'error'
             state.error = catalog.error
+            state.errorClass = catalog.errorClass
           })
         }
         return
@@ -161,6 +170,7 @@ export class ModelDirectory {
         failures: [],
         status: catalog.status === 'error' ? 'error' : 'loading',
         error: catalog.error,
+        errorClass: catalog.errorClass,
       })
       return
     }
@@ -175,6 +185,7 @@ export class ModelDirectory {
         ? 'selecting'
         : 'ready',
       error: null,
+      errorClass: null,
     })
   }
 }

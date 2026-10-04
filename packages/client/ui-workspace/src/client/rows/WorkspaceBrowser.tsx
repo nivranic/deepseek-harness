@@ -12,6 +12,7 @@
 import { useEffect, useMemo, useRef, useState } from 'react'
 import clsx from 'clsx'
 import { classifyRemoteFailure } from '@deepseek-ai/dsh-typert-protocol'
+import { remoteFailureCopy } from '@deepseek-ai/dsh-client-locale/client'
 import {
   Button, IconCloseFill14, IconPersonalizationOutline16,
   IconProjectAddOutline16, IconSearchOutline16, Menu, Modal, Tooltip,
@@ -1066,7 +1067,7 @@ export function WorkspaceBrowser({
     }).catch((reason: unknown) => {
       if (currentHost.current !== host) return
       setRenaming(false)
-      setRenameError(reason instanceof Error ? reason.message : String(reason))
+      setRenameError(remoteFailureCopy(reason, t))
     })
   }
 
@@ -1102,9 +1103,12 @@ export function WorkspaceBrowser({
     }).catch((reason: unknown) => {
       if (currentHost.current !== host) return
       setSessionRenaming(false)
+      // The title-conflict refinement stays feature-owned (strictly more
+      // precise than the class copy); every other failure presents through
+      // the shared §45 classification.
       setSessionRenameError(classifyRemoteFailure(reason) === 'conflict'
         ? t('rename.session.conflict')
-        : reason instanceof Error ? reason.message : String(reason))
+        : remoteFailureCopy(reason, t))
     })
   }
   const onSessionRename = (sessionId: SessionNode['id'], currentTitle: string) => {
@@ -1172,7 +1176,7 @@ export function WorkspaceBrowser({
     }).catch((reason: unknown) => {
       if (currentHost.current !== host) return
       setDeleting(false)
-      setDeleteError(reason instanceof Error ? reason.message : String(reason))
+      setDeleteError(remoteFailureCopy(reason, t))
     })
   }
 

@@ -833,7 +833,9 @@ describe('ConversationRoot resident composer', () => {
     const b = mount(sessionSnapshotOf({
       promptError: { op: 'send', error: { code: 'offline', message: 'Message send failed' } as never },
     }))
-    expect(b.view.getByRole('alert').textContent).toContain('Message send failed (offline)')
+    // Unclassified codes keep the raw message through the shared raw template.
+    expect(b.view.getByRole('alert').textContent).toContain('Message send failed')
+    expect(b.view.getByRole('alert').textContent).not.toContain('(offline)')
     expect(b.view.queryByRole('button', { name: 'Retry' })).toBeNull()
   })
 

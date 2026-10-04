@@ -192,8 +192,28 @@ describe('GoalBar', () => {
     fireEvent.change(box, { target: { value: 'retry this draft' } })
     fireEvent.click(screen.getByRole('button', { name: '保存目标' }))
 
-    expect((await screen.findByRole('alert')).textContent).toBe('stale revision (session/agent-busy)')
+    expect((await screen.findByRole('alert')).textContent).toBe('stale revision')
     expect(screen.getByRole('textbox', { name: '目标内容' })).toHaveProperty('value', 'retry this draft')
+  })
+
+  it('presents classified Remote failures with the shared copy', async () => {
+    const actions = makeActions()
+    actions.onResume.mockResolvedValue({
+      ok: false, error: new RemoteError('gateway/permission-denied', 'denied body', { endpoint: 'goal/pause', reason: 'device-identity' }),
+    })
+    render(<GoalBar goal={makeGoal({ phase: 'paused' })} {...actions} t={t} />)
+    fireEvent.click(screen.getByRole('button', { name: '恢复目标' }))
+    expect((await screen.findByRole('alert')).textContent).toBe('当前设备没有执行此操作的权限')
+  })
+
+  it('presents goal-local failures as the raw message', async () => {
+    const actions = makeActions()
+    actions.onResume.mockResolvedValue({
+      ok: false, error: { code: 'goal-context-changed', message: 'connection changed under the goal' },
+    } satisfies GoalActionResult)
+    render(<GoalBar goal={makeGoal({ phase: 'paused' })} {...actions} t={t} />)
+    fireEvent.click(screen.getByRole('button', { name: '恢复目标' }))
+    expect((await screen.findByRole('alert')).textContent).toBe('connection changed under the goal')
   })
 
   it('reports resume and clear failures without hiding the goal', async () => {
@@ -201,14 +221,14 @@ describe('GoalBar', () => {
     actions.onResume.mockResolvedValue({ ok: false, error: new RemoteError('gateway/internal', 'resume failed', {}) })
     const { rerender } = render(<GoalBar goal={makeGoal({ phase: 'paused' })} {...actions} t={t} />)
     fireEvent.click(screen.getByRole('button', { name: '恢复目标' }))
-    expect((await screen.findByRole('alert')).textContent).toBe('resume failed (gateway/internal)')
+    expect((await screen.findByRole('alert')).textContent).toBe('resume failed')
 
     actions.onClear.mockResolvedValue({
       ok: false, error: new RemoteError('session/agent-busy', 'clear failed', { reason: 'clear failed' }),
     })
     rerender(<GoalBar goal={makeGoal()} {...actions} t={t} />)
     fireEvent.click(screen.getByRole('button', { name: '清除目标' }))
-    expect((await screen.findByRole('alert')).textContent).toBe('clear failed (session/agent-busy)')
+    expect((await screen.findByRole('alert')).textContent).toBe('clear failed')
     expect(screen.getByText('Ship the redesign')).toBeTruthy()
     fireEvent.click(screen.getByRole('button', { name: '清除目标' }))
     await waitFor(() => { expect(actions.onClear).toHaveBeenCalledTimes(2) })

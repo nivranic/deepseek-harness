@@ -85,11 +85,16 @@ Host 通过 settings 服务为 loopback 页面持久化偏好。Client 会刻意
 
 带类型的对象形式要求两个内置 locale 都有完整字典；逐 locale 形式允许语言包独立注册每个命名空间。逐键查找会先在请求命名空间中沿生效语言声明的 fallback 链查找，再在 `common` 中重复该链，最后显示键本身。绑定的翻译函数按命名空间保持稳定身份，因此可通过 inject 机制传递，且不会破坏 memoization。
 
+### 共享失败文案
+
+`common` 词汇表携带 §45 的 Remote 失败键（`failure.authentication` … `failure.raw`）：一套按类分键的文案，所有 Client 表面对同一失败以同一语义渲染。`remoteFailureCopy(error, t)` 用 typert 失败词汇分类被捕获的值并返回类文案——对 `unknown` 类与非 Remote 值，则把原始诊断经 `failure.raw` 模板呈现。`remoteFailureClassCopy(cls, message, t)` 服务于在 store 侧完成分类的表面（无翻译器的 store 携带类字段）。任意命名空间绑定的翻译函数都结构性地满足参数要求，因为失败键是每个键域都包含的 common 键。
+
 ### 源码地图
 
 | 文件 | 职责 |
 |---|---|
 | [`src/client/index.ts`](src/client/index.ts) | `LocaleRuntime`、字典注册表、Language 行注册、`locale/change` 事件 |
+| [`src/client/failure-copy.ts`](src/client/failure-copy.ts) | §45 共享 Remote 失败文案：先分类，再类文案或原始模板 |
 | [`src/index.ts`](src/index.ts) | node 半侧：注册 `locale` 设置命名空间 |
 | [`src/locale-settings.ts`](src/locale-settings.ts) | `locale.preference` 的持久 schema |
 | [`src/locales/`](src/locales/) | 内置的 `zh`／`en` 字典 |
