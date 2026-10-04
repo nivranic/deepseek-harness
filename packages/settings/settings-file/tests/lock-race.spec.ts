@@ -20,6 +20,20 @@ vi.mock('node:fs/promises', async (importOriginal) => {
   const actual = await importOriginal<typeof import('node:fs/promises')>()
   return {
     ...actual,
+    // The atomic writer stages the temp file through an exclusive `open` and
+    // the returned handle's `writeFile`, so the mid-cycle failure is injected
+    // on that seam; the module-level `writeFile` injection stays for the
+    // document-create paths that still use it.
+    open: (async (...args: Parameters<typeof actual.open>) => {
+      const handle = await actual.open(...args)
+      if (state.failTempWrite && String(args[0]).endsWith('.tmp')) {
+        state.failTempWrite = false
+        handle.writeFile = async () => {
+          throw Object.assign(new Error('ENOSPC: injected temp write failure'), { code: 'ENOSPC' })
+        }
+      }
+      return handle
+    }),
     writeFile: (async (path: unknown, ...rest: never[]) => {
       if (state.holdDocumentCreate && String(path).endsWith('settings.yaml')) {
         state.holdDocumentCreate = false

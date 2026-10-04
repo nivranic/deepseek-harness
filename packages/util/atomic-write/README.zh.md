@@ -9,7 +9,7 @@ kind: "package-library"
 
 ## 概述
 
-使用 `dsh-atomic-write` 替换文件时，不会暴露部分内容，也不会跟随临时路径上的符号链接。它的写锁会跨进程串行化读-修改-写入循环，因此并发写入方不会用陈旧状态相互覆盖。每次替换都会在全新 inode 上使用调用方选择的权限位，从而安全地收窄现有文件的权限。这个零依赖库只接受字符串；它不提供 `cordis.yml` 插件，也不保证崩溃持久性，因为它不调用 `fsync`。
+使用 `dsh-atomic-write` 替换文件时，不会暴露部分内容，也不会跟随临时路径上的符号链接。它的写锁会跨进程串行化读-修改-写入循环，因此并发写入方不会用陈旧状态相互覆盖。每次替换都会在全新 inode 上使用调用方选择的权限位，从而安全地收窄现有文件的权限。临时文件在 rename 提交前先 `fsync`，POSIX 上父目录也会 `fsync`，因此崩溃后磁盘上只会是完整的旧文件或完整的新文件之一；本库不提供 `cordis.yml` 插件。
 
 ## 目录
 
@@ -120,7 +120,7 @@ await withFileLock('/home/u/.dsh/settings.yaml', async () => {
 
 这些限制说明本包何时不是合适的工具。它们是当前包约束，不是任务积压。
 
-- **原子但不保证持久**——不对文件或其所在目录做 `fsync`，因此崩溃后可能观察到 rename 被回退。此处的文件型存储在启动时重新读取并重新发布，把持久性留作调用方的策略。
+- **目录 fsync 仅限 POSIX**——Windows 上替换本身是原子的（rename 映射为 `MoveFileExW`），但父目录条目在该平台不做 fsync；POSIX 上临时文件与目录都会 fsync。
 - **仅支持字符串内容**——在有消费方需要之前，不提供 `Buffer` 或流式形态。
 - **遗留锁需要操作者恢复**——持锁进程退出时可能留下同级锁文件；后续写入方超时也不会删除它。
 
@@ -130,6 +130,6 @@ await withFileLock('/home/u/.dsh/settings.yaml', async () => {
 <details>
 <summary>维护者的工作上下文——点击展开</summary>
 
-一种对文件及其父目录执行 `fsync`、并在 Windows 上保留仅属主权限的持久性替换方案仍未实现（在源码中记录为 `settings-atomic-durability`）。
+在替换后的文件上通过 Windows ACL 保留仅属主权限仍未实现；POSIX 路径会落上调用方的权限位，Windows 依赖继承的目录 ACL。
 
 </details>

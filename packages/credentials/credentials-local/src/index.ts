@@ -830,7 +830,11 @@ export class LocalCredentialProvider extends CredentialProvider {
    * re-reads first — a concurrent boot may have migrated already — and
    * whatever the re-read finds that is not the flat layout is returned
    * untouched for the ordinary parse. Values are carried verbatim; only the
-   * enclosing layout changes. Remove with the pre-release stance at the
+   * enclosing layout changes. Per the persistence-migration requirements, the
+   * flat original is retained at `<filename>.migration-v0.bak` (same
+   * owner-only mode) before the sole copy is replaced, so the old generation
+   * survives both a mid-migration crash and a later bad rewrite; re-migration
+   * rewrites the same backup bytes. Remove with the pre-release stance at the
    * first tagged release.
    * @returns the document text this boot should parse.
    */
@@ -844,12 +848,15 @@ export class LocalCredentialProvider extends CredentialProvider {
          through a whole boot (migration.spec drives it best-effort); the
          decision itself is the recognizer's covered versioned-document decline. */
       if (migrated === undefined) return current
+      // 0600: the retained flat generation holds the same secrets.
+      await writeFileAtomic(`${this.spec.filename}.migration-v0.bak`, current, { mode: 0o600, dirMode: 0o700 })
       // 0600: a document holding secrets is never world-readable.
       await writeFileAtomic(this.spec.filename, migrated, { mode: 0o600, dirMode: 0o700 })
       this.ctx.logger.info(
-        'credentials-local: migrated %s to the version %d layout; values are unchanged',
+        'credentials-local: migrated %s to the version %d layout; values are unchanged; the flat original is retained at %s.migration-v0.bak',
         this.spec.filename,
         DOCUMENT_VERSION,
+        this.spec.filename,
       )
       return migrated
     }, { waitMs: DOCUMENT_LOCK_WAIT_MS })

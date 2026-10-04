@@ -5193,9 +5193,11 @@
       "owner": "持久化与显式转换",
       "candidateEvidence": [
         "ARCHITECTURE_DECISIONS.md",
-        "artifacts/upstream-first/storage-owner-report-validation.json"
+        "artifacts/upstream-first/storage-owner-report-validation.json",
+        "packages/util/atomic-write/src/index.ts",
+        ".agents/notes/implemented/architecture/2026-10-04-atomic-durability.md"
       ],
-      "remaining": "Storage 生命周期证据不替代旧 Session/设置的完整 adjacent/atomic/recoverable 转换；禁止直接覆盖用户唯一副本。",
+      "remaining": "设置与凭据面的持久化安全已交付：dsh-atomic-write 的 writeFileAtomic 现为 crash-durable（临时文件 fsync 后才 rename 提交、POSIX 上父目录再 fsync——对齐 storage-json 既有原语；settings/credentials 每次写入崩溃后只可能是完整旧文或完整新文，Windows 目录条目不做 fsync、依赖平台原子替换）；credentials 启动平铺布局迁移按 adjacent 要求保留旧代——扁平原文先写为 <file>.migration-v0.bak（仅属主权限）再替换唯一副本，重迁移重写同一备份字节、二次启动不动备份。旧 Session 主存储（JSONL 世代后端）经测绘本已满足 adjacent/atomic/recoverable/保留旧代/crash-safe 全要求（链式 to=from+1 强制相邻、tmp-wx+fsync+隔离 Worker 验证+POSIX link 绝不覆盖、历史源世代永不删、撕裂尾前缀恢复+写路径修复）。仍开放：session-query-sqlite 派生索引的原地 schema 重置（可从源日志重建，零 adjacent/保留）、storage-sqlite 版本不匹配拒绝打开（无迁移通道）、JSONL 撕裂尾修复的截断窗口——留作后续裁定；完整 §46 要求未全量证明，不授予整节 PASS。",
       "evidenceLimit": "这些路径是已定位的候选证据；尚未逐条证明本节每一项要求，不授予整节 PASS。"
     },
     {

@@ -9,7 +9,7 @@ English | [中文](README.zh.md)
 
 ## Summary
 
-Use `dsh-atomic-write` to replace a file without exposing partial content or following a symlinked temporary path. Its writer lock serializes read-modify-write cycles across processes so concurrent writers cannot overwrite one another with stale state. Each replacement uses caller-selected permission bits on a fresh inode, which safely narrows an existing file's permissions. This zero-dependency library accepts strings; it does not provide a `cordis.yml` plugin or crash durability because it does not call `fsync`.
+Use `dsh-atomic-write` to replace a file without exposing partial content or following a symlinked temporary path. Its writer lock serializes read-modify-write cycles across processes so concurrent writers cannot overwrite one another with stale state. Each replacement uses caller-selected permission bits on a fresh inode, which safely narrows an existing file's permissions. The temp file is fsynced before the rename commits and the parent directory is fsynced on POSIX, so a crash leaves either the complete old file or the complete new one; the library provides no `cordis.yml` plugin.
 
 ## Table of Contents
 
@@ -120,7 +120,7 @@ Nothing here enters a request prefix, so provider cache reuse is unaffected.
 
 These limits define where the package is not the right tool. They are current package constraints, not a task backlog.
 
-- **Atomic, not durable** — no `fsync` of the file or its directory, so after a crash the rename may be observed unwound. The file-backed stores here re-read and republish on boot, keeping durability the caller's policy.
+- **Directory fsync is POSIX-only** — the replacement itself is atomic on Windows (rename maps to `MoveFileExW`), but the parent-directory entry is not fsynced there; on POSIX both the temp file and the directory are fsynced.
 - **String content only** — no `Buffer` or stream form until a consumer needs one.
 - **Orphaned locks require operator recovery** — a process that exits while holding the lock leaves the sibling behind; later writers time out without deleting it.
 
@@ -130,6 +130,6 @@ These limits define where the package is not the right tool. They are current pa
 <details>
 <summary>Working context for maintainers — click to expand</summary>
 
-A durability-replacement that `fsync`s the file and parent directory and preserves owner-only permissions on Windows remains open (tracked as `settings-atomic-durability` in source).
+Preserving owner-only permissions through Windows ACLs on the replaced file remains open; the POSIX paths stamp the caller's mode bits, and Windows relies on inherited directory ACLs.
 
 </details>

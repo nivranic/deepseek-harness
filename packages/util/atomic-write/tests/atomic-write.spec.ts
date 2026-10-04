@@ -10,12 +10,32 @@ const state = vi.hoisted(() => ({
   lockCreateAttempts: 0,
   renameAttempts: 0,
   renameFailures: [] as string[],
+  durabilityOrder: [] as string[],
+  handleSyncFailure: undefined as string | undefined,
 }))
 
 vi.mock('node:fs/promises', async (importOriginal) => {
   const actual = await importOriginal<typeof import('node:fs/promises')>()
   return {
     ...actual,
+    open: (async (...args: Parameters<typeof actual.open>) => {
+      const handle = await actual.open(...args)
+      // The exclusive temp sibling is the only 'wx' open in this module; record
+      // its durability sync so ordering against the rename commit is assertable.
+      if (String(args[1]) === 'wx' && String(args[0]).endsWith('.tmp')) {
+        const realSync = handle.sync.bind(handle)
+        handle.sync = async () => {
+          state.durabilityOrder.push('sync')
+          if (state.handleSyncFailure !== undefined) {
+            const code = state.handleSyncFailure
+            state.handleSyncFailure = undefined
+            throw Object.assign(new Error(`${code}: injected temp fsync failure`), { code })
+          }
+          return realSync()
+        }
+      }
+      return handle
+    }),
     lstat: (async (...args: Parameters<typeof actual.lstat>) => {
       if (String(args[0]).endsWith('.lock') && state.lockProbeFailure !== undefined) {
         throw Object.assign(new Error('injected lock inspection failure'), { code: state.lockProbeFailure })
@@ -24,6 +44,7 @@ vi.mock('node:fs/promises', async (importOriginal) => {
     }) as typeof actual.lstat,
     rename: (async (...args: Parameters<typeof actual.rename>) => {
       state.renameAttempts += 1
+      state.durabilityOrder.push('rename')
       const code = state.renameFailures.shift()
       if (code !== undefined) {
         if (code === 'NO_CODE') throw new Error('injected rename failure without a code')
@@ -56,6 +77,8 @@ afterEach(async () => {
   state.lockCreateAttempts = 0
   state.renameAttempts = 0
   state.renameFailures.length = 0
+  state.durabilityOrder.length = 0
+  state.handleSyncFailure = undefined
   await Promise.all(scratchDirs.splice(0).map(dir => rm(dir, {
     force: true,
     maxRetries: 10,
@@ -83,6 +106,24 @@ async function waitForLock(lockPath: string): Promise<void> {
 }
 
 describe('writeFileAtomic', () => {
+  it('fsyncs the complete temp file before the rename commit exposes it', async () => {
+    const dir = await scratch()
+    const target = join(dir, 'doc.yaml')
+    await writeFileAtomic(target, 'a: 1\n', { mode: 0o600 })
+    expect(await readFile(target, 'utf8')).toBe('a: 1\n')
+    expect(state.durabilityOrder).toEqual(['sync', 'rename'])
+  })
+
+  it('removes the temp sibling and leaves the target untouched when the pre-rename fsync fails', async () => {
+    const dir = await scratch()
+    const target = join(dir, 'doc.yaml')
+    await writeFile(target, 'old\n', 'utf8')
+    state.handleSyncFailure = 'EIO'
+    await expect(writeFileAtomic(target, 'new\n', { mode: 0o600 })).rejects.toThrow('EIO: injected temp fsync failure')
+    expect(await readFile(target, 'utf8')).toBe('old\n')
+    expect((await readdir(dir)).filter(name => name.endsWith('.tmp'))).toHaveLength(0)
+  })
+
   it('creates the file and its parents with exactly the stated mode', async () => {
     const dir = await scratch()
     const target = join(dir, 'nested', 'deep', 'doc.yaml')
