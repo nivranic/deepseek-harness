@@ -1,0 +1,66 @@
+{
+  "status": "PASS",
+  "scope": "Report bindings and audit for the approval-ask-risk increment: the section 37 remaining tail sentence's hook-originated-ask risk-tier classification channel — the whole-repo census found the CC bridge the only production asker (its hooks-claude-code translation of hook permissionDecision:'ask' produces a PreToolDecision ask carrying toolName/callId/reason with no risk, so the section 38 panel's Risk row hides for every hook-originated ask) while gen-30 had already delivered the whole seam side (the approval/asked durable risk, the frozen disposition entry, the strict validation and the panel row), leaving only the tool-layer asker's classification channel, ruled under the verbatim ownership rule that the Host layer classifies and the Client only displays: the PreToolDecision ask member gains the optional risk as the ToolAskRisk closed literal union mirroring ApprovalRisk (the named type-only import rejected by the typert host-face analyzer with type symbol unknown has no declaration — the gen-30 ApprovalSandboxMode mirror precedent over the existing bare import type {}), serviceAsk conditionally spreads it into approval.request, no CC dialect wire field is invented because no emitter exists, no registry tier is added because section 37's ladder anchors Commands, and the CC bridge stays byte-identical with its asks honestly unclassified; the lanes (core/tools 12 files / 391 tests and tool-cordis 11) ran green on both passes with the two ask-routing cases (the forwarded request carrying risk:'high' and the unclassified ask omitting the key, not.toHaveProperty); the regenerated cordis api-catalog embeds risk?: ToolAskRisk, the docs/subsystems/tools type-equivalence blocks mirror the widened declaration and JSDoc in both languages, the config-catalog regenerates with the zh line-anchor mirror after the source line anchor displaced 647 to 657, the three pairings re-record, and the traceability section 37 tail rewrites with candidateEvidence 6 to 8 (node --test 6/6); the documentation evidence keeps the two-file split — doc-quick 17 gates in its own docs log and doc-sync 36 passed 0 failed in its own docsync log (the first runs failed the agent-note format gate, the type-equivalence gate and the config-catalog line-anchor gate, each repaired with the pairing re-recorded before the sealed green reruns) — with the audit serial double round green at the unchanged 85 files / 1061 tests (the touched packages are not client spec-list members), gate0 in both forms, and the repo-wide types-lint 0/0; the same-round gradle acceptance round (scanner env with -PdshNativeAcceptance, BUILD SUCCESSFUL) replayed WARM with 2 executed of 89 actionable tasks and 87 up-to-date — the same form the previous three generations sealed — while :app:assembleRelease, :app:assembleDebug, :app:compileDebugKotlin and the whole :core: chain stayed UP-TO-DATE because nothing under apps/android changed this generation (no device lane ran and the emulator stayed off), the empty-derived byte proof compares both APKs byte-identically against the approval-facts-complete record's builtFiles entries (.artifacts/approval-ask-risk-apk-bytes.log), the still-valid XML reports aggregate 77 suites / 477 tests with zero failures/errors/skips (.artifacts/approval-ask-risk-core-results.json), and the prepare-side unresolved scan derived exactly the four adjudicated replaced prior build outputs (7584 files, 4 replaced — this generation's cordis-catalog regeneration rewrote the prior record's sealed tool-cordis untracked build outputs, ruled per the androidFollowWindowReplacedBuildOutputs precedent into the generator's approvalFactsCompleteReplacedBuildOutputs exact four-key set) while the new record's own derivation stays empty so the generator gains no approval-ask-risk set; the CC dialect's actual classifier adoption and the real multi-device acceptance stay open; full Upstream-First objective remains in progress",
+  "gate0": {
+    "validation": "PASS",
+    "gate0": "PASS",
+    "paths": 1938,
+    "components": 129,
+    "specificationCoverage": {
+      "status": "PASS",
+      "numberedSections": 81,
+      "nonEmptySourceLines": 1983,
+      "acceptanceProven": false
+    }
+  },
+  "sourceRecord": {
+    "path": "artifacts/upstream-first/approval-ask-risk-source.json",
+    "sha256": "9c349d20af9fa4c4503e2f9e51700aeea55c133ab562ee91a3510ec5bf6dd222"
+  },
+  "generator": {
+    "path": "artifacts/upstream-first/write-reports.mjs",
+    "sha256": "a8899d4eadafdee49526ace30f99d2bfe1eed8ef0be03423e38a3bb63096bda5"
+  },
+  "binding": {
+    "path": "artifacts/upstream-first/approval-ask-risk-binding.json",
+    "sha256": "f6d922f45204d6e69d106ed619c999f84442c306cbe8010add5be7f791b04209"
+  },
+  "helpers": [
+    {
+      "path": ".artifacts/advance-approval-ask-risk-reports.mjs",
+      "sha256": "1e43e4dc75a1ed5fa9a6429451c08589abb7fb03d32de99c75e5b99035c81fec"
+    },
+    {
+      "path": ".artifacts/capture-approval-ask-risk-validation.mjs",
+      "sha256": "197327828cc7f225199b6bb95779d70ad2ff5fdabb1b9917eabf985170c232b6"
+    }
+  ],
+  "reports": [
+    {
+      "path": "IMPLEMENTATION_STATUS.md",
+      "sha256": "46979c4b3c0dbec669892d49f3a10f600c9f12be48c76a6300113f7e903d3c49"
+    },
+    {
+      "path": "artifacts/upstream-first/evidence.json",
+      "sha256": "6d343192e8de6df95cae00562c718ca749921032fea8c8f266777159840e15a2"
+    }
+  ],
+  "checks": [
+    {
+      "path": ".artifacts/approval-ask-risk-binding.log",
+      "sha256": "55f45bfe4d37e77f6a09291f095984522b125dffe9611fe62cb7a9769f3a5a28"
+    },
+    {
+      "path": ".artifacts/approval-ask-risk-audit-final.log",
+      "sha256": "8749f209a9404f9a7ba92f43e407de8d2cc62ed185596d708f8fe35fb6feba12"
+    },
+    {
+      "path": ".artifacts/approval-ask-risk-gate0-final.log",
+      "sha256": "7e00efd82bd2a2b91b03ca80537dcc4af46cd09eb318ff58520cb2d7d7d8a48a"
+    },
+    {
+      "path": ".artifacts/approval-ask-risk-report-generation.log",
+      "sha256": "fe010532f71a6341467ae5719b29ac19470895de1d481156335b8f70a3273ed5"
+    }
+  ]
+}

@@ -752,7 +752,7 @@ describe('ToolRuntime', () => {
         return Promise.resolve<ApprovalOutcome>('allowed-once')
       })
       ctx.on('tools/pre-execute', async (_exec, _next): Promise<PreToolDecision> =>
-        ({ kind: 'ask', reason: 'hook wants a human' }))
+        ({ kind: 'ask', reason: 'hook wants a human', risk: 'high' }))
 
       const result = await ctx.tools.execute({
         callId: ToolCallId('c1'), name: 'echo', arguments: { text: 'hi' }, agent, signal: controller.signal,
@@ -760,8 +760,27 @@ describe('ToolRuntime', () => {
 
       expect(result).toMatchObject({ isError: false, content: [{ type: 'text', text: 'hi' }] })
       expect(seen).toHaveLength(1)
-      expect(seen[0]).toMatchObject({ agent, toolName: 'echo', callId: 'c1', reason: 'hook wants a human' })
+      expect(seen[0]).toMatchObject({ agent, toolName: 'echo', callId: 'c1', reason: 'hook wants a human', risk: 'high' })
       expect(seen[0]?.signal).toBe(controller.signal)
+    })
+
+    it('omits the risk tier from the approval request when the asker did not classify one', async () => {
+      const ctx = await approvalSetup()
+      const seen: ApprovalRequest[] = []
+      ctx.on('approval/request', (req) => {
+        seen.push(req)
+        return Promise.resolve<ApprovalOutcome>('allowed-once')
+      })
+      ctx.on('tools/pre-execute', async (_exec, _next): Promise<PreToolDecision> =>
+        ({ kind: 'ask', reason: 'unclassified hook' }))
+
+      const result = await ctx.tools.execute({
+        callId: ToolCallId('c1'), name: 'echo', arguments: { text: 'hi' }, agent: fakeAgent(), signal: testToolSignal,
+      })
+
+      expect(result.isError).toBe(false)
+      expect(seen).toHaveLength(1)
+      expect(seen[0]).not.toHaveProperty('risk')
     })
 
     it('denies with the user-rejection reason on rejected', async () => {

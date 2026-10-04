@@ -380,12 +380,14 @@ Each interception waterfall returns a typed **Decision** (the idiom shared with 
  * Pre-dispatch decision. `allow` runs the call; `deny` materializes an error;
  * `ask` runs only after an approval service returns `allowed-once` and otherwise
  * denies. Input rewriting is excluded because arguments are already logged and
- * presented.
+ * presented. An `ask` may carry the asker's §37 risk tier; `serviceAsk` forwards
+ * it to the approval seam, whose durable event and panel render it — the Host
+ * layer classifies, the Client only displays.
  */
 type PreToolDecision =
   | { kind: 'allow' }
   | { kind: 'deny'; reason: string }
-  | { kind: 'ask'; reason?: string }
+  | { kind: 'ask'; reason?: string; risk?: ToolAskRisk }
 ```
 
 ```ts type-equiv

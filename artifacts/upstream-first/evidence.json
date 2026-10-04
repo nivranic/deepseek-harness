@@ -5,139 +5,58 @@
   "candidateTrackedChanges": [
     {
       "path": "IMPLEMENTATION_STATUS.md",
-      "sha256": "dba1b9a3623f49d1926ae6f3666d4a3316c0c2db382ef57dbd38afec3b46acdc"
+      "sha256": "46979c4b3c0dbec669892d49f3a10f600c9f12be48c76a6300113f7e903d3c49"
     },
     {
       "path": "artifacts/upstream-first/evidence.json",
-      "sha256": "952c20a94d16ebed3052d390c631f6a4d31a2de7cdb7ac45ec736b579d7a618b"
+      "sha256": "bc289cb3a7e76db5736d9eab6b482f834882d0e7a2ce2175b3b767b84629ef60"
     },
     {
       "path": "artifacts/upstream-first/specification-traceability.json",
-      "sha256": "b67b51550e3f0f9fd917c4e13c5daf54963f8468331702b43b117d42de9e86a0"
+      "sha256": "4da8ab61b738570cbbde515a7bd3f1fb62f9b49da1d2bf37baad9b00b03988a5"
     },
     {
       "path": "artifacts/upstream-first/write-reports.mjs",
-      "sha256": "95b8f0d61e8788cc15a8f55ee87ddec73b83e2c12d8bb41b4cc0afb4d1057f2e"
+      "sha256": "a8899d4eadafdee49526ace30f99d2bfe1eed8ef0be03423e38a3bb63096bda5"
     },
     {
-      "path": "docs/event-producer-consumer.i18n.yaml",
-      "sha256": "0fa7af044111659335af5b7d3d1ad486e4c2d63d0b435814caf34d18c3a85ecb"
+      "path": "docs/config-catalog.i18n.yaml",
+      "sha256": "e3765f32c5a339d2239054fbed572931e05a54a9246c587ec6baf6eb0df0c7f2"
     },
     {
-      "path": "docs/event-producer-consumer.md",
-      "sha256": "0a5d7b8452a0d5712825ad466c72ed8cb632b17333f232b4ca4efe4a32eec137"
+      "path": "docs/config-catalog.md",
+      "sha256": "8ac07186474f191cade378d60d9c08a49f0af0173bc83bdaab1655432412d395"
     },
     {
-      "path": "docs/event-producer-consumer.zh.md",
-      "sha256": "1b53ea25bedc9482aabd79cb14820f611509fda7666c12ff776dc23f9b1a7ef5"
+      "path": "docs/config-catalog.zh.md",
+      "sha256": "9ae63be03c18b960b38e4bf3f71962488183a0c1236d1fabaa41cd8a256d06c7"
     },
     {
-      "path": "docs/persistence-catalog.i18n.yaml",
-      "sha256": "baeb9e3c474c1c8d3890b557a98d526555079855555cfa0d0f444d28e21c4004"
+      "path": "docs/subsystems/tools.i18n.yaml",
+      "sha256": "189cde234a83b02740ecf05479fbdf8312e889e6491b63c343f57b5e32c77a6a"
     },
     {
-      "path": "docs/persistence-catalog.md",
-      "sha256": "42a8832ff8179f2b9d33a90f35208b4913055c454b7ccf308e3677e8ddcb63a0"
+      "path": "docs/subsystems/tools.md",
+      "sha256": "3336941cb33cea2663ae2e1dedc1b91b995506ae1d1ebab854e5590ab2ca4ecd"
     },
     {
-      "path": "docs/persistence-catalog.zh.md",
-      "sha256": "e5dc2587a6a61aab105359ac2461d6f0ea25c51afa838059574c67ce348e7be4"
+      "path": "docs/subsystems/tools.zh.md",
+      "sha256": "9d86817c9c9fa9cd5d221497626033f93224743cec5c5bff5fdbe9f222df85cd"
     },
     {
-      "path": "packages/client/ui-approval/README.i18n.yaml",
-      "sha256": "659f4ecb8423bcc1e9d3dcd7d72e89cea2917112930f2c1cf96787d0a119014f"
+      "path": "packages/core/tools/src/index.ts",
+      "sha256": "92f8de1b7a1674d562c52e8ee5840f60ebd5fe9b661c9f0348f3f5d147b98658"
     },
     {
-      "path": "packages/client/ui-approval/README.md",
-      "sha256": "cd388959436d50ba13e93efdcd5c4314f0242d155e032a62a031f80d66e04ed7"
-    },
-    {
-      "path": "packages/client/ui-approval/README.zh.md",
-      "sha256": "353ab359ab15378f9e9a6db87f04179b05afafffa8fa2d9e769476d058241bec"
-    },
-    {
-      "path": "packages/client/ui-approval/src/client/ApprovalPanel.tsx",
-      "sha256": "e700ca9fe73872f4a0c334ec0236d06c72d466cfc83689587c18f1ed0a40af95"
-    },
-    {
-      "path": "packages/client/ui-approval/src/client/contract/slots.ts",
-      "sha256": "598ab5268491db23c8ec79918f06b55271793fd9ba75dd913f7691c7ddb3ad7d"
-    },
-    {
-      "path": "packages/client/ui-approval/src/client/index.ts",
-      "sha256": "cb29baf190169270bba9beb95dd9e612a95398accf957a4d2292dace9b3ef65f"
-    },
-    {
-      "path": "packages/client/ui-approval/src/client/locales.ts",
-      "sha256": "378a14c2f9ee37ec50d3328b322d5a67f93e9853fa287a3fcfa33300d06a1d44"
-    },
-    {
-      "path": "packages/client/ui-approval/tests/ui-approval.client.spec.tsx",
-      "sha256": "b21f4c21491df2b5f74a3f8d06d2293f7a16fb0be8fb2dd85c8002a4ab4c6963"
-    },
-    {
-      "path": "packages/client/ui-chat/src/client/apply.ts",
-      "sha256": "950b94d9e6216978bae43a82037ed4b7892db443a31aa8f566c422701d512d67"
-    },
-    {
-      "path": "packages/client/ui-chat/tests/approval-command.client.spec.tsx",
-      "sha256": "727cfcfb3998328bc693551740e40d56831c00a3ea27aae0437f985458bad4b7"
-    },
-    {
-      "path": "packages/extensions/cordis-client-runner/src/client/slot-catalog.ts",
-      "sha256": "2e26a1e407780166f1ebc5cb4b7ef4f635c863ef463d5c507b64e5203df5f5b7"
+      "path": "packages/core/tools/tests/tools.spec.ts",
+      "sha256": "7a3ee84c9be368252a732bd5b22b8bb33dcf4b9dc1e3cb0b66c965cebe801df1"
     },
     {
       "path": "packages/extensions/tool-cordis/src/api-catalog.ts",
-      "sha256": "fc972e98376a3d86abd964948f46438df9dc368f5d2e028558a140d67407e39a"
-    },
-    {
-      "path": "packages/interaction/user-approval/README.i18n.yaml",
-      "sha256": "58027739ed4f0029865604f1ea795aecb6982e0f4622b3e6ecad58222a1e05d0"
-    },
-    {
-      "path": "packages/interaction/user-approval/README.md",
-      "sha256": "5c814d21ce97ddd8fbef7d63db50ac64e2e88502af091ce71bfb492365c3a997"
-    },
-    {
-      "path": "packages/interaction/user-approval/src/index.ts",
-      "sha256": "65a76953898df23775a7f8ee171fca3be65a01c0a78d25eeb61937f609db72fd"
-    },
-    {
-      "path": "packages/interaction/user-approval/src/types.ts",
-      "sha256": "b384f92138d0394221bec0f0ce3dd8ba241fe14f0bb20dabbae4d264c3445e23"
-    },
-    {
-      "path": "packages/interaction/user-approval/tests/approval.spec.ts",
-      "sha256": "ded70885a75e54755b010eedddacf5243379dd7eada6dc6d45f2133e6e5a0998"
-    },
-    {
-      "path": "packages/sandbox/sandbox/src/escalation.ts",
-      "sha256": "a27f8fa9b925266677912a60ad6ad4dfb595546017e7fdd2c8ae8e0fdcf059bb"
-    },
-    {
-      "path": "packages/sandbox/sandbox/tests/escalation.spec.ts",
-      "sha256": "5853ec5ca183fd930359d0d5374a9d9681cce470460f0073175053880577500d"
-    },
-    {
-      "path": "packages/session/session-format-v0-to-v1/src/dispositions.ts",
-      "sha256": "6ff321173e99ecca15f58e7e87c6d86a4fea8060e3adcc58efc188e46ec5ae26"
-    },
-    {
-      "path": "packages/session/session-format-v0-to-v1/src/payload-validation.ts",
-      "sha256": "9f6f9af71c9a57b089bd0cc1e4d4f97eb33eb40abe573b17e21fc70861970876"
-    },
-    {
-      "path": "packages/session/session-format-v0-to-v1/tests/validation.spec.ts",
-      "sha256": "86046ea707e1555213bcb78614a6b56570c530f9a635b43d5e9c3223227714cb"
+      "sha256": "8b5ffdfc2b61ee629502914f50c8e92e59891de5f0242d3abe2aadf3334c1d5c"
     }
   ],
-  "candidateUntrackedSourceChanges": [
-    {
-      "path": "packages/client/ui-chat/src/client/chat/ApprovalTarget.tsx",
-      "sha256": "4baef49e2725d07751ab6f6daed06afa0bfad49bd8376009872aeecf4f59159d"
-    }
-  ],
+  "candidateUntrackedSourceChanges": [],
   "validationStatus": "PASS",
   "validationScope": "report SHA, path coverage and state consistency only",
   "gate0": "PASS",
@@ -11403,6 +11322,48 @@
     },
     {
       "status": "PASS",
+      "command": "gradle acceptance round on apps/android (Windows host, scanner env with -PdshNativeAcceptance): BUILD SUCCESSFUL with 89 actionable tasks of which 2 executed and 87 up-to-date — the same warm-replay form the previous three generations sealed (:app:assembleRelease itself stayed UP-TO-DATE, alongside :app:assembleDebug, :app:compileDebugKotlin and the whole :core: chain) because nothing under apps/android changed this generation (the TypeScript core/tools, tool-cordis catalog and docs sources changed; no Kotlin, no device lane ran and the emulator stayed off; the debug and androidTest APK bytes verified IDENTICAL against the approval-facts-complete record builtFiles entries — .artifacts/approval-ask-risk-apk-bytes.log), and the still-valid core XML reports under apps/android/core/build/test-results aggregate 77 suites / 477 tests / 0 failures / 0 errors / 0 skips (recorded in .artifacts/approval-ask-risk-core-results.json); Executed the scanner-env gradle acceptance round on apps/android (Windows host): ./gradlew under -PdshNativeAcceptance came back BUILD SUCCESSFUL with 89 actionable tasks of which 2 executed and 87 up-to-date — the same warm-replay form the previous three generations sealed — because this generation changes nothing under apps/android (the increment is the hook-originated-ask risk-tier channel: the PreToolDecision ask member's optional risk as the ToolAskRisk closed literal union mirroring ApprovalRisk without importing the approval package (the named type-only import is rejected by the typert host-face analyzer — the gen-30 ApprovalSandboxMode mirror precedent), serviceAsk conditionally spreading risk into approval.request, the regenerated cordis api-catalog with risk?: ToolAskRisk, the mirrored docs/subsystems/tools type-equivalence blocks and the regenerated config-catalog with their zh mirrors and re-recorded pairings, the traceability section 37 tail rewrite and the note trio — TypeScript core/tools, tool-cordis and docs sources changed, no Kotlin or Swift; the CC bridge itself stays byte-identical and its asks stay honestly unclassified). No device lane ran this generation and the emulator stayed off, so the empty-derived byte proof compares against the prior generation's own record: the debug APK and the androidTest APK both replay byte-identically with the approval-facts-complete record's builtFiles sha256 entries (.artifacts/approval-ask-risk-apk-bytes.log), and the round's still-valid core XML reports under apps/android/core/build/test-results (an UP-TO-DATE :core:test leaves the last executed round's reports in place) aggregate 77 suites / 477 tests with zero failures, errors and skips (aggregated into .artifacts/approval-ask-risk-core-results.json) — the round reports 477 tests through that XML aggregate (the model-steer Kotlin JVM round precedent), not through any executed test; 1 file / 477 tests green",
+      "log": ".artifacts/approval-ask-risk-gradle.log",
+      "sourceRecord": "artifacts/upstream-first/approval-ask-risk-source.json"
+    },
+    {
+      "status": "PASS",
+      "command": "vitest run --config vitest.config.ts over the UNCHANGED 85-file client spec list (.artifacts/approval-ask-risk-audit-file-list.txt — the previous generation's list kept as-is because the packages this increment touches are not client spec-list members); the serial double round went 85 files / 1061 tests green on both first passes via the Test Files/Tests summary lines (audit-tests.log with the EXIT_CODE=0 trailer and audit-final.log, no -r1 rerun log exists)",
+      "log": ".artifacts/approval-ask-risk-audit-tests.log",
+      "sourceRecord": "artifacts/upstream-first/approval-ask-risk-source.json"
+    },
+    {
+      "status": "PASS",
+      "command": "the repo-wide typecheck-plus-lint contracts-ready round (build:lib:host then typecheck:contracts-ready, so the npm script banners and build output ride the log — the same honestly recorded form the previous generation sealed) with both halves green recorded as the two labelled trailers and the single oxlint summary (TYPECHECK_EXIT=0, Found 0 warnings and 0 errors, LINT_EXIT=0); this generation's honest rework all lived in the note template, the type-equivalence mirrors and the config-catalog line anchors — whose lists live in .artifacts/approval-ask-risk-iteration-notes.log (vitest does not typecheck, so the lanes themselves were green throughout)",
+      "log": ".artifacts/approval-ask-risk-types-lint.log",
+      "sourceRecord": "artifacts/upstream-first/approval-ask-risk-source.json"
+    },
+    {
+      "status": "PASS",
+      "command": "pnpm run test:docs (doc-quick, 17 gates passed / 0 failed) — recorded in its own docs log (the two-file split), the command line carrying the shell-echo form inside",
+      "log": ".artifacts/approval-ask-risk-docs.log",
+      "sourceRecord": "artifacts/upstream-first/approval-ask-risk-source.json"
+    },
+    {
+      "status": "PASS",
+      "command": "pnpm run doc-sync (36 gates passed / 0 failed; the note trio pairing, the tools doc pair and the config-catalog pair re-records, the section 37 tail rewrite) — recorded in its own docsync log; the first run failed the config-catalog gate on the displaced source line anchor (core/tools/src/index.ts:647 to 657), the catalog regenerated with the zh line-anchor mirror and the pairing re-recorded before the sealed green rerun",
+      "log": ".artifacts/approval-ask-risk-docsync.log",
+      "sourceRecord": "artifacts/upstream-first/approval-ask-risk-source.json"
+    },
+    {
+      "status": "PASS",
+      "command": "node artifacts/upstream-first/verify-audit.mjs --require-gate0",
+      "log": ".artifacts/approval-ask-risk-gate0-final.log",
+      "sourceRecord": "artifacts/upstream-first/approval-ask-risk-source.json"
+    },
+    {
+      "status": "PASS",
+      "command": "node .artifacts/prepare-approval-ask-risk.mjs — the before archive written from the approval-facts-complete record in one pass (7584 files, 0 reused) with the unresolved-scan allowlist deriving exactly the four adjudicated replaced prior build outputs (this generation's cordis-catalog regeneration rewrote the prior record's sealed tool-cordis untracked build outputs — lib/index.js, the api-catalog type build and the project-reference-cascaded subagent control.d.ts; the sealed bytes are incremental-emit-state historical products no clean rebuild reproduces and no archived copy exists, ruled per the androidFollowWindowReplacedBuildOutputs precedent into the generator's approvalFactsCompleteReplacedBuildOutputs exact four-key set — while this generation's own outputs derive empty: no device lane ran, the emulator stayed off, the single gradle round was a warm replay that rebuilt no android build product, and both APK bytes verified IDENTICAL against that record builtFiles entries)",
+      "log": ".artifacts/approval-ask-risk-prepare.log",
+      "sourceRecord": "artifacts/upstream-first/approval-ask-risk-source.json"
+    },
+    {
+      "status": "PASS",
       "command": "Workspace and Conversation source regression before shared readiness correction",
       "tests": 599,
       "log": ".artifacts/workspace-admission-tests-final.log",
@@ -12133,7 +12094,311 @@
       ]
     }
   },
+  "approvalAskRisk": {
+    "status": "PASS",
+    "sourceRecord": "artifacts/upstream-first/approval-ask-risk-source.json",
+    "scope": "§37 剩余尾句「hook 来源询问的风险档位分级」通道交付代。规格钉准：全仓唯一生产 asker 是 CC 桥（hook permissionDecision:'ask'→PreToolDecision ask，hooks-claude-code/src/index.ts:241，携带 toolName/callId/reason 无 risk），§38 面板 Risk 行因此对一切 hook 询问隐藏；gen-30 已交付 seam 侧全部机制（approval/asked 持久 risk、冻结清单表、从严校验、面板行），缺口仅是工具层询问者的分级通道；所有权规则逐字——Host 层分级、Client 只展示。实现：PreToolDecision 的 ask 成员增可选 risk（ToolAskRisk 本地封闭字面量联合 'low'|'moderate'|'high'|'critical' 镜像 ApprovalRisk——具名 type-only 导入被 typert host 面分析器拒绝 'type symbol unknown has no declaration'，import type {} 正是为免拖入该包声明；镜像先例同 gen-30 ApprovalSandboxMode），serviceAsk 条件展开转发进 approval.request；不向 CC 参考方言编造 wire 字段（无发射方=死表面）、不向工具注册表加档位（§37 阶梯锚定 Commands）；CC 桥行为不变、其询问保持如实未分级。车道：tools.spec ask-routing 转发用例加 risk:'high' 断言+新增未分级省略例（not.toHaveProperty），core/tools 12 文件/391、tool-cordis 11 两连绿。伴随再生成：gen-cordis-catalog（api-catalog.ts:5144 内嵌声明 +risk?: ToolAskRisk）；docs/subsystems/tools{.md,.zh.md} type-equiv 块手工镜像（声明+JSDoc 双钉）；config-catalog 源行锚位移再生成（647→657）+zh 行锚镜像；pairing 三处重录。门禁全绿如实：types-lint 0/0（真退出码不接管道）、test:docs 17 与 doc-sync 36 分立两文件（首跑 note 四节模板拒→五节重写、type-equivalence 拒旧钉→双镜像、config catalog 源行锚位移→再生成+zh 镜像后全绿）、traceability node --test 6/6（§37 尾句 877→1176 字+candidateEvidence 6→8，note 引用日期笔误 2026-10-05→实测 04）、审计沿 85 文件清单串行双轮 85/1061 两连绿（触面包非 client 清单成员，清单不动）、gate0 双形态 PASS。本代无 Kotlin/Swift 改动：gradle 验收轮（scanner env+-PdshNativeAcceptance）BUILD SUCCESSFUL 89 任务 2 executed 87 up-to-date（warm 重放），空派生以字节证明：两枚 APK 与 approval-facts-complete 记录 sha256 逐字节一致（approval-ask-risk-apk-bytes.log）、core XML 聚合 77 套件/477 测试 0 失败 0 错误 0 跳过（approval-ask-risk-core-results.json）。prepare 序裁定（如实入 iteration-notes 第五节）：本代 cordis-catalog 再生成重写了前代封存的 tool-cordis 未跟踪构建产物（lib/index.js+api-catalog.{js,js.map}+经工程引用级联的 subagent control.d.ts；封存字节为增量发射态历史产物、干净重建不可再现且无档存副本），按 androidFollowWindowReplacedBuildOutputs 先例裁定生成器增 approvalFactsCompleteReplacedBuildOutputs 四键精确集合（条目原样保留、校验按已替换处理、.tsbuildinfo 不入集），prepare 派生集同步扩 lib 路径并四键精确断言；并实证时序约束——前代 receipt 直盘钉定生成器字节，生成器编辑必须在 prepare 之后落盘。prepare 已落地 7584 文件/0 复用/7584 写入/replacedPriorBuildOutputs 4。台账名 approval-ask-risk（全族 camelCase=approvalAskRisk，write-reports 与 .artifacts 双 grep 零冲突，gen-30 钉定日志命名教训已落实为流程）。CC 方言实际分级者的采纳与真实多设备验收仍开放，不授予整节 PASS；完整目标未完成",
+    "repositoryKnownCodes": 84,
+    "uniqueOwners": 14,
+    "missingSemanticCommentsAdded": 49,
+    "packagedFiniteCodeSchema": true,
+    "sourceDeclarationsRemainExtensible": true,
+    "unknownCodeDiagnosticsPreserved": true,
+    "detailsPayloadSchema": false,
+    "nativeClientQualified": false,
+    "runtimeBehaviorChanged": true,
+    "newSessionEvents": false,
+    "phase3Complete": false,
+    "fullGoalComplete": false,
+    "resultInvalidMeaningMatchesEmitter": true,
+    "historicalSchedulerArchivePreserved": true,
+    "compilerIndependentDetailsGraphs": true,
+    "hostAndClientSeparate": true,
+    "builtModelMatchesSource": true,
+    "portableDetailsPayloadSchema": false,
+    "readonlyArrayAndTupleEmission": true,
+    "parsedReadonlyContainersFrozen": true,
+    "portableValidationIssueFields": true,
+    "compilerResolvedErrorDetails": true,
+    "resolvedFaceCodePairs": 144,
+    "overlappingSchemasCompared": 60,
+    "detailsSchemaPublished": false,
+    "formalEnvelopeSchemaEmitted": true,
+    "envelopeSchemaKnownBranches": 84,
+    "envelopeUnknownCodeExcludesKnownCodes": true,
+    "envelopeTupleDetailsRejected": true,
+    "envelopeLocalPackConsumed": true,
+    "envelopeRegistryPublished": false,
+    "remoteFailureClassification": true,
+    "classifiedCodes": 28,
+    "unknownCodeDefaultOpaque": true,
+    "gatewayClientConsumesClassification": true,
+    "classificationInventoryVerified": true,
+    "kotlinContractColumn": true,
+    "kotlinSchemaTests": 8,
+    "kotlinMirrorProjection": true,
+    "swiftColumn": false,
+    "androidShellMigrated": false,
+    "phase10Started": true,
+    "failureClasses": 9,
+    "invalidInputClass": true,
+    "uiAdoptionStarted": true,
+    "uiSurfacesAdoptingClassification": 2,
+    "swiftContractColumn": true,
+    "swiftSchemaTests": 4,
+    "swiftPayloadValidation": false,
+    "interactionReplyPermissions": true,
+    "interactionPermissionHostEnforced": true,
+    "interactionPermissionConfigurable": true,
+    "deviceTrustRolesReplaceSwitch": false,
+    "androidCoreMigrated": true,
+    "androidCoreTestClasses": 37,
+    "androidAppSourcesMigrated": true,
+    "androidAppConfigured": true,
+    "androidShellCompiled": false,
+    "androidScannerChainBlocked": true,
+    "swiftCheckExecutable": true,
+    "swiftLaneRunner": "macos-15-arm64",
+    "swiftLaneRecovered": true,
+    "diagnosticsOnlyTier": true,
+    "diagnosticsOnlyAdmittedEndpoints": 2,
+    "unknownVersionRejectUnchanged": true,
+    "responsivePhoneDrawer": true,
+    "phoneTierSidebarTrackZero": true,
+    "drawerWidthPx": 280,
+    "drawerDismissalPaths": 2,
+    "leftInputRegionSessionMaybe": true,
+    "frameColumnsExplicitlyPlaced": true,
+    "scannerAarBuilt": true,
+    "scannerAarStaticVerification": "PASS",
+    "scannerAarSourceSha": "8ca9f6ebf33de3912292416b85f5b510c88de9a3",
+    "assembleDebugGatePassed": true,
+    "emulatorMainActivityResumed": true,
+    "gatewayFailureConsumption": true,
+    "envelopeDetailsPreservedBothPaths": true,
+    "sharedClassificationDrivesPresentation": true,
+    "unknownCodesStayOpaque": true,
+    "uiSubagentClassificationAdopted": true,
+    "adoptingSurfacesCount": 5,
+    "queueDockClassificationAdopted": true,
+    "jobsFailureClassThreaded": true,
+    "sessionJobWireFieldAdditive": true,
+    "androidRefusalLaneDriven": true,
+    "ed25519KeyGenerationBundled": true,
+    "filesFollowStreamStarted": true,
+    "jobsProducerAdoptionVoid": true,
+    "linkAccessTakeoverDecided": true,
+    "remotePackagesStayRetired": true,
+    "gatewayOwnsDeviceAccess": true,
+    "deviceTrustSeamLanded": true,
+    "pairingIssuanceLive": true,
+    "knownErrorCodes": 89,
+    "deviceGrantsDurable": true,
+    "pairingCodesProcessLocalByDesign": true,
+    "deviceRolesMatchSection21Table": true,
+    "roleMappedReplyPermissions": true,
+    "signedAdmission": true,
+    "connectionStatesCompleteSection18": true,
+    "deviceRevokedStatePresent": true,
+    "protocolInteropMatrixPinned": true,
+    "section14VersionAxisEvidence": true,
+    "perRequestDeviceAdmission": true,
+    "capabilityRequiredPermissionVocabulary": true,
+    "remoteExecutionAuthorizationGated": true,
+    "sessionCapabilitiesDeclarePermissions": true,
+    "sessionReadWriteSplits": true,
+    "businessPermissionAdoptionStarted": true,
+    "workspaceCapabilitiesDeclarePermissions": true,
+    "remainingOwnersDeclarePermissions": true,
+    "admissionReplayLedger": true,
+    "androidClientSignsAdmissions": true,
+    "deviceIdentityConfirmation": true,
+    "devicesSettingsSurface": true,
+    "branchGateDebt": true,
+    "safeAreaInsets": true,
+    "keyboardAvoidance": true,
+    "foldableFrame": true,
+    "runningLocation": true,
+    "phoneTopBar": true,
+    "designLanguage": true,
+    "hostNaming": true,
+    "commandRisk": true,
+    "approvalFacts": true,
+    "followResume": true,
+    "viewLocation": true,
+    "composerGate": true,
+    "hostDiagnostics": true,
+    "supportBundle": true,
+    "telemetryConsent": true,
+    "diagnosticsRecorder": true,
+    "sessionHeadersEntry": true,
+    "settingsEntry": true,
+    "telemetryGate": true,
+    "savedHosts": true,
+    "degradedProbes": true,
+    "permissionTierChip": true,
+    "durableRetainedAnswers": true,
+    "unifiedDiffPreview": true,
+    "binaryFactCard": true,
+    "retargetableEndpoint": true,
+    "rosterSwitch": true,
+    "rosterUi": true,
+    "interruptedTransfer": true,
+    "mimeInference": true,
+    "hostSelectionObserver": true,
+    "diffReadableCopy": true,
+    "diffRichViewer": true,
+    "browserHostOrigin": true,
+    "deviceAdmissionLifecycle": true,
+    "nativePairing": true,
+    "nativeRemoteTls": true,
+    "nativePairingPresentation": true,
+    "androidNativeGatewayCore": true,
+    "androidNativeCompanion": true,
+    "androidNativeLifecycle": true,
+    "androidRepairing": true,
+    "androidCredentialRecovery": true,
+    "androidSessionList": true,
+    "androidInputRetention": true,
+    "androidInputPersistence": true,
+    "androidPromptRetry": true,
+    "androidHostRoster": true,
+    "androidViewLocation": true,
+    "androidCursorResume": true,
+    "androidResourceAdoption": true,
+    "androidNativeDiagnostics": true,
+    "nativeScannerAdoption": true,
+    "nativeScannerCandidate": true,
+    "nativeScannerSameSourceVerified": true,
+    "nativeScannerRepeatByteIdentical": true,
+    "nativeScannerBinarySymbolScan": true,
+    "androidCapabilityPresentation": true,
+    "androidCapabilityGenerationIsolation": true,
+    "androidCapabilityReadOnlyRefresh": true,
+    "androidOperationCapabilities": true,
+    "androidKnownOperationPreflight": true,
+    "androidCapabilityDraftRetention": true,
+    "androidSubagentTimeline": true,
+    "androidSelectedParentCatalog": true,
+    "androidChildObservationRetirement": true,
+    "androidCompleteResourceSave": true,
+    "androidResourceSavePickerOwnership": true,
+    "androidResourceSaveIndependentBytes": true,
+    "androidEncryptedDownloadCheckpoints": true,
+    "androidExplicitDownloadContinuation": true,
+    "androidDownloadJvmInterruptionRecovery": true,
+    "androidPersistentDownloadAdoption": true,
+    "androidDownloadDiskExport": true,
+    "androidInstalledDownloadProcessRecovery": true,
+    "androidDownloadHostIsolation": true,
+    "androidAcceptanceApkAdmission": true,
+    "androidFilesPickerAttachments": true,
+    "androidDurableFilePromptIntents": true,
+    "androidFileDraftProcessRecovery": true,
+    "androidFilePickerAuthority": true,
+    "hostStagedImageAdmission": true,
+    "androidPhotosPickerAttachments": true,
+    "androidDurableMixedAttachmentIntents": true,
+    "androidPhotoDraftProcessRecovery": true,
+    "androidCameraStagedImages": true,
+    "androidCameraOwnedOutputCleanup": true,
+    "androidCameraProcessRecovery": true,
+    "androidShareExplicitConfirmation": true,
+    "androidShareAtomicDraftAdoption": true,
+    "androidShareRestorationIsolation": true,
+    "androidViewDeepLinksCurrentHostNavigation": true,
+    "androidViewDeepLinksDeliveryIsolation": true,
+    "androidViewDeepLinksInputPreservation": true,
+    "androidPushForegroundRecovery": true,
+    "androidPushBackgroundProducerRetention": true,
+    "androidPushNotificationConsumption": true,
+    "androidNotificationPermission": true,
+    "androidNotificationSettingsRecovery": true,
+    "androidNotificationProcessRequestOwnership": true,
+    "androidAttachmentReceiptRecovery": true,
+    "androidAttachmentPendingDraftIsolation": true,
+    "nativeUploadBudget": true,
+    "nativeImageUploadBudget": true,
+    "nativeHostRestart": true,
+    "nativeUploadDedupe": true,
+    "browserUploadDedupe": true,
+    "nativeDigestMemory": true,
+    "browserDedupeVerification": true,
+    "hostsRosterRename": true,
+    "diffSplitView": true,
+    "appleRosterSwift": true,
+    "androidHostQuestion": true,
+    "sessionLocationChip": true,
+    "modelSteer": true,
+    "modelSelect": true,
+    "sessionLocationFacts": true,
+    "modelEffort": true,
+    "appleModelCatalog": true,
+    "gatewayOutage": true,
+    "hostsRosterReorder": true,
+    "appleLocationFacts": true,
+    "appleViewLocation": true,
+    "appleFollowResume": true,
+    "androidFollowWindow": true,
+    "androidFollowLane": true,
+    "androidFollowOutage": true,
+    "androidFollowForeground": true,
+    "activeHostSwitch": true,
+    "headerOverflow": true,
+    "viewHandoff": true,
+    "failureCopy": true,
+    "viewHandoffQr": true,
+    "approvalFactsComplete": true,
+    "approvalAskRisk": true,
+    "limitations": [
+      "The risk-tier classification lanes are tool- and catalog-level qualifications, not physical-device or end-to-end ones: the lanes exercise the conditional spread and the omission semantics in node and the regenerated catalog in doc gates, so an asker that actually emits a tier over a real hook bridge, the real multi-device acceptance and the section's other requirements stay open and keep the section from an overall PASS.",
+      "The generation record is preserved honestly: the increment needed real rework before it settled — the note's first four-section draft was rejected by the agent-note format gate (missing Consequences/Alternatives considered) and rewritten five-section with the pairing re-recorded; the type-equivalence gate rejected the old pinned declaration in docs/subsystems/tools.md and both docs were mirrored with the pairing re-recorded; the traceability note-reference date typo 2026-10-05 was corrected to the host-measured 2026-10-04; the doc-sync first run failed the config-catalog gate on the displaced source line anchor (core/tools/src/index.ts:647 to 657) and the catalog regenerated with the zh line-anchor mirror before the sealed green rerun; the first ToolAskRisk draft used a named type-only import from the approval package, which the typert host-face analyzer rejects (type symbol unknown has no declaration), so the union fell back to the local closed literal mirror (the gen-30 ApprovalSandboxMode precedent) over the existing bare import type {}; and the ledger name ruling took approval-ask-risk after the whole-family zero-conflict grep (the gen-30 naming lesson applied as process) — every list lives verbatim in the five-section narration (.artifacts/approval-ask-risk-iteration-notes.log).",
+      "This generation's prepare ruling derives exactly FOUR replaced prior build outputs by the unresolved scan over the approval-facts-complete record's own builtFiles: this generation's cordis-catalog regeneration rewrote that record's sealed tool-cordis untracked build outputs (lib/index.js plus the api-catalog type build, with the subagent type build cascaded through project references), whose sealed bytes are incremental-emit-state historical products no clean rebuild reproduces and for which no archived or committed copy exists — ruled per the androidFollowWindowReplacedBuildOutputs precedent into the generator's approvalFactsCompleteReplacedBuildOutputs exact four-key set with the prior record's field-loop filter plus well-formedness guard left in place (the four .tsbuildinfo entries stay out of the set), the prepare derived set asserting exactly those keys after one ordering rework (codepoint '.' sorts before ':' so .js.map precedes .js), and the timing constraint proven by a second failure (prepare's verify compares the generator bytes the prior receipt pins, so the generator edit must land after prepare runs). The NEW record's own derivation is EMPTY (no device lane ran, the emulator stayed off, the single gradle round was a warm replay that rebuilt no android build product, and both APK bytes verified IDENTICAL against that prior record's own builtFiles sha256 entries from disk), so the generator gains no approval-ask-risk replaced set; the cumulative replacedPriorBuildOutputs set keeps its nine inherited keys (re-inserted verbatim by span extraction, never transcribed) and the prior generations' per-record sets — including the adjudicated dwfq-a971bf50-1 approvalFactsReplacedTestReports single-key pinned set — ride the moved shared span unchanged."
+    ],
+    "nextRequiredWork": {
+      "specification": "artifacts/upstream-first/original-specification.md",
+      "traceability": "artifacts/upstream-first/specification-traceability.json",
+      "remaining": [
+        "Keep the section 37 qualification open beyond the hook-originated asks' risk-tier classification channel now shipped — the PreToolDecision ask member carries the asker's optional §37 risk tier (the ToolAskRisk closed literal union mirroring ApprovalRisk, classified Host-side and forwarded by serviceAsk's conditional spread into approval.request), the CC bridge stays byte-identical and its asks stay honestly unclassified (no CC dialect emitter exists, so no wire field was invented and the section 38 panel hides the missing Risk row by design), and the actual classifier adoption (a hook or asker that emits the tier) and the real multi-device acceptance stay open.",
+        "Keep the section 37 approval facts qualification open beyond the per-item approval facts presentation now shipped — the approval panel lists operation, target (the correlated Tool call's command or path derived through the new conversation.approval.target data seat, command first with path as fallback, never a copy of tool arguments on the wire), Host, Workspace, risk tier, the structured permission escalation (requested/effective sandbox modes carried as approval-owned metadata with the free-text reason kept as the fallback for non-escalation asks) and the command-preview heading, while the approval/asked durable append now spreads risk and escalation and the released-v0 dispositions and payload validation admit both under strict literals; the hook-originated asks' risk-tier classification (a PreToolDecision optional tier) and the real multi-device acceptance stay open.",
+        "Keep the section 26 view-handoff qualification open beyond the QR delivery face now shipped — the same click opens an anchored popover under the action rendering the copied #dsh-view= fragment link as a qrcode.react QRCodeSVG (size 200, marginSize 4) through the repo anchored-panel recipe (bottom-anchored measuring pass, outside-pointer and Escape dismissal with trigger refocus, document.body portal, shared card CSS) with aria-haspopup=\"dialog\" plus aria-expanded and the localized scan key titling panel and SVG, and the clipboard-refusal title degrade fallback unchanged; the deep links, the platform share routes, physical devices and the section's other requirements stay open.",
+        "Keep the section 45 failure-copy qualification open beyond the first-stage dictionary delivery now shipped — the canonical nine failure keys live once in client-locale's shared common dictionary (failure.authentication/permission/compatibility/conflict/host-state/carrier-invalid/transport/unavailable/raw) with LocaleKeysOf<N> = NS keys | CommonKeyOf on the type face and the runtime common-namespace fallback, the remoteFailureCopy/remoteFailureClassCopy helper classifies through classifyRemoteFailure and routes unknown to the {message} raw template, the five copy-less clusters (hub steerQueue, InputBar promptError with the two attachment refinements, GoalBar runAction, WorkspaceBrowser three dialogs with the session-rename conflict refinement, model-selection dual stores with class-first directoryErrorText) render through it, and the already-classified consumers stay untouched; the provider code-domain localization (LlmFailure.code, dynamic HTTP_* codes, adapter-minted codes), folding QueueDock/DevicesSettingsSection/SubagentHeaderLineage/ui-jobs/ui-deliverables into the shared dictionary, released-Client multi-version N/N-1/N-2 behavior, the device matrix and the section's other requirements stay open.",
+        "Keep the section 26 view-location handoff qualification open beyond the Web generation and receive sides now delivered — the ui-view-handoff package injects the 「继续到其他设备」 action into the conversation.session.header.actions slot (visible only once a Host is admitted and the Chat timeline holds a last-turn turn/start anchor), copies the current page origin+pathname+#dsh-view=<payload> fragment link (a fragment never travels to a server), and the receiving page consumes that fragment once (read-then-clear) and opens it through openViewLocation only after admission with fail-loud no-retry errors; deep links, platform share routing, QR rendering, physical devices and the section's other requirements stay open.",
+        "Keep the section 10 phone-bar qualification open beyond the phone-tier overflow affordance now delivered — the ⋮ trigger aggregates the strict header's two secondary lists (the actions list and the utilities list beyond the running-location chip) behind one portaled panel on the phone tier (the max-width 599.5px media query every existing phone-only affordance uses) with Escape close-and-refocus and a localized empty line, while the running-location chip and the single-seat corner occupant stay in the bar; the full size/theme/state/accessibility matrix and iOS/Android real-device input, background and native-attachment acceptance stay open.",
+        "Keep the section 28 Multi-Host switch-window qualification open beyond the two client lanes now proven — the connection lane walks the whole A-ready to retarget(B) to synchronous old-generation retirement to new-generation-on-B cycle on the real Connection plugin with gated dual sources, sampling target/generation/state on every flush, and the ui-conversation lane drives the real createComposerControlSource through the gateway $host facts sequence pinning prompt true to false to true with capability facts following the current generation; physical devices, the Swift shell, background/push behaviors, real two-Host switches on hardware and the rest of the section's acceptance stay open.",
+        "Keep the section 25 persisted-window qualification open beyond the backgrounded-reconnect and foreground-presentation lane now proven — the lane destroys the paired device stream carrier Host-side while the application is backgrounded, proves the backgrounded process re-opens follow with its durable cursor and consumes backgrounded appends, and presents the merged window intact on a plain launcher return, but OS background-kill behaviors (Doze and real background reclamation), FCM delivery, physical devices, deep links, platform share routing and the rest of both sections' acceptance stay open.",
+        "Keep the section 25 persisted-window qualification open beyond the physical-carrier-loss lane now proven — the lane destroys the paired device stream carrier Host-side via terminateDeviceConnections and proves the reopen carries the last applied durable sequence with no outage-time appends or claims, but the foreground-push recovery, physical devices, deep links, platform share routing and the rest of both sections' acceptance stay open.",
+        "Keep the section 25 persisted-window qualification open beyond the installed-state process-death lane now proven — the emulator lane force-stops the installed application between the interruption's appends and reopens with the persisted cursor, the Host's three omitted-tail records and the merged older page, but the section 25 physical-network interruption and foreground-push recovery acceptance, physical devices, deep links, platform share routing and the rest of both sections' acceptance stay open.",
+        "Keep the section 25 persisted-window qualification open beyond the core-level close now proven — the encrypted follow-window store, the installPersisted/checkpoint seams and the SessionModel wiring are core-level evidence only (no emulator or physical device drove a real process restart this increment, :app:compileDebugKotlin is a compile lane rather than a run, and the double-instance restart case is the core-level proof), the emulator install-state restart lane, the section 25 physical-network / foreground-push recovery acceptance, deep links, platform share routing and the rest of both sections' acceptance stay open.",
+        "Keep the section 25 follow-resume qualification open beyond the contract-column parity now proven — the Swift mirror is contract-column evidence only (not compiled on this Windows host; the PR-channel swift-contract self-check owns the compile), no physical device drove either shell on this increment, and the Apple shell consumption of the follow-resume builder, the section 25 persisted-window / physical-network / foreground-push recovery acceptance, deep links, platform share routing and the rest of both sections' acceptance stay open.",
+        "Keep the section 26 view-location qualification open beyond the contract-column parity now proven — the Swift mirror is contract-column evidence only (not compiled on this Windows host; the PR-channel swift-contract self-check owns the compile), no physical device drove either shell on this increment, and the Apple shell consumption of the payload, the section 25 follow-resume Swift item, deep links, platform share routing and the rest of both sections' acceptance stay open.",
+        "Keep the section 29 location-facts qualification open beyond the contract-column parity now proven — the Swift mirror is contract-column evidence only (not compiled on this Windows host; the PR-channel swift-contract self-check owns the compile), no physical device drove either shell on this increment, and background/push, follow cursor and view-location handoff stay open alongside the physical-device columns.",
+        "Keep the section 28 roster-editing qualification open for the non-web columns — the manual arrangement is proven in the real-browser hosts-settings lane plus the three client suites (store, component, plugin) and the regenerated api-catalog mirrors only; no Android or Apple roster surface was driven on this increment, and the per-profile browser-storage arrangement is deliberately not synced across devices.",
+        "Keep the §29 real-device qualification and the Swift-side carrier column open for the host-side termination half — the primitive is proven on the local AVD against a providers-only header-only replay Host plus the JVM suites and the web scaffold's built-lib path only; no real hardware and no Apple client were driven on this increment.",
+        "Keep the Apple-side shell UI entry (capability-rendered model selection with its reasoning efforts) and the same-candidate real-device qualification open for the section 30 model-selection half — the contract column adoption is fixture-and-CI-lane verified only, with no shell surface driven on this increment.",
+        "Keep the Apple-side model-selection entry with its reasoning efforts and the real-device qualification of the same catalog candidates open for the section 30 effort half — the effort acceptance is emulator-and-nativeacceptance-id only.",
+        "Keep the deterministic device-level outage lane (needs a Host-side stream-kill primitive), the real-device and Swift-shell location-facts surfaces, and the follow cursor/handoff work open for the section 29 location facts — the state-word machinery is JVM-covered only and the facts acceptance is emulator-and-nativeacceptance-id only.",
+        "Keep the reasoningEffort selection surface, the apple-side capability-gated entry and the same-candidate real-device qualification open for the section 30 model capabilities — the wire already accepts reasoningEffort with no client UI anywhere, and the select acceptance is emulator-and-nativeacceptance-id only.",
+        "Keep the Android model-select composition entry and real-device qualification open for the section 30 model capabilities — model.select.v1 is advertised with the web picker present but the Android side has no select UI, and the steer acceptance is emulator-and-nativeacceptance-id only.",
+        "Keep follow cursor, view-location handoff, multi-Host switching and real-device acceptance open for the section 29 location metadata — the chip publishes the five location facts on the web client only and no device round runs this generation.",
+        "Keep real hardware, the Swift shell, background/push delivery and full Session location metadata open for the Question isolation lane — the acceptance is emulator-and-nativeacceptance-id only, and the Approval interaction type shares the same inbox and per-principal model without a dedicated physical lane.",
+        "Classify the next cursor failure using the preserved diagnostics, or establish a controlled reproduction before changing its owner. Do not close this investigation merely because subsequent runs pass.",
+        "The Swift roster mirror has no local execution on Windows hosts and no completed macOS CI run inside this chain; keep Swift-side execution evidence open, and keep roster write and re-pair semantics Android-core behavior with the Swift mirror reading and validating only.",
+        "Keep cross-tab and persisted view preferences and intra-line word highlighting inside a paired split row open independently; the per-tab split toggle does not close them.",
+        "Cover per-browser-profile isolation boundaries, cross-device name synchronization and manual roster ordering independently; the local rename seam does not close them.",
+        "Give the streaming carrier a deduplication path and cover cross-tab digest behavior; the real-browser deduplication-hit lane does not close them.",
+        "Qualify image and mixed-attachment recovery, large/resumable uploads, per-principal digest scoping, capacity tuning, storage-backed browser digest memory and physical-device Host restarts independently; the durable companion digest-memory file does not close broader attachment or Mobile Release acceptance.",
+        "Qualify image and mixed-attachment recovery, large/resumable uploads, per-principal digest scoping, capacity tuning, storage-backed browser digest memory and physical-device Host restarts independently; the durable companion digest-memory file does not close broader attachment or Mobile Release acceptance.",
+        "Qualify streaming and resumable uploads, physical devices and third-party senders independently; the local complete-body check is advisory and Host or proxy rejection remains authoritative.",
+        "Continue notification channel, settings revocation/process-death, persistent denial, physical-device, relay-backed delivery and precise Host/Session notification target qualification. Actual Recents and physical network/mux recovery remain separate work.",
+        "Continue Swift attachment adoption, cross-platform sharing and link entry, larger streamed uploads, upload retry/receipt expiry recovery, Host limit negotiation and the remaining requirement matrices without changing Host-owned authorization.",
+        "Retain scanner clean-cache/cross-machine, race, physical/16-KiB device, signed release, CodeQL and Apple gaps. Session writer V3 and completeRc=false persist; remote CI is distinct from local evidence. No memory update or handoff package."
+      ]
+    }
+  },
   "approvalFactsComplete": {
+    "historical": true,
+    "followup": "artifacts/upstream-first/approval-ask-risk-source.json",
     "status": "PASS",
     "sourceRecord": "artifacts/upstream-first/approval-facts-complete-source.json",
     "scope": "§37「审批表面逐项呈现完整审批信息」剩余缺口交付代：审批面板现逐项列出操作、目标、Host、工作区、风险档、权限提升与命令预览标题。规格钉准（双轨并行勘察）：Track A 表面普查——六项中操作/Host/Workspace 已交付，目标端到端无字段也无行，权限提升渲染自由文本 reason（沙箱档位藏在英文句子里），命令预览仅对已流式 shell 调用生效；Track B 数据链——发现两个真实缺陷：ApprovalService.request 的 approval/asked 持久 append 丢 risk（wire 有、日志无），已发布 v0 载荷清单表（RELEASED_V0_EVENT_DISPOSITIONS）连 risk 都不接纳——格式工件校验拒绝任何带 risk 的当前日志（探针实证 assertReleasedEventPayload 报 unexpected member \"risk\"）。裁定：目标行走 2026-07-06 seam 钦定的 callId 关联通道（新数据座位 conversation.approval.target，ui-chat 实现，从关联调用 args.command 优先/args.path 兜底派生——string 是合法 ReactNode 零 slot 基建变更，不向 wire 复制工具参数）；escalation 是审批自有结构化元数据（requestedMode/effectiveMode）入 wire+durable。实现：user-approval/types 增 ApprovalSandboxMode 三字面量镜像联合（不导入 dsh-sandbox——stash 探针证伪导入方案：把 Host 运行时模块拖进浏览器类型程序破坏 Context 合并）与 ApprovalEscalationFact；asked 事件与 ApprovalRequestEvent 增可选 escalation，append 展开 risk+escalation 修丢弃缺陷；sandbox escalation 的 approver 请求携带结构化 escalation 与模式推导 risk（danger-full-access→high 否则 moderate）；dispositions 的 asked optional 增 risk/escalation（首版放 opaque 被证伪两段式回退），payload-validation 从严（risk 四档字面量、escalation exactRecord、两 mode 三档字面量，腐蚀变异循环覆盖新叶）；ui-approval slots 增 target 座位与 escalation 透传，ApprovalPanel 增目标行（renderSlot string 收窄）与结构化升级行（t('escalation.to',{mode,from}) 本地化档位，非升级询问保留 reason 兜底），locales 增 fact.target/escalation.to/mode.* 双语键；ui-chat 新 ApprovalTarget（command 优先、path 兜底）+apply 注册+client slot-catalog 再生成；tool-cordis api-catalog 与 docs persistence-catalog/event-producer-consumer 三件伴随再生成+zh 双侧镜像+pairing 913 重录。车道 user-approval 39、sandbox escalation、session-format 111、ui-approval+ui-chat、tool-cordis+core/session 510 两连绿；types-lint repo 级 0/0（TYPECHECK_EXIT=0/LINT_EXIT=0 真退出码不接管道）、test:docs 17 与 doc-sync 36 分立两文件（首跑三门生成文档过期失败，再生成+zh 镜像后全绿——如实记录）、traceability node --test 6/6（§37 remaining 改写+candidateEvidence 2→6）、审计清单并入 ui-approval+ui-chat 整目录共 85 文件后串行双轮 85 文件/1061 测试两连绿、gate0 双形态 PASS。README Summary 超词返修（117→99/100 上限）与多余 as unknown 断言删除如实入 iteration-notes。本代无 Kotlin/Swift 改动：gradle 验收轮（scanner env+-PdshNativeAcceptance）BUILD SUCCESSFUL 89 任务 2 executed 87 up-to-date（warm 重放），空派生以字节证明：两枚 APK 与 view-handoff-qr 记录 sha256 逐字节一致（approval-facts-complete-apk-bytes.log）、core XML 聚合 77 套件/477 测试 0 失败 0 错误 0 跳过；prepare 空集派生（7575/0）、write-reports 不新增 replaced-build-output 集合（既有 13 集合与九键累计集不动）；封存链裁定 dwfq-a971bf50-1（2026-10-04）：主会话 gen-30 scratch 复跑误用裸 approval-facts- 前缀覆盖 Sep-22 钉定 approval-facts-traceability.log 字节、全族改名 approval-facts-complete- 后十路搜索无副本（TAP 亚毫秒时长不可再生），生成器按 appleRosterSwiftReplacedTestReports 同构增设 approvalFactsReplacedTestReports 单键 pinned 集合（ReplacedTestReports 类）裁定该 Sep-22 日志条目 replaced，首轮绑定作废 .r1 留证后于修正基线全链重跑。台账命名裁定：Sep-22 已封不带 -complete 后缀的同前缀旧台账名三件，本代全族启用 approval-facts-complete。hook 询问的 risk 分级与 §37 其余表述仍开放，不授予整节 PASS；完整目标未完成",
@@ -39328,7 +39593,7 @@
       "The known Windows symlink EPERM expanded-suite failure from the cancellation increment was not rerun or resolved"
     ]
   },
-  "latestSourceRecord": "artifacts/upstream-first/approval-facts-complete-source.json",
+  "latestSourceRecord": "artifacts/upstream-first/approval-ask-risk-source.json",
   "cancelTarget": {
     "historical": true,
     "followup": "artifacts/upstream-first/rename-revision-source.json",
@@ -39811,7 +40076,7 @@
     "files": [
       {
         "path": "artifacts/upstream-first/write-reports.mjs",
-        "sha256": "95b8f0d61e8788cc15a8f55ee87ddec73b83e2c12d8bb41b4cc0afb4d1057f2e"
+        "sha256": "a8899d4eadafdee49526ace30f99d2bfe1eed8ef0be03423e38a3bb63096bda5"
       },
       {
         "path": "artifacts/upstream-first/verify-audit.mjs",

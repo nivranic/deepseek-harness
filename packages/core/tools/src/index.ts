@@ -573,15 +573,25 @@ export interface ToolExecutionFailure {
 export type ToolExecutionResult = ToolExecutionSuccess | ToolExecutionFailure
 
 /**
+ * §37 risk-tier ladder a Host-side asker may attach to an `ask` decision.
+ * Mirrors `ApprovalRisk` from the approval seam as a closed literal union so
+ * this host face declares no dependency on that package's types; the unions
+ * are structurally identical, so `serviceAsk` passes the value through.
+ */
+type ToolAskRisk = 'low' | 'moderate' | 'high' | 'critical'
+
+/**
  * Pre-dispatch decision. `allow` runs the call; `deny` materializes an error;
  * `ask` runs only after an approval service returns `allowed-once` and otherwise
  * denies. Input rewriting is excluded because arguments are already logged and
- * presented.
+ * presented. An `ask` may carry the asker's §37 risk tier; `serviceAsk` forwards
+ * it to the approval seam, whose durable event and panel render it — the Host
+ * layer classifies, the Client only displays.
  */
 export type PreToolDecision =
   | { kind: 'allow' }
   | { kind: 'deny'; reason: string }
-  | { kind: 'ask'; reason?: string }
+  | { kind: 'ask'; reason?: string; risk?: ToolAskRisk }
 
 /**
  * Post-dispatch decision: accept, replace one projection, attach context for the
@@ -1698,6 +1708,7 @@ export class ToolRuntime extends Service {
       toolName: exec.name,
       callId: exec.callId,
       ...ask.reason !== undefined ? { reason: ask.reason } : {},
+      ...ask.risk !== undefined ? { risk: ask.risk } : {},
       signal: exec.signal,
     })
     switch (outcome) {
