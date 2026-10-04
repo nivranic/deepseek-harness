@@ -644,6 +644,172 @@ describe('JsonlSessionPersistence: default Zstandard encoding', () => {
       .toEqual([...oneTurnLog(), openTurn[0]!, openTurn[1]!, ...closers])
   })
 
+  it('recovers intent-carried records after a crash between truncation and rewrite', async () => {
+    const root = await freshRoot()
+    const ctx = await mount(root)
+    const header = meta('intent-crashed-before-rewrite', '/proj')
+    vi.spyOn(ctx.logger, 'warn').mockImplementation(() => undefined)
+    await writeLog(ctx.sessionPersistence, header, oneTurnLog())
+    const path = logPath(root, header.cwd, header.id, 'zstd')
+    const committed = await readFile(path)
+    const recovered: SessionEvent[] = [
+      { type: 'turn/start', seq: SessionSeq(6), time: 7, data: { turn: 2 } },
+      { type: 'step/start', seq: SessionSeq(7), time: 8, data: { turn: 2, step: 1 } },
+    ]
+    // Simulate the crash window by hand: truncation landed, the intent holds
+    // the recovered records, their rewrite never did.
+    await writeFile(`${path}.repair-intent`, `${JSON.stringify({ version: 1, id: header.id, truncateTo: committed.length, events: recovered })}\n`)
+
+    const reopen = await mount(root)
+    const loaded = await readAll(reopen.sessionPersistence, header.id)
+    expect(loaded.events.map(event => event.seq)).toEqual([0, 1, 2, 3, 4, 5, 6, 7])
+
+    const closers: SessionEvent[] = [
+      { type: 'step/end', seq: SessionSeq(8), time: 9, data: { turn: 2, step: 1 } },
+      { type: 'turn/end', seq: SessionSeq(9), time: 10, data: { turn: 2, reason: { kind: 'interrupted' } } },
+    ]
+    await appendBatch(reopen.sessionPersistence, header.id, closers)
+    const repaired = await readFile(path)
+    expect(repaired.subarray(0, committed.length)).toEqual(committed)
+    expect(scanZstdFrames(repaired).tornStart).toBeUndefined()
+    expect(scanLog(await decodeCompleteFrames(repaired)).events)
+      .toEqual([...oneTurnLog(), ...recovered, ...closers])
+    await expect(stat(`${path}.repair-intent`)).rejects.toMatchObject({ code: 'ENOENT' })
+  })
+
+  it('discards a stale intent whose records the log already rewrote, without duplicating them', async () => {
+    const root = await freshRoot()
+    const ctx = await mount(root)
+    const header = meta('intent-stale-after-rewrite', '/proj')
+    vi.spyOn(ctx.logger, 'warn').mockImplementation(() => undefined)
+    const rewritten: SessionEvent[] = [...oneTurnLog(), { type: 'turn/start', seq: SessionSeq(6), time: 7, data: { turn: 2 } }]
+    await writeLog(ctx.sessionPersistence, header, rewritten)
+    const path = logPath(root, header.cwd, header.id, 'zstd')
+    // Simulate a crash between the durable rewrite and the intent's removal.
+    await writeFile(`${path}.repair-intent`, `${JSON.stringify({ version: 1, id: header.id, truncateTo: 0, events: rewritten.slice(6) })}\n`)
+
+    const reopen = await mount(root)
+    const loaded = await readAll(reopen.sessionPersistence, header.id)
+    expect(loaded.events).toEqual(rewritten)
+
+    const closers: SessionEvent[] = [
+      { type: 'step/start', seq: SessionSeq(7), time: 8, data: { turn: 2, step: 1 } },
+    ]
+    await appendBatch(reopen.sessionPersistence, header.id, closers)
+    const repaired = await readFile(path)
+    expect(scanZstdFrames(repaired).tornStart).toBeUndefined()
+    expect(scanLog(await decodeCompleteFrames(repaired)).events).toEqual([...rewritten, ...closers])
+    await expect(stat(`${path}.repair-intent`)).rejects.toMatchObject({ code: 'ENOENT' })
+  })
+
+  it('keeps a torn frame authoritative when its duplicate intent also survived', async () => {
+    const root = await freshRoot()
+    const ctx = await mount(root)
+    const header = meta('intent-duplicate-of-torn', '/proj')
+    vi.spyOn(ctx.logger, 'warn').mockImplementation(() => undefined)
+    await writeLog(ctx.sessionPersistence, header, oneTurnLog())
+    const path = logPath(root, header.cwd, header.id, 'zstd')
+    const recovered: SessionEvent[] = [
+      { type: 'turn/start', seq: SessionSeq(6), time: 7, data: { turn: 2 } },
+      { type: 'step/start', seq: SessionSeq(7), time: 8, data: { turn: 2, step: 1 } },
+    ]
+    const tornPlaintext = [
+      ...recovered.map(e => JSON.stringify(e)),
+      JSON.stringify({
+        type: 'assistant/attempt',
+        seq: SessionSeq(8),
+        time: 9,
+        data: {
+          turn: 2,
+          step: 1,
+          stream: [{ type: 'text-chunks', time0: 9, index: 0, dt: [], texts: [deterministicNoise(300_000)] }],
+        },
+      }),
+    ].join('\n') + '\n'
+    await appendFile(path, await tornFrame(tornPlaintext, (decoded) => {
+      const newlines = decoded.match(/\n/g)?.length ?? 0
+      return newlines >= 2 && !decoded.endsWith('\n')
+    }))
+    // A crash after the intent landed but before truncation leaves both the
+    // torn frame and its intent on disk; the frame's own recovery is used.
+    await writeFile(`${path}.repair-intent`, `${JSON.stringify({ version: 1, id: header.id, truncateTo: 0, events: recovered })}\n`)
+
+    const reopen = await mount(root)
+    const loaded = await readAll(reopen.sessionPersistence, header.id)
+    expect(loaded.events.map(event => event.seq)).toEqual([0, 1, 2, 3, 4, 5, 6, 7])
+
+    const closers: SessionEvent[] = [
+      { type: 'step/end', seq: SessionSeq(8), time: 9, data: { turn: 2, step: 1 } },
+    ]
+    await appendBatch(reopen.sessionPersistence, header.id, closers)
+    const repaired = await readFile(path)
+    expect(scanZstdFrames(repaired).tornStart).toBeUndefined()
+    expect(scanLog(await decodeCompleteFrames(repaired)).events)
+      .toEqual([...oneTurnLog(), ...recovered, ...closers])
+    await expect(stat(`${path}.repair-intent`)).rejects.toMatchObject({ code: 'ENOENT' })
+  })
+
+  it('recovers only the records a partially completed rewrite left behind', async () => {
+    const root = await freshRoot()
+    const ctx = await mount(root)
+    const header = meta('intent-partial-rewrite', '/proj')
+    vi.spyOn(ctx.logger, 'warn').mockImplementation(() => undefined)
+    // The rewrite landed seq 6 durably, then tore again before seq 7; the
+    // intent still carries both, so only the missing tail re-appends.
+    const persisted: SessionEvent[] = [...oneTurnLog(), { type: 'turn/start', seq: SessionSeq(6), time: 7, data: { turn: 2 } }]
+    await writeLog(ctx.sessionPersistence, header, persisted)
+    const path = logPath(root, header.cwd, header.id, 'zstd')
+    const intentEvents: SessionEvent[] = [
+      { type: 'turn/start', seq: SessionSeq(6), time: 7, data: { turn: 2 } },
+      { type: 'step/start', seq: SessionSeq(7), time: 8, data: { turn: 2, step: 1 } },
+    ]
+    await writeFile(`${path}.repair-intent`, `${JSON.stringify({ version: 1, id: header.id, truncateTo: 0, events: intentEvents })}\n`)
+
+    const reopen = await mount(root)
+    const loaded = await readAll(reopen.sessionPersistence, header.id)
+    expect(loaded.events.map(event => event.seq)).toEqual([0, 1, 2, 3, 4, 5, 6, 7])
+
+    const closers: SessionEvent[] = [
+      { type: 'step/end', seq: SessionSeq(8), time: 9, data: { turn: 2, step: 1 } },
+    ]
+    await appendBatch(reopen.sessionPersistence, header.id, closers)
+    const repaired = await readFile(path)
+    expect(scanZstdFrames(repaired).tornStart).toBeUndefined()
+    expect(scanLog(await decodeCompleteFrames(repaired)).events).toEqual([...persisted, intentEvents[1]!, ...closers])
+    await expect(stat(`${path}.repair-intent`)).rejects.toMatchObject({ code: 'ENOENT' })
+  })
+
+  it('rejects a repair intent recorded for a different session', async () => {
+    const root = await freshRoot()
+    const ctx = await mount(root)
+    const header = meta('intent-foreign-id', '/proj')
+    vi.spyOn(ctx.logger, 'warn').mockImplementation(() => undefined)
+    await writeLog(ctx.sessionPersistence, header, oneTurnLog())
+    const path = logPath(root, header.cwd, header.id, 'zstd')
+    await writeFile(`${path}.repair-intent`, `${JSON.stringify({ version: 1, id: SessionId('another-session'), truncateTo: 0, events: [] })}\n`)
+
+    const reopen = await mount(root)
+    await expect(readAll(reopen.sessionPersistence, header.id)).rejects.toThrow(/repair intent does not belong to this session/)
+  })
+
+  it('leaves no intent behind when a raw torn tail holds no complete records', async () => {
+    const root = await freshRoot('dsh-jsonl-raw-intent-')
+    const ctx = await mount(root, 'none')
+    const header = meta('raw-intent-absent', '/proj')
+    vi.spyOn(ctx.logger, 'warn').mockImplementation(() => undefined)
+    await writeLog(ctx.sessionPersistence, header, oneTurnLog())
+    const path = logPath(root, header.cwd, header.id, 'none')
+    await appendFile(path, '{"type":"turn/start","seq":6,"time":7,"data":{"turn')
+
+    const closers: SessionEvent[] = [
+      { type: 'step/start', seq: SessionSeq(6), time: 8, data: { turn: 2, step: 1 } },
+    ]
+    await appendBatch(ctx.sessionPersistence, header.id, closers)
+    const repaired = await readFile(path)
+    expect(scanLog(repaired).events).toEqual([...oneTurnLog(), ...closers])
+    await expect(stat(`${path}.repair-intent`)).rejects.toMatchObject({ code: 'ENOENT' })
+  })
+
   it('retries the torn-tail rewrite when its first durable write fails', async () => {
     const root = await freshRoot()
     const ctx = await mount(root)

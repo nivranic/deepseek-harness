@@ -8,12 +8,13 @@
 
 import { Context } from '@deepseek-ai/cordis'
 import z from '@deepseek-ai/schemastery'
+import { fsyncDirectory, writeFileAtomic } from '@deepseek-ai/dsh-atomic-write'
 import {
   SessionFormatUnsupportedMigrationError,
   sessionFormatCatalog,
 } from '@deepseek-ai/dsh-session-format-catalog'
 import { readdirSync, type Dirent } from 'node:fs'
-import { open, mkdir, readdir, realpath, link, rm, stat, truncate } from 'node:fs/promises'
+import { open, mkdir, readdir, readFile, realpath, link, rm, stat, truncate, unlink } from 'node:fs/promises'
 import { dirname, join, resolve } from 'node:path'
 import { performance } from 'node:perf_hooks'
 import { scheduler } from 'node:timers/promises'
@@ -109,6 +110,8 @@ interface StoredLogBase extends FrozenStoredEvents {
   readonly tornTruncateTo: number | undefined
   /** Complete events recovered from the torn final frame; the write path rewrites them durably. */
   readonly recoveredTail: SessionEvent[]
+  /** A torn-tail repair intent file exists beside the log; the first mutation discards it. */
+  readonly tornIntentPresent: boolean
   /** Exact fork-inherited prefix length stored in the header line. */
   readonly inheritedEventCount: SessionLogOffsetType
   readonly revision: PersistenceRevision
@@ -382,6 +385,7 @@ class JsonlSessionPersistence extends SessionPersistence {
         materialized: true,
         tornTruncateTo: stored.tornTruncateTo,
         recoveredTail: stored.recoveredTail,
+        tornIntentPresent: stored.tornIntentPresent,
         inheritedEventCount: stored.inheritedEventCount,
         primed: stored,
       }, lease))
@@ -631,6 +635,7 @@ class JsonlSessionPersistence extends SessionPersistence {
       ...freezeStoredEvents(events),
       tornTruncateTo: undefined,
       recoveredTail: [],
+      tornIntentPresent: false,
       inheritedEventCount: SessionLogOffset(prepared.artifact.inheritedEventCount),
       revision: fileRevision(prepared.sourceIdentity),
       publication: { source: selected, value: prepared },
@@ -657,6 +662,7 @@ class JsonlSessionPersistence extends SessionPersistence {
       events: stored.events,
       tornTruncateTo: stored.tornTruncateTo,
       recoveredTail: stored.recoveredTail,
+      tornIntentPresent: stored.tornIntentPresent,
       inheritedEventCount: stored.inheritedEventCount,
       revision: fileRevision(identity),
     }
@@ -721,10 +727,11 @@ class JsonlSessionPersistence extends SessionPersistence {
       events: SessionEvent[]
       tornTruncateTo: number | undefined
       recoveredTail: SessionEvent[]
+      tornIntentPresent: boolean
     }
     try {
       if (this.compression === 'zstd') {
-        parsed = await this.readZstdPrefix(buffer, signal)
+        parsed = { tornIntentPresent: false, ...(await this.readZstdPrefix(buffer, signal)) }
       } else {
         signal?.throwIfAborted()
         const { meta, inheritedEventCount, events, committedBytes } = scanLog(buffer)
@@ -737,6 +744,7 @@ class JsonlSessionPersistence extends SessionPersistence {
           // A torn raw tail is one incomplete JSONL line; it holds no complete
           // record to recover.
           recoveredTail: [],
+          tornIntentPresent: false,
         }
       }
     } catch (error: unknown) {
@@ -749,6 +757,27 @@ class JsonlSessionPersistence extends SessionPersistence {
         throw new SessionFormatUnsupportedError(`${error.message} (raw log: ${path})`, { kind: 'jsonl', path })
       }
       throw new SessionPersistenceCorruptionError(`session "${expectedId}": stored log is corrupt: ${String(error)} (raw log: ${path})`, { cause: error })
+    }
+    signal?.throwIfAborted()
+    // A zstd repair intent survives a crash anywhere between its creation and
+    // its discard: with the torn frame still on disk the scan's own recovery
+    // is authoritative (the intent is the same run's duplicate record);
+    // without it, only the intent can still carry the recovered events.
+    if (this.compression === 'zstd') {
+      const intent = await this.readRepairIntent(path, expectedId, signal)
+      if (intent !== undefined) {
+        if (parsed.tornTruncateTo !== undefined) {
+          parsed.tornIntentPresent = true
+        } else {
+          const lastSeq = parsed.events.length > 0 ? parsed.events[parsed.events.length - 1]?.seq : undefined
+          const pending = intent.filter(event => lastSeq === undefined || event.seq > lastSeq)
+          if (pending.length > 0) {
+            parsed.events = parsed.events.concat(pending)
+            parsed.recoveredTail = pending
+          }
+          parsed.tornIntentPresent = true
+        }
+      }
     }
     signal?.throwIfAborted()
     await this.assertStoredIdentity(path, SESSION_FORMAT_VERSION, parsed.meta, expectedId, signal)
@@ -833,14 +862,48 @@ class JsonlSessionPersistence extends SessionPersistence {
   }
 
   /**
-   * Truncate a torn physical tail durably before this session's first new append.
+   * Truncate a torn physical tail durably before this session's first new
+   * append, recording the recovered events in a crash-durable repair intent
+   * first so a crash between truncation and their rewrite cannot lose them.
    * @param header - the session's stored header.
    * @param truncateTo - the byte offset the artifact is truncated to.
+   * @param recovered - the complete events the torn frame carried; an empty
+   * recovery truncates without an intent because nothing is lost.
+   * @returns whether a repair intent was written and must be discarded later.
    */
-  async truncateTornTail(header: SessionHeader, truncateTo: number): Promise<void> {
+  async truncateTornTail(header: SessionHeader, truncateTo: number, recovered: readonly SessionEvent[]): Promise<boolean> {
     this.coldLogMemo.delete(header.id)
+    let intentWritten = false
+    if (recovered.length > 0) {
+      const path = logPath(this.root, header.cwd, header.id, this.compression)
+      await writeFileAtomic(
+        `${path}.repair-intent`,
+        `${JSON.stringify({ version: 1, id: header.id, truncateTo, events: recovered })}\n`,
+        { mode: 0o600, dirMode: 0o700 },
+      )
+      intentWritten = true
+    }
     await this.repair(header, truncateTo)
     this.ctx.logger.warn(`${this.name}: session "${header.id}" recovered from a torn tail; incomplete tail bytes were discarded`)
+    return intentWritten
+  }
+
+  /**
+   * Discard the torn-tail repair intent once its events are durably rewritten.
+   * @param header - the session whose intent, if any, is removed.
+   */
+  async discardTornTailIntent(header: SessionHeader): Promise<void> {
+    this.coldLogMemo.delete(header.id)
+    const path = logPath(this.root, header.cwd, header.id, this.compression)
+    try {
+      await unlink(`${path}.repair-intent`)
+    } catch (error: unknown) {
+      // Only an already-absent intent is a completed discard; every other
+      // failure leaves recovery state on disk and belongs to the caller.
+      if ((error as NodeJS.ErrnoException).code === 'ENOENT') return
+      throw error
+    }
+    await fsyncDirectory(dirname(path))
   }
 
   /**
@@ -970,6 +1033,47 @@ class JsonlSessionPersistence extends SessionPersistence {
     } finally {
       decoder.close()
     }
+  }
+
+  /**
+   * Read the torn-tail repair intent beside a zstd log, if one survived a
+   * crash between intent creation and its discard.
+   * @param path - the session log path the intent was recorded for.
+   * @param expectedId - the session the caller is opening; a mismatched intent
+   * is corruption, never silently ignored.
+   * @param signal - optional cancellation.
+   * @returns the recovered events the intent carries, or `undefined` when no
+   * intent file exists.
+   */
+  private async readRepairIntent(path: string, expectedId: SessionId, signal?: AbortSignal): Promise<readonly SessionEvent[] | undefined> {
+    signal?.throwIfAborted()
+    let raw: string
+    try {
+      raw = await readFile(`${path}.repair-intent`, 'utf8')
+    } catch (error: unknown) {
+      // Only a missing intent is absent recovery state; every other failure
+      // (permissions, a directory at that name) belongs to the caller.
+      if ((error as NodeJS.ErrnoException).code === 'ENOENT') return undefined
+      throw error
+    }
+    signal?.throwIfAborted()
+    let value: unknown
+    try {
+      value = JSON.parse(raw)
+    } catch (error: unknown) {
+      throw new SessionPersistenceCorruptionError(
+        `session "${expectedId}": repair intent is not valid JSON: ${String(error)} (intent: ${path}.repair-intent)`,
+        { cause: error },
+      )
+    }
+    const intent = value as { version?: unknown; id?: unknown; events?: unknown }
+    if (intent.version !== 1 || intent.id !== expectedId || !Array.isArray(intent.events)) {
+      throw new SessionPersistenceCorruptionError(
+        `session "${expectedId}": repair intent does not belong to this session (intent: ${path}.repair-intent)`,
+        { cause: new Error(`intent identity ${JSON.stringify(intent.id)} does not match the opened session`) },
+      )
+    }
+    return intent.events as SessionEvent[]
   }
 
   private async listArtifacts(signal?: AbortSignal): Promise<Array<{ header: SessionHeader; path: string }>> {

@@ -1,0 +1,16 @@
+{
+  "status": "PASS",
+  "controls": 3,
+  "sourceRecord": {
+    "path": "artifacts/upstream-first/torn-repair-intent-source.json",
+    "sha256": "7ee58688eb7f8089cfb17d0eaeb39af5371a532b902d44e6f3772d6bcd818385"
+  },
+  "generator": {
+    "path": "artifacts/upstream-first/write-reports.mjs",
+    "sha256": "437f6d811f1ff5749d1df7b878bcbb5039a19b97b76949ddc41203f8e9d5f74e"
+  },
+  "helper": {
+    "path": ".artifacts/check-torn-repair-intent-binding.mjs",
+    "sha256": "0d1b2b4eeeae30156a0e2e66e281bc21728d8071ac1700d0b67bbf006784e371"
+  }
+}

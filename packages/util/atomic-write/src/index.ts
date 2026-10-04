@@ -102,9 +102,15 @@ export async function writeFileAtomic(filename: string, content: string, options
   }
 }
 
-/** fsync a POSIX directory so a just-renamed entry is crash-durable. */
+/**
+ * fsync a POSIX directory so a just-created, renamed, or removed entry is
+ * crash-durable. Windows rejects `O_RDONLY` directory opens, so the call is a
+ * no-op there; directory-entry durability on Windows rides the filesystem's
+ * metadata journaling.
+ * @param path - directory whose entries must survive a crash.
+ */
 /* v8 ignore start -- Windows rejects O_RDONLY directory opens; POSIX coverage exercises this. */
-async function fsyncDirectory(path: string): Promise<void> {
+export async function fsyncDirectory(path: string): Promise<void> {
   if (process.platform === 'win32') return
   const handle = await open(path, 'r')
   try {

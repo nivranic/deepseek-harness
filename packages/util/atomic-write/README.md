@@ -25,7 +25,7 @@ Use `dsh-atomic-write` to replace a file without exposing partial content or fol
 <a id="use-this-package"></a>
 ## Use this package
 
-Use `writeFileAtomic` when a file-backed store must replace one already-rendered string without ever exposing a partial, symlink-hijacked, or wider-permission state, and `withFileLock` when several processes read-modify-write the same file. The smallest path is one call with the final content and the replacement's permission bits.
+Use `writeFileAtomic` when a file-backed store must replace one already-rendered string without ever exposing a partial, symlink-hijacked, or wider-permission state, and `withFileLock` when several processes read-modify-write the same file; `fsyncDirectory` serves callers that rename or remove an entry themselves and must commit that directory change on POSIX. The smallest path is one call with the final content and the replacement's permission bits.
 
 ### Writing a file atomically
 

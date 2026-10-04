@@ -46,8 +46,20 @@ export interface JsonlHandleStorage {
   ): Promise<void>
   /** Materialize the header-only artifact for an explicitly flushed empty session. */
   persistHeader(header: SessionHeader, inheritedEventCount: SessionLogOffset): Promise<void>
-  /** Truncate a torn physical tail before the first new append lands. */
-  truncateTornTail(header: SessionHeader, truncateTo: number): Promise<void>
+  /**
+   * Truncate a torn physical tail before the first new append lands, recording
+   * `recovered` in a crash-durable repair intent first when truncation would
+   * otherwise discard them.
+   * @param header - the session's stored header.
+   * @param truncateTo - the byte offset the artifact is truncated to.
+   * @param recovered - the complete events the torn frame carried; non-empty
+   * recovery gets an intent file so a crash between truncation and rewrite
+   * cannot lose them.
+   * @returns whether a repair intent was written and must be discarded later.
+   */
+  truncateTornTail(header: SessionHeader, truncateTo: number, recovered: readonly SessionEvent[]): Promise<boolean>
+  /** Idempotently remove a consumed repair intent; absent intents resolve silently. */
+  discardTornTailIntent(header: SessionHeader): Promise<void>
   /** Resolve the current-generation artifact path, or `undefined` when absent. */
   resolveCurrentLog(id: SessionId, signal?: AbortSignal): Promise<string | undefined>
   /** Read and validate the stored log at `path`, including its established event aliasing state. */
@@ -70,6 +82,8 @@ export interface StorageHandleState {
   tornTruncateTo?: number | undefined
   /** Complete events recovered from the torn final frame; the first mutation rewrites them durably. */
   recoveredTail?: SessionEvent[] | undefined
+  /** A repair intent exists on disk; the first mutation discards it once its events are durable. */
+  tornIntentPresent?: boolean | undefined
   /** Exact fork-inherited prefix length stored with the log; `0` when unseeded. */
   inheritedEventCount: SessionLogOffset
   /** The validated stored prefix from a write open, served to reads until the first append. */
@@ -323,10 +337,13 @@ export class JsonlSessionHandle implements SessionHandle {
     assertContiguous(this.id, batch, this.state.cursor)
     // Commit any pending torn-tail repair first, clearing each step's state
     // only once it lands so a failed step retries on the next mutation:
-    // truncate the torn bytes, then durably rewrite the complete events
-    // recovered from them (already counted in the primed cursor).
+    // a crash-durable intent carries the recovered events across the
+    // truncate-then-rewrite gap, then truncate the torn bytes, then durably
+    // rewrite the complete events recovered from them (already counted in
+    // the primed cursor), then drop the intent before new work lands.
     if (this.state.tornTruncateTo !== undefined) {
-      await this.storage.truncateTornTail(this.header, this.state.tornTruncateTo)
+      const wroteIntent = await this.storage.truncateTornTail(this.header, this.state.tornTruncateTo, this.state.recoveredTail ?? [])
+      this.state.tornIntentPresent = wroteIntent || this.state.tornIntentPresent
       this.state.tornTruncateTo = undefined
     }
     if (this.state.recoveredTail !== undefined) {
@@ -334,6 +351,10 @@ export class JsonlSessionHandle implements SessionHandle {
         await this.storage.persistBatch(this.header, this.state.recoveredTail, this.state.materialized, this.state.inheritedEventCount)
       }
       this.state.recoveredTail = undefined
+    }
+    if (this.state.tornIntentPresent) {
+      await this.storage.discardTornTailIntent(this.header)
+      this.state.tornIntentPresent = false
     }
     await this.storage.persistBatch(this.header, batch, this.state.materialized, this.state.inheritedEventCount)
     this.state.materialized = true
