@@ -8,7 +8,7 @@ English | [中文](README.zh.md)
 
 ## Summary
 
-One Typert Remote owner (`ctx.hostDiagnostics`, capability `host.diagnostics.v1`, permission `view`) owns the diagnostics slice. `health()` answers the section 41 liveness/readiness distinction: six components (process, runtime, sessionStore, pluginState, connection, modelProvider), each with a state and a detail naming the probed service, plus the `ready` verdict — connection excluded: a carrier-less profile is still a Host. `describe()` composes the section 42 payload — descriptor facts, plugin inventory rows, the migration chain, recorded crash and last-error facts, and the health snapshot — sanitized by construction: only non-secret facts are enumerated, so no API key, bearer, pairing secret, or raw credential can reach it.
+One Typert Remote owner (`ctx.hostDiagnostics`, capability `host.diagnostics.v1`, permission `view`) owns the diagnostics slice. `health()` answers the section 41 liveness/readiness distinction: six components (process, runtime, sessionStore, pluginState, connection, modelProvider), each with a state and a detail naming the probed service, plus the `ready` verdict — connection excluded: a carrier-less profile is still a Host. `describe()` composes the section 42 payload — descriptor facts (including the stamped `sourceRevision`), plugin inventory rows, the migration chain, recorded crash and last-error facts, and the health snapshot — sanitized by construction: only non-secret facts are enumerated, so no secret can reach it.
 
 ## Table of Contents
 

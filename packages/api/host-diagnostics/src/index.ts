@@ -32,6 +32,7 @@ export { HOST_DIAGNOSTICS_REMOTE_CAPABILITIES } from './capabilities.ts'
 export { buildSupportBundle, diagnosticsBundleEntry, sanitizeSupportBundleEntry, sessionHeadersBundleEntry, settingsExportBundleEntry, validateSupportBundle } from './support-bundle.ts'
 export type { SessionHeaderRow, SettingsExportRow } from './support-bundle.ts'
 
+
 /** The released session-format migration chain this build knows, by name and version pair. */
 const MIGRATIONS: readonly DiagnosticsMigration[] = Object.freeze([
   { name: sessionFormatV0ToV1.name, fromVersion: sessionFormatV0ToV1.fromVersion, toVersion: sessionFormatV0ToV1.toVersion },
@@ -176,6 +177,8 @@ export class HostDiagnosticsService extends TypertRemoteService {
     const plugins = await this.plugins(signal)
     return {
       productVersion: descriptor.productVersion,
+      // Read per call: a launcher may stamp the revision before its first describe.
+      sourceRevision: process.env.DSH_BUILD_REVISION ?? 'source-tree',
       apiProtocolVersion: descriptor.apiProtocolVersion,
       sessionFormatVersion: descriptor.sessionFormatVersion,
       hostId: descriptor.hostId,

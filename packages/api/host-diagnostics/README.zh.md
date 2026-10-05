@@ -8,7 +8,7 @@ kind: "package-reference"
 
 ## 概述
 
-一个 Typert Remote owner（`ctx.hostDiagnostics`，能力 `host.diagnostics.v1`，权限 `view`）承载规格的诊断切片。`health()` 回答第 41 节的存活/就绪区分：六个组件——process、runtime、sessionStore、pluginState、connection、modelProvider——各携带状态与指名被探测服务的 detail，以及派生的 `ready` 判定（connection 被排除：无载体的 profile 同样是 Host）。已组合的 owner 会深一层探测：失败的插件 fiber 使 pluginState 降级（ready 保持）、无已注册提供方的 LLM owner 使 modelProvider 降级并拉低 ready、inventory 读取抛错时以错误类别降级。`describe()` 组合第 42 节载荷——描述符事实、插件清单行、已发布迁移链、记录的 crash 与 last-error 事实、health 快照——以构造方式脱敏：字段集只枚举非秘密事实，任何 API key、bearer、配对秘密或原始凭据都无法到达它。
+一个 Typert Remote owner（`ctx.hostDiagnostics`，能力 `host.diagnostics.v1`，权限 `view`）承载规格的诊断切片。`health()` 回答第 41 节的存活/就绪区分：六个组件——process、runtime、sessionStore、pluginState、connection、modelProvider——各携带状态与指名被探测服务的 detail，以及派生的 `ready` 判定（connection 被排除：无载体的 profile 同样是 Host）。已组合的 owner 会深一层探测：失败的插件 fiber 使 pluginState 降级（ready 保持）、无已注册提供方的 LLM owner 使 modelProvider 降级并拉低 ready、inventory 读取抛错时以错误类别降级。`describe()` 组合第 42 节载荷——描述符事实（含已盖戳的 `sourceRevision`）、插件清单行、已发布迁移链、记录的 crash 与 last-error 事实、health 快照——以构造方式脱敏：字段集只枚举非秘密事实，任何秘密都无法到达它。
 
 ## 目录
 

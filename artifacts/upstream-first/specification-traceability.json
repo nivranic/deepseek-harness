@@ -4871,9 +4871,11 @@
         "packages/api/host-diagnostics/README.md",
         "docs/subsystems/host-diagnostics.md",
         "apps/android/core/src/main/kotlin/ai/deepseek/dsh/gateway/NativeGatewayDiagnostics.kt",
-        "apps/web/tests/android-native-diagnostics.e2e.ts"
+        "apps/web/tests/android-native-diagnostics.e2e.ts",
+        "packages/api/host-diagnostics/src/index.ts",
+        ".agents/notes/implemented/architecture/2026-10-05-diagnostics-source-revision.md"
       ],
-      "remaining": "§42 载荷已落地：describe() 组合统一诊断快照——productVersion/apiProtocolVersion/sessionFormatVersion/hostId/platform/arch/runtimeMode/nodeVersion/transports/capabilities（描述符）、plugins（plugin-inventory 行）、migrations（已发布 session-format 迁移链 name/from/to）、crash/lastErrors（记录器已落地：pid 安全启动标记把未干净关闭识别为持久且有上限的 crash 日志、agent 错误 relay 填充进程本地有上限的规范化事实环，事实只携带身份与文本）与 health 快照；构造即脱敏——字段集为非秘密事实枚举，无 API key/bearer/配对秘密/原始凭据通道（键集断言测试固化）。SHA 字段未含（构建注入接缝未定）；§43 support bundle（producer/sanitizer/manifest/checksum/collector 四平台同候选）与 §44 分类型 telemetry 仍开放。 Android 支持导出现从当前 Native Gateway 采集本地 HTTP 回调、mux 订阅及查询状态，与历史 Link 类型明确区分。快照无 I/O，固定角色和能力白名单排除身份、地址、凭据与任意远端字符串；刷新失败保留最近成功事实，关闭后不被迟到回调复活。API 2 与 Session writer V3 分离，模型重连计数独立。已安装应用经既有扫描器验证实际原生诊断及只读拒绝恢复；外部扫描器 AAR 的源码提交并非当前检出，同候选可复现构建、四平台支持包、真机及崩溃采集仍开放，不授予整节 PASS。",
+      "remaining": "§42 载荷已落地：describe() 组合统一诊断快照——productVersion/apiProtocolVersion/sessionFormatVersion/hostId/platform/arch/runtimeMode/nodeVersion/transports/capabilities（描述符）、plugins（plugin-inventory 行）、migrations（已发布 session-format 迁移链 name/from/to）、crash/lastErrors（记录器已落地：pid 安全启动标记把未干净关闭识别为持久且有上限的 crash 日志、agent 错误 relay 填充进程本地有上限的规范化事实环，事实只携带身份与文本）与 health 快照；构造即脱敏——字段集为非秘密事实枚举，无 API key/bearer/配对秘密/原始凭据通道（键集断言测试固化）。SHA 字段已交付：快照携带 sourceRevision——发布启动器注入的 DSH_BUILD_REVISION，未盖戳的源码检出如实报告 source-tree（每次调用现读进程环境，库字节不内联该值）；发布器侧注入接线随 §56 发布流程。§43 support bundle（producer/sanitizer/manifest/checksum/collector 四平台同候选）与 §44 分类型 telemetry 仍开放。 Android 支持导出现从当前 Native Gateway 采集本地 HTTP 回调、mux 订阅及查询状态，与历史 Link 类型明确区分。快照无 I/O，固定角色和能力白名单排除身份、地址、凭据与任意远端字符串；刷新失败保留最近成功事实，关闭后不被迟到回调复活。API 2 与 Session writer V3 分离，模型重连计数独立。已安装应用经既有扫描器验证实际原生诊断及只读拒绝恢复；外部扫描器 AAR 的源码提交并非当前检出，同候选可复现构建、四平台支持包、真机及崩溃采集仍开放，不授予整节 PASS。",
       "evidenceLimit": "这些路径是已定位的候选证据；尚未逐条证明本节每一项要求，不授予整节 PASS。"
     },
     {

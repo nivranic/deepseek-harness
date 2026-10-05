@@ -66,6 +66,9 @@ export interface DiagnosticsErrorFact {
  */
 export interface DiagnosticsSnapshot {
   readonly productVersion: string
+  /** The revision this running Host was produced from: the `DSH_BUILD_REVISION`
+   * a release launcher injects, or `'source-tree'` for an unstamped checkout. */
+  readonly sourceRevision: string
   readonly apiProtocolVersion: number
   readonly sessionFormatVersion: number
   readonly hostId: HostId

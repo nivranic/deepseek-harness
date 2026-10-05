@@ -154,10 +154,25 @@ describe('HostDiagnosticsService', () => {
     expect(Object.keys(snapshot).sort()).toEqual([
       'apiProtocolVersion', 'arch', 'capabilities', 'crash', 'health', 'hostId',
       'lastErrors', 'migrations', 'nodeVersion', 'platform', 'plugins',
-      'productVersion', 'runtimeMode', 'sessionFormatVersion', 'transports',
+      'productVersion', 'runtimeMode', 'sessionFormatVersion', 'sourceRevision',
+      'transports',
     ])
     const serialized = JSON.stringify(snapshot)
     expect(serialized).not.toMatch(/api[-_]?key|bearer|secret|credential|password/iu)
+  })
+
+  it('reports the release-stamped revision and falls back to the honest source-tree marker', async () => {
+    const { service } = bench()
+    const previous = process.env.DSH_BUILD_REVISION
+    try {
+      delete process.env.DSH_BUILD_REVISION
+      await expect(service.describe()).resolves.toMatchObject({ sourceRevision: 'source-tree' })
+      process.env.DSH_BUILD_REVISION = '0123456789abcdef0123456789abcdef01234567'
+      await expect(service.describe()).resolves.toMatchObject({ sourceRevision: '0123456789abcdef0123456789abcdef01234567' })
+    } finally {
+      if (previous === undefined) delete process.env.DSH_BUILD_REVISION
+      else process.env.DSH_BUILD_REVISION = previous
+    }
   })
 
   it('fails loud when the host description owner is not composed', async () => {

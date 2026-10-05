@@ -4353,7 +4353,7 @@ export const TYPE_API: readonly TypeApiEntry[] = [
   },
   {
     name: 'DiagnosticsSnapshot',
-    declaration: 'export interface DiagnosticsSnapshot {\n    readonly productVersion: string;\n    readonly apiProtocolVersion: number;\n    readonly sessionFormatVersion: number;\n    readonly hostId: HostId;\n    readonly platform: string;\n    readonly arch: string;\n    readonly runtimeMode: string;\n    readonly nodeVersion: string;\n    readonly transports: readonly string[];\n    readonly capabilities: readonly string[];\n    readonly plugins: readonly DiagnosticsPlugin[];\n    readonly migrations: readonly DiagnosticsMigration[];\n    readonly crash: readonly DiagnosticsCrashFact[];\n    readonly lastErrors: readonly DiagnosticsErrorFact[];\n    readonly health: HealthSnapshot;\n}',
+    declaration: 'export interface DiagnosticsSnapshot {\n    readonly productVersion: string;\n    readonly sourceRevision: string;\n    readonly apiProtocolVersion: number;\n    readonly sessionFormatVersion: number;\n    readonly hostId: HostId;\n    readonly platform: string;\n    readonly arch: string;\n    readonly runtimeMode: string;\n    readonly nodeVersion: string;\n    readonly transports: readonly string[];\n    readonly capabilities: readonly string[];\n    readonly plugins: readonly DiagnosticsPlugin[];\n    readonly migrations: readonly DiagnosticsMigration[];\n    readonly crash: readonly DiagnosticsCrashFact[];\n    readonly lastErrors: readonly DiagnosticsErrorFact[];\n    readonly health: HealthSnapshot;\n}',
   },
   {
     name: 'DiffCallView',
