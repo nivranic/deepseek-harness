@@ -1,0 +1,16 @@
+{
+  "status": "PASS",
+  "controls": 3,
+  "sourceRecord": {
+    "path": "artifacts/upstream-first/connection-gate-locale-source.json",
+    "sha256": "c62b014df0826133bc4eb03d6b4b1ac14e033ad6c487e539285b410391fc1746"
+  },
+  "generator": {
+    "path": "artifacts/upstream-first/write-reports.mjs",
+    "sha256": "b4228711cb128734360b864fe871866f9b5fa5387654ec152f2cc5fca45dd08c"
+  },
+  "helper": {
+    "path": ".artifacts/check-connection-gate-locale-binding.mjs",
+    "sha256": "21b209bbbf2e0fc9e43278609e2d0c89028ccff4578afcd3c9a79447ec3b3f93"
+  }
+}

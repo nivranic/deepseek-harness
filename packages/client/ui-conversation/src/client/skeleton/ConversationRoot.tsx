@@ -9,6 +9,25 @@ import type { ConversationSlotProps, InputZone } from '../contract/slots.ts'
 import { conversationPhase } from '../contract/snapshot.ts'
 import { HeroShell, WorkspaceChip, workspaceLabel } from './EmptyHero.tsx'
 import css from './ConversationRoot.module.css'
+import type { ConnectionState } from '@deepseek-ai/dsh-client-connection/client'
+
+/**
+ * Every non-ready connection state's gate string, spelled statically so a new
+ * ConnectionState member without a dictionary key fails typechecking here
+ * instead of rendering a raw template key at runtime.
+ */
+export const CONNECTION_GATE_KEYS = {
+  'connecting': 'connection.gate.connecting',
+  'reconnecting': 'connection.gate.reconnecting',
+  'offline': 'connection.gate.offline',
+  'authenticating': 'connection.gate.authenticating',
+  'host-not-ready': 'connection.gate.host-not-ready',
+  'auth-expired': 'connection.gate.auth-expired',
+  'device-revoked': 'connection.gate.device-revoked',
+  'identity-changed': 'connection.gate.identity-changed',
+  'incompatible': 'connection.gate.incompatible',
+  'fatal': 'connection.gate.fatal',
+} satisfies Record<Exclude<ConnectionState, 'ready'>, `connection.gate.${Exclude<ConnectionState, 'ready'>}`>
 
 /** Full props composed from the slot contract. */
 export type ConversationRootProps = ConversationSlotProps
@@ -154,7 +173,7 @@ export function ConversationRoot({
   // own reason (§28); undefined — no recovery loop — leaves the composer alone.
   const connectionState = useConnectionState(state => state)
   const connectionGate = connectionState !== undefined && connectionState !== 'ready'
-    ? t(`connection.gate.${connectionState}`)
+    ? t(CONNECTION_GATE_KEYS[connectionState])
     : undefined
 
   const [pickerOpen, setPickerOpen] = useState(false)
