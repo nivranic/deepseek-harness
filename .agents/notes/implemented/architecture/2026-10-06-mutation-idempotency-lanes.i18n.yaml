@@ -1,0 +1,6 @@
+# Bilingual-pair consistency record (docs/i18n/README.md): the git blob hash of each
+# side as of the last confirmed-consistent state. Both languages carry equal authority;
+# after editing either side, bring the other along and re-record with:
+#   pnpm run verify-translation-pairing --write .agents/notes/implemented/architecture/2026-10-06-mutation-idempotency-lanes.md
+2026-10-06-mutation-idempotency-lanes.md: 733b09d4b979cdc8c16aa6d437e45dd7acbc4fbf
+2026-10-06-mutation-idempotency-lanes.zh.md: 11334cf75b2fb30e9a885b3ac456cc6d174be878

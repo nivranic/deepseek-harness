@@ -301,4 +301,31 @@ describe('sessions.fork', () => {
     })
     await ctx.fiber.dispose()
   })
+
+  it('a retried fork with identical parameters mints a second independent child (no client mutation identity yet — open §17 design ruling)', async () => {
+    // §17 mutation idempotency: fork carries no client mutation identity, so a
+    // retransmitted request runs the whole command again — a second
+    // independent child, not an adoption of the first. Whether a future
+    // clientMutationId/requestId receipt returns the existing child instead is
+    // an open design ruling; this test pins today's behavior.
+    const ctx = await composed()
+    const source = liveAgent(ctx, 'session-retried-fork', 2)
+    const proxy = remote(ctx)
+    const parameters = { sessionId: source.id, atSeq: 1 }
+
+    const first = await proxy.fork(request(parameters))
+    const retried = await proxy.fork(request(parameters))
+
+    expect(first.ok).toBe(true)
+    expect(retried.ok).toBe(true)
+    if (!first.ok || !retried.ok) return
+    expect(retried.value.sessionId).not.toBe(first.value.sessionId)
+    const expectedPrefix = ['turn/start', 'user/message', 'turn/end', 'session/end-seed']
+    for (const child of [first.value.sessionId, retried.value.sessionId]) {
+      expect(ctx.sessions.get(child)?.snapshotEvents().map(event => event.type))
+        .toEqual(expectedPrefix)
+      expect(ctx.sessions.get(child)?.header.parentSession).toBe(source.id)
+    }
+    await ctx.fiber.dispose()
+  })
 })

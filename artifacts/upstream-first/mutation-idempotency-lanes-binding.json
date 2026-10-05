@@ -1,0 +1,16 @@
+{
+  "status": "PASS",
+  "controls": 3,
+  "sourceRecord": {
+    "path": "artifacts/upstream-first/mutation-idempotency-lanes-source.json",
+    "sha256": "ae1c89d8f1734e54691a7ec30e94f8ba79585ebd3fc4a1198add838510e59e15"
+  },
+  "generator": {
+    "path": "artifacts/upstream-first/write-reports.mjs",
+    "sha256": "03aef8c086fc487f7a9f878c0092fb779822162b4634784c97d67292139ae4db"
+  },
+  "helper": {
+    "path": ".artifacts/check-mutation-idempotency-lanes-binding.mjs",
+    "sha256": "b35fb638f38931c3cfceaa53ccbe8d5085ba1e1daccbc9c5bd4b7dc3b6ee8a15"
+  }
+}

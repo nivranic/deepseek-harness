@@ -396,6 +396,38 @@ describe('CommandRuntime', () => {
     expect(new Set(ids).size).toBe(2)
   })
 
+  // §17 Mutation Idempotency: execute carries no client mutation identity, so a
+  // network-level retry of the same line re-enters the handler and re-appends a
+  // full lifecycle pair. Deduplication is an open design ruling, not current behavior.
+  it('a retried execute of the same line runs the handler twice and appends two command event pairs (no client mutation identity yet — open §17 design ruling)', async () => {
+    const ctx = await mount()
+    const { agent } = await mintAgentScope(ctx, 'a')
+    const handler = vi.fn(() => ({ kind: 'success' as const, text: 'ran' }))
+    ctx.commands.register({ name: 'deploy', description: 'Deploy', risk: 'low', handler })
+
+    const first = await ctx.commands.execute(agent, '/deploy now', [], new AbortController().signal)
+    const retried = await ctx.commands.execute(agent, '/deploy now', [], new AbortController().signal)
+
+    expect(handler).toHaveBeenCalledTimes(2)
+    expect(first?.result).toEqual({ kind: 'success', text: 'ran' })
+    expect(retried?.result).toEqual({ kind: 'success', text: 'ran' })
+    const lifecycle = lifecycleOf(agent)
+    expect(lifecycle.map(event => event.type)).toEqual([
+      'command/run', 'command/done', 'command/run', 'command/done',
+    ])
+    const ids = lifecycle.map(event => (event.data as { commandId: string }).commandId)
+    // Each execution pairs its own run/done; the retry mints a fresh id — nothing dedupes it.
+    expect(ids[0]).toBe(ids[1])
+    expect(ids[2]).toBe(ids[3])
+    expect(ids[0]).not.toBe(ids[2])
+    expect(first?.commandId).toBe(ids[0])
+    expect(retried?.commandId).toBe(ids[2])
+    // Both runs record the identical line, so the log alone cannot distinguish the retry.
+    expect(lifecycle
+      .filter(event => event.type === 'command/run')
+      .map(event => (event.data as { args?: string }).args)).toEqual([' now', ' now'])
+  })
+
   it('logs command/done kind error for an expected error result', async () => {
     const ctx = await mount()
     const { agent } = await mintAgentScope(ctx, 'a')

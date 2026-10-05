@@ -271,6 +271,24 @@ describe('device-trust grants and revocation', () => {
       .rejects.toMatchObject({ code: 'gateway/bad-request' })
   })
 
+  it('a repeated device rename settles on the last value without touching grants', async () => {
+    const { service, deviceId } = await paired()
+    const before = service.listDevices().find(entry => entry.deviceId === deviceId)
+    if (before === undefined) throw new Error('fixture grant disappeared')
+    await service.renameDevice({ deviceId, deviceName: before.deviceName })
+    const settled = await service.renameDevice({ deviceId, deviceName: '  tablet  ' })
+    expect(settled).toMatchObject({ deviceId, deviceName: 'tablet', role: before.role })
+    const views = service.listDevices()
+    expect(views).toHaveLength(1)
+    expect(views[0]).toMatchObject({
+      deviceId,
+      deviceName: 'tablet',
+      role: before.role,
+      keyFingerprint: before.keyFingerprint,
+      pairedAt: before.pairedAt,
+    })
+  })
+
   it('carries the pairing platform and the admission-derived last-seen time in listings', async () => {
     const service = await boot()
     const issuance = service.issuePairing('collaborator')

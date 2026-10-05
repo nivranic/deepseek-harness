@@ -148,6 +148,29 @@ describe('Session queue commands', () => {
     await ctx.fiber.dispose()
   })
 
+  it('a repeated cancel on an idle session accepts twice and settles no second turn event', async () => {
+    // §17 mutation idempotency: cancel carries no client mutation identity,
+    // and Agent.cancel has no live phase to abort while idle, so a retransmitted
+    // cancel is an accepted no-op: the command forwards it again and settles
+    // no second turn event on the Session log.
+    const { ctx, controller, agent, cancel } = await commandHarness()
+    agent.session.append('turn/start', { turn: 1 })
+    const settled = agent.session.append('turn/end', { turn: 1, reason: { kind: 'completed' } })
+    Object.assign(agent, { status: 'idle' })
+    const before = agent.session.snapshotEvents()
+
+    expect(controller.cancel({ sessionId: agent.id })).toEqual({ accepted: true })
+    expect(controller.cancel({ sessionId: agent.id })).toEqual({ accepted: true })
+
+    expect(cancel).toHaveBeenCalledTimes(2)
+    expect(cancel).toHaveBeenNthCalledWith(1, { kind: 'user' }, { keepInbox: true })
+    expect(cancel).toHaveBeenNthCalledWith(2, { kind: 'user' }, { keepInbox: true })
+    const events = agent.session.snapshotEvents()
+    expect(events).toEqual(before)
+    expect(events.filter(event => event.type === 'turn/end')).toEqual([settled])
+    await ctx.fiber.dispose()
+  })
+
   it('does not relax live-Agent or subagent ownership checks for stale cancel targets', async () => {
     const { ctx, controller, agent, cancel } = await commandHarness('continuable')
     expect(() => controller.cancelTurn({ sessionId: SessionId('missing'), turnStartSeq: null }))

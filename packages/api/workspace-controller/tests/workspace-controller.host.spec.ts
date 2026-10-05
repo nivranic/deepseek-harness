@@ -230,6 +230,33 @@ describe('WorkspaceController commands', () => {
     await expect(controller.archiveSession({ sessionId: SessionId('unknown') }))
       .rejects.toMatchObject({ code: 'session/not-found' })
   })
+
+  it('repeating delete and archive settles the second call on the same stable outcome', async () => {
+    const { controller, ctx, root } = await harness()
+    const created = await controller.create({ path: stageDir(root, 'doomed') })
+    const session = ctx.sessions.create(SessionId('settled'), {
+      meta: { cwd: created.workspace.path },
+    })
+
+    await expect(controller.delete({ workspaceId: created.workspace.workspaceId }))
+      .resolves.toEqual({ deleted: true })
+    await expect(controller.delete({ workspaceId: created.workspace.workspaceId }))
+      .rejects.toMatchObject({
+        code: 'workspace/not-found',
+        details: { workspaceId: created.workspace.workspaceId },
+      })
+    await expect(controller.delete({ workspaceId: 'missing' as WorkspaceId }))
+      .rejects.toMatchObject({ code: 'workspace/not-found' })
+
+    await expect(controller.archiveSession({ sessionId: session.id }))
+      .resolves.toEqual({ archivedSessionIds: [session.id] })
+    await expect(controller.archiveSession({ sessionId: session.id }))
+      .resolves.toEqual({ archivedSessionIds: [session.id] })
+    await expect(controller.archiveSession({ sessionId: SessionId('unknown') }))
+      .rejects.toMatchObject({ code: 'session/not-found' })
+    await expect(controller.archiveSession({ sessionId: SessionId('unknown') }))
+      .rejects.toMatchObject({ code: 'session/not-found' })
+  })
 })
 
 describe('WorkspaceController follow', () => {

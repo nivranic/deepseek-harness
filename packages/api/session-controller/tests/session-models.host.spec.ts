@@ -506,6 +506,42 @@ describe('Web session model selection', () => {
     await ctx.fiber.dispose()
   })
 
+  it('a repeated selectModel settles once for the next assembly', async () => {
+    // §17 mutation idempotency: selectModel carries no client mutation
+    // identity. A retransmitted request appends a second model/selection event
+    // (the durable fold keeps one pending value, last wins); the next assembly
+    // applies that selection exactly once, and the persisted selection does not
+    // regress to the default afterwards.
+    const { ctx, agent, sessionId } = await harness()
+    const remote = createSessionTestRemote(ctx, { defaultModelSelection: () => ({ provider: 'deepseek-official', model: 'deepseek-chat' }), cwd: '/tmp' })
+    const picked = { provider: 'deepseek-official', model: 'deepseek-reasoner', reasoningEffort: 'max' as const }
+    const seed: LlmCallConfig = { provider: 'seed', model: 'seed', temperature: 0.2 }
+    const signal = new AbortController().signal
+
+    const first = expectValue(await remote.selectModel(request({ sessionId, ...picked })))
+    const retried = expectValue(await remote.selectModel(request({ sessionId, ...picked })))
+    expect(retried.selected).toEqual(first.selected)
+    const logged = agent.session.snapshotEvents().filter(event => event.type === 'model/selection')
+    expect(logged.map(event => event.data)).toEqual([first.selected, first.selected])
+    expect(logged[1]?.seq).toBeGreaterThan(logged[0]?.seq ?? -1)
+    expect(currentSelection(ctx, sessionId)).toEqual(picked)
+
+    expect((await ctx.systemPrompt.assemble()).variables)
+      .toMatchObject({ provider: picked.provider, model: picked.model })
+    await expect(agentEvents(ctx, agent).waterfall(
+      'agent/request', { turn: 1, step: 1, signal }, () => Promise.resolve(seed),
+    )).resolves.toEqual({ ...seed, ...picked })
+    // One assembly settled it: a later assembly still routes the same
+    // selection rather than regressing to the default.
+    expect((await ctx.systemPrompt.assemble()).variables)
+      .toMatchObject({ provider: picked.provider, model: picked.model })
+    await expect(agentEvents(ctx, agent).waterfall(
+      'agent/request', { turn: 1, step: 2, signal }, () => Promise.resolve(seed),
+    )).resolves.toEqual({ ...seed, ...picked })
+    expect(currentSelection(ctx, sessionId)).toEqual(picked)
+    await ctx.fiber.dispose()
+  })
+
   it('reads the Agent default live for a session whose log names no selection', async () => {
     const { ctx, sessionId } = await harness()
     let stored = { provider: 'deepseek-official', model: 'deepseek-chat' }

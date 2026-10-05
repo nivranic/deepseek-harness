@@ -1,0 +1,66 @@
+{
+  "status": "PASS",
+  "scope": "Report bindings and audit for the mutation-idempotency-lanes increment: the section 17 per-write-channel retry-settlement verification delivered as machine-checked facts — the spec pinning selected the §17 survey finding (clientMutationId absent from the entire codebase with identification carried by five mechanisms: requestId/rpcId receipts with the session/prompt triple check as the most complete, revision CAS with renameAt idempotent receipts and the goal stale-revision rejection, turn-directed cancellation, one-time pairing codes and nonces with replay floors, and first-answer finality; 20 of the 27 write channels already carried direct settlement assertions, 7 were missing — the 2 real gaps without an idempotency anchor (fork minting a second independent child, command execute running the handler twice) plus 5 weak assertions); the implementation pins the current settlement semantics of all seven channels with targeted tests inside existing spec files and zero production source changes, the fork/execute receipt adoption left as the open §17 design ruling the test titles name, and the workspace archive expectation corrected to idempotent success after source verification that the already-archived early return precedes the known-session check (the test renamed from same stable failure to same stable outcome); the lanes ran green with the merged verification at 161 cases / 157 passing where the 4 failures are the two pre-existing HEAD baseline reds attributed by double stash probes (the commands.spec attachments drift after bf75e1bf1a and the workspace-controller transport error-code drift, neither on the audited client list), the traceability section 17 remaining rewrites at 981 to 1274 characters with candidateEvidence 22 to 25 adding session-fork.host.spec.ts, commands.spec.ts and the note (node --test 6/6), the note trio lands, and the documentation evidence keeps the two-file split — doc-quick 17 gates in its own docs log and doc-sync 36 passed 0 failed 0 skipped in 413.42s in its own docsync log — with the audit client spec list carried unchanged at 86 files and the serial double round green at 86 files / 1062 tests on both passes with every count asserted from log content (the gen-34 lesson), gate0 in both forms, and the lint round sealed in its honestly recorded chained single-trailer form (the build:lib:host host build then lint:contracts-ready with the tsx scripts/run-oxlint.ts . command line, one EXIT_CODE=0 trailer for the whole chain, Found 0 warnings and 0 errors, no labelled trailer in the log); the same-round gradle acceptance round (scanner env with -PdshNativeAcceptance, BUILD SUCCESSFUL in 2m 28s) replayed WARM with 1 executed of 67 actionable tasks and 66 up-to-date because nothing under apps/android changed this generation (no device lane ran and the emulator stayed off; the round's graph reaches neither :core:test nor :app:assembleRelease), the empty-derived byte proof compares both APKs byte-identically against the connection-gate-locale record's builtFiles entries (.artifacts/mutation-idempotency-lanes-apk-bytes.log), the still-standing XML reports aggregate 77 suites / 477 tests with zero failures/errors/skips (.artifacts/mutation-idempotency-lanes-core-results.json), and the prepare-side unresolved scan derived FOUR replaced prior build outputs (7641 files, 0 reused, 7641 written — the four-key ConversationRoot drift, the prior generation's source changes emitted into ui-conversation's untracked type outputs only by this generation's full host build) so the new record's own derivation stays out of the generator and the drift resolves through the demotion history head while the generator gains no mutation-idempotency-lanes replaced-build-output set and every prior generation's own set (including the adjudicated four-key approvalFactsCompleteReplacedBuildOutputs set with its filter and guard, the gen-32 round-1 repair's atomicDurabilitySupersededSources six-key set with its companion single-key desktopPackageReplacedBuildOutputs set, and the gen-34 three-key tornRepairIntentReplacedBuildOutputs set riding the HEAD content) stays unchanged; the fork/execute client-mutation-identity adoption, the global persistent-receipt claim and the two pre-existing baseline-red channels stay open; full Upstream-First objective remains in progress",
+  "gate0": {
+    "validation": "PASS",
+    "gate0": "PASS",
+    "paths": 1938,
+    "components": 129,
+    "specificationCoverage": {
+      "status": "PASS",
+      "numberedSections": 81,
+      "nonEmptySourceLines": 1983,
+      "acceptanceProven": false
+    }
+  },
+  "sourceRecord": {
+    "path": "artifacts/upstream-first/mutation-idempotency-lanes-source.json",
+    "sha256": "c6efac8db0dddf343d9081c402881e078863bfe0675170de61c63c74e25ee20c"
+  },
+  "generator": {
+    "path": "artifacts/upstream-first/write-reports.mjs",
+    "sha256": "9a1b22e3e9e687cae90943d470568817fb539fa849b5b389b899a79ed65fddf9"
+  },
+  "binding": {
+    "path": "artifacts/upstream-first/mutation-idempotency-lanes-binding.json",
+    "sha256": "f12a0d97584b5b5844e13cb33d1237494e734a5e9dcff33200e07c1abad9f030"
+  },
+  "helpers": [
+    {
+      "path": ".artifacts/advance-mutation-idempotency-lanes-reports.mjs",
+      "sha256": "a25ff3b8622e7dac53a92ec7f07af0c4634cfbfe156b4f9fb01d74b70120769f"
+    },
+    {
+      "path": ".artifacts/capture-mutation-idempotency-lanes-validation.mjs",
+      "sha256": "f9c745980944a75dc498fc8022c0f67fae84795a95393622637a3b2733aecb04"
+    }
+  ],
+  "reports": [
+    {
+      "path": "IMPLEMENTATION_STATUS.md",
+      "sha256": "d09bbe099f251e763647db3c374e3abb838424d650720258aaa5307d0d8c0451"
+    },
+    {
+      "path": "artifacts/upstream-first/evidence.json",
+      "sha256": "8714b893fbca80a7f20fac686a3514cb9c9b6000c25d76f41b18d795383d9cbe"
+    }
+  ],
+  "checks": [
+    {
+      "path": ".artifacts/mutation-idempotency-lanes-binding.log",
+      "sha256": "4a4fe129dc62fdda2884186cc301511157feac5602df55ae6b9b107c8e742585"
+    },
+    {
+      "path": ".artifacts/mutation-idempotency-lanes-audit-final.log",
+      "sha256": "65ad8f07bc608b443cd9871ffe9e5d244372c7332231eca860d9f99c1c9ff25a"
+    },
+    {
+      "path": ".artifacts/mutation-idempotency-lanes-gate0-final.log",
+      "sha256": "505d74ef938f5d34d85490d37e0176ba804d93272fcf465ce2544a02c56b3f90"
+    },
+    {
+      "path": ".artifacts/mutation-idempotency-lanes-report-generation.log",
+      "sha256": "fe010532f71a6341467ae5719b29ac19470895de1d481156335b8f70a3273ed5"
+    }
+  ]
+}

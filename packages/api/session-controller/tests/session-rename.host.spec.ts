@@ -123,6 +123,35 @@ describe('sessions.rename', () => {
       expect(response.error.message).toMatch(/mounts no session-title service/)
     }
   })
+
+  it('a repeated unconditional rename appends two title events and the later seq wins', async () => {
+    // §17 mutation idempotency: rename accepts unconditionally (renameAt owns
+    // the revision-anchored identity lane), so a retransmitted request appends a
+    // second session/title event rather than returning the first; the fold
+    // takes the later seq.
+    const ctx = await composed()
+    const source = liveAgent(ctx, 'session-rename-retry', 0)
+    const api = remote(ctx)
+
+    const first = await api.rename(request({ sessionId: source.id, title: 'retried name' }))
+    const retried = await api.rename(request({ sessionId: source.id, title: 'retried name' }))
+
+    expect(first.ok).toBe(true)
+    expect(retried.ok).toBe(true)
+    if (!first.ok || !retried.ok) return
+    const titles = source.snapshotEvents().filter(event => event.type === 'session/title')
+    expect(titles).toHaveLength(2)
+    expect(titles.map(event => event.data.title)).toEqual(['retried name', 'retried name'])
+    expect(titles[0]?.seq).toBe(first.value.seq)
+    expect(titles[1]?.seq).toBe(retried.value.seq)
+    expect(retried.value.seq).toBeGreaterThan(first.value.seq)
+    expect(ctx.sessionTitle.get(source)).toMatchObject({
+      title: 'retried name',
+      source: { kind: 'user' },
+      eventSeq: retried.value.seq,
+    })
+    await ctx.fiber.dispose()
+  })
 })
 
 
