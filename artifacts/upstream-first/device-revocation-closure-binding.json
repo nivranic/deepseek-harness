@@ -1,0 +1,16 @@
+{
+  "status": "PASS",
+  "controls": 3,
+  "sourceRecord": {
+    "path": "artifacts/upstream-first/device-revocation-closure-source.json",
+    "sha256": "edadde60b36b9fc256bc6d240c247e2c4988eadaaf00228cbcf28fcf86b35e15"
+  },
+  "generator": {
+    "path": "artifacts/upstream-first/write-reports.mjs",
+    "sha256": "1789719362bdf1102184aad8a568954a5b7873f10b9318ccb4fcdd8a69a02ec9"
+  },
+  "helper": {
+    "path": ".artifacts/check-device-revocation-closure-binding.mjs",
+    "sha256": "35a94cb80fd6d46cf9cb8e99663b038ed668ae388c4239f295e7ed1d38188466"
+  }
+}

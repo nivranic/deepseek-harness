@@ -1,0 +1,66 @@
+{
+  "status": "PASS",
+  "scope": "Report bindings and audit for the device-revocation-closure increment: the section 12/13/19/47/55 common-tail ledger closure and the revocation-time visibility delivered as machine-checked facts — the five sections' remaining carried the verbatim common tail 「仍需完整多版本/多语言矩阵、设备撤销状态、闭合错误语义和变更身份确认」 (§19/47/55 remaining being the phrase itself, §12/13 carrying it as a prefix) while the §12/§13 specification original at original-specification.md 646-731 read line by line carries zero device-revocation requirement sentence (a cross-section clone, not any section's own trace), and the full-surface survey proved the three named items already closed by the section 18 incremental family across sections (connection.ts device-revoked first-class state with the gateway client classifier at 195-214, the gateway-stream revocation aborts of in-flight business and event streams plus the admission rejects over 8 its, the Kotlin/Swift contract mirrors device/already-revoked, the android-gateway.e2e.ts 52-66 real-device full lifecycle), leaving the single real engineering gap as the revoked row rendering only the Tag without DeviceView.revokedAt (epoch ms, device-trust types.ts:71); the implementation lands two deliverables — the conditional revokedAt span in the DevicesSettingsSection revoked-row meta area after lastSeenAt and before the fingerprint, rendering through the page's existing injected formatTime hook at src/client/index.ts:85 (Intl.DateTimeFormat over the active locale, medium/short) with zero new dependencies, the label revokedAt locale-owned in both dictionaries (\"Revoked {time}\"/「撤销于 {time}」) with the numeric value kept out of the dictionaries, a missing revokedAt rendering empty and the active rows never rendering it under assertion; and the five-section remaining common-tail phrase replaced in one pass by the three-closed-items section 18 incremental family cross-section closure narrative with the evidence files inline (connection.ts, the gateway-stream spec, DevicesSettingsSection, the contract mirrors, the real-device e2e), keeping only the cross-real-release-version matrix sentence open (N/N-1/N-2 interop unreachable in this lane) with the five sections' candidateEvidence each growing by the three closure paths (§12 7 to 10, §13 22 to 25, §19/47/55 3 to 6) and the old phrase gone from the live ledger — executed as one single-subagent UI lane with the two new cases joining fourteen passing (the revoked row rendering the fixture-matched time, the active rows asserting no revocation time, both dictionaries non-empty) and the README Summary at 90 words with the pairing re-recorded; two rulings rejected honestly (the interlock seam test because both halves carry direct tests; the devices spec entering the client audit lineage because the list is a historical lineage, not the client full set, the lane riding targeted verification plus the CI full matrix — the same treatment as the gen-36 seven host specs); the documentation evidence keeps the two-file split — doc-quick 17 gates in its own docs log and doc-sync 36 passed 0 failed 0 skipped in 344.80s in its own docsync log, both first-pass — with the audit client spec list unchanged at 87 files (a historical lineage, not the client full set) and the serial double round green at 87 files / 1073 tests on both passes with every count asserted from log content (the gen-34 lesson), gate0 in both forms, the traceability node --test 6/6 with the five-section remaining at 456/1300/247 characters, and the lint round sealed in its honestly recorded chained single-trailer form (the build:lib:host host build then lint:contracts-ready with the tsx scripts/run-oxlint.ts . command line, one EXIT_CODE=0 trailer for the whole chain, Found 0 warnings and 0 errors, no labelled trailer in the log); the same-round gradle acceptance round (scanner env with -PdshNativeAcceptance over :app:assembleDebug :app:assembleDebugAndroidTest :core:test, BUILD SUCCESSFUL in 13s) replayed WARM with 1 executed of 70 actionable tasks and 69 up-to-date — :core:test reached the graph and stayed UP-TO-DATE, so the still-standing XML reports stay the aggregate's authority — because nothing under apps/android changed this generation (no device lane ran and the emulator stayed off), the empty-derived byte proof compares both APKs byte-identically against the telemetry-consent-settings record's builtFiles entries (.artifacts/device-revocation-closure-apk-bytes.log), the still-standing XML reports aggregate 77 suites / 477 tests with zero failures/errors/skips (.artifacts/device-revocation-closure-core-results.json), and the prepare-side unresolved scan derived SEVEN replaced prior build outputs (7667 files, 0 reused, 7667 written — the seven-key ui-settings-devices drift: DevicesSettingsSection's d.ts.map, js and js.map plus locales' d.ts, d.ts.map, js and js.map under packages/client/ui-settings-devices/lib/types/client/, re-emitted by this generation's revocation-time row while the bare DevicesSettingsSection.d.ts still replays from disk) so the new record's own derivation stays out of the generator and the drift resolves through the demotion history head while the generator gains no device-revocation-closure replaced-build-output set and every prior generation's own set (including the adjudicated four-key approvalFactsCompleteReplacedBuildOutputs set with its filter and guard, the gen-32 round-1 repair's atomicDurabilitySupersededSources six-key set with its companion single-key desktopPackageReplacedBuildOutputs set, and the gen-34 three-key tornRepairIntentReplacedBuildOutputs set riding the HEAD content) stays unchanged; the cross-real-release-version matrix (N/N-1/N-2 interop), the Swift-shell revocation UX and the physical-device acceptance keep following their lanes and no whole-section PASS is granted; full Upstream-First objective remains in progress",
+  "gate0": {
+    "validation": "PASS",
+    "gate0": "PASS",
+    "paths": 1938,
+    "components": 129,
+    "specificationCoverage": {
+      "status": "PASS",
+      "numberedSections": 81,
+      "nonEmptySourceLines": 1983,
+      "acceptanceProven": false
+    }
+  },
+  "sourceRecord": {
+    "path": "artifacts/upstream-first/device-revocation-closure-source.json",
+    "sha256": "115a6dafb3d6f456bd84a8cf81f9b583d56dd44df23ddc1faf84ae7c6d199ac2"
+  },
+  "generator": {
+    "path": "artifacts/upstream-first/write-reports.mjs",
+    "sha256": "93dfb9fc6a888dece9903c9dd6b39ccf5cc70a1e3a2f6b8c15e2a0cea14941a4"
+  },
+  "binding": {
+    "path": "artifacts/upstream-first/device-revocation-closure-binding.json",
+    "sha256": "688bb409e174a41f10f6abfe974a7f071dda628913e931bbd08344ad5123a7f8"
+  },
+  "helpers": [
+    {
+      "path": ".artifacts/advance-device-revocation-closure-reports.mjs",
+      "sha256": "af46216f36f7ce7a04c964191bb724fb837b93a01dfcdfa132e6047f054cdd41"
+    },
+    {
+      "path": ".artifacts/capture-device-revocation-closure-validation.mjs",
+      "sha256": "eb0d99f4a0971bcf0ddf469b019a11beff4b361f1368560ebce51b24805fea68"
+    }
+  ],
+  "reports": [
+    {
+      "path": "IMPLEMENTATION_STATUS.md",
+      "sha256": "55b693030ef6d806c3a8dd8b3e8b41dd44acc837a34683561ae7f937b1bbe249"
+    },
+    {
+      "path": "artifacts/upstream-first/evidence.json",
+      "sha256": "c3a87adafe63c3855fd665df77ab8e40442bbf77486debfdfe68a51da4e6fe2d"
+    }
+  ],
+  "checks": [
+    {
+      "path": ".artifacts/device-revocation-closure-binding.log",
+      "sha256": "f5ed7dfa68482eaa0c685ffc03f95149507967019ff8ba46a764b5246cbf2d7d"
+    },
+    {
+      "path": ".artifacts/device-revocation-closure-audit-final.log",
+      "sha256": "2cc54547becb81e050f0f7825f9f692817cca300125437e332a6201a04ed4f88"
+    },
+    {
+      "path": ".artifacts/device-revocation-closure-gate0-final.log",
+      "sha256": "505d74ef938f5d34d85490d37e0176ba804d93272fcf465ce2544a02c56b3f90"
+    },
+    {
+      "path": ".artifacts/device-revocation-closure-report-generation.log",
+      "sha256": "fe010532f71a6341467ae5719b29ac19470895de1d481156335b8f70a3273ed5"
+    }
+  ]
+}

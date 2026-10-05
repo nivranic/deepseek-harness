@@ -1,0 +1,6 @@
+# Bilingual-pair consistency record (docs/i18n/README.md): the git blob hash of each
+# side as of the last confirmed-consistent state. Both languages carry equal authority;
+# after editing either side, bring the other along and re-record with:
+#   pnpm run verify-translation-pairing --write .agents/notes/implemented/architecture/2026-10-06-device-revocation-closure.md
+2026-10-06-device-revocation-closure.md: 89ccc994d24a118ffddb7d61fb61a7f19259752b
+2026-10-06-device-revocation-closure.zh.md: 400d8902323a12a706d840077f429a4c58878411

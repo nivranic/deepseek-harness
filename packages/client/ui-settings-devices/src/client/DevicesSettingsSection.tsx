@@ -123,6 +123,9 @@ function DeviceRow(
         <span>{device.lastSeenAt === undefined
           ? t('neverSeen')
           : t('lastSeenAt', { time: formatTime(device.lastSeenAt) })}</span>
+        {device.revokedAt !== undefined && (
+          <span>{t('revokedAt', { time: formatTime(device.revokedAt) })}</span>
+        )}
         <span className={css.fingerprint}>{t('fingerprint', { value: device.keyFingerprint.slice(0, 16) })}</span>
       </div>
       {renaming

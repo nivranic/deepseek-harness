@@ -9,7 +9,7 @@ English | [中文](README.zh.md)
 
 ## Summary
 
-The **Devices** section lets Web users manage the devices paired with the Host. It lists every grant with its display name, role, client-declared platform, paired and last-seen times, and key fingerprint; revoked grants stay visible, marked as revoked with no actions. Renaming edits the name inline; revoking one device or every active grant requires an explicit confirmation, and a completed revoke-all reports how many grants it revoked. Failures map through the shared Remote failure classes to localized copy, with the raw diagnostic kept for unclassified codes.
+The **Devices** section lets Web users manage the devices paired with the Host. It lists every grant with its display name, role, client-declared platform, paired and last-seen times, and key fingerprint; revoked grants stay visible, marked as revoked with the revocation time and no actions. Renaming edits the name inline; revoking one device or every active grant requires an explicit confirmation, and a completed revoke-all reports how many grants it revoked. Failures map through the shared Remote failure classes to localized copy, with the raw diagnostic kept for unclassified codes.
 
 ## Table of Contents
 

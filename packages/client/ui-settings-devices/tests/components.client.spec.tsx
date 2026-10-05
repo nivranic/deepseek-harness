@@ -7,7 +7,7 @@ import type {
   DevicesSettingsSectionInjected,
   DevicesSettingsSectionProps,
 } from '../src/client/DevicesSettingsSection.tsx'
-import { en, type DevicesLocaleKey } from '../src/client/locales.ts'
+import { en, zh, type DevicesLocaleKey } from '../src/client/locales.ts'
 import type { DeviceView } from '@deepseek-ai/dsh-api-remotes/client'
 
 afterEach(cleanup)
@@ -95,6 +95,17 @@ describe('DevicesSettingsSection', () => {
     expect(revokedRow.querySelector('button')).toBeNull()
     const activeRow = screen.getByText('Pixel 9').closest('li')!
     expect(activeRow.querySelectorAll('button').length).toBe(2)
+  })
+
+  it('renders the revocation time on the revoked row only', async () => {
+    await renderReady()
+    const revokedRow = screen.getByText('MacBook').closest('li')!
+    expect(within(revokedRow).getByText(en.revokedAt.replace('{time}', 'T4000'))).toBeDefined()
+    const revokedAtText = new RegExp(`^${en.revokedAt.replace('{time}', '.+')}$`)
+    for (const name of ['Pixel 9', '办公室主机']) {
+      const row = screen.getByText(name).closest('li')!
+      expect(within(row).queryByText(revokedAtText)).toBeNull()
+    }
   })
 
   it('shows the empty state when the Host holds no grants', async () => {
@@ -189,5 +200,11 @@ describe('DevicesSettingsSection', () => {
     await renderReady(face)
     fireEvent.click(screen.getByRole('button', { name: en.refresh }))
     await waitFor(() => { expect(face.list).toHaveBeenCalledTimes(2) })
+  })
+
+  it('keeps a non-empty revoked-at label in both dictionaries', () => {
+    for (const dict of [en, zh]) {
+      expect(dict.revokedAt.length).toBeGreaterThan(0)
+    }
   })
 })
