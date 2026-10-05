@@ -112,6 +112,7 @@
     { "path": "./packages/client/ui-settings-plugin-inventory" },
     { "path": "./packages/client/ui-settings-devices" },
     { "path": "./packages/client/ui-settings-hosts" },
+    { "path": "./packages/client/ui-settings-telemetry" },
     { "path": "./packages/client/locale" },
     { "path": "./packages/client/ui-renderer" },
     { "path": "./packages/client/ui-session" },

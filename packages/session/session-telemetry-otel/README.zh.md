@@ -56,7 +56,7 @@ kind: "package-reference"
 | 字段 | 默认值 | 含义 |
 |---|---|---|
 | `mode` | `FEEDBACK_ONLY` | 共享策略：`FEEDBACK_ONLY` 或 `DISABLED` |
-| `consent` | 每类 `false` | 第 44 节分类型开关（`sessionTelemetry`、`providerMetadata`、`relayMetadata`、`deviceTrustMetadata`、`crashDiagnostics`）；后端强制执行 `sessionTelemetry` 类——关闭（默认）时不构建 SDK 管线、反馈留在本地并告警，`mode` 仍命名共享策略 |
+| `consent` | 每类 `false` | 第 44 节分类型开关（`sessionTelemetry`、`providerMetadata`、`relayMetadata`、`deviceTrustMetadata`、`crashDiagnostics`），作为组合层种子携带：组合了 user-settings 服务时，后端注册 `telemetry-consent` 命名空间（`base` = 该种子、user 层优先、restart 生效——用户改动在下次启动落地）；未组合该服务时，此记录即全部同意。后端强制执行 `sessionTelemetry` 类——关闭（默认）时不构建 SDK 管线、反馈留在本地并告警，`mode` 仍命名共享策略 |
 | `exporter.url` | 上传模式必填 | 完整 OTLP 日志端点；必须能解析为 `http(s)` |
 | `exporter`、`processor` | — | 原样传给 SDK 导出器与批处理器 |
 | `shutdownTimeoutMillis` | `3,000` | SDK 完整关闭序列的外层截止时间 |

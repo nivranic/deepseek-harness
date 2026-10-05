@@ -49,7 +49,7 @@ kind: "package-library"
 
 <a id="per-kind-consent"></a>
 
-后端同时暴露 `consent`：第 44 节的分类型同意记录，每个遥测数据类别一个布尔值——`sessionTelemetry`、`providerMetadata`、`relayMetadata`、`deviceTrustMetadata` 与 `crashDiagnostics`。每个类别默认关闭，没有总开关；部署按类别在后端配置中开启。`telemetryKindAllowed(consent, kind)` 是生产者在某一类别数据离开进程前调用的判断，`sharing` 仍然是上传策略。OpenTelemetry 后端已强制执行 `sessionTelemetry` 类：关闭（默认）时不构建 SDK 管线、反馈留在本地。
+后端同时暴露 `consent`：第 44 节的分类型同意记录，每个遥测数据类别一个布尔值——`sessionTelemetry`、`providerMetadata`、`relayMetadata`、`deviceTrustMetadata` 与 `crashDiagnostics`。每个类别默认关闭，没有总开关；部署在后端配置中按类别开启，类别名与 `telemetry-consent` 命名空间名由本包导出（`TELEMETRY_DATA_KINDS`、`TELEMETRY_CONSENT_NAMESPACE`），是词汇的唯一来源。后端接入 user-settings seam 时，该配置是命名空间的组合层种子：user 层优先，变更在重启后生效。`telemetryKindAllowed(consent, kind)` 是生产者在某一类别数据离开进程前调用的判断，`sharing` 仍然是上传策略。OpenTelemetry 后端已强制执行 `sessionTelemetry` 类：关闭（默认）时不构建 SDK 管线、反馈留在本地。
 
 ### 脱敏记录
 

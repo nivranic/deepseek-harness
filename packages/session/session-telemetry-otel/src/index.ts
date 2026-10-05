@@ -17,11 +17,14 @@ import z from '@deepseek-ai/schemastery'
 import type { Context } from '@deepseek-ai/cordis'
 import type {} from '@deepseek-ai/dsh-command-feedback'
 import type {} from '@deepseek-ai/dsh-message-feedback'
+import type {} from '@deepseek-ai/dsh-settings'
 import { Session, type SessionEvent } from '@deepseek-ai/dsh-session'
 import {
   SessionTelemetryBackend,
   SessionTelemetryCoordinator,
+  TELEMETRY_CONSENT_NAMESPACE,
   TELEMETRY_CONSENT_OFF,
+  TELEMETRY_DATA_KINDS,
   resolveTelemetryConsent,
   telemetryKindAllowed,
   type SessionTelemetrySink,
@@ -29,6 +32,7 @@ import {
   type SessionTelemetrySeverity,
   type SessionTelemetrySharingStatus,
   type TelemetryConsent,
+  type TelemetryDataKind,
 } from '@deepseek-ai/dsh-session-telemetry'
 import { APP_IDENTITY } from '@deepseek-ai/dsh-llm'
 import { getOrCreateAnonymousUserId } from '@deepseek-ai/dsh-anonymous-user-id'
@@ -108,8 +112,13 @@ export interface Config {
   mode?: SessionTelemetryMode
   /**
    * Section 44 per-kind telemetry consent: one boolean per data kind, every
-   * kind defaulting to off, no master switch. Resolved once at load into the
-   * backend's `consent` field; {@link mode} remains the upload policy.
+   * kind defaulting to off, no master switch. With the user-settings service
+   * composed this is the composition-layer SEED — it registers as the
+   * `telemetry-consent` namespace's base layer, the user layer wins, and the
+   * effect is restart-scoped because the pipeline gate is decided at
+   * construction. Without the service, this record is the whole consent.
+   * Either path resolves once at load into the backend's `consent` field;
+   * {@link mode} remains the upload policy.
    */
   consent?: Partial<TelemetryConsent>
   /**
@@ -132,6 +141,24 @@ export interface Config {
 }
 
 /**
+ * Build one consent-record schema: one boolean per section 44 data kind, every
+ * kind defaulting to off, no master key. Both homes of the five names — the
+ * plugin's own {@link Config.consent} field and the `telemetry-consent`
+ * settings namespace — call this builder off the seam's kind list, so they
+ * cannot drift apart. The input side stays per-key optional (a composition may
+ * seed a partial record) while the output side is always the complete record.
+ * @returns a fresh schema instance each call, so metadata attached to one home never reaches the other.
+ */
+function buildTelemetryConsentSchema() {
+  // Object.fromEntries widens the tuple's five entries to a string index; the
+  // assertion restores the per-kind keys the tuple covers by construction.
+  const fields = Object.fromEntries(
+    TELEMETRY_DATA_KINDS.map(kind => [kind, z.boolean().default(false)]),
+  ) as { [K in TelemetryDataKind]: z<boolean> }
+  return z.object(fields)
+}
+
+/**
  * Schemastery validator for {@link Config}; cordis runs it before the plugin
  * starts. It checks only the top-level fields; value checks live in the constructor
  * so their errors name the fields. Both SDK option objects pass through unchanged:
@@ -140,13 +167,7 @@ export interface Config {
  */
 export const Config: z<Config> = z.object({
   mode: z.union(Object.values(SessionTelemetryMode)).default(DEFAULT_TELEMETRY_MODE),
-  consent: z.object({
-    sessionTelemetry: z.boolean().default(false),
-    providerMetadata: z.boolean().default(false),
-    relayMetadata: z.boolean().default(false),
-    deviceTrustMetadata: z.boolean().default(false),
-    crashDiagnostics: z.boolean().default(false),
-  }).default(TELEMETRY_CONSENT_OFF),
+  consent: buildTelemetryConsentSchema().default(TELEMETRY_CONSENT_OFF),
   exporter: z.any(),
   processor: z.any(),
   shutdownTimeoutMillis: z.number(),
@@ -172,7 +193,11 @@ const SEVERITY: Record<SessionTelemetrySeverity, { severityNumber: SeverityNumbe
  * sessionTelemetry consent kind opted in wires the SDK pipeline and on-demand
  * {@link SessionTelemetryCoordinator}; `DISABLED`, or the kind withheld by the
  * section 44 default-off consent, constructs no SDK state and listens only to
- * warn when recorded feedback stays local.
+ * warn when recorded feedback stays local. Outside `DISABLED`, a composed
+ * user-settings service additionally receives the `telemetry-consent` namespace
+ * registration: the composition-layer consent seeds its base, the user layer
+ * decides the final record, and the restart-scoped effect means a user edit
+ * lands at the next start, never mid-run.
  */
 export class OpenTelemetrySessionBackend extends SessionTelemetryBackend {
   static inject = ['sessions']
@@ -195,6 +220,21 @@ export class OpenTelemetrySessionBackend extends SessionTelemetryBackend {
         if (isFeedback(session, event)) ctx.logger.warn(DISABLED_FEEDBACK_WARNING)
       })
       return
+    }
+    // The user-settings seam is resolved lazily and optionality is a legal
+    // composition, not misconfiguration (the gateway's device-trust
+    // precedent): with the service present, the composition-layer seed above
+    // registers as the `telemetry-consent` namespace's base and the user
+    // layer decides the final record; without it the seed stands as resolved.
+    // `applies: 'restart'` is honest — the gate below reads what this one
+    // construction resolves, so a user edit takes effect at the next start.
+    const settings = ctx.get('settings')
+    if (settings !== undefined) {
+      const scope = settings.register(TELEMETRY_CONSENT_NAMESPACE, buildTelemetryConsentSchema(), {
+        base: this.consent,
+        applies: 'restart',
+      })
+      this.consent = resolveTelemetryConsent(scope.get())
     }
     if (!telemetryKindAllowed(this.consent, 'sessionTelemetry')) {
       // §44 默认关闭: the deployment never opted this kind in, so no SDK

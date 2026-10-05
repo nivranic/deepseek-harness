@@ -136,13 +136,30 @@ export interface SessionTelemetrySink {
  */
 export type SessionTelemetrySharingStatus = 'full' | 'feedback-only' | 'disabled'
 
+/**
+ * Every telemetry data kind the section 44 consent record switches, exactly
+ * once each. Registrants of the `telemetry-consent` settings namespace derive
+ * their per-kind boolean fields from this list, and the union below reads its
+ * members out of it, so the kind names have one source.
+ */
+export const TELEMETRY_DATA_KINDS = [
+  'sessionTelemetry',
+  'providerMetadata',
+  'relayMetadata',
+  'deviceTrustMetadata',
+  'crashDiagnostics',
+] as const
+
 /** The five telemetry data kinds the section 44 consent record switches independently. */
-export type TelemetryDataKind =
-  | 'sessionTelemetry'
-  | 'providerMetadata'
-  | 'relayMetadata'
-  | 'deviceTrustMetadata'
-  | 'crashDiagnostics'
+export type TelemetryDataKind = (typeof TELEMETRY_DATA_KINDS)[number]
+
+/**
+ * User-settings namespace carrying the section 44 per-kind consent record. A
+ * backend that consumes consent through the user-settings seam registers one
+ * boolean field per {@link TelemetryDataKind} under this name; its
+ * composition-layer config seeds the namespace's base and the user layer wins.
+ */
+export const TELEMETRY_CONSENT_NAMESPACE = 'telemetry-consent'
 
 /**
  * Section 44 typed telemetry consent: one boolean per data kind, never one

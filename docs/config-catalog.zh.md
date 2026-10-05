@@ -2178,8 +2178,13 @@ export interface Config {
   mode?: SessionTelemetryMode
   /**
    * Section 44 per-kind telemetry consent: one boolean per data kind, every
-   * kind defaulting to off, no master switch. Resolved once at load into the
-   * backend's `consent` field; {@link mode} remains the upload policy.
+   * kind defaulting to off, no master switch. With the user-settings service
+   * composed this is the composition-layer SEED — it registers as the
+   * `telemetry-consent` namespace's base layer, the user layer wins, and the
+   * effect is restart-scoped because the pipeline gate is decided at
+   * construction. Without the service, this record is the whole consent.
+   * Either path resolves once at load into the backend's `consent` field;
+   * {@link mode} remains the upload policy.
    */
   consent?: Partial<TelemetryConsent>
   /**
@@ -2210,7 +2215,7 @@ export enum SessionTelemetryMode {
 
 依赖：`BatchLogRecordProcessorOptions`（`@opentelemetry/sdk-logs`）· `OTLPExporterNodeConfigBase`（`@opentelemetry/otlp-exporter-base`） · [`TelemetryConsent`](../packages/session/session-telemetry/src/index.ts)
 
-来源：[`packages/session/session-telemetry-otel/src/index.ts:104`](../packages/session/session-telemetry-otel/src/index.ts)
+来源：[`packages/session/session-telemetry-otel/src/index.ts:110`](../packages/session/session-telemetry-otel/src/index.ts)
 
 <a id="deepseek-aidsh-session-title"></a>
 
@@ -3612,6 +3617,7 @@ export interface Config {
 - `@deepseek-ai/dsh-client-ui-settings-models`（[`packages/client/ui-settings-models/src/index.ts`](../packages/client/ui-settings-models/src/index.ts)）
 - `@deepseek-ai/dsh-client-ui-settings-plugin-inventory`（[`packages/client/ui-settings-plugin-inventory/src/index.ts`](../packages/client/ui-settings-plugin-inventory/src/index.ts)）
 - `@deepseek-ai/dsh-client-ui-settings-plugins`（[`packages/client/ui-settings-plugins/src/index.ts`](../packages/client/ui-settings-plugins/src/index.ts)）
+- `@deepseek-ai/dsh-client-ui-settings-telemetry`（[`packages/client/ui-settings-telemetry/src/index.ts`](../packages/client/ui-settings-telemetry/src/index.ts)）
 - `@deepseek-ai/dsh-client-ui-sidebar`（[`packages/client/ui-sidebar/src/index.ts`](../packages/client/ui-sidebar/src/index.ts)）
 - `@deepseek-ai/dsh-client-ui-sidebar-documentpreview`（[`packages/client/ui-sidebar-documentpreview/src/index.ts`](../packages/client/ui-sidebar-documentpreview/src/index.ts)）
 - `@deepseek-ai/dsh-client-ui-sidebar-files`（[`packages/client/ui-sidebar-files/src/index.ts`](../packages/client/ui-sidebar-files/src/index.ts)）

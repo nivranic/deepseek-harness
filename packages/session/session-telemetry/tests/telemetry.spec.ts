@@ -18,7 +18,9 @@ import SessionStore, {
 import type { Agent } from '@deepseek-ai/dsh-agent'
 import {
   SessionTelemetryCoordinator,
+  TELEMETRY_CONSENT_NAMESPACE,
   TELEMETRY_CONSENT_OFF,
+  TELEMETRY_DATA_KINDS,
   resolveTelemetryConsent,
   telemetryKindAllowed,
   type SessionTelemetrySink,
@@ -718,5 +720,16 @@ describe('section 44 telemetry consent vocabulary', () => {
     // boolean true stays off rather than coercing truthy strings or 1.
     const hostile = { sessionTelemetry: 'yes', providerMetadata: 1 } as unknown as Partial<TelemetryConsent>
     expect(resolveTelemetryConsent(hostile)).toEqual(TELEMETRY_CONSENT_OFF)
+  })
+
+  it('names the settings namespace and lists exactly the five kinds once each', () => {
+    expect(TELEMETRY_CONSENT_NAMESPACE).toBe('telemetry-consent')
+    expect([...TELEMETRY_DATA_KINDS].sort()).toEqual([
+      'crashDiagnostics',
+      'deviceTrustMetadata',
+      'providerMetadata',
+      'relayMetadata',
+      'sessionTelemetry',
+    ])
   })
 })

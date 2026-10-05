@@ -9,6 +9,7 @@ import { afterAll, afterEach, beforeAll, describe, expect, expectTypeOf, it, vi 
 import { createServer, type Server } from 'node:http'
 import { once } from 'node:events'
 import { mkdtempSync, rmSync } from 'node:fs'
+import { writeFile } from 'node:fs/promises'
 import { tmpdir } from 'node:os'
 import { join } from 'node:path'
 import { gunzipSync } from 'node:zlib'
@@ -20,8 +21,9 @@ import { createAssistantMessage } from '@deepseek-ai/dsh-llm'
 import SessionStore, { SESSION_FORMAT_VERSION, Session, SessionId, SessionLogOffset, SessionSeq } from '@deepseek-ai/dsh-session'
 import MessageFeedbackService from '@deepseek-ai/dsh-message-feedback'
 import JsonlPersistence from '@deepseek-ai/dsh-session-persistence-jsonl'
+import FileSettingsProvider from '@deepseek-ai/dsh-settings-file'
 import OpenTelemetrySessionBackend, { Config, DEFAULT_TELEMETRY_MODE, SessionTelemetryMode } from '../src/index.ts'
-import { TELEMETRY_CONSENT_OFF, type TelemetryConsent } from '@deepseek-ai/dsh-session-telemetry'
+import { TELEMETRY_CONSENT_NAMESPACE, TELEMETRY_CONSENT_OFF, TELEMETRY_DATA_KINDS, type TelemetryConsent } from '@deepseek-ai/dsh-session-telemetry'
 
 interface Capture {
   headers: import('node:http').IncomingHttpHeaders
@@ -917,6 +919,137 @@ describe('OpenTelemetrySessionBackend consent resolution', () => {
     expect(transportRead).not.toHaveBeenCalled()
     await ctx.fiber.dispose()
   })
+})
+
+describe('OpenTelemetrySessionBackend settings consent seam', () => {
+  const ALL_ON: TelemetryConsent = {
+    sessionTelemetry: true,
+    providerMetadata: true,
+    relayMetadata: true,
+    deviceTrustMetadata: true,
+    crashDiagnostics: true,
+  }
+
+  /**
+   * Boot through the real file-backed settings provider so the user layer is
+   * the actual stored document; `doc` is its YAML text (an absent file when
+   * `undefined`, so only the base and schema layers resolve).
+   */
+  async function bootWithSettings(doc: string | undefined, config: Omit<Config, 'exporter'>) {
+    const { url, captures } = await mockCollector()
+    const root = mkdtempSync(join(tmpdir(), 'dsh-otel-settings-'))
+    if (doc !== undefined) await writeFile(join(root, 'settings.yaml'), doc)
+    const ctx = new Context()
+    await ctx.plugin(SessionStore)
+    await ctx.plugin(FileSettingsProvider, { path: join(root, 'settings.yaml'), watch: false })
+    const fiber = await ctx.plugin(OpenTelemetrySessionBackend, { ...config, exporter: { url } })
+    return { ctx, fiber, root, captures }
+  }
+
+  it('lets the user layer withhold the kind the composition seeded on', async () => {
+    const warnings: string[] = []
+    const { ctx, fiber, root, captures } = await bootWithSettings(
+      'telemetry-consent:\n  sessionTelemetry: false\n',
+      { mode: SessionTelemetryMode.FEEDBACK_ONLY, consent: { sessionTelemetry: true } },
+    )
+    try {
+      expect(ctx.sessionTelemetry.consent).toEqual(TELEMETRY_CONSENT_OFF)
+      ctx.logger.warn = (message: string) => { warnings.push(message) }
+      const session = ctx.sessions.create(SessionId('user-withheld'), { meta: {} })
+      session.append('request/header', { header: { config: { provider: 'mock', model: 'mock' } }, reason: 'initial' })
+      session.append('turn/start', { turn: 1 })
+      recordFeedback(session, { text: 'explicit report' })
+      await fiber.dispose()
+      expect(warnings).toContain('OpenTelemetry session upload is withheld: sessionTelemetry consent is off; this feedback is not uploaded through OpenTelemetry')
+      expect(captures).toEqual([])
+    } finally {
+      await ctx.fiber.dispose()
+      rmSync(root, { recursive: true, force: true })
+    }
+  })
+
+  it('lets the user layer opt the kind in over the all-off composition seed', async () => {
+    const { ctx, root, captures } = await bootWithSettings(
+      'telemetry-consent:\n  sessionTelemetry: true\n',
+      { mode: SessionTelemetryMode.FEEDBACK_ONLY, processor: { scheduledDelayMillis: 1 } },
+    )
+    try {
+      expect(ctx.sessionTelemetry.consent).toEqual({ ...TELEMETRY_CONSENT_OFF, sessionTelemetry: true })
+      const session = ctx.sessions.create(SessionId('user-opt-in'), { meta: {} })
+      session.append('request/header', { header: { config: { provider: 'mock', model: 'mock' } }, reason: 'initial' })
+      session.append('turn/start', { turn: 1 })
+      recordFeedback(session, { text: 'explicit report' })
+      await expect.poll(() => eventTypes(captures)).toEqual(session.snapshotEvents().map(event => event.type))
+    } finally {
+      await ctx.fiber.dispose()
+      rmSync(root, { recursive: true, force: true })
+    }
+  })
+
+  it('falls back to the composition-layer consent when no settings service is composed', async () => {
+    const { url, captures } = await mockCollector()
+    const ctx = new Context()
+    try {
+      await ctx.plugin(SessionStore)
+      expect(ctx.get('settings')).toBeUndefined()
+      const optedIn = await ctx.plugin(OpenTelemetrySessionBackend, {
+        mode: SessionTelemetryMode.FEEDBACK_ONLY, consent: { sessionTelemetry: true }, exporter: { url },
+      })
+      expect(ctx.sessionTelemetry.consent).toEqual({ ...TELEMETRY_CONSENT_OFF, sessionTelemetry: true })
+      await optedIn.dispose()
+      const seededOff = await ctx.plugin(OpenTelemetrySessionBackend, {
+        mode: SessionTelemetryMode.FEEDBACK_ONLY, exporter: { url },
+      })
+      expect(ctx.sessionTelemetry.consent).toEqual(TELEMETRY_CONSENT_OFF)
+      await seededOff.dispose()
+    } finally {
+      await ctx.fiber.dispose()
+    }
+    expect(captures).toEqual([])
+  })
+
+  it('registers the namespace with the seed base, restart timing, and the five-kind schema', async () => {
+    const { ctx, root } = await bootWithSettings(undefined, {
+      mode: SessionTelemetryMode.FEEDBACK_ONLY,
+      consent: { sessionTelemetry: true, providerMetadata: true },
+    })
+    try {
+      const seed = { ...TELEMETRY_CONSENT_OFF, sessionTelemetry: true, providerMetadata: true }
+      const provider = ctx.get('settings')!
+      const descriptor = provider.describe().find(entry => entry.ns === TELEMETRY_CONSENT_NAMESPACE)
+      expect(descriptor).toBeDefined()
+      expect(descriptor!.applies).toBe('restart')
+      expect(descriptor!.base).toEqual(seed)
+      expect(descriptor!.value).toEqual(seed)
+      // The serialized schema carries exactly one boolean field per data kind —
+      // a sixth "master" key would be the vocabulary violation this asserts on.
+      const schema = descriptor!.schema as {
+        uid: number
+        refs: Record<string, { type?: string; dict?: Record<string, unknown> }>
+      }
+      const node = schema.refs[String(schema.uid)]
+      expect(node?.type).toBe('object')
+      expect(Object.keys(node?.dict ?? {}).sort()).toEqual([...TELEMETRY_DATA_KINDS].sort())
+    } finally {
+      await ctx.fiber.dispose()
+      rmSync(root, { recursive: true, force: true })
+    }
+  })
+
+  it.each(['providerMetadata', 'relayMetadata', 'deviceTrustMetadata', 'crashDiagnostics'] as const)(
+    'withholds only the user-turned-off kind %s while the others keep the base',
+    async (kind) => {
+      const { ctx, root } = await bootWithSettings(
+        `telemetry-consent:\n  ${kind}: false\n`,
+        { mode: SessionTelemetryMode.FEEDBACK_ONLY, consent: ALL_ON },
+      )
+      try {
+        expect(ctx.sessionTelemetry.consent).toEqual({ ...ALL_ON, [kind]: false })
+      } finally {
+        await ctx.fiber.dispose()
+        rmSync(root, { recursive: true, force: true })
+      }
+    })
 })
 
 describe('dsh-session-telemetry-otel real-load-path guard', () => {

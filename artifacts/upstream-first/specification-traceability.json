@@ -5014,10 +5014,14 @@
       "owner": "Health、Readiness、Diagnostics 与 Support",
       "candidateEvidence": [
         "IMPLEMENTATION_STATUS.md",
-        "packages/session/session-telemetry/README.md",
-        "packages/session/session-telemetry-otel/README.md"
+        "packages/session/session-telemetry/src/index.ts",
+        "packages/session/session-telemetry-otel/src/index.ts",
+        "packages/session/session-telemetry-otel/tests/otel.spec.ts",
+        "packages/client/ui-settings-telemetry/src/client/TelemetrySettingsSection.tsx",
+        "packages/client/ui-settings-telemetry/tests/components.client.spec.tsx",
+        ".agents/notes/implemented/architecture/2026-10-06-telemetry-consent-settings.md"
       ],
-      "remaining": "§44 已按可落地部分落地：dsh-session-telemetry 增分类型同意词汇——TelemetryDataKind 五类（sessionTelemetry/providerMetadata/relayMetadata/deviceTrustMetadata/crashDiagnostics）、TelemetryConsent 逐类布尔记录、TELEMETRY_CONSENT_OFF 全关冻结默认、telemetryKindAllowed 生产者判断与 resolveTelemetryConsent 解析（非 true 一律关）；SessionTelemetryBackend 新增 abstract consent 与 sharing 并列；dsh-session-telemetry-otel Config 增 consent（schemastery 逐字段布尔校验、缺省全关、非布尔加载即拒）并在两种模式下构造解析、经 ctx.sessionTelemetry.consent 暴露，mode/sharing 仍是上传策略。sessionTelemetry 类已接线到唯一现存出口：OpenTelemetry 后端强制执行 telemetryKindAllowed(consent, 'sessionTelemetry')——关闭（默认）即 §44 默认关闭，不构建 SDK 管线、反馈留在本地并告警，共享披露仍命名 mode；base bundle 以 DSH_TELEMETRY_CONSENT=1 显式开启。provider/relay/deviceTrust/crash 各自的遥测出口随其生产者落地（crash 的本地记录源已由记录器增量落地）；崩溃记录器增量已闭合。",
+      "remaining": "§44 已按可落地部分落地：分类型同意词汇与解析如前（TelemetryDataKind 五类、逐类布尔、全关默认、非 true 一律关、非布尔加载即拒）；sessionTelemetry 类已接线到唯一现存出口（关闭即默认不建 SDK 管线、反馈留本地并告警，base bundle 以 DSH_TELEMETRY_CONSENT=1 显式开启组合层种子）。本代把同意接入运行时设置层并交付 UI：dsh-session-telemetry-otel 注册 telemetry-consent settings namespace（五布尔 schema 无 master 键、组合层 consent 作 base 种子、applies='restart' 如实声明——SDK 管线构造时门控不迁移，UI 变更下次启动生效），构造时按 user>base>默认 解析并经 resolveTelemetryConsent 收口（settings 服务未组合时惰性回退组合层，照 gateway deviceTrust 先例；DISABLED 模式无 namespace）；新包 dsh-client-ui-settings-telemetry 渲染五个独立开关（任何位置无总开关、namespace 缺席不渲染、写经 scope 版本围栏串行、冲突以重读值+行内提示呈现、restart 提示与五类描述双语 locale-owned），经 web-app bundle 组合——§44「UI 不得以单一总开关隐藏数据类型」与五类区分要求闭合。provider/relay/deviceTrust/crash 各自的遥测出口随其生产者落地（crash 的本地记录源已由记录器增量落地、出口待接线；relayMetadata 阻塞于 §23 宿主 relay 服务；provider attribution headers 是否计入遥测的语义裁定随其出口代际）。",
       "evidenceLimit": "这些路径是已定位的候选证据；尚未逐条证明本节每一项要求，不授予整节 PASS。"
     },
     {

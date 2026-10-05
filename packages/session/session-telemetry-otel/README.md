@@ -56,7 +56,7 @@ Uploading modes require an exporter URL and accept the SDK option blocks verbati
 | Field | Default | Meaning |
 |---|---|---|
 | `mode` | `FEEDBACK_ONLY` | Sharing policy: `FEEDBACK_ONLY` or `DISABLED` |
-| `consent` | every kind `false` | Section 44 per-kind switches (`sessionTelemetry`, `providerMetadata`, `relayMetadata`, `deviceTrustMetadata`, `crashDiagnostics`); the backend enforces the `sessionTelemetry` kind — with it off (the default), no SDK pipeline exists and feedback stays local with a warning, while `mode` keeps naming the sharing policy |
+| `consent` | every kind `false` | Section 44 per-kind switches (`sessionTelemetry`, `providerMetadata`, `relayMetadata`, `deviceTrustMetadata`, `crashDiagnostics`) carried as the composition-layer seed: with the user-settings service composed, the backend registers the `telemetry-consent` namespace (`base` = this seed, the user layer wins, restart-scoped — a user edit lands at the next start); without that service this record is the whole consent. The backend enforces the `sessionTelemetry` kind — with it off (the default), no SDK pipeline exists and feedback stays local with a warning, while `mode` keeps naming the sharing policy |
 | `exporter.url` | required in uploading modes | Full OTLP logs endpoint; must parse as `http(s)` |
 | `exporter`, `processor` | — | Passed verbatim to the SDK exporter and batch processor |
 | `shutdownTimeoutMillis` | `3,000` | Outer deadline for the SDK's complete shutdown sequence |
