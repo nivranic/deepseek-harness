@@ -5,91 +5,115 @@
   "candidateTrackedChanges": [
     {
       "path": "IMPLEMENTATION_STATUS.md",
-      "sha256": "8a7bb185b46e106ced64b93df6acf80f96cdbc5d8d4475ca6a746803a097fe3c"
+      "sha256": "4a966d592851a5202d43e1f14eec434bb4264eb8a0ca5dacf6480b90388ccb61"
     },
     {
       "path": "artifacts/upstream-first/evidence.json",
-      "sha256": "4d4fdf4501349ed2a86419c0711fdc6f604472ec840239ccb1dca84ba15c88a3"
+      "sha256": "b85ee2a3c22ac93c681cbe1d300242732e7d2bd9877490b4b364271e4e18afea"
     },
     {
       "path": "artifacts/upstream-first/specification-traceability.json",
-      "sha256": "43b5e1e8e325e3d24e6ee0349aa14d2f04ce915dfeda7aeb42ddc91888097ea3"
+      "sha256": "2d658069815b05caee4b302ba15d942ea0b552b6f42e0ad563da7d6110f470f0"
     },
     {
       "path": "artifacts/upstream-first/write-reports.mjs",
-      "sha256": "80ce7d79ed9b481170b5b93ce67e56437f3e1af43392f1cd1840f039006fa818"
+      "sha256": "f894eeda03ccc3064a5a33deb23acc81304d0cce6311b88e87bb0c5f548393f3"
     },
     {
       "path": "docs/config-catalog.i18n.yaml",
-      "sha256": "fb88324c947d1df6ce6e5c1ea8b8f275f082cb7eb33424c40e680cc116676476"
+      "sha256": "90731b6f4ca9a58fed593b9cc87c5597d8b597b9775b59fca35ba433c2f86619"
     },
     {
       "path": "docs/config-catalog.md",
-      "sha256": "a9db30d028db6994599df42d676c4493ebf0f1a92e332223cc58e59b7cbfcbc0"
+      "sha256": "ba4af56cb0d6f0fb4e198e346b8028434a028bcbbaf48af5a73e43aafdfabecf"
     },
     {
       "path": "docs/config-catalog.zh.md",
-      "sha256": "7a5da6c2af79985b7cc7c08effefdffb8bb81a1071ea64f8f20065739373c9cd"
+      "sha256": "96914079e9e3fffb4bd4f9503a71e06b10fd57d4c15f3d7f7e1aa7039dd858d7"
     },
     {
-      "path": "packages/api/host-diagnostics/README.i18n.yaml",
-      "sha256": "5892e6fe8b863be6d747b53d5cbbfe07ae26cca4429579255373c1e56d937ec8"
+      "path": "docs/event-producer-consumer.i18n.yaml",
+      "sha256": "0be3b482fcab989e176cb4781295c1cf15a0d011bec25893db0e01e1e5c99dc7"
     },
     {
-      "path": "packages/api/host-diagnostics/README.md",
-      "sha256": "b891208a914059e55281b4e0213d020e6799c5d99e79b28fbf68e370220c7ba0"
+      "path": "docs/event-producer-consumer.md",
+      "sha256": "bd54ed8cb7f8ad4fe7602807d6c3840f187902ddc5b2207ed348febfea471ae0"
     },
     {
-      "path": "packages/api/host-diagnostics/README.zh.md",
-      "sha256": "a418d80dfb2760d31287903ab2b516e316b79fdb31d3ae0654e36b645300788b"
+      "path": "docs/subsystems/device-trust.i18n.yaml",
+      "sha256": "9a368ca0428e2eef4e60dd096f693f66d183f80b9138385091c8e13dfa4b7ba4"
     },
     {
-      "path": "packages/api/host-diagnostics/package.json",
-      "sha256": "8807d0ffff79ca4c36513a9c5b3ffaa222c2ee27c0d294d2837f607ffe7d95e7"
+      "path": "docs/subsystems/device-trust.md",
+      "sha256": "0bbf24c8b9b599ca93f1f3659c4e064389b7954a0480d51e95dedfe46526a91f"
     },
     {
-      "path": "packages/api/host-diagnostics/src/recorder.ts",
-      "sha256": "39b81c07b43b144f065abf1b24443d2ad7d6d4720f44f6f5e908bf669312a3d9"
+      "path": "docs/subsystems/device-trust.zh.md",
+      "sha256": "d6343b3d45b8eacbfb3ca229dd43edc8f9e99d281416655d98d0e48e5b3fe917"
     },
     {
-      "path": "packages/api/host-diagnostics/tests/diagnostics.spec.ts",
-      "sha256": "9397b2d75b1f4eeb0a049e29af8ef78f64d98d7aac825f1578cd7871c299657f"
+      "path": "packages/api/device-trust/README.i18n.yaml",
+      "sha256": "d72206ab04b769c25c081bb585ce54cd5dab3ef07245aed3ba64097e8865b319"
     },
     {
-      "path": "packages/api/host-diagnostics/tsconfig.host.json",
-      "sha256": "8cc8c17bb7ac543a1342cece2bb0b996728d33086b3e8449630be9dc8f0210d2"
+      "path": "packages/api/device-trust/README.md",
+      "sha256": "5476917832e3bfe430061e765a148365a701b65915926d4a6541abe4972574ce"
     },
     {
-      "path": "packages/api/host-diagnostics/tsconfig.json",
-      "sha256": "af4df4091dc83739b38c73367d3056605496891a9fa7641fc6c204dd46169c05"
+      "path": "packages/api/device-trust/README.zh.md",
+      "sha256": "7f1aa024afbb8e1962a5fc1b52ec4a27bc47567016237a484bf4d9c8ad1f145c"
+    },
+    {
+      "path": "packages/api/device-trust/package.json",
+      "sha256": "f379370b052d0d42918800b2225173de9d5b83f917309f8304ff42239bbbb094"
+    },
+    {
+      "path": "packages/api/device-trust/src/index.ts",
+      "sha256": "3bbc2e3df9407f2759d8a290eca393de1d95bed610801b27322857393c0d5822"
+    },
+    {
+      "path": "packages/api/device-trust/tests/device-trust.host.spec.ts",
+      "sha256": "65f58e028af21bb69b72a15045bd260302588a9d653466cb34ac86f3edd83ab5"
+    },
+    {
+      "path": "packages/api/device-trust/tsconfig.host.json",
+      "sha256": "a2772e55d15025c1a0ee6456d014a5b98dd034912e5a461ce64a4b38b8d9c18c"
+    },
+    {
+      "path": "packages/api/device-trust/tsconfig.json",
+      "sha256": "f5fb4d4ca5b6837feb28b30333e28486bd02341a090bcda88dc6fe21ec6b5677"
     },
     {
       "path": "packages/bundle/base/cordis.patch.yml",
-      "sha256": "420bfdb76dc82f2e823605486aa7de070ef59a85cd6c50531c69a0718c31dc6f"
+      "sha256": "bae409d400f3151a44bbc3173706fc4d7bde5e589f95b743fc93d7fe1e1a8bd6"
+    },
+    {
+      "path": "packages/extensions/tool-cordis/src/api-catalog.ts",
+      "sha256": "b0241770cee750b43c891fe626794abd1aaf7fe1086f1db1c5cf6547ebb2d708"
     },
     {
       "path": "packages/session/session-telemetry-otel/README.i18n.yaml",
-      "sha256": "7851090cf8a43d064e468fbcf6bc5103aa18d3c6873bbac90cac5a22baa87847"
+      "sha256": "39fd34dbecb159469d93ff00eb7a38ddf20461bfb41755f80736fe0fb9a479a7"
     },
     {
       "path": "packages/session/session-telemetry-otel/README.md",
-      "sha256": "96a6453c4c198836c9797c65325fbb3e4d35c3a9c8b7e96a2ee59f5a3c5d8be6"
+      "sha256": "d2eb713a89d25c4ecb2bd7bccca3dbe046e845d8a150ae38e5143a6131feaaeb"
     },
     {
       "path": "packages/session/session-telemetry-otel/README.zh.md",
-      "sha256": "2d88f7e4856fa006736917454b72effd2f3c413a82257c8b06a2670edc61c13d"
+      "sha256": "7f8ed96660d50738c716b01b36791e828af2777c6bc95efaa45a5dd4596383a4"
     },
     {
       "path": "packages/session/session-telemetry-otel/src/index.ts",
-      "sha256": "5fea56c268a63cd7957bdbc0823c81c5e697362ea92b57046f73a78c468cb306"
+      "sha256": "1f296a351dc5703852ee8b69a30f744f755233ecaf46dd4141d9012c1efc48de"
     },
     {
       "path": "packages/session/session-telemetry-otel/tests/otel.spec.ts",
-      "sha256": "ab3c0dcfded4c6e3852916216987f54d06a207070928811da4090ba4917bead0"
+      "sha256": "783fe8e9fa621e9fc0fbc7a4fd1a47308728647927ecaa0925036010ed25b5e4"
     },
     {
       "path": "pnpm-lock.yaml",
-      "sha256": "b79b934c50e04c222da49ac5ed464118cb6e97b2342bb76aef9e326053cd154a"
+      "sha256": "9170aa7d0a645a9ae02f056eb0daa85f12409efd437cfec255a21b0cde14acbb"
     }
   ],
   "candidateUntrackedSourceChanges": [],
@@ -11736,6 +11760,48 @@
     },
     {
       "status": "PASS",
+      "command": "gradle acceptance round on apps/android (Windows host, scanner env with -PdshNativeAcceptance, task set :app:assembleDebug :app:assembleDebugAndroidTest :core:test): BUILD SUCCESSFUL in 1m 44s with 70 actionable tasks of which 1 executed and 69 up-to-date — the warm-replay form (:app:verifyScannerResources is the single executed task; :contract:/:core:compileKotlin, :app:compileDebugKotlin, :app:assembleDebug, :app:assembleDebugAndroidTest and the whole debug face chain stayed UP-TO-DATE, and :core:test itself reached the graph and stayed UP-TO-DATE; this round's task graph never reaches :app:assembleRelease) because nothing under apps/android changed this generation (the TypeScript package sources, the catalogs, the doc graphs and the traceability changed — the section 44 ledger rewrite and the deviceTrust outlet; no Kotlin, no device lane ran and the emulator stayed off; the debug and androidTest APK bytes verified IDENTICAL against the crash-diagnostics-outlet record builtFiles entries — .artifacts/device-trust-outlet-apk-bytes.log, the fifth consecutive byte-identical generation), and the still-standing core XML reports under apps/android/core/build/test-results aggregate 77 suites / 477 tests / 0 failures / 0 errors / 0 skips (the core test task stayed warm, so the last executed round's reports stay in place; recorded in .artifacts/device-trust-outlet-core-results.json); Executed the scanner-env gradle acceptance round on apps/android (Windows host): ./gradlew under -PdshNativeAcceptance over :app:assembleDebug :app:assembleDebugAndroidTest :core:test came back BUILD SUCCESSFUL in 1m 44s with 70 actionable tasks of which 1 executed and 69 up-to-date — the warm-replay form (:app:verifyScannerResources is the single executed task; :contract:/:core:compileKotlin, :app:compileDebugKotlin, :app:assembleDebug, :app:assembleDebugAndroidTest and the whole debug face chain stayed UP-TO-DATE, and :core:test itself reached the graph and stayed UP-TO-DATE) — because this generation changes nothing under apps/android (the increment is the section 44 deviceTrustMetadata outlet: the producer side converging revokeDevice and revokeAllDevices through reportRevocation(revokedAt, deviceCount) over the optional structured owner — the consent read at the revocation path from the construction-frozen snapshot, silent with the gate closed, the revocation RPC behavior unchanged, the payload minimized to revokedAt plus deviceCount with severity info so no deviceId, fingerprint, role or key ever leaves, and a no-op revoke-all over zero active grants emitting nothing because no event fires — plus the tsconfig dual-face reference mirroring gen-39's type-only dependency; the otel outlet side widening the constructor gate to the sessionTelemetry||crashDiagnostics||deviceTrustMetadata three-kind disjunction with the url/batch-size/shutdown validations reaching the deviceTrust-only opt-in, opsEmit created when crash or deviceTrust is on (the per-kind widening gen-39 predicted), the self-draining fiber teardown comment generalized to non-session outlets with the logic unchanged, and DISABLED keeping the master switch; plus the section 44 ledger rewrite: remaining 980 to 1482 characters with candidateEvidence 9 to 12, the cordis catalog and doc graph regenerations with their pairings, the config-catalog regeneration with its zh mirror including the device-trust Source :61 to :76 lag fix, and the note trio). No device lane ran this generation and the emulator stayed off, so the empty-derived byte proof compares against the prior generation's own record: the debug APK and the androidTest APK both replay byte-identically with the crash-diagnostics-outlet record's builtFiles sha256 entries (.artifacts/device-trust-outlet-apk-bytes.log) — the fifth consecutive byte-identical android acceptance generation — and :core:test stayed UP-TO-DATE so the still-standing core XML reports under apps/android/core/build/test-results keep aggregating 77 suites / 477 tests with zero failures, errors and skips (aggregated into .artifacts/device-trust-outlet-core-results.json) — the round reports 477 tests through that XML aggregate (the model-steer Kotlin JVM round precedent), not through any executed test; 1 file / 477 tests green",
+      "log": ".artifacts/device-trust-outlet-gradle.log",
+      "sourceRecord": "artifacts/upstream-first/device-trust-outlet-source.json"
+    },
+    {
+      "status": "PASS",
+      "command": "vitest run --config vitest.config.ts over the 87-file client spec lineage — this generation's curated list rebuilt file by file from the prior generation's audit log into .artifacts/device-trust-outlet-audit-file-list.txt after the first attempt wrongly ran the packages/client full glob (410 files including 4-5 pre-existing baseline reds) and was discarded (the lineage is a historical lineage, not the client full set: the device-trust spec is an api host face staying off it by the recorded ruling, riding its lane's targeted verification plus the CI full matrix, the same treatment as the gen-36 seven host specs and the gen-38/39 lanes); the serial double round went 87 files / 1073 tests green on both passes via the Test Files/Tests summary lines (audit-tests.log with the EXIT_CODE=0 trailer and audit-final.log, no -r1 rerun log exists), every count asserted from log content — the standing lesson that a background command's notification exit code is masked by the trailing command",
+      "log": ".artifacts/device-trust-outlet-audit-tests.log",
+      "sourceRecord": "artifacts/upstream-first/device-trust-outlet-source.json"
+    },
+    {
+      "status": "PASS",
+      "command": "the repo-wide lint round sealed in its honestly recorded chained single-trailer form (the npm build:lib:host plus typecheck:contracts-ready chain's script echo with the host-build `> node … tsc -b tsconfig.host.json && tsdown` command line and the `> tsc -b tsconfig.client.json` typecheck face, then the build:lib:host plus lint:contracts-ready chain with the tsx scripts/run-oxlint.ts . command line, closing on the single EXIT_CODE=0 trailer for the whole log and the clean oxlint summary — Found 0 warnings and 0 errors in 96.2s on 3851 files, zero TypeScript diagnostics, no TYPECHECK_EXIT and no LINT_EXIT labelled trailer in the log, which this generation's round honestly never wrote); this generation's lanes needed no oxlint rework — both went green on their first pass (the lane A tsconfig references fix predates the sealed round) — and the repo-wide round itself passed on its first invocation",
+      "log": ".artifacts/device-trust-outlet-types-lint.log",
+      "sourceRecord": "artifacts/upstream-first/device-trust-outlet-source.json"
+    },
+    {
+      "status": "PASS",
+      "command": "pnpm test:docs equivalent (doc-quick, 17 gates passed / 0 failed) — recorded in its own docs log (the two-file split), the command line carrying the direct shell-echo form inside; the round went green in 62.84s as the post-repair rerun after the first round's 15/2",
+      "log": ".artifacts/device-trust-outlet-docs.log",
+      "sourceRecord": "artifacts/upstream-first/device-trust-outlet-source.json"
+    },
+    {
+      "status": "PASS",
+      "command": "doc-sync (36 gates passed / 0 failed / 0 skipped in 202.00s; the note trio pairing, the cordis catalog regeneration, the config-catalog regeneration with its zh mirror and the section 44 remaining rewrite at 1482 characters with candidateEvidence 12 ride the repository state the gates checked) — recorded in its own docsync log, the post-repair green run",
+      "log": ".artifacts/device-trust-outlet-docsync.log",
+      "sourceRecord": "artifacts/upstream-first/device-trust-outlet-source.json"
+    },
+    {
+      "status": "PASS",
+      "command": "node artifacts/upstream-first/verify-audit.mjs --require-gate0",
+      "log": ".artifacts/device-trust-outlet-gate0-final.log",
+      "sourceRecord": "artifacts/upstream-first/device-trust-outlet-source.json"
+    },
+    {
+      "status": "PASS",
+      "command": "node .artifacts/prepare-device-trust-outlet.mjs — the before archive written from the crash-diagnostics-outlet record in one pass (7675 files, 0 reused) with the unresolved scan sealing ELEVEN replaced prior build outputs (the Option A form per the gen-38 precedent: the clean-rebuild oracle re-emitted exactly the device-trust package's eight lib outputs plus tool-cordis's three — the api-catalog pair and the tsdown bundle lib/index.js — every one of them carried at its sealed bytes by an older archive on the prior record's own historicalRecords chain, so the drift resolves through the newest-history fallback after the advance rewrite and nothing needs a generator set), so the generator gains no device-trust-outlet replaced-build-output set and this generation's advance seals no adjudication layer — and every prior generation's own set stays exactly as sealed at HEAD, including the gen-30 four-key approvalFactsCompleteReplacedBuildOutputs set, the gen-32 round-1 repair's atomicDurabilitySupersededSources and desktopPackageReplacedBuildOutputs rulings, and the gen-33 three-key tornRepairIntentReplacedBuildOutputs set committed with the HEAD content; the first-run oracle rejection is recorded as it happened (the ten-key pre-measure from worktree incremental-build hashes failed the allowlist assertion before any archive write — the oracle also exposes the tsdown bundle key — and the rerun backfilled the oracle-measured eleven, the gen-38 same-type precedent)",
+      "log": ".artifacts/device-trust-outlet-prepare.log",
+      "sourceRecord": "artifacts/upstream-first/device-trust-outlet-source.json"
+    },
+    {
+      "status": "PASS",
       "command": "Workspace and Conversation source regression before shared readiness correction",
       "tests": 599,
       "log": ".artifacts/workspace-admission-tests-final.log",
@@ -12466,7 +12532,329 @@
       ]
     }
   },
+  "deviceTrustOutlet": {
+    "status": "PASS",
+    "sourceRecord": "artifacts/upstream-first/device-trust-outlet-source.json",
+    "scope": "§44 deviceTrustMetadata 出口交付代（device-trust-outlet）。规格钉准：五类区分中 deviceTrust 本地事实早已存在（device-trust 包 durable grants 全生命周期：grantsRevoked 事件、lastAdmittedAt/admissionNonces/revokedAt 本地记录链完整），唯独零外发、deviceTrustMetadata 开关无生产者可门控——与 gen-39 crash 出口同构（选向经四候选测绘：providerMetadata 需语义裁定、§56 revision 钉于 §42 且被签名材料卡、fork/execute clientMutationId 面宽，deviceTrust 词汇表已有 kind 且 §44 未列阻塞）。主会话四裁定：①载荷最小化（revokedAt+deviceCount，绝不外发 deviceId/指纹/角色/密钥——准标识符最小外发面；severity=info 操作者安全动作非故障）；②门控=发射点读 owner 构造冻结 consent（restart 语义；与 recorder 构造快照差异=撤销是运行时事件、注册表静态无顺序耦合）；③跨包=producer 推+可选结构化 owner+type-only 依赖（照 recorder 先例）；④范围=revocation-only（admission 无既有事件刻意不发明，零撤销 revoke-all 与事件条件镜像零上报）。实现两件：生产者侧 TelemetryOwner 本地接口+deviceTrustMetadataAllowed 特化（JSDoc 引 telemetryKindAllowed 权威）+reportRevocation(revokedAt, deviceCount) 收口 revokeDevice（deviceCount=1）与 revokeAllDevices（仅实际撤销分支），owner 撤销路径现取、缺席/门关=零调用零异常静默、撤销 RPC 行为零变化；出口侧构造门三 kind 析取（url/批大小/shutdown 校验随达 deviceTrust-only opt-in）、opsEmit 创建门按类放宽（crash||deviceTrust，gen-39 预告兑现）、自排空 fiber 注释泛化为非 session 出口（逻辑不变）、五处 JSDoc 三 kind 同步、DISABLED 总闸零外发。零运行时依赖（type-only devDep+tsconfig 双面 reference 镜像 gen-39）。执行双车道并行一次全绿零返修（A：device-trust 5 新例合 44——缺席零异常/门关静默/恰一条键集断言+JSON 不含 deviceId 值/N 台恰一条 deviceCount=N/零活跃零记录；B：otel 4 新例合包族 69——deviceTrust-only 到 mock collector 断言 /ops scopeName/三 kind 全关无 SDK/crash 关+deviceTrust 开 opsEmit 生效 ledger 仍丢/DISABLED 零外发，零既有用例改写；集成合跑 113/113+tsc -b 双 0）。执行波折如实：车道 A 顺带修复既有缺口——device-trust client 叶 tsconfig 从未引用其实际 import 的 storage/storage-domain 两工程（陈旧 tsbuildinfo 掩盖、根 solution 不构建该叶故 CI 未暴露），同变更补 references；pnpm-lock +3 行（devDep 机械伴随，frozen 安装验证）。主会话修复四轮：①note zh 切换行语序（须镜像 gen-39 形态 [English](…md) | 中文，--write 后未跑全检即暴露——写后必验重申）；②device-trust README Summary 106 词超 100 上限（双面收紧尾部句）；③cordis catalog（api-catalog.ts+subsystem device-trust 三件，devDep 变更触发）与 doc graphs（event-producer-consumer 图）陈旧再生成+配对重录；④config-catalog 因 otel Config JSDoc 三 kind 改写再生成+zh 手镜（含 device-trust Source :61→:76 陈年滞后顺带修正）。审计口径波折如实：首跑误用 packages/client 全量 glob（410 文件含 4-5 个既有基线红）——真口径是 87 文件 curated 清单世系，从前代审计日志逐文件重建（device-trust-outlet-audit-file-list.txt，87 相对路径实测）；重建后双轮 87/1073 两连绿。门禁全绿（计数读日志内容）：types-lint 0 warnings 0 errors EXIT 0 一次过（链式单尾，无 TYPECHECK_EXIT/LINT_EXIT token）；test:docs 17（62.84s）与 doc-sync 36（202.00s）双双修复轮后全绿（首轮 doc-quick 15/2 败）；traceability node --test 6/6（真入口 specification-traceability.test.mjs；§44 remaining 980→1482 字、candidateEvidence 9→12 含 device-trust src/两 spec/note）；审计 87 文件串行双轮 87/1073 两连绿（device-trust spec 为 api host 面不入 client 清单世系，与 gen-36/38/39 同待遇）；gate0 双形态 PASS（1938 paths/129 components/81 sections/1983 lines）；base cordis 155 与 base spec 2/2、integration 113/113。本代无 Kotlin/Swift 改动：gradle 验收轮（scanner env+-PdshNativeAcceptance，任务集 :app:assembleDebug :app:assembleDebugAndroidTest :core:test）BUILD SUCCESSFUL in 1m 44s、70 任务 1 executed 69 up-to-date（warm；:core:test 抵达任务图且 UP-TO-DATE），两枚 APK 与 crash-diagnostics-outlet 记录 builtFiles sha256 逐字节一致（device-trust-outlet-apk-bytes.log 两行 IDENTICAL、prior apk records: 2，第五代连续字节同源）、core XML 聚合 77 套件/477 测试 0 失败（device-trust-outlet-core-results.json）。lib 漂移=11 键（device-trust 8+tool-cordis 3：api-catalog 两件+tsdown bundle lib/index.js）——Option A 形态（gen-38 先例）：全键由 prior 记录自身 historicalRecords 链上更早归档（android-input-retention 承 device-trust 8 键、connection-gate-locale 承 tool-cordis 3 键）按密封字节承接，write-reports 零新集合、advance 改写后 newest-history 回退。prepare 序如实：首跑预量 10 键用工作树增量构建哈希，prepare 的 unresolved-scan 是净重建 oracle（隔离确定性重建字节，且多暴露 tool-cordis bundle 一键）——allowlist 断言在写归档前正确拒绝，按断言吐出的 oracle 实测集回填 11 键重跑（gen-38 同型先例）；一次过 files 7675/0 reused/7675 written/replacedPriorBuildOutputs 11——零裁定层（裸 HEAD 复位即可无需重放），既有六组集合未动；make-prepare 13 替换对一次全中（prior 与 prior-prior 审计计数同为 1073，计数断言对规则不触发）。台账名 device-trust-outlet（camelCase=deviceTrustOutlet；write-reports 与 .artifacts 双 grep 零碰撞）。provider/relay 两出口随生产者待落地（relay 阻塞 §23；provider attribution headers 语义裁定随其代际）、loader-composition e2e 基线红仍开放，不授予整节 PASS；完整目标未完成",
+    "repositoryKnownCodes": 84,
+    "uniqueOwners": 14,
+    "missingSemanticCommentsAdded": 49,
+    "packagedFiniteCodeSchema": true,
+    "sourceDeclarationsRemainExtensible": true,
+    "unknownCodeDiagnosticsPreserved": true,
+    "detailsPayloadSchema": false,
+    "nativeClientQualified": false,
+    "runtimeBehaviorChanged": true,
+    "newSessionEvents": false,
+    "phase3Complete": false,
+    "fullGoalComplete": false,
+    "resultInvalidMeaningMatchesEmitter": true,
+    "historicalSchedulerArchivePreserved": true,
+    "compilerIndependentDetailsGraphs": true,
+    "hostAndClientSeparate": true,
+    "builtModelMatchesSource": true,
+    "portableDetailsPayloadSchema": false,
+    "readonlyArrayAndTupleEmission": true,
+    "parsedReadonlyContainersFrozen": true,
+    "portableValidationIssueFields": true,
+    "compilerResolvedErrorDetails": true,
+    "resolvedFaceCodePairs": 144,
+    "overlappingSchemasCompared": 60,
+    "detailsSchemaPublished": false,
+    "formalEnvelopeSchemaEmitted": true,
+    "envelopeSchemaKnownBranches": 84,
+    "envelopeUnknownCodeExcludesKnownCodes": true,
+    "envelopeTupleDetailsRejected": true,
+    "envelopeLocalPackConsumed": true,
+    "envelopeRegistryPublished": false,
+    "remoteFailureClassification": true,
+    "classifiedCodes": 28,
+    "unknownCodeDefaultOpaque": true,
+    "gatewayClientConsumesClassification": true,
+    "classificationInventoryVerified": true,
+    "kotlinContractColumn": true,
+    "kotlinSchemaTests": 8,
+    "kotlinMirrorProjection": true,
+    "swiftColumn": false,
+    "androidShellMigrated": false,
+    "phase10Started": true,
+    "failureClasses": 9,
+    "invalidInputClass": true,
+    "uiAdoptionStarted": true,
+    "uiSurfacesAdoptingClassification": 2,
+    "swiftContractColumn": true,
+    "swiftSchemaTests": 4,
+    "swiftPayloadValidation": false,
+    "interactionReplyPermissions": true,
+    "interactionPermissionHostEnforced": true,
+    "interactionPermissionConfigurable": true,
+    "deviceTrustRolesReplaceSwitch": false,
+    "androidCoreMigrated": true,
+    "androidCoreTestClasses": 37,
+    "androidAppSourcesMigrated": true,
+    "androidAppConfigured": true,
+    "androidShellCompiled": false,
+    "androidScannerChainBlocked": true,
+    "swiftCheckExecutable": true,
+    "swiftLaneRunner": "macos-15-arm64",
+    "swiftLaneRecovered": true,
+    "diagnosticsOnlyTier": true,
+    "diagnosticsOnlyAdmittedEndpoints": 2,
+    "unknownVersionRejectUnchanged": true,
+    "responsivePhoneDrawer": true,
+    "phoneTierSidebarTrackZero": true,
+    "drawerWidthPx": 280,
+    "drawerDismissalPaths": 2,
+    "leftInputRegionSessionMaybe": true,
+    "frameColumnsExplicitlyPlaced": true,
+    "scannerAarBuilt": true,
+    "scannerAarStaticVerification": "PASS",
+    "scannerAarSourceSha": "8ca9f6ebf33de3912292416b85f5b510c88de9a3",
+    "assembleDebugGatePassed": true,
+    "emulatorMainActivityResumed": true,
+    "gatewayFailureConsumption": true,
+    "envelopeDetailsPreservedBothPaths": true,
+    "sharedClassificationDrivesPresentation": true,
+    "unknownCodesStayOpaque": true,
+    "uiSubagentClassificationAdopted": true,
+    "adoptingSurfacesCount": 5,
+    "queueDockClassificationAdopted": true,
+    "jobsFailureClassThreaded": true,
+    "sessionJobWireFieldAdditive": true,
+    "androidRefusalLaneDriven": true,
+    "ed25519KeyGenerationBundled": true,
+    "filesFollowStreamStarted": true,
+    "jobsProducerAdoptionVoid": true,
+    "linkAccessTakeoverDecided": true,
+    "remotePackagesStayRetired": true,
+    "gatewayOwnsDeviceAccess": true,
+    "deviceTrustSeamLanded": true,
+    "pairingIssuanceLive": true,
+    "knownErrorCodes": 89,
+    "deviceGrantsDurable": true,
+    "pairingCodesProcessLocalByDesign": true,
+    "deviceRolesMatchSection21Table": true,
+    "roleMappedReplyPermissions": true,
+    "signedAdmission": true,
+    "connectionStatesCompleteSection18": true,
+    "deviceRevokedStatePresent": true,
+    "protocolInteropMatrixPinned": true,
+    "section14VersionAxisEvidence": true,
+    "perRequestDeviceAdmission": true,
+    "capabilityRequiredPermissionVocabulary": true,
+    "remoteExecutionAuthorizationGated": true,
+    "sessionCapabilitiesDeclarePermissions": true,
+    "sessionReadWriteSplits": true,
+    "businessPermissionAdoptionStarted": true,
+    "workspaceCapabilitiesDeclarePermissions": true,
+    "remainingOwnersDeclarePermissions": true,
+    "admissionReplayLedger": true,
+    "androidClientSignsAdmissions": true,
+    "deviceIdentityConfirmation": true,
+    "devicesSettingsSurface": true,
+    "branchGateDebt": true,
+    "safeAreaInsets": true,
+    "keyboardAvoidance": true,
+    "foldableFrame": true,
+    "runningLocation": true,
+    "phoneTopBar": true,
+    "designLanguage": true,
+    "hostNaming": true,
+    "commandRisk": true,
+    "approvalFacts": true,
+    "followResume": true,
+    "viewLocation": true,
+    "composerGate": true,
+    "hostDiagnostics": true,
+    "supportBundle": true,
+    "telemetryConsent": true,
+    "diagnosticsRecorder": true,
+    "sessionHeadersEntry": true,
+    "settingsEntry": true,
+    "telemetryGate": true,
+    "savedHosts": true,
+    "degradedProbes": true,
+    "permissionTierChip": true,
+    "durableRetainedAnswers": true,
+    "unifiedDiffPreview": true,
+    "binaryFactCard": true,
+    "retargetableEndpoint": true,
+    "rosterSwitch": true,
+    "rosterUi": true,
+    "interruptedTransfer": true,
+    "mimeInference": true,
+    "hostSelectionObserver": true,
+    "diffReadableCopy": true,
+    "diffRichViewer": true,
+    "browserHostOrigin": true,
+    "deviceAdmissionLifecycle": true,
+    "nativePairing": true,
+    "nativeRemoteTls": true,
+    "nativePairingPresentation": true,
+    "androidNativeGatewayCore": true,
+    "androidNativeCompanion": true,
+    "androidNativeLifecycle": true,
+    "androidRepairing": true,
+    "androidCredentialRecovery": true,
+    "androidSessionList": true,
+    "androidInputRetention": true,
+    "androidInputPersistence": true,
+    "androidPromptRetry": true,
+    "androidHostRoster": true,
+    "androidViewLocation": true,
+    "androidCursorResume": true,
+    "androidResourceAdoption": true,
+    "androidNativeDiagnostics": true,
+    "nativeScannerAdoption": true,
+    "nativeScannerCandidate": true,
+    "nativeScannerSameSourceVerified": true,
+    "nativeScannerRepeatByteIdentical": true,
+    "nativeScannerBinarySymbolScan": true,
+    "androidCapabilityPresentation": true,
+    "androidCapabilityGenerationIsolation": true,
+    "androidCapabilityReadOnlyRefresh": true,
+    "androidOperationCapabilities": true,
+    "androidKnownOperationPreflight": true,
+    "androidCapabilityDraftRetention": true,
+    "androidSubagentTimeline": true,
+    "androidSelectedParentCatalog": true,
+    "androidChildObservationRetirement": true,
+    "androidCompleteResourceSave": true,
+    "androidResourceSavePickerOwnership": true,
+    "androidResourceSaveIndependentBytes": true,
+    "androidEncryptedDownloadCheckpoints": true,
+    "androidExplicitDownloadContinuation": true,
+    "androidDownloadJvmInterruptionRecovery": true,
+    "androidPersistentDownloadAdoption": true,
+    "androidDownloadDiskExport": true,
+    "androidInstalledDownloadProcessRecovery": true,
+    "androidDownloadHostIsolation": true,
+    "androidAcceptanceApkAdmission": true,
+    "androidFilesPickerAttachments": true,
+    "androidDurableFilePromptIntents": true,
+    "androidFileDraftProcessRecovery": true,
+    "androidFilePickerAuthority": true,
+    "hostStagedImageAdmission": true,
+    "androidPhotosPickerAttachments": true,
+    "androidDurableMixedAttachmentIntents": true,
+    "androidPhotoDraftProcessRecovery": true,
+    "androidCameraStagedImages": true,
+    "androidCameraOwnedOutputCleanup": true,
+    "androidCameraProcessRecovery": true,
+    "androidShareExplicitConfirmation": true,
+    "androidShareAtomicDraftAdoption": true,
+    "androidShareRestorationIsolation": true,
+    "androidViewDeepLinksCurrentHostNavigation": true,
+    "androidViewDeepLinksDeliveryIsolation": true,
+    "androidViewDeepLinksInputPreservation": true,
+    "androidPushForegroundRecovery": true,
+    "androidPushBackgroundProducerRetention": true,
+    "androidPushNotificationConsumption": true,
+    "androidNotificationPermission": true,
+    "androidNotificationSettingsRecovery": true,
+    "androidNotificationProcessRequestOwnership": true,
+    "androidAttachmentReceiptRecovery": true,
+    "androidAttachmentPendingDraftIsolation": true,
+    "nativeUploadBudget": true,
+    "nativeImageUploadBudget": true,
+    "nativeHostRestart": true,
+    "nativeUploadDedupe": true,
+    "browserUploadDedupe": true,
+    "nativeDigestMemory": true,
+    "browserDedupeVerification": true,
+    "hostsRosterRename": true,
+    "diffSplitView": true,
+    "appleRosterSwift": true,
+    "androidHostQuestion": true,
+    "sessionLocationChip": true,
+    "modelSteer": true,
+    "modelSelect": true,
+    "sessionLocationFacts": true,
+    "modelEffort": true,
+    "appleModelCatalog": true,
+    "gatewayOutage": true,
+    "hostsRosterReorder": true,
+    "appleLocationFacts": true,
+    "appleViewLocation": true,
+    "appleFollowResume": true,
+    "androidFollowWindow": true,
+    "androidFollowLane": true,
+    "androidFollowOutage": true,
+    "androidFollowForeground": true,
+    "activeHostSwitch": true,
+    "headerOverflow": true,
+    "viewHandoff": true,
+    "failureCopy": true,
+    "viewHandoffQr": true,
+    "approvalFactsComplete": true,
+    "approvalAskRisk": true,
+    "atomicDurability": true,
+    "tornRepairIntent": true,
+    "diagnosticsSourceRevision": true,
+    "connectionGateLocale": true,
+    "mutationIdempotencyLanes": true,
+    "telemetryConsentSettings": true,
+    "deviceRevocationClosure": true,
+    "crashDiagnosticsOutlet": true,
+    "deviceTrustOutlet": true,
+    "limitations": [
+      "The deviceTrust outlet and the section 44 ledger rewrite are node-level, not physical-device level: the five new device-trust cases and four new otel cases run in their package specs with no device lane, and the android acceptance stayed the scanner-env warm replay whose counts ground in the still-standing XML aggregate; the provider and relay outlets keep following their producers and the loader-composition e2e baseline red keeps its open channel, so the section keeps its remaining items and no overall PASS.",
+      "The generation record is preserved honestly: both lanes went green on their first pass with zero rework (the integration run 113/113 with tsc -b both 0), with lane A incidentally fixing the device-trust client leaf tsconfig that never referenced the storage/storage-domain projects its own imports actually use — stale tsbuildinfo masking it and the root solution never building that leaf so CI never exposed it — plus the pnpm-lock three-line devDep companion verified by a frozen install; the main session's four repair rounds are recorded as they happened — the note zh switching-line order (the gen-39 [English](…md) | 中文 form required, the write-then-verify rule restated), the device-trust README Summary tightened 106 to 100 words on both faces, the stale cordis catalog and doc graphs regenerated with their pairings re-recorded, and the config-catalog regenerated with its zh mirror including the device-trust Source :61→:76 long-standing lag fix; the audit-scope misstep is recorded as it happened — the first attempt ran the packages/client full glob at 410 files including 4-5 pre-existing baseline reds and was discarded for the 87-file curated lineage rebuilt file by file from the prior generation's audit log, and the serial double round went 87 files / 1073 tests green with every count asserted from log content (the device-trust spec being an api host face staying off the client lineage, the same treatment as gen-36/38/39); the docs evidence is the post-repair green pair (the first doc-quick round went 15 green / 2 failed); the types-lint round is sealed in its honestly recorded chained single-trailer form (one EXIT_CODE=0 trailer for the whole log, Found 0 warnings and 0 errors in 96.2s on 3851 files, and no labelled trailer in the log); the prepare first-run incident is recorded as it happened — the ten-key pre-measure from worktree incremental-build hashes failed the allowlist assertion before any archive write because the clean-rebuild oracle also exposes the tsdown bundle key, and the rerun backfilled the oracle-measured eleven (the gen-38 same-type precedent); and the report prose carries no backslash and no template-interpolation sequence, so the advance's escapes round-trip the sealed bytes verbatim — the four-section narration (.artifacts/device-trust-outlet-iteration-notes.log) carries the spec pinning, the design, the lanes and the gates verbatim while the prepare incident lives in both records.",
+      "This generation's prepare ruling derives ELEVEN replaced prior build outputs and resolves them all through the Option A form (the gen-38 precedent): the unresolved scan over the crash-diagnostics-outlet record's own builtFiles found exactly the device-trust package's eight lib outputs plus tool-cordis's three (the api-catalog pair and the tsdown bundle lib/index.js), every one of them carried at its sealed bytes by an older archive on the prior record's own historicalRecords chain (android-input-retention for the device-trust keys, connection-gate-locale for the tool-cordis keys), so the before archive carries exactly the 7675 files the one-pass scan wrote with the drifted keys excluded by the bound-set filter and the generator gains no device-trust-outlet per-record set while this generation's advance seals no adjudication layer of its own — the drift resolves through the newest-history fallback the demotion rewrite installs; the cumulative replacedPriorBuildOutputs set keeps its nine inherited keys (re-inserted verbatim by span extraction, never transcribed) and the prior generations' per-record sets — including the adjudicated four-key approvalFactsCompleteReplacedBuildOutputs set with its field-loop filter and well-formedness guard, the dwfq-a971bf50-1 approvalFactsReplacedTestReports single-key pinned set, the gen-32 round-1 repair's atomicDurabilitySupersededSources six-key set with its companion single-key desktopPackageReplacedBuildOutputs set, and the gen-33 ruling's three-key tornRepairIntentReplacedBuildOutputs set committed with the HEAD content — ride the file head and the moved shared span unchanged."
+    ],
+    "nextRequiredWork": {
+      "specification": "artifacts/upstream-first/original-specification.md",
+      "traceability": "artifacts/upstream-first/specification-traceability.json",
+      "remaining": [
+        "Keep the section 44 ledger short of whole-section PASS beyond the now wired deviceTrustMetadata outlet: the revocation facts (revokedAt plus deviceCount, never deviceId/fingerprints/roles/keys, severity info) now leave through the producer push and the optional structured owner — the consent read at the revocation path from the construction-frozen snapshot, silent with the gate closed, only actual revocations with a no-op revoke-all emitting nothing — as channel:'ops' records (telemetry.op='device-trust-revocation') into the otel /ops scope under the three-kind constructor-gate disjunction with opsEmit created when crash or deviceTrust is on and the self-draining fiber generalized to non-session outlets, while admission/pairing/rename stay uninvented (revocation-only minimal surface) — the provider and relay outlets keep following their producers (relay blocked on section 23; the provider attribution-headers semantics ruling rides its own future generation) and the loader-composition e2e baseline red (no DSH_TELEMETRY_CONSENT setter repo-wide plus the Windows src-form .sessions not materializing) stays an open channel, so no whole-section PASS is granted.",
+        "Keep the section 44 ledger short of whole-section PASS beyond the now wired crashDiagnostics outlet: the boot-detected crash facts (pid/runStartedAt, one record for this boot only, never the log history) now leave through the producer push and the optional structured owner as channel:'ops' records (telemetry.op='diagnostics-crash') into the otel /ops scope (the seam's dual-scope promise honored, ledger directs still dropped) under the two-kind constructor-gate disjunction with the url validations reaching the crash-only opt-in, the gate reading the construction-time consent snapshot at emission (restart-consistent), the closed gate silent, the crash-only fiber teardown self-draining and DISABLED the master switch, while the error ring (message text) stays local — the provider, relay and deviceTrust outlets keep following their producers (relay blocked on section 23; the provider attribution-headers semantics ruling rides its own future generation) and the loader-composition e2e baseline red (no DSH_TELEMETRY_CONSENT setter repo-wide plus the Windows src-form .sessions not materializing) stays an open channel, so no whole-section PASS is granted.",
+        "Keep the five ledger sections (12/13/19/47/55) short of whole-section PASS beyond the now closed device-revocation-status common tail: the three named items (device revocation state, closed-error semantics, change-identity confirmation) close through the section 18 incremental family across sections — connection.ts device-revoked first-class state with the gateway client classifier, gateway-stream revocation aborts and admission rejects, the Kotlin/Swift contract mirrors, the real-device revocation lifecycle e2e — and the revoked row now renders DeviceView.revokedAt through the page's injected formatTime with the revokedAt label locale-owned, while the cross-real-release-version multi-version/multi-language matrix (N/N-1/N-2 interop) stays unreachable in this lane and the Swift-shell revocation UX and physical-device acceptance keep following their lanes, so no whole-section PASS is granted.",
+        "Keep the section 44 qualification open beyond the now delivered consent UI and runtime seam — the telemetry-consent settings namespace registered by the otel backend and the five independent switches of dsh-client-ui-settings-telemetry close the no-master-switch and five-kind UI requirements, while the four remaining telemetry outlets (providerMetadata, relayMetadata, deviceTrustMetadata, crashDiagnostics) keep following their producers: the crash local recorder source is landed with its outlet wiring pending, relayMetadata stays hard-blocked on the section 23 host relay service, and the provider attribution headers semantics ruling rides its outlet generation — and the applies='restart' timing keeps UI consent changes effective at the next launch, so no whole-section PASS is granted.",
+        "Keep the section 17 qualification open beyond the now pinned per-write-channel retry-settlement semantics — the survey mapped all 27 write channels with clientMutationId absent from the whole codebase and identification carried by the five mechanisms (requestId/rpcId receipts, revision CAS, turn-directed cancellation, one-time pairing codes/nonces, first-answer finality), and the seven targeted lanes now pin each previously unpinned channel's current settlement semantics — while the fork and command-execute adoption of a client mutation identity stays an open §17 design ruling the test titles name, the global persistent-receipt claim stays unmade, and the two pre-existing HEAD baseline reds (the commands.spec attachments drift and the workspace-controller transport error-code drift) stay open channels.",
+        "Keep the section 18 qualification open beyond the now machine-checked multi-language matrix — CONNECTION_GATE_KEYS pins every non-ready ConnectionState member to its connection.gate.<state> dictionary key at compile time (satisfies Record<Exclude<ConnectionState, 'ready'>, …>), the renderer reads the map instead of interpolating the template key, and the lane asserts both the zh (key-set source of truth) and en dictionaries carry a non-empty string for every key — while the cross-release multi-version interop matrix and the device-facing matrix classes stay open.",
+        "Keep the section 42 qualification open beyond the mandatory source-revision field now shipped — DiagnosticsSnapshot carries sourceRevision and describe() reads process.env.DSH_BUILD_REVISION on every call, falling back to the literal source-tree for an unstamped checkout, so the emitted library bytes stay free of any inlined revision while the release launcher owns stamping (the section 56 flow, its wiring left open honestly) — while the section 43 support bundle and the section 44 typed telemetry stay open.",
+        "Keep the section 46 qualification open beyond the JSONL torn-tail repair-intent channel now shipped — a zstd torn frame's complete records are recorded in a crash-durable <log>.repair-intent sidecar (writeFileAtomic at 0600/0700 with file and POSIX directory fsync) before the torn bytes are truncated, the first mutation durably rewrites them and then discards the intent (unlink plus the exported fsyncDirectory), and the next open reconciles the log against a surviving intent (a still-present torn frame stays authoritative, a clean log replays only the intent tail beyond the last stored seq so a partially completed rewrite converges, and a foreign-session intent rejects as SessionPersistenceCorruptionError) — while the two adjudicated-open items stay open: the session-query-sqlite in-place derived-table schema reset (rebuildable from the source log) and the storage-sqlite version-mismatch refusal to open (no migration channel).",
+        "Keep the section 46 qualification open beyond the settings-and-credentials crash-durable write channel now shipped — writeFileAtomic fsyncs the complete temp file before the rename commit and fsyncs the parent directory on POSIX (Windows directory entries stay unfsynced, the acknowledged package limitation carried in both READMEs), and the credentials flat-layout boot migration retains the flat original at <file>.migration-v0.bak (owner-only) through the same durable writer before replacing the sole copy, re-migration rewriting the same backup bytes — while the three adjudicated-open items stay open: the session-query-sqlite in-place derived-table schema reset (rebuildable from the source log), the storage-sqlite version-mismatch refusal to open (no migration channel), and the JSONL torn-tail repair truncation window.",
+        "Keep the section 37 qualification open beyond the hook-originated asks' risk-tier classification channel now shipped — the PreToolDecision ask member carries the asker's optional §37 risk tier (the ToolAskRisk closed literal union mirroring ApprovalRisk, classified Host-side and forwarded by serviceAsk's conditional spread into approval.request), the CC bridge stays byte-identical and its asks stay honestly unclassified (no CC dialect emitter exists, so no wire field was invented and the section 38 panel hides the missing Risk row by design), and the actual classifier adoption (a hook or asker that emits the tier) and the real multi-device acceptance stay open.",
+        "Keep the section 37 approval facts qualification open beyond the per-item approval facts presentation now shipped — the approval panel lists operation, target (the correlated Tool call's command or path derived through the new conversation.approval.target data seat, command first with path as fallback, never a copy of tool arguments on the wire), Host, Workspace, risk tier, the structured permission escalation (requested/effective sandbox modes carried as approval-owned metadata with the free-text reason kept as the fallback for non-escalation asks) and the command-preview heading, while the approval/asked durable append now spreads risk and escalation and the released-v0 dispositions and payload validation admit both under strict literals; the hook-originated asks' risk-tier classification (a PreToolDecision optional tier) and the real multi-device acceptance stay open.",
+        "Keep the section 26 view-handoff qualification open beyond the QR delivery face now shipped — the same click opens an anchored popover under the action rendering the copied #dsh-view= fragment link as a qrcode.react QRCodeSVG (size 200, marginSize 4) through the repo anchored-panel recipe (bottom-anchored measuring pass, outside-pointer and Escape dismissal with trigger refocus, document.body portal, shared card CSS) with aria-haspopup=\"dialog\" plus aria-expanded and the localized scan key titling panel and SVG, and the clipboard-refusal title degrade fallback unchanged; the deep links, the platform share routes, physical devices and the section's other requirements stay open.",
+        "Keep the section 45 failure-copy qualification open beyond the first-stage dictionary delivery now shipped — the canonical nine failure keys live once in client-locale's shared common dictionary (failure.authentication/permission/compatibility/conflict/host-state/carrier-invalid/transport/unavailable/raw) with LocaleKeysOf<N> = NS keys | CommonKeyOf on the type face and the runtime common-namespace fallback, the remoteFailureCopy/remoteFailureClassCopy helper classifies through classifyRemoteFailure and routes unknown to the {message} raw template, the five copy-less clusters (hub steerQueue, InputBar promptError with the two attachment refinements, GoalBar runAction, WorkspaceBrowser three dialogs with the session-rename conflict refinement, model-selection dual stores with class-first directoryErrorText) render through it, and the already-classified consumers stay untouched; the provider code-domain localization (LlmFailure.code, dynamic HTTP_* codes, adapter-minted codes), folding QueueDock/DevicesSettingsSection/SubagentHeaderLineage/ui-jobs/ui-deliverables into the shared dictionary, released-Client multi-version N/N-1/N-2 behavior, the device matrix and the section's other requirements stay open.",
+        "Keep the section 26 view-location handoff qualification open beyond the Web generation and receive sides now delivered — the ui-view-handoff package injects the 「继续到其他设备」 action into the conversation.session.header.actions slot (visible only once a Host is admitted and the Chat timeline holds a last-turn turn/start anchor), copies the current page origin+pathname+#dsh-view=<payload> fragment link (a fragment never travels to a server), and the receiving page consumes that fragment once (read-then-clear) and opens it through openViewLocation only after admission with fail-loud no-retry errors; deep links, platform share routing, QR rendering, physical devices and the section's other requirements stay open.",
+        "Keep the section 10 phone-bar qualification open beyond the phone-tier overflow affordance now delivered — the ⋮ trigger aggregates the strict header's two secondary lists (the actions list and the utilities list beyond the running-location chip) behind one portaled panel on the phone tier (the max-width 599.5px media query every existing phone-only affordance uses) with Escape close-and-refocus and a localized empty line, while the running-location chip and the single-seat corner occupant stay in the bar; the full size/theme/state/accessibility matrix and iOS/Android real-device input, background and native-attachment acceptance stay open.",
+        "Keep the section 28 Multi-Host switch-window qualification open beyond the two client lanes now proven — the connection lane walks the whole A-ready to retarget(B) to synchronous old-generation retirement to new-generation-on-B cycle on the real Connection plugin with gated dual sources, sampling target/generation/state on every flush, and the ui-conversation lane drives the real createComposerControlSource through the gateway $host facts sequence pinning prompt true to false to true with capability facts following the current generation; physical devices, the Swift shell, background/push behaviors, real two-Host switches on hardware and the rest of the section's acceptance stay open.",
+        "Keep the section 25 persisted-window qualification open beyond the backgrounded-reconnect and foreground-presentation lane now proven — the lane destroys the paired device stream carrier Host-side while the application is backgrounded, proves the backgrounded process re-opens follow with its durable cursor and consumes backgrounded appends, and presents the merged window intact on a plain launcher return, but OS background-kill behaviors (Doze and real background reclamation), FCM delivery, physical devices, deep links, platform share routing and the rest of both sections' acceptance stay open.",
+        "Keep the section 25 persisted-window qualification open beyond the physical-carrier-loss lane now proven — the lane destroys the paired device stream carrier Host-side via terminateDeviceConnections and proves the reopen carries the last applied durable sequence with no outage-time appends or claims, but the foreground-push recovery, physical devices, deep links, platform share routing and the rest of both sections' acceptance stay open.",
+        "Keep the section 25 persisted-window qualification open beyond the installed-state process-death lane now proven — the emulator lane force-stops the installed application between the interruption's appends and reopens with the persisted cursor, the Host's three omitted-tail records and the merged older page, but the section 25 physical-network interruption and foreground-push recovery acceptance, physical devices, deep links, platform share routing and the rest of both sections' acceptance stay open.",
+        "Keep the section 25 persisted-window qualification open beyond the core-level close now proven — the encrypted follow-window store, the installPersisted/checkpoint seams and the SessionModel wiring are core-level evidence only (no emulator or physical device drove a real process restart this increment, :app:compileDebugKotlin is a compile lane rather than a run, and the double-instance restart case is the core-level proof), the emulator install-state restart lane, the section 25 physical-network / foreground-push recovery acceptance, deep links, platform share routing and the rest of both sections' acceptance stay open.",
+        "Keep the section 25 follow-resume qualification open beyond the contract-column parity now proven — the Swift mirror is contract-column evidence only (not compiled on this Windows host; the PR-channel swift-contract self-check owns the compile), no physical device drove either shell on this increment, and the Apple shell consumption of the follow-resume builder, the section 25 persisted-window / physical-network / foreground-push recovery acceptance, deep links, platform share routing and the rest of both sections' acceptance stay open.",
+        "Keep the section 26 view-location qualification open beyond the contract-column parity now proven — the Swift mirror is contract-column evidence only (not compiled on this Windows host; the PR-channel swift-contract self-check owns the compile), no physical device drove either shell on this increment, and the Apple shell consumption of the payload, the section 25 follow-resume Swift item, deep links, platform share routing and the rest of both sections' acceptance stay open.",
+        "Keep the section 29 location-facts qualification open beyond the contract-column parity now proven — the Swift mirror is contract-column evidence only (not compiled on this Windows host; the PR-channel swift-contract self-check owns the compile), no physical device drove either shell on this increment, and background/push, follow cursor and view-location handoff stay open alongside the physical-device columns.",
+        "Keep the section 28 roster-editing qualification open for the non-web columns — the manual arrangement is proven in the real-browser hosts-settings lane plus the three client suites (store, component, plugin) and the regenerated api-catalog mirrors only; no Android or Apple roster surface was driven on this increment, and the per-profile browser-storage arrangement is deliberately not synced across devices.",
+        "Keep the §29 real-device qualification and the Swift-side carrier column open for the host-side termination half — the primitive is proven on the local AVD against a providers-only header-only replay Host plus the JVM suites and the web scaffold's built-lib path only; no real hardware and no Apple client were driven on this increment.",
+        "Keep the Apple-side shell UI entry (capability-rendered model selection with its reasoning efforts) and the same-candidate real-device qualification open for the section 30 model-selection half — the contract column adoption is fixture-and-CI-lane verified only, with no shell surface driven on this increment.",
+        "Keep the Apple-side model-selection entry with its reasoning efforts and the real-device qualification of the same catalog candidates open for the section 30 effort half — the effort acceptance is emulator-and-nativeacceptance-id only.",
+        "Keep the deterministic device-level outage lane (needs a Host-side stream-kill primitive), the real-device and Swift-shell location-facts surfaces, and the follow cursor/handoff work open for the section 29 location facts — the state-word machinery is JVM-covered only and the facts acceptance is emulator-and-nativeacceptance-id only.",
+        "Keep the reasoningEffort selection surface, the apple-side capability-gated entry and the same-candidate real-device qualification open for the section 30 model capabilities — the wire already accepts reasoningEffort with no client UI anywhere, and the select acceptance is emulator-and-nativeacceptance-id only.",
+        "Keep the Android model-select composition entry and real-device qualification open for the section 30 model capabilities — model.select.v1 is advertised with the web picker present but the Android side has no select UI, and the steer acceptance is emulator-and-nativeacceptance-id only.",
+        "Keep follow cursor, view-location handoff, multi-Host switching and real-device acceptance open for the section 29 location metadata — the chip publishes the five location facts on the web client only and no device round runs this generation.",
+        "Keep real hardware, the Swift shell, background/push delivery and full Session location metadata open for the Question isolation lane — the acceptance is emulator-and-nativeacceptance-id only, and the Approval interaction type shares the same inbox and per-principal model without a dedicated physical lane.",
+        "Classify the next cursor failure using the preserved diagnostics, or establish a controlled reproduction before changing its owner. Do not close this investigation merely because subsequent runs pass.",
+        "The Swift roster mirror has no local execution on Windows hosts and no completed macOS CI run inside this chain; keep Swift-side execution evidence open, and keep roster write and re-pair semantics Android-core behavior with the Swift mirror reading and validating only.",
+        "Keep cross-tab and persisted view preferences and intra-line word highlighting inside a paired split row open independently; the per-tab split toggle does not close them.",
+        "Cover per-browser-profile isolation boundaries, cross-device name synchronization and manual roster ordering independently; the local rename seam does not close them.",
+        "Give the streaming carrier a deduplication path and cover cross-tab digest behavior; the real-browser deduplication-hit lane does not close them.",
+        "Qualify image and mixed-attachment recovery, large/resumable uploads, per-principal digest scoping, capacity tuning, storage-backed browser digest memory and physical-device Host restarts independently; the durable companion digest-memory file does not close broader attachment or Mobile Release acceptance.",
+        "Qualify image and mixed-attachment recovery, large/resumable uploads, per-principal digest scoping, capacity tuning, storage-backed browser digest memory and physical-device Host restarts independently; the durable companion digest-memory file does not close broader attachment or Mobile Release acceptance.",
+        "Qualify streaming and resumable uploads, physical devices and third-party senders independently; the local complete-body check is advisory and Host or proxy rejection remains authoritative.",
+        "Continue notification channel, settings revocation/process-death, persistent denial, physical-device, relay-backed delivery and precise Host/Session notification target qualification. Actual Recents and physical network/mux recovery remain separate work.",
+        "Continue Swift attachment adoption, cross-platform sharing and link entry, larger streamed uploads, upload retry/receipt expiry recovery, Host limit negotiation and the remaining requirement matrices without changing Host-owned authorization.",
+        "Retain scanner clean-cache/cross-machine, race, physical/16-KiB device, signed release, CodeQL and Apple gaps. Session writer V3 and completeRc=false persist; remote CI is distinct from local evidence. No memory update or handoff package."
+      ]
+    }
+  },
   "crashDiagnosticsOutlet": {
+    "historical": true,
+    "followup": "artifacts/upstream-first/device-trust-outlet-source.json",
     "status": "PASS",
     "sourceRecord": "artifacts/upstream-first/crash-diagnostics-outlet-source.json",
     "scope": "§44 crashDiagnostics 出口交付代（crash-diagnostics-outlet）。规格钉准：四非 session 类出口随生产者落地——crash 本地记录源已在（recorder boot 检测不干净关机+持久 crash log 上限 8、marker pid/runStartedAt、agent/error 环上限 10），缺口=零外发；seam 文档自始承诺双 instrumentation scope（session-telemetry/src/index.ts:64-66）从未兑现（otel 单 scope+emit 全丢）。主会话四裁定：①出口=emit 直通道收窄+构造门析取（sessionTelemetry||crashDiagnostics，url 等加载校验随达 crash-only opt-in）；②门控=发射点读构造时快照 consent（restart 语义一致）、门关静默零调用（§44 默认态非可感知损失）；③跨包=producer 推+可选结构化 owner（recorder 构造时 ctx.get('sessionTelemetry') 快照，lazy-resolve 家族先例）；④范围=只出 boot crash facts（pid/runStartedAt，仅本次单条不重发历史），错误环（message 文本）留本地。实现两件：生产者侧 recorder detectUncleanShutdown 返回 fact→reportCrashFact 经 owner 推 channel:'ops' 记录（telemetry.op='diagnostics-crash' 判别子照 agent-error/shutdown 先例、body 按字段 JSDoc 规则携带 pid/runStartedAt，缺席/门关=零调用零异常静默）；出口侧 /ops 独立 logger scope（toSdkLogRecord 共享映射）、emit 收窄丢 ledger 直发放行 ops（opsEmit 仅 crashDiagnostics 开时创建——三重门对称，主会话批复）、crash-only 无 coordinator 故 fiber 拆卸 effect 自排空（批复）、DISABLED 总闸零外发、CONSENT_WITHHELD_WARNING 移至 sessionTelemetry 关分支语义不变。零运行时依赖（type-only devDep+本地单类特化，lib/types/recorder.d.ts 实证无 import 泄漏）。执行并行两车道（otel 6 新例合 65：crash-only 真 SDK 到 mock collector 断言 /ops scope/缺 url 抛/双 kind 共存/ledger 直发仍丢/DISABLED 零外发/悬挂 transport dispose 界定；生产者 4 新例合 34：缺席零异常/门关静默/门开恰一条键集五字段无 message 类/干净 boot 零调用+marker 语义回归；集成合跑 99/99+tsc -b 双 0）。执行波折如实：首派两车道被宿主会话重启静默杀死（SendMessage 探活证实 agentId 消失、工作树零写入无污染）→原任务书原样重启全绿；车道返修：otel oxlint 1（no-confusing-void-expression）、生产者 oxlint 3（max-len×2+boolean-literal-compare）均修毕；config-catalog 因 Config JSDoc 变更再生成+zh 手镜+pairing（清单外必需跟随）；两收口裁定（ops 类别独立门、crash-only 自排空）由主会话批复；loader-composition e2e 既有基线红（改动前实测 3/4 失败：全仓无 DSH_TELEMETRY_CONSENT 设置点+Windows src 形态 .sessions 不物化）非本代引入列开放通道（symlink/pwsh 先例），egress/e2e 的 telemetry.op 断言零改动（fixture 门全关下新旧门逐位一致）。门禁全绿（计数读日志内容）：types-lint 0 warnings 0 errors EXIT 0 一次过（链式单尾形态）；test:docs 17（79.67s）与 doc-sync 36（177.46s）双双一次过（两文件分置）；traceability node --test 6/6（真入口 specification-traceability.test.mjs；§44 remaining 828→980 字、candidateEvidence 7→9 含 recorder/两 spec/note）；审计 87 文件串行双轮 87/1073 两连绿（otel/diagnostics 均 host spec 不入 client 清单世系，与 gen-36/38 同待遇）；gate0 双形态 PASS（1938 paths/129 components/81 sections/1983 lines）。本代无 Kotlin/Swift 改动：gradle 验收轮（scanner env+-PdshNativeAcceptance，任务集 :app:assembleDebug :app:assembleDebugAndroidTest :core:test）BUILD SUCCESSFUL in 32s、70 任务 1 executed 69 up-to-date（warm；:core:test 抵达任务图且 UP-TO-DATE），两枚 APK 与 device-revocation-closure 记录 builtFiles sha256 逐字节一致（crash-diagnostics-outlet-apk-bytes.log 两行 IDENTICAL、prior apk records: 2）、core XML 聚合 77 套件/477 测试 0 失败（crash-diagnostics-outlet-core-results.json）。prepare 序：lib 漂移预计算零键（otel/host-diagnostics 两包 lib 输出均非记录输入，allowlist 空集），prepare 一次过 files 7680/0 reused/7680 written/replacedPriorBuildOutputs 0——零裁定层（裸 HEAD 复位即可无需重放），既有六组集合未动；prepare 双跑事故如实（首链后台任务存活成功在先，主会话以短 ID 探活误判其死重复启动第二跑被归档已封存断言拒绝且其重定向覆盖成功日志——已按首跑 stdout 回执恢复真字节、归档 7680 文件实测复核）；make-prepare 13 替换对一次全中（prior 与 prior-prior 审计计数同为 1073，计数断言对规则不触发）。台账名 crash-diagnostics-outlet（camelCase=crashDiagnosticsOutlet；write-reports 与 .artifacts 双 grep 零碰撞）。provider/relay/deviceTrust 三出口随生产者待落地（relay 阻塞 §23；provider attribution headers 语义裁定随其代际）、loader-composition e2e 基线红仍开放，不授予整节 PASS；完整目标未完成",
@@ -42469,7 +42857,7 @@
       "The known Windows symlink EPERM expanded-suite failure from the cancellation increment was not rerun or resolved"
     ]
   },
-  "latestSourceRecord": "artifacts/upstream-first/crash-diagnostics-outlet-source.json",
+  "latestSourceRecord": "artifacts/upstream-first/device-trust-outlet-source.json",
   "cancelTarget": {
     "historical": true,
     "followup": "artifacts/upstream-first/rename-revision-source.json",
@@ -42952,7 +43340,7 @@
     "files": [
       {
         "path": "artifacts/upstream-first/write-reports.mjs",
-        "sha256": "80ce7d79ed9b481170b5b93ce67e56437f3e1af43392f1cd1840f039006fa818"
+        "sha256": "f894eeda03ccc3064a5a33deb23acc81304d0cce6311b88e87bb0c5f548393f3"
       },
       {
         "path": "artifacts/upstream-first/verify-audit.mjs",

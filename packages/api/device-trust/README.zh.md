@@ -8,7 +8,7 @@ kind: "package-reference"
 
 ## 概述
 
-`@deepseek-ai/dsh-api-device-trust` 拥有 Host `ctx.deviceTrust` 服务：[Link 接管审计决策](../../../.agents/notes/implemented/architecture/2026-09-20-link-access-takeover-audit.zh.md)命名的设备信任接缝。网关拥有设备侧接入；配对是能力门控的仪式而非复活的 Link 服务器，权限执行仍归交互回复接缝。服务签发一次性过期配对码、以设备新生成的 Ed25519 公钥兑换、经 storage-domain 接缝持有持久授权存储、验证签名准入并撤销授权。
+`@deepseek-ai/dsh-api-device-trust` 拥有 Host `ctx.deviceTrust` 服务：[Link 接管审计决策](../../../.agents/notes/implemented/architecture/2026-09-20-link-access-takeover-audit.zh.md)命名的设备信任接缝。网关拥有设备侧接入；配对是能力门控的仪式而非复活的 Link 服务器，权限执行仍归交互回复接缝。服务签发一次性过期配对码、以设备新生成的 Ed25519 公钥兑换、经 storage-domain 接缝持有持久授权存储、验证签名准入并撤销授权。已完成的撤销在 `deviceTrustMetadata` 同意门下经可选的 telemetry owner 以一条 ops 记录外发——仅携带撤销时间与撤销数量。
 
 ## 目录
 
@@ -56,7 +56,7 @@ kind: "package-reference"
 <details>
 <summary>维护者的工作上下文——点击展开</summary>
 
-`.agents/notes/implemented/architecture/2026-09-20-link-access-takeover-audit.zh.md` 记录的审计决策拥有归属：退役的 `packages/remote/link-*` 与 `device-trust` 组保持退役，本接缝是候选网关上设备侧接入的唯一归属。
+`.agents/notes/implemented/architecture/2026-09-20-link-access-takeover-audit.zh.md` 记录的审计决策拥有归属：退役的 `packages/remote/link-*` 与 `device-trust` 组保持退役，本接缝是候选网关上设备侧接入的唯一归属。第 44 节外发在每条撤销路径内探测 `ctx.get('sessionTelemetry')`——同意状态在 owner 自身构造时冻结，探测因此不引入组合顺序耦合——记录只携带 `revokedAt` 与 `deviceCount`：任何 deviceId、密钥指纹、角色或密钥材料都不会离开。
 
 </details>
 

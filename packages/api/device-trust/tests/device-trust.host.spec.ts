@@ -5,6 +5,7 @@ import { join } from 'node:path'
 import { generateKeyPairSync, sign as edSign } from 'node:crypto'
 import { Context } from '@deepseek-ai/cordis'
 import { remoteErrorOf, type TypertRemoteCapability } from '@deepseek-ai/dsh-typert-protocol'
+import type { SessionTelemetryRecord, TelemetryConsent } from '@deepseek-ai/dsh-session-telemetry'
 import Storage, { type KvUnit } from '@deepseek-ai/dsh-storage'
 import {
   apply as storageJsonApply, Config as storageJsonConfig, inject as storageJsonInject, name as storageJsonName,
@@ -339,6 +340,99 @@ describe('device-trust grants and revocation', () => {
     second.ctx.on('deviceTrust/grantsRevoked', (revocation) => { events.push({ ...revocation }) })
     const all = await second.service.revokeAllDevices()
     expect(events).toEqual([{ revokedAt: all.revokedAt, deviceIds: [otherGrant.deviceId] }])
+  })
+})
+
+describe('device-trust revocation telemetry egress (§44)', () => {
+  /** A fake session-telemetry owner capturing emits, provided like every optional owner. */
+  function telemetrySink(deviceTrustMetadata: boolean) {
+    const emitted: SessionTelemetryRecord[] = []
+    const owner = {
+      consent: {
+        sessionTelemetry: false,
+        providerMetadata: false,
+        relayMetadata: false,
+        deviceTrustMetadata,
+        crashDiagnostics: false,
+      } satisfies TelemetryConsent,
+      emit: (record: SessionTelemetryRecord) => {
+        emitted.push(record)
+      },
+    }
+    return { owner, emitted }
+  }
+
+  /** Pair one device under a distinct key fill and hand back its id. */
+  async function paired(service: DeviceTrustService, fill: number): Promise<DeviceIdType> {
+    const issuance = service.issuePairing('viewer')
+    const grant = await service.redeemPairing({ code: issuance.code, deviceName: 'phone', devicePublicKey: spkiB64(fill) })
+    return grant.deviceId
+  }
+
+  /** Boot the full stack with the fake owner provided before the service composes. */
+  async function bootWithOwner(owner: unknown): Promise<{ service: DeviceTrustService; ctx: Context }> {
+    const service = await boot({}, undefined, undefined, async (ctx) => {
+      ctx.provide('sessionTelemetry', owner as never)
+    })
+    return { service, ctx: (service as unknown as { ctx: Context }).ctx }
+  }
+
+  it('revokes without the telemetry owner composed — zero exceptions, the RPC is unchanged', async () => {
+    const service = await boot()
+    const deviceId = await paired(service, 31)
+    const revoked = await service.revokeDevice({ deviceId })
+    expect(revoked.revokedAt).toBeGreaterThan(0)
+    await expect(service.revokeAllDevices()).resolves.toMatchObject({ count: 0 })
+  })
+
+  it('an owner with deviceTrustMetadata consent closed stays silent — zero emits, revocation succeeds', async () => {
+    const { owner, emitted } = telemetrySink(false)
+    const { service } = await bootWithOwner(owner)
+    const deviceId = await paired(service, 32)
+    await expect(service.revokeDevice({ deviceId })).resolves.toMatchObject({ deviceId })
+    expect(emitted).toEqual([])
+  })
+
+  it('an open gate emits exactly one ops record for revokeDevice — no device id ever leaves', async () => {
+    const { owner, emitted } = telemetrySink(true)
+    const { service } = await bootWithOwner(owner)
+    const deviceId = await paired(service, 33)
+    const revoked = await service.revokeDevice({ deviceId })
+    expect(emitted).toHaveLength(1)
+    const record = emitted[0]!
+    expect(Object.keys(record).sort()).toEqual(['attributes', 'body', 'channel', 'severity', 'time'])
+    expect(record.channel).toBe('ops')
+    expect(record.severity).toBe('info')
+    expect(record.time).toBeGreaterThan(0)
+    expect(record.attributes).toEqual({ 'telemetry.op': 'device-trust-revocation' })
+    expect(record.body).toEqual({ op: 'device-trust-revocation', revokedAt: revoked.revokedAt, deviceCount: 1 })
+    expect(JSON.stringify(record)).not.toContain(deviceId)
+  })
+
+  it('revokeAllDevices reports one record with the revoked count', async () => {
+    const { owner, emitted } = telemetrySink(true)
+    const { service } = await bootWithOwner(owner)
+    await paired(service, 34)
+    await paired(service, 35)
+    const result = await service.revokeAllDevices()
+    expect(result.count).toBe(2)
+    expect(emitted).toHaveLength(1)
+    expect(emitted[0]).toMatchObject({
+      channel: 'ops',
+      severity: 'info',
+      attributes: { 'telemetry.op': 'device-trust-revocation' },
+      body: { op: 'device-trust-revocation', revokedAt: result.revokedAt, deviceCount: 2 },
+    })
+  })
+
+  it('a no-op revoke-all over zero active grants emits nothing and announces no event', async () => {
+    const { owner, emitted } = telemetrySink(true)
+    const { service, ctx } = await bootWithOwner(owner)
+    const events: number[] = []
+    ctx.on('deviceTrust/grantsRevoked', ({ revokedAt }) => { events.push(revokedAt) })
+    expect(await service.revokeAllDevices()).toMatchObject({ count: 0 })
+    expect(emitted).toEqual([])
+    expect(events).toEqual([])
   })
 })
 

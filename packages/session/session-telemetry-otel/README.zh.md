@@ -9,7 +9,7 @@ kind: "package-reference"
 
 ## 概述
 
-`dsh-session-telemetry-otel` 仅在新的显式反馈后通过 OTel JS SDK 导出会话记录，适用于所有用户和提供方，包括 `deepseek-official`。`FEEDBACK_ONLY` 释放截至该反馈的权威日志前缀，包含上下文；后续记录等待下一次显式反馈。`crashDiagnostics` 同意类开启第二出口：直发运维记录进入独立的 `/ops` 插桩作用域。`DISABLED` 不构造传输并压过所有类别。SDK 批处理可完成已授权的上传，无需另一次用户交互或模型调用。部署方负责脱敏规则。
+`dsh-session-telemetry-otel` 仅在新的显式反馈后通过 OTel JS SDK 导出会话记录，适用于所有用户和提供方，包括 `deepseek-official`。`FEEDBACK_ONLY` 释放截至该反馈的权威日志前缀，包含上下文；后续记录等待下一次显式反馈。`crashDiagnostics` 与 `deviceTrustMetadata` 同意类开启第二出口：直发运维记录（崩溃事实与设备信任撤销事实）进入独立的 `/ops` 插桩作用域。`DISABLED` 不构造传输并压过所有类别。SDK 批处理可完成已授权的上传，无需另一次用户交互或模型调用。部署方负责脱敏规则。
 
 ## 目录
 
@@ -56,18 +56,18 @@ kind: "package-reference"
 | 字段 | 默认值 | 含义 |
 |---|---|---|
 | `mode` | `FEEDBACK_ONLY` | 共享策略：`FEEDBACK_ONLY` 或 `DISABLED` |
-| `consent` | 每类 `false` | 第 44 节分类型开关（`sessionTelemetry`、`providerMetadata`、`relayMetadata`、`deviceTrustMetadata`、`crashDiagnostics`），作为组合层种子携带：组合了 user-settings 服务时，后端注册 `telemetry-consent` 命名空间（`base` = 该种子、user 层优先、restart 生效——用户改动在下次启动落地）；未组合该服务时，此记录即全部同意。后端以 `sessionTelemetry` 或 `crashDiagnostics` 两类之门决定 SDK 构造：任一开启即建管线（含端点校验），`sessionTelemetry` 额外接线反馈捕获，仅 `crashDiagnostics` 时只开 ops 出口；两类全关（默认）不建管线、反馈留在本地并告警，`mode` 仍命名共享策略 |
+| `consent` | 每类 `false` | 第 44 节分类型开关（`sessionTelemetry`、`providerMetadata`、`relayMetadata`、`deviceTrustMetadata`、`crashDiagnostics`），作为组合层种子携带：组合了 user-settings 服务时，后端注册 `telemetry-consent` 命名空间（`base` = 该种子、user 层优先、restart 生效——用户改动在下次启动落地）；未组合该服务时，此记录即全部同意。后端以 `sessionTelemetry`、`crashDiagnostics` 或 `deviceTrustMetadata` 三类之门决定 SDK 构造：任一开启即建管线（含端点校验），`sessionTelemetry` 额外接线反馈捕获，仅 `crashDiagnostics` 或 `deviceTrustMetadata` 时只开 ops 出口；三类全关（默认）不建管线、反馈留在本地并告警，`mode` 仍命名共享策略 |
 | `exporter.url` | 上传模式必填 | 完整 OTLP 日志端点；必须能解析为 `http(s)` |
 | `exporter`、`processor` | — | 原样传给 SDK 导出器与批处理器 |
 | `shutdownTimeoutMillis` | `3,000` | SDK 完整关闭序列的外层截止时间 |
 
-直接调用 `ctx.sessionTelemetry.emit()` 不能绕过反馈授权：`channel: 'ledger'` 记录在任何模式下都是空操作，`channel: 'ops'` 记录仅在 `crashDiagnostics` 类开启时上传——`DISABLED` 永不例外，它是总闸。继承的父会话反馈不授权子会话导出：子会话需要新的自身反馈。授权后的前缀包含继承的上下文。
+直接调用 `ctx.sessionTelemetry.emit()` 不能绕过反馈授权：`channel: 'ledger'` 记录在任何模式下都是空操作，`channel: 'ops'` 记录仅在 `crashDiagnostics` 或 `deviceTrustMetadata` 类开启时上传——`DISABLED` 永不例外，它是总闸。继承的父会话反馈不授权子会话导出：子会话需要新的自身反馈。授权后的前缀包含继承的上下文。
 
 模型请求、请求头、Session 创建或接纳、恢复，以及插件挂载或 HMR（热模块替换）均不授权捕获。仅凭已存储的反馈不会触发任何操作。SDK 定时刷新和关闭可以完成先前已授权的批次，但绝不捕获新记录。
 
 ### 哪些数据会离开本机
 
-在上传模式中，记录携带 seam 的 `sessionTelemetry/record` waterfall（瀑布式事件）返回的完整 `event.data`——消息内容、工具参数与结果、系统提示词与工具 schema、todo 文本、压缩（compaction）摘要、反馈文本，以及会话 `cwd`。提供方凭据绝不会出现：适配器的 API key 是构造函数参数而非会话事件，因此它们在结构上就不存在于日志中，也就不存在于遥测中。直发 ops 记录只携带其生产者交出的运维载荷（当前为崩溃事实），原样上传——脱敏 waterfall 在捕获时运行，不经过直发路径。`DISABLED` 不构造 SDK 流水线，也不把任何捕获内容交给后端。
+在上传模式中，记录携带 seam 的 `sessionTelemetry/record` waterfall（瀑布式事件）返回的完整 `event.data`——消息内容、工具参数与结果、系统提示词与工具 schema、todo 文本、压缩（compaction）摘要、反馈文本，以及会话 `cwd`。提供方凭据绝不会出现：适配器的 API key 是构造函数参数而非会话事件，因此它们在结构上就不存在于日志中，也就不存在于遥测中。直发 ops 记录只携带其生产者交出的运维载荷（当前为崩溃事实与设备信任撤销事实），原样上传——脱敏 waterfall 在捕获时运行，不经过直发路径。`DISABLED` 不构造 SDK 流水线，也不把任何捕获内容交给后端。
 
 ### 失败与关闭
 
@@ -85,7 +85,7 @@ kind: "package-reference"
 
 ### 设计理念
 
-后端是对 OTel JS SDK 的薄适配层：它拥有反馈授权、资源身份与外层关闭截止时间。权威 ledger 记录使用 `@deepseek-ai/dsh-session-telemetry-otel` 插桩作用域；直发 ops 记录（`crashDiagnostics` 出口）走 `@deepseek-ai/dsh-session-telemetry-otel/ops`，而按需捕获自身不产生 ops 记录。资源身份携带 `service.name`/`service.version`（来自 `dsh-llm` 的 `APP_IDENTITY`）以及匿名 `user.id`（来自 `$DSH_HOME/.anonymous-user-id`），按导出批次携带一次，而非逐条记录。
+后端是对 OTel JS SDK 的薄适配层：它拥有反馈授权、资源身份与外层关闭截止时间。权威 ledger 记录使用 `@deepseek-ai/dsh-session-telemetry-otel` 插桩作用域；直发 ops 记录（`crashDiagnostics` 与 `deviceTrustMetadata` 出口）走 `@deepseek-ai/dsh-session-telemetry-otel/ops`，而按需捕获自身不产生 ops 记录。资源身份携带 `service.name`/`service.version`（来自 `dsh-llm` 的 `APP_IDENTITY`）以及匿名 `user.id`（来自 `$DSH_HOME/.anonymous-user-id`），按导出批次携带一次，而非逐条记录。
 
 ### 源码地图
 
@@ -95,7 +95,7 @@ kind: "package-reference"
 
 ### 捕获接线
 
-后端使用包含存储历史的按需捕获，且仅在 `sessionTelemetry` 类开启时组装协调器。只有新的自身 `feedback/record`、`feedback/message-put` 或 `feedback/message-delete` 事件触发活跃会话捕获，并以该事件为上限。冷会话 `feedback/committed` 通知提供已提交的权威快照，不发布存活 Session 或 Agent。同对象交接游标抑制重复捕获。后端不实现 `flush()`；SDK 负责批处理和关闭排空。仅 `crashDiagnostics` 的组合不组装协调器——直发 ops 记录是其唯一出口，后端在 fiber 拆卸时自行排空 provider。
+后端使用包含存储历史的按需捕获，且仅在 `sessionTelemetry` 类开启时组装协调器。只有新的自身 `feedback/record`、`feedback/message-put` 或 `feedback/message-delete` 事件触发活跃会话捕获，并以该事件为上限。冷会话 `feedback/committed` 通知提供已提交的权威快照，不发布存活 Session 或 Agent。同对象交接游标抑制重复捕获。后端不实现 `flush()`；SDK 负责批处理和关闭排空。仅 `crashDiagnostics` 和/或 `deviceTrustMetadata`（无 `sessionTelemetry`）的组合不组装协调器——直发 ops 记录是其唯一出口，后端在 fiber 拆卸时自行排空 provider。
 
 ### 字段映射
 

@@ -188,9 +188,9 @@
         # §44 default-off: every kind stays local until the deployment opts it
         # in (DSH_TELEMETRY_CONSENT=1 seeds the sessionTelemetry kind as the
         # composition-layer base; the user-settings layer may override per
-        # kind, effect at restart). crashDiagnostics now has a producer and
-        # outlet but stays off by default; providerMetadata/relayMetadata/
-        # deviceTrustMetadata still have no producers.
+        # kind, effect at restart). crashDiagnostics and deviceTrustMetadata
+        # now have producers and outlets but stay off by default;
+        # providerMetadata/relayMetadata still have no producers.
         consent:
           sessionTelemetry: !!js process.env.DSH_TELEMETRY_CONSENT === '1'
         shutdownTimeoutMillis: 3000

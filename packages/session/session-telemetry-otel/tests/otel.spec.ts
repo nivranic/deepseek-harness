@@ -1134,6 +1134,169 @@ describe('OpenTelemetrySessionBackend crashDiagnostics ops exit', () => {
   })
 })
 
+describe('OpenTelemetrySessionBackend deviceTrustMetadata ops exit', () => {
+  it('builds the pipeline for the deviceTrustMetadata kind alone and exports device-trust revocation records under the /ops scope', async () => {
+    const { url, captures } = await mockCollector()
+    const ctx = new Context()
+    try {
+      await ctx.plugin(SessionStore)
+      const warnings: string[] = []
+      ctx.logger.warn = (message: string) => { warnings.push(message) }
+      const fiber = await ctx.plugin(OpenTelemetrySessionBackend, {
+        mode: SessionTelemetryMode.FEEDBACK_ONLY,
+        consent: { deviceTrustMetadata: true },
+        exporter: { url },
+        processor: { scheduledDelayMillis: 1 },
+      })
+      expect(ctx.sessionTelemetry.consent).toEqual({ ...TELEMETRY_CONSENT_OFF, deviceTrustMetadata: true })
+      const session = ctx.sessions.create(SessionId('device-trust-only'), { meta: {} })
+      session.append('turn/start', { turn: 1 })
+      // The sessionTelemetry kind is off, so feedback stays local with its warning.
+      recordFeedback(session, { text: 'ledger kind stays local' })
+      const revokedAt = Date.now()
+      ctx.sessionTelemetry.emit({
+        channel: 'ops',
+        time: revokedAt,
+        severity: 'warn',
+        attributes: { 'telemetry.op': 'device-trust-revocation', 'session.id': 'device-trust-only' },
+        body: { revoked: true },
+      })
+      await fiber.dispose()
+
+      const records = allRecords(captures)
+      const ops = records.filter(r => r.scope === '@deepseek-ai/dsh-session-telemetry-otel/ops')
+      expect(ops).toHaveLength(1)
+      expect(ops[0]!.record.severityNumber).toBe(13)
+      expect(ops[0]!.record.severityText).toBe('WARN')
+      expect(BigInt(ops[0]!.record.timeUnixNano)).toBe(BigInt(revokedAt) * 1_000_000n)
+      expect(ops[0]!.record.attributes).toContainEqual({ key: 'telemetry.op', value: { stringValue: 'device-trust-revocation' } })
+      expect(records.filter(r => r.scope === '@deepseek-ai/dsh-session-telemetry-otel')).toHaveLength(0)
+      expect(JSON.stringify(captures)).not.toContain('ledger kind stays local')
+      expect(warnings).toContain('OpenTelemetry session upload is withheld: sessionTelemetry consent is off; this feedback is not uploaded through OpenTelemetry')
+    } finally {
+      await ctx.fiber.dispose()
+    }
+  })
+
+  it('constructs no SDK state with all three gating kinds off even when the other kinds are on', async () => {
+    const { captures } = await mockCollector()
+    const ctx = new Context()
+    try {
+      await ctx.plugin(SessionStore)
+      const transportRead = vi.fn(() => {
+        throw new Error('transport config was read')
+      })
+      const backend = new OpenTelemetrySessionBackend(ctx, {
+        mode: SessionTelemetryMode.FEEDBACK_ONLY,
+        consent: {
+          sessionTelemetry: false,
+          crashDiagnostics: false,
+          deviceTrustMetadata: false,
+          providerMetadata: true,
+          relayMetadata: true,
+        },
+        get exporter() {
+          return transportRead()
+        },
+        get processor() {
+          return transportRead()
+        },
+        get shutdownTimeoutMillis() {
+          return transportRead()
+        },
+      })
+      expect(backend.consent).toEqual({ ...TELEMETRY_CONSENT_OFF, providerMetadata: true, relayMetadata: true })
+      expect(() => {
+        backend.emit({
+          channel: 'ops',
+          time: Date.now(),
+          severity: 'warn',
+          attributes: { 'telemetry.op': 'device-trust-revocation', 'session.id': 'nowhere' },
+          body: null,
+        })
+      }).not.toThrow()
+      await backend.shutdown()
+      expect(captures).toEqual([])
+      expect(transportRead).not.toHaveBeenCalled()
+    } finally {
+      await ctx.fiber.dispose()
+    }
+  })
+
+  it('opens the ops exit with crashDiagnostics off while the ledger channel record stays dropped', async () => {
+    const { url, captures } = await mockCollector()
+    const ctx = new Context()
+    try {
+      await ctx.plugin(SessionStore)
+      const fiber = await ctx.plugin(OpenTelemetrySessionBackend, {
+        mode: SessionTelemetryMode.FEEDBACK_ONLY,
+        consent: { deviceTrustMetadata: true },
+        exporter: { url },
+        processor: { scheduledDelayMillis: 1 },
+      })
+      ctx.sessionTelemetry.emit({
+        channel: 'ledger',
+        time: Date.now(),
+        severity: 'info',
+        attributes: { 'session.id': 'device-trust-ledger', 'event.type': 'direct', 'event.seq': 99 },
+        body: { mustStayLocal: true },
+      })
+      ctx.sessionTelemetry.emit({
+        channel: 'ops',
+        time: Date.now(),
+        severity: 'warn',
+        attributes: { 'telemetry.op': 'device-trust-revocation', 'session.id': 'device-trust-ledger' },
+        body: { revoked: true },
+      })
+      await fiber.dispose()
+
+      const records = allRecords(captures)
+      const ops = records.filter(r => r.scope === '@deepseek-ai/dsh-session-telemetry-otel/ops')
+      expect(ops).toHaveLength(1)
+      expect(ops[0]!.record.attributes).toContainEqual({ key: 'telemetry.op', value: { stringValue: 'device-trust-revocation' } })
+      // The narrowing is per channel: the direct ledger record stayed local,
+      // and with the sessionTelemetry kind off no coordinator exists either.
+      expect(records.filter(r => r.scope === '@deepseek-ai/dsh-session-telemetry-otel')).toHaveLength(0)
+      expect(JSON.stringify(captures)).not.toContain('mustStayLocal')
+    } finally {
+      await ctx.fiber.dispose()
+    }
+  })
+
+  it('keeps DISABLED the master switch: deviceTrustMetadata consent parses but nothing leaves', async () => {
+    const { captures } = await mockCollector()
+    const ctx = new Context()
+    try {
+      await ctx.plugin(SessionStore)
+      const warn = vi.spyOn(ctx.logger, 'warn').mockImplementation(() => {})
+      const fiber = await ctx.plugin(OpenTelemetrySessionBackend, {
+        mode: SessionTelemetryMode.DISABLED,
+        consent: { deviceTrustMetadata: true },
+      })
+      expect(ctx.sessionTelemetry.consent).toEqual({ ...TELEMETRY_CONSENT_OFF, deviceTrustMetadata: true })
+      expect(ctx.sessionTelemetry.sharing).toBe('disabled')
+      const session = ctx.sessions.create(SessionId('disabled-device-trust'), { meta: {} })
+      session.append('turn/start', { turn: 1 })
+      recordFeedback(session, { text: 'local report' })
+      ctx.sessionTelemetry.emit({
+        channel: 'ops',
+        time: Date.now(),
+        severity: 'warn',
+        attributes: { 'telemetry.op': 'device-trust-revocation', 'session.id': 'disabled-device-trust' },
+        body: { revoked: true },
+      })
+      await ctx.sessionTelemetry.shutdown()
+      await fiber.dispose()
+      expect(warn).toHaveBeenCalledWith(
+        'OpenTelemetry session upload is DISABLED; this feedback is not uploaded through OpenTelemetry',
+      )
+      expect(captures).toEqual([])
+    } finally {
+      await ctx.fiber.dispose()
+    }
+  })
+})
+
 describe('OpenTelemetrySessionBackend settings consent seam', () => {
   const ALL_ON: TelemetryConsent = {
     sessionTelemetry: true,

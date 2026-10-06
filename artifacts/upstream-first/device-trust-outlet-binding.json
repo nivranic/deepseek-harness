@@ -1,0 +1,16 @@
+{
+  "status": "PASS",
+  "controls": 3,
+  "sourceRecord": {
+    "path": "artifacts/upstream-first/device-trust-outlet-source.json",
+    "sha256": "ce61bb46c02584d055abc823059d6fb2ca35ca615e07ebaf012a4e2dae0adcf2"
+  },
+  "generator": {
+    "path": "artifacts/upstream-first/write-reports.mjs",
+    "sha256": "f894eeda03ccc3064a5a33deb23acc81304d0cce6311b88e87bb0c5f548393f3"
+  },
+  "helper": {
+    "path": ".artifacts/check-device-trust-outlet-binding.mjs",
+    "sha256": "eb3d98f0bcc51bb3e8a7f35194b9b78708d8a856fc979f08de1eabab42a1d404"
+  }
+}

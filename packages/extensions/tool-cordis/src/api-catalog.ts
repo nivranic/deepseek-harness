@@ -864,14 +864,14 @@ export const SERVICE_API: readonly ServiceApiEntry[] = [
       },
       {
         signature: '@Remote(\'revokeDevice\') async revokeDevice(request: RevokeDeviceRequest): Promise<RevokeDeviceResult>',
-        description: 'Revoke one grant. A revoked grant stays listed with its revocation time; a later role-mapped admission must treat it as refused.',
+        description: 'Revoke one grant. A revoked grant stays listed with its revocation time; a later role-mapped admission must treat it as refused. A completed revocation also leaves as one §44 `deviceTrustMetadata` ops record when the optional session-telemetry owner is composed and consenting.',
         parameters: [{ name: 'request', description: 'the addressed grant.' }],
         returns: 'the revoke acknowledgement.',
         throws: ['RemoteError `device/not-found` or `device/already-revoked`.'],
       },
       {
         signature: '@Remote(\'revokeAllDevices\') async revokeAllDevices(): Promise<RevokeAllDevicesResult>',
-        description: 'Revoke every still-active grant — the lost-device panic path. Already revoked grants keep their original revocation time; the event carries exactly the identities this call revoked.',
+        description: 'Revoke every still-active grant — the lost-device panic path. Already revoked grants keep their original revocation time; the event carries exactly the identities this call revoked. A call that revoked at least one grant also leaves one §44 `deviceTrustMetadata` ops record through the optional session-telemetry owner; a no-op revoke-all records nothing, mirroring the event condition.',
         parameters: [],
         returns: 'the shared revocation time and how many grants it revoked.',
       },

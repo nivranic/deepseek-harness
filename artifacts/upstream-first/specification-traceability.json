@@ -5026,13 +5026,16 @@
         "packages/session/session-telemetry/src/index.ts",
         "packages/session/session-telemetry-otel/src/index.ts",
         "packages/session/session-telemetry-otel/tests/otel.spec.ts",
+        "packages/api/device-trust/src/index.ts",
+        "packages/api/device-trust/tests/device-trust.host.spec.ts",
         "packages/api/host-diagnostics/src/recorder.ts",
         "packages/api/host-diagnostics/tests/diagnostics.spec.ts",
         "packages/client/ui-settings-telemetry/src/client/TelemetrySettingsSection.tsx",
         "packages/client/ui-settings-telemetry/tests/components.client.spec.tsx",
-        ".agents/notes/implemented/architecture/2026-10-06-crash-diagnostics-outlet.md"
+        ".agents/notes/implemented/architecture/2026-10-06-crash-diagnostics-outlet.md",
+        ".agents/notes/implemented/architecture/2026-10-06-device-trust-outlet.md"
       ],
-      "remaining": "§44 已按可落地部分落地：分类型同意词汇与解析如前（TelemetryDataKind 五类、逐类布尔、全关默认、非 true 一律关、非布尔加载即拒）；sessionTelemetry 类已接线到唯一现存出口（关闭即默认不建 SDK 管线、反馈留本地并告警，base bundle 以 DSH_TELEMETRY_CONSENT=1 显式开启组合层种子）。同意运行时层与 UI 已交付（telemetry-consent namespace base 种子 applies='restart'、构造时 user>base>默认 解析+未组合惰性回退、ui-settings-telemetry 五独立开关无总开关缺席不渲染、web-app bundle 组合）——「UI 不得单一总开关隐藏数据类型」与五类区分闭合。crashDiagnostics 出口已接线：boot 检测的 crash facts（pid/runStartedAt，仅本次 boot 单条不重发历史）经 producer 推+可选结构化 owner（recorder 构造时 ctx.get('sessionTelemetry') 快照，门关静默零调用零异常）以 channel:'ops' 记录（telemetry.op='diagnostics-crash'）直发，otel 侧 emit 收窄放行 ops 进独立 /ops scope（兑现 seam 双 scope 承诺，ledger 直发仍丢弃）、provider 构造门放宽为两 kind 析取（url 等加载校验随达 crash-only opt-in）、crash-only 形态 fiber 拆卸自排空、DISABLED 总闸零外发、运行期错误环（含 message 文本）维持本地。provider/relay/deviceTrust 各自出口随其生产者落地（relayMetadata 阻塞于 §23 宿主 relay 服务；provider attribution headers 是否计入遥测的语义裁定随其出口代际）；loader-composition e2e 存在既有基线红（无 DSH_TELEMETRY_CONSENT 设置点+Windows src 形态 .sessions 不物化，列开放通道）。",
+      "remaining": "§44 已按可落地部分落地：分类型同意词汇与解析如前（TelemetryDataKind 五类、逐类布尔、全关默认、非 true 一律关、非布尔加载即拒）；sessionTelemetry 类已接线到唯一现存出口（关闭即默认不建 SDK 管线、反馈留本地并告警，base bundle 以 DSH_TELEMETRY_CONSENT=1 显式开启组合层种子）。同意运行时层与 UI 已交付（telemetry-consent namespace base 种子 applies='restart'、构造时 user>base>默认 解析+未组合惰性回退、ui-settings-telemetry 五独立开关无总开关缺席不渲染、web-app bundle 组合）——「UI 不得单一总开关隐藏数据类型」与五类区分闭合。crashDiagnostics 出口已接线：boot 检测的 crash facts（pid/runStartedAt，仅本次 boot 单条不重发历史）经 producer 推+可选结构化 owner（recorder 构造时 ctx.get('sessionTelemetry') 快照，门关静默零调用零异常）以 channel:'ops' 记录（telemetry.op='diagnostics-crash'）直发，otel 侧 emit 收窄放行 ops 进独立 /ops scope（兑现 seam 双 scope 承诺，ledger 直发仍丢弃）、provider 构造门放宽、crash-only 形态 fiber 拆卸自排空、DISABLED 总闸零外发、运行期错误环（含 message 文本）维持本地。deviceTrustMetadata 出口已接线：设备撤销事实（revokedAt+deviceCount，绝不外发 deviceId/指纹/角色/密钥——准标识符最小外发面）由 device-trust 生产者在 revokeDevice/revokeAllDevices（仅实际撤销发生时，零撤销 revoke-all 与事件条件镜像）经撤销路径现取的可选结构化 owner（consent 读服务构造冻结值保持 restart 语义，门关静默零调用零异常、撤销 RPC 行为零变化）以 channel:'ops' 记录（telemetry.op='device-trust-revocation'、severity info 操作者安全动作）直发，otel 侧构造门放宽为三 kind 析取（url 等加载校验随达 deviceTrust-only opt-in）、opsEmit 创建门按类放宽（crash 或 deviceTrust 任一开）、非 session 出口形态 fiber 拆卸自排空、DISABLED 总闸零外发；admission/配对/rename 无既有事件刻意不发明（revocation-only 最小面）。provider/relay 出口随其生产者落地（relayMetadata 阻塞于 §23 宿主 relay 服务；provider attribution headers 是否计入遥测的语义裁定随其出口代际，含与 sessionTelemetry 的 usage 双重出口边界）；loader-composition e2e 存在既有基线红（无 DSH_TELEMETRY_CONSENT 设置点+Windows src 形态 .sessions 不物化，列开放通道）。",
       "evidenceLimit": "这些路径是已定位的候选证据；尚未逐条证明本节每一项要求，不授予整节 PASS。"
     },
     {

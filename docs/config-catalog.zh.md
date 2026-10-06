@@ -215,7 +215,7 @@ export interface Config {
 export type DeviceRole = 'viewer' | 'collaborator' | 'controller' | 'owner'
 ```
 
-来源： [`packages/api/device-trust/src/index.ts:61`](../packages/api/device-trust/src/index.ts)
+来源： [`packages/api/device-trust/src/index.ts:76`](../packages/api/device-trust/src/index.ts)
 
 <a id="deepseek-aidsh-api-gateway"></a>
 
@@ -2170,20 +2170,22 @@ export interface Config {
 /**
  * Plugin configuration: one sharing policy, the section 44 per-kind consent
  * record, two verbatim SDK option objects, and one DSH-owned shutdown bound.
- * Modes with any opted-in exit (sessionTelemetry or crashDiagnostics consent)
- * validate their endpoint and shutdown deadline at plugin load; `DISABLED`
- * reads neither.
+ * Modes with any opted-in exit (sessionTelemetry, crashDiagnostics, or
+ * deviceTrustMetadata consent) validate their endpoint and shutdown deadline
+ * at plugin load; `DISABLED` reads neither.
  */
 export interface Config {
   /** Defaults to `FEEDBACK_ONLY`: capture session history only when feedback is explicitly submitted. */
   mode?: SessionTelemetryMode
   /**
    * Section 44 per-kind telemetry consent: one boolean per data kind, every
-   * kind defaulting to off, no master switch. The sessionTelemetry and
-   * crashDiagnostics kinds gate provider construction — either one opted in
-   * builds the SDK pipeline (load-time transport validation included);
-   * sessionTelemetry additionally wires feedback capture, crashDiagnostics
-   * the direct ops exit. With the user-settings service composed this is the
+   * kind defaulting to off, no master switch. The sessionTelemetry,
+   * crashDiagnostics, and deviceTrustMetadata kinds gate provider
+   * construction — any one opted in builds the SDK pipeline (load-time
+   * transport validation included); sessionTelemetry additionally wires
+   * feedback capture, crashDiagnostics and deviceTrustMetadata share the
+   * direct ops exit (device-trust revocation facts, producer in
+   * dsh-device-trust). With the user-settings service composed this is the
    * composition-layer SEED — it registers as the `telemetry-consent`
    * namespace's base layer, the user layer wins, and the effect is
    * restart-scoped because the pipeline gate is decided at construction.
@@ -2220,7 +2222,7 @@ export enum SessionTelemetryMode {
 
 依赖：`BatchLogRecordProcessorOptions`（`@opentelemetry/sdk-logs`）· `OTLPExporterNodeConfigBase`（`@opentelemetry/otlp-exporter-base`） · [`TelemetryConsent`](../packages/session/session-telemetry/src/index.ts)
 
-来源：[`packages/session/session-telemetry-otel/src/index.ts:114`](../packages/session/session-telemetry-otel/src/index.ts)
+来源：[`packages/session/session-telemetry-otel/src/index.ts:116`](../packages/session/session-telemetry-otel/src/index.ts)
 
 <a id="deepseek-aidsh-session-title"></a>
 

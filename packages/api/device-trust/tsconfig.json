@@ -18,6 +18,15 @@
       "path": "../../util/brand"
     },
     {
+      "path": "../../storage/storage"
+    },
+    {
+      "path": "../../storage/storage-domain"
+    },
+    {
+      "path": "../../session/session-telemetry"
+    },
+    {
       "path": "../../typert/protocol"
     }
   ]

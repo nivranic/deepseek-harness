@@ -8,7 +8,7 @@ English | [中文](README.zh.md)
 
 ## Summary
 
-`@deepseek-ai/dsh-api-device-trust` owns the Host `ctx.deviceTrust` service: the device-trust seam named by the [link-access takeover audit](../../../.agents/notes/implemented/architecture/2026-09-20-link-access-takeover-audit.md). The gateway owns device-facing access; pairing is a capability-gated ceremony rather than a resurrected Link server, and permission execution stays with the interaction-reply seam. The service issues one-time expiring pairing codes, redeems them against the device's freshly generated Ed25519 public key, holds the durable grant store over the storage-domain seam, verifies signed admissions, and revokes grants.
+`@deepseek-ai/dsh-api-device-trust` owns the Host `ctx.deviceTrust` service: the device-trust seam named by the [link-access takeover audit](../../../.agents/notes/implemented/architecture/2026-09-20-link-access-takeover-audit.md). The gateway owns device-facing access; pairing is a capability-gated ceremony rather than a resurrected Link server, and permission execution stays with the interaction-reply seam. The service issues one-time expiring pairing codes, redeems them against the device's freshly generated Ed25519 public key, holds the durable grant store over the storage-domain seam, verifies signed admissions, and revokes grants. A completed revocation leaves as one ops record (time and count only) through the optional telemetry owner under `deviceTrustMetadata` consent.
 
 ## Table of Contents
 
@@ -55,7 +55,7 @@ No direct effect; device-trust operations do not alter model requests.
 <details>
 <summary>Working context for maintainers — click to expand</summary>
 
-The audit decision recorded in `.agents/notes/implemented/architecture/2026-09-20-link-access-takeover-audit.md` owns the placement: the retired `packages/remote/link-*` and `device-trust` groups stay retired, and this seam is the single owner of device-facing access on the candidate gateway.
+The audit decision recorded in `.agents/notes/implemented/architecture/2026-09-20-link-access-takeover-audit.md` owns the placement: the retired `packages/remote/link-*` and `device-trust` groups stay retired, and this seam is the single owner of device-facing access on the candidate gateway. The §44 egress probes `ctx.get('sessionTelemetry')` inside each revocation path — consent is frozen at the owner's own construction, so the probe carries no composition-order coupling — and the record carries only `revokedAt` and `deviceCount`: no device id, key fingerprint, role, or key material ever leaves.
 
 </details>
 

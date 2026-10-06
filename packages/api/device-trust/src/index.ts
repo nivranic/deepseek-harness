@@ -2,16 +2,20 @@
  * Device-trust seam on the candidate gateway: pairing issuance with one-time
  * expiring codes, redemption registering the device's Ed25519 public key, the
  * durable grant store over the storage-domain seam, signed admission, and
- * revocation. The audit decision 2026-09-20-link-access-takeover-audit names
- * this seam the single owner of device-facing access; permission execution
- * stays with Gateway, which consumes each admission's section 21 permission
- * set. The native-remote package owns the separate encrypted listener.
+ * revocation. A completed revocation leaves as one §44 `deviceTrustMetadata`
+ * ops record through the optional session-telemetry owner, carrying the
+ * revocation time and revoked count only. The audit decision
+ * 2026-09-20-link-access-takeover-audit names this seam the single owner of
+ * device-facing access; permission execution stays with Gateway, which
+ * consumes each admission's section 21 permission set. The native-remote
+ * package owns the separate encrypted listener.
  * @module @deepseek-ai/dsh-api-device-trust
  */
 
 import { createHash, createPublicKey, randomUUID, verify as verifySignature } from 'node:crypto'
 import { Context, Service } from '@deepseek-ai/cordis'
 import z from '@deepseek-ai/schemastery'
+import type { SessionTelemetryRecord, TelemetryConsent } from '@deepseek-ai/dsh-session-telemetry'
 import { RemoteError, TypertRemoteService, Remote } from '@deepseek-ai/dsh-typert-protocol'
 import { DomainError, type KvTable } from '@deepseek-ai/dsh-storage-domain'
 import { DEVICE_TRUST_REMOTE_CAPABILITIES } from './capabilities.ts'
@@ -109,6 +113,22 @@ function decodeDeviceKey(devicePublicKey: string): { spki: Buffer; fingerprint: 
     throw new RemoteError('device/key-invalid', 'device public key is not an Ed25519 SPKI DER', { reason: 'not-ed25519-spki' })
   }
   return { spki, fingerprint: sha256Hex(spki) }
+}
+
+/** Optional session-telemetry owner shape the service pushes revocation records through. */
+interface TelemetryOwner {
+  readonly consent: TelemetryConsent
+  emit(record: SessionTelemetryRecord): void
+}
+
+/**
+ * §44 gate for the one telemetry kind this seam emits. Local specialization of
+ * `telemetryKindAllowed` (the authority, in dsh-session-telemetry) so this
+ * package keeps a type-only dependency face: for a single kind the general
+ * form reduces to the same `=== true` check.
+ */
+function deviceTrustMetadataAllowed(consent: Partial<TelemetryConsent>): boolean {
+  return consent.deviceTrustMetadata === true
 }
 
 /** One issued code awaiting redemption. */
@@ -261,7 +281,9 @@ export class DeviceTrustService extends TypertRemoteService {
 
   /**
    * Revoke one grant. A revoked grant stays listed with its revocation time;
-   * a later role-mapped admission must treat it as refused.
+   * a later role-mapped admission must treat it as refused. A completed
+   * revocation also leaves as one §44 `deviceTrustMetadata` ops record when
+   * the optional session-telemetry owner is composed and consenting.
    * @param request - the addressed grant.
    * @returns the revoke acknowledgement.
    * @throws RemoteError `device/not-found` or `device/already-revoked`.
@@ -288,13 +310,17 @@ export class DeviceTrustService extends TypertRemoteService {
       throw error
     }
     this.ctx.emit('deviceTrust/grantsRevoked', { revokedAt, deviceIds: [request.deviceId] })
+    this.reportRevocation(revokedAt, 1)
     return { deviceId: request.deviceId, revokedAt }
   }
 
   /**
    * Revoke every still-active grant — the lost-device panic path. Already
    * revoked grants keep their original revocation time; the event carries
-   * exactly the identities this call revoked.
+   * exactly the identities this call revoked. A call that revoked at least
+   * one grant also leaves one §44 `deviceTrustMetadata` ops record through
+   * the optional session-telemetry owner; a no-op revoke-all records
+   * nothing, mirroring the event condition.
    * @returns the shared revocation time and how many grants it revoked.
    */
   @Remote('revokeAllDevices')
@@ -309,8 +335,36 @@ export class DeviceTrustService extends TypertRemoteService {
       this.table().update(deviceId, (current): DeviceGrantRecord =>
         current.revokedAt === undefined ? { ...current, revokedAt } : current),
     ))
-    if (deviceIds.length > 0) this.ctx.emit('deviceTrust/grantsRevoked', { revokedAt, deviceIds })
+    if (deviceIds.length > 0) {
+      this.ctx.emit('deviceTrust/grantsRevoked', { revokedAt, deviceIds })
+      this.reportRevocation(revokedAt, deviceIds.length)
+    }
     return { revokedAt, count: deviceIds.length }
+  }
+
+  /**
+   * Push one completed revocation through the optional session-telemetry
+   * owner as a §44 ops record. The payload carries the shared revocation
+   * time and the revoked count only: device ids, key fingerprints, roles,
+   * and key material never leave, and severity is `info` — an operator
+   * security action, not a fault. The owner is probed here, not snapshotted
+   * at construction, because revocation is a runtime event: consent is
+   * frozen at the owner's own construction, so every revocation reads the
+   * same resolved record without composition-order coupling. An absent owner
+   * or a closed gate stays silent; the durable revocation is unchanged.
+   * @param revokedAt - the shared revocation time of the completed revocation.
+   * @param deviceCount - how many grants this revocation revoked.
+   */
+  private reportRevocation(revokedAt: number, deviceCount: number): void {
+    const owner = this.ctx.get('sessionTelemetry') as TelemetryOwner | undefined
+    if (owner === undefined || !deviceTrustMetadataAllowed(owner.consent)) return
+    owner.emit({
+      channel: 'ops',
+      time: Date.now(),
+      severity: 'info',
+      attributes: { 'telemetry.op': 'device-trust-revocation' },
+      body: { op: 'device-trust-revocation', revokedAt, deviceCount },
+    })
   }
 
   /**

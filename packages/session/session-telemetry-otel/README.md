@@ -9,7 +9,7 @@ English | [中文](README.zh.md)
 
 ## Summary
 
-`dsh-session-telemetry-otel` exports session records through the OTel JS SDK only after new explicit feedback, for all users and providers, including `deepseek-official`. `FEEDBACK_ONLY` releases the canonical prefix through that feedback, including context; later records wait for the next explicit feedback. The `crashDiagnostics` consent kind opens a second exit: direct operational records under a dedicated `/ops` instrumentation scope. `DISABLED` constructs no transport and overrides every kind. SDK batching can finish an authorized upload without another user interaction or model call. Deployments own their redaction rules.
+`dsh-session-telemetry-otel` exports session records through the OTel JS SDK only after new explicit feedback, for all users and providers, including `deepseek-official`. `FEEDBACK_ONLY` releases the canonical prefix through that feedback, including context; later records wait for the next explicit feedback. The `crashDiagnostics` and `deviceTrustMetadata` consent kinds open a second exit: direct operational records (crash facts and device-trust revocation facts) under a dedicated `/ops` instrumentation scope. `DISABLED` constructs no transport and overrides every kind. SDK batching can finish an authorized upload without another user interaction or model call. Deployments own their redaction rules.
 
 ## Table of Contents
 
@@ -56,18 +56,18 @@ Uploading modes require an exporter URL and accept the SDK option blocks verbati
 | Field | Default | Meaning |
 |---|---|---|
 | `mode` | `FEEDBACK_ONLY` | Sharing policy: `FEEDBACK_ONLY` or `DISABLED` |
-| `consent` | every kind `false` | Section 44 per-kind switches (`sessionTelemetry`, `providerMetadata`, `relayMetadata`, `deviceTrustMetadata`, `crashDiagnostics`) carried as the composition-layer seed: with the user-settings service composed, the backend registers the `telemetry-consent` namespace (`base` = this seed, the user layer wins, restart-scoped — a user edit lands at the next start); without that service this record is the whole consent. The backend gates SDK construction on the `sessionTelemetry` or `crashDiagnostics` kinds: either opted in builds the pipeline (endpoint validation included), `sessionTelemetry` additionally wires feedback capture, `crashDiagnostics` alone opens the ops exit without it; both off (the default) builds no pipeline, feedback stays local with a warning, and `mode` keeps naming the sharing policy |
+| `consent` | every kind `false` | Section 44 per-kind switches (`sessionTelemetry`, `providerMetadata`, `relayMetadata`, `deviceTrustMetadata`, `crashDiagnostics`) carried as the composition-layer seed: with the user-settings service composed, the backend registers the `telemetry-consent` namespace (`base` = this seed, the user layer wins, restart-scoped — a user edit lands at the next start); without that service this record is the whole consent. The backend gates SDK construction on the `sessionTelemetry`, `crashDiagnostics`, or `deviceTrustMetadata` kinds: any one opted in builds the pipeline (endpoint validation included), `sessionTelemetry` additionally wires feedback capture, `crashDiagnostics` or `deviceTrustMetadata` alone opens the ops exit without it; all three off (the default) builds no pipeline, feedback stays local with a warning, and `mode` keeps naming the sharing policy |
 | `exporter.url` | required in uploading modes | Full OTLP logs endpoint; must parse as `http(s)` |
 | `exporter`, `processor` | — | Passed verbatim to the SDK exporter and batch processor |
 | `shutdownTimeoutMillis` | `3,000` | Outer deadline for the SDK's complete shutdown sequence |
 
-Direct `ctx.sessionTelemetry.emit()` calls cannot bypass feedback authorization: `channel: 'ledger'` records are no-ops in every mode, and `channel: 'ops'` records upload only when the `crashDiagnostics` kind is opted in — never under `DISABLED`, which stays the master switch. Inherited parent feedback does not authorize a child export: the child needs new feedback of its own. Its authorized prefix then includes inherited context.
+Direct `ctx.sessionTelemetry.emit()` calls cannot bypass feedback authorization: `channel: 'ledger'` records are no-ops in every mode, and `channel: 'ops'` records upload only when the `crashDiagnostics` or `deviceTrustMetadata` kind is opted in — never under `DISABLED`, which stays the master switch. Inherited parent feedback does not authorize a child export: the child needs new feedback of its own. Its authorized prefix then includes inherited context.
 
 Model requests, request headers, Session creation or adoption, restoration, and plugin mount or HMR do not authorize capture. Stored feedback alone triggers nothing. SDK scheduled flush and shutdown may finish batches authorized earlier, but never capture new records.
 
 ### What leaves the machine
 
-In uploading modes, records carry the complete `event.data` as the seam's `sessionTelemetry/record` waterfall returns it — message content, tool arguments and results, the system prompt and tool schemas, todo text, compaction summaries, feedback text, and the session `cwd`. Provider credentials never appear: adapter API keys are constructor parameters, not session events, so they are structurally absent from the log and therefore from telemetry. Direct ops records carry only the op payload their producer hands over (crash facts today), unchanged — the redaction waterfall runs at capture, not on the direct path. `DISABLED` constructs no SDK pipeline and hands no capture to a backend.
+In uploading modes, records carry the complete `event.data` as the seam's `sessionTelemetry/record` waterfall returns it — message content, tool arguments and results, the system prompt and tool schemas, todo text, compaction summaries, feedback text, and the session `cwd`. Provider credentials never appear: adapter API keys are constructor parameters, not session events, so they are structurally absent from the log and therefore from telemetry. Direct ops records carry only the op payload their producer hands over (crash facts and device-trust revocation facts today), unchanged — the redaction waterfall runs at capture, not on the direct path. `DISABLED` constructs no SDK pipeline and hands no capture to a backend.
 
 ### Failures and shutdown
 
@@ -85,7 +85,7 @@ This section explains the backend's composition; the observable behavior is full
 
 ### Design concept
 
-The backend is a thin adapter over the OTel JS SDK: it owns feedback authorization, resource identity, and an outer shutdown deadline. Canonical ledger records use the `@deepseek-ai/dsh-session-telemetry-otel` instrumentation scope; direct ops records (the `crashDiagnostics` exit) ride `@deepseek-ai/dsh-session-telemetry-otel/ops`, and on-demand capture itself produces no ops records. Resource identity carries `service.name`/`service.version` from `dsh-llm`'s `APP_IDENTITY` plus the anonymous `user.id` (from `$DSH_HOME/.anonymous-user-id`), once per export batch rather than per record.
+The backend is a thin adapter over the OTel JS SDK: it owns feedback authorization, resource identity, and an outer shutdown deadline. Canonical ledger records use the `@deepseek-ai/dsh-session-telemetry-otel` instrumentation scope; direct ops records (the `crashDiagnostics` and `deviceTrustMetadata` exits) ride `@deepseek-ai/dsh-session-telemetry-otel/ops`, and on-demand capture itself produces no ops records. Resource identity carries `service.name`/`service.version` from `dsh-llm`'s `APP_IDENTITY` plus the anonymous `user.id` (from `$DSH_HOME/.anonymous-user-id`), once per export batch rather than per record.
 
 ### Source map
 
@@ -95,7 +95,7 @@ The backend is a thin adapter over the OTel JS SDK: it owns feedback authorizati
 
 ### Capture wiring
 
-The backend uses on-demand capture with stored history included, composed only when the `sessionTelemetry` kind is opted in. Only new own `feedback/record`, `feedback/message-put`, or `feedback/message-delete` events trigger live capture, bounded by that event. A cold `feedback/committed` notification supplies its committed canonical snapshot without publishing a live Session or Agent. Same-object handoff cursors suppress repeated capture. The backend implements no `flush()`; the SDK owns batching and shutdown drain. A `crashDiagnostics`-only composition builds the pipeline without the coordinator — direct ops records are its sole exit, and the backend drains the provider at fiber disposal itself.
+The backend uses on-demand capture with stored history included, composed only when the `sessionTelemetry` kind is opted in. Only new own `feedback/record`, `feedback/message-put`, or `feedback/message-delete` events trigger live capture, bounded by that event. A cold `feedback/committed` notification supplies its committed canonical snapshot without publishing a live Session or Agent. Same-object handoff cursors suppress repeated capture. The backend implements no `flush()`; the SDK owns batching and shutdown drain. An ops-only composition (`crashDiagnostics` and/or `deviceTrustMetadata` without `sessionTelemetry`) builds the pipeline without the coordinator — direct ops records are its sole exit, and the backend drains the provider at fiber disposal itself.
 
 ### Field mapping
 
