@@ -3,6 +3,9 @@
  * home turns an unclean previous shutdown into a durable crash fact, and the
  * agent error relay fills a process-local capped ring. Facts carry identity
  * and text only, so the diagnostics payload stays sanitized by construction.
+ * The crash fact a boot detects leaves once more through the optional
+ * session-telemetry owner (§44 `crashDiagnostics` consent); the runtime error
+ * ring stays process-local.
  * @module recorder
  */
 
@@ -11,6 +14,7 @@ import { dirname } from 'node:path'
 import type { Context } from '@deepseek-ai/cordis'
 import type {} from '@deepseek-ai/dsh-agent'
 import { dshHomePath } from '@deepseek-ai/dsh-home-paths'
+import type { SessionTelemetryRecord, TelemetryConsent } from '@deepseek-ai/dsh-session-telemetry'
 import type { DiagnosticsCrashFact, DiagnosticsErrorFact } from './types.ts'
 
 /** History bound for the durable crash log; the boot scan keeps the newest facts. */
@@ -52,7 +56,27 @@ function isCrashMarker(value: unknown): value is CrashMarker {
   return isCrashFact(value)
 }
 
-/** Records §42 crash facts and the capped agent-error ring for the diagnostics service. */
+/** Optional session-telemetry owner shape the recorder pushes boot-detected crash facts through. */
+interface TelemetryOwner {
+  readonly consent: TelemetryConsent
+  emit(record: SessionTelemetryRecord): void
+}
+
+/**
+ * §44 gate for the one telemetry kind this seam emits. Local specialization of
+ * `telemetryKindAllowed` (the authority, in dsh-session-telemetry) so this
+ * package keeps a type-only dependency face: for a single kind the general
+ * form reduces to the same `=== true` check.
+ */
+function crashDiagnosticsAllowed(consent: Partial<TelemetryConsent>): boolean {
+  return consent.crashDiagnostics === true
+}
+
+/**
+ * Records §42 crash facts and the capped agent-error ring for the diagnostics
+ * service, and reports each boot-detected crash fact through the optional
+ * session-telemetry owner (§44).
+ */
 export class DiagnosticsRecorder {
   private readonly crashFacts: DiagnosticsCrashFact[] = []
   private readonly errorFacts: DiagnosticsErrorFact[] = []
@@ -61,8 +85,9 @@ export class DiagnosticsRecorder {
 
   constructor(ctx: Context) {
     this.loadCrashLog()
-    this.detectUncleanShutdown()
+    const detected = this.detectUncleanShutdown()
     this.writeMarker()
+    this.reportCrashFact(ctx, detected)
     ctx.effect(() => {
       // Clean disposal removes the marker so the next boot reads a missing
       // marker as a clean shutdown; the effect body itself owns nothing.
@@ -102,6 +127,32 @@ export class DiagnosticsRecorder {
     }
   }
 
+  /**
+   * Push the crash fact this boot detected through the optional
+   * session-telemetry owner as one §44 ops record. Consent is snapshotted at
+   * this construction and never re-read; an absent owner or a closed gate
+   * stays silent — the §44 default loses nothing a user submitted, unlike the
+   * telemetry feedback-withheld warning. Only the fact detected at this boot
+   * leaves: the durable log's older rows were reported by the boots that
+   * detected them, and re-emitting history would duplicate every crash once
+   * per restart.
+   * @param ctx - the composing context, probed once for the optional owner.
+   * @param crash - the crash fact this boot detected, or undefined after a
+   * clean or concurrent-run boot.
+   */
+  private reportCrashFact(ctx: Context, crash: DiagnosticsCrashFact | undefined): void {
+    if (crash === undefined) return
+    const owner = ctx.get('sessionTelemetry') as TelemetryOwner | undefined
+    if (owner === undefined || !crashDiagnosticsAllowed(owner.consent)) return
+    owner.emit({
+      channel: 'ops',
+      time: Date.now(),
+      severity: 'error',
+      attributes: { 'telemetry.op': 'diagnostics-crash' },
+      body: { op: 'diagnostics-crash', pid: crash.pid, runStartedAt: crash.runStartedAt },
+    })
+  }
+
   private loadCrashLog(): void {
     if (!existsSync(this.crashLogPath)) return
     let parsed: unknown
@@ -118,8 +169,12 @@ export class DiagnosticsRecorder {
     }
   }
 
-  private detectUncleanShutdown(): void {
-    if (!existsSync(this.markerPath)) return
+  /**
+   * Read the boot marker and persist the previous run's unclean shutdown.
+   * @returns the crash fact this boot detected, or undefined after a clean or concurrent-run boot.
+   */
+  private detectUncleanShutdown(): DiagnosticsCrashFact | undefined {
+    if (!existsSync(this.markerPath)) return undefined
     let marker: CrashMarker | undefined
     try {
       const parsed: unknown = JSON.parse(readFileSync(this.markerPath, 'utf8'))
@@ -133,12 +188,13 @@ export class DiagnosticsRecorder {
     const fact = marker !== undefined && pidAlive(marker.pid)
       ? undefined
       : marker ?? { pid: 0, runStartedAt: statSync(this.markerPath).mtimeMs }
-    if (fact === undefined) return
+    if (fact === undefined) return undefined
     this.crashFacts.push(fact)
     if (this.crashFacts.length > MAX_CRASH_FACTS) {
       this.crashFacts.splice(0, this.crashFacts.length - MAX_CRASH_FACTS)
     }
     writeFileSync(this.crashLogPath, `${JSON.stringify(this.crashFacts)}\n`)
+    return fact
   }
 
   private writeMarker(): void {

@@ -3,7 +3,10 @@
  *
  * Composes the OTel JS SDK as-is — a `LoggerProvider` with a
  * `BatchLogRecordProcessor` and an OTLP/HTTP log exporter — and maps each
- * record handed over by the capture coordinator onto `logger.emit()`. After that call,
+ * record handed over by the capture coordinator onto `logger.emit()`. Ledger
+ * records ride the package's own instrumentation scope; direct
+ * `channel: 'ops'` records (the section 44 crashDiagnostics exit) ride the
+ * distinct `@deepseek-ai/dsh-session-telemetry-otel/ops` scope. After that call,
  * batching, retry, queueing, and loss policy use the SDK's documented behavior, configured
  * verbatim through the `exporter`/`processor` passthroughs. This package owns
  * capture mode and an outer shutdown deadline: the SDK's export timeout does
@@ -104,20 +107,25 @@ function sharingStatusFor(mode: SessionTelemetryMode): SessionTelemetrySharingSt
 /**
  * Plugin configuration: one sharing policy, the section 44 per-kind consent
  * record, two verbatim SDK option objects, and one DSH-owned shutdown bound.
- * Uploading modes validate their endpoint and shutdown deadline at plugin
- * load; `DISABLED` reads neither.
+ * Modes with any opted-in exit (sessionTelemetry or crashDiagnostics consent)
+ * validate their endpoint and shutdown deadline at plugin load; `DISABLED`
+ * reads neither.
  */
 export interface Config {
   /** Defaults to `FEEDBACK_ONLY`: capture session history only when feedback is explicitly submitted. */
   mode?: SessionTelemetryMode
   /**
    * Section 44 per-kind telemetry consent: one boolean per data kind, every
-   * kind defaulting to off, no master switch. With the user-settings service
-   * composed this is the composition-layer SEED — it registers as the
-   * `telemetry-consent` namespace's base layer, the user layer wins, and the
-   * effect is restart-scoped because the pipeline gate is decided at
-   * construction. Without the service, this record is the whole consent.
-   * Either path resolves once at load into the backend's `consent` field;
+   * kind defaulting to off, no master switch. The sessionTelemetry and
+   * crashDiagnostics kinds gate provider construction — either one opted in
+   * builds the SDK pipeline (load-time transport validation included);
+   * sessionTelemetry additionally wires feedback capture, crashDiagnostics
+   * the direct ops exit. With the user-settings service composed this is the
+   * composition-layer SEED — it registers as the `telemetry-consent`
+   * namespace's base layer, the user layer wins, and the effect is
+   * restart-scoped because the pipeline gate is decided at construction.
+   * Without the service, this record is the whole consent. Either path
+   * resolves once at load into the backend's `consent` field;
    * {@link mode} remains the upload policy.
    */
   consent?: Partial<TelemetryConsent>
@@ -187,23 +195,41 @@ const SEVERITY: Record<SessionTelemetrySeverity, { severityNumber: SeverityNumbe
   error: { severityNumber: SeverityNumber.ERROR, severityText: 'ERROR' },
 }
 
+/** Project one seam record onto the SDK log-record shape shared by both instrumentation scopes. */
+function toSdkLogRecord(record: SessionTelemetryRecord) {
+  return {
+    timestamp: record.time,
+    observedTimestamp: record.time,
+    ...SEVERITY[record.severity],
+    // JSON-serializable by the seam's contract (validated at Session.append
+    // for ledger records, owned by the ops producer) — exactly the AnyValue subset.
+    body: record.body as AnyValue,
+    attributes: record.attributes,
+  }
+}
+
 /**
  * The backend plugin — the only entry a deployment loads. It always registers
- * the `sessionTelemetry` service (duplicate load throws). `FEEDBACK_ONLY` with the
- * sessionTelemetry consent kind opted in wires the SDK pipeline and on-demand
- * {@link SessionTelemetryCoordinator}; `DISABLED`, or the kind withheld by the
- * section 44 default-off consent, constructs no SDK state and listens only to
- * warn when recorded feedback stays local. Outside `DISABLED`, a composed
- * user-settings service additionally receives the `telemetry-consent` namespace
- * registration: the composition-layer consent seeds its base, the user layer
- * decides the final record, and the restart-scoped effect means a user edit
- * lands at the next start, never mid-run.
+ * the `sessionTelemetry` service (duplicate load throws). Outside `DISABLED`,
+ * the sessionTelemetry or crashDiagnostics consent kind opted in constructs
+ * the SDK pipeline: sessionTelemetry wires the on-demand
+ * {@link SessionTelemetryCoordinator} (feedback-authorized ledger records
+ * under the package scope), crashDiagnostics the direct ops exit under the
+ * `/ops` scope, and both kinds on run the two exits side by side. With
+ * neither kind opted in — the section 44 default — or under `DISABLED`, no
+ * SDK state exists and recorded feedback only warns locally. Outside
+ * `DISABLED`, a composed user-settings service additionally receives the
+ * `telemetry-consent` namespace registration: the composition-layer consent
+ * seeds its base, the user layer decides the final record, and the
+ * restart-scoped effect means a user edit lands at the next start, never
+ * mid-run.
  */
 export class OpenTelemetrySessionBackend extends SessionTelemetryBackend {
   static inject = ['sessions']
   static Config = Config
 
   private readonly provider: LoggerProvider | undefined
+  private readonly opsEmit: SessionTelemetrySink['emit'] | undefined = undefined
   private readonly shutdownTimeoutMillis: number
   override readonly sharing: SessionTelemetrySharingStatus
   override readonly consent: TelemetryConsent
@@ -236,14 +262,20 @@ export class OpenTelemetrySessionBackend extends SessionTelemetryBackend {
       })
       this.consent = resolveTelemetryConsent(scope.get())
     }
-    if (!telemetryKindAllowed(this.consent, 'sessionTelemetry')) {
-      // §44 默认关闭: the deployment never opted this kind in, so no SDK
-      // state exists and feedback stays local; sharing keeps naming the mode.
-      this.provider = undefined
-      this.shutdownTimeoutMillis = DEFAULT_SHUTDOWN_TIMEOUT_MILLIS
+    const sessionKind = telemetryKindAllowed(this.consent, 'sessionTelemetry')
+    const crashKind = telemetryKindAllowed(this.consent, 'crashDiagnostics')
+    if (!sessionKind) {
+      // §44 默认关闭: the sessionTelemetry kind is off — alone or beside an
+      // opted-in crashDiagnostics exit — so no feedback capture exists and
+      // recorded feedback stays local; sharing keeps naming the mode.
       ctx.on('session/event', (session, event) => {
         if (isFeedback(session, event)) ctx.logger.warn(CONSENT_WITHHELD_WARNING)
       })
+    }
+    if (!sessionKind && !crashKind) {
+      // No consented exit remains, so no SDK state exists either.
+      this.provider = undefined
+      this.shutdownTimeoutMillis = DEFAULT_SHUTDOWN_TIMEOUT_MILLIS
       return
     }
 
@@ -296,17 +328,31 @@ export class OpenTelemetrySessionBackend extends SessionTelemetryBackend {
         }),
       ],
     })
+    const opsLogger = this.provider.getLogger('@deepseek-ai/dsh-session-telemetry-otel/ops', version)
+    if (crashKind) {
+      // The §44 crashDiagnostics exit: direct ops records ride the same SDK
+      // pipeline under their own instrumentation scope; the kinds with no
+      // producer yet have no outlet here.
+      this.opsEmit = (record) => {
+        opsLogger.emit(toSdkLogRecord(record))
+      }
+    }
+    if (!sessionKind) {
+      // No coordinator composes into the crash-only exit, so this backend
+      // owns its drain: queued ops records flush at fiber disposal, with the
+      // same failure containment the coordinator applies on its path.
+      ctx.effect(() => async () => {
+        try {
+          await this.shutdown()
+        } catch (error) {
+          ctx.logger.warn(`telemetry: ops exit shutdown failed: ${String(error)}`)
+        }
+      }, 'telemetry ops exit')
+      return
+    }
     const ledger = this.provider.getLogger('@deepseek-ai/dsh-session-telemetry-otel', version)
     const enqueue: SessionTelemetrySink['emit'] = (record) => {
-      ledger.emit({
-        timestamp: record.time,
-        observedTimestamp: record.time,
-        ...SEVERITY[record.severity],
-        // JSON-serializable by the seam's contract (validated at Session.append),
-        // which is exactly the AnyValue subset.
-        body: record.body as AnyValue,
-        attributes: record.attributes,
-      })
+      ledger.emit(toSdkLogRecord(record))
     }
     const backend: SessionTelemetrySink = {
       emit: enqueue,
@@ -340,11 +386,18 @@ export class OpenTelemetrySessionBackend extends SessionTelemetryBackend {
   }
 
   /**
-   * Drop direct records. Only a new canonical feedback submission can authorize
-   * capture through the private coordinator sink, for every provider.
-   * @param _record - the direct record, never uploaded.
+   * Drop direct ledger records: only a new canonical feedback submission can
+   * authorize capture through the private coordinator sink, for every
+   * provider. Direct ops records are the crashDiagnostics exit — they upload
+   * through the `/ops` scope when that kind is opted in, and otherwise have
+   * no pipeline to reach (`DISABLED`, the kind withheld, or no consented exit
+   * at all).
+   * @param record - the direct record; ledger copies never upload, ops copies upload only under crashDiagnostics consent.
    */
-  emit(_record: SessionTelemetryRecord): void {}
+  emit(record: SessionTelemetryRecord): void {
+    if (record.channel !== 'ops') return
+    this.opsEmit?.(record)
+  }
 
   // The Service Definition's optional flush() hint is deliberately NOT implemented. The
   // batch processor exports on its own cadence (`processor.scheduledDelayMillis`,

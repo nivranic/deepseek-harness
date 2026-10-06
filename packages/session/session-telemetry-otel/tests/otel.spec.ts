@@ -921,6 +921,219 @@ describe('OpenTelemetrySessionBackend consent resolution', () => {
   })
 })
 
+describe('OpenTelemetrySessionBackend crashDiagnostics ops exit', () => {
+  it('builds the pipeline for the crashDiagnostics kind alone and exports direct ops records under the /ops scope', async () => {
+    const { url, captures } = await mockCollector()
+    const ctx = new Context()
+    try {
+      await ctx.plugin(SessionStore)
+      const warnings: string[] = []
+      ctx.logger.warn = (message: string) => { warnings.push(message) }
+      const fiber = await ctx.plugin(OpenTelemetrySessionBackend, {
+        mode: SessionTelemetryMode.FEEDBACK_ONLY,
+        consent: { crashDiagnostics: true },
+        exporter: { url },
+        processor: { scheduledDelayMillis: 1 },
+      })
+      expect(ctx.sessionTelemetry.consent).toEqual({ ...TELEMETRY_CONSENT_OFF, crashDiagnostics: true })
+      const session = ctx.sessions.create(SessionId('crash-only'), { meta: {} })
+      session.append('turn/start', { turn: 1 })
+      // The sessionTelemetry kind is off, so feedback stays local with its warning.
+      recordFeedback(session, { text: 'ledger kind stays local' })
+      const crashTime = Date.now()
+      ctx.sessionTelemetry.emit({
+        channel: 'ops',
+        time: crashTime,
+        severity: 'error',
+        attributes: { 'telemetry.op': 'crash', 'session.id': 'crash-only', 'error.name': 'Error' },
+        body: { name: 'Error', message: 'operational boom' },
+      })
+      await fiber.dispose()
+
+      const records = allRecords(captures)
+      const ops = records.filter(r => r.scope === '@deepseek-ai/dsh-session-telemetry-otel/ops')
+      expect(ops).toHaveLength(1)
+      expect(ops[0]!.record.severityNumber).toBe(17)
+      expect(ops[0]!.record.severityText).toBe('ERROR')
+      expect(BigInt(ops[0]!.record.timeUnixNano)).toBe(BigInt(crashTime) * 1_000_000n)
+      expect(ops[0]!.record.attributes).toContainEqual({ key: 'telemetry.op', value: { stringValue: 'crash' } })
+      expect(ops[0]!.record.attributes).toContainEqual({ key: 'session.id', value: { stringValue: 'crash-only' } })
+      expect(JSON.stringify(ops[0]!.record.body)).toContain('operational boom')
+      expect(records.filter(r => r.scope === '@deepseek-ai/dsh-session-telemetry-otel')).toHaveLength(0)
+      expect(JSON.stringify(captures)).not.toContain('ledger kind stays local')
+      expect(warnings).toContain('OpenTelemetry session upload is withheld: sessionTelemetry consent is off; this feedback is not uploaded through OpenTelemetry')
+    } finally {
+      await ctx.fiber.dispose()
+    }
+  })
+
+  it('validates the transport endpoint for the crashDiagnostics-only opt-in too', async () => {
+    const ctx = new Context()
+    await ctx.plugin(SessionStore)
+    await expect(ctx.plugin(OpenTelemetrySessionBackend, {
+      mode: SessionTelemetryMode.FEEDBACK_ONLY,
+      consent: { crashDiagnostics: true },
+    })).rejects.toThrow(/exporter\.url is required/)
+    await ctx.fiber.dispose()
+  })
+
+  it('runs the feedback ledger pipeline and the ops exit side by side with both kinds on', async () => {
+    const { url, captures } = await mockCollector()
+    const ctx = new Context()
+    try {
+      await ctx.plugin(SessionStore)
+      const fiber = await ctx.plugin(OpenTelemetrySessionBackend, {
+        mode: SessionTelemetryMode.FEEDBACK_ONLY,
+        consent: { sessionTelemetry: true, crashDiagnostics: true },
+        exporter: { url },
+        processor: { scheduledDelayMillis: 1 },
+      })
+      const session = ctx.sessions.create(SessionId('both-kinds'), { meta: {} })
+      session.append('request/header', { header: { config: { provider: 'mock', model: 'mock' } }, reason: 'initial' })
+      session.append('turn/start', { turn: 1 })
+      ctx.sessionTelemetry.emit({
+        channel: 'ledger',
+        time: Date.now(),
+        severity: 'info',
+        attributes: { 'session.id': 'both-kinds', 'event.type': 'direct', 'event.seq': 99 },
+        body: { mustStayLocal: true },
+      })
+      ctx.sessionTelemetry.emit({
+        channel: 'ops',
+        time: Date.now(),
+        severity: 'warn',
+        attributes: { 'telemetry.op': 'shutdown', 'session.id': 'both-kinds' },
+        body: { op: 'shutdown' },
+      })
+      recordFeedback(session, { text: 'both kinds report' })
+      await fiber.dispose()
+
+      expect(eventTypes(captures)).toEqual(session.snapshotEvents().map(event => event.type))
+      const ops = allRecords(captures).filter(r => r.scope === '@deepseek-ai/dsh-session-telemetry-otel/ops')
+      expect(ops).toHaveLength(1)
+      expect(ops[0]!.record.severityNumber).toBe(13)
+      expect(ops[0]!.record.attributes).toContainEqual({ key: 'telemetry.op', value: { stringValue: 'shutdown' } })
+      expect(JSON.stringify(captures)).toContain('both kinds report')
+      // The narrowing is per channel: the direct ledger record stayed local.
+      expect(JSON.stringify(captures)).not.toContain('mustStayLocal')
+    } finally {
+      await ctx.fiber.dispose()
+    }
+  })
+
+  it('keeps DISABLED the master switch: crashDiagnostics consent parses but nothing leaves', async () => {
+    const { captures } = await mockCollector()
+    const ctx = new Context()
+    try {
+      await ctx.plugin(SessionStore)
+      const warn = vi.spyOn(ctx.logger, 'warn').mockImplementation(() => {})
+      const fiber = await ctx.plugin(OpenTelemetrySessionBackend, {
+        mode: SessionTelemetryMode.DISABLED,
+        consent: { crashDiagnostics: true },
+      })
+      expect(ctx.sessionTelemetry.consent).toEqual({ ...TELEMETRY_CONSENT_OFF, crashDiagnostics: true })
+      expect(ctx.sessionTelemetry.sharing).toBe('disabled')
+      const session = ctx.sessions.create(SessionId('disabled-crash'), { meta: {} })
+      session.append('turn/start', { turn: 1 })
+      recordFeedback(session, { text: 'local report' })
+      ctx.sessionTelemetry.emit({
+        channel: 'ops',
+        time: Date.now(),
+        severity: 'error',
+        attributes: { 'telemetry.op': 'crash', 'session.id': 'disabled-crash' },
+        body: { name: 'Error', message: 'no exit' },
+      })
+      await ctx.sessionTelemetry.shutdown()
+      await fiber.dispose()
+      expect(warn).toHaveBeenCalledWith(
+        'OpenTelemetry session upload is DISABLED; this feedback is not uploaded through OpenTelemetry',
+      )
+      expect(captures).toEqual([])
+    } finally {
+      await ctx.fiber.dispose()
+    }
+  })
+
+  it('constructs no SDK state with both kinds off and direct ops records have nowhere to go', async () => {
+    const { captures } = await mockCollector()
+    const ctx = new Context()
+    try {
+      await ctx.plugin(SessionStore)
+      const transportRead = vi.fn(() => {
+        throw new Error('transport config was read')
+      })
+      const backend = new OpenTelemetrySessionBackend(ctx, {
+        mode: SessionTelemetryMode.FEEDBACK_ONLY,
+        get exporter() {
+          return transportRead()
+        },
+        get processor() {
+          return transportRead()
+        },
+        get shutdownTimeoutMillis() {
+          return transportRead()
+        },
+      })
+      expect(backend.consent).toEqual(TELEMETRY_CONSENT_OFF)
+      expect(() => {
+        backend.emit({
+          channel: 'ops',
+          time: Date.now(),
+          severity: 'error',
+          attributes: { 'telemetry.op': 'crash', 'session.id': 'nowhere' },
+          body: null,
+        })
+      }).not.toThrow()
+      await backend.shutdown()
+      expect(captures).toEqual([])
+      expect(transportRead).not.toHaveBeenCalled()
+    } finally {
+      await ctx.fiber.dispose()
+    }
+  })
+
+  it('bounds the crash-only drain at the shutdown deadline when the transport never settles', async () => {
+    const gate = Promise.withResolvers<boolean>()
+    const arrived = Promise.withResolvers<boolean>()
+    const { url, captures } = await mockCollector(async (index) => {
+      if (index === 0) {
+        arrived.resolve(true)
+        await gate.promise
+      }
+    })
+    const ctx = new Context()
+    const warn = vi.spyOn(ctx.logger, 'warn').mockImplementation(() => {})
+    try {
+      await ctx.plugin(SessionStore)
+      const fiber = await ctx.plugin(OpenTelemetrySessionBackend, {
+        mode: SessionTelemetryMode.FEEDBACK_ONLY,
+        consent: { crashDiagnostics: true },
+        exporter: { url, timeoutMillis: 60_000 },
+        processor: { scheduledDelayMillis: 10, exportTimeoutMillis: 60_000 },
+        shutdownTimeoutMillis: 50,
+      })
+      ctx.sessionTelemetry.emit({
+        channel: 'ops',
+        time: Date.now(),
+        severity: 'info',
+        attributes: { 'telemetry.op': 'crash', 'session.id': 'hanging-crash' },
+        body: { op: 'crash' },
+      })
+      await arrived.promise
+      const started = performance.now()
+      await fiber.dispose()
+      expect(performance.now() - started).toBeLessThan(1_000)
+      expect(warn).toHaveBeenCalledWith(expect.stringContaining('telemetry: ops exit shutdown failed'))
+      // Let the held transport finish so the real provider promise stays clean.
+      gate.resolve(true)
+      await expect.poll(() => captures.length).toBeGreaterThanOrEqual(1)
+    } finally {
+      gate.resolve(true)
+      await ctx.fiber.dispose()
+    }
+  })
+})
+
 describe('OpenTelemetrySessionBackend settings consent seam', () => {
   const ALL_ON: TelemetryConsent = {
     sessionTelemetry: true,

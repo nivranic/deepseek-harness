@@ -8,7 +8,7 @@ kind: "package-reference"
 
 ## 概述
 
-一个 Typert Remote owner（`ctx.hostDiagnostics`，能力 `host.diagnostics.v1`，权限 `view`）承载规格的诊断切片。`health()` 回答第 41 节的存活/就绪区分：六个组件——process、runtime、sessionStore、pluginState、connection、modelProvider——各携带状态与指名被探测服务的 detail，以及派生的 `ready` 判定（connection 被排除：无载体的 profile 同样是 Host）。已组合的 owner 会深一层探测：失败的插件 fiber 使 pluginState 降级（ready 保持）、无已注册提供方的 LLM owner 使 modelProvider 降级并拉低 ready、inventory 读取抛错时以错误类别降级。`describe()` 组合第 42 节载荷——描述符事实（含已盖戳的 `sourceRevision`）、插件清单行、已发布迁移链、记录的 crash 与 last-error 事实、health 快照——以构造方式脱敏：字段集只枚举非秘密事实，任何秘密都无法到达它。
+一个 Typert Remote owner（`ctx.hostDiagnostics`，能力 `host.diagnostics.v1`，权限 `view`）承载规格的诊断切片。`health()` 回答第 41 节的存活/就绪区分：六个组件——process、runtime、sessionStore、pluginState、connection、modelProvider——各携带状态与指名被探测服务的 detail，以及派生的 `ready` 判定（connection 被排除：无载体的 profile 同样是 Host）。已组合的 owner 会深一层探测：失败的插件 fiber 使 pluginState 降级（ready 保持）、无已注册提供方的 LLM owner 使 modelProvider 降级并拉低 ready、inventory 读取抛错时以错误类别降级。`describe()` 组合第 42 节载荷——描述符事实（含盖戳的 `sourceRevision`）、插件清单行、已发布迁移链、记录的 crash 与 last-error 事实、health 快照，以构造方式脱敏。启动时检测到的 crash 事实在 `crashDiagnostics` 同意门下经 telemetry owner 外发一次；错误环保留本地。
 
 ## 目录
 
@@ -47,7 +47,7 @@ None；health 与诊断读取不会改变任何模型请求。
 <details>
 <summary>维护者工作上下文——点击展开</summary>
 
-探测是对可选组合服务的 `ctx.get()` 查找：`sessionPersistence`、`loader`、`llm`、`webServer`、`pluginInventory`（§42 行）与 `hostDescription`（描述符事实；缺失 owner 时 `describe` 以 `gateway/service-unavailable` 大声失败）。迁移表是从 session-format 包静态导入的已发布链——不做构建期内省，无需保持同步。
+探测是对可选组合服务的 `ctx.get()` 查找：`sessionPersistence`、`loader`、`llm`、`webServer`、`pluginInventory`（§42 行）、`hostDescription`（描述符事实；缺失 owner 时 `describe` 以 `gateway/service-unavailable` 大声失败），以及 `sessionTelemetry`（第 44 节 crash 事实外发；recorder 在构造时一次性快照同意状态，owner 缺席或 `crashDiagnostics` 关闭时保持静默）。迁移表是从 session-format 包静态导入的已发布链——不做构建期内省，无需保持同步。
 
 </details>
 

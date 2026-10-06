@@ -1,10 +1,11 @@
-/** §41 health/readiness, §42 sanitized payload with crash/last-error recording, and the §43 bundle over the Host owner. */
+/** §41 health/readiness, §42 sanitized payload with crash recording, §43 bundle, §44 crash-facts egress. */
 import { existsSync, mkdtempSync, readFileSync, rmSync, writeFileSync } from 'node:fs'
 import { tmpdir } from 'node:os'
 import { join } from 'node:path'
 import { Context } from '@deepseek-ai/cordis'
 import { afterAll, describe, expect, it } from 'vitest'
 import type { Agent } from '@deepseek-ai/dsh-agent'
+import type { SessionTelemetryRecord, TelemetryConsent } from '@deepseek-ai/dsh-session-telemetry'
 import { sessionFormatV0ToV1 } from '@deepseek-ai/dsh-session-format-v0-to-v1'
 import { sessionFormatV1ToV2 } from '@deepseek-ai/dsh-session-format-v1-to-v2'
 import { sessionFormatV2ToV3 } from '@deepseek-ai/dsh-session-format-v2-to-v3'
@@ -269,6 +270,86 @@ describe('Crash and last-error recorder (§42)', () => {
     const serialized = JSON.stringify(bundle)
     expect(serialized).toContain('boom')
     expect(serialized).not.toMatch(/api[-_]?key|bearer|secret|credential|password/iu)
+  })
+})
+
+describe('Crash-facts telemetry egress (§44)', () => {
+  /** A fake session-telemetry owner capturing emits, injected through the boot install hook like every optional owner. */
+  function telemetrySink(crashDiagnostics: boolean) {
+    const emitted: SessionTelemetryRecord[] = []
+    const owner = {
+      consent: {
+        sessionTelemetry: false,
+        providerMetadata: false,
+        relayMetadata: false,
+        deviceTrustMetadata: false,
+        crashDiagnostics,
+      } satisfies TelemetryConsent,
+      emit: (record: SessionTelemetryRecord) => {
+        emitted.push(record)
+      },
+    }
+    return { owner, emitted }
+  }
+
+  /** A home whose marker names a dead pid, so the boot scan detects one unclean shutdown. */
+  function crashHome(): string {
+    const home = freshHome()
+    writeFileSync(join(home, 'diagnostics-crash.marker'), `${JSON.stringify({ pid: DEAD_PID, runStartedAt: 123 })}\n`)
+    return home
+  }
+
+  it('an unclean boot without the telemetry owner records locally and never throws', async () => {
+    const { service } = boot(undefined, crashHome())
+    expect((await service.describe()).crash).toEqual([{ pid: DEAD_PID, runStartedAt: 123 }])
+  })
+
+  it('an owner with crashDiagnostics consent closed stays silent — zero emits, local recording unchanged', async () => {
+    const { owner, emitted } = telemetrySink(false)
+    const { service } = boot((ctx: Context) => {
+      ctx.provide('sessionTelemetry', owner as never)
+    }, crashHome())
+    expect(emitted).toEqual([])
+    expect((await service.describe()).crash).toEqual([{ pid: DEAD_PID, runStartedAt: 123 }])
+  })
+
+  it('an open gate emits exactly one ops record for the crash fact this boot detected — never the log history, never the error ring', async () => {
+    const { owner, emitted } = telemetrySink(true)
+    const home = freshHome()
+    writeFileSync(join(home, 'diagnostics-crash-log.json'), JSON.stringify([{ pid: 4_000_000, runStartedAt: 7 }]))
+    writeFileSync(join(home, 'diagnostics-crash.marker'), `${JSON.stringify({ pid: DEAD_PID, runStartedAt: 123 })}\n`)
+    const { service } = boot((ctx: Context) => {
+      ctx.provide('sessionTelemetry', owner as never)
+    }, home)
+    expect(emitted).toHaveLength(1)
+    const record = emitted[0]!
+    expect(Object.keys(record).sort()).toEqual(['attributes', 'body', 'channel', 'severity', 'time'])
+    expect(record.channel).toBe('ops')
+    expect(record.severity).toBe('error')
+    expect(record.time).toBeGreaterThan(0)
+    expect(record.attributes).toEqual({ 'telemetry.op': 'diagnostics-crash' })
+    expect(record.body).toEqual({ op: 'diagnostics-crash', pid: DEAD_PID, runStartedAt: 123 })
+    expect(JSON.stringify(record)).not.toMatch(/message|name|stack/u)
+    // Durable semantics are untouched by the emission: the crash log keeps the
+    // capped history plus this boot's fact, and the marker names this run.
+    expect(JSON.parse(readFileSync(join(home, 'diagnostics-crash-log.json'), 'utf8'))).toEqual([
+      { pid: 4_000_000, runStartedAt: 7 },
+      { pid: DEAD_PID, runStartedAt: 123 },
+    ])
+    const marker = JSON.parse(readFileSync(join(home, 'diagnostics-crash.marker'), 'utf8')) as { pid: number }
+    expect(marker.pid).toBe(process.pid)
+    expect((await service.describe()).crash).toEqual([
+      { pid: 4_000_000, runStartedAt: 7 },
+      { pid: DEAD_PID, runStartedAt: 123 },
+    ])
+  })
+
+  it('a clean boot with an open gate emits nothing', () => {
+    const { owner, emitted } = telemetrySink(true)
+    boot((ctx: Context) => {
+      ctx.provide('sessionTelemetry', owner as never)
+    }, freshHome())
+    expect(emitted).toEqual([])
   })
 })
 

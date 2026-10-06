@@ -8,7 +8,7 @@ English | [中文](README.zh.md)
 
 ## Summary
 
-One Typert Remote owner (`ctx.hostDiagnostics`, capability `host.diagnostics.v1`, permission `view`) owns the diagnostics slice. `health()` answers the section 41 liveness/readiness distinction: six components (process, runtime, sessionStore, pluginState, connection, modelProvider), each with a state and a detail naming the probed service, plus the `ready` verdict — connection excluded: a carrier-less profile is still a Host. `describe()` composes the section 42 payload — descriptor facts (including the stamped `sourceRevision`), plugin inventory rows, the migration chain, recorded crash and last-error facts, and the health snapshot — sanitized by construction: only non-secret facts are enumerated, so no secret can reach it.
+One Typert Remote owner (`ctx.hostDiagnostics`, capability `host.diagnostics.v1`, permission `view`) owns the diagnostics slice. `health()` answers the section 41 liveness/readiness distinction: six components (process, runtime, sessionStore, pluginState, connection, modelProvider), each with a state and a detail naming the probed service, plus the `ready` verdict (connection excluded: a carrier-less profile is still a Host). `describe()` composes the section 42 payload — descriptor facts (stamped `sourceRevision`), plugin inventory rows, the migration chain, recorded crash and last-error facts, and the health snapshot, sanitized by construction. Boot-detected crash facts leave once through the telemetry owner under `crashDiagnostics` consent; the error ring stays local.
 
 ## Table of Contents
 
@@ -47,7 +47,7 @@ None; health and diagnostics reads do not alter a model request.
 <details>
 <summary>Working context for maintainers — click to expand</summary>
 
-The probes are `ctx.get()` lookups over optionally composed services: `sessionPersistence`, `loader`, `llm`, `webServer`, `pluginInventory` (§42 rows), and `hostDescription` (descriptor facts; a missing owner fails `describe` loud with `gateway/service-unavailable`). The migration table is the static released chain imported from the session-format packages — no build-time introspection to keep in sync.
+The probes are `ctx.get()` lookups over optionally composed services: `sessionPersistence`, `loader`, `llm`, `webServer`, `pluginInventory` (§42 rows), `hostDescription` (descriptor facts; a missing owner fails `describe` loud with `gateway/service-unavailable`), and `sessionTelemetry` (§44 crash-facts egress; the recorder snapshots consent once at construction and stays silent without the owner or the `crashDiagnostics` kind). The migration table is the static released chain imported from the session-format packages — no build-time introspection to keep in sync.
 
 </details>
 

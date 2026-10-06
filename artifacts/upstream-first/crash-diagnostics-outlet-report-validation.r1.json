@@ -1,0 +1,66 @@
+{
+  "status": "PASS",
+  "scope": "Report bindings and audit for the crash-diagnostics-outlet increment: the section 44 crashDiagnostics outlet delivered as machine-checked facts — the spec pinning read the section's remaining naming provider/relay/deviceTrust/crash each following its producer with the crash producer already landed (the host-diagnostics recorder detecting the unclean shutdown at boot and persisting the bounded crash log with pid/runStartedAt markers) while the outlet was missing, and the seam documentation promising two instrumentation scopes (ledger/ops separated) from the start that the otel backend never honored (a single scope with emit dropping every direct record); the implementation lands both sides — the producer push through an optional structured owner (the recorder snapshots ctx.get('sessionTelemetry') at construction, the lazy-resolve family precedent, silent with the gate closed and never resending history, the error ring staying local) emitting one channel:'ops' record per boot-detected crash fact with telemetry.op='diagnostics-crash' and the body carrying pid and runStartedAt, and the outlet side honoring the dual-scope promise through the independent /ops logger scope (toSdkLogRecord mapping shared) with the constructor gate widened to the sessionTelemetry||crashDiagnostics disjunction (the url and load validations reaching the crash-only opt-in), emit narrowed to drop ledger directs while passing ops, opsEmit created only when crashDiagnostics is on (the category-independent gate three-way symmetric with the constructor and producer gates, both closure rulings approved by the main session), the crash-only self-draining fiber teardown effect, DISABLED keeping the master switch and CONSENT_WITHHELD_WARNING moved to the sessionTelemetry-branch with unchanged semantics; zero runtime dependencies through the type-only devDep with the local single-class specialization (lib/types/recorder.d.ts proven to carry no import) — executed as two parallel lanes (six new otel cases joining 65, four new producer cases joining 34, the integration run 99/99 with tsc -b both 0), with the first dispatch killed silently by the host session restart (probe-confirmed, zero worktree writes) restarted verbatim, the otel lane's one void-expression oxlint fix and the producer lane's three max-len and boolean-literal-compare fixes, the config-catalog regeneration with its zh mirror and pairing as the necessary follow-on, and the loader-composition e2e baseline red pinned pre-existing (3/4 failing before any change: no DSH_TELEMETRY_CONSENT setter repo-wide plus the Windows src-form .sessions not materializing) and listed as an open channel; the documentation evidence keeps the two-file split — doc-quick 17 gates in its own docs log and doc-sync 36 passed 0 failed 0 skipped in 177.46s in its own docsync log, both first-pass — with the serial double audit round green at 87 files / 1073 tests on both passes with every count asserted from log content (the otel and host-diagnostics specs being host specs staying off the client lineage), gate0 in both forms, the traceability node --test 6/6 with the section 44 remaining rewritten from 828 to 980 characters and candidateEvidence 7 to 9, and the lint round sealed in its honestly recorded chained single-trailer form (the build:lib:host host build then lint:contracts-ready with the tsx scripts/run-oxlint.ts . command line, one EXIT_CODE=0 trailer for the whole chain, Found 0 warnings and 0 errors, no labelled trailer in the log); the same-round gradle acceptance round (scanner env with -PdshNativeAcceptance over :app:assembleDebug :app:assembleDebugAndroidTest :core:test, BUILD SUCCESSFUL in 32s) replayed WARM with 1 executed of 70 actionable tasks and 69 up-to-date — :core:test reached the graph and stayed UP-TO-DATE, so the still-standing XML reports stay the aggregate's authority — because nothing under apps/android changed this generation (no device lane ran and the emulator stayed off), the empty-derived byte proof compares both APKs byte-identically against the device-revocation-closure record's builtFiles entries (.artifacts/crash-diagnostics-outlet-apk-bytes.log), the still-standing XML reports aggregate 77 suites / 477 tests with zero failures/errors/skips (.artifacts/crash-diagnostics-outlet-core-results.json), and the prepare-side unresolved scan derived ZERO replaced prior build outputs (7680 files, 0 reused, 7680 written — the zero-drift derivation: neither session-telemetry-otel's nor host-diagnostics's lib outputs are recorded inputs of the prior record) so the new record's own derivation stays out of the generator and the cumulative allowlist keeps its nine inherited keys while every prior generation's own set (including the adjudicated four-key approvalFactsCompleteReplacedBuildOutputs set with its filter and guard, the gen-32 round-1 repair's atomicDurabilitySupersededSources six-key set with its companion single-key desktopPackageReplacedBuildOutputs set, and the gen-33 three-key tornRepairIntentReplacedBuildOutputs set riding the HEAD content) stays unchanged; the provider/relay/deviceTrust outlets keep following their producers (relay blocked on section 23; the provider attribution-headers semantics ruling rides its own future generation) and the loader-composition e2e baseline red stays an open channel, so no whole-section PASS is granted; full Upstream-First objective remains in progress",
+  "gate0": {
+    "validation": "PASS",
+    "gate0": "PASS",
+    "paths": 1938,
+    "components": 129,
+    "specificationCoverage": {
+      "status": "PASS",
+      "numberedSections": 81,
+      "nonEmptySourceLines": 1983,
+      "acceptanceProven": false
+    }
+  },
+  "sourceRecord": {
+    "path": "artifacts/upstream-first/crash-diagnostics-outlet-source.json",
+    "sha256": "88ae14463f88aaeef53e06e5b788cce89efd21ba5e8b02e8db20fb706b971a45"
+  },
+  "generator": {
+    "path": "artifacts/upstream-first/write-reports.mjs",
+    "sha256": "7f52eb087fa3f9e9bb48f164818218c0cd867cbf4aada58bfee6ad490d56402e"
+  },
+  "binding": {
+    "path": "artifacts/upstream-first/crash-diagnostics-outlet-binding.json",
+    "sha256": "d682c423a173e541696cc72b3f7f1377da4474dd5d310782737f36b55dfc20eb"
+  },
+  "helpers": [
+    {
+      "path": ".artifacts/advance-crash-diagnostics-outlet-reports.mjs",
+      "sha256": "31c5f54dd6ce8505be65f5876fd0c7d6bfbc8730b5ae672c7932363d3fb20a79"
+    },
+    {
+      "path": ".artifacts/capture-crash-diagnostics-outlet-validation.mjs",
+      "sha256": "1df8a589033bc2aee0cff42b4fd326279b9e9d233b90bcb156686ebbb8214c3c"
+    }
+  ],
+  "reports": [
+    {
+      "path": "IMPLEMENTATION_STATUS.md",
+      "sha256": "8a7bb185b46e106ced64b93df6acf80f96cdbc5d8d4475ca6a746803a097fe3c"
+    },
+    {
+      "path": "artifacts/upstream-first/evidence.json",
+      "sha256": "4d4fdf4501349ed2a86419c0711fdc6f604472ec840239ccb1dca84ba15c88a3"
+    }
+  ],
+  "checks": [
+    {
+      "path": ".artifacts/crash-diagnostics-outlet-binding.log",
+      "sha256": "25a57efcd573a9d996ab76ceec25e341bc163190277ec3171a34d0ff1ae512d0"
+    },
+    {
+      "path": ".artifacts/crash-diagnostics-outlet-audit-final.log",
+      "sha256": "d565b20a810a82ab46abb029afadf1c8a036f1ab5b88a1eaeb37d97a8c3e0c7d"
+    },
+    {
+      "path": ".artifacts/crash-diagnostics-outlet-gate0-final.log",
+      "sha256": "505d74ef938f5d34d85490d37e0176ba804d93272fcf465ce2544a02c56b3f90"
+    },
+    {
+      "path": ".artifacts/crash-diagnostics-outlet-report-generation.log",
+      "sha256": "fe010532f71a6341467ae5719b29ac19470895de1d481156335b8f70a3273ed5"
+    }
+  ]
+}

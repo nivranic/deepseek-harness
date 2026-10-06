@@ -1,0 +1,16 @@
+{
+  "status": "PASS",
+  "controls": 3,
+  "sourceRecord": {
+    "path": "artifacts/upstream-first/crash-diagnostics-outlet-source.json",
+    "sha256": "88ae14463f88aaeef53e06e5b788cce89efd21ba5e8b02e8db20fb706b971a45"
+  },
+  "generator": {
+    "path": "artifacts/upstream-first/write-reports.mjs",
+    "sha256": "7f52eb087fa3f9e9bb48f164818218c0cd867cbf4aada58bfee6ad490d56402e"
+  },
+  "helper": {
+    "path": ".artifacts/check-crash-diagnostics-outlet-binding.mjs",
+    "sha256": "74723d40039409dd4c8472f8de073aa04b6385d46a180ca21d1d7deff885ec15"
+  }
+}
