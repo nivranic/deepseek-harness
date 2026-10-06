@@ -48,6 +48,9 @@
       "path": "../../settings/settings"
     },
     {
+      "path": "../../session/session-telemetry"
+    },
+    {
       "path": "../../util/timeout"
     },
     {

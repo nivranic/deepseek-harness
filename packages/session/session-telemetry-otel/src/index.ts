@@ -5,9 +5,10 @@
  * `BatchLogRecordProcessor` and an OTLP/HTTP log exporter — and maps each
  * record handed over by the capture coordinator onto `logger.emit()`. Ledger
  * records ride the package's own instrumentation scope; direct
- * `channel: 'ops'` records (the section 44 crashDiagnostics and
- * deviceTrustMetadata exits — the latter device-trust revocation facts,
- * producer in dsh-device-trust) ride the distinct
+ * `channel: 'ops'` records (the section 44 crashDiagnostics,
+ * deviceTrustMetadata, and providerMetadata exits — device-trust revocation
+ * facts, producer in dsh-device-trust; llm provider call facts, producer in
+ * dsh-llm-deepseek) ride the distinct
  * `@deepseek-ai/dsh-session-telemetry-otel/ops` scope. After that call,
  * batching, retry, queueing, and loss policy use the SDK's documented behavior, configured
  * verbatim through the `exporter`/`processor` passthroughs. This package owns
@@ -109,9 +110,9 @@ function sharingStatusFor(mode: SessionTelemetryMode): SessionTelemetrySharingSt
 /**
  * Plugin configuration: one sharing policy, the section 44 per-kind consent
  * record, two verbatim SDK option objects, and one DSH-owned shutdown bound.
- * Modes with any opted-in exit (sessionTelemetry, crashDiagnostics, or
- * deviceTrustMetadata consent) validate their endpoint and shutdown deadline
- * at plugin load; `DISABLED` reads neither.
+ * Modes with any opted-in exit (sessionTelemetry, crashDiagnostics,
+ * deviceTrustMetadata, or providerMetadata consent) validate their endpoint
+ * and shutdown deadline at plugin load; `DISABLED` reads neither.
  */
 export interface Config {
   /** Defaults to `FEEDBACK_ONLY`: capture session history only when feedback is explicitly submitted. */
@@ -119,12 +120,13 @@ export interface Config {
   /**
    * Section 44 per-kind telemetry consent: one boolean per data kind, every
    * kind defaulting to off, no master switch. The sessionTelemetry,
-   * crashDiagnostics, and deviceTrustMetadata kinds gate provider
-   * construction — any one opted in builds the SDK pipeline (load-time
-   * transport validation included); sessionTelemetry additionally wires
-   * feedback capture, crashDiagnostics and deviceTrustMetadata share the
-   * direct ops exit (device-trust revocation facts, producer in
-   * dsh-device-trust). With the user-settings service composed this is the
+   * crashDiagnostics, deviceTrustMetadata, and providerMetadata kinds gate
+   * provider construction — any one opted in builds the SDK pipeline
+   * (load-time transport validation included); sessionTelemetry additionally
+   * wires feedback capture, crashDiagnostics, deviceTrustMetadata, and
+   * providerMetadata share the direct ops exit (device-trust revocation
+   * facts, producer in dsh-device-trust; llm provider call facts, producer
+   * in dsh-llm-deepseek). With the user-settings service composed this is the
    * composition-layer SEED — it registers as the `telemetry-consent`
    * namespace's base layer, the user layer wins, and the effect is
    * restart-scoped because the pipeline gate is decided at construction.
@@ -215,13 +217,14 @@ function toSdkLogRecord(record: SessionTelemetryRecord) {
 /**
  * The backend plugin — the only entry a deployment loads. It always registers
  * the `sessionTelemetry` service (duplicate load throws). Outside `DISABLED`,
- * any of the sessionTelemetry, crashDiagnostics, or deviceTrustMetadata
- * consent kinds opted in constructs the SDK pipeline: sessionTelemetry wires
- * the on-demand {@link SessionTelemetryCoordinator} (feedback-authorized
- * ledger records under the package scope), crashDiagnostics and
- * deviceTrustMetadata share the direct ops exit under the `/ops` scope, and
- * every opted-in combination runs its exits side by side. With none of the
- * three kinds opted in — the section 44 default — or under `DISABLED`, no
+ * any of the sessionTelemetry, crashDiagnostics, deviceTrustMetadata, or
+ * providerMetadata consent kinds opted in constructs the SDK pipeline:
+ * sessionTelemetry wires the on-demand {@link SessionTelemetryCoordinator}
+ * (feedback-authorized ledger records under the package scope),
+ * crashDiagnostics, deviceTrustMetadata, and providerMetadata share the
+ * direct ops exit under the `/ops` scope, and every opted-in combination
+ * runs its exits side by side. With none of the four kinds opted in — the
+ * section 44 default — or under `DISABLED`, no
  * SDK state exists and recorded feedback only warns locally. Outside
  * `DISABLED`, a composed user-settings service additionally receives the
  * `telemetry-consent` namespace registration: the composition-layer consent
@@ -270,15 +273,17 @@ export class OpenTelemetrySessionBackend extends SessionTelemetryBackend {
     const sessionKind = telemetryKindAllowed(this.consent, 'sessionTelemetry')
     const crashKind = telemetryKindAllowed(this.consent, 'crashDiagnostics')
     const deviceTrustKind = telemetryKindAllowed(this.consent, 'deviceTrustMetadata')
+    const providerKind = telemetryKindAllowed(this.consent, 'providerMetadata')
     if (!sessionKind) {
       // §44 默认关闭: the sessionTelemetry kind is off — alone or beside an
-      // opted-in crash or device-trust exit — so no feedback capture exists
-      // and recorded feedback stays local; sharing keeps naming the mode.
+      // opted-in crash, device-trust, or provider exit — so no feedback
+      // capture exists and recorded feedback stays local; sharing keeps
+      // naming the mode.
       ctx.on('session/event', (session, event) => {
         if (isFeedback(session, event)) ctx.logger.warn(CONSENT_WITHHELD_WARNING)
       })
     }
-    if (!sessionKind && !crashKind && !deviceTrustKind) {
+    if (!sessionKind && !crashKind && !deviceTrustKind && !providerKind) {
       // No consented exit remains, so no SDK state exists either.
       this.provider = undefined
       this.shutdownTimeoutMillis = DEFAULT_SHUTDOWN_TIMEOUT_MILLIS
@@ -335,20 +340,22 @@ export class OpenTelemetrySessionBackend extends SessionTelemetryBackend {
       ],
     })
     const opsLogger = this.provider.getLogger('@deepseek-ai/dsh-session-telemetry-otel/ops', version)
-    if (crashKind || deviceTrustKind) {
-      // The §44 direct ops exits — crash diagnostics and device-trust
-      // revocation facts (producer in dsh-device-trust) — ride the same SDK
-      // pipeline under their own instrumentation scope; the kinds with no
-      // producer yet have no outlet here.
+    if (crashKind || deviceTrustKind || providerKind) {
+      // The §44 direct ops exits — crash diagnostics, device-trust revocation
+      // facts (producer in dsh-device-trust), and llm provider call facts
+      // (producer in dsh-llm-deepseek) — ride the same SDK pipeline under
+      // their own instrumentation scope; the kinds with no producer yet have
+      // no outlet here.
       this.opsEmit = (record) => {
         opsLogger.emit(toSdkLogRecord(record))
       }
     }
     if (!sessionKind) {
-      // No coordinator composes into a non-session exit (crash diagnostics
-      // or device-trust revocation, either or both), so this backend owns
-      // its drain: queued ops records flush at fiber disposal, with the
-      // same failure containment the coordinator applies on its path.
+      // No coordinator composes into a non-session exit (crash diagnostics,
+      // device-trust revocation, or llm provider calls, any or all), so this
+      // backend owns its drain: queued ops records flush at fiber disposal,
+      // with the same failure containment the coordinator applies on its
+      // path.
       ctx.effect(() => async () => {
         try {
           await this.shutdown()
@@ -396,11 +403,13 @@ export class OpenTelemetrySessionBackend extends SessionTelemetryBackend {
   /**
    * Drop direct ledger records: only a new canonical feedback submission can
    * authorize capture through the private coordinator sink, for every
-   * provider. Direct ops records are the crashDiagnostics and
-   * deviceTrustMetadata exit — they upload through the `/ops` scope when
-   * either kind is opted in, and otherwise have no pipeline to reach
-   * (`DISABLED`, both kinds withheld, or no consented exit at all).
-   * @param record - the direct record; ledger copies never upload, ops copies only under crashDiagnostics or deviceTrustMetadata consent.
+   * provider. Direct ops records are the crashDiagnostics,
+   * deviceTrustMetadata, and providerMetadata exit — they upload through
+   * the `/ops` scope when any of those kinds is opted in, and otherwise
+   * have no pipeline to reach (`DISABLED`, all three kinds withheld, or no
+   * consented exit at all).
+   * @param record - the direct record; ledger copies never upload, ops copies
+   * only under crashDiagnostics, deviceTrustMetadata, or providerMetadata consent.
    */
   emit(record: SessionTelemetryRecord): void {
     if (record.channel !== 'ops') return

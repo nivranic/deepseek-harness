@@ -9,7 +9,7 @@ kind: "package-reference"
 
 ## 概述
 
-使用本包可通过 `deepseek-official` 路由流式调用 DeepSeek 模型，包括配置 thinking 与推理强度、向视觉模型输入图片，以及查看建议性模型目录。端点、凭据、目录与 thinking 策略均按请求解析，因此有效的用户设置更改会在下一个请求生效，无需重启进程。它适合 DeepSeek 官方 API 或 OpenAI 兼容网关；由于路由名不同，可与 pi-ai 包并用。
+使用本包可通过 `deepseek-official` 路由流式调用 DeepSeek 模型，包括配置 thinking 与推理强度、向视觉模型输入图片，以及查看建议性模型目录。端点、凭据、目录与 thinking 策略均按请求解析，因此有效的用户设置更改会在下一个请求生效，无需重启进程。它适合 DeepSeek 官方 API 或 OpenAI 兼容网关；由于路由名不同，可与 pi-ai 包并用。每次完成的提供方调用还会在 `providerMetadata` 同意门下经可选的 telemetry owner 恰好外发一条仅含路由与结果事实的 ops 记录。
 
 ## 目录
 
@@ -93,6 +93,12 @@ Files 模式通过 `maxRequestFilesBytes` 与 `maxImagesPerRequest` 限制保留
 ### 失败与恢复
 
 非 2xx 响应以稳定 code 失败：`AUTH`（401/403）、`QUOTA`、`RATE_LIMIT`、`CONTEXT_WINDOW_EXCEEDED`、`INVALID_REQUEST`、`SERVER` 以及其他情况的 `HTTP_<status>`；响应前传输失败抛出 `TRANSPORT`，调用方中止抛出 `ABORTED`，流空闲超时抛出 `TIMEOUT`。请求扩展准备、字段冲突或 2xx 后接受失败使用 `REQUEST_EXTENSION`。当提供方未指出 file id 时，规范化图片拒绝会列出所有可能附件及其持久位置。陈旧文件拒绝会使点名映射（或该次尝试使用的全部映射）失效，并允许一次替换 chat 尝试。协议违规抛出 `STREAM_CLOSED` 或 `MALFORMED_RESPONSE`；不带内容块的终止 `stop` 变成 `EMPTY_RESPONSE`，默认重试策略会重试它。任何位置都没有密钥的请求以 `MISSING_CREDENTIAL` 失败；格式错误的凭据以 `INVALID_CREDENTIAL` 失败，并点名需要修复的引用——绝不包含密钥的任何部分。
+
+### 提供方调用遥测出口
+
+每次到达 HTTP 边界的流式调用都会经可选的 session-telemetry owner（`ctx.sessionTelemetry`）恰好外发一条 ops 记录，由第 44 节 `providerMetadata` 同意类门控，默认关闭。记录只携带提供方路由、模型、设置时的 purpose、`ok` 标志，以及观测到时的 HTTP 状态、提供方请求 id、重试延迟与调用时长；请求带会话身份时 `session.id` 随记录属性携带。usage 事实改经 session-telemetry ledger 出口离开；消息内容、提示词、补全、端点 URL 与凭据材料绝不进入记录。owner 缺席、门关闭与默认关闭的同意都让适配器保持静默。
+
+出站 `User-Agent` 与身份归因头是每条提供方请求已携带的静态请求路径产品事实，不是遥测：它们从不经过本出口或其同意门。
 
 -----
 

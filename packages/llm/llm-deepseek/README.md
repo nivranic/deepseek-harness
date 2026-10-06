@@ -9,7 +9,7 @@ English | [中文](README.zh.md)
 
 ## Summary
 
-Use this package to stream DeepSeek models through the `deepseek-official` route, including configurable thinking and reasoning effort, image input for vision models, and an advisory model catalog. Endpoint, credentials, catalog, and thinking policy resolve for each request, so valid user-settings changes apply to the next request without restarting the process. Choose it for DeepSeek's official API or an OpenAI-compatible gateway; it can run beside the pi-ai package because they use different route names.
+Use this package to stream DeepSeek models through the `deepseek-official` route, including configurable thinking and reasoning effort, image input for vision models, and an advisory model catalog. Endpoint, credentials, catalog, and thinking policy resolve for each request, so valid user-settings changes apply to the next request without restarting the process. Choose it for DeepSeek's official API or an OpenAI-compatible gateway; it can run beside the pi-ai package because they use different route names. Every completed provider call also leaves as one ops record — routing and outcome facts only — through the optional telemetry owner under `providerMetadata` consent.
 
 ## Table of Contents
 
@@ -93,6 +93,12 @@ When `ctx.deepseekLlmApiExtensions` is present, the adapter prepares its registe
 ### Failures and recovery
 
 Non-2xx responses fail with stable codes: `AUTH` (401/403), `QUOTA`, `RATE_LIMIT`, `CONTEXT_WINDOW_EXCEEDED`, `INVALID_REQUEST`, `SERVER`, and `HTTP_<status>` otherwise; pre-response transport failures throw `TRANSPORT`, caller aborts throw `ABORTED`, and stream-idle expiry throws `TIMEOUT`. Request-extension preparation, field collision, or post-2xx acceptance fails with `REQUEST_EXTENSION`. A normalized-image rejection names every plausible attachment and its durable position when the provider does not identify a file id. Stale-file rejection invalidates the named mappings (or every mapping used by the attempt) and permits one replacement chat attempt. Protocol violations throw `STREAM_CLOSED` or `MALFORMED_RESPONSE`, and a terminal `stop` with no content blocks becomes `EMPTY_RESPONSE`, which the default retry policy retries. A request with no key anywhere fails with `MISSING_CREDENTIAL`, and a malformed credential fails with `INVALID_CREDENTIAL` naming the reference to fix — never any part of the key.
+
+### Provider-call telemetry outlet
+
+Each streaming call that reaches the HTTP boundary leaves exactly one ops record through the optional session-telemetry owner (`ctx.sessionTelemetry`), gated by the §44 `providerMetadata` consent kind, which defaults to off. The record carries the provider route, model, purpose when set, an `ok` flag, and — when observed — the HTTP status, provider request id, retry delay, and call duration; `session.id` rides the record attributes when the request names a session. Usage facts leave through the session-telemetry ledger exit instead, and message content, prompts, completions, the endpoint URL, and credential material never enter the record. A missing owner, a closed gate, and the default-off consent all keep the adapter silent.
+
+The outbound `User-Agent` and identity attribution headers every provider request already carries are static request-path product facts, not telemetry: they never pass through this outlet or its consent gate.
 
 -----
 

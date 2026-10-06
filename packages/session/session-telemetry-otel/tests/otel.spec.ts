@@ -895,7 +895,7 @@ describe('OpenTelemetrySessionBackend consent resolution', () => {
     expect(warnings).toContain('OpenTelemetry session upload is withheld: sessionTelemetry consent is off; this feedback is not uploaded through OpenTelemetry')
   })
 
-  it('does not read transport config when the kind is withheld', async () => {
+  it('does not read transport config when no gating kind is opted in', async () => {
     const ctx = new Context()
     await ctx.plugin(SessionStore)
     const transportRead = vi.fn(() => {
@@ -903,7 +903,7 @@ describe('OpenTelemetrySessionBackend consent resolution', () => {
     })
     const backend = new OpenTelemetrySessionBackend(ctx, {
       mode: SessionTelemetryMode.FEEDBACK_ONLY,
-      consent: { providerMetadata: true },
+      consent: { relayMetadata: true },
       get exporter() {
         return transportRead()
       },
@@ -914,7 +914,7 @@ describe('OpenTelemetrySessionBackend consent resolution', () => {
         return transportRead()
       },
     })
-    expect(backend.consent.providerMetadata).toBe(true)
+    expect(backend.consent.relayMetadata).toBe(true)
     expect(backend.consent.sessionTelemetry).toBe(false)
     expect(transportRead).not.toHaveBeenCalled()
     await ctx.fiber.dispose()
@@ -1178,7 +1178,7 @@ describe('OpenTelemetrySessionBackend deviceTrustMetadata ops exit', () => {
     }
   })
 
-  it('constructs no SDK state with all three gating kinds off even when the other kinds are on', async () => {
+  it('constructs no SDK state with all four gating kinds off even when the non-gating kind is on', async () => {
     const { captures } = await mockCollector()
     const ctx = new Context()
     try {
@@ -1192,7 +1192,7 @@ describe('OpenTelemetrySessionBackend deviceTrustMetadata ops exit', () => {
           sessionTelemetry: false,
           crashDiagnostics: false,
           deviceTrustMetadata: false,
-          providerMetadata: true,
+          providerMetadata: false,
           relayMetadata: true,
         },
         get exporter() {
@@ -1205,7 +1205,7 @@ describe('OpenTelemetrySessionBackend deviceTrustMetadata ops exit', () => {
           return transportRead()
         },
       })
-      expect(backend.consent).toEqual({ ...TELEMETRY_CONSENT_OFF, providerMetadata: true, relayMetadata: true })
+      expect(backend.consent).toEqual({ ...TELEMETRY_CONSENT_OFF, relayMetadata: true })
       expect(() => {
         backend.emit({
           channel: 'ops',
@@ -1291,6 +1291,137 @@ describe('OpenTelemetrySessionBackend deviceTrustMetadata ops exit', () => {
         'OpenTelemetry session upload is DISABLED; this feedback is not uploaded through OpenTelemetry',
       )
       expect(captures).toEqual([])
+    } finally {
+      await ctx.fiber.dispose()
+    }
+  })
+})
+
+describe('OpenTelemetrySessionBackend providerMetadata ops exit', () => {
+  it('builds the pipeline for the providerMetadata kind alone and exports llm provider call records under the /ops scope', async () => {
+    const { url, captures } = await mockCollector()
+    const ctx = new Context()
+    try {
+      await ctx.plugin(SessionStore)
+      const warnings: string[] = []
+      ctx.logger.warn = (message: string) => { warnings.push(message) }
+      const fiber = await ctx.plugin(OpenTelemetrySessionBackend, {
+        mode: SessionTelemetryMode.FEEDBACK_ONLY,
+        consent: { providerMetadata: true },
+        exporter: { url },
+        processor: { scheduledDelayMillis: 1 },
+      })
+      expect(ctx.sessionTelemetry.consent).toEqual({ ...TELEMETRY_CONSENT_OFF, providerMetadata: true })
+      const session = ctx.sessions.create(SessionId('provider-only'), { meta: {} })
+      session.append('turn/start', { turn: 1 })
+      // The sessionTelemetry kind is off, so feedback stays local with its warning.
+      recordFeedback(session, { text: 'ledger kind stays local' })
+      const callTime = Date.now()
+      ctx.sessionTelemetry.emit({
+        channel: 'ops',
+        time: callTime,
+        severity: 'warn',
+        attributes: { 'telemetry.op': 'llm-provider-call', 'session.id': 'provider-only' },
+        body: { provider: 'deepseek-official', model: 'deepseek-chat' },
+      })
+      await fiber.dispose()
+
+      const records = allRecords(captures)
+      const ops = records.filter(r => r.scope === '@deepseek-ai/dsh-session-telemetry-otel/ops')
+      expect(ops).toHaveLength(1)
+      expect(ops[0]!.record.severityNumber).toBe(13)
+      expect(ops[0]!.record.severityText).toBe('WARN')
+      expect(BigInt(ops[0]!.record.timeUnixNano)).toBe(BigInt(callTime) * 1_000_000n)
+      expect(ops[0]!.record.attributes).toContainEqual({ key: 'telemetry.op', value: { stringValue: 'llm-provider-call' } })
+      expect(ops[0]!.record.attributes).toContainEqual({ key: 'session.id', value: { stringValue: 'provider-only' } })
+      expect(records.filter(r => r.scope === '@deepseek-ai/dsh-session-telemetry-otel')).toHaveLength(0)
+      expect(JSON.stringify(captures)).not.toContain('ledger kind stays local')
+      expect(warnings).toContain('OpenTelemetry session upload is withheld: sessionTelemetry consent is off; this feedback is not uploaded through OpenTelemetry')
+    } finally {
+      await ctx.fiber.dispose()
+    }
+  })
+
+  it('constructs no SDK state with all four gating kinds off and provider ops records have nowhere to go', async () => {
+    const { captures } = await mockCollector()
+    const ctx = new Context()
+    try {
+      await ctx.plugin(SessionStore)
+      const transportRead = vi.fn(() => {
+        throw new Error('transport config was read')
+      })
+      const backend = new OpenTelemetrySessionBackend(ctx, {
+        mode: SessionTelemetryMode.FEEDBACK_ONLY,
+        consent: {
+          sessionTelemetry: false,
+          crashDiagnostics: false,
+          deviceTrustMetadata: false,
+          providerMetadata: false,
+        },
+        get exporter() {
+          return transportRead()
+        },
+        get processor() {
+          return transportRead()
+        },
+        get shutdownTimeoutMillis() {
+          return transportRead()
+        },
+      })
+      expect(backend.consent).toEqual(TELEMETRY_CONSENT_OFF)
+      expect(() => {
+        backend.emit({
+          channel: 'ops',
+          time: Date.now(),
+          severity: 'warn',
+          attributes: { 'telemetry.op': 'llm-provider-call', 'session.id': 'nowhere' },
+          body: null,
+        })
+      }).not.toThrow()
+      await backend.shutdown()
+      expect(captures).toEqual([])
+      expect(transportRead).not.toHaveBeenCalled()
+    } finally {
+      await ctx.fiber.dispose()
+    }
+  })
+
+  it('opens the ops exit for the providerMetadata kind while the ledger channel record stays dropped', async () => {
+    const { url, captures } = await mockCollector()
+    const ctx = new Context()
+    try {
+      await ctx.plugin(SessionStore)
+      const fiber = await ctx.plugin(OpenTelemetrySessionBackend, {
+        mode: SessionTelemetryMode.FEEDBACK_ONLY,
+        consent: { providerMetadata: true },
+        exporter: { url },
+        processor: { scheduledDelayMillis: 1 },
+      })
+      ctx.sessionTelemetry.emit({
+        channel: 'ledger',
+        time: Date.now(),
+        severity: 'info',
+        attributes: { 'session.id': 'provider-ledger', 'event.type': 'direct', 'event.seq': 99 },
+        body: { mustStayLocal: true },
+      })
+      ctx.sessionTelemetry.emit({
+        channel: 'ops',
+        time: Date.now(),
+        severity: 'info',
+        attributes: { 'telemetry.op': 'llm-provider-call', 'session.id': 'provider-ledger' },
+        body: { provider: 'deepseek-official' },
+      })
+      await fiber.dispose()
+
+      const records = allRecords(captures)
+      const ops = records.filter(r => r.scope === '@deepseek-ai/dsh-session-telemetry-otel/ops')
+      expect(ops).toHaveLength(1)
+      expect(ops[0]!.record.severityNumber).toBe(9)
+      expect(ops[0]!.record.attributes).toContainEqual({ key: 'telemetry.op', value: { stringValue: 'llm-provider-call' } })
+      // The narrowing is per channel: the direct ledger record stayed local,
+      // and with the sessionTelemetry kind off no coordinator exists either.
+      expect(records.filter(r => r.scope === '@deepseek-ai/dsh-session-telemetry-otel')).toHaveLength(0)
+      expect(JSON.stringify(captures)).not.toContain('mustStayLocal')
     } finally {
       await ctx.fiber.dispose()
     }

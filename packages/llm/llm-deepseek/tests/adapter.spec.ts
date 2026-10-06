@@ -17,6 +17,7 @@ import LlmRuntime, { ToolCallId, createUserMessage,
 import { MAX_TIMER_DELAY_MS } from '@deepseek-ai/dsh-timeout'
 import { getOrCreateAnonymousUserId, type AnonymousUserId } from '@deepseek-ai/dsh-anonymous-user-id'
 import { SessionId } from '@deepseek-ai/dsh-session'
+import type { SessionTelemetryRecord, TelemetryConsent } from '@deepseek-ai/dsh-session-telemetry'
 import DeepSeekLlmApiExtensionRegistry from '@deepseek-ai/dsh-deepseek-llm-api-extensions'
 import type { PreparedDeepSeekLlmApiExtensions } from '@deepseek-ai/dsh-deepseek-llm-api-extensions'
 import * as LlmDeepSeek from '@deepseek-ai/dsh-llm-deepseek'
@@ -1636,6 +1637,153 @@ describe('DeepSeekAdapter against a mock server', () => {
     } finally {
       fetchSpy.mockRestore()
     }
+  })
+})
+
+describe('provider-call telemetry outlet', () => {
+  /** Minimal session-telemetry owner stub: one consent record plus a collecting emit. */
+  function telemetryOwnerOf(consent: TelemetryConsent): {
+    owner: { readonly consent: TelemetryConsent; emit(record: SessionTelemetryRecord): void }
+    records: SessionTelemetryRecord[]
+  } {
+    const records: SessionTelemetryRecord[] = []
+    return {
+      owner: { consent, emit: (record) => { records.push(record) } },
+      records,
+    }
+  }
+
+  /** The §44 all-off consent with only the probed kind switched. */
+  const consentOf = (providerMetadata: boolean): TelemetryConsent => ({
+    sessionTelemetry: false,
+    providerMetadata,
+    relayMetadata: false,
+    deviceTrustMetadata: false,
+    crashDiagnostics: false,
+  })
+
+  /** Direct adapter over the plugin's real resolve step, resolving the stub owner per emission. */
+  function telemetryAdapter(
+    baseURL: string,
+    owner: { readonly consent: TelemetryConsent; emit(record: SessionTelemetryRecord): void },
+  ): DeepSeekAdapter {
+    return new DeepSeekAdapter({
+      options: () => resolveAdapterOptions({ baseURL }),
+      resolveApiKey: () => Promise.resolve('k'),
+      resolveUserId: () => TEST_USER_ID,
+      resolveTelemetry: () => owner,
+      prepareExtensions: noExtensions,
+    })
+  }
+
+  it('keeps the adapter unchanged when the telemetry thunk is absent', async () => {
+    const server = await mockServer([{ kind: 'sse', events: textEvents }])
+    const adapter = adapterOf({ baseURL: server.url })
+
+    await drain(adapter.stream({ provider: 'deepseek-official', model: 'm', messages: [] }))
+
+    expect(server.requests).toHaveLength(1)
+  })
+
+  it('stays silent with an owner whose providerMetadata consent is off, even when other kinds are on', async () => {
+    const server = await mockServer([
+      { kind: 'sse', events: textEvents },
+      { kind: 'http-error', status: 500, body: JSON.stringify({ error: { message: 'down' } }) },
+    ])
+    const { owner, records } = telemetryOwnerOf({
+      sessionTelemetry: true,
+      providerMetadata: false,
+      relayMetadata: false,
+      deviceTrustMetadata: false,
+      crashDiagnostics: true,
+    })
+    const adapter = telemetryAdapter(server.url, owner)
+
+    await drain(adapter.stream({ provider: 'deepseek-official', model: 'm', messages: [] }))
+    await expect(drain(adapter.stream({ provider: 'deepseek-official', model: 'm', messages: [] })))
+      .rejects.toMatchObject({ code: 'SERVER' })
+
+    expect(records).toHaveLength(0)
+  })
+
+  it('records exactly one failing HTTP 429 call with status, request id, and retry delay', async () => {
+    const server = await mockServer([{
+      kind: 'http-error',
+      status: 429,
+      body: JSON.stringify({ error: { message: 'slow down' } }),
+      headers: { 'retry-after': '2', 'x-request-id': 'req-429' },
+    }])
+    const { owner, records } = telemetryOwnerOf(consentOf(true))
+    const adapter = telemetryAdapter(server.url, owner)
+
+    await expect(drain(adapter.stream({
+      provider: 'deepseek-official',
+      model: 'm',
+      messages: [],
+      sessionId: SessionId('tele-1'),
+      purpose: 'compaction',
+    }))).rejects.toMatchObject({ code: 'RATE_LIMIT' })
+
+    expect(records).toHaveLength(1)
+    const record = records[0]
+    if (record === undefined) throw new Error('expected one record')
+    expect(record.channel).toBe('ops')
+    expect(record.severity).toBe('warn')
+    expect(record.time).toEqual(expect.any(Number))
+    expect(record.attributes).toEqual({ 'telemetry.op': 'llm-provider-call', 'session.id': 'tele-1' })
+    const anyDuration = expect.any(Number) as number
+    expect(record.body).toEqual({
+      op: 'llm-provider-call',
+      provider: 'deepseek-official',
+      model: 'm',
+      purpose: 'compaction',
+      ok: false,
+      status: 429,
+      requestId: 'req-429',
+      retryAfterMs: 2_000,
+      durationMs: anyDuration,
+    })
+  })
+
+  it('records exactly one successful call with the response request id and a positive duration', async () => {
+    const server = await mockServer([{
+      kind: 'sse',
+      events: textEvents,
+      delayMs: 5,
+      headers: { 'x-request-id': 'req-ok' },
+    }])
+    const { owner, records } = telemetryOwnerOf(consentOf(true))
+    const adapter = telemetryAdapter(server.url, owner)
+
+    await drain(adapter.stream({ provider: 'deepseek-official', model: 'm', messages: [] }))
+
+    expect(records).toHaveLength(1)
+    const record = records[0]
+    if (record === undefined) throw new Error('expected one record')
+    expect(record.channel).toBe('ops')
+    expect(record.severity).toBe('info')
+    expect(record.time).toEqual(expect.any(Number))
+    expect(record.attributes).toEqual({ 'telemetry.op': 'llm-provider-call' })
+    const anyDuration = expect.any(Number) as number
+    expect(record.body).toEqual({
+      op: 'llm-provider-call',
+      provider: 'deepseek-official',
+      model: 'm',
+      ok: true,
+      requestId: 'req-ok',
+      durationMs: anyDuration,
+    })
+    expect((record.body as { durationMs: number }).durationMs).toBeGreaterThan(0)
+  })
+
+  it('emits with providerMetadata consent even when sessionTelemetry and crashDiagnostics stay off', async () => {
+    const server = await mockServer([{ kind: 'sse', events: textEvents }])
+    const { owner, records } = telemetryOwnerOf(consentOf(true))
+    const adapter = telemetryAdapter(server.url, owner)
+
+    await drain(adapter.stream({ provider: 'deepseek-official', model: 'm', messages: [] }))
+
+    expect(records).toHaveLength(1)
   })
 })
 

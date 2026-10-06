@@ -1216,7 +1216,7 @@ export interface DeepSeekCatalogModel {
 
 Depends on: [`ModelModality`](../packages/llm/llm/src/index.ts) · [`RetryPolicyConfig`](../packages/llm/llm/src/index.ts) · [`SystemPromptUpdate`](../packages/llm/llm/src/index.ts)
 
-Source: [`packages/llm/llm-deepseek/src/index.ts:134`](../packages/llm/llm-deepseek/src/index.ts)
+Source: [`packages/llm/llm-deepseek/src/index.ts:135`](../packages/llm/llm-deepseek/src/index.ts)
 
 <a id="deepseek-aidsh-llm-pi-ai"></a>
 
@@ -2170,9 +2170,9 @@ Requires: `sessions`
 /**
  * Plugin configuration: one sharing policy, the section 44 per-kind consent
  * record, two verbatim SDK option objects, and one DSH-owned shutdown bound.
- * Modes with any opted-in exit (sessionTelemetry, crashDiagnostics, or
- * deviceTrustMetadata consent) validate their endpoint and shutdown deadline
- * at plugin load; `DISABLED` reads neither.
+ * Modes with any opted-in exit (sessionTelemetry, crashDiagnostics,
+ * deviceTrustMetadata, or providerMetadata consent) validate their endpoint
+ * and shutdown deadline at plugin load; `DISABLED` reads neither.
  */
 export interface Config {
   /** Defaults to `FEEDBACK_ONLY`: capture session history only when feedback is explicitly submitted. */
@@ -2180,12 +2180,13 @@ export interface Config {
   /**
    * Section 44 per-kind telemetry consent: one boolean per data kind, every
    * kind defaulting to off, no master switch. The sessionTelemetry,
-   * crashDiagnostics, and deviceTrustMetadata kinds gate provider
-   * construction — any one opted in builds the SDK pipeline (load-time
-   * transport validation included); sessionTelemetry additionally wires
-   * feedback capture, crashDiagnostics and deviceTrustMetadata share the
-   * direct ops exit (device-trust revocation facts, producer in
-   * dsh-device-trust). With the user-settings service composed this is the
+   * crashDiagnostics, deviceTrustMetadata, and providerMetadata kinds gate
+   * provider construction — any one opted in builds the SDK pipeline
+   * (load-time transport validation included); sessionTelemetry additionally
+   * wires feedback capture, crashDiagnostics, deviceTrustMetadata, and
+   * providerMetadata share the direct ops exit (device-trust revocation
+   * facts, producer in dsh-device-trust; llm provider call facts, producer
+   * in dsh-llm-deepseek). With the user-settings service composed this is the
    * composition-layer SEED — it registers as the `telemetry-consent`
    * namespace's base layer, the user layer wins, and the effect is
    * restart-scoped because the pipeline gate is decided at construction.
@@ -2222,7 +2223,7 @@ export enum SessionTelemetryMode {
 
 Depends on: `BatchLogRecordProcessorOptions` (`@opentelemetry/sdk-logs`) · `OTLPExporterNodeConfigBase` (`@opentelemetry/otlp-exporter-base`) · [`TelemetryConsent`](../packages/session/session-telemetry/src/index.ts)
 
-Source: [`packages/session/session-telemetry-otel/src/index.ts:116`](../packages/session/session-telemetry-otel/src/index.ts)
+Source: [`packages/session/session-telemetry-otel/src/index.ts:117`](../packages/session/session-telemetry-otel/src/index.ts)
 
 <a id="deepseek-aidsh-session-title"></a>
 

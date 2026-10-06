@@ -18,6 +18,7 @@ import type { ModelModality, RetryPolicyConfig } from '@deepseek-ai/dsh-llm'
 import type {} from '@deepseek-ai/dsh-fs'
 import { credentialRef } from '@deepseek-ai/dsh-credentials'
 import { launchEnvironmentOf, type LaunchEnvironmentSnapshot } from '@deepseek-ai/dsh-launch-environment'
+import type {} from '@deepseek-ai/dsh-session-telemetry'
 import type {} from '@deepseek-ai/dsh-settings'
 import { MAX_TIMER_DELAY_MS } from '@deepseek-ai/dsh-timeout'
 import { deepEqualJson } from '@deepseek-ai/dsh-util-values'
@@ -478,6 +479,7 @@ export function apply(ctx: Context, config: Config): void {
       hostPath => ctx.get('fs')?.processPathFromHostPath(hostPath),
       ref,
     ),
+    resolveTelemetry: () => ctx.get('sessionTelemetry'),
     prepareExtensions: (request) => {
       const extensions = ctx.get('deepseekLlmApiExtensions')
       return extensions?.prepare(request)

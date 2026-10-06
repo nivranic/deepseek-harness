@@ -36,6 +36,7 @@ import type {
   DeepSeekLlmApiJson,
   PreparedDeepSeekLlmApiExtensions,
 } from '@deepseek-ai/dsh-deepseek-llm-api-extensions'
+import type { SessionTelemetryRecord, TelemetryConsent } from '@deepseek-ai/dsh-session-telemetry'
 import { serializeRequest, serializeRequestWithImages } from './serialize.ts'
 import type { ImageWireLocation, RequestDefaults } from './serialize.ts'
 import { deepSeekImageRequestPricing, resolveRequestImagePolicy } from './request-pricing.ts'
@@ -137,6 +138,12 @@ export interface DeepSeekAdapterOptions {
   resolveImageAccess?: (attachments: AttachmentStore, ref: ImageAttachmentRef) => ImageAttachmentAccess | undefined
   /** Resolve the process-wide upload reuse store. */
   resolveFiles?: () => DeepSeekFileStore
+  /**
+   * Resolve the optional session-telemetry owner probed at each call record's
+   * emission, exactly like {@link resolveAttachments}; an absent thunk or
+   * owner keeps the adapter silent with zero observable behavior change.
+   */
+  resolveTelemetry?: () => TelemetryOwner | undefined
   /** Prepare the official API's plugin-contributed top-level fields for one exact wire request. */
   prepareExtensions: (request: DeepSeekLlmApiExtensionRequest) => Promise<PreparedDeepSeekLlmApiExtensions>
 }
@@ -350,6 +357,28 @@ export function httpErrorCode(status: number, error?: WireError['error']): strin
   return `HTTP_${status}`
 }
 
+/** Optional session-telemetry owner shape the adapter pushes provider-call records through. */
+interface TelemetryOwner {
+  readonly consent: TelemetryConsent
+  emit(record: SessionTelemetryRecord): void
+}
+
+/**
+ * §44 gate for the one telemetry kind this seam emits. Local specialization of
+ * `telemetryKindAllowed` (the authority, in dsh-session-telemetry) so this
+ * package keeps a type-only dependency face: for a single kind the general
+ * form reduces to the same `=== true` check.
+ */
+function providerMetadataAllowed(consent: Partial<TelemetryConsent>): boolean {
+  return consent.providerMetadata === true
+}
+
+/** Provider facts of one call, filled where each fact first becomes observable at the HTTP response boundary. */
+interface CallFacts {
+  /** Request id read from a successful response's headers, before SSE consumption. */
+  requestId: ProviderRequestId | undefined
+}
+
 /**
  * The first real `LlmAdapter`. One instance serves every model name it was
  * registered under (the harness model name IS the wire model name).
@@ -483,6 +512,7 @@ export class DeepSeekAdapter extends LlmAdapter {
       ? consumer.signal
       : AbortSignal.any([options.signal, consumer.signal])
     using watchdog = idleWatchdog(upstream, connection.streamIdleTimeoutMs, STREAM_IDLE_TIMEOUT_CODE)
+    const callFacts: CallFacts = { requestId: undefined }
     const iterator = this.request(
       options,
       watchdog.signal,
@@ -491,30 +521,34 @@ export class DeepSeekAdapter extends LlmAdapter {
       userId,
       attachments,
       () => { watchdog.pulse() },
+      callFacts,
     )[Symbol.asyncIterator]()
     let exhausted = false
+    const startedAt = Date.now()
     try {
       while (true) {
         const result = await watchdog.next(iterator)
         if (result.done) {
           exhausted = true
+          this.reportCall(options, startedAt, { ok: true, requestId: callFacts.requestId })
           return
         }
         yield result.value
       }
     } catch (error: unknown) {
-      if (timeoutOf(watchdog.signal, STREAM_IDLE_TIMEOUT_CODE) !== undefined) {
-        throw new LlmError(
+      const failure = timeoutOf(watchdog.signal, STREAM_IDLE_TIMEOUT_CODE) !== undefined
+        ? new LlmError(
           `DeepSeek stream idle timeout after ${connection.streamIdleTimeoutMs}ms`,
           'TIMEOUT',
           { cause: error },
         )
-      }
-      if (options.signal?.aborted) {
-        throw new LlmError('DeepSeek request aborted by caller', 'ABORTED', { cause: error })
-      }
-      if (error instanceof LlmError) throw error
-      throw new LlmError(`DeepSeek API stream from ${connection.baseURL} failed`, 'TRANSPORT', { cause: error })
+        : options.signal?.aborted
+          ? new LlmError('DeepSeek request aborted by caller', 'ABORTED', { cause: error })
+          : error instanceof LlmError
+            ? error
+            : new LlmError(`DeepSeek API stream from ${connection.baseURL} failed`, 'TRANSPORT', { cause: error })
+      this.reportCall(options, startedAt, { ok: false, failure })
+      throw failure
     } finally {
       consumer.abort('DeepSeek stream consumer stopped')
       if (!exhausted && iterator.return !== undefined) {
@@ -527,6 +561,55 @@ export class DeepSeekAdapter extends LlmAdapter {
     }
   }
 
+  /**
+   * Push one completed provider call through the optional session-telemetry
+   * owner as a §44 `providerMetadata` ops record — exactly one record per
+   * call, emitted at the stream loop's closing outcomes (successful
+   * exhaustion or the normalized failure). The payload carries routing and
+   * outcome facts only: provider, model, purpose, `ok`, and when observed the
+   * HTTP status, provider request id, retry delay, and duration. Usage
+   * already leaves through the session-telemetry ledger exit; message
+   * content, prompts, completions, the endpoint URL, and credential material
+   * never leave. An absent owner or a closed gate stays silent and changes
+   * nothing about the call; frequency stays bounded by the §44 default-off
+   * consent.
+   * @param options - the call's request options: provider, model, purpose, and session identity.
+   * @param startedAt - `Date.now()` when the stream loop started; duration is measured from it.
+   * @param outcome - the successful response's provider request id, or the
+   * normalized failure whose structured facts (status, request id, retry
+   * delay) the record reuses as captured.
+   */
+  private reportCall(
+    options: GenerateOptions,
+    startedAt: number,
+    outcome: { ok: true; requestId: ProviderRequestId | undefined } | { ok: false; failure: LlmError },
+  ): void {
+    const owner = this.config.resolveTelemetry?.()
+    if (owner === undefined || !providerMetadataAllowed(owner.consent)) return
+    const failure = outcome.ok ? undefined : outcome.failure.failure
+    const id = outcome.ok ? outcome.requestId : failure?.requestId
+    owner.emit({
+      channel: 'ops',
+      time: Date.now(),
+      severity: outcome.ok ? 'info' : 'warn',
+      attributes: {
+        'telemetry.op': 'llm-provider-call',
+        ...options.sessionId === undefined ? {} : { 'session.id': String(options.sessionId) },
+      },
+      body: {
+        op: 'llm-provider-call',
+        provider: options.provider,
+        model: options.model,
+        ...options.purpose === undefined ? {} : { purpose: options.purpose },
+        ok: outcome.ok,
+        ...failure?.status === undefined ? {} : { status: failure.status },
+        ...id === undefined ? {} : { requestId: id },
+        ...failure?.providerRetryAfterMs === undefined ? {} : { retryAfterMs: failure.providerRetryAfterMs },
+        durationMs: Date.now() - startedAt,
+      },
+    })
+  }
+
   private async * request(
     options: GenerateOptions,
     signal: AbortSignal,
@@ -535,6 +618,7 @@ export class DeepSeekAdapter extends LlmAdapter {
     userId: AnonymousUserId,
     attachments: AttachmentStore | undefined,
     onActivity: () => void,
+    callFacts: CallFacts,
   ): AsyncIterable<StreamChunk> {
     const headers = {
       'authorization': `Bearer ${apiKey}`,
@@ -699,6 +783,7 @@ export class DeepSeekAdapter extends LlmAdapter {
           ...id === undefined ? {} : { requestId: id },
         })
       }
+      callFacts.requestId = requestId(response.headers)
       try {
         await extensions.accept()
       } catch (error) {
