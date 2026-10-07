@@ -7,6 +7,10 @@
   disabled: true
 
 - id: agent-loop
+  # Same concurrent-activation order pin as the loader-composition fixture:
+  # the config agent must wait for the jsonl persistence backend, or the
+  # session stays in memory and nothing lands under .sessions.
+  inject: [sessionPersistence]
   config:
     agents:
       - id: main

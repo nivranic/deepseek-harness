@@ -1,0 +1,6 @@
+# Bilingual-pair consistency record (docs/i18n/README.md): the git blob hash of each
+# side as of the last confirmed-consistent state. Both languages carry equal authority;
+# after editing either side, bring the other along and re-record with:
+#   pnpm run verify-translation-pairing --write .agents/notes/implemented/architecture/2026-10-08-time-context-e2e.md
+2026-10-08-time-context-e2e.md: 6410eb641e4b5c6d81d77bbc5e47e9be00662b08
+2026-10-08-time-context-e2e.zh.md: 88ca734680dc1d1eba0270bdbba489ed97da1a0e
