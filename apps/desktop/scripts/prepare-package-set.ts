@@ -21,8 +21,7 @@ import {
   parseDesktopCorePackageSet,
   type DesktopCorePackageRecord,
 } from '../src/core-package-set.ts'
-import { capture } from '../../../scripts/release/process.ts'
-import { tarballFiles } from '../../../scripts/release/tarball.ts'
+import { packedManifestObject, tarballFiles } from '../../../scripts/release/tarball.ts'
 import { resolveDesktopTargetBuildPaths } from './desktop-build-paths.mjs'
 
 const DSH_PACKAGE = '@deepseek-ai/dsh'
@@ -82,11 +81,10 @@ export function selectDesktopPackageClosure(
 }
 
 function packedManifest(tarball: string): Record<string, unknown> {
-  const value: unknown = JSON.parse(capture('tar', ['-xOzf', tarball, 'package/package.json']))
-  if (value === null || typeof value !== 'object' || Array.isArray(value)) {
-    throw new Error(`desktop package set: ${tarball} has no package manifest`)
-  }
-  return value as Record<string, unknown>
+  const manifest = packedManifestObject(tarball)
+  const name = manifest.name
+  if (typeof name !== 'string' || name === '') throw new Error(`desktop package set: ${tarball} has no package name`)
+  return manifest
 }
 
 function packedPackages(inputs: readonly string[]): Map<string, PackedDesktopPackage> {

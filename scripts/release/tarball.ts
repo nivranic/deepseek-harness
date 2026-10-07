@@ -21,24 +21,39 @@ export interface PackedIdentity {
   readonly version: string
 }
 
+/** GNU tar on Windows parses the drive-letter colon as an rsh host; bsdtar has no such flag and needs none. */
+export const tarPlatformFlags: readonly string[] = process.platform === 'win32' ? ['--force-local'] : []
+
 /**
  * List a tarball's members.
  * @param tarball - absolute tarball path.
  * @returns Every path inside the archive.
  */
 export function tarballFiles(tarball: string): string[] {
-  return capture('tar', ['-tzf', tarball]).split(/\r?\n/u).filter(line => line !== '')
+  return capture('tar', [...tarPlatformFlags, '-tzf', tarball]).split(/\r?\n/u).filter(line => line !== '')
 }
 
 /**
  * Read a packed tarball's own manifest.
  * @param tarball - absolute tarball path.
+ * @returns The parsed manifest object.
+ * @throws {Error} when the manifest is missing or not a JSON object.
+ */
+export function packedManifestObject(tarball: string): Record<string, unknown> {
+  const manifest: unknown = JSON.parse(capture('tar', [...tarPlatformFlags, '-xOzf', tarball, 'package/package.json']))
+  if (manifest === null || typeof manifest !== 'object' || Array.isArray(manifest)) {
+    throw new Error(`${tarball} has no manifest`)
+  }
+  return manifest as Record<string, unknown>
+}
+
+/**
+ * Read a packed tarball's own identity.
+ * @param tarball - absolute tarball path.
  * @returns The name and version the tarball declares.
  */
 export function packedIdentity(tarball: string): PackedIdentity {
-  const manifest: unknown = JSON.parse(capture('tar', ['-xOzf', tarball, 'package/package.json']))
-  if (manifest === null || typeof manifest !== 'object') throw new Error(`${tarball} has no manifest`)
-  const { name, version } = manifest as Record<string, unknown>
+  const { name, version } = packedManifestObject(tarball)
   if (typeof name !== 'string' || typeof version !== 'string') throw new Error(`${tarball} manifest lacks name/version`)
   return { name, version }
 }

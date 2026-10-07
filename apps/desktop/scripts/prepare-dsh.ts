@@ -26,6 +26,7 @@ import {
 } from './macos-runtime.ts'
 import { resolveDesktopBuildTarget, resolveDesktopTargetBuildPaths } from './desktop-build-paths.mjs'
 import { desktopRuntimeFileExclusion } from './runtime-file-policy.ts'
+import { resolveDesktopBuildRevision, writeDesktopBuildRevisionStamp } from './build-revision.ts'
 
 const APP_ROOT = resolve(import.meta.dirname, '..')
 const BUILD_PATHS = resolveDesktopTargetBuildPaths()
@@ -106,6 +107,7 @@ async function main(): Promise<void> {
   mkdirSync(STORE_ROOT, { recursive: true })
   try {
     const release = desktopRelease()
+    const buildRevision = resolveDesktopBuildRevision()
     copyFileSync(join(PACKAGE_SET_ROOT, DESKTOP_PACKAGE_SET_FILE), join(BUILD_ROOT, DESKTOP_PACKAGE_SET_FILE))
     cpSync(join(PACKAGE_SET_ROOT, DESKTOP_PACKAGES_DIR), join(BUILD_ROOT, DESKTOP_PACKAGES_DIR), { recursive: true })
     createRuntimeProjectMetadata(BUILD_ROOT, release)
@@ -133,6 +135,10 @@ async function main(): Promise<void> {
         throw new Error(`desktop runtime: missing private Host file ${file}`)
       }
     }
+    // The stamp must exist before writeDesktopRuntime seals the manifest:
+    // integrity verification rejects any file added after sealing, and the
+    // revision would be missing from every packaged product.
+    writeDesktopBuildRevisionStamp(DSH_OUTPUT_ROOT, buildRevision)
     if (process.platform === 'darwin') {
       await signMacOSRuntime(DSH_OUTPUT_ROOT, resolveDesktopAppId(process.env), resolveMacOSSigningEnvironment(process.env))
     }

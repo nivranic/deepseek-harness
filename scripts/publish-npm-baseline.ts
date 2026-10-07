@@ -20,6 +20,7 @@ import { pathToFileURL } from 'node:url'
 import { parseArgs } from 'node:util'
 import { PUBLIC_EXPERIMENTAL_PACKAGE_DIRECTORIES } from './experimental-package-policy.ts'
 import { validateTarballPayload } from './publication-payload.ts'
+import { tarPlatformFlags } from './release/tarball.ts'
 
 const DEFAULT_REGISTRY = 'https://registry.npm.harnessment.com'
 const DEFAULT_OUTPUT_DIRECTORY = '.artifacts/npm-baseline'
@@ -776,7 +777,7 @@ interface InspectedTarball {
 
 function inspectTarball(path: string, runner: CommandRunner): InspectedTarball {
   const manifest = JSON.parse(
-    runner.capture('tar', ['-xOf', path, 'package/package.json'], dirname(path)),
+    runner.capture('tar', [...tarPlatformFlags, '-xOf', path, 'package/package.json'], dirname(path)),
   ) as unknown
   if (!isRecord(manifest)) throw new Error(`${path} contains an invalid package.json`)
   return {
@@ -784,7 +785,7 @@ function inspectTarball(path: string, runner: CommandRunner): InspectedTarball {
     version: expectString(manifest, 'version', path),
     private: manifest.private,
     manifest,
-    files: runner.capture('tar', ['-tf', path], dirname(path)).split(/\r?\n/),
+    files: runner.capture('tar', [...tarPlatformFlags, '-tf', path], dirname(path)).split(/\r?\n/),
   }
 }
 

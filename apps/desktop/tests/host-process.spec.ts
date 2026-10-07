@@ -120,6 +120,26 @@ function onRequestFrame(frame) {
     } finally { await host.stop() }
   })
 
+  it('passes DSH_BUILD_REVISION to the child while scrubbing Node resolution overrides', async () => {
+    const runtime = projectWithHost(`
+process.send({ type: 'ready', protocolVersion: 3, dshVersion: 'build-revision' })
+function onRequestFrame(frame) {
+  if (frame.type !== 1) return
+  responseStart(frame.streamId)
+  responseData(frame.streamId, JSON.stringify({buildRevision: process.env.DSH_BUILD_REVISION, nodeOptions: process.env.NODE_OPTIONS}))
+  responseEnd(frame.streamId)
+}
+`)
+    const revision = '0123456789abcdef0123456789abcdef01234567'
+    const host = new DesktopHostProcess(process.execPath, runtime, runtime, undefined, {
+      ...process.env, DSH_BUILD_REVISION: revision, NODE_OPTIONS: '--invalid-desktop-test-option',
+    })
+    try {
+      const response = await host.fetch(new Request('dsh-app://app/build-revision'))
+      expect(await response.json()).toEqual({ buildRevision: revision, nodeOptions: undefined })
+    } finally { await host.stop() }
+  })
+
   it('carries raw request and response bytes and shuts the child down cleanly', async () => {
     const project = projectWithHost(`
 const bodies = new Map()
