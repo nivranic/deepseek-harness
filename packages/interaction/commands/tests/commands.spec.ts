@@ -549,6 +549,13 @@ describe('command attachments', () => {
           attachmentId: `att-${saved}`, bytes: input.data.byteLength, name: input.name ?? 'attachment',
         })
       }),
+      // The real base-class totals method over this double's limits.
+      validateImageTotals(count: number, originalBytes: number) {
+        const totals = AttachmentStore.prototype as unknown as {
+          validateImageTotals(this: unknown, count: number, originalBytes: number): void
+        }
+        totals.validateImageTotals.call(this, count, originalBytes)
+      },
       validateImageBatch(inputs: readonly unknown[]) {
         const validate = AttachmentStore.prototype as unknown as {
           validateImageBatch(this: unknown, batch: readonly unknown[]): void

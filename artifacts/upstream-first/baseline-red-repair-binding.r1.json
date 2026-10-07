@@ -1,0 +1,16 @@
+{
+  "status": "PASS",
+  "controls": 3,
+  "sourceRecord": {
+    "path": "artifacts/upstream-first/baseline-red-repair-source.json",
+    "sha256": "d150214803f5d82f94f54139bd2872994644c3b24463043f580cb0d89cadca47"
+  },
+  "generator": {
+    "path": "artifacts/upstream-first/write-reports.mjs",
+    "sha256": "6dc193901a40bb869e58e8cd69d63d1ed788d8f0e7510bfdd74e704db601f86d"
+  },
+  "helper": {
+    "path": ".artifacts/check-baseline-red-repair-binding.mjs",
+    "sha256": "16673618ef124cc6d965424dee08de0de52597f903450588ca33c055b7651128"
+  }
+}
