@@ -36,6 +36,9 @@ if (address === null || typeof address === 'string') throw new Error('collector 
 process.env.DSH_TELEMETRY_E2E_URL = `http://127.0.0.1:${address.port}/v1/logs`
 process.env.DSH_TELEMETRY_OTLP_URL = process.env.DSH_TELEMETRY_E2E_URL
 process.env.DSH_TELEMETRY_MODE = process.env.DSH_TELEMETRY_E2E_MODE ?? 'FEEDBACK_ONLY'
+// The shipped base seeds the §44 sessionTelemetry consent from this env var
+// (default off); the fixture opts its own process in so capture is observable.
+process.env.DSH_TELEMETRY_CONSENT = '1'
 
 try {
   const ctx = await bootProductionProfile({

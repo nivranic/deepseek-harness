@@ -10,6 +10,13 @@
   disabled: true
 
 - id: agent-loop
+  # Loader entries activate concurrently, and this fixture boots a config agent
+  # (production agents are created after boot, through the registry factory).
+  # Requiring the persistence backend here orders the agent's session creation
+  # after `session-persistence-jsonl` activates, so the canonical log
+  # materializes instead of racing into an in-memory session on slow imports.
+  inject:
+    - sessionPersistence
   config:
     agents:
       - id: main
