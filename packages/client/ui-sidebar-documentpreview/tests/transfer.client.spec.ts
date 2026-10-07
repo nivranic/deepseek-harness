@@ -5,8 +5,8 @@
  */
 import { describe, expect, it } from 'vitest'
 import type { WorkspaceFileBytes } from '@deepseek-ai/dsh-api-workspace-files/types'
-import { TRANSFER_WINDOW_BYTES } from '../src/client/bytes/transfer.ts'
-import { assembleTransfer, decodeBase64Bytes, decodeTransferWindow } from '../src/client/bytes/transfer.ts'
+import { TRANSFER_WINDOW_BYTES } from '../src/client/contract/transfer.ts'
+import { assembleTransfer, decodeBase64Bytes, decodeTransferWindow } from '../src/client/contract/transfer.ts'
 
 function window(data: string, eof: boolean, offset = 0, bytes?: number): WorkspaceFileBytes {
   return {

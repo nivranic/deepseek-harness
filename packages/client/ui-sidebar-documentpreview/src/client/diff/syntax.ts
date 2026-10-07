@@ -1,6 +1,6 @@
 /** Each diff hunk highlights its old and new fragments independently. */
 import { highlightLines, type HighlightSpan } from '@deepseek-ai/dsh-client-ui-primitives'
-import { languageForPath } from '../code/languages.ts'
+import { languageForPath } from '../contract/languages.ts'
 import type { DiffFile } from './files.ts'
 import type { DiffRow } from './parse.ts'
 

@@ -598,9 +598,13 @@ Gateway 与 Device Trust 498 项测试通过；lint 调整后的 Device Trust 29
 
 [历史来源记录](artifacts/upstream-first/composer-gate-source.json)落地第 28 节可落地部分：ui-conversation 本就注入 connection 服务，ConversationRoot 新增一个注入 hook——恢复循环状态 observable——任一已定义非就绪 ConnectionState（connecting/reconnecting/authenticating/offline/host-not-ready/auth-expired/device-revoked/identity-changed/incompatible/fatal）使 composer 采用既有 blocked 惰性姿态并显示各状态本地化原因（connection.gate.* 双语键），不会有 prompt 被发往 UI 尚未准备好服务的 Host；ready 与循环未启动保持可用，功能 block 优先于门禁（指明用户必须清除的会话本地原因）。跨 Host 请求外泄由单一代次绑定结构性排除（Host 展示派生自当前世代），§26 载荷级守卫再加一层。多 Host 名册与切换动作需要可重定向连接接缝与外壳投放，仍开放。ui-tool 三处测试台的 connection stub 补齐 state 成员（generation 之外的第二个 observable）。测试 5592 项（另 2 项为本机已核对 Windows 环境类预存失败：ui-deliverables symlink、pdf-license 打包产物）、typecheck、lint 0/0、doc-sync 36、traceability 6/6、gate0 PASS 全绿。
 
+## Client 包分层归零：共享面走 contract 层、组装归 apply/index（域图卫生基线）
+
+[当前来源记录](artifacts/upstream-first/client-domain-graph-source.json)交付 client-domain-graph 门禁 37 处存量违规的归零（gen-41 起挂账的卫生基线）：ui-sidebar-documentpreview 新建 contract/ 层逐字承载六个共享文件+body-id 常量（17 域间+16 顶层违规改线；顶层四件机制文件原位——搬域会立生九处新违规；document 域留 admission、bytes 域消失）；ui-conversation 的 resolveSubmitMode 归既有 contract/composer-submission、三个编辑器文件移入消费方 skeleton 域（contract 层不进 React 组件——九包先例）。门禁终态 clean EXIT 0；两包套件 465/465 与 380/381（唯一失败为净 HEAD 同败的本地 npm-pack 宿主时序基线、stash 探针钉死非本代引入，不在审计世系）；两包叶 tsc 干净；slot-catalog 随 SlotMap 目录段再生成。测试面：约 20 文件机械改路径、lines.client.spec 经保留的 re-export 零改、keymap-routing 仅改路径令 87/1073 审计计数稳定。admitEncodedImages 分类裁定（policy 明令禁 agent 加例外）与 loader-composition e2e 基线保持开放。完整目标未完成。
+
 ## 基线红修绿：命令附件准入替身与 Workspace 载体耗尽期望对齐现行契约（§45）
 
-[当前来源记录](artifacts/upstream-first/baseline-red-repair-source.json)交付两条最旧基线红的修绿（gen-41 起逐代列档的开放通道）：命令附件四例的 storeOf 替身补上 validateImageTotals 原型委托（聚合上限拆分为独立基类方法时替身未跟，TypeError 取代了真实准入断言——补齐后混合批次 2 图×4 字节过限、第三图触发文档化数量上限文案）；workspace-controller 传输 spec 的载体重试耗尽期望从陈旧 gateway/internal 对齐为 gateway/transport-interrupted（gateway README 与 remote-stream 映射为证，§45 同一错误同语义原则在该客户端基线落实）。两文件 5 红→73/73 全绿，零生产代码改动。§45 remaining 记录对齐句（1365→1526 字、证据 25→26）。admitEncodedImages 分类裁定与 client-domain-graph 分层基线保持开放通道；loader-composition e2e 基线红（缺同意设置点+Windows .sessions 未定位成因）另道。完整目标未完成。
+[历史来源记录](artifacts/upstream-first/baseline-red-repair-source.json)交付两条最旧基线红的修绿（gen-41 起逐代列档的开放通道）：命令附件四例的 storeOf 替身补上 validateImageTotals 原型委托（聚合上限拆分为独立基类方法时替身未跟，TypeError 取代了真实准入断言——补齐后混合批次 2 图×4 字节过限、第三图触发文档化数量上限文案）；workspace-controller 传输 spec 的载体重试耗尽期望从陈旧 gateway/internal 对齐为 gateway/transport-interrupted（gateway README 与 remote-stream 映射为证，§45 同一错误同语义原则在该客户端基线落实）。两文件 5 红→73/73 全绿，零生产代码改动。§45 remaining 记录对齐句（1365→1526 字、证据 25→26）。admitEncodedImages 分类裁定与 client-domain-graph 分层基线保持开放通道；loader-composition e2e 基线红（缺同意设置点+Windows .sessions 未定位成因）另道。完整目标未完成。
 
 ## 桌面打包把构建修订标识盖进清单封存的资源树（§42/§56 接线）
 

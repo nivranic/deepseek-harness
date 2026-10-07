@@ -10,7 +10,7 @@ import { Button, writeClipboard, type HighlightSpan } from '@deepseek-ai/dsh-cli
 import { parseFileAddress, sessionFileAddress } from '@deepseek-ai/dsh-util-workspace-path'
 import { parseUnifiedDiff, type DiffRow } from './parse.ts'
 import { splitRows, type SplitRow } from './split.ts'
-import type { DocumentPreviewProps } from '../document/contract.ts'
+import type { DocumentPreviewProps } from '../contract/document.ts'
 import type {} from './locales.ts'
 import { diffFiles } from './files.ts'
 import { highlightDiffRows } from './syntax.ts'

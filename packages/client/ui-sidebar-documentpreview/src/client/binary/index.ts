@@ -1,12 +1,12 @@
 /** Builtin binary metadata and keyed document-body registration. */
 import type { Context } from '@deepseek-ai/cordis'
 import type {} from '../index.ts'
-import type { DocumentPreviewDefinition } from '../document/registry.ts'
+import { BINARY_BODY_ID } from '../contract/body-ids.ts'
+import type { DocumentPreviewDefinition } from '../contract/registry.ts'
 import { BinaryBody } from './BinaryBody.tsx'
 import { en, zh } from './locales.ts'
 
-/** Binary implementation identity, shared by metadata and the keyed slot. */
-export const BINARY_BODY_ID = '@deepseek-ai/dsh-client-ui-sidebar-documentpreview/binary'
+export { BINARY_BODY_ID }
 
 /** File suffixes presented by the builtin binary fact card. */
 export const BINARY_EXTENSIONS = [

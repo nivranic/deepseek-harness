@@ -18,7 +18,7 @@ import type { TextPreviewProps } from '../src/client/TextPreview.tsx'
 import { textFace } from '../src/client/face.ts'
 import type { ReadDocumentByteWindow } from '../src/client/rpc.ts'
 import { createTextStore } from '../src/client/store.ts'
-import type { DocumentPreviewDefinition } from '../src/client/document/registry.ts'
+import type { DocumentPreviewDefinition } from '../src/client/contract/registry.ts'
 import { SESSION, TAB_ID, t } from './fixtures.client.ts'
 
 /** A `.bin` address so the bytes-complete definition matches the tab's path. */

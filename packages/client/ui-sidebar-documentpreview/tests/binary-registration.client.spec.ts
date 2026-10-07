@@ -1,7 +1,7 @@
 /** Binary metadata, keyed slot, dictionary, and disposal registration. */
 import { Context } from '@deepseek-ai/cordis'
 import { afterEach, describe, expect, it, vi } from 'vitest'
-import { DocumentPreviewRegistry } from '../src/client/document/registry.ts'
+import { DocumentPreviewRegistry } from '../src/client/contract/registry.ts'
 import { BinaryBody } from '../src/client/binary/BinaryBody.tsx'
 import { apply, BINARY_BODY_ID, BINARY_EXTENSIONS, binaryBodyDefinition } from '../src/client/binary/index.ts'
 import { en, zh } from '../src/client/binary/locales.ts'

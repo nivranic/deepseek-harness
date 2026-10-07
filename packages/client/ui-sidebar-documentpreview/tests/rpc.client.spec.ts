@@ -9,7 +9,7 @@ import { describe, expect, it, vi } from 'vitest'
 import { sessionFileAddress } from '@deepseek-ai/dsh-util-workspace-path'
 import { createReadByteWindow, createReadPage, documentFileBytes, hostFileOf } from '../src/client/rpc.ts'
 import type { ReadDocumentByteWindow, ReadWorkspaceFilePage, WorkspaceFilesReadRemote } from '../src/client/rpc.ts'
-import { TRANSFER_WINDOW_BYTES } from '../src/client/bytes/transfer.ts'
+import { TRANSFER_WINDOW_BYTES } from '../src/client/contract/transfer.ts'
 import { ADDRESS, FILE, PATH, SESSION, page } from './fixtures.client.ts'
 
 describe('hostFileOf', () => {

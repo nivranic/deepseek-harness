@@ -1,7 +1,7 @@
 /** Builtin unified-diff metadata and keyed document-body registration. */
 import type { Context } from '@deepseek-ai/cordis'
 import type {} from '../index.ts'
-import type { DocumentPreviewDefinition } from '../document/registry.ts'
+import type { DocumentPreviewDefinition } from '../contract/registry.ts'
 import { DiffBody, type DiffBodyInjected } from './DiffBody.tsx'
 import { grammarLoadCount, subscribeGrammarLoaded } from '@deepseek-ai/dsh-client-ui-primitives'
 import { en, zh } from './locales.ts'

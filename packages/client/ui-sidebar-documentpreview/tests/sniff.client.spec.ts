@@ -1,6 +1,6 @@
 /** Header inference excludes incomplete signatures and active text formats. */
 import { describe, expect, it } from 'vitest'
-import { sniffDocument } from '../src/client/document/sniff.ts'
+import { sniffDocument } from '../src/client/contract/sniff.ts'
 
 describe('document signatures', () => {
   it.each([

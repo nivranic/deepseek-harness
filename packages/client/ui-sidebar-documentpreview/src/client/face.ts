@@ -21,11 +21,11 @@ import type { TabId } from '@deepseek-ai/dsh-client-ui-dockkit'
 import type { SessionId } from '@deepseek-ai/dsh-session/types'
 import type { ReadDocumentByteWindow, ReadDocumentBytes, ReadWorkspaceFilePage, SessionFile } from './rpc.ts'
 import { documentFileBytes } from './rpc.ts'
-import type { TransferWindow } from './bytes/transfer.ts'
-import { assembleTransfer, decodeTransferWindow } from './bytes/transfer.ts'
+import type { TransferWindow } from './contract/transfer.ts'
+import { assembleTransfer, decodeTransferWindow } from './contract/transfer.ts'
 import type { TextStore } from './store.ts'
-import type { DocumentLoadMode } from './document/registry.ts'
-import { sniffDocument } from './document/sniff.ts'
+import type { DocumentLoadMode } from './contract/registry.ts'
+import { sniffDocument } from './contract/sniff.ts'
 
 /** The preview's injected business face, as the body receives it. */
 export interface TextInjected {

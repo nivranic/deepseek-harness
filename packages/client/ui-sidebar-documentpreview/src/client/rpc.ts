@@ -10,7 +10,7 @@ import type { RemoteResult } from '@deepseek-ai/dsh-api-remotes/client'
 import type { SessionId } from '@deepseek-ai/dsh-session/types'
 import type { WorkspaceByteRange, WorkspaceFileBytes, WorkspaceFileRange, WorkspaceFileText } from '@deepseek-ai/dsh-api-workspace-files/types'
 import { parseFileAddress } from '@deepseek-ai/dsh-util-workspace-path'
-import { TRANSFER_WINDOW_BYTES, decodeBase64Bytes } from './bytes/transfer.ts'
+import { TRANSFER_WINDOW_BYTES, decodeBase64Bytes } from './contract/transfer.ts'
 
 /** The slice of the Client Remote this package calls. */
 export interface WorkspaceFilesReadRemote {

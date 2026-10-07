@@ -1,7 +1,7 @@
 /** Diff metadata, keyed slot, dictionary, and disposal registration. */
 import { Context } from '@deepseek-ai/cordis'
 import { afterEach, describe, expect, it, vi } from 'vitest'
-import { DocumentPreviewRegistry } from '../src/client/document/registry.ts'
+import { DocumentPreviewRegistry } from '../src/client/contract/registry.ts'
 import { DiffBody, type DiffBodyInjected } from '../src/client/diff/DiffBody.tsx'
 import { apply, DIFF_BODY_ID, DIFF_EXTENSIONS, diffBodyDefinition } from '../src/client/diff/index.ts'
 import { en, zh } from '../src/client/diff/locales.ts'

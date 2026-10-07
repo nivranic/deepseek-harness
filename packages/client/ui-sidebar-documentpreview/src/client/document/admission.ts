@@ -1,6 +1,6 @@
 /** Capability-filtered renderer source for one admitted Host. */
 import type { ObservableSnapshot } from '@deepseek-ai/dsh-client-store'
-import type { DocumentPreviewDefinition, DocumentPreviewRegistry } from './registry.ts'
+import type { DocumentPreviewDefinition, DocumentPreviewRegistry } from '../contract/registry.ts'
 
 /**
  * Project renderer registrations onto the operation sets an admitted Host serves.
