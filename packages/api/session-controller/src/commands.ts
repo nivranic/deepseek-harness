@@ -33,6 +33,7 @@ import {
   inspectApiSession,
 } from './agent.ts'
 import type {
+  ClientMutationId,
   SessionAttachmentRequest,
   SessionAttachmentValue,
   SessionCancelRequest,
@@ -68,8 +69,17 @@ function hasPromptContent(content: readonly PromptContentCandidate[]): boolean {
   return content.some(part => part.type !== 'text' || part.text.trim().length > 0)
 }
 
+/** Maximum fork receipts retained for one Host-process retry window. */
+const FORK_RECEIPT_LIMIT = 1024
+
 /** Implements Session business commands delegated by the Session Controller Remote service. */
 export class SessionCommandController {
+  /**
+   * Settled fork results by client mutation identity: one Host-process retry
+   * window in FIFO order. Entries evicted past {@link FORK_RECEIPT_LIMIT} lose
+   * their receipt and a resend reruns as a new request.
+   */
+  private readonly forkReceipts = new Map<ClientMutationId, SessionForkValue>()
   /**
    * @param ctx - Host context carrying Agent, model, attachment, title, and Workspace services.
    * @param agents - sole owner of create, resume, and Session-local model selection.
@@ -220,15 +230,28 @@ export class SessionCommandController {
 
   /**
    * Create a new ordinary Session from one completed-turn prefix.
-   * @param request - source Session and optional event anchor.
-   * @returns the new Session identity.
+   * @param request - source Session, optional event anchor, and optional retransmission identity.
+   * @returns the new Session identity, or the first settled result for a retransmitted identity.
    */
   async fork(request: SessionForkRequest): Promise<SessionForkValue> {
+    const mutationId = request.clientMutationId
+    if (mutationId !== undefined
+      && (mutationId.length === 0 || mutationId.length > 128 || mutationId.trim() !== mutationId)) {
+      throw new RemoteError(
+        'gateway/bad-request',
+        'clientMutationId must be a non-empty string of at most 128 characters',
+        {},
+      )
+    }
     let atSeq: ReturnType<typeof SessionSeq> | undefined
     try {
       atSeq = request.atSeq === undefined ? undefined : SessionSeq(request.atSeq)
     } catch {
       throw new RemoteError('gateway/bad-request', 'atSeq must be a non-negative safe integer', {})
+    }
+    if (mutationId !== undefined) {
+      const settled = this.forkReceipts.get(mutationId)
+      if (settled !== undefined) return settled
     }
     let observed: SessionObservation
     try {
@@ -315,6 +338,7 @@ export class SessionCommandController {
         )
       }
     }
+    if (mutationId !== undefined) this.settleForkReceipt(mutationId, { sessionId: childId })
     return { sessionId: childId }
   }
 
@@ -610,6 +634,15 @@ export class SessionCommandController {
       if (workspace !== undefined) return workspace
     }
     return undefined
+  }
+
+  /** Retain one settled fork for retransmission; the oldest entry evicts past the window bound. */
+  private settleForkReceipt(mutationId: ClientMutationId, value: SessionForkValue): void {
+    this.forkReceipts.set(mutationId, value)
+    /* v8 ignore next 3 -- exercising eviction needs 1025 settled forks; the bound keeps the retransmission window finite */
+    if (this.forkReceipts.size <= FORK_RECEIPT_LIMIT) return
+    const oldest = this.forkReceipts.keys().next().value
+    if (oldest !== undefined) this.forkReceipts.delete(oldest)
   }
 }
 

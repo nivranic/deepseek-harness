@@ -8,7 +8,7 @@
  */
 
 import type { SessionSeq } from '@deepseek-ai/dsh-session/types'
-import type { CommandDefinitionId, CommandId } from './brand.ts'
+import type { CommandDefinitionId, CommandId, CommandMutationId } from './brand.ts'
 import type { EncodedImageAttachment } from '@deepseek-ai/dsh-attachment/types'
 
 /** One browser-submitted command attachment: encoded image input or a staged file receipt. */
@@ -51,6 +51,26 @@ export interface CommandExecution {
   readonly commandId: CommandId
   /** The handler's normalized outcome. */
   readonly result: CommandResult
+}
+
+/**
+ * One command submission addressed to the executor: the line to parse plus
+ * everything the dispatching UI carries alongside it.
+ */
+export interface CommandExecutionRequest {
+  /** Complete slash-command line, leading slash included. */
+  readonly line: string
+  /**
+   * Encoded images and staged file receipts accompanying the line, in
+   * submission order; empty for a plain invocation.
+   */
+  readonly submittedAttachments: readonly CommandSubmitAttachment[]
+  /**
+   * Client-minted opaque retry identity. When carried, a resend that reaches
+   * the same live Host process returns the first execution's
+   * {@link CommandExecution} without re-running the handler.
+   */
+  readonly clientMutationId?: CommandMutationId
 }
 
 /**

@@ -189,14 +189,16 @@ find(agent: Agent, name: string): CommandDefinition | undefined
  * for deferred collection.
  *
  * @param agent - exact receiving agent.
- * @param line - complete slash-command line.
- * @param submittedAttachments - encoded images and staged file receipts accompanying the line,
- *   in submission order; empty for a plain invocation.
+ * @param request - the submission: the complete command line, its ordered
+ *   attachments, and an optional client-minted retry identity. A resend
+ *   carrying an id whose execution already settled in this Host process
+ *   returns that recorded `CommandExecution` without re-running the handler;
+ *   a throw or abort settles no receipt, so its resends re-run.
  * @param signal - cancellation signal owned by the UI request.
  * @returns the settled execution (result + lifecycle pairing id), or
  *   `undefined` when syntax or name does not resolve.
  */
-@Remote async execute( agent: Agent, line: string, submittedAttachments: readonly CommandSubmitAttachment[], signal: AbortSignal, ): Promise<CommandExecution | undefined>
+@Remote async execute( agent: Agent, request: CommandExecutionRequest, signal: AbortSignal, ): Promise<CommandExecution | undefined>
 ```
 
 Types: [Agent](core.md)

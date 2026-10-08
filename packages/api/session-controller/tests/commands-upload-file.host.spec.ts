@@ -166,8 +166,7 @@ describe('Session file uploads', () => {
     })
     await ctx.commands.execute(
       agent,
-      '/reuse inspect',
-      [{ type: 'file', receiptId: receipt.receiptId }],
+      { line: '/reuse inspect', submittedAttachments: [{ type: 'file', receiptId: receipt.receiptId }] },
       new AbortController().signal,
     )
     expect(commandHandler.mock.calls[0]?.[0]).toMatchObject({
@@ -217,8 +216,7 @@ describe('Session file uploads', () => {
     })
     await ctx.commands.execute(
       agent,
-      '/files inspect',
-      [{ type: 'file', receiptId: receipt.receiptId }],
+      { line: '/files inspect', submittedAttachments: [{ type: 'file', receiptId: receipt.receiptId }] },
       new AbortController().signal,
     )
     expect(commandHandler.mock.calls[0]?.[0]).toMatchObject({

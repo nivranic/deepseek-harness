@@ -6,7 +6,7 @@
  */
 
 import type { ClientRemote } from '@deepseek-ai/dsh-api-gateway/client'
-import type { CommandSubmitAttachment } from '@deepseek-ai/dsh-commands/types'
+import type { CommandExecutionRequest } from '@deepseek-ai/dsh-commands/types'
 import type { SessionId } from '@deepseek-ai/dsh-session/types'
 import type {
   SubagentCatalog, SubagentInterruptReceipt, SubagentInterruptTurnRequest, SubagentPromptReceipt, SubagentPromptRequest,
@@ -18,8 +18,7 @@ import type { SessionRemote } from '../transport.ts'
 export interface SessionCommandsRemote {
   execute(
     agentId: SessionId,
-    line: string,
-    attachments: readonly CommandSubmitAttachment[],
+    request: CommandExecutionRequest,
     signal?: AbortSignal,
   ): Promise<RemoteResult<object | undefined>>
 }

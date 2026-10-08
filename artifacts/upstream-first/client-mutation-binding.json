@@ -1,0 +1,16 @@
+{
+  "status": "PASS",
+  "controls": 3,
+  "sourceRecord": {
+    "path": "artifacts/upstream-first/client-mutation-source.json",
+    "sha256": "c7014f91b3d29a39a006c7c037befaecc958e0b221c1968c4dc512ea85c2ca32"
+  },
+  "generator": {
+    "path": "artifacts/upstream-first/write-reports.mjs",
+    "sha256": "4df554c139d9297c25fc5a2ddfb02d3d01822e9d8384d645e6eaf65a9ea051f1"
+  },
+  "helper": {
+    "path": ".artifacts/check-client-mutation-binding.mjs",
+    "sha256": "93236844d9b2a6d8506fd5cc8da04edf533d8e32ac897c6b20d453f4058dcf4b"
+  }
+}

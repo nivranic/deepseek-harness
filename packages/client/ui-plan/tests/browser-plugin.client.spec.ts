@@ -26,7 +26,7 @@ async function bench() {
     name: 'root',
     children: { 'conversation.input.plan': { kind: 'single', scope: 'session' } },
   } as never, () => null)
-  const execute = vi.fn((_sessionId: SessionId, _line: string) =>
+  const execute = vi.fn((_sessionId: SessionId, _request: { line: string }) =>
     Promise.resolve({ ok: true, value: { commandId: 'c1', result: { kind: 'success' as const } } }))
   const commandsRemote = { execute }
   ctx.provide('remote', { commands: commandsRemote })
@@ -69,7 +69,7 @@ describe('ui-plan browser apply', () => {
     const injected = (entry.inject as unknown as (id: SessionId) => PlanChipInjected)(SID)
 
     await expect(injected.exitPlanMode()).resolves.toBeNull()
-    expect(b.execute).toHaveBeenLastCalledWith(SID, '/plan off', [])
+    expect(b.execute).toHaveBeenLastCalledWith(SID, { line: '/plan off', submittedAttachments: [] })
 
     // Business failure folds to the composer-visible line: the generated method
     // reports the RPC failure in its error branch.

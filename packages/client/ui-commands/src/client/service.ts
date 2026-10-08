@@ -420,7 +420,7 @@ export class CommandUiRuntime extends Service implements CommandUiContract {
     host: RemoteHostFacts = this.ctx.remote.$host,
   ): Promise<SubmitOutcome> {
     this.requireExecution(host)
-    const result = await this.ctx.remote.commands.execute(session.sessionId, line, attachments)
+    const result = await this.ctx.remote.commands.execute(session.sessionId, { line, submittedAttachments: attachments })
     this.requireExecution(host)
     if (!result.ok) throw result.error
     if (result.value === undefined) return { kind: 'error', text: `unknown or malformed command: ${line}` }

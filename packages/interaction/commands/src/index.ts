@@ -14,19 +14,20 @@ import type { ScopeKey, ScopeLayer } from '@deepseek-ai/dsh-scope'
 import { SessionSeq } from '@deepseek-ai/dsh-session'
 import type { Session, SessionEvent, SessionEventMap } from '@deepseek-ai/dsh-session'
 import { TypertRemoteService, Remote } from '@deepseek-ai/dsh-typert-protocol'
-import { CommandId } from './brand.ts'
+import { CommandId, CommandMutationId } from './brand.ts'
 import { COMMAND_REMOTE_CAPABILITIES } from './capabilities.ts'
 import type { CommandDefinitionId } from './brand.ts'
 import type {
   CommandDescriptor,
   CommandExecution,
+  CommandExecutionRequest,
   CommandInputDescriptor,
   CommandResult,
   CommandRisk,
   CommandSubmitAttachment,
 } from './types.ts'
 
-export { CommandDefinitionId, CommandId } from './brand.ts'
+export { CommandDefinitionId, CommandId, CommandMutationId } from './brand.ts'
 export type * from './types.ts'
 
 export const name = 'commands'
@@ -35,6 +36,9 @@ const COMMAND_NAME = /^[a-z][a-z0-9_-]*$/u
 
 /** Shared frozen attachments value for attachment-free invocations. */
 const NO_ATTACHMENTS: readonly (ImageBlock | FileBlock)[] = Object.freeze([])
+
+/** Upper bound on retained client-mutation receipts; the oldest entry is evicted beyond it. */
+const SETTLED_MUTATION_LIMIT = 1024
 
 /** Host resolver for Session-scoped staged file-upload receipts. */
 export type CommandFileReceiptResolver = (agent: Agent, receiptId: string) => FileAttachmentRef | undefined
@@ -265,6 +269,11 @@ function normalizeResult(command: string, value: unknown): CommandResult {
   throw new TypeError(`command "${command}" returned unknown result kind "${String(result.kind)}"`)
 }
 
+/** Wire-boundary check on one client-minted mutation identity: a string that is non-empty, untrimmed, and at most 128 characters. */
+function isAdmissibleMutationId(id: unknown): boolean {
+  return typeof id === 'string' && id.length > 0 && id.length <= 128 && id.trim() === id
+}
+
 /**
  * Human-command registry. Plain-context definitions are global; definitions
  * registered through a command-injected child of an agent context shadow
@@ -282,6 +291,13 @@ export class CommandRuntime extends TypertRemoteService {
   private readonly instanceToken = randomUUID().slice(0, 8)
   /** Optional provider installed by the Session upload owner. */
   private readonly fileReceipts: { resolver: CommandFileReceiptResolver | undefined } = { resolver: undefined }
+  /**
+   * Settled executions keyed by client mutation id — an in-process
+   * network-retry window, not a durable receipt (restart survival is an open
+   * channel). Insertion-ordered and bounded: a resend of an evicted id
+   * re-runs as a fresh request.
+   */
+  private readonly settledMutations = new Map<CommandMutationId, CommandExecution>()
 
   constructor(ctx: Context) {
     super(ctx, 'commands', { capabilities: COMMAND_REMOTE_CAPABILITIES })
@@ -360,9 +376,11 @@ export class CommandRuntime extends TypertRemoteService {
    * for deferred collection.
    *
    * @param agent - exact receiving agent.
-   * @param line - complete slash-command line.
-   * @param submittedAttachments - encoded images and staged file receipts accompanying the line,
-   *   in submission order; empty for a plain invocation.
+   * @param request - the submission: the complete command line, its ordered
+   *   attachments, and an optional client-minted retry identity. A resend
+   *   carrying an id whose execution already settled in this Host process
+   *   returns that recorded `CommandExecution` without re-running the handler;
+   *   a throw or abort settles no receipt, so its resends re-run.
    * @param signal - cancellation signal owned by the UI request.
    * @returns the settled execution (result + lifecycle pairing id), or
    *   `undefined` when syntax or name does not resolve.
@@ -370,10 +388,21 @@ export class CommandRuntime extends TypertRemoteService {
   @Remote
   async execute(
     agent: Agent,
-    line: string,
-    submittedAttachments: readonly CommandSubmitAttachment[],
+    request: CommandExecutionRequest,
     signal: AbortSignal,
   ): Promise<CommandExecution | undefined> {
+    const { line, submittedAttachments, clientMutationId } = request
+    // Identity validation precedes parsing: a malformed mutation id fails
+    // loud at the wire boundary even when the line itself would not resolve.
+    if (clientMutationId !== undefined && !isAdmissibleMutationId(clientMutationId)) {
+      throw new TypeError('clientMutationId must be a non-empty string of at most 128 characters')
+    }
+    if (clientMutationId !== undefined) {
+      // A settled receipt reports an established fact, so the hit returns
+      // even when this retry's signal is already aborted.
+      const settled = this.settledMutations.get(clientMutationId)
+      if (settled !== undefined) return settled
+    }
     const parsed = parseCommand(line)
     if (parsed === undefined) return undefined
     const command = this.view(agent).get(parsed.name)
@@ -394,7 +423,11 @@ export class CommandRuntime extends TypertRemoteService {
           ? { sourceEventSeq: result.sourceEventSeq }
           : {},
       })
-      return Object.freeze({ commandId, result: Object.freeze(result) })
+      const execution = Object.freeze({ commandId, result: Object.freeze(result) })
+      // Every settled CommandExecution — admission errors included — becomes a
+      // replay receipt; thrown settlements stay retryable and record nothing.
+      if (clientMutationId !== undefined) this.recordSettledMutation(clientMutationId, execution)
+      return execution
     }
     let attachments: readonly (ImageBlock | FileBlock)[] = NO_ATTACHMENTS
     if (submittedAttachments.length > 0) {
@@ -456,6 +489,20 @@ export class CommandRuntime extends TypertRemoteService {
   private mintCommandId(): CommandId {
     this.commandSeq += 1
     return CommandId(`cmd-${this.instanceToken}-${this.commandSeq}`)
+  }
+
+  /**
+   * Retain one settled execution for replay by an in-process resend of the
+   * same mutation id, evicting the oldest receipt beyond the bound.
+   * @param clientMutationId - the settled submission's client-minted identity.
+   * @param execution - the execution a resend of that id receives.
+   */
+  private recordSettledMutation(clientMutationId: CommandMutationId, execution: CommandExecution): void {
+    this.settledMutations.set(clientMutationId, execution)
+    if (this.settledMutations.size > SETTLED_MUTATION_LIMIT) {
+      const oldest = this.settledMutations.keys().next().value
+      if (oldest !== undefined) this.settledMutations.delete(oldest)
+    }
   }
 
   /**

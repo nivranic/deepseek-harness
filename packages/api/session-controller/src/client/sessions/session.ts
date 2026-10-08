@@ -420,7 +420,7 @@ export class Session implements SessionFace {
    * @returns the admission result.
    */
   async command(line: string): Promise<RemoteResult<{ matched: boolean }>> {
-    const result = await this.remote.commands.execute(this.sessionId, line, [])
+    const result = await this.remote.commands.execute(this.sessionId, { line, submittedAttachments: [] })
     if (!result.ok) return result
     return { ok: true, value: { matched: result.value !== undefined } }
   }

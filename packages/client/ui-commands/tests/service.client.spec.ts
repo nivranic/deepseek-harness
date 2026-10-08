@@ -9,7 +9,7 @@
  */
 import { Context } from '@deepseek-ai/cordis'
 import { describe, expect, it, onTestFinished, vi } from 'vitest'
-import type { CommandResult } from '@deepseek-ai/dsh-commands/types'
+import type { CommandExecutionRequest, CommandResult } from '@deepseek-ai/dsh-commands/types'
 import { CommandDefinitionId } from '@deepseek-ai/dsh-commands/brand'
 import { createScope, scopeOf } from '@deepseek-ai/dsh-api-session-controller/client'
 import type { SessionId } from '@deepseek-ai/dsh-session/types'
@@ -84,11 +84,11 @@ async function bench(opts: BenchOptions = {}) {
         return value.commands
       })
     },
-    execute: async (sessionId: SessionId, line: string, images: readonly SubmitAttachment[] = []) => {
-      executeCalls.push({ sessionId, line, images })
+    execute: async (sessionId: SessionId, request: CommandExecutionRequest) => {
+      executeCalls.push({ sessionId, line: request.line, images: request.submittedAttachments })
       return await carried(async () => {
         const fallback = (): Promise<ExecuteValue> => Promise.resolve({ matched: true })
-        const value = await (opts.execute ?? fallback)({ sessionId, line })
+        const value = await (opts.execute ?? fallback)({ sessionId, line: request.line })
         return value.matched
           ? { commandId: value.commandId ?? 'fake-command', result: value.result ?? { kind: 'success' as const } }
           : undefined

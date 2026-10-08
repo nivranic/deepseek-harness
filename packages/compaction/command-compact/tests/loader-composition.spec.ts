@@ -125,7 +125,7 @@ describe('command-compact real Loader composition', () => {
       description: 'Compact older conversation history',
       risk: 'moderate',
     })
-    const execution = await context.commands.execute(agent, '/compact', [], new AbortController().signal)
+    const execution = await context.commands.execute(agent, { line: '/compact', submittedAttachments: [] }, new AbortController().signal)
     if (execution === undefined) throw new Error('Loader composition did not resolve /compact')
     expect(execution.result).toEqual({
       kind: 'success',

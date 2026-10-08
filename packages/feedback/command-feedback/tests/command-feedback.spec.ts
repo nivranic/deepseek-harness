@@ -65,8 +65,7 @@ async function harness(): Promise<Harness> {
 async function run(test: Harness, suffix = ''): Promise<{ kind: string; text?: string }> {
   const settled = await test.ctx.commands.execute(
     test.agent,
-    `/feedback${suffix}`,
-    [],
+    { line: `/feedback${suffix}`, submittedAttachments: [] },
     new AbortController().signal,
   )
   if (settled === undefined) throw new Error('feedback command was not registered')
@@ -211,8 +210,8 @@ describe('/feedback human command', () => {
     const signal = new AbortController().signal
     // Command adapters may dispatch concurrent requests without awaiting one another.
     const settled = await Promise.all([
-      test.ctx.commands.execute(test.agent, '/feedback first', [], signal),
-      test.ctx.commands.execute(test.agent, '/feedback second', [], signal),
+      test.ctx.commands.execute(test.agent, { line: '/feedback first', submittedAttachments: [] }, signal),
+      test.ctx.commands.execute(test.agent, { line: '/feedback second', submittedAttachments: [] }, signal),
     ])
     expect(settled.map(item => item?.result)).toEqual([
       { kind: 'success', text: `Feedback recorded for session ${test.session.id}\nAnonymous user: ${USER_ID}.` },
@@ -254,7 +253,7 @@ describe('/feedback human command', () => {
     const test = await harness()
     const controller = new AbortController()
     controller.abort(new Error('user cancelled the command'))
-    await expect(test.ctx.commands.execute(test.agent, '/feedback too late', [], controller.signal))
+    await expect(test.ctx.commands.execute(test.agent, { line: '/feedback too late', submittedAttachments: [] }, controller.signal))
       .rejects.toThrow('user cancelled the command')
     expect(test.session.snapshotEvents()).toEqual([])
   })

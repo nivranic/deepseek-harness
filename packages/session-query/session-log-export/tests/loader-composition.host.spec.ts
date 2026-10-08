@@ -64,7 +64,7 @@ describe('session-log-download real Loader composition', () => {
       definitionId: '@deepseek-ai/dsh-session-log-export',
       name: 'export', description: 'Download this Session log as a ZIP archive', risk: 'moderate',
     })
-    const execution = await context.commands.execute(agent, '/export', [], new AbortController().signal)
+    const execution = await context.commands.execute(agent, { line: '/export', submittedAttachments: [] }, new AbortController().signal)
     expect(execution?.result).toEqual({ kind: 'success', text: 'Session log download requested.' })
     expect(session.snapshotEvents().map(event => event.type)).toEqual(['command/run', 'command/done'])
     expect(session.deriveMessages()).toEqual([])

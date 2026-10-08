@@ -328,6 +328,12 @@ export interface SessionRenameValue {
 export interface SessionForkRequest {
   readonly sessionId: SessionId
   readonly atSeq?: number
+  /**
+   * Client-minted opaque retransmission identity. A retransmission that
+   * reaches the same live Host process returns the first fork's result
+   * instead of creating a second child Session.
+   */
+  readonly clientMutationId?: ClientMutationId
 }
 
 /** Identity of a newly forked Session. */
@@ -406,6 +412,9 @@ export interface SessionOpenWorkspacePathValue {
 
 /** Client-minted prompt identity used to reconcile optimistic and durable messages. */
 export type SessionRequestId = Branded<'session-request-id'>
+
+/** Client-minted opaque retransmission identity; a fork resend carrying it returns the first settled result in-process. */
+export type ClientMutationId = Branded<'client-mutation-id'>
 
 declare module '@deepseek-ai/dsh-llm' {
   interface MessageSourceMap {

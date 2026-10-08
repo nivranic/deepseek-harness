@@ -701,9 +701,9 @@ export const SERVICE_API: readonly ServiceApiEntry[] = [
         returns: 'the scoped shadow or global definition.',
       },
       {
-        signature: '@Remote async execute( agent: Agent, line: string, submittedAttachments: readonly CommandSubmitAttachment[], signal: AbortSignal, ): Promise<CommandExecution | undefined>',
+        signature: '@Remote async execute( agent: Agent, request: CommandExecutionRequest, signal: AbortSignal, ): Promise<CommandExecution | undefined>',
         description: 'Parse and execute a known command without sending it to the model.\n\nA resolved command\'s lifecycle is logged: `command/run` is appended before the handler is invoked and `command/done` after settlement (a thrown or aborted handler settles as `kind: \'error\'`). Both are direct log-only appends — no turn wraps them, and persistence drains them at ordinary checkpoints. Admission misses (syntax or unknown name) log nothing — they never entered a handler. A `command/run` append failure fails the execution loud; a `command/done` append failure on the handler-failure path is contained so the handler\'s own error stays the reported failure.\n\nAttachment admission is enforced here, not in the composer: attachments sent to a command that does not declare `input.attachments`, an absent attachment store, and an exceeded image limit each settle as an error result before the handler runs. Validation rejection starts no attachment writes; a storage failure can leave only unreachable content-addressed objects for deferred collection.',
-        parameters: [{ name: 'agent', description: 'exact receiving agent.' }, { name: 'line', description: 'complete slash-command line.' }, { name: 'submittedAttachments', description: 'encoded images and staged file receipts accompanying the line, in submission order; empty for a plain invocation.' }, { name: 'signal', description: 'cancellation signal owned by the UI request.' }],
+        parameters: [{ name: 'agent', description: 'exact receiving agent.' }, { name: 'request', description: 'the submission: the complete command line, its ordered attachments, and an optional client-minted retry identity. A resend carrying an id whose execution already settled in this Host process returns that recorded `CommandExecution` without re-running the handler; a throw or abort settles no receipt, so its resends re-run.' }, { name: 'signal', description: 'cancellation signal owned by the UI request.' }],
         returns: 'the settled execution (result + lifecycle pairing id), or `undefined` when syntax or name does not resolve.',
       },
     ],
@@ -4044,6 +4044,10 @@ export const TYPE_API: readonly TypeApiEntry[] = [
     declaration: 'export interface ClientArtifactBaseline {\n    readonly path: string;\n    readonly mtimeMs: number;\n    readonly size: number;\n}',
   },
   {
+    name: 'ClientMutationId',
+    declaration: 'export type ClientMutationId = Branded<\'client-mutation-id\'>;',
+  },
+  {
     name: 'CodeBindingErrorClass',
     declaration: 'export interface CodeBindingErrorClass {\n    name: string;\n    memberNameProperty: string;\n}',
   },
@@ -4092,6 +4096,10 @@ export const TYPE_API: readonly TypeApiEntry[] = [
     declaration: 'export interface CommandExecution {\n    readonly commandId: CommandId;\n    readonly result: CommandResult;\n}',
   },
   {
+    name: 'CommandExecutionRequest',
+    declaration: 'export interface CommandExecutionRequest {\n    readonly line: string;\n    readonly submittedAttachments: readonly CommandSubmitAttachment[];\n    readonly clientMutationId?: CommandMutationId;\n}',
+  },
+  {
     name: 'CommandFileReceiptResolver',
     declaration: 'export type CommandFileReceiptResolver = (agent: Agent, receiptId: string) => FileAttachmentRef | undefined;',
   },
@@ -4106,6 +4114,10 @@ export const TYPE_API: readonly TypeApiEntry[] = [
   {
     name: 'CommandInvocation',
     declaration: 'export interface CommandInvocation {\n    readonly commandId: CommandId;\n    readonly agent: Agent;\n    readonly rawInput: string;\n    readonly attachments: readonly (ImageBlock | FileBlock)[];\n    readonly signal: AbortSignal;\n}',
+  },
+  {
+    name: 'CommandMutationId',
+    declaration: 'export type CommandMutationId = Branded<\'command-mutation-id\'>;',
   },
   {
     name: 'CommandResult',
@@ -5589,7 +5601,7 @@ export const TYPE_API: readonly TypeApiEntry[] = [
   },
   {
     name: 'SessionForkRequest',
-    declaration: 'export interface SessionForkRequest {\n    readonly sessionId: SessionId;\n    readonly atSeq?: number;\n}',
+    declaration: 'export interface SessionForkRequest {\n    readonly sessionId: SessionId;\n    readonly atSeq?: number;\n    readonly clientMutationId?: ClientMutationId;\n}',
   },
   {
     name: 'SessionForkSource',

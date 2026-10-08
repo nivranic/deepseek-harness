@@ -75,8 +75,7 @@ function domainEvents(session: Session): readonly SessionEvent[] {
 async function run(test: Harness, suffix = ''): Promise<NonNullable<Awaited<ReturnType<CommandRuntime['execute']>>>['result']> {
   const execution = await test.ctx.commands.execute(
     test.agent,
-    `/goal${suffix}`,
-    [],
+    { line: `/goal${suffix}`, submittedAttachments: [] },
     new AbortController().signal,
   )
   if (execution === undefined) throw new Error('goal command was not registered')
@@ -282,7 +281,7 @@ describe('/goal attachments', () => {
       { type: 'image' as const, mediaType: 'image/png' as const, data: PNG, name: 'ref.png' },
       ...(includeFile ? [{ type: 'file' as const, receiptId: 'receipt-notes' }] : []),
     ]
-    const execution = await test.ctx.commands.execute(test.agent, `/goal${suffix}`, attachments, new AbortController().signal)
+    const execution = await test.ctx.commands.execute(test.agent, { line: `/goal${suffix}`, submittedAttachments: attachments }, new AbortController().signal)
     if (execution === undefined) throw new Error('goal command was not registered')
     return execution.result
   }

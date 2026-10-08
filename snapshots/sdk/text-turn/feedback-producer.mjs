@@ -11,7 +11,7 @@ export function apply(ctx) {
     const messages = agent.session.deriveMessages()
     const message = messages.findLast(message => message.role === 'assistant')
     if (message === undefined) throw new Error('feedback snapshot requires an assistant message')
-    const command = await ctx.commands.execute(agent, '/feedback The session needs a clearer explanation.', [], signal)
+    const command = await ctx.commands.execute(agent, { line: '/feedback The session needs a clearer explanation.', submittedAttachments: [] }, signal)
     if (command?.result.kind !== 'success') throw new Error('feedback command did not succeed')
     const recorded = await ctx.sessionFeedback.record({ sessionId: agent.id, category: 'other' })
     if (!recorded.ok) throw new Error(recorded.error.code)

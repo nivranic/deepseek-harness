@@ -10,6 +10,7 @@ import SessionStore, { SESSION_FORMAT_VERSION, SessionLogOffset, SessionSeq } fr
 import type { Session, SessionEvent, SessionHeader, SessionId } from '@deepseek-ai/dsh-session'
 import SystemPrompt from '@deepseek-ai/dsh-system-prompt'
 import type { Workspace } from '@deepseek-ai/dsh-workspace'
+import type { ClientMutationId } from '../src/types.ts'
 import {
   createSessionTestRemote, installSessionReadTestServices, testSessionPersistence,
 } from './test-remote.ts'
@@ -302,12 +303,10 @@ describe('sessions.fork', () => {
     await ctx.fiber.dispose()
   })
 
-  it('a retried fork with identical parameters mints a second independent child (no client mutation identity yet — open §17 design ruling)', async () => {
-    // §17 mutation idempotency: fork carries no client mutation identity, so a
-    // retransmitted request runs the whole command again — a second
-    // independent child, not an adoption of the first. Whether a future
-    // clientMutationId/requestId receipt returns the existing child instead is
-    // an open design ruling; this test pins today's behavior.
+  it('a retried fork without clientMutationId still mints a second independent child', async () => {
+    // Adoption applies only to requests carrying a clientMutationId: a retry
+    // without one re-runs the whole command and mints a second independent
+    // child rather than returning the first.
     const ctx = await composed()
     const source = liveAgent(ctx, 'session-retried-fork', 2)
     const proxy = remote(ctx)
@@ -326,6 +325,73 @@ describe('sessions.fork', () => {
         .toEqual(expectedPrefix)
       expect(ctx.sessions.get(child)?.header.parentSession).toBe(source.id)
     }
+    await ctx.fiber.dispose()
+  })
+
+  it('returns the first child when the same clientMutationId is retransmitted', async () => {
+    const ctx = await composed()
+    const source = liveAgent(ctx, 'session-fork-receipt', 2)
+    const proxy = remote(ctx)
+    const parameters = {
+      sessionId: source.id,
+      atSeq: 1,
+      clientMutationId: 'mutation-1' as ClientMutationId,
+    }
+
+    const first = await proxy.fork(request(parameters))
+    const retried = await proxy.fork(request(parameters))
+
+    expect(first.ok).toBe(true)
+    expect(retried.ok).toBe(true)
+    if (!first.ok || !retried.ok) return
+    expect(retried.value.sessionId).toBe(first.value.sessionId)
+    expect(ctx.sessions.list().map(session => session.id)).toEqual([source.id, first.value.sessionId])
+    await ctx.fiber.dispose()
+  })
+
+  it('mints a second independent child for a different clientMutationId', async () => {
+    const ctx = await composed()
+    const source = liveAgent(ctx, 'session-fork-distinct-mutations', 2)
+    const proxy = remote(ctx)
+
+    const first = await proxy.fork(request({
+      sessionId: source.id, atSeq: 1, clientMutationId: 'mutation-1' as ClientMutationId,
+    }))
+    const second = await proxy.fork(request({
+      sessionId: source.id, atSeq: 1, clientMutationId: 'mutation-2' as ClientMutationId,
+    }))
+
+    expect(first.ok).toBe(true)
+    expect(second.ok).toBe(true)
+    if (!first.ok || !second.ok) return
+    expect(second.value.sessionId).not.toBe(first.value.sessionId)
+    const expectedPrefix = ['turn/start', 'user/message', 'turn/end', 'session/end-seed']
+    for (const child of [first.value.sessionId, second.value.sessionId]) {
+      expect(ctx.sessions.get(child)?.snapshotEvents().map(event => event.type))
+        .toEqual(expectedPrefix)
+      expect(ctx.sessions.get(child)?.header.parentSession).toBe(source.id)
+    }
+    await ctx.fiber.dispose()
+  })
+
+  it('rejects invalid clientMutationId values before reading or creating a Session', async () => {
+    const ctx = await composed()
+    const source = liveAgent(ctx, 'session-invalid-mutation', 1)
+    const proxy = remote(ctx)
+
+    for (const clientMutationId of ['', ' ', ' mutation-1', 'mutation-1 ', 'm'.repeat(129)]) {
+      await expect(proxy.fork(request({
+        sessionId: source.id,
+        clientMutationId: clientMutationId as ClientMutationId,
+      }))).resolves.toMatchObject({
+        ok: false,
+        error: {
+          code: 'gateway/bad-request',
+          message: 'clientMutationId must be a non-empty string of at most 128 characters',
+        },
+      })
+    }
+    expect(ctx.sessions.list().map(session => session.id)).toEqual([source.id])
     await ctx.fiber.dispose()
   })
 })

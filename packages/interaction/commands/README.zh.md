@@ -62,7 +62,7 @@ ctx.commands.register({
 
 Host 发现分别以 `command.catalog.v1` 声明 `list`，以 `command.execute.v1` 声明 `execute`。生成的 Client 仅在当前连接提供对应能力时准入操作。这些声明不替代 Agent 解析、附件授权或处理器策略。 设备权限遵循第 21 节表格：命令目录声明 `view`，命令执行声明 `prompt.send`。 缺少已声明权限的设备角色在派发前被拒绝；匿名调用不受影响。
 
-交互式适配器调用 `execute(agent, line, attachments, signal)`，传入确切的接收 agent、完整命令行与本次提交的有序附件。它返回已结算的 `CommandExecution`——规范化结果加生命周期配对 `commandId`——语法无效或名称未知时返回 `undefined`。`list(agent)` 与 `find(agent, name)` 在应用 agent 作用域遮蔽后用于命令发现。
+交互式适配器调用 `execute(agent, request, signal)`，传入确切的接收 agent、一个 `CommandExecutionRequest`——完整命令行、本次提交的有序附件，以及可选的客户端铸造重试身份——以及 UI 请求的中止信号。它返回已结算的 `CommandExecution`——规范化结果加生命周期配对 `commandId`——语法无效或名称未知时返回 `undefined`。携带某个 `clientMutationId` 的重发，若其执行已在本 Host 进程内结算，则直接返回记录的执行结果而不再重跑处理器；收据是进程内有界的，不跨重启持久，抛异常的结算不记录收据。`list(agent)` 与 `find(agent, name)` 在应用 agent 作用域遮蔽后用于命令发现。
 
 ### 取消
 
@@ -84,7 +84,7 @@ Host 发现分别以 `command.catalog.v1` 声明 `list`，以 `command.execute.v
 |---|---|
 | [`src/index.ts`](src/index.ts) | `CommandRuntime` 服务：注册、作用域、分派、生命周期事件 |
 | [`src/types.ts`](src/types.ts) | 命令定义、描述符、执行与结果类型 |
-| [`src/brand.ts`](src/brand.ts) | 稳定命令定义标识和每次执行的生命周期 id |
+| [`src/brand.ts`](src/brand.ts) | 稳定命令定义标识、每次执行的生命周期 id 与客户端变更 id |
 | [`src/invariant.ts`](src/invariant.ts) | 不变式伴生插件：按会话日志配对 `command/run` 与 `command/done` |
 
 ### 生命周期事件

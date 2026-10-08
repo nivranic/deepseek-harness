@@ -62,7 +62,7 @@ A command may declare `input.attachments` to accept composer images and generic 
 
 Host discovery advertises `command.catalog.v1` for `list` and `command.execute.v1` for `execute` independently. The generated Client admits each operation only when its capability is present on the current connection. These declarations do not replace Agent resolution, attachment authorization, or handler policy. Device permissions follow the section 21 table: catalog listing declares `view` while command execution declares `prompt.send`. A device role without the declared permission is refused before dispatch; anonymous callers are unaffected.
 
-An interactive adapter calls `execute(agent, line, attachments, signal)` with the exact receiving agent, the full command line, and the submission's ordered attachments. It returns the settled `CommandExecution` — the normalized result plus its lifecycle `commandId` — or `undefined` for invalid syntax or an unknown name. `list(agent)` and `find(agent, name)` serve discovery after agent-scoped shadowing.
+An interactive adapter calls `execute(agent, request, signal)` with the exact receiving agent, a `CommandExecutionRequest` — the full command line, the submission's ordered attachments, and an optional client-minted retry identity — and the UI request's cancellation signal. It returns the settled `CommandExecution` — the normalized result plus its lifecycle `commandId` — or `undefined` for invalid syntax or an unknown name. A resend carrying a `clientMutationId` whose execution already settled in this Host process returns the recorded execution without re-running the handler; receipts are process-local and bounded, not durable across restarts, and a thrown settlement records none. `list(agent)` and `find(agent, name)` serve discovery after agent-scoped shadowing.
 
 ### Cancellation
 
@@ -84,7 +84,7 @@ The observable behavior is covered in [Use this package](#use-this-package); thi
 |---|---|
 | [`src/index.ts`](src/index.ts) | `CommandRuntime` service: registration, scoping, dispatch, lifecycle events |
 | [`src/types.ts`](src/types.ts) | Command definition, descriptor, execution, and result types |
-| [`src/brand.ts`](src/brand.ts) | Stable command-definition identities and per-execution lifecycle ids |
+| [`src/brand.ts`](src/brand.ts) | Stable command-definition identities, per-execution lifecycle ids, and client mutation ids |
 | [`src/invariant.ts`](src/invariant.ts) | Invariant companion pairing `command/run` with `command/done` per session log |
 
 ### Lifecycle events

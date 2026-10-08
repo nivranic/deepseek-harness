@@ -3813,12 +3813,10 @@ function createFixtureWorld(options: FixtureOptions): FixtureWorld {
       const args = (payload as {
         args: Readonly<{
           agentId: SessionId
-          line?: string
           query?: string
           path?: string
           range?: { offset?: number; limit?: number }
           name?: string
-          images?: readonly unknown[]
           // A goal ref and a credential reference name share this wire field name.
           ref?: string | { id: string; revision: number }
           refs?: readonly string[]
@@ -3844,7 +3842,14 @@ function createFixtureWorld(options: FixtureOptions): FixtureWorld {
           transports: ['http', 'websocket'], serverTime: Date.now(),
         } })
         case 'commands/list': return Promise.resolve(commandRemotes.list(sessionId))
-        case 'commands/execute': return Promise.resolve(commandRemotes.execute(sessionId, args.line as string, args.images ?? []))
+        case 'commands/execute': {
+          const commandRequest = request as { line: string; submittedAttachments?: readonly unknown[] }
+          return Promise.resolve(commandRemotes.execute(
+            sessionId,
+            commandRequest.line,
+            commandRequest.submittedAttachments ?? [],
+          ))
+        }
         case 'fileReferences/list': return Promise.resolve(referenceRemotes.files(sessionId, args.query ?? ''))
         case 'sessionReferenceResolver/candidates': return Promise.resolve(referenceRemotes.sessions(sessionId, args.query ?? ''))
         case 'directoryPicker/pick': return Promise.resolve(directoryPickerRemotes.pick())

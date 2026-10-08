@@ -4,7 +4,7 @@ import { createScope } from '@deepseek-ai/dsh-scope'
 import type { Scope } from '@deepseek-ai/dsh-scope'
 import type { Agent } from '@deepseek-ai/dsh-agent'
 import SessionStore, { SessionId } from '@deepseek-ai/dsh-session'
-import CommandRuntime, { CommandDefinitionId, parseCommand, type CommandDefinition } from '@deepseek-ai/dsh-commands'
+import CommandRuntime, { CommandDefinitionId, CommandMutationId, parseCommand, type CommandDefinition } from '@deepseek-ai/dsh-commands'
 import { AttachmentStore } from '@deepseek-ai/dsh-attachment'
 
 function command(name: string, text = `ran:${name}`): CommandDefinition {
@@ -103,12 +103,12 @@ describe('CommandRuntime', () => {
     expect(ctx.commands.find(agent, 'shared')?.handler).toBeDefined()
     expect(ctx.commands.list(agent)[0]).not.toHaveProperty('definitionId')
     expect(ctx.commands.list(other).map(item => item.name)).toEqual(['shared'])
-    expect((await ctx.commands.execute(agent, '/shared', [], new AbortController().signal))?.result)
+    expect((await ctx.commands.execute(agent, { line: '/shared', submittedAttachments: [] }, new AbortController().signal))?.result)
       .toEqual({ kind: 'success', text: 'scoped' })
 
     await scope.dispose()
     expect(ctx.commands.list(agent)[0]?.definitionId).toBe('example/shared')
-    expect((await ctx.commands.execute(agent, '/shared', [], new AbortController().signal))?.result.text).toBe('global')
+    expect((await ctx.commands.execute(agent, { line: '/shared', submittedAttachments: [] }, new AbortController().signal))?.result.text).toBe('global')
   })
 
   it('removes a registration when its contributing plugin fiber is disposed', async () => {
@@ -192,7 +192,7 @@ describe('CommandRuntime', () => {
     ctx.commands.register({ name: 'run', description: 'Run it', risk: 'low', handler: seen })
     const controller = new AbortController()
 
-    const execution = await ctx.commands.execute(agent, '/run  untouched ', [], controller.signal)
+    const execution = await ctx.commands.execute(agent, { line: '/run  untouched ', submittedAttachments: [] }, controller.signal)
 
     expect(execution?.result).toEqual({ kind: 'success', text: 'ok' })
     expect(execution?.commandId).toBeTruthy()
@@ -203,8 +203,8 @@ describe('CommandRuntime', () => {
       rawInput: '  untouched ',
       signal: controller.signal,
     }))
-    await expect(ctx.commands.execute(agent, 'run', [], controller.signal)).resolves.toBeUndefined()
-    await expect(ctx.commands.execute(agent, '/missing', [], controller.signal)).resolves.toBeUndefined()
+    await expect(ctx.commands.execute(agent, { line: 'run', submittedAttachments: [] }, controller.signal)).resolves.toBeUndefined()
+    await expect(ctx.commands.execute(agent, { line: '/missing', submittedAttachments: [] }, controller.signal)).resolves.toBeUndefined()
   })
 
   it('stops awaiting an aborted handler and handles an already-aborted signal', async () => {
@@ -218,18 +218,18 @@ describe('CommandRuntime', () => {
       handler: () => new Promise((resolve) => { release = resolve }),
     })
     const running = new AbortController()
-    const promise = ctx.commands.execute(agent, '/wait', [], running.signal)
+    const promise = ctx.commands.execute(agent, { line: '/wait', submittedAttachments: [] }, running.signal)
     running.abort('operator cancelled command')
     await expect(promise).rejects.toThrow('operator cancelled command')
     release({ kind: 'success', text: 'late' })
 
     const already = new AbortController()
     already.abort(new Error('already gone'))
-    await expect(ctx.commands.execute(agent, '/wait', [], already.signal)).rejects.toThrow('already gone')
+    await expect(ctx.commands.execute(agent, { line: '/wait', submittedAttachments: [] }, already.signal)).rejects.toThrow('already gone')
 
     const defaultReason = new AbortController()
     defaultReason.abort({ source: 'test' })
-    await expect(ctx.commands.execute(agent, '/wait', [], defaultReason.signal)).rejects.toThrow('command aborted')
+    await expect(ctx.commands.execute(agent, { line: '/wait', submittedAttachments: [] }, defaultReason.signal)).rejects.toThrow('command aborted')
   })
 
   it('propagates an asynchronously rejected handler', async () => {
@@ -241,7 +241,7 @@ describe('CommandRuntime', () => {
       risk: 'low',
       handler: () => Promise.reject(new Error('handler rejected')),
     })
-    await expect(ctx.commands.execute(agent, '/reject', [], new AbortController().signal))
+    await expect(ctx.commands.execute(agent, { line: '/reject', submittedAttachments: [] }, new AbortController().signal))
       .rejects.toThrow('handler rejected')
 
     ctx.commands.register({
@@ -251,7 +251,7 @@ describe('CommandRuntime', () => {
       // oxlint-disable-next-line typescript/prefer-promise-reject-errors -- exercise untyped plugin normalization
       handler: () => Promise.reject('not an Error'),
     })
-    await expect(ctx.commands.execute(agent, '/reject-value', [], new AbortController().signal))
+    await expect(ctx.commands.execute(agent, { line: '/reject-value', submittedAttachments: [] }, new AbortController().signal))
       .rejects.toThrow('command handler rejected with a non-Error value: not an Error')
 
     const hostile = { toString(): string { throw new Error('cannot render') } }
@@ -262,7 +262,7 @@ describe('CommandRuntime', () => {
       // oxlint-disable-next-line typescript/prefer-promise-reject-errors -- exercise hostile plugin normalization
       handler: () => Promise.reject(hostile),
     })
-    await expect(ctx.commands.execute(agent, '/reject-hostile', [], new AbortController().signal))
+    await expect(ctx.commands.execute(agent, { line: '/reject-hostile', submittedAttachments: [] }, new AbortController().signal))
       .rejects.toMatchObject({
         message: 'command handler rejected with a non-Error value: <unrenderable thrown value>',
         cause: hostile,
@@ -282,7 +282,7 @@ describe('CommandRuntime', () => {
         return { kind: 'success' }
       },
     })
-    await expect(ctx.commands.execute(agent, '/self-abort', [], controller.signal))
+    await expect(ctx.commands.execute(agent, { line: '/self-abort', submittedAttachments: [] }, controller.signal))
       .rejects.toThrow('aborted in handler')
   })
 
@@ -295,7 +295,7 @@ describe('CommandRuntime', () => {
       risk: 'low',
       handler: () => ({ kind: 'error', text: 'not now' }),
     })
-    const execution = await ctx.commands.execute(agent, '/denied', [], new AbortController().signal)
+    const execution = await ctx.commands.execute(agent, { line: '/denied', submittedAttachments: [] }, new AbortController().signal)
     expect(execution?.result).toEqual({ kind: 'error', text: 'not now' })
     expect(Object.isFrozen(execution?.result)).toBe(true)
 
@@ -305,7 +305,7 @@ describe('CommandRuntime', () => {
       risk: 'low',
       handler: () => ({ kind: 'success' }),
     })
-    const silent = await ctx.commands.execute(agent, '/silent', [], new AbortController().signal)
+    const silent = await ctx.commands.execute(agent, { line: '/silent', submittedAttachments: [] }, new AbortController().signal)
     expect(silent?.result).toEqual({ kind: 'success' })
     expect(Object.isFrozen(silent?.result)).toBe(true)
   })
@@ -325,7 +325,7 @@ describe('CommandRuntime', () => {
     const { agent } = await mintAgentScope(ctx, 'a')
     ctx.commands.register(command('deploy', 'deployed'))
 
-    const execution = await ctx.commands.execute(agent, '/deploy now', [], new AbortController().signal)
+    const execution = await ctx.commands.execute(agent, { line: '/deploy now', submittedAttachments: [] }, new AbortController().signal)
 
     const lifecycle = lifecycleOf(agent)
     expect(lifecycle).toMatchObject([
@@ -354,7 +354,7 @@ describe('CommandRuntime', () => {
       handler: () => ({ kind: 'success', text: 'linked', sourceEventSeq: source.seq }),
     })
 
-    const execution = await ctx.commands.execute(agent, '/linked', [], new AbortController().signal)
+    const execution = await ctx.commands.execute(agent, { line: '/linked', submittedAttachments: [] }, new AbortController().signal)
 
     expect(execution?.result).toEqual({ kind: 'success', text: 'linked', sourceEventSeq: source.seq })
     expect(lifecycleOf(agent)).toMatchObject([
@@ -375,7 +375,7 @@ describe('CommandRuntime', () => {
       handler: seen,
     })
 
-    await ctx.commands.execute(agent, '/private keep this once', [], new AbortController().signal)
+    await ctx.commands.execute(agent, { line: '/private keep this once', submittedAttachments: [] }, new AbortController().signal)
 
     expect(seen).toHaveBeenCalledWith(expect.objectContaining({ rawInput: ' keep this once' }))
     const run = agent.session.snapshotEvents().find(event => event.type === 'command/run')
@@ -388,25 +388,25 @@ describe('CommandRuntime', () => {
     const { agent } = await mintAgentScope(ctx, 'a')
     ctx.commands.register(command('first'))
     ctx.commands.register(command('second'))
-    await ctx.commands.execute(agent, '/first', [], new AbortController().signal)
-    await ctx.commands.execute(agent, '/second', [], new AbortController().signal)
+    await ctx.commands.execute(agent, { line: '/first', submittedAttachments: [] }, new AbortController().signal)
+    await ctx.commands.execute(agent, { line: '/second', submittedAttachments: [] }, new AbortController().signal)
     const ids = lifecycleOf(agent)
       .filter(event => event.type === 'command/run')
       .map(event => (event.data as { commandId: string }).commandId)
     expect(new Set(ids).size).toBe(2)
   })
 
-  // §17 Mutation Idempotency: execute carries no client mutation identity, so a
-  // network-level retry of the same line re-enters the handler and re-appends a
-  // full lifecycle pair. Deduplication is an open design ruling, not current behavior.
-  it('a retried execute of the same line runs the handler twice and appends two command event pairs (no client mutation identity yet — open §17 design ruling)', async () => {
+  // §17 clientMutationId adoption: only id-carrying calls replay a settled
+  // receipt. A retry without one keeps the original behavior — the handler
+  // re-enters and a full lifecycle pair is appended again.
+  it('a retried execute without clientMutationId runs the handler twice and appends two command event pairs (the §17 receipt applies only to id-carrying calls)', async () => {
     const ctx = await mount()
     const { agent } = await mintAgentScope(ctx, 'a')
     const handler = vi.fn(() => ({ kind: 'success' as const, text: 'ran' }))
     ctx.commands.register({ name: 'deploy', description: 'Deploy', risk: 'low', handler })
 
-    const first = await ctx.commands.execute(agent, '/deploy now', [], new AbortController().signal)
-    const retried = await ctx.commands.execute(agent, '/deploy now', [], new AbortController().signal)
+    const first = await ctx.commands.execute(agent, { line: '/deploy now', submittedAttachments: [] }, new AbortController().signal)
+    const retried = await ctx.commands.execute(agent, { line: '/deploy now', submittedAttachments: [] }, new AbortController().signal)
 
     expect(handler).toHaveBeenCalledTimes(2)
     expect(first?.result).toEqual({ kind: 'success', text: 'ran' })
@@ -416,23 +416,102 @@ describe('CommandRuntime', () => {
       'command/run', 'command/done', 'command/run', 'command/done',
     ])
     const ids = lifecycle.map(event => (event.data as { commandId: string }).commandId)
-    // Each execution pairs its own run/done; the retry mints a fresh id — nothing dedupes it.
+    // Each execution pairs its own run/done; the id-less retry mints a fresh id — only id-carrying calls are deduplicated.
     expect(ids[0]).toBe(ids[1])
     expect(ids[2]).toBe(ids[3])
     expect(ids[0]).not.toBe(ids[2])
     expect(first?.commandId).toBe(ids[0])
     expect(retried?.commandId).toBe(ids[2])
-    // Both runs record the identical line, so the log alone cannot distinguish the retry.
+    // Without a clientMutationId the log cannot distinguish a retry from a fresh submission.
     expect(lifecycle
       .filter(event => event.type === 'command/run')
       .map(event => (event.data as { args?: string }).args)).toEqual([' now', ' now'])
+  })
+
+  it('replays the settled execution when the same clientMutationId resends', async () => {
+    const ctx = await mount()
+    const { agent } = await mintAgentScope(ctx, 'a')
+    const handler = vi.fn(() => ({ kind: 'success' as const, text: 'ran' }))
+    ctx.commands.register({ name: 'deploy', description: 'Deploy', risk: 'low', handler })
+    const mutationId = CommandMutationId('gen47-retry-1')
+
+    const first = await ctx.commands.execute(agent, { line: '/deploy now', submittedAttachments: [], clientMutationId: mutationId }, new AbortController().signal)
+    const resent = await ctx.commands.execute(agent, { line: '/deploy now', submittedAttachments: [], clientMutationId: mutationId }, new AbortController().signal)
+
+    expect(handler).toHaveBeenCalledTimes(1)
+    expect(resent?.commandId).toBe(first?.commandId)
+    expect(resent?.result).toEqual(first?.result)
+    expect(lifecycleOf(agent).map(event => event.type)).toEqual(['command/run', 'command/done'])
+    // A settled receipt is an established fact: the hit returns even when the
+    // retry's signal is already aborted.
+    const aborted = new AbortController()
+    aborted.abort(new Error('too late to matter'))
+    const afterAbort = await ctx.commands.execute(agent, { line: '/deploy now', submittedAttachments: [], clientMutationId: mutationId }, aborted.signal)
+    expect(afterAbort?.commandId).toBe(first?.commandId)
+    expect(handler).toHaveBeenCalledTimes(1)
+    expect(lifecycleOf(agent).map(event => event.type)).toEqual(['command/run', 'command/done'])
+  })
+
+  it('executes both submissions carrying different clientMutationIds', async () => {
+    const ctx = await mount()
+    const { agent } = await mintAgentScope(ctx, 'a')
+    const handler = vi.fn(() => ({ kind: 'success' as const, text: 'ran' }))
+    ctx.commands.register({ name: 'deploy', description: 'Deploy', risk: 'low', handler })
+
+    const first = await ctx.commands.execute(agent, { line: '/deploy', submittedAttachments: [], clientMutationId: CommandMutationId('gen47-retry-a') }, new AbortController().signal)
+    const second = await ctx.commands.execute(agent, { line: '/deploy', submittedAttachments: [], clientMutationId: CommandMutationId('gen47-retry-b') }, new AbortController().signal)
+
+    expect(handler).toHaveBeenCalledTimes(2)
+    expect(second?.commandId).not.toBe(first?.commandId)
+    expect(lifecycleOf(agent).map(event => event.type)).toEqual([
+      'command/run', 'command/done', 'command/run', 'command/done',
+    ])
+  })
+
+  it.each([
+    ['an empty string', ''],
+    ['whitespace only', ' '],
+    ['leading whitespace', ' padded'],
+    ['trailing whitespace', 'padded '],
+    ['more than 128 characters', 'x'.repeat(129)],
+  ] as const)('rejects a clientMutationId with %s at the wire boundary without logging', async (_label, id) => {
+    const ctx = await mount()
+    const { agent } = await mintAgentScope(ctx, 'a')
+    const handler = vi.fn(() => ({ kind: 'success' as const }))
+    ctx.commands.register({ name: 'deploy', description: 'Deploy', risk: 'low', handler })
+
+    await expect(ctx.commands.execute(agent, { line: '/deploy', submittedAttachments: [], clientMutationId: CommandMutationId(id) }, new AbortController().signal))
+      .rejects.toThrow(TypeError)
+    await expect(ctx.commands.execute(agent, { line: '/deploy', submittedAttachments: [], clientMutationId: CommandMutationId(id) }, new AbortController().signal))
+      .rejects.toThrow('clientMutationId must be a non-empty string of at most 128 characters')
+
+    expect(handler).not.toHaveBeenCalled()
+    expect(agent.session.snapshotEvents()).toEqual([])
+  })
+
+  it('re-runs a throwing handler on a same-id resend: a thrown settlement records no receipt', async () => {
+    const ctx = await mount()
+    const { agent } = await mintAgentScope(ctx, 'a')
+    const handler = vi.fn(() => { throw new Error('handler exploded') })
+    ctx.commands.register({ name: 'boom', description: 'Boom', risk: 'low', handler })
+    const mutationId = CommandMutationId('gen47-retry-on-failure')
+
+    await expect(ctx.commands.execute(agent, { line: '/boom', submittedAttachments: [], clientMutationId: mutationId }, new AbortController().signal))
+      .rejects.toThrow('handler exploded')
+    await expect(ctx.commands.execute(agent, { line: '/boom', submittedAttachments: [], clientMutationId: mutationId }, new AbortController().signal))
+      .rejects.toThrow('handler exploded')
+
+    expect(handler).toHaveBeenCalledTimes(2)
+    expect(lifecycleOf(agent).map(event => event.type)).toEqual([
+      'command/run', 'command/done', 'command/run', 'command/done',
+    ])
   })
 
   it('logs command/done kind error for an expected error result', async () => {
     const ctx = await mount()
     const { agent } = await mintAgentScope(ctx, 'a')
     ctx.commands.register({ name: 'denied', description: 'Denied', risk: 'low', handler: () => ({ kind: 'error', text: 'not now' }) })
-    await ctx.commands.execute(agent, '/denied', [], new AbortController().signal)
+    await ctx.commands.execute(agent, { line: '/denied', submittedAttachments: [] }, new AbortController().signal)
     expect(lifecycleOf(agent)).toMatchObject([
       { type: 'command/run', data: { name: 'denied' } },
       { type: 'command/done', data: { kind: 'error', text: 'not now' } },
@@ -448,7 +527,7 @@ describe('CommandRuntime', () => {
       risk: 'low',
       handler: () => { throw new Error('handler exploded') },
     })
-    await expect(ctx.commands.execute(agent, '/boom', [], new AbortController().signal))
+    await expect(ctx.commands.execute(agent, { line: '/boom', submittedAttachments: [] }, new AbortController().signal))
       .rejects.toThrow('handler exploded')
     expect(lifecycleOf(agent)).toMatchObject([
       { type: 'command/run', data: { name: 'boom' } },
@@ -466,7 +545,7 @@ describe('CommandRuntime', () => {
       handler: () => new Promise(() => undefined),
     })
     const controller = new AbortController()
-    const pending = ctx.commands.execute(agent, '/hang', [], controller.signal)
+    const pending = ctx.commands.execute(agent, { line: '/hang', submittedAttachments: [] }, controller.signal)
     // The run append must land before the abort so the pair stays complete.
     await vi.waitFor(() => { expect(lifecycleOf(agent)).toHaveLength(1) })
     controller.abort('operator cancelled command')
@@ -484,8 +563,8 @@ describe('CommandRuntime', () => {
     const { agent } = await mintAgentScope(ctx, 'a')
     ctx.commands.register(command('real'))
     const signal = new AbortController().signal
-    await ctx.commands.execute(agent, 'not a command', [], signal)
-    await ctx.commands.execute(agent, '/missing', [], signal)
+    await ctx.commands.execute(agent, { line: 'not a command', submittedAttachments: [] }, signal)
+    await ctx.commands.execute(agent, { line: '/missing', submittedAttachments: [] }, signal)
     expect(agent.session.snapshotEvents()).toEqual([])
   })
 
@@ -494,7 +573,7 @@ describe('CommandRuntime', () => {
     const { agent } = await mintAgentScope(ctx, 'a')
     ctx.commands.register(command('mid'))
     agent.session.append('turn/start', { turn: 1 })
-    await ctx.commands.execute(agent, '/mid', [], new AbortController().signal)
+    await ctx.commands.execute(agent, { line: '/mid', submittedAttachments: [] }, new AbortController().signal)
     expect(agent.session.snapshotEvents().map(event => event.type)).toEqual([
       'turn/start', 'command/run', 'command/done',
     ])
@@ -521,7 +600,7 @@ describe('CommandRuntime', () => {
       risk: 'low',
       handler: () => output as never,
     })
-    await expect(ctx.commands.execute(agent, '/broken', [], new AbortController().signal)).rejects.toThrow(expected)
+    await expect(ctx.commands.execute(agent, { line: '/broken', submittedAttachments: [] }, new AbortController().signal)).rejects.toThrow(expected)
   })
 })
 
@@ -604,7 +683,7 @@ describe('command attachments', () => {
     const handler = vi.fn(() => ({ kind: 'success' as const }))
     ctx.commands.register({ ...command('deploy'), handler })
     const execution = await ctx.commands.execute(
-      agent, '/deploy now', [{ type: 'image', mediaType: 'image/png', data: PNG }], new AbortController().signal)
+      agent, { line: '/deploy now', submittedAttachments: [{ type: 'image', mediaType: 'image/png', data: PNG }] }, new AbortController().signal)
     expect(execution?.result).toEqual({ kind: 'error', text: '/deploy does not accept attachments' })
     expect(handler).not.toHaveBeenCalled()
     expect(lifecycleOf(agent)).toMatchObject([
@@ -618,7 +697,7 @@ describe('command attachments', () => {
     const { agent } = await mintAgentScope(ctx, 'a')
     ctx.commands.register(accepting(() => ({ kind: 'success' })))
     const execution = await ctx.commands.execute(
-      agent, '/vision x', [{ type: 'image', mediaType: 'image/png', data: PNG }], new AbortController().signal)
+      agent, { line: '/vision x', submittedAttachments: [{ type: 'image', mediaType: 'image/png', data: PNG }] }, new AbortController().signal)
     expect(execution?.result).toEqual({
       kind: 'error',
       text: '/vision: attachments are unavailable because no attachment store is composed',
@@ -637,16 +716,16 @@ describe('command attachments', () => {
       return { kind: 'success' as const }
     })
     ctx.commands.register(accepting(seen))
-    await ctx.commands.execute(agent, '/vision x', [
+    await ctx.commands.execute(agent, { line: '/vision x', submittedAttachments: [
       { type: 'image', mediaType: 'image/png', data: PNG, name: 'a.png' },
       { type: 'file', receiptId: 'receipt-notes' },
       { type: 'image', mediaType: 'image/png', data: PNG, name: 'b.png' },
-    ], new AbortController().signal)
+    ] }, new AbortController().signal)
     const invocation = seen.mock.calls[0]?.[0] as { attachments: ReadonlyArray<{ type: string; attachment: { name?: string } }> }
     expect(invocation.attachments.map(block => [block.type, block.attachment.name])).toEqual([
       ['image', 'a.png'], ['file', 'notes.txt'], ['image', 'b.png'],
     ])
-    await ctx.commands.execute(agent, '/vision y', [], new AbortController().signal)
+    await ctx.commands.execute(agent, { line: '/vision y', submittedAttachments: [] }, new AbortController().signal)
     expect((seen.mock.calls[1]?.[0] as { attachments: readonly unknown[] }).attachments).toEqual([])
   })
 
@@ -658,15 +737,15 @@ describe('command attachments', () => {
     const handler = vi.fn(() => ({ kind: 'success' as const }))
     ctx.commands.register(accepting(handler))
     const missing = await ctx.commands.execute(
-      agent, '/vision x', [{ type: 'file', receiptId: 'missing' }], new AbortController().signal)
+      agent, { line: '/vision x', submittedAttachments: [{ type: 'file', receiptId: 'missing' }] }, new AbortController().signal)
     expect(missing?.result).toEqual({
       kind: 'error', text: 'File upload receipt is unknown for this session.',
     })
     expect(handler).not.toHaveBeenCalled()
-    const mixed = await ctx.commands.execute(agent, '/vision x', [
+    const mixed = await ctx.commands.execute(agent, { line: '/vision x', submittedAttachments: [
       { type: 'image', mediaType: 'image/png', data: PNG },
       { type: 'file', receiptId: 'missing' },
-    ], new AbortController().signal)
+    ] }, new AbortController().signal)
     expect(mixed?.result).toEqual({
       kind: 'error', text: 'File upload receipt is unknown for this session.',
     })
@@ -691,7 +770,7 @@ describe('command attachments', () => {
     const handler = vi.fn(() => ({ kind: 'success' as const }))
     ctx.commands.register(accepting(handler))
     const three = [1, 2, 3].map(() => ({ type: 'image' as const, mediaType: 'image/png' as const, data: PNG }))
-    const execution = await ctx.commands.execute(agent, '/vision x', three, new AbortController().signal)
+    const execution = await ctx.commands.execute(agent, { line: '/vision x', submittedAttachments: three }, new AbortController().signal)
     expect(execution?.result).toEqual({ kind: 'error', text: 'Image batch exceeds the configured image-count limit.' })
     expect(handler).not.toHaveBeenCalled()
     expect(lifecycleOf(agent).at(-1)).toMatchObject({ type: 'command/done', data: { kind: 'error' } })
@@ -712,7 +791,7 @@ describe('command attachments', () => {
     const handler = vi.fn(() => ({ kind: 'success' as const }))
     ctx.commands.register(accepting(handler))
     await expect(ctx.commands.execute(
-      agent, '/vision x', [{ type: 'image', mediaType: 'image/png', data: PNG }], controller.signal,
+      agent, { line: '/vision x', submittedAttachments: [{ type: 'image', mediaType: 'image/png', data: PNG }] }, controller.signal,
     )).rejects.toThrow('operator cancelled during admission')
     expect(handler).not.toHaveBeenCalled()
     expect(lifecycleOf(agent).at(-1)).toMatchObject({
@@ -729,7 +808,7 @@ describe('command attachments', () => {
     const { agent } = await mintAgentScope(ctx, 'a')
     ctx.commands.register(accepting(() => ({ kind: 'success' })))
     await expect(ctx.commands.execute(
-      agent, '/vision x', [{ type: 'image', mediaType: 'image/png', data: PNG }], new AbortController().signal,
+      agent, { line: '/vision x', submittedAttachments: [{ type: 'image', mediaType: 'image/png', data: PNG }] }, new AbortController().signal,
     )).rejects.toThrow('disk gone')
     expect(lifecycleOf(agent).at(-1)).toMatchObject({
       type: 'command/done',
