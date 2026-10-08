@@ -45,6 +45,9 @@
       "path": "../../interaction/commands"
     },
     {
+      "path": "../../util/crypto"
+    },
+    {
       "path": "../../core/session"
     }
   ]

@@ -5,175 +5,51 @@
   "candidateTrackedChanges": [
     {
       "path": "IMPLEMENTATION_STATUS.md",
-      "sha256": "df0cb3a658f788fac3dceaeebf0c52b3a349c4c9003365686623232bccc2216b"
+      "sha256": "a46c615ab02e68d3b3f5759c3f40f2cbb11616bc601b3c6f15e6f4e809ecbdac"
     },
     {
       "path": "artifacts/upstream-first/evidence.json",
-      "sha256": "132a7a090853b4c43a5616107506f7520ff3116adc0c14eebbc9bf81a9d1b586"
+      "sha256": "48c0a446195ccc628e297491da4140d69229769585198f9b2f210e537676bbc7"
     },
     {
       "path": "artifacts/upstream-first/specification-traceability.json",
-      "sha256": "6c7f7d0dec8bffbf66850e5f60c0d8f8e084407d803ed1980c660eaa6ba0185a"
+      "sha256": "05c1f2fe98997764efe999af9b1ffe6995c274af0dda9ffa3fc77946ce8f5073"
     },
     {
       "path": "artifacts/upstream-first/write-reports.mjs",
-      "sha256": "4df554c139d9297c25fc5a2ddfb02d3d01822e9d8384d645e6eaf65a9ea051f1"
+      "sha256": "976b5215ebe1b050d97086d1219ee76cd3377902f12627f7c2de2442eea12062"
     },
     {
-      "path": "docs/event-producer-consumer.i18n.yaml",
-      "sha256": "027d5578ef1f3e7da85674f39421de7eab43059824148ce8e6a79808f0750006"
+      "path": "packages/api/session-controller/src/client/sessions/manager.ts",
+      "sha256": "3a3168a15222a99e917345fb9e87a060754b3d08664f0a9b4d8a7c68bdbd086b"
     },
     {
-      "path": "docs/event-producer-consumer.md",
-      "sha256": "b20b804233a978a7514f4da809782c1b2842fce311d9c82b2effeb943e6e318f"
+      "path": "packages/api/session-controller/src/client/sessions/service.ts",
+      "sha256": "bda8032e8afe252094619b8df138f548c75aeb2700c8994470c01369a15b11ac"
     },
     {
-      "path": "docs/event-producer-consumer.zh.md",
-      "sha256": "c8bc15d8cd546bb4322aaa3972d24d860cebb170d27b5b9c0bc6180fadd256c8"
+      "path": "packages/api/session-controller/tests/sessions-service.client.spec.ts",
+      "sha256": "b262c7c9123c118e1848527803ba6fce2c22d5d5320353445ace8d3f1bb9dee6"
     },
     {
-      "path": "docs/persistence-catalog.i18n.yaml",
-      "sha256": "a7a5bbf37260b216ad2221145662834620cb085c2f52ff8477ca73e10e193d35"
-    },
-    {
-      "path": "docs/persistence-catalog.md",
-      "sha256": "ce504e98a5c9fe6c07807146b90d13c98588caa78d460d56a85ef17de1a1b65e"
-    },
-    {
-      "path": "docs/persistence-catalog.zh.md",
-      "sha256": "7526421ba806d113b6d022025d46f0a0978d4e7efdbd8ced798c4a626e58d651"
-    },
-    {
-      "path": "docs/subsystems/commands.i18n.yaml",
-      "sha256": "e5a6caad4d6e1db643db04fbb53bb4b230c7cd13542270ed473507789f7a78d6"
-    },
-    {
-      "path": "docs/subsystems/commands.md",
-      "sha256": "c624d2d982827d8f7441cae45f771a9555d79d471d7a39ef65ca5e3942342130"
-    },
-    {
-      "path": "docs/subsystems/commands.zh.md",
-      "sha256": "acc3fed5394457c6fcc1504a61bebd9e64439ee510d17c4c38e987e1396fa3bc"
-    },
-    {
-      "path": "packages/api/session-controller/src/client/sessions/remotes.ts",
-      "sha256": "a7e59d85e9cdc02c6e7c09d4afd518aea5a490dc1d78a318b658acf87f0dd76d"
-    },
-    {
-      "path": "packages/api/session-controller/src/client/sessions/session.ts",
-      "sha256": "5e73d6d43b3786acf9ddcabfc8700581245fed5ba14b0787219a1d66b3d2cfce"
-    },
-    {
-      "path": "packages/api/session-controller/src/commands.ts",
-      "sha256": "530f9ba03ff5841b541ab49e801a689341e8c74c52dad35b9c2860c9077ce7d2"
-    },
-    {
-      "path": "packages/api/session-controller/src/types.ts",
-      "sha256": "3d6e4f952661a4f778559105711940ee7b7222b3861ca7ca714aa841053f5565"
-    },
-    {
-      "path": "packages/api/session-controller/tests/commands-upload-file.host.spec.ts",
-      "sha256": "5437f4e4172df7d624dcdc68968d1803814e916338971e4cce88a9d48f5cadd9"
-    },
-    {
-      "path": "packages/api/session-controller/tests/session-fork.host.spec.ts",
-      "sha256": "4e5e2a6cd3f63c4cdfb8a7d12bf964b15b7962b11f41649b91d0d4bb63230e7a"
-    },
-    {
-      "path": "packages/client/connection/src/client/fixture.ts",
-      "sha256": "a0f831bf3fcbc8d902a2df42b40ec68de702be5995516b970c4704adf62239b3"
-    },
-    {
-      "path": "packages/client/connection/tests/fixture-commands.client.spec.ts",
-      "sha256": "ed46148ca52fc8a0fc3010729d8bd0219d9550f21ecd6567ee894fed44fd585c"
+      "path": "packages/client/ui-commands/package.json",
+      "sha256": "5384c368c376a6f78426e3db566ebcec8a1befcbe6367c50bf155de4cad27afb"
     },
     {
       "path": "packages/client/ui-commands/src/client/service.ts",
-      "sha256": "4f8964e360e8c37a29f1032234d50584037e13e4e81634f570c1814bd6a33fbf"
+      "sha256": "4576c58fc547842e7996c8496edc2c0095a2f1f7bb7d526bb3dc527442464af9"
     },
     {
       "path": "packages/client/ui-commands/tests/service.client.spec.ts",
-      "sha256": "41c4f60e0657f87fb836256d502a798b003cc5501631cd639c2f0e335d03a266"
+      "sha256": "8bbcc7aaa809f489b618d9705a3884e0f1f05bfac4469094b8192529558a80d8"
     },
     {
-      "path": "packages/client/ui-plan/src/client/index.ts",
-      "sha256": "6d859f4c8de727bbe0825f9d30acb86981573a2e412f5b183d4c406dc771de33"
+      "path": "packages/client/ui-commands/tsconfig.json",
+      "sha256": "fb6a53f970eb1ade9c9c3835d19e48c6ddc094c63d9968997a2f7e295fd21cec"
     },
     {
-      "path": "packages/client/ui-plan/tests/browser-plugin.client.spec.ts",
-      "sha256": "06887aa8cb9bdf6352d6a8ca6cbb1949227cc38be2796672c2cad7df2272ba36"
-    },
-    {
-      "path": "packages/compaction/command-compact/tests/command-compact.spec.ts",
-      "sha256": "53c9fb617e07ed2b10fc950b1e20c739f0a3881cf582bed506deb3aafc2292a1"
-    },
-    {
-      "path": "packages/compaction/command-compact/tests/loader-composition.spec.ts",
-      "sha256": "814c802bf55f1eedf891f37ffbd84d3de10feed7f08bb4c4c552c2f0d710ab63"
-    },
-    {
-      "path": "packages/extensions/tool-cordis/src/api-catalog.ts",
-      "sha256": "02e79dc50056102b6fb43c42007d180d677c636983fa2b27276d3c8449a7aec8"
-    },
-    {
-      "path": "packages/feedback/command-feedback/tests/command-feedback.spec.ts",
-      "sha256": "fa6b02e124312e9ec4dbffa80f9ce6531dd69bdecad457f13e810e1d9bb8981e"
-    },
-    {
-      "path": "packages/feedback/command-feedback/tests/loader-composition.spec.ts",
-      "sha256": "dd27ff7d8be1fa6ee027afa3c6f55e9cc7d757ebfc2dd77d7b1889622a284652"
-    },
-    {
-      "path": "packages/goal/command-goal/tests/command-goal.spec.ts",
-      "sha256": "85b0424b5ef4170bcbd25239e8f1f456af2312112831c0d45d11a76187416211"
-    },
-    {
-      "path": "packages/interaction/commands/README.i18n.yaml",
-      "sha256": "4abb9517e0e5468c1dd070005d6740bed7d73c79b699594fe39298fd37af9ca8"
-    },
-    {
-      "path": "packages/interaction/commands/README.md",
-      "sha256": "9ec5988da25bd8f4910c98747154649b33d02ef8f6d6d944361a6ba1397f5c5e"
-    },
-    {
-      "path": "packages/interaction/commands/README.zh.md",
-      "sha256": "87edf0329376e921bfce751018bbfdc6601e4ec953d75454922d5a30ea8e0450"
-    },
-    {
-      "path": "packages/interaction/commands/src/brand.ts",
-      "sha256": "09ec8a8923928085b79e457beea3e267c8146e7523842582690c4e77d7813362"
-    },
-    {
-      "path": "packages/interaction/commands/src/index.ts",
-      "sha256": "d3d8706cf3ad5e148edca55da1eff5b9c808d7cb85890f241735d721d2d3bf78"
-    },
-    {
-      "path": "packages/interaction/commands/src/types.ts",
-      "sha256": "460f1a92480beb191b05a24a0afd88927c48fc9536b9cefa30962af1ef2bddb3"
-    },
-    {
-      "path": "packages/interaction/commands/tests/commands.spec.ts",
-      "sha256": "fd3b3b00451af25fec0cc754a8cd06cc856dc80266afbfcc8229d6dfb8ee0bbd"
-    },
-    {
-      "path": "packages/interaction/permission-presets/tests/projection.spec.ts",
-      "sha256": "4749a8819cf1730cac15505dd4518b1ba2a84afb6efc6ffc9f4c551cc64f6d54"
-    },
-    {
-      "path": "packages/plan/plan-mode/tests/plan-mode.spec.ts",
-      "sha256": "8c6bf96ce9eb19e45e3a9ed83d13e2e3c8c3a35c255530573455a383492608f5"
-    },
-    {
-      "path": "packages/session-query/session-log-export/tests/loader-composition.host.spec.ts",
-      "sha256": "3b2c455ab87c66076f4c338ac1dda01ed833bc2a4ce544bd38e47d96e3caeb72"
-    },
-    {
-      "path": "scripts/gen-cordis-catalog.ts",
-      "sha256": "941c8a46a34dfbfd556860b6874542feaebd00a69768277b05aec22b86bd2840"
-    },
-    {
-      "path": "snapshots/sdk/text-turn/feedback-producer.mjs",
-      "sha256": "b431471fca7840417f41231d4c7edbf3ecc9dd1917d853de382cd71944726dc1"
+      "path": "pnpm-lock.yaml",
+      "sha256": "0b5ef867ee8396c38b8b572c80d2dabb9461230207a4cc8d3e8acd342bc5cb4c"
     }
   ],
   "candidateUntrackedSourceChanges": [],
@@ -12228,6 +12104,66 @@
     },
     {
       "status": "PASS",
+      "command": "pnpm run verify-translation-pairing --write over the note trio — the bilingual pair recorded ahead of the doc-sync round (2026-10-08-client-sender-wiring.i18n.yaml with both sides' blob hashes) with EXIT_CODE=0",
+      "log": ".artifacts/gen48-note-pairing.log",
+      "sourceRecord": "artifacts/upstream-first/sender-wiring-source.json"
+    },
+    {
+      "status": "PASS",
+      "command": "vitest joint round over the two spec files the lanes touched — the increment's core proof: the §17 clientMutationId sender wiring reads green (Test Files 2 passed (2) / Tests 128 passed (128), EXIT_CODE=0 — ui-commands 75, sessions-service 53) with the execute submit-intent memory, the fork anchor memory and the dsh-util-crypto uuid minting in place",
+      "log": ".artifacts/sender-wiring-specs.log",
+      "sourceRecord": "artifacts/upstream-first/sender-wiring-source.json"
+    },
+    {
+      "status": "PASS",
+      "command": "gradle acceptance round on apps/android (Windows host, scanner env with -PdshNativeAcceptance, task set :app:assembleDebug :app:assembleDebugAndroidTest :core:test): BUILD SUCCESSFUL in 1m 30s with 70 actionable tasks of which 1 executed and 69 up-to-date — the fully warm zero-rebuild form (:app:verifyScannerResources the one executed task; :app:packageDebug, :app:assembleDebug, :app:assembleDebugAndroidTest, :app:compileDebugKotlin, :core:compileKotlin and :core:test all UP-TO-DATE — no Kotlin source changed — and this round's task graph never reaches :app:assembleRelease) because nothing under apps/android changed this generation (the §17 clientMutationId sender wiring: the ui-commands execute submit-intent memory, the client sessions fork (sessionId, atSeq) anchor memory, the dsh-util-crypto uuid minting and the ledger rewrite — all TypeScript-side; no Kotlin, no Swift, no device lane ran and the emulator stayed off; no gradle rerun round exists because the first round was already fully warm). Both APKs record IDENTICAL against the client-mutation record's own builtFiles entries (.artifacts/sender-wiring-apk-bytes.log, prior apk records: 2 with two IDENTICAL lines — the live digests replay fb66b477 debug and bbe7a3af androidTest, the exact bytes gen-47's one-time rebuild sealed, cross-checked live), and the still-standing core XML reports under apps/android/core/build/test-results aggregate 77 suites / 477 tests / 0 failures / 0 errors / 0 skips (the core test task stayed warm, so the last executed round's reports stay in place; recorded in .artifacts/sender-wiring-core-results.json); Executed the scanner-env gradle acceptance round on apps/android (Windows host): ./gradlew under -PdshNativeAcceptance over :app:assembleDebug :app:assembleDebugAndroidTest :core:test came back BUILD SUCCESSFUL in 1m 30s with 70 actionable tasks of which 1 executed and 69 up-to-date — the fully warm zero-rebuild form (:app:verifyScannerResources the one executed task; :app:packageDebug, :app:assembleDebug, :app:assembleDebugAndroidTest, :app:compileDebugKotlin, :core:compileKotlin and :core:test all UP-TO-DATE — no Kotlin source changed, and this round's task graph never reaches :app:assembleRelease) — because this generation changes nothing under apps/android (the increment is the §17 clientMutationId sender wiring: the ui-commands execute submit-intent memory, the client sessions fork (sessionId, atSeq) anchor memory, the dsh-util-crypto uuid minting and the ledger rewrite — all TypeScript-side). Both APKs record IDENTICAL against the client-mutation record's own sealed builtFiles entries (.artifacts/sender-wiring-apk-bytes.log, prior apk records: 2 with two IDENTICAL lines — the live digests replay fb66b477da97e9bcdf76363f0613dfee1b9a30a10861043e2a0d80d8024f6282 debug and bbe7a3afa34ec5c8b34e0157f930a0729aad4a245c5b5ed83ab272dbf42b95d8 androidTest, the exact bytes gen-47's one-time rebuild sealed, cross-checked live), and :core:test stayed UP-TO-DATE so the still-standing core XML reports under apps/android/core/build/test-results keep aggregating 77 suites / 477 tests with zero failures, errors and skips (aggregated into .artifacts/sender-wiring-core-results.json) — the round reports 477 tests through that XML aggregate (the model-steer Kotlin JVM round precedent), not through any executed test; 1 file / 477 tests green",
+      "log": ".artifacts/sender-wiring-gradle.log",
+      "sourceRecord": "artifacts/upstream-first/sender-wiring-source.json"
+    },
+    {
+      "status": "PASS",
+      "command": "vitest run --config vitest.config.ts over the 87-file client spec lineage — this generation reused gen-40's curated list directly at its gen-40 name (.artifacts/device-trust-outlet-audit-file-list.txt, byte-identical: nothing this increment touches is a client-lineage member — the session-controller client sessions and ui-commands surfaces, the lockfile and the traceability ledger sit outside the lineage, so the counts stay stable, the same treatment as the gen-36 through gen-47 lanes); the serial double round went 87 files / 1073 tests green on both passes via the Test Files/Tests summary lines (audit-tests.log with the EXIT_CODE=0 trailer and audit-final.log, no -r1 rerun log exists), every count asserted from log content — the standing lesson that a background command's notification exit code is masked by the trailing command",
+      "log": ".artifacts/sender-wiring-audit-tests.log",
+      "sourceRecord": "artifacts/upstream-first/sender-wiring-source.json"
+    },
+    {
+      "status": "PASS",
+      "command": "the repo-wide typecheck round sealed in its honestly recorded chained form (the npm build:lib:host plus typecheck:contracts-ready chain's script echo with the host-build `> node … tsc -b tsconfig.host.json && tsdown` command line followed by the `> tsc -b tsconfig.client.json` strict face, closing on the single EXIT_CODE=0 trailer for the whole log, zero TypeScript diagnostics, no lint content and no labelled trailer — the two rounds ran as separate chained invocations this generation)",
+      "log": ".artifacts/sender-wiring-types.log",
+      "sourceRecord": "artifacts/upstream-first/sender-wiring-source.json"
+    },
+    {
+      "status": "PASS",
+      "command": "the repo-wide lint round sealed in its honestly recorded chained form (the npm build:lib:host plus lint:contracts-ready chain's script echo with the host-build command line then the tsx scripts/run-oxlint.ts . command line, closing on the single EXIT_CODE=0 trailer for the whole log and the clean oxlint summary — Found 0 warnings and 0 errors, Finished in 95.3s on 3855 files, the same file count as the gen-44 through gen-47 trees because the tracked increment edits existing sources and adds none — zero TypeScript diagnostics, no TYPECHECK_EXIT and no LINT_EXIT labelled trailer in the log, which this generation's round honestly never wrote)",
+      "log": ".artifacts/sender-wiring-lint.log",
+      "sourceRecord": "artifacts/upstream-first/sender-wiring-source.json"
+    },
+    {
+      "status": "PASS",
+      "command": "pnpm test:docs equivalent (doc-quick, 17 gates passed / 0 failed in 70.97s) — recorded in its own docs log (the two-file split), the command line carrying the direct shell-echo form inside; the sealed log is the zero-repair first-pass green form",
+      "log": ".artifacts/sender-wiring-docs.log",
+      "sourceRecord": "artifacts/upstream-first/sender-wiring-source.json"
+    },
+    {
+      "status": "PASS",
+      "command": "doc-sync (36 gates passed / 0 failed / 0 skipped in 232.15s; the note trio's pairing rides the repository state the gates checked) — recorded in its own docsync log, the zero-repair first-pass green form (no repair round ran this generation)",
+      "log": ".artifacts/sender-wiring-docsync.log",
+      "sourceRecord": "artifacts/upstream-first/sender-wiring-source.json"
+    },
+    {
+      "status": "PASS",
+      "command": "node artifacts/upstream-first/verify-audit.mjs --require-gate0",
+      "log": ".artifacts/sender-wiring-gate0-final.log",
+      "sourceRecord": "artifacts/upstream-first/sender-wiring-source.json"
+    },
+    {
+      "status": "PASS",
+      "command": "node .artifacts/prepare-sender-wiring.mjs — the before archive written from the client-mutation record in one pass (7783 files, 0 reused) with the unresolved scan sealing the measured twelve replaced prior build outputs (ten old-stable lib keys resolving through the Option A newest-history archive fallback — the two lanes' client face builds re-emitting the session-controller sessions manager/service and ui-commands service lib outputs past the bytes the prior record sealed, the old bytes riding the older archives the historicalRecords chain walks — plus the two second-order keys the dwfq-a83d7bb8-1 chain ruling (the 44th) adjudicated: the gen-47-created ui-commands service lib bytes with no disk, archive or committed copy, resolved as an exact 2-key skip set on the demoted client-mutation block per the gen-33 precedent; the oracle's empty-set placeholder was rejected and the measured keys backfilled in one two-step pass), so the generator gains no sender-wiring replaced-build-output set and this generation's advance seals no adjudication layer of its own beyond the ruled 2-key exemption — and every prior generation's own set stays as sealed at HEAD (including the gen-32 desktopPackageReplacedBuildOutputs set at exactly its six keys and the gen-33 three-key tornRepairIntentReplacedBuildOutputs set)",
+      "log": ".artifacts/sender-wiring-prepare.log",
+      "sourceRecord": "artifacts/upstream-first/sender-wiring-source.json"
+    },
+    {
+      "status": "PASS",
       "command": "Workspace and Conversation source regression before shared readiness correction",
       "tests": 599,
       "log": ".artifacts/workspace-admission-tests-final.log",
@@ -12961,7 +12897,345 @@
       ]
     }
   },
+  "senderWiring": {
+    "status": "PASS",
+    "sourceRecord": "artifacts/upstream-first/sender-wiring-source.json",
+    "scope": "§17 clientMutationId 发送方接线交付代（gen-47 Host 收据的客户端半边——无客户端铸造 id 则生产流量无法使用重传结算）。台账名 sender-wiring（camelCase=senderWiring；write-reports 与 .artifacts 双 grep 于标识符级零碰撞——camelCase 与 kebab 在生成器中零出现、.artifacts 无先于本代的名族文件——适配员已自行验证双 grep）。设计核心=「Host 仅成功结算记录收据 ⇒ 客户端同 id 激进复用永不阻塞真实重试」：失败意图的 id 在 Host 全新执行（收据未记录）、丢失响应意图的重发返回首次结算。A 车道 ui-commands execute 出口按提交意图记忆（同 line+逐项相同附件的重提交同 id；内容变化或已结算——含 handler-error 结算——清除/替换；per-session 隔离）；uuid 经 dsh-util-crypto 铸造（仓库 lint 禁 crypto.randomUUID——web 非安全上下文不提供；ui-conversation 同型先例；devDependencies+打包内联随 client 包惯例）；attachments 以引用持有逐项比较不 JSON 复制 base64。B 车道 client sessions fork 出口按 (sessionId, 取整 atSeq) 锚点记忆（条目 await 前写入使并发同锚共享 id、失败保留、成功即清除）；组包透传在 manager 层最少侵入。生成投影无需再生成（请求接口沿 gen-47 源类型流动）；无 Kotlin execute 面、零原生镜像变更。台账：§17 1628→1929 字/证据 28→30（发送方接线闭项子句；Node 脚本先验证序列化往返再改写）。note 三件套 2026-10-08-client-sender-wiring 配对录入（.artifacts/gen48-note-pairing.log）。门禁（计数读日志内容）：typecheck EXIT 0（build:lib:host+typecheck:contracts-ready 链式独立日志）、lint Found 0 warnings and 0 errors/Finished in 95.3s on 3855 files（同链式独立日志）、test:docs 17（70.97s）、doc-sync 36（232.15s——零修复轮一次全绿）、traceability 6/6（§17 1929 字/证据 30——入口 artifacts/upstream-first/specification-traceability.test.mjs）、审计双轮 87/1073（双轮同值）、gate0 双形态 PASS（1938 paths/129 components/81 sections/1983 lines）、gradle BUILD SUCCESSFUL in 1m 30s（70 任务 1 executed 69 up-to-date——全 warm 零重建，无重跑轮）、两枚 APK 对 client-mutation-source.json 记录 IDENTICAL（gen-47 一次性重建基线字节稳定、活体核验、.artifacts/sender-wiring-apk-bytes.log）、core XML 77 套件/477 测试。e2e 专项=.artifacts/sender-wiring-specs.log（2 文件 128 测试：ui-commands 75/sessions-service 53；车道各自先绿 A=75/75 五新例、B=19 文件 505/505 四新例）。prepare 实测 {\"files\":7783,\"reused\":0,\"written\":7783,\"replacedPriorBuildOutputs\":12}（.artifacts/sender-wiring-prepare.log；oracle 空集被拒→两步法回填 12 键一次过——10 键旧稳定字节走 newest-history 归档回退、2 键二阶漂移[gen-47 构建新建的 ui-commands service lib 字节，240 归档全查/磁盘已新/HEAD 不跟踪，字节不可恢复]经第 44 次链裁定 dwfq-a83d7bb8-1 照 gen-33 先例在降级 clientMutation 块加恰 2 键精确跳过集[整键 path:sha 匹配]+shape-check；生成器零 sender-wiring 新集）。make-prepare 11 常规替换对+allowlist 重置块+第 4 次前置目录扩区 packages/client/ui-commands（prior=client-mutation sha c7014f91、prior-prior=time-context；审计计数同 1073 不触发）。开放通道照档：耐久收据（需新 SessionEventMap 词汇+SDK 投影流程——记 gen-49+ 候选）、relayMetadata 阻塞 §23、§56 签名/公证/更新源验收（材料）、client tsdown CI 覆盖缺口、pdf-license-bundle 宿主时序基线、admitEncodedImages 人工裁定、Linux/lib 形态由 CI 承载。本代无 Swift 改动（dispatch 37058503113 为 swift 权威、非本链范围）。完整目标未完成（completeRc=false）",
+    "repositoryKnownCodes": 84,
+    "uniqueOwners": 14,
+    "missingSemanticCommentsAdded": 49,
+    "packagedFiniteCodeSchema": true,
+    "sourceDeclarationsRemainExtensible": true,
+    "unknownCodeDiagnosticsPreserved": true,
+    "detailsPayloadSchema": false,
+    "nativeClientQualified": false,
+    "runtimeBehaviorChanged": true,
+    "newSessionEvents": false,
+    "phase3Complete": false,
+    "fullGoalComplete": false,
+    "resultInvalidMeaningMatchesEmitter": true,
+    "historicalSchedulerArchivePreserved": true,
+    "compilerIndependentDetailsGraphs": true,
+    "hostAndClientSeparate": true,
+    "builtModelMatchesSource": true,
+    "portableDetailsPayloadSchema": false,
+    "readonlyArrayAndTupleEmission": true,
+    "parsedReadonlyContainersFrozen": true,
+    "portableValidationIssueFields": true,
+    "compilerResolvedErrorDetails": true,
+    "resolvedFaceCodePairs": 144,
+    "overlappingSchemasCompared": 60,
+    "detailsSchemaPublished": false,
+    "formalEnvelopeSchemaEmitted": true,
+    "envelopeSchemaKnownBranches": 84,
+    "envelopeUnknownCodeExcludesKnownCodes": true,
+    "envelopeTupleDetailsRejected": true,
+    "envelopeLocalPackConsumed": true,
+    "envelopeRegistryPublished": false,
+    "remoteFailureClassification": true,
+    "classifiedCodes": 28,
+    "unknownCodeDefaultOpaque": true,
+    "gatewayClientConsumesClassification": true,
+    "classificationInventoryVerified": true,
+    "kotlinContractColumn": true,
+    "kotlinSchemaTests": 8,
+    "kotlinMirrorProjection": true,
+    "swiftColumn": false,
+    "androidShellMigrated": false,
+    "phase10Started": true,
+    "failureClasses": 9,
+    "invalidInputClass": true,
+    "uiAdoptionStarted": true,
+    "uiSurfacesAdoptingClassification": 2,
+    "swiftContractColumn": true,
+    "swiftSchemaTests": 4,
+    "swiftPayloadValidation": false,
+    "interactionReplyPermissions": true,
+    "interactionPermissionHostEnforced": true,
+    "interactionPermissionConfigurable": true,
+    "deviceTrustRolesReplaceSwitch": false,
+    "androidCoreMigrated": true,
+    "androidCoreTestClasses": 37,
+    "androidAppSourcesMigrated": true,
+    "androidAppConfigured": true,
+    "androidShellCompiled": false,
+    "androidScannerChainBlocked": true,
+    "swiftCheckExecutable": true,
+    "swiftLaneRunner": "macos-15-arm64",
+    "swiftLaneRecovered": true,
+    "diagnosticsOnlyTier": true,
+    "diagnosticsOnlyAdmittedEndpoints": 2,
+    "unknownVersionRejectUnchanged": true,
+    "responsivePhoneDrawer": true,
+    "phoneTierSidebarTrackZero": true,
+    "drawerWidthPx": 280,
+    "drawerDismissalPaths": 2,
+    "leftInputRegionSessionMaybe": true,
+    "frameColumnsExplicitlyPlaced": true,
+    "scannerAarBuilt": true,
+    "scannerAarStaticVerification": "PASS",
+    "scannerAarSourceSha": "8ca9f6ebf33de3912292416b85f5b510c88de9a3",
+    "assembleDebugGatePassed": true,
+    "emulatorMainActivityResumed": true,
+    "gatewayFailureConsumption": true,
+    "envelopeDetailsPreservedBothPaths": true,
+    "sharedClassificationDrivesPresentation": true,
+    "unknownCodesStayOpaque": true,
+    "uiSubagentClassificationAdopted": true,
+    "adoptingSurfacesCount": 5,
+    "queueDockClassificationAdopted": true,
+    "jobsFailureClassThreaded": true,
+    "sessionJobWireFieldAdditive": true,
+    "androidRefusalLaneDriven": true,
+    "ed25519KeyGenerationBundled": true,
+    "filesFollowStreamStarted": true,
+    "jobsProducerAdoptionVoid": true,
+    "linkAccessTakeoverDecided": true,
+    "remotePackagesStayRetired": true,
+    "gatewayOwnsDeviceAccess": true,
+    "deviceTrustSeamLanded": true,
+    "pairingIssuanceLive": true,
+    "knownErrorCodes": 89,
+    "deviceGrantsDurable": true,
+    "pairingCodesProcessLocalByDesign": true,
+    "deviceRolesMatchSection21Table": true,
+    "roleMappedReplyPermissions": true,
+    "signedAdmission": true,
+    "connectionStatesCompleteSection18": true,
+    "deviceRevokedStatePresent": true,
+    "protocolInteropMatrixPinned": true,
+    "section14VersionAxisEvidence": true,
+    "perRequestDeviceAdmission": true,
+    "capabilityRequiredPermissionVocabulary": true,
+    "remoteExecutionAuthorizationGated": true,
+    "sessionCapabilitiesDeclarePermissions": true,
+    "sessionReadWriteSplits": true,
+    "businessPermissionAdoptionStarted": true,
+    "workspaceCapabilitiesDeclarePermissions": true,
+    "remainingOwnersDeclarePermissions": true,
+    "admissionReplayLedger": true,
+    "androidClientSignsAdmissions": true,
+    "deviceIdentityConfirmation": true,
+    "devicesSettingsSurface": true,
+    "branchGateDebt": true,
+    "safeAreaInsets": true,
+    "keyboardAvoidance": true,
+    "foldableFrame": true,
+    "runningLocation": true,
+    "phoneTopBar": true,
+    "designLanguage": true,
+    "hostNaming": true,
+    "commandRisk": true,
+    "approvalFacts": true,
+    "followResume": true,
+    "viewLocation": true,
+    "composerGate": true,
+    "hostDiagnostics": true,
+    "supportBundle": true,
+    "telemetryConsent": true,
+    "diagnosticsRecorder": true,
+    "sessionHeadersEntry": true,
+    "settingsEntry": true,
+    "telemetryGate": true,
+    "savedHosts": true,
+    "degradedProbes": true,
+    "permissionTierChip": true,
+    "durableRetainedAnswers": true,
+    "unifiedDiffPreview": true,
+    "binaryFactCard": true,
+    "retargetableEndpoint": true,
+    "rosterSwitch": true,
+    "rosterUi": true,
+    "interruptedTransfer": true,
+    "mimeInference": true,
+    "hostSelectionObserver": true,
+    "diffReadableCopy": true,
+    "diffRichViewer": true,
+    "browserHostOrigin": true,
+    "deviceAdmissionLifecycle": true,
+    "nativePairing": true,
+    "nativeRemoteTls": true,
+    "nativePairingPresentation": true,
+    "androidNativeGatewayCore": true,
+    "androidNativeCompanion": true,
+    "androidNativeLifecycle": true,
+    "androidRepairing": true,
+    "androidCredentialRecovery": true,
+    "androidSessionList": true,
+    "androidInputRetention": true,
+    "androidInputPersistence": true,
+    "androidPromptRetry": true,
+    "androidHostRoster": true,
+    "androidViewLocation": true,
+    "androidCursorResume": true,
+    "androidResourceAdoption": true,
+    "androidNativeDiagnostics": true,
+    "nativeScannerAdoption": true,
+    "nativeScannerCandidate": true,
+    "nativeScannerSameSourceVerified": true,
+    "nativeScannerRepeatByteIdentical": true,
+    "nativeScannerBinarySymbolScan": true,
+    "androidCapabilityPresentation": true,
+    "androidCapabilityGenerationIsolation": true,
+    "androidCapabilityReadOnlyRefresh": true,
+    "androidOperationCapabilities": true,
+    "androidKnownOperationPreflight": true,
+    "androidCapabilityDraftRetention": true,
+    "androidSubagentTimeline": true,
+    "androidSelectedParentCatalog": true,
+    "androidChildObservationRetirement": true,
+    "androidCompleteResourceSave": true,
+    "androidResourceSavePickerOwnership": true,
+    "androidResourceSaveIndependentBytes": true,
+    "androidEncryptedDownloadCheckpoints": true,
+    "androidExplicitDownloadContinuation": true,
+    "androidDownloadJvmInterruptionRecovery": true,
+    "androidPersistentDownloadAdoption": true,
+    "androidDownloadDiskExport": true,
+    "androidInstalledDownloadProcessRecovery": true,
+    "androidDownloadHostIsolation": true,
+    "androidAcceptanceApkAdmission": true,
+    "androidFilesPickerAttachments": true,
+    "androidDurableFilePromptIntents": true,
+    "androidFileDraftProcessRecovery": true,
+    "androidFilePickerAuthority": true,
+    "hostStagedImageAdmission": true,
+    "androidPhotosPickerAttachments": true,
+    "androidDurableMixedAttachmentIntents": true,
+    "androidPhotoDraftProcessRecovery": true,
+    "androidCameraStagedImages": true,
+    "androidCameraOwnedOutputCleanup": true,
+    "androidCameraProcessRecovery": true,
+    "androidShareExplicitConfirmation": true,
+    "androidShareAtomicDraftAdoption": true,
+    "androidShareRestorationIsolation": true,
+    "androidViewDeepLinksCurrentHostNavigation": true,
+    "androidViewDeepLinksDeliveryIsolation": true,
+    "androidViewDeepLinksInputPreservation": true,
+    "androidPushForegroundRecovery": true,
+    "androidPushBackgroundProducerRetention": true,
+    "androidPushNotificationConsumption": true,
+    "androidNotificationPermission": true,
+    "androidNotificationSettingsRecovery": true,
+    "androidNotificationProcessRequestOwnership": true,
+    "androidAttachmentReceiptRecovery": true,
+    "androidAttachmentPendingDraftIsolation": true,
+    "nativeUploadBudget": true,
+    "nativeImageUploadBudget": true,
+    "nativeHostRestart": true,
+    "nativeUploadDedupe": true,
+    "browserUploadDedupe": true,
+    "nativeDigestMemory": true,
+    "browserDedupeVerification": true,
+    "hostsRosterRename": true,
+    "diffSplitView": true,
+    "appleRosterSwift": true,
+    "androidHostQuestion": true,
+    "sessionLocationChip": true,
+    "modelSteer": true,
+    "modelSelect": true,
+    "sessionLocationFacts": true,
+    "modelEffort": true,
+    "appleModelCatalog": true,
+    "gatewayOutage": true,
+    "hostsRosterReorder": true,
+    "appleLocationFacts": true,
+    "appleViewLocation": true,
+    "appleFollowResume": true,
+    "androidFollowWindow": true,
+    "androidFollowLane": true,
+    "androidFollowOutage": true,
+    "androidFollowForeground": true,
+    "activeHostSwitch": true,
+    "headerOverflow": true,
+    "viewHandoff": true,
+    "failureCopy": true,
+    "viewHandoffQr": true,
+    "approvalFactsComplete": true,
+    "approvalAskRisk": true,
+    "atomicDurability": true,
+    "tornRepairIntent": true,
+    "diagnosticsSourceRevision": true,
+    "connectionGateLocale": true,
+    "mutationIdempotencyLanes": true,
+    "telemetryConsentSettings": true,
+    "deviceRevocationClosure": true,
+    "crashDiagnosticsOutlet": true,
+    "deviceTrustOutlet": true,
+    "providerMetadataOutlet": true,
+    "revisionStamping": true,
+    "baselineRedRepair": true,
+    "clientDomainGraph": true,
+    "loaderComposition": true,
+    "timeContext": true,
+    "clientMutation": true,
+    "senderWiring": true,
+    "limitations": [
+      "The client sender wiring is process-local id reuse, not durable idempotency: the submit-intent and fork-anchor memories live in the client session (cleared or replaced on content change and settlement, a fork anchor entry kept on failure and cleared on success) and the Host receipt registry stays in-process (FIFO 1024, eviction re-runs as a new request), so the durable receipt stays open (a new SessionEventMap vocabulary plus the SDK projection flow); relayMetadata stays blocked on its producer (section 23), the section 56 materials stay open, the admitEncodedImages manual ruling stays pending, the client tsdown CI coverage gap and the pdf-license-bundle npm-pack host timing baseline stay as recorded, and no device lane ran (the android acceptance stayed the scanner-env gradle round whose counts ground in the still-standing XML aggregate) — the sections keep their remaining items and no overall PASS.",
+      "The generation record is preserved honestly: both lanes went green on their first invocations (Lane A 75/75 with 5 new tests, Lane B 19 files 505/505 with 4 new tests, then the integrated two-spec joint round 2 files / 128 tests at .artifacts/sender-wiring-specs.log — ui-commands 75, sessions-service 53) and zero reworks happened — the gates went green on their first invocation in all three parallel lanes (lint 0/0, doc-quick 17 in 70.97s, doc-sync 36 in 232.15s — no repair round ran); the two lane deviations are recorded as they happened (Lane A's uuid source switched to dsh-util-crypto on the lint-rule evidence — crypto.randomUUID is forbidden because the web insecure context does not provide it, the ui-conversation precedent — and Lane B's memory entry written optimistically before the await because the concurrent same-anchor shared-id semantics is the better behavior, both consistent with the task line-by-line); the prepare oracle's empty set was rejected by the measured twelve keys backfilled in one two-step pass; the typecheck and lint rounds are sealed in their separate chained single-trailer logs (one EXIT_CODE=0 each, the lint summary Found 0 warnings and 0 errors, Finished in 95.3s on 3855 files, no labelled trailer); the audit reused gen-40's 87-file curated lineage directly at its gen-40 name (byte-identical — nothing this increment touches is a lineage member) and the serial double round went 87 files / 1073 tests green with every count asserted from log content; the android acceptance is recorded in its honest fully warm form — BUILD SUCCESSFUL in 1m 30s with 70 tasks of which 1 executed and 69 up-to-date, no gradle rerun round existing because the first round was already warm — with both APKs IDENTICAL against the client-mutation record's own builtFiles entries at the gen-47 rebuild bytes fb66b477/bbe7a3af (cross-checked live); the §17 ledger rewrite went through a serialization round-trip check before the write; and the report prose carries no backslash and no template-interpolation sequence, so the advance's escapes round-trip the sealed bytes verbatim — the four-section narration (.artifacts/sender-wiring-iteration-notes.log) carries the spec pinning, the design, the lane and the gates verbatim.",
+      "This generation's prepare ruling derives twelve replaced prior build outputs: ten old-stable lib keys (the two lanes' client face builds re-emitting the session-controller sessions manager/service and ui-commands service lib outputs past the bytes the prior record sealed) resolve through the newest-history archive fallback (the Option A form — the old bytes riding the older archives the historicalRecords chain walks, the new before archive excluding them by the prepare-side replaced-key filter), and the two remaining second-order keys (the gen-47-created ui-commands service lib bytes — no disk copy because this generation rebuilt them, no archive copy because all 240 before-archives on disk were scanned and none holds them, no committed copy because HEAD never tracked them; unrecoverable) are resolved by the dwfq-a83d7bb8-1 chain ruling (the 44th) as an exact 2-key skip set on the demoted client-mutation block per the gen-33 tornRepairIntentReplacedBuildOutputs precedent — whole path:sha key match only, with its shape-check and replaced-outputs guard, a demoted-block verify exemption rather than a new sender-wiring replaced/superseded collection; the generator gains no sender-wiring set at all and this generation's advance seals no adjudication layer of its own beyond the ruled exemption; the cumulative replacedPriorBuildOutputs set keeps its nine inherited keys (re-inserted verbatim by span extraction, never transcribed) and the prior generations' per-record sets — including the gen-32 round-2 repair's six-key desktopPackageReplacedBuildOutputs set with its companion atomicDurabilitySupersededSources six-key set, and the gen-33 ruling's three-key tornRepairIntentReplacedBuildOutputs set committed with the HEAD content — ride the file head and the moved shared span unchanged."
+    ],
+    "nextRequiredWork": {
+      "specification": "artifacts/upstream-first/original-specification.md",
+      "traceability": "artifacts/upstream-first/specification-traceability.json",
+      "remaining": [
+        "Keep the §17 client sender wiring process-local and short of whole-section PASS: the sender wiring delivers the client half of the gen-47 receipts (the ui-commands execute submit-intent memory and the client sessions fork (sessionId, atSeq) anchor memory, the uuid minted through dsh-util-crypto with the devDependency inlined by packaging) while the durable receipt still needs a new SessionEventMap vocabulary plus the SDK projection flow (both SDKs project the loop — the TypeScript and Python expected outputs move in the same change; recorded as a gen-49+ candidate), relayMetadata keeps following its producer (blocked on section 23, the only class of the five without one), the section 56 signing, notarization and update-source acceptance stays open on its materials, the CI coverage gap for the client tsdown face stays an open channel, the pdf-license-bundle npm-pack host timing baseline stays outside the audit lineage with CI Linux green, the admitEncodedImages acceptance awaits its manual ruling, and the Linux/lib forms ride CI — so no whole-section PASS is granted.",
+        "Keep the §17 receipt registry process-local and short of whole-section PASS: the clientMutationId adoption delivers the in-process FIFO 1024 receipt settlement for fork and command execute (same-id resends settling to the first outcome, admission errors recorded, thrown errors retryable) while the durable receipt needs a new SessionEventMap vocabulary plus the SDK projection flow (both SDKs project the loop — the TypeScript and Python expected outputs move in the same change), the client sender wiring stays open (no client yet attaches the id), relayMetadata keeps following its producer (blocked on section 23, the only class of the five without one), the section 56 signing, notarization and update-source acceptance stays open on its materials, the CI coverage gap for the client tsdown face stays an open channel, the pdf-license-bundle npm-pack host timing baseline stays outside the audit lineage with CI Linux green, and the Linux/lib forms ride CI — so no whole-section PASS is granted.",
+        "Keep the time-context e2e green and short of whole-section PASS: the same-family open channel gen-45 diagnosed (the Loader same-group activation-order race behind the win32+tsx .sessions non-materialization) reads 1/1 through the fixture overlay's agent-loop line-level inject ordering (the same pin the loader-composition closure proved; production profiles' registry-created agents unaffected) — while the fork/execute clientMutationId adoption ruling stays open (its surface is broad and needs a human ruling), the file-upload admitEncodedImages classification ruling stays open (package-dependency-policy forbids the agent adding exceptions), relayMetadata keeps following its producer (blocked on section 23, the only class of the five without one), the section 56 signing, notarization and update-source acceptance stays open on its materials, the CI coverage gap for the client tsdown face stays an open channel, the pdf-license-bundle npm-pack host timing baseline stays outside the audit lineage with CI Linux green, and the Linux/lib forms ride CI — so no whole-section PASS is granted.",
+        "Keep the loader-composition e2e green and short of whole-section PASS: the 3/4 baseline red gen-41 onward carried as notCovered reads 4/4 through the driver fixture's DSH_TELEMETRY_CONSENT consent setting point (exercising the §44 consent-gate semantics the base bundle seeds from that env var) and the agent-loop line-level inject ordering over the Loader same-group activation race (the shipped headless bundle's headlessStartup form; production profiles' registry-created agents unaffected) — while the same-overlay time-context e2e red keeps its open channel (the same activation-order race family, outside this increment's scope), relayMetadata keeps following its producer (blocked on section 23, the only class of the five without one), the section 56 signing, notarization and update-source acceptance stays open on its materials, the CI coverage gap for the client tsdown face stays an open channel, the file-upload admitEncodedImages classification ruling stays open, the pdf-license-bundle npm-pack host timing baseline stays outside the audit lineage with CI Linux green, and the Linux/lib forms ride CI — so no whole-section PASS is granted.",
+        "Keep the client-domain-graph layering green and short of whole-section PASS: the 37 standing violations gen-41 onward carried as notCovered now read zero through the contract/ shared layer with assembly staying at apply/index (the gate clean at scripts/verify-client-domain-graph.ts over the migrated tree, the top-level four mechanism files in place, the document domain holding admission.ts and the bytes domain gone) — while relayMetadata keeps following its producer (blocked on section 23, the only class of the five without one), the section 56 signing, notarization and update-source acceptance stays open on its materials, the CI coverage gap for the client tsdown face stays an open channel, the loader-composition e2e baseline red keeps its open channel (missing DSH_TELEMETRY_CONSENT setting point plus the unlocated Windows src-form .sessions cause), and the file-upload admitEncodedImages classification ruling stays open — so no whole-section PASS is granted.",
+        "Keep the two oldest baseline-red channels green and short of whole-section PASS: the commands attachment storeOf double now delegates validateImageTotals to the real base-class method (the aggregate image-limit split's own shape) and the workspace-controller transport spec expects gateway/transport-interrupted for exhausted carrier retries exactly as remote-stream.ts:244-246 and README:105 record — while relayMetadata keeps following its producer (blocked on section 23, the only class of the five without one), the section 56 signing, notarization and update-source acceptance stays open on its materials, the CI coverage gap for the client tsdown face stays an open channel, the loader-composition e2e baseline red keeps its open channel (missing DSH_TELEMETRY_CONSENT setting point plus the unlocated Windows src-form .sessions cause), and the file-upload admitEncodedImages classification ruling plus the client-domain-graph layering baseline (measured 21 lines) stay open — so no whole-section PASS is granted.",
+        "Keep the section 42 and 56 ledgers short of whole-section PASS beyond the now wired publisher-side stamp: the packaged products carry build-revision.json (written by prepare-dsh before writeDesktopRuntime into the desktop-runtime.json integrity inventory, riding extraResources into every product, landing in the macOS signing-exemption tree) and desktop-host materializes DSH_BUILD_REVISION at startup (only when not explicitly inherited, loud on corrupt stamps, zero-action when absent in dev) with the value source resolving the explicit env then git rev-parse HEAD's full 40 characters cross-checked against the client build record — while the section 56 signing, notarization and update-source acceptance stays open on its materials (the unsigned Windows path alone is proven end to end), relayMetadata keeps following its producer (blocked on section 23, the only class of the five without one), the loader-composition e2e baseline red stays an open channel, and the CI coverage gap for the client tsdown face (the 76f51dd4ae-introduced value imports no gate or CI job builds, exposed by this generation's packaging acceptance) stays an open channel, so no whole-section PASS is granted.",
+        "Keep the section 44 ledger short of whole-section PASS beyond the now wired providerMetadata outlet: the provider call facts (provider, model, purpose?, ok, status?, requestId?, retryAfterMs?, durationMs? — severity info on success and warn on failure, never baseURL, message content or credentials) now leave through the producer push at the adapter's streamWithConnection convergence over the optional resolveTelemetry thunk — one channel:'ops' record per call with the success path reading the response-header requestId and TRANSPORT failure fields defaulting, silent with the gate closed, the attribution headers ruled request-path static product facts outside telemetry and usage staying disjoint through the assistant/message ledger — into the otel /ops scope under the four-kind constructor-gate disjunction with opsEmit created when crash, deviceTrust or provider is on — while relayMetadata keeps following its producer (blocked on section 23, the only class of the five without one) and the loader-composition e2e baseline red (no DSH_TELEMETRY_CONSENT setter repo-wide plus the Windows src-form .sessions not materializing) stays an open channel, so no whole-section PASS is granted.",
+        "Keep the section 44 ledger short of whole-section PASS beyond the now wired deviceTrustMetadata outlet: the revocation facts (revokedAt plus deviceCount, never deviceId/fingerprints/roles/keys, severity info) now leave through the producer push and the optional structured owner — the consent read at the revocation path from the construction-frozen snapshot, silent with the gate closed, only actual revocations with a no-op revoke-all emitting nothing — as channel:'ops' records (telemetry.op='device-trust-revocation') into the otel /ops scope under the three-kind constructor-gate disjunction with opsEmit created when crash or deviceTrust is on and the self-draining fiber generalized to non-session outlets, while admission/pairing/rename stay uninvented (revocation-only minimal surface) — the provider and relay outlets keep following their producers (relay blocked on section 23; the provider attribution-headers semantics ruling rides its own future generation) and the loader-composition e2e baseline red (no DSH_TELEMETRY_CONSENT setter repo-wide plus the Windows src-form .sessions not materializing) stays an open channel, so no whole-section PASS is granted.",
+        "Keep the section 44 ledger short of whole-section PASS beyond the now wired crashDiagnostics outlet: the boot-detected crash facts (pid/runStartedAt, one record for this boot only, never the log history) now leave through the producer push and the optional structured owner as channel:'ops' records (telemetry.op='diagnostics-crash') into the otel /ops scope (the seam's dual-scope promise honored, ledger directs still dropped) under the two-kind constructor-gate disjunction with the url validations reaching the crash-only opt-in, the gate reading the construction-time consent snapshot at emission (restart-consistent), the closed gate silent, the crash-only fiber teardown self-draining and DISABLED the master switch, while the error ring (message text) stays local — the provider, relay and deviceTrust outlets keep following their producers (relay blocked on section 23; the provider attribution-headers semantics ruling rides its own future generation) and the loader-composition e2e baseline red (no DSH_TELEMETRY_CONSENT setter repo-wide plus the Windows src-form .sessions not materializing) stays an open channel, so no whole-section PASS is granted.",
+        "Keep the five ledger sections (12/13/19/47/55) short of whole-section PASS beyond the now closed device-revocation-status common tail: the three named items (device revocation state, closed-error semantics, change-identity confirmation) close through the section 18 incremental family across sections — connection.ts device-revoked first-class state with the gateway client classifier, gateway-stream revocation aborts and admission rejects, the Kotlin/Swift contract mirrors, the real-device revocation lifecycle e2e — and the revoked row now renders DeviceView.revokedAt through the page's injected formatTime with the revokedAt label locale-owned, while the cross-real-release-version multi-version/multi-language matrix (N/N-1/N-2 interop) stays unreachable in this lane and the Swift-shell revocation UX and physical-device acceptance keep following their lanes, so no whole-section PASS is granted.",
+        "Keep the section 44 qualification open beyond the now delivered consent UI and runtime seam — the telemetry-consent settings namespace registered by the otel backend and the five independent switches of dsh-client-ui-settings-telemetry close the no-master-switch and five-kind UI requirements, while the four remaining telemetry outlets (providerMetadata, relayMetadata, deviceTrustMetadata, crashDiagnostics) keep following their producers: the crash local recorder source is landed with its outlet wiring pending, relayMetadata stays hard-blocked on the section 23 host relay service, and the provider attribution headers semantics ruling rides its outlet generation — and the applies='restart' timing keeps UI consent changes effective at the next launch, so no whole-section PASS is granted.",
+        "Keep the section 17 qualification open beyond the now pinned per-write-channel retry-settlement semantics — the survey mapped all 27 write channels with clientMutationId absent from the whole codebase and identification carried by the five mechanisms (requestId/rpcId receipts, revision CAS, turn-directed cancellation, one-time pairing codes/nonces, first-answer finality), and the seven targeted lanes now pin each previously unpinned channel's current settlement semantics — while the fork and command-execute adoption of a client mutation identity stays an open §17 design ruling the test titles name, the global persistent-receipt claim stays unmade, and the two pre-existing HEAD baseline reds (the commands.spec attachments drift and the workspace-controller transport error-code drift) stay open channels.",
+        "Keep the section 18 qualification open beyond the now machine-checked multi-language matrix — CONNECTION_GATE_KEYS pins every non-ready ConnectionState member to its connection.gate.<state> dictionary key at compile time (satisfies Record<Exclude<ConnectionState, 'ready'>, …>), the renderer reads the map instead of interpolating the template key, and the lane asserts both the zh (key-set source of truth) and en dictionaries carry a non-empty string for every key — while the cross-release multi-version interop matrix and the device-facing matrix classes stay open.",
+        "Keep the section 42 qualification open beyond the mandatory source-revision field now shipped — DiagnosticsSnapshot carries sourceRevision and describe() reads process.env.DSH_BUILD_REVISION on every call, falling back to the literal source-tree for an unstamped checkout, so the emitted library bytes stay free of any inlined revision while the release launcher owns stamping (the section 56 flow, its wiring left open honestly) — while the section 43 support bundle and the section 44 typed telemetry stay open.",
+        "Keep the section 46 qualification open beyond the JSONL torn-tail repair-intent channel now shipped — a zstd torn frame's complete records are recorded in a crash-durable <log>.repair-intent sidecar (writeFileAtomic at 0600/0700 with file and POSIX directory fsync) before the torn bytes are truncated, the first mutation durably rewrites them and then discards the intent (unlink plus the exported fsyncDirectory), and the next open reconciles the log against a surviving intent (a still-present torn frame stays authoritative, a clean log replays only the intent tail beyond the last stored seq so a partially completed rewrite converges, and a foreign-session intent rejects as SessionPersistenceCorruptionError) — while the two adjudicated-open items stay open: the session-query-sqlite in-place derived-table schema reset (rebuildable from the source log) and the storage-sqlite version-mismatch refusal to open (no migration channel).",
+        "Keep the section 46 qualification open beyond the settings-and-credentials crash-durable write channel now shipped — writeFileAtomic fsyncs the complete temp file before the rename commit and fsyncs the parent directory on POSIX (Windows directory entries stay unfsynced, the acknowledged package limitation carried in both READMEs), and the credentials flat-layout boot migration retains the flat original at <file>.migration-v0.bak (owner-only) through the same durable writer before replacing the sole copy, re-migration rewriting the same backup bytes — while the three adjudicated-open items stay open: the session-query-sqlite in-place derived-table schema reset (rebuildable from the source log), the storage-sqlite version-mismatch refusal to open (no migration channel), and the JSONL torn-tail repair truncation window.",
+        "Keep the section 37 qualification open beyond the hook-originated asks' risk-tier classification channel now shipped — the PreToolDecision ask member carries the asker's optional §37 risk tier (the ToolAskRisk closed literal union mirroring ApprovalRisk, classified Host-side and forwarded by serviceAsk's conditional spread into approval.request), the CC bridge stays byte-identical and its asks stay honestly unclassified (no CC dialect emitter exists, so no wire field was invented and the section 38 panel hides the missing Risk row by design), and the actual classifier adoption (a hook or asker that emits the tier) and the real multi-device acceptance stay open.",
+        "Keep the section 37 approval facts qualification open beyond the per-item approval facts presentation now shipped — the approval panel lists operation, target (the correlated Tool call's command or path derived through the new conversation.approval.target data seat, command first with path as fallback, never a copy of tool arguments on the wire), Host, Workspace, risk tier, the structured permission escalation (requested/effective sandbox modes carried as approval-owned metadata with the free-text reason kept as the fallback for non-escalation asks) and the command-preview heading, while the approval/asked durable append now spreads risk and escalation and the released-v0 dispositions and payload validation admit both under strict literals; the hook-originated asks' risk-tier classification (a PreToolDecision optional tier) and the real multi-device acceptance stay open.",
+        "Keep the section 26 view-handoff qualification open beyond the QR delivery face now shipped — the same click opens an anchored popover under the action rendering the copied #dsh-view= fragment link as a qrcode.react QRCodeSVG (size 200, marginSize 4) through the repo anchored-panel recipe (bottom-anchored measuring pass, outside-pointer and Escape dismissal with trigger refocus, document.body portal, shared card CSS) with aria-haspopup=\"dialog\" plus aria-expanded and the localized scan key titling panel and SVG, and the clipboard-refusal title degrade fallback unchanged; the deep links, the platform share routes, physical devices and the section's other requirements stay open.",
+        "Keep the section 45 failure-copy qualification open beyond the first-stage dictionary delivery now shipped — the canonical nine failure keys live once in client-locale's shared common dictionary (failure.authentication/permission/compatibility/conflict/host-state/carrier-invalid/transport/unavailable/raw) with LocaleKeysOf<N> = NS keys | CommonKeyOf on the type face and the runtime common-namespace fallback, the remoteFailureCopy/remoteFailureClassCopy helper classifies through classifyRemoteFailure and routes unknown to the {message} raw template, the five copy-less clusters (hub steerQueue, InputBar promptError with the two attachment refinements, GoalBar runAction, WorkspaceBrowser three dialogs with the session-rename conflict refinement, model-selection dual stores with class-first directoryErrorText) render through it, and the already-classified consumers stay untouched; the provider code-domain localization (LlmFailure.code, dynamic HTTP_* codes, adapter-minted codes), folding QueueDock/DevicesSettingsSection/SubagentHeaderLineage/ui-jobs/ui-deliverables into the shared dictionary, released-Client multi-version N/N-1/N-2 behavior, the device matrix and the section's other requirements stay open.",
+        "Keep the section 26 view-location handoff qualification open beyond the Web generation and receive sides now delivered — the ui-view-handoff package injects the 「继续到其他设备」 action into the conversation.session.header.actions slot (visible only once a Host is admitted and the Chat timeline holds a last-turn turn/start anchor), copies the current page origin+pathname+#dsh-view=<payload> fragment link (a fragment never travels to a server), and the receiving page consumes that fragment once (read-then-clear) and opens it through openViewLocation only after admission with fail-loud no-retry errors; deep links, platform share routing, QR rendering, physical devices and the section's other requirements stay open.",
+        "Keep the section 10 phone-bar qualification open beyond the phone-tier overflow affordance now delivered — the ⋮ trigger aggregates the strict header's two secondary lists (the actions list and the utilities list beyond the running-location chip) behind one portaled panel on the phone tier (the max-width 599.5px media query every existing phone-only affordance uses) with Escape close-and-refocus and a localized empty line, while the running-location chip and the single-seat corner occupant stay in the bar; the full size/theme/state/accessibility matrix and iOS/Android real-device input, background and native-attachment acceptance stay open.",
+        "Keep the section 28 Multi-Host switch-window qualification open beyond the two client lanes now proven — the connection lane walks the whole A-ready to retarget(B) to synchronous old-generation retirement to new-generation-on-B cycle on the real Connection plugin with gated dual sources, sampling target/generation/state on every flush, and the ui-conversation lane drives the real createComposerControlSource through the gateway $host facts sequence pinning prompt true to false to true with capability facts following the current generation; physical devices, the Swift shell, background/push behaviors, real two-Host switches on hardware and the rest of the section's acceptance stay open.",
+        "Keep the section 25 persisted-window qualification open beyond the backgrounded-reconnect and foreground-presentation lane now proven — the lane destroys the paired device stream carrier Host-side while the application is backgrounded, proves the backgrounded process re-opens follow with its durable cursor and consumes backgrounded appends, and presents the merged window intact on a plain launcher return, but OS background-kill behaviors (Doze and real background reclamation), FCM delivery, physical devices, deep links, platform share routing and the rest of both sections' acceptance stay open.",
+        "Keep the section 25 persisted-window qualification open beyond the physical-carrier-loss lane now proven — the lane destroys the paired device stream carrier Host-side via terminateDeviceConnections and proves the reopen carries the last applied durable sequence with no outage-time appends or claims, but the foreground-push recovery, physical devices, deep links, platform share routing and the rest of both sections' acceptance stay open.",
+        "Keep the section 25 persisted-window qualification open beyond the installed-state process-death lane now proven — the emulator lane force-stops the installed application between the interruption's appends and reopens with the persisted cursor, the Host's three omitted-tail records and the merged older page, but the section 25 physical-network interruption and foreground-push recovery acceptance, physical devices, deep links, platform share routing and the rest of both sections' acceptance stay open.",
+        "Keep the section 25 persisted-window qualification open beyond the core-level close now proven — the encrypted follow-window store, the installPersisted/checkpoint seams and the SessionModel wiring are core-level evidence only (no emulator or physical device drove a real process restart this increment, :app:compileDebugKotlin is a compile lane rather than a run, and the double-instance restart case is the core-level proof), the emulator install-state restart lane, the section 25 physical-network / foreground-push recovery acceptance, deep links, platform share routing and the rest of both sections' acceptance stay open.",
+        "Keep the section 25 follow-resume qualification open beyond the contract-column parity now proven — the Swift mirror is contract-column evidence only (not compiled on this Windows host; the PR-channel swift-contract self-check owns the compile), no physical device drove either shell on this increment, and the Apple shell consumption of the follow-resume builder, the section 25 persisted-window / physical-network / foreground-push recovery acceptance, deep links, platform share routing and the rest of both sections' acceptance stay open.",
+        "Keep the section 26 view-location qualification open beyond the contract-column parity now proven — the Swift mirror is contract-column evidence only (not compiled on this Windows host; the PR-channel swift-contract self-check owns the compile), no physical device drove either shell on this increment, and the Apple shell consumption of the payload, the section 25 follow-resume Swift item, deep links, platform share routing and the rest of both sections' acceptance stay open.",
+        "Keep the section 29 location-facts qualification open beyond the contract-column parity now proven — the Swift mirror is contract-column evidence only (not compiled on this Windows host; the PR-channel swift-contract self-check owns the compile), no physical device drove either shell on this increment, and background/push, follow cursor and view-location handoff stay open alongside the physical-device columns.",
+        "Keep the section 28 roster-editing qualification open for the non-web columns — the manual arrangement is proven in the real-browser hosts-settings lane plus the three client suites (store, component, plugin) and the regenerated api-catalog mirrors only; no Android or Apple roster surface was driven on this increment, and the per-profile browser-storage arrangement is deliberately not synced across devices.",
+        "Keep the §29 real-device qualification and the Swift-side carrier column open for the host-side termination half — the primitive is proven on the local AVD against a providers-only header-only replay Host plus the JVM suites and the web scaffold's built-lib path only; no real hardware and no Apple client were driven on this increment.",
+        "Keep the Apple-side shell UI entry (capability-rendered model selection with its reasoning efforts) and the same-candidate real-device qualification open for the section 30 model-selection half — the contract column adoption is fixture-and-CI-lane verified only, with no shell surface driven on this increment.",
+        "Keep the Apple-side model-selection entry with its reasoning efforts and the real-device qualification of the same catalog candidates open for the section 30 effort half — the effort acceptance is emulator-and-nativeacceptance-id only.",
+        "Keep the deterministic device-level outage lane (needs a Host-side stream-kill primitive), the real-device and Swift-shell location-facts surfaces, and the follow cursor/handoff work open for the section 29 location facts — the state-word machinery is JVM-covered only and the facts acceptance is emulator-and-nativeacceptance-id only.",
+        "Keep the reasoningEffort selection surface, the apple-side capability-gated entry and the same-candidate real-device qualification open for the section 30 model capabilities — the wire already accepts reasoningEffort with no client UI anywhere, and the select acceptance is emulator-and-nativeacceptance-id only.",
+        "Keep the Android model-select composition entry and real-device qualification open for the section 30 model capabilities — model.select.v1 is advertised with the web picker present but the Android side has no select UI, and the steer acceptance is emulator-and-nativeacceptance-id only.",
+        "Keep follow cursor, view-location handoff, multi-Host switching and real-device acceptance open for the section 29 location metadata — the chip publishes the five location facts on the web client only and no device round runs this generation.",
+        "Keep real hardware, the Swift shell, background/push delivery and full Session location metadata open for the Question isolation lane — the acceptance is emulator-and-nativeacceptance-id only, and the Approval interaction type shares the same inbox and per-principal model without a dedicated physical lane.",
+        "Classify the next cursor failure using the preserved diagnostics, or establish a controlled reproduction before changing its owner. Do not close this investigation merely because subsequent runs pass.",
+        "The Swift roster mirror has no local execution on Windows hosts and no completed macOS CI run inside this chain; keep Swift-side execution evidence open, and keep roster write and re-pair semantics Android-core behavior with the Swift mirror reading and validating only.",
+        "Keep cross-tab and persisted view preferences and intra-line word highlighting inside a paired split row open independently; the per-tab split toggle does not close them.",
+        "Cover per-browser-profile isolation boundaries, cross-device name synchronization and manual roster ordering independently; the local rename seam does not close them.",
+        "Give the streaming carrier a deduplication path and cover cross-tab digest behavior; the real-browser deduplication-hit lane does not close them.",
+        "Qualify image and mixed-attachment recovery, large/resumable uploads, per-principal digest scoping, capacity tuning, storage-backed browser digest memory and physical-device Host restarts independently; the durable companion digest-memory file does not close broader attachment or Mobile Release acceptance.",
+        "Qualify image and mixed-attachment recovery, large/resumable uploads, per-principal digest scoping, capacity tuning, storage-backed browser digest memory and physical-device Host restarts independently; the durable companion digest-memory file does not close broader attachment or Mobile Release acceptance.",
+        "Qualify streaming and resumable uploads, physical devices and third-party senders independently; the local complete-body check is advisory and Host or proxy rejection remains authoritative.",
+        "Continue notification channel, settings revocation/process-death, persistent denial, physical-device, relay-backed delivery and precise Host/Session notification target qualification. Actual Recents and physical network/mux recovery remain separate work.",
+        "Continue Swift attachment adoption, cross-platform sharing and link entry, larger streamed uploads, upload retry/receipt expiry recovery, Host limit negotiation and the remaining requirement matrices without changing Host-owned authorization.",
+        "Retain scanner clean-cache/cross-machine, race, physical/16-KiB device, signed release, CodeQL and Apple gaps. Session writer V3 and completeRc=false persist; remote CI is distinct from local evidence. No memory update or handoff package."
+      ]
+    }
+  },
   "clientMutation": {
+    "historical": true,
+    "followup": "artifacts/upstream-first/sender-wiring-source.json",
     "status": "PASS",
     "sourceRecord": "artifacts/upstream-first/client-mutation-source.json",
     "scope": "§17 clientMutationId 采纳交付代（mutation-idempotency-lanes note 点名的开放设计裁定）。台账名 client-mutation（camelCase=clientMutation；write-reports 与 .artifacts 双 grep 于标识符级零碰撞——camelCase 零出现，kebab 零出现；write-reports.mjs 既有六处 clientMutationId 提法为 §17 规格文本与 gen-36 历史状态叙述留档的开放通道提法，非任何前代名族——适配员已自行验证双 grep）。设计：可选 clientMutationId（Branded，非空、无首尾空白、≤128 字符，wire 边界 fail-loud——fork 报 gateway/bad-request、execute 抛 TypeError 随各包边界惯例）+Host 进程内 FIFO 1024 收据登记（同 id 重发返回首次结算原值：fork 同子会话不重建、execute 同 commandId/result 不重入 handler 不追加事件对；准入错误记录、抛错不记录保持可重试；驱逐后按新请求重跑）。execute 改请求对象 CommandExecutionRequest(agent, request, signal)——session-controller @Remote 先例+typert 取消信号末位规则（gen-cordis-api 曾以该规则拒绝位置参数尾加形态）。双车道并行实施（A=session-controller fork：types.ts ClientMutationId 品牌+字段、commands.ts 收据登记+校验+驱逐 v8 ignore 注解；B=interaction/commands execute：brand.ts CommandMutationId、index.ts 请求对象+收据）+整形车道收口全部调用面（client session/remotes/fixture、ui-commands、ui-plan、compaction×2、feedback×2、snapshots/sdk feedback-producer.mjs——快照所有权同改）；gen-cordis-api/gen-client-catalog 再生成、api-catalog 签名更新。台账：§17 1274→1628 字/证据 25→28（闭项子句改写——27 条写通道测绘句上「本次补齐 7 例」句改fork/execute 两条已随后续增量落地+采纳叙述句；Node 脚本先验证序列化往返再改写）。note 三件套 2026-10-08-client-mutation-id-adoption 配对录入（.artifacts/gen47-note-pairing.log）。门禁（计数读日志内容）：typecheck EXIT 0（build:lib:host+typecheck:contracts-ready 链式独立日志）、lint Found 0 warnings and 0 errors in 69.5s on 3855 files（同链式独立日志——作废的 eslint 追加轮 EXIT_CODE=2 不入封存字段）、test:docs 17（94.88s）、doc-sync 36（215.39s——经修复轮：doc graphs+persistence catalog 生成文档行号再生成、zh 孪生手工镜像[event-producer-consumer.zh 六行+persistence-catalog.zh 两行——markdown 反引号字节教训]+配对重录）、traceability 6/6（§17 1628 字/证据 28——入口 artifacts/upstream-first/specification-traceability.test.mjs 非 scripts/）、审计双轮 87/1073（双轮同值）、gate0 双形态 PASS（1938 paths/129 components/81 sections/1983 lines）、gradle BUILD SUCCESSFUL 首跑 43s 13 executed 57 up-to-date（gen-43 同型一次性重建：packageDebug/assembleDebug×2/packageDebugAndroidTest 重执行、compileKotlin×2 与 core:test 全 UP-TO-DATE）+重跑 5s 全 up-to-date 字节稳定、两枚 APK 对 time-context-source.json 记录 DRIFT（新字节 fb66b477/bbe7a3af 稳定在档、活体核验、.artifacts/client-mutation-apk-bytes.log）、core XML 77 套件/477 测试。e2e 专项=.artifacts/client-mutation-specs.log（4 文件 134 测试：fork 12/commands 65/upload-file 46/connection fixture 11）。make-prepare 替换对（prior=time-context sha abb33117、prior-prior=loader-composition；packages/api 与 packages/interaction/commands 均在 directories 世系——无扩区对；prior/prior-prior 审计计数同 1073 不触发）。prepare 实测 {\"files\":7739,\"reused\":0,\"written\":7739,\"replacedPriorBuildOutputs\":41}（.artifacts/client-mutation-prepare.log；oracle 空集被拒→两步法回填 41 键一次过——4 APK 键[gen-43 同型一次性重建]+37 lib/types 键[车道 face 构建发射]；漂移经 newest-history 归档回退解决、生成器零新集）。开放通道照档：耐久收据（需新 SessionEventMap 词汇+SDK 投影流程）、客户端发送方接线、fork/execute 耐久收据、relayMetadata 阻塞 §23、§56 签名/公证/更新源验收（材料）、client tsdown CI 覆盖缺口、pdf-license-bundle 宿主时序基线、Linux/lib 形态由 CI 承载。本代无 Swift 改动（dispatch 37058503113 为 swift 权威、非本链范围）。完整目标未完成（completeRc=false）",
@@ -45596,7 +45870,7 @@
       "The known Windows symlink EPERM expanded-suite failure from the cancellation increment was not rerun or resolved"
     ]
   },
-  "latestSourceRecord": "artifacts/upstream-first/client-mutation-source.json",
+  "latestSourceRecord": "artifacts/upstream-first/sender-wiring-source.json",
   "cancelTarget": {
     "historical": true,
     "followup": "artifacts/upstream-first/rename-revision-source.json",
@@ -46079,7 +46353,7 @@
     "files": [
       {
         "path": "artifacts/upstream-first/write-reports.mjs",
-        "sha256": "4df554c139d9297c25fc5a2ddfb02d3d01822e9d8384d645e6eaf65a9ea051f1"
+        "sha256": "976b5215ebe1b050d97086d1219ee76cd3377902f12627f7c2de2442eea12062"
       },
       {
         "path": "artifacts/upstream-first/verify-audit.mjs",

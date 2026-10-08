@@ -25,9 +25,10 @@ declare module '@deepseek-ai/dsh-client-connection/client' {
 }
 import type { SubagentAddress } from '@deepseek-ai/dsh-subagent/client'
 import { SessionSeq, type SessionId } from '@deepseek-ai/dsh-session/types'
+import { randomUUID } from '@deepseek-ai/dsh-util-crypto'
 import { workspaceTitleOf } from '@deepseek-ai/dsh-util-workspace-path'
 import type { WorkspaceId } from '@deepseek-ai/dsh-workspace/types'
-import { SESSION_SEARCH_RESULT_LIMIT } from '../../types.ts'
+import { SESSION_SEARCH_RESULT_LIMIT, type ClientMutationId } from '../../types.ts'
 import type { SessionJob as JobView } from '../../types.ts'
 import type { SessionProjectionMap } from '@deepseek-ai/dsh-session-projection/types'
 import {
@@ -211,6 +212,15 @@ export class ClientSessions implements ISessions {
   private readonly selection: SnapshotStore<SessionSelection>
 
   private readonly scopes = new Map<SessionId, ScopeRecord>()
+  /**
+   * Fork-intent memory keyed by `[sessionId, floored atSeq]` (encoded with
+   * JSON.stringify): the clientMutationId of the anchor's latest fork that has
+   * not succeeded. A same-anchor resend reuses it, so the user's one intent
+   * cannot fork twice; success clears the entry. The Host records a receipt
+   * only for a successful fork, so resending an id that genuinely failed
+   * reaches a fresh fork rather than a stale result.
+   */
+  private readonly unsettledForkIntents = new Map<string, ClientMutationId>()
   /** In-flight scope drops remain here after records leave `scopes`, so root disposal can await quiescence. */
   private readonly scopeDrops = new Set<Promise<void>>()
   /**
@@ -476,6 +486,8 @@ export class ClientSessions implements ISessions {
    * Fork a session from a completed-turn prefix of the source (same
    * synchronous-addressability guarantee as {@link ClientSessions.create}:
    * on resolution the child is in the list store and open() can target it).
+   * Every send carries a clientMutationId keyed to the (session, anchor)
+   * intent — see {@link ClientSessions.unsettledForkIntents}.
    * @param opts - source session id, the optional event seq anchoring the
    *   cut (the boundary is the first turn/end at or after it; an in-log
    *   anchor in an open turn is unavailable rather than clipped backward),
@@ -495,14 +507,24 @@ export class ClientSessions implements ISessions {
     const sourceTitle = opts.increaseTitle
       ? this.list.getSnapshot().byId[opts.sessionId]?.title
       : undefined
+    // Flooring lands inside the anchor's own turn (every turn opens with a
+    // turn/start), so the host's first-turn/end-at-or-after cut still ends
+    // on that turn — never clipped back to the previous one.
+    const atSeq = opts.atSeq === undefined ? undefined : SessionSeq(Math.floor(opts.atSeq))
+    const intentKey = JSON.stringify([opts.sessionId, atSeq])
+    // Recorded before the send: the entry survives exactly those attempts
+    // that do not succeed (failure result or throw), so the next same-anchor
+    // call resends this id.
+    const mutationId = this.unsettledForkIntents.get(intentKey)
+      ?? (randomUUID() as ClientMutationId)
+    this.unsettledForkIntents.set(intentKey, mutationId)
     const result = await this.manager.fork({
       sessionId: opts.sessionId,
-      // Flooring lands inside the anchor's own turn (every turn opens with a
-      // turn/start), so the host's first-turn/end-at-or-after cut still ends
-      // on that turn — never clipped back to the previous one.
-      ...(opts.atSeq === undefined ? {} : { atSeq: SessionSeq(Math.floor(opts.atSeq)) }),
+      ...(atSeq === undefined ? {} : { atSeq }),
+      clientMutationId: mutationId,
     })
-    if (!result.ok) throw new SessionForkError(result.error, opts.sessionId)
+    if (result.ok) this.unsettledForkIntents.delete(intentKey)
+    else throw new SessionForkError(result.error, opts.sessionId)
     this.projectList()
     const childId = result.value.sessionId
     if (sourceTitle !== undefined) {

@@ -6,6 +6,7 @@ import type { SubagentAddress, SubagentCatalog } from '@deepseek-ai/dsh-subagent
 import { SessionSeq, type SessionId, type SessionSeqCursor } from '@deepseek-ai/dsh-session/types'
 import type { WorkspaceId } from '@deepseek-ai/dsh-workspace/types'
 import type {
+  ClientMutationId,
   SessionControlBaseline,
   SessionControlFrame,
   SessionQueuedItem,
@@ -599,16 +600,18 @@ export class SessionManager {
    * child carries the source's history, so it is never blank; lineage rides
    * parentSessionId so the list nests it under its source. A child published
    * before Workspace attachment fails is also reconciled into the list.
-   * @param opts - source session and the optional seq anchoring the cut.
+   * @param opts - source session, the optional seq anchoring the cut, and
+   *   the caller's retransmission identity passed through to the wire.
    * @returns the fork result (the child session id).
    */
   async fork(
-    opts: { sessionId: SessionId; atSeq?: SessionSeq },
+    opts: { sessionId: SessionId; atSeq?: SessionSeq; clientMutationId?: ClientMutationId },
   ): Promise<RemoteResult<{ sessionId: SessionId }>> {
     const source = this.summaries.find(s => s.sessionId === opts.sessionId)
     const result = await this.remote.session.fork({
       sessionId: opts.sessionId,
       ...opts.atSeq === undefined ? {} : { atSeq: opts.atSeq },
+      ...opts.clientMutationId === undefined ? {} : { clientMutationId: opts.clientMutationId },
     })
     const childId = result.ok
       ? result.value.sessionId

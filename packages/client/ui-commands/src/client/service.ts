@@ -17,6 +17,8 @@ import type { Context } from '@deepseek-ai/cordis'
 import type { COMMAND_REMOTE_CAPABILITIES, RemoteHostFacts } from '@deepseek-ai/dsh-api-remotes/client'
 import type { ConnectionHandle } from '@deepseek-ai/dsh-client-connection/client'
 import type { CommandResult } from '@deepseek-ai/dsh-commands/types'
+import type { CommandMutationId } from '@deepseek-ai/dsh-commands/brand'
+import { randomUUID } from '@deepseek-ai/dsh-util-crypto'
 import type { Context as ClientContext } from '@deepseek-ai/cordis'
 import type { ISessions } from '@deepseek-ai/dsh-api-session-controller/client'
 import type { SessionId } from '@deepseek-ai/dsh-session/types'
@@ -56,12 +58,36 @@ function submittedCommandName(line: string): string {
   return (separator === -1 ? trimmed : trimmed.slice(0, separator)).slice(1)
 }
 
+/**
+ * One session's last submission that returned no settled execution, kept so a
+ * resubmission of the identical draft reuses its clientMutationId.
+ */
+interface PendingSubmission {
+  /** Complete submitted line; one half of the draft identity. */
+  readonly line: string
+  /** Submitted attachments held by reference; the other half, compared item by item. */
+  readonly attachments: readonly SubmitAttachment[]
+  /** Retry identity carried by that submission. */
+  readonly id: CommandMutationId
+}
+
+/** Item-by-item attachment equality: image bytes compare as their base64 text. */
+function sameAttachments(left: readonly SubmitAttachment[], right: readonly SubmitAttachment[]): boolean {
+  return left.length === right.length && left.every((l, index) => {
+    const r = right[index]
+    if (r === undefined || l.type !== r.type) return false
+    if (l.type === 'file') return r.type === 'file' && l.receiptId === r.receiptId
+    return r.type === 'image' && l.mediaType === r.mediaType && l.data === r.data && l.name === r.name
+  })
+}
+
 /** Live mutable state in one holder (service methods run behind the caller-ctx tracker). */
 interface LiveState {
   disposed: boolean
   readonly contributions: Map<string, CommandContribution>
   readonly decorations: Map<string, CommandDecoration>
   readonly popups: Map<SessionId, PopupSelectController<ClientSessionContext>>
+  readonly pendingSubmissions: Map<SessionId, PendingSubmission>
 }
 
 /** Command surface: session-keyed directory + '/' source + contribution registry + per-session popups. */
@@ -70,7 +96,9 @@ export class CommandUiRuntime extends Service implements CommandUiContract {
 
   private readonly directory: CommandDirectory
   private readonly candidateHosts = new WeakMap<InputTriggerCandidate, RemoteHostFacts>()
-  private readonly live: LiveState = { disposed: false, contributions: new Map(), decorations: new Map(), popups: new Map() }
+  private readonly live: LiveState = {
+    disposed: false, contributions: new Map(), decorations: new Map(), popups: new Map(), pendingSubmissions: new Map(),
+  }
   /** `command`-namespace translator (composer refusal notices). */
   private readonly t: TranslateNS<'command'>
 
@@ -411,6 +439,9 @@ export class CommandUiRuntime extends Service implements CommandUiContract {
    * the outcome renders as a persistent flow node — the composer never
    * echoes it. A handler error result reports an error outcome so the
    * composer keeps the draft and attachments for correction.
+   * Every request carries a clientMutationId minted per submission intent;
+   * a retry of the identical draft reuses it so the Host replay receipt
+   * absorbs a duplicate delivery.
    * A refused call throws.
    */
   private async execute(
@@ -420,10 +451,20 @@ export class CommandUiRuntime extends Service implements CommandUiContract {
     host: RemoteHostFacts = this.ctx.remote.$host,
   ): Promise<SubmitOutcome> {
     this.requireExecution(host)
-    const result = await this.ctx.remote.commands.execute(session.sessionId, { line, submittedAttachments: attachments })
+    // Specification §17: one clientMutationId per submission intent. A retry
+    // of the identical draft (line and attachments) reuses the pending id;
+    // any other submission mints a fresh one.
+    const pending = this.live.pendingSubmissions.get(session.sessionId)
+    const retry = pending !== undefined && pending.line === line && sameAttachments(pending.attachments, attachments)
+    const clientMutationId = retry ? pending.id : randomUUID() as CommandMutationId
+    if (!retry) this.live.pendingSubmissions.set(session.sessionId, { line, attachments, id: clientMutationId })
+    const result = await this.ctx.remote.commands.execute(session.sessionId, { line, submittedAttachments: attachments, clientMutationId })
     this.requireExecution(host)
     if (!result.ok) throw result.error
     if (result.value === undefined) return { kind: 'error', text: `unknown or malformed command: ${line}` }
+    // A settled execution ends the intent. The Host records replay receipts
+    // for settled executions only, so an unsettled id can safely re-run.
+    this.live.pendingSubmissions.delete(session.sessionId)
     this.notifyExecuted(session.sessionId, submittedCommandName(line), result.value.result)
     // A submission consumes its attachments only after handler success; an
     // error outcome keeps the draft and attachments in the composer.

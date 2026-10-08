@@ -4,8 +4,10 @@
  * synthesis (host catalog by sessionId + contributions by availability,
  * collision fail-loud), the dispatch decision table cell by cell, matchSpace
  * hot-key policy, matchEnter strong-wait / reject, the sessionId execute
- * payload, the scoped consume-token dispatch, per-session popupFor
- * lifecycle, and the directory invalidation event subscriptions.
+ * payload with its clientMutationId intent memory (retry reuse, content
+ * change, settlement clear, per-session isolation), the scoped
+ * consume-token dispatch, per-session popupFor lifecycle, and the directory
+ * invalidation event subscriptions.
  */
 import { Context } from '@deepseek-ai/cordis'
 import { describe, expect, it, onTestFinished, vi } from 'vitest'
@@ -71,7 +73,7 @@ async function bench(opts: BenchOptions = {}) {
   const ctx = new Context()
   const registered = new Map<string, InputTriggerSource>()
   const listCalls: Array<{ sessionId: SessionId }> = []
-  const executeCalls: Array<{ sessionId: SessionId; line: string; images: readonly SubmitAttachment[] }> = []
+  const executeCalls: Array<{ sessionId: SessionId; line: string; images: readonly SubmitAttachment[]; clientMutationId?: string }> = []
   // The service reads the generated commands Remote, which delivers the
   // carrier's outcome, so a programmed failure answers the error branch.
   const commandsRemote = {
@@ -85,7 +87,12 @@ async function bench(opts: BenchOptions = {}) {
       })
     },
     execute: async (sessionId: SessionId, request: CommandExecutionRequest) => {
-      executeCalls.push({ sessionId, line: request.line, images: request.submittedAttachments })
+      executeCalls.push({
+        sessionId,
+        line: request.line,
+        images: request.submittedAttachments,
+        ...(request.clientMutationId === undefined ? {} : { clientMutationId: request.clientMutationId }),
+      })
       return await carried(async () => {
         const fallback = (): Promise<ExecuteValue> => Promise.resolve({ matched: true })
         const value = await (opts.execute ?? fallback)({ sessionId, line: request.line })
@@ -430,7 +437,7 @@ describe('candidates', () => {
       if (outcome === undefined || outcome === 'handled' || !('claim' in outcome)) throw new Error('expected the claim')
       expect(outcome.claim.token).toBe('/command:token.plan ')
       await outcome.claim.submit('do x', new Context(), [])
-      expect(executeCalls).toEqual([{ sessionId: sid('s1'), line: '/plan do x', images: [] }])
+      expect(executeCalls).toMatchObject([{ sessionId: sid('s1'), line: '/plan do x', images: [] }])
     })
 
     it('a typed localized token resolves to the built-in command on space and enter; the Host line carries the catalog name', async () => {
@@ -449,13 +456,13 @@ describe('candidates', () => {
       expect(enter.claim.attachments).toBe(true)
       expect(enter.claim.token).toBe('/目标 ')
       await enter.claim.submit('ship it', new Context(), [])
-      expect(executeCalls).toEqual([{ sessionId: sid('s1'), line: '/goal ship it', images: [] }])
+      expect(executeCalls).toMatchObject([{ sessionId: sid('s1'), line: '/goal ship it', images: [] }])
       const typed = await source.matchEnter!(proj('s1'), '/plan now', new AbortController().signal, { attachments: 0 })
       if (typed === undefined || typed === 'handled' || !('claim' in typed)) throw new Error('expected the plan claim')
       expect(typed.claim.token).toBe('/plan ')
       executeCalls.length = 0
       expect(await source.matchEnter!(proj('s1'), '/压缩', new AbortController().signal, { attachments: 0 })).toBe('handled')
-      await vi.waitFor(() => { expect(executeCalls).toEqual([{ sessionId: sid('s1'), line: '/compact', images: [] }]) })
+      await vi.waitFor(() => { expect(executeCalls).toMatchObject([{ sessionId: sid('s1'), line: '/compact', images: [] }]) })
     })
   })
 })
@@ -511,7 +518,7 @@ describe('decorations (bare-invocation UI on host commands)', () => {
     command.decorate(goalDecoration({ name: 'plan', available: () => false }))
     await warm(proj('s1'))
     expect(await source.matchEnter!(proj('s1'), '/plan', new AbortController().signal, { attachments: 0 })).toBe('handled')
-    expect(executeCalls).toEqual([{ sessionId: sid('s1'), line: '/plan', images: [] }])
+    expect(executeCalls).toMatchObject([{ sessionId: sid('s1'), line: '/plan', images: [] }])
   })
 
   it('duplicate decoration names fail loud', async () => {
@@ -603,7 +610,7 @@ describe('dispatch (menu column)', () => {
     expect(menuPick(source, 'plan', proj('s1'), 5)).toBe('handled')
     expect(consumes).toEqual([{ guard: { kind: 'span', span: { start: 0, end: 5, draftRev: 3 } } }])
     await vi.waitFor(() => {
-      expect(executeCalls).toEqual([{ sessionId: sid('s1'), line: '/plan', images: [] }])
+      expect(executeCalls).toMatchObject([{ sessionId: sid('s1'), line: '/plan', images: [] }])
       expect(executions).toEqual([{
         sessionId: sid('s1'),
         name: 'plan',
@@ -696,7 +703,7 @@ describe('matchEnter (enter column)', () => {
     await expect(source.matchEnter!(proj('s1'), '/plan', signal(), { attachments: 0 })).resolves.toBe('handled')
     expect(consumes).toEqual([{ guard: { kind: 'bare-token', token: '/plan' } }])
     await Promise.resolve()
-    expect(executeCalls).toEqual([{ sessionId: sid('s1'), line: '/plan', images: [] }])
+    expect(executeCalls).toMatchObject([{ sessionId: sid('s1'), line: '/plan', images: [] }])
   })
 
   it('bare kind with trailing text → undefined and no RPC (default sink owns the line)', async () => {
@@ -777,7 +784,7 @@ describe('matchEnter envelope policy (images)', () => {
     // Handler error: the error outcome keeps draft and images in the composer.
     await expect(outcome.claim.submit('x', new Context(), [png]))
       .resolves.toEqual({ kind: 'error', text: 'handler refused' })
-    expect(executeCalls).toEqual([{ sessionId: sid('s1'), line: '/vision x', images: [png] }])
+    expect(executeCalls).toMatchObject([{ sessionId: sid('s1'), line: '/vision x', images: [png] }])
     result = { kind: 'success', text: 'described' }
     await expect(outcome.claim.submit('x', new Context(), [png])).resolves.toEqual({ kind: 'success' })
   })
@@ -802,7 +809,7 @@ describe('execute payload', () => {
     const outcome = source.matchSpace!(proj('s1'), '/goal')
     if (outcome === undefined || outcome === 'handled' || !('claim' in outcome)) throw new Error('expected claim')
     const settled = await outcome.claim.submit('ship it', new Context(), [])
-    expect(executeCalls).toEqual([{ sessionId: sid('s1'), line: '/goal ship it', images: [] }])
+    expect(executeCalls).toMatchObject([{ sessionId: sid('s1'), line: '/goal ship it', images: [] }])
     // Pure admission: no outcome text ever rides the submit result — the
     // durable command lifecycle events render the outcome in the flow.
     expect(settled).toEqual({ kind: 'success' })
@@ -849,6 +856,93 @@ describe('execute payload', () => {
     expect(bad.kind).toBe('error')
     const second = await claimOf({ execute: () => Promise.resolve({ matched: true }) })
     await expect(second.submit('', new Context(), [])).resolves.toEqual({ kind: 'success' })
+  })
+})
+
+describe('execute clientMutationId (submission-intent identity)', () => {
+  const VISION_CMDS: CommandDescriptor[] = [
+    { name: 'goal', description: 'leadingInput kind', risk: 'low', input: { hint: 'goal text' } },
+    { name: 'vision', description: 'image-accepting leadingInput', risk: 'low', input: { hint: 'describe', attachments: true } },
+  ]
+  const png: SubmitAttachment = { type: 'image', mediaType: 'image/png', data: 'AA==' }
+  const other: SubmitAttachment = { type: 'image', mediaType: 'image/png', data: 'BB==' }
+  const uuid = /^[\da-f]{8}-[\da-f]{4}-[\da-f]{4}-[\da-f]{4}-[\da-f]{12}$/u
+
+  it('a failed delivery and the identical-draft resubmission carry one clientMutationId', async () => {
+    let down = true
+    const { source, warm, executeCalls } = await bench({
+      execute: () => (down ? Promise.reject(new Error('network down')) : Promise.resolve({ matched: true })),
+    })
+    await warm(proj('s1'))
+    const outcome = source.matchSpace!(proj('s1'), '/goal')
+    if (outcome === undefined || outcome === 'handled' || !('claim' in outcome)) throw new Error('expected the goal claim')
+    await expect(outcome.claim.submit('ship it', new Context(), [])).rejects.toThrow('network down')
+    down = false
+    await expect(outcome.claim.submit('ship it', new Context(), [])).resolves.toEqual({ kind: 'success' })
+    expect(executeCalls).toHaveLength(2)
+    expect(executeCalls[0]!.clientMutationId).toMatch(uuid)
+    expect(executeCalls[1]!.clientMutationId).toBe(executeCalls[0]!.clientMutationId)
+  })
+
+  it('an unmatched admission (matched:false) stays retryable under the same id', async () => {
+    const { source, warm, executeCalls } = await bench({ execute: () => Promise.resolve({ matched: false }) })
+    await warm(proj('s1'))
+    const outcome = source.matchSpace!(proj('s1'), '/goal')
+    if (outcome === undefined || outcome === 'handled' || !('claim' in outcome)) throw new Error('expected the goal claim')
+    await expect(outcome.claim.submit('x', new Context(), [])).resolves.toEqual({ kind: 'error', text: 'unknown or malformed command: /goal x' })
+    await expect(outcome.claim.submit('x', new Context(), [])).resolves.toEqual({ kind: 'error', text: 'unknown or malformed command: /goal x' })
+    expect(executeCalls[1]!.clientMutationId).toBe(executeCalls[0]!.clientMutationId)
+  })
+
+  it('changed content mints a fresh id: another line, or the same line with other attachments', async () => {
+    const { source, warm, executeCalls } = await bench({
+      commands: () => Promise.resolve({ commands: VISION_CMDS }),
+      execute: () => Promise.reject(new Error('network down')),
+    })
+    await warm(proj('s1'))
+    const goal = source.matchSpace!(proj('s1'), '/goal')
+    if (goal === undefined || goal === 'handled' || !('claim' in goal)) throw new Error('expected the goal claim')
+    await expect(goal.claim.submit('a', new Context(), [])).rejects.toThrow('network down')
+    await expect(goal.claim.submit('b', new Context(), [])).rejects.toThrow('network down')
+    expect(executeCalls[1]!.clientMutationId).not.toBe(executeCalls[0]!.clientMutationId)
+    executeCalls.length = 0
+    const vision = source.matchSpace!(proj('s1'), '/vision')
+    if (vision === undefined || vision === 'handled' || !('claim' in vision)) throw new Error('expected the vision claim')
+    await expect(vision.claim.submit('x', new Context(), [png])).rejects.toThrow('network down')
+    await expect(vision.claim.submit('x', new Context(), [other])).rejects.toThrow('network down')
+    await expect(vision.claim.submit('x', new Context(), [other])).rejects.toThrow('network down')
+    expect(executeCalls[1]!.clientMutationId).not.toBe(executeCalls[0]!.clientMutationId)
+    expect(executeCalls[2]!.clientMutationId).toBe(executeCalls[1]!.clientMutationId)
+  })
+
+  it('a settled execution clears the memory: the same content resubmits under a fresh id', async () => {
+    const { source, warm, executeCalls } = await bench({ execute: () => Promise.resolve({ matched: true }) })
+    await warm(proj('s1'))
+    const outcome = source.matchSpace!(proj('s1'), '/goal')
+    if (outcome === undefined || outcome === 'handled' || !('claim' in outcome)) throw new Error('expected the goal claim')
+    await expect(outcome.claim.submit('ship it', new Context(), [])).resolves.toEqual({ kind: 'success' })
+    await expect(outcome.claim.submit('ship it', new Context(), [])).resolves.toEqual({ kind: 'success' })
+    expect(executeCalls[1]!.clientMutationId).not.toBe(executeCalls[0]!.clientMutationId)
+  })
+
+  it('per-session memory: two sessions retry the same draft under independent ids', async () => {
+    const { source, warm, executeCalls } = await bench({ execute: () => Promise.reject(new Error('network down')) })
+    const claimOf = async (key: string) => {
+      await warm(proj(key))
+      const outcome = source.matchSpace!(proj(key), '/goal')
+      if (outcome === undefined || outcome === 'handled' || !('claim' in outcome)) throw new Error('expected the goal claim')
+      return outcome.claim
+    }
+    const first = await claimOf('s1')
+    const second = await claimOf('s2')
+    await expect(first.submit('same', new Context(), [])).rejects.toThrow('network down')
+    await expect(second.submit('same', new Context(), [])).rejects.toThrow('network down')
+    await expect(first.submit('same', new Context(), [])).rejects.toThrow('network down')
+    await expect(second.submit('same', new Context(), [])).rejects.toThrow('network down')
+    // Each session's retry reuses its own id; the two sessions never share one.
+    expect(executeCalls[2]!.clientMutationId).toBe(executeCalls[0]!.clientMutationId)
+    expect(executeCalls[3]!.clientMutationId).toBe(executeCalls[1]!.clientMutationId)
+    expect(executeCalls[1]!.clientMutationId).not.toBe(executeCalls[0]!.clientMutationId)
   })
 })
 

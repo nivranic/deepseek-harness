@@ -15,7 +15,7 @@ import { RemoteStreamCarrierError } from '@deepseek-ai/dsh-api-gateway/client'
 import { SESSION_FORMAT_VERSION, SessionSeq } from '@deepseek-ai/dsh-session/types'
 import type { HostDescriptor } from '@deepseek-ai/dsh-api-host-description/types'
 import type { SessionHistoryRecord } from '../src/types.ts'
-import { ClientSessions, SessionCreateError } from '../src/client/sessions/service.ts'
+import { ClientSessions, SessionCreateError, SessionForkError } from '../src/client/sessions/service.ts'
 import { decodeSessionViewLocation, encodeSessionViewLocation } from '../src/client/view-location.ts'
 import { scopeOf } from '../src/client/scope.ts'
 import type { SessionFollowFrame } from '../src/types.ts'
@@ -976,7 +976,9 @@ describe('fork', () => {
       sessionId: sid('source'), atSeq: 7, increaseTitle: true,
     })).resolves.toBe('child')
 
-    expect(b.api.callsOf('session.fork')).toEqual([{ sessionId: 'source', atSeq: 7 }])
+    expect(b.api.callsOf('session.fork')).toEqual([
+      { sessionId: 'source', atSeq: 7, clientMutationId: expect.any(String) as string },
+    ])
     expect(b.api.callsOf('session.rename')).toEqual([{ sessionId: 'child', title: childTitle }])
     await Promise.resolve()
     expect(b.svc.list.getSnapshot().byId[sid('child')]).toMatchObject({
@@ -994,7 +996,9 @@ describe('fork', () => {
     // The frozen node of an interrupted turn carries turnEnd.seq - 0.9.
     await expect(b.svc.fork({ sessionId: sid('source'), atSeq: 41.1 })).resolves.toBe('child')
 
-    expect(b.api.callsOf('session.fork')).toEqual([{ sessionId: 'source', atSeq: 41 }])
+    expect(b.api.callsOf('session.fork')).toEqual([
+      { sessionId: 'source', atSeq: 41, clientMutationId: expect.any(String) as string },
+    ])
   })
 
   it('does not rename without the title policy or a durable source title', async () => {
@@ -1022,6 +1026,67 @@ describe('fork', () => {
     await expect(b.svc.fork({ sessionId: sid('source'), increaseTitle: true }))
       .rejects.toBe(failure)
     expect(b.svc.binding(sid('child'))).toBeDefined()
+  })
+
+  /** Wire clientMutationIds of the recorded session.fork calls, in order. */
+  const forkMutationIds = (b: Bench): string[] => b.api.callsOf('session.fork')
+    .map(payload => (payload as { clientMutationId: string }).clientMutationId)
+
+  it('resends the same clientMutationId after a failed fork of the same anchor', async () => {
+    const b = bench()
+    await feedList(b, [{ id: 'source' }])
+    b.api.onFork = () => Promise.resolve(err(new RemoteError('gateway/internal', 'wire down', {})))
+    await expect(b.svc.fork({ sessionId: sid('source'), atSeq: 5 }))
+      .rejects.toBeInstanceOf(SessionForkError)
+
+    b.api.onFork = () => Promise.resolve(ok({ sessionId: sid('child') }))
+    await expect(b.svc.fork({ sessionId: sid('source'), atSeq: 5 })).resolves.toBe('child')
+
+    const ids = forkMutationIds(b)
+    expect(ids).toHaveLength(2)
+    expect(ids[1]).toBe(ids[0])
+  })
+
+  it('mints a fresh clientMutationId once the same anchor forked successfully', async () => {
+    const b = bench()
+    await feedList(b, [{ id: 'source' }])
+    b.api.onFork = () => Promise.resolve(ok({ sessionId: sid('child-1') }))
+    await expect(b.svc.fork({ sessionId: sid('source'), atSeq: 5 })).resolves.toBe('child-1')
+    b.api.onFork = () => Promise.resolve(ok({ sessionId: sid('child-2') }))
+    await expect(b.svc.fork({ sessionId: sid('source'), atSeq: 5 })).resolves.toBe('child-2')
+
+    const ids = forkMutationIds(b)
+    expect(ids).toHaveLength(2)
+    expect(ids[1]).not.toBe(ids[0])
+  })
+
+  it('keys the intent memory per anchor: a different atSeq mints its own id', async () => {
+    const b = bench()
+    await feedList(b, [{ id: 'source' }])
+    b.api.onFork = () => Promise.resolve(err(new RemoteError('gateway/internal', 'wire down', {})))
+    await expect(b.svc.fork({ sessionId: sid('source'), atSeq: 5 }))
+      .rejects.toBeInstanceOf(SessionForkError)
+    b.api.onFork = () => Promise.resolve(ok({ sessionId: sid('child') }))
+    await expect(b.svc.fork({ sessionId: sid('source'), atSeq: 6 })).resolves.toBe('child')
+
+    const ids = forkMutationIds(b)
+    expect(ids).toHaveLength(2)
+    expect(ids[1]).not.toBe(ids[0])
+  })
+
+  it('isolates the intent memory per source session', async () => {
+    const b = bench()
+    await feedList(b, [{ id: 'one' }, { id: 'two' }])
+    b.api.onFork = () => Promise.resolve(err(new RemoteError('gateway/internal', 'wire down', {})))
+    await expect(b.svc.fork({ sessionId: sid('one') })).rejects.toBeInstanceOf(SessionForkError)
+    await expect(b.svc.fork({ sessionId: sid('two') })).rejects.toBeInstanceOf(SessionForkError)
+    expect(forkMutationIds(b)[1]).not.toBe(forkMutationIds(b)[0])
+
+    b.api.onFork = () => Promise.resolve(ok({ sessionId: sid('child') }))
+    await expect(b.svc.fork({ sessionId: sid('one') })).resolves.toBe('child')
+    const ids = forkMutationIds(b)
+    expect(ids[2]).toBe(ids[0]) // "one" (same undefined anchor) retries its own id
+    expect(b.api.callsOf('session.fork')[2]).toMatchObject({ sessionId: 'one' })
   })
 })
 
