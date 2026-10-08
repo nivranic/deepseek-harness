@@ -42,9 +42,9 @@ export function CommandId(id: string): CommandId {
 
 /**
  * Opaque client-minted retry identity for one command submission. When
- * carried, a resend that reaches the same live Host process returns the
- * first execution's {@link CommandExecution} without re-running the handler;
- * receipts are process-local, so a restart admits the resend as fresh.
+ * carried, the settled execution's `command/done` event records it as a
+ * durable receipt: a resend of that id — in this Host process or after a
+ * restart — replays the logged execution without re-running the handler.
  */
 export type CommandMutationId = Branded<'command-mutation-id'>
 

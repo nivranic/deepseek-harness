@@ -191,9 +191,10 @@ find(agent: Agent, name: string): CommandDefinition | undefined
  * @param agent - exact receiving agent.
  * @param request - the submission: the complete command line, its ordered
  *   attachments, and an optional client-minted retry identity. A resend
- *   carrying an id whose execution already settled in this Host process
- *   returns that recorded `CommandExecution` without re-running the handler;
- *   a throw or abort settles no receipt, so its resends re-run.
+ *   whose id has a settled `command/done` receipt in the receiving
+ *   session's log returns that execution — reconstructed from the log by
+ *   the receipt projection — without re-running the handler or appending
+ *   events; a throw or abort settles no receipt, so its resends re-run.
  * @param signal - cancellation signal owned by the UI request.
  * @returns the settled execution (result + lifecycle pairing id), or
  *   `undefined` when syntax or name does not resolve.

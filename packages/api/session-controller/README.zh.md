@@ -28,6 +28,8 @@ kind: "package-reference"
 
 fork 的子会话标题更新失败时，原样拒绝 rename 的 `RemoteError`；已发布的子会话仍可访问。
 
+携带 `clientMutationId` 的 fork 在子会话发布后，会向 source 会话日志写入一条持久 `session/forked` 收据；同一身份重发会重放收据记录的子会话而不是再铸一个，Host 重启后从存储恢复的 source 同样命中。收据按会话键控：fork 子会话的种子前缀可以携带祖先收据，但以子会话为地址的重发只扫描其自有事件。写入收据需要解析 source 的活 Agent，因此冷 source 会恢复一次；被 subagent 归属围栏挡住的 subagent source 仍返回其子会话，仅跳过收据并记录警告。
+
 独立的 `session.search.v1` 和 `session.attachment.v1` 能力分别准入内容搜索和持久化图片读取。API Gateway 在传输前拒绝未公布的操作，并随所属 Connection 代际取消待完成读取。附件授权仍要求被寻址 Session 日志中存在对应引用。
 
 Client 子级目录要求 `subagent.catalog.v1`。Connection 代际撤销清除目录内容、打开菜单、待完成刷新归属和父级可用提示，同时保留持久地址及已选择的驻留 Session。迟到目录回执不能发布数据或移除替换请求。子级寻址 prompt 与 interrupt 回执也保留起始 Host 归属，替换后不能发布旧错误或确认状态。

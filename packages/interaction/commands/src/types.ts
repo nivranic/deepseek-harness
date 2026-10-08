@@ -66,9 +66,10 @@ export interface CommandExecutionRequest {
    */
   readonly submittedAttachments: readonly CommandSubmitAttachment[]
   /**
-   * Client-minted opaque retry identity. When carried, a resend that reaches
-   * the same live Host process returns the first execution's
-   * {@link CommandExecution} without re-running the handler.
+   * Client-minted opaque retry identity. When carried, a resend whose id has
+   * a settled `command/done` receipt in this session's log returns that
+   * execution's {@link CommandExecution} — reconstructed from the log —
+   * without re-running the handler.
    */
   readonly clientMutationId?: CommandMutationId
 }
@@ -129,19 +130,33 @@ declare module '@deepseek-ai/dsh-session/types' {
      * folding its own command records, a rich command card) never re-parses
      * a line. `args` is absent when the definition sets `recordInput: false`
      * because an authoritative domain event owns the input payload.
+     * `clientMutationId` carries the submission's retry identity as an audit
+     * trail of which client intent produced this run.
      */
-    'command/run': { commandId: CommandId; name: string; args?: string; source: CommandSource }
+    'command/run': {
+      commandId: CommandId
+      name: string
+      args?: string
+      source: CommandSource
+      clientMutationId?: CommandMutationId
+    }
     /**
      * The paired command settled. `kind`/`text` carry the handler's verbatim
      * outcome (a thrown/aborted handler settles as `kind: 'error'` with the
      * rendered failure). A successful command may identify the earlier
      * authoritative domain event for a richer client-computed presentation.
+     * `clientMutationId` is present exactly when the settled execution came
+     * from an id-carrying submission: it is the durable receipt marker, and
+     * the command registry's receipt projection replays a resend of that id
+     * from the logged settlement without re-running the handler. A thrown
+     * settlement writes no id, so its resends re-run.
      */
     'command/done': {
       commandId: CommandId
       kind: 'success' | 'error'
       text?: string
       sourceEventSeq?: import('@deepseek-ai/dsh-session/types').SessionSeq
+      clientMutationId?: CommandMutationId
     }
   }
 }

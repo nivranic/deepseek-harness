@@ -28,6 +28,8 @@ The file-reference adapter declares `file-reference.list.v1`; the skill director
 
 A fork whose child-title update fails rejects with the original rename `RemoteError`; the already published child remains addressable.
 
+A fork carrying a `clientMutationId` records one durable `session/forked` receipt in the source Session log after its child is published; a retransmission of the same identity replays that recorded child instead of minting a second one, including after a Host restart restores the source from storage. Receipts are keyed per Session: a fork child may inherit ancestor receipts inside its seeded prefix, but a retransmission addressed to it scans only its own events. Recording resolves the source's live Agent, so a cold source resumes once; a subagent-owned source stays behind the subagent ownership fence and still returns its child, with the receipt skipped and a warning logged.
+
 The independent `session.search.v1` and `session.attachment.v1` capabilities admit content search and durable image reads. API Gateway rejects an unadvertised operation before carrier dispatch and cancels pending reads with their Connection generation. Attachment authorization still requires a reference in the addressed Session log.
 
 Client child catalogs require `subagent.catalog.v1`. Connection generation withdrawal clears catalog contents, open menus, pending refresh ownership and parent-availability hints while retaining durable addresses and resident selected Sessions. Late catalog replies cannot publish data or remove replacement requests. Addressed child prompt and interrupt replies also retain their originating Host and cannot publish stale errors or acknowledgement state after replacement.

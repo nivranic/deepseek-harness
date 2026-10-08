@@ -304,7 +304,7 @@ describe('sessions.fork', () => {
   })
 
   it('a retried fork without clientMutationId still mints a second independent child', async () => {
-    // Adoption applies only to requests carrying a clientMutationId: a retry
+    // Receipts apply only to requests carrying a clientMutationId: a retry
     // without one re-runs the whole command and mints a second independent
     // child rather than returning the first.
     const ctx = await composed()
@@ -346,6 +346,15 @@ describe('sessions.fork', () => {
     if (!first.ok || !retried.ok) return
     expect(retried.value.sessionId).toBe(first.value.sessionId)
     expect(ctx.sessions.list().map(session => session.id)).toEqual([source.id, first.value.sessionId])
+    // The durable receipt settles exactly once: the retransmission replays the
+    // recorded child without appending a second session/forked event.
+    const receipts = source.snapshotEvents().filter(event => event.type === 'session/forked')
+    expect(receipts).toHaveLength(1)
+    expect(receipts[0]?.data).toEqual({
+      clientMutationId: 'mutation-1',
+      childSessionId: first.value.sessionId,
+      atSeq: 1,
+    })
     await ctx.fiber.dispose()
   })
 
@@ -371,6 +380,128 @@ describe('sessions.fork', () => {
         .toEqual(expectedPrefix)
       expect(ctx.sessions.get(child)?.header.parentSession).toBe(source.id)
     }
+    // Each identity settles its own receipt in the source log.
+    expect(source.snapshotEvents().filter(event => event.type === 'session/forked')).toHaveLength(2)
+    await ctx.fiber.dispose()
+  })
+
+  it('still replays the receipt after the source is restored from its persisted log', async () => {
+    // A Host restart drops the live Session; the receipt survives in storage,
+    // so a retransmission against the restored source log replays the same
+    // child without resuming an Agent or minting a second one. The rebuild is
+    // modeled as a fresh Host context serving the recorded log through
+    // persistence, the read shape Session.fromRestore replays.
+    const ctx = await composed()
+    const source = liveAgent(ctx, 'session-fork-rebuild', 2)
+    const first = await remote(ctx).fork(request({
+      sessionId: source.id, atSeq: 1, clientMutationId: 'mutation-rebuild' as ClientMutationId,
+    }))
+    expect(first.ok).toBe(true)
+    if (!first.ok) return
+    const meta = structuredClone(source.header)
+    const events = structuredClone(source.snapshotEvents())
+    await ctx.fiber.dispose()
+
+    const rebuilt = new Context()
+    await rebuilt.plugin(SessionStore)
+    await rebuilt.plugin(SystemPrompt, { personaPrefix: '' })
+    await rebuilt.plugin(AgentRegistry)
+    installSessionReadTestServices(rebuilt)
+    rebuilt.provide('workspaceRegistry', { list: () => [] } as never)
+    rebuilt.provide('sessionPersistence', testSessionPersistence(rebuilt, {
+      list: () => Promise.resolve([meta]),
+      inspect: () => Promise.resolve({ meta, events }),
+    }) as never)
+    const resume = vi.spyOn(rebuilt.agents, 'resume')
+
+    const retried = await remote(rebuilt).fork(request({
+      sessionId: source.id, atSeq: 1, clientMutationId: 'mutation-rebuild' as ClientMutationId,
+    }))
+
+    expect(retried.ok).toBe(true)
+    if (!retried.ok) return
+    expect(retried.value.sessionId).toBe(first.value.sessionId)
+    expect(rebuilt.sessions.list()).toEqual([])
+    expect(resume).not.toHaveBeenCalled()
+    await rebuilt.fiber.dispose()
+  })
+
+  it('ignores a parent receipt carried inside the fork child inherited prefix', async () => {
+    const ctx = await composed()
+    const source = liveAgent(ctx, 'session-fork-lineage', 2)
+    const proxy = remote(ctx)
+    const first = await proxy.fork(request({
+      sessionId: source.id, atSeq: 1, clientMutationId: 'mutation-lineage' as ClientMutationId,
+    }))
+    expect(first.ok).toBe(true)
+    if (!first.ok) return
+    // The source log now ends with that receipt, so a later fork at the
+    // latest boundary seeds its child with an inherited prefix carrying it.
+    const second = await proxy.fork(request({ sessionId: source.id }))
+    expect(second.ok).toBe(true)
+    if (!second.ok) return
+    const child = ctx.sessions.get(second.value.sessionId)
+    if (child === undefined) throw new Error('fork did not publish the child session')
+    expect(child.snapshotEvents().slice(0, child.inheritedEventCount)
+      .some(event => event.type === 'session/forked')).toBe(true)
+
+    const retransmitted = await proxy.fork(request({
+      sessionId: child.id, clientMutationId: 'mutation-lineage' as ClientMutationId,
+    }))
+
+    expect(retransmitted.ok).toBe(true)
+    if (!retransmitted.ok) return
+    expect(retransmitted.value.sessionId).not.toBe(first.value.sessionId)
+    expect(ctx.sessions.get(retransmitted.value.sessionId)?.header.parentSession).toBe(child.id)
+    // The child settles only its own receipt; the inherited parent receipt
+    // never matches a retransmission addressed to the child.
+    const ownReceipts = child.snapshotEvents()
+      .filter(event => event.type === 'session/forked' && event.seq >= child.inheritedEventCount)
+    expect(ownReceipts).toHaveLength(1)
+    expect(ownReceipts[0]?.data).toMatchObject({ childSessionId: retransmitted.value.sessionId })
+    await ctx.fiber.dispose()
+  })
+
+  it('writes no session/forked event for a fork without clientMutationId', async () => {
+    const ctx = await composed()
+    const source = liveAgent(ctx, 'session-fork-unidentified', 1)
+    const before = source.snapshotEvents().length
+
+    const response = await remote(ctx).fork(request({ sessionId: source.id }))
+
+    expect(response.ok).toBe(true)
+    expect(source.snapshotEvents()).toHaveLength(before)
+    expect(source.snapshotEvents().some(event => event.type === 'session/forked')).toBe(false)
+    await ctx.fiber.dispose()
+  })
+
+  it('returns the child and records no receipt when the source is subagent-owned', async () => {
+    // The receipt append goes through the ordinary-Agent seam, which the
+    // ownership fence keeps away from subagent sessions; the settled fork
+    // stands and only retransmission replay for this identity is lost.
+    const ctx = await composed()
+    const parent = liveAgent(ctx, 'session-receipt-parent', 1)
+    const child = liveAgent(ctx, 'session-receipt-child', 1, 'none', {
+      parentSession: parent.id,
+      origin: 'subagent',
+    })
+    vi.spyOn(ctx.sessionQuery, 'traceSession').mockResolvedValue({
+      target: { header: child.header, live: true, persisted: false },
+      ancestors: [{ header: parent.header, live: true, persisted: false }],
+      descendants: [],
+      complete: true,
+      root: { header: parent.header, live: true, persisted: false },
+    })
+
+    const response = await remote(ctx).fork(request({
+      sessionId: child.id,
+      clientMutationId: 'mutation-subagent' as ClientMutationId,
+    }))
+
+    expect(response.ok).toBe(true)
+    if (!response.ok) return
+    expect(ctx.sessions.get(response.value.sessionId)?.header.parentSession).toBe(child.id)
+    expect(child.snapshotEvents().some(event => event.type === 'session/forked')).toBe(false)
     await ctx.fiber.dispose()
   })
 

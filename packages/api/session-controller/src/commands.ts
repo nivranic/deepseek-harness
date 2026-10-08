@@ -69,17 +69,8 @@ function hasPromptContent(content: readonly PromptContentCandidate[]): boolean {
   return content.some(part => part.type !== 'text' || part.text.trim().length > 0)
 }
 
-/** Maximum fork receipts retained for one Host-process retry window. */
-const FORK_RECEIPT_LIMIT = 1024
-
 /** Implements Session business commands delegated by the Session Controller Remote service. */
 export class SessionCommandController {
-  /**
-   * Settled fork results by client mutation identity: one Host-process retry
-   * window in FIFO order. Entries evicted past {@link FORK_RECEIPT_LIMIT} lose
-   * their receipt and a resend reruns as a new request.
-   */
-  private readonly forkReceipts = new Map<ClientMutationId, SessionForkValue>()
   /**
    * @param ctx - Host context carrying Agent, model, attachment, title, and Workspace services.
    * @param agents - sole owner of create, resume, and Session-local model selection.
@@ -231,7 +222,7 @@ export class SessionCommandController {
   /**
    * Create a new ordinary Session from one completed-turn prefix.
    * @param request - source Session, optional event anchor, and optional retransmission identity.
-   * @returns the new Session identity, or the first settled result for a retransmitted identity.
+   * @returns the new Session identity, or the recorded child for a retransmitted identity.
    */
   async fork(request: SessionForkRequest): Promise<SessionForkValue> {
     const mutationId = request.clientMutationId
@@ -248,10 +239,6 @@ export class SessionCommandController {
       atSeq = request.atSeq === undefined ? undefined : SessionSeq(request.atSeq)
     } catch {
       throw new RemoteError('gateway/bad-request', 'atSeq must be a non-negative safe integer', {})
-    }
-    if (mutationId !== undefined) {
-      const settled = this.forkReceipts.get(mutationId)
-      if (settled !== undefined) return settled
     }
     let observed: SessionObservation
     try {
@@ -270,6 +257,10 @@ export class SessionCommandController {
       )
     }
     using source = observed
+    if (mutationId !== undefined) {
+      const settled = settledForkReceipt(source.events.slice(source.inheritedEventCount), mutationId)
+      if (settled !== undefined) return settled
+    }
     const lastSeq = source.events.at(-1)?.seq ?? -1
     const anchoredBoundary = atSeq === undefined
       ? undefined
@@ -338,7 +329,9 @@ export class SessionCommandController {
         )
       }
     }
-    if (mutationId !== undefined) this.settleForkReceipt(mutationId, { sessionId: childId })
+    if (mutationId !== undefined) {
+      await this.recordForkReceipt(request.sessionId, mutationId, childId, atSeq)
+    }
     return { sessionId: childId }
   }
 
@@ -636,13 +629,34 @@ export class SessionCommandController {
     return undefined
   }
 
-  /** Retain one settled fork for retransmission; the oldest entry evicts past the window bound. */
-  private settleForkReceipt(mutationId: ClientMutationId, value: SessionForkValue): void {
-    this.forkReceipts.set(mutationId, value)
-    /* v8 ignore next 3 -- exercising eviction needs 1025 settled forks; the bound keeps the retransmission window finite */
-    if (this.forkReceipts.size <= FORK_RECEIPT_LIMIT) return
-    const oldest = this.forkReceipts.keys().next().value
-    if (oldest !== undefined) this.forkReceipts.delete(oldest)
+  /**
+   * Append one durable fork receipt to the live source Session.
+   * @param sessionId - forked source Session identity.
+   * @param mutationId - retransmission identity from the fork request.
+   * @param childId - child Session the settled fork minted.
+   * @param atSeq - validated request anchor, or undefined when unanchored.
+   */
+  private async recordForkReceipt(
+    sessionId: SessionId,
+    mutationId: ClientMutationId,
+    childId: SessionId,
+    atSeq: number | undefined,
+  ): Promise<void> {
+    try {
+      const agent = await this.resolveAgent(sessionId)
+      agent.session.append('session/forked', {
+        clientMutationId: mutationId,
+        childSessionId: childId,
+        ...(atSeq === undefined ? {} : { atSeq }),
+      })
+    } catch (error) {
+      // The fork settled and its child is published; a receipt the source
+      // cannot accept (for example a subagent-owned source the ordinary-Agent
+      // seam must not resume) only drops retransmission replay for this identity.
+      this.ctx.logger.warn(
+        `session-controller: fork of "${sessionId}" settled but recorded no session/forked receipt: ${String(error)}`,
+      )
+    }
   }
 }
 
@@ -695,6 +709,22 @@ function hasPromptRequest(agent: Agent, requestId: SessionRequestId): boolean {
     if (event.type === 'user/message') return matches(event.data)
     return event.type === 'agent/inbox/spliced' && event.data.inserted.some(matches)
   })
+}
+
+/**
+ * Find the durable receipt a fork retransmission replays.
+ * @param ownEvents - source Session events after its fork-inherited prefix;
+ * ancestor receipts inside the prefix never match.
+ * @param mutationId - retransmission identity from the fork request.
+ * @returns the recorded child identity, or undefined for an unseen identity.
+ */
+function settledForkReceipt(
+  ownEvents: readonly SessionEvent[],
+  mutationId: ClientMutationId,
+): SessionForkValue | undefined {
+  const receipt = ownEvents.findLast((event): event is SessionEvent<'session/forked'> =>
+    event.type === 'session/forked' && event.data.clientMutationId === mutationId)
+  return receipt === undefined ? undefined : { sessionId: receipt.data.childSessionId }
 }
 function imageBlockIn(
   content: unknown,

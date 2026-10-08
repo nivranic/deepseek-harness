@@ -16,6 +16,7 @@ import type { Session, SessionEvent, SessionEventMap } from '@deepseek-ai/dsh-se
 import { TypertRemoteService, Remote } from '@deepseek-ai/dsh-typert-protocol'
 import { CommandId, CommandMutationId } from './brand.ts'
 import { COMMAND_REMOTE_CAPABILITIES } from './capabilities.ts'
+import { findCommandReceipt, registerCommandReceiptProjection } from './receipt-projection.ts'
 import type { CommandDefinitionId } from './brand.ts'
 import type {
   CommandDescriptor,
@@ -36,9 +37,6 @@ const COMMAND_NAME = /^[a-z][a-z0-9_-]*$/u
 
 /** Shared frozen attachments value for attachment-free invocations. */
 const NO_ATTACHMENTS: readonly (ImageBlock | FileBlock)[] = Object.freeze([])
-
-/** Upper bound on retained client-mutation receipts; the oldest entry is evicted beyond it. */
-const SETTLED_MUTATION_LIMIT = 1024
 
 /** Host resolver for Session-scoped staged file-upload receipts. */
 export type CommandFileReceiptResolver = (agent: Agent, receiptId: string) => FileAttachmentRef | undefined
@@ -291,16 +289,15 @@ export class CommandRuntime extends TypertRemoteService {
   private readonly instanceToken = randomUUID().slice(0, 8)
   /** Optional provider installed by the Session upload owner. */
   private readonly fileReceipts: { resolver: CommandFileReceiptResolver | undefined } = { resolver: undefined }
-  /**
-   * Settled executions keyed by client mutation id — an in-process
-   * network-retry window, not a durable receipt (restart survival is an open
-   * channel). Insertion-ordered and bounded: a resend of an evicted id
-   * re-runs as a fresh request.
-   */
-  private readonly settledMutations = new Map<CommandMutationId, CommandExecution>()
 
   constructor(ctx: Context) {
     super(ctx, 'commands', { capabilities: COMMAND_REMOTE_CAPABILITIES })
+    // The durable receipt projection registers whenever the
+    // session-projection service is composed; an id-carrying execute before
+    // that fails loud at its receipt query instead of silently re-running.
+    ctx.inject(['sessionProjections'], (projectionCtx) => {
+      projectionCtx.effect(() => registerCommandReceiptProjection(projectionCtx), 'commands: receipt projection')
+    })
   }
 
   /**
@@ -378,9 +375,10 @@ export class CommandRuntime extends TypertRemoteService {
    * @param agent - exact receiving agent.
    * @param request - the submission: the complete command line, its ordered
    *   attachments, and an optional client-minted retry identity. A resend
-   *   carrying an id whose execution already settled in this Host process
-   *   returns that recorded `CommandExecution` without re-running the handler;
-   *   a throw or abort settles no receipt, so its resends re-run.
+   *   whose id has a settled `command/done` receipt in the receiving
+   *   session's log returns that execution — reconstructed from the log by
+   *   the receipt projection — without re-running the handler or appending
+   *   events; a throw or abort settles no receipt, so its resends re-run.
    * @param signal - cancellation signal owned by the UI request.
    * @returns the settled execution (result + lifecycle pairing id), or
    *   `undefined` when syntax or name does not resolve.
@@ -400,7 +398,7 @@ export class CommandRuntime extends TypertRemoteService {
     if (clientMutationId !== undefined) {
       // A settled receipt reports an established fact, so the hit returns
       // even when this retry's signal is already aborted.
-      const settled = this.settledMutations.get(clientMutationId)
+      const settled = this.replayReceipt(agent.session, clientMutationId)
       if (settled !== undefined) return settled
     }
     const parsed = parseCommand(line)
@@ -414,29 +412,33 @@ export class CommandRuntime extends TypertRemoteService {
       name: parsed.name,
       ...command.definition.recordInput === false ? {} : { args: parsed.rawInput },
       source: { kind: 'user' },
+      ...clientMutationId === undefined ? {} : { clientMutationId },
     })
-    const settle = (result: CommandResult): CommandExecution => {
+    const settle = (mutationId: CommandMutationId | undefined, result: CommandResult): CommandExecution => {
+      // Only the settle path writes the id on `command/done` — that carried
+      // id IS the durable receipt marker. A thrown settlement
+      // (settleThrown) writes none, so its resends re-run.
       this.appendLifecycle(agent.session, 'command/done', {
         commandId, kind: result.kind,
+        ...mutationId === undefined ? {} : { clientMutationId: mutationId },
         ...result.text === undefined ? {} : { text: result.text },
         ...result.kind === 'success' && result.sourceEventSeq !== undefined
           ? { sourceEventSeq: result.sourceEventSeq }
           : {},
       })
-      const execution = Object.freeze({ commandId, result: Object.freeze(result) })
-      // Every settled CommandExecution — admission errors included — becomes a
-      // replay receipt; thrown settlements stay retryable and record nothing.
-      if (clientMutationId !== undefined) this.recordSettledMutation(clientMutationId, execution)
-      return execution
+      return Object.freeze({ commandId, result: Object.freeze(result) })
     }
     let attachments: readonly (ImageBlock | FileBlock)[] = NO_ATTACHMENTS
     if (submittedAttachments.length > 0) {
       if (command.definition.input?.attachments !== true) {
-        return settle({ kind: 'error', text: `/${parsed.name} does not accept attachments` })
+        return settle(clientMutationId, { kind: 'error', text: `/${parsed.name} does not accept attachments` })
       }
       const store = this.ctx.get('attachments')
       if (store === undefined) {
-        return settle({ kind: 'error', text: `/${parsed.name}: attachments are unavailable because no attachment store is composed` })
+        return settle(clientMutationId, {
+          kind: 'error',
+          text: `/${parsed.name}: attachments are unavailable because no attachment store is composed`,
+        })
       }
       try {
         attachments = await admitCommandAttachments(
@@ -446,7 +448,7 @@ export class CommandRuntime extends TypertRemoteService {
         )
       } catch (error: unknown) {
         if (error instanceof AttachmentError) {
-          return settle({ kind: 'error', text: error.message })
+          return settle(clientMutationId, { kind: 'error', text: error.message })
         }
         this.settleThrown(agent.session, parsed.name, commandId, error)
         throw error
@@ -470,7 +472,7 @@ export class CommandRuntime extends TypertRemoteService {
       this.settleThrown(agent.session, parsed.name, commandId, error)
       throw error
     }
-    return settle(result)
+    return settle(clientMutationId, result)
   }
 
   /** Contained `command/done` error append for a thrown handler or admission failure. */
@@ -492,17 +494,35 @@ export class CommandRuntime extends TypertRemoteService {
   }
 
   /**
-   * Retain one settled execution for replay by an in-process resend of the
-   * same mutation id, evicting the oldest receipt beyond the bound.
-   * @param clientMutationId - the settled submission's client-minted identity.
-   * @param execution - the execution a resend of that id receives.
+   * Rebuild the settled execution a durable receipt covers, if any. The
+   * receipt rows are the session's own folded `command/done` settlements, so
+   * the answer survives a Host restart and never re-enters a handler.
+   * @param session - the receiving agent's session whose log owns the receipts.
+   * @param clientMutationId - the resent submission identity.
+   * @returns the rebuilt frozen execution, or `undefined` when no settled receipt covers the id.
    */
-  private recordSettledMutation(clientMutationId: CommandMutationId, execution: CommandExecution): void {
-    this.settledMutations.set(clientMutationId, execution)
-    if (this.settledMutations.size > SETTLED_MUTATION_LIMIT) {
-      const oldest = this.settledMutations.keys().next().value
-      if (oldest !== undefined) this.settledMutations.delete(oldest)
+  private replayReceipt(session: Session, clientMutationId: CommandMutationId): CommandExecution | undefined {
+    // Absent service and unregistered key share one remedy — compose the
+    // session-projection capability alongside the command registry — so both
+    // composition failures fail loud through the same throw.
+    const receipts = this.ctx.get('sessionProjections')?.stateOf(session, 'commandReceipts')
+    if (receipts === undefined) {
+      throw new Error('commands: the commandReceipts receipt projection is unavailable; compose the session-projection service with the commands plugin before dispatching clientMutationId submissions')
     }
+    const row = findCommandReceipt(receipts, clientMutationId)
+    if (row === undefined) return undefined
+    // The logged settlement is the fact: the result is rebuilt directly from
+    // it, not re-validated through normalizeResult.
+    return Object.freeze({
+      commandId: CommandId(row.commandId),
+      result: Object.freeze(row.kind === 'success'
+        ? {
+          kind: 'success',
+          ...row.text === undefined ? {} : { text: row.text },
+          ...row.sourceEventSeq === undefined ? {} : { sourceEventSeq: SessionSeq(row.sourceEventSeq) },
+        }
+        : { kind: 'error', text: row.text }),
+    })
   }
 
   /**

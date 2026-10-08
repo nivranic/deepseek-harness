@@ -260,16 +260,22 @@ export type SessionEvent<T extends SessionEventType = SessionEventType> = {
  * outcome (a thrown/aborted handler settles as `kind: 'error'` with the
  * rendered failure). A successful command may identify the earlier
  * authoritative domain event for a richer client-computed presentation.
+ * `clientMutationId` is present exactly when the settled execution came
+ * from an id-carrying submission: it is the durable receipt marker, and
+ * the command registry's receipt projection replays a resend of that id
+ * from the logged settlement without re-running the handler. A thrown
+ * settlement writes no id, so its resends re-run.
  */
 'command/done': {
   commandId: CommandId
   kind: 'success' | 'error'
   text?: string
   sourceEventSeq?: import('@deepseek-ai/dsh-session/types').SessionSeq
+  clientMutationId?: CommandMutationId
 }
 ```
 
-来源：[`packages/interaction/commands/src/types.ts:140`](../packages/interaction/commands/src/types.ts)
+来源：[`packages/interaction/commands/src/types.ts:154`](../packages/interaction/commands/src/types.ts)
 
 <a id="commandrun--log-only"></a>
 
@@ -285,11 +291,19 @@ export type SessionEvent<T extends SessionEventType = SessionEventType> = {
  * folding its own command records, a rich command card) never re-parses
  * a line. `args` is absent when the definition sets `recordInput: false`
  * because an authoritative domain event owns the input payload.
+ * `clientMutationId` carries the submission's retry identity as an audit
+ * trail of which client intent produced this run.
  */
-'command/run': { commandId: CommandId; name: string; args?: string; source: CommandSource }
+'command/run': {
+  commandId: CommandId
+  name: string
+  args?: string
+  source: CommandSource
+  clientMutationId?: CommandMutationId
+}
 ```
 
-来源：[`packages/interaction/commands/src/types.ts:133`](../packages/interaction/commands/src/types.ts)
+来源：[`packages/interaction/commands/src/types.ts:136`](../packages/interaction/commands/src/types.ts)
 
 ### `compaction/*`
 
@@ -706,6 +720,24 @@ export type SessionEvent<T extends SessionEventType = SessionEventType> = {
 ```
 
 来源：[`packages/core/session/src/types.ts:400`](../packages/core/session/src/types.ts)
+
+<a id="sessionforked--log-only"></a>
+
+#### `session/forked` — log-only
+
+```ts persistence-catalog
+/**
+ * Durable receipt for one fork settled by the Session Controller,
+ * appended to the forked source Session after its child is published.
+ * Log-only: a retransmission carrying the same clientMutationId replays
+ * the recorded childSessionId instead of minting a second child. Receipts
+ * key per Session — a fork child's inherited prefix may carry ancestor
+ * receipts, but a fork addressed to that child scans only its own events.
+ */
+'session/forked': SessionForkReceipt
+```
+
+来源：[`packages/api/session-controller/src/types.ts:54`](../packages/api/session-controller/src/types.ts)
 
 <a id="sessiontitle--log-only"></a>
 

@@ -1,0 +1,66 @@
+{
+  "status": "PASS",
+  "scope": "Report bindings and audit for the durable-receipts increment: the §17 durable receipts (the last self-contained open item after gen-47's in-process receipts and gen-48's client senders — a resend reaching a restarted Host must still be recognized) resting on the design that the receipt is a session fact: execute receipts ride the command/done event carrying the clientMutationId written only by the settle() path (a thrown or aborted done carries no id, so a dangling run and an error settlement are naturally receipt-less and a resend re-runs; the run keeps the id as an audit lead), the resend check going through the session-projection receipt unit in per-session key domain (bounded 1024 evicting oldest, cold sessions rebuilt by hydrate, a hit replaying commandId plus result with zero appended events and zero re-entry — the restart-rebuild proof rides the commands log; the session-projection dependency riding dependencies), and fork receipts riding the source session's new log-only event session/forked{clientMutationId, childSessionId} (the child id always carried so the replay returns the value; fork activating the source through resolveAgent — the rename precedent; the scan limited to the session's own events so inherited prefix ancestor receipts never hit — the isolation proof rides the fork log); the in-process Maps are gone (one fact, one home: the event is the receipt); the frozen v0 surfaces moved with the types per the gen-30 precedent and the persistence catalog regenerated with its hand-mirrored zh twin; known-event-types regenerated (a new event type makes old builds fail closed — the pre-release stance); the SDK snapshots claim zero drift (no scenario carries an id — optional members absent by construction, verified by the CI expected outputs) and the Android/Apple link contracts project no command events — zero native mirror change — proven by the four specialty rounds green (commands 67/67 with the restart-rebuild receipt case at .artifacts/durable-receipts-commands.log, fork 2 files 69/69 with the inherited-prefix isolation at .artifacts/durable-receipts-fork.log, frozen 19/19 at .artifacts/durable-receipts-frozen.log, the session-format family 19 files 801/801 at .artifacts/durable-receipts-format-family.log); the ledger §17 1929→2402 chars with the evidence list 30→32 with the note trio paired ahead of the doc-sync round (.artifacts/durable-receipts-note-pairing.log); the gates: typecheck EXIT 0 in its own chained log (build:lib:host then tsc -b tsconfig.client.json) and lint clean in its own chained log (Found 0 warnings and 0 errors, Finished in 35.3s on 3856 files, no labelled trailer), doc-quick 17 gates green in 31.44s and doc-sync 36 passed 0 failed 0 skipped in 105.96s (the post-repair green form — the two stale gates, doc graphs and cordis catalog, were regenerated with the zh graph twin mirror and the pairing re-recorded before this pass), traceability 6/6 (TAP, §17 at 2402 chars / 32 evidence entries), gate0 PASS in both forms (1938 paths / 129 components / 81 sections), and the serial double audit round green at 87 files / 1073 tests on both passes over gen-40's curated lineage at its gen-40 name (nothing this increment touches is a lineage member — the session-controller and interaction/commands surfaces, the docs families and the traceability ledger sit outside the client list); the android acceptance is recorded honestly: the scanner-env gradle round came back BUILD SUCCESSFUL in 42s with 70 actionable tasks of which 1 executed (:app:verifyScannerResources) and 69 up-to-date — the fully warm zero-rebuild form, no gradle rerun round existing because the first round was already warm — with both APKs IDENTICAL against the sender-wiring record's own builtFiles entries at the gen-47 rebuild bytes fb66b477/bbe7a3af (cross-checked live) and the core XML aggregate still reading 77 suites / 477 tests (.artifacts/durable-receipts-core-results.json); the byte-proof follows the measured IDENTICAL form (.artifacts/durable-receipts-apk-bytes.log, prior apk records: 2), and the prepare oracle derived the measured twenty-eight replaced prior build outputs — every key an old-stable byte resolving through the Option A newest-history archive fallback (measured against the prior record's historical chain; no second-order drift, no adjudicated skip set this generation), so the generator gains no durable-receipts set at all (no new cumulative ReplacedBuildOutputs or SupersededSources collections, the gen-32 desktopPackageReplacedBuildOutputs set staying exactly six, the gen-33 tornRepairIntentReplacedBuildOutputs set staying exactly three, and the gen-48 dwfq-a83d7bb8-1 clientMutationReplacedBuildOutputs exemption staying exactly two at the generator head as sealed history); the multi-release interop matrix stays open (cross-release unreachable on one machine), relayMetadata is still the only class of the five without a producer (blocked on section 23), the section 56 signing/notarization/update-source acceptance stays open on its materials, the CI coverage gap for the client tsdown face stays open, the pdf-license-bundle npm-pack host timing baseline stays outside the audit lineage with CI Linux green, the admitEncodedImages acceptance awaits its manual ruling, and the Linux/lib forms ride CI — so no whole-section PASS is granted; full Upstream-First objective remains in progress",
+  "gate0": {
+    "validation": "PASS",
+    "gate0": "PASS",
+    "paths": 1938,
+    "components": 129,
+    "specificationCoverage": {
+      "status": "PASS",
+      "numberedSections": 81,
+      "nonEmptySourceLines": 1983,
+      "acceptanceProven": false
+    }
+  },
+  "sourceRecord": {
+    "path": "artifacts/upstream-first/durable-receipts-source.json",
+    "sha256": "ae2ed98c43d5d532fa04ea1d6232016e2228595de4448194a3b60de22622c8f8"
+  },
+  "generator": {
+    "path": "artifacts/upstream-first/write-reports.mjs",
+    "sha256": "48030b33db021a665cb661e3cc259f5cd9d24720a25017a3fdaffee7c6d3f0f6"
+  },
+  "binding": {
+    "path": "artifacts/upstream-first/durable-receipts-binding.json",
+    "sha256": "759cc49d117747c882d7f997e5a1ce9e4a9ff66c45cb282d6230661443f69933"
+  },
+  "helpers": [
+    {
+      "path": ".artifacts/advance-durable-receipts-reports.mjs",
+      "sha256": "866d82ce3e86dfd90854039e67dd9be98994ccc11deb7c943b25776f4f1b9e56"
+    },
+    {
+      "path": ".artifacts/capture-durable-receipts-validation.mjs",
+      "sha256": "8203149ad8215e595dc60f1ee89849ae70c62ff214c8c3f17eea9924738a095f"
+    }
+  ],
+  "reports": [
+    {
+      "path": "IMPLEMENTATION_STATUS.md",
+      "sha256": "3b873775af277715cc580c0cb0d5e26f428041fc3fe141e1b42f8e84efdc43cf"
+    },
+    {
+      "path": "artifacts/upstream-first/evidence.json",
+      "sha256": "1370e894452ca764619ac3da3620b61d6798a979c4aa68b320ef4f045c4cdb36"
+    }
+  ],
+  "checks": [
+    {
+      "path": ".artifacts/durable-receipts-binding.log",
+      "sha256": "14a8c658ced5e014e622d963bdc2f6d601ed72ece7bd593df1ee4715138d776f"
+    },
+    {
+      "path": ".artifacts/durable-receipts-audit-final.log",
+      "sha256": "bb690c2dacbfddc231137b188bd8288980bef0733ef538e69d3259420e1baa61"
+    },
+    {
+      "path": ".artifacts/durable-receipts-gate0-final.log",
+      "sha256": "7e00efd82bd2a2b91b03ca80537dcc4af46cd09eb318ff58520cb2d7d7d8a48a"
+    },
+    {
+      "path": ".artifacts/durable-receipts-report-generation.log",
+      "sha256": "fe010532f71a6341467ae5719b29ac19470895de1d481156335b8f70a3273ed5"
+    }
+  ]
+}

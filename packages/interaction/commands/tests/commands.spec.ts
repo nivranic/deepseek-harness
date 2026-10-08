@@ -4,6 +4,8 @@ import { createScope } from '@deepseek-ai/dsh-scope'
 import type { Scope } from '@deepseek-ai/dsh-scope'
 import type { Agent } from '@deepseek-ai/dsh-agent'
 import SessionStore, { SessionId } from '@deepseek-ai/dsh-session'
+import type { Session } from '@deepseek-ai/dsh-session'
+import SessionProjectionRegistry from '@deepseek-ai/dsh-session-projection'
 import CommandRuntime, { CommandDefinitionId, CommandMutationId, parseCommand, type CommandDefinition } from '@deepseek-ai/dsh-commands'
 import { AttachmentStore } from '@deepseek-ai/dsh-attachment'
 
@@ -16,9 +18,10 @@ function command(name: string, text = `ran:${name}`): CommandDefinition {
   }
 }
 
-async function mount(): Promise<Context> {
+async function mount(options: { projections?: boolean } = {}): Promise<Context> {
   const ctx = new Context()
   await ctx.plugin(SessionStore)
+  if (options.projections !== false) await ctx.plugin(SessionProjectionRegistry)
   await ctx.plugin(CommandRuntime)
   return ctx
 }
@@ -30,6 +33,20 @@ async function mintAgentScope(ctx: Context, name: string): Promise<{ scope: Scop
   let scope!: Scope
   await ctx.plugin(Object.assign((inner: Context) => { scope = createScope(inner, agent) }, { inject: ['commands'] }))
   return { scope, agent }
+}
+
+/**
+ * Restart equivalent: a fresh Host process whose session store reopens the
+ * recorded event sequence, so the receipt projection rebuilds by folding the
+ * durable log instead of inheriting any live cell.
+ */
+async function restart(session: Session): Promise<{ ctx: Context; agent: Agent }> {
+  const ctx = new Context()
+  await ctx.plugin(SessionStore)
+  await ctx.plugin(SessionProjectionRegistry)
+  await ctx.plugin(CommandRuntime)
+  const restored = ctx.sessions.create(session.id, { seed: session.snapshotEvents() })
+  return { ctx, agent: { id: restored.id, session: restored } as Agent }
 }
 
 /** The lifecycle slice of one agent's log (boundary markers stripped). */
@@ -398,8 +415,9 @@ describe('CommandRuntime', () => {
 
   // §17 clientMutationId adoption: only id-carrying calls replay a settled
   // receipt. A retry without one keeps the original behavior — the handler
-  // re-enters and a full lifecycle pair is appended again.
-  it('a retried execute without clientMutationId runs the handler twice and appends two command event pairs (the §17 receipt applies only to id-carrying calls)', async () => {
+  // re-enters and a full lifecycle pair is appended again, and neither event
+  // carries a mutation id.
+  it('a retried execute without clientMutationId runs the handler twice and appends two id-less command event pairs (the §17 receipt applies only to id-carrying calls)', async () => {
     const ctx = await mount()
     const { agent } = await mintAgentScope(ctx, 'a')
     const handler = vi.fn(() => ({ kind: 'success' as const, text: 'ran' }))
@@ -415,25 +433,26 @@ describe('CommandRuntime', () => {
     expect(lifecycle.map(event => event.type)).toEqual([
       'command/run', 'command/done', 'command/run', 'command/done',
     ])
-    const ids = lifecycle.map(event => (event.data as { commandId: string }).commandId)
     // Each execution pairs its own run/done; the id-less retry mints a fresh id — only id-carrying calls are deduplicated.
+    const ids = lifecycle.map(event => (event.data as { commandId: string }).commandId)
     expect(ids[0]).toBe(ids[1])
     expect(ids[2]).toBe(ids[3])
     expect(ids[0]).not.toBe(ids[2])
     expect(first?.commandId).toBe(ids[0])
     expect(retried?.commandId).toBe(ids[2])
-    // Without a clientMutationId the log cannot distinguish a retry from a fresh submission.
+    // Without a clientMutationId no event carries one, so the log cannot distinguish a retry from a fresh submission.
+    expect(lifecycle.filter(event => Object.hasOwn(event.data as object, 'clientMutationId'))).toEqual([])
     expect(lifecycle
       .filter(event => event.type === 'command/run')
       .map(event => (event.data as { args?: string }).args)).toEqual([' now', ' now'])
   })
 
-  it('replays the settled execution when the same clientMutationId resends', async () => {
+  it('replays the settled execution when the same clientMutationId resends: one receipt-marked pair and no second settlement', async () => {
     const ctx = await mount()
     const { agent } = await mintAgentScope(ctx, 'a')
     const handler = vi.fn(() => ({ kind: 'success' as const, text: 'ran' }))
     ctx.commands.register({ name: 'deploy', description: 'Deploy', risk: 'low', handler })
-    const mutationId = CommandMutationId('gen47-retry-1')
+    const mutationId = CommandMutationId('gen49-retry-1')
 
     const first = await ctx.commands.execute(agent, { line: '/deploy now', submittedAttachments: [], clientMutationId: mutationId }, new AbortController().signal)
     const resent = await ctx.commands.execute(agent, { line: '/deploy now', submittedAttachments: [], clientMutationId: mutationId }, new AbortController().signal)
@@ -441,7 +460,13 @@ describe('CommandRuntime', () => {
     expect(handler).toHaveBeenCalledTimes(1)
     expect(resent?.commandId).toBe(first?.commandId)
     expect(resent?.result).toEqual(first?.result)
-    expect(lifecycleOf(agent).map(event => event.type)).toEqual(['command/run', 'command/done'])
+    const lifecycle = lifecycleOf(agent)
+    expect(lifecycle.map(event => event.type)).toEqual(['command/run', 'command/done'])
+    // The receipt marker: exactly one done carries the id (with its run audit trail), and the resend appended nothing.
+    const done = lifecycle.filter(event => event.type === 'command/done') as Array<{ data: { clientMutationId?: string } }>
+    expect(done).toHaveLength(1)
+    expect(done[0]?.data.clientMutationId).toBe('gen49-retry-1')
+    expect((lifecycle[0]?.data as { clientMutationId?: string }).clientMutationId).toBe('gen49-retry-1')
     // A settled receipt is an established fact: the hit returns even when the
     // retry's signal is already aborted.
     const aborted = new AbortController()
@@ -452,20 +477,66 @@ describe('CommandRuntime', () => {
     expect(lifecycleOf(agent).map(event => event.type)).toEqual(['command/run', 'command/done'])
   })
 
+  it('rebuilds a settled receipt from the session log after a restart (durable receipt)', async () => {
+    const ctx = await mount()
+    const { agent } = await mintAgentScope(ctx, 'a')
+    const mutationId = CommandMutationId('gen49-restart-1')
+    ctx.commands.register({ name: 'deploy', description: 'Deploy', risk: 'low', handler: () => ({ kind: 'success', text: 'ran once' }) })
+    const first = await ctx.commands.execute(agent, { line: '/deploy now', submittedAttachments: [], clientMutationId: mutationId }, new AbortController().signal)
+    expect(first?.result).toEqual({ kind: 'success', text: 'ran once' })
+    const recorded = agent.session.snapshotEvents()
+
+    // A fresh Host process reopens the same event sequence; the receipt
+    // projection must rebuild by folding the durable log, and the resend must
+    // neither re-enter the handler nor append events.
+    const { ctx: restarted, agent: reopened } = await restart(agent.session)
+    const handler = vi.fn(() => ({ kind: 'success' as const, text: 'ran again' }))
+    restarted.commands.register({ name: 'deploy', description: 'Deploy', risk: 'low', handler })
+    const resend = await restarted.commands.execute(reopened, { line: '/deploy now', submittedAttachments: [], clientMutationId: mutationId }, new AbortController().signal)
+
+    expect(handler).not.toHaveBeenCalled()
+    expect(resend?.commandId).toBe(first?.commandId)
+    expect(resend?.result).toEqual({ kind: 'success', text: 'ran once' })
+    expect(Object.isFrozen(resend)).toBe(true)
+    expect(Object.isFrozen(resend?.result)).toBe(true)
+    // The reopen appends only the inherited-seed boundary marker; the resend
+    // itself must append nothing beyond that reopened baseline.
+    expect(reopened.session.snapshotEvents().map(event => event.type))
+      .toEqual([...recorded.map(event => event.type), 'session/end-seed'])
+  })
+
+  it('fails loud when an id-carrying execute runs without the session-projection capability', async () => {
+    const ctx = await mount({ projections: false })
+    const { agent } = await mintAgentScope(ctx, 'a')
+    ctx.commands.register(command('deploy'))
+
+    // A submission without the id never queries the receipt projection.
+    await expect(ctx.commands.execute(agent, { line: '/deploy', submittedAttachments: [] }, new AbortController().signal))
+      .resolves.toMatchObject({ result: { kind: 'success', text: 'ran:deploy' } })
+    // An id-carrying one does, and the missing composition fails loud.
+    await expect(ctx.commands.execute(agent, { line: '/deploy', submittedAttachments: [], clientMutationId: CommandMutationId('gen49-no-projection') }, new AbortController().signal))
+      .rejects.toThrow('commands: the commandReceipts receipt projection is unavailable; compose the session-projection service with the commands plugin before dispatching clientMutationId submissions')
+  })
+
   it('executes both submissions carrying different clientMutationIds', async () => {
     const ctx = await mount()
     const { agent } = await mintAgentScope(ctx, 'a')
     const handler = vi.fn(() => ({ kind: 'success' as const, text: 'ran' }))
     ctx.commands.register({ name: 'deploy', description: 'Deploy', risk: 'low', handler })
 
-    const first = await ctx.commands.execute(agent, { line: '/deploy', submittedAttachments: [], clientMutationId: CommandMutationId('gen47-retry-a') }, new AbortController().signal)
-    const second = await ctx.commands.execute(agent, { line: '/deploy', submittedAttachments: [], clientMutationId: CommandMutationId('gen47-retry-b') }, new AbortController().signal)
+    const first = await ctx.commands.execute(agent, { line: '/deploy', submittedAttachments: [], clientMutationId: CommandMutationId('gen49-retry-a') }, new AbortController().signal)
+    const second = await ctx.commands.execute(agent, { line: '/deploy', submittedAttachments: [], clientMutationId: CommandMutationId('gen49-retry-b') }, new AbortController().signal)
 
     expect(handler).toHaveBeenCalledTimes(2)
     expect(second?.commandId).not.toBe(first?.commandId)
-    expect(lifecycleOf(agent).map(event => event.type)).toEqual([
+    const lifecycle = lifecycleOf(agent)
+    expect(lifecycle.map(event => event.type)).toEqual([
       'command/run', 'command/done', 'command/run', 'command/done',
     ])
+    expect(lifecycle
+      .filter(event => event.type === 'command/done')
+      .map(event => (event.data as { clientMutationId?: string }).clientMutationId))
+      .toEqual(['gen49-retry-a', 'gen49-retry-b'])
   })
 
   it.each([
@@ -489,12 +560,12 @@ describe('CommandRuntime', () => {
     expect(agent.session.snapshotEvents()).toEqual([])
   })
 
-  it('re-runs a throwing handler on a same-id resend: a thrown settlement records no receipt', async () => {
+  it('re-runs a throwing handler on a same-id resend: a thrown settlement writes no receipt id', async () => {
     const ctx = await mount()
     const { agent } = await mintAgentScope(ctx, 'a')
     const handler = vi.fn(() => { throw new Error('handler exploded') })
     ctx.commands.register({ name: 'boom', description: 'Boom', risk: 'low', handler })
-    const mutationId = CommandMutationId('gen47-retry-on-failure')
+    const mutationId = CommandMutationId('gen49-retry-on-failure')
 
     await expect(ctx.commands.execute(agent, { line: '/boom', submittedAttachments: [], clientMutationId: mutationId }, new AbortController().signal))
       .rejects.toThrow('handler exploded')
@@ -502,9 +573,15 @@ describe('CommandRuntime', () => {
       .rejects.toThrow('handler exploded')
 
     expect(handler).toHaveBeenCalledTimes(2)
-    expect(lifecycleOf(agent).map(event => event.type)).toEqual([
+    const lifecycle = lifecycleOf(agent)
+    expect(lifecycle.map(event => event.type)).toEqual([
       'command/run', 'command/done', 'command/run', 'command/done',
     ])
+    // A thrown settlement is not a receipt: no done carries the id marker, so
+    // the resend re-runs as a fresh request (the runs keep the audit trail).
+    expect(lifecycle.filter(event => event.type === 'command/done' && Object.hasOwn(event.data as object, 'clientMutationId'))).toEqual([])
+    expect(lifecycle.filter(event => event.type === 'command/run')
+      .every(event => Object.hasOwn(event.data as object, 'clientMutationId'))).toBe(true)
   })
 
   it('logs command/done kind error for an expected error result', async () => {

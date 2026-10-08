@@ -43,6 +43,15 @@ declare module '@deepseek-ai/dsh-session/types' {
      * assembly. Log-only: it never enters derived model history.
      */
     'model/selection': ModelSelection
+    /**
+     * Durable receipt for one fork settled by the Session Controller,
+     * appended to the forked source Session after its child is published.
+     * Log-only: a retransmission carrying the same clientMutationId replays
+     * the recorded childSessionId instead of minting a second child. Receipts
+     * key per Session — a fork child's inherited prefix may carry ancestor
+     * receipts, but a fork addressed to that child scans only its own events.
+     */
+    'session/forked': SessionForkReceipt
   }
 }
 
@@ -329,9 +338,10 @@ export interface SessionForkRequest {
   readonly sessionId: SessionId
   readonly atSeq?: number
   /**
-   * Client-minted opaque retransmission identity. A retransmission that
-   * reaches the same live Host process returns the first fork's result
-   * instead of creating a second child Session.
+   * Client-minted opaque retransmission identity. A retransmission whose
+   * identity matches a `session/forked` receipt in the source Session's own
+   * events returns that receipt's child instead of creating a second child
+   * Session; a fork without an identity records no receipt.
    */
   readonly clientMutationId?: ClientMutationId
 }
@@ -339,6 +349,16 @@ export interface SessionForkRequest {
 /** Identity of a newly forked Session. */
 export interface SessionForkValue {
   readonly sessionId: SessionId
+}
+
+/** Durable receipt appended to the source Session of one settled fork. */
+export interface SessionForkReceipt {
+  /** Retransmission identity from the accepted fork request. */
+  readonly clientMutationId: ClientMutationId
+  /** Child Session minted by the settled fork. */
+  readonly childSessionId: SessionId
+  /** Request anchor kept for audit; the effective boundary derives from it. */
+  readonly atSeq?: number
 }
 
 /** Session prompt request. */
@@ -413,7 +433,7 @@ export interface SessionOpenWorkspacePathValue {
 /** Client-minted prompt identity used to reconcile optimistic and durable messages. */
 export type SessionRequestId = Branded<'session-request-id'>
 
-/** Client-minted opaque retransmission identity; a fork resend carrying it returns the first settled result in-process. */
+/** Client-minted opaque retransmission identity; a fork resend carrying it replays the settled child from the durable receipt. */
 export type ClientMutationId = Branded<'client-mutation-id'>
 
 declare module '@deepseek-ai/dsh-llm' {

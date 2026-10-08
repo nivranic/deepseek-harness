@@ -64,11 +64,13 @@ export function assertReleasedPayloadSemantics(event: SessionFormatEvent, versio
       literalValue(data['kind'], ['success', 'error'], `${label} kind`)
       if (data['text'] !== undefined) stringValue(data['text'], `${label} text`)
       if (data['sourceEventSeq'] !== undefined) earlierSeq(data['sourceEventSeq'], event.seq, `${label} sourceEventSeq`)
+      if (data['clientMutationId'] !== undefined) nonEmptyString(data['clientMutationId'], `${label} clientMutationId`)
       return
     case 'command/run': {
       nonEmptyString(data['commandId'], `${label} commandId`)
       nonEmptyString(data['name'], `${label} name`)
       if (data['args'] !== undefined) stringValue(data['args'], `${label} args`)
+      if (data['clientMutationId'] !== undefined) nonEmptyString(data['clientMutationId'], `${label} clientMutationId`)
       const source = exactRecord(data['source'], `${label} source`, ['kind'])
       literalValue(source['kind'], ['user'], `${label} source kind`)
       return
