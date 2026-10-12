@@ -32,6 +32,18 @@ tasks.test {
     }
 }
 
+// Copy the generated tool-descriptor projection straight from the core tools
+// package so the bundled-set mirror test compares against the current
+// candidate bytes; until that generator lands the mirror skips on absence.
+val copyToolDescriptors by tasks.registering(Copy::class) {
+    from(rootProject.projectDir.parentFile.parentFile.resolve("packages/core/tools/tool-descriptors.json"))
+    into(layout.buildDirectory.dir("tool-descriptors"))
+}
+
+sourceSets.test {
+    resources.srcDir(copyToolDescriptors)
+}
+
 tasks.register<JavaExec>("nativeAcceptance") {
     group = "verification"
     description = "Runs the Kotlin Link client against the real Host acceptance corpus."

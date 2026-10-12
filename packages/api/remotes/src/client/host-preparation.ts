@@ -13,6 +13,7 @@ import { FILE_UPLOAD_REMOTE_CAPABILITIES } from '@deepseek-ai/dsh-client-file-up
 import { SUBAGENT_REMOTE_CAPABILITIES } from '@deepseek-ai/dsh-subagent/capabilities'
 import { GOAL_REMOTE_CAPABILITIES } from '@deepseek-ai/dsh-goal/capabilities'
 import { COMMAND_REMOTE_CAPABILITIES } from '@deepseek-ai/dsh-commands/capabilities'
+import { TOOL_REMOTE_CAPABILITIES } from '@deepseek-ai/dsh-tools/capabilities'
 import { SETTINGS_REMOTE_CAPABILITIES, CREDENTIAL_REMOTE_CAPABILITIES } from '@deepseek-ai/dsh-api-settings-controller/capabilities'
 import { LLM_REMOTE_CAPABILITIES } from '@deepseek-ai/dsh-llm/capabilities'
 import { WORKSPACE_REMOTE_CAPABILITIES, DIRECTORY_PICKER_REMOTE_CAPABILITIES } from '@deepseek-ai/dsh-api-workspace-controller/capabilities'
@@ -117,7 +118,12 @@ export function createHostPreparation(contribution: TypertRemoteContribution): R
 
 
 /**
- * Reject declared operations unless this generation advertises their required capability.
+ * Reject declared operations unless this generation advertises a capability that
+ * declares them, mirroring the Gateway's first-matching-declarer dispatch. When
+ * several capabilities declare one method (Session `prompt` under
+ * `session.control.v1` and `model.steer.v1`), any one advertised capability
+ * admits the operation; the rejection names the first declarer so it stays
+ * deterministic.
  * @param endpoint - canonical Remote namespace/method.
  * @param facts - admitted application facts for this request's generation.
  */
@@ -130,6 +136,7 @@ export const admitHostOperation: RemoteAdmission = (endpoint, facts) => {
     ['sessionReferenceResolver', SESSION_REFERENCE_REMOTE_CAPABILITIES],
     ['agentPresets', AGENT_PRESET_REMOTE_CAPABILITIES],
     ['commands', COMMAND_REMOTE_CAPABILITIES],
+    ['tools', TOOL_REMOTE_CAPABILITIES],
     ['goals', GOAL_REMOTE_CAPABILITIES],
     ['messageFeedback', MESSAGE_FEEDBACK_REMOTE_CAPABILITIES],
     ['sessionFeedback', SESSION_FEEDBACK_REMOTE_CAPABILITIES],
@@ -146,11 +153,12 @@ export const admitHostOperation: RemoteAdmission = (endpoint, facts) => {
     ['directoryPicker', DIRECTORY_PICKER_REMOTE_CAPABILITIES],
     ['workspaceFiles', WORKSPACE_FILES_REMOTE_CAPABILITIES],
   ] as const) {
-    for (const capability of capabilities) {
-      if (capability.methods.some(method => endpoint === `${namespace}/${method}`)
-        && facts.capabilities?.includes(capability.id) !== true) {
-        throw new RemoteError('host/capability-unavailable', 'Host does not advertise the required operation capability', { capability: capability.id })
-      }
+    const declarers = capabilities.filter(
+      capability => capability.methods.some(method => endpoint === `${namespace}/${method}`),
+    )
+    const firstDeclarer = declarers.at(0)
+    if (firstDeclarer !== undefined && !declarers.some(capability => facts.capabilities?.includes(capability.id) === true)) {
+      throw new RemoteError('host/capability-unavailable', 'Host does not advertise the required operation capability', { capability: firstDeclarer.id })
     }
   }
 }

@@ -33,7 +33,7 @@ Settings admission uses the Settings Controller’s shared read, write, document
 
 Agent Preset admission uses the owning package’s shared catalog, selection, and management declarations. Each operation requires its specific advertised capability before unary dispatch; another operation set cannot substitute for it. Settings-owned operations are not covered by these declarations.
 
-Session calls require the current generation's advertised operation capability. The Client checks the Session owner's shared declarations before unary or stream dispatch; a missing capability returns `host/capability-unavailable` without sending the operation. These declarations cover Session follow, control, management, and model selection, not every mounted namespace. Capability admission does not replace Host authorization.
+Session calls require the current generation's advertised operation capability. The Client checks the Session owner's shared declarations before unary or stream dispatch; a missing capability returns `host/capability-unavailable` without sending the operation. When several capabilities declare one method (`prompt` under `session.control.v1` and `model.steer.v1`), any one advertised declarer admits the operation, mirroring the Gateway's dispatch. These declarations cover Session follow, control, management, and model selection, not every mounted namespace. Capability admission does not replace Host authorization.
 
 [`@deepseek-ai/dsh-api-session-controller`](../session-controller/README.md) owns Agent and Session identity policy, including the Typert lookup resolvers used by other namespaces. This package only selects and mounts that generated Session contribution; it does not duplicate activation policy.
 

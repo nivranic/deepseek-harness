@@ -141,6 +141,11 @@ describe('PTC mode typed values: keyless real-worker contracts', () => {
     ctx.tools.register(defineTool({
       name: 'large_value',
       description: 'Return a large canonical string.',
+      version: 1,
+      risk: 'low',
+      permissions: [],
+      supportsLite: false,
+      supportsRemote: false,
       parameters: {},
       output: {
         schema: { type: 'string' },
@@ -151,6 +156,11 @@ describe('PTC mode typed values: keyless real-worker contracts', () => {
     ctx.tools.register(defineTool({
       name: 'always_fail',
       description: 'Fail for ToolCallError coverage.',
+      version: 1,
+      risk: 'low',
+      permissions: [],
+      supportsLite: false,
+      supportsRemote: false,
       parameters: {},
       output: { schema: { type: 'null' }, render: () => [] },
       execute: () => Promise.reject(new HarnessError('expected failure', 'EXPECTED_INTERNAL_CODE')),

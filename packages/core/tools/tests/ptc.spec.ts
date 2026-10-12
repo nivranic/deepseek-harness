@@ -75,6 +75,11 @@ function registerEcho(ctx: Context, name = 'echo'): unknown[] {
   ctx.tools.register(defineTool({
     name,
     description: `Echo tool ${name}.`,
+    version: 1,
+    risk: 'low',
+    permissions: [],
+    supportsLite: false,
+    supportsRemote: false,
     parameters: { value: { type: 'string', required: true } },
     output: {
       schema: { type: 'string' },
@@ -176,6 +181,11 @@ describe('mode-aware wire contribution', () => {
     ctx.tools.register({
       name: 'deep_output',
       description: 'Return a deeply nested output union.',
+      version: 1,
+      risk: 'low',
+      permissions: [],
+      supportsLite: false,
+      supportsRemote: false,
       parameters: { type: 'object', properties: {} },
       output: {
         schema: output,
@@ -494,6 +504,11 @@ describe('the sub-dispatch scheduler (native concurrency contract)', () => {
     ctx.tools.register(defineTool({
       name,
       description: `Gated tool ${name}.`,
+      version: 1,
+      risk: 'low',
+      permissions: [],
+      supportsLite: false,
+      supportsRemote: false,
       parameters: { id: { type: 'string', required: true } },
       output: {
         schema: { type: 'string' },
@@ -609,6 +624,11 @@ describe('the sub-dispatch scheduler (native concurrency contract)', () => {
     const dispose = ctx.tools.register(defineTool({
       name: 'ephemeral',
       description: 'Unregistered between binding enumeration and dispatch.',
+      version: 1,
+      risk: 'low',
+      permissions: [],
+      supportsLite: false,
+      supportsRemote: false,
       parameters: {},
       output: {
         schema: { type: 'string' },
@@ -873,6 +893,11 @@ describe('the run_code dispatch bridge', () => {
     ctx.tools.register(defineTool({
       name: 'finalize',
       description: 'Terminal tool.',
+      version: 1,
+      risk: 'low',
+      permissions: [],
+      supportsLite: false,
+      supportsRemote: false,
       parameters: {},
       output: {
         schema: { type: 'string' },
@@ -915,6 +940,11 @@ describe('the run_code dispatch bridge', () => {
     ctx.tools.register(defineTool({
       name: 'probe',
       description: 'Records execution overlap.',
+      version: 1,
+      risk: 'low',
+      permissions: [],
+      supportsLite: false,
+      supportsRemote: false,
       parameters: { id: { type: 'string', required: true } },
       output: {
         schema: { type: 'string' },
@@ -1388,6 +1418,11 @@ describe('the run_code dispatch bridge', () => {
     ctx.tools.register(defineTool({
       name: 'mixed',
       description: 'Returns mixed content.',
+      version: 1,
+      risk: 'low',
+      permissions: [],
+      supportsLite: false,
+      supportsRemote: false,
       parameters: {},
       output: {
         schema: { type: 'string' },
@@ -1454,6 +1489,11 @@ describe('the run_code dispatch bridge', () => {
     ctx.tools.register(defineTool({
       name: 'deep_args',
       description: 'Measure a deeply nested JSON argument.',
+      version: 1,
+      risk: 'low',
+      permissions: [],
+      supportsLite: false,
+      supportsRemote: false,
       parameters: { nested: { type: 'json', required: true } },
       output: {
         schema: { type: 'integer' },
@@ -1526,6 +1566,11 @@ describe('the run_code dispatch bridge', () => {
     ctx.tools.register(defineTool({
       name: '__proto__',
       description: 'A prototype-colliding tool name.',
+      version: 1,
+      risk: 'low',
+      permissions: [],
+      supportsLite: false,
+      supportsRemote: false,
       parameters: {},
       output: {
         schema: { type: 'string' },

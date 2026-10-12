@@ -73,6 +73,13 @@ export function attachStructuredRuntime(childCtx: Context, schema: ObjectJsonSch
 
   childCtx.tools.register({
     ...schemaEntry,
+    // Host-only declaration (specification §32): the child's answer channel
+    // only records a validated value, so it carries the read tier.
+    version: 1,
+    risk: 'low',
+    permissions: [],
+    supportsLite: false,
+    supportsRemote: true,
     output: {
       schema: {
         type: 'object',

@@ -73,13 +73,15 @@ private fun text(value: String): JsonPrimitive = JsonPrimitive(value)
 /**
  * The Lite loop driver skeleton: submits a prompt to the provider, folds
  * the streamed chunks into the Behavior-Spec state, dispatches bundled
- * tools through the registry, and emits the handoff marker when a tool
+ * tools through the active catalog — Host declaration first, bundled
+ * fallback table without one — and emits the handoff marker when a tool
  * demands the full runtime instead of executing on-device.
  */
 class LiteLoopDriver(
     private val scope: CoroutineScope,
     private val provider: LiteProviding,
     private val onEventApplied: ((LiteDomainState) -> Unit)? = null,
+    private val toolCatalog: LiteToolCatalog = LiteToolCatalog.FALLBACK,
     private val execute: LiteToolExecuting,
 ) {
     /** The live fold the driver applies each lifecycle event to. */
@@ -141,16 +143,16 @@ class LiteLoopDriver(
                                     "arguments" to text(chunk.arguments),
                                 ),
                             )
-                            // A tool the registry cannot serve on-device hands
-                            // off instead of executing; the loop stops at the
-                            // marker.
-                            val capability = LiteToolRegistry.handoffCapability(chunk.name)
+                            // A tool the active catalog cannot serve on-device
+                            // hands off instead of executing; the loop stops
+                            // at the marker.
+                            val capability = toolCatalog.handoffCapability(chunk.name)
                             if (capability != null) {
                                 apply(event("handoff/requested", "capability" to text(capability)))
                                 handedOff = capability
                                 return@collect
                             }
-                            if (LiteToolRegistry.tool(chunk.name) == null) return@collect
+                            if (toolCatalog.tool(chunk.name) == null) return@collect
                             val outcome = execute(chunk.id, chunk.name, chunk.arguments)
                             apply(
                                 event(

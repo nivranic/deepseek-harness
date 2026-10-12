@@ -2,8 +2,9 @@
 
 import { HarnessError } from '@deepseek-ai/dsh-llm'
 import type { ContentBlock } from '@deepseek-ai/dsh-llm'
+import type { RemoteCapabilityPermission } from '@deepseek-ai/dsh-typert-protocol'
 import type { JsonValue } from '@deepseek-ai/dsh-util-values'
-import type { ToolDefinition, ToolExecution, ToolExecutionResult, ToolRunContext, ToolResult } from './index.ts'
+import type { ToolDefinition, ToolExecution, ToolExecutionResult, ToolRisk, ToolRunContext, ToolResult } from './index.ts'
 import { assertSupportedJsonSchema, isJsonSchemaRecord, isPlainJsonArray, JsonSchemaError, validateJsonSchemaValue } from './json-schema.ts'
 import type { JsonSchemaNode, JsonSchemaScalar, ObjectJsonSchema } from './json-schema.ts'
 import type { ToolCallView, ToolResultView } from './presentation.ts'
@@ -485,6 +486,20 @@ export interface DefineToolOptions<S extends ParameterSchemaSpec, O extends Valu
   readonly name: string
   /** Human-readable description sent to the model. */
   readonly description: string
+  /**
+   * Descriptor schema version of this tool's host-only declaration
+   * (specification §32), a positive integer starting at 1. Never sent to the
+   * model; see {@link ToolDefinition.version}.
+   */
+  readonly version: number
+  /** Host-assessed risk tier (specification §32); see {@link ToolDefinition.risk}. */
+  readonly risk: ToolRisk
+  /** Extra Remote permissions completing one call may claim; see {@link ToolDefinition.permissions}. */
+  readonly permissions: readonly RemoteCapabilityPermission[]
+  /** Whether a Lite companion may execute this tool locally; see {@link ToolDefinition.supportsLite}. */
+  readonly supportsLite: boolean
+  /** Whether the tool is Host-executed on the Remote face; see {@link ToolDefinition.supportsRemote}. */
+  readonly supportsRemote: boolean
   /** Per-property parameter schema compiled to an implicit open object root. */
   readonly parameters: S
   /** Canonical output schema plus pure Native and presentation projections. */
@@ -569,6 +584,11 @@ export function defineTool<const S extends ParameterSchemaSpec, const O extends 
   const tool: ToolDefinition = {
     name: options.name,
     description: options.description,
+    version: options.version,
+    risk: options.risk,
+    permissions: options.permissions,
+    supportsLite: options.supportsLite,
+    supportsRemote: options.supportsRemote,
     parameters: parameters as unknown as Record<string, unknown>,
     output: {
       schema: outputSchema,

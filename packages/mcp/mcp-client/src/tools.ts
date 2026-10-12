@@ -266,6 +266,15 @@ function createDefinition(
   return {
     name: publicName,
     description,
+    // Host-only declaration (specification §32), set by the bridge and never
+    // collected from the server: an untrusted MCP server can execute
+    // arbitrary work on its side, so the bridge claims the shell-class tier
+    // and no Lite execution. The Host still executes the call itself.
+    version: 1,
+    risk: 'high',
+    permissions: [],
+    supportsLite: false,
+    supportsRemote: true,
     parameters,
     output: createOutput(rawName, structuredSchema),
     execute: createExecutor(client, ctx, rawName, taskRequired, opts, projections),

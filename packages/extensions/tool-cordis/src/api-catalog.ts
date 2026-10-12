@@ -2833,6 +2833,18 @@ export const SERVICE_API: readonly ServiceApiEntry[] = [
         returns: 'one deep-cloned schema per visible tool.',
       },
       {
+        signature: 'descriptors(scope?: ScopeKey): readonly ToolDescriptor[]',
+        description: 'Project visible definitions onto their host-only descriptor fields (specification §32): identity, declaration version, risk tier, claimed permissions, and the two runtime-support flags. Dynamically registered tools (MCP bridge, sandbox packages) appear with the values their producers registered — there is no separate descriptor source. Like `schemas()`, this never exposes model-face projections or execution callbacks, and it adds none of the model wire\'s fields.',
+        parameters: [{ name: 'scope', description: 'the viewing scope (the agent); omitted = the global view.' }],
+        returns: 'id-sorted frozen descriptors of every tool visible to that scope.',
+      },
+      {
+        signature: '@Remote list(): ToolDescriptorList',
+        description: 'Live Remote tool catalog (specification §32): the globally visible descriptors as one document schema-identical to the generated `packages/core/tools/tool-descriptors.json` projection. Catalog visibility authorizes nothing — tool execution still rides the driving prompt\'s permission and the full guarded pipeline.',
+        parameters: [],
+        returns: 'the descriptor document for the global view.',
+      },
+      {
         signature: 'executionMode(exec: ToolExecutionInput): ToolExecutionMode',
         description: 'Classify a pending call through the caller\'s visible tool definition. Only an exact `true` is parallel; unknown, hidden, undeclared, invalid, or throwing classifiers are exclusive.',
         parameters: [{ name: 'exec', description: 'call name, parsed arguments, and optional agent scope.' }],
@@ -6473,7 +6485,15 @@ export const TYPE_API: readonly TypeApiEntry[] = [
   },
   {
     name: 'ToolDefinition',
-    declaration: 'export interface ToolDefinition extends ToolSchema {\n    readonly output: ToolOutputDefinition;\n    execute(args: unknown, exec: ToolRunContext): Promise<unknown>;\n    finalizeContent?(exec: Readonly<ToolExecution>, result: Readonly<ToolExecutionResult>): ContentBlock[] | undefined;\n    timeoutMs?: number;\n    isConcurrencySafe?(args: unknown): boolean;\n    presentCall?(args: unknown): ToolCallView | undefined;\n    presentResult?(args: unknown, result: ToolResult): ToolResultView | undefined;\n}',
+    declaration: 'export interface ToolDefinition extends ToolSchema {\n    readonly output: ToolOutputDefinition;\n    readonly version: number;\n    readonly risk: ToolRisk;\n    readonly permissions: readonly RemoteCapabilityPermission[];\n    readonly supportsLite: boolean;\n    readonly supportsRemote: boolean;\n    execute(args: unknown, exec: ToolRunContext): Promise<unknown>;\n    finalizeContent?(exec: Readonly<ToolExecution>, result: Readonly<ToolExecutionResult>): ContentBlock[] | undefined;\n    timeoutMs?: number;\n    isConcurrencySafe?(args: unknown): boolean;\n    presentCall?(args: unknown): ToolCallView | undefined;\n    presentResult?(args: unknown, result: ToolResult): ToolResultView | undefined;\n}',
+  },
+  {
+    name: 'ToolDescriptor',
+    declaration: 'export interface ToolDescriptor {\n    readonly id: string;\n    readonly version: number;\n    readonly risk: ToolRisk;\n    readonly permissions: readonly RemoteCapabilityPermission[];\n    readonly supportsLite: boolean;\n    readonly supportsRemote: boolean;\n}',
+  },
+  {
+    name: 'ToolDescriptorList',
+    declaration: 'export interface ToolDescriptorList {\n    readonly tools: readonly ToolDescriptor[];\n}',
   },
   {
     name: 'ToolDispatchExecution',
@@ -6556,12 +6576,16 @@ export const TYPE_API: readonly TypeApiEntry[] = [
     declaration: 'export type ToolResultView = GenericResultView | TerminalResultView | DiffResultView | SearchResultView | ReadResultView | WebResultView;',
   },
   {
+    name: 'ToolRisk',
+    declaration: 'export type ToolRisk = \'low\' | \'moderate\' | \'high\' | \'critical\';',
+  },
+  {
     name: 'ToolRunContext',
     declaration: 'export interface ToolRunContext extends ToolExecution {\n    deferContext(context: UserMessage): void;\n    concludeTurn(): void;\n}',
   },
   {
     name: 'ToolRuntime',
-    declaration: 'export class ToolRuntime extends Service {\n    static inject;\n    static Config: z<Config>;\n    readonly [TOOL_RUNTIME_SCHEDULER]: ToolRuntimeScheduler;\n    constructor(ctx: Context, config: Config = {});\n    presentAs(mode: ToolPresentationMode): () => void;\n    register(definition: ToolDefinition): () => void;\n    restrict(filter: ToolRestriction): () => void;\n    guard(guard: ToolGuard): () => void;\n    get(name: string, scope?: ScopeKey): ToolDefinition | undefined;\n    schemas(scope?: ScopeKey): ToolSchema[];\n    executionMode(exec: ToolExecutionInput): ToolExecutionMode;\n    async execute(exec: ToolExecutionInput): Promise<ToolExecutionResult>;\n}',
+    declaration: 'export class ToolRuntime extends TypertRemoteService {\n    static inject;\n    static Config: z<Config>;\n    readonly [TOOL_RUNTIME_SCHEDULER]: ToolRuntimeScheduler;\n    constructor(ctx: Context, config: Config = {});\n    presentAs(mode: ToolPresentationMode): () => void;\n    register(definition: ToolDefinition): () => void;\n    restrict(filter: ToolRestriction): () => void;\n    guard(guard: ToolGuard): () => void;\n    get(name: string, scope?: ScopeKey): ToolDefinition | undefined;\n    schemas(scope?: ScopeKey): ToolSchema[];\n    descriptors(scope?: ScopeKey): readonly ToolDescriptor[];\n    @Remote\n    list(): ToolDescriptorList;\n    executionMode(exec: ToolExecutionInput): ToolExecutionMode;\n    async execute(exec: ToolExecutionInput): Promise<ToolExecutionResult>;\n}',
   },
   {
     name: 'ToolRuntimeScheduler',

@@ -567,6 +567,14 @@ export function sandboxDefineTool(options: unknown): ToolDefinition {
   const erasedDefineTool = defineTool as unknown as (definition: unknown) => ToolDefinition
   const tool = erasedDefineTool({
     ...options,
+    // Host-only declaration (specification §32), set by the guard and never
+    // accepted from the sandbox: dynamic package tools execute guest code on
+    // the Host, so they carry the shell-class tier and no Lite execution.
+    version: 1,
+    risk: 'high',
+    permissions: [],
+    supportsLite: false,
+    supportsRemote: true,
     parameters: normalized.spec,
     output: {
       schema,

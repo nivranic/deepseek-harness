@@ -44,6 +44,11 @@ ctx.llm.registerAdapter(['crash'], new CrashAdapter())
 ctx.tools.register({
   name: 'crash_tool',
   description: 'records an external effect and never returns',
+  version: 1,
+  risk: 'low',
+  permissions: [],
+  supportsLite: false,
+  supportsRemote: false,
   parameters: {},
   output: { schema: { type: 'null' }, render: () => [] },
   async execute() {

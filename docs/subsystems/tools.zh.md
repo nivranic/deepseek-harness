@@ -8,7 +8,7 @@
 
 ## `ToolDefinition` — 一个已注册的工具
 
-由一个 `ToolSchema`（面向模型的字段）、必需的规范输出声明、`execute` 函数、仅供宿主使用的调度器元数据、可选的最终内容回调和可选 UI 展示函数组成。注册表持有这些定义，循环通过它们分派调用。注册表的 `schemas()` 通过显式允许列表构建面向模型的 `ToolSchema[]`；`output`/`execute`/`finalizeContent`/`timeoutMs`/`isConcurrencySafe`/`presentCall`/`presentResult` 绝不能泄漏到模型请求中。
+由一个 `ToolSchema`（面向模型的字段）、必需的规范输出声明、`execute` 函数、仅供宿主使用的调度器元数据、可选的最终内容回调、可选 UI 展示函数，以及五个仅供宿主使用的声明字段（规范 §32：`version`、`risk`、`permissions`、`supportsLite`、`supportsRemote`）组成。注册表持有这些定义，循环通过它们分派调用。注册表的 `schemas()` 通过显式允许列表构建面向模型的 `ToolSchema[]`；`output`/`execute`/`finalizeContent`/`timeoutMs`/`isConcurrencySafe`/`presentCall`/`presentResult` 与五个声明字段绝不能泄漏到模型请求中；声明字段改投影为面向 Remote 目录客户端的 `ToolDescriptor`。
 
 ```ts type-equiv
 /** Tool-owned canonical output contract used after the body returns a JSON value. */
@@ -23,10 +23,39 @@ interface ToolOutputDefinition {
 ```
 
 ```ts type-equiv
-/** A registered tool: its schema plus the execution function. */
+/**
+ * A registered tool: its schema plus the execution function. The five
+ * host-only declaration fields (`version`, `risk`, `permissions`,
+ * `supportsLite`, `supportsRemote`) never reach the model wire — `schemas()`
+ * allowlists only name/description/parameters — and never enter the session
+ * log; they project onto {@link ToolDescriptor} for Remote catalog clients.
+ */
 interface ToolDefinition extends ToolSchema {
   /** Mandatory canonical output declaration. */
   readonly output: ToolOutputDefinition
+  /**
+   * Descriptor schema version of this tool's host-only declaration
+   * (specification §32), a positive integer starting at 1; it advances only
+   * when the declaration semantics change, never for tool-behavior fixes.
+   */
+  readonly version: number
+  /** Host-assessed risk tier (specification §32) from the tool's side-effect surface; clients display it, never re-derive it. */
+  readonly risk: ToolRisk
+  /**
+   * Extra Remote permissions a device-identified caller needs to COMPLETE one
+   * call of this tool (specification §32), drawn from the Remote capability
+   * permission vocabulary; empty means the call claims nothing beyond the
+   * permission that dispatched the driving prompt.
+   */
+  readonly permissions: readonly RemoteCapabilityPermission[]
+  /**
+   * Whether a Lite companion may execute this tool locally instead of handing
+   * back to the full runtime (specification §32): the Host declares it, a
+   * client never guesses. False keeps the handoff path.
+   */
+  readonly supportsLite: boolean
+  /** Whether this tool is reachable and Host-executed when a session runs on the Remote face. */
+  readonly supportsRemote: boolean
   /**
    * Run one accepted call and return only its canonical lossless-JSON value.
    * Async work must observe or forward `exec.signal` and settle only after its
@@ -94,6 +123,12 @@ interface ToolDefinition extends ToolSchema {
 ```
 
 `execute` 接收 `args: unknown`——原始的 `ToolDefinition` 自行校验输入。第一方工具不需要手写校验；它们使用 `defineTool`，由后者代为校验并收窄参数类型、根据 `output.schema` 推导函数体返回类型，并为两个输出投影器提供类型约束。`finalizeContent` 特意接收不可变的执行对象而非类型化参数，因为无效输入和外层流水线失败也会到达该回调；它可以施加工具自有的内容限制，同时保留 `isError`、规范值、结构化错误身份、延迟上下文与展示元数据。
+
+## 仅供宿主使用的工具声明与描述符投影
+
+规范 §32 为每个工具定义五个由宿主持有的声明字段：`version`（描述符 schema 版本，从 1 起的正整数）、`risk`（`low`/`moderate`/`high`/`critical` 四档——与 §37 中命令使用的档位相同——依据工具的副作用面定档）、`permissions`（设备身份的调用方完成一次调用所需的额外 Remote 能力权限；为空表示除驱动提示自带的权限外不再主张任何权限）、`supportsLite`（Lite companion 能否在本地执行该工具而无需交回完整运行时）以及 `supportsRemote`（该工具在 Remote 面是否可触达并由宿主执行）。注册边界会以 `TypeError` 拒绝未知的 risk 档位、非正的 `version`、Remote 词表之外的权限值或非布尔的支撑标志，因此描述符永远不会携带未校验的值。
+
+注册表通过 `descriptors(scope?)` 与 `tools/list` Remote 操作（`tool.catalog.v1`，view 级：目录可见性不授予任何执行权）把这些字段投影为 `ToolDescriptor`（`id` 即注册的工具名）。该应答文档与入库的生成投影 [`packages/core/tools/tool-descriptors.json`](../../packages/core/tools/tool-descriptors.json) 模式完全相同，后者由 `pnpm run gen-tool-catalog` 在与工具目录同一次启动收割中写出。不经过 `defineTool` 的生产者同样要声明这些字段：`run_code` 传输、MCP 桥和沙箱注册器都设置各自的桥接持有值，绝不从不可信来源采纳声明，因此动态注册的工具会以生产者注册的值出现在 `tools/list` 中。
 
 ## 统一的 JSON 值 schema DSL
 
@@ -544,6 +579,29 @@ get(name: string, scope?: ScopeKey): ToolDefinition | undefined
  * @returns one deep-cloned schema per visible tool.
  */
 schemas(scope?: ScopeKey): ToolSchema[]
+
+/**
+ * Project visible definitions onto their host-only descriptor fields
+ * (specification §32): identity, declaration version, risk tier, claimed
+ * permissions, and the two runtime-support flags. Dynamically registered
+ * tools (MCP bridge, sandbox packages) appear with the values their
+ * producers registered — there is no separate descriptor source. Like
+ * `schemas()`, this never exposes model-face projections or execution
+ * callbacks, and it adds none of the model wire's fields.
+ * @param scope - the viewing scope (the agent); omitted = the global view.
+ * @returns id-sorted frozen descriptors of every tool visible to that scope.
+ */
+descriptors(scope?: ScopeKey): readonly ToolDescriptor[]
+
+/**
+ * Live Remote tool catalog (specification §32): the globally visible
+ * descriptors as one document schema-identical to the generated
+ * `packages/core/tools/tool-descriptors.json` projection. Catalog
+ * visibility authorizes nothing — tool execution still rides the driving
+ * prompt's permission and the full guarded pipeline.
+ * @returns the descriptor document for the global view.
+ */
+@Remote list(): ToolDescriptorList
 
 /**
  * Classify a pending call through the caller's visible tool definition. Only

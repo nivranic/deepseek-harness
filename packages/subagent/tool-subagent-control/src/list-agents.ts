@@ -104,6 +104,11 @@ export function apply(ctx: Context): void {
       + 'walks the whole tree below you in stable pre-order, annotating each entry with its durable direct-parent '
       + 'session id and depth. You may use `send_message` only for depth-1 entries; deeper entries are '
       + 'candidates for `interrupt_agent` only.',
+    version: 1,
+    risk: 'low',
+    permissions: [],
+    supportsLite: false,
+    supportsRemote: true,
     parameters: {
       scope: {
         type: 'string',

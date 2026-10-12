@@ -27,6 +27,11 @@ async function setup() {
 const echoTool = defineTool({
   name: 'echo',
   description: 'echo arguments back',
+  version: 1,
+  risk: 'low',
+  permissions: [],
+  supportsLite: false,
+  supportsRemote: false,
   parameters: { text: { type: 'string' } },
   output: {
     schema: { type: 'string' },
@@ -243,6 +248,11 @@ describe('ToolRuntime', () => {
     ctx.tools.register(defineTool({
       name: 'lossy-output',
       description: 'lossy',
+      version: 1,
+      risk: 'low',
+      permissions: [],
+      supportsLite: false,
+      supportsRemote: false,
       parameters: {},
       output: { schema: { type: 'json' }, render: () => [] },
       execute: async () => (() => undefined) as unknown as JsonValue,
@@ -250,6 +260,11 @@ describe('ToolRuntime', () => {
     ctx.tools.register(defineTool({
       name: 'wrong-output',
       description: 'wrong schema',
+      version: 1,
+      risk: 'low',
+      permissions: [],
+      supportsLite: false,
+      supportsRemote: false,
       parameters: {},
       output: { schema: { type: 'string' }, render: () => [] },
       execute: async () => 42 as unknown as string,
@@ -272,6 +287,11 @@ describe('ToolRuntime', () => {
     ctx.tools.register(defineTool({
       name: 'hostile-body',
       description: 'hostile body',
+      version: 1,
+      risk: 'low',
+      permissions: [],
+      supportsLite: false,
+      supportsRemote: false,
       parameters: {},
       output: { schema: { type: 'json' }, render: () => [] },
       execute: async () => hostile as JsonValue,
@@ -290,6 +310,11 @@ describe('ToolRuntime', () => {
     ctx.tools.register(defineTool({
       name: `throwing-${projector}`,
       description: projector,
+      version: 1,
+      risk: 'low',
+      permissions: [],
+      supportsLite: false,
+      supportsRemote: false,
       parameters: {},
       output: {
         schema: { type: 'string' },
@@ -322,6 +347,11 @@ describe('ToolRuntime', () => {
     ctx.tools.register(defineTool({
       name: `hostile-${projector}`,
       description: projector,
+      version: 1,
+      risk: 'low',
+      permissions: [],
+      supportsLite: false,
+      supportsRemote: false,
       parameters: {},
       output: {
         schema: { type: 'string' },
@@ -348,6 +378,11 @@ describe('ToolRuntime', () => {
     ctx.tools.register(defineTool({
       name: 'projected',
       description: 'projected',
+      version: 1,
+      risk: 'low',
+      permissions: [],
+      supportsLite: false,
+      supportsRemote: false,
       parameters: {},
       output: {
         schema: {
@@ -1814,6 +1849,11 @@ describe('ToolRuntime', () => {
     ctx.tools.register(defineTool({
       name: 'object-output',
       description: 'Return one closed object.',
+      version: 1,
+      risk: 'low',
+      permissions: [],
+      supportsLite: false,
+      supportsRemote: false,
       parameters: {},
       output: {
         schema: {
@@ -2000,6 +2040,66 @@ describe('ToolRuntime', () => {
       .toThrow('timeoutMs must be a positive finite number')
   })
 
+  it('rejects an invalid host-only declaration at the registration boundary (§32)', async () => {
+    const ctx = await setup()
+    expect(() => ctx.tools.register({ ...echoTool, name: 'bad-risk', risk: 'extreme' as ToolDefinition['risk'] }))
+      .toThrow('tool "bad-risk" risk must be one of low, moderate, high, critical')
+    expect(() => ctx.tools.register({ ...echoTool, name: 'bad-version', version: 0 }))
+      .toThrow('tool "bad-version" version must be a positive safe integer')
+    expect(() => ctx.tools.register({ ...echoTool, name: 'bad-permission', permissions: ['root.all'] as unknown as ToolDefinition['permissions'] }))
+      .toThrow('tool "bad-permission" permissions must be an array drawn from view, prompt.send, question.respond, approval.respond, device.admin')
+    expect(() => ctx.tools.register({ ...echoTool, name: 'bad-permission-type', permissions: 'view' as unknown as ToolDefinition['permissions'] }))
+      .toThrow('tool "bad-permission-type" permissions must be an array drawn from view, prompt.send, question.respond, approval.respond, device.admin')
+    expect(() => ctx.tools.register({ ...echoTool, name: 'bad-lite', supportsLite: 'yes' as unknown as boolean }))
+      .toThrow('tool "bad-lite" supportsLite must be a boolean')
+    expect(() => ctx.tools.register({ ...echoTool, name: 'bad-remote', supportsRemote: 1 as unknown as boolean }))
+      .toThrow('tool "bad-remote" supportsRemote must be a boolean')
+  })
+
+  it('projects visible tools onto sorted frozen descriptors without model-face fields (§32)', async () => {
+    const ctx = await setup()
+    ctx.tools.register(echoTool)
+    ctx.tools.register(defineTool({
+      name: 'declared',
+      description: 'declares a full block',
+      version: 1,
+      risk: 'high',
+      permissions: ['question.respond'],
+      supportsLite: true,
+      supportsRemote: true,
+      parameters: {},
+      output: { schema: { type: 'null' }, render: () => [] },
+      async execute() { return null },
+    }))
+    const descriptors = ctx.tools.descriptors()
+    expect(descriptors.map(descriptor => descriptor.id)).toEqual(['declared', 'echo'])
+    expect(descriptors[0]).toEqual({
+      id: 'declared', version: 1, risk: 'high', permissions: ['question.respond'], supportsLite: true, supportsRemote: true,
+    })
+    expect(Object.keys(descriptors[0] as object)).toEqual(['id', 'version', 'risk', 'permissions', 'supportsLite', 'supportsRemote'])
+    expect(Object.isFrozen(descriptors)).toBe(true)
+    expect(Object.isFrozen(descriptors[0])).toBe(true)
+  })
+
+  it('serves the same descriptor document through the tools/list Remote operation (§32)', async () => {
+    const ctx = await setup()
+    ctx.tools.register(echoTool)
+    expect(ctx.tools.list()).toEqual({ tools: [...ctx.tools.descriptors()] })
+    expect(ctx.tools.typertRemote.namespace).toBe('tools')
+    expect(ctx.tools.typertRemote.capabilities).toEqual([{ id: 'tool.catalog.v1', methods: ['list'], requiredPermission: 'view' }])
+  })
+
+  it('keeps the test fixture declaration explicit and side-effect-free', () => {
+    const fixture = defineContentToolFixture({
+      name: 'fixture', description: 'fixture', parameters: {},
+      async execute() { return [] },
+    })
+    expect({
+      version: fixture.version, risk: fixture.risk, permissions: fixture.permissions,
+      supportsLite: fixture.supportsLite, supportsRemote: fixture.supportsRemote,
+    }).toEqual({ version: 1, risk: 'low', permissions: [], supportsLite: false, supportsRemote: false })
+  })
+
   it('rejects duplicate names and unregisters on fiber dispose (HMR safety)', async () => {
     const ctx = await setup()
     ctx.tools.register(echoTool)
@@ -2130,6 +2230,11 @@ describe('defineTool / schema DSL', () => {
     const tool = defineTool({
       name: 'typed-echo',
       description: 'A typed echo tool',
+      version: 1,
+      risk: 'low',
+      permissions: [],
+      supportsLite: false,
+      supportsRemote: false,
       parameters: {
         text: { type: 'string', required: true },
         uppercase: { type: 'boolean' },
@@ -2176,6 +2281,11 @@ describe('defineTool / schema DSL', () => {
     const tool = defineTool({
       name: 'type-check',
       description: '',
+      version: 1,
+      risk: 'low',
+      permissions: [],
+      supportsLite: false,
+      supportsRemote: false,
       parameters: { a: { type: 'string' as const, required: true as const }, b: { type: 'number' as const } },
       output: { schema: { type: 'string' }, render: () => [] },
       async execute(args) {
@@ -2192,6 +2302,11 @@ describe('defineTool / schema DSL', () => {
     ctx.tools.register(defineTool({
       name: 'roundtrip',
       description: 'Round-trip test',
+      version: 1,
+      risk: 'low',
+      permissions: [],
+      supportsLite: false,
+      supportsRemote: false,
       parameters: {
         req: { type: 'string', required: true },
         opt: { type: 'number', description: 'Optional number' },
@@ -2233,6 +2348,11 @@ describe('defineTool / schema DSL', () => {
     ctx.tools.register({
       name: 'raw-tool',
       description: 'Raw JSON Schema tool (like an MCP adapter would register)',
+      version: 1,
+      risk: 'low',
+      permissions: [],
+      supportsLite: false,
+      supportsRemote: false,
       parameters: {
         type: 'object',
         properties: { path: { type: 'string' } },
@@ -2692,6 +2812,11 @@ describe('defineTool validation (the runtime-validation Agent Note, part 1)', ()
     ctx.tools.register({
       name: 'raw',
       description: 'raw tool',
+      version: 1,
+      risk: 'low',
+      permissions: [],
+      supportsLite: false,
+      supportsRemote: false,
       parameters: { type: 'object', properties: { path: { type: 'string' } }, required: ['path'] },
       output: {
         schema: { type: 'string' },
@@ -2745,6 +2870,11 @@ describe('defineTool presentation (presentCall / presentResult)', () => {
     defineTool({
       name: 'literal-args',
       description: 'literal arguments',
+      version: 1,
+      risk: 'low',
+      permissions: [],
+      supportsLite: false,
+      supportsRemote: false,
       parameters: {
         mode: { type: 'string', enum: ['read', 'write'], required: true },
         attempt: { type: 'integer', const: 1 },

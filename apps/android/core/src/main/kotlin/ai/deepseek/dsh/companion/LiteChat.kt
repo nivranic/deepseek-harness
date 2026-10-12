@@ -30,6 +30,7 @@ class LiteChatViewModel(
     execute: LiteToolExecuting,
     private val store: LiteSessionStoring? = null,
     private val artifacts: LiteArtifactStoring? = null,
+    toolCatalog: LiteToolCatalog = LiteToolCatalog.FALLBACK,
 ) {
     /** The durable journal the turn outcomes land in. */
     val session: LiteSession = LiteSession(sessionId)
@@ -45,7 +46,8 @@ class LiteChatViewModel(
     val liveState: SharedFlow<LiteDomainState> = _liveState
 
     /** The loop driver the surface submits prompts through. */
-    val driver: LiteLoopDriver = LiteLoopDriver(scope, provider, onEventApplied = { cut -> _liveState.tryEmit(cut) }, execute = execute)
+    val driver: LiteLoopDriver = LiteLoopDriver(scope, provider,
+        onEventApplied = { cut -> _liveState.tryEmit(cut) }, execute = execute, toolCatalog = toolCatalog)
 
     /** The capability the last turn handed off on, when it did. */
     var lastHandoff: String? = null

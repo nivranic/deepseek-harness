@@ -1,5 +1,7 @@
 package ai.deepseek.dsh.companion
 
+import ai.deepseek.dsh.contract.ToolDescriptor
+import ai.deepseek.dsh.contract.ToolRisk
 import kotlinx.coroutines.CoroutineScope
 import kotlinx.coroutines.flow.toList
 import kotlinx.coroutines.launch
@@ -56,6 +58,29 @@ class LiteChatViewModelTest {
             execute = { _, _, _ -> LiteToolOutcome(ok = false, text = "") },
         )
         model.send("跑测试")
+        advanceUntilIdle()
+
+        assertEquals(LITE_REQUIRES_FULL_RUNTIME, model.lastHandoff)
+        assertEquals(LITE_REQUIRES_FULL_RUNTIME, model.state.pendingHandoff)
+    }
+
+    @Test
+    fun aDeclaredCatalogDrivesTheSurfaceHandoff() = runTest {
+        val provider = ScriptedLiteProvider(
+            mapOf("算一下" to listOf(LiteStreamChunk.ToolCall("c1", "calculator", "1+1"))),
+        )
+        val model = LiteChatViewModel(
+            scope = CoroutineScope(UnconfinedTestDispatcher(testScheduler)),
+            sessionId = "ui5",
+            provider = provider,
+            execute = { _, _, _ -> LiteToolOutcome(ok = true, text = "2") },
+            toolCatalog = LiteToolCatalog.fromHostDescriptors(
+                listOf(
+                    ToolDescriptor("calculator", 1, ToolRisk.LOW, emptyList(), supportsLite = false, supportsRemote = true),
+                ),
+            ),
+        )
+        model.send("算一下")
         advanceUntilIdle()
 
         assertEquals(LITE_REQUIRES_FULL_RUNTIME, model.lastHandoff)

@@ -1,0 +1,66 @@
+{
+  "status": "PASS",
+  "scope": "Report bindings and audit for the lite-tool increment: the §32 Lite tool declarations (the P2 frontier's first item, with supportsLite/supportsRemote at zero implementations repo-wide) resting on the design that the tool registry becomes the single declaration authority — ToolDefinition registration requires version (a positive integer from 1), risk (the §37 four-tier vocabulary), permissions (the existing Remote permission vocabulary, empty meaning no claim), supportsLite and supportsRemote, failing loud at the registration boundary on out-of-vocabulary risk, non-positive versions, unknown permission strings and non-booleans (the §37 normalizeDefinition precedent) while the model face and session log carry zero new surface and the SDK faces stay unchanged; twenty-six packages' sixty-three production defineTool sites, two preset fixtures, the run_code transport and the dynamic producers (the MCP bridge self-declaring high/false/true for untrusted servers, the sandbox guard covering untrusted fields) declare every tool explicitly with the per-tool decision table at .artifacts/lite-tool-decisions.md (supportsLite only web_search, supportsRemote all true, twelve high-tier execution tools); the broadcast projects descriptors() through the new tools namespace (tool.catalog.v1 capability, view permission) following the §37 commands chain into the dsh-api-remotes admission table and the host/describe aggregation with the descriptors carrying no parameters/description, and gen-tool-catalog writes the machine-readable packages/core/tools/tool-descriptors.json (--check over both files, idempotence measured, fifty-eight tools); Android consumes the declarations through the :contract ToolDescriptor mirror (hand-written JsonElement parsing failing loud, copyToolDescriptors following copyContractSchema), the :core LiteToolCatalog dual-source enumeration (HOST_DECLARED/BUNDLED_FALLBACK, the fallback byte-identical with the old table; a declared supportsLite=false hands back to full runtime, an undeclared name hands back without guessing — replacing the silent drop), NativeGatewayClient pulling tools/list only behind the advertised capability (absence the negotiated-subset normal path, a bad payload BadWire) and the TOOL_CATALOG enum with the app HostCapabilityDetails exhaustive arm; the mirror-parity ruling froze the intersection at web_search (url_fetch and five other names being Android's local vocabulary — the intersection's supportsLite agreement plus the frozen name list, the naming alignment left open); the drive-by baseline repair released admitHostOperation on the first advertised declarer (the §30 dual-declaration prompt stock mismatch closed) with a dedicated case and the bilingual README; the ledger gained the §31/32/33 split (the §32 remaining rewritten at 496 chars with five candidate-evidence entries led by tool-descriptors.json) with the note trio 2026-10-12-lite-tool-declarations paired ahead of the doc-sync round (.artifacts/lite-tool-note-pairing.log, the pairing re-recorded across three rounds after the five-section rewrite); the gates: typecheck EXIT 0 in its own chained log (build:lib:host then tsc -b tsconfig.client.json) and lint clean in its own chained log (Found 0 warnings and 0 errors, Finished in 65.8s on 3857 files — one file up from the gen-49 tree because capabilities.ts is a new tracked source, after the one no-non-null-assertion repair), the four-directory vitest round 27 files 826 passed 0 failed 28 skipped at .artifacts/lite-tool-vitest-final.log with the session/prompt baseline red repaired to 119/119 at .artifacts/lite-tool-int-admission.log, the cross-lane parity round at .artifacts/lite-tool-int-parity2.log (:contract:test warm at its standing 19-test aggregate, :core:test executing 489 tests with the previously agreed mirror skip actually run), doc-quick 17 gates green in 37.80s and doc-sync 36 passed 0 failed 0 skipped in 131.68s (the post-repair green form — the three stale gates, doc graphs, config catalog and persistence catalog, regenerated with the zh line-number mirrors after the backtick pitfall bit twice, and the pairing re-recorded), traceability 6/6 (TAP, the §31/32/33 split with §32 at 496 chars / 5 evidence entries), gate0 PASS in both forms (1938 paths / 129 components / 81 sections — unchanged from the prior generation), and the serial double audit round green at 87 files / 1073 tests on both passes over gen-40's curated lineage at its gen-40 name (nothing this increment touches is a lineage member); the android acceptance is recorded honestly: the scanner-env gradle round came back BUILD SUCCESSFUL in 29s with 71 actionable tasks of which 15 executed and 56 up-to-date — the real Kotlin changes cold-executing (:app:compileDebugKotlin, :app:packageDebug and :app:assembleDebug executed rebuilding the debug APK; :app:assembleDebugAndroidTest UP-TO-DATE; :core:compileKotlin and :core:test UP-TO-DATE with the core module compiled in the parity round just before) — with the androidTest APK IDENTICAL against the durable-receipts record's sealed bytes (bbe7a3af cross-checked live) and the debug APK DRIFT at 25f73d1d… (the honest native-change signal, cross-checked live, this generation's capture becoming the new baseline) and the core XML aggregate reading 78 suites / 489 tests including the new mirror-parity suite (.artifacts/lite-tool-core-results.json); the byte-proof follows the measured dual form (.artifacts/lite-tool-apk-bytes.log, prior apk records: 2), and the prepare oracle derived the measured one hundred sixteen replaced prior build outputs — one hundred thirteen of them old-stable bytes resolving through the Option A newest-history archive fallback (measured against the prior record's historical chain; the android bytes mostly gen-48-era builds, no second-order drift among them) and the three adjudicated second-order keys (the gen-49-created tool-cordis lib bytes this generation's api-catalog regeneration destroyed, matching no archive on the 147-record chain — installed per the escalated ruling following the dwfq-a83d7bb8-1 precedent as the durableReceiptsReplacedBuildOutputs exactly-three exemption on the demoted durable-receipts block, rebuilt by the advance on any voided rerun), so the generator gains no lite-tool set at all (no new cumulative ReplacedBuildOutputs or SupersededSources collections beyond that adjudicated exemption, the gen-32 desktopPackageReplacedBuildOutputs set staying exactly six, the gen-33 tornRepairIntentReplacedBuildOutputs set staying exactly three, and the gen-48 dwfq-a83d7bb8-1 clientMutationReplacedBuildOutputs exemption staying exactly two at the generator head as sealed history); the naming alignment, the app-layer runtime wiring, the Lite tool permission policy, the §33 composition, the multi-release interop matrix, the relayMetadata blockage on section 23, the section 56 materials, the admitEncodedImages manual ruling, the client tsdown CI coverage gap and the Linux/lib forms all stay open — so no whole-section PASS is granted; full Upstream-First objective remains in progress",
+  "gate0": {
+    "validation": "PASS",
+    "gate0": "PASS",
+    "paths": 1938,
+    "components": 129,
+    "specificationCoverage": {
+      "status": "PASS",
+      "numberedSections": 81,
+      "nonEmptySourceLines": 1983,
+      "acceptanceProven": false
+    }
+  },
+  "sourceRecord": {
+    "path": "artifacts/upstream-first/lite-tool-source.json",
+    "sha256": "0e00dd61fb5be9e908b3552bbba8d1c0431acc59cc6cbe603d8199e65607497c"
+  },
+  "generator": {
+    "path": "artifacts/upstream-first/write-reports.mjs",
+    "sha256": "c52375bdd08bd65590a6824eecbd1078e7dd1fb2c231c95f89c4a5b5191be0f4"
+  },
+  "binding": {
+    "path": "artifacts/upstream-first/lite-tool-binding.json",
+    "sha256": "1e29c82173602174503a215e1dc6e0c811b0cd299b63bb345155ffe659a57523"
+  },
+  "helpers": [
+    {
+      "path": ".artifacts/advance-lite-tool-reports.mjs",
+      "sha256": "5520a65492b4d3cbb09b6b259a42a492c769f2e7a1aa82aa976b141268c6ca3f"
+    },
+    {
+      "path": ".artifacts/capture-lite-tool-validation.mjs",
+      "sha256": "305f1c8a4db26066632bfa7ec4482c68423a9c10a5bc523a02c1a2848711c3cf"
+    }
+  ],
+  "reports": [
+    {
+      "path": "IMPLEMENTATION_STATUS.md",
+      "sha256": "aacd59502218985cbb4480cfe7ff23582083478bf766b223b0928859854fb12c"
+    },
+    {
+      "path": "artifacts/upstream-first/evidence.json",
+      "sha256": "777e48606ee2eb659c4bf6c3110f0ed45d8fd27be6d2cafa0fc5cb5b4f8e2077"
+    }
+  ],
+  "checks": [
+    {
+      "path": ".artifacts/lite-tool-binding.log",
+      "sha256": "dd7729243c0607195cc387890df8113fb512b538c676f43ca02c7b7a88300002"
+    },
+    {
+      "path": ".artifacts/lite-tool-audit-final.log",
+      "sha256": "6261f91a9037ab97ee1d44efe95946179bb6ce5c72013d7f17753bb80edb10a4"
+    },
+    {
+      "path": ".artifacts/lite-tool-gate0-final.log",
+      "sha256": "7e00efd82bd2a2b91b03ca80537dcc4af46cd09eb318ff58520cb2d7d7d8a48a"
+    },
+    {
+      "path": ".artifacts/lite-tool-report-generation.log",
+      "sha256": "6616630463c8eb3ffd69d218e03ffc25be7852a2f9e639de6ae42558801b921d"
+    }
+  ]
+}

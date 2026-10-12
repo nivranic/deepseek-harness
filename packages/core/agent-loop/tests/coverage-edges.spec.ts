@@ -374,6 +374,11 @@ describe('tool result meta persistence', () => {
     ctx.tools.register(defineTool({
       name: 'meta-tool',
       description: 'carries presentation meta',
+      version: 1,
+      risk: 'low',
+      permissions: [],
+      supportsLite: false,
+      supportsRemote: false,
       parameters: {},
       output: {
         schema: { type: 'string' },

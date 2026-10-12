@@ -11,7 +11,7 @@ const CONTENT_VALUE_SCHEMA = { type: 'array', items: { type: 'json' } } as const
 /** Options for a fixture whose canonical value is its rendered content array. */
 export type ContentToolFixtureOptions<S extends ParameterSchemaSpec> = Omit<
   DefineToolOptions<S, typeof CONTENT_VALUE_SCHEMA>,
-  'output' | 'execute'
+  'output' | 'execute' | 'version' | 'risk' | 'permissions' | 'supportsLite' | 'supportsRemote'
 > & {
   /** Produce the fixture's content blocks as its canonical test value. */
   execute(args: import('./schema.ts').InferArgs<S>, exec: ToolRunContext): Promise<ContentBlock[]>
@@ -20,6 +20,10 @@ export type ContentToolFixtureOptions<S extends ParameterSchemaSpec> = Omit<
 /**
  * Define a test fixture that deliberately uses its content blocks as the
  * canonical JSON value. Product tools must declare domain-owned DTOs instead.
+ * Every fixture carries one explicit host-only declaration block — a
+ * side-effect-free test double: version 1, `low` risk, no permission claims,
+ * no Lite or Remote support — so the five declaration fields stay omitted at
+ * every fixture call site.
  * @param options - ordinary fixture fields plus a content-producing body.
  * @returns a registry-ready tool with an explicit JSON-array output contract.
  * @internal
@@ -31,6 +35,11 @@ export function defineContentToolFixture<const S extends ParameterSchemaSpec>(
   const execute = options.execute
   return defineTool({
     ...options,
+    version: 1,
+    risk: 'low',
+    permissions: [],
+    supportsLite: false,
+    supportsRemote: false,
     output: {
       schema: CONTENT_VALUE_SCHEMA,
       render: (_args, value) => value as unknown as ContentBlock[],

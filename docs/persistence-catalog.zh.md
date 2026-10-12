@@ -467,7 +467,7 @@ export type SessionEvent<T extends SessionEventType = SessionEventType> = {
 'feedback/record': FeedbackRecord
 ```
 
-来源：[`packages/feedback/command-feedback/src/types.ts:40`](../packages/feedback/command-feedback/src/types.ts)
+来源：[`packages/feedback/command-feedback/src/types.ts:81`](../packages/feedback/command-feedback/src/types.ts)
 
 ### `goal/*`
 
@@ -1004,7 +1004,7 @@ export type SessionEvent<T extends SessionEventType = SessionEventType> = {
 'tool/ptc-dispatch': PtcDispatchEventData
 ```
 
-来源：[`packages/core/tools/src/types.ts:56`](../packages/core/tools/src/types.ts)
+来源：[`packages/core/tools/src/types.ts:97`](../packages/core/tools/src/types.ts)
 
 <a id="toolptc-dispatch-start--log-only"></a>
 
@@ -1027,7 +1027,7 @@ export type SessionEvent<T extends SessionEventType = SessionEventType> = {
 'tool/ptc-dispatch-start': PtcDispatchStartEventData
 ```
 
-来源：[`packages/core/tools/src/types.ts:40`](../packages/core/tools/src/types.ts)
+来源：[`packages/core/tools/src/types.ts:81`](../packages/core/tools/src/types.ts)
 
 <a id="toolresult--surface"></a>
 

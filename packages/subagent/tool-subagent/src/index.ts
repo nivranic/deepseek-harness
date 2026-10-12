@@ -386,6 +386,11 @@ export function apply(ctx: Context, config: Config, session?: Session): void {
             ? ' This tool runs in the background by default, immediately returns a durable subagent id, and keeps the child conversation available for later turns. When that run settles, the runtime sends the parent a notice containing its outcome and any final assistant message; `send_message` steers the child\'s nearest step while it is running and starts a turn while it is idle. Set `run_in_background: false` only when your next action depends on receiving the result.'
             : ' This call waits for the result by default. Set `run_in_background: true` to return a job id; collect with `job_output` and stop with `job_kill`.'
           : ' This call waits for the subagent and returns its result.') + choiceDescription,
+        version: 1,
+        risk: 'high',
+        permissions: [],
+        supportsLite: false,
+        supportsRemote: true,
         parameters: {
           description: {
             type: 'string',

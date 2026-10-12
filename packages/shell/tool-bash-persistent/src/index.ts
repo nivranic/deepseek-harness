@@ -404,6 +404,11 @@ function registerPersistentBash(ctx: Context, config: ResolvedConfig): void {
   ctx.tools.register(defineTool({
     name: 'bash',
     description: config.description,
+    version: 1,
+    risk: 'high',
+    permissions: [],
+    supportsLite: false,
+    supportsRemote: true,
     parameters: {
       command: {
         type: 'string',

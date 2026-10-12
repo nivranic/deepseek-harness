@@ -7,10 +7,13 @@ import {
   assertManifestComplete,
   assertToolsHarvested,
   collectToolCatalog,
+  mergeToolDescriptors,
   render,
+  renderToolDescriptors,
   type ToolCatalog,
   type ToolPackage,
 } from '../../../../scripts/gen-tool-catalog.ts'
+import type { ToolDescriptor } from '@deepseek-ai/dsh-tools'
 
 /** JSON Schema shape enough to reach the values AST extraction can't. */
 interface JsonSchema {
@@ -91,6 +94,29 @@ describe('gen-tool-catalog collectToolCatalog', () => {
     expect(subagent?.schemas.map(s => s.name)).toEqual(['list_subagent_models', 'subagent'])
     expect(subagent?.note).toMatch(/subagent_fork/)
   })
+
+  it('harvests one §32 declaration per registered tool, keyed to the schema names', async () => {
+    const catalog = await collectToolCatalog()
+    for (const entry of catalog) {
+      expect(entry.descriptors.map(descriptor => descriptor.id).sort())
+        .toEqual(entry.schemas.map(schema => schema.name).sort())
+      for (const descriptor of entry.descriptors) {
+        expect(descriptor.version).toBe(1)
+        expect(['low', 'moderate', 'high', 'critical']).toContain(descriptor.risk)
+      }
+    }
+    const flat = catalog.flatMap(entry => entry.descriptors)
+    // The Lite companion's one bundled executor: only web_search may run on-device.
+    expect(flat.filter(descriptor => descriptor.supportsLite).map(descriptor => descriptor.id)).toEqual(['web_search'])
+    // The two human-answer tools are the only permission claims.
+    expect(flat.filter(descriptor => descriptor.permissions.length > 0).map(descriptor => descriptor.id).sort())
+      .toEqual(['ask_user_question', 'exit_plan_mode'])
+    // Shell-class surfaces carry the high tier (alternative compositions can
+    // ship one id twice, so compare the unique id set).
+    expect([...new Set(flat.filter(descriptor => descriptor.risk === 'high').map(descriptor => descriptor.id))].sort())
+      .toEqual(['bash', 'cordis_define', 'cordis_run', 'interrupt_agent', 'pwsh', 'ralph',
+        'run_code', 'send_message', 'spawn_teammate', 'subagent', 'terminal_send', 'workflow'])
+  })
 })
 
 describe('gen-tool-catalog assertManifestComplete', () => {
@@ -138,6 +164,7 @@ describe('gen-tool-catalog render', () => {
         requires: ['ctx.tools'],
         writes: ['tool/result'],
         schemas: [{ name: 'demo', description: 'A demo tool.', parameters: { type: 'object', properties: {} } }],
+        descriptors: [{ id: 'demo', version: 1, risk: 'low', permissions: [], supportsLite: false, supportsRemote: true }],
       },
     ]
     const md = render(catalog)
@@ -147,5 +174,51 @@ describe('gen-tool-catalog render', () => {
     expect(md).toContain('A demo tool.')
     expect(md).toContain('```json')
     expect(md).toContain('Source: [`packages/demo/tool-demo/src/index.ts`]')
+  })
+})
+
+/** One §32 declaration literal with every field overridable per test. */
+function descriptor(overrides: Partial<ToolDescriptor> = {}): ToolDescriptor {
+  return { id: 'demo', version: 1, risk: 'low', permissions: [], supportsLite: false, supportsRemote: true, ...overrides }
+}
+
+describe('gen-tool-catalog mergeToolDescriptors', () => {
+  it('collapses an identical same-id declaration from an alternative composition', () => {
+    const catalog: ToolCatalog = [
+      { pkg: '@deepseek-ai/dsh-tool-demo', sources: {}, requires: [], writes: [], schemas: [], descriptors: [descriptor()] },
+      { pkg: '@deepseek-ai/dsh-tool-demo-alt', sources: {}, requires: [], writes: [], schemas: [], descriptors: [descriptor()] },
+    ]
+    expect(mergeToolDescriptors(catalog)).toEqual([descriptor()])
+  })
+
+  it('fails loudly when the same id carries conflicting declarations', () => {
+    const catalog: ToolCatalog = [
+      { pkg: '@deepseek-ai/dsh-tool-demo', sources: {}, requires: [], writes: [], schemas: [], descriptors: [descriptor()] },
+      {
+        pkg: '@deepseek-ai/dsh-tool-demo-alt', sources: {}, requires: [], writes: [], schemas: [],
+        descriptors: [descriptor({ risk: 'high' })],
+      },
+    ]
+    expect(() => { mergeToolDescriptors(catalog) })
+      .toThrow(/tool id "demo" carries conflicting host-only declarations/)
+  })
+})
+
+describe('gen-tool-catalog renderToolDescriptors', () => {
+  it('renders one {"tools":[...]} document entry per tool in the given order', () => {
+    // Sorting is mergeToolDescriptors' job; render stays a pure projection of its input.
+    const json = renderToolDescriptors([
+      descriptor({ id: 'zeta', risk: 'high', supportsLite: true }),
+      descriptor({ id: 'alpha', permissions: ['question.respond'] }),
+    ])
+    const document = JSON.parse(json) as { _comment: string; tools: ToolDescriptor[] }
+    expect(document.tools.map(tool => tool.id)).toEqual(['zeta', 'alpha'])
+    expect(document.tools[0]).toEqual({
+      id: 'zeta', version: 1, risk: 'high', permissions: [], supportsLite: true, supportsRemote: true,
+    })
+    expect(document.tools[1]).toEqual({
+      id: 'alpha', version: 1, risk: 'low', permissions: ['question.respond'], supportsLite: false, supportsRemote: true,
+    })
+    expect(document._comment).toMatch(/specification §32/)
   })
 })

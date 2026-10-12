@@ -428,6 +428,11 @@ function registerStrReplaceEditor(ctx: Context, config: ResolvedConfig): void {
   ctx.tools.register(defineTool({
     name: 'str_replace_editor',
     description: config.description,
+    version: 1,
+    risk: 'moderate',
+    permissions: [],
+    supportsLite: false,
+    supportsRemote: true,
     parameters: {
       command: {
         type: 'string',

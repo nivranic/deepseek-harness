@@ -92,6 +92,11 @@ export function registerListSubagentModels(ctx: Context, policy: ModelSelectionP
       + 'to inspect that exact model and its reasoning efforts. Catalog membership is advisory: an adapter may '
       + 'accept an unlisted model id. Use the returned ids with a delegation tool\'s `provider`, `model`, and '
       + '`reasoning_effort` fields.',
+    version: 1,
+    risk: 'low',
+    permissions: [],
+    supportsLite: false,
+    supportsRemote: true,
     parameters: {
       provider: {
         type: 'string',

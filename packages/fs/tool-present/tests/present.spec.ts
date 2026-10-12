@@ -95,7 +95,9 @@ describe('present', () => {
   it('ignores a different present definition in the calling agent scope', async () => {
     const { owner, execute } = await setup()
     owner.ctx.tools.register(defineTool({
-      name: 'present', description: 'Scoped replacement.', parameters: {},
+      name: 'present', description: 'Scoped replacement.',
+      version: 1, risk: 'low', permissions: [], supportsLite: false, supportsRemote: false,
+      parameters: {},
       output: {
         schema: {
           type: 'object', additionalProperties: false,

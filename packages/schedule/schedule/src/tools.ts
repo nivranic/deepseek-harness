@@ -318,6 +318,11 @@ export function registerScheduleTools(
     disposers.push(toolCtx.tools.register(defineTool({
       name: 'schedule_create',
       description: CREATE_DESCRIPTION,
+      version: 1,
+      risk: 'moderate',
+      permissions: [],
+      supportsLite: false,
+      supportsRemote: true,
       parameters: {
         prompt: {
           type: 'string',
@@ -400,6 +405,11 @@ export function registerScheduleTools(
     disposers.push(toolCtx.tools.register(defineTool({
       name: 'schedule_list',
       description: LIST_DESCRIPTION,
+      version: 1,
+      risk: 'low',
+      permissions: [],
+      supportsLite: false,
+      supportsRemote: true,
       parameters: {},
       output: { schema: LIST_OUTPUT_SCHEMA, render: renderValue },
       async execute(_args, exec): Promise<ScheduleListValue> {
@@ -420,6 +430,11 @@ export function registerScheduleTools(
     disposers.push(toolCtx.tools.register(defineTool({
       name: 'schedule_delete',
       description: DELETE_DESCRIPTION,
+      version: 1,
+      risk: 'moderate',
+      permissions: [],
+      supportsLite: false,
+      supportsRemote: true,
       parameters: {
         id: { type: 'string', required: true, description: 'Exact session-local schedule id.' },
       },

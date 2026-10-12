@@ -251,6 +251,11 @@ export function apply(ctx: Context, config: Config = {}): void {
     name: 'pwsh',
     description: pwshDescription(backgroundEnabled, escalationModes),
     /* jscpd:ignore-start -- deliberate mirror of dsh-tool-bash's parameter surface (pwsh-tool-and-executor Agent Note). */
+    version: 1,
+    risk: 'high',
+    permissions: [],
+    supportsLite: false,
+    supportsRemote: true,
     parameters: {
       command: { type: 'string', required: true, description: 'The PowerShell command to execute.' },
       description: {

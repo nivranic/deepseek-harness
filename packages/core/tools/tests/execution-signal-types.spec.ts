@@ -79,6 +79,11 @@ void observerContracts
 const inferredTool = defineTool({
   name: 'signal-inference',
   description: 'Pins contextual signal inference.',
+  version: 1,
+  risk: 'low',
+  permissions: [],
+  supportsLite: false,
+  supportsRemote: false,
   parameters: {},
   output: {
     schema: { type: 'null' },

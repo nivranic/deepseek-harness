@@ -1,5 +1,7 @@
 package ai.deepseek.dsh.companion
 
+import ai.deepseek.dsh.contract.ToolDescriptor
+import ai.deepseek.dsh.contract.ToolRisk
 import kotlinx.coroutines.CoroutineScope
 import kotlinx.coroutines.awaitCancellation
 import kotlinx.coroutines.flow.Flow
@@ -106,6 +108,69 @@ class LiteLoopDriverTest {
         val state = driver.fold.state
         assertEquals("running", state.toolCalls.single().phase)
         assertEquals("completed", state.lastTurnEnd)
+    }
+
+    @Test
+    fun aHostDeclarationMovesTheHandoffLine() = runTest {
+        val catalog = LiteToolCatalog.fromHostDescriptors(
+            LiteToolRegistry.bundled.map {
+                ToolDescriptor(it.name, 1, ToolRisk.LOW, emptyList(), supportsLite = it.name != "web_search", supportsRemote = true)
+            },
+        )
+        var executed = 0
+        val provider = ScriptedLiteProvider(
+            mapOf(
+                "跑测试" to listOf(LiteStreamChunk.ToolCall("c3", "run_tests", "{}")),
+                "搜索" to listOf(LiteStreamChunk.ToolCall("c1", "web_search", "{}")),
+            ),
+        )
+        val driver = LiteLoopDriver(
+            CoroutineScope(UnconfinedTestDispatcher(testScheduler)),
+            provider,
+            execute = { _, name, _ ->
+                executed += 1
+                LiteToolOutcome(ok = true, text = "$name 完成")
+            },
+            toolCatalog = catalog,
+        )
+        // Declared lite-capable: run_tests executes on-device instead of
+        // handing off like the bundled fallback table does.
+        driver.submit("跑测试")
+        advanceUntilIdle()
+        assertEquals(1, executed)
+        assertEquals("completed", driver.fold.state.toolCalls.single().phase)
+        assertEquals("completed", driver.fold.state.lastTurnEnd)
+        assertEquals(null, driver.fold.state.pendingHandoff)
+
+        // Declared not lite-capable: web_search hands off instead of
+        // executing like the bundled fallback table does.
+        driver.submit("搜索")
+        advanceUntilIdle()
+        assertEquals(1, executed)
+        assertEquals(LITE_REQUIRES_FULL_RUNTIME, driver.fold.state.pendingHandoff)
+    }
+
+    @Test
+    fun aDeclaredUnknownToolHandsOffInsteadOfFoldingSilently() = runTest {
+        var executed = 0
+        val provider = ScriptedLiteProvider(
+            mapOf("随便" to listOf(LiteStreamChunk.ToolCall("c9", "bash", "{}"))),
+        )
+        val driver = LiteLoopDriver(
+            CoroutineScope(UnconfinedTestDispatcher(testScheduler)),
+            provider,
+            execute = { _, _, _ ->
+                executed += 1
+                LiteToolOutcome(ok = true, text = "")
+            },
+            toolCatalog = LiteToolCatalog.fromHostDescriptors(emptyList()),
+        )
+        driver.submit("随便")
+        advanceUntilIdle()
+
+        assertEquals(0, executed)
+        assertEquals(LITE_REQUIRES_FULL_RUNTIME, driver.fold.state.pendingHandoff)
+        assertEquals(null, driver.fold.state.lastTurnEnd)
     }
 
     @Test

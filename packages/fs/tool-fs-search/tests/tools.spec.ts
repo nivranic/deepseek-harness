@@ -1243,7 +1243,9 @@ describe('scope-aware search guidance', () => {
   it('reuses the unchanged grep paragraph when read is visible', async () => {
     const { ctx } = await setup()
     ctx.tools.register({
-      name: 'read', description: 'read fixture', parameters: {},
+      name: 'read', description: 'read fixture',
+      version: 1, risk: 'low', permissions: [], supportsLite: false, supportsRemote: false,
+      parameters: {},
       output: { schema: { type: 'string' }, render: () => [{ type: 'text', text: '' }] },
       execute: () => Promise.resolve(''),
     })

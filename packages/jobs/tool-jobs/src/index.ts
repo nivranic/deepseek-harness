@@ -305,6 +305,11 @@ export function apply(ctx: Context, config: Config): void {
       + '`[status: ...]`. Reads are non-blocking unless `wait: true`, which waits up to the configured cap.',
     // A timed-out wait returns job state rather than a TOOL_TIMEOUT error, so
     // this tool owns its deadline instead of using ToolDefinition.timeoutMs.
+    version: 1,
+    risk: 'low',
+    permissions: [],
+    supportsLite: false,
+    supportsRemote: true,
     parameters: {
       job_id: { type: 'string', required: true, description: 'Job id returned by the tool that started the background work.' },
       wait: { type: 'boolean', description: 'Block until the job reaches a terminal status or the timeout expires. A timed-out wait returns [status: running] and leaves the job alive.' },
@@ -341,6 +346,11 @@ export function apply(ctx: Context, config: Config): void {
   ctx.tools.register(defineTool({
     name: 'job_list',
     description: 'List your background jobs (running and finished) with their ids, kinds, and statuses.',
+    version: 1,
+    risk: 'low',
+    permissions: [],
+    supportsLite: false,
+    supportsRemote: true,
     parameters: {},
     output: {
       schema: { type: 'array', items: PUBLIC_TASK_SCHEMA },
@@ -361,6 +371,11 @@ export function apply(ctx: Context, config: Config): void {
   ctx.tools.register(defineTool({
     name: 'job_kill',
     description: 'Request cancellation of a running background job by job id. Returns immediately; the job settles as killed once its work actually stops.',
+    version: 1,
+    risk: 'moderate',
+    permissions: [],
+    supportsLite: false,
+    supportsRemote: true,
     parameters: {
       job_id: { type: 'string', required: true, description: 'Job id returned by the tool that started the background work.' },
       reason: { type: 'string', description: 'Optional short reason, recorded in the log and forwarded to the job.' },

@@ -274,6 +274,11 @@ export class PlanModeController extends Service {
     ctx.tools.register(defineTool({
       name: EXIT_PLAN_MODE,
       description: EXIT_DESCRIPTION,
+      version: 1,
+      risk: 'low',
+      permissions: ['question.respond'],
+      supportsLite: false,
+      supportsRemote: true,
       parameters: {
         plan: { type: 'string', required: true, description: 'The complete plan, as markdown, starting with a # heading that names it.' },
       },

@@ -11,6 +11,8 @@
 
 范围：`packages/*/tool-*` 下已发布的产品工具，每个工具均使用其**默认**配置启动；但如果某个 Config 字段是**必填项**且没有默认值，生成器就必须作出选择，对应包的说明会记录本页展示的是哪个分支。注册的工具**名称**可以是加载时配置，例如 `tool-subagent` 的 `toolName`，因此部署可能以不同名称或额外名称提供某个包；如果存在随产品发布的别名，对应包的说明会予以记录。`examples/` 中的演示工具（例如 `echo`）不在范围内，这与 Cordis 目录仅涵盖包的范围一致。
 
+同一次启动还会把每个工具的宿主侧声明（规范 §32：`version`、`risk`、`permissions`、`supportsLite`、`supportsRemote`）收割进机器可读的配套文件 `packages/core/tools/tool-descriptors.json`；在线宿主通过其 `tools/list` Remote 操作返回同一文档。这些字段绝不会进入下方的模型侧 schema。
+
 <a id="tool-package-map"></a>
 
 ## 工具包映射

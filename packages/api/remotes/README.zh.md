@@ -33,7 +33,7 @@ Settings 准入使用 Settings Controller 共享的读取、写入、文档打�
 
 Agent Preset 准入使用其拥有包共享的目录、选择和管理声明。每个操作在单次调用派发前要求对应能力，其他操作集不能替代。Settings 所有的操作不在这些声明范围内。
 
-Session 调用需要当前连接代次声明对应操作能力。Client 在单次调用或流派发前检查 Session 所有者的共享声明；能力缺失时返回 `host/capability-unavailable`，不发送该操作。这些声明覆盖 Session 跟随、控制、管理和模型选择，并未覆盖所有已挂载命名空间。能力准入不能替代 Host 授权。
+Session 调用需要当前连接代次声明对应操作能力。Client 在单次调用或流派发前检查 Session 所有者的共享声明；能力缺失时返回 `host/capability-unavailable`，不发送该操作。多个能力声明同一方法时（`prompt` 同时由 `session.control.v1` 与 `model.steer.v1` 声明），任一声明者已广告即放行，与网关派发语义一致。这些声明覆盖 Session 跟随、控制、管理和模型选择，并未覆盖所有已挂载命名空间。能力准入不能替代 Host 授权。
 
 [`@deepseek-ai/dsh-api-session-controller`](../session-controller/README.zh.md) 拥有 agent（智能体）与会话身份策略，包括供其他 namespace 使用的 Typert lookup 解析器。本包只选择并挂载生成的会话 contribution，不复制激活策略。
 

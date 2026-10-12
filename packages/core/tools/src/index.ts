@@ -4,8 +4,10 @@
  * @module @deepseek-ai/dsh-tools
  */
 
-import { Context, Service } from '@deepseek-ai/cordis'
+import { Context } from '@deepseek-ai/cordis'
 import z from '@deepseek-ai/schemastery'
+import { Remote, TypertRemoteService } from '@deepseek-ai/dsh-typert-protocol'
+import type { RemoteCapabilityPermission } from '@deepseek-ai/dsh-typert-protocol'
 import { AnonymousEntries, NamedEntries, ScopedLayers, scopeOf, scopeTarget } from '@deepseek-ai/dsh-scope'
 import type { ScopeKey, ScopeLayer, Scoped } from '@deepseek-ai/dsh-scope'
 import type { ToolCallId, ContentBlock, ToolSchema } from '@deepseek-ai/dsh-llm'
@@ -19,6 +21,8 @@ import type { CodeRuntime } from '@deepseek-ai/dsh-code-runtime'
 // augmentation. The seam stays optional at runtime — see `serviceAsk`.
 import type {} from '@deepseek-ai/dsh-user-approval'
 import type { ToolCallView, ToolResultView } from './presentation.ts'
+import type { ToolDescriptor, ToolDescriptorList, ToolRisk } from './types.ts'
+import { TOOL_REMOTE_CAPABILITIES } from './capabilities.ts'
 import { assertSupportedJsonSchema, validateJsonSchemaValue } from './json-schema.ts'
 import type { JsonSchemaNode } from './json-schema.ts'
 import { createRunCodeTool, RUN_CODE_NAME } from './ptc.ts'
@@ -91,7 +95,7 @@ export {
   type JsonSchemaScalar,
 } from './json-schema.ts'
 
-export type { PtcDispatchEventData, PtcDispatchStartEventData } from './types.ts'
+export type { PtcDispatchEventData, PtcDispatchStartEventData, ToolDescriptor, ToolDescriptorList, ToolRisk } from './types.ts'
 
 export { CodeRunFailedError, RUN_CODE_NAME } from './ptc.ts'
 export { jsonSchemaToTs, renderToolsSdk } from './ts-types.ts'
@@ -210,10 +214,50 @@ export interface ToolOutputDefinition {
   presentationMeta?(args: unknown, value: JsonValue): JsonValue
 }
 
-/** A registered tool: its schema plus the execution function. */
+/** Every risk tier, in ascending order; the registration boundary rejects values outside it. */
+const TOOL_RISKS: readonly ToolRisk[] = Object.freeze(['low', 'moderate', 'high', 'critical'])
+
+/**
+ * Permission vocabulary a tool declaration may name: the Remote capability
+ * permission kinds from `@deepseek-ai/dsh-typert-protocol`. The local value
+ * list keeps the registration check executable; the `satisfies` clause keeps
+ * it from drifting outside the wire vocabulary.
+ */
+const TOOL_PERMISSIONS: readonly RemoteCapabilityPermission[] = Object.freeze(['view', 'prompt.send', 'question.respond', 'approval.respond', 'device.admin'] as const satisfies readonly RemoteCapabilityPermission[])
+
+/**
+ * A registered tool: its schema plus the execution function. The five
+ * host-only declaration fields (`version`, `risk`, `permissions`,
+ * `supportsLite`, `supportsRemote`) never reach the model wire — `schemas()`
+ * allowlists only name/description/parameters — and never enter the session
+ * log; they project onto {@link ToolDescriptor} for Remote catalog clients.
+ */
 export interface ToolDefinition extends ToolSchema {
   /** Mandatory canonical output declaration. */
   readonly output: ToolOutputDefinition
+  /**
+   * Descriptor schema version of this tool's host-only declaration
+   * (specification §32), a positive integer starting at 1; it advances only
+   * when the declaration semantics change, never for tool-behavior fixes.
+   */
+  readonly version: number
+  /** Host-assessed risk tier (specification §32) from the tool's side-effect surface; clients display it, never re-derive it. */
+  readonly risk: ToolRisk
+  /**
+   * Extra Remote permissions a device-identified caller needs to COMPLETE one
+   * call of this tool (specification §32), drawn from the Remote capability
+   * permission vocabulary; empty means the call claims nothing beyond the
+   * permission that dispatched the driving prompt.
+   */
+  readonly permissions: readonly RemoteCapabilityPermission[]
+  /**
+   * Whether a Lite companion may execute this tool locally instead of handing
+   * back to the full runtime (specification §32): the Host declares it, a
+   * client never guesses. False keeps the handoff path.
+   */
+  readonly supportsLite: boolean
+  /** Whether this tool is reachable and Host-executed when a session runs on the Remote face. */
+  readonly supportsRemote: boolean
   /**
    * Run one accepted call and return only its canonical lossless-JSON value.
    * Async work must observe or forward `exec.signal` and settle only after its
@@ -787,7 +831,7 @@ function resolveMaxParallelSubCalls(value: number | undefined): number {
  * Tool registry and execution pipeline. Scoped registrations shadow globals;
  * one visibility resolver feeds presentation, lookup, and dispatch.
  */
-export class ToolRuntime extends Service {
+export class ToolRuntime extends TypertRemoteService {
   static inject = ['systemPrompt']
 
   static Config: z<Config> = z.object({
@@ -827,7 +871,7 @@ export class ToolRuntime extends Service {
   private ptcTransport: ToolDefinition | undefined
 
   constructor(ctx: Context, config: Config = {}) {
-    super(ctx, 'tools')
+    super(ctx, 'tools', { capabilities: TOOL_REMOTE_CAPABILITIES })
     // The schema already defaulted an omitted mode; the ?? narrows the
     // optional-input type for direct (non-Loader) construction in tests.
     this.defaultMode = config.mode ?? 'native'
@@ -1048,6 +1092,25 @@ export class ToolRuntime extends Service {
       && (!Number.isFinite(timeoutMs) || timeoutMs <= 0)) {
       throw new TypeError(`tool "${name}" timeoutMs must be a positive finite number`)
     }
+    // Host-only declaration fields (specification §32): reject invalid values
+    // at the registration boundary, the same fail-loud shape commands use for
+    // `risk` — a descriptor projection must never carry an unvalidated tier.
+    if (!TOOL_RISKS.includes(definition.risk)) {
+      throw new TypeError(`tool "${name}" risk must be one of ${TOOL_RISKS.join(', ')}`)
+    }
+    if (!Number.isSafeInteger(definition.version) || definition.version < 1) {
+      throw new TypeError(`tool "${name}" version must be a positive safe integer`)
+    }
+    if (!Array.isArray(definition.permissions)
+      || definition.permissions.some((permission: RemoteCapabilityPermission) => !TOOL_PERMISSIONS.includes(permission))) {
+      throw new TypeError(`tool "${name}" permissions must be an array drawn from ${TOOL_PERMISSIONS.join(', ')}`)
+    }
+    if (typeof definition.supportsLite !== 'boolean') {
+      throw new TypeError(`tool "${name}" supportsLite must be a boolean`)
+    }
+    if (typeof definition.supportsRemote !== 'boolean') {
+      throw new TypeError(`tool "${name}" supportsRemote must be a boolean`)
+    }
     // Reserved unconditionally: any agent may select a code mode for itself,
     // so a name free to take under the deployment default would become a
     // collision the moment a preset mounted.
@@ -1233,6 +1296,50 @@ export class ToolRuntime extends Service {
    */
   schemas(scope?: ScopeKey): ToolSchema[] {
     return [...this.view(scope).visible.values()].map(definition => this.schemaOf(definition, true))
+  }
+
+  /**
+   * Project visible definitions onto their host-only descriptor fields
+   * (specification §32): identity, declaration version, risk tier, claimed
+   * permissions, and the two runtime-support flags. Dynamically registered
+   * tools (MCP bridge, sandbox packages) appear with the values their
+   * producers registered — there is no separate descriptor source. Like
+   * `schemas()`, this never exposes model-face projections or execution
+   * callbacks, and it adds none of the model wire's fields.
+   * @param scope - the viewing scope (the agent); omitted = the global view.
+   * @returns id-sorted frozen descriptors of every tool visible to that scope.
+   */
+  descriptors(scope?: ScopeKey): readonly ToolDescriptor[] {
+    return Object.freeze([...this.view(scope).visible.values()]
+      .map(definition => this.descriptorOf(definition))
+      // Ids are unique in one view, so equality is impossible.
+      .sort((left, right) => left.id < right.id ? -1 : 1))
+  }
+
+  /**
+   * Live Remote tool catalog (specification §32): the globally visible
+   * descriptors as one document schema-identical to the generated
+   * `packages/core/tools/tool-descriptors.json` projection. Catalog
+   * visibility authorizes nothing — tool execution still rides the driving
+   * prompt's permission and the full guarded pipeline.
+   * @returns the descriptor document for the global view.
+   */
+  @Remote
+  list(): ToolDescriptorList {
+    return Object.freeze({ tools: this.descriptors() })
+  }
+
+  /** Project one definition onto its frozen host-only descriptor. */
+  private descriptorOf(definition: ToolDefinition): ToolDescriptor {
+    const { name, version, risk, permissions, supportsLite, supportsRemote } = definition
+    return Object.freeze({
+      id: name,
+      version,
+      risk,
+      permissions: Object.freeze([...permissions]),
+      supportsLite,
+      supportsRemote,
+    })
   }
 
   /** Project visible callable tools onto the generated PTC mode SDK contract. */

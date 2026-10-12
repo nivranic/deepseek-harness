@@ -32,6 +32,11 @@ export function apply(ctx: Context): void {
       + 'you may also target your direct parent. If the target is still working, the message steers its nearest step; '
       + 'if it is idle, the message starts a turn. This call returns no answer from the agent — only confirmation '
       + 'that the message was delivered. A failure means the message was NOT delivered.',
+    version: 1,
+    risk: 'high',
+    permissions: [],
+    supportsLite: false,
+    supportsRemote: true,
     parameters: {
       agent_id: {
         type: 'string',
@@ -82,6 +87,11 @@ export function apply(ctx: Context): void {
       + 'the agent itself stays available for follow-ups. This call returns as soon as the stop request is '
       + 'accepted, so the target may keep running briefly; interrupting an agent that already finished is '
       + 'an accepted no-op.',
+    version: 1,
+    risk: 'high',
+    permissions: [],
+    supportsLite: false,
+    supportsRemote: true,
     parameters: {
       agent_id: {
         type: 'string',

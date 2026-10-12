@@ -173,6 +173,11 @@ function install(agent: Agent, ctx: Context, config: Required<Config>): () => vo
     register(scoped.tools.register(defineTool({
       name: 'spawn_teammate',
       description: 'Create one named, durable teammate. Only the Team Lead may call this tool.',
+      version: 1,
+      risk: 'high',
+      permissions: [],
+      supportsLite: false,
+      supportsRemote: true,
       parameters: {
         name: { type: 'string', required: true, description: 'Unique lower-kebab-case teammate name.' },
         description: { type: 'string', required: true, description: 'Short description of the delegated responsibility.' },
@@ -201,6 +206,11 @@ function install(agent: Agent, ctx: Context, config: Required<Config>): () => vo
     register(scoped.tools.register(defineTool({
       name: 'send_message',
       description: 'Send one durable message to another Team member. A running target receives it at the nearest step boundary; an idle target starts a turn; an inactive teammate cold-resumes.',
+      version: 1,
+      risk: 'high',
+      permissions: [],
+      supportsLite: false,
+      supportsRemote: true,
       parameters: {
         target: { type: 'string', required: true, description: 'Team member name, or lead.' },
         message: { type: 'string', required: true, description: 'Self-contained message for the target.' },
@@ -218,6 +228,11 @@ function install(agent: Agent, ctx: Context, config: Required<Config>): () => vo
     register(scoped.tools.register(defineTool({
       name: 'list_agents',
       description: 'List the Lead and every durable teammate with current runtime status.',
+      version: 1,
+      risk: 'low',
+      permissions: [],
+      supportsLite: false,
+      supportsRemote: true,
       parameters: {},
       output: jsonOutput(MEMBER_LIST_VALUE_SCHEMA),
       async execute(_args, exec) {
@@ -228,6 +243,11 @@ function install(agent: Agent, ctx: Context, config: Required<Config>): () => vo
     register(scoped.tools.register(defineTool({
       name: 'wait_agent',
       description: 'Wait for the next teammate status, mailbox, or shared-task change after this call starts. This never wakes inactive members and returns noProgress immediately when no other member is running or provisioning. Re-list after wakeup or timeout instead of polling.',
+      version: 1,
+      risk: 'low',
+      permissions: [],
+      supportsLite: false,
+      supportsRemote: true,
       parameters: {
         timeout_ms: {
           type: 'integer',
@@ -263,6 +283,11 @@ function install(agent: Agent, ctx: Context, config: Required<Config>): () => vo
     register(scoped.tools.register(defineTool({
       name: 'interrupt_agent',
       description: 'Interrupt one teammate\'s current turn while preserving its pending inbox. Team Lead only.',
+      version: 1,
+      risk: 'high',
+      permissions: [],
+      supportsLite: false,
+      supportsRemote: true,
       parameters: {
         target: { type: 'string', required: true, description: 'Teammate name.' },
       },
@@ -278,6 +303,11 @@ function install(agent: Agent, ctx: Context, config: Required<Config>): () => vo
     register(scoped.tools.register(defineTool({
       name: 'team_task_create',
       description: 'Create one unowned pending task on the shared Team task board.',
+      version: 1,
+      risk: 'moderate',
+      permissions: [],
+      supportsLite: false,
+      supportsRemote: true,
       parameters: {
         subject: { type: 'string', required: true, description: 'Concise task title.' },
         description: { type: 'string', required: true, description: 'Complete task details and acceptance criteria.' },
@@ -302,6 +332,11 @@ function install(agent: Agent, ctx: Context, config: Required<Config>): () => vo
     register(scoped.tools.register(defineTool({
       name: 'team_task_list',
       description: 'List shared tasks, including readiness, owner, revision, blockers, and write-scope warnings.',
+      version: 1,
+      risk: 'low',
+      permissions: [],
+      supportsLite: false,
+      supportsRemote: true,
       parameters: {
         status: {
           type: 'string',
@@ -334,6 +369,11 @@ function install(agent: Agent, ctx: Context, config: Required<Config>): () => vo
     register(scoped.tools.register(defineTool({
       name: 'team_task_get',
       description: 'Read the complete latest value of one shared task before changing or executing it.',
+      version: 1,
+      risk: 'low',
+      permissions: [],
+      supportsLite: false,
+      supportsRemote: true,
       parameters: {
         task_id: { type: 'string', required: true, description: 'Shared task id.' },
       },
@@ -349,6 +389,11 @@ function install(agent: Agent, ctx: Context, config: Required<Config>): () => vo
     register(scoped.tools.register(defineTool({
       name: 'team_task_update',
       description: 'Compare-and-set a shared task action using the latest revision from team_task_get or team_task_list.',
+      version: 1,
+      risk: 'moderate',
+      permissions: [],
+      supportsLite: false,
+      supportsRemote: true,
       parameters: {
         task_id: { type: 'string', required: true, description: 'Shared task id.' },
         expected_revision: { type: 'integer', required: true, description: 'Current task revision used as the CAS precondition.' },

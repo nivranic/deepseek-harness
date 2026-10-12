@@ -36,6 +36,11 @@ async function host(options: { runtime?: boolean } = {}) {
   ctx.tools.register(defineTool({
     name: 'echo',
     description: 'Echo tool.',
+    version: 1,
+    risk: 'low',
+    permissions: [],
+    supportsLite: false,
+    supportsRemote: false,
     parameters: { value: { type: 'string', required: true } },
     output: { schema: { type: 'string' }, render: (_args, value) => [{ type: 'text', text: value }] },
     execute: args => Promise.resolve(args.value),

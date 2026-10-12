@@ -8,7 +8,7 @@ Source: [`packages/core/tools/src/index.ts`](../../packages/core/tools/src/index
 
 ## `ToolDefinition` — a registered tool
 
-A `ToolSchema` (the model-facing fields) plus a mandatory canonical output declaration, the `execute` function, host-only scheduler metadata, an optional final-content callback, and optional UI presenters. The registry holds these; the loop dispatches calls through them. The registry's `schemas()` builds the model-facing `ToolSchema[]` by an explicit allowlist — `output`/`execute`/`finalizeContent`/`timeoutMs`/`isConcurrencySafe`/`presentCall`/`presentResult` must never leak into a model request.
+A `ToolSchema` (the model-facing fields) plus a mandatory canonical output declaration, the `execute` function, host-only scheduler metadata, an optional final-content callback, optional UI presenters, and five host-only declaration fields (specification §32): `version`, `risk`, `permissions`, `supportsLite`, and `supportsRemote`. The registry holds these; the loop dispatches calls through them. The registry's `schemas()` builds the model-facing `ToolSchema[]` by an explicit allowlist — `output`/`execute`/`finalizeContent`/`timeoutMs`/`isConcurrencySafe`/`presentCall`/`presentResult` and the five declaration fields must never leak into a model request; the declaration fields project onto `ToolDescriptor` for Remote catalog clients instead.
 
 ```ts type-equiv
 /** Tool-owned canonical output contract used after the body returns a JSON value. */
@@ -23,10 +23,39 @@ interface ToolOutputDefinition {
 ```
 
 ```ts type-equiv
-/** A registered tool: its schema plus the execution function. */
+/**
+ * A registered tool: its schema plus the execution function. The five
+ * host-only declaration fields (`version`, `risk`, `permissions`,
+ * `supportsLite`, `supportsRemote`) never reach the model wire — `schemas()`
+ * allowlists only name/description/parameters — and never enter the session
+ * log; they project onto {@link ToolDescriptor} for Remote catalog clients.
+ */
 interface ToolDefinition extends ToolSchema {
   /** Mandatory canonical output declaration. */
   readonly output: ToolOutputDefinition
+  /**
+   * Descriptor schema version of this tool's host-only declaration
+   * (specification §32), a positive integer starting at 1; it advances only
+   * when the declaration semantics change, never for tool-behavior fixes.
+   */
+  readonly version: number
+  /** Host-assessed risk tier (specification §32) from the tool's side-effect surface; clients display it, never re-derive it. */
+  readonly risk: ToolRisk
+  /**
+   * Extra Remote permissions a device-identified caller needs to COMPLETE one
+   * call of this tool (specification §32), drawn from the Remote capability
+   * permission vocabulary; empty means the call claims nothing beyond the
+   * permission that dispatched the driving prompt.
+   */
+  readonly permissions: readonly RemoteCapabilityPermission[]
+  /**
+   * Whether a Lite companion may execute this tool locally instead of handing
+   * back to the full runtime (specification §32): the Host declares it, a
+   * client never guesses. False keeps the handoff path.
+   */
+  readonly supportsLite: boolean
+  /** Whether this tool is reachable and Host-executed when a session runs on the Remote face. */
+  readonly supportsRemote: boolean
   /**
    * Run one accepted call and return only its canonical lossless-JSON value.
    * Async work must observe or forward `exec.signal` and settle only after its
@@ -94,6 +123,12 @@ interface ToolDefinition extends ToolSchema {
 ```
 
 `execute` receives `args: unknown` — a raw `ToolDefinition` validates its own input. First-party tools don't write that by hand; they use `defineTool`, which validates and narrows the arguments, infers the body return from `output.schema`, and types both output projectors. `finalizeContent` deliberately receives the immutable execution instead of typed arguments because invalid-input and outer pipeline failures reach it too; it may enforce a tool-owned content bound while preserving `isError`, canonical value, structured error identity, deferred contexts, and presentation metadata.
+
+## Host-only tool declarations and the descriptor projection
+
+Specification §32 gives every tool five host-owned declaration fields: `version` (descriptor schema version, positive integer from 1), `risk` (a `low`/`moderate`/`high`/`critical` tier — the same tiers commands use in §37 — classified from the tool's side-effect surface), `permissions` (extra Remote capability permissions a device-identified caller needs to complete one call; empty claims nothing beyond the driving prompt's permission), `supportsLite` (whether a Lite companion may execute the tool locally instead of handing back to the full runtime), and `supportsRemote` (whether the tool is reachable and Host-executed on the Remote face). The registration boundary rejects an unknown risk tier, a non-positive `version`, a permission outside the Remote vocabulary, or a non-boolean support flag with a `TypeError`, so a descriptor can never carry an unvalidated value.
+
+The registry projects these fields onto `ToolDescriptor` (`id` is the registered name) through `descriptors(scope?)` and the `tools/list` Remote operation (`tool.catalog.v1`, view-grade: catalog visibility authorizes nothing). The reply document is schema-identical to the checked-in generated projection [`packages/core/tools/tool-descriptors.json`](../../packages/core/tools/tool-descriptors.json), which `pnpm run gen-tool-catalog` writes from the same boot harvest as the tool catalog. Producers that do not use `defineTool` still declare the fields: the `run_code` transport, the MCP bridge, and the sandbox registrar set their own bridge-owned values and never accept a declaration from an untrusted source, so dynamically registered tools appear in `tools/list` with the values their producers registered.
 
 ## The unified JSON-value schema DSL
 
@@ -544,6 +579,29 @@ get(name: string, scope?: ScopeKey): ToolDefinition | undefined
  * @returns one deep-cloned schema per visible tool.
  */
 schemas(scope?: ScopeKey): ToolSchema[]
+
+/**
+ * Project visible definitions onto their host-only descriptor fields
+ * (specification §32): identity, declaration version, risk tier, claimed
+ * permissions, and the two runtime-support flags. Dynamically registered
+ * tools (MCP bridge, sandbox packages) appear with the values their
+ * producers registered — there is no separate descriptor source. Like
+ * `schemas()`, this never exposes model-face projections or execution
+ * callbacks, and it adds none of the model wire's fields.
+ * @param scope - the viewing scope (the agent); omitted = the global view.
+ * @returns id-sorted frozen descriptors of every tool visible to that scope.
+ */
+descriptors(scope?: ScopeKey): readonly ToolDescriptor[]
+
+/**
+ * Live Remote tool catalog (specification §32): the globally visible
+ * descriptors as one document schema-identical to the generated
+ * `packages/core/tools/tool-descriptors.json` projection. Catalog
+ * visibility authorizes nothing — tool execution still rides the driving
+ * prompt's permission and the full guarded pipeline.
+ * @returns the descriptor document for the global view.
+ */
+@Remote list(): ToolDescriptorList
 
 /**
  * Classify a pending call through the caller's visible tool definition. Only

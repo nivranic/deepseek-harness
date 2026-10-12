@@ -194,6 +194,11 @@ export function apply(ctx: Context, config: Config): void {
   ctx.tools.register(defineTool({
     name: 'get_goal',
     description: GET_DESCRIPTION,
+    version: 1,
+    risk: 'low',
+    permissions: [],
+    supportsLite: false,
+    supportsRemote: true,
     parameters: {},
     output: GOAL_OUTPUT,
     execute(_args, exec) {
@@ -206,6 +211,11 @@ export function apply(ctx: Context, config: Config): void {
   ctx.tools.register(defineTool({
     name: 'create_goal',
     description: CREATE_DESCRIPTION,
+    version: 1,
+    risk: 'moderate',
+    permissions: [],
+    supportsLite: false,
+    supportsRemote: true,
     parameters: {
       objective: {
         type: 'string',
@@ -236,6 +246,11 @@ export function apply(ctx: Context, config: Config): void {
       + 'top-level human request. During an automatic continuation of the current goal, complete '
       + 'and blocked are also allowed. blocked is rejected before the configured minimum round count; the model remains '
       + 'responsible for judging that the same condition persisted across those rounds and must explain it in blocked_reason.',
+    version: 1,
+    risk: 'moderate',
+    permissions: [],
+    supportsLite: false,
+    supportsRemote: true,
     parameters: {
       goal_id: { type: 'string', required: true, description: 'Exact id returned by get_goal.' },
       revision: { type: 'number', required: true, description: 'Exact positive revision returned by get_goal.' },

@@ -546,6 +546,11 @@ describe('SubagentRuntime.startContinuable', () => {
     ctx.tools.register(defineTool({
       name: 'noop',
       description: 'does nothing',
+      version: 1,
+      risk: 'low',
+      permissions: [],
+      supportsLite: false,
+      supportsRemote: false,
       parameters: {},
       output: {
         schema: { type: 'object', additionalProperties: false, properties: {} },
@@ -2050,6 +2055,11 @@ describe('continuable review regressions', () => {
     ctx.tools.register(defineTool({
       name: 'noop',
       description: 'does nothing',
+      version: 1,
+      risk: 'low',
+      permissions: [],
+      supportsLite: false,
+      supportsRemote: false,
       parameters: {},
       output: {
         schema: { type: 'object', additionalProperties: false, properties: {} },

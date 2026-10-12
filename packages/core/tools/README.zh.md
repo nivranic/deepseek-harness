@@ -9,7 +9,7 @@ kind: "package-reference"
 
 ## 概述
 
-使用 `dsh-tools` 可向模型公开类型化能力、校验调用、执行允许／拒绝／询问策略，并在普通工具失败时返回最终结果而不中止当前轮次。通过 `mode` 选择原生 Function Calling（函数调用）、[PTC mode](#ptc-mode) 或两者；单个 agent（智能体）可用 `presentAs` 覆盖默认值。工具作者使用 `defineTool` 声明类型化参数与输出、协作式超时、并行安全属性和可选 UI 展示。模型会看到每个获准工具声明的名称、描述与参数 schema；按 agent 设置的限制可缩小该可见集合。
+使用 `dsh-tools` 可向模型公开类型化能力、校验调用、执行允许／拒绝／询问策略，并在普通工具失败时返回最终结果而不中止当前轮次。通过 `mode` 选择原生 Function Calling（函数调用）、[PTC mode](#ptc-mode) 或两者；单个 agent（智能体）可用 `presentAs` 覆盖默认值。工具作者使用 `defineTool` 声明类型化参数与输出、协作式超时、并行安全属性、可选 UI 展示，以及规范 §32 的五个仅供宿主使用的声明字段（`version`、`risk`、`permissions`、`supportsLite`、`supportsRemote`），它们投影为 Remote 工具目录。模型会看到每个获准工具声明的名称、描述与参数 schema；按 agent 设置的限制可缩小该可见集合。
 
 ## 目录
 
@@ -29,7 +29,7 @@ kind: "package-reference"
 
 ### 注册工具
 
-`defineTool` 构建类型化工具定义：面向模型的名称、描述与参数 schema、规范输出声明，以及只返回所声明 JSON 值的 `execute` 主体。模型参数在执行前被校验；无效输入变成普通错误结果。
+`defineTool` 构建类型化工具定义：面向模型的名称、描述与参数 schema、规范输出声明、只返回所声明 JSON 值的 `execute` 主体，以及 §32 的宿主侧声明——`version`（正整数，从 1 起）、`risk`（`low`/`moderate`/`high`/`critical`，按工具的副作用面定档）、`permissions`（完成一次调用可主张的额外 Remote 权限；为空即不主张）、`supportsLite` 与 `supportsRemote`。模型参数在执行前被校验，无效输入变成普通错误结果；`tools.register()` 会以 `TypeError` 拒绝非法声明。声明绝不会到达模型协议面；它经 `ctx.tools.descriptors(scope)` 与 `tools/list` Remote 操作投影为 `ToolDescriptor`，随产品发布的默认声明记录在生成的 [`tool-descriptors.json`](tool-descriptors.json) 中。
 
 ```ts
 import { readFile } from 'node:fs/promises'
@@ -41,6 +41,11 @@ declare const ctx: Context
 ctx.tools.register(defineTool({
   name: 'read_file',
   description: 'Read a file from disk.',
+  version: 1,
+  risk: 'low',
+  permissions: [],
+  supportsLite: false,
+  supportsRemote: true,
   parameters: {
     path: { type: 'string', required: true, description: 'Absolute file path' },
     offset: { type: 'number' },
@@ -100,14 +105,15 @@ ctx.tools.register(defineTool({
 
 ### 设计理念
 
-注册表在作用域层中持有类型化 `ToolDefinition`，并在请求时把它们投影为面向模型的 `ToolSchema` 集合——`output`、`execute`、`finalizeContent`、`timeoutMs` 与呈现回调绝不会泄漏到协议上。每次调用都运行一条固定流水线：`tools/pre-execute`（可扩展的允许／拒绝／询问）→ 已注册单调守卫 → `tools/execute`（环绕分发包装层）→ `tools/post-execute`（检查／替换、附加上下文）→ 由定义持有的 `finalizeContent` → 仅观测的 `tools/result` 事件。只有 `tools/execute` 视图可以替换必填信号，注册表会在调用主体前重新融合调用方信号。
+注册表在作用域层中持有类型化 `ToolDefinition`，并在请求时把它们投影为面向模型的 `ToolSchema` 集合——`output`、`execute`、`finalizeContent`、`timeoutMs`、呈现回调与五个 §32 声明字段绝不会泄漏到协议上。每次调用都运行一条固定流水线：`tools/pre-execute`（可扩展的允许／拒绝／询问）→ 已注册单调守卫 → `tools/execute`（环绕分发包装层）→ `tools/post-execute`（检查／替换、附加上下文）→ 由定义持有的 `finalizeContent` → 仅观测的 `tools/result` 事件。只有 `tools/execute` 视图可以替换必填信号，注册表会在调用主体前重新融合调用方信号。
 
 ### 源码地图
 
 | 文件 | 职责 |
 |---|---|
-| [`src/index.ts`](src/index.ts) | 插件入口：`ToolRuntime` 服务、配置、注册表、执行流水线 |
-| [`src/types.ts`](src/types.ts) | `ToolDefinition`、`ToolExecution`、`ToolExecutionResult`、守卫与决策类型 |
+| [`src/index.ts`](src/index.ts) | 插件入口：`ToolRuntime` 服务、配置、注册表、执行流水线、§32 描述符投影 |
+| [`src/types.ts`](src/types.ts) | `ToolDefinition`、`ToolExecution`、`ToolExecutionResult`、守卫与决策类型、`ToolDescriptor`/`ToolRisk` |
+| [`src/capabilities.ts`](src/capabilities.ts) | `tool.catalog.v1` Remote 能力声明 |
 | [`src/schema.ts`](src/schema.ts) | `defineTool` DSL：`ValueSchemaSpec`、`ParameterSchemaSpec`、`InferValue`、`InferArgs` |
 | [`src/json-schema.ts`](src/json-schema.ts) | 强制执行的原始 JSON Schema 子集与校验 |
 | [`src/presentation.ts`](src/presentation.ts) | 带 `card` 标签的 UI 呈现意图 |

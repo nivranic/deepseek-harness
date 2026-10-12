@@ -3,6 +3,8 @@ package ai.deepseek.dsh.gateway
 import ai.deepseek.dsh.companion.WireDriving
 import ai.deepseek.dsh.companion.WireDiagnosticSnapshot
 import ai.deepseek.dsh.companion.ConnectionFailure
+import ai.deepseek.dsh.contract.ToolDescriptor
+import ai.deepseek.dsh.contract.ToolDescriptors
 import ai.deepseek.dsh.link.*
 import kotlinx.coroutines.*
 import kotlinx.coroutines.channels.Channel
@@ -46,6 +48,7 @@ class NativeGatewayClient private constructor(
     private var descriptionState = NativeDescriptionState.NOT_REQUESTED
     private var descriptionFailure: ConnectionFailure? = null
     private var protocolObservation: NativeProtocolObservation? = null
+    @Volatile private var cachedToolDescriptors: List<ToolDescriptor>? = null
     private var startedHttpCalls = 0L
     private var finishedHttpCalls = 0L
     private val trust = LinkPinning.trustManager(pin)
@@ -97,6 +100,8 @@ class NativeGatewayClient private constructor(
             requireOpen()
             descriptionState = NativeDescriptionState.CHECKING
             descriptionFailure = null
+            // A new negotiation generation retires the previous tools declaration.
+            cachedToolDescriptors = null
         }
         try {
             val credentials = currentIdentity()
@@ -124,6 +129,38 @@ class NativeGatewayClient private constructor(
 
     private suspend fun ensureNegotiated() {
         if (observedHost == null) describe()
+    }
+
+    /** Fetch the Host's tool declarations (§32) for the Lite dispatch catalog.
+     * The reply parses strictly and stays cached until the next negotiation.
+     * A Host that does not advertise `tool.catalog.v1` returns null — a
+     * negotiated subset with no declaration is the normal bundled-fallback
+     * path, not an error; a missing operation this Host did advertise still
+     * refuses through [call].
+     * @returns the declared tool descriptors, or null when this Host serves none.
+     * @throws LinkClientException.BadWire when the declared catalog violates the descriptor schema.
+     */
+    suspend fun toolDescriptors(): List<ToolDescriptor>? {
+        ensureNegotiated()
+        negotiation.withLock {
+            val (cached, host) = synchronized(lock) {
+                requireOpen()
+                Pair(cachedToolDescriptors, checkNotNull(observedHost))
+            }
+            if (cached != null) return cached
+            if (NativeObservedCapability.TOOL_CATALOG.wire !in host.capabilities) return null
+            val value = rpc("tools/list", emptyMap())
+            val descriptors = try {
+                ToolDescriptors.parseList(value.toJsonElement())
+            } catch (failure: IllegalArgumentException) {
+                badNativeWire("invalid tool catalog: ${failure.message}")
+            }
+            synchronized(lock) {
+                requireOpen()
+                cachedToolDescriptors = descriptors
+            }
+            return descriptors
+        }
     }
 
     override suspend fun call(method: String, args: Map<String, WireValue>): WireValue {
@@ -306,6 +343,7 @@ class NativeGatewayClient private constructor(
             closed = true
             descriptionState = NativeDescriptionState.RETIRED
             observedHost = null
+            cachedToolDescriptors = null
             calls.keys.forEach(Call::cancel)
             mux?.let { retireMux(it, LinkClientException.Carrier(0, "native client is closed")) }
             transport.connectionPool.evictAll()

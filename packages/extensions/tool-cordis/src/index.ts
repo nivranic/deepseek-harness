@@ -49,6 +49,11 @@ export function apply(ctx: Context): void {
       + 'input/output schemas. Call this Tool before creating or modifying a Package, then select the provider and '
       + 'method for cordis_inspect_query from its result. Do not guess names or treat an Inspect method as a business '
       + 'Service that Plugin code can call.',
+    version: 1,
+    risk: 'low',
+    permissions: [],
+    supportsLite: false,
+    supportsRemote: true,
     parameters: {},
     output: {
       schema: { type: 'json' },
@@ -72,6 +77,11 @@ export function apply(ctx: Context): void {
       + 'the compact signature directory, then query the exact service or event for its structured contract and '
       + 'referenced types. For Slots.listSubTree, query without root to navigate the compact tree, then query the '
       + 'exact root for its complete registration contract and props.',
+    version: 1,
+    risk: 'low',
+    permissions: [],
+    supportsLite: false,
+    supportsRemote: true,
     parameters: {
       platform: { type: 'string', required: true, enum: ['host', 'client'], description: 'Runtime platform that owns the Provider.' },
       provider: { type: 'string', required: true, description: 'Exact Provider ID returned by cordis_inspect_list.' },
@@ -105,6 +115,11 @@ export function apply(ctx: Context): void {
       + 'diagnostics. packageId cannot be supplied alone. Query an exact Package before handling @pluginId, repairing '
       + 'an asynchronous failure, or defining an updated version. This Tool is read-only: it neither executes code '
       + 'nor changes version pointers.',
+    version: 1,
+    risk: 'low',
+    permissions: [],
+    supportsLite: false,
+    supportsRemote: true,
     parameters: {
       pluginId: { type: 'string', description: 'Stable Plugin ID returned by cordis_define or injected by @pluginId; omit it to list every current Plugin.' },
       packageId: { type: 'string', description: 'Exact immutable Package ID owned by pluginId; when specified, source and diagnostics are returned.' },
@@ -159,6 +174,11 @@ export function apply(ctx: Context): void {
       + 'Service, Event, Builtin, Slot, or token. Define only validates parameters and syntax and records source: it '
       + 'does not request approval, execute apply, or change currentPackageId. On success, call cordis_run with the '
       + 'returned IDs.',
+    version: 1,
+    risk: 'high',
+    permissions: [],
+    supportsLite: false,
+    supportsRemote: true,
     parameters: {
       plugin: {
         required: true,
@@ -252,6 +272,11 @@ export function apply(ctx: Context): void {
       + 'technical failure is reported through state and steering. After a technical failure, read diagnostics with '
       + 'cordis_inspect_self, correct the same Plugin, and retry autonomously. Do not request approval again after '
       + 'the user rejects it.',
+    version: 1,
+    risk: 'high',
+    permissions: [],
+    supportsLite: false,
+    supportsRemote: true,
     parameters: {
       pluginId: { type: 'string', required: true, description: 'Stable Plugin ID returned by cordis_define.' },
       packageId: { type: 'string', required: true, description: 'Exact immutable Package ID to activate under that Plugin.' },
@@ -336,6 +361,11 @@ export function apply(ctx: Context): void {
       + 'Plugin, every immutable Package, grants, currentPackageId, and nextPackageId so it can later run or update '
       + 'directly. Stopping an already stopped Plugin succeeds idempotently. Use this Tool to disable effects '
       + 'temporarily; use cordis_undefine for permanent removal.',
+    version: 1,
+    risk: 'moderate',
+    permissions: [],
+    supportsLite: false,
+    supportsRemote: true,
     parameters: {
       pluginId: { type: 'string', required: true, description: 'Stable dynamic Plugin ID to stop.' },
     },
@@ -359,6 +389,11 @@ export function apply(ctx: Context): void {
       + 'returns, its pluginId, packageIds, @ reference, and Package business views are invalid; historical cards '
       + 'retain only a "Plugin removed" record. Do not call this Tool when versions must remain available for restart '
       + 'or rollback; use cordis_stop instead.',
+    version: 1,
+    risk: 'moderate',
+    permissions: [],
+    supportsLite: false,
+    supportsRemote: true,
     parameters: {
       pluginId: { type: 'string', required: true, description: 'Stable dynamic Plugin ID to remove permanently.' },
     },

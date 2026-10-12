@@ -24,6 +24,11 @@ export function apply(ctx: Context) {
     parameters: {
       name: { type: 'string', required: true, description: 'Who to greet' },
     },
+    version: 1,
+    risk: 'low',
+    permissions: [],
+    supportsLite: false,
+    supportsRemote: true,
     output: {
       schema: { type: 'string' },
       render: (_args, value) => [{ type: 'text', text: value }],

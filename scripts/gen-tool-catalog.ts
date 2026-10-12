@@ -1,8 +1,10 @@
 /**
- * Generate `docs/tool-catalog.md` from schemas collected by booting each tool
- * plugin. Runtime registration is the source of truth for computed schemas;
- * the manifest is checked against every on-disk `tool-*` package. `--check`
- * verifies the committed artifact. The original decision is recorded in
+ * Generate `docs/tool-catalog.md` and `packages/core/tools/tool-descriptors.json`
+ * from schemas and host-only tool declarations collected by booting each tool
+ * plugin. Runtime registration is the source of truth for computed schemas and
+ * for §32 descriptor fields; the manifest is checked against every on-disk
+ * `tool-*` package. `--check` verifies the committed artifacts. The original
+ * decision is recorded in
  * `.agents/notes/archived/process/2026-07-02-tool-schema-catalog.md`.
  */
 
@@ -20,6 +22,7 @@ import SqliteSessionQueryEngine from '@deepseek-ai/dsh-session-query-sqlite'
 import GoalService from '@deepseek-ai/dsh-goal'
 import SystemPrompt from '@deepseek-ai/dsh-system-prompt'
 import ToolRuntime, { type Config as ToolsConfig } from '@deepseek-ai/dsh-tools'
+import type { ToolDescriptor } from '@deepseek-ai/dsh-tools'
 import LocalBashExecutor from '@deepseek-ai/dsh-bash-local'
 import * as BashEnvPlugin from '@deepseek-ai/dsh-shell-env'
 import { PwshLocalExecutor } from '@deepseek-ai/dsh-pwsh-local'
@@ -96,6 +99,7 @@ class CatalogAttachmentStore extends AttachmentStore {
 
 const root = resolve(import.meta.dirname, '..')
 const OUT = 'docs/tool-catalog.md'
+const OUT_DESCRIPTORS = 'packages/core/tools/tool-descriptors.json'
 
 /**
  * Register the descriptor needed to mount schema-producing consumers. Declares
@@ -613,6 +617,8 @@ interface CatalogPackage {
   writes: string[]
   shippedNames?: string[]
   schemas: ToolSchema[]
+  /** Host-only §32 declarations of the tools this boot registered. */
+  descriptors: readonly ToolDescriptor[]
   /** A deployment note (see {@link ToolPackage.note}), rendered after the tools. */
   note?: string
 }
@@ -684,7 +690,8 @@ export async function collectToolCatalog(packages: ToolPackage[] = TOOL_PACKAGES
       await ctx.plugin(SystemPrompt)
       await ctx.plugin(ToolRuntime, entry.toolsConfig ?? {})
       await entry.mount(ctx)
-      const schemas = ctx.tools.schemas(entry.scope?.(ctx)).sort((a, b) => a.name.localeCompare(b.name))
+      const scope = entry.scope?.(ctx)
+      const schemas = ctx.tools.schemas(scope).sort((a, b) => a.name.localeCompare(b.name))
       assertToolsHarvested(entry, schemas.length)
       catalog.push({
         pkg: entry.pkg,
@@ -695,6 +702,7 @@ export async function collectToolCatalog(packages: ToolPackage[] = TOOL_PACKAGES
         requires: entry.requires,
         writes: entry.writes,
         schemas,
+        descriptors: ctx.tools.descriptors(scope),
         ...entry.shippedNames !== undefined ? { shippedNames: entry.shippedNames } : {},
         ...entry.note !== undefined ? { note: entry.note } : {},
       })
@@ -730,6 +738,61 @@ function codeList(values: string[] | undefined): string {
   return values?.length ? values.map(value => `\`${value}\``).join(', ') : '-'
 }
 
+/** Whether two same-id declarations carry the same host-only fields. */
+function sameDescriptor(left: ToolDescriptor, right: ToolDescriptor): boolean {
+  return left.id === right.id
+    && left.version === right.version
+    && left.risk === right.risk
+    && left.supportsLite === right.supportsLite
+    && left.supportsRemote === right.supportsRemote
+    && left.permissions.length === right.permissions.length
+    && left.permissions.every((permission, index) => permission === right.permissions[index])
+}
+
+/**
+ * Merge every package's harvested descriptors into one id-keyed set. The
+ * projection is id-keyed (a client resolves dispatch by tool name), so two
+ * alternative compositions shipping the same name must declare it
+ * identically; an identical duplicate collapses to one row and a conflicting
+ * one fails the generator instead of guessing.
+ */
+export function mergeToolDescriptors(catalog: ToolCatalog): readonly ToolDescriptor[] {
+  const merged = new Map<string, { pkg: string; descriptor: ToolDescriptor }>()
+  for (const entry of catalog) {
+    for (const descriptor of entry.descriptors) {
+      const existing = merged.get(descriptor.id)
+      if (existing !== undefined && !sameDescriptor(existing.descriptor, descriptor)) {
+        throw new Error(
+          `gen-tool-catalog: tool id "${descriptor.id}" carries conflicting host-only declarations `
+          + `(${existing.pkg} vs ${entry.pkg}); the descriptor projection is id-keyed, so reconcile the declarations`,
+        )
+      }
+      if (existing === undefined) merged.set(descriptor.id, { pkg: entry.pkg, descriptor })
+    }
+  }
+  return [...merged.values()].map(entry => entry.descriptor)
+    .sort((left, right) => left.id.localeCompare(right.id))
+}
+
+/** Render the machine-readable §32 descriptor document (pure, deterministic given the manifest-ordered input). */
+export function renderToolDescriptors(descriptors: readonly ToolDescriptor[]): string {
+  const document = {
+    _comment: 'Generated by scripts/gen-tool-catalog.ts — do not edit by hand. Run `pnpm run gen-tool-catalog` to regenerate. '
+      + 'Host-only tool declarations (specification §32): one entry per shipped tool id, validated at tools.register(). '
+      + 'Dynamically registered tools (MCP servers, sandbox packages) are absent from this static projection; a live Host serves them through the tools/list Remote operation. '
+      + 'Alternative compositions shipping the same tool id declare it identically and collapse to one row.',
+    tools: descriptors.map(descriptor => ({
+      id: descriptor.id,
+      version: descriptor.version,
+      risk: descriptor.risk,
+      permissions: [...descriptor.permissions],
+      supportsLite: descriptor.supportsLite,
+      supportsRemote: descriptor.supportsRemote,
+    })),
+  }
+  return `${JSON.stringify(document, null, 2)}\n`
+}
+
 function tableCell(value: string | undefined): string {
   return value ? value.replace(/\|/g, '\\|').replace(/\n/g, '<br>') : '-'
 }
@@ -747,6 +810,8 @@ export function render(catalog: ToolCatalog): string {
     'This file is GENERATED and verified fresh by `pnpm run verify-tool-catalog` (part of `doc-sync`) — do not edit it by hand. Unlike the cordis catalog (a pure source-AST pass), this generator BOOTS each tool plugin on a real context and reads `ctx.tools.schemas()`, because a tool schema is not statically knowable (runtime-spread enums, concatenated descriptions, config-driven names, raw-JSON-Schema MCP tools). A completeness guard globs `packages/*/tool-*` and fails if any package is missing from the generator\'s boot manifest, so a new tool cannot be silently undocumented.',
     '',
     'Scope: shipped product tools under `packages/*/tool-*`, each booted with its DEFAULT config, except where a Config field is REQUIRED with no default — there the generator must choose, and the per-package note records which branch this page shows. The registered tool NAME can be a load-time config (e.g. `tool-subagent`\'s `toolName`), so a deployment may expose a package under a different or additional name — a per-package note records those shipped aliases where they exist. The `examples/` demo tools (e.g. `echo`) are excluded, matching the cordis catalog\'s packages-only scope.',
+    '',
+    'The same boot harvests each tool\'s host-only declaration (specification §32: `version`, `risk`, `permissions`, `supportsLite`, `supportsRemote`) into the machine-readable companion `packages/core/tools/tool-descriptors.json`, the same document a live Host serves through its `tools/list` Remote operation. Those fields never enter the model-facing schema below.',
     '',
     '## Tool Package Map',
     '',
@@ -769,41 +834,49 @@ export function render(catalog: ToolCatalog): string {
   return lines.join('\n')
 }
 
-/** CLI entry: default writes the catalog, `--check` fails if the committed copy
+/** CLI entry: default writes both artifacts, `--check` fails if a committed copy
  * is stale. Guarded behind an entry-point check so importing this module for
- * tests neither regenerates the committed file nor calls process.exit. */
+ * tests neither regenerates the committed files nor calls process.exit. */
 async function main(): Promise<void> {
-  const content = render(await collectToolCatalog())
+  const catalog = await collectToolCatalog()
+  const content = render(catalog)
+  const descriptorContent = renderToolDescriptors(mergeToolDescriptors(catalog))
   if (process.argv.includes('--check')) {
-    let committed: string | null = null
-    try {
-      committed = readFileSync(resolve(root, OUT), 'utf8')
-    } catch {
-      // Only ENOENT (not yet generated) is expected; a present-but-unreadable
-      // file is not a state this repo produces. Either way the remedy is the
-      // same — regenerate — so treat a read failure as "stale".
-      committed = null
+    const stale: string[] = []
+    for (const [out, generated] of [[OUT, content], [OUT_DESCRIPTORS, descriptorContent]] as const) {
+      let committed: string | null = null
+      try {
+        committed = readFileSync(resolve(root, out), 'utf8')
+      } catch {
+        // Only ENOENT (not yet generated) is expected; a present-but-unreadable
+        // file is not a state this repo produces. Either way the remedy is the
+        // same — regenerate — so treat a read failure as "stale".
+        committed = null
+      }
+      if (committed === generated) continue
+      stale.push(out)
+      console.error(`gen-tool-catalog: ${out} is stale. Run \`pnpm run gen-tool-catalog\` and commit ${out}.`)
+      const committedLines = committed?.split('\n') ?? []
+      const generatedLines = generated.split('\n')
+      const lineCount = Math.max(committedLines.length, generatedLines.length)
+      for (let index = 0; index < lineCount; index += 1) {
+        if (committedLines[index] === generatedLines[index]) continue
+        console.error(`gen-tool-catalog: first difference at line ${index + 1}`)
+        console.error(`  committed: ${JSON.stringify(committedLines[index])}`)
+        console.error(`  generated: ${JSON.stringify(generatedLines[index])}`)
+        break
+      }
     }
-    if (committed === content) {
-      console.log(`gen-tool-catalog: ${OUT} is up to date.`)
+    if (stale.length === 0) {
+      console.log(`gen-tool-catalog: ${OUT} and ${OUT_DESCRIPTORS} are up to date.`)
       process.exit(0)
-    }
-    console.error(`gen-tool-catalog: ${OUT} is stale. Run \`pnpm run gen-tool-catalog\` and commit ${OUT}.`)
-    const committedLines = committed?.split('\n') ?? []
-    const generatedLines = content.split('\n')
-    const lineCount = Math.max(committedLines.length, generatedLines.length)
-    for (let index = 0; index < lineCount; index += 1) {
-      if (committedLines[index] === generatedLines[index]) continue
-      console.error(`gen-tool-catalog: first difference at line ${index + 1}`)
-      console.error(`  committed: ${JSON.stringify(committedLines[index])}`)
-      console.error(`  generated: ${JSON.stringify(generatedLines[index])}`)
-      break
     }
     process.exit(1)
   }
 
   writeFileSync(resolve(root, OUT), content)
-  console.log(`gen-tool-catalog: wrote ${OUT}.`)
+  writeFileSync(resolve(root, OUT_DESCRIPTORS), descriptorContent)
+  console.log(`gen-tool-catalog: wrote ${OUT} and ${OUT_DESCRIPTORS}.`)
 }
 
 if (process.argv[1] && import.meta.filename === resolve(process.argv[1])) {

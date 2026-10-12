@@ -9,7 +9,7 @@ English | [中文](README.zh.md)
 
 ## Summary
 
-Use `dsh-tools` to expose typed capabilities to models, validate calls, enforce allow/deny/ask policy, and return finalized results without ending a turn on ordinary tool failures. Choose native Function Calling, [PTC mode](#ptc-mode), or both with `mode`; an agent can override the default through `presentAs`. Tool authors use `defineTool` to declare typed parameters and outputs, cooperative timeouts, parallel-safety, and optional UI presentation. Models see each permitted tool's declared name, description, and parameter schema; per-agent restrictions can narrow that visible set.
+Use `dsh-tools` to expose typed capabilities to models, validate calls, enforce allow/deny/ask policy, and return finalized results without ending a turn on ordinary tool failures. Choose native Function Calling, [PTC mode](#ptc-mode), or both with `mode`; an agent can override the default through `presentAs`. Tool authors use `defineTool` to declare typed parameters and outputs, cooperative timeouts, parallel-safety, optional UI presentation, and the five host-only declaration fields of specification §32 (`version`, `risk`, `permissions`, `supportsLite`, `supportsRemote`) that project onto the Remote tool catalog. Models see each permitted tool's declared name, description, and parameter schema; per-agent restrictions can narrow that visible set.
 
 ## Table of Contents
 
@@ -29,7 +29,7 @@ Mount `dsh-tools` wherever agents call tools: it provides `ctx.tools`, the regis
 
 ### Register a tool
 
-`defineTool` builds a typed tool definition: a model-facing name, description, and parameter schema, a canonical output declaration, and an `execute` body that returns only the declared JSON value. Model arguments are validated before execution; invalid input becomes a normal error result.
+`defineTool` builds a typed tool definition: a model-facing name, description, and parameter schema, a canonical output declaration, an `execute` body that returns only the declared JSON value, and the host-only §32 declaration — `version` (positive integer, starts at 1), `risk` (`low`/`moderate`/`high`/`critical`, classified from the tool's side-effect surface), `permissions` (extra Remote permissions completing one call may claim; empty claims none), `supportsLite`, and `supportsRemote`. Model arguments are validated before execution; invalid input becomes a normal error result, and `tools.register()` rejects an invalid declaration with a `TypeError`. The declaration never reaches the model wire; it projects onto `ToolDescriptor` through `ctx.tools.descriptors(scope)` and the `tools/list` Remote operation, and the shipped default declarations are recorded in the generated [`tool-descriptors.json`](tool-descriptors.json).
 
 ```ts
 import { readFile } from 'node:fs/promises'
@@ -41,6 +41,11 @@ declare const ctx: Context
 ctx.tools.register(defineTool({
   name: 'read_file',
   description: 'Read a file from disk.',
+  version: 1,
+  risk: 'low',
+  permissions: [],
+  supportsLite: false,
+  supportsRemote: true,
   parameters: {
     path: { type: 'string', required: true, description: 'Absolute file path' },
     offset: { type: 'number' },
@@ -100,14 +105,15 @@ This section explains how the package realizes the behavior above; the observabl
 
 ### Design concept
 
-The registry holds typed `ToolDefinition`s in scoped layers and projects them onto the model-facing `ToolSchema` set at request time — `output`, `execute`, `finalizeContent`, `timeoutMs`, and presentation callbacks never leak onto the wire. Every call runs a fixed pipeline: `tools/pre-execute` (extensible allow/deny/ask) → registered monotonic guards → `tools/execute` (around-dispatch wrappers) → `tools/post-execute` (inspect/replace, attach context) → definition-owned `finalizeContent` → the observe-only `tools/result` event. Only the `tools/execute` view may replace the required signal, and the registry re-fuses the caller signal before the body.
+The registry holds typed `ToolDefinition`s in scoped layers and projects them onto the model-facing `ToolSchema` set at request time — `output`, `execute`, `finalizeContent`, `timeoutMs`, presentation callbacks, and the five §32 declaration fields never leak onto the wire. Every call runs a fixed pipeline: `tools/pre-execute` (extensible allow/deny/ask) → registered monotonic guards → `tools/execute` (around-dispatch wrappers) → `tools/post-execute` (inspect/replace, attach context) → definition-owned `finalizeContent` → the observe-only `tools/result` event. Only the `tools/execute` view may replace the required signal, and the registry re-fuses the caller signal before the body.
 
 ### Source map
 
 | File | Role |
 |---|---|
-| [`src/index.ts`](src/index.ts) | Plugin entry: `ToolRuntime` service, config, registry, execution pipeline |
-| [`src/types.ts`](src/types.ts) | `ToolDefinition`, `ToolExecution`, `ToolExecutionResult`, guard and decision types |
+| [`src/index.ts`](src/index.ts) | Plugin entry: `ToolRuntime` service, config, registry, execution pipeline, §32 descriptor projection |
+| [`src/types.ts`](src/types.ts) | `ToolDefinition`, `ToolExecution`, `ToolExecutionResult`, guard and decision types, `ToolDescriptor`/`ToolRisk` |
+| [`src/capabilities.ts`](src/capabilities.ts) | The `tool.catalog.v1` Remote capability declaration |
 | [`src/schema.ts`](src/schema.ts) | The `defineTool` DSL: `ValueSchemaSpec`, `ParameterSchemaSpec`, `InferValue`, `InferArgs` |
 | [`src/json-schema.ts`](src/json-schema.ts) | The enforced raw JSON Schema subset and validation |
 | [`src/presentation.ts`](src/presentation.ts) | The `card`-tagged UI render intents |

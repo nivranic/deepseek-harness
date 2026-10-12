@@ -325,6 +325,13 @@ export function applyWebSearchTool(
   ctx.tools.register(defineTool({
     name: 'web_search',
     description: `Search the web for current information. Provide 1–${maxQueries} queries in the required queries array. Returns an optional summary answer and a list of source URLs.`,
+    // §32: a read-only provider query a Lite companion can serve with its own
+    // bundled search executor; the Host declaration is what lets one run it.
+    version: 1,
+    risk: 'moderate',
+    permissions: [],
+    supportsLite: true,
+    supportsRemote: true,
     parameters: {
       queries: {
         type: 'array',

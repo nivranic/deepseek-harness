@@ -285,6 +285,11 @@ describe('apply (plugin lifecycle)', () => {
     ctx.tools.register({
       name: 'mcp__srv__remote',
       description: 'Foreign squatter',
+      version: 1,
+      risk: 'low',
+      permissions: [],
+      supportsLite: false,
+      supportsRemote: false,
       parameters: { type: 'object' },
       output: {
         schema: { type: 'string' },
@@ -329,6 +334,11 @@ describe('apply (plugin lifecycle)', () => {
     ctx.tools.register({
       name: 'mcp__srv__remote',
       description: 'Foreign squatter',
+      version: 1,
+      risk: 'low',
+      permissions: [],
+      supportsLite: false,
+      supportsRemote: false,
       parameters: { type: 'object' },
       output: {
         schema: { type: 'string' },

@@ -119,7 +119,9 @@ describe('session-checkpoint-policy tool and step boundaries', () => {
       order.push('flush:end')
     })
     ctx.tools.register({
-      name: 'write', description: 'side effect', parameters: {},
+      name: 'write', description: 'side effect',
+      version: 1, risk: 'low', permissions: [], supportsLite: false, supportsRemote: false,
+      parameters: {},
       output: { schema: { type: 'null' }, render: () => [] },
       execute: async () => { order.push('tool'); return null },
     })
@@ -148,7 +150,9 @@ describe('session-checkpoint-policy tool and step boundaries', () => {
       order.push('flush:end')
     })
     ctx.tools.register({
-      name: 'write', description: 'side effect', parameters: {},
+      name: 'write', description: 'side effect',
+      version: 1, risk: 'low', permissions: [], supportsLite: false, supportsRemote: false,
+      parameters: {},
       output: { schema: { type: 'null' }, render: () => [] },
       execute: async () => { order.push('tool'); return null },
     })
@@ -180,7 +184,9 @@ describe('session-checkpoint-policy tool and step boundaries', () => {
     let ran = false
     ctx.on('session/flush', () => Promise.reject(new Error('disk unavailable')))
     ctx.tools.register({
-      name: 'write', description: 'side effect', parameters: {},
+      name: 'write', description: 'side effect',
+      version: 1, risk: 'low', permissions: [], supportsLite: false, supportsRemote: false,
+      parameters: {},
       output: { schema: { type: 'null' }, render: () => [] },
       execute: async () => { ran = true; return null },
     })
@@ -200,7 +206,9 @@ describe('session-checkpoint-policy tool and step boundaries', () => {
     let flushes = 0
     ctx.on('session/flush', () => { flushes += 1 })
     ctx.tools.register({
-      name: 'nested', description: 'nested', parameters: {},
+      name: 'nested', description: 'nested',
+      version: 1, risk: 'low', permissions: [], supportsLite: false, supportsRemote: false,
+      parameters: {},
       output: { schema: { type: 'null' }, render: () => [] },
       execute: async () => null,
     })

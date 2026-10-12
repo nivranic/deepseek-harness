@@ -16,6 +16,7 @@ import { GOAL_REMOTE_CAPABILITIES } from '@deepseek-ai/dsh-goal/capabilities'
 import { PLUGIN_INVENTORY_REMOTE_CAPABILITIES } from '@deepseek-ai/dsh-host-plugin-inventory/capabilities'
 import { HOST_DIAGNOSTICS_REMOTE_CAPABILITIES } from '@deepseek-ai/dsh-api-host-diagnostics/capabilities'
 import { COMMAND_REMOTE_CAPABILITIES } from '@deepseek-ai/dsh-commands/capabilities'
+import { TOOL_REMOTE_CAPABILITIES } from '@deepseek-ai/dsh-tools/capabilities'
 import { LLM_REMOTE_CAPABILITIES } from '@deepseek-ai/dsh-llm/capabilities'
 import { AGENT_PRESET_REMOTE_CAPABILITIES } from '@deepseek-ai/dsh-agent-presets/capabilities'
 import { SUBAGENT_REMOTE_CAPABILITIES } from '@deepseek-ai/dsh-subagent/capabilities'
@@ -117,6 +118,15 @@ describe('Session operation capability admission', () => {
     expect(() =>{  admitHostOperation(`session/${method}`, { apiProtocolVersion: 2, capabilities: [] }) })
       .toThrow(expect.objectContaining({ code: 'host/capability-unavailable', details: { capability } }))
     expect(() =>{  admitHostOperation(`session/${method}`, { apiProtocolVersion: 2, capabilities: [capability] }) })
+      .not.toThrow()
+  })
+
+  it('admits session/prompt when either declarer is advertised', () => {
+    expect(() =>{  admitHostOperation('session/prompt', { apiProtocolVersion: 2, capabilities: [] }) })
+      .toThrow(expect.objectContaining({ code: 'host/capability-unavailable', details: { capability: 'session.control.v1' } }))
+    expect(() =>{  admitHostOperation('session/prompt', { apiProtocolVersion: 2, capabilities: ['model.steer.v1'] }) })
+      .not.toThrow()
+    expect(() =>{  admitHostOperation('session/prompt', { apiProtocolVersion: 2, capabilities: ['session.control.v1'] }) })
       .not.toThrow()
   })
 
@@ -391,6 +401,15 @@ it.each([
   expect(() => { admitHostOperation(endpoint, { apiProtocolVersion: 2, capabilities: [capability] }) }).not.toThrow()
 })
 
+describe('Tool catalog operation capability admission', () => {
+  it('requires the tool catalog capability before listing host tool descriptors', () => {
+    expect(() => { admitHostOperation('tools/list', { apiProtocolVersion: 2, capabilities: [] }) })
+      .toThrow(expect.objectContaining({ code: 'host/capability-unavailable', details: { capability: 'tool.catalog.v1' } }))
+    expect(() => { admitHostOperation('tools/list', { apiProtocolVersion: 2, capabilities: ['tool.catalog.v1'] }) })
+      .not.toThrow()
+  })
+})
+
 describe('Device permission declarations cover every business capability', () => {
   const vocabulary: readonly string[] = ['view', 'prompt.send', 'question.respond', 'approval.respond', 'device.admin']
   const sources: readonly (readonly TypertRemoteCapability[])[] = [
@@ -400,7 +419,7 @@ describe('Device permission declarations cover every business capability', () =>
     FILE_UPLOAD_REMOTE_CAPABILITIES, PRESENTED_FILE_REMOTE_CAPABILITIES, SESSION_REFERENCE_REMOTE_CAPABILITIES,
     DYNAMIC_CORDIS_REMOTE_CAPABILITIES, SESSION_FEEDBACK_REMOTE_CAPABILITIES, MESSAGE_FEEDBACK_REMOTE_CAPABILITIES,
     GOAL_REMOTE_CAPABILITIES, PLUGIN_INVENTORY_REMOTE_CAPABILITIES, HOST_DIAGNOSTICS_REMOTE_CAPABILITIES,
-    COMMAND_REMOTE_CAPABILITIES,
+    COMMAND_REMOTE_CAPABILITIES, TOOL_REMOTE_CAPABILITIES,
     LLM_REMOTE_CAPABILITIES, AGENT_PRESET_REMOTE_CAPABILITIES, SUBAGENT_REMOTE_CAPABILITIES,
   ]
   it('declares a section 21 permission on every capability these namespaces advertise', () => {

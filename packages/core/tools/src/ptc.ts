@@ -301,6 +301,15 @@ export function createRunCodeTool(registry: ToolRuntime, options: RunCodeBridgeO
     // off this static spec (defineTool closes over it), which is language-
     // independent (one required string `code`).
     description: TYPESCRIPT_FLAVOR.description,
+    // Host-only declaration (specification §32): the transport executes
+    // arbitrary guest code on the Host, so it carries the shell-class tier
+    // and no Lite execution; it is reserved presentation infrastructure the
+    // registry itself owns, never a registered third-party surface.
+    version: 1,
+    risk: 'high',
+    permissions: [],
+    supportsLite: false,
+    supportsRemote: true,
     parameters: {
       code: { type: 'string', required: true, description: TYPESCRIPT_FLAVOR.codeDescription },
       description: {

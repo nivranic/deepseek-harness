@@ -1,7 +1,7 @@
 {
   "schemaVersion": 1,
   "status": "IN_PROGRESS",
-  "capturedAt": "2026-09-18T20:13:11.538Z",
+  "capturedAt": "2026-10-12T03:26:15.186Z",
   "fullGoalComplete": false,
   "specification": {
     "path": "artifacts/upstream-first/original-specification.md",
@@ -1277,14 +1277,9 @@
       "owner": "共享 Client 响应式与原生输入",
       "candidateEvidence": [
         "PLATFORM_VERIFICATION.md",
-        "docs/plans/2026-09-14-upstream-first.zh.md",
-        "apps/android/core/src/main/kotlin/ai/deepseek/dsh/companion/SubagentsModel.kt",
-        "apps/android/core/src/test/kotlin/ai/deepseek/dsh/companion/SubagentsModelTest.kt",
-        "apps/android/app/src/main/kotlin/ai/deepseek/dsh/companion/NativeSubagentTimeline.kt",
-        "apps/web/tests/android-subagent-timeline.e2e.ts",
-        ".agents/notes/implemented/architecture/2026-09-27-android-subagent-timeline.md"
+        "docs/plans/2026-09-14-upstream-first.zh.md"
       ],
-      "remaining": "跨端产品线开始落地：Web 设置已具备「设备」管理分区（packages/client/ui-settings-devices，消费 deviceTrust listDevices/renameDevice/revokeDevice/revokeAllDevices 并按连接能力门控）；完整尺寸/主题/状态/访问性矩阵与 iOS/Android 真机输入、后台及原生附件验收仍缺。 Android 子代理目录绑定当前打开的父会话，展示加载、失败、空与诊断状态；只读子时间线复用固定截点的有界历史分页。父会话切换与子视图替换等待旧跟随和分页清理，迟到结果按代次拒绝。315 项核心测试覆盖冷父可用性、取消、替换及关闭；真实 Host 安装态场景验证非首行父选择、冷子历史、失败保留与重连，不激活子 Agent 或发送业务写请求。普通父 Session follow 仍遵循 Host 的后台激活策略。嵌套浏览、子会话续写、跨平台及物理设备仍开放，不授予全节 PASS。",
+      "remaining": "尚无规格要求的完整尺寸/主题/状态/访问性矩阵，以及 iOS/Android 真机输入、后台与原生附件验收。",
       "evidenceLimit": "这些路径是已定位的候选证据；尚未逐条证明本节每一项要求，不授予整节 PASS。"
     },
     {
@@ -1594,7 +1589,7 @@
         "PLATFORM_VERIFICATION.md",
         "docs/plans/2026-09-14-upstream-first.zh.md"
       ],
-      "remaining": "安全区已落地（§8 Safe Area）：页面 viewport 声明 viewport-fit=cover，ui-theme 在 :root 定义 --dsw-safe-area-{top,right,bottom,left}=env(safe-area-inset-*, 0px)，AppFrame 壳层以四边 padding 收进 Dynamic Island/Home Indicator/横屏边缘，手机档悬浮抽屉与拖拽手柄按同一变量锚定（packages/client/ui-layout、ui-theme、apps/web；六项源级 pin 测试）。虚拟键盘已落地：AppFrame 订阅 visualViewport（resize+scroll，scale===1 且高度小于 innerHeight 判定为键盘遮挡），遮挡期间把框架钉在可视高度——输入区随中栏底部保持在键盘之上，键盘收起或双指缩放时还原样式表高度（packages/client/ui-layout，49 项测试含五项键盘避让用例）；旋转与 Foldable 已结构性收口：AppFrame 从不读取 window.innerWidth，布局只随框架自身盒（ResizeObserver）测量变化——折叠屏窗口尺寸变化因此天然适配（新测试：折叠窗口变化经框架盒测量生效 + 源级 pin 禁止 innerWidth；packages/client/ui-layout，51 项）；旋转依赖同一宽度分层与 env() 安全区（随方向旋转），iPhone/iPad/Android 平板的方向矩阵实测仍待真机；完整尺寸/主题/状态/访问性矩阵与 iOS/Android 真机输入、后台及原生附件验收仍缺。",
+      "remaining": "尚无规格要求的完整尺寸/主题/状态/访问性矩阵，以及 iOS/Android 真机输入、后台与原生附件验收。",
       "evidenceLimit": "这些路径是已定位的候选证据；尚未逐条证明本节每一项要求，不授予整节 PASS。"
     },
     {
@@ -1731,7 +1726,7 @@
         "docs/architecture.md",
         "ARCHITECTURE_DECISIONS.md"
       ],
-      "remaining": "设计语言已按第 9 节收口为单一 token 层：ui-theme design-platform.css 定义语义 alias（label/fill/state/button 家族）、typography/radius/spacing/ease/duration 原语与深浅两套主题块；Web/Desktop/手机档共用同一客户端 UI 与级联（手机适配只经媒体查询与 env() 安全区，见 §7/§8 封存记录）。机械执行已落地：ui-theme 既有跨包审计（corner-shape 配对、elevation 中性边框、scrollbar token 引用）之外新增 design-language 审计——遍历全部 client 包 src 的 CSS，剥离注释/url()/var() 回退/mask-image 后断言无裸 hex 色值；唯一裸值收敛于五处具名理由的例外（ui-workspace Rows 与 ui-primitives HoverCard 的固定暗面、InputBar 发送箭头静态白、JsonTree 语法高亮色板、web 启动页 pre-theme 字面量），每处在文件内注明理由；FileCard removeFailed 的裸 #fff 已改为 inverted-label token。真机 platform-native 微调矩阵与视觉验收仍开放。",
+      "remaining": "继续按各 owner 核验唯一运行时、Session、RPC 和共享 Client；实验项不等同正式产品验收。",
       "evidenceLimit": "这些路径是已定位的候选证据；尚未逐条证明本节每一项要求，不授予整节 PASS。"
     },
     {
@@ -1886,12 +1881,9 @@
       "owner": "共享 Client 响应式与原生输入",
       "candidateEvidence": [
         "PLATFORM_VERIFICATION.md",
-        "docs/plans/2026-09-14-upstream-first.zh.md",
-        "packages/client/ui-conversation/src/client/skeleton/HeaderOverflowMenu.tsx",
-        "packages/client/ui-conversation/tests/header-overflow.client.spec.tsx",
-        ".agents/notes/implemented/architecture/2026-10-03-header-overflow.md"
+        "docs/plans/2026-09-14-upstream-first.zh.md"
       ],
-      "remaining": "运行位置已落地（§10）：ready frame 携带 Host Node.js platform（网关与客户端严格解析，pre-release 无 wire 兼容承诺），Connection generation 暴露 ConnectionHostInfo，会话页 strict header 的 utilities 行以 locale 键显示「运行位置 <platform>」chip——generation 未就绪即消失，手机端不会误以为命令在本机执行（§11 第一原则的呈现面）；Kotlin Link 契约镜像同步。手机顶栏已落地：strict header 新增 leading 座位，ui-sidebar 在其中注册仅手机媒体查询显示的「← 会话」返回按钮（打开载有会话列表的抽屉），运行位置 chip 携带已建立 generation 的状态圆点（Host ●）；overflow 菜单（⋮）已交付：手机档（≤599.5px 媒体查询，与既有手机档 affordance 同档）下 strict header 的两个次要行——actions 列表与运行位置 chip 之外的 utilities 列表——收进 utilities 行末端的 ⋮ 触发器（portal 面板纵排两列表、Escape 关闭并还焦、两表皆空显示本地化空态行）；chip 与单座位 corner 占用者留在栏内。此前「条目取决于尚不存在的工具栏集合」的阻塞经查为自造指称——规格 81 节任何处都未定义 ⋮ 条目，聚合现存两列表是唯一有真实控件来源的读法，设计裁定随 note 记录。设备命名已接入：host.describe 校验过的 descriptor（含 displayName）本就随 generation 就绪发布，运行位置 chip 在有名字时显示「运行位置 {name} · {platform}」（无 discovery 面的组装回退纯 platform）；权限档显示已落地：permissions 投影有值时运行位置 chip 追加本地化档位（内建档位本地化、Host 自定义档位人性化名称，无投影/草稿态不追加）；完整尺寸/主题/状态/访问性矩阵与 iOS/Android 真机输入、后台及原生附件验收仍缺。",
+      "remaining": "尚无规格要求的完整尺寸/主题/状态/访问性矩阵，以及 iOS/Android 真机输入、后台与原生附件验收。",
       "evidenceLimit": "这些路径是已定位的候选证据；尚未逐条证明本节每一项要求，不授予整节 PASS。"
     },
     {
@@ -1948,7 +1940,7 @@
         "docs/architecture.md",
         "ARCHITECTURE_DECISIONS.md"
       ],
-      "remaining": "第一原则已由架构与呈现共同持守：视图可移动、执行位置不隐式移动——任何设备（Web/Desktop/手机）打开 Session 都是连接到拥有该 Session 的 Host 的查看端，架构中不存在执行迁移路径（Follow/Attach/Handoff 属 Phase 9 产品线，未开始）；会话页顶栏以运行位置 chip（Host displayName + platform + 状态圆点）显式标示执行所在（§10 两个封存记录），手机端不会误以为命令在本机执行。真正的查看位置转移（Follow/Handoff 不新建 Full Session）与多 Host 仍开放。",
+      "remaining": "继续按各 owner 核验唯一运行时、Session、RPC 和共享 Client；实验项不等同正式产品验收。",
       "evidenceLimit": "这些路径是已定位的候选证据；尚未逐条证明本节每一项要求，不授予整节 PASS。"
     },
     {
@@ -2096,16 +2088,9 @@
       "candidateEvidence": [
         "COMPATIBILITY_MATRIX.md",
         "artifacts/upstream-first/upload-home-replay-source.json",
-        "artifacts/upstream-first/dynamic-cordis-runtime-source.json",
-        "apps/android/app/src/main/kotlin/ai/deepseek/dsh/companion/HostCapabilityDetails.kt",
-        "apps/android/app/src/main/kotlin/ai/deepseek/dsh/companion/HostDescriptionObserver.kt",
-        "apps/android/app/src/androidTest/kotlin/ai/deepseek/dsh/companion/HostCapabilityDetailsNativeTest.kt",
-        "apps/web/tests/android-capability-presentation.e2e.ts",
-        "packages/client/connection/src/client/connection.ts",
-        "packages/api/gateway/tests/gateway-stream.host.spec.ts",
-        "packages/client/ui-settings-devices/src/client/DevicesSettingsSection.tsx"
+        "artifacts/upstream-first/dynamic-cordis-runtime-source.json"
       ],
-      "remaining": "发现、独立能力与部分协议已有证据；设备撤销状态、闭合错误语义和变更身份确认已由 §18 增量族跨节闭合（connection.ts device-revoked 状态与 gateway client 分类器、gateway-stream 撤销中止在途流/事件流与准入拒绝、ui-settings-devices 已撤销行呈现撤销时间且无动作、Kotlin/Swift 契约镜像 device/already-revoked、真机撤销生命周期 e2e）；跨真实发布版本的多版本/多语言矩阵仍开放。 Android 连接能力详情现显示固定识别集合的最近成功声明、配对时角色和独立 API/Session 版本。前台与显式刷新复用查询观察器；失败保留事实并标记，旧代次迟到结果不能覆盖新 Host，切换关闭旧详情。五项已安装 Compose 测试及真实 Host 拒绝/恢复场景通过，语义期望与实际弹窗截图已检查。该视图只提供观察信息，不覆盖完整能力集合、业务入口可见性、当前权限或物理设备，不授予本节完整 PASS。",
+      "remaining": "发现、独立能力与部分协议已有证据；仍需完整多版本/多语言矩阵、设备撤销状态、闭合错误语义和变更身份确认。",
       "evidenceLimit": "这些路径是已定位的候选证据；尚未逐条证明本节每一项要求，不授予整节 PASS。"
     },
     {
@@ -2213,31 +2198,9 @@
       "candidateEvidence": [
         "COMPATIBILITY_MATRIX.md",
         "artifacts/upstream-first/upload-home-replay-source.json",
-        "artifacts/upstream-first/dynamic-cordis-runtime-source.json",
-        "apps/android/core/src/main/kotlin/ai/deepseek/dsh/companion/CompanionInput.kt",
-        "apps/android/core/src/test/kotlin/ai/deepseek/dsh/companion/InputRetentionTest.kt",
-        "apps/web/tests/android-input-retention.e2e.ts",
-        "apps/android/core/src/main/kotlin/ai/deepseek/dsh/companion/CompanionInputStore.kt",
-        "apps/android/core/src/main/kotlin/ai/deepseek/dsh/companion/CompanionInputState.kt",
-        "apps/android/core/src/test/kotlin/ai/deepseek/dsh/companion/CompanionInputPersistenceTest.kt",
-        "apps/web/tests/android-input-persistence.e2e.ts",
-        "apps/web/tests/android-prompt-retry.e2e.ts",
-        "packages/client/connection/src/http-bridge.ts",
-        "packages/client/connection/tests/http-bridge.host.spec.ts",
-        "apps/android/app/src/main/kotlin/ai/deepseek/dsh/companion/HostCapabilityDetails.kt",
-        "apps/android/app/src/main/kotlin/ai/deepseek/dsh/companion/HostDescriptionObserver.kt",
-        "apps/android/app/src/androidTest/kotlin/ai/deepseek/dsh/companion/HostCapabilityDetailsNativeTest.kt",
-        "apps/web/tests/android-capability-presentation.e2e.ts",
-        "apps/android/core/src/main/kotlin/ai/deepseek/dsh/gateway/NativeGatewayDiagnostics.kt",
-        "apps/android/core/src/main/kotlin/ai/deepseek/dsh/gateway/NativeGatewayClient.kt",
-        "apps/android/core/src/test/kotlin/ai/deepseek/dsh/gateway/NativeGatewayDiagnosticsTest.kt",
-        "apps/web/tests/android-operation-capabilities.e2e.ts",
-        ".agents/notes/implemented/architecture/2026-09-27-android-operation-capabilities.md",
-        "packages/client/connection/src/client/connection.ts",
-        "packages/api/gateway/tests/gateway-stream.host.spec.ts",
-        "packages/client/ui-settings-devices/src/client/DevicesSettingsSection.tsx"
+        "artifacts/upstream-first/dynamic-cordis-runtime-source.json"
       ],
-      "remaining": "发现、独立能力与部分协议已有证据；设备撤销状态、闭合错误语义和变更身份确认已由 §18 增量族跨节闭合（connection.ts device-revoked 状态与 gateway client 分类器、gateway-stream 撤销中止在途流/事件流与准入拒绝、ui-settings-devices 已撤销行呈现撤销时间且无动作、Kotlin/Swift 契约镜像 device/already-revoked、真机撤销生命周期 e2e）；跨真实发布版本的多版本/多语言矩阵仍开放。 Android 的 Session 草稿和 Question 输入已迁入连接模型；切页、Activity 重建和失败提交保留输入，未改动 prompt 的显式重试沿用 requestId，确认只清除提交版本。界面显式提交由模型作用域持有，修复错误提示重组取消回复的问题；真实 Host 验证失败重试只结算一次 Question，恢复传输不自动提交草稿。模型替换不会把输入带给另一身份。Android 输入现按 Host id、固定指纹与设备授权独立加密保存，显式提交先完成保存；原待确认请求与新草稿分别保留。已保存的 Question 答案、请求身份和 last Session 经不同进程恢复，观察不会自动提交。损坏密文或缺失密钥保留原文件，显式恢复先保留字节一致副本；读操作不创建密钥。跨 Host 体验、物理设备、突然断电及整节其余验收仍开放，本节不因此取得完整 PASS。 真实 Host 现已验证 Android 在 prompt 准入后丢失确认并退出：显式重试沿用原 requestId，只处理一次；已有 user-message 回执时恢复直接清理待确认项，不额外发送。新草稿在再次进程重启后保留。共享 HTTP 桥接取消断开后的迟到响应体并退出背压等待，修复退出挂起；不由此授予全节验收。 Android 连接能力详情现显示固定识别集合的最近成功声明、配对时角色和独立 API/Session 版本。前台与显式刷新复用查询观察器；失败保留事实并标记，旧代次迟到结果不能覆盖新 Host，切换关闭旧详情。五项已安装 Compose 测试及真实 Host 拒绝/恢复场景通过，语义期望与实际弹窗截图已检查。该视图只提供观察信息，不覆盖完整能力集合、业务入口可见性、当前权限或物理设备，不授予本节完整 PASS。 Android 的会话列表、跟随、控制、文件列表/文本/资源及子代理列表现按真实 Remote 能力标识独立呈现；已知操作发送前再次核对最近成功协商，缺失能力时不发 HTTP、不创建 mux 订阅。能力变化保留本地草稿、待确认请求身份与选择，恢复支持不自动提交。内建事件传输不虚构能力，授权继续由 Host 逐请求检查。真实 Host 保持方法挂载而变更声明，验证入口隐藏、请求抑制、草稿恢复及停止请求拒绝；七项真实 Host 回归和五项已安装生命周期用例通过。当前识别集合含 Subagent catalog，支持导出保持固定白名单；不据此授予全节跨版本、多语言和物理平台验收。",
+      "remaining": "发现、独立能力与部分协议已有证据；仍需完整多版本/多语言矩阵、设备撤销状态、闭合错误语义和变更身份确认。",
       "evidenceLimit": "这些路径是已定位的候选证据；尚未逐条证明本节每一项要求，不授予整节 PASS。"
     },
     {
@@ -2297,10 +2260,9 @@
       "candidateEvidence": [
         "COMPATIBILITY_MATRIX.md",
         "artifacts/upstream-first/upload-home-replay-source.json",
-        "artifacts/upstream-first/dynamic-cordis-runtime-source.json",
-        "artifacts/upstream-first/diagnostics-only-tier-source.json"
+        "artifacts/upstream-first/dynamic-cordis-runtime-source.json"
       ],
-      "remaining": "发现、独立能力与部分协议已有证据。§14 兼容矩阵已在网关逐行落实并作为一张互通矩阵固定（packages/api/gateway/tests/gateway.host.spec.ts 的 protocol-version × endpoint-class 矩阵测试：发现端点 0/1/2 全准入、未知版本统一 gateway/protocol-unsupported、业务 RPC 与事件结果对 0 走诊断拒绝、流打开拒绝行在流套件；README 双语矩阵表）。仍缺跨真实发布版本（N 对 N-1/N-2 Host 与反向）的互通验证、设备撤销状态、闭合错误语义和变更身份确认。",
+      "remaining": "发现、独立能力与部分协议已有证据；仍需完整多版本/多语言矩阵、设备撤销状态、闭合错误语义和变更身份确认。",
       "evidenceLimit": "这些路径是已定位的候选证据；尚未逐条证明本节每一项要求，不授予整节 PASS。"
     },
     {
@@ -2443,14 +2405,9 @@
       "owner": "Interaction、Session 与恢复",
       "candidateEvidence": [
         "IMPLEMENTATION_STATUS.md",
-        "docs/defensive-patterns.md",
-        "artifacts/upstream-first/interaction-permission-source.json",
-        "artifacts/upstream-first/device-trust-durable-source.json",
-        "packages/api/device-trust/tests/device-trust.host.spec.ts",
-        "packages/api/gateway/tests/gateway-stream.host.spec.ts",
-        "apps/web/tests/device-interaction-reply.e2e.ts"
+        "docs/defensive-patterns.md"
       ],
-      "remaining": "已有回答竞争、断线和重启证据；requiredPermission 已在 Host 网关权威执行（无对应权限的 Remote 客户端回复被 403 gateway/permission-denied 拒绝、PendingInteraction 不结算、Remote event 投递不消费、底层 Tool 不执行，approval 与 question 两方向均有正反向 fixture 测试 packages/api/gateway/tests/gateway-stream.host.spec.ts）。Device Trust 角色化已接线：设备在 Remote 事件流打开时以签名准入（args.device：deviceId+时间戳+Ed25519 签名，device/admission-expired 归 authentication 类）验证，client 回复权限改为其第 21 节角色权限集，viewer/collaborator/controller/owner 四角色 × approval/question 矩阵有双向测试。持久化确认已落地：网关在流接入时向新 Client 重投递全部未决交互（packages/api/gateway/src/index.ts deliverRemoteEvent），Client 侧保留的回答经 dsh-retained-answers.v1（上限最近 32 条、durable 边界逐行校验、损坏丢弃）跨页面刷新/应用重启持久，重启后 Host 待处理快照仍以相同 scope+id+revision 列出时自动重放不重新询问（重启回放、损坏重问、scope 变化清扫落盘均有测试 packages/api/gateway/tests/gateway.client.spec.ts）；后台/休眠的断连-唤醒路径由既有重连代次循环+接入重投递覆盖。真实多设备四平台矩阵与完整审批信息字段的实机验证仍待完成。 设备准入生命周期已补齐：存储队列提交时重查撤销；流在准入等待前观察撤销，禁止迟到 ready 与撤销后的排队帧；设备交互回复要求原设备的新签名，拒绝不消费投递，校验期间取消或撤销不结算。496 项包内测试、真实录制 Question 刷新/回放与 9 项 Kotlin 契约测试通过；Swift 源码/夹具已同步但本机未运行。原生加密 Remote Connection Source 与物理平台采用仍待完成。",
+      "remaining": "已有回答竞争、断线和重启证据；权限执行、完整审批信息、后台/休眠、持久化确认和跨端恢复仍待逐项实现及验证。",
       "evidenceLimit": "这些路径是已定位的候选证据；尚未逐条证明本节每一项要求，不授予整节 PASS。"
     },
     {
@@ -2523,7 +2480,7 @@
         "IMPLEMENTATION_STATUS.md",
         "docs/defensive-patterns.md"
       ],
-      "remaining": "已有回答竞争、断线和重启证据；首答胜出已权威执行：网关 receiveRemoteEventResult 在 PendingInteraction 结算后拒绝后续回复（interaction-closed），迟到答案不重复执行 Tool，协议 1/2 双客户端与替换代次均有测试（packages/api/gateway/tests/gateway-stream.host.spec.ts）。持久化确认与跨端恢复已落地：新接入流获得全部未决交互重投递，Client 保留回答跨重启持久并在相同 scope+id+revision 下自动重放（packages/api/gateway/src/client/retained-answers.ts + gateway.client.spec.ts）。权限执行细节见第 15 节行；真实多设备并发回答的实机验证仍待完成。",
+      "remaining": "已有回答竞争、断线和重启证据；权限执行、完整审批信息、后台/休眠、持久化确认和跨端恢复仍待逐项实现及验证。",
       "evidenceLimit": "这些路径是已定位的候选证据；尚未逐条证明本节每一项要求，不授予整节 PASS。"
     },
     {
@@ -2589,45 +2546,16 @@
           "text": "---"
         }
       ],
-      "verificationStatus": "IN_PROGRESS",
+      "verificationStatus": "NOT_STARTED",
       "acceptanceProven": false,
       "owner": "Typert、Connection 与业务操作 owner",
       "candidateEvidence": [
-        "artifacts/upstream-first/prompt-idempotency-source.json",
-        "artifacts/upstream-first/interaction-reply-scope-source.json",
-        "artifacts/upstream-first/cancel-target-source.json",
-        "artifacts/upstream-first/rename-revision-source.json",
-        "artifacts/upstream-first/subagent-prompt-idempotency-source.json",
-        "artifacts/upstream-first/subagent-interrupt-target-source.json",
-        "apps/android/core/src/main/kotlin/ai/deepseek/dsh/companion/CompanionInput.kt",
-        "apps/android/core/src/test/kotlin/ai/deepseek/dsh/companion/InputRetentionTest.kt",
-        "apps/web/tests/android-input-retention.e2e.ts",
-        "apps/android/core/src/main/kotlin/ai/deepseek/dsh/companion/CompanionInputStore.kt",
-        "apps/android/core/src/main/kotlin/ai/deepseek/dsh/companion/CompanionInputState.kt",
-        "apps/android/core/src/test/kotlin/ai/deepseek/dsh/companion/CompanionInputPersistenceTest.kt",
-        "apps/web/tests/android-input-persistence.e2e.ts",
-        "apps/web/tests/android-prompt-retry.e2e.ts",
-        "packages/client/connection/src/http-bridge.ts",
-        "packages/client/connection/tests/http-bridge.host.spec.ts",
-        "apps/android/core/src/main/kotlin/ai/deepseek/dsh/companion/NativeHostCatalog.kt",
-        "apps/android/core/src/main/kotlin/ai/deepseek/dsh/companion/CompanionHostController.kt",
-        "apps/android/core/src/test/kotlin/ai/deepseek/dsh/companion/NativeHostCatalogTest.kt",
-        "apps/android/core/src/test/kotlin/ai/deepseek/dsh/companion/CompanionHostControllerTest.kt",
-        "apps/web/tests/android-host-roster.e2e.ts",
-        "apps/web/tests/android-host-import.e2e.ts",
-        "packages/api/session-controller/tests/session-fork.host.spec.ts",
-        "packages/interaction/commands/tests/commands.spec.ts",
-        ".agents/notes/implemented/architecture/2026-10-06-mutation-idempotency-lanes.md",
-        ".agents/notes/implemented/architecture/2026-10-08-client-mutation-id-adoption.md",
-        "packages/api/session-controller/src/commands.ts",
-        "packages/interaction/commands/src/index.ts",
-        "packages/client/ui-commands/src/client/service.ts",
-        "packages/api/session-controller/src/client/sessions/service.ts",
-        "packages/interaction/commands/src/receipt-projection.ts",
-        "packages/api/session-controller/src/types.ts"
+        "COMPATIBILITY_MATRIX.md",
+        "artifacts/upstream-first/upload-home-replay-source.json",
+        "artifacts/upstream-first/dynamic-cordis-runtime-source.json"
       ],
-      "remaining": "clientMutationId 是建议字段。普通与子 Agent Prompt 复用既有 requestId；交互、普通 Session 按轮次取消、子 Agent 按轮次中断和条件重命名分别有定向证据。全量核验已完成：27 条写通道逐项测绘（clientMutationId 字段不存在，识别由 requestId/rpcId 收据、revision CAS、turn 定向取消、一次性配对码/nonce、首答定局五种机制分治落实），20 条原有直接结算断言；本次补齐 7 例钉死剩余通道的重试结算现状——fork 重试与 command execute 重试（两处的 §17 clientMutationId 采纳已随后续增量落地，无 id 重试仍铸第二子会话/二次执行）、重复 cancel 接受型 no-op、无条件 rename 末次胜出、selectModel 单次装配生效、renameDevice 末次值、workspace 重复 delete 稳定 not-found 与重复 archive 幂等成功；不声明全局持久化回执或整节完成。clientMutationId 采纳已落地：SessionForkRequest 与 CommandExecutionRequest（execute 改请求对象形态——session-controller @Remote 先例与 typert 取消信号末位规则所要求）携带可选 clientMutationId（品牌类型，非空、无首尾空白、≤128 字符，wire 边界 fail-loud），Host 进程内 FIFO 1024 收据登记使同 id 重发幂等返回首次结算原值（fork 返回同子会话、execute 返回同 commandId 与 result 且不重入 handler、不追加事件对）；抛错的执行不记录收据保持可重试，收据已随后续增量耐久化：execute 的收据=command/done 携带 clientMutationId（仅 settle() 结算路径写入；抛错/中止的 done 不带 id——崩溃悬空 run 与抛错结算天然非收据、重发重跑；run 携带 id 作审计线索），收据查询经 session-projection 投影单元按 per-session 键域折叠（有界 1024 逐最旧、冷会话经 hydrate 重建——重启存活实证），进程内 Map 移除（一事实一家：事件即收据）。fork 的收据=source 会话新 log-only 事件 session/forked{clientMutationId, childSessionId}（child id 必载以重放返回值；fork 经 resolveAgent 激活 source——rename 同款先例；扫描限自有事件、继承前缀中祖先收据不命中）。persistence catalog 与冻结 v0 载荷清单/语义校验器随类型同步（gen-30 惯例面）；新事件类型 known-event-types 再生成即旧构建 fail-closed（pre-release 立场接受）。客户端发送方接线已随后续增量落地：ui-commands 的 execute 出口按提交意图记忆复用 id（同 line 与逐项相同附件的重提交同 id，内容变化或已结算后新铸；Host 仅 settled execution 记录收据使失败意图的同 id 复用永不阻塞真实重试），client sessions 的 fork 出口按 (sessionId, atSeq) 锚点记忆（失败保留、成功即清除；web 包按仓库 lint 规则经 dsh-util-crypto 铸造 uuid，非 crypto.randomUUID——非安全上下文不提供）。 Android 的 Session 草稿和 Question 输入已迁入连接模型；切页、Activity 重建和失败提交保留输入，未改动 prompt 的显式重试沿用 requestId，确认只清除提交版本。界面显式提交由模型作用域持有，修复错误提示重组取消回复的问题；真实 Host 验证失败重试只结算一次 Question，恢复传输不自动提交草稿。模型替换不会把输入带给另一身份。Android 输入现按 Host id、固定指纹与设备授权独立加密保存，显式提交先完成保存；原待确认请求与新草稿分别保留。已保存的 Question 答案、请求身份和 last Session 经不同进程恢复，观察不会自动提交。损坏密文或缺失密钥保留原文件，显式恢复先保留字节一致副本；读操作不创建密钥。物理设备、突然断电及整节其余验收仍开放，本节不因此取得完整 PASS。 真实 Host 现已验证 Android 在 prompt 准入后丢失确认并退出：显式重试沿用原 requestId，只处理一次；已有 user-message 回执时恢复直接清理待确认项，不额外发送。新草稿在再次进程重启后保留。共享 HTTP 桥接取消断开后的迟到响应体并退出背压等待，修复退出挂起；不由此授予全节验收。 Android 现用整体加密名册同时提交 Host 凭据与选择；界面显示当前 Host 与地址，模型退出后切换，进程重启恢复选择但不自动发送。双真实 Host 的同 id Session 草稿隔离及所选 Host 单次发送已验证，旧原生文件需显式导入，损坏名册不回退旧身份。Question 与待确认输入跨主体隔离已在本地 AVD 双真实 Host 物理车道验收（Host 切换、进程重启、仅所选 Host 单次应答送达）；真机、Swift 外壳、后台/推送、完整 Session 位置元数据及整节其余验收仍开放。",
-      "evidenceLimit": "本节已开始按操作审查。各来源记录分别限定持久化、重试、恢复和实机证据；候选证据不授予整节 PASS。"
+      "remaining": "发现、独立能力与部分协议已有证据；仍需完整多版本/多语言矩阵、设备撤销状态、闭合错误语义和变更身份确认。",
+      "evidenceLimit": "这些路径是已定位的候选证据；尚未逐条证明本节每一项要求，不授予整节 PASS。"
     },
     {
       "number": 18,
@@ -2726,28 +2654,9 @@
       "candidateEvidence": [
         "COMPATIBILITY_MATRIX.md",
         "artifacts/upstream-first/upload-home-replay-source.json",
-        "artifacts/upstream-first/dynamic-cordis-runtime-source.json",
-        "packages/client/connection",
-        "apps/android/core/src/main/kotlin/ai/deepseek/dsh/companion/CompanionInput.kt",
-        "apps/android/core/src/test/kotlin/ai/deepseek/dsh/companion/InputRetentionTest.kt",
-        "apps/web/tests/android-input-retention.e2e.ts",
-        "apps/android/core/src/main/kotlin/ai/deepseek/dsh/companion/CompanionInputStore.kt",
-        "apps/android/core/src/main/kotlin/ai/deepseek/dsh/companion/CompanionInputState.kt",
-        "apps/android/core/src/test/kotlin/ai/deepseek/dsh/companion/CompanionInputPersistenceTest.kt",
-        "apps/web/tests/android-input-persistence.e2e.ts",
-        "apps/web/tests/android-prompt-retry.e2e.ts",
-        "packages/client/connection/src/http-bridge.ts",
-        "packages/client/connection/tests/http-bridge.host.spec.ts",
-        "apps/android/core/src/main/kotlin/ai/deepseek/dsh/companion/NativeHostCatalog.kt",
-        "apps/android/core/src/main/kotlin/ai/deepseek/dsh/companion/CompanionHostController.kt",
-        "apps/android/core/src/test/kotlin/ai/deepseek/dsh/companion/NativeHostCatalogTest.kt",
-        "apps/android/core/src/test/kotlin/ai/deepseek/dsh/companion/CompanionHostControllerTest.kt",
-        "apps/web/tests/android-host-roster.e2e.ts",
-        "apps/web/tests/android-host-import.e2e.ts",
-        "packages/client/ui-conversation/src/client/skeleton/ConversationRoot.tsx",
-        ".agents/notes/implemented/architecture/2026-10-05-connection-gate-locale.md"
+        "artifacts/upstream-first/dynamic-cordis-runtime-source.json"
       ],
-      "remaining": "规格的十个状态全部落地并有对应 UX，变更身份确认为第十一个状态收口：connecting/authenticating/ready/offline/reconnecting/host-not-ready/auth-expired/device-revoked/identity-changed/incompatible/fatal（packages/client/connection/src/client/connection.ts；device-revoked 与 identity-changed 由网关 client 的 classifyFailure 映射 device/already-revoked 与 device/not-found+device/key-invalid（本次修复了 device-revoked 此前无生产方分类器、状态不可达的缺陷）；SettingsRoot 以 locale 键呈现两类重配对指引并暂停自动重试，§15/§21 的签名准入提供触发源）。多语言矩阵与闭合错误语义已机器校验：每个非 ready 状态的 connection.gate.* 文案键由 ConversationRoot 的 satisfies 穷尽映射钉死（新状态漏键在编译期失败而非运行时渲染原始键），en/zh 双字典键集断言随车道固化（connection-gate-locale.client.spec.ts）；跨真实发布版本的多版本互通矩阵仍开放。 Android 的 Session 草稿和 Question 输入已迁入连接模型；切页、Activity 重建和失败提交保留输入，未改动 prompt 的显式重试沿用 requestId，确认只清除提交版本。界面显式提交由模型作用域持有，修复错误提示重组取消回复的问题；真实 Host 验证失败重试只结算一次 Question，恢复传输不自动提交草稿。模型替换不会把输入带给另一身份。Android 输入现按 Host id、固定指纹与设备授权独立加密保存，显式提交先完成保存；原待确认请求与新草稿分别保留。已保存的 Question 答案、请求身份和 last Session 经不同进程恢复，观察不会自动提交。损坏密文或缺失密钥保留原文件，显式恢复先保留字节一致副本；读操作不创建密钥。物理设备、突然断电及整节其余验收仍开放，本节不因此取得完整 PASS。 真实 Host 现已验证 Android 在 prompt 准入后丢失确认并退出：显式重试沿用原 requestId，只处理一次；已有 user-message 回执时恢复直接清理待确认项，不额外发送。新草稿在再次进程重启后保留。共享 HTTP 桥接取消断开后的迟到响应体并退出背压等待，修复退出挂起；不由此授予全节验收。 Android 现用整体加密名册同时提交 Host 凭据与选择；界面显示当前 Host 与地址，模型退出后切换，进程重启恢复选择但不自动发送。双真实 Host 的同 id Session 草稿隔离及所选 Host 单次发送已验证，旧原生文件需显式导入，损坏名册不回退旧身份。Question 与待确认输入跨主体隔离已在本地 AVD 双真实 Host 物理车道验收（Host 切换、进程重启、仅所选 Host 单次应答送达）；真机、Swift 外壳、后台/推送、完整 Session 位置元数据及整节其余验收仍开放。",
+      "remaining": "发现、独立能力与部分协议已有证据；仍需完整多版本/多语言矩阵、设备撤销状态、闭合错误语义和变更身份确认。",
       "evidenceLimit": "这些路径是已定位的候选证据；尚未逐条证明本节每一项要求，不授予整节 PASS。"
     },
     {
@@ -2819,12 +2728,9 @@
       "candidateEvidence": [
         "COMPATIBILITY_MATRIX.md",
         "artifacts/upstream-first/upload-home-replay-source.json",
-        "artifacts/upstream-first/dynamic-cordis-runtime-source.json",
-        "packages/client/connection/src/client/connection.ts",
-        "packages/api/gateway/tests/gateway-stream.host.spec.ts",
-        "packages/client/ui-settings-devices/src/client/DevicesSettingsSection.tsx"
+        "artifacts/upstream-first/dynamic-cordis-runtime-source.json"
       ],
-      "remaining": "发现、独立能力与部分协议已有证据；设备撤销状态、闭合错误语义和变更身份确认已由 §18 增量族跨节闭合（connection.ts device-revoked 状态与 gateway client 分类器、gateway-stream 撤销中止在途流/事件流与准入拒绝、ui-settings-devices 已撤销行呈现撤销时间且无动作、Kotlin/Swift 契约镜像 device/already-revoked、真机撤销生命周期 e2e）；跨真实发布版本的多版本/多语言矩阵仍开放。",
+      "remaining": "发现、独立能力与部分协议已有证据；仍需完整多版本/多语言矩阵、设备撤销状态、闭合错误语义和变更身份确认。",
       "evidenceLimit": "这些路径是已定位的候选证据；尚未逐条证明本节每一项要求，不授予整节 PASS。"
     },
     {
@@ -2987,20 +2893,14 @@
           "text": "---"
         }
       ],
-      "verificationStatus": "IN_PROGRESS",
+      "verificationStatus": "NOT_STARTED",
       "acceptanceProven": false,
       "owner": "Device Trust、凭据与本地认证",
       "candidateEvidence": [
         "SECURITY_STATUS.md",
-        "ARCHITECTURE_DECISIONS.md",
-        "packages/api/device-trust",
-        "packages/api/device-trust/tests/device-trust.host.spec.ts",
-        "packages/api/gateway/tests/gateway-stream.host.spec.ts",
-        "apps/web/tests/device-interaction-reply.e2e.ts",
-        "apps/web/tests/android-session-list.e2e.ts",
-        "apps/android/core/src/test/kotlin/ai/deepseek/dsh/companion/SessionListRecoveryTest.kt"
+        "ARCHITECTURE_DECISIONS.md"
       ],
-      "remaining": "Pair（一次性过期码 + Ed25519 SPKI 兑换）、Role（第 21 节四角色恰好持有表格权限列）、Revoke、签名准入（流打开）与远端执行授权均已实现：能力层新增 requiredPermission 词汇（typert-protocol RemoteCapabilityPermission = view/prompt.send/question.respond/approval.respond/device.admin），版本化请求信封可携带签名设备准入，网关按请求验证（同一 cheapest-first 阶梯）并按所属能力声明门控端点——未声明能力对设备 fail-closed（gateway/permission-denied reason undeclared），匿名请求不受影响；device-trust 的 issue/list/revoke 声明 device.admin，host 的 describe/negotiate 声明 view（packages/api/gateway 446 项测试含八项按请求准入套件）。安全存储于 Host 侧凭据链、nonce 账本已落地（准入消息扩展为 deviceId\n timestamp\n nonce 三段式，每台设备持久化窗口内全部 nonce 的 SHA-256 哈希，允许全新证明乱序到达；单调淘汰下界防止时钟回拨或窗口扩大复活旧证明，容量满以 device/admission-capacity（host-state）拒绝且不驱逐有效记录，device_trust 域版本 2 拒绝旧格式，device/replay-detected 分类 authentication，Kotlin/Swift 契约镜像与 schema 全部重生成——顺带修复了 deviceRoleAdmission 增量遗留的苹果夹具/守卫计数漂移）、session-controller 已采纳（capabilities.ts：只读集合=view、会话变更集合=prompt.send；session.manage 拆出 session.list、model.select 拆出 model.catalog 使只读与变更权限可分开声明）；workspace-controller 亦已采纳（follow=view、manage/sessions=prompt.send、目录选择器 pick/browse=view 与 createDirectory=prompt.send，无混合集合故无拆分）；其余全部业务归属方已随第三批采纳完成声明闭环——settings/credentials（读与文档/目录操作=view、写入=prompt.send）、workspace-files（全部只读=view）、presented-file（desktop/open/reveal=view）、session-reference（候选发现=view）、plugin-inventory（list=view）、llm（提供方目录与模型发现=view）、agent-presets（catalog=view、select/manage=prompt.send）、commands（catalog=view、execute=prompt.send）、message-feedback（list=view、put/delete=prompt.send）、command-feedback（record=prompt.send）、goal（get=view、变更=prompt.send）、subagent（catalog=view、prompt/中断=prompt.send）、file-upload（stage=prompt.send）、dynamic-cordis（inventory/client-code/inspect 握手=view、运行生命周期与失败报告/调用=prompt.send）；jobs 为 Host 侧生产者无 Remote 能力面，无需声明。host-preparation 规格新增闭环测试断言二十个来源的每个能力都声明第 21 节词汇内权限，device-trust 自身测试钉住 issue/list/revoke=device.admin 与配对引导端点（redeem/admit）刻意不声明；跨端设备客户端采用已落地：Android LinkWire 每个业务 RPC 信封携带 payload.device、每个流打开携带 args.device（四键 deviceId/timestamp/nonce/signature，配对密钥对三段式 deviceId\n timestamp\n nonce 签名、每次调用全新 nonce）；link-fixture-host 经可测的 link-admission 追踪器（四键形状/窗口/签名/重放账本）在 /api 与 /link/stream 强制准入，模拟器 lane 以真实配对外壳取得两条面共五次服务端验证、五个不同 nonce 的实证，重放以 device/replay-detected 拒绝；保留既有 local Host/Origin 防线。 设备准入生命周期已补齐：存储队列提交时重查撤销；流在准入等待前观察撤销，禁止迟到 ready 与撤销后的排队帧；设备交互回复要求原设备的新签名，拒绝不消费投递，校验期间取消或撤销不结算。496 项包内测试、真实录制 Question 刷新/回放与 9 项 Kotlin 契约测试通过；Swift 源码/夹具已同步但本机未运行。Kotlin/Android 已采用独立 TLS Native Remote；Session 列表的可见传输失败、显式重试及撤销拒绝已通过真实 Host 和隔离模拟器验证。Android 诊断 APK 在旧 Host 产物上捕获 timestamp-regressed；完整账本修复后的 547 项设备准入/Gateway/协议测试与 7 项真实 Host 回放通过。Swift、完整权限矩阵与物理平台验收仍开放。",
+      "remaining": "Pair/Role/Revoke、安全存储、重放/降级威胁审查和远端执行授权未完成；保留既有 local Host/Origin 防线。",
       "evidenceLimit": "这些路径是已定位的候选证据；尚未逐条证明本节每一项要求，不授予整节 PASS。"
     },
     {
@@ -3071,12 +2971,9 @@
       "owner": "Device Trust、凭据与本地认证",
       "candidateEvidence": [
         "SECURITY_STATUS.md",
-        "ARCHITECTURE_DECISIONS.md",
-        "packages/api/device-trust/tests/device-trust.host.spec.ts",
-        "packages/api/gateway/tests/gateway-stream.host.spec.ts",
-        "apps/web/tests/device-interaction-reply.e2e.ts"
+        "ARCHITECTURE_DECISIONS.md"
       ],
-      "remaining": "本节清单全部落地：revoke one（revokeDevice）、revoke all（revokeAllDevices，返回共享撤销时间与数量）、rename（renameDevice，不动身份/密钥/角色）、last seen（列表暴露持久化 lastSeenAt=最后接受准入时间）、platform（配对请求携带客户端声明的平台标签，Android 发送 android，夹具接受）、key fingerprint、pairedAt、role 均在 DeviceView 列表（packages/api/device-trust）。设备撤销后立即断开已有流已实现并测试：device-trust 派发类型化事件 deviceTrust/grantsRevoked（撤销时间+身份列表），网关为每个已准入 Remote 事件流 client 记录 deviceId，事件到达即终止该流（gateway-stream 测试以流 end 帧断言）。安全存储于 Host 侧凭据链；重放防护见 nonce 账本记录；降级威胁审查与远端执行授权见 §21 记录；管理 UI 已落地：Web 设置新增「设备」分区（packages/client/ui-settings-devices），消费 deviceTrust/listDevices 呈现 platform/lastSeenAt/指纹/角色/已撤销标记，行内 rename、需确认的单项 revoke 与全部 revoke（完成后报告数量），remote.deviceTrust 客户端命名空间挂入 api-remotes 并以 device.list.v1 门控注册；保留既有 local Host/Origin 防线。 设备准入生命周期已补齐：存储队列提交时重查撤销；流在准入等待前观察撤销，禁止迟到 ready 与撤销后的排队帧；设备交互回复要求原设备的新签名，拒绝不消费投递，校验期间取消或撤销不结算。496 项包内测试、真实录制 Question 刷新/回放与 9 项 Kotlin 契约测试通过；Swift 源码/夹具已同步但本机未运行。原生加密 Remote Connection Source 与物理平台采用仍待完成。",
+      "remaining": "Pair/Role/Revoke、安全存储、重放/降级威胁审查和远端执行授权未完成；保留既有 local Host/Origin 防线。",
       "evidenceLimit": "这些路径是已定位的候选证据；尚未逐条证明本节每一项要求，不授予整节 PASS。"
     },
     {
@@ -3316,40 +3213,10 @@
       "acceptanceProven": false,
       "owner": "Remote Carrier、Session 查看位置与 Host 选择",
       "candidateEvidence": [
-        "IMPLEMENTATION_STATUS.md",
-        "packages/api/session-controller/README.md",
-        "packages/api/gateway/README.md",
-        "apps/android/core/src/main/kotlin/ai/deepseek/dsh/companion/NativeViewLocation.kt",
-        "apps/android/core/src/main/kotlin/ai/deepseek/dsh/companion/NativeSessionJournal.kt",
-        "apps/android/core/src/test/kotlin/ai/deepseek/dsh/companion/NativeViewLocationTest.kt",
-        "apps/android/core/src/test/kotlin/ai/deepseek/dsh/companion/NativeSessionJournalTest.kt",
-        "apps/android/core/src/test/kotlin/ai/deepseek/dsh/companion/NativeViewLocationModelTest.kt",
-        "apps/web/tests/android-view-location.e2e.ts",
-        "apps/android/core/src/test/kotlin/ai/deepseek/dsh/companion/NativeCursorResumeTest.kt",
-        "apps/web/tests/android-cursor-resume.e2e.ts",
-        "apps/android/core/src/main/kotlin/ai/deepseek/dsh/companion/SubagentsModel.kt",
-        "apps/android/core/src/test/kotlin/ai/deepseek/dsh/companion/SubagentsModelTest.kt",
-        "apps/android/app/src/main/kotlin/ai/deepseek/dsh/companion/NativeSubagentTimeline.kt",
-        "apps/web/tests/android-subagent-timeline.e2e.ts",
-        ".agents/notes/implemented/architecture/2026-09-27-android-subagent-timeline.md",
-        "apps/apple/contract/Sources/DSHContract/NativeFollowResume.swift",
-        "apps/android/core/src/test/kotlin/ai/deepseek/dsh/companion/NativeFollowResumeFixtureTest.kt",
-        ".agents/notes/implemented/architecture/2026-10-02-apple-follow-resume.md",
-        "apps/android/core/src/main/kotlin/ai/deepseek/dsh/companion/NativeJournalStore.kt",
-        "apps/android/core/src/test/kotlin/ai/deepseek/dsh/companion/NativeJournalPersistenceTest.kt",
-        ".agents/notes/implemented/architecture/2026-10-02-android-follow-window-persistence.md",
-        "apps/web/tests/android-follow-window-persistence.e2e.ts",
-        "apps/web/tests/expected/android-follow-window.expected.md",
-        ".agents/notes/implemented/architecture/2026-10-03-android-follow-lane.md",
-        "apps/web/tests/android-follow-window-outage.e2e.ts",
-        "apps/web/tests/expected/android-follow-window-outage.expected.md",
-        ".agents/notes/implemented/architecture/2026-10-03-android-follow-outage.md",
-        "apps/web/tests/android-follow-window-foreground.e2e.ts",
-        "apps/web/tests/expected/android-follow-window-foreground.expected.md",
-        ".agents/notes/implemented/architecture/2026-10-03-android-follow-foreground.md",
-        "apps/web/tests/android-companion-ui-driver.ts"
+        "ARCHITECTURE_DECISIONS.md",
+        "COMPATIBILITY_MATRIX.md"
       ],
-      "remaining": "Follow 续传已按第 25 节落地：session.follow 询问新增可选 fromSeq（非负安全整数，边界 fail-loud），Host 在已发布窗口仍覆盖该切割点时从 opening snapshot 省略已覆盖尾部（恰在 cursor、超出 cursor 或受消息数限制的切割回退完整快照）；客户端重连与领域 resync 均携带最后已应用条目的含端 seq 重开 follow（engine resumeRequest 钩子 + doOpen 直传），后缀经 assistant baseline 重建后合并到已持有持久窗口之后——续传不缩小已发布窗口、不保留过期瞬态行——resumed 标记区分续传与整体替换。规格示例（revision 201 → 断线 → 从 202 请求）即此路径。多 Host 显式 active Host 与 §26/§28 的 Handoff/切换语义仍待后续增量。 Android 已接入 Web v1 查看位置编解码，匹配当前可信 Host 后打开既有 Session，通过固定快照截止点的有界分页显示旧锚点。显式复制使用可见持久记录；跳转不新建 Session、不提交 prompt、不迁移运行时。分页与实时事件合并，过期响应及超限数据被拒绝，模型退出等待取消读取结束。88 轮真实 Host 预置历史场景验证错误 Host 无请求、失败后显式重试及 Web 解码兼容。Android 同一内存 Session 已支持 fromSeq 续传；深链接、平台分享路由、物理设备及本节其他要求不因此取得 PASS。 Android 只在同一日志所有者持有对应记录时携带游标。连续增量保留较早分页，重叠完整窗口只复用相同记录，失去覆盖则替换为最新权威窗口；错 Session、矛盾重叠及超限不发布部分数据。每条新流先验快照，再报告 OPEN。真实 Host 的逻辑流中断分别验证 3 条增量和 60 条新增后退回 50 条窗口，未发送文本保留且无业务重放。真机与 OS 后台回收行为仍未验收，本节不授予整体 PASS。模拟器进程重启车道已交付：android-follow-window-persistence.e2e 在断线期间新增记录之间强停已安装应用（force-stop+同安装态重启），重开请求携带持久化的最后保留序号、Host 省略已覆盖尾部恰返三条新记录、合并窗口保留较早页面无缺口无重复，未发送输入与单设备授权原样保留、零业务写请求（重开窗口断言对恢复进程自顶遍历采用一次重试吸收滚动时延）。物理载体断开车道已交付：android-follow-window-outage.e2e.ts 在断线前后新增记录之间由 Host 侧 terminateDeviceConnections 销毁配对设备的流载体（§29 已记载的空闲流无法检测 adb 反向隧道移除缺口如实保持），设备以含断线前新增记录的最后应用序号重开 follow，断线期间不追加记录、不为断线期 Host 写入作声称，重连后新增记录无缺口合并入保留页面、未发送输入与单设备授权原样保留、零业务写（整窗断言以三步有界重试梯吸收慢响应丢弃与滚动验证器放弃两类抖动，两连绿）。前台恢复车道已交付：android-follow-window-foreground.e2e.ts 在应用失去窗口焦点时由 Host 侧销毁载体，后台进程自行以含断线前新增的持久化游标重开 follow、消费后台期间新增记录（游标无 UI 推进），经普通启动器返回后完整连续呈现合并窗口、未发送输入与单设备授权保留、零业务写（健康后台往返按设计不产生新请求；推送观察的一次性前台重启属 push-foreground 车道声称不重复；FCM 投递与 OS 后台回收未验收；driver 单请求预算 40s→90s 吸收整窗滚动 ~60s 实测类）——规格依据为 §80「断网、后台、Host restart 后可恢复」加 §25 游标语义（§25 原文无前台/推送字样，该标签为台账验收项）。持久化窗口已以 core 级收口：NativeJournalStore 持久缝（每 principal 加密 v1 文档、原子替换、超限从最旧侧裁剪、不可读字节隔离后冷开）+ NativeSessionJournal installPersisted/checkpoint 两缝 + SessionModel 打开播种/替换发布与关闭路径持久化——进程重启以持久化的最后保留序号作为 fromSeq 重开，既有续传合并照旧治理（NativeJournalPersistenceTest 8 用例含双实例重启携带游标与合并验证；物理断网、前台/推送恢复及安装态重启车道仍开放）。Swift 侧已以契约列对等证据收口：NativeFollowResume.swift 镜像 Android core 的 follow 请求信封构建规则（地址嵌套于 address 键、正数 maxMessages、非负 fromSeq 仅在存在时携带——全新 follow 信封不含 fromSeq 键；结构相等而非字节相等为请求信封契约，键序归构建方），共享夹具 1/3/1 两列钉相同信封结构（Kotlin 侧驱动真实构建器经 WireValue.fromJsonElement 比较，Swift 自检段递归结构比较），Host 端 fractional/-0/布尔类 wire 验证留 Host 边界所有方。 Android 子代理目录绑定当前打开的父会话，展示加载、失败、空与诊断状态；只读子时间线复用固定截点的有界历史分页。父会话切换与子视图替换等待旧跟随和分页清理，迟到结果按代次拒绝。315 项核心测试覆盖冷父可用性、取消、替换及关闭；真实 Host 安装态场景验证非首行父选择、冷子历史、失败保留与重连，不激活子 Agent 或发送业务写请求。普通父 Session follow 仍遵循 Host 的后台激活策略。嵌套浏览、子会话续写、跨平台及物理设备仍开放，不授予全节 PASS。",
+      "remaining": "需在共享 Contract/Trust 上完成 follow cursor、查看位置 handoff、多 Host 和明确执行位置，不迁移运行时语义。",
       "evidenceLimit": "这些路径是已定位的候选证据；尚未逐条证明本节每一项要求，不授予整节 PASS。"
     },
     {
@@ -3431,25 +3298,10 @@
       "acceptanceProven": false,
       "owner": "Remote Carrier、Session 查看位置与 Host 选择",
       "candidateEvidence": [
-        "IMPLEMENTATION_STATUS.md",
-        "packages/api/session-controller/README.md",
-        "apps/android/core/src/main/kotlin/ai/deepseek/dsh/companion/NativeViewLocation.kt",
-        "apps/android/core/src/main/kotlin/ai/deepseek/dsh/companion/NativeSessionJournal.kt",
-        "apps/android/core/src/test/kotlin/ai/deepseek/dsh/companion/NativeViewLocationTest.kt",
-        "apps/android/core/src/test/kotlin/ai/deepseek/dsh/companion/NativeSessionJournalTest.kt",
-        "apps/android/core/src/test/kotlin/ai/deepseek/dsh/companion/NativeViewLocationModelTest.kt",
-        "apps/web/tests/android-view-location.e2e.ts",
-        "apps/apple/contract/Sources/DSHContract/NativeViewLocation.swift",
-        "apps/android/core/src/test/kotlin/ai/deepseek/dsh/companion/NativeViewLocationFixtureTest.kt",
-        ".agents/notes/implemented/architecture/2026-10-02-apple-view-location.md",
-        "packages/client/ui-view-handoff/src/client/controller.ts",
-        "packages/client/ui-view-handoff/src/client/HandoffAction.tsx",
-        "packages/client/ui-view-handoff/tests/handoff.client.spec.tsx",
-        "packages/client/ui-view-handoff/README.md",
-        ".agents/notes/implemented/architecture/2026-10-03-view-handoff.md",
-        ".agents/notes/implemented/architecture/2026-10-04-view-handoff-qr.md"
+        "ARCHITECTURE_DECISIONS.md",
+        "COMPATIBILITY_MATRIX.md"
       ],
-      "remaining": "Handoff 第一阶段已按第 26 节落地：查看位置载荷（dsh-session-view.v1 前缀 base64url，解析边界 fail-loud）携带 Host 身份、SessionId 与含端持久锚点；ClientSessions.encodeViewLocation 在连接 Host 上捕获载荷，openViewLocation 校验载荷恰好指向当前连接的 Host（不同 Host/未准入即拒绝，绝不外泄请求）后选会话、打开并经轮次跳转加载器揭示锚点——只转移查看位置，不迁移执行 runtime（§27 语义由架构排除，§11 行已落档）。配套 §25 fromSeq 续传（前一增量）提供重开基础。多 Host 显式 active Host 与切换期 Composer 禁用（§28）已由 §28 行车道证据钉住。 Android 已接入 Web v1 查看位置编解码，匹配当前可信 Host 后打开既有 Session，通过固定快照截止点的有界分页显示旧锚点。显式复制使用可见持久记录；跳转不新建 Session、不提交 prompt、不迁移运行时。分页与实时事件合并，过期响应及超限数据被拒绝，模型退出等待取消读取结束。88 轮真实 Host 预置历史场景验证错误 Host 无请求、失败后显式重试及 Web 解码兼容。Android 同一内存 Session 已支持 fromSeq 续传；Swift 侧已以契约列对等证据收口：NativeViewLocations.swift 镜像 dsh-session-view.v1 编解码语法（顺序 ASCII JSON 字段+前缀 base64url、解析边界 fail-loud、CF 类型标识守卫拒绝布尔锚点、-0 与超安全整数拒绝），共享夹具 1/3/6 两列钉相同载荷字节（Kotlin 75 套件驱动真实编解码器，PR 通道 swift-contract 自检）。Web 侧生成端与接收端已交付：ui-view-handoff 包经 slots 在会话头部 actions 座位注入「继续到其他设备」动作——仅当已准入 Host（当前 generation 带 descriptor）且 Chat 时间线存在最后轮次 turn/start 锚点时可见；点击以 encodeViewLocation 编码当前会话与锚点、拼为当前页 #dsh-view= 片段链接并复制剪贴板，剪贴板拒绝时以动作 title 降级呈现链接本体；同页接收端读到该片段即一次性消费（读后即清），待 Host 准入后经 openViewLocation 校验并揭示锚点，失败显式上报、不重试；链接只承载查看位置不承载传输。Web 生成端的 QR 投递面已交付：同一次点击在动作下方打开锚定弹层，把被复制的同一条 #dsh-view= 片段链接渲染为可扫描 QR 码（qrcode.react SVG，与设备配对面板同一渲染；弹层沿用仓库锚定面板配方——向下锚定量测、外部指针与 Escape 关闭、焦点归还触发器、aria-haspopup=\"dialog\"），手机相机由此成为与粘贴并列的投递通道；深链接、平台分享路由、物理设备及本节其他要求不因此取得 PASS。",
+      "remaining": "需在共享 Contract/Trust 上完成 follow cursor、查看位置 handoff、多 Host 和明确执行位置，不迁移运行时语义。",
       "evidenceLimit": "这些路径是已定位的候选证据；尚未逐条证明本节每一项要求，不授予整节 PASS。"
     },
     {
@@ -3608,37 +3460,14 @@
           "text": "---"
         }
       ],
-      "verificationStatus": "IN_PROGRESS",
+      "verificationStatus": "NOT_STARTED",
       "acceptanceProven": false,
       "owner": "Remote Carrier、Session 查看位置与 Host 选择",
       "candidateEvidence": [
-        "IMPLEMENTATION_STATUS.md",
-        "packages/client/ui-conversation/README.md",
-        "packages/client/connection/tests/selection-observer.client.spec.ts",
-        "packages/client/ui-settings-hosts/tests/observation.client.spec.tsx",
-        "apps/web/tests/hosts-settings.e2e.ts",
-        "apps/android/README.md",
-        "apps/web/tests/android-companion-question.e2e.ts",
-        "apps/android/core/src/test/kotlin/ai/deepseek/dsh/link/FileLinkCredentialsStoreTest.kt",
-        "apps/android/core/src/test/kotlin/ai/deepseek/dsh/companion/CompanionModelSetTest.kt",
-        "apps/android/core/src/main/kotlin/ai/deepseek/dsh/companion/NativeHostCatalog.kt",
-        "apps/android/core/src/main/kotlin/ai/deepseek/dsh/companion/CompanionHostController.kt",
-        "apps/android/core/src/test/kotlin/ai/deepseek/dsh/companion/NativeHostCatalogTest.kt",
-        "apps/android/core/src/test/kotlin/ai/deepseek/dsh/companion/CompanionHostControllerTest.kt",
-        "apps/web/tests/android-host-roster.e2e.ts",
-        "apps/web/tests/android-host-import.e2e.ts",
-        "apps/web/tests/android-host-question.e2e.ts",
-        "packages/client/connection/src/client/saved-hosts.ts",
-        "packages/client/connection/tests/saved-hosts.client.spec.ts",
-        "packages/client/ui-settings-hosts/src/client/HostsSettingsSection.tsx",
-        "packages/client/ui-settings-hosts/tests/components.client.spec.tsx",
-        "packages/client/ui-settings-hosts/tests/browser-plugin.client.spec.tsx",
-        ".agents/notes/implemented/architecture/2026-10-02-hosts-roster-reorder.md",
-        "packages/client/connection/tests/host-switch.client.spec.ts",
-        "packages/client/ui-conversation/tests/host-switch.client.spec.ts",
-        ".agents/notes/implemented/architecture/2026-10-03-active-host-switch.md"
+        "ARCHITECTURE_DECISIONS.md",
+        "COMPATIBILITY_MATRIX.md"
       ],
-      "remaining": "Web 名册、Host 选择与同源限制沿用已有证据；独立 TLS Native Remote 与 Device Trust 已由 Kotlin 和隔离 Android 应用采用。Android 重新配对先停止旧模型，在内存验证后原子替换本地身份；失败取消可用原身份重新观察，成功后创建空缓存模型。Swift 名册读取已有契约级对等证据；本地编辑（重命名）与手动重排（SavedHost.order 序戳，record/rename 保序，Move up/Move down 边界禁用，dsh-saved-hosts.v1 持久化）已交付并经三层套件与真实浏览器车道验收；不授予整节 PASS。 Android 现用整体加密名册同时提交 Host 凭据与选择；界面显示当前 Host 与地址，模型退出后切换，进程重启恢复选择但不自动发送。双真实 Host 的同 id Session 草稿隔离及所选 Host 单次发送已验证，旧原生文件需显式导入，损坏名册不回退旧身份。Question 与待确认输入跨主体隔离已在本地 AVD 双真实 Host 物理车道验收（Host 切换、进程重启、仅所选 Host 单次应答送达）。§28 切换期三连要求（明确显示 active Host／切 Host 时 Composer 暂时 disabled／禁止 UI 已显示 B 而请求仍发往 A）已由两条车道钉住：connection 包 host-switch 车道用门控双源在真实插件上走完 A 就绪→retarget(B)→旧代同步退休→新代在 B 建立的整周期——target/generation/state 三观察源全程采样不存在「target=B 而 generation 为 A」与「generation 为 B 而 target 非 B」的观测，切换后再无面向 A 的连接尝试，名册当前行与所选 origin 一致；ui-conversation 包 host-switch 车道用真实 createComposerControlSource 走网关 $host 形态（A facts→无能力壳→B facts）钉 prompt true→false→true——切换窗内 Composer 经 controlAvailable=false 禁用、新代建立后恢复且跟随 B 自身能力（A 独有上传能力不复现）；InputBar 禁用公式面（controlAvailable=false 即禁用）沿用既有覆盖。显示与路由一致由结构保证（retarget 先翻路由、事实单代绑定），车道为其钉住声称。；真机、Swift 外壳、后台/推送、完整 Session 位置元数据及整节其余验收仍开放。",
+      "remaining": "需在共享 Contract/Trust 上完成 follow cursor、查看位置 handoff、多 Host 和明确执行位置，不迁移运行时语义。",
       "evidenceLimit": "这些路径是已定位的候选证据；尚未逐条证明本节每一项要求，不授予整节 PASS。"
     },
     {
@@ -3709,28 +3538,9 @@
       "owner": "Remote Carrier、Session 查看位置与 Host 选择",
       "candidateEvidence": [
         "ARCHITECTURE_DECISIONS.md",
-        "COMPATIBILITY_MATRIX.md",
-        "apps/android/core/src/main/kotlin/ai/deepseek/dsh/companion/NativeHostCatalog.kt",
-        "apps/android/core/src/main/kotlin/ai/deepseek/dsh/companion/CompanionHostController.kt",
-        "apps/android/core/src/test/kotlin/ai/deepseek/dsh/companion/NativeHostCatalogTest.kt",
-        "apps/android/core/src/test/kotlin/ai/deepseek/dsh/companion/CompanionHostControllerTest.kt",
-        "apps/web/tests/android-host-roster.e2e.ts",
-        "apps/web/tests/android-host-import.e2e.ts",
-        "apps/web/tests/android-session-location.e2e.ts",
-        "packages/client/ui-conversation/src/client/skeleton/ConversationSession.tsx",
-        "packages/client/ui-conversation/tests/skeleton.client.spec.tsx",
-        ".agents/notes/implemented/feature/2026-10-01-android-session-location-facts.md",
-        "packages/api/gateway/src/index.ts",
-        "packages/api/gateway/src/stream-server.ts",
-        "packages/api/gateway/tests/gateway-stream.host.spec.ts",
-        "apps/web/tests/android-connection-outage.e2e.ts",
-        ".agents/notes/implemented/architecture/2026-10-02-gateway-device-termination.md",
-        "apps/android/core/src/main/kotlin/ai/deepseek/dsh/companion/NativeLocationFacts.kt",
-        "apps/android/core/src/test/kotlin/ai/deepseek/dsh/companion/NativeLocationFactsFixtureTest.kt",
-        "apps/apple/contract/Sources/DSHContract/NativeLocationFacts.swift",
-        ".agents/notes/implemented/architecture/2026-10-02-apple-session-location-facts.md"
+        "COMPATIBILITY_MATRIX.md"
       ],
-      "remaining": "需在共享 Contract/Trust 上完成 follow cursor、查看位置 handoff、多 Host 和明确执行位置，不迁移运行时语义。 Web Session 头部运行位置 chip 现公开本节五元位置事实：可见文本承载 Host 事实、工作区目录名与权限层级，非 ready 连接追加本地化状态短词；title 另行公开运行模式（读自 Host descriptor）与工作区全路径；状态点按 §18 连接词汇区分过渡/阻断色调，header 经注入的 ConnectionHandle.state observable 直接观察在线状态。 Android 侧位置事实行已交付：SessionRow 解析 wire 可选 cwd 派生工作区目录名（双分隔符），权限预设经 SessionModel.permissionPreset StateFlow 取 journal 最新 permission/preset 记录（不触碰三语一致性 DomainState），StreamTransitionOwner 把原子连接快照镜像为 StateFlow 使 follow 流在线状态 Compose 可观察；会话屏在 composer 行之外渲染一行事实（Host · 工作区目录名 · 预设词 · 非 OPEN 状态词）与一行细节（完整运行时词——协议不变量，原生网关只接纳 full——加工作区全路径），内置预设复用共享中文词汇；AVD 物理车道以整行相等断言验收稳定事实行与细节行（header-only providers-only 回放 Host，零模型调用）。断线状态词的设备级驱动判定为当前车道工具集不可行（reverse 移除对空闲流不可检测、同 Session 重开复用活流、已移除隧道新连接仍成功，Host 侧 ESTABLISHED 证据在案），状态词机制由 JVM 连接状态迁移测试覆盖，确定性断线需 Host 侧流终止原语（开放）。Android 现用整体加密名册同时提交 Host 凭据与选择；界面显示当前 Host 与地址，模型退出后切换，进程重启恢复选择但不自动发送。双真实 Host 的同 id Session 草稿隔离及所选 Host 单次发送已验证，旧原生文件需显式导入，损坏名册不回退旧身份。Question 与待确认输入跨主体隔离已在本地 AVD 双真实 Host 物理车道验收（Host 切换、进程重启、仅所选 Host 单次应答送达）；真机、Swift 外壳与位置事实、后台/推送、上代裁定的确定性断线缺口本代收口：网关新增 host 平面 terminateDeviceConnections 原语（已准入流打开时绑定设备→物理连接、terminate() 无握手销毁载体套接字=真实载体丢失物理、准入与授权不动），Android 零改动经既有状态机呈现重连中状态词并重开 session/follow，AVD 物理车道（providers-only header-only 回放 Host）证明稳定事实行→重连中状态词→原样恢复且 follow 重开。Swift 侧位置事实已以契约列对等证据收口（core 纯对象 NativeLocationFacts 抽取五元事实推导规则——空白名回退 hostId、双分隔符 basename 回退全路径、最新 permission/preset 记录获胜且缺字符串值保留先前、六状态词自名 open 无词、细节行需工作区且运行时词协议固定 full——Apple 镜像同构 decode，共享夹具 1/4/1 两列钉同推导，Kotlin 74 套件通过，PR 通道 swift-contract 自检）；真机、Swift 外壳、后台/推送、follow cursor/handoff 及整节其余验收仍开放。",
+      "remaining": "需在共享 Contract/Trust 上完成 follow cursor、查看位置 handoff、多 Host 和明确执行位置，不迁移运行时语义。",
       "evidenceLimit": "这些路径是已定位的候选证据；尚未逐条证明本节每一项要求，不授予整节 PASS。"
     },
     {
@@ -3806,26 +3616,9 @@
       "candidateEvidence": [
         "COMPATIBILITY_MATRIX.md",
         "artifacts/upstream-first/upload-home-replay-source.json",
-        "artifacts/upstream-first/dynamic-cordis-runtime-source.json",
-        "packages/api/session-controller/src/capabilities.ts",
-        "packages/client/ui-conversation/src/client/input/control-capabilities.ts",
-        "packages/client/ui-conversation/tests/control-capabilities.client.spec.ts",
-        "packages/client/ui-conversation/tests/input-bar.client.spec.tsx",
-        "apps/web/tests/host-description.e2e.ts",
-        "apps/web/tests/android-steer.e2e.ts",
-        "apps/web/tests/android-model-select.e2e.ts",
-        "apps/android/core/src/main/kotlin/ai/deepseek/dsh/companion/CompanionModels.kt",
-        "apps/android/core/src/main/kotlin/ai/deepseek/dsh/gateway/NativeGatewayDiagnostics.kt",
-        "apps/android/core/src/test/resources/support-native-gateway.json",
-        ".agents/notes/implemented/architecture/2026-10-01-android-model-select.md",
-        "apps/web/tests/android-model-effort.e2e.ts",
-        "apps/android/core/src/test/kotlin/ai/deepseek/dsh/companion/CompanionModelTest.kt",
-        ".agents/notes/implemented/feature/2026-10-02-android-model-effort.md",
-        "apps/apple/contract/Sources/DSHContract/NativeModelCatalog.swift",
-        "apps/android/core/src/test/kotlin/ai/deepseek/dsh/companion/NativeModelCatalogFixtureTest.kt",
-        ".agents/notes/implemented/architecture/2026-10-02-apple-model-catalog.md"
+        "artifacts/upstream-first/dynamic-cordis-runtime-source.json"
       ],
-      "remaining": "第 30 节两个半面均已交付：steer 半面——HostDescriptor capabilities 现广播 model.steer.v1（与 session.control.v1 在 prompt 方法上重叠声明同一 prompt.send 权限，首匹配查找与顺序无关），Web 按能力渲染显式转向提交（广播 ∧ 可接纳 prompt 路径缺一不可，一次性子代理地址排队不转向），Android 经 NativeObservedCapability.MODEL_STEER 观察该能力并在排队发送旁渲染转向入口，submitPrompt 以 steer 参数选择 wire mode、默认 queue wire 逐字节不变；本地 AVD 真实 companion 对回放 Host 的物理车道证明恰一条携带 mode:\"steer\" 的设备签名 session/prompt dispatch 且录制 turn settle。model-select 半面——model.select.v1/model.catalog.v1 已广播、Web 选择器已存在，Android 经 MODEL_CATALOG/MODEL_SELECT 观察能力，会话屏（composer 行之外）按广播渲染模型入口，selectModel 走 request 信封、modelCatalog 零参以空 args 调用；reasoningEffort 选择面本代收口：NativeCatalogModel 解析目录 wire 的 model.reasoning（efforts 与 defaultEffort），选择器在各推理模型行下渲染力度按钮（catalog-effort-<id>），点模型行按 defaultEffort、点力度按钮按该力度发送，仅非空时附加 reasoningEffort 字段（无力度选择 wire 字节不变）；AVD 物理车道以 providers-only header-only 回放 Host（零模型调用）证明恰一条携带 reasoningEffort:\"max\" 的设备签名 session/selectModel dispatch、携带同一力度的 model/selection 事件与设备端按模型名与力度命名的确认。Web 选择器早已暴露各模型力度（ModelSelect 读取 model.reasoning）——此前 remaining 所述\"无任何 client UI\"系记录失准，本代勘误。apple 侧契约列本代采纳：NativeModelCatalog.decode 镜像 Kotlin modelCatalog 的宽容解析（无字符串 id 丢弃、名称回退 id、非对象 reasoning 缺席、非字符串 default 成员为空），NativeModelSelection.wireBody 镜像 selectModel 信封（reasoningEffort 仅非 nil 时携带），共享夹具 fixtures/native-model-catalog/（规范+三宽容边界+一残缺）由 Kotlin FixtureTest 与 macOS CI 自检双列消费。仍开放：apple 侧外壳 UI 入口（按能力渲染）、同候选真机验收；不授予整节 PASS。",
+      "remaining": "发现、独立能力与部分协议已有证据；仍需完整多版本/多语言矩阵、设备撤销状态、闭合错误语义和变更身份确认。",
       "evidenceLimit": "这些路径是已定位的候选证据；尚未逐条证明本节每一项要求，不授予整节 PASS。"
     },
     {
@@ -3900,10 +3693,9 @@
       "owner": "受限 Lite profile 与工具目录",
       "candidateEvidence": [
         "docs/plans/2026-09-14-upstream-first.zh.md",
-        "CUSTOM_CAPABILITY_INVENTORY.json",
-        "artifacts/upstream-first/android-migration-source.json"
+        "CUSTOM_CAPABILITY_INVENTORY.json"
       ],
-      "remaining": "历史 Lite 领域（loop、tool registry、stores、chat 折叠）与 Compose 外壳已从 android-application-source 原样迁入 apps/android（:core 37 个 JVM 测试类全绿，:app 配置通过 AGP 8.10.1，assembleDebug 由支持扫描器 AAR 门禁——Go+NDK 链未建，外壳编译证据未声明）。Lite 的 runtimeMode/capabilities/工具权限声明、Prompt composition 与 Gateway 契约消费接线仍待实施，Full Mobile Host 保持实验范围。",
+      "remaining": "依赖前序 Contract 与 Native；Lite 范围、工具权限和 Prompt composition 待实施，Full Mobile Host 保持实验范围。",
       "evidenceLimit": "这些路径是已定位的候选证据；尚未逐条证明本节每一项要求，不授予整节 PASS。"
     },
     {
@@ -3973,10 +3765,13 @@
       "acceptanceProven": false,
       "owner": "受限 Lite profile 与工具目录",
       "candidateEvidence": [
-        "docs/plans/2026-09-14-upstream-first.zh.md",
-        "CUSTOM_CAPABILITY_INVENTORY.json"
+        "packages/core/tools/tool-descriptors.json",
+        "packages/core/tools/src/capabilities.ts",
+        "packages/core/tools/src/index.ts",
+        "apps/android/contract/src/main/kotlin/ai/deepseek/dsh/contract/ToolDescriptor.kt",
+        "apps/android/core/src/main/kotlin/ai/deepseek/dsh/companion/LiteToolRegistry.kt"
       ],
-      "remaining": "依赖前序 Contract 与 Native；Lite 范围、工具权限和 Prompt composition 待实施，Full Mobile Host 保持实验范围。",
+      "remaining": "§32 声明面已落地：ToolDefinition 必填 version/risk/permissions/supportsLite/supportsRemote（注册边界 fail-loud；模型投影与 SessionEventMap 零变化），descriptors() 投影经 Remote tools 命名空间（tool.catalog.v1 + tools/list）按 §37 先例广播，gen-tool-catalog 产出机器可读 tool-descriptors.json；Android 侧 :contract 镜像解析 fail-loud，LiteToolCatalog 双源（HOST_DECLARED/BUNDLED_FALLBACK 显式标记）替换 LiteLoop 按名猜测，未声明名交回 full runtime 不猜，网关按 capability 协商拉取。Android 本地名与宿主工具名对齐（url_fetch 等 vs web_fetch 等）、app 层运行时接线、Lite 工具权限策略与 §33 Prompt composition 仍待实施。",
       "evidenceLimit": "这些路径是已定位的候选证据；尚未逐条证明本节每一项要求，不授予整节 PASS。"
     },
     {
@@ -4116,16 +3911,9 @@
       "owner": "共享 Diff、文件与 Artifact",
       "candidateEvidence": [
         "artifacts/upstream-first/file-upload-capability-source.json",
-        "artifacts/upstream-first/upload-home-replay-source.json",
-        "packages/client/ui-sidebar-documentpreview/tests/diff-boundaries.client.spec.ts",
-        "packages/client/ui-sidebar-documentpreview/tests/diff-body.client.spec.tsx",
-        "apps/web/tests/diff-preview.e2e.ts",
-        "packages/client/ui-sidebar-documentpreview/tests/diff-files.client.spec.ts",
-        "packages/client/ui-sidebar-documentpreview/tests/diff-syntax.client.spec.ts",
-        "packages/client/ui-sidebar-documentpreview/src/client/diff/split.ts",
-        "packages/client/ui-sidebar-documentpreview/tests/diff-split.client.spec.ts"
+        "artifacts/upstream-first/upload-home-replay-source.json"
       ],
-      "remaining": "共享 unified Diff 已支持 hunk 行号、主题语义与原文复制；本轮复用 Shiki 对旧/新 hunk 片段分别高亮并观察懒加载语法，复用 diff 库解码 Git 文件名，以 TanStack Virtual 限制挂载行数。打开文件绑定补丁资源原属 Session，导航前复查原 Host 与插件存活；未知后缀 ZIP 复用 MIME 推断和二进制事实卡。文档预览 372 项测试、后续元数据 8 项测试及真实隔离 Host/Chrome 回放覆盖 TS/Python、键盘焦点与 Enter、64→101 行分页及复制全部已加载原文。虚拟化不限制累计文本/token 内存。Desktop split Diff 已由 DiffBody 逐页签 aria-pressed 切换交付（默认 unified，共享配对行与同一虚拟化器，分屏纯配对 + 组件测试与 diff-preview e2e 分屏腿覆盖）；仍开放：同候选四平台真机验收，375px 视口不等于手机真机，不授予整节 PASS。",
+      "remaining": "上传/读取回放只证明局部路径；大文件、Range、中断、二进制、MIME 和共享 Diff 矩阵未完成。",
       "evidenceLimit": "这些路径是已定位的候选证据；尚未逐条证明本节每一项要求，不授予整节 PASS。"
     },
     {
@@ -4208,44 +3996,9 @@
       "owner": "共享 Diff、文件与 Artifact",
       "candidateEvidence": [
         "artifacts/upstream-first/file-upload-capability-source.json",
-        "artifacts/upstream-first/upload-home-replay-source.json",
-        "packages/client/ui-sidebar-documentpreview/src/client/document/sniff.ts",
-        "packages/client/ui-sidebar-documentpreview/tests/face-sniff.client.spec.ts",
-        "packages/client/ui-sidebar-documentpreview/tests/document-seat.client.spec.tsx",
-        "apps/android/core/src/main/kotlin/ai/deepseek/dsh/companion/NativeResourceReader.kt",
-        "apps/android/core/src/main/kotlin/ai/deepseek/dsh/companion/NativeDeliveredFiles.kt",
-        "apps/android/core/src/test/kotlin/ai/deepseek/dsh/companion/NativeResourceReaderTest.kt",
-        "apps/web/tests/android-resource-adoption.e2e.ts",
-        "apps/android/core/src/main/kotlin/ai/deepseek/dsh/companion/NativeResourceSave.kt",
-        "apps/android/core/src/test/kotlin/ai/deepseek/dsh/companion/NativeResourceSaveTest.kt",
-        "apps/android/app/src/main/kotlin/ai/deepseek/dsh/companion/NativeResourceSaveAction.kt",
-        "apps/android/app/src/androidTest/kotlin/ai/deepseek/dsh/companion/NativeResourceSavePickerTest.kt",
-        "apps/web/tests/android-resource-save.e2e.ts",
-        ".agents/notes/implemented/architecture/2026-09-27-android-complete-resource-save.md",
-        "apps/android/core/src/main/kotlin/ai/deepseek/dsh/companion/NativeDownloadStore.kt",
-        "apps/android/core/src/main/kotlin/ai/deepseek/dsh/companion/NativeDownloadController.kt",
-        "apps/android/core/src/main/kotlin/ai/deepseek/dsh/companion/NativeResourceWire.kt",
-        "apps/android/core/src/test/kotlin/ai/deepseek/dsh/companion/NativeDownloadTest.kt",
-        ".agents/notes/implemented/architecture/2026-09-27-android-download-checkpoints.md",
-        "apps/android/app/src/main/kotlin/ai/deepseek/dsh/companion/MainActivity.kt",
-        "apps/android/core/src/main/kotlin/ai/deepseek/dsh/companion/CompanionModelSet.kt",
-        "apps/android/core/src/main/kotlin/ai/deepseek/dsh/companion/CompanionHostController.kt",
-        "apps/android/core/src/main/kotlin/ai/deepseek/dsh/companion/NativeDownloadsModel.kt",
-        "apps/android/core/src/test/kotlin/ai/deepseek/dsh/companion/NativeDownloadsModelTest.kt",
-        "apps/android/app/src/main/kotlin/ai/deepseek/dsh/companion/NativeDownloadControls.kt",
-        "apps/android/app/src/main/kotlin/ai/deepseek/dsh/companion/NativeResourcePreview.kt",
-        "apps/web/tests/android-download-adoption.e2e.ts",
-        "apps/web/tests/expected/android-download-adoption.expected.md",
-        "apps/web/tests/android-download-host-isolation.e2e.ts",
-        "apps/web/tests/expected/android-download-host-isolation.expected.md",
-        "apps/web/tests/android-apk-admission.e2e.ts",
-        "apps/web/tests/android-companion-ui-driver.ts",
-        ".agents/notes/implemented/architecture/2026-09-27-android-persistent-download-adoption.md",
-        ".artifacts/android-download-adoption-native-final.log",
-        ".artifacts/android-download-adoption-ui/installed-apks.json",
-        ".artifacts/android-download-host-isolation-ui/installed-apks.json"
+        "artifacts/upstream-first/upload-home-replay-source.json"
       ],
-      "remaining": "Host 侧读取矩阵已齐：read 文本分页（maxBytes/maxLines/maxFileBytes 拒绝不截断、NUL 二进制标记、symlink 全拒）、readBytes 0 起字节窗口（Range）、stat 版本与字节数、list 上限截断、changes 观察（packages/api/workspace-files）；§34 共享 unified diff 渲染器已落地（见第 34 节行）。客户端呈现矩阵新增已知二进制后缀（32 个：压缩包/可执行/库/字体/数据库）的 builtin 完整字节事实卡：字节数+非文本提示、超 256 字节展示上限的余量标注、带偏移的十六进制行、0 字节显式空态，maxFileBytes 上限照常拒绝超大文件（packages/client/ui-sidebar-documentpreview/src/client/binary/；格式化 5 例 + 渲染 3 例 + 注册 2 例测试）。中断传输恢复矩阵已落地：Host 声明 workspace-files.read-bytes.v1 时，Preview 的完整字节读取按固定 1 MiB readBytes 窗口进行（packages/client/ui-sidebar-documentpreview/src/client/bytes/transfer.ts——base64 窗口解码+按序拼装为纯函数；face 持有读取世代），每个落定窗口更新已接收字节进度行；已接收字节后的失败保留前缀并提供「从断点继续」（从第一个缺失字节续传不重读），未收到字节的失败只提供从头重试；传输期间 Host 版本变化从零重启（拼接前缀会混合两个版本）、破坏窗口契约（offset 不符或空窗口非 eof）大声 gateway/internal 失败、tab 退役或世代替换后不再写入；无该能力时保持单次 readAll（测试 313：纯函数 6 + face 矩阵 8 + UI 横幅/续传 2 + rpc 窗口绑定 1 等新 17）。真机同候选验证仍开放。未知扩展名的 MIME 内容推断已接入：有 read-bytes 能力时读取前 64 字节识别 PNG/JPEG/GIF/WebP/BMP/ICO 或 ZIP，扩展名匹配与手动选择优先，失败或无匹配回退纯文本；完整字节再次确认签名，重新加载重新推断，关闭或替换世代丢弃迟到结果。同候选四平台真机验证仍未完成。 Android 文件与工件预览共用当前 workspaceFiles/stat 与 readBytes，以 Session 授权读取并保持路径、版本及大小一致；已删除应用的退役 session/artifact 读取及无界缓存，工件引用来自当前 deliverables/presented 持久声明。64 KiB 串行窗口、8 MiB 内容预算及 256 字节大文件前缀提供有界读取；失败显式续传，版本变化丢弃前缀并要求重新读取。图片和文本另有呈现上限，未知数据为惰性十六进制。取消请求保留至清理结束，切换 Session 清空旧资源。文件预览与当前事件的真实 Host 验收不等于真实模型、物理设备或全平台统一描述符完成；本节保持未完成。 Android 已完整读取的 READY 资源可通过系统 ACTION_CREATE_DOCUMENT 保存快照，支持空文件、中文文件名及二进制；部分预览不提供完整文件保存。资源关闭、替换及 Host 退役使选择失效，写入取消等待 I/O 并清理新目标；清理失败单独提示，重复回调不能删除已保存文档。核心取消与重入测试、安装态回调测试和真实系统选择器独立字节核验覆盖该路径。Android 持久下载已接入当前 Host 模型、独立 Android Keystore 密钥，以及下载、暂停、继续、完成后保存和确认移除的 UI；缓存绑定已验证的 Host 主体、Session 与资源路径，资源替换和 Host 退役等待传输、磁盘与导出清理结束。 完整下载从加密磁盘按分段流式导出，不重新读取 Host，也不整文件驻留内存。应用采用 64 KiB 窗口、每文件 1 GiB 上限、共享 2 GiB 加密缓存和 128 条下载上限，并预留检查点空间；容量耗尽拒绝写入，确认移除只清除所选主体与资源的本地缓存及进度，保留 Host 文件和既有导出文档。 核心 59 个测试类的 351 项测试通过，覆盖主体与 Session 隔离、容量限制、恢复、取消、导出和等待退役；真实 JVM 突然退出覆盖已同步但未提交尾部的恢复。 安装的应用与 instrumentation APK 经当前构建 SHA-256 比对后，真实 Host 的 Android 模拟器单 Host 场景通过：9 MiB 文件保持有界预览，下载中实际终止应用进程后恢复为 PAUSED，显式继续从缺失偏移完成；系统 SAF 保存的完整大文件与空文件通过独立目标 SHA-256 核验，保存不重新读取 Host 文件，版本变化拒绝追加。 双 Host 场景以相同 Session id 和相对路径提供内容不同的 9 MiB 文件；A 在 128 KiB 后失败，其已观测的一元 gateway 调用结束后切换 B，B 无继承的下载 controller 或进度，显式下载从 0 开始并完成。返回 A 的恢复导航和 128 KiB PAUSED 状态通过，显式继续从 131072 完成缺失分段；两侧选择期间仅允许本侧 256 字节预览，下载期间未观察到另一 Host 的额外 workspaceFiles/readBytes。该场景核验预览前缀、进度与读取范围，不提供双 Host 独立导出哈希证据。 最新组合回归为 4 个文件、5 项测试通过：3 个原生场景和 2 个 APK 哈希不匹配准入负向测试。 第三方文档提供方、物理设备、后台下载调度、自动缓存驱逐、断电持久性、回滚抵抗、硬件密钥失效及全平台 File/Artifact 描述符验收仍开放，不授予全节 PASS。",
+      "remaining": "上传/读取回放只证明局部路径；大文件、Range、中断、二进制、MIME 和共享 Diff 矩阵未完成。",
       "evidenceLimit": "这些路径是已定位的候选证据；尚未逐条证明本节每一项要求，不授予整节 PASS。"
     },
     {
@@ -4324,64 +4077,9 @@
       "owner": "共享 Client 响应式与原生输入",
       "candidateEvidence": [
         "PLATFORM_VERIFICATION.md",
-        "docs/plans/2026-09-14-upstream-first.zh.md",
-        "apps/android/README.md",
-        "apps/android/app/src/main/kotlin/ai/deepseek/dsh/companion/MainActivity.kt",
-        "apps/android/app/src/main/kotlin/ai/deepseek/dsh/companion/NativeFileAttachments.kt",
-        "apps/android/core/src/main/kotlin/ai/deepseek/dsh/companion/NativeFileAttachmentsModel.kt",
-        "apps/android/core/src/main/kotlin/ai/deepseek/dsh/companion/CompanionModelSet.kt",
-        "apps/android/core/src/main/kotlin/ai/deepseek/dsh/companion/CompanionInput.kt",
-        "apps/android/core/src/main/kotlin/ai/deepseek/dsh/companion/CompanionInputStore.kt",
-        "apps/android/core/src/main/kotlin/ai/deepseek/dsh/companion/CompanionModels.kt",
-        "apps/android/core/src/main/kotlin/ai/deepseek/dsh/companion/DomainFold.kt",
-        "apps/android/core/src/main/kotlin/ai/deepseek/dsh/gateway/NativeGatewayDiagnostics.kt",
-        "apps/android/core/src/test/kotlin/ai/deepseek/dsh/companion/NativeFileAttachmentsModelTest.kt",
-        "apps/android/core/src/test/kotlin/ai/deepseek/dsh/companion/NativeFileAttachmentsLifecycleTest.kt",
-        "apps/android/core/src/test/kotlin/ai/deepseek/dsh/companion/CompanionInputStoreTest.kt",
-        "apps/android/app/src/androidTest/kotlin/ai/deepseek/dsh/companion/NativeFileAttachmentPickerTest.kt",
-        "apps/android/app/src/androidTest/kotlin/ai/deepseek/dsh/companion/NativeCompanionAcceptanceTest.kt",
-        "apps/web/tests/android-file-attachments.e2e.ts",
-        "apps/web/tests/expected/android-file-attachments.expected.md",
-        ".agents/notes/implemented/architecture/2026-09-27-android-file-attachments.md",
-        ".agents/notes/implemented/architecture/2026-09-26-android-encrypted-input-checkpoints.md",
-        ".artifacts/android-file-attachments-native-final.log",
-        ".artifacts/android-file-attachments-picker.log",
-        ".artifacts/android-file-attachments-ui/installed-apks.json",
-        "apps/web/tests/android-photo-attachments.e2e.ts",
-        "apps/web/tests/expected/android-photo-attachments.expected.md",
-        "apps/android/core/src/test/kotlin/ai/deepseek/dsh/companion/NativePhotoAttachmentsModelTest.kt",
-        "packages/client/file-upload/src/index.ts",
-        "packages/client/file-upload/src/types.ts",
-        "packages/client/file-upload/src/capabilities.ts",
-        "packages/attachment/attachment/src/index.ts",
-        "packages/attachment/attachment/tests/admission.spec.ts",
-        "packages/api/session-controller/src/commands.ts",
-        "packages/api/session-controller/tests/commands-upload-file.host.spec.ts",
-        "apps/web/tsconfig.json",
-        "tsconfig.host.json",
-        ".agents/notes/implemented/architecture/2026-09-27-android-photo-attachments.md",
-        ".artifacts/android-photo-attachments-host.log",
-        ".artifacts/android-photo-attachments-core-results.json",
-        ".artifacts/android-photo-attachments-picker.log",
-        ".artifacts/android-photo-attachments-native-2.log",
-        ".artifacts/android-photo-attachments-ui/installed-apks.json",
-        ".artifacts/android-photo-attachments-native-final.log",
-        "apps/android/app/src/main/kotlin/ai/deepseek/dsh/companion/NativeCameraCapture.kt",
-        "apps/android/app/src/main/AndroidManifest.xml",
-        "apps/android/app/src/main/res/xml/native_camera_paths.xml",
-        "apps/android/core/src/test/kotlin/ai/deepseek/dsh/companion/NativeCameraAttachmentsLifecycleTest.kt",
-        "apps/android/app/src/androidTest/kotlin/ai/deepseek/dsh/companion/NativeCameraCaptureTest.kt",
-        "apps/web/tests/android-camera-attachments.e2e.ts",
-        "apps/web/tests/expected/android-camera-attachments.expected.md",
-        ".agents/notes/implemented/architecture/2026-09-27-android-camera-attachments.md",
-        ".artifacts/android-camera-attachments-core-results.json",
-        ".artifacts/android-camera-attachments-picker.log",
-        ".artifacts/android-camera-attachments-native-final.log",
-        ".artifacts/android-camera-attachments-downloads.log",
-        ".artifacts/android-camera-attachments-ui/capture-observation.json",
-        ".artifacts/android-camera-attachments-ui/installed-apks.json"
+        "docs/plans/2026-09-14-upstream-first.zh.md"
       ],
-      "remaining": "尚无规格要求的完整尺寸/主题/状态/访问性矩阵，以及 iOS/Android 真机输入、后台与原生附件验收。 Android Composer 已接入显式 + → Files，使用 ACTION_OPEN_DOCUMENT 单选 */* 文件；选择器结果仅消费一次，不持久保存 URI 或读取授权，重复、进程恢复及旧 Session 世代的迟到结果不能读取或上传。 文件通过当前 Host 的 fileUploads/upload 编码 RPC 上传，已完成收据以名称和字节数卡片进入所选 Session 草稿；选择、读取与上传期间禁用发送及待确认重试，失败展示固定本地分类，移除只改变本地草稿。 应用限制每文件 512 KiB、每草稿 8 个附件及 UTF-8 上传参数 JSON 1 MiB；参数上限不含签名 RPC envelope，Host 独立限制完整请求体，双方没有限额协商，也不提供原生流式或断点上传。 主体隔离的加密输入 v3 保存文本与单一有序图片/文件附件意图、文件收据与 requestId；显式重试保持原待确认意图及 requestId，每次 RPC 仍使用新的设备准入证明，不能复用准入 nonce。旧格式拒绝读取并保留原字节，恢复不自动上传或提交；确认仅清除完整意图一致的草稿，持久 FileBlock 在 Android 显示文件名和字节数摘要。 取消、Session 切换及 Host 退役等待所拥有的 provider I/O 和请求清理，阻塞 provider 可能延迟等待；Host 已接收的编码上传可以留下未引用字节，不承诺取消后撤销 Host 存储。 Files 增量核心 XML 核对为 62 个测试类、373 项测试全部通过，failures、errors、skipped 均为 0；6 项安装态 picker 回调测试全部通过，使用受控 source 验证单次消费、取消回调占位、恢复回调、旧 Session 世代及退役 Host 模型无读取/上传权限，以及八附件上限。这些回调测试不等同跨 Host 或 Session 的真实系统选择器验收。 真实 Host 的 Android 单 Host SAF 场景在安装 APK 与当前构建 SHA-256 匹配后通过：系统选择中文名二进制和空文件，Host 持久文件通过独立读取与 SHA-256 核验；取消选择和 512 KiB 超限文件未产生上传或 prompt，移除附件不新增上传或 prompt。 实际终止 Android 进程后，同一 grant 恢复原文本、文件收据和 requestId，未自动调用 fileUploads/upload 或 session/prompt；加密输入文件的原始字节不含草稿文本、文件名或附件标识。显式发送只调用一次 session/prompt，唯一 source.kind=user 的持久消息具有原 requestId，完整 text 与按序 FileBlocks 精确匹配原意图，Android 显示文件摘要。其余 user/message 分别核对为 fixture 的 @deepseek-ai/dsh-system-prompt snapshot 元数据，不把所有 user/message 的总数宣称为 1。 Files 增量真实组合验收为 4 个文件、5 项测试全部通过；真实 SAF 证据限于该单 Host 场景，Host/Session 迟到结果的拒绝由核心和安装态回调测试覆盖。 share intent、Apple 平台接入、物理设备、第三方文档提供方、更大文件的流式或续传上传及过期收据重传仍开放。Host 暂存收据可能随重启或 Session 退役失效；恢复需显式放弃原待确认意图后重新选择和上传，不自动替换收据或业务重放。本节保留未完成状态，不授予全节 PASS。 Android Photos 已通过系统 ImageOnly 单选入口接入，与 Files 共用单次选择、读取上传及取消生命周期。Host 的 fileUploads/uploadImage 验证和规范化 PNG/JPEG/WebP/GIF，签发独立图片收据；staged-image 在 prompt 准入时形成普通 ImageBlock，保持视觉模型检查。暂存与内联图片按每次出现统一计入图片数量和规范化前字节总量，不能用压缩后的大小绕过限制；foreign、wrong-kind、过期收据被拒绝，绑定回滚及已接受请求去重保持。Android v3 输入保存文本及单一有序混合附件列表，v1/v2 原字节保留且严格拒绝；显式恢复保留备份，显式重试保留完整原意图，确认保护较新编辑。Files/Photos 共用模型层提交准入，选择、读取、上传期间发送和重试均被拒绝；任务正文开始前取消及父 scope 终止通过完成回调释放准确票据。每附件 512 KiB、总附件 8 项、参数 JSON 1 MiB 限制继续适用，HEIC/未知类型本地拒绝；不新增广泛媒体权限或持久 URI 授权。本轮核心385项/63套件无失败、错误或跳过，Host定向9文件/170项与安装态9项选择器回调测试通过。实际 Android 34 x86_64 模拟器 Photos 单场景通过：安装包哈希与本轮构建一致；系统选择图片/文件/图片、移除及重选保持顺序，Host存储独立SHA-256核对已知无元数据PNG和文件字节。删除测试专属源图并实际终止进程后，同一grant、有序收据与requestId恢复，无自动上传或prompt；显式发送产生唯一原身份用户消息，ImageBlock/FileBlock/ImageBlock精确匹配，系统上下文快照单独核对，Session授权回读返回相同PNG，Android呈现发送名称。图片可被Host规范化，该特定PNG直通不代表任意照片保留原件字节；模型回复使用keyless录制，不证明真实模型视觉理解。Android验收测试统一归Host编译面，Client编译面排除该族；file-upload Node入口需Client打包阶段，双面构建均已运行。本轮安装态最终组合回归7文件/8项全部通过，涵盖Photos、Files、输入恢复、两种发送确认恢复、持久下载、原生诊断与查看位置。下载通过有界阶段/字节观测等待完成，再核验既有完成、偏移及导出哈希；长列表测试按已知行索引滚动，保留目标可见与再次打开/复制位置断言。Host/Client构建、最终Host类型检查、Lint、36项doc-sync和17项快速文档门禁均通过，四张Photos截图已检查。不据此授予全节或全项目完成。 Android Camera 已通过显式 + → 相机入口接入系统 TakePicture，使用未导出的窄 FileProvider 提供完整 JPEG 输出，不申请 CAMERA、广泛媒体或持久 URI 权限。Camera、Photos 与 Files 区分回调来源，图片继续使用既有 image-upload.stage.v1、core IMAGE 和加密输入 v3。临时输出仅限应用私有缓存中 UUID 命名的捕获文件，拒绝中间目录和文件符号链接逃逸；清理先撤销 URI 权限再精确删除，不删除 SAF/Photos 原件，也不能强制关闭外部进程已打开的文件描述符。读取、上传和清理共用一次性提交占用，CLEANING 结束前模型层发送与重试均被拒绝；清理失败展示固定错误并保留清理元数据。已启动 Camera 取消后保留丢弃回调及占位至系统结果实际消费，避免误投新选择或在 SavedState 中积累原始结果。恢复只保留输出名称与 awaiting-result 清理/丢弃状态；安装态 Registry 测试覆盖结果先到和清理先结束两顺序，均不恢复上传权限。核心 390 项/64 套件及安装态 18 项全部通过，含 5 项清理时序与 9 项 Camera 回调/目录/恢复测试。真实 Android 34 x86_64 系统相机场景通过，安装 APK 哈希与本轮构建一致；独立读取临时 1392×1856 JPEG 的哈希匹配上传字节，Host 规范化图片经独立存储哈希及 Android 解码核对。取消保留原草稿且无 Host 调用；另一次 Camera 未返回时实际终止进程，恢复原 grant、已完成图片收据和 requestId，清理孤儿输出且不自动上传或 prompt；显式发送形成原身份 ImageBlock，授权回读返回相同 Host 字节。最终七文件八项组合回归与独立下载采用一文件一项回归均通过；四张 Camera 截图已检查。512 KiB 原件、8 项附件和 1 MiB 参数 JSON 限制保持，过大拍照明确拒绝且不降级为缩略图。模型回复仍为 keyless 录制，物理相机、第三方应用、真实视觉理解、share intent、Apple 接入和更大流式上传仍开放，§36/§64 维持 NOT_STARTED 与 acceptanceProven=false，不授予全节完成。",
+      "remaining": "尚无规格要求的完整尺寸/主题/状态/访问性矩阵，以及 iOS/Android 真机输入、后台与原生附件验收。",
       "evidenceLimit": "这些路径是已定位的候选证据；尚未逐条证明本节每一项要求，不授予整节 PASS。"
     },
     {
@@ -4448,15 +4146,9 @@
       "owner": "Host Command/Tool 风险事实",
       "candidateEvidence": [
         "SECURITY_STATUS.md",
-        "packages/interaction/commands/README.md",
-        "packages/client/ui-approval/src/client/ApprovalPanel.tsx",
-        "packages/client/ui-chat/src/client/chat/ApprovalTarget.tsx",
-        "packages/interaction/user-approval/src/types.ts",
-        ".agents/notes/implemented/architecture/2026-10-04-approval-facts-complete.md",
-        "packages/core/tools/src/index.ts",
-        ".agents/notes/implemented/architecture/2026-10-04-approval-ask-risk.md"
+        "packages/interaction/commands/README.md"
       ],
-      "remaining": "风险等级已按第 37 节落地：CommandDefinition/CommandDescriptor 新增必填 Host 评定 risk 档位（low/moderate/high/critical，注册边界对词表外值 fail-loud），Host 命令层拥有分级——/permission=high（可切 danger-full-access）、/compact、/goal、/export=moderate、/plan、/feedback=low；描述符经既有 catalog wire 到达客户端，composer 菜单行以 locale 键（risk.* 四档双语）渲染尾部徽章（ui-input-trigger 通用 tag 座位），客户端只展示不做判断。§38 审批 UI 的 Risk 行自此有数据源。完整审批信息的逐项呈现已交付：审批面板现列出操作、目标（经 callId 关联派生的关联 Tool 调用命令或路径——沿 2026-07-06 seam 裁定不向 wire 载荷复制工具参数，经新数据座位 conversation.approval.target 由 ui-chat 实现）、Host（连接级 generation descriptor）、Workspace（sessionId 匹配）、风险档（asker 条件行）、权限提升（升级询问渲染结构化的请求/当前沙箱档位——载荷新增 escalation {requestedMode, effectiveMode} 由沙箱升级闸门填充，非升级询问保留自由文本理由兜底）与命令预览标题（detail 座位）。配套修复两个数据链缺陷：approval/asked 持久事件此前丢 risk（wire 有、日志无）现已展开落盘；已发布 v0 载荷清单表与语义校验器接纳并从严校验 risk 档位与 escalation 记录（此前任何带 risk 的日志都会被格式工件校验拒绝——潜在缺陷实证后修复）。hook 来源询问的风险档位分级通道已交付：PreToolDecision 的 ask 决策新增可选 §37 风险档位（ToolAskRisk 本地封闭字面量联合镜像 ApprovalRisk——跨包符号导入被 typert host 面分析器拒绝，镜像先例同 gen-30 的 ApprovalSandboxMode），serviceAsk 条件展开转发至审批 seam，approval/asked 持久事件与 §38 面板既有渲染即得数据（分档者=Host 侧 pre-execute 询问者，Client 只展示）；Claude Code 方言无档位字段，CC 桥转发的询问保持未分级、面板按设计隐藏该行，实际分级者的采纳与真实多设备验收仍开放，不授予整节 PASS。",
+      "remaining": "需要 Host 输出和执行策略一致的风险等级，不能从已有 capability 准入推断风险分级完成。",
       "evidenceLimit": "这些路径是已定位的候选证据；尚未逐条证明本节每一项要求，不授予整节 PASS。"
     },
     {
@@ -4527,11 +4219,9 @@
       "owner": "Interaction、Session 与恢复",
       "candidateEvidence": [
         "IMPLEMENTATION_STATUS.md",
-        "packages/client/ui-approval/README.md",
-        "packages/interaction/user-approval/README.md",
-        "packages/sandbox/sandbox/README.md"
+        "docs/defensive-patterns.md"
       ],
-      "remaining": "审批信息表面已按第 38 节落地：user-approval 请求事件新增可选 Host 评定 risk 档（ApprovalRisk 四档），沙箱升权询问按所请求模式推导档位（workspace-write=moderate、danger-full-access=high）；ui-approval 面板在决定区旁以事实行列出操作、Host（连接 host facts 的 descriptor displayName 回退 platform）、工作区（包含该会话的工作区标题）、风险档（仅当询问方给出档位；升权询问必给）、权限提升原因，并以 locale 键 fact.*/risk.* 双语渲染，命令预览为关联 Tool 详情 slot 的标题；值缺失的行整行隐藏，绝不编造占位值。回答竞争、断线和重启已有证据；持久化确认与跨端恢复已落地：Client 保留的回答经 dsh-retained-answers.v1 跨刷新/重启持久，重启后以相同 scope+id+revision 自动重放不重新询问，损坏落盘丢弃、scope 变化清扫（packages/api/gateway/src/client/retained-answers.ts，测试 packages/api/gateway/tests/gateway.client.spec.ts）。真实多设备实机验证仍待完成。",
+      "remaining": "已有回答竞争、断线和重启证据；权限执行、完整审批信息、后台/休眠、持久化确认和跨端恢复仍待逐项实现及验证。",
       "evidenceLimit": "这些路径是已定位的候选证据；尚未逐条证明本节每一项要求，不授予整节 PASS。"
     },
     {
@@ -4787,10 +4477,10 @@
       "acceptanceProven": false,
       "owner": "Health、Readiness、Diagnostics 与 Support",
       "candidateEvidence": [
-        "IMPLEMENTATION_STATUS.md",
-        "packages/api/host-diagnostics/README.md"
+        "SECURITY_STATUS.md",
+        "RELEASE_STATUS.md"
       ],
-      "remaining": "§41 已按可落地部分落地：新包 api/host-diagnostics（能力 host.diagnostics.v1=view，经 web-app profile 组合）的 health() 区分存活与就绪——六组件（process/runtime/sessionStore/pluginState/connection/modelProvider）各携带状态与指名被探测服务的 detail，ready 派生自核心组件（connection 被排除：CLI/desktop-pipe 无载体 profile 仍是 Host）；health 已升级降级探测：已组合 owner 深探测——失败插件 fiber 使 pluginState 降级（ready 保持）、无已注册提供方使 modelProvider 降级并拉低 ready、inventory 读取抛错以错误类别降级（health 转为 async 并转发 signal）；无部分故障信号的组件（sessionStore/connection）保持存在性；crash/last-error 记录器已随后续增量落地（pid 安全启动标记识别未干净关闭 + agent 错误 relay 填充有上限环形记录）。",
+      "remaining": "共享诊断、可接受请求的 readiness、分类型默认关闭 telemetry、脱敏和同候选 support collector 验证仍待完成。",
       "evidenceLimit": "这些路径是已定位的候选证据；尚未逐条证明本节每一项要求，不授予整节 PASS。"
     },
     {
@@ -4888,18 +4578,10 @@
       "acceptanceProven": false,
       "owner": "Health、Readiness、Diagnostics 与 Support",
       "candidateEvidence": [
-        ".agents/notes/implemented/architecture/2026-10-05-diagnostics-source-revision.md",
-        ".agents/notes/implemented/architecture/2026-10-07-revision-stamping.md",
-        "IMPLEMENTATION_STATUS.md",
-        "apps/android/core/src/main/kotlin/ai/deepseek/dsh/gateway/NativeGatewayDiagnostics.kt",
-        "apps/desktop-host/src/index.ts",
-        "apps/desktop/scripts/build-revision.ts",
-        "apps/web/tests/android-native-diagnostics.e2e.ts",
-        "docs/subsystems/host-diagnostics.md",
-        "packages/api/host-diagnostics/README.md",
-        "packages/api/host-diagnostics/src/index.ts"
+        "SECURITY_STATUS.md",
+        "RELEASE_STATUS.md"
       ],
-      "remaining": "§42 载荷已落地：describe() 组合统一诊断快照——productVersion/apiProtocolVersion/sessionFormatVersion/hostId/platform/arch/runtimeMode/nodeVersion/transports/capabilities（描述符）、plugins（plugin-inventory 行）、migrations（已发布 session-format 迁移链 name/from/to）、crash/lastErrors（记录器已落地：pid 安全启动标记把未干净关闭识别为持久且有上限的 crash 日志、agent 错误 relay 填充进程本地有上限的规范化事实环，事实只携带身份与文本）与 health 快照；构造即脱敏——字段集为非秘密事实枚举，无 API key/bearer/配对秘密/原始凭据通道（键集断言测试固化）。SHA 字段已交付：快照携带 sourceRevision——发布启动器注入的 DSH_BUILD_REVISION，未盖戳的源码检出如实报告 source-tree（每次调用现读进程环境，库字节不内联该值）；发布器侧注入接线已交付：打包 prepare 阶段（prepare-dsh）在 runtime 清单封存（writeDesktopRuntime）之前把 build-revision.json 写入 dsh 资源树根（进 desktop-runtime.json 完整性清单、随 extraResources 进 dmg/zip/NSIS/unpacked 全部产物、macOS 落签名豁免树），desktop-host 子入口启动时读取并物化为 DSH_BUILD_REVISION（仅当未显式继承时设值、坏 stamp 大声失败、dev/源码启动文件缺席零动作——source-tree 语义保持）；revision 值源=显式 env→git rev-parse HEAD 完整 40 位，与 client 构建记录短哈希交叉校验、分叉大声失败打包。Windows 无签名验收实测：产物内 stamp==HEAD 40 位、desktop-runtime.json 清单 sha256 收录、NSIS exe+blockmap 产出；签名/公证验收仍随 §56 开放。§43 support bundle（producer/sanitizer/manifest/checksum/collector 四平台同候选）与 §44 分类型 telemetry 仍开放。 Android 支持导出现从当前 Native Gateway 采集本地 HTTP 回调、mux 订阅及查询状态，与历史 Link 类型明确区分。快照无 I/O，固定角色和能力白名单排除身份、地址、凭据与任意远端字符串；刷新失败保留最近成功事实，关闭后不被迟到回调复活。API 2 与 Session writer V3 分离，模型重连计数独立。已安装应用经既有扫描器验证实际原生诊断及只读拒绝恢复；外部扫描器 AAR 的源码提交并非当前检出，同候选可复现构建、四平台支持包、真机及崩溃采集仍开放，不授予整节 PASS。",
+      "remaining": "共享诊断、可接受请求的 readiness、分类型默认关闭 telemetry、脱敏和同候选 support collector 验证仍待完成。",
       "evidenceLimit": "这些路径是已定位的候选证据；尚未逐条证明本节每一项要求，不授予整节 PASS。"
     },
     {
@@ -4957,16 +4639,10 @@
       "acceptanceProven": false,
       "owner": "Health、Readiness、Diagnostics 与 Support",
       "candidateEvidence": [
-        "IMPLEMENTATION_STATUS.md",
-        "packages/api/host-diagnostics/README.md",
-        "docs/subsystems/host-diagnostics.md",
-        "apps/android/core/src/main/kotlin/ai/deepseek/dsh/gateway/NativeGatewayDiagnostics.kt",
-        "apps/web/tests/android-native-diagnostics.e2e.ts",
-        "native/support-scanner/README.md",
-        "scripts/test-support-scanner.mjs",
-        "scripts/release/mobile_scanner_build.py"
+        "SECURITY_STATUS.md",
+        "RELEASE_STATUS.md"
       ],
-      "remaining": "§43 五要素已按可落地部分落地：producer（service.supportBundle() 以刚组合的 §42 快照为种子条目）、sanitizer（闭合条目词汇 + 任意深度递归拒绝 api-key/bearer/secret/password/credential 形状键 + 重复路径拒绝）、manifest（逐条目路径 + 规范化序列化 SHA-256）、checksum（对有序 manifest 行的链式 SHA-256）、collector validation（重算全部摘要，篡改/计数不符/乱序/链断均大声失败）；输入顺序不外泄——四平台同一候选产出字节一致 bundle（确定性测试固化）。内容条目已落两项：session-headers（会话存储已组合且持有会话时附 session-headers.json——每会话一行头部事实与存储计数、绝不携带事件内容、按 id 排序保证确定性）与 settings-export（settings 接缝已组合且注册命名空间时附 settings-export.json——每命名空间一行接缝脱敏后的解析值（redactSecrets 强制传入），被剥离字段名枚举在 redacted 下（脱敏器拒绝秘密形状键），按命名空间排序；脱敏后仍残留秘密形状键则整条目大声失败，双重防线测试固化）；四平台真机同候选实测仍开放。 Android 支持导出现从当前 Native Gateway 采集本地 HTTP 回调、mux 订阅及查询状态，与历史 Link 类型明确区分。快照无 I/O，固定角色和能力白名单排除身份、地址、凭据与任意远端字符串；刷新失败保留最近成功事实，关闭后不被迟到回调复活。API 2 与 Session writer V3 分离，模型重连计数独立。已安装应用经既有扫描器验证实际原生诊断及只读拒绝恢复；外部扫描器 AAR 的源码提交并非当前检出，同候选可复现构建、四平台支持包、真机及崩溃采集仍开放，不授予整节 PASS。 原生支持扫描器的 Go 源码、依赖校验和、Android 构建器及拒绝测试现已纳入当前检出；仓库入口 test:support-scanner 强制固定 Go 版本、非空执行测试集、公共校验数据库和只读模块解析。构建器要求已提交的源码与自身文件精确匹配，HTTPS 模块代理显式可配，原有私有源码、JNI/ELF、许可证和输出保留校验不降级。源码门禁通过不替换应用当前使用的历史 AAR；当前提交产物重建、匹配应用验收、race、漏洞分析及物理平台仍开放，不授予整节 PASS。 扫描器现已从正式提交 8ca9f6ebf33de3912292416b85f5b510c88de9a3 在两个独立工作/输出目录重建，AAR 与回执字节相同，依赖缓存共享。独立核验对照源树、四个构建器、双 ABI、62 个模块及 72 份许可证；扫描器与隔离 APK 的 source/tree 相同，设备 APK/JNI 哈希与规则摘要匹配。两项原生安装测试及一项真实 Host 诊断场景通过。govulncheck v1.8.0 对两个 JNI 库均无包级/符号级发现，模块级 GO-2026-5932 OpenPGP 提示原样保留，Windows 源码依赖图无该包；不把模块提示消除或声称无漏洞。干净缓存/跨机重现、race、CodeQL、真机、16 KiB 设备、Apple 与发布签名仍开放，本节不授予完整 PASS。",
+      "remaining": "共享诊断、可接受请求的 readiness、分类型默认关闭 telemetry、脱敏和同候选 support collector 验证仍待完成。",
       "evidenceLimit": "这些路径是已定位的候选证据；尚未逐条证明本节每一项要求，不授予整节 PASS。"
     },
     {
@@ -5032,27 +4708,10 @@
       "acceptanceProven": false,
       "owner": "Health、Readiness、Diagnostics 与 Support",
       "candidateEvidence": [
-        "IMPLEMENTATION_STATUS.md",
-        "packages/session/session-telemetry/src/index.ts",
-        "packages/session/session-telemetry-otel/src/index.ts",
-        "packages/session/session-telemetry-otel/tests/otel.spec.ts",
-        "packages/llm/llm-deepseek/src/adapter.ts",
-        "packages/llm/llm-deepseek/src/index.ts",
-        "packages/llm/llm-deepseek/tests/adapter.spec.ts",
-        "packages/api/device-trust/src/index.ts",
-        "packages/api/device-trust/tests/device-trust.host.spec.ts",
-        "packages/api/host-diagnostics/src/recorder.ts",
-        "packages/api/host-diagnostics/tests/diagnostics.spec.ts",
-        "packages/client/ui-settings-telemetry/src/client/TelemetrySettingsSection.tsx",
-        "packages/client/ui-settings-telemetry/tests/components.client.spec.tsx",
-        ".agents/notes/implemented/architecture/2026-10-06-crash-diagnostics-outlet.md",
-        ".agents/notes/implemented/architecture/2026-10-06-device-trust-outlet.md",
-        ".agents/notes/implemented/architecture/2026-10-06-provider-metadata-outlet.md",
-        "packages/session/session-telemetry-otel/tests/fixtures/driver.ts",
-        "packages/session/session-telemetry-otel/tests/fixtures/telemetry.patch.yml",
-        ".agents/notes/implemented/architecture/2026-10-08-loader-composition-e2e.md"
+        "SECURITY_STATUS.md",
+        "RELEASE_STATUS.md"
       ],
-      "remaining": "§44 已按可落地部分落地：分类型同意词汇与解析如前（TelemetryDataKind 五类、逐类布尔、全关默认、非 true 一律关、非布尔加载即拒）；sessionTelemetry 类已接线到唯一现存出口（关闭即默认不建 SDK 管线、反馈留本地并告警，base bundle 以 DSH_TELEMETRY_CONSENT=1 显式开启组合层种子）。同意运行时层与 UI 已交付（telemetry-consent namespace base 种子 applies='restart'、构造时 user>base>默认 解析+未组合惰性回退、ui-settings-telemetry 五独立开关无总开关缺席不渲染、web-app bundle 组合）——「UI 不得单一总开关隐藏数据类型」与五类区分闭合。crashDiagnostics 出口已接线：boot 检测的 crash facts（pid/runStartedAt，仅本次 boot 单条不重发历史）经 producer 推+可选结构化 owner 以 channel:'ops' 记录（telemetry.op='diagnostics-crash'）直发，otel 侧 /ops 独立 scope（兑现 seam 双 scope 承诺，ledger 直发仍丢弃）、provider 构造门放宽、非 session 出口形态 fiber 拆卸自排空、DISABLED 总闸零外发、运行期错误环（含 message 文本）维持本地。deviceTrustMetadata 出口已接线：设备撤销事实（revokedAt+deviceCount，绝不外发 deviceId/指纹/角色/密钥）由 device-trust 生产者经撤销路径现取的可选结构化 owner 以 channel:'ops' 记录（telemetry.op='device-trust-revocation'）直发，revocation-only 最小面（admission 无既有事件不发明）。providerMetadata 出口已接线并落两项语义裁定：①attribution headers（出站 User-Agent/x-deepseek-harness-user-id 等身份头）是发往 provider 的请求路径静态产品事实、不是离开进程去 collector 的遥测数据——裁定不计入遥测、不属于本 kind 载荷；②与 sessionTelemetry 的 usage 不相交边界——TokenUsage 已随 assistant/message 事件走 sessionTelemetry ledger 出口，本 kind 记录绝不携带 usage/tokens（双重出口排除）。实现：DeepSeek 适配器（唯一同时可见响应头/失败结构化字段/调用起止的位置）经可选 resolveTelemetry thunk（发射点解析，cordis 行序无装载语义）在 streamWithConnection 收口每次调用一条 channel:'ops' 记录（telemetry.op='llm-provider-call'，载荷 provider/model/purpose?/ok/status?/requestId?/retryAfterMs?/durationMs?，severity 成功 info 失败 warn，绝不携带 usage/消息内容/baseURL/密钥；成功路径新增响应头 requestId 读取，TRANSPORT 失败字段缺省），thunk 缺席/门关静默零调用零异常、适配器行为零变化、type-only 依赖（声明面实证）；otel 侧构造门放宽为四 kind 析取（url 等加载校验随达 provider-only opt-in）、opsEmit 创建门按类放宽（crash/deviceTrust/provider 任一开）、DISABLED 总闸零外发。relayMetadata 出口随其生产者落地（阻塞于 §23 宿主 relay 服务——五类中仅存无生产者类）；loader-composition e2e 已修绿（4/4）：driver fixture 增设 DSH_TELEMETRY_CONSENT 同意点使遥测类按 §44 门语义开启；win32+tsx 下不落盘的根因为 Loader 同组条目并发激活顺序竞态——agent-loop 的 config agent 先于 session-persistence-jsonl 后端创建（实测早约 840ms），会话退化为纯内存且写入静默 no-op，fixture 以仓库既有行级 inject 机制（agent-loop inject sessionPersistence，与 shipped headless bundle 同型）钉序修复；生产 profile 的 agent 由 registry 在 boot 后创建不受该竞态影响。同型 overlay 的 time-context e2e 竞态已随后续增量以同一 inject 钉序修绿（packages/context/time-context/tests/fixtures/time-context.patch.yml，win32+tsx 下 1/1 转绿、包 53/53 无回归）。",
+      "remaining": "共享诊断、可接受请求的 readiness、分类型默认关闭 telemetry、脱敏和同候选 support collector 验证仍待完成。",
       "evidenceLimit": "这些路径是已定位的候选证据；尚未逐条证明本节每一项要求，不授予整节 PASS。"
     },
     {
@@ -5146,39 +4805,16 @@
           "text": "---"
         }
       ],
-      "verificationStatus": "IN_PROGRESS",
+      "verificationStatus": "NOT_STARTED",
       "acceptanceProven": false,
       "owner": "Typert、Connection 与业务操作 owner",
       "candidateEvidence": [
         "COMPATIBILITY_MATRIX.md",
         "artifacts/upstream-first/upload-home-replay-source.json",
-        "artifacts/upstream-first/dynamic-cordis-runtime-source.json",
-        "artifacts/upstream-first/transport-failure-semantics-source.json",
-        "artifacts/upstream-first/remote-error-propagation-source.json",
-        "artifacts/upstream-first/interaction-reply-errors-source.json",
-        "artifacts/upstream-first/invalid-stream-errors-source.json",
-        "artifacts/upstream-first/error-code-schema-source.json",
-        "artifacts/upstream-first/error-code-schema-accuracy-source.json",
-        "artifacts/upstream-first/error-type-model-source.json",
-        "artifacts/upstream-first/readonly-schema-source.json",
-        "artifacts/upstream-first/remote-validation-details-source.json",
-        "artifacts/upstream-first/remote-error-envelope-schema-source.json",
-        "artifacts/upstream-first/remote-failure-classes-source.json",
-        "artifacts/upstream-first/android-contract-source.json",
-        "artifacts/upstream-first/failure-classes-adoption-source.json",
-        "artifacts/upstream-first/apple-contract-source.json",
-        "artifacts/upstream-first/swift-ci-recovery-source.json",
-        "packages/client/locale/src/client/failure-copy.ts",
-        "packages/client/locale/src/locales/zh.ts",
-        "packages/client/ui-conversation/src/client/input/hub.ts",
-        "packages/client/ui-goal/src/client/GoalBar.tsx",
-        "packages/client/ui-workspace/src/client/rows/WorkspaceBrowser.tsx",
-        "packages/client/ui-model-selection/src/client/directory.ts",
-        ".agents/notes/implemented/architecture/2026-10-04-failure-copy.md",
-        "packages/api/workspace-controller/tests/transport.client.spec.ts"
+        "artifacts/upstream-first/dynamic-cordis-runtime-source.json"
       ],
-      "remaining": "84 个错误声明保持完整；校验诊断收敛为 code/message/path。正式 Remote 错误信封 JSON Schema（draft 2020-12）已生成并随协议包导出，未知码以 not-enum 排除全部已知码；本地 Ajv 消费与打包 tarball 验证五类真实 HTTP payload，元组详情被显式拒绝。词汇表 owner 提供封闭 RemoteFailureClass 客户端分类（21 个一致语义码），网关 client 连接阶段判定已接入，分类与清单一致性由 doc-sync 门禁机器校验。Kotlin 列已在 apps/android contract 模块落地：8 项 JVM 测试用 networknt 2020-12 校验器消费当前 schema、验证 5 个真实 HTTP payload、拒绝非法已知码详情，并证明 Kotlin 分类镜像与 TypeScript 权威投影一致。分类扩展至 9 类 28 码（新增 invalid-input 与不可用族补充），ui-workspace 的重命名冲突与 ui-deliverables 的文件缺失分支已改为消费共享分类，Kotlin 镜像与投影同步。Swift 列已在 apps/apple contract 包落地并以单一可执行目标 dsh-contract-check 自检（镜像等值、词汇子集、不透明未知分支与未分类解析，退出码承载结论）；macos-15 CI lane 已实际回收 SUCCESS（Swift 6.1.2，四项 PASS，job 105916046840）——此前 macos-14 镜像对任何导入同级 Swift 模块的 SPM 测试目标存在非确定性导入失败，二十轮探针以最小全新包在两套工具链与串行构建下复现并定界。Web 侧 UI 文案统一接入第一梯队已交付：common 共享词汇表新增 §45 失败九键（8 类语义+raw 模板——类型面 LocaleKeysOf 并入 CommonKey、运行时查找链 common 兜底，任一命名空间绑定的 t 天然可用，一份词典一个家），client-locale 导出 remoteFailureCopy/remoteFailureClassCopy（经 typert 分类取类文案；unknown 类与非 Remote 值经 failure.raw 模板呈现原始诊断，绝不编造）；五簇迁移——composer steerQueue 与 QueueDock 同操作同语义、promptError toast 两个 attachment 码特例外全分类、GoalBar 动作错误（本地失败走 raw 模板）、WorkspaceBrowser 工作区重命名/会话重命名/删除三对话框（会话重命名的 conflict 特例保留——特征文案严格更精确于类文案）、model-selection 双 store 携带 errorClass 并在三渲染点类优先。既有分类消费面（ui-jobs/ui-settings-devices/ui-subagent/QueueDock 自有键族）保持不动。Workspace 客户端的载体重试耗尽期望已从陈旧 gateway/internal 对齐为 gateway/transport-interrupted（gateway README 与 remote-stream 映射为证——同一错误同语义原则在 workspace-controller 传输 spec 基线落实）。已发布 Client、多版本 N/N-1/N-2 行为及设备矩阵仍未完成。",
-      "evidenceLimit": "当前代码的结构化转发、受控未知 Remote envelope 和 Windows/Chrome 本地化恢复已核验；正式信封 schema 目前只有本地 Node 生成与 tarball 消费证据，不等于实际新旧应用互通、完整未知码语义、Swift/Kotlin 消费或原生设备验收。"
+      "remaining": "发现、独立能力与部分协议已有证据；仍需完整多版本/多语言矩阵、设备撤销状态、闭合错误语义和变更身份确认。",
+      "evidenceLimit": "这些路径是已定位的候选证据；尚未逐条证明本节每一项要求，不授予整节 PASS。"
     },
     {
       "number": 46,
@@ -5236,13 +4872,9 @@
       "owner": "持久化与显式转换",
       "candidateEvidence": [
         "ARCHITECTURE_DECISIONS.md",
-        "artifacts/upstream-first/storage-owner-report-validation.json",
-        "packages/util/atomic-write/src/index.ts",
-        ".agents/notes/implemented/architecture/2026-10-04-atomic-durability.md",
-        "packages/session/session-persistence-jsonl/src/index.ts",
-        ".agents/notes/implemented/architecture/2026-10-05-torn-repair-intent.md"
+        "artifacts/upstream-first/storage-owner-report-validation.json"
       ],
-      "remaining": "设置与凭据面的持久化安全已交付：dsh-atomic-write 的 writeFileAtomic 现为 crash-durable（临时文件 fsync 后才 rename 提交、POSIX 上父目录再 fsync——对齐 storage-json 既有原语；settings/credentials 每次写入崩溃后只可能是完整旧文或完整新文，Windows 目录条目不做 fsync、依赖平台原子替换）；credentials 启动平铺布局迁移按 adjacent 要求保留旧代——扁平原文先写为 <file>.migration-v0.bak（仅属主权限）再替换唯一副本，重迁移重写同一备份字节、二次启动不动备份。旧 Session 主存储（JSONL 世代后端）经测绘本已满足 adjacent/atomic/recoverable/保留旧代/crash-safe 全要求（链式 to=from+1 强制相邻、tmp-wx+fsync+隔离 Worker 验证+POSIX link 绝不覆盖、历史源世代永不删、撕裂尾前缀恢复+写路径修复）。JSONL 撕裂尾修复的截断窗口已关闭：zstd 撕裂帧内完整记录在截断前先落入日志旁 crash-durable 的 repair intent（writeFileAtomic 提交），截断与持久重写之间任意点崩溃后，下一次 open 从日志或 intent 恢复（部分重写按 seq 只补缺失尾部；intent 异属会话 id 以损坏拒绝），恢复记录落定持久后 intent 被丢弃。仍开放：session-query-sqlite 派生索引的原地 schema 重置（可从源日志重建，零 adjacent/保留）、storage-sqlite 版本不匹配拒绝打开（无迁移通道）——留作后续裁定；完整 §46 要求未全量证明，不授予整节 PASS。",
+      "remaining": "Storage 生命周期证据不替代旧 Session/设置的完整 adjacent/atomic/recoverable 转换；禁止直接覆盖用户唯一副本。",
       "evidenceLimit": "这些路径是已定位的候选证据；尚未逐条证明本节每一项要求，不授予整节 PASS。"
     },
     {
@@ -5322,12 +4954,9 @@
       "candidateEvidence": [
         "COMPATIBILITY_MATRIX.md",
         "artifacts/upstream-first/upload-home-replay-source.json",
-        "artifacts/upstream-first/dynamic-cordis-runtime-source.json",
-        "packages/client/connection/src/client/connection.ts",
-        "packages/api/gateway/tests/gateway-stream.host.spec.ts",
-        "packages/client/ui-settings-devices/src/client/DevicesSettingsSection.tsx"
+        "artifacts/upstream-first/dynamic-cordis-runtime-source.json"
       ],
-      "remaining": "发现、独立能力与部分协议已有证据；设备撤销状态、闭合错误语义和变更身份确认已由 §18 增量族跨节闭合（connection.ts device-revoked 状态与 gateway client 分类器、gateway-stream 撤销中止在途流/事件流与准入拒绝、ui-settings-devices 已撤销行呈现撤销时间且无动作、Kotlin/Swift 契约镜像 device/already-revoked、真机撤销生命周期 e2e）；跨真实发布版本的多版本/多语言矩阵仍开放。",
+      "remaining": "发现、独立能力与部分协议已有证据；仍需完整多版本/多语言矩阵、设备撤销状态、闭合错误语义和变更身份确认。",
       "evidenceLimit": "这些路径是已定位的候选证据；尚未逐条证明本节每一项要求，不授予整节 PASS。"
     },
     {
@@ -6670,12 +6299,9 @@
       "candidateEvidence": [
         "COMPATIBILITY_MATRIX.md",
         "artifacts/upstream-first/upload-home-replay-source.json",
-        "artifacts/upstream-first/dynamic-cordis-runtime-source.json",
-        "packages/client/connection/src/client/connection.ts",
-        "packages/api/gateway/tests/gateway-stream.host.spec.ts",
-        "packages/client/ui-settings-devices/src/client/DevicesSettingsSection.tsx"
+        "artifacts/upstream-first/dynamic-cordis-runtime-source.json"
       ],
-      "remaining": "发现、独立能力与部分协议已有证据；设备撤销状态、闭合错误语义和变更身份确认已由 §18 增量族跨节闭合（connection.ts device-revoked 状态与 gateway client 分类器、gateway-stream 撤销中止在途流/事件流与准入拒绝、ui-settings-devices 已撤销行呈现撤销时间且无动作、Kotlin/Swift 契约镜像 device/already-revoked、真机撤销生命周期 e2e）；跨真实发布版本的多版本/多语言矩阵仍开放。",
+      "remaining": "发现、独立能力与部分协议已有证据；仍需完整多版本/多语言矩阵、设备撤销状态、闭合错误语义和变更身份确认。",
       "evidenceLimit": "这些路径是已定位的候选证据；尚未逐条证明本节每一项要求，不授予整节 PASS。"
     },
     {
@@ -6749,15 +6375,11 @@
       "acceptanceProven": false,
       "owner": "官方 Desktop 与 updater",
       "candidateEvidence": [
-        ".agents/notes/implemented/architecture/2026-10-07-revision-stamping.md",
-        "PLATFORM_VERIFICATION.md",
-        "RELEASE_STATUS.md",
         "artifacts/upstream-first/desktop-package-source.json",
-        "native/support-scanner/README.md",
-        "scripts/release/mobile_scanner_build.py",
-        "scripts/test-support-scanner.mjs"
+        "PLATFORM_VERIFICATION.md",
+        "RELEASE_STATUS.md"
       ],
-      "remaining": "Windows 安装、插件安装、升级、系统登录和 macOS 实测、签名、公证仍待完成。 原生支持扫描器的 Go 源码、依赖校验和、Android 构建器及拒绝测试现已纳入当前检出；仓库入口 test:support-scanner 强制固定 Go 版本、非空执行测试集、公共校验数据库和只读模块解析。构建器要求已提交的源码与自身文件精确匹配，HTTPS 模块代理显式可配，原有私有源码、JNI/ELF、许可证和输出保留校验不降级。源码门禁通过不替换应用当前使用的历史 AAR；当前提交产物重建、匹配应用验收、race、漏洞分析及物理平台仍开放，不授予整节 PASS。 扫描器现已从正式提交 8ca9f6ebf33de3912292416b85f5b510c88de9a3 在两个独立工作/输出目录重建，AAR 与回执字节相同，依赖缓存共享。独立核验对照源树、四个构建器、双 ABI、62 个模块及 72 份许可证；扫描器与隔离 APK 的 source/tree 相同，设备 APK/JNI 哈希与规则摘要匹配。两项原生安装测试及一项真实 Host 诊断场景通过。govulncheck v1.8.0 对两个 JNI 库均无包级/符号级发现，模块级 GO-2026-5932 OpenPGP 提示原样保留，Windows 源码依赖图无该包；不把模块提示消除或声称无漏洞。干净缓存/跨机重现、race、CodeQL、真机、16 KiB 设备、Apple 与发布签名仍开放，构建修订标识注入已接线（prepare-dsh stamp+desktop-host 读取，见 §42 证据）；Windows/macOS 签名与公证验收仍开放。",
+      "remaining": "Windows 安装、插件安装、升级、系统登录和 macOS 实测、签名、公证仍待完成。",
       "evidenceLimit": "这些路径是已定位的候选证据；尚未逐条证明本节每一项要求，不授予整节 PASS。"
     },
     {
@@ -7876,95 +7498,9 @@
       "owner": "共享 Client 响应式与原生输入",
       "candidateEvidence": [
         "PLATFORM_VERIFICATION.md",
-        "docs/plans/2026-09-14-upstream-first.zh.md",
-        "apps/android/core/src/main/kotlin/ai/deepseek/dsh/companion/SubagentsModel.kt",
-        "apps/android/core/src/test/kotlin/ai/deepseek/dsh/companion/SubagentsModelTest.kt",
-        "apps/android/app/src/main/kotlin/ai/deepseek/dsh/companion/NativeSubagentTimeline.kt",
-        "apps/web/tests/android-subagent-timeline.e2e.ts",
-        ".agents/notes/implemented/architecture/2026-09-27-android-subagent-timeline.md",
-        "apps/android/core/src/main/kotlin/ai/deepseek/dsh/companion/NativeResourceSave.kt",
-        "apps/android/core/src/test/kotlin/ai/deepseek/dsh/companion/NativeResourceSaveTest.kt",
-        "apps/android/app/src/main/kotlin/ai/deepseek/dsh/companion/NativeResourceSaveAction.kt",
-        "apps/android/app/src/androidTest/kotlin/ai/deepseek/dsh/companion/NativeResourceSavePickerTest.kt",
-        "apps/web/tests/android-resource-save.e2e.ts",
-        ".agents/notes/implemented/architecture/2026-09-27-android-complete-resource-save.md",
-        "apps/android/core/src/main/kotlin/ai/deepseek/dsh/companion/NativeDownloadStore.kt",
-        "apps/android/core/src/main/kotlin/ai/deepseek/dsh/companion/NativeDownloadController.kt",
-        "apps/android/core/src/main/kotlin/ai/deepseek/dsh/companion/NativeResourceWire.kt",
-        "apps/android/core/src/test/kotlin/ai/deepseek/dsh/companion/NativeDownloadTest.kt",
-        ".agents/notes/implemented/architecture/2026-09-27-android-download-checkpoints.md",
-        "apps/android/app/src/main/kotlin/ai/deepseek/dsh/companion/MainActivity.kt",
-        "apps/android/core/src/main/kotlin/ai/deepseek/dsh/companion/CompanionModelSet.kt",
-        "apps/android/core/src/main/kotlin/ai/deepseek/dsh/companion/CompanionHostController.kt",
-        "apps/android/core/src/main/kotlin/ai/deepseek/dsh/companion/NativeDownloadsModel.kt",
-        "apps/android/core/src/test/kotlin/ai/deepseek/dsh/companion/NativeDownloadsModelTest.kt",
-        "apps/android/app/src/main/kotlin/ai/deepseek/dsh/companion/NativeDownloadControls.kt",
-        "apps/android/app/src/main/kotlin/ai/deepseek/dsh/companion/NativeResourcePreview.kt",
-        "apps/web/tests/android-download-adoption.e2e.ts",
-        "apps/web/tests/expected/android-download-adoption.expected.md",
-        "apps/web/tests/android-download-host-isolation.e2e.ts",
-        "apps/web/tests/expected/android-download-host-isolation.expected.md",
-        "apps/web/tests/android-apk-admission.e2e.ts",
-        "apps/web/tests/android-companion-ui-driver.ts",
-        ".agents/notes/implemented/architecture/2026-09-27-android-persistent-download-adoption.md",
-        ".artifacts/android-download-adoption-native-final.log",
-        ".artifacts/android-download-adoption-ui/installed-apks.json",
-        ".artifacts/android-download-host-isolation-ui/installed-apks.json",
-        "apps/android/README.md",
-        "apps/android/app/src/main/kotlin/ai/deepseek/dsh/companion/NativeFileAttachments.kt",
-        "apps/android/core/src/main/kotlin/ai/deepseek/dsh/companion/NativeFileAttachmentsModel.kt",
-        "apps/android/core/src/main/kotlin/ai/deepseek/dsh/companion/CompanionInput.kt",
-        "apps/android/core/src/main/kotlin/ai/deepseek/dsh/companion/CompanionInputStore.kt",
-        "apps/android/core/src/main/kotlin/ai/deepseek/dsh/companion/CompanionModels.kt",
-        "apps/android/core/src/main/kotlin/ai/deepseek/dsh/companion/DomainFold.kt",
-        "apps/android/core/src/main/kotlin/ai/deepseek/dsh/gateway/NativeGatewayDiagnostics.kt",
-        "apps/android/core/src/test/kotlin/ai/deepseek/dsh/companion/NativeFileAttachmentsModelTest.kt",
-        "apps/android/core/src/test/kotlin/ai/deepseek/dsh/companion/NativeFileAttachmentsLifecycleTest.kt",
-        "apps/android/core/src/test/kotlin/ai/deepseek/dsh/companion/CompanionInputStoreTest.kt",
-        "apps/android/app/src/androidTest/kotlin/ai/deepseek/dsh/companion/NativeFileAttachmentPickerTest.kt",
-        "apps/android/app/src/androidTest/kotlin/ai/deepseek/dsh/companion/NativeCompanionAcceptanceTest.kt",
-        "apps/web/tests/android-file-attachments.e2e.ts",
-        "apps/web/tests/expected/android-file-attachments.expected.md",
-        ".agents/notes/implemented/architecture/2026-09-27-android-file-attachments.md",
-        ".agents/notes/implemented/architecture/2026-09-26-android-encrypted-input-checkpoints.md",
-        ".artifacts/android-file-attachments-native-final.log",
-        ".artifacts/android-file-attachments-picker.log",
-        ".artifacts/android-file-attachments-ui/installed-apks.json",
-        "apps/web/tests/android-photo-attachments.e2e.ts",
-        "apps/web/tests/expected/android-photo-attachments.expected.md",
-        "apps/android/core/src/test/kotlin/ai/deepseek/dsh/companion/NativePhotoAttachmentsModelTest.kt",
-        "packages/client/file-upload/src/index.ts",
-        "packages/client/file-upload/src/types.ts",
-        "packages/client/file-upload/src/capabilities.ts",
-        "packages/attachment/attachment/src/index.ts",
-        "packages/attachment/attachment/tests/admission.spec.ts",
-        "packages/api/session-controller/src/commands.ts",
-        "packages/api/session-controller/tests/commands-upload-file.host.spec.ts",
-        "apps/web/tsconfig.json",
-        "tsconfig.host.json",
-        ".agents/notes/implemented/architecture/2026-09-27-android-photo-attachments.md",
-        ".artifacts/android-photo-attachments-host.log",
-        ".artifacts/android-photo-attachments-core-results.json",
-        ".artifacts/android-photo-attachments-picker.log",
-        ".artifacts/android-photo-attachments-native-2.log",
-        ".artifacts/android-photo-attachments-ui/installed-apks.json",
-        ".artifacts/android-photo-attachments-native-final.log",
-        "apps/android/app/src/main/kotlin/ai/deepseek/dsh/companion/NativeCameraCapture.kt",
-        "apps/android/app/src/main/AndroidManifest.xml",
-        "apps/android/app/src/main/res/xml/native_camera_paths.xml",
-        "apps/android/core/src/test/kotlin/ai/deepseek/dsh/companion/NativeCameraAttachmentsLifecycleTest.kt",
-        "apps/android/app/src/androidTest/kotlin/ai/deepseek/dsh/companion/NativeCameraCaptureTest.kt",
-        "apps/web/tests/android-camera-attachments.e2e.ts",
-        "apps/web/tests/expected/android-camera-attachments.expected.md",
-        ".agents/notes/implemented/architecture/2026-09-27-android-camera-attachments.md",
-        ".artifacts/android-camera-attachments-core-results.json",
-        ".artifacts/android-camera-attachments-picker.log",
-        ".artifacts/android-camera-attachments-native-final.log",
-        ".artifacts/android-camera-attachments-downloads.log",
-        ".artifacts/android-camera-attachments-ui/capture-observation.json",
-        ".artifacts/android-camera-attachments-ui/installed-apks.json"
+        "docs/plans/2026-09-14-upstream-first.zh.md"
       ],
-      "remaining": "尚无规格要求的完整尺寸/主题/状态/访问性矩阵，以及 iOS/Android 真机输入、后台与原生附件验收。 Android 子代理目录绑定当前打开的父会话，展示加载、失败、空与诊断状态；只读子时间线复用固定截点的有界历史分页。父会话切换与子视图替换等待旧跟随和分页清理，迟到结果按代次拒绝。315 项核心测试覆盖冷父可用性、取消、替换及关闭；真实 Host 安装态场景验证非首行父选择、冷子历史、失败保留与重连，不激活子 Agent 或发送业务写请求。普通父 Session follow 仍遵循 Host 的后台激活策略。嵌套浏览、子会话续写、跨平台及物理设备仍开放，不授予全节 PASS。 Android 已完整读取的 READY 资源可通过系统 ACTION_CREATE_DOCUMENT 保存快照，支持空文件、中文文件名及二进制；部分预览不提供完整文件保存。资源关闭、替换及 Host 退役使选择失效，写入取消等待 I/O 并清理新目标；清理失败单独提示，重复回调不能删除已保存文档。核心取消与重入测试、安装态回调测试和真实系统选择器独立字节核验覆盖该路径。Android 持久下载已接入当前 Host 模型、独立 Android Keystore 密钥，以及下载、暂停、继续、完成后保存和确认移除的 UI；缓存绑定已验证的 Host 主体、Session 与资源路径，资源替换和 Host 退役等待传输、磁盘与导出清理结束。 完整下载从加密磁盘按分段流式导出，不重新读取 Host，也不整文件驻留内存。应用采用 64 KiB 窗口、每文件 1 GiB 上限、共享 2 GiB 加密缓存和 128 条下载上限，并预留检查点空间；容量耗尽拒绝写入，确认移除只清除所选主体与资源的本地缓存及进度，保留 Host 文件和既有导出文档。 核心 59 个测试类的 351 项测试通过，覆盖主体与 Session 隔离、容量限制、恢复、取消、导出和等待退役；真实 JVM 突然退出覆盖已同步但未提交尾部的恢复。 安装的应用与 instrumentation APK 经当前构建 SHA-256 比对后，真实 Host 的 Android 模拟器单 Host 场景通过：9 MiB 文件保持有界预览，下载中实际终止应用进程后恢复为 PAUSED，显式继续从缺失偏移完成；系统 SAF 保存的完整大文件与空文件通过独立目标 SHA-256 核验，保存不重新读取 Host 文件，版本变化拒绝追加。 双 Host 场景以相同 Session id 和相对路径提供内容不同的 9 MiB 文件；A 在 128 KiB 后失败，其已观测的一元 gateway 调用结束后切换 B，B 无继承的下载 controller 或进度，显式下载从 0 开始并完成。返回 A 的恢复导航和 128 KiB PAUSED 状态通过，显式继续从 131072 完成缺失分段；两侧选择期间仅允许本侧 256 字节预览，下载期间未观察到另一 Host 的额外 workspaceFiles/readBytes。该场景核验预览前缀、进度与读取范围，不提供双 Host 独立导出哈希证据。 下载增量组合回归为 4 个文件、5 项测试通过：3 个原生场景和 2 个 APK 哈希不匹配准入负向测试。 第三方文档提供方、物理设备、后台下载调度、自动缓存驱逐、断电持久性、回滚抵抗、硬件密钥失效及全平台 File/Artifact 描述符验收仍开放，不授予全节 PASS。 Android Composer 已接入显式 + → Files，使用 ACTION_OPEN_DOCUMENT 单选 */* 文件；选择器结果仅消费一次，不持久保存 URI 或读取授权，重复、进程恢复及旧 Session 世代的迟到结果不能读取或上传。 文件通过当前 Host 的 fileUploads/upload 编码 RPC 上传，已完成收据以名称和字节数卡片进入所选 Session 草稿；选择、读取与上传期间禁用发送及待确认重试，失败展示固定本地分类，移除只改变本地草稿。 应用限制每文件 512 KiB、每草稿 8 个附件及 UTF-8 上传参数 JSON 1 MiB；参数上限不含签名 RPC envelope，Host 独立限制完整请求体，双方没有限额协商，也不提供原生流式或断点上传。 主体隔离的加密输入 v3 保存文本与单一有序图片/文件附件意图、文件收据与 requestId；显式重试保持原待确认意图及 requestId，每次 RPC 仍使用新的设备准入证明，不能复用准入 nonce。旧格式拒绝读取并保留原字节，恢复不自动上传或提交；确认仅清除完整意图一致的草稿，持久 FileBlock 在 Android 显示文件名和字节数摘要。 取消、Session 切换及 Host 退役等待所拥有的 provider I/O 和请求清理，阻塞 provider 可能延迟等待；Host 已接收的编码上传可以留下未引用字节，不承诺取消后撤销 Host 存储。 Files 增量核心 XML 核对为 62 个测试类、373 项测试全部通过，failures、errors、skipped 均为 0；6 项安装态 picker 回调测试全部通过，使用受控 source 验证单次消费、取消回调占位、恢复回调、旧 Session 世代及退役 Host 模型无读取/上传权限，以及八附件上限。这些回调测试不等同跨 Host 或 Session 的真实系统选择器验收。 真实 Host 的 Android 单 Host SAF 场景在安装 APK 与当前构建 SHA-256 匹配后通过：系统选择中文名二进制和空文件，Host 持久文件通过独立读取与 SHA-256 核验；取消选择和 512 KiB 超限文件未产生上传或 prompt，移除附件不新增上传或 prompt。 实际终止 Android 进程后，同一 grant 恢复原文本、文件收据和 requestId，未自动调用 fileUploads/upload 或 session/prompt；加密输入文件的原始字节不含草稿文本、文件名或附件标识。显式发送只调用一次 session/prompt，唯一 source.kind=user 的持久消息具有原 requestId，完整 text 与按序 FileBlocks 精确匹配原意图，Android 显示文件摘要。其余 user/message 分别核对为 fixture 的 @deepseek-ai/dsh-system-prompt snapshot 元数据，不把所有 user/message 的总数宣称为 1。 Files 增量真实组合验收为 4 个文件、5 项测试全部通过；真实 SAF 证据限于该单 Host 场景，Host/Session 迟到结果的拒绝由核心和安装态回调测试覆盖。 share intent、Apple 平台接入、物理设备、第三方文档提供方、更大文件的流式或续传上传及过期收据重传仍开放。Host 暂存收据可能随重启或 Session 退役失效；恢复需显式放弃原待确认意图后重新选择和上传，不自动替换收据或业务重放。本节保留未完成状态，不授予全节 PASS。 Android Photos 已通过系统 ImageOnly 单选入口接入，与 Files 共用单次选择、读取上传及取消生命周期。Host 的 fileUploads/uploadImage 验证和规范化 PNG/JPEG/WebP/GIF，签发独立图片收据；staged-image 在 prompt 准入时形成普通 ImageBlock，保持视觉模型检查。暂存与内联图片按每次出现统一计入图片数量和规范化前字节总量，不能用压缩后的大小绕过限制；foreign、wrong-kind、过期收据被拒绝，绑定回滚及已接受请求去重保持。Android v3 输入保存文本及单一有序混合附件列表，v1/v2 原字节保留且严格拒绝；显式恢复保留备份，显式重试保留完整原意图，确认保护较新编辑。Files/Photos 共用模型层提交准入，选择、读取、上传期间发送和重试均被拒绝；任务正文开始前取消及父 scope 终止通过完成回调释放准确票据。每附件 512 KiB、总附件 8 项、参数 JSON 1 MiB 限制继续适用，HEIC/未知类型本地拒绝；不新增广泛媒体权限或持久 URI 授权。本轮核心385项/63套件无失败、错误或跳过，Host定向9文件/170项与安装态9项选择器回调测试通过。实际 Android 34 x86_64 模拟器 Photos 单场景通过：安装包哈希与本轮构建一致；系统选择图片/文件/图片、移除及重选保持顺序，Host存储独立SHA-256核对已知无元数据PNG和文件字节。删除测试专属源图并实际终止进程后，同一grant、有序收据与requestId恢复，无自动上传或prompt；显式发送产生唯一原身份用户消息，ImageBlock/FileBlock/ImageBlock精确匹配，系统上下文快照单独核对，Session授权回读返回相同PNG，Android呈现发送名称。图片可被Host规范化，该特定PNG直通不代表任意照片保留原件字节；模型回复使用keyless录制，不证明真实模型视觉理解。Android验收测试统一归Host编译面，Client编译面排除该族；file-upload Node入口需Client打包阶段，双面构建均已运行。本轮安装态最终组合回归7文件/8项全部通过，涵盖Photos、Files、输入恢复、两种发送确认恢复、持久下载、原生诊断与查看位置。下载通过有界阶段/字节观测等待完成，再核验既有完成、偏移及导出哈希；长列表测试按已知行索引滚动，保留目标可见与再次打开/复制位置断言。Host/Client构建、最终Host类型检查、Lint、36项doc-sync和17项快速文档门禁均通过，四张Photos截图已检查。不据此授予全节或全项目完成。 Android Camera 已通过显式 + → 相机入口接入系统 TakePicture，使用未导出的窄 FileProvider 提供完整 JPEG 输出，不申请 CAMERA、广泛媒体或持久 URI 权限。Camera、Photos 与 Files 区分回调来源，图片继续使用既有 image-upload.stage.v1、core IMAGE 和加密输入 v3。临时输出仅限应用私有缓存中 UUID 命名的捕获文件，拒绝中间目录和文件符号链接逃逸；清理先撤销 URI 权限再精确删除，不删除 SAF/Photos 原件，也不能强制关闭外部进程已打开的文件描述符。读取、上传和清理共用一次性提交占用，CLEANING 结束前模型层发送与重试均被拒绝；清理失败展示固定错误并保留清理元数据。已启动 Camera 取消后保留丢弃回调及占位至系统结果实际消费，避免误投新选择或在 SavedState 中积累原始结果。恢复只保留输出名称与 awaiting-result 清理/丢弃状态；安装态 Registry 测试覆盖结果先到和清理先结束两顺序，均不恢复上传权限。核心 390 项/64 套件及安装态 18 项全部通过，含 5 项清理时序与 9 项 Camera 回调/目录/恢复测试。真实 Android 34 x86_64 系统相机场景通过，安装 APK 哈希与本轮构建一致；独立读取临时 1392×1856 JPEG 的哈希匹配上传字节，Host 规范化图片经独立存储哈希及 Android 解码核对。取消保留原草稿且无 Host 调用；另一次 Camera 未返回时实际终止进程，恢复原 grant、已完成图片收据和 requestId，清理孤儿输出且不自动上传或 prompt；显式发送形成原身份 ImageBlock，授权回读返回相同 Host 字节。最终七文件八项组合回归与独立下载采用一文件一项回归均通过；四张 Camera 截图已检查。512 KiB 原件、8 项附件和 1 MiB 参数 JSON 限制保持，过大拍照明确拒绝且不降级为缩略图。模型回复仍为 keyless 录制，物理相机、第三方应用、真实视觉理解、share intent、Apple 接入和更大流式上传仍开放，§36/§64 维持 NOT_STARTED 与 acceptanceProven=false，不授予全节完成。",
+      "remaining": "尚无规格要求的完整尺寸/主题/状态/访问性矩阵，以及 iOS/Android 真机输入、后台与原生附件验收。",
       "evidenceLimit": "这些路径是已定位的候选证据；尚未逐条证明本节每一项要求，不授予整节 PASS。"
     },
     {
@@ -8201,39 +7737,9 @@
       "owner": "Interaction、Session 与恢复",
       "candidateEvidence": [
         "IMPLEMENTATION_STATUS.md",
-        "docs/defensive-patterns.md",
-        "apps/android/core/src/main/kotlin/ai/deepseek/dsh/companion/CompanionInput.kt",
-        "apps/android/core/src/test/kotlin/ai/deepseek/dsh/companion/InputRetentionTest.kt",
-        "apps/web/tests/android-input-retention.e2e.ts",
-        "apps/android/core/src/main/kotlin/ai/deepseek/dsh/companion/CompanionInputStore.kt",
-        "apps/android/core/src/main/kotlin/ai/deepseek/dsh/companion/CompanionInputState.kt",
-        "apps/android/core/src/test/kotlin/ai/deepseek/dsh/companion/CompanionInputPersistenceTest.kt",
-        "apps/web/tests/android-input-persistence.e2e.ts",
-        "apps/web/tests/android-prompt-retry.e2e.ts",
-        "packages/client/connection/src/http-bridge.ts",
-        "packages/client/connection/tests/http-bridge.host.spec.ts",
-        "apps/android/core/src/main/kotlin/ai/deepseek/dsh/companion/NativeHostCatalog.kt",
-        "apps/android/core/src/main/kotlin/ai/deepseek/dsh/companion/CompanionHostController.kt",
-        "apps/android/core/src/test/kotlin/ai/deepseek/dsh/companion/NativeHostCatalogTest.kt",
-        "apps/android/core/src/test/kotlin/ai/deepseek/dsh/companion/CompanionHostControllerTest.kt",
-        "apps/web/tests/android-host-roster.e2e.ts",
-        "apps/web/tests/android-host-import.e2e.ts",
-        "apps/android/core/src/main/kotlin/ai/deepseek/dsh/companion/NativeViewLocation.kt",
-        "apps/android/core/src/main/kotlin/ai/deepseek/dsh/companion/NativeSessionJournal.kt",
-        "apps/android/core/src/test/kotlin/ai/deepseek/dsh/companion/NativeViewLocationTest.kt",
-        "apps/android/core/src/test/kotlin/ai/deepseek/dsh/companion/NativeSessionJournalTest.kt",
-        "apps/android/core/src/test/kotlin/ai/deepseek/dsh/companion/NativeViewLocationModelTest.kt",
-        "apps/web/tests/android-view-location.e2e.ts",
-        "apps/android/core/src/test/kotlin/ai/deepseek/dsh/companion/NativeCursorResumeTest.kt",
-        "apps/web/tests/android-cursor-resume.e2e.ts",
-        "apps/android/core/src/main/kotlin/ai/deepseek/dsh/companion/NativeResourceReader.kt",
-        "apps/android/core/src/main/kotlin/ai/deepseek/dsh/companion/NativeDeliveredFiles.kt",
-        "apps/android/core/src/test/kotlin/ai/deepseek/dsh/companion/NativeResourceReaderTest.kt",
-        "apps/web/tests/android-resource-adoption.e2e.ts",
-        "apps/android/core/src/main/kotlin/ai/deepseek/dsh/gateway/NativeGatewayDiagnostics.kt",
-        "apps/web/tests/android-native-diagnostics.e2e.ts"
+        "docs/defensive-patterns.md"
       ],
-      "remaining": "已有回答竞争、断线和重启证据；权限执行、完整审批信息、后台/休眠、持久化确认和跨端恢复仍待逐项实现及验证。 Android 的 Session 草稿和 Question 输入已迁入连接模型；切页、Activity 重建和失败提交保留输入，未改动 prompt 的显式重试沿用 requestId，确认只清除提交版本。界面显式提交由模型作用域持有，修复错误提示重组取消回复的问题；真实 Host 验证失败重试只结算一次 Question，恢复传输不自动提交草稿。模型替换不会把输入带给另一身份。Android 输入现按 Host id、固定指纹与设备授权独立加密保存，显式提交先完成保存；原待确认请求与新草稿分别保留。已保存的 Question 答案、请求身份和 last Session 经不同进程恢复，观察不会自动提交。损坏密文或缺失密钥保留原文件，显式恢复先保留字节一致副本；读操作不创建密钥。物理设备、突然断电及整节其余验收仍开放，本节不因此取得完整 PASS。 真实 Host 现已验证 Android 在 prompt 准入后丢失确认并退出：显式重试沿用原 requestId，只处理一次；已有 user-message 回执时恢复直接清理待确认项，不额外发送。新草稿在再次进程重启后保留。共享 HTTP 桥接取消断开后的迟到响应体并退出背压等待，修复退出挂起；不由此授予全节验收。 Android 现用整体加密名册同时提交 Host 凭据与选择；界面显示当前 Host 与地址，模型退出后切换，进程重启恢复选择但不自动发送。双真实 Host 的同 id Session 草稿隔离及所选 Host 单次发送已验证，旧原生文件需显式导入，损坏名册不回退旧身份。Question 与待确认输入跨主体隔离已在本地 AVD 双真实 Host 物理车道验收（Host 切换、进程重启、仅所选 Host 单次应答送达）；真机、Swift 外壳、后台/推送、完整 Session 位置元数据及整节其余验收仍开放。 Android 已接入 Web v1 查看位置编解码，匹配当前可信 Host 后打开既有 Session，通过固定快照截止点的有界分页显示旧锚点。显式复制使用可见持久记录；跳转不新建 Session、不提交 prompt、不迁移运行时。分页与实时事件合并，过期响应及超限数据被拒绝，模型退出等待取消读取结束。88 轮真实 Host 预置历史场景验证错误 Host 无请求、失败后显式重试及 Web 解码兼容。Android 同一内存 Session 已支持 fromSeq 续传；深链接、平台分享路由、Swift、物理设备及本节其他要求不因此取得 PASS。 Android 只在同一日志所有者持有对应记录时携带游标。连续增量保留较早分页，重叠完整窗口只复用相同记录，失去覆盖则替换为最新权威窗口；错 Session、矛盾重叠及超限不发布部分数据。每条新流先验快照，再报告 OPEN。真实 Host 的逻辑流中断分别验证 3 条增量和 60 条新增后退回 50 条窗口，未发送文本保留且无业务重放。持久化窗口、物理断网、前台与推送恢复及 Swift 仍未验收，本节不授予整体 PASS。 Android 文件与工件预览共用当前 workspaceFiles/stat 与 readBytes，以 Session 授权读取并保持路径、版本及大小一致；已删除应用的退役 session/artifact 读取及无界缓存，工件引用来自当前 deliverables/presented 持久声明。64 KiB 串行窗口、8 MiB 内容预算及 256 字节大文件前缀提供有界读取；失败显式续传，版本变化丢弃前缀并要求重新读取。图片和文本另有呈现上限，未知数据为惰性十六进制。取消请求保留至清理结束，切换 Session 清空旧资源。生成文件与当前事件的真实 Host 验收不等于真实模型、物理设备、SAF 导出、持久下载或全平台统一描述符完成；本节保持未完成。 Android 支持导出现从当前 Native Gateway 采集本地 HTTP 回调、mux 订阅及查询状态，与历史 Link 类型明确区分。快照无 I/O，固定角色和能力白名单排除身份、地址、凭据与任意远端字符串；刷新失败保留最近成功事实，关闭后不被迟到回调复活。API 2 与 Session writer V3 分离，模型重连计数独立。已安装应用经既有扫描器验证实际原生诊断及只读拒绝恢复；外部扫描器 AAR 的源码提交并非当前检出，同候选可复现构建、四平台支持包、真机及崩溃采集仍开放，不授予整节 PASS。",
+      "remaining": "已有回答竞争、断线和重启证据；权限执行、完整审批信息、后台/休眠、持久化确认和跨端恢复仍待逐项实现及验证。",
       "evidenceLimit": "这些路径是已定位的候选证据；尚未逐条证明本节每一项要求，不授予整节 PASS。"
     },
     {
@@ -8486,22 +7992,14 @@
           "text": "---"
         }
       ],
-      "verificationStatus": "IN_PROGRESS",
+      "verificationStatus": "NOT_STARTED",
       "acceptanceProven": false,
       "owner": "Device Trust、凭据与本地认证",
       "candidateEvidence": [
         "SECURITY_STATUS.md",
-        "ARCHITECTURE_DECISIONS.md",
-        "packages/api/device-trust/tests/device-trust.host.spec.ts",
-        "packages/api/gateway/tests/gateway-stream.host.spec.ts",
-        "apps/web/tests/device-interaction-reply.e2e.ts",
-        "apps/android/README.md",
-        "apps/web/tests/android-companion-question.e2e.ts",
-        "apps/android/core/src/test/kotlin/ai/deepseek/dsh/link/FileLinkCredentialsStoreTest.kt",
-        "apps/android/core/src/test/kotlin/ai/deepseek/dsh/companion/CompanionModelSetTest.kt",
-        "apps/web/tests/android-credential-recovery.e2e.ts"
+        "ARCHITECTURE_DECISIONS.md"
       ],
-      "remaining": "Native Remote 的固定 TLS 指纹、新设备证明、角色、撤销与重放防护已有 Host/JVM/Android 候选证据。重新配对使用独立模型生命周期、内存暂存、原子加密文件替换及不可取消的采纳；旧 Host 授权不自动撤销。Android 已验证格式损坏、密文篡改与缺失密钥时的文件保留及显式重新配对；仍需硬件密钥永久失效、完整远端执行授权审查、Swift 采用及物理平台资格验收；不授予整节 PASS。",
+      "remaining": "Pair/Role/Revoke、安全存储、重放/降级威胁审查和远端执行授权未完成；保留既有 local Host/Origin 防线。",
       "evidenceLimit": "这些路径是已定位的候选证据；尚未逐条证明本节每一项要求，不授予整节 PASS。"
     },
     {

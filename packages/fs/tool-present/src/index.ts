@@ -41,6 +41,11 @@ export function apply(ctx: Context, config: Config): void {
       + 'When a file you create or update is an output the user asked to receive, you must call present after writing it and before your final response, including files created through Bash or code execution. '
       + 'Mentioning its path in your reply does not replace this call. The files must already exist. '
       + 'The user opens the current source files; their contents are not copied or preserved.',
+    version: 1,
+    risk: 'moderate',
+    permissions: [],
+    supportsLite: false,
+    supportsRemote: true,
     parameters: {
       files: {
         type: 'array', required: true,

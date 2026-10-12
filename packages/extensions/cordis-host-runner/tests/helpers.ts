@@ -241,6 +241,11 @@ export function dummyTool(name: string): ToolDefinition {
   return {
     name,
     description: 'test trigger',
+    version: 1,
+    risk: 'low',
+    permissions: [],
+    supportsLite: false,
+    supportsRemote: false,
     parameters: { type: 'object' as const, properties: {} },
     output: { schema: { type: 'null' }, render: () => [] },
     async execute(): Promise<null> {
