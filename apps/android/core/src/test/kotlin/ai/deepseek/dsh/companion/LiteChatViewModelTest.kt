@@ -1,5 +1,7 @@
 package ai.deepseek.dsh.companion
 
+import ai.deepseek.dsh.contract.LitePresetDescriptor
+import ai.deepseek.dsh.contract.LitePresetPersona
 import ai.deepseek.dsh.contract.ToolDescriptor
 import ai.deepseek.dsh.contract.ToolRisk
 import kotlinx.coroutines.CoroutineScope
@@ -170,4 +172,59 @@ class LiteChatViewModelTest {
         state.conversation.size,
         state.lastTurnEnd,
     )
+
+    @Test
+    fun aPresetCatalogDrivesTheDefaultPresetSystemToTheDriver() = runTest {
+        val provider = ScriptedLiteProvider(
+            mapOf("你好" to listOf(LiteStreamChunk.Text("早"))),
+        )
+        val model = LiteChatViewModel(
+            scope = CoroutineScope(UnconfinedTestDispatcher(testScheduler)),
+            sessionId = "ui6",
+            provider = provider,
+            execute = { _, _, _ -> LiteToolOutcome(ok = false, text = "") },
+            presetCatalog = LitePresetCatalog.fromHostProjection(
+                listOf(preset(id = "later", order = 5), preset(id = "default-one", order = 1)),
+            ),
+        )
+        model.send("你好")
+        advanceUntilIdle()
+
+        // The lowest-order preset's assembled system prompt reaches the
+        // provider; the journal keeps user/assistant rows only.
+        assertEquals(listOf<String?>("sample-assembled-default-one"), provider.submittedSystems)
+        assertEquals(
+            listOf(LiteMessage(role = "user", text = "你好"), LiteMessage(role = "assistant", text = "早")),
+            model.state.conversation,
+        )
+        assertEquals("completed", model.state.lastTurnEnd)
+    }
+
+    @Test
+    fun withoutAProjectionTheTurnStaysBare() = runTest {
+        val provider = ScriptedLiteProvider(
+            mapOf("你好" to listOf(LiteStreamChunk.Text("早"))),
+        )
+        val model = LiteChatViewModel(
+            scope = CoroutineScope(UnconfinedTestDispatcher(testScheduler)),
+            sessionId = "ui7",
+            provider = provider,
+            execute = { _, _, _ -> LiteToolOutcome(ok = false, text = "") },
+        )
+        model.send("你好")
+        advanceUntilIdle()
+
+        assertEquals(listOf<String?>(null), provider.submittedSystems)
+        assertEquals(2, model.state.conversation.size)
+    }
+
+    /** One synthetic descriptor; preset prose belongs to the Host projection, never here. */
+    private fun preset(id: String, order: Long): LitePresetDescriptor =
+        LitePresetDescriptor(
+            id = id,
+            order = order,
+            persona = LitePresetPersona(prefix = "sample-prefix-$id", suffix = null, complete = true),
+            includeRuntimeContext = false,
+            assembledSystemPrompt = "sample-assembled-$id",
+        )
 }

@@ -1,0 +1,66 @@
+{
+  "status": "PASS",
+  "scope": "Report bindings and audit for the lite-persona increment: the §33 Lite Persona/System Prompt delivery (the Lite lane's next self-contained item after the §32 tool catalog, with the survey finding Lite at zero system prompt) resting on the design that the persona is introduced by reuse — scripts/gen-lite-preset-catalog.ts truly boots every shipped preset and harvests its real assembled text through the official ctx.systemPrompt.assemble() into packages/preset/agent-presets/lite-preset-descriptors.json (persona rows plus the full assembledSystemPrompt section including the harness identity, the LitePresetProjection type in agent-presets src/types.ts, the npm gen/verify scripts and the run-gates doc-sync gate verify-lite-preset-catalog taking doc-sync from 36 to 37, --check idempotence measured), with the runtime-variable presets (standard/ptc {{model}}/{{cwd}}) entering the excluded list with their variable names and no fake substitution, the !!js deferred boolean failing loud (the orphaned lane A's silent false read repaired to an explicit throw with a dedicated case), the official assembly face untouched, and BARE/empty projections byte-identical with the status quo; Android consumes the projection through the :contract LitePresetDescriptor mirror (hand-written JsonElement parsing failing loud, copyLitePresets following the copyToolDescriptors shape), the :core LitePresetCatalog dual-source enumeration (HOST_PROJECTED/BARE), the LiteProviding.stream(prompt, system=null) interface-default-parameter seam, LiteHTTPProvider's first-position conditional request insert and LiteChatViewModel's minimum-order default, with Kotlin carrying zero prompt text of its own and fold/journal untouched; the ledger gained the §31/33 split (the §33 remaining rewritten at 485 chars with five candidate-evidence entries led by lite-preset-descriptors.json, §31 crediting the §32 landing) with the note trio 2026-10-12-lite-preset-projection paired ahead of the doc-sync round (.artifacts/lite-persona-note-pairing.log); the gates: typecheck EXIT 0 in its own chained log and lint clean in its own chained log (Found 0 warnings and 0 errors, Finished in 49.9s on 3860 files — three files up from the gen-50 tree because the increment adds three new tracked TypeScript sources, after the six lint repairs), the spec round at 2 files / 20 tests (the generator spec at 15, the projection spec at 5) and the agent-presets package full round honestly red-pinned at 190 passed / 1 failed of 191 — the single failure being the discovery.spec symlink EPERM, the Windows-host pre-existing class, with the zero-diff evidence sealed in the capture, the exemption recorded here in the seal config and in the validator as the accepted form — plus the generator idempotence round and the README pairing round, the cross-lane parity round at .artifacts/lite-persona-int-parity.log (:contract:test plus :core:test BUILD SUCCESSFUL in 1m 2s, 15 actionable tasks: 6 executed, 9 up-to-date, the two previously assumeTrue-skipped mirror tests actually running, the contract XML re-emitted at the 3-suite / 29-test aggregate), doc-quick 17 gates green in 51.04s and doc-sync 37 passed 0 failed 0 skipped in 164.91s (the count moving 36→37 through the new verify-lite-preset-catalog gate after the doc graphs regeneration with the zh line-number mirrors — the backtick pitfall biting a third time — and the README/note pairings), traceability 6/6 (TAP, the §31/33 split with §33 at 485 chars / 5 evidence entries), gate0 PASS in both forms (1938 paths / 129 components / 81 sections — unchanged from the prior generation), and the serial double audit round green at 87 files / 1073 tests on both passes over gen-40's curated lineage at its gen-40 name (nothing this increment touches is a lineage member); the android acceptance is recorded honestly: the scanner-env gradle round came back BUILD SUCCESSFUL in 28s with 72 actionable tasks of which 6 executed and 66 up-to-date — the real Kotlin changes cold-executing (:app:compileDebugKotlin, :app:compileDebugAndroidTestKotlin, :app:packageDebug and :app:assembleDebug executed rebuilding the debug APK; :app:assembleDebugAndroidTest UP-TO-DATE; :core:compileKotlin and :core:test UP-TO-DATE with the core module compiled and tested in the parity round just before) — with the androidTest APK IDENTICAL against the lite-tool record's sealed bytes (bbe7a3af cross-checked live) and the debug APK DRIFT at d7a1bdaa… (the honest native-change signal, cross-checked live, this generation's capture becoming the new baseline) and the core XML aggregate reading 79 suites / 499 tests including the new LitePresetCatalogTest mirror suite (.artifacts/lite-persona-core-results.json; gen-50 sealed 78/489); the byte-proof follows the measured dual form (.artifacts/lite-persona-apk-bytes.log, prior apk records: 2), and the prepare oracle derived the measured one hundred one replaced prior build outputs — ninety-nine derived keys (the lane rounds and the gradle round re-emitting the android build/test products and the api remotes lib type outputs past the sealed bytes) plus the two adjudicated verify-path keys (the gen-50 capture's leaked untracked contract test-results XML, kept out of every later sourceFiles list by this capture's android-build-product filter, and the gen-50-post-amend pre-seal sha of the tracked host-preparation source), with the adapter's generator-side measurement splitting the derived ninety-nine into five chain-covered keys and ninety-four first-emission keys no archive holds (the gen-50 rounds' own emissions, sealed only by the lite-tool record, zero exact hits across all two hundred forty-three on-disk before-archives, untracked) — so per the escalated two-set ruling the advance installs the liteToolReplacedBuildOutputs exactly-ninety-four build-output exemption (the apple-follow-resume 112-key precedent form) beside the liteToolUnrecoverableInputs exactly-two verify-path exemption on the demoted lite-tool block, both derived and emitted at advance run time from the record, the chain archives and the disk — never transcribed — the two sets disjoint with their union exactly the measured ninety-six, the ninety-four inside the prepare ninety-nine and the two byte-identical to the prepare script's adds, rebuilt by the advance on any voided rerun; beyond those adjudicated sets no second-order drift exists uncovered (every other measured miss resolves through disk or the archives), so the generator gains no lite-persona set at all (no new cumulative ReplacedBuildOutputs or SupersededSources collections beyond the adjudicated two-set exemption, the gen-32 desktopPackageReplacedBuildOutputs set staying exactly six, the gen-33 tornRepairIntentReplacedBuildOutputs set staying exactly three, the gen-48 dwfq-a83d7bb8-1 clientMutationReplacedBuildOutputs exemption staying exactly two and the gen-46 three-key durableReceiptsReplacedBuildOutputs exemption staying exactly three at the generator head as sealed history); the preset selection UI, the app-layer runtime preset wiring, the §31 tool permission policy, the tools array injection, the Android/Host tool name alignment, the multi-release interop matrix, the relayMetadata blockage on section 23, the section 56 materials, the admitEncodedImages manual ruling, the client tsdown CI coverage gap and the Linux/lib forms all stay open — so no whole-section PASS is granted; full Upstream-First objective remains in progress",
+  "gate0": {
+    "validation": "PASS",
+    "gate0": "PASS",
+    "paths": 1938,
+    "components": 129,
+    "specificationCoverage": {
+      "status": "PASS",
+      "numberedSections": 81,
+      "nonEmptySourceLines": 1983,
+      "acceptanceProven": false
+    }
+  },
+  "sourceRecord": {
+    "path": "artifacts/upstream-first/lite-persona-source.json",
+    "sha256": "d9923872b641b49d60c58373943ea44e933525c29ac34ad3fa9508b1e033887a"
+  },
+  "generator": {
+    "path": "artifacts/upstream-first/write-reports.mjs",
+    "sha256": "8312d99d3e9cec848d69d31650a59bc3e4aa6a96e44b650dd795500bea90b8d3"
+  },
+  "binding": {
+    "path": "artifacts/upstream-first/lite-persona-binding.json",
+    "sha256": "75d16c172ce380c4fd1fd1761afadbee1eb28e2f6e86ca9f0d036f1826fa7747"
+  },
+  "helpers": [
+    {
+      "path": ".artifacts/advance-lite-persona-reports.mjs",
+      "sha256": "d2f562dcf4975f592ccbab5603e9bda491b5a90b2450a61cbe2c0c45567d3a80"
+    },
+    {
+      "path": ".artifacts/capture-lite-persona-validation.mjs",
+      "sha256": "53f1dd998138332318edc65155363432fe6fc5384d1d80f50a9dec920ad7f171"
+    }
+  ],
+  "reports": [
+    {
+      "path": "IMPLEMENTATION_STATUS.md",
+      "sha256": "4d7c1438f9c222e9c956cb945db52c2d3bfc93940fe81137c8b8a4eec539d64e"
+    },
+    {
+      "path": "artifacts/upstream-first/evidence.json",
+      "sha256": "bb8d8080e66eda7f549a0b3141202d8fa5a8ad72cccd8f41a7775be17a528d6e"
+    }
+  ],
+  "checks": [
+    {
+      "path": ".artifacts/lite-persona-binding.log",
+      "sha256": "c6f60ff4352a44c21265b4715a295554b338f898af29c2ec1c11c9768f2a5048"
+    },
+    {
+      "path": ".artifacts/lite-persona-audit-final.log",
+      "sha256": "8b740ac8bed4b38d7ed350d28712a05880b4db4425429351cd9a2d506e631b93"
+    },
+    {
+      "path": ".artifacts/lite-persona-gate0-final.log",
+      "sha256": "7e00efd82bd2a2b91b03ca80537dcc4af46cd09eb318ff58520cb2d7d7d8a48a"
+    },
+    {
+      "path": ".artifacts/lite-persona-report-generation.log",
+      "sha256": "fe010532f71a6341467ae5719b29ac19470895de1d481156335b8f70a3273ed5"
+    }
+  ]
+}

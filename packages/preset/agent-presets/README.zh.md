@@ -87,6 +87,10 @@ agent-presets:
 
 组装缺失、无法解析、不是具名插件行列表，或者引用了无法解析的模块的 preset 会被列为 broken，原因会指名出问题的行；组装此类 preset 会被提前拒绝，因此会话绝不会以半组装状态启动。能活到会话创建的，是模块能加载但随后拒绝的行——抛错的插件，或等待组装从未提供的服务的插件——它会让创建失败并回滚，且会指名每一个失败的行，包括组内的行。修复 preset 的文件或删除它，然后重试。
 
+### Lite persona 投影
+
+`pnpm run gen-lite-preset-catalog` 写出入库的 [`lite-preset-descriptors.json`](./lite-preset-descriptors.json)：对每个 shipped preset 真正引导 roster、组装其 standing scope，并在该 preset 声明的 persona 行旁记录官方 `ctx.systemPrompt.assemble()` 的输出（`./src/types.ts` 的 `LitePresetProjection`）。Lite 消费方复用该文件，而不是维护平行的 Prompt 系统（规格 §33）；`verify-lite-preset-catalog` 随 `doc-sync` 运行。组装结果仍引用运行时变量的 preset（shipped `standard` 与 `ptc` 在 `{{model}}`/`{{cwd}}` 上的模板）以文件内的 `excluded` 清单连同变量名记录，而不是伪造为静态行；声明了延迟（`!!js`）布尔的 persona 行会让收割失败：静态投影只渲染字面值。
+
 -----
 
 <a id="understand-the-implementation"></a>

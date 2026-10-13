@@ -146,6 +146,51 @@ class LiteHTTPProviderTest {
     }
 
     @Test
+    fun aSystemPromptRidesFirstAndBareTurnsStayIdentical() = runTest {
+        val seenBodies = mutableListOf<String>()
+        val server = com.sun.net.httpserver.HttpServer.create(java.net.InetSocketAddress("127.0.0.1", 0), 0)
+        server.createContext("/v1/chat/completions") { exchange ->
+            seenBodies.add(exchange.requestBody.readBytes().decodeToString())
+            val bytes = "data: [DONE]".encodeToByteArray()
+            exchange.sendResponseHeaders(200, bytes.size.toLong())
+            exchange.responseBody.write(bytes)
+            exchange.close()
+        }
+        server.start()
+        try {
+            val provider = LiteHTTPProvider(
+                endpoint = "http://127.0.0.1:${server.address.port}/v1/chat/completions",
+                apiKey = "sk-test",
+                model = "deepseek-chat",
+            )
+            provider.stream("问好", "sample-system").toList()
+            provider.stream("问好").toList()
+            provider.stream("问好", "").toList()
+
+            val requests = seenBodies.map { Json.parseToJsonElement(it).jsonObject }
+            requests.forEach { request ->
+                assertEquals(setOf("model", "stream", "messages"), request.keys)
+            }
+
+            // A system prompt rides first, ahead of the user row.
+            val withSystem = requests[0]["messages"] as kotlinx.serialization.json.JsonArray
+            assertEquals(2, withSystem.size)
+            assertEquals("system", ((withSystem[0] as JsonObject)["role"] as kotlinx.serialization.json.JsonPrimitive).content)
+            assertEquals("sample-system", ((withSystem[0] as JsonObject)["content"] as kotlinx.serialization.json.JsonPrimitive).content)
+            assertEquals("user", ((withSystem[1] as JsonObject)["role"] as kotlinx.serialization.json.JsonPrimitive).content)
+            assertEquals("问好", ((withSystem[1] as JsonObject)["content"] as kotlinx.serialization.json.JsonPrimitive).content)
+
+            // Null and empty system prompts leave the messages byte-identical
+            // to a bare turn.
+            for (bare in listOf(requests[1]["messages"], requests[2]["messages"])) {
+                assertEquals(kotlinx.serialization.json.JsonArray(listOf(withSystem[1])), bare)
+            }
+        } finally {
+            server.stop(0)
+        }
+    }
+
+    @Test
     fun aNonTwoHundredRefusalIsAProviderError() = runTest {
         val server = com.sun.net.httpserver.HttpServer.create(java.net.InetSocketAddress("127.0.0.1", 0), 0)
         server.createContext("/v1/chat/completions") { exchange ->

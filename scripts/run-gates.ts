@@ -740,6 +740,7 @@ function docSyncLeafGates(options: {
     pnpmScript('client-catalog', 'verify-client-catalog', { label: 'client catalog' }),
     pnpmScript('export-jsdoc', 'verify-export-jsdoc', { label: 'export jsdoc' }),
     pnpmScript('tool-catalog', 'verify-tool-catalog', { label: 'tool catalog' }),
+    pnpmScript('lite-preset-catalog', 'verify-lite-preset-catalog', { label: 'Lite preset catalog' }),
     pnpmScript('config-catalog', 'verify-config-catalog', { label: 'config catalog' }),
     pnpmScript('remote-error-codes', 'verify-remote-error-codes', { label: 'Remote error code schema', quick: true }),
     pnpmScript('remote-error-envelope', 'verify-remote-error-envelope', { label: 'Remote error envelope schema' }),

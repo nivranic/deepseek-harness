@@ -127,16 +127,25 @@ class LiteHTTPProvider(
     /**
      * Stream one response's chunks for a submitted prompt.
      * @param prompt the accepted user prompt text.
+     * @param system the session's assembled system prompt; a null or empty value leaves the request messages byte-identical to a bare turn.
      * @return the ordered chunks of one model response.
      */
-    override suspend fun stream(prompt: String): Flow<LiteStreamChunk> = flow {
+    override suspend fun stream(prompt: String, system: String?): Flow<LiteStreamChunk> = flow {
         val body = buildJsonObject {
             put("model", model)
             put("stream", true)
-            put("messages", JsonArray(listOf(buildJsonObject {
-                put("role", "user")
-                put("content", prompt)
-            })))
+            put("messages", JsonArray(buildList {
+                if (!system.isNullOrEmpty()) {
+                    add(buildJsonObject {
+                        put("role", "system")
+                        put("content", system)
+                    })
+                }
+                add(buildJsonObject {
+                    put("role", "user")
+                    put("content", prompt)
+                })
+            }))
         }.toString()
         val request = HttpRequest.newBuilder()
             .uri(URI.create(endpoint))

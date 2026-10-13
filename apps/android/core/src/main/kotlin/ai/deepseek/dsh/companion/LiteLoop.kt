@@ -40,9 +40,10 @@ interface LiteProviding {
     /**
      * Stream one response's chunks for a submitted prompt.
      * @param prompt the accepted user prompt text.
+     * @param system the session's assembled system prompt, or null when the session runs bare; it is request-face context and never a session event.
      * @return the ordered chunks of one model response.
      */
-    suspend fun stream(prompt: String): Flow<LiteStreamChunk>
+    suspend fun stream(prompt: String, system: String? = null): Flow<LiteStreamChunk>
 }
 
 /** A scripted provider: one prompt-matched chunk script, for tests and previews. */
@@ -50,8 +51,12 @@ class ScriptedLiteProvider(private val scripts: Map<String, List<LiteStreamChunk
     /** The prompts streamed so far, in order. */
     val submitted = mutableListOf<String>()
 
-    override suspend fun stream(prompt: String): Flow<LiteStreamChunk> {
+    /** The system prompt each streamed submission carried, in order; null marks a bare prompt. */
+    val submittedSystems = mutableListOf<String?>()
+
+    override suspend fun stream(prompt: String, system: String?): Flow<LiteStreamChunk> {
         submitted.add(prompt)
+        submittedSystems.add(system)
         return (scripts[prompt] ?: emptyList()).asFlow()
     }
 }
@@ -97,11 +102,12 @@ class LiteLoopDriver(
      * Submit one prompt and drive its response to the terminal event; a new
      * submission replaces any in-flight turn.
      * @param prompt the accepted user prompt text.
+     * @param system the session's assembled system prompt passed to the provider, or null for a bare prompt; it never enters the event journal.
      * @return the turn's Job — joining it waits for the terminal event.
      */
-    fun submit(prompt: String): Job {
+    fun submit(prompt: String, system: String? = null): Job {
         job?.cancel()
-        val turn = scope.launch { drive(prompt) }
+        val turn = scope.launch { drive(prompt, system) }
         job = turn
         return turn
     }
@@ -117,14 +123,14 @@ class LiteLoopDriver(
         onEventApplied?.invoke(fold.state)
     }
 
-    private suspend fun drive(prompt: String) {
+    private suspend fun drive(prompt: String, system: String?) {
         running = true
         try {
             apply(event("prompt/accepted", "requestId" to text("lite-${java.util.UUID.randomUUID()}"), "content" to text(prompt)))
             try {
                 var assembled = ""
                 var handedOff: String? = null
-                provider.stream(prompt).collect { chunk ->
+                provider.stream(prompt, system).collect { chunk ->
                     // Once a tool hands off, the loop stops at the marker;
                     // later chunks fold nothing.
                     if (handedOff != null) return@collect

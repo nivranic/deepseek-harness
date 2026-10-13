@@ -176,7 +176,7 @@ class LiteLoopDriverTest {
     @Test
     fun cancellationFinalizesTheDeliveredPrefix() = runTest {
         val provider = object : LiteProviding {
-            override suspend fun stream(prompt: String): Flow<LiteStreamChunk> = flow {
+            override suspend fun stream(prompt: String, system: String?): Flow<LiteStreamChunk> = flow {
                 emit(LiteStreamChunk.Text("部分"))
                 awaitCancellation()
             }
@@ -206,7 +206,7 @@ class LiteLoopDriverTest {
     fun transportFailuresFoldIntoTheirVocabulary() = runTest {
         fun driver(script: suspend FlowCollector<LiteStreamChunk>.() -> Unit): LiteLoopDriver {
             val provider = object : LiteProviding {
-                override suspend fun stream(prompt: String): Flow<LiteStreamChunk> = flow { script() }
+                override suspend fun stream(prompt: String, system: String?): Flow<LiteStreamChunk> = flow { script() }
             }
             return LiteLoopDriver(CoroutineScope(UnconfinedTestDispatcher(testScheduler)), provider) { _, _, _ ->
                 LiteToolOutcome(ok = true, text = "")
@@ -238,5 +238,47 @@ class LiteLoopDriverTest {
         assertEquals("provider", failure.kind)
         assertEquals("PROVIDER_FAILED", failure.code)
         assertTrue(failure.message.contains("boom"))
+    }
+
+    @Test
+    fun aSystemPromptPassesThroughWithoutJournaling() = runTest {
+        val provider = ScriptedLiteProvider(
+            mapOf("总结" to listOf(LiteStreamChunk.Text("好"))),
+        )
+        val driver = LiteLoopDriver(
+            CoroutineScope(UnconfinedTestDispatcher(testScheduler)),
+            provider,
+        ) { _, _, _ -> LiteToolOutcome(ok = true, text = "") }
+        driver.submit("总结", "sample-system")
+        advanceUntilIdle()
+
+        assertEquals(listOf("总结"), provider.submitted)
+        assertEquals(listOf<String?>("sample-system"), provider.submittedSystems)
+        // The system prompt is request-face context: the conversation rows
+        // stay user/assistant only, exactly as a bare turn folds them.
+        assertEquals(
+            listOf(LiteMessage(role = "user", text = "总结"), LiteMessage(role = "assistant", text = "好")),
+            driver.fold.state.conversation,
+        )
+        assertEquals("completed", driver.fold.state.lastTurnEnd)
+    }
+
+    @Test
+    fun aSubmissionWithoutASystemRunsBare() = runTest {
+        val provider = ScriptedLiteProvider(
+            mapOf("总结" to listOf(LiteStreamChunk.Text("好"))),
+        )
+        val driver = LiteLoopDriver(
+            CoroutineScope(UnconfinedTestDispatcher(testScheduler)),
+            provider,
+        ) { _, _, _ -> LiteToolOutcome(ok = true, text = "") }
+        driver.submit("总结")
+        advanceUntilIdle()
+
+        assertEquals(listOf<String?>(null), provider.submittedSystems)
+        assertEquals(
+            listOf(LiteMessage(role = "user", text = "总结"), LiteMessage(role = "assistant", text = "好")),
+            driver.fold.state.conversation,
+        )
     }
 }

@@ -1,0 +1,20 @@
+{
+  "_comment": "Same-schema sample of packages/preset/agent-presets/lite-preset-descriptors.json (the lane-A generator's projection); rerun that generator to refresh the real projection this sample mirrors. Persona text is synthetic placeholder markers — Lite owns no prompt prose (§33).",
+  "presets": [
+    {
+      "id": "future-preset",
+      "order": 7,
+      "persona": { "prefix": "sample-prefix-future-preset", "suffix": "sample-suffix-future-preset", "complete": false },
+      "includeRuntimeContext": true,
+      "assembledSystemPrompt": "sample-assembled-future-preset",
+      "futureField": { "note": "tolerated" }
+    },
+    {
+      "id": "minimal",
+      "order": 3,
+      "persona": { "prefix": "sample-prefix-minimal", "complete": true },
+      "includeRuntimeContext": false,
+      "assembledSystemPrompt": "sample-assembled-minimal"
+    }
+  ]
+}

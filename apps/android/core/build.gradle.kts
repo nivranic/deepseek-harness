@@ -40,8 +40,16 @@ val copyToolDescriptors by tasks.registering(Copy::class) {
     into(layout.buildDirectory.dir("tool-descriptors"))
 }
 
+// Copy the generated lite-preset projection straight from the preset package;
+// until that generator lands the cross-check skips on absence.
+val copyLitePresets by tasks.registering(Copy::class) {
+    from(rootProject.projectDir.parentFile.parentFile.resolve("packages/preset/agent-presets/lite-preset-descriptors.json"))
+    into(layout.buildDirectory.dir("lite-presets"))
+}
+
 sourceSets.test {
     resources.srcDir(copyToolDescriptors)
+    resources.srcDir(copyLitePresets)
 }
 
 tasks.register<JavaExec>("nativeAcceptance") {

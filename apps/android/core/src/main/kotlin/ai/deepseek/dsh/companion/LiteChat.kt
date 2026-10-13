@@ -31,6 +31,7 @@ class LiteChatViewModel(
     private val store: LiteSessionStoring? = null,
     private val artifacts: LiteArtifactStoring? = null,
     toolCatalog: LiteToolCatalog = LiteToolCatalog.FALLBACK,
+    private val presetCatalog: LitePresetCatalog = LitePresetCatalog.BARE,
 ) {
     /** The durable journal the turn outcomes land in. */
     val session: LiteSession = LiteSession(sessionId)
@@ -60,11 +61,13 @@ class LiteChatViewModel(
     /**
      * Submit one prompt, await the turn's terminal event, then persist the
      * turn's fold-visible outcome events to the journal — raw deltas stay
-     * out of it (chapter 64 forbids premature fidelity).
+     * out of it (chapter 64 forbids premature fidelity). The default preset's
+     * assembled system prompt rides the provider request as request-face
+     * context and never lands in the journal.
      * @param prompt the user prompt text.
      */
     suspend fun send(prompt: String) {
-        driver.submit(prompt).join()
+        driver.submit(prompt, presetCatalog.defaultSystemPrompt).join()
         session.record(event("prompt/accepted", "requestId" to text("ui-${java.util.UUID.randomUUID()}"), "content" to text(prompt)))
         session.record(
             event("message/completed", "text" to text(driver.fold.state.conversation.lastOrNull()?.text ?: "")),
