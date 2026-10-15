@@ -64,6 +64,10 @@ ctx.tools.register(defineTool({
 
 统一 schema DSL 支持 `string`、`number`、`integer`、`boolean`、`null`、`array`、`object`、仅供作者使用的 `json` 与恰好匹配一个分支的 `oneOf`；`InferValue` 在 16 层容器内保留精确类型，之后加宽为 `JsonValue`。原始 JSON Schema（`JsonSchemaNode`）是与 subagent、工作流和 MCP 共享的协议级对应类型。
 
+### Lite 工具 schema 投影
+
+同一个目录生成器还会产出 [`lite-tool-schemas.json`](lite-tool-schemas.json)：恰好是 §32 声明携带 `supportsLite: true` 的随产品发布工具，每条只保留面向模型的 `name`、`description` 与 `parameters`——与 `ctx.tools.schemas()` 返回的快照分离值相同。Lite 请求面把这份静态投影作为自己的 tools 数组挂载，而不是现场收割 schema；声明了 `supportsLite` 却收割不到 schema 的工具会使生成器失败。使用 `pnpm run gen-tool-catalog` 再生成。
+
 ### 配置呈现模式
 
 `mode` 配置决定模型看到什么：`native`（每个可见 schema）、`ptc`（只有 `run_code` 加一份生成 SDK）或 `both`。

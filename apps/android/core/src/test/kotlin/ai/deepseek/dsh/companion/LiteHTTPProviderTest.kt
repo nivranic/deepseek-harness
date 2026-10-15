@@ -1,8 +1,13 @@
 package ai.deepseek.dsh.companion
 
+import ai.deepseek.dsh.contract.LiteToolSchemas
 import kotlinx.serialization.json.Json
+import kotlinx.serialization.json.JsonArray
 import kotlinx.serialization.json.JsonObject
+import kotlinx.serialization.json.JsonPrimitive
+import kotlinx.serialization.json.buildJsonObject
 import kotlinx.serialization.json.jsonObject
+import kotlinx.serialization.json.put
 import kotlinx.coroutines.flow.toList
 import kotlinx.coroutines.test.runTest
 import java.io.IOException
@@ -148,14 +153,7 @@ class LiteHTTPProviderTest {
     @Test
     fun aSystemPromptRidesFirstAndBareTurnsStayIdentical() = runTest {
         val seenBodies = mutableListOf<String>()
-        val server = com.sun.net.httpserver.HttpServer.create(java.net.InetSocketAddress("127.0.0.1", 0), 0)
-        server.createContext("/v1/chat/completions") { exchange ->
-            seenBodies.add(exchange.requestBody.readBytes().decodeToString())
-            val bytes = "data: [DONE]".encodeToByteArray()
-            exchange.sendResponseHeaders(200, bytes.size.toLong())
-            exchange.responseBody.write(bytes)
-            exchange.close()
-        }
+        val server = recordingServer(seenBodies)
         server.start()
         try {
             val provider = LiteHTTPProvider(
@@ -185,6 +183,62 @@ class LiteHTTPProviderTest {
             for (bare in listOf(requests[1]["messages"], requests[2]["messages"])) {
                 assertEquals(kotlinx.serialization.json.JsonArray(listOf(withSystem[1])), bare)
             }
+        } finally {
+            server.stop(0)
+        }
+    }
+
+    @Test
+    fun projectedToolSchemasRideTheToolsArray() = runTest {
+        val fixture = javaClass.classLoader.getResource("fixtures/lite-tool-schemas.sample.json")!!
+        val schemas = LiteToolSchemas.parseDocument(fixture.readText(Charsets.UTF_8))
+        val seenBodies = mutableListOf<String>()
+        val server = recordingServer(seenBodies)
+        server.start()
+        try {
+            val provider = LiteHTTPProvider(
+                endpoint = "http://127.0.0.1:${server.address.port}/v1/chat/completions",
+                apiKey = "sk-test",
+                model = "deepseek-chat",
+                toolSchemas = schemas,
+            )
+            provider.stream("问好").toList()
+            provider.stream("问好", "sample-system").toList()
+
+            val requests = seenBodies.map { Json.parseToJsonElement(it).jsonObject }
+            requests.forEach { request ->
+                assertEquals(setOf("model", "stream", "messages", "tools"), request.keys)
+            }
+
+            // The fixture's two schemas pin the complete OpenAI
+            // function-tools array; tools[0] is compared field by field.
+            val expectedTools = JsonArray(schemas.map { schema -> buildJsonObject {
+                put("type", "function")
+                put("function", buildJsonObject {
+                    put("name", schema.name)
+                    put("description", schema.description)
+                    put("parameters", schema.parameters)
+                })
+            } })
+            requests.forEach { request -> assertEquals(expectedTools, request["tools"]) }
+            val first = (requests[0]["tools"] as JsonArray)[0] as JsonObject
+            assertEquals("function", (first["type"] as JsonPrimitive).content)
+            val function = first["function"] as JsonObject
+            assertEquals(schemas[0].name, (function["name"] as JsonPrimitive).content)
+            assertEquals(schemas[0].description, (function["description"] as JsonPrimitive).content)
+            assertEquals(schemas[0].parameters, function["parameters"])
+
+            // A bare turn with tools keeps exactly the single user row; a
+            // system turn still rides first inside messages.
+            val bareMessages = requests[0]["messages"] as JsonArray
+            assertEquals(1, bareMessages.size)
+            assertEquals("user", ((bareMessages[0] as JsonObject)["role"] as JsonPrimitive).content)
+            assertEquals("问好", ((bareMessages[0] as JsonObject)["content"] as JsonPrimitive).content)
+            val withSystem = requests[1]["messages"] as JsonArray
+            assertEquals(2, withSystem.size)
+            assertEquals("system", ((withSystem[0] as JsonObject)["role"] as JsonPrimitive).content)
+            assertEquals("sample-system", ((withSystem[0] as JsonObject)["content"] as JsonPrimitive).content)
+            assertEquals("user", ((withSystem[1] as JsonObject)["role"] as JsonPrimitive).content)
         } finally {
             server.stop(0)
         }
@@ -238,4 +292,16 @@ class LiteHTTPProviderTest {
             assertEquals("unreachable", network.kind)
         }
     }
+
+    /** A local server that records each request body and answers with an empty SSE stream. */
+    private fun recordingServer(bodies: MutableList<String>): com.sun.net.httpserver.HttpServer =
+        com.sun.net.httpserver.HttpServer.create(java.net.InetSocketAddress("127.0.0.1", 0), 0).apply {
+            createContext("/v1/chat/completions") { exchange ->
+                bodies.add(exchange.requestBody.readBytes().decodeToString())
+                val bytes = "data: [DONE]".encodeToByteArray()
+                exchange.sendResponseHeaders(200, bytes.size.toLong())
+                exchange.responseBody.write(bytes)
+                exchange.close()
+            }
+        }
 }

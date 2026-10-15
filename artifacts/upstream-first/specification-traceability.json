@@ -1,7 +1,7 @@
 {
   "schemaVersion": 1,
   "status": "IN_PROGRESS",
-  "capturedAt": "2026-10-13T07:56:36.377Z",
+  "capturedAt": "2026-10-13T18:04:20.915Z",
   "fullGoalComplete": false,
   "specification": {
     "path": "artifacts/upstream-first/original-specification.md",
@@ -3766,12 +3766,16 @@
       "owner": "受限 Lite profile 与工具目录",
       "candidateEvidence": [
         "packages/core/tools/tool-descriptors.json",
+        "packages/core/tools/lite-tool-schemas.json",
+        "scripts/gen-tool-catalog.ts",
         "packages/core/tools/src/capabilities.ts",
         "packages/core/tools/src/index.ts",
         "apps/android/contract/src/main/kotlin/ai/deepseek/dsh/contract/ToolDescriptor.kt",
-        "apps/android/core/src/main/kotlin/ai/deepseek/dsh/companion/LiteToolRegistry.kt"
+        "apps/android/contract/src/main/kotlin/ai/deepseek/dsh/contract/LiteToolSchema.kt",
+        "apps/android/core/src/main/kotlin/ai/deepseek/dsh/companion/LiteToolRegistry.kt",
+        "apps/android/core/src/main/kotlin/ai/deepseek/dsh/companion/LiteToolSchemaCatalog.kt"
       ],
-      "remaining": "§32 声明面已落地：ToolDefinition 必填 version/risk/permissions/supportsLite/supportsRemote（注册边界 fail-loud；模型投影与 SessionEventMap 零变化），descriptors() 投影经 Remote tools 命名空间（tool.catalog.v1 + tools/list）按 §37 先例广播，gen-tool-catalog 产出机器可读 tool-descriptors.json；Android 侧 :contract 镜像解析 fail-loud，LiteToolCatalog 双源（HOST_DECLARED/BUNDLED_FALLBACK 显式标记）替换 LiteLoop 按名猜测，未声明名交回 full runtime 不猜，网关按 capability 协商拉取。Android 本地名与宿主工具名对齐（url_fetch 等 vs web_fetch 等）、app 层运行时接线、Lite 工具权限策略与 §33 Prompt composition 仍待实施。",
+      "remaining": "§32 声明面与模型面已落地：ToolDefinition 必填 version/risk/permissions/supportsLite/supportsRemote（注册边界 fail-loud；模型投影与 SessionEventMap 零变化），descriptors() 投影经 Remote tools 命名空间（tool.catalog.v1 + tools/list）按 §37 先例广播，gen-tool-catalog 产出机器可读 tool-descriptors.json 与模型面投影 lite-tool-schemas.json（supportsLite 过滤 + schemas() 收割 join、同名冲突仅 Lite 域 fail-loud、跨包同名非 Lite 变体不参与）；Android 侧 :contract 镜像解析 fail-loud 并对拍两份投影（schemas 名集 ⊆ supportsLite id 集），LiteToolCatalog 双源（HOST_DECLARED/BUNDLED_FALLBACK 显式标记）替换 LiteLoop 按名猜测，未声明名交回 full runtime 不猜，网关按 capability 协商拉取；LiteToolSchemaCatalog（HOST_PROJECTED/BARE）经 LiteHTTPProvider 构造态参数把 OpenAI function 形 tools 数组条件注入请求体（空表省键、BARE 与现状逐字节一致，system/tools 同为 request-face 不入 journal）。Android 本地名与宿主工具名对齐（url_fetch 等 vs web_fetch 等）、app 层运行时接线（assets 打包）、Lite 工具权限策略与 tool-call 循环处理仍待实施。",
       "evidenceLimit": "这些路径是已定位的候选证据；尚未逐条证明本节每一项要求，不授予整节 PASS。"
     },
     {

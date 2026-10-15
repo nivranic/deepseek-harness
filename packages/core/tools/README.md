@@ -64,6 +64,10 @@ ctx.tools.register(defineTool({
 
 The unified schema DSL supports `string`, `number`, `integer`, `boolean`, `null`, `array`, `object`, author-only `json`, and exact-one `oneOf`; `InferValue` preserves exact types through 16 container levels before widening to `JsonValue`. A raw JSON Schema (`JsonSchemaNode`) is the wire-level counterpart shared with subagents, workflows, and MCP.
 
+### Lite tool schemas projection
+
+The same catalog generator also emits [`lite-tool-schemas.json`](lite-tool-schemas.json): exactly the shipped tools whose §32 declaration carries `supportsLite: true`, each reduced to its model-facing `name`, `description`, and `parameters` — the same snapshot-separated values `ctx.tools.schemas()` serves. A Lite request face mounts this static projection as its tools array instead of harvesting live schemas; a `supportsLite` declaration without a harvestable schema fails the generator. Regenerate with `pnpm run gen-tool-catalog`.
+
 ### Configure the presentation mode
 
 The `mode` config decides what the model sees: `native` (every visible schema), `ptc` (only `run_code` plus a generated SDK), or `both`.

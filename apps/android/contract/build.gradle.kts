@@ -34,14 +34,22 @@ val copyToolDescriptors by tasks.registering(Copy::class) {
 }
 
 // Copy the generated lite-preset projection straight from the preset package;
-// until that generator lands the projection test skips on absence.
+// until that generator lands the cross-check skips on absence.
 val copyLitePresets by tasks.registering(Copy::class) {
     from(rootProject.projectDir.parentFile.parentFile.resolve("packages/preset/agent-presets/lite-preset-descriptors.json"))
     into(layout.buildDirectory.dir("lite-presets"))
+}
+
+// Copy the generated lite tool-schema projection straight from the core tools
+// package; until that generator lands the mirror skips on absence.
+val copyLiteToolSchemas by tasks.registering(Copy::class) {
+    from(rootProject.projectDir.parentFile.parentFile.resolve("packages/core/tools/lite-tool-schemas.json"))
+    into(layout.buildDirectory.dir("lite-tool-schemas"))
 }
 
 sourceSets.test {
     resources.srcDir(copyContractSchema)
     resources.srcDir(copyToolDescriptors)
     resources.srcDir(copyLitePresets)
+    resources.srcDir(copyLiteToolSchemas)
 }

@@ -47,9 +47,18 @@ val copyLitePresets by tasks.registering(Copy::class) {
     into(layout.buildDirectory.dir("lite-presets"))
 }
 
+// Copy the generated lite tool-schema projection straight from the core tools
+// package so the schema catalog test compares against the current candidate
+// bytes; until that generator lands the projection test skips on absence.
+val copyLiteToolSchemas by tasks.registering(Copy::class) {
+    from(rootProject.projectDir.parentFile.parentFile.resolve("packages/core/tools/lite-tool-schemas.json"))
+    into(layout.buildDirectory.dir("lite-tool-schemas"))
+}
+
 sourceSets.test {
     resources.srcDir(copyToolDescriptors)
     resources.srcDir(copyLitePresets)
+    resources.srcDir(copyLiteToolSchemas)
 }
 
 tasks.register<JavaExec>("nativeAcceptance") {

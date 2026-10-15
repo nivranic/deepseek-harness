@@ -1,5 +1,6 @@
 package ai.deepseek.dsh.companion
 
+import ai.deepseek.dsh.contract.LiteToolSchema
 import kotlinx.coroutines.flow.Flow
 import kotlinx.coroutines.flow.flow
 import kotlinx.serialization.json.Json
@@ -115,12 +116,16 @@ fun classifyTransportFailure(failure: IOException): LiteTransportError.Network =
 /**
  * The real-provider seam: an OpenAI-compatible streaming chat completion
  * per prompt, decoded line by line into Lite chunks; fragmented tool-call
- * deltas are assembled before the loop sees them.
+ * deltas are assembled before the loop sees them. The projected tool
+ * schemas ride the request's `tools` array — an empty list omits the key
+ * entirely, the host provider's line form.
  */
 class LiteHTTPProvider(
     private val endpoint: String,
     private val apiKey: String,
     private val model: String,
+    /** The Host-projected model-face tool schemas sent as the request's `tools` array; construction input, never per-call state. */
+    private val toolSchemas: List<LiteToolSchema> = emptyList(),
 ) : LiteProviding {
     private val client: HttpClient = HttpClient.newHttpClient()
 
@@ -146,6 +151,19 @@ class LiteHTTPProvider(
                     put("content", prompt)
                 })
             }))
+            // The system prompt and the tool schemas are both request-face
+            // construction context: they ride the provider request and never
+            // the event journal. An empty schema list omits the tools key.
+            if (toolSchemas.isNotEmpty()) {
+                put("tools", JsonArray(toolSchemas.map { schema -> buildJsonObject {
+                    put("type", "function")
+                    put("function", buildJsonObject {
+                        put("name", schema.name)
+                        put("description", schema.description)
+                        put("parameters", schema.parameters)
+                    })
+                } }))
+            }
         }.toString()
         val request = HttpRequest.newBuilder()
             .uri(URI.create(endpoint))
