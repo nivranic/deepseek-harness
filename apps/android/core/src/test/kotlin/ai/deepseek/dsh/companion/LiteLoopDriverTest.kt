@@ -89,7 +89,7 @@ class LiteLoopDriverTest {
     }
 
     @Test
-    fun unknownNamesFoldButNeverDispatch() = runTest {
+    fun unknownNamesFailExplicitlyInsteadOfHanging() = runTest {
         var executed = 0
         val provider = ScriptedLiteProvider(
             mapOf("随便" to listOf(LiteStreamChunk.ToolCall("c9", "bash", "{}"), LiteStreamChunk.Text("收尾"))),
@@ -106,7 +106,9 @@ class LiteLoopDriverTest {
 
         assertEquals(0, executed)
         val state = driver.fold.state
-        assertEquals("running", state.toolCalls.single().phase)
+        val tool = state.toolCalls.single()
+        assertEquals("failed", tool.phase)
+        assertEquals("unknown tool on this device: bash", tool.resultText)
         assertEquals("completed", state.lastTurnEnd)
     }
 
@@ -151,7 +153,7 @@ class LiteLoopDriverTest {
     }
 
     @Test
-    fun aDeclaredUnknownToolHandsOffInsteadOfFoldingSilently() = runTest {
+    fun aDeclaredUnknownToolFailsExplicitlyWithoutHandingOff() = runTest {
         var executed = 0
         val provider = ScriptedLiteProvider(
             mapOf("随便" to listOf(LiteStreamChunk.ToolCall("c9", "bash", "{}"))),
@@ -169,8 +171,12 @@ class LiteLoopDriverTest {
         advanceUntilIdle()
 
         assertEquals(0, executed)
-        assertEquals(LITE_REQUIRES_FULL_RUNTIME, driver.fold.state.pendingHandoff)
-        assertEquals(null, driver.fold.state.lastTurnEnd)
+        val state = driver.fold.state
+        val tool = state.toolCalls.single()
+        assertEquals("failed", tool.phase)
+        assertEquals("unknown tool on this device: bash", tool.resultText)
+        assertEquals(null, state.pendingHandoff)
+        assertEquals("completed", state.lastTurnEnd)
     }
 
     @Test

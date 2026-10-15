@@ -45,6 +45,15 @@ class LiteToolCatalog private constructor(
     fun tool(name: String): LiteToolDescriptor? = LiteToolRegistry.tool(name)
 
     /**
+     * Look up the Host's declaration for one tool name — the read face the
+     * §31 permission policy consumes for the Host-declared risk and
+     * permission facts.
+     * @param name the model-requested tool name.
+     * @return the declared descriptor, or null when the name is absent from the declaration; [LiteToolSource.BUNDLED_FALLBACK] carries no declaration, so lookups there answer null.
+     */
+    fun declaration(name: String): ToolDescriptor? = hostTools[name]
+
+    /**
      * Whether dispatching this tool hands off to the full runtime instead of
      * executing on-device.
      * @param name the model-requested tool name.

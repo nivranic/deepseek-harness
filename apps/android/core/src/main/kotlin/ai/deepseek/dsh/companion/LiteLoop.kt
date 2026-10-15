@@ -77,16 +77,17 @@ private fun text(value: String): JsonPrimitive = JsonPrimitive(value)
 
 /**
  * The Lite loop driver skeleton: submits a prompt to the provider, folds
- * the streamed chunks into the Behavior-Spec state, dispatches bundled
- * tools through the active catalog — Host declaration first, bundled
- * fallback table without one — and emits the handoff marker when a tool
- * demands the full runtime instead of executing on-device.
+ * the streamed chunks into the Behavior-Spec state, and routes each tool
+ * call through the permission policy (§31): permitted calls execute
+ * on-device, gated calls emit the handoff marker for the full runtime, and
+ * unknown names fail explicitly — no call hangs or dispatches unjudged.
  */
 class LiteLoopDriver(
     private val scope: CoroutineScope,
     private val provider: LiteProviding,
     private val onEventApplied: ((LiteDomainState) -> Unit)? = null,
     private val toolCatalog: LiteToolCatalog = LiteToolCatalog.FALLBACK,
+    private val permissionPolicy: LiteToolPermissionPolicy = LiteToolPermissionPolicies.defaultPolicy(toolCatalog),
     private val execute: LiteToolExecuting,
 ) {
     /** The live fold the driver applies each lifecycle event to. */
@@ -149,25 +150,41 @@ class LiteLoopDriver(
                                     "arguments" to text(chunk.arguments),
                                 ),
                             )
-                            // A tool the active catalog cannot serve on-device
-                            // hands off instead of executing; the loop stops
-                            // at the marker.
-                            val capability = toolCatalog.handoffCapability(chunk.name)
-                            if (capability != null) {
-                                apply(event("handoff/requested", "capability" to text(capability)))
-                                handedOff = capability
-                                return@collect
+                            // The permission policy owns every dispatch
+                            // decision (§31): a permitted call executes
+                            // on-device, a gated one hands off, and an
+                            // unknown name fails explicitly.
+                            when (permissionPolicy.decide(chunk.name)) {
+                                LiteToolDecision.AllowLocal -> {
+                                    val outcome = execute(chunk.id, chunk.name, chunk.arguments)
+                                    apply(
+                                        event(
+                                            "tool/result",
+                                            "id" to text(chunk.id),
+                                            "ok" to JsonPrimitive(outcome.ok),
+                                            "text" to text(outcome.text),
+                                        ),
+                                    )
+                                }
+                                is LiteToolDecision.Handoff -> {
+                                    // A gated tool hands off to the full
+                                    // runtime; the loop stops at the marker,
+                                    // and the event keeps the established
+                                    // capability vocabulary — the policy's
+                                    // reason never enters an event field.
+                                    apply(event("handoff/requested", "capability" to text(LITE_REQUIRES_FULL_RUNTIME)))
+                                    handedOff = LITE_REQUIRES_FULL_RUNTIME
+                                    return@collect
+                                }
+                                LiteToolDecision.Unknown -> apply(
+                                    event(
+                                        "tool/result",
+                                        "id" to text(chunk.id),
+                                        "ok" to JsonPrimitive(false),
+                                        "text" to text("unknown tool on this device: " + chunk.name),
+                                    ),
+                                )
                             }
-                            if (toolCatalog.tool(chunk.name) == null) return@collect
-                            val outcome = execute(chunk.id, chunk.name, chunk.arguments)
-                            apply(
-                                event(
-                                    "tool/result",
-                                    "id" to text(chunk.id),
-                                    "ok" to JsonPrimitive(outcome.ok),
-                                    "text" to text(outcome.text),
-                                ),
-                            )
                         }
                     }
                 }

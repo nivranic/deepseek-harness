@@ -1,7 +1,7 @@
 {
   "schemaVersion": 1,
   "status": "IN_PROGRESS",
-  "capturedAt": "2026-10-13T18:04:20.915Z",
+  "capturedAt": "2026-10-15T14:24:33.314Z",
   "fullGoalComplete": false,
   "specification": {
     "path": "artifacts/upstream-first/original-specification.md",
@@ -3692,10 +3692,12 @@
       "acceptanceProven": false,
       "owner": "受限 Lite profile 与工具目录",
       "candidateEvidence": [
-        "docs/plans/2026-09-14-upstream-first.zh.md",
-        "CUSTOM_CAPABILITY_INVENTORY.json"
+        "apps/android/core/src/main/kotlin/ai/deepseek/dsh/companion/LiteToolPermissionPolicy.kt",
+        "apps/android/core/src/main/kotlin/ai/deepseek/dsh/companion/LiteToolRegistry.kt",
+        "apps/android/core/src/main/kotlin/ai/deepseek/dsh/companion/LiteLoop.kt",
+        "apps/android/core/src/test/kotlin/ai/deepseek/dsh/companion/LiteToolPermissionPolicyTest.kt"
       ],
-      "remaining": "依赖前序 Contract 与 Native；Lite 范围与工具权限策略待实施（工具目录已由 §32 增量落地），runtimeMode=lite 与 Full Mobile Host 保持实验范围。",
+      "remaining": "§31 权限策略已落地（四件套之三齐）：LiteToolPermissionPolicy 决策点在 LiteLoop 的 ToolCall 分支逐调用咨询，三分决策 AllowLocal/Handoff/Unknown——HOST_DECLARED 走声明门梯（not-lite → 无 bundled 执行面 → risk∈{high,critical} → permissions 非空 → 放行，与 LiteToolCatalog 语义对齐不猜），BUNDLED_FALLBACK 无宿主风险事实故只走 bundled capability 判定（§37 风险只读 Host 输出）；词汇复用 ToolRisk 与 ToolDescriptor.permissions 零平行模型（§72）；未知名从静默悬挂改为显式失败 tool/result 收口（fold/journal 词汇零改动）。runtimeMode=lite 公开、审批交互（ask 档与 Approval UI 对齐）、tool-call 结果回喂模型（规格附录明言内置执行延后 P2）、app 层运行时接线与 Full Mobile Host 保持实验范围。",
       "evidenceLimit": "这些路径是已定位的候选证据；尚未逐条证明本节每一项要求，不授予整节 PASS。"
     },
     {
