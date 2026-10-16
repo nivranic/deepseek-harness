@@ -1,7 +1,7 @@
 {
   "schemaVersion": 1,
   "status": "IN_PROGRESS",
-  "capturedAt": "2026-10-16T05:12:19.064Z",
+  "capturedAt": "2026-10-16T15:54:09.656Z",
   "fullGoalComplete": false,
   "specification": {
     "path": "artifacts/upstream-first/original-specification.md",
@@ -3700,9 +3700,13 @@
         "apps/android/core/src/test/kotlin/ai/deepseek/dsh/companion/LiteSessionFactsTest.kt",
         "apps/android/app/src/main/kotlin/ai/deepseek/dsh/companion/LiteEntry.kt",
         "apps/android/app/src/main/kotlin/ai/deepseek/dsh/companion/LiteSessionAssembler.kt",
-        "apps/android/app/src/androidTest/kotlin/ai/deepseek/dsh/companion/LiteEntryNativeTest.kt"
+        "apps/android/app/src/androidTest/kotlin/ai/deepseek/dsh/companion/LiteEntryNativeTest.kt",
+        "apps/android/core/src/main/kotlin/ai/deepseek/dsh/companion/LiteHTTPProvider.kt",
+        "apps/android/core/src/main/kotlin/ai/deepseek/dsh/companion/LiteStores.kt",
+        "apps/android/core/src/test/kotlin/ai/deepseek/dsh/companion/LiteHTTPProviderTest.kt",
+        "apps/android/core/src/test/kotlin/ai/deepseek/dsh/companion/LiteStoresTest.kt"
       ],
-      "remaining": "§31 四件套收官：权限策略（gen-53：LiteToolPermissionPolicy 决策点逐调用恰咨询、三分决策、HOST_DECLARED 四门梯、Unknown 显式失败收口、词汇零平行）之后，本代落 runtimeMode 公开与装配入口——LiteSessionFacts 构造时事实对象（runtimeMode=\"lite\" 字面、三 catalog 来源复用既有 BUNDLED_FALLBACK/BUNDLED 枚举、bundledLocalToolNames=无 fallback capability 的 bundled 名；不镜像宿主 capability、不造枚举），LiteChatViewModel 只读携带、LiteSessionAssembler 从实际加载填充；app 壳未配对分支挂 Lite 入口（LiteEntry：披露行+聊天面，endpoint 缺席显式空态禁发不假设任何端点；真机 connected 实证）。journal 事件承载被否（闭集三折叠代价+静态事实非回合历史）、诊断面混入被否（宿主事实与设备事实两平面）。顺带最小修复既有缺陷：LiteHTTPProvider 急切构造 java.net.http.HttpClient 在 Android 必 NoClassDefFoundError，改惰性获取（JVM 语义不变）；流式路径仍 JDK client。开放：审批交互（ask 档与 §38 对齐）、tool-call 结果回喂模型（P2）、endpoint 配置面与 Android 可用 HTTP 栈、preset 选择面、工具声明打包（HOST_DECLARED 名域）、journal 续读、事实诊断投影。",
+      "remaining": "§31 四件套收官后，gen-56 闭环遗留两端点缺口：LiteHTTPProvider 全量迁 OkHttp（:core 既有栈与 LinkClient 先例——连接 10s/写 30s/读与调用禁用的流式超时形态、行循环照 Link 骨架、请求头补 accept: text/event-stream 对齐宿主 adapter 面、三分失败分类全落双平台异常[OkHttp 各类超时统一 SocketTimeoutException→timeout、解析/拒连→unreachable、其余→dropped，JDK 独有类型清零]、EOF 未见 [DONE] 抛 Provider(\"STREAM_CLOSED\") 且截断流 tool-call 组装器绝不冲刷——宿主 sse.ts 字面对齐），配置面 LiteConfig/LiteConfigStoring/LiteFileConfigStore 整文件 Keystore 密封（§39：cipher 注入复用 link.CredentialsCipher seam、app 注入 AndroidKeystoreCipher、JVM 测试注 Plain、原子写 §46、文件缺席=null 首配合法而畸形/不可解密 fail-loud），validateLiteEndpoint 强制 https+host 非空+禁 userinfo 放行路径，LiteEntry store 注入形态（未配置=空态+三字段门控表单、已配置=修改配置预填、保存重读装配、读取失败独立错误行不伪装未配置）；真机 connected 3/3 走真 Keystore 保存-密封-重读-装配链。休眠 RelayClient 同病单列未动、归因头不加（宿主自我归因与 companion 不同产品面）、cleartext 不放行（https-only）。此前 gen-53 落权限策略（LiteToolPermissionPolicy 决策点逐调用恰咨询、三分决策、HOST_DECLARED 四门梯、Unknown 显式失败收口）、gen-55 落 runtimeMode 公开与装配入口（LiteSessionFacts 构造时事实对象、journal 事件/纯 UI 标签/诊断混入三否决、app 壳未配对分支 Lite 入口）。开放：审批交互（ask 档与 §38 对齐）、tool-call 结果回喂模型（P2）、preset 选择面、工具声明打包（HOST_DECLARED 名域）、journal 续读、事实诊断投影、RelayClient 迁移或退役、归因头决策、§54 网络矩阵设备端验证。",
       "evidenceLimit": "这些路径是已定位的候选证据；尚未逐条证明本节每一项要求，不授予整节 PASS。"
     },
     {

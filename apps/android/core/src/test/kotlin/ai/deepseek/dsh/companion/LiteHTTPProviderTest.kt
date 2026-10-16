@@ -14,7 +14,6 @@ import java.io.IOException
 import java.net.ConnectException
 import java.net.SocketTimeoutException
 import java.net.UnknownHostException
-import java.net.http.HttpTimeoutException
 import kotlin.test.Test
 import kotlin.test.assertEquals
 import kotlin.test.assertNull
@@ -86,7 +85,8 @@ class LiteStreamParsingTest {
 
     @Test
     fun transportFailuresMapToTheirKinds() {
-        assertEquals(LiteTransportError.Network("timeout"), classifyTransportFailure(HttpTimeoutException("timed out")))
+        // OkHttp raises SocketTimeoutException for every timeout flavor.
+        assertEquals(LiteTransportError.Network("timeout"), classifyTransportFailure(SocketTimeoutException("connect timed out")))
         assertEquals(LiteTransportError.Network("timeout"), classifyTransportFailure(SocketTimeoutException()))
         assertEquals(LiteTransportError.Network("unreachable"), classifyTransportFailure(UnknownHostException("api.invalid")))
         assertEquals(LiteTransportError.Network("unreachable"), classifyTransportFailure(ConnectException("refused")))
@@ -101,11 +101,13 @@ class LiteHTTPProviderTest {
         var seenPath = ""
         var seenBody = ""
         var seenAuth = ""
+        var seenAccept = ""
         val server = com.sun.net.httpserver.HttpServer.create(java.net.InetSocketAddress("127.0.0.1", 0), 0)
         server.createContext("/v1/chat/completions") { exchange ->
             seenPath = exchange.requestURI.path
             seenBody = exchange.requestBody.readBytes().decodeToString()
             seenAuth = exchange.requestHeaders.getFirst("authorization") ?: ""
+            seenAccept = exchange.requestHeaders.getFirst("accept") ?: ""
             val stream = listOf(
                 """data: {"choices":[{"delta":{"reasoning_content":"想"}}]}""",
                 "",
@@ -141,6 +143,8 @@ class LiteHTTPProviderTest {
             )
             assertEquals("/v1/chat/completions", seenPath)
             assertEquals("Bearer sk-test", seenAuth)
+            // The host provider's streaming face carries the SSE accept header.
+            assertEquals("text/event-stream", seenAccept)
             val request = Json.parseToJsonElement(seenBody).jsonObject
             assertEquals("deepseek-chat", (request["model"] as kotlinx.serialization.json.JsonPrimitive).content)
             val messages = request["messages"] as kotlinx.serialization.json.JsonArray
@@ -266,6 +270,42 @@ class LiteHTTPProviderTest {
             } catch (refused: LiteTransportError.Provider) {
                 assertEquals("HTTP_429", refused.code)
             }
+        } finally {
+            server.stop(0)
+        }
+    }
+
+    @Test
+    fun aStreamThatEndsBeforeDoneIsTruncation() = runTest {
+        // EOF without the [DONE] terminator is the host's STREAM_CLOSED rule:
+        // the delivered text chunks stand, but the truncated stream is not
+        // trusted — the assembled tool call never flushes.
+        val server = com.sun.net.httpserver.HttpServer.create(java.net.InetSocketAddress("127.0.0.1", 0), 0)
+        server.createContext("/v1/chat/completions") { exchange ->
+            val stream = listOf(
+                """data: {"choices":[{"delta":{"content":"半"}}]}""",
+                """data: {"choices":[{"delta":{"tool_calls":[{"index":0,"id":"c1","function":{"name":"web_search","arguments":"{\"q\""}}]}}]}""",
+            ).joinToString("\n")
+            val bytes = stream.encodeToByteArray()
+            exchange.sendResponseHeaders(200, bytes.size.toLong())
+            exchange.responseBody.write(bytes)
+            exchange.close()
+        }
+        server.start()
+        try {
+            val provider = LiteHTTPProvider(
+                endpoint = "http://127.0.0.1:${server.address.port}/v1/chat/completions",
+                apiKey = "sk-test",
+                model = "deepseek-chat",
+            )
+            val collected = mutableListOf<LiteStreamChunk>()
+            try {
+                provider.stream("继续").collect { collected.add(it) }
+                fail("a truncated stream must throw")
+            } catch (truncated: LiteTransportError.Provider) {
+                assertEquals("STREAM_CLOSED", truncated.code)
+            }
+            assertEquals<List<LiteStreamChunk>>(listOf(LiteStreamChunk.Text("半")), collected)
         } finally {
             server.stop(0)
         }

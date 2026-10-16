@@ -1,8 +1,10 @@
 package ai.deepseek.dsh.companion
 
 import ai.deepseek.dsh.contract.LiteToolSchema
+import kotlinx.coroutines.Dispatchers
 import kotlinx.coroutines.flow.Flow
 import kotlinx.coroutines.flow.flow
+import kotlinx.coroutines.flow.flowOn
 import kotlinx.serialization.json.Json
 import kotlinx.serialization.json.JsonArray
 import kotlinx.serialization.json.JsonObject
@@ -10,15 +12,15 @@ import kotlinx.serialization.json.JsonPrimitive
 import kotlinx.serialization.json.buildJsonObject
 import kotlinx.serialization.json.intOrNull
 import kotlinx.serialization.json.put
+import okhttp3.MediaType.Companion.toMediaType
+import okhttp3.OkHttpClient
+import okhttp3.Request
+import okhttp3.RequestBody.Companion.toRequestBody
 import java.io.IOException
 import java.net.ConnectException
 import java.net.SocketTimeoutException
-import java.net.URI
 import java.net.UnknownHostException
-import java.net.http.HttpClient
-import java.net.http.HttpRequest
-import java.net.http.HttpResponse
-import java.net.http.HttpTimeoutException
+import java.util.concurrent.TimeUnit
 
 /** One parsed streaming line: either server-sent events (`data: {…}` lines
  * with a `[DONE]` terminator) or bare NDJSON, in the OpenAI-compatible
@@ -101,14 +103,14 @@ class LiteToolCallAssembler {
 
 /**
  * Map a transport failure to its network-error kind — URLError's semantics
- * on the JDK stack: timeouts are `timeout`, name-resolution and connection
- * refusals are `unreachable`, and everything else reads as a dropped
- * transport.
+ * on the OkHttp stack: every timeout flavor raises SocketTimeoutException
+ * and reads as `timeout`, name-resolution and connection refusals are
+ * `unreachable`, and everything else reads as a dropped transport.
  * @param failure the transport failure.
  * @return the spec vocabulary for it.
  */
 fun classifyTransportFailure(failure: IOException): LiteTransportError.Network = when (failure) {
-    is HttpTimeoutException, is SocketTimeoutException -> LiteTransportError.Network("timeout")
+    is SocketTimeoutException -> LiteTransportError.Network("timeout")
     is UnknownHostException, is ConnectException -> LiteTransportError.Network("unreachable")
     else -> LiteTransportError.Network("dropped")
 }
@@ -127,9 +129,15 @@ class LiteHTTPProvider(
     /** The Host-projected model-face tool schemas sent as the request's `tools` array; construction input, never per-call state. */
     private val toolSchemas: List<LiteToolSchema> = emptyList(),
 ) : LiteProviding {
-    // Android runtimes carry no java.net.http; acquiring the client lazily
-    // keeps construction platform-safe and defers the class load to first use.
-    private val client: HttpClient by lazy { HttpClient.newHttpClient() }
+    // The Link stream-transport shape: connect and write timeouts fence a
+    // dead endpoint, while the read and call timeouts stay disabled because
+    // an idle long-lived stream must outlive any fixed bound.
+    private val client: OkHttpClient = OkHttpClient.Builder()
+        .connectTimeout(10, TimeUnit.SECONDS)
+        .writeTimeout(30, TimeUnit.SECONDS)
+        .readTimeout(0, TimeUnit.SECONDS)
+        .callTimeout(0, TimeUnit.SECONDS)
+        .build()
 
     /**
      * Stream one response's chunks for a submitted prompt.
@@ -167,28 +175,39 @@ class LiteHTTPProvider(
                 } }))
             }
         }.toString()
-        val request = HttpRequest.newBuilder()
-            .uri(URI.create(endpoint))
-            // The JDK client has no default timeout; a bounded request
-            // mirrors URLSession's default and keeps a dead endpoint from
-            // blocking the loop forever.
-            .timeout(java.time.Duration.ofSeconds(60))
+        // The host provider's request face: Bearer auth, JSON content type,
+        // and the SSE accept header.
+        val request = Request.Builder()
+            .url(endpoint)
             .header("content-type", "application/json")
+            .header("accept", "text/event-stream")
             .header("authorization", "Bearer $apiKey")
-            .POST(HttpRequest.BodyPublishers.ofString(body))
+            .post(body.toRequestBody("application/json".toMediaType()))
             .build()
+        val assembler = LiteToolCallAssembler()
+        var sawDone = false
         val response = try {
-            client.send(request, HttpResponse.BodyHandlers.ofInputStream())
+            client.newCall(request).execute()
         } catch (failure: IOException) {
             throw classifyTransportFailure(failure)
         }
-        if (response.statusCode() !in 200..299) {
-            throw LiteTransportError.Provider(code = "HTTP_${response.statusCode()}", message = "provider refused the request")
-        }
-        val assembler = LiteToolCallAssembler()
-        try {
-            response.body().bufferedReader().useLines { lines ->
-                for (line in lines) {
+        response.use {
+            if (!it.isSuccessful) {
+                throw LiteTransportError.Provider(code = "HTTP_${it.code}", message = "provider refused the request")
+            }
+            it.body.source().use { source ->
+                while (true) {
+                    val line = try {
+                        source.readUtf8Line()
+                    } catch (failure: IOException) {
+                        // A failure mid-stream is still a transport failure;
+                        // nothing else can reach this catch from a body read.
+                        throw classifyTransportFailure(failure)
+                    } ?: break
+                    if (terminatesTheStream(line)) {
+                        sawDone = true
+                        continue
+                    }
                     when (val piece = LiteStreamLineParser.parsePiece(line)) {
                         is LiteStreamPiece.Text -> emit(LiteStreamChunk.Text(piece.text))
                         is LiteStreamPiece.Reasoning -> emit(LiteStreamChunk.Reasoning(piece.text))
@@ -197,11 +216,22 @@ class LiteHTTPProvider(
                     }
                 }
             }
-        } catch (failure: IOException) {
-            // A failure mid-stream is still a transport failure; nothing
-            // else can reach this catch from a body read.
-            throw classifyTransportFailure(failure)
+        }
+        // The host's STREAM_CLOSED rule: EOF before the [DONE] terminator is
+        // a truncated response the loop cannot trust, so the assembled tool
+        // calls never flush.
+        if (!sawDone) {
+            throw LiteTransportError.Provider(code = "STREAM_CLOSED", message = "SSE stream ended without [DONE]")
         }
         assembler.finish().forEach { emit(it) }
-    }
+    }.flowOn(Dispatchers.IO)
+}
+
+/** Whether one raw line is the `data: [DONE]` terminator — the parser folds
+ * that line to null, so this check applies the same payload extraction to
+ * tell truncation apart from comment and blank lines. */
+private fun terminatesTheStream(line: String): Boolean {
+    val trimmed = line.trim()
+    val payload = if (trimmed.startsWith("data:")) trimmed.removePrefix("data:").trim() else trimmed
+    return payload == "[DONE]"
 }

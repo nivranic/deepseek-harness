@@ -466,6 +466,9 @@ fun CompanionApp(model: CompanionViewModel = viewModel()) {
                 execute = { _, _, _ -> LiteToolOutcome(ok = false, text = "") },
                 store = remember { LiteFileSessionStore(java.io.File(context.filesDir, "lite-sessions")) },
                 artifacts = remember { LiteFileArtifactStore(java.io.File(context.filesDir, "lite-artifacts")) },
+                configStore = remember {
+                    LiteFileConfigStore(java.io.File(context.filesDir, "lite-config.enc"), AndroidKeystoreCipher("dsh-lite-config"))
+                },
             )
         }
         return

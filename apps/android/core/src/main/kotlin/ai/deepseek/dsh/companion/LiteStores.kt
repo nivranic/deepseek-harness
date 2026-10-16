@@ -1,8 +1,15 @@
 package ai.deepseek.dsh.companion
 
+import ai.deepseek.dsh.link.CredentialsCipher
+import ai.deepseek.dsh.link.PlainCredentialsCipher
 import kotlinx.serialization.json.Json
 import kotlinx.serialization.json.JsonObject
+import kotlinx.serialization.json.JsonPrimitive
+import kotlinx.serialization.json.buildJsonObject
+import kotlinx.serialization.json.put
 import java.io.File
+import java.net.URI
+import java.net.URISyntaxException
 import java.nio.file.AtomicMoveNotSupportedException
 import java.nio.file.Files
 import java.nio.file.StandardCopyOption
@@ -130,6 +137,77 @@ class LiteFileArtifactStore(directory: File) : LiteArtifactStoring {
     override fun remove(id: String) {
         file(id).delete()
     }
+}
+
+/** The persisted Lite provider configuration one assembled session reads at launch. */
+data class LiteConfig(val endpoint: String, val apiKey: String, val model: String)
+
+/** Where the Lite provider configuration lives. */
+interface LiteConfigStoring {
+    /**
+     * Load the persisted configuration.
+     * @return the stored configuration, or null before the first save.
+     * @throws IllegalStateException when the stored file is malformed or undecryptable — never a silent null.
+     */
+    fun load(): LiteConfig?
+
+    /**
+     * Persist the configuration, atomically replacing any prior one.
+     * @param config the validated configuration.
+     */
+    fun save(config: LiteConfig)
+}
+
+/** One encrypted JSON config file — the app passes its files directory and
+ * the Keystore cipher, JVM tests the plain one. The whole file is sealed
+ * (the FileNativeHostStore form); an absent file is an unconfigured Lite
+ * face, while a malformed or undecryptable one fails loud. */
+class LiteFileConfigStore(
+    private val file: File,
+    private val cipher: CredentialsCipher = PlainCredentialsCipher,
+) : LiteConfigStoring {
+    override fun load(): LiteConfig? {
+        if (!file.isFile) return null
+        val plain = cipher.open(file.readBytes())
+        val root = runCatching { Json.parseToJsonElement(plain.decodeToString()) as? JsonObject }.getOrNull()
+            ?: error("corrupt Lite config in ${file.name}")
+        return LiteConfig(
+            endpoint = root.configField("endpoint", file.name),
+            apiKey = root.configField("apiKey", file.name),
+            model = root.configField("model", file.name),
+        )
+    }
+
+    override fun save(config: LiteConfig) {
+        val text = buildJsonObject {
+            put("endpoint", config.endpoint)
+            put("apiKey", config.apiKey)
+            put("model", config.model)
+        }.toString()
+        file.parentFile?.mkdirs()
+        writeAtomically(file, cipher.seal(text.encodeToByteArray()))
+    }
+}
+
+private fun JsonObject.configField(name: String, fileName: String): String =
+    (this[name] as? JsonPrimitive)?.takeIf { it.isString }?.content
+        ?: error("corrupt Lite config in $fileName")
+
+/**
+ * Validate a candidate endpoint before it is saved: HTTPS scheme, a
+ * non-empty host, and no userinfo — the native pairing origin rule minus
+ * its origin-only path restriction, so a full chat-completions URL stays
+ * valid.
+ * @param value the candidate endpoint exactly as entered.
+ * @return the failure text for the form, or null when the endpoint is acceptable.
+ */
+fun validateLiteEndpoint(value: String): String? {
+    val uri = try { URI(value.trim()) } catch (_: IllegalArgumentException) { null }
+        catch (_: URISyntaxException) { null }
+    if (uri == null || uri.scheme != "https" || uri.host.isNullOrEmpty() || uri.rawUserInfo != null) {
+        return "端点必须是 https:// 开头、包含主机名且不带用户信息的完整地址"
+    }
+    return null
 }
 
 /** Write bytes through a same-directory temp file and an atomic rename,

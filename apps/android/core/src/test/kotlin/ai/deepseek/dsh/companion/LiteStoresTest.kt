@@ -1,5 +1,6 @@
 package ai.deepseek.dsh.companion
 
+import ai.deepseek.dsh.link.CredentialsCipher
 import kotlinx.serialization.json.Json
 import kotlinx.serialization.json.JsonObject
 import kotlinx.serialization.json.jsonObject
@@ -105,5 +106,73 @@ class LiteStoresTest {
         assertEquals(2, state.conversation.size)
         assertTrue(state.conversation[1].interrupted)
         assertEquals("cancelled", state.lastTurnEnd)
+    }
+
+    @Test
+    fun anAbsentConfigLoadsNullAndARoundTripSurvivesARelaunch() {
+        val file = java.io.File(tempDir(), "lite-config.enc")
+        val store = LiteFileConfigStore(file)
+        assertNull(store.load(), "no file yet is the unconfigured face, not a failure")
+
+        val config = LiteConfig(
+            endpoint = "https://api.example.com/v1/chat/completions",
+            apiKey = "sk-test",
+            model = "deepseek-chat",
+        )
+        store.save(config)
+        assertEquals(config, LiteFileConfigStore(file).load())
+
+        val replacement = config.copy(model = "deepseek-reasoner")
+        store.save(replacement)
+        assertEquals(replacement, LiteFileConfigStore(file).load())
+    }
+
+    /** A reversible non-plain cipher pins the seam: the file holds sealed bytes, not the JSON. */
+    private class XorCipher : CredentialsCipher {
+        override fun seal(plain: ByteArray): ByteArray = plain.map { (it.toInt() xor 0x5A).toByte() }.toByteArray()
+
+        override fun open(sealed: ByteArray): ByteArray = seal(sealed)
+    }
+
+    @Test
+    fun theWholeFileIsSealedThroughTheInjectedCipher() {
+        val file = java.io.File(tempDir(), "lite-config.enc")
+        LiteFileConfigStore(file, XorCipher()).save(LiteConfig("https://api.example.com/v1", "sk-test", "deepseek-chat"))
+        val sealed = file.readBytes()
+        assertTrue(!sealed.decodeToString().contains("\"endpoint\""), "the plain JSON never lands on disk")
+        assertEquals(
+            LiteConfig("https://api.example.com/v1", "sk-test", "deepseek-chat"),
+            LiteFileConfigStore(file, XorCipher()).load(),
+        )
+    }
+
+    @Test
+    fun corruptOrTamperedConfigFilesFailLoud() {
+        val garbage = java.io.File(tempDir(), "lite-config.enc")
+        LiteFileConfigStore(garbage).save(LiteConfig("https://api.example.com/v1", "sk-test", "deepseek-chat"))
+        garbage.writeText("不是 JSON")
+        assertFailsWith<IllegalStateException> { LiteFileConfigStore(garbage).load() }
+
+        val tampered = java.io.File(tempDir(), "lite-config.enc")
+        val cipher = XorCipher()
+        LiteFileConfigStore(tampered, cipher).save(LiteConfig("https://api.example.com/v1", "sk-test", "deepseek-chat"))
+        // Flipping the leading `{` byte can only desynchronize the document.
+        val sealed = tampered.readBytes()
+        sealed[0] = (sealed[0].toInt() xor 0x11).toByte()
+        tampered.writeBytes(sealed)
+        assertFailsWith<IllegalStateException> { LiteFileConfigStore(tampered, cipher).load() }
+    }
+
+    @Test
+    fun endpointValidationAcceptsHttpsUrlsWithPathsAndRejectsTheRest() {
+        assertNull(validateLiteEndpoint("https://api.example.com/v1/chat/completions"))
+        assertNull(validateLiteEndpoint("  https://api.example.com/v1/chat/completions  "))
+        assertNull(validateLiteEndpoint("https://api.example.com:8443/v1/chat/completions"))
+        assertNull(validateLiteEndpoint("https://api.example.com"))
+
+        assertTrue(validateLiteEndpoint("http://api.example.com/v1") != null, "cleartext HTTP is refused")
+        assertTrue(validateLiteEndpoint("https://user:pass@api.example.com/v1") != null, "userinfo is refused")
+        assertTrue(validateLiteEndpoint("https:///v1/chat/completions") != null, "an empty host is refused")
+        assertTrue(validateLiteEndpoint("api.example.com/v1/chat/completions") != null, "a bare schemeless string is refused")
     }
 }
