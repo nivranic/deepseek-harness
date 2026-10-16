@@ -411,6 +411,9 @@ object CompanionRuntime {
 @Composable
 fun CompanionApp(model: CompanionViewModel = viewModel()) {
     var tab by remember(model.generation) { mutableStateOf(0) }
+    // §31's closing entry: one mode switch between the companion face and the
+    // standalone Lite face; the paired shell keeps its seven tabs untouched.
+    var liteOpen by remember { mutableStateOf(false) }
     val scope = rememberCoroutineScope()
     val hosts by CompanionRuntime.hostState.collectAsStateWithLifecycle()
     val active = model.paired && !model.pairingRequested && !model.switching && hosts.status == NativeHostStatus.READY
@@ -451,6 +454,22 @@ fun CompanionApp(model: CompanionViewModel = viewModel()) {
         onRequestUnavailable = { notificationRequestUnavailable = true })
     val openNotificationSettings = { context.startActivity(nativeNotificationSettingsIntent(context.packageName)) }
     NativePushObserver(pushes, active) { PushNotifications.present(context, it) }
+    if (liteOpen) {
+        Column(Modifier.fillMaxSize().safeDrawingPadding()) {
+            Button(onClick = { liteOpen = false }, modifier = Modifier.padding(horizontal = 16.dp).testTag("lite-exit")) { Text("返回") }
+            LiteEntry(
+                scope = scope,
+                sessionId = "lite-main",
+                endpoint = "",
+                apiKey = "",
+                model = "",
+                execute = { _, _, _ -> LiteToolOutcome(ok = false, text = "") },
+                store = remember { LiteFileSessionStore(java.io.File(context.filesDir, "lite-sessions")) },
+                artifacts = remember { LiteFileArtifactStore(java.io.File(context.filesDir, "lite-artifacts")) },
+            )
+        }
+        return
+    }
     if (!active) {
         Column(Modifier.fillMaxSize().safeDrawingPadding()) {
             NativeNotificationGrantNotice(notificationGrant, notificationRequestUnavailable, openNotificationSettings)
@@ -461,6 +480,10 @@ fun CompanionApp(model: CompanionViewModel = viewModel()) {
                 Modifier.testTag("camera-cleanup-error"), color = MaterialTheme.colorScheme.error)
             SupportExportAction(model::supportSnapshot)
             NativeHostControls(model, hosts)
+            Button(
+                onClick = { liteOpen = true },
+                modifier = Modifier.padding(horizontal = 16.dp).testTag("lite-entry"),
+            ) { Text("Lite 模式") }
             if (!model.switching && hosts.status !in setOf(NativeHostStatus.RESTORE_FAILED, NativeHostStatus.RETIREMENT_FAILED)) {
                 PairingScreen(model)
             }

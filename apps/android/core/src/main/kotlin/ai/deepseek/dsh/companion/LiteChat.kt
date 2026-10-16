@@ -32,6 +32,8 @@ class LiteChatViewModel(
     private val artifacts: LiteArtifactStoring? = null,
     toolCatalog: LiteToolCatalog = LiteToolCatalog.FALLBACK,
     private val presetCatalog: LitePresetCatalog = LitePresetCatalog.BARE,
+    /** The construction-time session facts the UI discloses; the default states the bundled assembly. */
+    val facts: LiteSessionFacts = LiteSessionFacts(),
 ) {
     /** The durable journal the turn outcomes land in. */
     val session: LiteSession = LiteSession(sessionId)

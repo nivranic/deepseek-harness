@@ -54,6 +54,11 @@ object LiteSessionAssembler {
             artifacts = artifacts,
             toolCatalog = LiteToolCatalog.FALLBACK,
             presetCatalog = bundled.presets,
+            facts = LiteSessionFacts(
+                toolCatalogSource = LiteToolCatalog.FALLBACK.source,
+                toolSchemasSource = bundled.toolSchemas.source,
+                presetSource = bundled.presets.source,
+            ),
         )
     }
 }

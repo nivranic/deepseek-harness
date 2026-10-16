@@ -127,7 +127,9 @@ class LiteHTTPProvider(
     /** The Host-projected model-face tool schemas sent as the request's `tools` array; construction input, never per-call state. */
     private val toolSchemas: List<LiteToolSchema> = emptyList(),
 ) : LiteProviding {
-    private val client: HttpClient = HttpClient.newHttpClient()
+    // Android runtimes carry no java.net.http; acquiring the client lazily
+    // keeps construction platform-safe and defers the class load to first use.
+    private val client: HttpClient by lazy { HttpClient.newHttpClient() }
 
     /**
      * Stream one response's chunks for a submitted prompt.

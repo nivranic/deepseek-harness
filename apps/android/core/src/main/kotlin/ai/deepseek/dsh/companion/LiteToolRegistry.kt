@@ -105,6 +105,9 @@ object LiteToolRegistry {
         ),
     )
 
+    /** The bundled tools Lite serves on-device: every bundled name whose fallback capability is null. */
+    val localToolNames: List<String> = bundled.filter { it.fallbackCapability == null }.map { it.name }
+
     /**
      * Look up one bundled tool by name.
      * @param name the model-requested tool name.

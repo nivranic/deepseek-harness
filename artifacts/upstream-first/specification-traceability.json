@@ -1,7 +1,7 @@
 {
   "schemaVersion": 1,
   "status": "IN_PROGRESS",
-  "capturedAt": "2026-10-16T00:50:18.348Z",
+  "capturedAt": "2026-10-16T05:12:19.064Z",
   "fullGoalComplete": false,
   "specification": {
     "path": "artifacts/upstream-first/original-specification.md",
@@ -3695,9 +3695,14 @@
         "apps/android/core/src/main/kotlin/ai/deepseek/dsh/companion/LiteToolPermissionPolicy.kt",
         "apps/android/core/src/main/kotlin/ai/deepseek/dsh/companion/LiteToolRegistry.kt",
         "apps/android/core/src/main/kotlin/ai/deepseek/dsh/companion/LiteLoop.kt",
-        "apps/android/core/src/test/kotlin/ai/deepseek/dsh/companion/LiteToolPermissionPolicyTest.kt"
+        "apps/android/core/src/test/kotlin/ai/deepseek/dsh/companion/LiteToolPermissionPolicyTest.kt",
+        "apps/android/core/src/main/kotlin/ai/deepseek/dsh/companion/LiteSessionFacts.kt",
+        "apps/android/core/src/test/kotlin/ai/deepseek/dsh/companion/LiteSessionFactsTest.kt",
+        "apps/android/app/src/main/kotlin/ai/deepseek/dsh/companion/LiteEntry.kt",
+        "apps/android/app/src/main/kotlin/ai/deepseek/dsh/companion/LiteSessionAssembler.kt",
+        "apps/android/app/src/androidTest/kotlin/ai/deepseek/dsh/companion/LiteEntryNativeTest.kt"
       ],
-      "remaining": "§31 权限策略已落地（四件套之三齐）：LiteToolPermissionPolicy 决策点在 LiteLoop 的 ToolCall 分支逐调用咨询，三分决策 AllowLocal/Handoff/Unknown——HOST_DECLARED 走声明门梯（not-lite → 无 bundled 执行面 → risk∈{high,critical} → permissions 非空 → 放行，与 LiteToolCatalog 语义对齐不猜），BUNDLED_FALLBACK 无宿主风险事实故只走 bundled capability 判定（§37 风险只读 Host 输出）；词汇复用 ToolRisk 与 ToolDescriptor.permissions 零平行模型（§72）；未知名从静默悬挂改为显式失败 tool/result 收口（fold/journal 词汇零改动）。runtimeMode=lite 公开、审批交互（ask 档与 Approval UI 对齐）、tool-call 结果回喂模型（规格附录明言内置执行延后 P2）、app 层运行时接线与 Full Mobile Host 保持实验范围。",
+      "remaining": "§31 四件套收官：权限策略（gen-53：LiteToolPermissionPolicy 决策点逐调用恰咨询、三分决策、HOST_DECLARED 四门梯、Unknown 显式失败收口、词汇零平行）之后，本代落 runtimeMode 公开与装配入口——LiteSessionFacts 构造时事实对象（runtimeMode=\"lite\" 字面、三 catalog 来源复用既有 BUNDLED_FALLBACK/BUNDLED 枚举、bundledLocalToolNames=无 fallback capability 的 bundled 名；不镜像宿主 capability、不造枚举），LiteChatViewModel 只读携带、LiteSessionAssembler 从实际加载填充；app 壳未配对分支挂 Lite 入口（LiteEntry：披露行+聊天面，endpoint 缺席显式空态禁发不假设任何端点；真机 connected 实证）。journal 事件承载被否（闭集三折叠代价+静态事实非回合历史）、诊断面混入被否（宿主事实与设备事实两平面）。顺带最小修复既有缺陷：LiteHTTPProvider 急切构造 java.net.http.HttpClient 在 Android 必 NoClassDefFoundError，改惰性获取（JVM 语义不变）；流式路径仍 JDK client。开放：审批交互（ask 档与 §38 对齐）、tool-call 结果回喂模型（P2）、endpoint 配置面与 Android 可用 HTTP 栈、preset 选择面、工具声明打包（HOST_DECLARED 名域）、journal 续读、事实诊断投影。",
       "evidenceLimit": "这些路径是已定位的候选证据；尚未逐条证明本节每一项要求，不授予整节 PASS。"
     },
     {

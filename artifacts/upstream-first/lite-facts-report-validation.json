@@ -1,0 +1,66 @@
+{
+  "status": "PASS",
+  "scope": "Report bindings and audit for the lite-facts increment: the §31 \"session facts face and UI entry\" four-piece finale (the fifth of the lite pieces after gen-50's declaration face, gen-51's persona projection, gen-52's model-face projection, gen-53's permission gate and gen-54's assembly face — the content and assembly faces landed, this generation closing the four-piece set by giving runtimeMode=lite its public carrier and the standalone chain its host entry) resting on the design that LiteSessionFacts states only construction-time facts (the runtimeMode=\"lite\" literal, toolCatalogSource reusing LiteToolSource.BUNDLED_FALLBACK, toolSchemasSource and presetSource reusing the BUNDLED enums of their catalogs, bundledLocalToolNames owned by LiteToolRegistry.localToolNames — the bundled names whose fallback capability is null; no Host capability set mirrored, no second enum invented, the §32 no-guessing rule), LiteChatViewModel carries the facts as a read-only constructor parameter whose default states the bundled assembly (existing call faces unchanged), and LiteSessionAssembler fills the facts from the actually-loaded catalogs (the dispatch source from LiteToolCatalog.FALLBACK.source, the schema and preset sources from the bundled projections); the UI entry hangs on the unpaired branch (the seven tabs exist only after pairing, the standalone Lite runtime's main scenario) — LiteEntry's disclosure row 「受限模式（runtimeMode = lite）」 with the lite-disclosure tag, an explicit empty state on endpoint absence (lite-endpoint-missing with the send key disabled, never assuming any endpoint) and assembly plus LiteChatScreen rendering only once an endpoint exists, MainActivity's liteOpen branch (the lite-entry button after NativeHostControls, the lite-exit back key, sessionId=\"lite-main\", the lazy-failing executor and the filesDir-backed session/artifact stores) and three testTags on LiteChatScreen (lite-conversation, lite-composer-send and the existing disclosure row) with the layout untouched; the out-of-scope minimal fix honestly recorded: LiteHTTPProvider's client went by lazy because the eager java.net.http HttpClient construction is fatal on Android runtimes (the JVM semantics unchanged, the class load deferred to first use; the streaming path still rides the JDK client — a later generation's HTTP-stack channel); the test faces pin the default facts snapshot, the local-name registry equality and the ViewModel default (LiteSessionFactsTest 3/0 on :core) beside the androidTest entry walk (LiteEntryNativeTest: the entry visible and clickable to the disclosure row to the empty-state guard with the disabled send and the back key, and the assembler-built facts equal to the default); the gates honestly recorded from log content: typecheck EXIT 0 and lint Found 0 warnings and 0 errors on 3861 files (both chained rounds carrying no exit trailer — the zero exits rode the invoking shell, recorded beside the logs), test:docs 17 and doc-sync 37 passed 0 failed 0 skipped (73.13s and 263.73s, zero regeneration diff — the Kotlin increment adds no leaf), traceability 6/6 with the §31 rewrite at 742 chars and candidateEvidence 9 (led by the policy file, carrying this generation's four new files beside LiteSessionAssembler and the registry) with §32 and §33 unchanged at their gen-54 sealed 1134/14 and 580/5, the serial double audit round green at 87 files / 1073 tests on both passes over the curated list reused verbatim from .artifacts/lite-assembly-g2-audit-file-list.txt (87 lines, the gen-53 precedent lineage — the first full-suite Windows-environment host limitation stays a gen-54 record), gate0 PASS in both byte-identical forms (1938 paths / 129 components / 81 sections — honestly recorded unchanged from the captured UPSTREAM_DELTA.json, not the live tree); the android acceptance: the scanner-env gradle round BUILD SUCCESSFUL in 22s with 75 actionable tasks of which 2 executed and 73 up-to-date — the honestly recorded verification form (:app:verifyLiteAssetSources and :app:verifyScannerResources executed, the two verification halves, with every compile/package/assemble task UP-TO-DATE because the real changes compiled and packaged in the gate lanes before; this round's task graph never reaches :app:assembleRelease) — with BOTH APK faces DRIFT against the lite-assembly record's sealed bytes (androidTest 1d553ef6→4e37d093 and debug 68cfd272→60c6313a, cross-checked live, this generation's capture becoming the new baseline) and the core XML aggregate reading 83 suites / 519 tests including the new LiteSessionFactsTest suite beside the contract half at 4 suites / 37 tests (aggregate JSON keys named skips — .artifacts/lite-facts-g3-core-results.json); the connected evidence honestly narrated, not sealed as a round: the implementation-agent rounds on emulator-5554 ran LiteEntryNativeTest and LiteBundledAssetsTest to four passing cases (the first round's failure attributed to the emulator's stale acceptance pairing data — active=true with no lite-entry — and the clean reinstall verified the unpaired precondition, one connected evidence recorded in the scope narration and the diagnostic observation); the note trio 2026-10-16-lite-session-facts-ui-entry with the repository-wide pairing checked green at 939 pairs (the dictionary written ahead); and the adjudicated single-set ruling on the adapter's measured three-source miss stop-point (the gen-53 dwfq-b1ce6281-1 precedent form): the prepare oracle derives the measured seventy-three replaced prior build outputs — all android (two APKs, one jar, five classes, sixty-two XML reports, three binary outputs) — the adapter's generator-side measurement splits them into five chain-resolvable keys (the recompiled LiteChatViewModelTest and LiteArtifactReadingTest classes whose sealed bytes older archives hold through deterministic recompilation — this generation's fallback shape the recompiled-classes form of gen-53, not the gen-54 APK form, honestly recorded) and sixty-eight first-emission keys no archive holds (BOTH APK faces among them: the androidTest's sealed 1d553ef6 bytes, unlike gen-54's bbe7a3af replay, ride no older archive — the fifth consecutive generation of the same class: gen-51 ninety-four, gen-52 seventy-three, gen-53 sixty-seven, gen-54 sixty-seven), so the advance installs the liteAssemblyReplacedBuildOutputs exactly-sixty-eight build-output exemption on the demoted lite-assembly block, derived and emitted at advance run time from the record, the chain archives and the disk — never transcribed — equal to the seventy-three-key derivation minus the five fallback keys, the two source-side ledger miss keys resolving through the new before archive at their HEAD bytes (no UnrecoverableInputs set born), and every prior generation's set — the gen-54 litePermissionReplacedBuildOutputs sixty-seven beside the gen-53 liteToolsReplacedBuildOutputs sixty-seven, the gen-52 litePersonaReplacedBuildOutputs seventy-three, the gen-51 liteToolReplacedBuildOutputs ninety-four plus liteToolUnrecoverableInputs two, the gen-32 desktopPackageReplacedBuildOutputs six, the gen-33 tornRepairIntentReplacedBuildOutputs three, the gen-48 clientMutationReplacedBuildOutputs two and the gen-46 durableReceiptsReplacedBuildOutputs three — stays exactly as sealed at HEAD; the endpoint configuration face, the Android-capable HTTP stack (the streaming path still on the JDK client), the preset selection face, the tool declaration packaging, the journal continuation, the fact diagnostics projection, the approval ask tier and the tool-call result round-trip (P2) all stay open — so no whole-section PASS is granted; full Upstream-First objective remains in progress",
+  "gate0": {
+    "validation": "PASS",
+    "gate0": "PASS",
+    "paths": 1938,
+    "components": 129,
+    "specificationCoverage": {
+      "status": "PASS",
+      "numberedSections": 81,
+      "nonEmptySourceLines": 1983,
+      "acceptanceProven": false
+    }
+  },
+  "sourceRecord": {
+    "path": "artifacts/upstream-first/lite-facts-source.json",
+    "sha256": "cf1f1f795d89f87aebe4a7c3c39541b450b67b8e1133fe2fff4412d5f14ba081"
+  },
+  "generator": {
+    "path": "artifacts/upstream-first/write-reports.mjs",
+    "sha256": "3395a750f834c5ed1f86bc439603ca7c5ec4aab21e70df27d0510508da26050a"
+  },
+  "binding": {
+    "path": "artifacts/upstream-first/lite-facts-binding.json",
+    "sha256": "c71bef3155a667300ac50e8b4b20255557be2de9b5c5dafb7e9fbfce53c0f967"
+  },
+  "helpers": [
+    {
+      "path": ".artifacts/advance-lite-facts-reports.mjs",
+      "sha256": "2600c1ee2e6e988cf1d3de9a3e44b4afae648ddba944feb68230caf01bd741ab"
+    },
+    {
+      "path": ".artifacts/capture-lite-facts-validation.mjs",
+      "sha256": "2465e9f9f57b0cecdd7d9090a384a01f912761a0e077777548c91260c9b6521f"
+    }
+  ],
+  "reports": [
+    {
+      "path": "IMPLEMENTATION_STATUS.md",
+      "sha256": "203e6c73d84e5709b123e48c77a8a30141fcf71cb47c0ba93cbabb24f4075b91"
+    },
+    {
+      "path": "artifacts/upstream-first/evidence.json",
+      "sha256": "46f666c4ca8ab3403118c2b9b6f01a86595c2da0a14856f563045002a19bc043"
+    }
+  ],
+  "checks": [
+    {
+      "path": ".artifacts/lite-facts-binding.log",
+      "sha256": "696463a3accab2c1700075606343de0d2bb73bf06cb9854d481a3301085a859b"
+    },
+    {
+      "path": ".artifacts/lite-facts-audit-final.log",
+      "sha256": "a9357b66ccf7d311d0d4e436cf5c928faae1505f050f7283a912724a92bbe0d4"
+    },
+    {
+      "path": ".artifacts/lite-facts-gate0-final.log",
+      "sha256": "505d74ef938f5d34d85490d37e0176ba804d93272fcf465ce2544a02c56b3f90"
+    },
+    {
+      "path": ".artifacts/lite-facts-report-generation.log",
+      "sha256": "fe010532f71a6341467ae5719b29ac19470895de1d481156335b8f70a3273ed5"
+    }
+  ]
+}

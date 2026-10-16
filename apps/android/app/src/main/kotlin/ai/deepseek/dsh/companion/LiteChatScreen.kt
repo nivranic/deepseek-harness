@@ -18,6 +18,7 @@ import androidx.compose.runtime.mutableStateOf
 import androidx.compose.runtime.remember
 import androidx.compose.runtime.setValue
 import androidx.compose.ui.Modifier
+import androidx.compose.ui.platform.testTag
 import androidx.compose.ui.unit.dp
 import androidx.lifecycle.compose.collectAsStateWithLifecycle
 import kotlinx.coroutines.launch
@@ -43,7 +44,7 @@ fun LiteChatScreen(model: LiteChatViewModel) {
                 color = MaterialTheme.colorScheme.secondary,
             )
         }
-        LazyColumn(Modifier.weight(1f), verticalArrangement = Arrangement.spacedBy(4.dp)) {
+        LazyColumn(Modifier.weight(1f).testTag("lite-conversation"), verticalArrangement = Arrangement.spacedBy(4.dp)) {
             items(state.conversation) { message ->
                 Column(Modifier.padding(horizontal = 16.dp)) {
                     Text(
@@ -100,6 +101,7 @@ fun LiteChatScreen(model: LiteChatViewModel) {
                     scope.launch { model.send(prompt) }
                 },
                 enabled = draft.isNotBlank() && !model.driver.running,
+                modifier = Modifier.testTag("lite-composer-send"),
             ) { Text("发送") }
         }
     }
