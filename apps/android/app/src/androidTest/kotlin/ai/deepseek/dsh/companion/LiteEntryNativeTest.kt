@@ -76,6 +76,21 @@ class LiteEntryNativeTest {
     }
 
     @Test
+    fun theConfigFormNamesTheBundledDefaultPreset() {
+        compose.waitUntil(timeoutMillis = 10_000) {
+            compose.onAllNodes(hasTestTag("lite-entry")).fetchSemanticsNodes().isNotEmpty()
+        }
+        compose.onNodeWithTag("lite-entry").assertIsDisplayed().performClick()
+
+        // The selection row names the preset the next assembly would run: the
+        // bundled projection carries exactly minimal, so a null selection
+        // already displays its id — the one-option catalog rendered honestly.
+        compose.onNodeWithTag("lite-config-preset").assertIsDisplayed()
+            .assertTextContains("预设", substring = true)
+            .assertTextContains("minimal", substring = true)
+    }
+
+    @Test
     fun theAssemblerProducesExactlyTheDefaultSessionFacts() {
         val model = LiteSessionAssembler.assemble(
             context = InstrumentationRegistry.getInstrumentation().targetContext,
@@ -86,7 +101,10 @@ class LiteEntryNativeTest {
             model = "unused",
             execute = { _, _, _ -> LiteToolOutcome(ok = false, text = "") },
         )
-        assertEquals(LiteSessionFacts(), model.facts)
+        // The default assembly now publishes the preset id actually in effect
+        // (the agent-preset/selected observability precedent): the bundled
+        // projection's lowest order resolves to minimal.
+        assertEquals(LiteSessionFacts(presetId = "minimal"), model.facts)
     }
 
     @After

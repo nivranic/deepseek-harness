@@ -3,6 +3,7 @@ package ai.deepseek.dsh.companion
 import ai.deepseek.dsh.link.CredentialsCipher
 import ai.deepseek.dsh.link.PlainCredentialsCipher
 import kotlinx.serialization.json.Json
+import kotlinx.serialization.json.JsonNull
 import kotlinx.serialization.json.JsonObject
 import kotlinx.serialization.json.JsonPrimitive
 import kotlinx.serialization.json.buildJsonObject
@@ -140,7 +141,13 @@ class LiteFileArtifactStore(directory: File) : LiteArtifactStoring {
 }
 
 /** The persisted Lite provider configuration one assembled session reads at launch. */
-data class LiteConfig(val endpoint: String, val apiKey: String, val model: String)
+data class LiteConfig(
+    val endpoint: String,
+    val apiKey: String,
+    val model: String,
+    /** The requested preset id (§33): null means the bundled catalog's default — the projection resolves it at assembly. */
+    val presetId: String? = null,
+)
 
 /** Where the Lite provider configuration lives. */
 interface LiteConfigStoring {
@@ -175,6 +182,7 @@ class LiteFileConfigStore(
             endpoint = root.configField("endpoint", file.name),
             apiKey = root.configField("apiKey", file.name),
             model = root.configField("model", file.name),
+            presetId = root.optionalConfigField("presetId", file.name),
         )
     }
 
@@ -183,6 +191,10 @@ class LiteFileConfigStore(
             put("endpoint", config.endpoint)
             put("apiKey", config.apiKey)
             put("model", config.model)
+            // A null selection omits the key — the projection's own optional-
+            // field form — so a default-selection file stays the legacy
+            // three-key document byte for byte.
+            config.presetId?.let { put("presetId", it) }
         }.toString()
         file.parentFile?.mkdirs()
         writeAtomically(file, cipher.seal(text.encodeToByteArray()))
@@ -192,6 +204,15 @@ class LiteFileConfigStore(
 private fun JsonObject.configField(name: String, fileName: String): String =
     (this[name] as? JsonPrimitive)?.takeIf { it.isString }?.content
         ?: error("corrupt Lite config in $fileName")
+
+/** The optional preset id: an absent key and a JSON null both read as no
+ * selection (the persona.suffix parsing form); any non-string value fails
+ * loud like a required one. */
+private fun JsonObject.optionalConfigField(name: String, fileName: String): String? = when (val raw = this[name]) {
+    null, is JsonNull -> null
+    is JsonPrimitive -> raw.takeIf { it.isString }?.content ?: error("corrupt Lite config in $fileName")
+    else -> error("corrupt Lite config in $fileName")
+}
 
 /**
  * Validate a candidate endpoint before it is saved: HTTPS scheme, a

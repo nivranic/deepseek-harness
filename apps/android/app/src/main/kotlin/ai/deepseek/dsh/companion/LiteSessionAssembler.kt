@@ -6,10 +6,12 @@ import kotlinx.coroutines.CoroutineScope
 /**
  * Assembles one standalone Lite chat session over the APK-bundled projection
  * pair: the provider's `tools` array and the preset catalog both come from
- * [LiteAssets]' BUNDLED catalogs, and the dispatch catalog stays the bundled
- * fallback name domain — §31's permission gate keeps unknown names refused
- * because this generation bundles no tool declaration. Construction only:
- * mounting the view model into a UI is not this factory's concern.
+ * [LiteAssets]' BUNDLED catalogs, the preset selection resolves once against
+ * that catalog — a null id keeps the projection default — and the dispatch
+ * catalog stays the bundled fallback name domain — §31's permission gate
+ * keeps unknown names refused because this generation bundles no tool
+ * declaration. Construction only: mounting the view model into a UI is not
+ * this factory's concern.
  */
 object LiteSessionAssembler {
 
@@ -24,9 +26,10 @@ object LiteSessionAssembler {
      * @param execute the on-device bundled-tool executor.
      * @param store the optional durable journal store.
      * @param artifacts the optional artifact content channel.
-     * @returns the assembled view model.
+     * @param presetId the requested preset id (§33): null assembles the catalog default, and an id the bundled projection does not carry fails loud — no substitute is guessed.
+     * @returns the assembled view model; its facts name the preset actually in effect.
      * @throws java.io.IOException when a bundled asset is absent.
-     * @throws IllegalArgumentException when a bundled document is malformed.
+     * @throws IllegalArgumentException when a bundled document is malformed or [presetId] names a preset the bundled catalog does not carry.
      */
     fun assemble(
         context: Context,
@@ -38,8 +41,12 @@ object LiteSessionAssembler {
         execute: LiteToolExecuting,
         store: LiteSessionStoring? = null,
         artifacts: LiteArtifactStoring? = null,
+        presetId: String? = null,
     ): LiteChatViewModel {
         val bundled = LiteAssets.load(context)
+        // The selection resolves here, once: switching presets means
+        // assembling a new session with new facts, never re-pointing a live one.
+        val preset = bundled.presets.resolve(presetId)
         return LiteChatViewModel(
             scope = scope,
             sessionId = sessionId,
@@ -54,10 +61,12 @@ object LiteSessionAssembler {
             artifacts = artifacts,
             toolCatalog = LiteToolCatalog.FALLBACK,
             presetCatalog = bundled.presets,
+            selectedPreset = preset,
             facts = LiteSessionFacts(
                 toolCatalogSource = LiteToolCatalog.FALLBACK.source,
                 toolSchemasSource = bundled.toolSchemas.source,
                 presetSource = bundled.presets.source,
+                presetId = preset?.id,
             ),
         )
     }

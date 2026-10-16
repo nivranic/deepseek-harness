@@ -6,6 +6,7 @@ import ai.deepseek.dsh.contract.LitePresetPersona
 import org.junit.jupiter.api.Assumptions
 import kotlin.test.Test
 import kotlin.test.assertEquals
+import kotlin.test.assertFailsWith
 import kotlin.test.assertNull
 import kotlin.test.assertTrue
 
@@ -34,6 +35,35 @@ class LitePresetCatalogTest {
         assertTrue(LitePresetCatalog.BARE.presets.isEmpty())
         assertNull(LitePresetCatalog.BARE.default)
         assertNull(LitePresetCatalog.BARE.defaultSystemPrompt)
+    }
+
+    @Test
+    fun lookupByIdHitsCarriedPresetsAndMissesTheRest() {
+        val catalog = LitePresetCatalog.fromHostProjection(
+            listOf(preset(id = "later", order = 5), preset(id = "default-one", order = 1)),
+        )
+        assertEquals("later", catalog.preset("later")?.id)
+        assertEquals("default-one", catalog.preset("default-one")?.id)
+        assertNull(catalog.preset("ghost"), "an id the catalog does not carry reads as absent, not as the default")
+    }
+
+    @Test
+    fun resolveTakesExplicitIdsAndDefaultsAndFailsLoudOnUnknownOnes() {
+        val catalog = LitePresetCatalog.fromHostProjection(
+            listOf(preset(id = "later", order = 5), preset(id = "default-one", order = 1)),
+        )
+        assertEquals("later", catalog.resolve("later")?.id, "an explicit id wins over the lower-order default")
+        assertEquals("default-one", catalog.resolve(null)?.id, "a null id is the default selection, byte-identical to the unnamed behavior")
+        val failure = assertFailsWith<IllegalArgumentException> { catalog.resolve("ghost") }
+        // §32/§33 forbid guessing a substitute: the refusal names the requested id and the catalog's carried ids.
+        assertTrue("ghost" in failure.message!!, "the refusal must name the unknown id")
+        assertTrue("later" in failure.message!! && "default-one" in failure.message!!, "the refusal must name the catalog")
+    }
+
+    @Test
+    fun resolveOnABareCatalogStaysNullForDefaultsAndFailsLoudForIds() {
+        assertNull(LitePresetCatalog.BARE.resolve(null), "no projection leaves no default to resolve")
+        assertFailsWith<IllegalArgumentException> { LitePresetCatalog.BARE.resolve("minimal") }
     }
 
     @Test

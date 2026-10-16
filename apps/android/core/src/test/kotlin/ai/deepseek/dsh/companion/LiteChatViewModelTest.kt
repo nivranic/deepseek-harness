@@ -201,6 +201,31 @@ class LiteChatViewModelTest {
     }
 
     @Test
+    fun anExplicitPresetSelectionDrivesThatPresetsSystemToTheDriver() = runTest {
+        val provider = ScriptedLiteProvider(
+            mapOf("你好" to listOf(LiteStreamChunk.Text("早"))),
+        )
+        val catalog = LitePresetCatalog.fromHostProjection(
+            listOf(preset(id = "later", order = 5), preset(id = "default-one", order = 1)),
+        )
+        val model = LiteChatViewModel(
+            scope = CoroutineScope(UnconfinedTestDispatcher(testScheduler)),
+            sessionId = "ui8",
+            provider = provider,
+            execute = { _, _, _ -> LiteToolOutcome(ok = false, text = "") },
+            presetCatalog = catalog,
+            selectedPreset = catalog.resolve("later"),
+        )
+        model.send("你好")
+        advanceUntilIdle()
+
+        // The explicitly selected preset wins over the lower-order default;
+        // its prompt is the selected entry's own assembled text.
+        assertEquals(listOf<String?>("sample-assembled-later"), provider.submittedSystems)
+        assertEquals("later", model.facts.presetId)
+    }
+
+    @Test
     fun withoutAProjectionTheTurnStaysBare() = runTest {
         val provider = ScriptedLiteProvider(
             mapOf("你好" to listOf(LiteStreamChunk.Text("早"))),

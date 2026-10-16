@@ -4,6 +4,7 @@ import ai.deepseek.dsh.link.CredentialsCipher
 import kotlinx.serialization.json.Json
 import kotlinx.serialization.json.JsonObject
 import kotlinx.serialization.json.jsonObject
+import kotlinx.serialization.json.jsonPrimitive
 import kotlin.test.Test
 import kotlin.test.assertEquals
 import kotlin.test.assertFailsWith
@@ -125,6 +126,64 @@ class LiteStoresTest {
         val replacement = config.copy(model = "deepseek-reasoner")
         store.save(replacement)
         assertEquals(replacement, LiteFileConfigStore(file).load())
+    }
+
+    @Test
+    fun aLegacyThreeKeyConfigLoadsAPresetIdOfNull() {
+        // The pre-selection file carries exactly the three required keys; the
+        // optional preset id reads as no selection, never as corruption.
+        val cipher = XorCipher()
+        val legacy = java.io.File(tempDir(), "lite-config.enc")
+        legacy.writeBytes(
+            cipher.seal("""{"endpoint":"https://api.example.com/v1","apiKey":"sk-test","model":"deepseek-chat"}""".encodeToByteArray()),
+        )
+        assertEquals(
+            LiteConfig("https://api.example.com/v1", "sk-test", "deepseek-chat", presetId = null),
+            LiteFileConfigStore(legacy, cipher).load(),
+        )
+
+        val explicitNull = java.io.File(tempDir(), "lite-config.enc")
+        explicitNull.writeBytes(
+            cipher.seal("""{"endpoint":"https://api.example.com/v1","apiKey":"sk-test","model":"deepseek-chat","presetId":null}""".encodeToByteArray()),
+        )
+        assertEquals(
+            LiteConfig("https://api.example.com/v1", "sk-test", "deepseek-chat"),
+            LiteFileConfigStore(explicitNull, cipher).load(),
+            "a JSON null reads the same as an absent key",
+        )
+    }
+
+    @Test
+    fun aSelectedPresetIdRoundTripsAndANullOneOmitsTheKey() {
+        val cipher = XorCipher()
+        val file = java.io.File(tempDir(), "lite-config.enc")
+        val store = LiteFileConfigStore(file, cipher)
+
+        val selected = LiteConfig("https://api.example.com/v1", "sk-test", "deepseek-chat", presetId = "minimal")
+        store.save(selected)
+        assertEquals(selected, LiteFileConfigStore(file, cipher).load())
+        assertEquals(
+            "minimal",
+            (Json.parseToJsonElement(cipher.open(file.readBytes()).decodeToString()) as JsonObject)["presetId"]!!
+                .jsonPrimitive.content,
+        )
+
+        // A null selection omits the key — the projection's optional-field
+        // form — so the default-selection document stays the legacy three-key
+        // file byte for byte.
+        store.save(selected.copy(presetId = null))
+        val reread = Json.parseToJsonElement(cipher.open(file.readBytes()).decodeToString()) as JsonObject
+        assertTrue("presetId" !in reread, "a null preset id omits the key instead of writing JSON null")
+    }
+
+    @Test
+    fun aMistypedPresetIdFailsLoud() {
+        val cipher = XorCipher()
+        val tampered = java.io.File(tempDir(), "lite-config.enc")
+        tampered.writeBytes(
+            cipher.seal("""{"endpoint":"https://api.example.com/v1","apiKey":"sk-test","model":"deepseek-chat","presetId":3}""".encodeToByteArray()),
+        )
+        assertFailsWith<IllegalStateException> { LiteFileConfigStore(tampered, cipher).load() }
     }
 
     /** A reversible non-plain cipher pins the seam: the file holds sealed bytes, not the JSON. */
