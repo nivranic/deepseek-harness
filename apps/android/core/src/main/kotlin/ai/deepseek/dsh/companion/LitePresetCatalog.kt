@@ -4,10 +4,11 @@ import ai.deepseek.dsh.contract.LitePresetDescriptor
 
 /**
  * Which source produced a preset selection: the Host's lite-preset
- * projection, or no projection at all. The source is carried explicitly so
- * the offline fallback stays observable, never silent.
+ * projection, that projection's bytes bundled with the APK, or no projection
+ * at all. The source is carried explicitly so the offline fallback stays
+ * observable, never silent.
  */
-enum class LitePresetSource { HOST_PROJECTED, BARE }
+enum class LitePresetSource { HOST_PROJECTED, BUNDLED, BARE }
 
 /**
  * The persona/system-prompt selection for one Lite runtime (§33): Lite owns
@@ -41,5 +42,16 @@ class LitePresetCatalog private constructor(
          */
         fun fromHostProjection(descriptors: List<LitePresetDescriptor>): LitePresetCatalog =
             LitePresetCatalog(LitePresetSource.HOST_PROJECTED, descriptors)
+
+        /**
+         * Build the bundled catalog from the Host projection's bytes shipped inside
+         * the APK: the descriptors themselves are a Host projection, parsed by the
+         * caller through the shared document parser — identical selection rules
+         * to [fromHostProjection], observed under the bundle's own source.
+         * @param descriptors the parsed projection descriptors, in projection order.
+         * @returns the catalog; the default preset is the lowest order among them, and an empty projection leaves no default.
+         */
+        fun fromBundledProjection(descriptors: List<LitePresetDescriptor>): LitePresetCatalog =
+            LitePresetCatalog(LitePresetSource.BUNDLED, descriptors)
     }
 }

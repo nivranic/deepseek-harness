@@ -1,0 +1,66 @@
+{
+  "status": "PASS",
+  "scope": "Report bindings and audit for the lite-assembly increment: the §32 \"app assembly face: bundled projections into the APK and the standalone session chain\" (the fourth of the lite assembly pieces after gen-50's declaration face, gen-51's persona projection, gen-52's model-face projection and gen-53's permission gate — the content faces landed, this generation wiring the projections from the JVM test classpath into APK runtime carriage and the standalone session construction) resting on the design that the build stages both projections into APK assets/lite/ (copyLiteAssets copying into build/generated/lite-assets/lite/ with the main sourceSet assets.srcDir mounting the parent directory so the APK packs both files, verifyLiteAssetSources gating preBuild and failing loud on missing or empty sources), LiteAssets reads both asset paths through the shared contract parsers (IOException/IllegalArgumentException fail-loud, never a silent BARE fallback — the §32 no-guessing rule), the schema and preset catalogs each gain the BUNDLED third source through the explicit fromBundledProjection factory (entries identical to HOST_PROJECTED under the same parser, the choice observable as its own bundled identity, existing HOST_PROJECTED/BARE call faces unchanged), and LiteSessionAssembler constructs the full standalone LiteChatViewModel chain (the provider carrying the bundled tools array, the preset catalog bundled, the dispatch catalog keeping the FALLBACK name domain so the §31 permission gate keeps rejecting unknown names) with no UI mounting; the test faces pin the BUNDLED-same-resolution equality and the empty-projection explicit source and the malformed fail-loud on :core (LiteBundledCatalogTest 4/0) beside the androidTest round opening both asset paths and walking the full assembly chain without network (LiteBundledAssetsTest 2); the gates honestly recorded from log content: typecheck EXIT 0 and lint Found 0 warnings and 0 errors on 3861 files (both chained rounds carrying no exit trailer — the zero exits rode the invoking shell, recorded beside the logs), test:docs 17 and doc-sync 37 passed 0 failed 0 skipped (776.76s, zero regeneration diff — the Kotlin/gradle increment adds no leaf), traceability 6/6 with the §32 rewrite at 1134 chars and candidateEvidence 14 (led by the projection carriers, carrying the app-side reader, assembler, gradle seam and both test files) and the §33 closure at 580 with §31 unchanged at its gen-53 sealed 517/4, the serial double audit round green at 87 files / 1073 tests on both passes over the curated list extracted from the gen-53 audit log into .artifacts/lite-assembly-g2-audit-file-list.txt (the first full-suite round honestly recorded as a Windows-environment host limitation — symlink EPERM and vitest worker resource contention, not regressions, the g1 TypeScript face green beside them), gate0 PASS in both byte-identical forms (1938 paths / 129 components / 81 sections — honestly recorded unchanged from the captured UPSTREAM_DELTA.json, not the live tree); the android acceptance: the scanner-env gradle round BUILD SUCCESSFUL in 5s with 75 actionable tasks of which 2 executed and 73 up-to-date — the honestly recorded verification form (:app:verifyLiteAssetSources and :app:verifyScannerResources executed, the two verification halves, with every compile/package/assemble task UP-TO-DATE because the real changes compiled and packaged in the gate lanes before; the g0 verification round first hitting the scanner-provider absence without the scanner env — an existing task behavior, not this generation's defect — then green in 12s with it, and the APK content unzipped to prove assets/lite/ carries both files at 1423/1216 bytes) — with BOTH APK faces DRIFT against the lite-permission record's sealed bytes (androidTest bbe7a3af→1d553ef6 and debug c332d6c1→68cfd272, cross-checked live, this generation's capture becoming the new baseline) and the core XML aggregate reading 82 suites / 516 tests including the new LiteBundledCatalogTest suite beside the contract half at 4 suites / 37 tests; the note trio 2026-10-16-lite-bundled-assets-assembly with the repository-wide pairing checked green at 938 pairs (the dictionary written ahead through --write); and the adjudicated single-set ruling on the adapter's measured three-source miss stop-point (the gen-53 dwfq-b1ce6281-1 precedent form): the prepare oracle derives the measured sixty-eight replaced prior build outputs — all android (two APKs, one jar, zero classes, sixty-two XML reports, three binary outputs) — the adapter's generator-side measurement splits them into one chain-resolvable key (the androidTest APK's sealed bbe7a3af bytes resolving through the newest-history fallback — this generation's fallback shape an APK, not the gen-53 recompiled-classes form, honestly recorded) and sixty-seven first-emission keys no archive holds (the gen-53 rounds' own emissions sealed only by the lite-permission record itself, untracked at HEAD, every prepare walk excluding build/ so no before-archive manifest holds them — the fourth consecutive generation of the same class: gen-51 ninety-four, gen-52 seventy-three, gen-53 sixty-seven, gen-54 sixty-seven), so the advance installs the litePermissionReplacedBuildOutputs exactly-sixty-seven build-output exemption on the demoted lite-permission block, derived and emitted at advance run time from the record, the chain archives and the disk — never transcribed — equal to the sixty-eight-key derivation minus the one fallback key, the two source-side ledger miss keys resolving through the new before archive at their HEAD bytes (no UnrecoverableInputs set born), and every prior generation's set — the gen-53 liteToolsReplacedBuildOutputs sixty-seven beside the gen-52 litePersonaReplacedBuildOutputs seventy-three and the gen-51 liteToolReplacedBuildOutputs ninety-four plus liteToolUnrecoverableInputs two, the gen-32 desktopPackageReplacedBuildOutputs six, the gen-33 tornRepairIntentReplacedBuildOutputs three, the gen-48 clientMutationReplacedBuildOutputs two and the gen-46 durableReceiptsReplacedBuildOutputs three — stays exactly as sealed at HEAD; the UI mounting, the runtimeMode=lite exposure carrier, the preset selection face, the approval ask tier and the tool-call result round-trip (P2) all stay open — so no whole-section PASS is granted; full Upstream-First objective remains in progress",
+  "gate0": {
+    "validation": "PASS",
+    "gate0": "PASS",
+    "paths": 1938,
+    "components": 129,
+    "specificationCoverage": {
+      "status": "PASS",
+      "numberedSections": 81,
+      "nonEmptySourceLines": 1983,
+      "acceptanceProven": false
+    }
+  },
+  "sourceRecord": {
+    "path": "artifacts/upstream-first/lite-assembly-source.json",
+    "sha256": "5388638266fda00aebe5cc96d1fbf1dcb27f032705ad8257b41ed32da987423b"
+  },
+  "generator": {
+    "path": "artifacts/upstream-first/write-reports.mjs",
+    "sha256": "d52ae0fe0a514786172c75c29770f6ce5b6dab5ca00ab7848446bb1911b05b1c"
+  },
+  "binding": {
+    "path": "artifacts/upstream-first/lite-assembly-binding.json",
+    "sha256": "6412dba95f68163bd6f9d4d305f7fe28ae57aeb8c399ecd292a74fd25a920008"
+  },
+  "helpers": [
+    {
+      "path": ".artifacts/advance-lite-assembly-reports.mjs",
+      "sha256": "e5ddc21a1cbc1bd3a6e0a8235e3c8265d921148c60a919b553ea5da830a5059d"
+    },
+    {
+      "path": ".artifacts/capture-lite-assembly-validation.mjs",
+      "sha256": "ad90752f1249a66b7800691c51dce681c522cc45c6cc425214debdcfb3301096"
+    }
+  ],
+  "reports": [
+    {
+      "path": "IMPLEMENTATION_STATUS.md",
+      "sha256": "4d0f37d3b858384f1fcfe877d31d53e626148ea3d281404e506ab7540125259f"
+    },
+    {
+      "path": "artifacts/upstream-first/evidence.json",
+      "sha256": "f92c6d0e05f624ab6dc1b207adfe124bf19cec2cddf99a075c18c77fcec82dfc"
+    }
+  ],
+  "checks": [
+    {
+      "path": ".artifacts/lite-assembly-binding.log",
+      "sha256": "e5060eabfe959065ed54ff372e5aa077c49e191c0349502d339e8083695c59b4"
+    },
+    {
+      "path": ".artifacts/lite-assembly-audit-final.log",
+      "sha256": "c0462d064c0a152ae9beedbb44146fcf3133dd15cb2630201f3666b1a3a039f2"
+    },
+    {
+      "path": ".artifacts/lite-assembly-gate0-final.log",
+      "sha256": "505d74ef938f5d34d85490d37e0176ba804d93272fcf465ce2544a02c56b3f90"
+    },
+    {
+      "path": ".artifacts/lite-assembly-report-generation.log",
+      "sha256": "fe010532f71a6341467ae5719b29ac19470895de1d481156335b8f70a3273ed5"
+    }
+  ]
+}

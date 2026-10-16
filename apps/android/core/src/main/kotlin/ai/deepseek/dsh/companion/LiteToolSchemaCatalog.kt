@@ -6,10 +6,11 @@ import kotlinx.serialization.json.JsonElement
 
 /**
  * Which source produced a tool-schema selection: the Host's model-face
- * projection, or no projection at all. The source is carried explicitly so
- * the offline fallback stays observable, never silent.
+ * projection, that projection's bytes bundled with the APK, or no projection
+ * at all. The source is carried explicitly so the offline fallback stays
+ * observable, never silent.
  */
-enum class LiteToolSchemaSource { HOST_PROJECTED, BARE }
+enum class LiteToolSchemaSource { HOST_PROJECTED, BUNDLED, BARE }
 
 /**
  * The model-face tool schemas for one Lite runtime (§32): a
@@ -35,5 +36,16 @@ class LiteToolSchemaCatalog private constructor(
          */
         fun fromProjectedDocument(element: JsonElement): LiteToolSchemaCatalog =
             LiteToolSchemaCatalog(LiteToolSchemaSource.HOST_PROJECTED, LiteToolSchemas.parseList(element))
+
+        /**
+         * Build the bundled catalog from the Host projection's bytes shipped inside
+         * the APK: the schemas themselves are a Host projection, parsed by the
+         * caller through the shared document parser — identical entries to
+         * [fromProjectedDocument], observed under the bundle's own source.
+         * @param schemas the parsed projection entries, in projection order.
+         * @returns the catalog with those schemas.
+         */
+        fun fromBundledProjection(schemas: List<LiteToolSchema>): LiteToolSchemaCatalog =
+            LiteToolSchemaCatalog(LiteToolSchemaSource.BUNDLED, schemas)
     }
 }

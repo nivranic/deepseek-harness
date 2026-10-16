@@ -1,7 +1,7 @@
 {
   "schemaVersion": 1,
   "status": "IN_PROGRESS",
-  "capturedAt": "2026-10-15T14:24:33.314Z",
+  "capturedAt": "2026-10-16T00:50:18.348Z",
   "fullGoalComplete": false,
   "specification": {
     "path": "artifacts/upstream-first/original-specification.md",
@@ -3775,9 +3775,14 @@
         "apps/android/contract/src/main/kotlin/ai/deepseek/dsh/contract/ToolDescriptor.kt",
         "apps/android/contract/src/main/kotlin/ai/deepseek/dsh/contract/LiteToolSchema.kt",
         "apps/android/core/src/main/kotlin/ai/deepseek/dsh/companion/LiteToolRegistry.kt",
-        "apps/android/core/src/main/kotlin/ai/deepseek/dsh/companion/LiteToolSchemaCatalog.kt"
+        "apps/android/core/src/main/kotlin/ai/deepseek/dsh/companion/LiteToolSchemaCatalog.kt",
+        "apps/android/app/build.gradle.kts",
+        "apps/android/app/src/main/kotlin/ai/deepseek/dsh/companion/LiteAssets.kt",
+        "apps/android/app/src/main/kotlin/ai/deepseek/dsh/companion/LiteSessionAssembler.kt",
+        "apps/android/core/src/test/kotlin/ai/deepseek/dsh/companion/LiteBundledCatalogTest.kt",
+        "apps/android/app/src/androidTest/kotlin/ai/deepseek/dsh/companion/LiteBundledAssetsTest.kt"
       ],
-      "remaining": "§32 声明面与模型面已落地：ToolDefinition 必填 version/risk/permissions/supportsLite/supportsRemote（注册边界 fail-loud；模型投影与 SessionEventMap 零变化），descriptors() 投影经 Remote tools 命名空间（tool.catalog.v1 + tools/list）按 §37 先例广播，gen-tool-catalog 产出机器可读 tool-descriptors.json 与模型面投影 lite-tool-schemas.json（supportsLite 过滤 + schemas() 收割 join、同名冲突仅 Lite 域 fail-loud、跨包同名非 Lite 变体不参与）；Android 侧 :contract 镜像解析 fail-loud 并对拍两份投影（schemas 名集 ⊆ supportsLite id 集），LiteToolCatalog 双源（HOST_DECLARED/BUNDLED_FALLBACK 显式标记）替换 LiteLoop 按名猜测，未声明名交回 full runtime 不猜，网关按 capability 协商拉取；LiteToolSchemaCatalog（HOST_PROJECTED/BARE）经 LiteHTTPProvider 构造态参数把 OpenAI function 形 tools 数组条件注入请求体（空表省键、BARE 与现状逐字节一致，system/tools 同为 request-face 不入 journal）。Android 本地名与宿主工具名对齐（url_fetch 等 vs web_fetch 等）、app 层运行时接线（assets 打包）、Lite 工具权限策略与 tool-call 循环处理仍待实施。",
+      "remaining": "§32 声明面与模型面已落地：ToolDefinition 必填 version/risk/permissions/supportsLite/supportsRemote（注册边界 fail-loud；模型投影与 SessionEventMap 零变化），descriptors() 投影经 Remote tools 命名空间（tool.catalog.v1 + tools/list）按 §37 先例广播，gen-tool-catalog 产出机器可读 tool-descriptors.json 与模型面投影 lite-tool-schemas.json（supportsLite 过滤 + schemas() 收割 join、同名冲突仅 Lite 域 fail-loud、跨包同名非 Lite 变体不参与）；Android 侧 :contract 镜像解析 fail-loud 并对拍两份投影（schemas 名集 ⊆ supportsLite id 集），LiteToolCatalog 双源（HOST_DECLARED/BUNDLED_FALLBACK 显式标记）替换 LiteLoop 按名猜测，未声明名交回 full runtime 不猜，网关按 capability 协商拉取；LiteToolSchemaCatalog 经 LiteHTTPProvider 构造态参数把 OpenAI function 形 tools 数组条件注入请求体（空表省键、BARE 与现状逐字节一致，system/tools 同为 request-face 不入 journal）。app 装配面已落地：构建把两份投影拷入 APK assets/lite/（copyLiteAssets+verifyLiteAssetSources 源缺失或为空即败），LiteAssets 经共享 contract 解析器 fail-loud 读取（缺席/畸形抛错，绝不静默 BARE），schema/preset catalog 各增 BUNDLED 第三来源（与 HOST_PROJECTED 同解析、来源可观测不伪装），LiteSessionAssembler 构造完整独立会话链（provider 携捆绑 tools 数组、preset 捆绑 persona、派发名域保持 FALLBACK——§31 权限门对未知名照常拒绝），androidTest 打开两 asset 路径并走完整装配链不触网；UI 挂载刻意不在本代。Android 本地名与宿主工具名对齐（url_fetch 等 vs web_fetch 等）、preset 选择面与 Lite 会话 UI 入口仍待实施。",
       "evidenceLimit": "这些路径是已定位的候选证据；尚未逐条证明本节每一项要求，不授予整节 PASS。"
     },
     {
@@ -3833,7 +3838,7 @@
         "apps/android/contract/src/main/kotlin/ai/deepseek/dsh/contract/LitePresetDescriptor.kt",
         "apps/android/core/src/main/kotlin/ai/deepseek/dsh/companion/LitePresetCatalog.kt"
       ],
-      "remaining": "§33 复用通道已落地：gen-lite-preset-catalog 真 boot 每个 shipped preset、经官方 ctx.systemPrompt.assemble() 收割实文投影 lite-preset-descriptors.json（persona 行+assembledSystemPrompt；doc-sync 挂 verify-lite-preset-catalog；运行时变量预设入 excluded 清单不伪造、!!js 延迟布尔 fail-loud）；Android :contract 镜像解析 fail-loud、LitePresetCatalog 双源（HOST_PROJECTED/BARE），LiteProviding 接缝扩展可选 system、LiteHTTPProvider 请求体首位条件插入，BARE/空投影与现状逐字节一致，Kotlin 源零自有 prompt 文本。Lite 经 profile/preset 之外的上下文组合、preset 选择 UI、app 层运行时接线与 Lite 工具权限策略仍待实施。",
+      "remaining": "§33 复用通道已落地：gen-lite-preset-catalog 真 boot 每个 shipped preset、经官方 ctx.systemPrompt.assemble() 收割实文投影 lite-preset-descriptors.json（persona 行+assembledSystemPrompt；doc-sync 挂 verify-lite-preset-catalog；运行时变量预设入 excluded 清单不伪造、!!js 延迟布尔 fail-loud）；Android :contract 镜像解析 fail-loud、LitePresetCatalog 双源（HOST_PROJECTED/BARE），LiteProviding 接缝扩展可选 system、LiteHTTPProvider 请求体首位条件插入，BARE/空投影与现状逐字节一致，Kotlin 源零自有 prompt 文本。preset 投影经 app 装配面进 APK assets/lite/ 并由 LiteAssets/LiteSessionAssembler 构造进独立会话（BUNDLED 来源可观测、解析与 HOST_PROJECTED 同规则）；Lite 经 profile/preset 之外的上下文组合、preset 选择 UI 仍待实施。",
       "evidenceLimit": "这些路径是已定位的候选证据；尚未逐条证明本节每一项要求，不授予整节 PASS。"
     },
     {
