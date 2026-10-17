@@ -44,7 +44,7 @@ class LiteChatViewModelTest {
             model.state.conversation,
         )
         assertEquals("completed", model.state.lastTurnEnd)
-        assertNull(model.lastHandoff)
+        assertNull(model.state.pendingHandoff)
 
         // A relaunch through the journal replays the same conversation.
         val restored = store.load("ui1")!!
@@ -207,6 +207,7 @@ class LiteChatViewModelTest {
 
     @Test
     fun aHandoffTurnSurfacesTheBannerState() = runTest {
+        val store = LiteFileSessionStore(tempDir())
         val provider = ScriptedLiteProvider(
             mapOf("跑测试" to listOf(LiteStreamChunk.ToolCall("c", "run_tests", "{}"))),
         )
@@ -215,16 +216,24 @@ class LiteChatViewModelTest {
             sessionId = "ui2",
             provider = provider,
             execute = { _, _, _ -> LiteToolOutcome(ok = false, text = "") },
+            store = store,
         )
         model.send("跑测试")
         advanceUntilIdle()
 
-        assertEquals(LITE_REQUIRES_FULL_RUNTIME, model.lastHandoff)
         assertEquals(LITE_REQUIRES_FULL_RUNTIME, model.state.pendingHandoff)
+        // The handoff turn keeps the user row only; the journal records the
+        // marker, never an assistant row echoing the prompt back.
+        assertEquals(listOf(LiteMessage(role = "user", text = "跑测试")), model.state.conversation)
+        assertEquals(
+            listOf("prompt/accepted", "handoff/requested"),
+            store.load("ui2")!!.events.map { it["type"]!!.jsonPrimitive.content },
+        )
     }
 
     @Test
     fun aDeclaredCatalogDrivesTheSurfaceHandoff() = runTest {
+        val store = LiteFileSessionStore(tempDir())
         val provider = ScriptedLiteProvider(
             mapOf("算一下" to listOf(LiteStreamChunk.ToolCall("c1", "calculator", "1+1"))),
         )
@@ -233,6 +242,7 @@ class LiteChatViewModelTest {
             sessionId = "ui5",
             provider = provider,
             execute = { _, _, _ -> LiteToolOutcome(ok = true, text = "2") },
+            store = store,
             toolCatalog = LiteToolCatalog.fromHostDescriptors(
                 listOf(
                     ToolDescriptor("calculator", 1, ToolRisk.LOW, emptyList(), supportsLite = false, supportsRemote = true),
@@ -242,8 +252,83 @@ class LiteChatViewModelTest {
         model.send("算一下")
         advanceUntilIdle()
 
-        assertEquals(LITE_REQUIRES_FULL_RUNTIME, model.lastHandoff)
         assertEquals(LITE_REQUIRES_FULL_RUNTIME, model.state.pendingHandoff)
+        // The declared-not-lite-capable tool hands off like the fallback
+        // table does: the user row only, the marker as the terminal event.
+        assertEquals(listOf(LiteMessage(role = "user", text = "算一下")), model.state.conversation)
+        assertEquals(
+            listOf("prompt/accepted", "handoff/requested"),
+            store.load("ui5")!!.events.map { it["type"]!!.jsonPrimitive.content },
+        )
+    }
+
+    @Test
+    fun aNormalTurnAfterAHandoffTurnJournalsACompletedTurnNotARepeatedHandoff() = runTest {
+        val store = LiteFileSessionStore(tempDir())
+        val provider = ScriptedLiteProvider(
+            mapOf(
+                "跑测试" to listOf(LiteStreamChunk.ToolCall("c", "run_tests", "{}")),
+                "总结" to listOf(LiteStreamChunk.Text("已记录")),
+            ),
+        )
+        val model = LiteChatViewModel(
+            scope = CoroutineScope(UnconfinedTestDispatcher(testScheduler)),
+            sessionId = "handoff-then-normal",
+            provider = provider,
+            execute = { _, _, _ -> LiteToolOutcome(ok = false, text = "") },
+            store = store,
+        )
+        model.send("跑测试")
+        advanceUntilIdle()
+        model.send("总结")
+        advanceUntilIdle()
+
+        // The second turn supersedes the handoff: the banner state cleared
+        // with its prompt, and the journal ends in the normal terminal pair,
+        // not a second handoff/requested.
+        assertEquals(null, model.state.pendingHandoff)
+        assertEquals("completed", model.state.lastTurnEnd)
+        assertEquals(
+            listOf(
+                LiteMessage(role = "user", text = "跑测试"),
+                LiteMessage(role = "user", text = "总结"),
+                LiteMessage(role = "assistant", text = "已记录"),
+            ),
+            model.state.conversation,
+        )
+        assertEquals(
+            listOf(
+                "prompt/accepted", "handoff/requested",
+                "prompt/accepted", "message/completed", "turn/completed",
+            ),
+            store.load("handoff-then-normal")!!.events.map { it["type"]!!.jsonPrimitive.content },
+        )
+    }
+
+    @Test
+    fun aRelaunchEndingAtTheHandoffMarkerSeedsTheBannerState() = runTest {
+        val store = LiteFileSessionStore(tempDir())
+        val first = LiteChatViewModel(
+            scope = CoroutineScope(UnconfinedTestDispatcher(testScheduler)),
+            sessionId = "handoff-relaunch",
+            provider = ScriptedLiteProvider(mapOf("跑测试" to listOf(LiteStreamChunk.ToolCall("c", "run_tests", "{}")))),
+            execute = { _, _, _ -> LiteToolOutcome(ok = false, text = "") },
+            store = store,
+        )
+        first.send("跑测试")
+        advanceUntilIdle()
+
+        // The journal ends in handoff/requested, so the relaunch's
+        // construction-time cut exposes the banner state before any new turn.
+        val relaunched = LiteChatViewModel(
+            scope = CoroutineScope(UnconfinedTestDispatcher(testScheduler)),
+            sessionId = "handoff-relaunch",
+            provider = ScriptedLiteProvider(emptyMap()),
+            execute = { _, _, _ -> LiteToolOutcome(ok = false, text = "") },
+            store = store,
+        )
+        assertEquals(LITE_REQUIRES_FULL_RUNTIME, relaunched.state.pendingHandoff)
+        assertEquals(listOf(LiteMessage(role = "user", text = "跑测试")), relaunched.state.conversation)
     }
 
     @Test

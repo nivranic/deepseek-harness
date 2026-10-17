@@ -114,6 +114,34 @@ class LiteFoldTest {
     }
 
     @Test
+    fun aLaterPromptSupersedesThePendingHandoffWhileTheMarkerKeepsIt() {
+        val superseded = foldLiteDomain(
+            events(
+                """[
+                    {"type":"prompt/accepted","requestId":"r7","content":"跑完整测试套件"},
+                    {"type":"handoff/requested","capability":"requiresFullRuntime"},
+                    {"type":"prompt/accepted","requestId":"r8","content":"继续"},
+                    {"type":"message/completed","text":"好"},
+                    {"type":"turn/completed"}
+                ]""",
+            ),
+        )
+        assertEquals(null, superseded.pendingHandoff)
+        assertEquals(listOf(LiteMessage(role = "user", text = "跑完整测试套件"), LiteMessage(role = "user", text = "继续"), LiteMessage(role = "assistant", text = "好")), superseded.conversation)
+        assertEquals("completed", superseded.lastTurnEnd)
+
+        val pending = foldLiteDomain(
+            events(
+                """[
+                    {"type":"prompt/accepted","requestId":"r7","content":"跑完整测试套件"},
+                    {"type":"handoff/requested","capability":"requiresFullRuntime"}
+                ]""",
+            ),
+        )
+        assertEquals("requiresFullRuntime", pending.pendingHandoff)
+    }
+
+    @Test
     fun toolResultsPairByIdAndOrphansAreNoOps() {
         val state = foldLiteDomain(
             events(

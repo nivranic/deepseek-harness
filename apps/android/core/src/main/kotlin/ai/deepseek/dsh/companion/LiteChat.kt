@@ -83,10 +83,6 @@ class LiteChatViewModel(
     val driver: LiteLoopDriver = LiteLoopDriver(scope, provider,
         onEventApplied = { cut -> _liveState.tryEmit(cut) }, execute = execute, toolCatalog = toolCatalog)
 
-    /** The capability the last turn handed off on, when it did. */
-    var lastHandoff: String? = null
-        private set
-
     /** The folded domain state of the journal plus the live turn. */
     val state: LiteDomainState
         get() = _liveState.replayCache.firstOrNull() ?: session.state
@@ -103,17 +99,22 @@ class LiteChatViewModel(
         driver.submit(prompt, selectedPreset?.assembledSystemPrompt).join()
         session.record(event("prompt/accepted", "requestId" to text("ui-${java.util.UUID.randomUUID()}"), "content" to text(prompt)))
         val folded = driver.fold.state
-        when (folded.lastTurnEnd) {
+        when {
+            // A handoff turn stops at the marker with no assistant row and no
+            // terminal event; the tail block below journals handoff/requested,
+            // so a message/completed here would echo the prompt back as the
+            // assistant's answer.
+            folded.pendingHandoff != null -> {}
             // A turn the transport killed journals its folded failure under
             // the failure's own tag — never a message row that echoes the
             // prompt back as the assistant's answer.
-            "provider-error" -> {
+            folded.lastTurnEnd == "provider-error" -> {
                 val failure = folded.errors.lastOrNull { it.kind == "provider" }
                 session.record(
                     event("provider/error", "code" to text(failure?.code ?: ""), "message" to text(failure?.message ?: "")),
                 )
             }
-            "network-error" -> {
+            folded.lastTurnEnd == "network-error" -> {
                 val failure = folded.errors.lastOrNull { it.kind == "network" }
                 session.record(event("network/error", "kind" to text(failure?.code ?: "")))
             }
@@ -123,7 +124,6 @@ class LiteChatViewModel(
         }
         val handoff = folded.pendingHandoff
         if (handoff != null) {
-            lastHandoff = handoff
             session.record(event("handoff/requested", "capability" to text(handoff)))
         } else {
             session.record(event("turn/completed"))

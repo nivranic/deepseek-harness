@@ -134,7 +134,11 @@ private fun JsonObject.booleanField(name: String): Boolean? =
  */
 private fun foldLiteEventInto(state: LiteFoldAccumulator, event: JsonObject) {
     when (event.stringField("type")) {
-        "prompt/accepted" -> state.conversation.add(LiteMessage(role = "user", text = event.stringField("content") ?: ""))
+        "prompt/accepted" -> {
+            state.conversation.add(LiteMessage(role = "user", text = event.stringField("content") ?: ""))
+            // The new turn supersedes the previous turn's pending handoff.
+            state.pendingHandoff = null
+        }
         "prompt/rejected" -> state.errors.add(
             LiteFailure(kind = "provider", code = "PROMPT_REJECTED", message = event.stringField("reason") ?: ""),
         )

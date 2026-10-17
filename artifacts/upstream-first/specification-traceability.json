@@ -1,7 +1,7 @@
 {
   "schemaVersion": 1,
   "status": "IN_PROGRESS",
-  "capturedAt": "2026-10-16T22:39:55.109Z",
+  "capturedAt": "2026-10-17T03:10:51.987Z",
   "fullGoalComplete": false,
   "specification": {
     "path": "artifacts/upstream-first/original-specification.md",
@@ -2407,10 +2407,13 @@
         "IMPLEMENTATION_STATUS.md",
         "docs/defensive-patterns.md",
         "apps/android/core/src/main/kotlin/ai/deepseek/dsh/companion/LiteChat.kt",
+        "apps/android/core/src/main/kotlin/ai/deepseek/dsh/companion/LiteFold.kt",
         "apps/android/core/src/main/kotlin/ai/deepseek/dsh/companion/LiteStores.kt",
-        "apps/android/core/src/test/kotlin/ai/deepseek/dsh/companion/LiteChatViewModelTest.kt"
+        "apps/android/core/src/test/kotlin/ai/deepseek/dsh/companion/LiteChatViewModelTest.kt",
+        "apps/android/core/src/test/kotlin/ai/deepseek/dsh/companion/LiteFoldTest.kt",
+        "apps/android/app/src/main/kotlin/ai/deepseek/dsh/companion/LiteChatScreen.kt"
       ],
-      "remaining": "已有回答竞争、断线和重启证据；gen-58 落 §67 在 Lite 面的首块拼图——装配期 seedJournal 读回 journal 全量重放为会话历史（构造首帧即恢复对话、渲染零改动）、不可读 journal 隔离冷开（同目录 unavailable-<uuid> 重命名字节保留、绝不崩溃——原生 journal store 文档化恢复模板、§46 不静默丢弃）、播种后整文件原子写自然含全部历史（重启覆盖丢失自愈）、错误 turn 以既有 provider/error 与 network/error 事件持久化替代捏造的 message/completed（无假回复重启后仍可见）；§67 禁 unfinished draft 自动提交天然合规（Lite 无 draft 持久化面）。权限执行、完整审批信息、后台/休眠、持久化确认和跨端（宿主↔Lite 外的端间）恢复仍待逐项实现及验证。",
+      "remaining": "已有回答竞争、断线和重启证据；gen-58 落 §67 在 Lite 面的首块拼图——装配期 seedJournal 读回 journal 全量重放为会话历史（构造首帧即恢复对话、渲染零改动）、不可读 journal 隔离冷开（同目录 unavailable-<uuid> 重命名字节保留、绝不崩溃——原生 journal store 文档化恢复模板、§46 不静默丢弃）、播种后整文件原子写自然含全部历史（重启覆盖丢失自愈）、错误 turn 以既有 provider/error 与 network/error 事件持久化替代捏造的 message/completed（无假回复重启后仍可见）；gen-59 补 handoff 面：handoff 回合以自身标记对（prompt/accepted+handoff/requested）持久化、捏造的 message/completed 绝迹，pendingHandoff 于下一 prompt/accepted 清除不再粘滞，横幅改读 state.pendingHandoff（终于 handoff/requested 的 journal 重启后构造首帧即显、下一回合开始清除——§72 重复 UI 状态机债清除）；§67 禁 unfinished draft 自动提交天然合规（Lite 无 draft 持久化面）。权限执行、完整审批信息、后台/休眠、持久化确认和跨端（宿主↔Lite 外的端间）恢复仍待逐项实现及验证。",
       "evidenceLimit": "这些路径是已定位的候选证据；尚未逐条证明本节每一项要求，不授予整节 PASS。"
     },
     {
@@ -2483,10 +2486,13 @@
         "IMPLEMENTATION_STATUS.md",
         "docs/defensive-patterns.md",
         "apps/android/core/src/main/kotlin/ai/deepseek/dsh/companion/LiteChat.kt",
+        "apps/android/core/src/main/kotlin/ai/deepseek/dsh/companion/LiteFold.kt",
         "apps/android/core/src/main/kotlin/ai/deepseek/dsh/companion/LiteStores.kt",
-        "apps/android/core/src/test/kotlin/ai/deepseek/dsh/companion/LiteChatViewModelTest.kt"
+        "apps/android/core/src/test/kotlin/ai/deepseek/dsh/companion/LiteChatViewModelTest.kt",
+        "apps/android/core/src/test/kotlin/ai/deepseek/dsh/companion/LiteFoldTest.kt",
+        "apps/android/app/src/main/kotlin/ai/deepseek/dsh/companion/LiteChatScreen.kt"
       ],
-      "remaining": "已有回答竞争、断线和重启证据；gen-58 落 §67 在 Lite 面的首块拼图——装配期 seedJournal 读回 journal 全量重放为会话历史（构造首帧即恢复对话、渲染零改动）、不可读 journal 隔离冷开（同目录 unavailable-<uuid> 重命名字节保留、绝不崩溃——原生 journal store 文档化恢复模板、§46 不静默丢弃）、播种后整文件原子写自然含全部历史（重启覆盖丢失自愈）、错误 turn 以既有 provider/error 与 network/error 事件持久化替代捏造的 message/completed（无假回复重启后仍可见）；§67 禁 unfinished draft 自动提交天然合规（Lite 无 draft 持久化面）。权限执行、完整审批信息、后台/休眠、持久化确认和跨端（宿主↔Lite 外的端间）恢复仍待逐项实现及验证。",
+      "remaining": "已有回答竞争、断线和重启证据；gen-58 落 §67 在 Lite 面的首块拼图——装配期 seedJournal 读回 journal 全量重放为会话历史（构造首帧即恢复对话、渲染零改动）、不可读 journal 隔离冷开（同目录 unavailable-<uuid> 重命名字节保留、绝不崩溃——原生 journal store 文档化恢复模板、§46 不静默丢弃）、播种后整文件原子写自然含全部历史（重启覆盖丢失自愈）、错误 turn 以既有 provider/error 与 network/error 事件持久化替代捏造的 message/completed（无假回复重启后仍可见）；gen-59 补 handoff 面：handoff 回合以自身标记对（prompt/accepted+handoff/requested）持久化、捏造的 message/completed 绝迹，pendingHandoff 于下一 prompt/accepted 清除不再粘滞，横幅改读 state.pendingHandoff（终于 handoff/requested 的 journal 重启后构造首帧即显、下一回合开始清除——§72 重复 UI 状态机债清除）；§67 禁 unfinished draft 自动提交天然合规（Lite 无 draft 持久化面）。权限执行、完整审批信息、后台/休眠、持久化确认和跨端（宿主↔Lite 外的端间）恢复仍待逐项实现及验证。",
       "evidenceLimit": "这些路径是已定位的候选证据；尚未逐条证明本节每一项要求，不授予整节 PASS。"
     },
     {
@@ -3712,9 +3718,12 @@
         "apps/android/core/src/test/kotlin/ai/deepseek/dsh/companion/LiteHTTPProviderTest.kt",
         "apps/android/core/src/test/kotlin/ai/deepseek/dsh/companion/LiteStoresTest.kt",
         "apps/android/core/src/main/kotlin/ai/deepseek/dsh/companion/LiteChat.kt",
-        "apps/android/core/src/test/kotlin/ai/deepseek/dsh/companion/LiteChatViewModelTest.kt"
+        "apps/android/core/src/main/kotlin/ai/deepseek/dsh/companion/LiteFold.kt",
+        "apps/android/core/src/test/kotlin/ai/deepseek/dsh/companion/LiteChatViewModelTest.kt",
+        "apps/android/core/src/test/kotlin/ai/deepseek/dsh/companion/LiteFoldTest.kt",
+        "apps/android/app/src/main/kotlin/ai/deepseek/dsh/companion/LiteChatScreen.kt"
       ],
-      "remaining": "§31 四件套收官后，gen-56 闭环遗留两端点缺口：LiteHTTPProvider 全量迁 OkHttp（:core 既有栈与 LinkClient 先例——连接 10s/写 30s/读与调用禁用的流式超时形态、行循环照 Link 骨架、请求头补 accept: text/event-stream 对齐宿主 adapter 面、三分失败分类全落双平台异常[OkHttp 各类超时统一 SocketTimeoutException→timeout、解析/拒连→unreachable、其余→dropped，JDK 独有类型清零]、EOF 未见 [DONE] 抛 Provider(\"STREAM_CLOSED\") 且截断流 tool-call 组装器绝不冲刷——宿主 sse.ts 字面对齐），配置面 LiteConfig/LiteConfigStoring/LiteFileConfigStore 整文件 Keystore 密封（§39：cipher 注入复用 link.CredentialsCipher seam、app 注入 AndroidKeystoreCipher、JVM 测试注 Plain、原子写 §46、文件缺席=null 首配合法而畸形/不可解密 fail-loud），validateLiteEndpoint 强制 https+host 非空+禁 userinfo 放行路径，LiteEntry store 注入形态（未配置=空态+三字段门控表单、已配置=修改配置预填、保存重读装配、读取失败独立错误行不伪装未配置）；真机 connected 3/3 走真 Keystore 保存-密封-重读-装配链。休眠 RelayClient 同病单列未动、归因头不加（宿主自我归因与 companion 不同产品面）、cleartext 不放行（https-only）。此前 gen-53 落权限策略（LiteToolPermissionPolicy 决策点逐调用恰咨询、三分决策、HOST_DECLARED 四门梯、Unknown 显式失败收口）、gen-55 落 runtimeMode 公开与装配入口（LiteSessionFacts 构造时事实对象、journal 事件/纯 UI 标签/诊断混入三否决、app 壳未配对分支 Lite 入口）。gen-58 落 §67 移动重启恢复的 Lite 承载（journal 续读经 §67 家族行记账）。开放：审批交互（ask 档与 §38 对齐）、tool-call 结果回喂模型（P2）、工具声明打包（HOST_DECLARED 名域）、事实诊断投影、RelayClient 迁移或退役、归因头决策、§54 网络矩阵设备端验证、handoff turn 捏造完成与 pendingHandoff 粘滞两既有缺陷。",
+      "remaining": "§31 四件套收官后，gen-56 闭环遗留两端点缺口：LiteHTTPProvider 全量迁 OkHttp（:core 既有栈与 LinkClient 先例——连接 10s/写 30s/读与调用禁用的流式超时形态、行循环照 Link 骨架、请求头补 accept: text/event-stream 对齐宿主 adapter 面、三分失败分类全落双平台异常[OkHttp 各类超时统一 SocketTimeoutException→timeout、解析/拒连→unreachable、其余→dropped，JDK 独有类型清零]、EOF 未见 [DONE] 抛 Provider(\"STREAM_CLOSED\") 且截断流 tool-call 组装器绝不冲刷——宿主 sse.ts 字面对齐），配置面 LiteConfig/LiteConfigStoring/LiteFileConfigStore 整文件 Keystore 密封（§39：cipher 注入复用 link.CredentialsCipher seam、app 注入 AndroidKeystoreCipher、JVM 测试注 Plain、原子写 §46、文件缺席=null 首配合法而畸形/不可解密 fail-loud），validateLiteEndpoint 强制 https+host 非空+禁 userinfo 放行路径，LiteEntry store 注入形态（未配置=空态+三字段门控表单、已配置=修改配置预填、保存重读装配、读取失败独立错误行不伪装未配置）；真机 connected 3/3 走真 Keystore 保存-密封-重读-装配链。休眠 RelayClient 同病单列未动、归因头不加（宿主自我归因与 companion 不同产品面）、cleartext 不放行（https-only）。此前 gen-53 落权限策略（LiteToolPermissionPolicy 决策点逐调用恰咨询、三分决策、HOST_DECLARED 四门梯、Unknown 显式失败收口）、gen-55 落 runtimeMode 公开与装配入口（LiteSessionFacts 构造时事实对象、journal 事件/纯 UI 标签/诊断混入三否决、app 壳未配对分支 Lite 入口）。gen-58 落 §67 移动重启恢复的 Lite 承载（journal 续读经 §67 家族行记账）。gen-59 收口台账具名两缺陷：handoff turn 不再捏造 message/completed（send() 判别式首臂=本回合 pendingHandoff、journal 恰 prompt/accepted+handoff/requested 与 handoff conformance 参照 fold 一致——LiteFold 于下一 prompt/accepted 清除 pendingHandoff，粘滞曾令后续正常回合误记 handoff/requested 而 turn/completed 绝迹；横幅源切至 state.pendingHandoff、lastHandoff 平行字段删除）。开放：审批交互（ask 档与 §38 对齐）、tool-call 结果回喂模型（P2）、工具声明打包（HOST_DECLARED 名域）、事实诊断投影、RelayClient 迁移或退役、归因头决策、§54 网络矩阵设备端验证。",
       "evidenceLimit": "这些路径是已定位的候选证据；尚未逐条证明本节每一项要求，不授予整节 PASS。"
     },
     {
@@ -4258,10 +4267,13 @@
         "IMPLEMENTATION_STATUS.md",
         "docs/defensive-patterns.md",
         "apps/android/core/src/main/kotlin/ai/deepseek/dsh/companion/LiteChat.kt",
+        "apps/android/core/src/main/kotlin/ai/deepseek/dsh/companion/LiteFold.kt",
         "apps/android/core/src/main/kotlin/ai/deepseek/dsh/companion/LiteStores.kt",
-        "apps/android/core/src/test/kotlin/ai/deepseek/dsh/companion/LiteChatViewModelTest.kt"
+        "apps/android/core/src/test/kotlin/ai/deepseek/dsh/companion/LiteChatViewModelTest.kt",
+        "apps/android/core/src/test/kotlin/ai/deepseek/dsh/companion/LiteFoldTest.kt",
+        "apps/android/app/src/main/kotlin/ai/deepseek/dsh/companion/LiteChatScreen.kt"
       ],
-      "remaining": "已有回答竞争、断线和重启证据；gen-58 落 §67 在 Lite 面的首块拼图——装配期 seedJournal 读回 journal 全量重放为会话历史（构造首帧即恢复对话、渲染零改动）、不可读 journal 隔离冷开（同目录 unavailable-<uuid> 重命名字节保留、绝不崩溃——原生 journal store 文档化恢复模板、§46 不静默丢弃）、播种后整文件原子写自然含全部历史（重启覆盖丢失自愈）、错误 turn 以既有 provider/error 与 network/error 事件持久化替代捏造的 message/completed（无假回复重启后仍可见）；§67 禁 unfinished draft 自动提交天然合规（Lite 无 draft 持久化面）。权限执行、完整审批信息、后台/休眠、持久化确认和跨端（宿主↔Lite 外的端间）恢复仍待逐项实现及验证。",
+      "remaining": "已有回答竞争、断线和重启证据；gen-58 落 §67 在 Lite 面的首块拼图——装配期 seedJournal 读回 journal 全量重放为会话历史（构造首帧即恢复对话、渲染零改动）、不可读 journal 隔离冷开（同目录 unavailable-<uuid> 重命名字节保留、绝不崩溃——原生 journal store 文档化恢复模板、§46 不静默丢弃）、播种后整文件原子写自然含全部历史（重启覆盖丢失自愈）、错误 turn 以既有 provider/error 与 network/error 事件持久化替代捏造的 message/completed（无假回复重启后仍可见）；gen-59 补 handoff 面：handoff 回合以自身标记对（prompt/accepted+handoff/requested）持久化、捏造的 message/completed 绝迹，pendingHandoff 于下一 prompt/accepted 清除不再粘滞，横幅改读 state.pendingHandoff（终于 handoff/requested 的 journal 重启后构造首帧即显、下一回合开始清除——§72 重复 UI 状态机债清除）；§67 禁 unfinished draft 自动提交天然合规（Lite 无 draft 持久化面）。权限执行、完整审批信息、后台/休眠、持久化确认和跨端（宿主↔Lite 外的端间）恢复仍待逐项实现及验证。",
       "evidenceLimit": "这些路径是已定位的候选证据；尚未逐条证明本节每一项要求，不授予整节 PASS。"
     },
     {
@@ -7779,10 +7791,13 @@
         "IMPLEMENTATION_STATUS.md",
         "docs/defensive-patterns.md",
         "apps/android/core/src/main/kotlin/ai/deepseek/dsh/companion/LiteChat.kt",
+        "apps/android/core/src/main/kotlin/ai/deepseek/dsh/companion/LiteFold.kt",
         "apps/android/core/src/main/kotlin/ai/deepseek/dsh/companion/LiteStores.kt",
-        "apps/android/core/src/test/kotlin/ai/deepseek/dsh/companion/LiteChatViewModelTest.kt"
+        "apps/android/core/src/test/kotlin/ai/deepseek/dsh/companion/LiteChatViewModelTest.kt",
+        "apps/android/core/src/test/kotlin/ai/deepseek/dsh/companion/LiteFoldTest.kt",
+        "apps/android/app/src/main/kotlin/ai/deepseek/dsh/companion/LiteChatScreen.kt"
       ],
-      "remaining": "已有回答竞争、断线和重启证据；gen-58 落 §67 在 Lite 面的首块拼图——装配期 seedJournal 读回 journal 全量重放为会话历史（构造首帧即恢复对话、渲染零改动）、不可读 journal 隔离冷开（同目录 unavailable-<uuid> 重命名字节保留、绝不崩溃——原生 journal store 文档化恢复模板、§46 不静默丢弃）、播种后整文件原子写自然含全部历史（重启覆盖丢失自愈）、错误 turn 以既有 provider/error 与 network/error 事件持久化替代捏造的 message/completed（无假回复重启后仍可见）；§67 禁 unfinished draft 自动提交天然合规（Lite 无 draft 持久化面）。权限执行、完整审批信息、后台/休眠、持久化确认和跨端（宿主↔Lite 外的端间）恢复仍待逐项实现及验证。",
+      "remaining": "已有回答竞争、断线和重启证据；gen-58 落 §67 在 Lite 面的首块拼图——装配期 seedJournal 读回 journal 全量重放为会话历史（构造首帧即恢复对话、渲染零改动）、不可读 journal 隔离冷开（同目录 unavailable-<uuid> 重命名字节保留、绝不崩溃——原生 journal store 文档化恢复模板、§46 不静默丢弃）、播种后整文件原子写自然含全部历史（重启覆盖丢失自愈）、错误 turn 以既有 provider/error 与 network/error 事件持久化替代捏造的 message/completed（无假回复重启后仍可见）；gen-59 补 handoff 面：handoff 回合以自身标记对（prompt/accepted+handoff/requested）持久化、捏造的 message/completed 绝迹，pendingHandoff 于下一 prompt/accepted 清除不再粘滞，横幅改读 state.pendingHandoff（终于 handoff/requested 的 journal 重启后构造首帧即显、下一回合开始清除——§72 重复 UI 状态机债清除）；§67 禁 unfinished draft 自动提交天然合规（Lite 无 draft 持久化面）。权限执行、完整审批信息、后台/休眠、持久化确认和跨端（宿主↔Lite 外的端间）恢复仍待逐项实现及验证。",
       "evidenceLimit": "这些路径是已定位的候选证据；尚未逐条证明本节每一项要求，不授予整节 PASS。"
     },
     {

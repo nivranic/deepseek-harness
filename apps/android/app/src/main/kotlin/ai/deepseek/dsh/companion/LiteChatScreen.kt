@@ -36,7 +36,7 @@ fun LiteChatScreen(model: LiteChatViewModel) {
     val state by model.liveState.collectAsStateWithLifecycle(initialValue = model.state)
 
     Column(Modifier.fillMaxSize()) {
-        model.lastHandoff?.let { handoff ->
+        state.pendingHandoff?.let { handoff ->
             Text(
                 "此能力需要完整运行时（$handoff），已在宿主上继续。",
                 Modifier.padding(horizontal = 16.dp, vertical = 6.dp),
