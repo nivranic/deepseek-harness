@@ -6,6 +6,7 @@ import ai.deepseek.dsh.contract.ToolRisk
 import org.junit.jupiter.api.Assumptions
 import kotlin.test.Test
 import kotlin.test.assertEquals
+import kotlin.test.assertFailsWith
 import kotlin.test.assertNull
 import kotlin.test.assertTrue
 
@@ -16,6 +17,11 @@ import kotlin.test.assertTrue
  * projection covers the bundled set without drift.
  */
 class LiteToolRegistryTest {
+
+    /** The frozen Android-local name set the projection mirror and the union twin below share. */
+    private val frozenLocalOnly =
+        setOf("url_fetch", "image_inspect", "attachment_read", "artifact_create", "calculator", "run_tests")
+
     @Test
     fun bundlesTheChapterThirtySixToolSet() {
         assertEquals(
@@ -114,8 +120,6 @@ class LiteToolRegistryTest {
             "packages/core/tools/tool-descriptors.json has not been generated yet; the integration stage reruns this mirror",
         )
         val projection = ToolDescriptors.parseDocument(resource!!.readText(Charsets.UTF_8)).associateBy { it.id }
-        val frozenLocalOnly =
-            setOf("url_fetch", "image_inspect", "attachment_read", "artifact_create", "calculator", "run_tests")
         val drift = LiteToolRegistry.bundled.mapNotNull { bundled ->
             val declared = projection[bundled.name]
             val locallyExecutable = bundled.fallbackCapability == null
@@ -151,6 +155,87 @@ class LiteToolRegistryTest {
         assertNull(catalog.handoffCapability("web_search"))
         assertEquals(LITE_REQUIRES_FULL_RUNTIME, catalog.handoffCapability("run_tests"))
         assertEquals(LITE_REQUIRES_FULL_RUNTIME, catalog.handoffCapability("apply_patch"))
+    }
+
+    /**
+     * The union twin of the projection mirror: the app-owned device
+     * declaration document (`apps/android/app/lite/lite-tool-declarations.json`,
+     * copied beside the Host projection by copyToolDescriptors) declares
+     * exactly the frozen local-only six, holds no name the Host projection
+     * declares, mirrors each name's bundled fallback capability judgment in
+     * its `supportsLite`, and leaves web_search to the Host side — so the
+     * APK-frozen union holds every bundled name exactly once.
+     */
+    @Test
+    fun theBundledDeclarationUnionHoldsEveryBundledNameExactlyOnce() {
+        val device = javaClass.classLoader.getResource("lite-tool-declarations.json")
+        val host = javaClass.classLoader.getResource("tool-descriptors.json")
+        Assumptions.assumeTrue(
+            device != null && host != null,
+            "the bundled tool-declaration documents have not been copied into test resources yet; the integration stage reruns this mirror",
+        )
+        val deviceDeclarations = ToolDescriptors.parseDocument(device!!.readText(Charsets.UTF_8))
+        val hostIds = ToolDescriptors.parseDocument(host!!.readText(Charsets.UTF_8)).map { it.id }.toSet()
+        assertEquals(frozenLocalOnly, deviceDeclarations.map { it.id }.toSet(), "the device document declares exactly the frozen local-only six")
+        assertTrue(deviceDeclarations.none { it.id in hostIds }, "a name declared by both bundled documents has no honest arbitration")
+        assertTrue("web_search" in hostIds, "web_search arrives through the Host projection, never the device document")
+        for (declared in deviceDeclarations) {
+            val locallyExecutable = LiteToolRegistry.tool(declared.id)?.fallbackCapability == null
+            assertEquals(
+                locallyExecutable,
+                declared.supportsLite,
+                "${declared.id}: supportsLite must mirror the bundled fallback capability judgment (run_tests authored not-lite)",
+            )
+        }
+        val union = LiteToolCatalog.fromBundledDocuments(deviceDeclarations, ToolDescriptors.parseDocument(host!!.readText(Charsets.UTF_8)))
+        assertEquals(LiteToolSource.BUNDLED, union.source)
+        for (bundled in LiteToolRegistry.bundled) {
+            assertEquals(bundled.fallbackCapability, union.handoffCapability(bundled.name))
+        }
+        assertEquals(LITE_REQUIRES_FULL_RUNTIME, union.handoffCapability("bash"))
+    }
+
+    /**
+     * The union the app assembler composes keeps the bundled fallback table's
+     * dispatch outcome name for name (both documents from test resources; no
+     * asset IO): local tools stay local, run_tests keeps its handoff — only
+     * the policy-facing Handoff reason differs, the emitted capability stays
+     * the fixed literal — and a name outside both documents stays Unknown.
+     */
+    @Test
+    fun theBundledUnionResolvesEachBundledNameThroughThePolicyLadder() {
+        val device = javaClass.classLoader.getResource("lite-tool-declarations.json")
+        val host = javaClass.classLoader.getResource("tool-descriptors.json")
+        Assumptions.assumeTrue(
+            device != null && host != null,
+            "the bundled tool-declaration documents have not been copied into test resources yet; the integration stage reruns this mirror",
+        )
+        val policy = LiteToolPermissionPolicies.defaultPolicy(
+            LiteToolCatalog.fromBundledDocuments(
+                ToolDescriptors.parseDocument(device!!.readText(Charsets.UTF_8)),
+                ToolDescriptors.parseDocument(host!!.readText(Charsets.UTF_8)),
+            ),
+        )
+        for (name in LiteToolRegistry.localToolNames) {
+            assertEquals(LiteToolDecision.AllowLocal, policy.decide(name), "$name stays locally executable under the union")
+        }
+        assertEquals(LiteToolDecision.Handoff("declared-not-lite"), policy.decide("run_tests"))
+        assertEquals(LiteToolDecision.AllowLocal, policy.decide("web_search"))
+        // Every Host-declared non-lite name (bash among them) hands off — the
+        // projection's vocabulary is declared data under the union.
+        assertEquals(LiteToolDecision.Handoff("declared-not-lite"), policy.decide("bash"))
+        assertEquals(LiteToolDecision.Unknown, policy.decide("nonexistent"))
+    }
+
+    @Test
+    fun aNameInBothBundledDocumentsFailsLoudNamingTheCollision() {
+        val failure = assertFailsWith<IllegalArgumentException> {
+            LiteToolCatalog.fromBundledDocuments(
+                listOf(declared("url_fetch", supportsLite = true)),
+                listOf(declared("url_fetch", supportsLite = false)),
+            )
+        }
+        assertTrue("url_fetch" in failure.message.orEmpty(), "the collision message must name the colliding id")
     }
 
     private fun declared(id: String, supportsLite: Boolean): ToolDescriptor =

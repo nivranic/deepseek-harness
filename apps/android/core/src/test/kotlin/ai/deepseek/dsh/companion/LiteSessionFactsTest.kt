@@ -2,9 +2,11 @@ package ai.deepseek.dsh.companion
 
 import ai.deepseek.dsh.contract.LitePresetDescriptor
 import ai.deepseek.dsh.contract.LitePresetPersona
+import ai.deepseek.dsh.contract.ToolDescriptors
 import kotlinx.coroutines.CoroutineScope
 import kotlinx.coroutines.test.UnconfinedTestDispatcher
 import kotlinx.coroutines.test.runTest
+import org.junit.jupiter.api.Assumptions
 import kotlin.test.Test
 import kotlin.test.assertEquals
 import kotlin.test.assertNull
@@ -74,5 +76,33 @@ class LiteSessionFactsTest {
             execute = { _, _, _ -> LiteToolOutcome(ok = false, text = "") },
         )
         assertEquals(LiteSessionFacts(), model.facts)
+    }
+
+    /**
+     * The union path the app assembler wires (parsed documents fed directly;
+     * no asset IO): a session constructed over the APK-frozen union catalog
+     * discloses the BUNDLED tool-catalog source, never the fallback default.
+     */
+    @Test
+    fun theUnionAssembledFactsNameTheBundledToolCatalogSource() = runTest {
+        val device = javaClass.classLoader.getResource("lite-tool-declarations.json")
+        val host = javaClass.classLoader.getResource("tool-descriptors.json")
+        Assumptions.assumeTrue(
+            device != null && host != null,
+            "the bundled tool-declaration documents have not been copied into test resources yet; the integration stage reruns this mirror",
+        )
+        val toolCatalog = LiteToolCatalog.fromBundledDocuments(
+            ToolDescriptors.parseDocument(device!!.readText(Charsets.UTF_8)),
+            ToolDescriptors.parseDocument(host!!.readText(Charsets.UTF_8)),
+        )
+        val model = LiteChatViewModel(
+            scope = CoroutineScope(UnconfinedTestDispatcher(testScheduler)),
+            sessionId = "facts-bundled-union",
+            provider = ScriptedLiteProvider(emptyMap()),
+            execute = { _, _, _ -> LiteToolOutcome(ok = false, text = "") },
+            toolCatalog = toolCatalog,
+            facts = LiteSessionFacts(toolCatalogSource = toolCatalog.source),
+        )
+        assertEquals(LiteToolSource.BUNDLED, model.facts.toolCatalogSource)
     }
 }

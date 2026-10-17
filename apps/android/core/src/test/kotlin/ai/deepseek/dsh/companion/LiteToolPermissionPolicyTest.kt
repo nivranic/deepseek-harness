@@ -6,10 +6,11 @@ import kotlin.test.Test
 import kotlin.test.assertEquals
 
 /**
- * The §31 permission policy ladder: Host-declared names walk the
- * declaration gates in order — lite support, risk tier, permissions —
- * while the bundled fallback (and the bare default catalog built on it)
- * keeps the bundled capability judgments with no risk gate.
+ * The §31 permission policy ladder: declared names — the Host's live
+ * declaration or the APK-frozen union — walk the declaration gates in order
+ * — lite support, risk tier, permissions — while the bundled fallback (and
+ * the bare default catalog built on it) keeps the bundled capability
+ * judgments with no risk gate.
  */
 class LiteToolPermissionPolicyTest {
     @Test
@@ -87,6 +88,82 @@ class LiteToolPermissionPolicyTest {
         assertEquals(LiteToolDecision.AllowLocal, policy.decide("calculator"))
         assertEquals(LiteToolDecision.Handoff(LITE_REQUIRES_FULL_RUNTIME), policy.decide("run_tests"))
         assertEquals(LiteToolDecision.Unknown, policy.decide("bash"))
+    }
+
+    @Test
+    fun bundledDeclaredNotLiteToolsHandOffBeforeAnyLaterGate() {
+        val policy = LiteToolPermissionPolicies.defaultPolicy(
+            LiteToolCatalog.fromBundledDocuments(
+                listOf(declared("run_tests", supportsLite = false, risk = ToolRisk.CRITICAL)),
+                emptyList(),
+            ),
+        )
+        assertEquals(LiteToolDecision.Handoff("declared-not-lite"), policy.decide("run_tests"))
+    }
+
+    @Test
+    fun bundledHighAndCriticalRiskToolsHandOff() {
+        val policy = LiteToolPermissionPolicies.defaultPolicy(
+            LiteToolCatalog.fromBundledDocuments(
+                listOf(
+                    declared("url_fetch", supportsLite = true, risk = ToolRisk.HIGH, permissions = listOf("web:fetch")),
+                    declared("image_inspect", supportsLite = true, risk = ToolRisk.CRITICAL),
+                ),
+                emptyList(),
+            ),
+        )
+        assertEquals(LiteToolDecision.Handoff("risk-high"), policy.decide("url_fetch"))
+        assertEquals(LiteToolDecision.Handoff("risk-critical"), policy.decide("image_inspect"))
+    }
+
+    @Test
+    fun bundledToolsWithPermissionsHandOffBelowTheRiskGate() {
+        val policy = LiteToolPermissionPolicies.defaultPolicy(
+            LiteToolCatalog.fromBundledDocuments(
+                listOf(declared("calculator", supportsLite = true, risk = ToolRisk.MODERATE, permissions = listOf("fs:read"))),
+                emptyList(),
+            ),
+        )
+        assertEquals(LiteToolDecision.Handoff("requires-remote-permissions"), policy.decide("calculator"))
+    }
+
+    @Test
+    fun bundledLowAndModerateToolsWithoutPermissionsExecuteLocally() {
+        val policy = LiteToolPermissionPolicies.defaultPolicy(
+            LiteToolCatalog.fromBundledDocuments(
+                listOf(
+                    declared("calculator", supportsLite = true, risk = ToolRisk.LOW),
+                    declared("image_inspect", supportsLite = true, risk = ToolRisk.MODERATE),
+                ),
+                listOf(declared("web_search", supportsLite = true, risk = ToolRisk.MODERATE)),
+            ),
+        )
+        assertEquals(LiteToolDecision.AllowLocal, policy.decide("calculator"))
+        assertEquals(LiteToolDecision.AllowLocal, policy.decide("image_inspect"))
+        assertEquals(LiteToolDecision.AllowLocal, policy.decide("web_search"))
+    }
+
+    @Test
+    fun bundledLiteToolsWithoutABundledExecutorHandOff() {
+        val policy = LiteToolPermissionPolicies.defaultPolicy(
+            LiteToolCatalog.fromBundledDocuments(
+                emptyList(),
+                listOf(declared("apply_patch", supportsLite = true, risk = ToolRisk.LOW)),
+            ),
+        )
+        assertEquals(LiteToolDecision.Handoff("no-bundled-executor"), policy.decide("apply_patch"))
+    }
+
+    @Test
+    fun namesAbsentFromBothBundledDocumentsAreUnknownNeverGuessed() {
+        val policy = LiteToolPermissionPolicies.defaultPolicy(
+            LiteToolCatalog.fromBundledDocuments(
+                listOf(declared("web_search", supportsLite = true)),
+                emptyList(),
+            ),
+        )
+        assertEquals(LiteToolDecision.Unknown, policy.decide("bash"))
+        assertEquals(LiteToolDecision.Unknown, policy.decide("run_tests"))
     }
 
     private fun declared(

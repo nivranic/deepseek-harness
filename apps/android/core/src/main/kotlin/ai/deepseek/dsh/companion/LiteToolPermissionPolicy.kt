@@ -36,19 +36,21 @@ fun interface LiteToolPermissionPolicy {
 
 /**
  * The shipped [LiteToolPermissionPolicy] factories. The default policy reads
- * Host-declared facts when the catalog carries them and answers in bundled
- * fallback semantics otherwise; risk facts come only from the Host's output
- * and are never guessed for the bundled name domain (§37), and the gates
- * reuse the contract vocabulary — [ToolRisk] tiers and
- * `ToolDescriptor.permissions` — instead of a parallel one (§72).
+ * declared facts — the Host's live declaration or the APK-frozen union —
+ * when the catalog carries them and answers in bundled fallback semantics
+ * otherwise; risk facts come only from a declaration and are never guessed
+ * for the bundled name domain (§37), and the gates reuse the contract
+ * vocabulary — [ToolRisk] tiers and `ToolDescriptor.permissions` — instead
+ * of a parallel one (§72).
  */
 object LiteToolPermissionPolicies {
     /**
-     * Build the default policy for one catalog. Host-declared names walk the
-     * declaration gates in order — lite support, an on-device executor in the
-     * bundled table, risk tier, permissions; bundled fallback names keep the
-     * bundled capability judgments with no risk gate, because that name
-     * domain carries no Host risk facts.
+     * Build the default policy for one catalog. Declared names — the Host's
+     * live declaration or the APK-frozen union — walk the declaration gates
+     * in order — lite support, an on-device executor in the bundled table,
+     * risk tier, permissions; bundled fallback names keep the bundled
+     * capability judgments with no risk gate, because that name domain
+     * carries no declared risk facts.
      * @param catalog the live session's dispatch catalog.
      * @returns the policy answering `decide` for that catalog.
      */
@@ -61,7 +63,7 @@ object LiteToolPermissionPolicies {
                     if (fallback != null) LiteToolDecision.Handoff(fallback) else LiteToolDecision.AllowLocal
                 }
             }
-            LiteToolSource.HOST_DECLARED -> when (val declared = catalog.declaration(name)) {
+            LiteToolSource.HOST_DECLARED, LiteToolSource.BUNDLED -> when (val declared = catalog.declaration(name)) {
                 null -> LiteToolDecision.Unknown
                 else -> when {
                     !declared.supportsLite -> LiteToolDecision.Handoff("declared-not-lite")

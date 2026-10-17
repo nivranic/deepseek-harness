@@ -70,24 +70,28 @@ val verifyScannerResources = tasks.register("verifyScannerResources") {
 }
 tasks.matching { it.name == "preBuild" }.configureEach { dependsOn(verifyScannerResources) }
 
-// Copy the generated Lite projections straight from the preset and core tools
-// packages so the standalone session bundle carries the same bytes the JVM
-// mirror tests cross-check; the copies land under the assets root's lite/ leaf.
+// Copy the Lite documents the standalone session bundles under the assets
+// root's lite/ leaf: the generated projections straight from the preset and
+// core tools packages (the same bytes the JVM mirror tests cross-check), the
+// Host's tool-descriptor projection, and the app-owned device declarations
+// the runtime unions with it — one tool id in only one of those two.
 val litePresetProjection = rootProject.projectDir.parentFile.parentFile.resolve("packages/preset/agent-presets/lite-preset-descriptors.json")
 val liteToolSchemaProjection = rootProject.projectDir.parentFile.parentFile.resolve("packages/core/tools/lite-tool-schemas.json")
+val liteHostToolDescriptors = rootProject.projectDir.parentFile.parentFile.resolve("packages/core/tools/tool-descriptors.json")
+val liteDeviceToolDeclarations = projectDir.resolve("lite/lite-tool-declarations.json")
 val copyLiteAssets by tasks.registering(Copy::class) {
-    from(litePresetProjection, liteToolSchemaProjection)
+    from(litePresetProjection, liteToolSchemaProjection, liteHostToolDescriptors, liteDeviceToolDeclarations)
     into(layout.buildDirectory.dir("generated/lite-assets/lite"))
 }
 
-// The bundled catalogs load these projections at runtime, so a missing or
+// The bundled catalogs load these documents at runtime, so a missing or
 // empty source must fail the build instead of shipping a broken asset set,
 // and the copy must run before any variant merges the assets directories.
 val verifyLiteAssetSources = tasks.register("verifyLiteAssetSources") {
     group = "verification"
     doLast {
-        for (source in listOf(litePresetProjection, liteToolSchemaProjection)) {
-            require(source.isFile && source.length() > 0) { "Lite projection is missing or empty: $source" }
+        for (source in listOf(litePresetProjection, liteToolSchemaProjection, liteHostToolDescriptors, liteDeviceToolDeclarations)) {
+            require(source.isFile && source.length() > 0) { "Lite document is missing or empty: $source" }
         }
     }
 }

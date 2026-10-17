@@ -2,6 +2,7 @@ package ai.deepseek.dsh.companion
 
 import ai.deepseek.dsh.contract.LitePresetDescriptors
 import ai.deepseek.dsh.contract.LiteToolSchemas
+import ai.deepseek.dsh.contract.ToolDescriptors
 import androidx.test.platform.app.InstrumentationRegistry
 import kotlinx.coroutines.CoroutineScope
 import kotlinx.coroutines.Dispatchers
@@ -10,34 +11,52 @@ import org.junit.Assert.assertTrue
 import org.junit.Test
 
 /**
- * The Lite projection pair the build copies into assets/lite/: under
- * instrumentation both asset paths open, their bytes parse through the shared
- * contract parsers, and the assembled session chain builds over the BUNDLED
- * catalogs without touching the network.
+ * The Lite documents the build copies into assets/lite/: under
+ * instrumentation every asset path opens, the bytes parse through the shared
+ * contract parsers, the device declarations and the Host projection union
+ * into the BUNDLED dispatch catalog, and the assembled session chain builds
+ * without touching the network.
  */
 class LiteBundledAssetsTest {
 
     private fun targetContext() = InstrumentationRegistry.getInstrumentation().targetContext
 
     @Test
-    fun bothBundledAssetPathsOpenAndTheirBytesParse() {
+    fun everyBundledAssetPathOpensAndItsBytesParse() {
         val schemas = targetContext().assets.open("lite/lite-tool-schemas.json").use { stream ->
             stream.readBytes().decodeToString()
         }
         val presets = targetContext().assets.open("lite/lite-preset-descriptors.json").use { stream ->
             stream.readBytes().decodeToString()
         }
+        val deviceDeclarations = targetContext().assets.open("lite/lite-tool-declarations.json").use { stream ->
+            stream.readBytes().decodeToString()
+        }
+        val hostToolDescriptors = targetContext().assets.open("lite/tool-descriptors.json").use { stream ->
+            stream.readBytes().decodeToString()
+        }
         assertTrue(LiteToolSchemas.parseDocument(schemas).isNotEmpty())
         assertTrue(LitePresetDescriptors.parseDocument(presets).isNotEmpty())
+        assertTrue(ToolDescriptors.parseDocument(deviceDeclarations).isNotEmpty())
+        assertTrue(ToolDescriptors.parseDocument(hostToolDescriptors).isNotEmpty())
     }
 
     @Test
-    fun liteAssetsLoadsBundledCatalogsAndTheAssemblerBuildsTheChain() {
+    fun liteAssetsLoadsBundledCatalogsAndTheAssemblerBuildsTheUnionChain() {
         val bundled = LiteAssets.load(targetContext())
         assertEquals(LiteToolSchemaSource.BUNDLED, bundled.toolSchemas.source)
         assertEquals(LitePresetSource.BUNDLED, bundled.presets.source)
         assertTrue(bundled.toolSchemas.tools.isNotEmpty())
         assertTrue(bundled.presets.presets.isNotEmpty())
+        assertTrue(bundled.deviceToolDeclarations.isNotEmpty())
+        assertTrue(bundled.hostToolDescriptors.isNotEmpty())
+
+        val union = LiteToolCatalog.fromBundledDocuments(bundled.deviceToolDeclarations, bundled.hostToolDescriptors)
+        assertEquals(LiteToolSource.BUNDLED, union.source)
+        assertTrue(
+            "web_search resolves through the Host side of the union",
+            union.declaration("web_search")?.supportsLite == true,
+        )
 
         val model = LiteSessionAssembler.assemble(
             context = targetContext(),
@@ -48,6 +67,7 @@ class LiteBundledAssetsTest {
             model = "unused",
             execute = { _, _, _ -> LiteToolOutcome(ok = false, text = "") },
         )
+        assertEquals(LiteToolSource.BUNDLED, model.facts.toolCatalogSource)
         assertTrue(model.state.conversation.isEmpty())
     }
 }

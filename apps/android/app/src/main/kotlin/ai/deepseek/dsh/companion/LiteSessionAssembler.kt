@@ -4,14 +4,14 @@ import android.content.Context
 import kotlinx.coroutines.CoroutineScope
 
 /**
- * Assembles one standalone Lite chat session over the APK-bundled projection
- * pair: the provider's `tools` array and the preset catalog both come from
+ * Assembles one standalone Lite chat session over the APK-bundled documents:
+ * the provider's `tools` array and the preset catalog both come from
  * [LiteAssets]' BUNDLED catalogs, the preset selection resolves once against
  * that catalog — a null id keeps the projection default — and the dispatch
- * catalog stays the bundled fallback name domain — §31's permission gate
- * keeps unknown names refused because this generation bundles no tool
- * declaration. Construction only: mounting the view model into a UI is not
- * this factory's concern.
+ * catalog is the APK-frozen union of the device tool declarations and the
+ * bundled Host projection (§32): the §31 permission gate walks the declared
+ * gates, and a name absent from both documents stays Unknown. Construction
+ * only: mounting the view model into a UI is not this factory's concern.
  */
 object LiteSessionAssembler {
 
@@ -47,6 +47,7 @@ object LiteSessionAssembler {
         // The selection resolves here, once: switching presets means
         // assembling a new session with new facts, never re-pointing a live one.
         val preset = bundled.presets.resolve(presetId)
+        val toolCatalog = LiteToolCatalog.fromBundledDocuments(bundled.deviceToolDeclarations, bundled.hostToolDescriptors)
         return LiteChatViewModel(
             scope = scope,
             sessionId = sessionId,
@@ -59,11 +60,11 @@ object LiteSessionAssembler {
             execute = execute,
             store = store,
             artifacts = artifacts,
-            toolCatalog = LiteToolCatalog.FALLBACK,
+            toolCatalog = toolCatalog,
             presetCatalog = bundled.presets,
             selectedPreset = preset,
             facts = LiteSessionFacts(
-                toolCatalogSource = LiteToolCatalog.FALLBACK.source,
+                toolCatalogSource = toolCatalog.source,
                 toolSchemasSource = bundled.toolSchemas.source,
                 presetSource = bundled.presets.source,
                 presetId = preset?.id,

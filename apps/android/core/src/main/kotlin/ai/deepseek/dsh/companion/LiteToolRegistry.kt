@@ -18,19 +18,22 @@ data class LiteToolDescriptor(
 )
 
 /**
- * Which judgment source produced a dispatch decision: the Host's tool
- * declaration, or the bundled defaults kept for offline sessions and Hosts
- * that never served one. The source is carried explicitly so a fallback stays
- * observable, never silent.
+ * Which judgment source produced a dispatch decision: the Host's live-served
+ * tool declaration, the APK-frozen union of the device tool declarations and
+ * the bundled Host projection, or the hardcoded bundled defaults kept for
+ * construction without either. The source is carried explicitly so a
+ * fallback stays observable, never silent.
  */
-enum class LiteToolSource { HOST_DECLARED, BUNDLED_FALLBACK }
+enum class LiteToolSource { HOST_DECLARED, BUNDLED, BUNDLED_FALLBACK }
 
 /**
  * The dispatch decisions for one Lite runtime (§32): which tool may execute
- * on-device and which hands off to the full runtime. Host-declared mode
- * consumes the Host's [ToolDescriptor] projection — the Client never guesses;
- * a tool executes on-device only when the Host declares `supportsLite` and a
- * bundled executor exists, and everything else keeps the handoff path.
+ * on-device and which hands off to the full runtime. Declared mode consumes
+ * [ToolDescriptor]s — the Host's live declaration, or the APK-frozen union
+ * of the device declarations and the bundled Host projection — never the
+ * Client's guess; a tool executes on-device only when its declaration says
+ * `supportsLite` and a bundled executor exists, and everything else keeps
+ * the handoff path.
  */
 class LiteToolCatalog private constructor(
     /** Which judgment source produced this catalog. */
@@ -45,9 +48,9 @@ class LiteToolCatalog private constructor(
     fun tool(name: String): LiteToolDescriptor? = LiteToolRegistry.tool(name)
 
     /**
-     * Look up the Host's declaration for one tool name — the read face the
-     * §31 permission policy consumes for the Host-declared risk and
-     * permission facts.
+     * Look up the declaration for one tool name — the read face the
+     * §31 permission policy consumes for the declared risk and permission
+     * facts.
      * @param name the model-requested tool name.
      * @return the declared descriptor, or null when the name is absent from the declaration; [LiteToolSource.BUNDLED_FALLBACK] carries no declaration, so lookups there answer null.
      */
@@ -61,7 +64,7 @@ class LiteToolCatalog private constructor(
      */
     fun handoffCapability(name: String): String? = when (source) {
         LiteToolSource.BUNDLED_FALLBACK -> LiteToolRegistry.handoffCapability(name)
-        LiteToolSource.HOST_DECLARED -> when {
+        LiteToolSource.HOST_DECLARED, LiteToolSource.BUNDLED -> when {
             hostTools[name]?.supportsLite != true -> LITE_REQUIRES_FULL_RUNTIME
             LiteToolRegistry.tool(name) == null -> LITE_REQUIRES_FULL_RUNTIME
             else -> null
@@ -79,6 +82,29 @@ class LiteToolCatalog private constructor(
          */
         fun fromHostDescriptors(descriptors: List<ToolDescriptor>): LiteToolCatalog =
             LiteToolCatalog(LiteToolSource.HOST_DECLARED, descriptors.associateBy { it.id })
+
+        /**
+         * Build the APK-frozen union catalog: the app-owned device tool
+         * declarations plus the bundled Host projection's descriptors. Each
+         * document rejects duplicate ids at parse; the union adds the
+         * cross-document guard because a name declared by both documents has
+         * no honest arbitration.
+         * @param deviceDeclarations the app-owned declarations, in document order.
+         * @param hostDescriptors the bundled Host projection's descriptors, in document order.
+         * @returns the [LiteToolSource.BUNDLED] catalog; dispatch walks the same declared gates as [fromHostDescriptors].
+         * @throws IllegalArgumentException when a tool id appears in both documents.
+         */
+        fun fromBundledDocuments(
+            deviceDeclarations: List<ToolDescriptor>,
+            hostDescriptors: List<ToolDescriptor>,
+        ): LiteToolCatalog {
+            val deviceIds = deviceDeclarations.map { it.id }.toSet()
+            val collisions = hostDescriptors.map { it.id }.filter { it in deviceIds }
+            if (collisions.isNotEmpty()) {
+                throw IllegalArgumentException("tool id declared by both bundled documents: ${collisions.joinToString()}")
+            }
+            return LiteToolCatalog(LiteToolSource.BUNDLED, (deviceDeclarations + hostDescriptors).associateBy { it.id })
+        }
     }
 }
 
