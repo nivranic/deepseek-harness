@@ -12,11 +12,17 @@ import androidx.test.platform.app.InstrumentationRegistry
 import androidx.test.rule.GrantPermissionRule
 import kotlinx.coroutines.CoroutineScope
 import kotlinx.coroutines.Dispatchers
+import kotlinx.serialization.json.Json
+import kotlinx.serialization.json.JsonObject
+import kotlinx.serialization.json.jsonObject
 import org.junit.Assert.assertEquals
 import org.junit.After
 import org.junit.BeforeClass
 import org.junit.Rule
 import org.junit.Test
+
+/** One journal event object from its JSON text. */
+private fun journalEvent(json: String): JsonObject = Json.parseToJsonElement(json).jsonObject
 
 /**
  * The unpaired shell's Lite entry (§31's closing generation): the entry stays
@@ -26,6 +32,8 @@ import org.junit.Test
  * blocked composer is the default path the assertion observes. The config
  * form closes the loop on-device: saving through the real Keystore cipher
  * re-reads the store and replaces the empty state with the assembled chat.
+ * A stored journal closes the §67 relaunch loop: assembly over the real
+ * filesDir store replays it in as the restored conversation.
  */
 class LiteEntryNativeTest {
     @get:Rule(order = 0)
@@ -107,23 +115,61 @@ class LiteEntryNativeTest {
         assertEquals(LiteSessionFacts(presetId = "minimal"), model.facts)
     }
 
+    @Test
+    fun aStoredJournalRestoresItsConversationThroughTheAssembler() {
+        val context = InstrumentationRegistry.getInstrumentation().targetContext
+        val store = LiteFileSessionStore(liteSessionsDirectory())
+        val stored = LiteSession("lite-main")
+        stored.record(journalEvent("""{"type":"prompt/accepted","requestId":"r1","content":"重启后还在吗"}"""))
+        stored.record(journalEvent("""{"type":"message/completed","text":"在的，历史已经恢复。"}"""))
+        stored.record(journalEvent("""{"type":"turn/completed"}"""))
+        store.save(stored)
+
+        // A relaunch assembles over the same real filesDir store: the
+        // constructor replays the stored journal in, so the conversation
+        // crosses the process boundary without any UI-side restore code.
+        val model = LiteSessionAssembler.assemble(
+            context = context,
+            scope = CoroutineScope(Dispatchers.Unconfined),
+            sessionId = "lite-main",
+            endpoint = "https://lite-entry.invalid/chat/completions",
+            apiKey = "unused",
+            model = "unused",
+            execute = { _, _, _ -> LiteToolOutcome(ok = false, text = "") },
+            store = store,
+        )
+        assertEquals(
+            listOf(
+                LiteMessage(role = "user", text = "重启后还在吗"),
+                LiteMessage(role = "assistant", text = "在的，历史已经恢复。"),
+            ),
+            model.state.conversation,
+        )
+    }
+
     @After
-    fun leaveNoPersistedLiteConfig() {
+    fun leaveNoPersistedLiteState() {
         liteConfigFile().delete()
+        liteSessionsDirectory().deleteRecursively()
     }
 
     companion object {
-        // The persisted config survives process death; wiping it before the
-        // rule launches the activity keeps the empty-state assertions honest
-        // across reruns and method order.
+        // The persisted config and journal survive process death; wiping them
+        // before the rule launches the activity keeps the empty-state and
+        // restore assertions honest across reruns and method order.
         @BeforeClass
         @JvmStatic
-        fun resetPersistedLiteConfig() {
+        fun resetPersistedLiteState() {
             liteConfigFile().delete()
+            liteSessionsDirectory().deleteRecursively()
         }
 
         private fun liteConfigFile() = java.io.File(
             InstrumentationRegistry.getInstrumentation().targetContext.filesDir, "lite-config.enc",
+        )
+
+        private fun liteSessionsDirectory() = java.io.File(
+            InstrumentationRegistry.getInstrumentation().targetContext.filesDir, "lite-sessions",
         )
     }
 }

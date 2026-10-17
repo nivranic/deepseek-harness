@@ -19,6 +19,30 @@ private fun event(type: String, vararg fields: Pair<String, JsonElement>): JsonO
 private fun text(value: String): JsonPrimitive = JsonPrimitive(value)
 
 /**
+ * Seed one session's journal at construction (§67's relaunch recovery): a
+ * readable stored journal replays in as the session's history, an absent one
+ * cold-opens empty, and an unreadable one — the store's fail-loud load throws
+ * — is quarantined through the store, bytes preserved beside the file, before
+ * the same cold open. The seed matches on the session id alone: endpoint and
+ * preset changes do not retire a journal, they only change how the next turn
+ * is requested.
+ */
+private fun seedJournal(store: LiteSessionStoring?, sessionId: String): LiteSession {
+    if (store == null) return LiteSession(sessionId)
+    return try {
+        store.load(sessionId) ?: LiteSession(sessionId)
+    } catch (unreadable: Exception) {
+        // A corrupt line throws IllegalStateException and an unreadable file
+        // IOException; both are unrecoverable at assembly, so the journal is
+        // quarantined — a same-directory rename of a file load just read —
+        // and its failure stays loud as a broken filesystem, not a recovery
+        // decision this path hides.
+        store.quarantine(sessionId)
+        LiteSession(sessionId)
+    }
+}
+
+/**
  * The Lite chat surface's state: one on-device session driven through the
  * loop, its journal persisted on every turn, and the folded domain state
  * exposed for rendering — live per event while a turn runs, replayed from
@@ -39,8 +63,11 @@ class LiteChatViewModel(
     /** The construction-time session facts the UI discloses; the default states this face's own selection, bare and without a preset id until a projection resolves one. */
     val facts: LiteSessionFacts = LiteSessionFacts(presetId = selectedPreset?.id),
 ) {
-    /** The durable journal the turn outcomes land in. */
-    val session: LiteSession = LiteSession(sessionId)
+    /** The durable journal the turn outcomes land in: construction replays a
+     * stored journal for this id in as the session's history (§67's relaunch
+     * recovery), and an unreadable one is quarantined beside its file while
+     * the session cold-opens empty. */
+    val session: LiteSession = seedJournal(store, sessionId)
 
     // Replay one cut for late collectors; buffer every intermediate cut so
     // per-event streaming reaches the UI without StateFlow-style conflation.
@@ -75,10 +102,26 @@ class LiteChatViewModel(
     suspend fun send(prompt: String) {
         driver.submit(prompt, selectedPreset?.assembledSystemPrompt).join()
         session.record(event("prompt/accepted", "requestId" to text("ui-${java.util.UUID.randomUUID()}"), "content" to text(prompt)))
-        session.record(
-            event("message/completed", "text" to text(driver.fold.state.conversation.lastOrNull()?.text ?: "")),
-        )
-        val handoff = driver.fold.state.pendingHandoff
+        val folded = driver.fold.state
+        when (folded.lastTurnEnd) {
+            // A turn the transport killed journals its folded failure under
+            // the failure's own tag — never a message row that echoes the
+            // prompt back as the assistant's answer.
+            "provider-error" -> {
+                val failure = folded.errors.lastOrNull { it.kind == "provider" }
+                session.record(
+                    event("provider/error", "code" to text(failure?.code ?: ""), "message" to text(failure?.message ?: "")),
+                )
+            }
+            "network-error" -> {
+                val failure = folded.errors.lastOrNull { it.kind == "network" }
+                session.record(event("network/error", "kind" to text(failure?.code ?: "")))
+            }
+            else -> session.record(
+                event("message/completed", "text" to text(folded.conversation.lastOrNull()?.text ?: "")),
+            )
+        }
+        val handoff = folded.pendingHandoff
         if (handoff != null) {
             lastHandoff = handoff
             session.record(event("handoff/requested", "capability" to text(handoff)))

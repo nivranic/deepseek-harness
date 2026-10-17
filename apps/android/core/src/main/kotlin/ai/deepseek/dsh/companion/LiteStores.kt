@@ -59,6 +59,18 @@ interface LiteSessionStoring {
     fun load(id: String): LiteSession?
 
     /**
+     * Quarantine one session's unreadable journal: the stored bytes move to an
+     * `unavailable` sibling name — never deleted or replaced — and later loads
+     * read the session as absent. The documented recovery is a cold open that
+     * neither crashes nor silently drops the bytes; direct [load] callers keep
+     * the fail-loud throw, so this is the assembly path's degradation, not a
+     * second read semantic.
+     * @param id the session identity whose journal is retired.
+     * @return the quarantined file name, or null when nothing is stored under the id.
+     */
+    fun quarantine(id: String): String?
+
+    /**
      * Remove one session's journal.
      * @param id the session identity to delete.
      */
@@ -91,6 +103,20 @@ class LiteFileSessionStore(directory: File) : LiteSessionStoring {
 
     override fun delete(id: String) {
         file(id).delete()
+    }
+
+    override fun quarantine(id: String): String? {
+        val source = file(id)
+        if (!source.exists()) return null
+        // A same-directory rename of a file that just failed to parse: the
+        // bytes survive beside the journal under a name later loads never
+        // resolve, and the next save writes a fresh `<id>.litejournal`.
+        val quarantined = File(
+            directory,
+            "${source.name}.unavailable-${java.util.UUID.randomUUID().toString().take(8)}",
+        )
+        Files.move(source.toPath(), quarantined.toPath())
+        return quarantined.name
     }
 }
 

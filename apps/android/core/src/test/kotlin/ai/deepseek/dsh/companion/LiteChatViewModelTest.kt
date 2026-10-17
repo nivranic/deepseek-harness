@@ -5,11 +5,15 @@ import ai.deepseek.dsh.contract.LitePresetPersona
 import ai.deepseek.dsh.contract.ToolDescriptor
 import ai.deepseek.dsh.contract.ToolRisk
 import kotlinx.coroutines.CoroutineScope
+import kotlinx.coroutines.flow.Flow
+import kotlinx.coroutines.flow.FlowCollector
+import kotlinx.coroutines.flow.flow
 import kotlinx.coroutines.flow.toList
 import kotlinx.coroutines.launch
 import kotlinx.coroutines.test.UnconfinedTestDispatcher
 import kotlinx.coroutines.test.advanceUntilIdle
 import kotlinx.coroutines.test.runTest
+import kotlinx.serialization.json.jsonPrimitive
 import kotlin.test.Test
 import kotlin.test.assertEquals
 import kotlin.test.assertNull
@@ -47,6 +51,159 @@ class LiteChatViewModelTest {
         assertEquals(2, restored.state.conversation.size)
         assertEquals("你好，这里是 Lite。", restored.state.conversation[1].text)
     }
+
+    @Test
+    fun aRelaunchedViewModelSeedsTheStoredJournalIntoItsFirstCut() = runTest {
+        val store = LiteFileSessionStore(tempDir())
+        val first = LiteChatViewModel(
+            scope = CoroutineScope(UnconfinedTestDispatcher(testScheduler)),
+            sessionId = "relaunch",
+            provider = ScriptedLiteProvider(mapOf("你好" to listOf(LiteStreamChunk.Text("你好，这里是 Lite。")))),
+            execute = { _, _, _ -> LiteToolOutcome(ok = false, text = "") },
+            store = store,
+        )
+        first.send("你好")
+        advanceUntilIdle()
+
+        // The relaunch constructor replays the stored journal in: the restored
+        // conversation reaches the UI through the same construction-time cut,
+        // before any new turn runs.
+        val relaunched = LiteChatViewModel(
+            scope = CoroutineScope(UnconfinedTestDispatcher(testScheduler)),
+            sessionId = "relaunch",
+            provider = ScriptedLiteProvider(emptyMap()),
+            execute = { _, _, _ -> LiteToolOutcome(ok = false, text = "") },
+            store = store,
+        )
+        assertEquals(
+            listOf(LiteMessage(role = "user", text = "你好"), LiteMessage(role = "assistant", text = "你好，这里是 Lite。")),
+            relaunched.state.conversation,
+        )
+    }
+
+    @Test
+    fun aTurnAfterRelaunchSavesTheWholeRestoredJournal() = runTest {
+        val store = LiteFileSessionStore(tempDir())
+        val first = LiteChatViewModel(
+            scope = CoroutineScope(UnconfinedTestDispatcher(testScheduler)),
+            sessionId = "resume",
+            provider = ScriptedLiteProvider(
+                mapOf(
+                    "第一轮" to listOf(LiteStreamChunk.Text("第一答")),
+                    "第二轮" to listOf(LiteStreamChunk.Text("第二答")),
+                ),
+            ),
+            execute = { _, _, _ -> LiteToolOutcome(ok = false, text = "") },
+            store = store,
+        )
+        first.send("第一轮")
+        advanceUntilIdle()
+        first.send("第二轮")
+        advanceUntilIdle()
+        assertEquals(4, first.state.conversation.size)
+
+        val relaunched = LiteChatViewModel(
+            scope = CoroutineScope(UnconfinedTestDispatcher(testScheduler)),
+            sessionId = "resume",
+            provider = ScriptedLiteProvider(mapOf("第三轮" to listOf(LiteStreamChunk.Text("第三答")))),
+            execute = { _, _, _ -> LiteToolOutcome(ok = false, text = "") },
+            store = store,
+        )
+        relaunched.send("第三轮")
+        advanceUntilIdle()
+
+        // The post-relaunch save writes the whole journal — the restored turns
+        // ride along, so the new turn never replaces the file with itself.
+        assertEquals(6, store.load("resume")!!.state.conversation.size)
+        assertEquals(6, relaunched.state.conversation.size)
+        assertEquals("第三答", relaunched.state.conversation.last().text)
+    }
+
+    @Test
+    fun aProviderErrorTurnJournalsTheFailureInsteadOfAnEchoRow() = runTest {
+        val store = LiteFileSessionStore(tempDir())
+        val provider = failingProvider { throw LiteTransportError.Provider("HTTP_401", "provider refused the request") }
+        val model = LiteChatViewModel(
+            scope = CoroutineScope(UnconfinedTestDispatcher(testScheduler)),
+            sessionId = "provider-failed",
+            provider = provider,
+            execute = { _, _, _ -> LiteToolOutcome(ok = false, text = "") },
+            store = store,
+        )
+        model.send("你好")
+        advanceUntilIdle()
+
+        // The failed turn keeps the user row only; the failure lands as its
+        // own event, never as an assistant row echoing the prompt back.
+        assertEquals(listOf(LiteMessage(role = "user", text = "你好")), model.state.conversation)
+        assertEquals(
+            listOf(LiteFailure(kind = "provider", code = "HTTP_401", message = "provider refused the request")),
+            model.state.errors,
+        )
+        assertEquals(
+            listOf("prompt/accepted", "provider/error", "turn/completed"),
+            store.load("provider-failed")!!.events.map { it["type"]!!.jsonPrimitive.content },
+        )
+    }
+
+    @Test
+    fun aNetworkErrorTurnJournalsTheFailureKindInsteadOfAnEchoRow() = runTest {
+        val store = LiteFileSessionStore(tempDir())
+        val provider = failingProvider { throw LiteTransportError.Network("unreachable") }
+        val model = LiteChatViewModel(
+            scope = CoroutineScope(UnconfinedTestDispatcher(testScheduler)),
+            sessionId = "network-failed",
+            provider = provider,
+            execute = { _, _, _ -> LiteToolOutcome(ok = false, text = "") },
+            store = store,
+        )
+        model.send("你好")
+        advanceUntilIdle()
+
+        assertEquals(listOf(LiteMessage(role = "user", text = "你好")), model.state.conversation)
+        assertEquals(
+            listOf(LiteFailure(kind = "network", code = "unreachable", message = "unreachable")),
+            model.state.errors,
+        )
+        assertEquals(
+            listOf("prompt/accepted", "network/error", "turn/completed"),
+            store.load("network-failed")!!.events.map { it["type"]!!.jsonPrimitive.content },
+        )
+    }
+
+    @Test
+    fun anUnreadableJournalQuarantinesToAnEmptyColdOpen() = runTest {
+        val directory = tempDir()
+        val store = LiteFileSessionStore(directory)
+        val corrupt = "不是 JSON\n"
+        java.io.File(directory, "corrupt.litejournal").writeText(corrupt)
+
+        val model = LiteChatViewModel(
+            scope = CoroutineScope(UnconfinedTestDispatcher(testScheduler)),
+            sessionId = "corrupt",
+            provider = ScriptedLiteProvider(mapOf("你好" to listOf(LiteStreamChunk.Text("好")))),
+            execute = { _, _, _ -> LiteToolOutcome(ok = false, text = "") },
+            store = store,
+        )
+        assertEquals(emptyList(), model.state.conversation)
+
+        // The unreadable bytes survive beside the journal, and the next turn
+        // writes a fresh journal under the original name.
+        val quarantined = directory.listFiles { file -> file.name.startsWith("corrupt.litejournal.unavailable-") }!!.single()
+        assertEquals(corrupt, quarantined.readText())
+        assertNull(store.load("corrupt"))
+
+        model.send("你好")
+        advanceUntilIdle()
+        assertEquals(2, store.load("corrupt")!!.state.conversation.size)
+        assertEquals(1, directory.listFiles { file -> file.name.startsWith("corrupt.litejournal.unavailable-") }!!.size)
+    }
+
+    /** One provider whose stream script throws before any chunk is delivered. */
+    private fun failingProvider(script: suspend FlowCollector<LiteStreamChunk>.() -> Unit): LiteProviding =
+        object : LiteProviding {
+            override suspend fun stream(prompt: String, system: String?): Flow<LiteStreamChunk> = flow { script() }
+        }
 
     @Test
     fun aHandoffTurnSurfacesTheBannerState() = runTest {

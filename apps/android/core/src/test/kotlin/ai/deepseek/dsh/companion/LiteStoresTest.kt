@@ -84,6 +84,26 @@ class LiteStoresTest {
     }
 
     @Test
+    fun quarantiningAnUnreadableJournalPreservesItsBytesAndReadsAsAbsent() {
+        val directory = tempDir()
+        val store = LiteFileSessionStore(directory)
+        val corrupt = "{\"type\":\"turn/completed\"}\n不是 JSON\n"
+        java.io.File(directory, "s6.litejournal").writeText(corrupt)
+        assertFailsWith<IllegalStateException> { store.load("s6") }
+
+        val quarantined = store.quarantine("s6")!!
+        // The retired name keeps the journal's own name plus the short-uuid
+        // unavailable marker; the bytes survive beside it, not inside a
+        // replacement.
+        assertTrue(quarantined.matches(Regex("s6\\.litejournal\\.unavailable-[0-9a-f]{8}")), "got $quarantined")
+        assertEquals(corrupt, java.io.File(directory, quarantined).readText())
+        assertNull(store.load("s6"), "a quarantined journal reads as absent")
+
+        // Nothing stored under an id leaves quarantine with nothing to retire.
+        assertNull(store.quarantine("ghost"))
+    }
+
+    @Test
     fun artifactBytesRoundTripThroughTheResourceChannel() {
         val directory = tempDir()
         val store = LiteFileArtifactStore(directory)
