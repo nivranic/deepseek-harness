@@ -1,0 +1,66 @@
+{
+  "status": "PASS",
+  "scope": "Report bindings and audit for the lite-history increment: the gen-63 follow-up closing the tool-result round-trip half-ring the §49.3 P2 ledger lite lane kept recommending after gen-62 landed the executors (executors real, results honestly folded into the journal, but the next request carried no tool rows and the model answered blind): the survey pinned the rewrite precondition — tool/result never even enters the durable journal (chapter 64's turn-outcome events faithfully exclude tool rows, and restart replay carries none either), so the only material the round-trip can feed on is the process-lived driver fold state — and the increment lands wholly inside :core with :app and :contract sources untouched: LiteProviding.stream's typed history parameter (LiteTurnRecord over the completed turns' userText/assistantText-with-null-when-unanswered/toolCalls/toolResults — failed reasons and successful outputs fed back in the same shape, the OpenAI wire requiring an answer row per initiated tool_call id; defaulting emptyList() beside the existing system=null so bare provider calls keep their bytes), the driver's history snapshot between the accepted prompt and the stream call through a pure per-turn tool-row cursor (the time-serialized tool rows cut at exact turn boundaries, the last user row belonging to the live turn and never entering the history — a cursor, not a new state machine), and LiteHTTPProvider's per-turn wire expansion following the host llm-deepseek serialize.ts line shape (turns with calls as assistant rows carrying tool_calls with empty content beside per-id {role:\"tool\", tool_call_id, content} rows in call order — empty results falling to \"(no output)\" per the host :269-271, the Android request face's first role:tool/tool_call_id rows; text-only turns as plain assistant rows; empty turns leaving only their user row per the host surface.ts empty-assistant projection rule), with the journal accounting untouched (chapter 64 pinned by LiteChatViewModelTest passing unchanged in shape) — the model finally sees its own on-device tool output across turns; the rejections recorded honestly (journal-persisting the tool rows — re-cutting the Behavior-Spec decision; the in-turn multi-step continuation — finish_reason branching needs drive re-entry plus the multi-message turn vocabulary; from-journal history — the fold already carries the paired rows), the real-model acceptance of the history-carrying request shape honestly left unmeasured (the keyless tests pin the wire shape against the embedded server; the live-API round belongs to the e2e face); the gates honestly recorded from log content: typecheck EXIT 0 and lint Found 0 warnings and 0 errors on 3861 files (90 rules, 20 threads, 126.9s — both chained rounds carrying no exit trailer — the zero exits rode the invoking shell, recorded beside the logs), test:docs 17 (104.29s) and doc-sync 37 passed 0 failed 0 skipped (210.42s, zero regeneration diff — the snapshot diff empty), traceability 6/6 with the §31 feeding-half-ring rewrite (2759 chars, candidateEvidence 18 keeping the gen-62 executor landing sentence and adding the gen-63 history sentence) while §32, §23, §33 and §67 stay at their gen-62, gen-61, gen-57 and gen-59 sealed 2061/18, 429/2, 900/11 and 637/8, pairing 947 pairs all consistent (the note trio 2026-10-18-lite-tool-result-history with its dictionary written ahead, the 946→947 reconciliation honestly recorded), the serial double audit round green at 87 files / 1073 tests on both passes over the curated list reused verbatim from .artifacts/lite-assembly-g2-audit-file-list.txt (87 lines, the gen-54 precedent lineage, neither sealed log carrying an exit trailer), gate0 PASS in both byte-identical forms (1938 paths / 129 components / 81 sections / 1983 lines — honestly recorded unchanged from the captured UPSTREAM_DELTA.json, not the live tree); the android acceptance: the scanner-env gradle round BUILD SUCCESSFUL in 24s with 82 actionable tasks of which 7 executed and 75 up-to-date — the honest :core-only downstream form (:app:verifyLiteAssetSources and :app:verifyScannerResources executed over the five bundled sources, :app:compileDebugKotlin executed — the app face recompiled against the history-carrying core jar, the debug packaging chain through :app:mergeLibDexDebug, :app:packageDebug and :app:assembleDebug, :app:compileDebugAndroidTestKotlin executed with the core-jar change pulling the androidTest sources up while :app:packageDebugAndroidTest and :app:assembleDebugAndroidTest rode UP-TO-DATE — the androidTest APK not rebuilt past its sealed bytes; :app:copyLiteAssets, :app:mergeDebugAssets and :app:compressDebugAssets UP-TO-DATE — no asset changed; :core:compileKotlin, :core:compileTestKotlin, :core:test and :contract:test UP-TO-DATE; this round's task graph never reaches :app:assembleRelease) — with the measured single-DRIFT-plus-IDENTICAL form against the lite-executors record's sealed builtFiles entries (the androidTest APK IDENTICAL old=new=43d72de0 — the :core-only increment never touching the androidTest source set, the gen-59 single-face precedent — and the debug APK a3cbdae4→65f00458, this generation's capture becoming the new baseline, prior apk records: 2, cross-checked live) and the core XML aggregate reading 83 suites / 564 tests — the reconciliation over gen-62's 83/559 (LiteLoopDriverTest widened to 14/0, LiteHTTPProviderTest widened to 8/0, LiteChatViewModelTest +1 pinning the chapter 64 journal coexistence) — beside the contract half at 4 suites / 37 tests (aggregate JSON keys named skips — .artifacts/lite-history-g3-core-results.json); no connected round ran this generation, honestly recorded (no device round — the zero androidTest change with the IDENTICAL androidTest APK corroborating); and the adjudicated single-set ruling on the adapter's measured three-source miss stop-point (the gen-53 dwfq-b1ce6281-1 precedent form): the prepare oracle derives the measured ninety replaced prior build outputs — all android (one APK, one jar, twenty-four recompiled classes, sixty-one XML reports, three binary outputs) — the adapter's generator-side measurement splits them into five chain-resolvable keys (the five recompiled LiteHTTPProviderTest classes at their deterministic old bytes the older archives hold — the recompiled-classes fallback form of gen-53 through gen-62, honestly recorded) and eighty-five first-emission keys no archive holds (the debug APK's sealed a3cbdae4 bytes, the repacked core jar, the nineteen recompiled view-model/driver classes, the sixty-one XML reports and three binary outputs sealed only by the prior record itself — the thirteenth consecutive generation of the same class: gen-51 ninety-four, gen-52 seventy-three, gen-53 sixty-seven, gen-54 sixty-seven, gen-55 sixty-eight, gen-56 sixty-eight, gen-57 seventy, gen-58 seventy-four, gen-59 seventy-six, gen-60 sixty-seven, gen-61 sixty-seven, gen-62 sixty-six, gen-63 eighty-five), so the advance installs the liteExecutorsReplacedBuildOutputs exactly-eighty-five build-output exemption on the demoted lite-executors block, derived and emitted at advance run time from the record, the chain archives and the disk — never transcribed — equal to the ninety-key derivation minus the five fallback keys, the two source-side ledger miss keys resolving through the new before archive at their HEAD bytes (no UnrecoverableInputs set born), and every prior generation's set — the gen-62 relayRetireReplacedBuildOutputs sixty-six beside the gen-61 liteDeclarationsReplacedBuildOutputs sixty-seven, the gen-60 liteHandoffReplacedBuildOutputs sixty-seven, the gen-59 liteResumeReplacedBuildOutputs seventy-six, the gen-58 litePresetReplacedBuildOutputs seventy-four, the gen-57 liteHttpReplacedBuildOutputs seventy, the gen-56 liteFactsReplacedBuildOutputs sixty-eight, the gen-55 liteAssemblyReplacedBuildOutputs sixty-eight, the gen-54 litePermissionReplacedBuildOutputs sixty-seven, the gen-53 liteToolsReplacedBuildOutputs sixty-seven, the gen-52 litePersonaReplacedBuildOutputs seventy-three, the gen-51 liteToolReplacedBuildOutputs ninety-four plus liteToolUnrecoverableInputs two, the gen-32 desktopPackageReplacedBuildOutputs six, the gen-33 tornRepairIntentReplacedBuildOutputs three, the gen-48 clientMutationReplacedBuildOutputs two and the gen-46 durableReceiptsReplacedBuildOutputs three — stays exactly as sealed at HEAD; the remaining open channels (the in-turn multi-step continuation, the tool-row journal persistence as a chapter-64 decision, the remaining three executor names, the paired-Host pull channel, the approval interaction tier, the facts-diagnostics projection, the attribution-header decision, the §54 network matrix device-side verification and the real-model acceptance of the history-carrying request shape) all stay open — so no whole-section PASS is granted; full Upstream-First objective remains in progress",
+  "gate0": {
+    "validation": "PASS",
+    "gate0": "PASS",
+    "paths": 1938,
+    "components": 129,
+    "specificationCoverage": {
+      "status": "PASS",
+      "numberedSections": 81,
+      "nonEmptySourceLines": 1983,
+      "acceptanceProven": false
+    }
+  },
+  "sourceRecord": {
+    "path": "artifacts/upstream-first/lite-history-source.json",
+    "sha256": "111dd43a098f40b342476ff47e3996a0de63a44a3f6ee946cbd9cfc5dc72e337"
+  },
+  "generator": {
+    "path": "artifacts/upstream-first/write-reports.mjs",
+    "sha256": "ba3f829e9e06c0e6e2b3de4e90c712af254f5144ca008ff27a82973b57dec701"
+  },
+  "binding": {
+    "path": "artifacts/upstream-first/lite-history-binding.json",
+    "sha256": "6c82eeec45f24f3c5f12e0aa2e275241b0c3c1ad1097ea4efd96b35552702206"
+  },
+  "helpers": [
+    {
+      "path": ".artifacts/advance-lite-history-reports.mjs",
+      "sha256": "a3043d495e8144e028acb744fa48b2d682bc0d2394dfc383bee8039f54506ce9"
+    },
+    {
+      "path": ".artifacts/capture-lite-history-validation.mjs",
+      "sha256": "66eead710a8bb045b5c2ddde094635ec5fa18d25c3e4f5ea65745fffa9a16197"
+    }
+  ],
+  "reports": [
+    {
+      "path": "IMPLEMENTATION_STATUS.md",
+      "sha256": "7e27f2ec2ff7b92bab29727f05f0d38906d2fbbee98a0ab3aef4c0e2c86a8cd3"
+    },
+    {
+      "path": "artifacts/upstream-first/evidence.json",
+      "sha256": "62c745819ef606f013b3584dba26cb151362170c76470974422a322040ec52ab"
+    }
+  ],
+  "checks": [
+    {
+      "path": ".artifacts/lite-history-binding.log",
+      "sha256": "8d7d201b3cde6b305f9ed840023e88e3828d01686eeb89d626e6e7b71c42b745"
+    },
+    {
+      "path": ".artifacts/lite-history-audit-final.log",
+      "sha256": "6f2c2c4e5eddf53cd2c54a5ddcd9adb45ff7e879979a53c6d4130184049987ba"
+    },
+    {
+      "path": ".artifacts/lite-history-gate0-final.log",
+      "sha256": "505d74ef938f5d34d85490d37e0176ba804d93272fcf465ce2544a02c56b3f90"
+    },
+    {
+      "path": ".artifacts/lite-history-report-generation.log",
+      "sha256": "fe010532f71a6341467ae5719b29ac19470895de1d481156335b8f70a3273ed5"
+    }
+  ]
+}

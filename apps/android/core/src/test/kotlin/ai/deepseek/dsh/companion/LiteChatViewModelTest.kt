@@ -202,7 +202,7 @@ class LiteChatViewModelTest {
     /** One provider whose stream script throws before any chunk is delivered. */
     private fun failingProvider(script: suspend FlowCollector<LiteStreamChunk>.() -> Unit): LiteProviding =
         object : LiteProviding {
-            override suspend fun stream(prompt: String, system: String?): Flow<LiteStreamChunk> = flow { script() }
+            override suspend fun stream(prompt: String, system: String?, history: List<LiteTurnRecord>): Flow<LiteStreamChunk> = flow { script() }
         }
 
     @Test
@@ -297,6 +297,61 @@ class LiteChatViewModelTest {
         assertEquals(
             listOf("prompt/accepted", "message/completed", "turn/completed"),
             store.load("ui-exec")!!.events.map { it["type"]!!.jsonPrimitive.content },
+        )
+    }
+
+    @Test
+    fun aSecondTurnFeedsTheFirstTurnsToolResultWhileTheJournalKeepsTurnOutcomes() = runTest {
+        val store = LiteFileSessionStore(tempDir())
+        val provider = ScriptedLiteProvider(
+            mapOf(
+                "算一下" to listOf(LiteStreamChunk.ToolCall("c1", "calculator", """{"expression":"(1 + 2) * 3"}""")),
+                "总结" to listOf(LiteStreamChunk.Text("已记录")),
+            ),
+        )
+        val model = LiteChatViewModel(
+            scope = CoroutineScope(UnconfinedTestDispatcher(testScheduler)),
+            sessionId = "ui-history",
+            provider = provider,
+            execute = { _, name, arguments ->
+                when (name) {
+                    "calculator" -> LiteToolExecutors.calculator(arguments)
+                    else -> LiteToolOutcome(ok = false, text = "no on-device executor mounted: $name")
+                }
+            },
+            store = store,
+            toolCatalog = LiteToolCatalog.fromHostDescriptors(
+                listOf(
+                    ToolDescriptor("calculator", 1, ToolRisk.LOW, emptyList(), supportsLite = true, supportsRemote = true),
+                ),
+            ),
+        )
+        model.send("算一下")
+        advanceUntilIdle()
+        model.send("总结")
+        advanceUntilIdle()
+
+        // The second turn's request carries the executed turn as history —
+        // the model sees its own call and the evaluator's answer — while
+        // the journal keeps the chapter-64 turn-outcome vocabulary: no tool
+        // rows enter the durable events.
+        assertEquals(
+            listOf(
+                LiteTurnRecord(
+                    userText = "算一下",
+                    assistantText = "",
+                    toolCalls = listOf(LiteTurnToolCall(id = "c1", name = "calculator", arguments = """{"expression":"(1 + 2) * 3"}""")),
+                    toolResults = mapOf("c1" to "9"),
+                ),
+            ),
+            provider.submittedHistories[1],
+        )
+        assertEquals(
+            listOf(
+                "prompt/accepted", "message/completed", "turn/completed",
+                "prompt/accepted", "message/completed", "turn/completed",
+            ),
+            store.load("ui-history")!!.events.map { it["type"]!!.jsonPrimitive.content },
         )
     }
 

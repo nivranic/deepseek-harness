@@ -193,6 +193,106 @@ class LiteHTTPProviderTest {
     }
 
     @Test
+    fun historyTurnsExpandIntoTheWireMessageOrder() = runTest {
+        val seenBodies = mutableListOf<String>()
+        val server = recordingServer(seenBodies)
+        server.start()
+        try {
+            val provider = LiteHTTPProvider(
+                endpoint = "http://127.0.0.1:${server.address.port}/v1/chat/completions",
+                apiKey = "sk-test",
+                model = "deepseek-chat",
+            )
+            val history = listOf(
+                LiteTurnRecord(
+                    userText = "算",
+                    assistantText = "十四",
+                    toolCalls = listOf(LiteTurnToolCall(id = "c1", name = "calculator", arguments = """{"expression":"2 + 3 * 4"}""")),
+                    toolResults = mapOf("c1" to "14"),
+                ),
+            )
+            provider.stream("再算", "sample-system", history).toList()
+
+            // The follow-up request replays the prior turn in the host
+            // provider's wire order: system, the turn's user row, the
+            // assistant row carrying its tool call, the call's tool row,
+            // then the new user row.
+            val messages = (Json.parseToJsonElement(seenBodies.single()).jsonObject["messages"] as JsonArray)
+            assertEquals(5, messages.size)
+            assertEquals("system", ((messages[0] as JsonObject)["role"] as JsonPrimitive).content)
+            assertEquals("sample-system", ((messages[0] as JsonObject)["content"] as JsonPrimitive).content)
+            assertEquals("user", ((messages[1] as JsonObject)["role"] as JsonPrimitive).content)
+            assertEquals("算", ((messages[1] as JsonObject)["content"] as JsonPrimitive).content)
+            val assistant = messages[2] as JsonObject
+            assertEquals("assistant", (assistant["role"] as JsonPrimitive).content)
+            assertEquals("十四", (assistant["content"] as JsonPrimitive).content)
+            val calls = assistant["tool_calls"] as JsonArray
+            assertEquals(1, calls.size)
+            val call = calls[0] as JsonObject
+            assertEquals("c1", (call["id"] as JsonPrimitive).content)
+            assertEquals("function", (call["type"] as JsonPrimitive).content)
+            val function = call["function"] as JsonObject
+            assertEquals("calculator", (function["name"] as JsonPrimitive).content)
+            assertEquals("""{"expression":"2 + 3 * 4"}""", (function["arguments"] as JsonPrimitive).content)
+            val toolRow = messages[3] as JsonObject
+            assertEquals("tool", (toolRow["role"] as JsonPrimitive).content)
+            assertEquals("c1", (toolRow["tool_call_id"] as JsonPrimitive).content)
+            assertEquals("14", (toolRow["content"] as JsonPrimitive).content)
+            assertEquals("user", ((messages[4] as JsonObject)["role"] as JsonPrimitive).content)
+            assertEquals("再算", ((messages[4] as JsonObject)["content"] as JsonPrimitive).content)
+        } finally {
+            server.stop(0)
+        }
+    }
+
+    @Test
+    fun anEmptyTurnKeepsOnlyItsUserRowAndAnEmptyToolAnswerSaysNoOutput() = runTest {
+        val seenBodies = mutableListOf<String>()
+        val server = recordingServer(seenBodies)
+        server.start()
+        try {
+            val provider = LiteHTTPProvider(
+                endpoint = "http://127.0.0.1:${server.address.port}/v1/chat/completions",
+                apiKey = "sk-test",
+                model = "deepseek-chat",
+            )
+            val history = listOf(
+                // A provider-error turn carries neither reply text nor
+                // calls, so only its user row reaches the wire.
+                LiteTurnRecord(userText = "失败了", assistantText = null, toolCalls = emptyList(), toolResults = emptyMap()),
+                LiteTurnRecord(
+                    userText = "算",
+                    assistantText = null,
+                    toolCalls = listOf(LiteTurnToolCall(id = "c1", name = "calculator", arguments = "{}")),
+                    toolResults = mapOf("c1" to ""),
+                ),
+            )
+            provider.stream("再来", history = history).toList()
+
+            val messages = (Json.parseToJsonElement(seenBodies.single()).jsonObject["messages"] as JsonArray)
+            assertEquals(5, messages.size)
+            assertEquals("user", ((messages[0] as JsonObject)["role"] as JsonPrimitive).content)
+            assertEquals("失败了", ((messages[0] as JsonObject)["content"] as JsonPrimitive).content)
+            assertEquals("user", ((messages[1] as JsonObject)["role"] as JsonPrimitive).content)
+            assertEquals("算", ((messages[1] as JsonObject)["content"] as JsonPrimitive).content)
+            // A text-less tool-carrying reply rides "" content, the host's
+            // never-null rule; an empty result text answers "(no output)".
+            val assistant = messages[2] as JsonObject
+            assertEquals("assistant", (assistant["role"] as JsonPrimitive).content)
+            assertEquals("", (assistant["content"] as JsonPrimitive).content)
+            assertEquals(1, (assistant["tool_calls"] as JsonArray).size)
+            val toolRow = messages[3] as JsonObject
+            assertEquals("tool", (toolRow["role"] as JsonPrimitive).content)
+            assertEquals("c1", (toolRow["tool_call_id"] as JsonPrimitive).content)
+            assertEquals("(no output)", (toolRow["content"] as JsonPrimitive).content)
+            assertEquals("user", ((messages[4] as JsonObject)["role"] as JsonPrimitive).content)
+            assertEquals("再来", ((messages[4] as JsonObject)["content"] as JsonPrimitive).content)
+        } finally {
+            server.stop(0)
+        }
+    }
+
+    @Test
     fun projectedToolSchemasRideTheToolsArray() = runTest {
         val fixture = javaClass.classLoader.getResource("fixtures/lite-tool-schemas.sample.json")!!
         val schemas = LiteToolSchemas.parseDocument(fixture.readText(Charsets.UTF_8))

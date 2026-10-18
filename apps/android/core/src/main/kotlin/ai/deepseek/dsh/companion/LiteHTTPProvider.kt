@@ -143,9 +143,10 @@ class LiteHTTPProvider(
      * Stream one response's chunks for a submitted prompt.
      * @param prompt the accepted user prompt text.
      * @param system the session's assembled system prompt; a null or empty value leaves the request messages byte-identical to a bare turn.
+     * @param history the completed prior turns, expanded ahead of the new user row in the host provider's wire order so the model sees its own tool calls and their result texts.
      * @return the ordered chunks of one model response.
      */
-    override suspend fun stream(prompt: String, system: String?): Flow<LiteStreamChunk> = flow {
+    override suspend fun stream(prompt: String, system: String?, history: List<LiteTurnRecord>): Flow<LiteStreamChunk> = flow {
         val body = buildJsonObject {
             put("model", model)
             put("stream", true)
@@ -156,6 +157,7 @@ class LiteHTTPProvider(
                         put("content", system)
                     })
                 }
+                history.forEach { turn -> addAll(turn.wireMessages()) }
                 add(buildJsonObject {
                     put("role", "user")
                     put("content", prompt)
@@ -234,4 +236,47 @@ private fun terminatesTheStream(line: String): Boolean {
     val trimmed = line.trim()
     val payload = if (trimmed.startsWith("data:")) trimmed.removePrefix("data:").trim() else trimmed
     return payload == "[DONE]"
+}
+
+/**
+ * Expand one history turn into its OpenAI-compatible wire rows, the host
+ * provider's line form (llm-deepseek serialize.ts): the user row verbatim,
+ * then — when the turn carries tool calls — the assistant row holding the
+ * calls with `""` content for a text-less reply, followed by one tool row
+ * per call id in call order carrying the fold's result text, `'(no output)'`
+ * when it is empty; a turn with neither reply text nor calls keeps its user
+ * row only, the host's empty-assistant projection rule (a content-less
+ * assistant row never reaches the wire).
+ */
+private fun LiteTurnRecord.wireMessages(): List<JsonObject> = buildList {
+    add(buildJsonObject {
+        put("role", "user")
+        put("content", userText)
+    })
+    if (toolCalls.isNotEmpty()) {
+        add(buildJsonObject {
+            put("role", "assistant")
+            put("content", assistantText ?: "")
+            put("tool_calls", JsonArray(toolCalls.map { call -> buildJsonObject {
+                put("id", call.id)
+                put("type", "function")
+                put("function", buildJsonObject {
+                    put("name", call.name)
+                    put("arguments", call.arguments)
+                })
+            } }))
+        })
+        toolCalls.forEach { call ->
+            add(buildJsonObject {
+                put("role", "tool")
+                put("tool_call_id", call.id)
+                put("content", (toolResults[call.id] ?: "").ifEmpty { "(no output)" })
+            })
+        }
+    } else if (!assistantText.isNullOrEmpty()) {
+        add(buildJsonObject {
+            put("role", "assistant")
+            put("content", assistantText)
+        })
+    }
 }

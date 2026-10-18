@@ -244,9 +244,77 @@ class LiteLoopDriverTest {
     }
 
     @Test
+    fun aSecondTurnCarriesTheFirstTurnsExecutedCallAndResultAsHistory() = runTest {
+        val provider = ScriptedLiteProvider(
+            mapOf(
+                "算" to listOf(LiteStreamChunk.ToolCall("c1", "calculator", """{"expression":"2 + 3 * 4"}"""), LiteStreamChunk.Text("十四")),
+                "再算" to listOf(LiteStreamChunk.Text("好的")),
+            ),
+        )
+        val driver = LiteLoopDriver(
+            CoroutineScope(UnconfinedTestDispatcher(testScheduler)),
+            provider,
+            execute = { _, name, arguments ->
+                when (name) {
+                    "calculator" -> LiteToolExecutors.calculator(arguments)
+                    else -> LiteToolOutcome(ok = false, text = "no on-device executor mounted: $name")
+                }
+            },
+            toolCatalog = LiteToolCatalog.fromHostDescriptors(listOf(declaredLite("calculator"))),
+        )
+        driver.submit("算")
+        advanceUntilIdle()
+        driver.submit("再算")
+        advanceUntilIdle()
+
+        // The first turn starts with no history; the second submission's
+        // history carries the first turn whole — its prompt, its reply, the
+        // executed call, and the real evaluator's answer under the call id.
+        assertEquals(emptyList<LiteTurnRecord>(), provider.submittedHistories.first())
+        assertEquals(
+            listOf(
+                LiteTurnRecord(
+                    userText = "算",
+                    assistantText = "十四",
+                    toolCalls = listOf(LiteTurnToolCall(id = "c1", name = "calculator", arguments = """{"expression":"2 + 3 * 4"}""")),
+                    toolResults = mapOf("c1" to "14"),
+                ),
+            ),
+            provider.submittedHistories[1],
+        )
+    }
+
+    @Test
+    fun aFailedToolResultRidesTheNextTurnsHistoryLikeASuccessfulOne() = runTest {
+        val provider = ScriptedLiteProvider(
+            mapOf(
+                "写" to listOf(LiteStreamChunk.ToolCall("c1", "artifact_create", """{"id":"spec","kind":"markdown"}""")),
+                "再试" to listOf(LiteStreamChunk.Text("好")),
+            ),
+        )
+        val driver = LiteLoopDriver(
+            CoroutineScope(UnconfinedTestDispatcher(testScheduler)),
+            provider,
+            execute = { _, _, _ -> LiteToolOutcome(ok = false, text = "sandbox denied the write") },
+            toolCatalog = LiteToolCatalog.fromHostDescriptors(listOf(declaredLite("artifact_create"))),
+        )
+        driver.submit("写")
+        advanceUntilIdle()
+        driver.submit("再试")
+        advanceUntilIdle()
+
+        // The refused execution's reason rides the history map under its
+        // call id: every issued call keeps a result the protocol can answer
+        // the next turn with.
+        val record = provider.submittedHistories[1].single()
+        assertEquals(listOf(LiteTurnToolCall(id = "c1", name = "artifact_create", arguments = """{"id":"spec","kind":"markdown"}""")), record.toolCalls)
+        assertEquals(mapOf("c1" to "sandbox denied the write"), record.toolResults)
+    }
+
+    @Test
     fun cancellationFinalizesTheDeliveredPrefix() = runTest {
         val provider = object : LiteProviding {
-            override suspend fun stream(prompt: String, system: String?): Flow<LiteStreamChunk> = flow {
+            override suspend fun stream(prompt: String, system: String?, history: List<LiteTurnRecord>): Flow<LiteStreamChunk> = flow {
                 emit(LiteStreamChunk.Text("部分"))
                 awaitCancellation()
             }
@@ -276,7 +344,7 @@ class LiteLoopDriverTest {
     fun transportFailuresFoldIntoTheirVocabulary() = runTest {
         fun driver(script: suspend FlowCollector<LiteStreamChunk>.() -> Unit): LiteLoopDriver {
             val provider = object : LiteProviding {
-                override suspend fun stream(prompt: String, system: String?): Flow<LiteStreamChunk> = flow { script() }
+                override suspend fun stream(prompt: String, system: String?, history: List<LiteTurnRecord>): Flow<LiteStreamChunk> = flow { script() }
             }
             return LiteLoopDriver(CoroutineScope(UnconfinedTestDispatcher(testScheduler)), provider) { _, _, _ ->
                 LiteToolOutcome(ok = true, text = "")

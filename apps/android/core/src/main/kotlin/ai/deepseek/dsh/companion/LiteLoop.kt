@@ -22,6 +22,22 @@ sealed interface LiteStreamChunk {
     data class ToolCall(val id: String, val name: String, val arguments: String) : LiteStreamChunk
 }
 
+/** One tool call of a completed history turn, as the model issued it. */
+data class LiteTurnToolCall(val id: String, val name: String, val arguments: String)
+
+/**
+ * One completed conversation turn as provider-facing history: the accepted
+ * prompt, the assistant's reply text (null when the turn ended without
+ * one), and the turn's tool calls with each call id's result text — a
+ * success's output and a failure's reason alike.
+ */
+data class LiteTurnRecord(
+    val userText: String,
+    val assistantText: String?,
+    val toolCalls: List<LiteTurnToolCall>,
+    val toolResults: Map<String, String>,
+)
+
 /**
  * Why a provider stream failed, in the Behavior Spec's vocabulary: transport
  * problems are `network/error` kinds, API problems are `provider/error`
@@ -41,9 +57,10 @@ interface LiteProviding {
      * Stream one response's chunks for a submitted prompt.
      * @param prompt the accepted user prompt text.
      * @param system the session's assembled system prompt, or null when the session runs bare; it is request-face context and never a session event.
+     * @param history the completed prior turns of this process's live fold — each turn's prompt, reply, tool calls, and result texts — so the model sees its own on-device tool output; it is request-face context and never session events.
      * @return the ordered chunks of one model response.
      */
-    suspend fun stream(prompt: String, system: String? = null): Flow<LiteStreamChunk>
+    suspend fun stream(prompt: String, system: String? = null, history: List<LiteTurnRecord> = emptyList()): Flow<LiteStreamChunk>
 }
 
 /** A scripted provider: one prompt-matched chunk script, for tests and previews. */
@@ -54,9 +71,13 @@ class ScriptedLiteProvider(private val scripts: Map<String, List<LiteStreamChunk
     /** The system prompt each streamed submission carried, in order; null marks a bare prompt. */
     val submittedSystems = mutableListOf<String?>()
 
-    override suspend fun stream(prompt: String, system: String?): Flow<LiteStreamChunk> {
+    /** The completed-turn history each streamed submission carried, in order. */
+    val submittedHistories = mutableListOf<List<LiteTurnRecord>>()
+
+    override suspend fun stream(prompt: String, system: String?, history: List<LiteTurnRecord>): Flow<LiteStreamChunk> {
         submitted.add(prompt)
         submittedSystems.add(system)
+        submittedHistories.add(history)
         return (scripts[prompt] ?: emptyList()).asFlow()
     }
 }
@@ -85,7 +106,9 @@ private fun text(value: String): JsonPrimitive = JsonPrimitive(value)
  * on-device and an execution that created an artifact follows its
  * tool/result with the artifact event pair, gated calls emit the handoff
  * marker for the full runtime, and unknown names fail explicitly — no call
- * hangs or dispatches unjudged.
+ * hangs or dispatches unjudged. Each new submission carries the fold's
+ * completed prior turns to the provider as history, so the model sees its
+ * own tool calls and their result texts on every later turn.
  */
 class LiteLoopDriver(
     private val scope: CoroutineScope,
@@ -97,6 +120,13 @@ class LiteLoopDriver(
 ) {
     /** The live fold the driver applies each lifecycle event to. */
     val fold = LiteFold()
+
+    /**
+     * The fold's tool-row count at each accepted prompt, in turn order —
+     * the cursor that splits the fold's chronological tool rows at turn
+     * edges when history is exported.
+     */
+    private val turnToolBoundaries = mutableListOf<Int>()
 
     /** Whether a turn is currently driving. */
     var running = false
@@ -133,10 +163,16 @@ class LiteLoopDriver(
         running = true
         try {
             apply(event("prompt/accepted", "requestId" to text("lite-${java.util.UUID.randomUUID()}"), "content" to text(prompt)))
+            // The history snapshot rides between the accepted prompt and the
+            // stream: the fold's last conversation row is this turn's user
+            // row and no tool row of this turn exists yet, so the boundaries
+            // split the completed turns exactly.
+            turnToolBoundaries.add(fold.state.toolCalls.size)
+            val history = exportCompletedTurns(fold.state, turnToolBoundaries)
             try {
                 var assembled = ""
                 var handedOff: String? = null
-                provider.stream(prompt, system).collect { chunk ->
+                provider.stream(prompt, system, history).collect { chunk ->
                     // Once a tool hands off, the loop stops at the marker;
                     // later chunks fold nothing.
                     if (handedOff != null) return@collect
@@ -232,5 +268,31 @@ class LiteLoopDriver(
         } finally {
             running = false
         }
+    }
+}
+
+/**
+ * Export the fold's completed turns as provider-facing history: each user
+ * row opens a turn, the rows up to the next user row close it, and each
+ * turn's tool rows are the fold's chronological tool list between that
+ * turn's boundary and the next — the same id pairing the fold itself
+ * applies. The last user row belongs to the live turn and stays out.
+ * @param state the live fold's state at the snapshot cut, with the live turn's user row already landed.
+ * @param turnToolBoundaries the fold's tool-row count at each accepted prompt, one entry per turn including the live one.
+ * @return one record per completed turn, in turn order.
+ */
+private fun exportCompletedTurns(state: LiteDomainState, turnToolBoundaries: List<Int>): List<LiteTurnRecord> {
+    val userRowIndexes = state.conversation.indices.filter { index -> state.conversation[index].role == "user" }
+    return userRowIndexes.dropLast(1).mapIndexed { turn, userIndex ->
+        val turnEnd = userRowIndexes[turn + 1]
+        val calls = state.toolCalls.subList(turnToolBoundaries[turn], turnToolBoundaries[turn + 1])
+        LiteTurnRecord(
+            userText = state.conversation[userIndex].text,
+            assistantText = (userIndex + 1..<turnEnd)
+                .firstOrNull { index -> state.conversation[index].role == "assistant" }
+                ?.let { index -> state.conversation[index].text },
+            toolCalls = calls.map { call -> LiteTurnToolCall(id = call.id, name = call.name, arguments = call.arguments) },
+            toolResults = calls.associate { call -> call.id to call.resultText },
+        )
     }
 }
