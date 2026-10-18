@@ -1,0 +1,53 @@
+{
+  "_comment": "App-owned device tool schemas (specification §32): the model-face schemas for the Android-local Lite tools with no Host counterpart, shipped as reviewable source and never downloaded. The build bundles this document beside the Host's lite-tool-schemas.json projection and the runtime unions the two, so one tool name may live in only one document — web_search stays out because the Host projection already carries it.",
+  "tools": [
+    {
+      "name": "calculator",
+      "description": "求值一个算术表达式。支持 + - * / % 、括号、一元正负号与十进制数字，返回精确的十进制结果。",
+      "parameters": {
+        "type": "object",
+        "properties": {
+          "expression": {
+            "type": "string",
+            "description": "要求值的算术表达式，例如 2 + 3 * (4 - 1)。"
+          }
+        },
+        "required": [
+          "expression"
+        ]
+      }
+    },
+    {
+      "name": "artifact_create",
+      "description": "创建一个 artifact 引用并写入文本内容。kind 取 markdown、text、report、patch 之一，内容按对应文本形式渲染。",
+      "parameters": {
+        "type": "object",
+        "properties": {
+          "id": {
+            "type": "string",
+            "description": "artifact 的引用标识，写入后成为内容文件名，不含路径分隔符。"
+          },
+          "kind": {
+            "type": "string",
+            "enum": [
+              "markdown",
+              "text",
+              "report",
+              "patch"
+            ],
+            "description": "内容形态；四者之外的取值会被拒绝。"
+          },
+          "content": {
+            "type": "string",
+            "description": "完整文本内容，编码后不超过 256 KiB。"
+          }
+        },
+        "required": [
+          "id",
+          "kind",
+          "content"
+        ]
+      }
+    }
+  ]
+}

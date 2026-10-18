@@ -47,5 +47,27 @@ class LiteToolSchemaCatalog private constructor(
          */
         fun fromBundledProjection(schemas: List<LiteToolSchema>): LiteToolSchemaCatalog =
             LiteToolSchemaCatalog(LiteToolSchemaSource.BUNDLED, schemas)
+
+        /**
+         * Build the APK-frozen schema union: the bundled Host projection's
+         * schemas plus the app-owned device schemas. Each document rejects
+         * duplicate names at parse; the union adds the cross-document guard
+         * because a name carried by both documents has no honest arbitration.
+         * @param hostSchemas the bundled Host projection's schemas, in projection order.
+         * @param deviceSchemas the app-owned device schemas, in document order.
+         * @returns the [LiteToolSchemaSource.BUNDLED] catalog; projection entries keep their order ahead of the device document's.
+         * @throws IllegalArgumentException when a tool name appears in both documents.
+         */
+        fun fromBundledDocuments(
+            hostSchemas: List<LiteToolSchema>,
+            deviceSchemas: List<LiteToolSchema>,
+        ): LiteToolSchemaCatalog {
+            val hostNames = hostSchemas.map { it.name }.toSet()
+            val collisions = deviceSchemas.map { it.name }.filter { it in hostNames }
+            if (collisions.isNotEmpty()) {
+                throw IllegalArgumentException("tool schema name carried by both bundled documents: ${collisions.joinToString()}")
+            }
+            return LiteToolSchemaCatalog(LiteToolSchemaSource.BUNDLED, hostSchemas + deviceSchemas)
+        }
     }
 }

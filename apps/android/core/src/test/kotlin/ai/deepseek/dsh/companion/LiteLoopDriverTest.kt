@@ -65,6 +65,70 @@ class LiteLoopDriverTest {
     }
 
     @Test
+    fun aDeclaredCalculatorCallExecutesThroughTheRealExecutor() = runTest {
+        val provider = ScriptedLiteProvider(
+            mapOf("算" to listOf(LiteStreamChunk.ToolCall("c1", "calculator", """{"expression":"2 + 3 * 4"}"""))),
+        )
+        val driver = LiteLoopDriver(
+            CoroutineScope(UnconfinedTestDispatcher(testScheduler)),
+            provider,
+            execute = { _, name, arguments ->
+                when (name) {
+                    "calculator" -> LiteToolExecutors.calculator(arguments)
+                    else -> LiteToolOutcome(ok = false, text = "no on-device executor mounted: $name")
+                }
+            },
+            toolCatalog = LiteToolCatalog.fromHostDescriptors(listOf(declaredLite("calculator"))),
+        )
+        driver.submit("算")
+        advanceUntilIdle()
+
+        // The policy ladder admits the declared calculator and the real
+        // evaluator's answer rides the tool/result row.
+        val tool = driver.fold.state.toolCalls.single()
+        assertEquals("completed", tool.phase)
+        assertEquals("14", tool.resultText)
+        assertEquals("completed", driver.fold.state.lastTurnEnd)
+    }
+
+    @Test
+    fun aSuccessfulArtifactCreateFoldsTheArtifactPairAfterTheToolResult() = runTest {
+        val store = LiteFileArtifactStore(java.nio.file.Files.createTempDirectory("lite-loop-artifacts").toFile())
+        val provider = ScriptedLiteProvider(
+            mapOf(
+                "写" to listOf(
+                    LiteStreamChunk.ToolCall("call-1", "artifact_create", """{"id":"spec","kind":"markdown","content":"# 报告"}"""),
+                    LiteStreamChunk.Text("已写入"),
+                ),
+            ),
+        )
+        val driver = LiteLoopDriver(
+            CoroutineScope(UnconfinedTestDispatcher(testScheduler)),
+            provider,
+            execute = { _, name, arguments ->
+                when (name) {
+                    "artifact_create" -> LiteToolExecutors.artifactCreate(store, arguments)
+                    else -> LiteToolOutcome(ok = false, text = "no on-device executor mounted: $name")
+                }
+            },
+            toolCatalog = LiteToolCatalog.fromHostDescriptors(listOf(declaredLite("artifact_create"))),
+        )
+        driver.submit("写")
+        advanceUntilIdle()
+
+        val state = driver.fold.state
+        assertEquals("completed", state.toolCalls.single().phase)
+        // The fold's pair: artifact/created appends the pending row, then
+        // artifact/status flips it to ready by id.
+        assertEquals(
+            listOf(LiteArtifact(id = "spec", kind = "markdown", title = "spec", status = "ready")),
+            state.artifacts,
+        )
+        assertEquals("# 报告", store.get("spec")!!.decodeToString())
+        assertEquals("completed", state.lastTurnEnd)
+    }
+
+    @Test
     fun aHandoffNameStopsAtTheMarkerWithoutExecuting() = runTest {
         var executed = 0
         val provider = ScriptedLiteProvider(
@@ -287,4 +351,8 @@ class LiteLoopDriverTest {
             driver.fold.state.conversation,
         )
     }
+
+    /** One declared low-risk lite-capable tool the real executors can serve. */
+    private fun declaredLite(id: String): ToolDescriptor =
+        ToolDescriptor(id = id, version = 1, risk = ToolRisk.LOW, permissions = emptyList(), supportsLite = true, supportsRemote = true)
 }

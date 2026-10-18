@@ -61,8 +61,11 @@ class ScriptedLiteProvider(private val scripts: Map<String, List<LiteStreamChunk
     }
 }
 
-/** One bundled-tool execution outcome. */
-data class LiteToolOutcome(val ok: Boolean, val text: String)
+/** The reference facts of one artifact a successful execution created — the write face's contribution to the artifact event pair. */
+data class LiteArtifactFact(val id: String, val kind: String)
+
+/** One bundled-tool execution outcome; [artifact] names the artifact a successful execution created, null otherwise. */
+data class LiteToolOutcome(val ok: Boolean, val text: String, val artifact: LiteArtifactFact? = null)
 
 /** Executes one bundled tool invocation. */
 typealias LiteToolExecuting = suspend (id: String, name: String, arguments: String) -> LiteToolOutcome
@@ -79,8 +82,10 @@ private fun text(value: String): JsonPrimitive = JsonPrimitive(value)
  * The Lite loop driver skeleton: submits a prompt to the provider, folds
  * the streamed chunks into the Behavior-Spec state, and routes each tool
  * call through the permission policy (§31): permitted calls execute
- * on-device, gated calls emit the handoff marker for the full runtime, and
- * unknown names fail explicitly — no call hangs or dispatches unjudged.
+ * on-device and an execution that created an artifact follows its
+ * tool/result with the artifact event pair, gated calls emit the handoff
+ * marker for the full runtime, and unknown names fail explicitly — no call
+ * hangs or dispatches unjudged.
  */
 class LiteLoopDriver(
     private val scope: CoroutineScope,
@@ -165,6 +170,25 @@ class LiteLoopDriver(
                                             "text" to text(outcome.text),
                                         ),
                                     )
+                                    val artifact = outcome.artifact
+                                    if (artifact != null) {
+                                        // The fold pairs artifact/status with the
+                                        // artifact/created row by id, so creation
+                                        // precedes status; the pair follows the
+                                        // completed tool/result because the bytes
+                                        // exist only after the executor's write,
+                                        // and the store's atomic put makes the
+                                        // artifact ready the moment it lands.
+                                        apply(
+                                            event(
+                                                "artifact/created",
+                                                "id" to text(artifact.id),
+                                                "kind" to text(artifact.kind),
+                                                "title" to text(artifact.id),
+                                            ),
+                                        )
+                                        apply(event("artifact/status", "id" to text(artifact.id), "status" to text("ready")))
+                                    }
                                 }
                                 is LiteToolDecision.Handoff -> {
                                     // A gated tool hands off to the full

@@ -28,8 +28,12 @@ val copyContractSchema by tasks.registering(Copy::class) {
 
 // Copy the generated tool-descriptor projection straight from the core tools
 // package; until that generator lands the projection test skips on absence.
+// The app-owned device declarations and device schemas ride the same copy:
+// the schema-union mirror reads all four documents off the test classpath.
 val copyToolDescriptors by tasks.registering(Copy::class) {
     from(rootProject.projectDir.parentFile.parentFile.resolve("packages/core/tools/tool-descriptors.json"))
+    from(rootProject.projectDir.parentFile.parentFile.resolve("apps/android/app/lite/lite-tool-declarations.json"))
+    from(rootProject.projectDir.parentFile.parentFile.resolve("apps/android/app/lite/lite-device-tool-schemas.json"))
     into(layout.buildDirectory.dir("tool-descriptors"))
 }
 

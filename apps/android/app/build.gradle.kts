@@ -73,14 +73,16 @@ tasks.matching { it.name == "preBuild" }.configureEach { dependsOn(verifyScanner
 // Copy the Lite documents the standalone session bundles under the assets
 // root's lite/ leaf: the generated projections straight from the preset and
 // core tools packages (the same bytes the JVM mirror tests cross-check), the
-// Host's tool-descriptor projection, and the app-owned device declarations
-// the runtime unions with it — one tool id in only one of those two.
+// Host's tool-descriptor and tool-schema projections, and the app-owned
+// device declarations and device schemas the runtime unions with them — one
+// tool id or schema name in only one document per union side.
 val litePresetProjection = rootProject.projectDir.parentFile.parentFile.resolve("packages/preset/agent-presets/lite-preset-descriptors.json")
 val liteToolSchemaProjection = rootProject.projectDir.parentFile.parentFile.resolve("packages/core/tools/lite-tool-schemas.json")
 val liteHostToolDescriptors = rootProject.projectDir.parentFile.parentFile.resolve("packages/core/tools/tool-descriptors.json")
 val liteDeviceToolDeclarations = projectDir.resolve("lite/lite-tool-declarations.json")
+val liteDeviceToolSchemas = projectDir.resolve("lite/lite-device-tool-schemas.json")
 val copyLiteAssets by tasks.registering(Copy::class) {
-    from(litePresetProjection, liteToolSchemaProjection, liteHostToolDescriptors, liteDeviceToolDeclarations)
+    from(litePresetProjection, liteToolSchemaProjection, liteHostToolDescriptors, liteDeviceToolDeclarations, liteDeviceToolSchemas)
     into(layout.buildDirectory.dir("generated/lite-assets/lite"))
 }
 
@@ -90,7 +92,7 @@ val copyLiteAssets by tasks.registering(Copy::class) {
 val verifyLiteAssetSources = tasks.register("verifyLiteAssetSources") {
     group = "verification"
     doLast {
-        for (source in listOf(litePresetProjection, liteToolSchemaProjection, liteHostToolDescriptors, liteDeviceToolDeclarations)) {
+        for (source in listOf(litePresetProjection, liteToolSchemaProjection, liteHostToolDescriptors, liteDeviceToolDeclarations, liteDeviceToolSchemas)) {
             require(source.isFile && source.length() > 0) { "Lite document is missing or empty: $source" }
         }
     }

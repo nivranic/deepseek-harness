@@ -263,6 +263,44 @@ class LiteChatViewModelTest {
     }
 
     @Test
+    fun aDeclaredCatalogExecutesTheRealCalculatorThroughTheAssembledChain() = runTest {
+        val store = LiteFileSessionStore(tempDir())
+        val provider = ScriptedLiteProvider(
+            mapOf("算一下" to listOf(LiteStreamChunk.ToolCall("c1", "calculator", """{"expression":"(1 + 2) * 3"}"""))),
+        )
+        val model = LiteChatViewModel(
+            scope = CoroutineScope(UnconfinedTestDispatcher(testScheduler)),
+            sessionId = "ui-exec",
+            provider = provider,
+            execute = { _, name, arguments ->
+                when (name) {
+                    "calculator" -> LiteToolExecutors.calculator(arguments)
+                    else -> LiteToolOutcome(ok = false, text = "no on-device executor mounted: $name")
+                }
+            },
+            store = store,
+            toolCatalog = LiteToolCatalog.fromHostDescriptors(
+                listOf(
+                    ToolDescriptor("calculator", 1, ToolRisk.LOW, emptyList(), supportsLite = true, supportsRemote = true),
+                ),
+            ),
+        )
+        model.send("算一下")
+        advanceUntilIdle()
+
+        // The assembled chain executes the declared calculator on-device; the
+        // live fold carries the real evaluator's row, while the journal keeps
+        // the chapter-64 turn-outcome events with no tool rows.
+        val tool = model.driver.fold.state.toolCalls.single()
+        assertEquals("completed", tool.phase)
+        assertEquals("9", tool.resultText)
+        assertEquals(
+            listOf("prompt/accepted", "message/completed", "turn/completed"),
+            store.load("ui-exec")!!.events.map { it["type"]!!.jsonPrimitive.content },
+        )
+    }
+
+    @Test
     fun aNormalTurnAfterAHandoffTurnJournalsACompletedTurnNotARepeatedHandoff() = runTest {
         val store = LiteFileSessionStore(tempDir())
         val provider = ScriptedLiteProvider(

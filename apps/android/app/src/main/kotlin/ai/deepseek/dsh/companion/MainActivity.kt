@@ -455,6 +455,9 @@ fun CompanionApp(model: CompanionViewModel = viewModel()) {
     val openNotificationSettings = { context.startActivity(nativeNotificationSettingsIntent(context.packageName)) }
     NativePushObserver(pushes, active) { PushNotifications.present(context, it) }
     if (liteOpen) {
+        // The Lite face's resource channel: the artifact_create executor writes
+        // through the same store the chat's reading face reads from.
+        val liteArtifacts = remember { LiteFileArtifactStore(java.io.File(context.filesDir, "lite-artifacts")) }
         Column(Modifier.fillMaxSize().safeDrawingPadding()) {
             Button(onClick = { liteOpen = false }, modifier = Modifier.padding(horizontal = 16.dp).testTag("lite-exit")) { Text("返回") }
             LiteEntry(
@@ -463,9 +466,15 @@ fun CompanionApp(model: CompanionViewModel = viewModel()) {
                 endpoint = "",
                 apiKey = "",
                 model = "",
-                execute = { _, _, _ -> LiteToolOutcome(ok = false, text = "") },
+                execute = { _, name, arguments ->
+                    when (name) {
+                        "calculator" -> LiteToolExecutors.calculator(arguments)
+                        "artifact_create" -> LiteToolExecutors.artifactCreate(liteArtifacts, arguments)
+                        else -> LiteToolOutcome(ok = false, text = "no on-device executor mounted: $name")
+                    }
+                },
                 store = remember { LiteFileSessionStore(java.io.File(context.filesDir, "lite-sessions")) },
-                artifacts = remember { LiteFileArtifactStore(java.io.File(context.filesDir, "lite-artifacts")) },
+                artifacts = liteArtifacts,
                 configStore = remember {
                     LiteFileConfigStore(java.io.File(context.filesDir, "lite-config.enc"), AndroidKeystoreCipher("dsh-lite-config"))
                 },

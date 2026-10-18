@@ -113,26 +113,32 @@ class LiteToolSchemaTest {
     }
 
     /**
-     * The cross-file consistency check against the real projections (both
-     * copied into test resources from `packages/core/tools/`): every schema
-     * the model-face projection carries names a tool the descriptor catalog
-     * declares with `supportsLite`.
+     * The cross-file consistency check against the real documents (the Host
+     * projections copied from `packages/core/tools/` and the app-owned device
+     * documents copied beside them): every name the two schema documents
+     * carry — the Host's model-face projection and the app-owned device
+     * schemas — names a tool the declared union (the descriptor catalog plus
+     * the device declarations) declares with `supportsLite`.
      */
     @Test
     fun theSchemaProjectionStaysWithinTheLiteDeclaredToolIds() {
         val descriptorsResource = javaClass.classLoader.getResource("tool-descriptors.json")
         val schemasResource = javaClass.classLoader.getResource("lite-tool-schemas.json")
+        val deviceDeclarationsResource = javaClass.classLoader.getResource("lite-tool-declarations.json")
+        val deviceSchemasResource = javaClass.classLoader.getResource("lite-device-tool-schemas.json")
         Assumptions.assumeTrue(
-            descriptorsResource != null && schemasResource != null,
-            "packages/core/tools/lite-tool-schemas.json has not been generated yet; the integration stage reruns this cross-check",
+            descriptorsResource != null && schemasResource != null &&
+                deviceDeclarationsResource != null && deviceSchemasResource != null,
+            "the tool projections or the app-owned device documents are absent; the integration stage reruns this cross-check",
         )
-        val liteIds = ToolDescriptors.parseDocument(descriptorsResource!!.readText(Charsets.UTF_8))
-            .filter { it.supportsLite }
-            .map { it.id }
-            .toSet()
-        val names = LiteToolSchemas.parseDocument(schemasResource!!.readText(Charsets.UTF_8)).map { it.name }
+        val liteIds = (
+            ToolDescriptors.parseDocument(descriptorsResource!!.readText(Charsets.UTF_8)) +
+                ToolDescriptors.parseDocument(deviceDeclarationsResource!!.readText(Charsets.UTF_8))
+            ).filter { it.supportsLite }.map { it.id }.toSet()
+        val names = LiteToolSchemas.parseDocument(schemasResource!!.readText(Charsets.UTF_8)).map { it.name } +
+            LiteToolSchemas.parseDocument(deviceSchemasResource!!.readText(Charsets.UTF_8)).map { it.name }
         for (name in names) {
-            assertTrue(name in liteIds, "schema $name is not a supportsLite tool id in the descriptor catalog")
+            assertTrue(name in liteIds, "schema $name is not a supportsLite tool id in the declared union")
         }
     }
 }

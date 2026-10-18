@@ -5,13 +5,15 @@ import kotlinx.coroutines.CoroutineScope
 
 /**
  * Assembles one standalone Lite chat session over the APK-bundled documents:
- * the provider's `tools` array and the preset catalog both come from
- * [LiteAssets]' BUNDLED catalogs, the preset selection resolves once against
- * that catalog — a null id keeps the projection default — and the dispatch
- * catalog is the APK-frozen union of the device tool declarations and the
- * bundled Host projection (§32): the §31 permission gate walks the declared
- * gates, and a name absent from both documents stays Unknown. Construction
- * only: mounting the view model into a UI is not this factory's concern.
+ * the provider's `tools` array is the APK-frozen union of the bundled Host
+ * projection's schemas and the app-owned device schemas, the preset catalog
+ * comes from [LiteAssets]' BUNDLED catalogs with the preset selection
+ * resolved once against it — a null id keeps the projection default — and
+ * the dispatch catalog is the APK-frozen union of the device tool
+ * declarations and the bundled Host projection (§32): the §31 permission
+ * gate walks the declared gates, and a name absent from both documents stays
+ * Unknown. Construction only: mounting the view model into a UI is not this
+ * factory's concern.
  */
 object LiteSessionAssembler {
 
@@ -48,6 +50,7 @@ object LiteSessionAssembler {
         // assembling a new session with new facts, never re-pointing a live one.
         val preset = bundled.presets.resolve(presetId)
         val toolCatalog = LiteToolCatalog.fromBundledDocuments(bundled.deviceToolDeclarations, bundled.hostToolDescriptors)
+        val toolSchemas = LiteToolSchemaCatalog.fromBundledDocuments(bundled.toolSchemas.tools, bundled.deviceToolSchemas)
         return LiteChatViewModel(
             scope = scope,
             sessionId = sessionId,
@@ -55,7 +58,7 @@ object LiteSessionAssembler {
                 endpoint = endpoint,
                 apiKey = apiKey,
                 model = model,
-                toolSchemas = bundled.toolSchemas.tools,
+                toolSchemas = toolSchemas.tools,
             ),
             execute = execute,
             store = store,
@@ -65,7 +68,7 @@ object LiteSessionAssembler {
             selectedPreset = preset,
             facts = LiteSessionFacts(
                 toolCatalogSource = toolCatalog.source,
-                toolSchemasSource = bundled.toolSchemas.source,
+                toolSchemasSource = toolSchemas.source,
                 presetSource = bundled.presets.source,
                 presetId = preset?.id,
             ),

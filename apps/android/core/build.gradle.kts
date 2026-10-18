@@ -35,11 +35,12 @@ tasks.test {
 // Copy the generated tool-descriptor projection straight from the core tools
 // package so the bundled-set mirror test compares against the current
 // candidate bytes; until that generator lands the mirror skips on absence.
-// The app-owned device declarations ride the same copy: the union-consistency
-// twin reads both documents off the test classpath.
+// The app-owned device declarations and device schemas ride the same copy:
+// the union-consistency twins read those documents off the test classpath.
 val copyToolDescriptors by tasks.registering(Copy::class) {
     from(rootProject.projectDir.parentFile.parentFile.resolve("packages/core/tools/tool-descriptors.json"))
     from(rootProject.projectDir.parentFile.parentFile.resolve("apps/android/app/lite/lite-tool-declarations.json"))
+    from(rootProject.projectDir.parentFile.parentFile.resolve("apps/android/app/lite/lite-device-tool-schemas.json"))
     into(layout.buildDirectory.dir("tool-descriptors"))
 }
 
