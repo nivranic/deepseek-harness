@@ -408,6 +408,16 @@ object CompanionRuntime {
     }
 }
 
+/** The image_inspect bounds face: BitmapFactory decodeBounds reads the pixel dimensions out of the sniffed bytes without decoding any pixels. */
+private object LiteAndroidImageBounds : LiteImageBoundsReading {
+    override fun readBounds(bytes: ByteArray): LiteImageBounds? {
+        val options = android.graphics.BitmapFactory.Options()
+        options.inJustDecodeBounds = true
+        android.graphics.BitmapFactory.decodeByteArray(bytes, 0, bytes.size, options)
+        return if (options.outWidth > 0 && options.outHeight > 0) LiteImageBounds(options.outWidth, options.outHeight) else null
+    }
+}
+
 @Composable
 fun CompanionApp(model: CompanionViewModel = viewModel()) {
     var tab by remember(model.generation) { mutableStateOf(0) }
@@ -476,6 +486,8 @@ fun CompanionApp(model: CompanionViewModel = viewModel()) {
                         "calculator" -> LiteToolExecutors.calculator(arguments)
                         "artifact_create" -> LiteToolExecutors.artifactCreate(liteArtifacts, arguments)
                         "url_fetch" -> LiteToolExecutors.urlFetch(arguments)
+                        "attachment_read" -> LiteToolExecutors.attachmentRead(liteAttachments, arguments)
+                        "image_inspect" -> LiteToolExecutors.imageInspect(liteAttachments, LiteAndroidImageBounds, arguments)
                         else -> LiteToolOutcome(ok = false, text = "no on-device executor mounted: $name")
                     }
                 },

@@ -16,6 +16,7 @@ import kotlinx.serialization.json.JsonPrimitive
 import okhttp3.Dns
 import okhttp3.HttpUrl.Companion.toHttpUrlOrNull
 import okhttp3.MediaType
+import okhttp3.MediaType.Companion.toMediaTypeOrNull
 import okhttp3.OkHttpClient
 import okhttp3.Request
 
@@ -24,7 +25,10 @@ import okhttp3.Request
  * the APK and fail-soft — every rejected invocation answers one
  * [LiteToolOutcome] carrying its concise reason instead of throwing into the
  * loop. The local calculators stay pure; url_fetch owns its bounded outbound
- * transport.
+ * transport; the attachment readers open the retained attachment store, with
+ * image_inspect's pixel bounds read through the injected
+ * [LiteImageBoundsReading] face — the android side stays behind that seam so
+ * every executor evaluates under JVM tests.
  */
 object LiteToolExecutors {
 
@@ -37,8 +41,16 @@ object LiteToolExecutors {
     /** The url_fetch response cap: 256 KiB of response bytes keeps one fetch inside a model-turn budget. */
     private const val URL_FETCH_CONTENT_LIMIT_BYTES = 256 * 1024
 
-    /** The url_fetch application subtypes that carry textual documents; every other application subtype is binary. */
-    private val URL_FETCH_TEXTUAL_APPLICATION_SUBTYPES = setOf("json", "xml", "yaml", "x-yaml", "javascript")
+    /**
+     * The attachment_read text cap: 64 KiB of stored bytes keeps one read
+     * inside a model-turn budget. Independent of intake's 8 MiB retention
+     * cap — that bounds what the device keeps, this bounds what one tool
+     * result feeds the model.
+     */
+    private const val ATTACHMENT_READ_CONTENT_LIMIT_BYTES = 64 * 1024
+
+    /** The application subtypes that carry textual documents; every other application subtype is binary. */
+    private val TEXTUAL_APPLICATION_SUBTYPES = setOf("json", "xml", "yaml", "x-yaml", "javascript")
 
     /**
      * The url_fetch transport: one independently owned client, never the
@@ -149,6 +161,61 @@ object LiteToolExecutors {
     }
 
     /**
+     * Run one attachment_read invocation against the retained attachment
+     * store: the arguments parse as one `{"name": string}` object naming a
+     * stored attachment, and the retained media type routes the bytes — a
+     * textual type decodes its content under the declared charset inside
+     * [ATTACHMENT_READ_CONTENT_LIMIT_BYTES], every other type refuses as
+     * binary. The tool result is the model's only read face over the bytes:
+     * admitted attachments never ride a provider request.
+     * @param store the retained attachment channel the bytes read from.
+     * @param arguments the tool call's arguments JSON.
+     * @returns the decoded text, or the concise reason the invocation failed.
+     */
+    fun attachmentRead(store: LiteAttachmentStoring, arguments: String): LiteToolOutcome {
+        val name = stringFields(arguments, "name")?.getValue("name")
+            ?: return LiteToolOutcome(ok = false, text = "参数必须是含 name 字符串的 JSON 对象")
+        val mediaType = try {
+            store.list().firstOrNull { it.name == name }?.mediaType
+        } catch (corrupt: IllegalStateException) {
+            // The store fails loud past a corrupt sidecar; the executor answers
+            // that refusal as its own fail-soft fact instead of throwing into
+            // the loop.
+            return LiteToolOutcome(ok = false, text = "附件读取失败：$name")
+        } ?: return LiteToolOutcome(ok = false, text = "附件不存在：$name")
+        val bytes = store.get(name) ?: return LiteToolOutcome(ok = false, text = "附件不存在：$name")
+        val type = mediaType.toMediaTypeOrNull()
+        if (type == null || !isTextualMediaType(type)) {
+            return LiteToolOutcome(ok = false, text = "附件是二进制类型：$mediaType，attachment_read 只读文本附件")
+        }
+        if (bytes.size > ATTACHMENT_READ_CONTENT_LIMIT_BYTES) {
+            return LiteToolOutcome(ok = false, text = "附件超过 $ATTACHMENT_READ_CONTENT_LIMIT_BYTES 字节上限")
+        }
+        return LiteToolOutcome(ok = true, text = String(bytes, type.charset(Charsets.UTF_8) ?: Charsets.UTF_8))
+    }
+
+    /**
+     * Run one image_inspect invocation against the retained attachment
+     * store: the arguments parse as one `{"name": string}` object naming a
+     * stored attachment, the bytes pass the pure signature sniff, and the
+     * injected bounds reader resolves the pixel dimensions without decoding
+     * pixels. The sniffed format is the reported fact — the retained media
+     * type never reaches this tool.
+     * @param store the retained attachment channel the bytes read from.
+     * @param bounds the pixel-bounds face over the image bytes.
+     * @param arguments the tool call's arguments JSON.
+     * @returns the image's metadata line, or the concise reason the invocation failed.
+     */
+    fun imageInspect(store: LiteAttachmentStoring, bounds: LiteImageBoundsReading, arguments: String): LiteToolOutcome {
+        val name = stringFields(arguments, "name")?.getValue("name")
+            ?: return LiteToolOutcome(ok = false, text = "参数必须是含 name 字符串的 JSON 对象")
+        val bytes = store.get(name) ?: return LiteToolOutcome(ok = false, text = "附件不存在：$name")
+        val mediaType = sniffImageMediaType(bytes)
+            ?: return LiteToolOutcome(ok = false, text = "不是可识别的图片")
+        return imageInspectOutcome(mediaType, bounds.readBounds(bytes), bytes.size.toLong())
+    }
+
+    /**
      * Parse one invocation's arguments as one JSON object and read the named
      * string fields strictly.
      * @returns the named fields, or null when the text or any named field is malformed.
@@ -200,10 +267,70 @@ object LiteToolExecutors {
     /** Whether one media type carries textual content: any text subtype, or the textual application subtypes. */
     private fun isTextualMediaType(type: MediaType): Boolean = when (type.type) {
         "text" -> true
-        "application" -> type.subtype in URL_FETCH_TEXTUAL_APPLICATION_SUBTYPES ||
+        "application" -> type.subtype in TEXTUAL_APPLICATION_SUBTYPES ||
             type.subtype.endsWith("+json") || type.subtype.endsWith("+xml")
         else -> false
     }
+
+    /** The PNG file signature. */
+    private val PNG_SIGNATURE = byteArrayOf(0x89.toByte(), 0x50, 0x4E, 0x47, 0x0D, 0x0A, 0x1A, 0x0A)
+
+    /** The JPEG file signature. */
+    private val JPEG_SIGNATURE = byteArrayOf(0xFF.toByte(), 0xD8.toByte(), 0xFF.toByte())
+
+    /** The HEIF family's ISO-BMFF major brands: the still-image and sequence brands under `ftyp`. */
+    private val HEIF_BRANDS = setOf("heic", "heix", "hevc", "hevx", "heim", "heis", "hevm", "hevs", "mif1", "msf1")
+
+    /**
+     * Identify the media type declared by a supported image file signature —
+     * the host read_image sniffer's vocabulary (PNG, JPEG, GIF, WebP) plus
+     * the HEIF family. Pure byte inspection: no decode, no retained media
+     * type consulted.
+     * @param bytes the stored attachment bytes.
+     * @returns the sniffed media type, or null for other bytes.
+     */
+    internal fun sniffImageMediaType(bytes: ByteArray): String? {
+        if (matchesSignature(bytes, 0, PNG_SIGNATURE)) return "image/png"
+        if (matchesSignature(bytes, 0, JPEG_SIGNATURE)) return "image/jpeg"
+        if (matchesAscii(bytes, 0, "GIF87a") || matchesAscii(bytes, 0, "GIF89a")) return "image/gif"
+        if (matchesAscii(bytes, 0, "RIFF") && matchesAscii(bytes, 8, "WEBP")) return "image/webp"
+        if (isHeifFamily(bytes)) return "image/heif"
+        return null
+    }
+
+    /** Whether the bytes open an ISO-BMFF `ftyp` box whose major brand names the HEIF family. */
+    private fun isHeifFamily(bytes: ByteArray): Boolean =
+        bytes.size >= 12 && matchesAscii(bytes, 4, "ftyp") &&
+            bytes.decodeToString(8, 12) in HEIF_BRANDS
+
+    /** Whether the bytes carry the expected signature bytes at the offset. */
+    private fun matchesSignature(bytes: ByteArray, offset: Int, signature: ByteArray): Boolean {
+        if (bytes.size < offset + signature.size) return false
+        return signature.indices.all { bytes[offset + it] == signature[it] }
+    }
+
+    /** Whether the bytes carry the ASCII text at the offset. */
+    private fun matchesAscii(bytes: ByteArray, offset: Int, text: String): Boolean {
+        if (bytes.size < offset + text.length) return false
+        return text.indices.all { bytes[offset + it] == text[it].code.toByte() }
+    }
+
+    /**
+     * Evaluate one image_inspect outcome from its resolved facts: a sniffed
+     * format with read bounds answers the metadata line, and a null bounds
+     * read — the reader decoded no image out of the sniffed bytes — answers
+     * the unrecognized-image refusal.
+     * @param mediaType the sniffed image media type.
+     * @param bounds the read pixel bounds, or null when the bytes decode to no image.
+     * @param sizeBytes the stored byte count.
+     * @returns the metadata outcome, or the unrecognized-image refusal.
+     */
+    internal fun imageInspectOutcome(mediaType: String, bounds: LiteImageBounds?, sizeBytes: Long): LiteToolOutcome =
+        if (bounds == null) {
+            LiteToolOutcome(ok = false, text = "不是可识别的图片")
+        } else {
+            LiteToolOutcome(ok = true, text = "格式 $mediaType、宽 ${bounds.width}×高 ${bounds.height} 像素、$sizeBytes 字节")
+        }
 
     /**
      * The private-network refusal vocabulary for one resolved address — the
@@ -342,4 +469,22 @@ object LiteToolExecutors {
 
         private fun reject(): Nothing = throw IllegalArgumentException("invalid arithmetic expression")
     }
+}
+
+/** One image's pixel dimensions as image_inspect reports them. */
+data class LiteImageBounds(val width: Int, val height: Int)
+
+/**
+ * Reads one image's pixel bounds from its bytes: image_inspect's only
+ * android-facing dependency. The executors' module is JVM-only, so the
+ * BitmapFactory decodeBounds face — metadata only, no pixel decode — is
+ * injected by the app module, and the JVM tests read through their own.
+ */
+fun interface LiteImageBoundsReading {
+    /**
+     * Read one image's pixel bounds.
+     * @param bytes the complete image bytes.
+     * @return the pixel bounds, or null when the bytes decode to no image.
+     */
+    fun readBounds(bytes: ByteArray): LiteImageBounds?
 }

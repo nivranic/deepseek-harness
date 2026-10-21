@@ -18,6 +18,38 @@
       }
     },
     {
+      "name": "image_inspect",
+      "description": "查看一个已收图片附件的元数据。按附件名读取设备上保留的图片字节，从内容识别格式（PNG/JPEG/GIF/WebP/HEIF），返回格式、宽高像素与字节数；无法识别的内容会被拒绝。",
+      "parameters": {
+        "type": "object",
+        "properties": {
+          "name": {
+            "type": "string",
+            "description": "要查看的图片附件名，即附件列表中显示的名字。"
+          }
+        },
+        "required": [
+          "name"
+        ]
+      }
+    },
+    {
+      "name": "attachment_read",
+      "description": "读取一个已收附件的文本内容。按附件名读取设备上保留的字节：仅文本类型可读，按声明的字符集解码，超过 64 KiB 会被拒绝；二进制类型会被拒绝。",
+      "parameters": {
+        "type": "object",
+        "properties": {
+          "name": {
+            "type": "string",
+            "description": "要读取的附件名，即附件列表中显示的名字。"
+          }
+        },
+        "required": [
+          "name"
+        ]
+      }
+    },
+    {
       "name": "calculator",
       "description": "求值一个算术表达式。支持 + - * / % 、括号、一元正负号与十进制数字，返回精确的十进制结果。",
       "parameters": {

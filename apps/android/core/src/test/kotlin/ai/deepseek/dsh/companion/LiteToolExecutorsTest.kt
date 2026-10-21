@@ -11,7 +11,12 @@ import okhttp3.MediaType.Companion.toMediaType
 private fun tempDir(): java.io.File =
     java.nio.file.Files.createTempDirectory("lite-executors").toFile()
 
-/** The Lite on-device executors: the calculator table, the artifact write face, and the url_fetch outbound face. */
+/** A fixed bounds answer: the JVM face standing in for the app module's BitmapFactory reader. */
+private class FixedBounds(private val bounds: LiteImageBounds?) : LiteImageBoundsReading {
+    override fun readBounds(bytes: ByteArray): LiteImageBounds? = bounds
+}
+
+/** The Lite on-device executors: the calculator table, the artifact write face, the url_fetch outbound face, and the attachment readers. */
 class LiteToolExecutorsTest {
 
     @Test
@@ -250,5 +255,153 @@ class LiteToolExecutorsTest {
         )
         assertFalse(overCap.ok)
         assertEquals("响应超过 $cap 字节上限", overCap.text)
+    }
+
+    @Test
+    fun malformedAttachmentReadArgumentsFailSoft() {
+        for (arguments in listOf("not json", "3", "\"notes.txt\"", """{"name": 3}""", """{"other":"notes.txt"}""", """{"name":null}""")) {
+            val outcome = LiteToolExecutors.attachmentRead(LiteFileAttachmentStore(tempDir()), arguments)
+            assertFalse(outcome.ok, "arguments <$arguments> parsed")
+            assertEquals("参数必须是含 name 字符串的 JSON 对象", outcome.text)
+        }
+    }
+
+    @Test
+    fun absentAttachmentsFailSoftByNameOnBothReaders() {
+        val store = LiteFileAttachmentStore(tempDir())
+        store.put("kept.txt", "x".encodeToByteArray(), "text/plain")
+        val reads = listOf<(String) -> LiteToolOutcome>(
+            { arguments -> LiteToolExecutors.attachmentRead(store, arguments) },
+            { arguments -> LiteToolExecutors.imageInspect(store, FixedBounds(LiteImageBounds(1, 1)), arguments) },
+        )
+        for (read in reads) {
+            val outcome = read("""{"name":"gone.txt"}""")
+            assertFalse(outcome.ok)
+            assertEquals("附件不存在：gone.txt", outcome.text)
+        }
+    }
+
+    @Test
+    fun aTextualAttachmentReadsBackItsContentInTheDeclaredCharset() {
+        val store = LiteFileAttachmentStore(tempDir())
+        store.put("notes.txt", "正文内容".encodeToByteArray(), "text/plain; charset=utf-8")
+        assertEquals(
+            LiteToolOutcome(ok = true, text = "正文内容"),
+            LiteToolExecutors.attachmentRead(store, """{"name":"notes.txt"}"""),
+        )
+        // A declared non-UTF-8 charset decodes through it — the url_fetch body face's form.
+        store.put("utf16.txt", "你好".toByteArray(Charsets.UTF_16BE), "text/plain; charset=utf-16be")
+        assertEquals(
+            LiteToolOutcome(ok = true, text = "你好"),
+            LiteToolExecutors.attachmentRead(store, """{"name":"utf16.txt"}"""),
+        )
+        // An unstated charset defaults to UTF-8.
+        store.put("bare.txt", "默认".encodeToByteArray(), "text/plain")
+        assertEquals(
+            LiteToolOutcome(ok = true, text = "默认"),
+            LiteToolExecutors.attachmentRead(store, """{"name":"bare.txt"}"""),
+        )
+        // The textual application vocabulary url_fetch already owns carries attachments too.
+        for ((suffix, type) in listOf("json" to "application/json", "xhtml" to "application/xhtml+xml", "yaml" to "application/yaml")) {
+            val name = "doc.$suffix"
+            store.put(name, "{}".encodeToByteArray(), type)
+            assertEquals(
+                LiteToolOutcome(ok = true, text = "{}"),
+                LiteToolExecutors.attachmentRead(store, """{"name":"$name"}"""),
+                type,
+            )
+        }
+    }
+
+    @Test
+    fun binaryAttachmentsAreRefusedWithTheirRetainedMediaType() {
+        val store = LiteFileAttachmentStore(tempDir())
+        val cases = listOf(
+            "shot.png" to "image/png",
+            "blob.bin" to "application/octet-stream", // intake's unstated default
+            "doc.pdf" to "application/pdf",
+            "malformed" to "not a media type", // a retained type okhttp cannot parse reads as binary
+        )
+        for ((name, type) in cases) {
+            store.put(name, byteArrayOf(0, 1), type)
+            val outcome = LiteToolExecutors.attachmentRead(store, """{"name":"$name"}""")
+            assertFalse(outcome.ok, name)
+            assertEquals("附件是二进制类型：$type，attachment_read 只读文本附件", outcome.text, name)
+        }
+    }
+
+    @Test
+    fun oversizedAttachmentTextFailsSoftAtTheCapBoundary() {
+        val store = LiteFileAttachmentStore(tempDir())
+        val cap = 64 * 1024
+        store.put("at-cap.txt", "x".repeat(cap).encodeToByteArray(), "text/plain")
+        assertEquals(
+            LiteToolOutcome(ok = true, text = "x".repeat(cap)),
+            LiteToolExecutors.attachmentRead(store, """{"name":"at-cap.txt"}"""),
+        )
+        store.put("over-cap.txt", "x".repeat(cap + 1).encodeToByteArray(), "text/plain")
+        val overCap = LiteToolExecutors.attachmentRead(store, """{"name":"over-cap.txt"}""")
+        assertFalse(overCap.ok)
+        assertEquals("附件超过 $cap 字节上限", overCap.text)
+    }
+
+    @Test
+    fun malformedImageInspectArgumentsFailSoft() {
+        for (arguments in listOf("not json", "3", "\"shot.png\"", """{"name": 3}""", """{"other":"shot.png"}""", """{"name":null}""")) {
+            val outcome = LiteToolExecutors.imageInspect(LiteFileAttachmentStore(tempDir()), FixedBounds(null), arguments)
+            assertFalse(outcome.ok, "arguments <$arguments> parsed")
+            assertEquals("参数必须是含 name 字符串的 JSON 对象", outcome.text)
+        }
+    }
+
+    @Test
+    fun imageSignaturesSniffToTheirMediaTypes() {
+        fun ftyp(brand: String): ByteArray =
+            byteArrayOf(0, 0, 0, 0x18) + "ftyp$brand".encodeToByteArray() + ByteArray(8)
+        val table = mapOf(
+            "png" to (byteArrayOf(0x89.toByte(), 0x50, 0x4E, 0x47, 0x0D, 0x0A, 0x1A, 0x0A) + ByteArray(16) to "image/png"),
+            "jpeg" to (byteArrayOf(0xFF.toByte(), 0xD8.toByte(), 0xFF.toByte(), 0xE0.toByte()) + ByteArray(16) to "image/jpeg"),
+            "gif87a" to ("GIF87a".encodeToByteArray() + ByteArray(10) to "image/gif"),
+            "gif89a" to ("GIF89a".encodeToByteArray() + ByteArray(10) to "image/gif"),
+            "webp" to ("RIFF".encodeToByteArray() + byteArrayOf(0, 0, 0, 0) + "WEBP".encodeToByteArray() + ByteArray(10) to "image/webp"),
+            "heic" to (ftyp("heic") to "image/heif"),
+            "mif1" to (ftyp("mif1") to "image/heif"),
+        )
+        for ((name, case) in table) {
+            assertEquals(case.second, LiteToolExecutors.sniffImageMediaType(case.first), name)
+        }
+        val negatives = mapOf(
+            "text bytes" to "附件不是图片".encodeToByteArray(),
+            "truncated gif header" to "GIF8".encodeToByteArray(),
+            "riff container without webp" to ("RIFF".encodeToByteArray() + byteArrayOf(0, 0, 0, 0) + "WAVE".encodeToByteArray()),
+            "ftyp brand outside the family" to ftyp("isom"),
+            "empty bytes" to ByteArray(0),
+        )
+        for ((name, bytes) in negatives) {
+            assertNull(LiteToolExecutors.sniffImageMediaType(bytes), name)
+        }
+    }
+
+    @Test
+    fun aSniffedImageAnswersItsMetadataThroughTheBoundsReader() {
+        val store = LiteFileAttachmentStore(tempDir())
+        val png = byteArrayOf(0x89.toByte(), 0x50, 0x4E, 0x47, 0x0D, 0x0A, 0x1A, 0x0A) + ByteArray(24)
+        // The retained media type may state anything; the sniff is the reported fact.
+        store.put("shot.png", png, "image/jpeg")
+        assertEquals(
+            LiteToolOutcome(ok = true, text = "格式 image/png、宽 800×高 600 像素、${png.size} 字节"),
+            LiteToolExecutors.imageInspect(store, FixedBounds(LiteImageBounds(width = 800, height = 600)), """{"name":"shot.png"}"""),
+        )
+        // A reader that decodes nothing answers the unrecognized refusal even past the sniff.
+        assertEquals(
+            LiteToolOutcome(ok = false, text = "不是可识别的图片"),
+            LiteToolExecutors.imageInspect(store, FixedBounds(null), """{"name":"shot.png"}"""),
+        )
+        // A non-image attachment answers the same refusal before any read: the reader holds valid bounds.
+        store.put("notes.txt", "text".encodeToByteArray(), "text/plain")
+        assertEquals(
+            LiteToolOutcome(ok = false, text = "不是可识别的图片"),
+            LiteToolExecutors.imageInspect(store, FixedBounds(LiteImageBounds(1, 1)), """{"name":"notes.txt"}"""),
+        )
     }
 }
