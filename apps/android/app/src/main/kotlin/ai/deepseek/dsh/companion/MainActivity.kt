@@ -471,6 +471,7 @@ fun CompanionApp(model: CompanionViewModel = viewModel()) {
                     when (name) {
                         "calculator" -> LiteToolExecutors.calculator(arguments)
                         "artifact_create" -> LiteToolExecutors.artifactCreate(liteArtifacts, arguments)
+                        "url_fetch" -> LiteToolExecutors.urlFetch(arguments)
                         else -> LiteToolOutcome(ok = false, text = "no on-device executor mounted: $name")
                     }
                 },

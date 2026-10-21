@@ -5,11 +5,13 @@ import kotlin.test.assertEquals
 import kotlin.test.assertFalse
 import kotlin.test.assertNull
 import kotlin.test.assertTrue
+import kotlinx.coroutines.test.runTest
+import okhttp3.MediaType.Companion.toMediaType
 
 private fun tempDir(): java.io.File =
     java.nio.file.Files.createTempDirectory("lite-executors").toFile()
 
-/** The Lite on-device executors: the calculator table and the artifact write face. */
+/** The Lite on-device executors: the calculator table, the artifact write face, and the url_fetch outbound face. */
 class LiteToolExecutorsTest {
 
     @Test
@@ -125,5 +127,128 @@ class LiteToolExecutorsTest {
         assertFalse(overCap.ok)
         assertEquals("content 超过 $cap 字节上限", overCap.text)
         assertNull(store.get("over-cap"))
+    }
+
+    @Test
+    fun malformedUrlFetchArgumentsFailSoft() = runTest {
+        for (arguments in listOf("not json", "3", "\"https://example.com\"", """{"url": 3}""", """{"other":"https://example.com"}""", """{"url":null}""")) {
+            val outcome = LiteToolExecutors.urlFetch(arguments)
+            assertFalse(outcome.ok, "arguments <$arguments> parsed")
+            assertEquals("参数必须是含 url 字符串的 JSON 对象", outcome.text)
+        }
+    }
+
+    @Test
+    fun nonHttpsAndUnparseableUrlsAreRefusedBeforeAnyRequest() = runTest {
+        // OkHttp parses only http/https URLs, so the https gate compares against
+        // http alone; every other scheme already answers the unparseable reason.
+        val cases = mapOf(
+            "cleartext http" to Pair("""{"url":"http://example.com/a"}""", "仅支持 https URL"),
+            "other scheme" to Pair("""{"url":"ftp://example.com/a"}""", "URL 不合法"),
+            "blank" to Pair("""{"url":""}""", "URL 不合法"),
+            "plain text" to Pair("""{"url":"example.com/a"}""", "URL 不合法"),
+        )
+        for ((name, case) in cases) {
+            val outcome = LiteToolExecutors.urlFetch(case.first)
+            assertFalse(outcome.ok, name)
+            assertEquals(case.second, outcome.text, name)
+        }
+    }
+
+    @Test
+    fun privateNetworkHostsAreRefusedBeforeAnyRequest() = runTest {
+        // Literal addresses resolve without DNS, so every refusal is offline-deterministic.
+        // HttpUrl reports IPv6 hosts bare (bracketed in the URL) and normalizes an
+        // IPv4-mapped literal to its embedded IPv4, so the message names that form.
+        val hosts = listOf(
+            "127.0.0.1" to "127.0.0.1", // loopback
+            "10.0.0.1" to "10.0.0.1", "172.16.0.1" to "172.16.0.1", "192.168.1.1" to "192.168.1.1", // site-local
+            "169.254.169.254" to "169.254.169.254", // link-local, the metadata endpoint
+            "0.0.0.0" to "0.0.0.0", // wildcard
+            "::1" to "::1", // IPv6 loopback
+            "fe80::1" to "fe80::1", // IPv6 link-local
+            "fec0::1" to "fec0::1", // IPv6 site-local
+            "fc00::1" to "fc00::1", "fd12::1" to "fd12::1", // IPv6 unique-local fc00::/7
+            "::ffff:127.0.0.1" to "127.0.0.1", "::ffff:169.254.0.1" to "169.254.0.1", // IPv4-mapped
+        )
+        for ((urlHost, messageHost) in hosts) {
+            val url = if (':' in urlHost) "https://[$urlHost]/a" else "https://$urlHost/a"
+            val outcome = LiteToolExecutors.urlFetch("""{"url":"$url"}""")
+            assertFalse(outcome.ok, urlHost)
+            assertEquals("拒绝访问私网地址：$messageHost", outcome.text, urlHost)
+        }
+    }
+
+    @Test
+    fun anUnresolvableHostAnswersDnsFailure() = runTest {
+        // The conformance fixture's shape: a name that cannot resolve answers the DNS reason.
+        val outcome = LiteToolExecutors.urlFetch("""{"url":"https://example.invalid/a"}""")
+        assertFalse(outcome.ok)
+        assertEquals("DNS 解析失败", outcome.text)
+    }
+
+    @Test
+    fun aTextualTwoHundredAnswersTheDecodedBodyInTheDeclaredCharset() {
+        val plain = LiteToolExecutors.urlFetchResponseOutcome(
+            200, "text/plain; charset=utf-8".toMediaType(), null, "hello".byteInputStream(),
+        )
+        assertEquals(LiteToolOutcome(ok = true, text = "hello"), plain)
+
+        val declared = LiteToolExecutors.urlFetchResponseOutcome(
+            200, "text/plain; charset=utf-16be".toMediaType(), null, "你好".toByteArray(Charsets.UTF_16BE).inputStream(),
+        )
+        assertEquals(LiteToolOutcome(ok = true, text = "你好"), declared)
+
+        for (type in listOf("application/json", "application/xml", "application/xhtml+xml")) {
+            val textual = LiteToolExecutors.urlFetchResponseOutcome(200, type.toMediaType(), null, "{}".byteInputStream())
+            assertEquals(LiteToolOutcome(ok = true, text = "{}"), textual, type)
+        }
+    }
+
+    @Test
+    fun nonTextualOrMissingContentTypesAreRefused() {
+        for (type in listOf("image/png", "audio/mpeg", "video/mp4", "application/octet-stream", "application/pdf", "application/zip")) {
+            val outcome = LiteToolExecutors.urlFetchResponseOutcome(200, type.toMediaType(), null, byteArrayOf(0, 1).inputStream())
+            assertFalse(outcome.ok, type)
+            assertEquals("响应 Content-Type 不是文本类型：$type", outcome.text, type)
+        }
+        val missing = LiteToolExecutors.urlFetchResponseOutcome(200, null, null, "x".byteInputStream())
+        assertFalse(missing.ok)
+        assertEquals("响应 Content-Type 不是文本类型（缺失）", missing.text)
+    }
+
+    @Test
+    fun redirectsAnswerTheirTargetUnfollowedAndOtherStatusesAnswerTheirCode() {
+        assertEquals(
+            LiteToolOutcome(ok = true, text = "HTTP 301 跳转未跟随，目标：https://example.com/b"),
+            LiteToolExecutors.urlFetchResponseOutcome(301, null, "https://example.com/b", "".byteInputStream()),
+        )
+        assertEquals(
+            LiteToolOutcome(ok = true, text = "HTTP 302 跳转未跟随，目标：响应未携带 Location"),
+            LiteToolExecutors.urlFetchResponseOutcome(302, null, null, "".byteInputStream()),
+        )
+        assertEquals(
+            LiteToolOutcome(ok = false, text = "HTTP 404 请求未成功"),
+            LiteToolExecutors.urlFetchResponseOutcome(404, "text/plain".toMediaType(), null, "".byteInputStream()),
+        )
+        assertEquals(
+            LiteToolOutcome(ok = false, text = "HTTP 503 请求未成功"),
+            LiteToolExecutors.urlFetchResponseOutcome(503, null, null, "".byteInputStream()),
+        )
+    }
+
+    @Test
+    fun oversizedResponsesFailSoftAtTheCapBoundary() {
+        val cap = 256 * 1024
+        val atCap = LiteToolExecutors.urlFetchResponseOutcome(
+            200, "text/plain".toMediaType(), null, "x".repeat(cap).byteInputStream(),
+        )
+        assertEquals(LiteToolOutcome(ok = true, text = "x".repeat(cap)), atCap)
+
+        val overCap = LiteToolExecutors.urlFetchResponseOutcome(
+            200, "text/plain".toMediaType(), null, "x".repeat(cap + 1).byteInputStream(),
+        )
+        assertFalse(overCap.ok)
+        assertEquals("响应超过 $cap 字节上限", overCap.text)
     }
 }

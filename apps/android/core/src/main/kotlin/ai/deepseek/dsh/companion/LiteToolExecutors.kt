@@ -1,16 +1,30 @@
 package ai.deepseek.dsh.companion
 
+import java.io.IOException
+import java.io.InputStream
 import java.math.BigDecimal
 import java.math.MathContext
+import java.net.InetAddress
+import java.net.SocketTimeoutException
+import java.net.UnknownHostException
+import java.util.concurrent.TimeUnit
+import kotlinx.coroutines.Dispatchers
+import kotlinx.coroutines.withContext
 import kotlinx.serialization.json.Json
 import kotlinx.serialization.json.JsonObject
 import kotlinx.serialization.json.JsonPrimitive
+import okhttp3.Dns
+import okhttp3.HttpUrl.Companion.toHttpUrlOrNull
+import okhttp3.MediaType
+import okhttp3.OkHttpClient
+import okhttp3.Request
 
 /**
- * The Lite on-device tool executors (chapter 36's local face): pure, bundled
- * with the APK, and fail-soft — every rejected invocation answers one
+ * The Lite on-device tool executors (chapter 36's local face): bundled with
+ * the APK and fail-soft — every rejected invocation answers one
  * [LiteToolOutcome] carrying its concise reason instead of throwing into the
- * loop.
+ * loop. The local calculators stay pure; url_fetch owns its bounded outbound
+ * transport.
  */
 object LiteToolExecutors {
 
@@ -19,6 +33,30 @@ object LiteToolExecutors {
 
     /** The artifact content cap: 256 KiB of UTF-8-encoded bytes keeps one write inside a model-turn budget. */
     private const val ARTIFACT_CONTENT_LIMIT_BYTES = 256 * 1024
+
+    /** The url_fetch response cap: 256 KiB of response bytes keeps one fetch inside a model-turn budget. */
+    private const val URL_FETCH_CONTENT_LIMIT_BYTES = 256 * 1024
+
+    /** The url_fetch application subtypes that carry textual documents; every other application subtype is binary. */
+    private val URL_FETCH_TEXTUAL_APPLICATION_SUBTYPES = setOf("json", "xml", "yaml", "x-yaml", "javascript")
+
+    /**
+     * The url_fetch transport: one independently owned client, never the
+     * provider's endpoint-bound stream client, with the bounded unary
+     * profile the stream shape forbids — connect 10 s fences a dead
+     * endpoint and one 30 s read/call bound retires a stalled fetch.
+     * Redirects are never followed and [PrivateNetworkRefusingDns] keeps a
+     * rebound connect-time resolution from slipping past the pre-flight
+     * address refusal.
+     */
+    private val urlFetchClient = OkHttpClient.Builder()
+        .connectTimeout(10, TimeUnit.SECONDS)
+        .readTimeout(30, TimeUnit.SECONDS)
+        .callTimeout(30, TimeUnit.SECONDS)
+        .followRedirects(false)
+        .followSslRedirects(false)
+        .dns(PrivateNetworkRefusingDns)
+        .build()
 
     /**
      * Evaluate one calculator invocation: the arguments parse as one
@@ -71,6 +109,46 @@ object LiteToolExecutors {
     }
 
     /**
+     * Run one url_fetch invocation: the arguments parse as one `{"url": string}`
+     * object naming an https address (the app layer's clean refusal ahead of the
+     * platform's cleartext ban), the resolved host must leave the private-network
+     * vocabulary, and the response passes [urlFetchResponseOutcome]; the blocking
+     * fetch runs on the IO dispatcher.
+     * @param arguments the tool call's arguments JSON.
+     * @returns the fetched text or the unfollowed redirect notice, or the concise reason the invocation failed.
+     */
+    suspend fun urlFetch(arguments: String): LiteToolOutcome = withContext(Dispatchers.IO) {
+        val url = stringFields(arguments, "url")?.getValue("url")
+            ?: return@withContext LiteToolOutcome(ok = false, text = "参数必须是含 url 字符串的 JSON 对象")
+        val target = url.toHttpUrlOrNull()
+            ?: return@withContext LiteToolOutcome(ok = false, text = "URL 不合法")
+        if (!target.isHttps) {
+            return@withContext LiteToolOutcome(ok = false, text = "仅支持 https URL")
+        }
+        val resolved = try {
+            InetAddress.getAllByName(target.host)
+        } catch (unresolved: UnknownHostException) {
+            return@withContext LiteToolOutcome(ok = false, text = "DNS 解析失败")
+        }
+        if (resolved.any { isPrivateNetworkAddress(it) }) {
+            return@withContext LiteToolOutcome(ok = false, text = "拒绝访问私网地址：" + target.host)
+        }
+        try {
+            urlFetchClient.newCall(Request.Builder().url(target).build()).execute().use { response ->
+                urlFetchResponseOutcome(response.code, response.body.contentType(), response.header("Location"), response.body.byteStream())
+            }
+        } catch (rebound: LitePrivateNetworkRefused) {
+            LiteToolOutcome(ok = false, text = "拒绝访问私网地址：" + target.host)
+        } catch (timedOut: SocketTimeoutException) {
+            LiteToolOutcome(ok = false, text = "请求超时")
+        } catch (unresolved: UnknownHostException) {
+            LiteToolOutcome(ok = false, text = "DNS 解析失败")
+        } catch (failure: IOException) {
+            LiteToolOutcome(ok = false, text = "网络请求失败")
+        }
+    }
+
+    /**
      * Parse one invocation's arguments as one JSON object and read the named
      * string fields strictly.
      * @returns the named fields, or null when the text or any named field is malformed.
@@ -89,6 +167,79 @@ object LiteToolExecutors {
         }
         return values
     }
+
+    /**
+     * Evaluate one fetched response for the loop: a redirect answers its
+     * Location target unfollowed (the model re-calls url_fetch itself), a
+     * non-2xx answers its status, and a 2xx body passes the textual
+     * Content-Type gate and the [URL_FETCH_CONTENT_LIMIT_BYTES] read before
+     * its decoded text becomes the outcome.
+     * @param code the response status code.
+     * @param contentType the parsed Content-Type, or null when the response states none.
+     * @param location the redirect's Location header, when a 3xx carries one.
+     * @param body the response body stream, read at most one byte past the cap.
+     * @returns the outcome for the loop, or the concise reason the response is refused.
+     */
+    internal fun urlFetchResponseOutcome(code: Int, contentType: MediaType?, location: String?, body: InputStream): LiteToolOutcome {
+        if (code in 300..399) {
+            return LiteToolOutcome(ok = true, text = "HTTP $code 跳转未跟随，目标：" + (location ?: "响应未携带 Location"))
+        }
+        if (code !in 200..299) {
+            return LiteToolOutcome(ok = false, text = "HTTP $code 请求未成功")
+        }
+        if (contentType == null || !isTextualMediaType(contentType)) {
+            return LiteToolOutcome(ok = false, text = "响应 Content-Type 不是文本类型" + (contentType?.let { "：$it" } ?: "（缺失）"))
+        }
+        val bytes = body.readNBytes(URL_FETCH_CONTENT_LIMIT_BYTES + 1)
+        if (bytes.size > URL_FETCH_CONTENT_LIMIT_BYTES) {
+            return LiteToolOutcome(ok = false, text = "响应超过 $URL_FETCH_CONTENT_LIMIT_BYTES 字节上限")
+        }
+        return LiteToolOutcome(ok = true, text = String(bytes, contentType.charset(Charsets.UTF_8) ?: Charsets.UTF_8))
+    }
+
+    /** Whether one media type carries textual content: any text subtype, or the textual application subtypes. */
+    private fun isTextualMediaType(type: MediaType): Boolean = when (type.type) {
+        "text" -> true
+        "application" -> type.subtype in URL_FETCH_TEXTUAL_APPLICATION_SUBTYPES ||
+            type.subtype.endsWith("+json") || type.subtype.endsWith("+xml")
+        else -> false
+    }
+
+    /**
+     * The private-network refusal vocabulary for one resolved address — the
+     * URL is model-controlled, so every loopback, site-local
+     * (10/8, 172.16/12, 192.168/16, fec0::/10), link-local, and wildcard
+     * address is refused, plus the IPv6 unique-local fc00::/7 prefix and the
+     * IPv4 tail of an IPv4-mapped or IPv4-compatible IPv6 address (the JVM
+     * predicates do not see through the mapping).
+     */
+    private fun isPrivateNetworkAddress(address: InetAddress): Boolean {
+        if (address.isAnyLocalAddress || address.isLoopbackAddress ||
+            address.isSiteLocalAddress || address.isLinkLocalAddress
+        ) {
+            return true
+        }
+        val raw = address.address
+        if (raw.size != 16) return false
+        if ((raw[0].toInt() and 0xFE) == 0xFC) return true
+        val embeddedIPv4 = ((0..9).all { raw[it].toInt() == 0 } &&
+            (raw[10].toInt() and 0xFF) == 0xFF && (raw[11].toInt() and 0xFF) == 0xFF) ||
+            (0..11).all { raw[it].toInt() == 0 }
+        return embeddedIPv4 && isPrivateNetworkAddress(InetAddress.getByAddress(raw.copyOfRange(12, 16)))
+    }
+
+    /** The connect-time backstop of [isPrivateNetworkAddress]: a resolution that rebinds into the private vocabulary between the pre-flight check and the connection is refused on the exact addresses OkHttp dials. */
+    private object PrivateNetworkRefusingDns : Dns {
+        override fun lookup(hostname: String): List<InetAddress> {
+            val resolved = Dns.SYSTEM.lookup(hostname)
+            val refused = resolved.firstOrNull { isPrivateNetworkAddress(it) }
+            if (refused != null) throw LitePrivateNetworkRefused(refused.hostAddress ?: hostname)
+            return resolved
+        }
+    }
+
+    /** The connect-time private-address refusal raised by [PrivateNetworkRefusingDns]. */
+    private class LitePrivateNetworkRefused(address: String) : IOException("url_fetch refuses the private network address $address")
 
     /**
      * Evaluate one arithmetic expression exactly over [BigDecimal].

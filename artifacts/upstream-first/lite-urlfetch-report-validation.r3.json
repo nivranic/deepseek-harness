@@ -1,0 +1,66 @@
+{
+  "status": "PASS",
+  "scope": "Report bindings and audit for the lite-urlfetch increment: the gen-66 follow-up closing the third local executor the §32 ledger kept deferring since gen-62 on a measured-false premise (the url_fetch endpoint-policy deferral and the §54 gating both collapsing under inspection — §54's lines 2036-2054 are the thirteen-condition Client↔Host link matrix with zero intersection with tool outbound fetching, the real gap being the URL trust domain): the bundled schema gaining the url_fetch enumeration ({url: string} with the conformance fixture's call shape and DNS-failure text as the pinned precedent, the four policies riding the Chinese description), LiteToolExecutors.urlFetch as an IO-dispatcher suspend function (the loop collecting on the caller's main dispatcher — a blocking fetch would ANR, calculator/artifactCreate staying non-suspend), the four policies landing whole — the dedicated OkHttp instance (built independently after the NativeGatewayClient form, never touching the provider's endpoint-bound streaming client) with the bounded unary profile connect 10s/read 30s/call 30s, the two-layer private-network refusal (the pre-flight InetAddress.getAllByName per-address vocabulary check — anyLocal, loopback, site-local [including fec0::/10], link-local, the fc00::/7 ULA byte prefix and the IPv4-mapped/compatible tails recursing through the same vocabulary [the JVM predicate cannot see through the mapping] — beside the connect-time PrivateNetworkRefusingDns re-checking the exact addresses OkHttp dials against the same predicate, closing the DNS-rebinding TOCTOU window), redirects never followed (followRedirects/followSslRedirects both false, a 3xx answering ok=true with the「HTTP {code} 跳转未跟随，目标：{Location}」text letting the model re-decide), no UA set and https-only refused cleanly at the app layer, and URL_FETCH_CONTENT_LIMIT_BYTES=256KiB as an independent constant (named beside ARTIFACT_CONTENT_LIMIT_BYTES at the same value — the symmetry rule) with the bounded readNBytes(limit+1) and the textual Content-Type gate (text/* accepted plus the application json/xml/yaml/x-yaml/javascript subtypes and the +json/+xml suffixes, a missing header refused, charset falling to UTF-8); every refusal fail-soft in Chinese (the unknown-host text matching the fixture's pinned form verbatim); MainActivity's when(name) gaining the pure dispatch branch at :474 with the device declaration and manifest untouched (INTERNET already present, the targetSdk 36 cleartext ban already standing); the evaluation path through the internal pure seam urlFetchResponseOutcome (https-only plus the private-network refusals keeping the local 2xx success path JVM-unreachable — the offline tests exercising the seam under authorization); the rejections recorded honestly (redirects with per-hop re-validation — never following answers the Location at zero re-validation cost letting the model decide; reusing the provider OkHttpClient — the endpoint-bound constructor plus the streaming read/call=0 profile would hang the fetch round; pre-flight only without the connect-time Dns backstop — DNS rebinding being the classic bypass of exactly that check; reaching the evaluation path over the real network from the JVM — the policy refusals hold deterministically [the thirteen private-network literals including the ULA/mapped/metadata endpoints and the example.invalid pinned DNS failure] so the offline pins suffice); the three beyond-the-ruling reinforcements recorded as they landed (the isAnyLocalAddress addition, the IPv4-mapped/compatible tail recursion, the connect-time Dns re-check); the gates honestly recorded from log content: typecheck EXIT 0 (the build:lib:host chain — the host face alone building, no client-face emit) and lint Found 0 warnings and 0 errors on 3861 files (90 rules, 20 threads, 119.5s — the combined g1 log carrying the EXIT_CODE=0 trailer of the honestly executed round), test:docs 17 (132.42s) and doc-sync 37 passed 0 failed 0 skipped (181.96s, zero regeneration diff — the pre/post git status snapshots diff-empty, recorded beside the log; both halves riding the one combined g1 docs file), pairing 950 pairs all consistent (the note trio 2026-10-21-url-fetch-local-executor with its dictionary written ahead, the 949→950 reconciliation honestly narrated — the pairing evidence riding the docs lane with the translation-pairing gate passing on both halves and no separate summary log sealed this generation), the serial double audit round green at 87 files / 1073 tests on both passes over the curated list reused verbatim from .artifacts/lite-assembly-g2-audit-file-list.txt (87 lines, the gen-54 precedent lineage, both sealed logs carrying the EXIT_CODE=0 trailer), gate0 PASS in both byte-identical forms (1938 paths / 129 components / 81 sections / 1983 lines — honestly recorded unchanged from the captured UPSTREAM_DELTA.json, not the live tree); the ledger round rode the main session's delete-then-wx rebuild with no separate TAP log sealed this generation (the capture's structural pins carry the rebuilt ledger's measured forms — 81 sections, §32 rewritten at 3764 chars with candidateEvidence steady at 23, the url_fetch open item removed for the honestly narrowed two-name tail — and the prose carries the 6/6 narration, honestly recorded); the android acceptance: the scanner-env gradle round BUILD SUCCESSFUL in 8s with 82 actionable tasks of which 2 executed and 80 up-to-date — the honest verification-only form (:app:verifyLiteAssetSources and :app:verifyScannerResources executed, the two verification halves over the five bundled sources; every compile, test, packaging and assembly task rode UP-TO-DATE — the real implementation round before this acceptance round — 32s, 8 executed, the schema asset re-copied through the five-source gate — already re-staged the assets, recompiled the :core faces, re-ran :core:test and rebuilt the debug APK; this round's task graph never reaches :app:assembleRelease) — with the measured single-DRIFT form against the lite-rounds record's sealed builtFiles entries (the androidTest APK at 31a910c5 IDENTICAL — the androidTest source set never changed under the increment, the gen-59/gen-63 single-face precedent — and the debug APK at 8c94fe5f→94ad03a2, this generation's own capture becoming the new baseline, prior apk records: 2, cross-checked live) and the core XML aggregate reading 84 suites / 587 tests — the reconciliation over gen-65's 84/579 (+8: LiteToolExecutorsTest widened to 15/0 with the argument-validation, scheme-refusal, private-network-literal, DNS-pinned, seam-gate, redirect-text and cap-boundary tests) — beside the contract half at 4 suites / 37 tests (the LiteToolSchemaTest cross-file gate riding the widened schema enumeration; aggregate JSON keys named skips — .artifacts/lite-urlfetch-g3-core-results.json with coreLiteToolSchemaTest honestly recording the core-side same-name absence as the {file}-only shape); no connected round ran this generation, honestly recorded (the androidTest sources untouched with the androidTest APK IDENTICAL corroborating); the known LiteHTTPProviderTest truncation flake recorded as it happened (two of the implementation rounds' four full runs, green in the final round, the XML timestamps proving its report predates this generation's runs — left to its owner); and the adjudicated single-set ruling on the adapter's measured three-source miss stop-point (the gen-53 dwfq-b1ce6281-1 precedent form): the prepare oracle derives the measured sixty-six replaced prior build outputs — all android (one APK, one jar, zero recompiled classes, sixty-one XML reports, three binary outputs — the url_fetch recompiled classes never entering the record's builtFiles lineage) — the adapter's generator-side measurement finding zero chain-resolvable keys, leaving sixty-six first-emission keys no archive holds (the debug APK's sealed 8c94fe5f bytes, the repacked jar, the sixty-one XML reports and three binary outputs sealed only by the prior record itself — the sixteenth consecutive generation of the same class: gen-51 ninety-four, gen-52 seventy-three, gen-53 sixty-seven, gen-54 sixty-seven, gen-55 sixty-eight, gen-56 sixty-eight, gen-57 seventy, gen-58 seventy-four, gen-59 seventy-six, gen-60 sixty-seven, gen-61 sixty-seven, gen-62 sixty-six, gen-63 eighty-five, gen-64 sixty-six, gen-65 sixty-six, gen-66 sixty-six), so the advance installs the liteRoundsReplacedBuildOutputs exactly-sixty-six build-output exemption on the demoted lite-rounds block, derived and emitted at advance run time from the record, the chain archives and the disk — never transcribed — equal to the sixty-six-key derivation minus the zero fallback keys, the six source-side tracked miss keys resolving through the new before archive at their HEAD bytes (no UnrecoverableInputs set born), and every prior generation's set — the gen-65 liteCatalogReplacedBuildOutputs sixty-six beside the gen-64 liteHistoryReplacedBuildOutputs sixty-six, the gen-63 liteExecutorsReplacedBuildOutputs eighty-five, the gen-62 relayRetireReplacedBuildOutputs sixty-six, the gen-61 liteDeclarationsReplacedBuildOutputs sixty-seven, the gen-60 liteHandoffReplacedBuildOutputs sixty-seven, the gen-59 liteResumeReplacedBuildOutputs seventy-six, the gen-58 litePresetReplacedBuildOutputs seventy-four, the gen-57 liteHttpReplacedBuildOutputs seventy, the gen-56 liteFactsReplacedBuildOutputs sixty-eight, the gen-55 liteAssemblyReplacedBuildOutputs sixty-eight, the gen-54 litePermissionReplacedBuildOutputs sixty-seven, the gen-53 liteToolsReplacedBuildOutputs sixty-seven, the gen-52 litePersonaReplacedBuildOutputs seventy-three, the gen-51 liteToolReplacedBuildOutputs ninety-four plus liteToolUnrecoverableInputs two, the gen-32 desktopPackageReplacedBuildOutputs six, the gen-33 tornRepairIntentReplacedBuildOutputs three, the gen-48 clientMutationReplacedBuildOutputs two and the gen-46 durableReceiptsReplacedBuildOutputs three — stays exactly as sealed at HEAD; the remaining open channels (the remaining two local names without intake producers, the tool-row journal persistence as a chapter-64 decision, the paired-Host catalog pull's real-Host e2e, the catalog hot-refresh UI, the approval interaction tier, the facts-diagnostics projection, the attribution-header decision, the §54 network matrix device-side verification, the multi-round request shape's real-model e2e and the real-site https acceptance this generation leaves unmeasured) all stay open — so no whole-section PASS is granted; full Upstream-First objective remains in progress",
+  "gate0": {
+    "validation": "PASS",
+    "gate0": "PASS",
+    "paths": 1938,
+    "components": 129,
+    "specificationCoverage": {
+      "status": "PASS",
+      "numberedSections": 81,
+      "nonEmptySourceLines": 1983,
+      "acceptanceProven": false
+    }
+  },
+  "sourceRecord": {
+    "path": "artifacts/upstream-first/lite-urlfetch-source.json",
+    "sha256": "d40683afdb947601c712497d60cd47006b4224f9b0bc41acf1f732e63d5b20f9"
+  },
+  "generator": {
+    "path": "artifacts/upstream-first/write-reports.mjs",
+    "sha256": "148632f52c03776170a57cf3fd8b104be7d7c8382604e34be48378f57d3c6f5a"
+  },
+  "binding": {
+    "path": "artifacts/upstream-first/lite-urlfetch-binding.json",
+    "sha256": "dc68eae04fbe5649e03352b8786aa62a0a7a5768d22deac83e74006c2fe87ac9"
+  },
+  "helpers": [
+    {
+      "path": ".artifacts/advance-lite-urlfetch-reports.mjs",
+      "sha256": "3a4658fcc6272260a3932df0aec61d8510f67a84e3045e9fd26eb3f096ee14e3"
+    },
+    {
+      "path": ".artifacts/capture-lite-urlfetch-validation.mjs",
+      "sha256": "37b9546cc077d3ebd9cbb6045e5abafd221d397e8f3a0e109990c8e0a97e8b2f"
+    }
+  ],
+  "reports": [
+    {
+      "path": "IMPLEMENTATION_STATUS.md",
+      "sha256": "d6b1ed182c033c0a0857cd58afe261680ce7427ea421b5e8ce15cbdf3049fa97"
+    },
+    {
+      "path": "artifacts/upstream-first/evidence.json",
+      "sha256": "239ed7ce706d26d23971a8e25489ac4f21b2acafcff2915b226115cc27c1fac8"
+    }
+  ],
+  "checks": [
+    {
+      "path": ".artifacts/lite-urlfetch-binding.log",
+      "sha256": "4683a3e1788c4f2819d7310c5ff71e82a8d5846cc80d591a5485d95402ca371f"
+    },
+    {
+      "path": ".artifacts/lite-urlfetch-audit-final.log",
+      "sha256": "a3c51300988b6d6808335d4c267bc85ec01048602bc533a568e4c438de9e55d7"
+    },
+    {
+      "path": ".artifacts/lite-urlfetch-gate0-final.log",
+      "sha256": "505d74ef938f5d34d85490d37e0176ba804d93272fcf465ce2544a02c56b3f90"
+    },
+    {
+      "path": ".artifacts/lite-urlfetch-report-generation.log",
+      "sha256": "fe010532f71a6341467ae5719b29ac19470895de1d481156335b8f70a3273ed5"
+    }
+  ]
+}

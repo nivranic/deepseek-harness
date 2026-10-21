@@ -2,6 +2,22 @@
   "_comment": "App-owned device tool schemas (specification §32): the model-face schemas for the Android-local Lite tools with no Host counterpart, shipped as reviewable source and never downloaded. The build bundles this document beside the Host's lite-tool-schemas.json projection and the runtime unions the two, so one tool name may live in only one document — web_search stays out because the Host projection already carries it.",
   "tools": [
     {
+      "name": "url_fetch",
+      "description": "抓取一个 https URL 的文本响应。设备出站请求该地址：仅接受 https、拒绝私网地址、不跟随跳转（跳转响应原样返回目标地址）、非文本内容会被拒绝。",
+      "parameters": {
+        "type": "object",
+        "properties": {
+          "url": {
+            "type": "string",
+            "description": "要抓取的完整 https URL，例如 https://example.com/page。"
+          }
+        },
+        "required": [
+          "url"
+        ]
+      }
+    },
+    {
       "name": "calculator",
       "description": "求值一个算术表达式。支持 + - * / % 、括号、一元正负号与十进制数字，返回精确的十进制结果。",
       "parameters": {
