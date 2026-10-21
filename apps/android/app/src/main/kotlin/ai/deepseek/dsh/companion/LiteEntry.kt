@@ -34,7 +34,8 @@ import kotlinx.coroutines.CoroutineScope
  * fixed parameters keep the store-less preview face. A paired shell passes
  * the Host's observed live tool declaration for the dispatch union and the
  * observed wire-schema violation line; the unpaired face keeps the bundled
- * defaults.
+ * defaults. An injected attachment store renders the local intake panel —
+ * store-and-UI state only, never a journal, fold, or request input.
  */
 @Composable
 fun LiteEntry(
@@ -47,6 +48,7 @@ fun LiteEntry(
     store: LiteSessionStoring? = null,
     artifacts: LiteArtifactStoring? = null,
     configStore: LiteConfigStoring? = null,
+    attachments: LiteAttachmentStoring? = null,
     liveHostToolDescriptors: List<ToolDescriptor>? = null,
     liveHostCatalogBadWire: Boolean = false,
 ) {
@@ -77,6 +79,7 @@ fun LiteEntry(
             style = MaterialTheme.typography.bodySmall,
             color = MaterialTheme.colorScheme.error,
         )
+        attachments?.let { LiteAttachmentsPanel(it) }
         when {
             configStore == null -> if (endpoint.isBlank()) LiteEmptyState() else {
                 LiteChatFace(scope, sessionId, endpoint, apiKey, model, presetId = null, execute, store, artifacts,

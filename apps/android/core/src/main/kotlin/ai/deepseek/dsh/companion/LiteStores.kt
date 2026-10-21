@@ -259,7 +259,7 @@ fun validateLiteEndpoint(value: String): String? {
 
 /** Write bytes through a same-directory temp file and an atomic rename,
  * falling back to a plain replace where the platform refuses atomic moves. */
-private fun writeAtomically(target: File, bytes: ByteArray) {
+internal fun writeAtomically(target: File, bytes: ByteArray) {
     val temp = File(target.parentFile, target.name + ".tmp")
     temp.writeBytes(bytes)
     try {

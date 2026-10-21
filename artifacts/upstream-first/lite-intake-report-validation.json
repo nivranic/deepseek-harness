@@ -1,0 +1,66 @@
+{
+  "status": "PASS",
+  "scope": "Report bindings and audit for the lite-intake increment: the gen-67 follow-up landing the attachment intake producer the gen-66 survey ruled the first split piece of the two deferred attachment executors (attachment_read/image_inspect both waiting on an intake producer — the paired face's channel uploading picked documents over the wire and keeping nothing while the independent Lite face had zero pickers, zero store and zero vocabulary, an executor without intake being unreachable in a stronger sense than one without a schema): LiteAttachments.kt landing the whole seam — the LiteAttachmentEntry listing fact (name/mediaType/sizeBytes, pixel dimensions staying inside the bytes as the gen-68 image_inspect executor's decoding job), the LiteAttachmentStoring channel, the LiteFileAttachmentStore mirroring the artifact store's file layout through the shared writeAtomically (widened from private to internal — LiteStores.kt's one-line change) with the media-type sidecar written after the bytes (attachment intake writes no journal, so the media type lives in the .attachment.json sidecar — a crash between the two writes leaves bytes no listing resolves, never a listed entry without bytes; a corrupt sidecar failing loud the config-store corrupt-read way; a sidecar whose bytes are gone reading as absent the missing-id way; no quarantine born — attachments are no session lifeline), and the typed LiteAttachmentIntake step (the storeName derivation taking the display name's final path segment past both separators and trimming — empty or absent falling back to the generated attachment-<uuid8> that never refuses a user file, the artifact channel's path-separator refusal belonging to its controlled id model while a provider display name carrying prefixes is not the user's fault; the application/octet-stream unstated default; CONTENT_LIMIT_BYTES=8MiB as an independent constant — whole modern phone photos at 2-6MiB JPEG, bounded because nothing admitted this generation rides a request, independent of the 256KiB artifact and url_fetch caps; the Stored/TOO_LARGE/STORE_FAILED typed outcomes); the :app face landing the LiteAttachmentPanel in the preset-picker form (the add button with its two-option dialog — the document picker NativeFileDocument and the photo picker PickVisualMedia both reusing the app's existing AndroidNativeFileAttachmentSource with zero duplication, the eleven lite_attachment_* locale keys, every action test-tagged [lite-attachment-add/pick-file/pick-photo/<name>/remove-<name>/reading/error/list-error], entries removable with the list persisting across restarts); LiteEntry's :51 parameter and :82 panel slot (after the badWire row, before the when — visible both in the unconfigured empty state and on the assembled session face); MainActivity's :465/:484 filesDir/lite-attachments assembly; the zero-reach guarantee held honestly (the sixteen-tag journal closed set triple-verified across TS/Swift/Kotlin never extended unilaterally, intake not a turn outcome, the request-face form for admitted attachments left to gen-68's same-generation decision — LiteChat/LiteFold/LiteHTTPProvider/LiteLoop zero changes corroborated by git status); the four rejections recorded as ruled (intake events into journal/fold — the closed set does not extend; attachment bytes into requests — premature, the wire request rows being all role/content strings with the request-face form a gen-68 decision; the camera source — the paired camera chain's NativeCameraFiles+SavedStateHandle cleanup machinery would overweight the increment, the two pickers already covering; pixel-dimension metadata — decoding being the gen-68 image_inspect executor's job, intake keeping the triple only); the gates honestly recorded from log content: typecheck EXIT 0 (the build:lib:host chain — the host face alone building, no client-face emit) and lint Found 0 warnings and 0 errors on 3861 files (90 rules, 20 threads, 146.1s — the combined g1 log carrying the EXIT_CODE=0 trailer of the honestly executed round), test:docs sealed in its green re-run form (17 passed 0 failed in 60.40s riding first inside the combined g1 docs log with doc-sync 37 passed 0 failed in 185.15s following, closing EXIT_CODE=0 — the flake-hit first round [16 passed 1 failed, the doc-standard.spec.ts:343 five-lane parallel-load 5s timeout, the gen-62 recorded flake form, the && chain short-circuiting that round's doc-sync half] preserved verbatim beside the sealed log as .artifacts/lite-intake-g1-docs-1.log per the gen-51 precedent, with the adapter's pre-S1 stop on the evidence gap and the main session's green re-run honestly narrated — the single-file rerun's 19/19 green and the load-competition non-regration proof riding the report prose), the doc-sync round closing with zero regeneration diff at the unchanged 37 (the pre/post git status snapshots diff-empty, recorded beside the log), pairing 951 pairs all consistent (the note trio 2026-10-22-lite-attachment-intake with its dictionary written ahead, the 950→951 reconciliation honestly narrated — the pairing evidence riding the docs lane with the translation-pairing gate passing on both halves and no separate summary log sealed this generation), the serial double audit round green at 87 files / 1073 tests on both passes (124.74s / 99.68s, both sealed logs carrying the EXIT_CODE=0 trailer) over the curated list reused verbatim from .artifacts/lite-assembly-g2-audit-file-list.txt (87 lines, the gen-54 precedent lineage), gate0 PASS in both byte-identical forms (1938 paths / 129 components / 81 sections / 1983 lines — honestly recorded unchanged from the captured UPSTREAM_DELTA.json, not the live tree); the ledger round rode the main session's delete-then-wx rebuild with no separate TAP log sealed this generation (the capture's structural pins carrying the rebuilt ledger's measured forms — 81 sections, §31 rewritten at 4317 chars with candidateEvidence widened to 21 [the LiteAttachments.kt and LiteAttachmentPanel.kt paths added], the open tail honestly narrowed to the gen-68 same-generation pairing with attachment_read first — and the prose carrying the 6/6 narration, honestly recorded); the android acceptance: the scanner-env gradle round BUILD SUCCESSFUL in 18s with 82 actionable tasks of which 2 executed and 80 up-to-date — the honest verification-only form (:app:verifyLiteAssetSources and :app:verifyScannerResources executed, the two verification halves over the five bundled sources; every compile, test, packaging and assembly task rode UP-TO-DATE — the real implementation round before this acceptance round — 1m11s, 12 executed — already re-staged the assets, recompiled the :core faces, re-ran :core:test and rebuilt the debug APK; this round's task graph never reaches :app:assembleRelease) — with the measured single-DRIFT form against the lite-urlfetch record's sealed builtFiles entries (the androidTest APK at 31a910c5 IDENTICAL — the androidTest source set never changed under the increment, the gen-59/gen-63 single-face precedent — and the debug APK at 94ad03a2→dd8baae6, this generation's own capture becoming the new baseline, prior apk records: 2, cross-checked live) and the core XML aggregate reading 85 suites / 597 tests — the reconciliation over gen-66's 84/587 (+1 suite and +10 tests: the new LiteAttachmentsTest suite at 10/0 with the round-trip, sorted-listing, replacement, corrupt-sidecar, absent-bytes, store-name, intake-admission, generated-name, cap-boundary and store-failure tests; LiteStoresTest steady at its prior form) — beside the contract half at 4 suites / 37 tests (the aggregate JSON keys named skips — .artifacts/lite-intake-g3-core-results.json with the per-suite breakdowns of the touched suites honestly measured from the XML); no connected round ran this generation, honestly recorded (the androidTest sources untouched with the androidTest APK IDENTICAL corroborating); and the adjudicated single-set ruling on the adapter's measured three-source miss stop-point (the gen-53 dwfq-b1ce6281-1 precedent form): the prepare oracle derives the measured sixty-six replaced prior build outputs — all android (one APK, one jar, zero recompiled classes, sixty-one XML reports, three binary outputs — the intake recompiled classes never entering the record's builtFiles lineage) — the adapter's generator-side measurement finding zero chain-resolvable keys, leaving sixty-six first-emission keys no archive holds (the debug APK's sealed 94ad03a2 bytes, the repacked jar, the sixty-one XML reports and three binary outputs sealed only by the prior record itself — the seventeenth consecutive generation of the same class: gen-51 ninety-four, gen-52 seventy-three, gen-53 sixty-seven, gen-54 sixty-seven, gen-55 sixty-eight, gen-56 sixty-eight, gen-57 seventy, gen-58 seventy-four, gen-59 seventy-six, gen-60 sixty-seven, gen-61 sixty-seven, gen-62 sixty-six, gen-63 eighty-five, gen-64 sixty-six, gen-65 sixty-six, gen-66 sixty-six, gen-67 sixty-six), so the advance installs the liteUrlfetchReplacedBuildOutputs exactly-sixty-six build-output exemption on the demoted lite-urlfetch block, derived and emitted at advance run time from the record, the chain archives and the disk — never transcribed — equal to the sixty-six-key derivation minus the zero fallback keys, the six source-side tracked miss keys resolving through the new before archive at their HEAD bytes (no UnrecoverableInputs set born), and every prior generation's set — the gen-66 liteRoundsReplacedBuildOutputs sixty-six beside the gen-65 liteCatalogReplacedBuildOutputs sixty-six, the gen-64 liteHistoryReplacedBuildOutputs sixty-six, the gen-63 liteExecutorsReplacedBuildOutputs eighty-five, the gen-62 relayRetireReplacedBuildOutputs sixty-six, the gen-61 liteDeclarationsReplacedBuildOutputs sixty-seven, the gen-60 liteHandoffReplacedBuildOutputs sixty-seven, the gen-59 liteResumeReplacedBuildOutputs seventy-six, the gen-58 litePresetReplacedBuildOutputs seventy-four, the gen-57 liteHttpReplacedBuildOutputs seventy, the gen-56 liteFactsReplacedBuildOutputs sixty-eight, the gen-55 liteAssemblyReplacedBuildOutputs sixty-eight, the gen-54 litePermissionReplacedBuildOutputs sixty-seven, the gen-53 liteToolsReplacedBuildOutputs sixty-seven, the gen-52 litePersonaReplacedBuildOutputs seventy-three, the gen-51 liteToolReplacedBuildOutputs ninety-four plus liteToolUnrecoverableInputs two, the gen-32 desktopPackageReplacedBuildOutputs six, the gen-33 tornRepairIntentReplacedBuildOutputs three, the gen-48 clientMutationReplacedBuildOutputs two and the gen-46 durableReceiptsReplacedBuildOutputs three — stays exactly as sealed at HEAD; the remaining open channels (the gen-68 executor pair with the schema and the admitted-attachments request-face decision, the tool-row journal persistence as a chapter-64 decision, the paired-Host catalog pull's real-Host e2e, the catalog hot-refresh UI, the approval interaction tier, the facts-diagnostics projection, the attribution-header decision, the §54 network matrix device-side verification and the multi-round request shape's real-model e2e) all stay open — so no whole-section PASS is granted; full Upstream-First objective remains in progress",
+  "gate0": {
+    "validation": "PASS",
+    "gate0": "PASS",
+    "paths": 1938,
+    "components": 129,
+    "specificationCoverage": {
+      "status": "PASS",
+      "numberedSections": 81,
+      "nonEmptySourceLines": 1983,
+      "acceptanceProven": false
+    }
+  },
+  "sourceRecord": {
+    "path": "artifacts/upstream-first/lite-intake-source.json",
+    "sha256": "8d681199bdca3c80101c093a3e01ee33aa39233e9177947895f85be14ae440ae"
+  },
+  "generator": {
+    "path": "artifacts/upstream-first/write-reports.mjs",
+    "sha256": "2d33269e1e34ee50613d1bee3b2be6244698fde85218bbc0c0788e45f0f35e25"
+  },
+  "binding": {
+    "path": "artifacts/upstream-first/lite-intake-binding.json",
+    "sha256": "b00846cbcaef718e5e53c5cfaeac67968c0e1b68db7ea65ef6d0b45cc6e220f3"
+  },
+  "helpers": [
+    {
+      "path": ".artifacts/advance-lite-intake-reports.mjs",
+      "sha256": "230c77637f4e836b5b214d0eb94538f5472fa6b43f6b8de1c3af969ef8b792d2"
+    },
+    {
+      "path": ".artifacts/capture-lite-intake-validation.mjs",
+      "sha256": "c777d08d459e2b8392273af80215cfbac73383e6ef06a5fa6fefb78b8d7d1d08"
+    }
+  ],
+  "reports": [
+    {
+      "path": "IMPLEMENTATION_STATUS.md",
+      "sha256": "0bb8f5ae493789557e700e7f115d874e7a90f21311b099e7c862296bd0e3fe07"
+    },
+    {
+      "path": "artifacts/upstream-first/evidence.json",
+      "sha256": "f0d36432acaccfc204b2d51a31c2d1d2ccac48155b592c305145f9222440d6ef"
+    }
+  ],
+  "checks": [
+    {
+      "path": ".artifacts/lite-intake-binding.log",
+      "sha256": "9eea0edffb4a92b25676a066fd3b150f0b1e95c53cc4b56f0fae6b250b77381e"
+    },
+    {
+      "path": ".artifacts/lite-intake-audit-final.log",
+      "sha256": "9056283f2b456eaba20271eff52e31a7e067d75d3c9783e40012a712eca19996"
+    },
+    {
+      "path": ".artifacts/lite-intake-gate0-final.log",
+      "sha256": "505d74ef938f5d34d85490d37e0176ba804d93272fcf465ce2544a02c56b3f90"
+    },
+    {
+      "path": ".artifacts/lite-intake-report-generation.log",
+      "sha256": "6616630463c8eb3ffd69d218e03ffc25be7852a2f9e639de6ae42558801b921d"
+    }
+  ]
+}
