@@ -32,6 +32,9 @@ sealed interface LiteStreamPiece {
     data class Reasoning(val text: String) : LiteStreamPiece
 
     data class ToolCallEntries(val entries: List<JsonObject>) : LiteStreamPiece
+
+    /** The choice-level `finish_reason` string, present only on a choice that states one. */
+    data class Finish(val reason: String) : LiteStreamPiece
 }
 
 /** Parse one raw line into its piece kind. */
@@ -49,7 +52,13 @@ object LiteStreamLineParser {
         if (payload == "[DONE]") return null
         val root = runCatching { Json.parseToJsonElement(payload) }.getOrNull() as? JsonObject ?: return null
         val choices = root["choices"] as? JsonArray ?: return null
-        val delta = (choices.firstOrNull() as? JsonObject)?.get("delta") as? JsonObject ?: return null
+        val choice = choices.firstOrNull() as? JsonObject ?: return null
+        // finish_reason rides the choice, not its delta: the terminal chunk
+        // carries it over an empty or absent delta, so it is read before the
+        // delta requirement drops the piece.
+        val finish = choice.stringField("finish_reason")
+        if (finish != null) return LiteStreamPiece.Finish(finish)
+        val delta = choice["delta"] as? JsonObject ?: return null
         val reasoning = delta.stringField("reasoning_content")?.takeIf { it.isNotEmpty() }
         if (reasoning != null) return LiteStreamPiece.Reasoning(reasoning)
         val text = delta.stringField("content")?.takeIf { it.isNotEmpty() }
@@ -143,8 +152,8 @@ class LiteHTTPProvider(
      * Stream one response's chunks for a submitted prompt.
      * @param prompt the accepted user prompt text.
      * @param system the session's assembled system prompt; a null or empty value leaves the request messages byte-identical to a bare turn.
-     * @param history the completed prior turns, expanded ahead of the new user row in the host provider's wire order so the model sees its own tool calls and their result texts.
-     * @return the ordered chunks of one model response.
+     * @param history the completed rounds this request replays — prior turns whole and the live turn's finished tool rounds — expanded ahead of the new user row in the host provider's wire order so the model sees its own tool calls and their result texts.
+     * @return the ordered chunks of one model response, closed by a Finish chunk once the `[DONE]` terminator proved the stream whole.
      */
     override suspend fun stream(prompt: String, system: String?, history: List<LiteTurnRecord>): Flow<LiteStreamChunk> = flow {
         val body = buildJsonObject {
@@ -188,6 +197,7 @@ class LiteHTTPProvider(
             .build()
         val assembler = LiteToolCallAssembler()
         var sawDone = false
+        var pendingFinish: String? = null
         val response = try {
             client.newCall(request).execute()
         } catch (failure: IOException) {
@@ -214,6 +224,7 @@ class LiteHTTPProvider(
                         is LiteStreamPiece.Text -> emit(LiteStreamChunk.Text(piece.text))
                         is LiteStreamPiece.Reasoning -> emit(LiteStreamChunk.Reasoning(piece.text))
                         is LiteStreamPiece.ToolCallEntries -> piece.entries.forEach(assembler::ingest)
+                        is LiteStreamPiece.Finish -> pendingFinish = piece.reason
                         null -> {}
                     }
                 }
@@ -226,6 +237,10 @@ class LiteHTTPProvider(
             throw LiteTransportError.Provider(code = "STREAM_CLOSED", message = "SSE stream ended without [DONE]")
         }
         assembler.finish().forEach { emit(it) }
+        // The host translate's delayed finish: the stated reason rides after
+        // the assembled calls, and a wire that never stated one finishes
+        // with a null reason rather than a guessed one.
+        emit(LiteStreamChunk.Finish(pendingFinish))
     }.flowOn(Dispatchers.IO)
 }
 
@@ -241,42 +256,45 @@ private fun terminatesTheStream(line: String): Boolean {
 /**
  * Expand one history turn into its OpenAI-compatible wire rows, the host
  * provider's line form (llm-deepseek serialize.ts): the user row verbatim,
- * then — when the turn carries tool calls — the assistant row holding the
- * calls with `""` content for a text-less reply, followed by one tool row
- * per call id in call order carrying the fold's result text, `'(no output)'`
- * when it is empty; a turn with neither reply text nor calls keeps its user
- * row only, the host's empty-assistant projection rule (a content-less
- * assistant row never reaches the wire).
+ * then the turn's rounds in order — each tool-carrying round its assistant
+ * row holding the calls with `""` content for a text-less reply, followed
+ * by one tool row per call id in call order carrying the fold's result
+ * text, `'(no output)'` when it is empty, and each text-only round its
+ * plain assistant row when it carries text; a round with neither reply
+ * text nor calls rides nothing, the host's empty-assistant projection rule
+ * (a content-less assistant row never reaches the wire).
  */
 private fun LiteTurnRecord.wireMessages(): List<JsonObject> = buildList {
     add(buildJsonObject {
         put("role", "user")
         put("content", userText)
     })
-    if (toolCalls.isNotEmpty()) {
-        add(buildJsonObject {
-            put("role", "assistant")
-            put("content", assistantText ?: "")
-            put("tool_calls", JsonArray(toolCalls.map { call -> buildJsonObject {
-                put("id", call.id)
-                put("type", "function")
-                put("function", buildJsonObject {
-                    put("name", call.name)
-                    put("arguments", call.arguments)
-                })
-            } }))
-        })
-        toolCalls.forEach { call ->
+    rounds.forEach { round ->
+        if (round.toolCalls.isNotEmpty()) {
             add(buildJsonObject {
-                put("role", "tool")
-                put("tool_call_id", call.id)
-                put("content", (toolResults[call.id] ?: "").ifEmpty { "(no output)" })
+                put("role", "assistant")
+                put("content", round.assistantText ?: "")
+                put("tool_calls", JsonArray(round.toolCalls.map { call -> buildJsonObject {
+                    put("id", call.id)
+                    put("type", "function")
+                    put("function", buildJsonObject {
+                        put("name", call.name)
+                        put("arguments", call.arguments)
+                    })
+                } }))
+            })
+            round.toolCalls.forEach { call ->
+                add(buildJsonObject {
+                    put("role", "tool")
+                    put("tool_call_id", call.id)
+                    put("content", (round.toolResults[call.id] ?: "").ifEmpty { "(no output)" })
+                })
+            }
+        } else if (!round.assistantText.isNullOrEmpty()) {
+            add(buildJsonObject {
+                put("role", "assistant")
+                put("content", round.assistantText)
             })
         }
-    } else if (!assistantText.isNullOrEmpty()) {
-        add(buildJsonObject {
-            put("role", "assistant")
-            put("content", assistantText)
-        })
     }
 }

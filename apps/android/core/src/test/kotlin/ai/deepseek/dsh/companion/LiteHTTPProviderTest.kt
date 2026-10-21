@@ -1,6 +1,9 @@
 package ai.deepseek.dsh.companion
 
 import ai.deepseek.dsh.contract.LiteToolSchemas
+import ai.deepseek.dsh.contract.ToolDescriptor
+import ai.deepseek.dsh.contract.ToolRisk
+import kotlinx.coroutines.CoroutineScope
 import kotlinx.serialization.json.Json
 import kotlinx.serialization.json.JsonArray
 import kotlinx.serialization.json.JsonObject
@@ -9,6 +12,7 @@ import kotlinx.serialization.json.buildJsonObject
 import kotlinx.serialization.json.jsonObject
 import kotlinx.serialization.json.put
 import kotlinx.coroutines.flow.toList
+import kotlinx.coroutines.test.UnconfinedTestDispatcher
 import kotlinx.coroutines.test.runTest
 import java.io.IOException
 import java.net.ConnectException
@@ -49,6 +53,16 @@ class LiteStreamParsingTest {
         assertNull(LiteStreamLineParser.parsePiece("not json"))
         assertNull(LiteStreamLineParser.parsePiece("""{"no":"choices"}"""))
         assertNull(LiteStreamLineParser.parsePiece("""{"choices":[{"delta":{"role":"assistant"}}]}"""))
+    }
+
+    @Test
+    fun readsTheFinishReasonFromTheChoiceBeforeRequiringADelta() {
+        // The terminal chunk carries finish_reason on the choice over an
+        // empty or absent delta; the reason must survive the parse instead
+        // of being dropped with the delta-less line.
+        assertEquals(LiteStreamPiece.Finish("stop"), LiteStreamLineParser.parsePiece("""data: {"choices":[{"delta":{},"finish_reason":"stop"}]}"""))
+        assertEquals(LiteStreamPiece.Finish("tool_calls"), LiteStreamLineParser.parsePiece("""{"choices":[{"finish_reason":"tool_calls"}]}"""))
+        assertNull(LiteStreamLineParser.parsePiece("""data: {"choices":[{"delta":{},"finish_reason":null}]}"""))
     }
 
     @Test
@@ -138,6 +152,9 @@ class LiteHTTPProviderTest {
                     LiteStreamChunk.Text("你"),
                     LiteStreamChunk.Text("好"),
                     LiteStreamChunk.ToolCall(id = "c1", name = "web_search", arguments = """{"q":"lite"}"""),
+                    // This stream never stated a finish_reason, so it closes
+                    // with a null-reason Finish.
+                    LiteStreamChunk.Finish(null),
                 ),
                 chunks,
             )
@@ -206,9 +223,13 @@ class LiteHTTPProviderTest {
             val history = listOf(
                 LiteTurnRecord(
                     userText = "算",
-                    assistantText = "十四",
-                    toolCalls = listOf(LiteTurnToolCall(id = "c1", name = "calculator", arguments = """{"expression":"2 + 3 * 4"}""")),
-                    toolResults = mapOf("c1" to "14"),
+                    rounds = listOf(
+                        LiteTurnRound(
+                            assistantText = "十四",
+                            toolCalls = listOf(LiteTurnToolCall(id = "c1", name = "calculator", arguments = """{"expression":"2 + 3 * 4"}""")),
+                            toolResults = mapOf("c1" to "14"),
+                        ),
+                    ),
                 ),
             )
             provider.stream("再算", "sample-system", history).toList()
@@ -246,6 +267,204 @@ class LiteHTTPProviderTest {
     }
 
     @Test
+    fun theFinishReasonRidesAfterTheAssembledCallsAndADoneWithoutOneFinishesNull() = runTest {
+        val server = com.sun.net.httpserver.HttpServer.create(java.net.InetSocketAddress("127.0.0.1", 0), 0)
+        server.createContext("/v1/chat/completions") { exchange ->
+            val stream = listOf(
+                """data: {"choices":[{"delta":{"content":"查"}}]}""",
+                """data: {"choices":[{"delta":{"tool_calls":[{"index":0,"id":"c1","function":{"name":"calculator","arguments":"{\"expression\":\"1\"}"}}]}}]}""",
+                """data: {"choices":[{"delta":{},"finish_reason":"tool_calls"}]}""",
+                "data: [DONE]",
+            ).joinToString("\n")
+            val bytes = stream.encodeToByteArray()
+            exchange.sendResponseHeaders(200, bytes.size.toLong())
+            exchange.responseBody.write(bytes)
+            exchange.close()
+        }
+        server.start()
+        try {
+            val provider = LiteHTTPProvider(
+                endpoint = "http://127.0.0.1:${server.address.port}/v1/chat/completions",
+                apiKey = "sk-test",
+                model = "deepseek-chat",
+            )
+            // The host translate's delayed finish: the stated reason rides
+            // last, after the assembled tool calls.
+            assertEquals(
+                listOf(
+                    LiteStreamChunk.Text("查"),
+                    LiteStreamChunk.ToolCall(id = "c1", name = "calculator", arguments = """{"expression":"1"}"""),
+                    LiteStreamChunk.Finish("tool_calls"),
+                ),
+                provider.stream("算").toList(),
+            )
+        } finally {
+            server.stop(0)
+        }
+
+        // A stream the wire never stated a reason for still finishes — with
+        // a null reason rather than a guessed one.
+        val bareBodies = mutableListOf<String>()
+        val bare = recordingServer(bareBodies)
+        bare.start()
+        try {
+            val provider = LiteHTTPProvider(
+                endpoint = "http://127.0.0.1:${bare.address.port}/v1/chat/completions",
+                apiKey = "sk-test",
+                model = "deepseek-chat",
+            )
+            assertEquals(listOf(LiteStreamChunk.Finish(null)), provider.stream("问好").toList())
+        } finally {
+            bare.stop(0)
+        }
+    }
+
+    @Test
+    fun multiRoundTurnsInterleaveAssistantAndToolRowsRoundByRound() = runTest {
+        val seenBodies = mutableListOf<String>()
+        val server = recordingServer(seenBodies)
+        server.start()
+        try {
+            val provider = LiteHTTPProvider(
+                endpoint = "http://127.0.0.1:${server.address.port}/v1/chat/completions",
+                apiKey = "sk-test",
+                model = "deepseek-chat",
+            )
+            val history = listOf(
+                LiteTurnRecord(
+                    userText = "算",
+                    rounds = listOf(
+                        LiteTurnRound(
+                            assistantText = "先算",
+                            toolCalls = listOf(LiteTurnToolCall(id = "c1", name = "calculator", arguments = """{"expression":"2 + 3 * 4"}""")),
+                            toolResults = mapOf("c1" to "14"),
+                        ),
+                        LiteTurnRound(
+                            assistantText = null,
+                            toolCalls = listOf(LiteTurnToolCall(id = "c2", name = "artifact_create", arguments = """{"id":"spec","kind":"markdown"}""")),
+                            toolResults = mapOf("c2" to "written"),
+                        ),
+                        LiteTurnRound(assistantText = "全部完成", toolCalls = emptyList(), toolResults = emptyMap()),
+                    ),
+                ),
+            )
+            provider.stream("继续", history = history).toList()
+
+            // The host provider's serialize order for a continued turn:
+            // the user row, then each round's assistant row followed by its
+            // tool rows — assistant(calls1), tool(c1), assistant(calls2),
+            // tool(c2), assistant(text3) — before the new user row.
+            val messages = (Json.parseToJsonElement(seenBodies.single()).jsonObject["messages"] as JsonArray)
+            assertEquals(7, messages.size)
+            assertEquals("user", ((messages[0] as JsonObject)["role"] as JsonPrimitive).content)
+            assertEquals("算", ((messages[0] as JsonObject)["content"] as JsonPrimitive).content)
+            val first = messages[1] as JsonObject
+            assertEquals("assistant", (first["role"] as JsonPrimitive).content)
+            assertEquals("先算", (first["content"] as JsonPrimitive).content)
+            assertEquals("c1", (((first["tool_calls"] as JsonArray)[0] as JsonObject)["id"] as JsonPrimitive).content)
+            assertEquals("tool", ((messages[2] as JsonObject)["role"] as JsonPrimitive).content)
+            assertEquals("c1", ((messages[2] as JsonObject)["tool_call_id"] as JsonPrimitive).content)
+            assertEquals("14", ((messages[2] as JsonObject)["content"] as JsonPrimitive).content)
+            val second = messages[3] as JsonObject
+            assertEquals("assistant", (second["role"] as JsonPrimitive).content)
+            assertEquals("", (second["content"] as JsonPrimitive).content)
+            assertEquals("c2", (((second["tool_calls"] as JsonArray)[0] as JsonObject)["id"] as JsonPrimitive).content)
+            assertEquals("tool", ((messages[4] as JsonObject)["role"] as JsonPrimitive).content)
+            assertEquals("c2", ((messages[4] as JsonObject)["tool_call_id"] as JsonPrimitive).content)
+            assertEquals("written", ((messages[4] as JsonObject)["content"] as JsonPrimitive).content)
+            val third = messages[5] as JsonObject
+            assertEquals("assistant", (third["role"] as JsonPrimitive).content)
+            assertEquals("全部完成", (third["content"] as JsonPrimitive).content)
+            // The request's own user row lands after the replayed turn.
+            assertEquals("user", ((messages[6] as JsonObject)["role"] as JsonPrimitive).content)
+            assertEquals("继续", ((messages[6] as JsonObject)["content"] as JsonPrimitive).content)
+        } finally {
+            server.stop(0)
+        }
+    }
+
+    @OptIn(kotlinx.coroutines.ExperimentalCoroutinesApi::class)
+    @Test
+    fun theLoopDrivesARealContinuationRequestOverToolCalls() = runTest {
+        val seenBodies = mutableListOf<String>()
+        val server = com.sun.net.httpserver.HttpServer.create(java.net.InetSocketAddress("127.0.0.1", 0), 0)
+        server.createContext("/v1/chat/completions") { exchange ->
+            seenBodies.add(exchange.requestBody.readBytes().decodeToString())
+            val isFirst = seenBodies.size == 1
+            val stream = (
+                if (isFirst) listOf(
+                    """data: {"choices":[{"delta":{"tool_calls":[{"index":0,"id":"c1","function":{"name":"calculator","arguments":"{\"expression\":\"2 + 3 * 4\"}"}}]}}]}""",
+                    """data: {"choices":[{"delta":{},"finish_reason":"tool_calls"}]}""",
+                ) else listOf(
+                    """data: {"choices":[{"delta":{"content":"结果是 14"}}]}""",
+                    """data: {"choices":[{"delta":{},"finish_reason":"stop"}]}""",
+                )
+                ) + "data: [DONE]"
+            val bytes = stream.joinToString("\n").encodeToByteArray()
+            exchange.sendResponseHeaders(200, bytes.size.toLong())
+            exchange.responseBody.write(bytes)
+            exchange.close()
+        }
+        server.start()
+        try {
+            val provider = LiteHTTPProvider(
+                endpoint = "http://127.0.0.1:${server.address.port}/v1/chat/completions",
+                apiKey = "sk-test",
+                model = "deepseek-chat",
+            )
+            val driver = LiteLoopDriver(
+                CoroutineScope(UnconfinedTestDispatcher(testScheduler)),
+                provider,
+                execute = { _, name, arguments ->
+                    when (name) {
+                        "calculator" -> LiteToolExecutors.calculator(arguments)
+                        else -> LiteToolOutcome(ok = false, text = "no on-device executor mounted: $name")
+                    }
+                },
+                toolCatalog = LiteToolCatalog.fromHostDescriptors(
+                    listOf(
+                        ToolDescriptor("calculator", 1, ToolRisk.LOW, emptyList(), supportsLite = true, supportsRemote = true),
+                    ),
+                ),
+            )
+            driver.submit("算").join()
+
+            // One turn, two requests: the tool_calls finish continued the
+            // turn, and the continuation's wire body replays the completed
+            // round in the host's interleave — assistant(calls, ""),
+            // tool(14) — ahead of the turn's own user row.
+            assertEquals(2, seenBodies.size)
+            assertEquals(
+                listOf(LiteMessage(role = "user", text = "算"), LiteMessage(role = "assistant", text = ""), LiteMessage(role = "assistant", text = "结果是 14")),
+                driver.fold.state.conversation,
+            )
+            assertEquals("completed", driver.fold.state.lastTurnEnd)
+            val messages = (Json.parseToJsonElement(seenBodies[1]).jsonObject["messages"] as JsonArray)
+            assertEquals(4, messages.size)
+            assertEquals("user", ((messages[0] as JsonObject)["role"] as JsonPrimitive).content)
+            assertEquals("算", ((messages[0] as JsonObject)["content"] as JsonPrimitive).content)
+            val assistant = messages[1] as JsonObject
+            assertEquals("assistant", (assistant["role"] as JsonPrimitive).content)
+            assertEquals("", (assistant["content"] as JsonPrimitive).content)
+            val calls = assistant["tool_calls"] as JsonArray
+            assertEquals(1, calls.size)
+            val call = calls[0] as JsonObject
+            assertEquals("c1", (call["id"] as JsonPrimitive).content)
+            assertEquals("calculator", (((call["function"] as JsonObject)["name"]) as JsonPrimitive).content)
+            assertEquals("""{"expression":"2 + 3 * 4"}""", (((call["function"] as JsonObject)["arguments"]) as JsonPrimitive).content)
+            val toolRow = messages[2] as JsonObject
+            assertEquals("tool", (toolRow["role"] as JsonPrimitive).content)
+            assertEquals("c1", (toolRow["tool_call_id"] as JsonPrimitive).content)
+            assertEquals("14", (toolRow["content"] as JsonPrimitive).content)
+            // The continuation request's own user row closes the replay.
+            assertEquals("user", ((messages[3] as JsonObject)["role"] as JsonPrimitive).content)
+            assertEquals("算", ((messages[3] as JsonObject)["content"] as JsonPrimitive).content)
+        } finally {
+            server.stop(0)
+        }
+    }
+
+    @Test
     fun anEmptyTurnKeepsOnlyItsUserRowAndAnEmptyToolAnswerSaysNoOutput() = runTest {
         val seenBodies = mutableListOf<String>()
         val server = recordingServer(seenBodies)
@@ -259,12 +478,16 @@ class LiteHTTPProviderTest {
             val history = listOf(
                 // A provider-error turn carries neither reply text nor
                 // calls, so only its user row reaches the wire.
-                LiteTurnRecord(userText = "失败了", assistantText = null, toolCalls = emptyList(), toolResults = emptyMap()),
+                LiteTurnRecord(userText = "失败了", rounds = emptyList()),
                 LiteTurnRecord(
                     userText = "算",
-                    assistantText = null,
-                    toolCalls = listOf(LiteTurnToolCall(id = "c1", name = "calculator", arguments = "{}")),
-                    toolResults = mapOf("c1" to ""),
+                    rounds = listOf(
+                        LiteTurnRound(
+                            assistantText = null,
+                            toolCalls = listOf(LiteTurnToolCall(id = "c1", name = "calculator", arguments = "{}")),
+                            toolResults = mapOf("c1" to ""),
+                        ),
+                    ),
                 ),
             )
             provider.stream("再来", history = history).toList()

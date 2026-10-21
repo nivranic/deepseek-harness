@@ -275,9 +275,13 @@ class LiteLoopDriverTest {
             listOf(
                 LiteTurnRecord(
                     userText = "算",
-                    assistantText = "十四",
-                    toolCalls = listOf(LiteTurnToolCall(id = "c1", name = "calculator", arguments = """{"expression":"2 + 3 * 4"}""")),
-                    toolResults = mapOf("c1" to "14"),
+                    rounds = listOf(
+                        LiteTurnRound(
+                            assistantText = "十四",
+                            toolCalls = listOf(LiteTurnToolCall(id = "c1", name = "calculator", arguments = """{"expression":"2 + 3 * 4"}""")),
+                            toolResults = mapOf("c1" to "14"),
+                        ),
+                    ),
                 ),
             ),
             provider.submittedHistories[1],
@@ -307,8 +311,150 @@ class LiteLoopDriverTest {
         // call id: every issued call keeps a result the protocol can answer
         // the next turn with.
         val record = provider.submittedHistories[1].single()
-        assertEquals(listOf(LiteTurnToolCall(id = "c1", name = "artifact_create", arguments = """{"id":"spec","kind":"markdown"}""")), record.toolCalls)
-        assertEquals(mapOf("c1" to "sandbox denied the write"), record.toolResults)
+        assertEquals(
+            listOf(LiteTurnRound(assistantText = "", toolCalls = listOf(LiteTurnToolCall(id = "c1", name = "artifact_create", arguments = """{"id":"spec","kind":"markdown"}""")), toolResults = mapOf("c1" to "sandbox denied the write"))),
+            record.rounds,
+        )
+    }
+
+    @Test
+    fun aToolCallsFinishContinuesTheTurnWithTheCompletedRoundAsHistory() = runTest {
+        val provider = ScriptedLiteProvider(
+            scripts = mapOf(
+                "算" to listOf(
+                    LiteStreamChunk.Text("先算"),
+                    LiteStreamChunk.ToolCall("c1", "calculator", """{"expression":"2 + 3 * 4"}"""),
+                    LiteStreamChunk.Finish("tool_calls"),
+                ),
+            ),
+            followUps = mapOf(
+                "算" to listOf(listOf(LiteStreamChunk.Text("结果是 14"))),
+            ),
+        )
+        val driver = LiteLoopDriver(
+            CoroutineScope(UnconfinedTestDispatcher(testScheduler)),
+            provider,
+            execute = { _, name, arguments ->
+                when (name) {
+                    "calculator" -> LiteToolExecutors.calculator(arguments)
+                    else -> LiteToolOutcome(ok = false, text = "no on-device executor mounted: $name")
+                }
+            },
+            toolCatalog = LiteToolCatalog.fromHostDescriptors(listOf(declaredLite("calculator"))),
+        )
+        driver.submit("算")
+        advanceUntilIdle()
+
+        // One prompt, two requests: the continuation carries the live turn's
+        // completed round — its reply text, the executed call, and the real
+        // evaluator's answer under the call id.
+        assertEquals(listOf("算", "算"), provider.submitted)
+        assertEquals(emptyList<LiteTurnRecord>(), provider.submittedHistories.first())
+        assertEquals(
+            listOf(
+                LiteTurnRecord(
+                    userText = "算",
+                    rounds = listOf(
+                        LiteTurnRound(
+                            assistantText = "先算",
+                            toolCalls = listOf(LiteTurnToolCall(id = "c1", name = "calculator", arguments = """{"expression":"2 + 3 * 4"}""")),
+                            toolResults = mapOf("c1" to "14"),
+                        ),
+                    ),
+                ),
+            ),
+            provider.submittedHistories[1],
+        )
+        val state = driver.fold.state
+        assertEquals(
+            listOf(
+                LiteMessage(role = "user", text = "算"),
+                LiteMessage(role = "assistant", text = "先算"),
+                LiteMessage(role = "assistant", text = "结果是 14"),
+            ),
+            state.conversation,
+        )
+        assertEquals("completed", state.lastTurnEnd)
+        assertTrue(state.errors.isEmpty())
+        assertFalse(driver.running)
+    }
+
+    @Test
+    fun aRunawayToolLoopClosesFailSoftAtTheRoundCap() = runTest {
+        var executed = 0
+        val provider = ScriptedLiteProvider(
+            scripts = mapOf(
+                "循环" to listOf(
+                    LiteStreamChunk.ToolCall("c1", "calculator", """{"expression":"1"}"""),
+                    LiteStreamChunk.Finish("tool_calls"),
+                ),
+            ),
+        )
+        val driver = LiteLoopDriver(
+            CoroutineScope(UnconfinedTestDispatcher(testScheduler)),
+            provider,
+            execute = { _, name, arguments ->
+                executed += 1
+                when (name) {
+                    "calculator" -> LiteToolExecutors.calculator(arguments)
+                    else -> LiteToolOutcome(ok = false, text = "no on-device executor mounted: $name")
+                }
+            },
+            toolCatalog = LiteToolCatalog.fromHostDescriptors(listOf(declaredLite("calculator"))),
+        )
+        driver.submit("循环")
+        advanceUntilIdle()
+
+        // Every round answers tool_calls again; the cap closes the turn
+        // fail-soft — the last round's empty assistant row and the terminal
+        // event still land, the event stream is never truncated.
+        assertEquals(MAX_LITE_ROUNDS_PER_TURN, provider.submitted.size)
+        assertEquals(MAX_LITE_ROUNDS_PER_TURN, executed)
+        assertEquals(MAX_LITE_ROUNDS_PER_TURN, driver.fold.state.toolCalls.size)
+        assertEquals(MAX_LITE_ROUNDS_PER_TURN + 1, driver.fold.state.conversation.size)
+        assertEquals("completed", driver.fold.state.lastTurnEnd)
+        assertTrue(driver.fold.state.errors.isEmpty())
+        // The last request's history carried every earlier round of the
+        // live turn, one round per completed request before it.
+        assertEquals(MAX_LITE_ROUNDS_PER_TURN - 1, provider.submittedHistories.last().single().rounds.size)
+    }
+
+    @Test
+    fun aHandoffInTheSecondRoundStopsAtTheMarker() = runTest {
+        var executed = 0
+        val provider = ScriptedLiteProvider(
+            scripts = mapOf(
+                "查" to listOf(
+                    LiteStreamChunk.ToolCall("c1", "calculator", """{"expression":"1"}"""),
+                    LiteStreamChunk.Finish("tool_calls"),
+                ),
+            ),
+            followUps = mapOf(
+                "查" to listOf(listOf(LiteStreamChunk.ToolCall("c2", "run_tests", "{}"), LiteStreamChunk.Finish("tool_calls"))),
+            ),
+        )
+        val driver = LiteLoopDriver(
+            CoroutineScope(UnconfinedTestDispatcher(testScheduler)),
+            provider,
+            execute = { _, _, _ ->
+                executed += 1
+                LiteToolOutcome(ok = true, text = "1")
+            },
+        )
+        driver.submit("查")
+        advanceUntilIdle()
+
+        // The continuation request went out with the first round as
+        // history; its gated call hands off, and the turn stops at the
+        // marker — the first round's assistant row stands, the handoff
+        // round adds none.
+        assertEquals(listOf("查", "查"), provider.submitted)
+        assertEquals(1, executed)
+        val state = driver.fold.state
+        assertEquals(LITE_REQUIRES_FULL_RUNTIME, state.pendingHandoff)
+        assertEquals(null, state.lastTurnEnd)
+        assertEquals(listOf(LiteMessage(role = "user", text = "查"), LiteMessage(role = "assistant", text = "")), state.conversation)
+        assertFalse(driver.running)
     }
 
     @Test

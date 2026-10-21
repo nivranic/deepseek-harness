@@ -339,9 +339,13 @@ class LiteChatViewModelTest {
             listOf(
                 LiteTurnRecord(
                     userText = "算一下",
-                    assistantText = "",
-                    toolCalls = listOf(LiteTurnToolCall(id = "c1", name = "calculator", arguments = """{"expression":"(1 + 2) * 3"}""")),
-                    toolResults = mapOf("c1" to "9"),
+                    rounds = listOf(
+                        LiteTurnRound(
+                            assistantText = "",
+                            toolCalls = listOf(LiteTurnToolCall(id = "c1", name = "calculator", arguments = """{"expression":"(1 + 2) * 3"}""")),
+                            toolResults = mapOf("c1" to "9"),
+                        ),
+                    ),
                 ),
             ),
             provider.submittedHistories[1],
