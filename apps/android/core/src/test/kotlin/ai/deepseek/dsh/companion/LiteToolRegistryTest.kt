@@ -238,6 +238,40 @@ class LiteToolRegistryTest {
         assertTrue("url_fetch" in failure.message.orEmpty(), "the collision message must name the colliding id")
     }
 
+    /**
+     * The live union the paired shell assembles: the device declarations
+     * stay the app-owned side and the Host's live-served declaration
+     * replaces the bundled Host projection wholesale; the union keeps the
+     * declared gates and names its HOST_DECLARED source.
+     */
+    @Test
+    fun theLiveHostUnionReplacesTheProjectionSideAndKeepsTheDeclaredGates() {
+        val catalog = LiteToolCatalog.fromDeviceAndLiveHostDeclarations(
+            listOf(declared("calculator", supportsLite = true)),
+            listOf(
+                declared("web_search", supportsLite = true),
+                declared("run_tests", supportsLite = false),
+            ),
+        )
+        assertEquals(LiteToolSource.HOST_DECLARED, catalog.source)
+        assertNull(catalog.handoffCapability("calculator"))
+        assertNull(catalog.handoffCapability("web_search"))
+        assertEquals(LITE_REQUIRES_FULL_RUNTIME, catalog.handoffCapability("run_tests"))
+        // A name absent from both documents stays Unknown, never guessed.
+        assertEquals(LITE_REQUIRES_FULL_RUNTIME, catalog.handoffCapability("bash"))
+    }
+
+    @Test
+    fun aNameInBothTheDeviceDocumentAndTheLiveHostDeclarationFailsLoudNamingTheCollision() {
+        val failure = assertFailsWith<IllegalArgumentException> {
+            LiteToolCatalog.fromDeviceAndLiveHostDeclarations(
+                listOf(declared("calculator", supportsLite = true)),
+                listOf(declared("calculator", supportsLite = false)),
+            )
+        }
+        assertTrue("calculator" in failure.message.orEmpty(), "the collision message must name the colliding id")
+    }
+
     private fun declared(id: String, supportsLite: Boolean): ToolDescriptor =
         ToolDescriptor(id = id, version = 1, risk = ToolRisk.LOW, permissions = emptyList(), supportsLite = supportsLite, supportsRemote = true)
 }

@@ -97,13 +97,39 @@ class LiteToolCatalog private constructor(
         fun fromBundledDocuments(
             deviceDeclarations: List<ToolDescriptor>,
             hostDescriptors: List<ToolDescriptor>,
+        ): LiteToolCatalog = unionCatalog(LiteToolSource.BUNDLED, deviceDeclarations, hostDescriptors,
+            "tool id declared by both bundled documents")
+
+        /**
+         * Build the live-union catalog: the app-owned device tool
+         * declarations plus the paired Host's live-served declaration, which
+         * replaces the bundled Host projection wholesale — a Host that serves
+         * a catalog owns the whole Host side of the union. The cross-document
+         * guard matches [fromBundledDocuments].
+         * @param deviceDeclarations the app-owned declarations, in document order.
+         * @param hostDescriptors the paired Host's live-served descriptors, in document order.
+         * @returns the [LiteToolSource.HOST_DECLARED] catalog; dispatch walks the same declared gates as [fromHostDescriptors].
+         * @throws IllegalArgumentException when a tool id appears in both documents.
+         */
+        fun fromDeviceAndLiveHostDeclarations(
+            deviceDeclarations: List<ToolDescriptor>,
+            hostDescriptors: List<ToolDescriptor>,
+        ): LiteToolCatalog = unionCatalog(LiteToolSource.HOST_DECLARED, deviceDeclarations, hostDescriptors,
+            "tool id declared by both the device document and the Host's live declaration")
+
+        /** Guard one two-document union for cross-document id collisions and index it by id. */
+        private fun unionCatalog(
+            source: LiteToolSource,
+            deviceDeclarations: List<ToolDescriptor>,
+            hostDescriptors: List<ToolDescriptor>,
+            collisionMessage: String,
         ): LiteToolCatalog {
             val deviceIds = deviceDeclarations.map { it.id }.toSet()
             val collisions = hostDescriptors.map { it.id }.filter { it in deviceIds }
             if (collisions.isNotEmpty()) {
-                throw IllegalArgumentException("tool id declared by both bundled documents: ${collisions.joinToString()}")
+                throw IllegalArgumentException("$collisionMessage: ${collisions.joinToString()}")
             }
-            return LiteToolCatalog(LiteToolSource.BUNDLED, (deviceDeclarations + hostDescriptors).associateBy { it.id })
+            return LiteToolCatalog(source, (deviceDeclarations + hostDescriptors).associateBy { it.id })
         }
     }
 }

@@ -1,0 +1,66 @@
+{
+  "status": "PASS",
+  "scope": "Report bindings and audit for the lite-catalog increment: the gen-64 follow-up closing both halves of the paired-Host channel the §32 ledger kept open after gen-63 (NativeGatewayClient.toolDescriptors complete with zero callers beside the paired shell having no Lite entry): WireDriving's interface default `suspend fun toolDescriptors(): List<ToolDescriptor>? = null` (a stateless or unpaired wire has no Host to ask; a null answer is the bundled fallback path — SwitchableWireDriving delegating, the gateway's existing implementation gaining only the override with its per-negotiation cache untouched), HostToolCatalogObserver following the HostDescriptionObserver template (the same LaunchedEffect(paired, wire, lifecycleOwner, generation, refreshEpoch) key family under repeatOnLifecycle(STARTED), sharing the description-refresh epoch) whose LiteHostCatalogWatch retains the last successful declaration keyed by wire and Host generation — null answers and transport failures keep the last success, BadWire keeps it and raises the observable badWire flag (the locale-owned lite-catalog-badwire diagnostic line), CancellationException propagating, the watch key deliberately excluding refreshEpoch so a failed retry does not shake the session back to BUNDLED — LiteToolCatalog.fromDeviceAndLiveHostDeclarations taking the live union under the existing HOST_DECLARED value (no fourth enum; the Host's served catalog wholesale replaces the bundled projection side; the cross-document collision guard extracted into the shared unionCatalog with fromBundledDocuments staying a thin delegate), the assembler's explicit resolve parameter liveHostToolDescriptors (null keeping the frozen union), LiteChatFace folding the live declaration into the remember assembly identity beside the preset (a really-new catalog is a new session; facts disclosing HOST_DECLARED — the §31 permission gate walking the same declaration gate over the live union), and the paired shell's LiteEntryButton over one lite_entry locale key and lite-entry test tag; the rejections recorded honestly (a fourth enum value — the semantics HOST_DECLARED already carries; per-session or per-turn repull — one-pull-per-generation with the refresh epoch matches the description-observer contract; hot-swapping a live session's catalog — the catalog is part of the session identity, the same reassembly rationale as preset switching, with retain-last-success keeping the identity stable across retries; silent BadWire fallback to BUNDLED — failure stays observable and the retained catalog stays in force, the fail-loud stance); the gates honestly recorded from log content: typecheck EXIT 0 (the build:lib:host chain — the host face alone building, no client-face emit) and lint Found 0 warnings and 0 errors on 3861 files (90 rules, 20 threads, 154.0s — the combined g1 log carrying the EXIT_CODE=0 trailer of the honestly executed round), test:docs 17 (111.52s) and doc-sync 37 passed 0 failed 0 skipped (233.99s, zero regeneration diff — the pre/post git status snapshots diff-empty, recorded beside the log; both halves riding the one combined g1 docs file), pairing 948 pairs all consistent (the note trio 2026-10-19-paired-host-tool-catalog-pull with its dictionary written ahead, the 947→948 reconciliation honestly recorded), the serial double audit round green at 87 files / 1073 tests on both passes over the curated list reused verbatim from .artifacts/lite-assembly-g2-audit-file-list.txt (87 lines, the gen-54 precedent lineage, both sealed logs carrying the EXIT_CODE=0 trailer), gate0 PASS in both byte-identical forms (1938 paths / 129 components / 81 sections / 1983 lines — honestly recorded unchanged from the captured UPSTREAM_DELTA.json, not the live tree); the ledger round rode the main session's delete-then-wx rebuild with no separate TAP log sealed this generation (the capture's structural pins carry the rebuilt ledger's measured forms — 81 sections, §32 rewritten at 3018 chars with candidateEvidence widened 18→23 by the five new paths, §31 shortened 2759→2750 by the paired-Host open-item removal — and the prose carries the 6/6 narration, honestly recorded); the android acceptance: the scanner-env gradle round BUILD SUCCESSFUL in 12s with 82 actionable tasks of which 2 executed and 80 up-to-date — the honest verification-only form (:app:verifyLiteAssetSources and :app:verifyScannerResources executed, the two verification halves over the five bundled sources; every compile, test, packaging and assembly task rode UP-TO-DATE — the implementation rounds before this acceptance round already recompiled both :app faces, re-ran :core:test and rebuilt both APKs; this round's task graph never reaches :app:assembleRelease) — with the measured dual-DRIFT form against the lite-history record's sealed builtFiles entries (the androidTest APK at 43d72de0→31a910c5 — the androidTest source set really changed: LiteEntryNativeTest and LiteBundledAssetsTest widened — and the debug APK at 65f00458→f474524e, this generation's own capture becoming the new baseline, prior apk records: 2, cross-checked live) and the core XML aggregate reading 84 suites / 572 tests — the reconciliation over gen-63's 83/564 (+8: LiteHostCatalogWatchTest new at 5/0 with the served-union/null-fallback/BadWire-retention/transport-failure/later-null tests, LiteToolRegistryTest widened to 14/0 with the live-union declaration gate and the collision IAE naming the id, LiteSessionFactsTest widened to 7/0 disclosing HOST_DECLARED) — beside the contract half at 4 suites / 37 tests (aggregate JSON keys named skips — .artifacts/lite-catalog-g3-core-results.json); no connected round ran this generation, honestly recorded (the androidTest sources compiled and packaged but never executed on a device); and the adjudicated single-set ruling on the adapter's measured three-source miss stop-point (the gen-53 dwfq-b1ce6281-1 precedent form): the prepare oracle derives the measured seventy-seven replaced prior build outputs — all android (two APKs, one jar, ten recompiled classes, sixty-one XML reports, three binary outputs) — the adapter's generator-side measurement splits them into eleven chain-resolvable keys (the androidTest APK at its sealed 43d72de0 bytes beside the ten recompiled fake-wire/registry classes at their deterministic old bytes the older archives hold — the recompiled-classes fallback form of gen-53 through gen-63, honestly recorded) and sixty-six first-emission keys no archive holds (the debug APK's sealed 65f00458 bytes, the repacked jar, the sixty-one XML reports and three binary outputs sealed only by the prior record itself — the fourteenth consecutive generation of the same class: gen-51 ninety-four, gen-52 seventy-three, gen-53 sixty-seven, gen-54 sixty-seven, gen-55 sixty-eight, gen-56 sixty-eight, gen-57 seventy, gen-58 seventy-four, gen-59 seventy-six, gen-60 sixty-seven, gen-61 sixty-seven, gen-62 sixty-six, gen-63 eighty-five, gen-64 sixty-six), so the advance installs the liteHistoryReplacedBuildOutputs exactly-sixty-six build-output exemption on the demoted lite-history block, derived and emitted at advance run time from the record, the chain archives and the disk — never transcribed — equal to the seventy-seven-key derivation minus the eleven fallback keys, the thirteen source-side tracked miss keys resolving through the new before archive at their HEAD bytes (no UnrecoverableInputs set born), and every prior generation's set — the gen-63 liteExecutorsReplacedBuildOutputs eighty-five beside the gen-62 relayRetireReplacedBuildOutputs sixty-six, the gen-61 liteDeclarationsReplacedBuildOutputs sixty-seven, the gen-60 liteHandoffReplacedBuildOutputs sixty-seven, the gen-59 liteResumeReplacedBuildOutputs seventy-six, the gen-58 litePresetReplacedBuildOutputs seventy-four, the gen-57 liteHttpReplacedBuildOutputs seventy, the gen-56 liteFactsReplacedBuildOutputs sixty-eight, the gen-55 liteAssemblyReplacedBuildOutputs sixty-eight, the gen-54 litePermissionReplacedBuildOutputs sixty-seven, the gen-53 liteToolsReplacedBuildOutputs sixty-seven, the gen-52 litePersonaReplacedBuildOutputs seventy-three, the gen-51 liteToolReplacedBuildOutputs ninety-four plus liteToolUnrecoverableInputs two, the gen-32 desktopPackageReplacedBuildOutputs six, the gen-33 tornRepairIntentReplacedBuildOutputs three, the gen-48 clientMutationReplacedBuildOutputs two and the gen-46 durableReceiptsReplacedBuildOutputs three — stays exactly as sealed at HEAD; the remaining open channels (the real-Host tools/list end-to-end through the NativeGatewayDriver manual channel, the catalog hot-refresh UI beyond the shared description-refresh epoch, the instrumented execution face, the in-turn multi-step continuation, the tool-row journal persistence as a chapter-64 decision, the remaining three executor names, the approval interaction tier, the facts-diagnostics projection, the attribution-header decision and the §54 network matrix device-side verification) all stay open — so no whole-section PASS is granted; full Upstream-First objective remains in progress",
+  "gate0": {
+    "validation": "PASS",
+    "gate0": "PASS",
+    "paths": 1938,
+    "components": 129,
+    "specificationCoverage": {
+      "status": "PASS",
+      "numberedSections": 81,
+      "nonEmptySourceLines": 1983,
+      "acceptanceProven": false
+    }
+  },
+  "sourceRecord": {
+    "path": "artifacts/upstream-first/lite-catalog-source.json",
+    "sha256": "244e4412bee9e300683c0e2995ab063c609a9b4f6313149254a569e259b495a0"
+  },
+  "generator": {
+    "path": "artifacts/upstream-first/write-reports.mjs",
+    "sha256": "f5f52ebb27c7414eee0a8ab63a7c48977d51252aa1f31aa0de44dd6c2334722f"
+  },
+  "binding": {
+    "path": "artifacts/upstream-first/lite-catalog-binding.json",
+    "sha256": "321828ca7c30a5953e2af4c8eb505b31145cc11be914d0e7f267b476235825ab"
+  },
+  "helpers": [
+    {
+      "path": ".artifacts/advance-lite-catalog-reports.mjs",
+      "sha256": "0c8ea34521988887e8fe5f4d052c2bdf5b355f2a53bdd6410073bb0783b07f2d"
+    },
+    {
+      "path": ".artifacts/capture-lite-catalog-validation.mjs",
+      "sha256": "cb108d26c1274eac42d3fad32dfed13cb9aa8d070527fe52df180a0ab62638c8"
+    }
+  ],
+  "reports": [
+    {
+      "path": "IMPLEMENTATION_STATUS.md",
+      "sha256": "8cd2314b05f2b3014cbf573dc88e5b1f6430c3d2c8ca402fc18776318de655e7"
+    },
+    {
+      "path": "artifacts/upstream-first/evidence.json",
+      "sha256": "ae22d512403697fabc586f9ad77554ef2871e3d9301cd088b0a552ec75b403a5"
+    }
+  ],
+  "checks": [
+    {
+      "path": ".artifacts/lite-catalog-binding.log",
+      "sha256": "45e2594190210c0f4e250090fbea0a2ef19a79a293130edf0e0cc0b376b5613c"
+    },
+    {
+      "path": ".artifacts/lite-catalog-audit-final.log",
+      "sha256": "633901fc3d2c5afd0a8ce6d744a0fb4ff5c953e0fbd920c59a318ad649c34b3f"
+    },
+    {
+      "path": ".artifacts/lite-catalog-gate0-final.log",
+      "sha256": "505d74ef938f5d34d85490d37e0176ba804d93272fcf465ce2544a02c56b3f90"
+    },
+    {
+      "path": ".artifacts/lite-catalog-report-generation.log",
+      "sha256": "e3b0c44298fc1c149afbf4c8996fb92427ae41e4649b934ca495991b7852b855"
+    }
+  ]
+}

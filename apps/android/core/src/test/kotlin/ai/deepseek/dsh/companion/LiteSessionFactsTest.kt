@@ -2,7 +2,9 @@ package ai.deepseek.dsh.companion
 
 import ai.deepseek.dsh.contract.LitePresetDescriptor
 import ai.deepseek.dsh.contract.LitePresetPersona
+import ai.deepseek.dsh.contract.ToolDescriptor
 import ai.deepseek.dsh.contract.ToolDescriptors
+import ai.deepseek.dsh.contract.ToolRisk
 import kotlinx.coroutines.CoroutineScope
 import kotlinx.coroutines.test.UnconfinedTestDispatcher
 import kotlinx.coroutines.test.runTest
@@ -104,5 +106,28 @@ class LiteSessionFactsTest {
             facts = LiteSessionFacts(toolCatalogSource = toolCatalog.source),
         )
         assertEquals(LiteToolSource.BUNDLED, model.facts.toolCatalogSource)
+    }
+
+    /**
+     * The live-union path the paired shell assembles: a session constructed
+     * over the device declarations union the Host's live-served declaration
+     * discloses the HOST_DECLARED tool-catalog source — the live Host arm of
+     * the enum, never a fourth value.
+     */
+    @Test
+    fun theLiveUnionAssembledFactsNameTheHostDeclaredToolCatalogSource() = runTest {
+        val toolCatalog = LiteToolCatalog.fromDeviceAndLiveHostDeclarations(
+            listOf(ToolDescriptor("calculator", 1, ToolRisk.LOW, emptyList(), supportsLite = true, supportsRemote = true)),
+            listOf(ToolDescriptor("web_search", 1, ToolRisk.LOW, listOf("net.search"), supportsLite = true, supportsRemote = true)),
+        )
+        val model = LiteChatViewModel(
+            scope = CoroutineScope(UnconfinedTestDispatcher(testScheduler)),
+            sessionId = "facts-live-union",
+            provider = ScriptedLiteProvider(emptyMap()),
+            execute = { _, _, _ -> LiteToolOutcome(ok = false, text = "") },
+            toolCatalog = toolCatalog,
+            facts = LiteSessionFacts(toolCatalogSource = toolCatalog.source),
+        )
+        assertEquals(LiteToolSource.HOST_DECLARED, model.facts.toolCatalogSource)
     }
 }

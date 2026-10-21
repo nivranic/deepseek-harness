@@ -437,6 +437,7 @@ fun CompanionApp(model: CompanionViewModel = viewModel()) {
     }
     var descriptionRefresh by remember(model.generation) { mutableStateOf(0) }
     val description = HostDescriptionObserver(CompanionRuntime.wire, active, model.generation, descriptionRefresh)
+    val hostToolCatalog = HostToolCatalogObserver(CompanionRuntime.wire, active, model.generation, descriptionRefresh)
     val capabilities = description.snapshot?.takeUnless { it.closed }?.description?.capabilities
     NativeViewLinkEffects(viewLinkIntake, model, description, fileAttachmentPicker, shareIntake) { tab = 0 }
     val retryViewLink = {
@@ -478,6 +479,8 @@ fun CompanionApp(model: CompanionViewModel = viewModel()) {
                 configStore = remember {
                     LiteFileConfigStore(java.io.File(context.filesDir, "lite-config.enc"), AndroidKeystoreCipher("dsh-lite-config"))
                 },
+                liveHostToolDescriptors = hostToolCatalog.descriptors,
+                liveHostCatalogBadWire = hostToolCatalog.badWire,
             )
         }
         return
@@ -492,10 +495,7 @@ fun CompanionApp(model: CompanionViewModel = viewModel()) {
                 Modifier.testTag("camera-cleanup-error"), color = MaterialTheme.colorScheme.error)
             SupportExportAction(model::supportSnapshot)
             NativeHostControls(model, hosts)
-            Button(
-                onClick = { liteOpen = true },
-                modifier = Modifier.padding(horizontal = 16.dp).testTag("lite-entry"),
-            ) { Text("Lite 模式") }
+            LiteEntryButton(onOpen = { liteOpen = true }, modifier = Modifier.padding(horizontal = 16.dp))
             if (!model.switching && hosts.status !in setOf(NativeHostStatus.RESTORE_FAILED, NativeHostStatus.RETIREMENT_FAILED)) {
                 PairingScreen(model)
             }
@@ -528,6 +528,7 @@ fun CompanionApp(model: CompanionViewModel = viewModel()) {
                 Button(modifier = Modifier.testTag("native-repair"), onClick = { scope.launch { model.beginPairing() } }) {
                     Text(androidx.compose.ui.res.stringResource(R.string.native_repair))
                 }
+                LiteEntryButton(onOpen = { liteOpen = true })
             }
             InputPersistenceNotice(model)
             NativeResourceSaveNotice(resourceSavePicker)
@@ -543,6 +544,16 @@ fun CompanionApp(model: CompanionViewModel = viewModel()) {
                 else -> SubagentsTab(model, capabilities)
             }
         }
+    }
+}
+
+/** §31's mode-switch entry: the one button that leaves the companion face
+ * for the standalone Lite face; the paired and unpaired shell branches
+ * render the same entry over the same locale-owned label. */
+@Composable
+internal fun LiteEntryButton(onOpen: () -> Unit, modifier: Modifier = Modifier) {
+    Button(onClick = onOpen, modifier = modifier.testTag("lite-entry")) {
+        Text(androidx.compose.ui.res.stringResource(R.string.lite_entry))
     }
 }
 

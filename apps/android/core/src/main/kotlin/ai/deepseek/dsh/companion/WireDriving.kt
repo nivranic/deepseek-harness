@@ -1,5 +1,6 @@
 package ai.deepseek.dsh.companion
 
+import ai.deepseek.dsh.contract.ToolDescriptor
 import ai.deepseek.dsh.link.WireValue
 import kotlinx.coroutines.flow.Flow
 import java.util.concurrent.atomic.AtomicReference
@@ -18,6 +19,11 @@ interface WireDriving : AutoCloseable {
 
     /** Refresh an owned Host observation; stateless wires have no query to perform. */
     suspend fun refreshHostDescription() = Unit
+
+    /** Fetch the paired Host's live-served tool declarations (§32) for the
+     * Lite dispatch catalog; stateless and unpaired wires have no Host to ask
+     * and answer null — the bundled-fallback path. */
+    suspend fun toolDescriptors(): List<ToolDescriptor>? = null
 
     /** Observe local transport ownership; stateless and unpaired wires have no transport. */
     fun requestSnapshot(): ai.deepseek.dsh.link.LinkRequestSnapshot? = null
@@ -48,6 +54,7 @@ class SwitchableWireDriving(initial: WireDriving) : WireDriving {
     override fun requestSnapshot(): ai.deepseek.dsh.link.LinkRequestSnapshot? = delegate.get().requestSnapshot()
     override fun diagnosticSnapshot(): WireDiagnosticSnapshot? = delegate.get().diagnosticSnapshot()
     override suspend fun refreshHostDescription() = delegate.get().refreshHostDescription()
+    override suspend fun toolDescriptors(): List<ToolDescriptor>? = delegate.get().toolDescriptors()
 
     /** Route subsequent calls and streams through [next], retiring the previous wire. */
     fun replace(next: WireDriving) {

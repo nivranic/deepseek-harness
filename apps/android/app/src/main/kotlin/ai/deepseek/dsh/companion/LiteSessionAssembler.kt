@@ -1,5 +1,6 @@
 package ai.deepseek.dsh.companion
 
+import ai.deepseek.dsh.contract.ToolDescriptor
 import android.content.Context
 import kotlinx.coroutines.CoroutineScope
 
@@ -10,10 +11,11 @@ import kotlinx.coroutines.CoroutineScope
  * comes from [LiteAssets]' BUNDLED catalogs with the preset selection
  * resolved once against it — a null id keeps the projection default — and
  * the dispatch catalog is the APK-frozen union of the device tool
- * declarations and the bundled Host projection (§32): the §31 permission
- * gate walks the declared gates, and a name absent from both documents stays
- * Unknown. Construction only: mounting the view model into a UI is not this
- * factory's concern.
+ * declarations and the bundled Host projection (§32), or the live union with
+ * the paired Host's fetched declaration when one is served: the §31
+ * permission gate walks the declared gates, and a name absent from both
+ * documents stays Unknown. Construction only: mounting the view model into a
+ * UI is not this factory's concern.
  */
 object LiteSessionAssembler {
 
@@ -29,9 +31,10 @@ object LiteSessionAssembler {
      * @param store the optional durable journal store.
      * @param artifacts the optional artifact content channel.
      * @param presetId the requested preset id (§33): null assembles the catalog default, and an id the bundled projection does not carry fails loud — no substitute is guessed.
-     * @returns the assembled view model; its facts name the preset actually in effect.
+     * @param liveHostToolDescriptors the paired Host's live-served tool declaration; null keeps the APK-frozen BUNDLED union.
+     * @returns the assembled view model; its facts name the preset actually in effect and the tool-catalog source actually assembled.
      * @throws java.io.IOException when a bundled asset is absent.
-     * @throws IllegalArgumentException when a bundled document is malformed or [presetId] names a preset the bundled catalog does not carry.
+     * @throws IllegalArgumentException when a bundled document is malformed, [presetId] names a preset the bundled catalog does not carry, or a live declaration names a device-declared tool id.
      */
     fun assemble(
         context: Context,
@@ -44,12 +47,19 @@ object LiteSessionAssembler {
         store: LiteSessionStoring? = null,
         artifacts: LiteArtifactStoring? = null,
         presetId: String? = null,
+        liveHostToolDescriptors: List<ToolDescriptor>? = null,
     ): LiteChatViewModel {
         val bundled = LiteAssets.load(context)
         // The selection resolves here, once: switching presets means
         // assembling a new session with new facts, never re-pointing a live one.
         val preset = bundled.presets.resolve(presetId)
-        val toolCatalog = LiteToolCatalog.fromBundledDocuments(bundled.deviceToolDeclarations, bundled.hostToolDescriptors)
+        // A served Host declaration replaces the bundled Host projection
+        // wholesale; without one the APK-frozen union stays.
+        val toolCatalog = if (liveHostToolDescriptors != null) {
+            LiteToolCatalog.fromDeviceAndLiveHostDeclarations(bundled.deviceToolDeclarations, liveHostToolDescriptors)
+        } else {
+            LiteToolCatalog.fromBundledDocuments(bundled.deviceToolDeclarations, bundled.hostToolDescriptors)
+        }
         val toolSchemas = LiteToolSchemaCatalog.fromBundledDocuments(bundled.toolSchemas.tools, bundled.deviceToolSchemas)
         return LiteChatViewModel(
             scope = scope,

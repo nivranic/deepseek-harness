@@ -140,7 +140,7 @@ class NativeGatewayClient private constructor(
      * @returns the declared tool descriptors, or null when this Host serves none.
      * @throws LinkClientException.BadWire when the declared catalog violates the descriptor schema.
      */
-    suspend fun toolDescriptors(): List<ToolDescriptor>? {
+    override suspend fun toolDescriptors(): List<ToolDescriptor>? {
         ensureNegotiated()
         negotiation.withLock {
             val (cached, host) = synchronized(lock) {

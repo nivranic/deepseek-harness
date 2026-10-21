@@ -1,8 +1,10 @@
 package ai.deepseek.dsh.companion
 
+import androidx.activity.compose.setContent
 import androidx.compose.ui.test.assertIsDisplayed
 import androidx.compose.ui.test.assertIsNotEnabled
 import androidx.compose.ui.test.assertTextContains
+import androidx.compose.ui.test.assertTextEquals
 import androidx.compose.ui.test.hasTestTag
 import androidx.compose.ui.test.junit4.createAndroidComposeRule
 import androidx.compose.ui.test.onNodeWithTag
@@ -25,15 +27,18 @@ import org.junit.Test
 private fun journalEvent(json: String): JsonObject = Json.parseToJsonElement(json).jsonObject
 
 /**
- * The unpaired shell's Lite entry (§31's closing generation): the entry stays
- * reachable without a paired Host, the Lite face discloses the literal
- * runtimeMode word, and the endpoint-less default path gates sending behind
- * an explicit empty state — the runner cannot inject an endpoint, so the
- * blocked composer is the default path the assertion observes. The config
- * form closes the loop on-device: saving through the real Keystore cipher
- * re-reads the store and replaces the empty state with the assembled chat.
- * A stored journal closes the §67 relaunch loop: assembly over the real
- * filesDir store replays it in as the restored conversation.
+ * The shell's Lite entry (§31's closing generation): the shared entry button
+ * renders the locale-owned label and opens the Lite face from both shell
+ * branches — asserted here over the paired branch's own composable, because
+ * rendering the paired shell itself needs a paired Host — and once open the
+ * Lite face discloses the literal runtimeMode word, with the endpoint-less
+ * default path gating sending behind an explicit empty state — the runner
+ * cannot inject an endpoint, so the blocked composer is the default path the
+ * assertion observes. The config form closes the loop on-device: saving
+ * through the real Keystore cipher re-reads the store and replaces the empty
+ * state with the assembled chat. A stored journal closes the §67 relaunch
+ * loop: assembly over the real filesDir store replays it in as the restored
+ * conversation.
  */
 class LiteEntryNativeTest {
     @get:Rule(order = 0)
@@ -54,6 +59,21 @@ class LiteEntryNativeTest {
         compose.onNodeWithTag("lite-endpoint-missing").assertIsDisplayed()
         compose.onNodeWithTag("lite-composer-send").assertIsNotEnabled()
         compose.onNodeWithTag("lite-exit").assertIsDisplayed()
+    }
+
+    @Test
+    fun thePairedShellEntryRendersTheLocaleLabelAndOpensOnTap() {
+        compose.waitUntil(timeoutMillis = 10_000) {
+            compose.onAllNodes(hasTestTag("support-export")).fetchSemanticsNodes().isNotEmpty()
+        }
+        var opened = false
+        // The paired shell itself needs a paired Host to render; the entry
+        // both branches share is the paired face's own composable surface.
+        compose.runOnUiThread { compose.activity.setContent { LiteEntryButton(onOpen = { opened = true }) } }
+        compose.onNodeWithTag("lite-entry").assertIsDisplayed()
+            .assertTextEquals(compose.activity.getString(R.string.lite_entry))
+        compose.onNodeWithTag("lite-entry").performClick()
+        compose.runOnIdle { check(opened) }
     }
 
     @Test

@@ -1,5 +1,6 @@
 package ai.deepseek.dsh.companion
 
+import ai.deepseek.dsh.contract.ToolDescriptor
 import androidx.compose.foundation.layout.Arrangement
 import androidx.compose.foundation.layout.Column
 import androidx.compose.foundation.layout.Row
@@ -30,7 +31,10 @@ import kotlinx.coroutines.CoroutineScope
  * no endpoint is configured, an explicit empty state whose send stays
  * disabled and whose config form saves the configuration that assembles the
  * session. No endpoint is ever assumed here; with no store injected the
- * fixed parameters keep the store-less preview face.
+ * fixed parameters keep the store-less preview face. A paired shell passes
+ * the Host's observed live tool declaration for the dispatch union and the
+ * observed wire-schema violation line; the unpaired face keeps the bundled
+ * defaults.
  */
 @Composable
 fun LiteEntry(
@@ -43,6 +47,8 @@ fun LiteEntry(
     store: LiteSessionStoring? = null,
     artifacts: LiteArtifactStoring? = null,
     configStore: LiteConfigStoring? = null,
+    liveHostToolDescriptors: List<ToolDescriptor>? = null,
+    liveHostCatalogBadWire: Boolean = false,
 ) {
     // The configured face reads the store; each save bumps the revision so
     // the next composition reloads from disk. A load failure surfaces as its
@@ -65,9 +71,16 @@ fun LiteEntry(
             style = MaterialTheme.typography.bodySmall,
             color = MaterialTheme.colorScheme.secondary,
         )
+        if (liveHostCatalogBadWire) Text(
+            androidx.compose.ui.res.stringResource(R.string.lite_catalog_bad_wire),
+            Modifier.fillMaxWidth().padding(horizontal = 16.dp, vertical = 6.dp).testTag("lite-catalog-badwire"),
+            style = MaterialTheme.typography.bodySmall,
+            color = MaterialTheme.colorScheme.error,
+        )
         when {
             configStore == null -> if (endpoint.isBlank()) LiteEmptyState() else {
-                LiteChatFace(scope, sessionId, endpoint, apiKey, model, presetId = null, execute, store, artifacts)
+                LiteChatFace(scope, sessionId, endpoint, apiKey, model, presetId = null, execute, store, artifacts,
+                    liveHostToolDescriptors)
             }
             config != null && !editing -> {
                 Button(
@@ -77,6 +90,7 @@ fun LiteEntry(
                 LiteChatFace(
                     scope, sessionId, config.endpoint, config.apiKey, config.model,
                     presetId = config.presetId, execute, store, artifacts,
+                    liveHostToolDescriptors,
                 )
             }
             else -> {
@@ -215,11 +229,13 @@ private fun LiteChatFace(
     execute: LiteToolExecuting,
     store: LiteSessionStoring?,
     artifacts: LiteArtifactStoring?,
+    liveHostToolDescriptors: List<ToolDescriptor>?,
 ) {
     val context = LocalContext.current
-    // The effective preset is part of the assembly identity: a different
-    // selection assembles a different session (new facts, new prompt face).
-    val chat = remember(endpoint, apiKey, model, sessionId, presetId) {
+    // The effective preset and the live Host declaration are both part of the
+    // assembly identity: a different selection assembles a different session
+    // (new facts, new prompt face).
+    val chat = remember(endpoint, apiKey, model, sessionId, presetId, liveHostToolDescriptors) {
         LiteSessionAssembler.assemble(
             context = context,
             scope = scope,
@@ -231,6 +247,7 @@ private fun LiteChatFace(
             store = store,
             artifacts = artifacts,
             presetId = presetId,
+            liveHostToolDescriptors = liveHostToolDescriptors,
         )
     }
     LiteChatScreen(chat)

@@ -2,7 +2,9 @@ package ai.deepseek.dsh.companion
 
 import ai.deepseek.dsh.contract.LitePresetDescriptors
 import ai.deepseek.dsh.contract.LiteToolSchemas
+import ai.deepseek.dsh.contract.ToolDescriptor
 import ai.deepseek.dsh.contract.ToolDescriptors
+import ai.deepseek.dsh.contract.ToolRisk
 import androidx.test.platform.app.InstrumentationRegistry
 import kotlinx.coroutines.CoroutineScope
 import kotlinx.coroutines.Dispatchers
@@ -82,5 +84,35 @@ class LiteBundledAssetsTest {
         )
         assertEquals(LiteToolSource.BUNDLED, model.facts.toolCatalogSource)
         assertTrue(model.state.conversation.isEmpty())
+    }
+
+    @Test
+    fun theAssemblerUnionsAServedHostDeclarationAndFailsLoudOnACollision() {
+        fun liveSession(descriptors: List<ToolDescriptor>) = LiteSessionAssembler.assemble(
+            context = targetContext(),
+            scope = CoroutineScope(Dispatchers.Unconfined),
+            sessionId = "lite-live-union-test",
+            endpoint = "https://lite-bundle.invalid/chat/completions",
+            apiKey = "unused",
+            model = "unused",
+            execute = { _, _, _ -> LiteToolOutcome(ok = false, text = "") },
+            liveHostToolDescriptors = descriptors,
+        )
+
+        // A served Host declaration replaces the bundled Host projection
+        // wholesale: the session discloses the HOST_DECLARED source.
+        val model = liveSession(
+            listOf(ToolDescriptor("web_search", 1, ToolRisk.LOW, listOf("net.search"), supportsLite = true, supportsRemote = true)),
+        )
+        assertEquals(LiteToolSource.HOST_DECLARED, model.facts.toolCatalogSource)
+
+        // A live declaration naming a device-declared id has no honest
+        // arbitration: assembly fails loud instead of guessing.
+        try {
+            liveSession(listOf(ToolDescriptor("calculator", 1, ToolRisk.LOW, emptyList(), supportsLite = false, supportsRemote = true)))
+            error("a colliding live declaration must fail loud")
+        } catch (failure: IllegalArgumentException) {
+            assertTrue("calculator" in checkNotNull(failure.message))
+        }
     }
 }
