@@ -1,7 +1,7 @@
 {
   "schemaVersion": 1,
   "status": "IN_PROGRESS",
-  "capturedAt": "2026-10-22T05:03:26.510Z",
+  "capturedAt": "2026-10-22T13:16:26.095Z",
   "fullGoalComplete": false,
   "specification": {
     "path": "artifacts/upstream-first/original-specification.md",
@@ -3884,7 +3884,7 @@
         "apps/android/core/src/test/kotlin/ai/deepseek/dsh/companion/LitePresetCatalogTest.kt",
         "apps/android/core/src/test/kotlin/ai/deepseek/dsh/companion/LiteChatViewModelTest.kt"
       ],
-      "remaining": "§33 投影与选择面均已落地：gen-51 真 boot 收割 persona 投影（gen-lite-preset-catalog、ctx.systemPrompt.assemble() 实文、运行时变量预设入 excluded 清单不伪造）；gen-54 投影经装配面进 APK assets/lite/（BUNDLED 第三来源可观测）；gen-57 选择面收官——LitePresetCatalog 增 preset(id) 纯查找与 resolve(id) 一次性解析（null=default、未知 id fail-loud 点名 id/来源/目录全 id——禁猜规则应用于 persona 面），LiteSessionAssembler 可选 presetId 参数经捆绑目录解析，LiteChatViewModel 以 selectedPreset 携带解析描述符提交其 assembled prompt（default 路径字节不变），LiteSessionFacts.presetId 公开实际生效 id（宿主 agent-preset/selected 可观测先例、解析值是目录数据非常量），LiteConfig.presetId 可选键（缺省/JSON null 读 null 零迁移 §46、null 省键与旧三键逐字节同形），配置表单 preset 行+picker（单条目录恰一行不伪造多样性 §64、保存门控校验 id∈目录）、装配缓存键纳入生效 id（切 preset=新装配新事实——宿主 per-session 语义对应）。真机 connected 4/4（facts 等式改钉 presetId=\"minimal\"+表单指名 default preset）。明确不做：宿主重投影（三排除结构性）、必填键迁移（旧配置全作废违 §46 可恢复）、未知 id 回退 default（禁猜）、journal 事件（§31 闭集）。开放：陈旧 id 组合失败的配置面自愈失败行、更多 preset 摆脱运行时变量后重投影、profile/preset 之外的上下文组合。",
+      "remaining": "§33 投影与选择面均已落地：gen-51 真 boot 收割 persona 投影（gen-lite-preset-catalog、ctx.systemPrompt.assemble() 实文、运行时变量预设入 excluded 清单不伪造）；gen-54 投影经装配面进 APK assets/lite/（BUNDLED 第三来源可观测）；gen-57 选择面收官——LitePresetCatalog 增 preset(id) 纯查找与 resolve(id) 一次性解析（null=default、未知 id fail-loud 点名 id/来源/目录全 id——禁猜规则应用于 persona 面），LiteSessionAssembler 可选 presetId 参数经捆绑目录解析，LiteChatViewModel 以 selectedPreset 携带解析描述符提交其 assembled prompt（default 路径字节不变），LiteSessionFacts.presetId 公开实际生效 id（宿主 agent-preset/selected 可观测先例、解析值是目录数据非常量），LiteConfig.presetId 可选键（缺省/JSON null 读 null 零迁移 §46、null 省键与旧三键逐字节同形），配置表单 preset 行+picker（单条目录恰一行不伪造多样性 §64、保存门控校验 id∈目录）、装配缓存键纳入生效 id（切 preset=新装配新事实——宿主 per-session 语义对应）。真机 connected 4/4（facts 等式改钉 presetId=\"minimal\"+表单指名 default preset）。明确不做：宿主重投影（三排除结构性）、必填键迁移（旧配置全作废违 §46 可恢复）、未知 id 回退 default（禁猜）、journal 事件（§31 闭集）。开放：更多 preset 摆脱运行时变量后重投影、profile/preset 之外的上下文组合。gen-71 收口陈旧 id 自愈失败行（勘察实钉真崩溃缺陷：LiteChatFace 组合期 remember{assemble} 无兜底——APK 升级重捆投影后存量 stale presetId 使 resolve fail-loud 直接崩组合，而表单侧保存门注释早已点名装配侧失败行正是缺口）：remember 键族不动、assemble 以 runCatching 兜底，失败渲 lite-preset-stale 错误行（bad-wire 行同体例）经 lite_preset_stale locale 键以异常文本作 %1$s——resolve 的点名信息[陈旧 id/来源/目录全 id]逐字直达用户；修改配置按钮即自愈路径（改选现存 preset 重走同一装配身份）；resolve 禁猜边界与 fail-loud 语义不动——从崩溃转可读失败行、绝不转猜测回退；connected 8 测（真 Keystore store 直写 vanished-preset 注入——失败行含点名 id 与 minimal、lite-config-edit 可达、lite-conversation 缺席；真实 OTA 升级路径 e2e 留 note 开放跟进）。",
       "evidenceLimit": "这些路径是已定位的候选证据；尚未逐条证明本节每一项要求，不授予整节 PASS。"
     },
     {

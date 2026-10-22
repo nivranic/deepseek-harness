@@ -194,6 +194,7 @@
     <string name="lite_catalog_source_host_declared">工具目录来源：宿主实时声明</string>
     <string name="lite_catalog_source_bundled">工具目录来源：APK 内置文档</string>
     <string name="lite_catalog_source_bundled_fallback">工具目录来源：内置回退</string>
+    <string name="lite_preset_stale">会话装配失败：%1$s。所选预设可能已随应用更新变化，请在“修改配置”中选择现有预设后保存。</string>
     <string name="lite_attachment_add">添加附件</string>
     <string name="lite_attachment_file">选择文件</string>
     <string name="lite_attachment_photo">选择图片</string>

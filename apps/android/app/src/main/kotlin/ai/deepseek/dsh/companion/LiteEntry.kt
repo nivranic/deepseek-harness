@@ -254,32 +254,52 @@ private fun LiteChatFace(
     val context = LocalContext.current
     // The effective preset and the live Host declaration are both part of the
     // assembly identity: a different selection assembles a different session
-    // (new facts, new prompt face).
-    val chat = remember(endpoint, apiKey, model, sessionId, presetId, liveHostToolDescriptors) {
-        LiteSessionAssembler.assemble(
-            context = context,
-            scope = scope,
-            sessionId = sessionId,
-            endpoint = endpoint,
-            apiKey = apiKey,
-            model = model,
-            execute = execute,
-            store = store,
-            artifacts = artifacts,
-            presetId = presetId,
-            liveHostToolDescriptors = liveHostToolDescriptors,
-        )
+    // (new facts, new prompt face). Assembly itself is hedged: a stored preset
+    // id can go stale across an APK upgrade that re-bundles the projection,
+    // and the failure becomes this face's line instead of a crash.
+    val assembly = remember(endpoint, apiKey, model, sessionId, presetId, liveHostToolDescriptors) {
+        runCatching {
+            LiteSessionAssembler.assemble(
+                context = context,
+                scope = scope,
+                sessionId = sessionId,
+                endpoint = endpoint,
+                apiKey = apiKey,
+                model = model,
+                execute = execute,
+                store = store,
+                artifacts = artifacts,
+                presetId = presetId,
+                liveHostToolDescriptors = liveHostToolDescriptors,
+            )
+        }
     }
-    // The assembled session discloses which catalog its dispatch walks: a
-    // construction-time fact naming the source this session identity was
-    // assembled against, never a live re-read the running turn could drift on.
-    Text(
-        liteCatalogSourceLabel(chat.facts.toolCatalogSource),
-        Modifier.fillMaxWidth().padding(horizontal = 16.dp, vertical = 6.dp).testTag("lite-catalog-source"),
-        style = MaterialTheme.typography.bodySmall,
-        color = MaterialTheme.colorScheme.secondary,
-    )
-    LiteChatScreen(chat)
+    val chat = assembly.getOrNull()
+    if (chat == null) {
+        // Resolve keeps failing loud — no substitute preset is guessed — and
+        // its message (the stale id, the source, the carried ids) reaches the
+        // user verbatim; the edit-config entry above is the recovery: a saved
+        // valid selection re-runs this assembly identity.
+        Text(
+            androidx.compose.ui.res.stringResource(
+                R.string.lite_preset_stale, assembly.exceptionOrNull()?.message ?: "",
+            ),
+            Modifier.fillMaxWidth().padding(horizontal = 16.dp, vertical = 6.dp).testTag("lite-preset-stale"),
+            style = MaterialTheme.typography.bodySmall,
+            color = MaterialTheme.colorScheme.error,
+        )
+    } else {
+        // The assembled session discloses which catalog its dispatch walks: a
+        // construction-time fact naming the source this session identity was
+        // assembled against, never a live re-read the running turn could drift on.
+        Text(
+            liteCatalogSourceLabel(chat.facts.toolCatalogSource),
+            Modifier.fillMaxWidth().padding(horizontal = 16.dp, vertical = 6.dp).testTag("lite-catalog-source"),
+            style = MaterialTheme.typography.bodySmall,
+            color = MaterialTheme.colorScheme.secondary,
+        )
+        LiteChatScreen(chat)
+    }
 }
 
 /** The locale-owned word for one dispatch-catalog source; the three-value enum carries one entry each. */

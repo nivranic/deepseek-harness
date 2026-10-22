@@ -40,9 +40,12 @@ private fun journalEvent(json: String): JsonObject = Json.parseToJsonElement(jso
  * cannot inject an endpoint, so the blocked composer is the default path the
  * assertion observes. The config form closes the loop on-device: saving
  * through the real Keystore cipher re-reads the store and replaces the empty
- * state with the assembled chat. A stored journal closes the §67 relaunch
- * loop: assembly over the real filesDir store replays it in as the restored
- * conversation.
+ * state with the assembled chat. A stored preset id the re-bundled projection
+ * no longer carries — what an APK upgrade leaves behind — renders the
+ * assembly's fail-loud text as the face's own line instead of a crash, with
+ * the reconfiguration entry as the recovery. A stored journal closes the §67
+ * relaunch loop: assembly over the real filesDir store replays it in as the
+ * restored conversation.
  */
 class LiteEntryNativeTest {
     @get:Rule(order = 0)
@@ -163,6 +166,39 @@ class LiteEntryNativeTest {
         compose.onNodeWithTag("lite-config-preset").assertIsDisplayed()
             .assertTextContains("预设", substring = true)
             .assertTextContains("minimal", substring = true)
+    }
+
+    @Test
+    fun aStaleStoredPresetIdRendersTheAssemblyFailureLineInsteadOfCrashing() {
+        // The store carries a preset id the bundled projection does not — the
+        // exact residue an APK upgrade that re-bundles the preset projection
+        // leaves on a configured device — written through the same Keystore
+        // cipher the activity's own store reads.
+        LiteFileConfigStore(
+            liteConfigFile(),
+            AndroidKeystoreCipher("dsh-lite-config"),
+        ).save(
+            LiteConfig(
+                endpoint = "https://lite-config.invalid/v1/chat/completions",
+                apiKey = "sk-instrumented",
+                model = "deepseek-chat",
+                presetId = "vanished-preset",
+            ),
+        )
+        compose.waitUntil(timeoutMillis = 10_000) {
+            compose.onAllNodes(hasTestTag("lite-entry")).fetchSemanticsNodes().isNotEmpty()
+        }
+        compose.onNodeWithTag("lite-entry").assertIsDisplayed().performClick()
+
+        // Resolve fails loud without guessing a substitute, and that text —
+        // the stale id and the carried ids — is the face's line, not a crash;
+        // the reconfiguration entry stays reachable as the recovery, and no
+        // chat surface assembles over the failed identity.
+        compose.onNodeWithTag("lite-preset-stale").assertIsDisplayed()
+            .assertTextContains("vanished-preset", substring = true)
+            .assertTextContains("minimal", substring = true)
+        compose.onNodeWithTag("lite-config-edit").assertIsDisplayed()
+        compose.onNodeWithTag("lite-conversation").assertDoesNotExist()
     }
 
     @Test
