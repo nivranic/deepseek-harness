@@ -499,6 +499,10 @@ fun CompanionApp(model: CompanionViewModel = viewModel()) {
                 },
                 liveHostToolDescriptors = hostToolCatalog.descriptors,
                 liveHostCatalogBadWire = hostToolCatalog.badWire,
+                // The Lite face's refresh bumps the same shared epoch the
+                // capability dialog and the view-link retry do; a changed
+                // catalog then re-runs the existing assembly identity.
+                onCatalogRefresh = { descriptionRefresh++ },
             )
         }
         return

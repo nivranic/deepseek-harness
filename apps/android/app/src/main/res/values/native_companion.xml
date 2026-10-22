@@ -189,7 +189,11 @@
     <string name="native_attachment_upload_failed">文件上传失败，请检查连接后重新选择。</string>
     <string name="native_attachment_persistence_failed">附件未能保存到本地输入，请重试保存后重新选择。</string>
     <string name="lite_entry">Lite 模式</string>
-    <string name="lite_catalog_bad_wire">宿主返回的工具目录不符合声明格式，已保留上次成功目录；可在连接能力中刷新后重试。</string>
+    <string name="lite_catalog_bad_wire">宿主返回的工具目录不符合声明格式，已保留上次成功目录；可在本页刷新后重试。</string>
+    <string name="lite_catalog_refresh">刷新目录</string>
+    <string name="lite_catalog_source_host_declared">工具目录来源：宿主实时声明</string>
+    <string name="lite_catalog_source_bundled">工具目录来源：APK 内置文档</string>
+    <string name="lite_catalog_source_bundled_fallback">工具目录来源：内置回退</string>
     <string name="lite_attachment_add">添加附件</string>
     <string name="lite_attachment_file">选择文件</string>
     <string name="lite_attachment_photo">选择图片</string>

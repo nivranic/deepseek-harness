@@ -1,6 +1,10 @@
 package ai.deepseek.dsh.companion
 
 import androidx.activity.compose.setContent
+import androidx.compose.runtime.getValue
+import androidx.compose.runtime.mutableStateOf
+import androidx.compose.runtime.remember
+import androidx.compose.runtime.setValue
 import androidx.compose.ui.test.assertIsDisplayed
 import androidx.compose.ui.test.assertIsNotEnabled
 import androidx.compose.ui.test.assertTextContains
@@ -56,6 +60,9 @@ class LiteEntryNativeTest {
 
         compose.onNodeWithTag("lite-disclosure").assertIsDisplayed()
             .assertTextContains("runtimeMode = lite", substring = true)
+        // The in-face catalog refresh entry renders beside the disclosure line
+        // with no paired Host — the wired bump is a no-op observation re-run.
+        compose.onNodeWithTag("lite-catalog-refresh").assertIsDisplayed()
         compose.onNodeWithTag("lite-endpoint-missing").assertIsDisplayed()
         compose.onNodeWithTag("lite-composer-send").assertIsNotEnabled()
         compose.onNodeWithTag("lite-exit").assertIsDisplayed()
@@ -74,6 +81,42 @@ class LiteEntryNativeTest {
             .assertTextEquals(compose.activity.getString(R.string.lite_entry))
         compose.onNodeWithTag("lite-entry").performClick()
         compose.runOnIdle { check(opened) }
+    }
+
+    @Test
+    fun theBadWireLineRendersInFaceAndItsRefreshRetriesWithoutLeavingIt() {
+        compose.waitUntil(timeoutMillis = 10_000) {
+            compose.onAllNodes(hasTestTag("support-export")).fetchSemanticsNodes().isNotEmpty()
+        }
+        // A raised badWire flag needs a paired Host serving a schema-violating
+        // catalog; the bad-wire face is the Lite entry's own composable over
+        // the observation pair a paired shell passes, scripted here with the
+        // flag raised and the refresh bump clearing it — what one successful
+        // re-observation renders.
+        var refreshes = 0
+        compose.runOnUiThread {
+            compose.activity.setContent {
+                var badWire by remember { mutableStateOf(true) }
+                LiteEntry(
+                    scope = CoroutineScope(Dispatchers.Unconfined),
+                    sessionId = "lite-badwire-test",
+                    endpoint = "",
+                    apiKey = "",
+                    model = "",
+                    execute = { _, _, _ -> LiteToolOutcome(ok = false, text = "") },
+                    liveHostCatalogBadWire = badWire,
+                    onCatalogRefresh = { badWire = false; refreshes++ },
+                )
+            }
+        }
+        compose.onNodeWithTag("lite-catalog-badwire").assertIsDisplayed()
+            .assertTextEquals(compose.activity.getString(R.string.lite_catalog_bad_wire))
+        compose.onNodeWithTag("lite-catalog-refresh").assertIsDisplayed().performClick()
+        // One click is one bump through the lambda the shell wires to the
+        // shared description-refresh epoch; the refreshed observation clears
+        // the line without leaving the Lite face.
+        compose.onNodeWithTag("lite-catalog-badwire").assertDoesNotExist()
+        compose.runOnIdle { check(refreshes == 1) }
     }
 
     @Test
@@ -99,6 +142,10 @@ class LiteEntryNativeTest {
         }
         compose.onNodeWithTag("lite-conversation").assertExists()
         compose.onNodeWithTag("lite-config-edit").assertIsDisplayed()
+        // The assembled session discloses its dispatch-catalog source: with no
+        // paired Host the unpaired face assembles the APK-frozen BUNDLED union.
+        compose.onNodeWithTag("lite-catalog-source").assertIsDisplayed()
+            .assertTextEquals(compose.activity.getString(R.string.lite_catalog_source_bundled))
         compose.onNodeWithTag("lite-composer-send").assertIsDisplayed()
         compose.onNodeWithTag("lite-endpoint-missing").assertDoesNotExist()
     }

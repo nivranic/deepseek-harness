@@ -13,6 +13,7 @@ import androidx.compose.material3.MaterialTheme
 import androidx.compose.material3.OutlinedButton
 import androidx.compose.material3.OutlinedTextField
 import androidx.compose.material3.Text
+import androidx.compose.material3.TextButton
 import androidx.compose.runtime.Composable
 import androidx.compose.runtime.getValue
 import androidx.compose.runtime.mutableStateOf
@@ -32,8 +33,9 @@ import kotlinx.coroutines.CoroutineScope
  * disabled and whose config form saves the configuration that assembles the
  * session. No endpoint is ever assumed here; with no store injected the
  * fixed parameters keep the store-less preview face. A paired shell passes
- * the Host's observed live tool declaration for the dispatch union and the
- * observed wire-schema violation line; the unpaired face keeps the bundled
+ * the Host's observed live tool declaration for the dispatch union, the
+ * observed wire-schema violation line, and the epoch bump the in-face catalog
+ * refresh re-runs the shared observation through; the unpaired face keeps the bundled
  * defaults. An injected attachment store renders the local intake panel —
  * store-and-UI state only, never a journal, fold, or request input.
  */
@@ -51,6 +53,7 @@ fun LiteEntry(
     attachments: LiteAttachmentStoring? = null,
     liveHostToolDescriptors: List<ToolDescriptor>? = null,
     liveHostCatalogBadWire: Boolean = false,
+    onCatalogRefresh: (() -> Unit)? = null,
 ) {
     // The configured face reads the store; each save bumps the revision so
     // the next composition reloads from disk. A load failure surfaces as its
@@ -67,12 +70,26 @@ fun LiteEntry(
     }
     val config = loaded.config
     Column(Modifier.fillMaxSize()) {
-        Text(
-            "受限模式（runtimeMode = lite）",
-            Modifier.fillMaxWidth().padding(horizontal = 16.dp, vertical = 6.dp).testTag("lite-disclosure"),
-            style = MaterialTheme.typography.bodySmall,
-            color = MaterialTheme.colorScheme.secondary,
-        )
+        // The disclosure row carries the in-face catalog refresh: the caller's
+        // bump re-runs the shared catalog observation the same way the paired
+        // shell's capability dialog does, so a bad-wire retry never routes the
+        // user out of the Lite face.
+        Row(
+            Modifier.fillMaxWidth().padding(horizontal = 16.dp, vertical = 6.dp),
+            horizontalArrangement = Arrangement.spacedBy(8.dp),
+        ) {
+            Text(
+                "受限模式（runtimeMode = lite）",
+                Modifier.weight(1f).testTag("lite-disclosure"),
+                style = MaterialTheme.typography.bodySmall,
+                color = MaterialTheme.colorScheme.secondary,
+            )
+            onCatalogRefresh?.let { refresh ->
+                TextButton(onClick = refresh, modifier = Modifier.testTag("lite-catalog-refresh")) {
+                    Text(androidx.compose.ui.res.stringResource(R.string.lite_catalog_refresh))
+                }
+            }
+        }
         if (liveHostCatalogBadWire) Text(
             androidx.compose.ui.res.stringResource(R.string.lite_catalog_bad_wire),
             Modifier.fillMaxWidth().padding(horizontal = 16.dp, vertical = 6.dp).testTag("lite-catalog-badwire"),
@@ -253,5 +270,22 @@ private fun LiteChatFace(
             liveHostToolDescriptors = liveHostToolDescriptors,
         )
     }
+    // The assembled session discloses which catalog its dispatch walks: a
+    // construction-time fact naming the source this session identity was
+    // assembled against, never a live re-read the running turn could drift on.
+    Text(
+        liteCatalogSourceLabel(chat.facts.toolCatalogSource),
+        Modifier.fillMaxWidth().padding(horizontal = 16.dp, vertical = 6.dp).testTag("lite-catalog-source"),
+        style = MaterialTheme.typography.bodySmall,
+        color = MaterialTheme.colorScheme.secondary,
+    )
     LiteChatScreen(chat)
+}
+
+/** The locale-owned word for one dispatch-catalog source; the three-value enum carries one entry each. */
+@Composable
+private fun liteCatalogSourceLabel(source: LiteToolSource): String = when (source) {
+    LiteToolSource.HOST_DECLARED -> androidx.compose.ui.res.stringResource(R.string.lite_catalog_source_host_declared)
+    LiteToolSource.BUNDLED -> androidx.compose.ui.res.stringResource(R.string.lite_catalog_source_bundled)
+    LiteToolSource.BUNDLED_FALLBACK -> androidx.compose.ui.res.stringResource(R.string.lite_catalog_source_bundled_fallback)
 }
