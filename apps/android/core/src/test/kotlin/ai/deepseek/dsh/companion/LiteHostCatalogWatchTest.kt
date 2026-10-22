@@ -4,10 +4,12 @@ import ai.deepseek.dsh.contract.ToolDescriptor
 import ai.deepseek.dsh.contract.ToolRisk
 import ai.deepseek.dsh.link.LinkClientException
 import ai.deepseek.dsh.link.WireValue
+import kotlinx.coroutines.CancellationException
 import kotlinx.coroutines.flow.Flow
 import kotlinx.coroutines.test.runTest
 import kotlin.test.Test
 import kotlin.test.assertEquals
+import kotlin.test.assertFailsWith
 import kotlin.test.assertFalse
 import kotlin.test.assertNull
 import kotlin.test.assertTrue
@@ -97,5 +99,44 @@ class LiteHostCatalogWatchTest {
 
         wire.answer = { null }
         assertEquals(served, watch.refresh(wire).descriptors)
+    }
+
+    @Test
+    fun aCancelledFetchPropagatesInsteadOfBecomingAnObservation() = runTest {
+        val served = listOf(declared("web_search"))
+        val wire = ScriptedWire { served }
+        val watch = LiteHostCatalogWatch()
+        watch.refresh(wire)
+
+        wire.answer = { throw CancellationException("refresh abandoned") }
+        val failure = assertFailsWith<CancellationException> { watch.refresh(wire) }
+        assertEquals("refresh abandoned", failure.message)
+        // The abandoned attempt stays no observation: a later fetch still reads the wire.
+        wire.answer = { null }
+        assertEquals(served, watch.refresh(wire).descriptors)
+    }
+
+    @Test
+    fun aStatelessWireServesNoLiveDeclarationByDefault() = runTest {
+        val wire = object : WireDriving {
+            override suspend fun call(method: String, args: Map<String, WireValue>): WireValue = error("unexpected RPC")
+            override fun stream(endpoint: String, payload: Map<String, WireValue>): Flow<WireValue> = error("unexpected stream")
+        }
+        assertNull(wire.toolDescriptors())
+        // The default null answer is the no-capability path the watch observes.
+        val observation = LiteHostCatalogWatch().refresh(wire)
+        assertNull(observation.descriptors)
+        assertFalse(observation.badWire)
+    }
+
+    @Test
+    fun aSwitchedWireFetchesThroughTheCurrentDelegateOnly() = runTest {
+        val served = listOf(declared("web_search"))
+        val handle = SwitchableWireDriving(ScriptedWire { served })
+        assertEquals(served, handle.toolDescriptors())
+
+        handle.replace(ScriptedWire { null })
+        assertNull(handle.toolDescriptors())
+        handle.close()
     }
 }

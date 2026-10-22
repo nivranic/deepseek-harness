@@ -60,9 +60,11 @@ class LiteBundledAssetsTest {
         assertTrue(bundled.hostToolDescriptors.isNotEmpty())
 
         // The schema union the assembler mounts on the provider: the Host
-        // projection's web_search once, plus each device schema once.
+        // projection's web_search once, plus each device schema once, in the
+        // bundled document's order (url_fetch and the gen-68 reader pair sit
+        // ahead of the calculator pair in lite-device-tool-schemas.json).
         assertEquals(
-            listOf("web_search", "calculator", "artifact_create"),
+            listOf("web_search", "url_fetch", "image_inspect", "attachment_read", "calculator", "artifact_create"),
             LiteToolSchemaCatalog.fromBundledDocuments(bundled.toolSchemas.tools, bundled.deviceToolSchemas).tools.map { it.name },
         )
 

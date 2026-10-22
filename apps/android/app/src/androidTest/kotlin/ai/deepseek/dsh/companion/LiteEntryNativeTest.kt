@@ -129,10 +129,12 @@ class LiteEntryNativeTest {
             model = "unused",
             execute = { _, _, _ -> LiteToolOutcome(ok = false, text = "") },
         )
-        // The default assembly now publishes the preset id actually in effect
-        // (the agent-preset/selected observability precedent): the bundled
-        // projection's lowest order resolves to minimal.
-        assertEquals(LiteSessionFacts(presetId = "minimal"), model.facts)
+        // The default assembly publishes the preset id actually in effect (the
+        // agent-preset/selected observability precedent): the bundled
+        // projection's lowest order resolves to minimal. Its dispatch catalog is
+        // the APK-frozen BUNDLED union, not the pre-declaration FALLBACK the
+        // facts' field default still names for projection-less construction.
+        assertEquals(LiteSessionFacts(toolCatalogSource = LiteToolSource.BUNDLED, presetId = "minimal"), model.facts)
     }
 
     @Test

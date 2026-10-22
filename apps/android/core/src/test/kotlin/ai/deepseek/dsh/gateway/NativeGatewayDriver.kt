@@ -49,6 +49,20 @@ object NativeGatewayDriver {
                         }
                         "call" -> output(id, "ok", client!!.call(command.text("method"),
                             command["args"]!!.jsonObject.mapValues { WireValue.fromJsonElement(it.value) }).toJsonElement())
+                        "toolDescriptors" -> {
+                            val fetched = client!!.toolDescriptors()
+                            if (fetched == null) output(id, "ok")
+                            else output(id, "ok", buildJsonArray {
+                                fetched.forEach { descriptor -> add(buildJsonObject {
+                                    put("id", descriptor.id)
+                                    put("version", descriptor.version)
+                                    put("risk", descriptor.risk.WIRE)
+                                    put("permissions", buildJsonArray { descriptor.permissions.forEach { add(JsonPrimitive(it)) } })
+                                    put("supportsLite", descriptor.supportsLite)
+                                    put("supportsRemote", descriptor.supportsRemote)
+                                }) }
+                            })
+                        }
                         "open" -> {
                             check(!streams.containsKey(id))
                             streams[id] = launch {

@@ -1,0 +1,16 @@
+{
+  "status": "PASS",
+  "controls": 3,
+  "sourceRecord": {
+    "path": "artifacts/upstream-first/live-catalog-e2e-source.json",
+    "sha256": "790af4297ce317c27aaca23902ba41dc102f8cb9f12527261fc0087d22d54bc9"
+  },
+  "generator": {
+    "path": "artifacts/upstream-first/write-reports.mjs",
+    "sha256": "4631d34f4cfdc35be83d2b8bf8ffd480425f2421f1abe726bc8c572844073f73"
+  },
+  "helper": {
+    "path": ".artifacts/check-live-catalog-e2e-binding.mjs",
+    "sha256": "185dbfdbb713d0b758f80978dbd0f98c19caf4afe24d9cdd99e787c6314fec2c"
+  }
+}
