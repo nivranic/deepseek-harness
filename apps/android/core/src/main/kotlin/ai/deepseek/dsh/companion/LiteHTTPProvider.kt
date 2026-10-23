@@ -187,12 +187,16 @@ class LiteHTTPProvider(
             }
         }.toString()
         // The host provider's request face: Bearer auth, JSON content type,
-        // and the SSE accept header.
+        // the SSE accept header, and the companion's static product
+        // attribution. The User-Agent value is a literal identity per the
+        // host's mandatory static-attribution rule — never a runtime version
+        // read from the build config.
         val request = Request.Builder()
             .url(endpoint)
             .header("content-type", "application/json")
             .header("accept", "text/event-stream")
             .header("authorization", "Bearer $apiKey")
+            .header("user-agent", "dsh-lite-companion/1.0")
             .post(body.toRequestBody("application/json".toMediaType()))
             .build()
         val assembler = LiteToolCallAssembler()

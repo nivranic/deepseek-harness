@@ -1,0 +1,66 @@
+{
+  "status": "PASS",
+  "scope": "Report bindings and audit for the attribution-ua increment: the gen-72 decision-merge light closure landing three items in one generation (the attribution-header flip decision with its minimal code, the §33-2 re-projection conditional-trigger record closure and the §33-3 out-of-preset composition decision record closure): LiteHTTPProvider.kt gaining the static literal User-Agent: dsh-lite-companion/1.0 request header beside the content-type/accept/authorization trio (flipping the gen-56 no-header ruling — the host rule that every product-grade LLM adapter sends a static User-Agent per request bearing on the provider; the static literal never reading BuildConfig per the host's static-identity requirement, the explicit header replacing OkHttp's default okhttp/<version> so exactly one identity ships on the wire; the x-deepseek-harness-* internal protocol headers still not added, the boundary recorded in the note) with the existing pinned-header JVM test streamsASseResponseWithAssembledToolCalls widened with a seenUserAgent assertion (zero new test classes — the assertion riding the embedded server's received header list, the suite staying at its 11 tests); the §33 remaining rewritten to its dual-record closed form (the re-projection item becoming a conditional-trigger record: the excluded list — cordis/ptc/standard excluded over {{cwd}}/{{model}} — being the trigger's observable face, the host side re-running gen-lite-preset-catalog once its presets shed the runtime variables, the Lite-side substitute values forbidden by the spec at :1210-1212; the out-of-preset composition item becoming a decision record: the spec at :1218-1220 restricting composition to profile/preset as deliberate design, any extension being upstream spec evolution); the §31 linkage shedding the attribution-header decision live item while recording the flip sentence (the gen-56 historical narration preserved verbatim); the gates honestly recorded from log content: typecheck EXIT 0 (the build:lib:host chain — the host face alone building, no client-face emit) and lint Found 0 warnings and 0 errors on 3862 files (90 rules, 20 threads, 75.0s — the pure Kotlin core-source increment adding no counted TypeScript source), test:docs sealed in its green first-round form (17 passed 0 failed in 60.81s riding first inside the combined g1 docs log with doc-sync 37 passed 0 failed in 184.75s following, closing EXIT_CODE=0 — the fifth consecutive first-round-green generation with the lane commands joined by semicolons so the doc-sync half always ran, no flake and no failed round preserved), the doc-sync round closing with zero regeneration diff at the unchanged 37 (the pre/post git status snapshots byte-identical, recorded beside the log), pairing 956 pairs all consistent (the note trio 2026-10-22-attribution-ua, architecture class, with the 955→956 reconciliation honestly narrated — the pairing evidence riding the docs lane with the translation-pairing gate passing on both halves and no separate summary log sealed this generation), the serial double audit round green at 87 files / 1073 tests on both passes (both sealed logs carrying the EXIT_CODE=0 trailer of the honestly executed round) over the curated list reused verbatim from .artifacts/lite-assembly-g2-audit-file-list.txt (87 lines, the gen-54 precedent lineage), gate0 PASS in both byte-identical forms (1938 paths / 129 components / 81 sections / 1983 lines — honestly recorded unchanged from the captured UPSTREAM_DELTA.json, not the live tree); the ledger round rode the main session's rebuild with no separate TAP log sealed this generation (the capture's structural pins carrying the rebuilt ledger's measured forms — 81 sections, §33 closed to its dual-record form with candidateEvidence keeping its 11, §31 linkage with the live item shed, §32 keeping its gen-70 sealed 6041/25, §23 its gen-61 429/2 and §67 its gen-59 637/8 — and the prose carrying the 6/6 narration, honestly recorded); the android acceptance: the scanner-env gradle round BUILD SUCCESSFUL with 82 actionable tasks of which 2 executed and 80 up-to-date — the honest verification-only form (:app:verifyLiteAssetSources and :app:verifyScannerResources executed, the two verification halves over the five bundled sources; every compile, test, packaging and assembly task rode UP-TO-DATE — the real implementation rounds before this acceptance round already re-ran the whole :core:test suite at 85 suites / 608 tests with the widened provider assertions and rebuilt the debug APK; this round's task graph never reaches :app:assembleRelease) — with the measured single-DRIFT form against the preset-stale record's sealed builtFiles entries (the androidTest APK replaying byte-identical at its sealed 0fac3001 bytes — zero androidTest input change, the honest natural reproduction of the gen-71 baseline — and the debug APK at 783ec524→3cb24ecf DRIFT — the static UA header entering the production bytes, this generation's own new debug baseline; prior apk records: 2, cross-checked live; the sealed g3 lane log honestly recording its own older-record riding-lineage comparison at 31a910c5→0fac3001 and dd8baae6→3cb24ecf) and the core XML aggregate reading 85 suites / 608 tests — unchanged from gen-71 (the assertion widening adding no test, the aggregate re-measured from the XML with LiteHTTPProviderTest at its 11) beside the contract half at 4 suites / 37 tests; and the adjudicated single-set ruling on the adapter's measured three-source miss stop-point (the gen-53 dwfq-b1ce6281-1 precedent form): the prepare oracle derives the measured sixty-nine replaced prior build outputs — the single debug APK face first-emission beside the re-run :core:test's sixty-one re-emitted XML reports, five recompiled classes, one jar and one binary output (the :core source increment re-running the core suite in the implementation rounds) — the adapter's generator-side measurement finding sixty-eight chain-resolvable keys (the XML/class/jar/binary products held by the older archives — gen-69's thirteen-key fallback precedent class returning at this generation's wider scope) and a single first-emission miss key: the debug APK at its sealed 783ec524 bytes, sealed only by the preset-stale record itself (the twenty-second consecutive generation of the same class: gen-51 ninety-four, gen-52 seventy-three, gen-53 sixty-seven, gen-54 sixty-seven, gen-55 sixty-eight, gen-56 sixty-eight, gen-57 seventy, gen-58 seventy-four, gen-59 seventy-six, gen-60 sixty-seven, gen-61 sixty-seven, gen-62 sixty-six, gen-63 eighty-five, gen-64 sixty-six, gen-65 sixty-six, gen-66 sixty-six, gen-67 sixty-six, gen-68 sixty-six, gen-69 sixty-four, gen-70 one, gen-71 two, gen-72 one), so the advance installs the presetStaleReplacedBuildOutputs exactly-one build-output exemption on the demoted preset-stale block, derived and emitted at advance run time from the record, the chain archives and the disk — never transcribed — equal to the sixty-nine-key derivation minus the sixty-eight fallback keys, the four source-side tracked miss keys resolving through the new before archive at their HEAD bytes (no UnrecoverableInputs set born), and every prior generation's set — the gen-71 catalogRefreshUiReplacedBuildOutputs two beside the gen-70 liveCatalogE2eReplacedBuildOutputs one, the gen-69 liteReadersReplacedBuildOutputs sixty-four, the gen-68 liteIntakeReplacedBuildOutputs sixty-six, the gen-67 liteUrlfetchReplacedBuildOutputs sixty-six, the gen-66 liteRoundsReplacedBuildOutputs sixty-six, the gen-65 liteCatalogReplacedBuildOutputs sixty-six, the gen-64 liteHistoryReplacedBuildOutputs sixty-six, the gen-63 liteExecutorsReplacedBuildOutputs eighty-five, the gen-62 relayRetireReplacedBuildOutputs sixty-six, the gen-61 liteDeclarationsReplacedBuildOutputs sixty-seven, the gen-60 liteHandoffReplacedBuildOutputs sixty-seven, the gen-59 liteResumeReplacedBuildOutputs seventy-six, the gen-58 litePresetReplacedBuildOutputs seventy-four, the gen-57 liteHttpReplacedBuildOutputs seventy, the gen-56 liteFactsReplacedBuildOutputs sixty-eight, the gen-55 liteAssemblyReplacedBuildOutputs sixty-eight, the gen-54 litePermissionReplacedBuildOutputs sixty-seven, the gen-53 liteToolsReplacedBuildOutputs sixty-seven, the gen-52 litePersonaReplacedBuildOutputs seventy-three, the gen-51 liteToolReplacedBuildOutputs ninety-four plus liteToolUnrecoverableInputs two, the gen-32 desktopPackageReplacedBuildOutputs six, the gen-33 tornRepairIntentReplacedBuildOutputs three, the gen-48 clientMutationReplacedBuildOutputs two and the gen-46 durableReceiptsReplacedBuildOutputs three — stays exactly as sealed at HEAD; the remaining open channels (the tool-row journal persistence with its chapter-64 decision, the approval ask tier, the facts-diagnostics projection, the §54 device-side network verification, the real-model multi-turn e2e, the real OTA-upgrade-path e2e and the CI synchronize gap) all stay open — so no whole-section PASS is granted; full Upstream-First objective remains in progress",
+  "gate0": {
+    "validation": "PASS",
+    "gate0": "PASS",
+    "paths": 1938,
+    "components": 129,
+    "specificationCoverage": {
+      "status": "PASS",
+      "numberedSections": 81,
+      "nonEmptySourceLines": 1983,
+      "acceptanceProven": false
+    }
+  },
+  "sourceRecord": {
+    "path": "artifacts/upstream-first/attribution-ua-source.json",
+    "sha256": "8043babf9ef52fe337bc68dba02a11bec2f7c4ab9b6006f6863cb3fa2bff72bd"
+  },
+  "generator": {
+    "path": "artifacts/upstream-first/write-reports.mjs",
+    "sha256": "f3e4eb64df1449f88a28c11bc03ab2688ab7c5ac154bcb177e407523b6c3def8"
+  },
+  "binding": {
+    "path": "artifacts/upstream-first/attribution-ua-binding.json",
+    "sha256": "9b97f4774252a0c7c107b7e20d6130aed4bd2c2c270ad5946138c85b7ce7661f"
+  },
+  "helpers": [
+    {
+      "path": ".artifacts/advance-attribution-ua-reports.mjs",
+      "sha256": "191f45a96a4b8c6397e68175ee766a9d34fc4f19e6bdfef857d7cda14d182ab2"
+    },
+    {
+      "path": ".artifacts/capture-attribution-ua-validation.mjs",
+      "sha256": "83315dfdb6330976327bafcb6d8c1c676d33dd481c7b7c6d870f2e7c3da4cdab"
+    }
+  ],
+  "reports": [
+    {
+      "path": "IMPLEMENTATION_STATUS.md",
+      "sha256": "5779e08e25d1a26619d1de9270b40ad072b4133f81a5b948e0c771985c2ce9cf"
+    },
+    {
+      "path": "artifacts/upstream-first/evidence.json",
+      "sha256": "bf4da50ea765ea5459ff2dccf60c77dfb85dd741f3683dda0d3fabd6e8518c6b"
+    }
+  ],
+  "checks": [
+    {
+      "path": ".artifacts/attribution-ua-binding.log",
+      "sha256": "15b35c39a092b4f6db52587566d5d4a35429ae4b9ad7cdd4bb268a845c8be10e"
+    },
+    {
+      "path": ".artifacts/attribution-ua-audit-final.log",
+      "sha256": "66be59a8d1319f694ec7578446bfdde154c83d284d08d3e6556044b9db6d8870"
+    },
+    {
+      "path": ".artifacts/attribution-ua-gate0-final.log",
+      "sha256": "505d74ef938f5d34d85490d37e0176ba804d93272fcf465ce2544a02c56b3f90"
+    },
+    {
+      "path": ".artifacts/attribution-ua-report-generation.log",
+      "sha256": "6a4cd42c8bec6ad51b3437eb7f56088624c3425d29343ca2ad93b2e0acdccad5"
+    }
+  ]
+}

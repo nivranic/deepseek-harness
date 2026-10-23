@@ -116,12 +116,14 @@ class LiteHTTPProviderTest {
         var seenBody = ""
         var seenAuth = ""
         var seenAccept = ""
+        var seenUserAgent = ""
         val server = com.sun.net.httpserver.HttpServer.create(java.net.InetSocketAddress("127.0.0.1", 0), 0)
         server.createContext("/v1/chat/completions") { exchange ->
             seenPath = exchange.requestURI.path
             seenBody = exchange.requestBody.readBytes().decodeToString()
             seenAuth = exchange.requestHeaders.getFirst("authorization") ?: ""
             seenAccept = exchange.requestHeaders.getFirst("accept") ?: ""
+            seenUserAgent = exchange.requestHeaders.getFirst("user-agent") ?: ""
             val stream = listOf(
                 """data: {"choices":[{"delta":{"reasoning_content":"想"}}]}""",
                 "",
@@ -162,6 +164,9 @@ class LiteHTTPProviderTest {
             assertEquals("Bearer sk-test", seenAuth)
             // The host provider's streaming face carries the SSE accept header.
             assertEquals("text/event-stream", seenAccept)
+            // The companion's static product attribution: a literal identity,
+            // never a runtime version.
+            assertEquals("dsh-lite-companion/1.0", seenUserAgent)
             val request = Json.parseToJsonElement(seenBody).jsonObject
             assertEquals("deepseek-chat", (request["model"] as kotlinx.serialization.json.JsonPrimitive).content)
             val messages = request["messages"] as kotlinx.serialization.json.JsonArray
