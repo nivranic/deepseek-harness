@@ -252,6 +252,80 @@ class LiteEntryNativeTest {
         )
     }
 
+    @Test
+    fun theAssembledSessionReportsItsFactsThroughTheExportIntake() {
+        compose.waitUntil(timeoutMillis = 10_000) {
+            compose.onAllNodes(hasTestTag("support-export")).fetchSemanticsNodes().isNotEmpty()
+        }
+        var reported: LiteSessionFacts? = null
+        var reportedNull = 0
+        // The store-less configured face assembles immediately; its
+        // construction-time facts reach the injected intake exactly as the
+        // shell's export channel receives them through publishLiteFacts.
+        compose.runOnUiThread {
+            compose.activity.setContent {
+                LiteEntry(
+                    scope = CoroutineScope(Dispatchers.Unconfined),
+                    sessionId = "lite-facts-report-test",
+                    endpoint = "https://lite.invalid/chat/completions",
+                    apiKey = "unused",
+                    model = "unused",
+                    execute = { _, _, _ -> LiteToolOutcome(ok = false, text = "") },
+                    onFacts = { facts -> reported = facts; if (facts == null) reportedNull++ },
+                )
+            }
+        }
+        compose.waitUntil(timeoutMillis = 10_000) { reported != null }
+        compose.runOnIdle {
+            // The default assembly identity: the APK-frozen BUNDLED dispatch
+            // union with the bundled projection's minimal preset in effect.
+            check(reported == LiteSessionFacts(toolCatalogSource = LiteToolSource.BUNDLED, presetId = "minimal"))
+            check(reportedNull == 0)
+        }
+    }
+
+    @Test
+    fun aFailedAssemblyReportsNoFactsToTheExportIntake() {
+        // A stale stored preset id — the residue an APK upgrade leaves behind —
+        // fails the assembly loud; the intake must hear null, never the last
+        // successful identity's facts, so the export cannot claim a session
+        // that did not assemble.
+        LiteFileConfigStore(
+            liteConfigFile(),
+            AndroidKeystoreCipher("dsh-lite-config"),
+        ).save(
+            LiteConfig(
+                endpoint = "https://lite-config.invalid/v1/chat/completions",
+                apiKey = "sk-instrumented",
+                model = "deepseek-chat",
+                presetId = "vanished-preset",
+            ),
+        )
+        compose.waitUntil(timeoutMillis = 10_000) {
+            compose.onAllNodes(hasTestTag("support-export")).fetchSemanticsNodes().isNotEmpty()
+        }
+        var reported: LiteSessionFacts? = LiteSessionFacts(presetId = "sentinel")
+        compose.runOnUiThread {
+            compose.activity.setContent {
+                LiteEntry(
+                    scope = CoroutineScope(Dispatchers.Unconfined),
+                    sessionId = "lite-facts-fail-test",
+                    endpoint = "",
+                    apiKey = "",
+                    model = "",
+                    execute = { _, _, _ -> LiteToolOutcome(ok = false, text = "") },
+                    configStore = LiteFileConfigStore(
+                        liteConfigFile(),
+                        AndroidKeystoreCipher("dsh-lite-config"),
+                    ),
+                    onFacts = { facts -> reported = facts },
+                )
+            }
+        }
+        compose.onNodeWithTag("lite-preset-stale").assertIsDisplayed()
+        compose.waitUntil(timeoutMillis = 10_000) { reported == null }
+    }
+
     @After
     fun leaveNoPersistedLiteState() {
         liteConfigFile().delete()

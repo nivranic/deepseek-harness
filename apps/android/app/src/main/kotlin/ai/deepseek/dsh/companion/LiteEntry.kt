@@ -15,6 +15,7 @@ import androidx.compose.material3.OutlinedTextField
 import androidx.compose.material3.Text
 import androidx.compose.material3.TextButton
 import androidx.compose.runtime.Composable
+import androidx.compose.runtime.LaunchedEffect
 import androidx.compose.runtime.getValue
 import androidx.compose.runtime.mutableStateOf
 import androidx.compose.runtime.remember
@@ -37,7 +38,10 @@ import kotlinx.coroutines.CoroutineScope
  * observed wire-schema violation line, and the epoch bump the in-face catalog
  * refresh re-runs the shared observation through; the unpaired face keeps the bundled
  * defaults. An injected attachment store renders the local intake panel —
- * store-and-UI state only, never a journal, fold, or request input.
+ * store-and-UI state only, never a journal, fold, or request input. An
+ * injected [onFacts] receives each assembled (or failed) identity's
+ * construction-time facts — the support-export channel's device-plane
+ * intake; null keeps the face's facts to itself.
  */
 @Composable
 fun LiteEntry(
@@ -54,6 +58,7 @@ fun LiteEntry(
     liveHostToolDescriptors: List<ToolDescriptor>? = null,
     liveHostCatalogBadWire: Boolean = false,
     onCatalogRefresh: (() -> Unit)? = null,
+    onFacts: ((LiteSessionFacts?) -> Unit)? = null,
 ) {
     // The configured face reads the store; each save bumps the revision so
     // the next composition reloads from disk. A load failure surfaces as its
@@ -100,7 +105,7 @@ fun LiteEntry(
         when {
             configStore == null -> if (endpoint.isBlank()) LiteEmptyState() else {
                 LiteChatFace(scope, sessionId, endpoint, apiKey, model, presetId = null, execute, store, artifacts,
-                    liveHostToolDescriptors)
+                    liveHostToolDescriptors, onFacts)
             }
             config != null && !editing -> {
                 Button(
@@ -110,7 +115,7 @@ fun LiteEntry(
                 LiteChatFace(
                     scope, sessionId, config.endpoint, config.apiKey, config.model,
                     presetId = config.presetId, execute, store, artifacts,
-                    liveHostToolDescriptors,
+                    liveHostToolDescriptors, onFacts,
                 )
             }
             else -> {
@@ -250,6 +255,7 @@ private fun LiteChatFace(
     store: LiteSessionStoring?,
     artifacts: LiteArtifactStoring?,
     liveHostToolDescriptors: List<ToolDescriptor>?,
+    onFacts: ((LiteSessionFacts?) -> Unit)? = null,
 ) {
     val context = LocalContext.current
     // The effective preset and the live Host declaration are both part of the
@@ -275,6 +281,10 @@ private fun LiteChatFace(
         }
     }
     val chat = assembly.getOrNull()
+    // Each assembly identity reports its construction-time facts once to the
+    // export channel: the assembled session's facts, or null when this
+    // identity failed to assemble — never a stale identity's facts.
+    onFacts?.let { report -> LaunchedEffect(chat) { report(chat?.facts) } }
     if (chat == null) {
         // Resolve keeps failing loud — no substitute preset is guessed — and
         // its message (the stale id, the source, the carried ids) reaches the

@@ -63,6 +63,8 @@ data class SupportLocalSnapshot(
     val session: SessionDiagnostics,
     val nativeExits: ProcessExitDiagnostics,
     val applicationSource: SupportApplicationSource?,
+    /** The construction-time facts of the Lite session this device last assembled; null until one assembles. */
+    val liteFacts: LiteSessionFacts? = null,
 )
 
 data class SupportScannerIdentity(val version: String, val rulesDigest: String, val sourceSha: String, val nativeSha256: String)
@@ -155,6 +157,23 @@ internal fun encodeSupportDocument(product: SupportProductIdentity, snapshot: Su
         put("localIdentity", buildJsonObject {
             put("producer", "CompanionRuntime"); put("observation", "current"); put("restored", snapshot.identityRestored)
         })
+        // The Lite segment stays on the device-facts plane beside localIdentity: it
+        // restates the construction-time facts of the session this device last
+        // assembled, never a Host observation — the host plane's own protocol
+        // segment carries the negotiated runtimeMode of a paired Host.
+        snapshot.liteFacts?.let { facts ->
+            put("liteSession", buildJsonObject {
+                put("producer", "LiteSessionAssembler"); put("observation", "construction")
+                put("runtimeMode", facts.runtimeMode)
+                put("toolCatalogSource", when (facts.toolCatalogSource) {
+                    LiteToolSource.HOST_DECLARED -> "host-declared"
+                    LiteToolSource.BUNDLED -> "bundled"
+                    LiteToolSource.BUNDLED_FALLBACK -> "bundled-fallback"
+                })
+                facts.presetId?.let { put("presetId", it) }
+                put("bundledLocalToolNames", buildJsonArray { facts.bundledLocalToolNames.forEach { add(it) } })
+            })
+        }
         when (val wire = snapshot.wire) {
             is WireDiagnosticSnapshot.Native -> putNativeDiagnostics(wire.value)
             is WireDiagnosticSnapshot.LegacyLink, null -> {
@@ -214,6 +233,7 @@ internal fun encodeSupportDocument(product: SupportProductIdentity, snapshot: Su
             listOf("runtime-health", "updates").forEach { add(it) }
             if (snapshot.nativeExits !is ProcessExitDiagnostics.Collected) add("native-crashes")
             if (snapshot.session == SessionDiagnostics.Unavailable) add("session-diagnostics")
+            if (snapshot.liteFacts == null) add("lite-session")
         })
     }
     val bytes = (Json.encodeToString(kotlinx.serialization.json.JsonObject.serializer(), value) + "\n").toByteArray(Charsets.UTF_8)

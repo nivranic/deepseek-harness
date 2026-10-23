@@ -87,6 +87,43 @@ class SupportExportTest {
         assertFalse(absent.containsKey("applicationSource"))
     }
 
+    @Test fun liteSessionFactsProjectAsTheirOwnDevicePlaneSegment() {
+        val facts = LiteSessionFacts(toolCatalogSource = LiteToolSource.HOST_DECLARED, presetId = "minimal",
+            bundledLocalToolNames = listOf("calculator", "url_fetch"))
+        val value = Json.parseToJsonElement(encodeSupportDocument(product, snapshot.copy(liteFacts = facts),
+            identity, policy.maximumBytes).decodeToString()).jsonObject
+        val lite = value["liteSession"]!!.jsonObject
+        assertEquals("\"LiteSessionAssembler\"", lite["producer"].toString())
+        assertEquals("\"construction\"", lite["observation"].toString())
+        assertEquals("\"lite\"", lite["runtimeMode"].toString())
+        assertEquals("\"host-declared\"", lite["toolCatalogSource"].toString())
+        assertEquals("\"minimal\"", lite["presetId"].toString())
+        assertEquals("""["calculator","url_fetch"]""", lite["bundledLocalToolNames"].toString())
+        assertFalse(value["uncollected"].toString().contains("lite-session"))
+        // A null preset id omits the key — the role/value precedent — never a guessed id,
+        // and the fallback source word stays the facts' own construction default.
+        val fallback = Json.parseToJsonElement(encodeSupportDocument(product,
+            snapshot.copy(liteFacts = LiteSessionFacts(bundledLocalToolNames = listOf())), identity, policy.maximumBytes).decodeToString()).jsonObject
+        val fallbackLite = fallback["liteSession"]!!.jsonObject
+        assertFalse(fallbackLite.containsKey("presetId"))
+        assertEquals("\"bundled-fallback\"", fallbackLite["toolCatalogSource"].toString())
+        assertEquals("[]", fallbackLite["bundledLocalToolNames"].toString())
+        // No assembled session stays explicitly uncollected, with no lite segment to misread.
+        val without = Json.parseToJsonElement(encodeSupportDocument(product, snapshot.copy(liteFacts = null),
+            identity, policy.maximumBytes).decodeToString()).jsonObject
+        assertFalse(without.containsKey("liteSession"))
+        assertTrue(without["uncollected"].toString().contains("lite-session"))
+        // The two planes stay separate segments: a paired Host's negotiated mode
+        // word and the device's own Lite mode word never merge into one claim.
+        val native = NativeGatewayDiagnosticSnapshot(false, 2, 5, 3, 4, 1, NativeObservedRole.COLLABORATOR,
+            NativeDescriptionState.FAILED, ConnectionFailure.REFUSED,
+            NativeProtocolObservation(999, setOf(NativeObservedCapability.SESSION_FOLLOW)))
+        val paired = Json.parseToJsonElement(encodeSupportDocument(product,
+            snapshot.copy(wire = WireDiagnosticSnapshot.Native(native), liteFacts = facts), identity, policy.maximumBytes).decodeToString()).jsonObject
+        assertEquals("\"full\"", paired["protocol"]!!.jsonObject["runtimeMode"].toString())
+        assertEquals("\"lite\"", paired["liteSession"]!!.jsonObject["runtimeMode"].toString())
+    }
+
     @Test fun failedDescriptionDoesNotRetainCapabilityOrProtocolValues() {
         val unavailable = snapshot.copy(wire = WireDiagnosticSnapshot.LegacyLink(link.copy(descriptionState = LinkDescriptionState.FAILED,
             descriptionFailure = LinkDescriptionFailure.REFUSED, description = null)))

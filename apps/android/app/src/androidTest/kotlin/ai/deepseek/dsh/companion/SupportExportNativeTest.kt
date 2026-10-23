@@ -1,6 +1,7 @@
 package ai.deepseek.dsh.companion
 
 import androidx.test.platform.app.InstrumentationRegistry
+import kotlinx.coroutines.CoroutineScope
 import kotlinx.coroutines.Dispatchers
 import kotlinx.coroutines.runBlocking
 import org.junit.Assert.assertArrayEquals
@@ -74,5 +75,32 @@ class SupportExportNativeTest {
             .put("scanner", JSONObject().put("version", identity.version).put("rulesDigest", identity.rulesDigest)
                 .put("sourceSha", identity.sourceSha).put("nativeSha256", identity.nativeSha256))
         File(context.cacheDir, "support-scanner-identity.json").writeText(proof.toString() + "\n", Charsets.UTF_8)
+    }
+
+    @Test fun exportedDocumentCarriesTheAssembledLiteSessionFacts() = runBlocking(Dispatchers.IO) {
+        val context = InstrumentationRegistry.getInstrumentation().targetContext
+        // The real assembled session's construction-time facts — the same object
+        // the Lite face reports through the export intake — ride the scanned
+        // document as their own device-plane segment.
+        val assembled = LiteSessionAssembler.assemble(
+            context = context,
+            scope = CoroutineScope(Dispatchers.Unconfined),
+            sessionId = "lite-support-export-test",
+            endpoint = "https://lite.invalid/chat/completions",
+            apiKey = "unused",
+            model = "unused",
+            execute = { _, _, _ -> LiteToolOutcome(ok = false, text = "") },
+        )
+        val scanner = AndroidSupportScanner(context)
+        val application = context.applicationContext as CompanionApplication
+        val document = SupportDocumentExporter(scanner, policy).prepare(
+            application.supportProduct, SupportLocalSnapshot(false, null, ConnectionSnapshots.unavailable,
+                SessionDiagnostics.Unavailable, ProcessExitDiagnostics.Unavailable, application.supportSource, assembled.facts),
+        )
+        val lite = JSONObject(document.copyBytes().decodeToString()).getJSONObject("liteSession")
+        assertEquals(assembled.facts.runtimeMode, lite.getString("runtimeMode"))
+        assertEquals("bundled", lite.getString("toolCatalogSource"))
+        assertEquals("minimal", lite.getString("presetId"))
+        assertEquals(LiteToolRegistry.localToolNames.size, lite.getJSONArray("bundledLocalToolNames").length())
     }
 }

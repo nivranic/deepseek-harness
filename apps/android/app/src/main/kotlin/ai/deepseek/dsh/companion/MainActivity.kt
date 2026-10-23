@@ -157,6 +157,14 @@ class CompanionViewModel : ViewModel() {
     val inputs get() = models.inputs
     var inputRecoveryFailed by mutableStateOf(false)
         private set
+    /** The construction-time facts of the Lite session this process last assembled; null until one assembles, and again when an assembly identity fails. */
+    var liteFacts by mutableStateOf<LiteSessionFacts?>(null)
+        private set
+
+    /** The export channel's Lite intake: the face reports each assembled (or failed) identity's construction-time facts. */
+    fun publishLiteFacts(facts: LiteSessionFacts?) {
+        liteFacts = facts
+    }
 
     /** Hide and retire the current connection's models while retaining its stored identity and transport. */
     suspend fun beginPairing() = transition.withLock {
@@ -258,6 +266,7 @@ class CompanionViewModel : ViewModel() {
         session.sessionDiagnostics,
         ProcessExitDiagnostics.Unavailable,
         null,
+        liteFacts,
     )
 
     override fun onCleared() {
@@ -503,6 +512,9 @@ fun CompanionApp(model: CompanionViewModel = viewModel()) {
                 // capability dialog and the view-link retry do; a changed
                 // catalog then re-runs the existing assembly identity.
                 onCatalogRefresh = { descriptionRefresh++ },
+                // Each assembled identity's construction-time facts ride to the
+                // export channel; the shell's own snapshot reads them there.
+                onFacts = model::publishLiteFacts,
             )
         }
         return

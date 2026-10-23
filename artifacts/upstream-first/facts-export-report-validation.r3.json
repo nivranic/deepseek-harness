@@ -1,0 +1,66 @@
+{
+  "status": "PASS",
+  "scope": "Report bindings and audit for the facts-export increment: the gen-73 §31 facts-diagnostics projection closure landing the Lite session facts into the support export (the SupportLocalSnapshot liteFacts with the liteSession device-plane segment and the uncollected lite-session naming, the LiteEntry onFacts intake with the LaunchedEffect per-assembly report, the shell publishLiteFacts wiring, the widened two-plane projection JVM case, the two widened native suites, the three fixture uncollected entries and the ledger §31 closure): SupportExport.kt gaining the nullable liteFacts on the snapshot with encodeSupportDocument emitting the liteSession segment on the device-facts plane beside localIdentity — producer=LiteSessionAssembler, observation=construction (the facts fixed at assembly time, the restated snapshot never a live re-read), runtimeMode literal, toolCatalogSource three-value kebab, presetId omitted when null (the role/value precedent), bundledLocalToolNames array, and the uncollected list naming lite-session when no session ever assembled (the cold-process honest form); LiteEntry.kt gaining the optional onFacts with the LaunchedEffect(chat) report keyed on assembly — a failed identity (the stale stored preset) reporting null so the export can never claim an unassembled session; MainActivity.kt wiring model::publishLiteFacts into CompanionViewModel.supportSnapshot() beside the existing export action shared by both shell branches; the two planes staying their own segments (the Lite segment restating only this device's assembly, never reading the host describe result — protocol.runtimeMode=full beside liteSession.runtimeMode=lite pinned side by side in one document); the four standing vetoes untouched (zero journal events, zero pure UI labels, zero NativeSupportDiagnostics extension, zero eighth tab; no second export infrastructure, the §41-44 collectors uncoupled); the gates honestly recorded from log content: typecheck EXIT 0 (the build:lib:host chain — the host face alone building, no client-face emit) and lint Found 0 warnings and 0 errors on 3862 files (90 rules, 20 threads, 69.3s — the pure Kotlin core/app-source increment adding no counted TypeScript source), the docs lane sealed in its repaired-green form (the first round failing on the note trio's missing ## Alternatives considered section — the four vetoes buried at the Decision block's tail — the main session appending the en section with its zh counterpart and re-running the targeted pairing re-record before the rerun came back 17 passed 0 failed in 56.68s with doc-sync 37 passed 0 failed in 216.10s, zero regeneration diff, the snapshots IDENTICAL and EXIT_CODE=0 — a true regression fixed as a regression, no flake, the failed round's log overwritten by the rerun, honestly narrated), pairing 957 pairs all consistent (the note trio 2026-10-23-facts-export, architecture class, with the 956→957 reconciliation honestly narrated — the pairing evidence riding the docs lane with the translation-pairing gate passing on both halves and no separate summary log sealed this generation), the serial double audit round green at 87 files / 1073 tests on both passes (both sealed logs carrying the EXIT_CODE=0 trailer of the honestly executed round) over the curated list reused verbatim from .artifacts/lite-assembly-g2-audit-file-list.txt (87 lines, the gen-54 precedent lineage), gate0 PASS in both byte-identical forms (1938 paths / 129 components / 81 sections / 1983 lines — honestly recorded unchanged from the captured UPSTREAM_DELTA.json, not the live tree); the ledger round rode the main session's rebuild with no separate TAP log sealed this generation (the capture's structural pins carrying the rebuilt ledger's measured forms — 81 sections, §31 closing its facts-diagnostics projection item at 5635/21 with the gen-73 closure narration appended beside the preserved gen-51..72 narrations, §33 keeping its gen-72 dual-record form at 1641/11, §32 keeping its gen-70 sealed 6041/25, §23 its gen-61 429/2 and §67 its gen-59 637/8 — and the prose carrying the 6/6 narration, honestly recorded); the android acceptance: the scanner-env gradle round BUILD SUCCESSFUL with 82 actionable tasks of which 13 executed and 69 up-to-date in the sealed log's 5s — the honest repackaging form (the two verification halves beside the debug face's manifest/asset/native/package chain executing to repackage the debug APK at the unstamped acceptance bytes 995eeb31 — the stamped connected round before having built the 2da10243 bytes, honestly narrated in the prose; both test suites and the androidTest packaging rode UP-TO-DATE — the real implementation rounds before this acceptance round already re-ran the whole :core:test suite at 85 suites / 609 tests with the new two-plane projection case and rebuilt BOTH APK faces; the connected round proving LiteEntryNativeTest 10/10 and SupportExportNativeTest 3/3 on the emulator, the build stamped DSH_ANDROID_APPLICATION_SOURCE/TREE=dfaedd4f/33bf6116) — with the measured double-DRIFT form against the attribution-ua record's sealed builtFiles entries (the androidTest APK at 0fac3001→2c73cbb2 with the widened native suites' new connected cases — this generation's own new androidTest baseline — and the debug APK at 3cb24ecf→995eeb31 with the production liteSession projection — this generation's own new debug baseline; prior apk records: 2, cross-checked live; the sealed g3 lane log honestly recording its own older-record riding-lineage comparison at 31a910c5→2c73cbb2 and dd8baae6→995eeb31) and the core XML aggregate reading 85 suites / 609 tests (the new two-plane projection case adding the one test, SupportExportTest at its ten) beside the contract half at 4 suites / 37 tests; and the adjudicated single-set ruling on the adapter's measured stop-point (the gen-53 dwfq-b1ce6281-1 precedent form): the prepare oracle derives the measured eighty-one replaced prior build outputs — both APK faces drifting beside the re-run :core:test's sixty-one re-emitted XML reports, fourteen recompiled classes, one jar and three binary outputs (the :core source increment re-running the core suite in the implementation rounds) — the adapter's generator-side measurement finding seventeen chain-resolvable keys (the androidTest APK at its gen-71-sealed bytes, the fourteen recompiled SupportExportTest classes and the two binary outputs held by the older archives — gen-69's thirteen-key fallback precedent class returning at this generation's wider scope) and a sixty-four-key miss set (the debug APK at its sealed 3cb24ecf bytes, the repacked jar, the sixty-one re-emitted XML reports and the binary results file, each sealed only by the attribution-ua record itself — the twenty-third consecutive generation of the same class: gen-51 ninety-four, gen-52 seventy-three, gen-53 sixty-seven, gen-54 sixty-seven, gen-55 sixty-eight, gen-56 sixty-eight, gen-57 seventy, gen-58 seventy-four, gen-59 seventy-six, gen-60 sixty-seven, gen-61 sixty-seven, gen-62 sixty-six, gen-63 eighty-five, gen-64 sixty-six, gen-65 sixty-six, gen-66 sixty-six, gen-67 sixty-six, gen-68 sixty-six, gen-69 sixty-four, gen-70 one, gen-71 two, gen-72 one, gen-73 sixty-four), so the advance installs the attributionUaReplacedBuildOutputs sixty-four-key build-output exemption on the demoted attribution-ua block, derived and emitted at advance run time from the record, the chain archives and the disk — never transcribed — equal to the eighty-one-key derivation minus the seventeen fallback keys, the source-side tracked miss keys resolving through the new before archive at their HEAD bytes (no UnrecoverableInputs set born), and every prior generation's set — the gen-72 presetStaleReplacedBuildOutputs one beside the gen-71 catalogRefreshUiReplacedBuildOutputs two, the gen-70 liveCatalogE2eReplacedBuildOutputs one, the gen-69 liteReadersReplacedBuildOutputs sixty-four, the gen-68 liteIntakeReplacedBuildOutputs sixty-six, the gen-67 liteUrlfetchReplacedBuildOutputs sixty-six, the gen-66 liteRoundsReplacedBuildOutputs sixty-six, the gen-65 liteCatalogReplacedBuildOutputs sixty-six, the gen-64 liteHistoryReplacedBuildOutputs sixty-six, the gen-63 liteExecutorsReplacedBuildOutputs eighty-five, the gen-62 relayRetireReplacedBuildOutputs sixty-six, the gen-61 liteDeclarationsReplacedBuildOutputs sixty-seven, the gen-60 liteHandoffReplacedBuildOutputs sixty-seven, the gen-59 liteResumeReplacedBuildOutputs seventy-six, the gen-58 litePresetReplacedBuildOutputs seventy-four, the gen-57 liteHttpReplacedBuildOutputs seventy, the gen-56 liteFactsReplacedBuildOutputs sixty-eight, the gen-55 liteAssemblyReplacedBuildOutputs sixty-eight, the gen-54 litePermissionReplacedBuildOutputs sixty-seven, the gen-53 liteToolsReplacedBuildOutputs sixty-seven, the gen-52 litePersonaReplacedBuildOutputs seventy-three, the gen-51 liteToolReplacedBuildOutputs ninety-four plus liteToolUnrecoverableInputs two, the gen-32 desktopPackageReplacedBuildOutputs six, the gen-33 tornRepairIntentReplacedBuildOutputs three, the gen-48 clientMutationReplacedBuildOutputs two and the gen-46 durableReceiptsReplacedBuildOutputs three — stays exactly as sealed at HEAD; the remaining open channels (the tool-row journal persistence with its chapter-64 split-two decision, the approval ask tier, the §54 device-side network verification, the real-model multi-turn e2e, the real OTA-upgrade-path e2e and the CI synchronize gap) all stay open — so no whole-section PASS is granted; full Upstream-First objective remains in progress",
+  "gate0": {
+    "validation": "PASS",
+    "gate0": "PASS",
+    "paths": 1938,
+    "components": 129,
+    "specificationCoverage": {
+      "status": "PASS",
+      "numberedSections": 81,
+      "nonEmptySourceLines": 1983,
+      "acceptanceProven": false
+    }
+  },
+  "sourceRecord": {
+    "path": "artifacts/upstream-first/facts-export-source.json",
+    "sha256": "cb7e0315608a58620245f52661e55bb9b1ae7a4def4fa05c785714668c45c42b"
+  },
+  "generator": {
+    "path": "artifacts/upstream-first/write-reports.mjs",
+    "sha256": "c10b42425f31cf8b729ff9dd58e458afce8c47fc2ec6ae985667e3a41a8e8040"
+  },
+  "binding": {
+    "path": "artifacts/upstream-first/facts-export-binding.json",
+    "sha256": "7c9ed9ebcf82c983e3c0169c0811a0821dffd7b600e5e10af13febe62c0dcd4d"
+  },
+  "helpers": [
+    {
+      "path": ".artifacts/advance-facts-export-reports.mjs",
+      "sha256": "9e9f8406f64e16cf218c6c95f829b26d0a20446285b0861268c07a84175768c1"
+    },
+    {
+      "path": ".artifacts/capture-facts-export-validation.mjs",
+      "sha256": "22da39842269ae29c8a751130dabfe995643fe35946e8354c2108ef1c634ed7e"
+    }
+  ],
+  "reports": [
+    {
+      "path": "IMPLEMENTATION_STATUS.md",
+      "sha256": "f9c5ed2fca9e6489a7cf8b1626badef3f21d939719072df080d422b49bf68a5b"
+    },
+    {
+      "path": "artifacts/upstream-first/evidence.json",
+      "sha256": "e8265672b8788c964ea39a97c30571b63384de7d1d1370b521391e92fbd1f60f"
+    }
+  ],
+  "checks": [
+    {
+      "path": ".artifacts/facts-export-binding.log",
+      "sha256": "f01d6f9e7e8862e3b06d647ebca5b800a21ab6493a68e1dfdc9b61e3ce64ff86"
+    },
+    {
+      "path": ".artifacts/facts-export-audit-final.log",
+      "sha256": "f1bc47111990655ac82b9a389d832f968a48ea1db085e51a4683f187058a19b0"
+    },
+    {
+      "path": ".artifacts/facts-export-gate0-final.log",
+      "sha256": "505d74ef938f5d34d85490d37e0176ba804d93272fcf465ce2544a02c56b3f90"
+    },
+    {
+      "path": ".artifacts/facts-export-report-generation.log",
+      "sha256": "fe010532f71a6341467ae5719b29ac19470895de1d481156335b8f70a3273ed5"
+    }
+  ]
+}
