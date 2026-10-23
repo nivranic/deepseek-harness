@@ -2,6 +2,7 @@ package ai.deepseek.dsh.gateway
 
 import ai.deepseek.dsh.link.*
 import ai.deepseek.dsh.companion.*
+import ai.deepseek.dsh.contract.*
 import kotlinx.coroutines.*
 import kotlinx.coroutines.flow.first
 import kotlinx.serialization.json.*
@@ -156,6 +157,65 @@ object NativeGatewayDriver {
                                 } }!!
                                 output(id, "ok", buildJsonObject { put("rows", opened.state.items.size); put("done", true) })
                             } finally { model.closeAndAwait() }
+                        }
+                        "liteRound" -> {
+                            // The APK-bundled documents ride this driver's own
+                            // classpath (the copyLitePresets/copyToolDescriptors/
+                            // copyLiteToolSchemas test resources), so the round
+                            // assembles from the exact frozen bytes a standalone
+                            // Lite session ships. The endpoint, credential,
+                            // model, and prompt arrive over the private stdin
+                            // pipe; the answer carries the folded state only —
+                            // the credential never reaches the output.
+                            fun bundled(name: String): String =
+                                checkNotNull(NativeGatewayDriver::class.java.classLoader.getResource(name)) { "bundled document missing: $name" }
+                                    .readText(Charsets.UTF_8)
+                            val presets = LitePresetCatalog.fromBundledProjection(
+                                LitePresetDescriptors.parseDocument(bundled("lite-preset-descriptors.json")))
+                            val schemas = LiteToolSchemaCatalog.fromBundledDocuments(
+                                LiteToolSchemas.parseDocument(bundled("lite-tool-schemas.json")),
+                                LiteToolSchemas.parseDocument(bundled("lite-device-tool-schemas.json")))
+                            val declarations = LiteToolCatalog.fromBundledDocuments(
+                                ToolDescriptors.parseDocument(bundled("lite-tool-declarations.json")),
+                                ToolDescriptors.parseDocument(bundled("tool-descriptors.json")))
+                            val preset = presets.default
+                            val state = coroutineScope {
+                                val loop = LiteLoopDriver(
+                                    this,
+                                    LiteHTTPProvider(command.text("endpoint"), command.text("apiKey"), command.text("model"), schemas.tools),
+                                    execute = { _, name, arguments ->
+                                        when (name) {
+                                            "calculator" -> LiteToolExecutors.calculator(arguments)
+                                            else -> LiteToolOutcome(ok = false, text = "no on-device executor mounted: $name")
+                                        }
+                                    },
+                                    toolCatalog = declarations,
+                                )
+                                loop.submit(command.text("prompt"), preset?.assembledSystemPrompt).join()
+                                loop.fold.state
+                            }
+                            output(id, "ok", buildJsonObject {
+                                put("presetId", preset?.id ?: "")
+                                put("systemPrompt", preset?.assembledSystemPrompt ?: "")
+                                put("toolSchemaNames", buildJsonArray { schemas.tools.forEach { add(JsonPrimitive(it.name)) } })
+                                put("conversation", buildJsonArray { state.conversation.forEach { row -> add(buildJsonObject {
+                                    put("role", row.role)
+                                    put("text", row.text)
+                                }) } })
+                                put("toolCalls", buildJsonArray { state.toolCalls.forEach { call -> add(buildJsonObject {
+                                    put("name", call.name)
+                                    put("arguments", call.arguments)
+                                    put("phase", call.phase)
+                                    put("resultText", call.resultText)
+                                }) } })
+                                put("lastTurnEnd", state.lastTurnEnd ?: "")
+                                put("errors", buildJsonArray { state.errors.forEach { failure -> add(buildJsonObject {
+                                    put("kind", failure.kind)
+                                    put("code", failure.code)
+                                    put("message", failure.message)
+                                }) } })
+                                put("pendingHandoff", state.pendingHandoff ?: "")
+                            })
                         }
                         else -> error("unknown driver operation")
                     }

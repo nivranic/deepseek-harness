@@ -1,0 +1,16 @@
+{
+  "status": "PASS",
+  "controls": 3,
+  "sourceRecord": {
+    "path": "artifacts/upstream-first/live-model-e2e-source.json",
+    "sha256": "5f8e415b9137636dc553976bb9eeef63e1cc74ece766eda5ea2bb5a7097eafd6"
+  },
+  "generator": {
+    "path": "artifacts/upstream-first/write-reports.mjs",
+    "sha256": "93874559d0c389283f5d63d57eb3d746bcb105366bd4b75e6d51ec61413cbe4a"
+  },
+  "helper": {
+    "path": ".artifacts/check-live-model-e2e-binding.mjs",
+    "sha256": "858a60e5e04cc0e653e6dec8c522fd871cd288390da4943ac8b367887414dd6d"
+  }
+}

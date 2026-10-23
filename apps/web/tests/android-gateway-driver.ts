@@ -39,12 +39,12 @@ export async function startAndroidGatewayDriver(java: string) {
       else frames.push(value)
     } catch { fail(new Error('Kotlin driver emitted invalid JSON')) }
   })
-  const next = (id: string): Promise<DriverFrame> => {
+  const next = (id: string, timeoutMs = 15_000): Promise<DriverFrame> => {
     const index = frames.findIndex(value => value.id === id)
     if (index >= 0) return Promise.resolve(frames.splice(index, 1)[0]!)
     if (failure) return Promise.reject(failure)
     return new Promise((resolve, reject) => {
-      const timeout = setTimeout(() => { pending.delete(id); reject(new Error(`Kotlin driver response ${id} timed out`)) }, 15_000)
+      const timeout = setTimeout(() => { pending.delete(id); reject(new Error(`Kotlin driver response ${id} timed out`)) }, timeoutMs)
       pending.set(id, {
         resolve: (value) => { clearTimeout(timeout); resolve(value) },
         reject: (error) => { clearTimeout(timeout); reject(error) },
@@ -58,7 +58,9 @@ export async function startAndroidGatewayDriver(java: string) {
   }
   return {
     send, next,
-    request: (value: object) => next(send(value)),
+    // A longer `timeoutMs` covers driver operations that await live model
+    // rounds; every existing caller keeps the 15-second default.
+    request: (value: object, timeoutMs?: number) => next(send(value), timeoutMs),
     stop: async () => {
       child.stdin.end()
       return await exited
