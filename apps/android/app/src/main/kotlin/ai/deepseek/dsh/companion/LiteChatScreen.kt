@@ -8,10 +8,12 @@ import androidx.compose.foundation.layout.fillMaxWidth
 import androidx.compose.foundation.layout.padding
 import androidx.compose.foundation.lazy.LazyColumn
 import androidx.compose.foundation.lazy.items
+import androidx.compose.material3.AlertDialog
 import androidx.compose.material3.Button
 import androidx.compose.material3.MaterialTheme
 import androidx.compose.material3.OutlinedTextField
 import androidx.compose.material3.Text
+import androidx.compose.material3.TextButton
 import androidx.compose.runtime.Composable
 import androidx.compose.runtime.getValue
 import androidx.compose.runtime.mutableStateOf
@@ -19,6 +21,7 @@ import androidx.compose.runtime.remember
 import androidx.compose.runtime.setValue
 import androidx.compose.ui.Modifier
 import androidx.compose.ui.platform.testTag
+import androidx.compose.ui.res.stringResource
 import androidx.compose.ui.unit.dp
 import androidx.lifecycle.compose.collectAsStateWithLifecycle
 import kotlinx.coroutines.launch
@@ -26,14 +29,18 @@ import androidx.compose.runtime.rememberCoroutineScope
 
 /**
  * The Lite chat surface: the conversation, the live stream partial, tool
- * rows with phases, artifact references, and the handoff banner — all read
- * from the view model's live StateFlow projection of the folded state.
+ * rows with phases, artifact references, the handoff banner — all read
+ * from the view model's live StateFlow projection of the folded state —
+ * and §38's approval dialog: an approval-gated tool call suspends the turn
+ * until the user answers it here.
  */
 @Composable
-fun LiteChatScreen(model: LiteChatViewModel) {
+fun LiteChatScreen(model: LiteChatViewModel, asks: LiteApprovalAsks? = null) {
     var draft by remember { mutableStateOf("") }
     val scope = rememberCoroutineScope()
     val state by model.liveState.collectAsStateWithLifecycle(initialValue = model.state)
+    val pendingAsk by asks?.pending?.collectAsStateWithLifecycle()
+        ?: remember { mutableStateOf<LiteApprovalRequest?>(null) }
 
     Column(Modifier.fillMaxSize()) {
         state.pendingHandoff?.let { handoff ->
@@ -104,6 +111,42 @@ fun LiteChatScreen(model: LiteChatViewModel) {
                 modifier = Modifier.testTag("lite-composer-send"),
             ) { Text("发送") }
         }
+    }
+    pendingAsk?.let { request ->
+        // §38's approval face: the dialog shows the call's facts — action,
+        // target, host, workspace, risk, escalation, command preview — and
+        // never collapses to a bare "allow?"; dismissing the dialog denies,
+        // because a confirmation-gated call must not run by default.
+        AlertDialog(
+            onDismissRequest = { asks?.respond(false) },
+            title = { Text(stringResource(R.string.lite_ask_title)) },
+            text = {
+                Column(verticalArrangement = Arrangement.spacedBy(2.dp)) {
+                    Text(stringResource(R.string.lite_ask_operation, request.name), style = MaterialTheme.typography.bodySmall)
+                    Text(stringResource(R.string.lite_ask_target), style = MaterialTheme.typography.bodySmall)
+                    Text(stringResource(R.string.lite_ask_host), style = MaterialTheme.typography.bodySmall)
+                    Text(stringResource(R.string.lite_ask_workspace), style = MaterialTheme.typography.bodySmall)
+                    Text(stringResource(R.string.lite_ask_risk, request.risk), style = MaterialTheme.typography.bodySmall)
+                    Text(stringResource(R.string.lite_ask_escalation), style = MaterialTheme.typography.bodySmall)
+                    Text(stringResource(R.string.lite_ask_preview, request.arguments), style = MaterialTheme.typography.bodySmall)
+                    Text(
+                        stringResource(R.string.lite_ask_deny_note),
+                        style = MaterialTheme.typography.labelSmall,
+                        color = MaterialTheme.colorScheme.secondary,
+                    )
+                }
+            },
+            confirmButton = {
+                TextButton(onClick = { asks?.respond(true) }, modifier = Modifier.testTag("lite-ask-approve")) {
+                    Text(stringResource(R.string.lite_ask_approve))
+                }
+            },
+            dismissButton = {
+                TextButton(onClick = { asks?.respond(false) }, modifier = Modifier.testTag("lite-ask-deny")) {
+                    Text(stringResource(R.string.lite_ask_deny))
+                }
+            },
+        )
     }
 }
 

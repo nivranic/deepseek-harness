@@ -128,6 +128,14 @@ data class LiteToolOutcome(val ok: Boolean, val text: String, val artifact: Lite
 /** Executes one bundled tool invocation. */
 typealias LiteToolExecuting = suspend (id: String, name: String, arguments: String) -> LiteToolOutcome
 
+/**
+ * Confirms one approval-gated tool call with the user (§38's approval face):
+ * returns true to execute the call on-device, false to fold the established
+ * failed-result vocabulary. The seam receives the call's name, arguments, and
+ * the declaration's risk wire word — the facts the approval dialog shows.
+ */
+typealias LiteToolAsking = suspend (name: String, arguments: String, risk: String) -> Boolean
+
 /** Build one lifecycle event object from its tag and fields. */
 private fun event(type: String, vararg fields: Pair<String, JsonElement>): JsonObject = buildJsonObject {
     put("type", type)
@@ -156,6 +164,8 @@ class LiteLoopDriver(
     private val onEventApplied: ((LiteDomainState) -> Unit)? = null,
     private val toolCatalog: LiteToolCatalog = LiteToolCatalog.FALLBACK,
     private val permissionPolicy: LiteToolPermissionPolicy = LiteToolPermissionPolicies.defaultPolicy(toolCatalog),
+    /** The approval seam [LiteToolDecision.Ask] calls suspend on; null folds an explicit denial — an Ask never executes unconfirmed. */
+    private val ask: LiteToolAsking? = null,
     private val execute: LiteToolExecuting,
 ) {
     /** The live fold the driver applies each lifecycle event to. */
@@ -197,6 +207,45 @@ class LiteLoopDriver(
     /** Cancel the in-flight turn; the fold finalizes the delivered prefix. */
     fun cancel() {
         job?.cancel()
+    }
+    /**
+     * Execute one approved tool call through the bundled executor and fold
+     * its result — the shared body of the locally-permitted and
+     * user-granted approval paths.
+     */
+    private suspend fun runApprovedTool(chunk: LiteStreamChunk.ToolCall) {
+        val outcome = execute(chunk.id, chunk.name, chunk.arguments)
+        apply(
+            event(
+                "tool/result",
+                "id" to text(chunk.id),
+                "ok" to JsonPrimitive(outcome.ok),
+                "text" to text(outcome.text),
+            ),
+        )
+        val artifact = outcome.artifact
+        if (artifact != null) {
+            // The fold pairs artifact/status with the artifact/created row
+            // by id, so creation precedes status; the pair follows the
+            // completed tool/result because the bytes exist only after the
+            // executor's write, and the store's atomic put makes the
+            // artifact ready the moment it lands.
+            apply(
+                event(
+                    "artifact/created",
+                    "id" to text(artifact.id),
+                    "kind" to text(artifact.kind),
+                    "title" to text(artifact.id),
+                ),
+            )
+            apply(
+                event(
+                    "artifact/status",
+                    "id" to text(artifact.id),
+                    "status" to text("ready"),
+                ),
+            )
+        }
     }
 
     /** Apply one event and surface the cut state to the projection. */
@@ -244,37 +293,31 @@ class LiteLoopDriver(
                                 )
                                 // The permission policy owns every dispatch
                                 // decision (§31): a permitted call executes
-                                // on-device, a gated one hands off, and an
-                                // unknown name fails explicitly.
-                                when (permissionPolicy.decide(chunk.name)) {
-                                    LiteToolDecision.AllowLocal -> {
-                                        val outcome = execute(chunk.id, chunk.name, chunk.arguments)
-                                        apply(
-                                            event(
-                                                "tool/result",
-                                                "id" to text(chunk.id),
-                                                "ok" to JsonPrimitive(outcome.ok),
-                                                "text" to text(outcome.text),
-                                            ),
-                                        )
-                                        val artifact = outcome.artifact
-                                        if (artifact != null) {
-                                            // The fold pairs artifact/status with the
-                                            // artifact/created row by id, so creation
-                                            // precedes status; the pair follows the
-                                            // completed tool/result because the bytes
-                                            // exist only after the executor's write,
-                                            // and the store's atomic put makes the
-                                            // artifact ready the moment it lands.
+                                // on-device, an approval-gated call suspends
+                                // on the seam first, a gated one hands off,
+                                // and an unknown name fails explicitly.
+                                when (val decision = permissionPolicy.decide(chunk.name)) {
+                                    LiteToolDecision.AllowLocal -> runApprovedTool(chunk)
+                                    is LiteToolDecision.Ask -> {
+                                        // §38's approval face: the call waits
+                                        // for the user; a denial (or no seam
+                                        // at all) folds the established
+                                        // failed-result vocabulary — zero new
+                                        // event tags, and an Ask never
+                                        // executes unconfirmed.
+                                        val granted = ask?.invoke(chunk.name, chunk.arguments, decision.risk) ?: false
+                                        if (granted) {
+                                            runApprovedTool(chunk)
+                                        } else {
+                                            val reason = if (ask == null) "approval unavailable" else "user denied"
                                             apply(
                                                 event(
-                                                    "artifact/created",
-                                                    "id" to text(artifact.id),
-                                                    "kind" to text(artifact.kind),
-                                                    "title" to text(artifact.id),
+                                                    "tool/result",
+                                                    "id" to text(chunk.id),
+                                                    "ok" to JsonPrimitive(false),
+                                                    "text" to text("$reason on this device: " + chunk.name),
                                                 ),
                                             )
-                                            apply(event("artifact/status", "id" to text(artifact.id), "status" to text("ready")))
                                         }
                                     }
                                     is LiteToolDecision.Handoff -> {

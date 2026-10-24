@@ -217,10 +217,18 @@ class LiteToolRegistryTest {
             ),
         )
         for (name in LiteToolRegistry.localToolNames) {
-            assertEquals(LiteToolDecision.AllowLocal, policy.decide(name), "$name stays locally executable under the union")
+            // The moderate names — web_search on the Host projection,
+            // url_fetch and artifact_create on the device declaration —
+            // ask before executing on-device; the low names (pure
+            // computation and local reads) stay direct-execution names.
+            val expected = if (name in setOf("web_search", "url_fetch", "artifact_create")) {
+                LiteToolDecision.Ask("moderate")
+            } else {
+                LiteToolDecision.AllowLocal
+            }
+            assertEquals(expected, policy.decide(name), "$name resolves through the union ladder")
         }
         assertEquals(LiteToolDecision.Handoff("declared-not-lite"), policy.decide("run_tests"))
-        assertEquals(LiteToolDecision.AllowLocal, policy.decide("web_search"))
         // Every Host-declared non-lite name (bash among them) hands off — the
         // projection's vocabulary is declared data under the union.
         assertEquals(LiteToolDecision.Handoff("declared-not-lite"), policy.decide("bash"))

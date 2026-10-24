@@ -263,6 +263,7 @@ private fun LiteChatFace(
     // (new facts, new prompt face). Assembly itself is hedged: a stored preset
     // id can go stale across an APK upgrade that re-bundles the projection,
     // and the failure becomes this face's line instead of a crash.
+    val asks = remember { LiteApprovalAsks() }
     val assembly = remember(endpoint, apiKey, model, sessionId, presetId, liveHostToolDescriptors) {
         runCatching {
             LiteSessionAssembler.assemble(
@@ -277,6 +278,7 @@ private fun LiteChatFace(
                 artifacts = artifacts,
                 presetId = presetId,
                 liveHostToolDescriptors = liveHostToolDescriptors,
+                ask = asks::ask,
             )
         }
     }
@@ -308,7 +310,7 @@ private fun LiteChatFace(
             style = MaterialTheme.typography.bodySmall,
             color = MaterialTheme.colorScheme.secondary,
         )
-        LiteChatScreen(chat)
+        LiteChatScreen(chat, asks)
     }
 }
 

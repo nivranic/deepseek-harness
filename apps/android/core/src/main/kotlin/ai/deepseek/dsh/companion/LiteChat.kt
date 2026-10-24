@@ -53,6 +53,8 @@ class LiteChatViewModel(
     sessionId: String,
     provider: LiteProviding,
     execute: LiteToolExecuting,
+    /** The §38 approval seam approval-gated tool calls suspend on; null folds an explicit denial — an Ask never executes unconfirmed. */
+    ask: LiteToolAsking? = null,
     private val store: LiteSessionStoring? = null,
     private val artifacts: LiteArtifactStoring? = null,
     toolCatalog: LiteToolCatalog = LiteToolCatalog.FALLBACK,
@@ -81,7 +83,7 @@ class LiteChatViewModel(
 
     /** The loop driver the surface submits prompts through. */
     val driver: LiteLoopDriver = LiteLoopDriver(scope, provider,
-        onEventApplied = { cut -> _liveState.tryEmit(cut) }, execute = execute, toolCatalog = toolCatalog)
+        onEventApplied = { cut -> _liveState.tryEmit(cut) }, execute = execute, ask = ask, toolCatalog = toolCatalog)
 
     /** The folded domain state of the journal plus the live turn. */
     val state: LiteDomainState

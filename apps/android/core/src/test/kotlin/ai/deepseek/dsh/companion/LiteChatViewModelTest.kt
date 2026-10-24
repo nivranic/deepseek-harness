@@ -4,6 +4,7 @@ import ai.deepseek.dsh.contract.LitePresetDescriptor
 import ai.deepseek.dsh.contract.LitePresetPersona
 import ai.deepseek.dsh.contract.ToolDescriptor
 import ai.deepseek.dsh.contract.ToolRisk
+import kotlinx.coroutines.CompletableDeferred
 import kotlinx.coroutines.CoroutineScope
 import kotlinx.coroutines.flow.Flow
 import kotlinx.coroutines.flow.FlowCollector
@@ -16,6 +17,7 @@ import kotlinx.coroutines.test.runTest
 import kotlinx.serialization.json.jsonPrimitive
 import kotlin.test.Test
 import kotlin.test.assertEquals
+import kotlin.test.assertTrue
 import kotlin.test.assertNull
 
 private fun tempDir(): java.io.File =
@@ -298,6 +300,108 @@ class LiteChatViewModelTest {
             listOf("prompt/accepted", "message/completed", "turn/completed"),
             store.load("ui-exec")!!.events.map { it["type"]!!.jsonPrimitive.content },
         )
+    }
+
+    @Test
+    fun aModerateRiskCallSuspendsOnTheApprovalSeamUntilGranted() = runTest {
+        val store = LiteFileSessionStore(tempDir())
+        val provider = ScriptedLiteProvider(
+            mapOf("算一下" to listOf(LiteStreamChunk.ToolCall("c1", "calculator", """{"expression":"(1 + 2) * 3"}"""))),
+        )
+        val grant = CompletableDeferred<Boolean>()
+        val asked = mutableListOf<Triple<String, String, String>>()
+        val model = LiteChatViewModel(
+            scope = CoroutineScope(UnconfinedTestDispatcher(testScheduler)),
+            sessionId = "ui-ask-grant",
+            provider = provider,
+            execute = { _, _, arguments -> LiteToolExecutors.calculator(arguments) },
+            ask = { name, arguments, risk -> asked.add(Triple(name, arguments, risk)); grant.await() },
+            store = store,
+            toolCatalog = LiteToolCatalog.fromHostDescriptors(
+                listOf(
+                    ToolDescriptor("calculator", 1, ToolRisk.MODERATE, emptyList(), supportsLite = true, supportsRemote = true),
+                ),
+            ),
+        )
+        val sending = launch { model.send("算一下") }
+        advanceUntilIdle()
+
+        // The turn suspends on the seam with the dialog's facts — name,
+        // arguments, risk wire word — and nothing has executed yet.
+        assertEquals(listOf(Triple("calculator", """{"expression":"(1 + 2) * 3"}""", "moderate")), asked)
+        assertTrue(model.driver.running)
+        // The call row already landed (tool/call precedes the seam); the
+        // suspension point is exactly between it and the execution — the
+        // row waits running with no result.
+        val waiting = model.driver.fold.state.toolCalls.single()
+        assertEquals("running", waiting.phase)
+        assertEquals("", waiting.resultText)
+
+        grant.complete(true)
+        advanceUntilIdle()
+        sending.join()
+        val tool = model.driver.fold.state.toolCalls.single()
+        assertEquals("completed", tool.phase)
+        assertEquals("9", tool.resultText)
+    }
+
+    @Test
+    fun aDeniedModerateRiskCallFoldsTheFailedResultVocabulary() = runTest {
+        val store = LiteFileSessionStore(tempDir())
+        val provider = ScriptedLiteProvider(
+            mapOf("算一下" to listOf(LiteStreamChunk.ToolCall("c1", "calculator", "1+1"))),
+        )
+        val model = LiteChatViewModel(
+            scope = CoroutineScope(UnconfinedTestDispatcher(testScheduler)),
+            sessionId = "ui-ask-deny",
+            provider = provider,
+            execute = { _, _, _ -> LiteToolOutcome(ok = true, text = "2") },
+            ask = { _, _, _ -> false },
+            store = store,
+            toolCatalog = LiteToolCatalog.fromHostDescriptors(
+                listOf(
+                    ToolDescriptor("calculator", 1, ToolRisk.MODERATE, emptyList(), supportsLite = true, supportsRemote = true),
+                ),
+            ),
+        )
+        model.send("算一下")
+        advanceUntilIdle()
+
+        // A denial folds the established failed-result vocabulary — zero new
+        // tags — and the executor never runs.
+        val tool = model.driver.fold.state.toolCalls.single()
+        assertEquals("failed", tool.phase)
+        assertEquals("user denied on this device: calculator", tool.resultText)
+        assertEquals(
+            listOf("prompt/accepted", "message/completed", "turn/completed"),
+            store.load("ui-ask-deny")!!.events.map { it["type"]!!.jsonPrimitive.content },
+        )
+    }
+
+    @Test
+    fun anAskWithoutAnApprovalSeamDeniesExplicitly() = runTest {
+        val provider = ScriptedLiteProvider(
+            mapOf("算一下" to listOf(LiteStreamChunk.ToolCall("c1", "calculator", "1+1"))),
+        )
+        val model = LiteChatViewModel(
+            scope = CoroutineScope(UnconfinedTestDispatcher(testScheduler)),
+            sessionId = "ui-ask-bare",
+            provider = provider,
+            execute = { _, _, _ -> LiteToolOutcome(ok = true, text = "2") },
+            toolCatalog = LiteToolCatalog.fromHostDescriptors(
+                listOf(
+                    ToolDescriptor("calculator", 1, ToolRisk.MODERATE, emptyList(), supportsLite = true, supportsRemote = true),
+                ),
+            ),
+        )
+        model.send("算一下")
+        advanceUntilIdle()
+
+        // No seam mounted means no approval surface: the call denies
+        // explicitly rather than executing unconfirmed.
+        val tool = model.driver.fold.state.toolCalls.single()
+        assertEquals("failed", tool.phase)
+        assertEquals("approval unavailable on this device: calculator", tool.resultText)
     }
 
     @Test

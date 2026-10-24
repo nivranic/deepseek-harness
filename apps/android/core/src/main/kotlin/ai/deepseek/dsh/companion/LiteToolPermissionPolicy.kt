@@ -12,6 +12,15 @@ sealed interface LiteToolDecision {
     data object AllowLocal : LiteToolDecision
 
     /**
+     * Execute on-device only after the user confirms the call (§38's approval
+     * face): the loop driver suspends on the approval seam until a grant or
+     * denial, and a denial folds the established failed-result vocabulary —
+     * zero new event tags.
+     * @param risk the declaration's risk tier as its wire word; it triggers the gate and reaches the seam as the approval dialog's Risk fact.
+     */
+    data class Ask(val risk: String) : LiteToolDecision
+
+    /**
      * Hand the call to the full runtime instead of executing on-device.
      * @param reason which gate refused local execution; policy-facing documentation only — it never enters an event field, whose capability vocabulary stays [LITE_REQUIRES_FULL_RUNTIME].
      */
@@ -71,6 +80,7 @@ object LiteToolPermissionPolicies {
                     declared.risk == ToolRisk.HIGH || declared.risk == ToolRisk.CRITICAL ->
                         LiteToolDecision.Handoff("risk-" + declared.risk.WIRE)
                     declared.permissions.isNotEmpty() -> LiteToolDecision.Handoff("requires-remote-permissions")
+                    declared.risk == ToolRisk.MODERATE -> LiteToolDecision.Ask(declared.risk.WIRE)
                     else -> LiteToolDecision.AllowLocal
                 }
             }

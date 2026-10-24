@@ -206,4 +206,15 @@
     <string name="lite_attachment_source_failed">无法读取所选文件，请重新选择。</string>
     <string name="lite_attachment_store_failed">附件未能保存到本机，请重试。</string>
     <string name="lite_attachment_list_failed">附件列表读取失败，可能存在损坏的记录；重新添加附件或清除应用数据可恢复。</string>
+    <string name="lite_ask_title">执行确认</string>
+    <string name="lite_ask_operation">操作：%1$s</string>
+    <string name="lite_ask_target">目标：本设备（受限模式）</string>
+    <string name="lite_ask_host">Host：本机 Lite 会话</string>
+    <string name="lite_ask_workspace">Workspace：lite 本地存储</string>
+    <string name="lite_ask_risk">Risk：%1$s</string>
+    <string name="lite_ask_escalation">Permission escalation：无（本地执行不提权）</string>
+    <string name="lite_ask_preview">Command preview：%1$s</string>
+    <string name="lite_ask_approve">允许执行</string>
+    <string name="lite_ask_deny">拒绝</string>
+    <string name="lite_ask_deny_note">拒绝后模型会收到本次调用被拒绝的结果。</string>
 </resources>

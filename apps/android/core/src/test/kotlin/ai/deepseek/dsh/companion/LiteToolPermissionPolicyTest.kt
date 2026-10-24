@@ -48,7 +48,7 @@ class LiteToolPermissionPolicyTest {
     }
 
     @Test
-    fun declaredLowAndModerateToolsWithoutPermissionsExecuteLocally() {
+    fun declaredLowToolsExecuteLocallyAndModerateToolsAskForApproval() {
         val policy = LiteToolPermissionPolicies.defaultPolicy(
             LiteToolCatalog.fromHostDescriptors(
                 listOf(
@@ -58,7 +58,7 @@ class LiteToolPermissionPolicyTest {
             ),
         )
         assertEquals(LiteToolDecision.AllowLocal, policy.decide("web_search"))
-        assertEquals(LiteToolDecision.AllowLocal, policy.decide("calculator"))
+        assertEquals(LiteToolDecision.Ask("moderate"), policy.decide("calculator"))
     }
 
     @Test
@@ -128,7 +128,7 @@ class LiteToolPermissionPolicyTest {
     }
 
     @Test
-    fun bundledLowAndModerateToolsWithoutPermissionsExecuteLocally() {
+    fun bundledLowToolsExecuteLocallyAndModerateToolsAskForApproval() {
         val policy = LiteToolPermissionPolicies.defaultPolicy(
             LiteToolCatalog.fromBundledDocuments(
                 listOf(
@@ -139,8 +139,8 @@ class LiteToolPermissionPolicyTest {
             ),
         )
         assertEquals(LiteToolDecision.AllowLocal, policy.decide("calculator"))
-        assertEquals(LiteToolDecision.AllowLocal, policy.decide("image_inspect"))
-        assertEquals(LiteToolDecision.AllowLocal, policy.decide("web_search"))
+        assertEquals(LiteToolDecision.Ask("moderate"), policy.decide("image_inspect"))
+        assertEquals(LiteToolDecision.Ask("moderate"), policy.decide("web_search"))
     }
 
     @Test
