@@ -225,10 +225,11 @@ class LiteChatViewModelTest {
 
         assertEquals(LITE_REQUIRES_FULL_RUNTIME, model.state.pendingHandoff)
         // The handoff turn keeps the user row only; the journal records the
-        // marker, never an assistant row echoing the prompt back.
+        // call row in its interrupted state and the marker, never an
+        // assistant row echoing the prompt back.
         assertEquals(listOf(LiteMessage(role = "user", text = "跑测试")), model.state.conversation)
         assertEquals(
-            listOf("prompt/accepted", "handoff/requested"),
+            listOf("prompt/accepted", "tool/call", "handoff/requested"),
             store.load("ui2")!!.events.map { it["type"]!!.jsonPrimitive.content },
         )
     }
@@ -259,7 +260,7 @@ class LiteChatViewModelTest {
         // table does: the user row only, the marker as the terminal event.
         assertEquals(listOf(LiteMessage(role = "user", text = "算一下")), model.state.conversation)
         assertEquals(
-            listOf("prompt/accepted", "handoff/requested"),
+            listOf("prompt/accepted", "tool/call", "handoff/requested"),
             store.load("ui5")!!.events.map { it["type"]!!.jsonPrimitive.content },
         )
     }
@@ -292,12 +293,12 @@ class LiteChatViewModelTest {
 
         // The assembled chain executes the declared calculator on-device; the
         // live fold carries the real evaluator's row, while the journal keeps
-        // the chapter-64 turn-outcome events with no tool rows.
+        // the re-adjudicated journal face: the call and result rows ride it.
         val tool = model.driver.fold.state.toolCalls.single()
         assertEquals("completed", tool.phase)
         assertEquals("9", tool.resultText)
         assertEquals(
-            listOf("prompt/accepted", "message/completed", "turn/completed"),
+            listOf("prompt/accepted", "tool/call", "tool/result", "message/completed", "turn/completed"),
             store.load("ui-exec")!!.events.map { it["type"]!!.jsonPrimitive.content },
         )
     }
@@ -373,7 +374,7 @@ class LiteChatViewModelTest {
         assertEquals("failed", tool.phase)
         assertEquals("user denied on this device: calculator", tool.resultText)
         assertEquals(
-            listOf("prompt/accepted", "message/completed", "turn/completed"),
+            listOf("prompt/accepted", "tool/call", "tool/result", "message/completed", "turn/completed"),
             store.load("ui-ask-deny")!!.events.map { it["type"]!!.jsonPrimitive.content },
         )
     }
@@ -437,7 +438,7 @@ class LiteChatViewModelTest {
 
         // The second turn's request carries the executed turn as history —
         // the model sees its own call and the evaluator's answer — while
-        // the journal keeps the chapter-64 turn-outcome vocabulary: no tool
+        // the journal keeps the turn outcome beside the call and result rows:
         // rows enter the durable events.
         assertEquals(
             listOf(
@@ -456,7 +457,7 @@ class LiteChatViewModelTest {
         )
         assertEquals(
             listOf(
-                "prompt/accepted", "message/completed", "turn/completed",
+                "prompt/accepted", "tool/call", "tool/result", "message/completed", "turn/completed",
                 "prompt/accepted", "message/completed", "turn/completed",
             ),
             store.load("ui-history")!!.events.map { it["type"]!!.jsonPrimitive.content },
@@ -499,7 +500,7 @@ class LiteChatViewModelTest {
         )
         assertEquals(
             listOf(
-                "prompt/accepted", "handoff/requested",
+                "prompt/accepted", "tool/call", "handoff/requested",
                 "prompt/accepted", "message/completed", "turn/completed",
             ),
             store.load("handoff-then-normal")!!.events.map { it["type"]!!.jsonPrimitive.content },
@@ -599,9 +600,10 @@ class LiteChatViewModelTest {
                 listOf(false, "", listOf("completed"), 2, null),
                 // turn/completed — only the turn end moves.
                 listOf(false, "", listOf("completed"), 2, "completed"),
-                // The persisted journal replay — the turn-outcome events carry
-                // no tool rows, by the chapter-64 fidelity rule.
-                listOf(false, "", emptyList<String>(), 2, "completed"),
+                // The persisted journal replay — chapter 64 re-adjudicated,
+                // the turn's tool rows ride the journal, so the replayed
+                // state carries the completed call row.
+                listOf(false, "", listOf("completed"), 2, "completed"),
             ),
             emissions.map { cut(it) },
         )

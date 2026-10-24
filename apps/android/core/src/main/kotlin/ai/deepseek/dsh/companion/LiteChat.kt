@@ -91,16 +91,62 @@ class LiteChatViewModel(
 
     /**
      * Submit one prompt, await the turn's terminal event, then persist the
-     * turn's fold-visible outcome events to the journal — raw deltas stay
-     * out of it (chapter 64 forbids premature fidelity). The selected
+     * turn's fold-visible rows to the journal — the prompt, the turn's tool
+     * rows and artifact pairs rebuilt from the fold as the canonical events
+     * (chapter 64 re-adjudicated: the journal keeps the turn's complete
+     * folded face, not only its terminal event; a `running` row records its
+     * `tool/call` alone so a relaunch replays the honest interrupted state),
+     * and the turn's outcome events — raw deltas stay out of it. The selected
      * preset's assembled system prompt rides the provider request as
      * request-face context and never lands in the journal.
      * @param prompt the user prompt text.
      */
     suspend fun send(prompt: String) {
+        val toolRowsBefore = driver.fold.state.toolCalls.size
+        val artifactIdsBefore = driver.fold.state.artifacts.map { it.id }.toSet()
         driver.submit(prompt, selectedPreset?.assembledSystemPrompt).join()
         session.record(event("prompt/accepted", "requestId" to text("ui-${java.util.UUID.randomUUID()}"), "content" to text(prompt)))
         val folded = driver.fold.state
+        // The turn's tool rows, rebuilt from the fold in order: a call row
+        // plus its result row, the result's ok read from the folded phase; a
+        // row still `running` (the turn died mid-execution) records its call
+        // alone — the relaunch replays it as the honest interrupted state.
+        for (call in folded.toolCalls.drop(toolRowsBefore)) {
+            session.record(
+                event(
+                    "tool/call",
+                    "id" to text(call.id),
+                    "name" to text(call.name),
+                    "arguments" to text(call.arguments),
+                ),
+            )
+            if (call.phase != "running") {
+                session.record(
+                    event(
+                        "tool/result",
+                        "id" to text(call.id),
+                        "ok" to JsonPrimitive(call.phase == "completed"),
+                        "text" to text(call.resultText),
+                    ),
+                )
+            }
+        }
+        // The turn's new artifacts as their event pair — the fold aggregates
+        // the two families independently, so the rebuilt order (tool rows,
+        // then artifact pairs) replays to the same folded state.
+        for (artifact in folded.artifacts) {
+            if (artifact.id !in artifactIdsBefore) {
+                session.record(
+                    event(
+                        "artifact/created",
+                        "id" to text(artifact.id),
+                        "kind" to text(artifact.kind),
+                        "title" to text(artifact.title),
+                    ),
+                )
+                session.record(event("artifact/status", "id" to text(artifact.id), "status" to text(artifact.status)))
+            }
+        }
         when {
             // A handoff turn stops at the marker with no assistant row and no
             // terminal event; the tail block below journals handoff/requested,
