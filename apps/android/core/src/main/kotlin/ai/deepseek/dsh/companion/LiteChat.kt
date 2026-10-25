@@ -85,6 +85,14 @@ class LiteChatViewModel(
     val driver: LiteLoopDriver = LiteLoopDriver(scope, provider,
         onEventApplied = { cut -> _liveState.tryEmit(cut) }, execute = execute, ask = ask, toolCatalog = toolCatalog)
 
+    init {
+        // The stored journal replays into the driver too (§67 + chapter 64's
+        // re-adjudicated write face): the replayed turns — their tool rows
+        // included — ride the next request's exported history, so the model
+        // sees its own prior tool output across a relaunch.
+        if (session.events.isNotEmpty()) driver.seed(session.events)
+    }
+
     /** The folded domain state of the journal plus the live turn. */
     val state: LiteDomainState
         get() = _liveState.replayCache.firstOrNull() ?: session.state

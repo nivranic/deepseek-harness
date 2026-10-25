@@ -208,6 +208,25 @@ class LiteLoopDriver(
     fun cancel() {
         job?.cancel()
     }
+
+    /**
+     * Replay a stored journal into this driver before any live turn: each
+     * event applies through the same fold, and every `prompt/accepted` takes
+     * the same boundary snapshot `drive` takes — so the exported request
+     * history carries the replayed turns (their tool rows included, the
+     * chapter-64 write face) into the next request, surviving a relaunch.
+     * @param events the journal's recorded events, in order.
+     */
+    fun seed(events: List<JsonObject>) {
+        check(!running) { "a seed cannot replay over a running turn" }
+        for (row in events) {
+            apply(row)
+            if (row["type"]?.let { (it as? JsonPrimitive)?.content } == "prompt/accepted") {
+                turnRoundStarts.add(roundToolBoundaries.size)
+                roundToolBoundaries.add(fold.state.toolCalls.size)
+            }
+        }
+    }
     /**
      * Execute one approved tool call through the bundled executor and fold
      * its result — the shared body of the locally-permitted and

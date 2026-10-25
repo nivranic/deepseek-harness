@@ -55,6 +55,50 @@ class LiteChatViewModelTest {
     }
 
     @Test
+    fun aRelaunchedSessionFeedsItsReplayedToolRowsIntoTheNextRequest() = runTest {
+        val store = LiteFileSessionStore(tempDir())
+        val first = LiteChatViewModel(
+            scope = CoroutineScope(UnconfinedTestDispatcher(testScheduler)),
+            sessionId = "resume-tools",
+            provider = ScriptedLiteProvider(
+                mapOf("算一下" to listOf(LiteStreamChunk.ToolCall("c1", "calculator", """{"expression":"(1 + 2) * 3"}"""))),
+            ),
+            execute = { _, _, arguments -> LiteToolExecutors.calculator(arguments) },
+            store = store,
+            toolCatalog = LiteToolCatalog.fromHostDescriptors(
+                listOf(ToolDescriptor("calculator", 1, ToolRisk.LOW, emptyList(), supportsLite = true, supportsRemote = true)),
+            ),
+        )
+        first.send("算一下")
+        advanceUntilIdle()
+
+        // The relaunch: the stored journal — its tool rows riding it since
+        // the chapter-64 write face — replays into the new driver, so the
+        // next request carries the prior turn (its calculator call and the
+        // result text 9) as history.
+        var relaunchedProvider: ScriptedLiteProvider? = null
+        val relaunched = LiteChatViewModel(
+            scope = CoroutineScope(UnconfinedTestDispatcher(testScheduler)),
+            sessionId = "resume-tools",
+            provider = ScriptedLiteProvider(mapOf("总结" to listOf(LiteStreamChunk.Text("已记录")))).also { relaunchedProvider = it },
+            execute = { _, _, _ -> LiteToolOutcome(ok = false, text = "") },
+            store = store,
+            toolCatalog = LiteToolCatalog.fromHostDescriptors(
+                listOf(ToolDescriptor("calculator", 1, ToolRisk.LOW, emptyList(), supportsLite = true, supportsRemote = true)),
+            ),
+        )
+        relaunched.send("总结")
+        advanceUntilIdle()
+
+        val history = relaunchedProvider!!.submittedHistories.single()
+        assertEquals(1, history.size)
+        assertEquals("算一下", history[0].userText)
+        val round = history[0].rounds.single()
+        assertEquals(1, round.toolCalls.size)
+        assertEquals("calculator", round.toolCalls[0].name)
+        assertEquals("9", round.toolResults[round.toolCalls[0].id])
+    }
+    @Test
     fun aRelaunchedViewModelSeedsTheStoredJournalIntoItsFirstCut() = runTest {
         val store = LiteFileSessionStore(tempDir())
         val first = LiteChatViewModel(
