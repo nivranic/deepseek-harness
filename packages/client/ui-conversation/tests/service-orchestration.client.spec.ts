@@ -965,6 +965,26 @@ it('rejects generic intake without capability while retaining the image path', a
   await b.runtime.dispose()
 })
 
+it('routes empty and unknown browser MIME values to verbatim file drafts', async () => {
+  const b = await bench(1)
+  const session = b.runtime.sessions.binding('s1')!.session
+  const ready = {
+    ok: true as const,
+    value: { receiptId: 'mime-receipt' as never, file: { attachmentId: 'mime-file' as never, name: 'n', bytes: 1 } },
+  }
+  const upload = vi.fn((_file: Blob, _name?: string) => Promise.resolve(ready))
+  ;(session as { uploadFile?: unknown }).uploadFile = upload
+  const untyped = new File([Uint8Array.of(3)], 'untyped.bin')
+  const unknown = new File([Uint8Array.of(4)], 'probe.dat', { type: 'application/x-unknown' })
+  const drafts = b.root.createDrafts(session.sessionId, [untyped, unknown])
+  expect(drafts.map(draft => draft.kind)).toEqual(['file', 'file'])
+  await vi.waitFor(() => {
+    for (const draft of drafts) expect(b.root.fileUploads.getSnapshot()[draft.id]?.status).toBe('ready')
+  })
+  expect(upload.mock.calls.map(call => call[1])).toEqual(['untyped.bin', 'probe.dat'])
+  await b.runtime.dispose()
+})
+
 it('rejects a ready receipt serialized across Host replacement', async () => {
   const b = await bench()
   const session = b.runtime.sessions.binding('s1')!.session

@@ -1,4 +1,4 @@
-/** Conservative binary signatures for files without a registered filename suffix. */
+/** Conservative binary signatures and a NUL-byte binary fallback for files without a registered filename suffix. */
 
 /** A recognized header selects an inert image or binary fact-card renderer. */
 export interface DocumentSignature {
@@ -8,8 +8,9 @@ export interface DocumentSignature {
 
 /**
  * Recognize supported binary headers; textual formats never enable active rendering.
+ * A prefix containing a NUL byte, which valid UTF-8 text never contains, selects the binary fact card.
  * @param bytes - file prefix, starting at byte zero.
- * @returns a supported signature, or undefined for unknown and incomplete headers.
+ * @returns a signature or binary fact card, or undefined for unknown textual prefixes.
  */
 export function sniffDocument(bytes: Uint8Array): DocumentSignature | undefined {
   const at = (offset: number, signature: readonly number[]): boolean =>
@@ -25,5 +26,6 @@ export function sniffDocument(bytes: Uint8Array): DocumentSignature | undefined 
   if (at(0, [0x50, 0x4b]) && (at(2, [3, 4]) || at(2, [5, 6]) || at(2, [7, 8]))) {
     return { kind: 'binary', mediaType: 'application/zip' }
   }
+  if (bytes.includes(0)) return { kind: 'binary', mediaType: 'application/octet-stream' }
   return undefined
 }

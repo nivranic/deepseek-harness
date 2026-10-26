@@ -1,0 +1,16 @@
+{
+  "status": "PASS",
+  "controls": 3,
+  "sourceRecord": {
+    "path": "artifacts/upstream-first/file-upload-edge-source.json",
+    "sha256": "c685fc5116269ecf2d1f6e37efed6aacc56bc5d66aea921a44339f518342f449"
+  },
+  "generator": {
+    "path": "artifacts/upstream-first/write-reports.mjs",
+    "sha256": "2749011ecd3943b1b20df69d162928257ed44351673739a260aa9a4b124c7ea6"
+  },
+  "helper": {
+    "path": ".artifacts/check-file-upload-edge-binding.mjs",
+    "sha256": "01a83208d48dbabc6492cd19debd73b411d64cd59cf6d20031874c3a21bbab90"
+  }
+}

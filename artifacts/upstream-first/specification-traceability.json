@@ -1,7 +1,7 @@
 {
   "schemaVersion": 1,
   "status": "IN_PROGRESS",
-  "capturedAt": "2026-10-26T03:41:37.032Z",
+  "capturedAt": "2026-10-26T12:41:36.587Z",
   "fullGoalComplete": false,
   "specification": {
     "path": "artifacts/upstream-first/original-specification.md",
@@ -3978,9 +3978,12 @@
       "owner": "共享 Diff、文件与 Artifact",
       "candidateEvidence": [
         "artifacts/upstream-first/file-upload-capability-source.json",
-        "artifacts/upstream-first/upload-home-replay-source.json"
+        "artifacts/upstream-first/upload-home-replay-source.json",
+        "packages/client/file-upload/tests/file-upload-edge.host.spec.ts",
+        "packages/client/ui-sidebar-documentpreview/tests/sniff.client.spec.ts",
+        ".agents/notes/implemented/testing/2026-10-26-file-upload-edge-matrix.md"
       ],
-      "remaining": "上传/读取回放只证明局部路径；大文件、Range、中断、二进制、MIME 和共享 Diff 矩阵未完成。",
+      "remaining": "上传/读取回放只证明局部路径——gen-79 收口 §35 存储边缘矩阵（真 LocalAttachmentStore+真 FileUploads+其注册流式路由的端到端六用例：NUL/高位字节经路由/暂存回执/别名路径/磁盘逐字节往返、零字节 body 配缺省名落默认叶子、CJK 与 emoji 显示名经 URL 编码链路原样存活而 Windows 路径茎与保留字符消毒为安全叶子、96MiB 图案流一次上传且公共 readFileStream 读回字节数/digest/抽查偏移全等、流中途失败返回 ATTACHMENT_WRITE_FAILED 且零对象零别名零 staging 残留、跨服务实例旧回执外来而同字节经 file-objects 内容寻址去重同 attachment id 并以 ensureFileByDigest 追加别名；documentpreview 签名嗅探对含 NUL 字节落二进制卡[两条截断图像断言因前缀含 NUL 翻为 binary 卡]；空与未知浏览器 MIME 值分类为逐字文件草稿；客户端 digestBody 2.5MiB Blob 跨三个 1MiB 分块边界哈希=Node sha256 端到端钉住）；partial download 恢复语义与 range 读窗接附件仓仍未完成；§34 共享 Diff 矩阵（documentpreview 解析器/ui-primitives DiffBlock/trajectory structuredPatch 三消费面）未动——split diff 已落（2026-09-30）而共享矩阵留待。",
       "evidenceLimit": "这些路径是已定位的候选证据；尚未逐条证明本节每一项要求，不授予整节 PASS。"
     },
     {
@@ -4063,9 +4066,12 @@
       "owner": "共享 Diff、文件与 Artifact",
       "candidateEvidence": [
         "artifacts/upstream-first/file-upload-capability-source.json",
-        "artifacts/upstream-first/upload-home-replay-source.json"
+        "artifacts/upstream-first/upload-home-replay-source.json",
+        "packages/client/file-upload/tests/file-upload-edge.host.spec.ts",
+        "packages/client/ui-sidebar-documentpreview/tests/sniff.client.spec.ts",
+        ".agents/notes/implemented/testing/2026-10-26-file-upload-edge-matrix.md"
       ],
-      "remaining": "上传/读取回放只证明局部路径；大文件、Range、中断、二进制、MIME 和共享 Diff 矩阵未完成。",
+      "remaining": "上传/读取回放只证明局部路径——gen-79 收口 §35 存储边缘矩阵（真 LocalAttachmentStore+真 FileUploads+其注册流式路由的端到端六用例：NUL/高位字节经路由/暂存回执/别名路径/磁盘逐字节往返、零字节 body 配缺省名落默认叶子、CJK 与 emoji 显示名经 URL 编码链路原样存活而 Windows 路径茎与保留字符消毒为安全叶子、96MiB 图案流一次上传且公共 readFileStream 读回字节数/digest/抽查偏移全等、流中途失败返回 ATTACHMENT_WRITE_FAILED 且零对象零别名零 staging 残留、跨服务实例旧回执外来而同字节经 file-objects 内容寻址去重同 attachment id 并以 ensureFileByDigest 追加别名；documentpreview 签名嗅探对含 NUL 字节落二进制卡[两条截断图像断言因前缀含 NUL 翻为 binary 卡]；空与未知浏览器 MIME 值分类为逐字文件草稿；客户端 digestBody 2.5MiB Blob 跨三个 1MiB 分块边界哈希=Node sha256 端到端钉住）；partial download 恢复语义与 range 读窗接附件仓仍未完成；§34 共享 Diff 矩阵（documentpreview 解析器/ui-primitives DiffBlock/trajectory structuredPatch 三消费面）未动——split diff 已落（2026-09-30）而共享矩阵留待。",
       "evidenceLimit": "这些路径是已定位的候选证据；尚未逐条证明本节每一项要求，不授予整节 PASS。"
     },
     {

@@ -1,4 +1,5 @@
 import { Context } from '@deepseek-ai/cordis'
+import { createHash } from 'node:crypto'
 import type { SessionId } from '@deepseek-ai/dsh-session/types'
 import { afterEach, describe, expect, it, vi } from 'vitest'
 import { apply } from '../src/client/index.ts'
@@ -585,6 +586,36 @@ describe('Deduplicated browser uploads', () => {
     expect(sessionId).toBe(SESSION_ID)
     expect(request.name).toBe('a.bin')
     expect(request.digest).toMatch(/^[a-f0-9]{64}$/u)
+  })
+
+  it('hashes a 2.5 MiB Blob across chunk boundaries to the exact byte digest', async () => {
+    vi.stubGlobal('location', { origin: 'https://preview.test' })
+    const content = new Uint8Array(2.5 * 1024 * 1024)
+    for (let i = 0; i < content.byteLength; i++) content[i] = (i * 17 + 3) & 0xff
+    const body = new Blob([content])
+    const carried: Blob[] = []
+    ;(globalThis as UploadGlobal).__DSH_FILE_UPLOAD__ = {
+      fetch: (_url: URL, init: RequestInit) => {
+        carried.push(init.body as Blob)
+        return Promise.resolve(new Response(JSON.stringify({
+          ok: true,
+          value: {
+            receiptId: 'carrier-receipt',
+            file: { attachmentId: 'carrier-file', name: 'large.bin', bytes: content.byteLength },
+          },
+        }), { status: 200 }))
+      },
+    }
+    const { fiber, dedupe, service } = await scopedService()
+    const first = await service.upload(SESSION_ID, body, 'large.bin')
+    expect(first.ok).toBe(true)
+    expect(carried).toEqual([body])
+    const second = await service.upload(SESSION_ID, body, 'large.bin')
+    expect(second.ok).toBe(true)
+    expect(dedupe).toHaveBeenCalledTimes(1)
+    const [, request] = dedupe.mock.calls[0] as [string, { readonly digest: string }]
+    expect(request.digest).toBe(createHash('sha256').update(content).digest('hex'))
+    await fiber.dispose()
   })
 
   it('falls back to one full upload when the Host no longer stores the digest', async () => {
