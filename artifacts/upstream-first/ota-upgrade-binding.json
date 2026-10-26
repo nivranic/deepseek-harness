@@ -1,0 +1,16 @@
+{
+  "status": "PASS",
+  "controls": 3,
+  "sourceRecord": {
+    "path": "artifacts/upstream-first/ota-upgrade-source.json",
+    "sha256": "6bb1e5f4c775865b9062f9e8772a60941201f7094aa8c1c01f61f0c3b919940c"
+  },
+  "generator": {
+    "path": "artifacts/upstream-first/write-reports.mjs",
+    "sha256": "b03c9f67b5829a473b47482ffced29a7c0256840ee62c9a83efbf04b53451dc4"
+  },
+  "helper": {
+    "path": ".artifacts/check-ota-upgrade-binding.mjs",
+    "sha256": "e62e84fc8c352848a8ccc0e29d29bb7f3e083c4381e290c6073708db36247c99"
+  }
+}
