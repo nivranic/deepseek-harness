@@ -13,7 +13,6 @@ import {
   Tooltip,
 } from '@deepseek-ai/dsh-client-ui-primitives'
 import type { JsonTreeLabels, MarkdownLabels } from '@deepseek-ai/dsh-client-ui-primitives'
-import { structuredPatch } from 'diff'
 import type { ImageAttachmentRef } from '@deepseek-ai/dsh-attachment'
 import type {
   AssistantRequestConfig, ConversationPromptSnapshot, RenderMessageImages,
@@ -1312,27 +1311,7 @@ function ToolCatalog({
   )
 }
 
-interface PromptDiffLine {
-  kind: 'meta' | 'context' | 'added' | 'removed'
-  text: string
-}
-
-function promptDiffLines(before: string, after: string): readonly PromptDiffLine[] {
-  const patch = structuredPatch('', '', before, after, undefined, undefined, { context: 3 })
-  return patch.hunks.flatMap((hunk, hunkIndex) => [
-    ...(hunkIndex === 0 ? [] : [{ kind: 'meta' as const, text: '' }]),
-    {
-      kind: 'meta' as const,
-      text: `@@ -${hunk.oldStart},${hunk.oldLines} +${hunk.newStart},${hunk.newLines} @@`,
-    },
-    ...hunk.lines.flatMap((line): PromptDiffLine[] => {
-      if (line.startsWith('\\')) return []
-      if (line.startsWith('+')) return [{ kind: 'added', text: line }]
-      if (line.startsWith('-')) return [{ kind: 'removed', text: line }]
-      return [{ kind: 'context', text: line }]
-    }),
-  ])
-}
+import { promptDiffLines } from './prompt-diff-lines.ts'
 
 function PromptDiffSection({
   title,
