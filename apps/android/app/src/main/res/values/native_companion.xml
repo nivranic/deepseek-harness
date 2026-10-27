@@ -49,6 +49,7 @@
     <string name="native_capabilities_file_bytes">读取文件字节</string>
     <string name="native_capabilities_subagent_catalog">子代理列表</string>
     <string name="native_capabilities_tool_catalog">读取工具声明目录</string>
+    <string name="native_capabilities_host_diagnostics">Host 运行时健康</string>
     <string name="native_capabilities_waiting">尚未取得 Host 能力，请在连接能力中刷新。本地输入已保留。</string>
     <string name="native_capabilities_operation_absent">Host 未声明支持此操作。本地输入已保留，可在连接能力中刷新。</string>
     <string name="native_stop_unconfirmed">停止请求未确认，请检查任务状态后显式重试。</string>

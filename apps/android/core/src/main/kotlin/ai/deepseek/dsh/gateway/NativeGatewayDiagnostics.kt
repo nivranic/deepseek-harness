@@ -27,7 +27,7 @@ enum class NativeObservedCapability(val wire: String) {
     FILE_UPLOAD_DEDUPE("file-upload.dedupe.v1"), IMAGE_UPLOAD("image-upload.stage.v1"),
     SUBAGENT_CATALOG("subagent.catalog.v1"), HTTP_REQUEST_BUDGET("native-remote.http-request-budget.v1"),
     MODEL_STEER("model.steer.v1"), MODEL_CATALOG("model.catalog.v1"), MODEL_SELECT("model.select.v1"),
-    TOOL_CATALOG("tool.catalog.v1");
+    TOOL_CATALOG("tool.catalog.v1"), HOST_DIAGNOSTICS("host.diagnostics.v1");
 
     companion object {
         /** Native-owned operations mirror their Remote owner's advertised method sets. */
@@ -49,6 +49,8 @@ enum class NativeObservedCapability(val wire: String) {
             "session/modelCatalog" -> MODEL_CATALOG
             "session/selectModel" -> MODEL_SELECT
             "tools/list" -> TOOL_CATALOG
+            // The companion consumes only the §41 health snapshot from the Host-diagnostics owner.
+            "hostDiagnostics/health" -> HOST_DIAGNOSTICS
             // Gateway event transport and extension methods have no native-owned operation requirement here.
             else -> null
         }

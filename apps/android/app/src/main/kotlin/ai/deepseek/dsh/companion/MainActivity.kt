@@ -527,7 +527,7 @@ fun CompanionApp(model: CompanionViewModel = viewModel()) {
             NativeResourceSaveNotice(resourceSavePicker)
             if (fileAttachmentPicker.cameraCleanupFailed) Text(androidx.compose.ui.res.stringResource(R.string.native_camera_cleanup_failed),
                 Modifier.testTag("camera-cleanup-error"), color = MaterialTheme.colorScheme.error)
-            SupportExportAction(model::supportSnapshot)
+            SupportExportAction(model::supportSnapshot) { CompanionRuntime.wire.fetchHostRuntimeHealth() }
             NativeHostControls(model, hosts)
             LiteEntryButton(onOpen = { liteOpen = true }, modifier = Modifier.padding(horizontal = 16.dp))
             if (!model.switching && hosts.status !in setOf(NativeHostStatus.RESTORE_FAILED, NativeHostStatus.RETIREMENT_FAILED)) {
@@ -558,7 +558,7 @@ fun CompanionApp(model: CompanionViewModel = viewModel()) {
             NativeHostControls(model, hosts)
             HostCapabilityDetails(description, model.generation) { descriptionRefresh++ }
             Row(Modifier.fillMaxWidth(), horizontalArrangement = Arrangement.spacedBy(8.dp)) {
-                Column(Modifier.weight(1f)) { SupportExportAction(model::supportSnapshot) }
+                Column(Modifier.weight(1f)) { SupportExportAction(model::supportSnapshot) { CompanionRuntime.wire.fetchHostRuntimeHealth() } }
                 Button(modifier = Modifier.testTag("native-repair"), onClick = { scope.launch { model.beginPairing() } }) {
                     Text(androidx.compose.ui.res.stringResource(R.string.native_repair))
                 }

@@ -65,6 +65,8 @@ data class SupportLocalSnapshot(
     val applicationSource: SupportApplicationSource?,
     /** The construction-time facts of the Lite session this device last assembled; null until one assembles. */
     val liteFacts: LiteSessionFacts? = null,
+    /** The paired Host's §41 health snapshot fetched at export time; null when unreachable or unadvertised. */
+    val runtimeHealth: HostRuntimeHealth? = null,
 )
 
 data class SupportScannerIdentity(val version: String, val rulesDigest: String, val sourceSha: String, val nativeSha256: String)
@@ -221,6 +223,10 @@ internal fun encodeSupportDocument(product: SupportProductIdentity, snapshot: Su
                 })
             }
         }
+        // The Host plane's §41 snapshot rides verbatim from the fetch-time
+        // call; a null stays an explicit uncollected entry, never a guessed
+        // component.
+        snapshot.runtimeHealth?.let { put("runtimeHealth", it.toJson()) }
         put("connections", snapshot.connections.toJson())
         put("session", snapshot.session.toJson())
         put("nativeExits", snapshot.nativeExits.toJson())
@@ -230,7 +236,8 @@ internal fun encodeSupportDocument(product: SupportProductIdentity, snapshot: Su
         })
         put("uncollected", buildJsonArray {
             if (snapshot.applicationSource == null) add("application-source")
-            listOf("runtime-health", "updates").forEach { add(it) }
+            if (snapshot.runtimeHealth == null) add("runtime-health")
+            add("updates")
             if (snapshot.nativeExits !is ProcessExitDiagnostics.Collected) add("native-crashes")
             if (snapshot.session == SessionDiagnostics.Unavailable) add("session-diagnostics")
             if (snapshot.liteFacts == null) add("lite-session")

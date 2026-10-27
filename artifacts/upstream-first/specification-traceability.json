@@ -1,7 +1,7 @@
 {
   "schemaVersion": 1,
   "status": "IN_PROGRESS",
-  "capturedAt": "2026-10-27T02:45:06.919Z",
+  "capturedAt": "2026-10-27T08:39:52.212Z",
   "fullGoalComplete": false,
   "specification": {
     "path": "artifacts/upstream-first/original-specification.md",
@@ -4569,9 +4569,11 @@
       "owner": "Health、Readiness、Diagnostics 与 Support",
       "candidateEvidence": [
         "SECURITY_STATUS.md",
-        "RELEASE_STATUS.md"
+        "RELEASE_STATUS.md",
+        "apps/android/core/src/test/kotlin/ai/deepseek/dsh/companion/HostRuntimeHealthTest.kt",
+        ".agents/notes/implemented/testing/2026-10-27-host-runtime-health.md"
       ],
-      "remaining": "共享诊断、可接受请求的 readiness、分类型默认关闭 telemetry、脱敏和同候选 support collector 验证仍待完成。",
+      "remaining": "可接受请求的 readiness、脱敏和同候选 support collector 验证仍待完成。共享诊断由 gen-82 落地伴生端词汇：HostRuntimeHealth 严格解析 §41 六组件+就绪判定（经 WireValue.toJsonElement 全字段必须在场、词汇精确，任何偏差整体拒绝——健康快照绝不携带猜测组件），fetchHostRuntimeHealth 以空参调 hostDiagnostics/health（2 秒 withTimeoutOrNull、CancellationException 重抛、未配对/未通告/超时/坏形一律归 null），NativeObservedCapability 增 HOST_DIAGNOSTICS(\"host.diagnostics.v1\") 且 forEndpoint 只映射 health 端点（伴生端不消费 describe/supportBundle），SupportLocalSnapshot 增可空 runtimeHealth、文档发 runtimeHealth 段（producer=hostDiagnostics/health、observation=fetch-time）、uncollected 保 runtime-health 在 updates 前的 null 形；两个枚举联动如实入档：allowlist 投影多发 \"host.diagnostics.v1\":false（support-native-gateway.json fixture 28 字节诚实增量、另两份不变）、能力对话框穷举 when 补分支配中文标签。分类型默认关闭 telemetry 半句陈旧性修正：四类 consent 全 default(false) 的 telemetry 基线早已达标（出厂组合 env 门播种、DISABLED 主开关+env 退出行齐全），族句该半照 gen-77 基线口径翻为已达标。",
       "evidenceLimit": "这些路径是已定位的候选证据；尚未逐条证明本节每一项要求，不授予整节 PASS。"
     },
     {
@@ -4670,9 +4672,11 @@
       "owner": "Health、Readiness、Diagnostics 与 Support",
       "candidateEvidence": [
         "SECURITY_STATUS.md",
-        "RELEASE_STATUS.md"
+        "RELEASE_STATUS.md",
+        "apps/android/core/src/test/kotlin/ai/deepseek/dsh/companion/HostRuntimeHealthTest.kt",
+        ".agents/notes/implemented/testing/2026-10-27-host-runtime-health.md"
       ],
-      "remaining": "共享诊断、可接受请求的 readiness、分类型默认关闭 telemetry、脱敏和同候选 support collector 验证仍待完成。",
+      "remaining": "可接受请求的 readiness、脱敏和同候选 support collector 验证仍待完成。共享诊断由 gen-82 落地伴生端词汇：HostRuntimeHealth 严格解析 §41 六组件+就绪判定（经 WireValue.toJsonElement 全字段必须在场、词汇精确，任何偏差整体拒绝——健康快照绝不携带猜测组件），fetchHostRuntimeHealth 以空参调 hostDiagnostics/health（2 秒 withTimeoutOrNull、CancellationException 重抛、未配对/未通告/超时/坏形一律归 null），NativeObservedCapability 增 HOST_DIAGNOSTICS(\"host.diagnostics.v1\") 且 forEndpoint 只映射 health 端点（伴生端不消费 describe/supportBundle），SupportLocalSnapshot 增可空 runtimeHealth、文档发 runtimeHealth 段（producer=hostDiagnostics/health、observation=fetch-time）、uncollected 保 runtime-health 在 updates 前的 null 形；两个枚举联动如实入档：allowlist 投影多发 \"host.diagnostics.v1\":false（support-native-gateway.json fixture 28 字节诚实增量、另两份不变）、能力对话框穷举 when 补分支配中文标签。分类型默认关闭 telemetry 半句陈旧性修正：四类 consent 全 default(false) 的 telemetry 基线早已达标（出厂组合 env 门播种、DISABLED 主开关+env 退出行齐全），族句该半照 gen-77 基线口径翻为已达标。",
       "evidenceLimit": "这些路径是已定位的候选证据；尚未逐条证明本节每一项要求，不授予整节 PASS。"
     },
     {
@@ -4731,9 +4735,11 @@
       "owner": "Health、Readiness、Diagnostics 与 Support",
       "candidateEvidence": [
         "SECURITY_STATUS.md",
-        "RELEASE_STATUS.md"
+        "RELEASE_STATUS.md",
+        "apps/android/core/src/test/kotlin/ai/deepseek/dsh/companion/HostRuntimeHealthTest.kt",
+        ".agents/notes/implemented/testing/2026-10-27-host-runtime-health.md"
       ],
-      "remaining": "共享诊断、可接受请求的 readiness、分类型默认关闭 telemetry、脱敏和同候选 support collector 验证仍待完成。",
+      "remaining": "可接受请求的 readiness、脱敏和同候选 support collector 验证仍待完成。共享诊断由 gen-82 落地伴生端词汇：HostRuntimeHealth 严格解析 §41 六组件+就绪判定（经 WireValue.toJsonElement 全字段必须在场、词汇精确，任何偏差整体拒绝——健康快照绝不携带猜测组件），fetchHostRuntimeHealth 以空参调 hostDiagnostics/health（2 秒 withTimeoutOrNull、CancellationException 重抛、未配对/未通告/超时/坏形一律归 null），NativeObservedCapability 增 HOST_DIAGNOSTICS(\"host.diagnostics.v1\") 且 forEndpoint 只映射 health 端点（伴生端不消费 describe/supportBundle），SupportLocalSnapshot 增可空 runtimeHealth、文档发 runtimeHealth 段（producer=hostDiagnostics/health、observation=fetch-time）、uncollected 保 runtime-health 在 updates 前的 null 形；两个枚举联动如实入档：allowlist 投影多发 \"host.diagnostics.v1\":false（support-native-gateway.json fixture 28 字节诚实增量、另两份不变）、能力对话框穷举 when 补分支配中文标签。分类型默认关闭 telemetry 半句陈旧性修正：四类 consent 全 default(false) 的 telemetry 基线早已达标（出厂组合 env 门播种、DISABLED 主开关+env 退出行齐全），族句该半照 gen-77 基线口径翻为已达标。",
       "evidenceLimit": "这些路径是已定位的候选证据；尚未逐条证明本节每一项要求，不授予整节 PASS。"
     },
     {
@@ -4800,9 +4806,11 @@
       "owner": "Health、Readiness、Diagnostics 与 Support",
       "candidateEvidence": [
         "SECURITY_STATUS.md",
-        "RELEASE_STATUS.md"
+        "RELEASE_STATUS.md",
+        "apps/android/core/src/test/kotlin/ai/deepseek/dsh/companion/HostRuntimeHealthTest.kt",
+        ".agents/notes/implemented/testing/2026-10-27-host-runtime-health.md"
       ],
-      "remaining": "共享诊断、可接受请求的 readiness、分类型默认关闭 telemetry、脱敏和同候选 support collector 验证仍待完成。",
+      "remaining": "可接受请求的 readiness、脱敏和同候选 support collector 验证仍待完成。共享诊断由 gen-82 落地伴生端词汇：HostRuntimeHealth 严格解析 §41 六组件+就绪判定（经 WireValue.toJsonElement 全字段必须在场、词汇精确，任何偏差整体拒绝——健康快照绝不携带猜测组件），fetchHostRuntimeHealth 以空参调 hostDiagnostics/health（2 秒 withTimeoutOrNull、CancellationException 重抛、未配对/未通告/超时/坏形一律归 null），NativeObservedCapability 增 HOST_DIAGNOSTICS(\"host.diagnostics.v1\") 且 forEndpoint 只映射 health 端点（伴生端不消费 describe/supportBundle），SupportLocalSnapshot 增可空 runtimeHealth、文档发 runtimeHealth 段（producer=hostDiagnostics/health、observation=fetch-time）、uncollected 保 runtime-health 在 updates 前的 null 形；两个枚举联动如实入档：allowlist 投影多发 \"host.diagnostics.v1\":false（support-native-gateway.json fixture 28 字节诚实增量、另两份不变）、能力对话框穷举 when 补分支配中文标签。分类型默认关闭 telemetry 半句陈旧性修正：四类 consent 全 default(false) 的 telemetry 基线早已达标（出厂组合 env 门播种、DISABLED 主开关+env 退出行齐全），族句该半照 gen-77 基线口径翻为已达标。",
       "evidenceLimit": "这些路径是已定位的候选证据；尚未逐条证明本节每一项要求，不授予整节 PASS。"
     },
     {

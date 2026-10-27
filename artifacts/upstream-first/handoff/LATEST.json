@@ -1,13 +1,13 @@
 {
   "schemaVersion": 1,
-  "handoffId": "2026-09-29-01",
-  "predecessorHandoff": "2026-09-25-01",
-  "entry": "2026-09-29-01/HANDOFF.md",
-  "entrySha256": "e39b079c7f58a1acdac90c95243b93a0b3e86e3fdba688951f87de86b2504d98",
-  "state": "2026-09-29-01/state.json",
-  "manifest": "2026-09-29-01/manifest.json",
-  "manifestSha256": "4ea711004f09e938e68cbb3223c390d17fdfb52a64b2863dee87195aa20fef28",
-  "verification": "2026-09-29-01/verification.json",
+  "handoffId": "2026-10-27-01",
+  "predecessorHandoff": "2026-09-29-01",
+  "entry": "2026-10-27-01/HANDOFF.md",
+  "entrySha256": "243a4e985dfd10a42ac0dd3357dcdd7746278e569e9be8179fbe82e781b46047",
+  "state": "2026-10-27-01/state.json",
+  "manifest": "2026-10-27-01/manifest.json",
+  "manifestSha256": "d3b864111815e067d1dacbada47a296999049f1379ff80eda22f08f6b7d2916a",
+  "verification": "2026-10-27-01/verification.json",
   "goalStatus": "paused",
-  "updatedAt": "2026-09-29T01:14:18.032390+00:00"
+  "updatedAt": "2026-10-27T15:07:50+08:00"
 }

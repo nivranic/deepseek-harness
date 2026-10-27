@@ -61,9 +61,11 @@ private class AndroidSupportDestination(private val resolver: ContentResolver, p
     }
 }
 
-/** Available before pairing; only an admitted in-memory document can reach the selected local destination. */
+/** Available before pairing; only an admitted in-memory document can reach the
+ * selected local destination. [fetchRuntimeHealth] runs once per export
+ * attempt; its null leaves the §41 snapshot uncollected. */
 @Composable
-fun SupportExportAction(readSnapshot: () -> SupportLocalSnapshot) {
+fun SupportExportAction(readSnapshot: () -> SupportLocalSnapshot, fetchRuntimeHealth: suspend () -> HostRuntimeHealth?) {
     val context = LocalContext.current
     val application = context.applicationContext as CompanionApplication
     val copy = SupportExportCopy.forLocale(context.resources.configuration.locales[0])
@@ -101,8 +103,9 @@ fun SupportExportAction(readSnapshot: () -> SupportLocalSnapshot) {
                 stage = SupportExportStage.SCANNING
                 try {
                     val snapshot = readSnapshot().copy(applicationSource = application.supportSource)
+                    val health = withContext(Dispatchers.IO) { fetchRuntimeHealth() }
                     val exits = withContext(Dispatchers.IO) { application.exitHistory?.capture() ?: ProcessExitDiagnostics.Unavailable }
-                    val document = exporter.prepare(application.supportProduct, snapshot.copy(nativeExits = exits))
+                    val document = exporter.prepare(application.supportProduct, snapshot.copy(nativeExits = exits, runtimeHealth = health))
                     currentCoroutineContext().ensureActive()
                     owner.approve(document)
                     destination.launch("dsh-support.json")

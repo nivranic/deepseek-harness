@@ -1,0 +1,66 @@
+{
+  "status": "PASS",
+  "scope": "Report bindings and audit for the host-runtime-health increment: the gen-82 §41-44 shared-diagnostics companion closure (HostRuntimeHealth.kt owning the exact §41 vocabulary — HostHealthState up/degraded/down, six HostHealthComponent values and the derived ready verdict — parsed strictly through WireValue.toJsonElement() with every component and the readiness verdict required present in the exact vocabulary, any deviation rejected whole so a health snapshot never carries a guessed component; fetchHostRuntimeHealth on WireDriving calling hostDiagnostics/health with empty args under a two-second withTimeoutOrNull, rethrowing CancellationException into the export action's existing CANCELLED branch and mapping every other failure — unpaired wire, unadvertised capability, timeout, deviating shape — to null; the NativeObservedCapability member HOST_DIAGNOSTICS(host.diagnostics.v1) with forEndpoint mapping only the health endpoint, negotiation advertising it automatically and the gateway's advertised-operation gate refusing unadvertised Hosts before dispatch; the SupportLocalSnapshot nullable runtimeHealth field emitting its document segment — producer hostDiagnostics/health, observation fetch-time, six components plus ready — between the wire plane and connections with uncollected keeping runtime-health ahead of updates whenever the snapshot is null, the three resource fixtures byte-identical in their null form; the required fetcher parameter through both MainActivity mounts passing CompanionRuntime.wire, the unpaired wire honestly collecting nothing) — beside the two honest enum joins (the client-allowlist projection emitting one more supported key — \"host.diagnostics.v1\":false, the support-native-gateway.json fixture updated to its honest 28-byte delta while the other two fixtures stay untouched — and the capability dialog's exhaustive when gaining its branch with the locale-owned label) and the JVM suite's coverage (parse acceptance and rejection, fetch success with endpoint/args pinning, refusal shapes, virtual-time timeout, cancellation propagation, the forEndpoint mapping pin and the support-export projection case); the connected round's eight failures decomposed exactly along the gen-78 taxonomy — five notification methods green in their documented isolated form, two stamp-requiring tests failing at exactly the unstamped-build boundary with the same file's scanner-admits and lite-facts tests green in the same round, one loopback network drift recorded after four consecutive isolated reproductions sharing no code path with this diff — beside the process fact honestly narrated: the accidental all-device connected form briefly installed the debug and androidTest APKs on the attached physical device before Gradle's own post-round uninstall removed them (read-only pm probes confirming zero residue), every later device command explicitly -s emulator-5554, the no-physical-install rule written into the handoff red lines; the gates honestly recorded from log content: typecheck EXIT 0 and lint Found 0 warnings and 0 errors on 3869 files (90 rules, 20 threads, 61.2s — the Kotlin increment outside the lint face), the docs lane green in one combined log (doc-quick 17 passed in 47.19s on the green post-re-record form with doc-sync 37 passed in 163.14s), pairing 967 pairs all consistent in its honest direct-round form (the 966→967 reconciliation riding the prose; the note trio 2026-10-27-host-runtime-health, testing class, beside the re-recorded apps/android README pair), the serial double audit round green at 90 files / 1107 tests on both passes over the unchanged lineage list (the handoff brief's \"+1 spec\" expectation corrected honestly: the lineage list is the client TypeScript spec list, the Kotlin suite's lineage riding the gradle lane log at 624 tests), gate0 PASS (1938 paths / 129 components / 81 sections / 1983 lines — honestly recorded unchanged from the captured UPSTREAM_DELTA.json); the ledger §41-44 rewrite narrowing the family row (81 sections kept; §41-44 at 842/4 with the widened four-entry evidence list — the stale telemetry half corrected to its baseline-met form beside the status flip and the appended gen-82 landing; every prior family row keeping its sealed form — §31 at its gen-78 11411/28, §33 its gen-72 1641/11, §32 its gen-70 6041/25, §34/35 their gen-81 1879/11, §23 its gen-61 429/2 and §67 its gen-59 637/8); and the 81-key derivation ruling (the largest non-zero family since gen-77): the prepare oracle derives exactly 81 replaced prior build outputs over the session-export-range record — both APKs beside the recompiled SupportExport test classes, the core jar and the whole per-run core test-results tree — with every prior generation's set staying exactly as sealed at HEAD (the gen-80 sharedDiffCorpusReplacedBuildOutputs at exactly its seven, the gen-78 networkMatrixReplacedBuildOutputs at its two, the gen-77 resumeFeedReplacedBuildOutputs at its sixty-five, the gen-76B toolJournalReplacedBuildOutputs at its seventy-one and the rest as sealed), the source-side tracked keys resolving through the new before archive; the remaining open channels (the host-side readiness verdict surface, the sanitizer audit, the same-candidate support-collector verification, the Phase 8 secure outbound relay and the CI synchronize gap) all stay open — so no whole-section PASS is granted; full Upstream-First objective remains in progress",
+  "gate0": {
+    "validation": "PASS",
+    "gate0": "PASS",
+    "paths": 1938,
+    "components": 129,
+    "specificationCoverage": {
+      "status": "PASS",
+      "numberedSections": 81,
+      "nonEmptySourceLines": 1983,
+      "acceptanceProven": false
+    }
+  },
+  "sourceRecord": {
+    "path": "artifacts/upstream-first/host-runtime-health-source.json",
+    "sha256": "17dd54ee7cf36d6d8683b56d769634e364e3f151a64effd972ce7ddd6610dc16"
+  },
+  "generator": {
+    "path": "artifacts/upstream-first/write-reports.mjs",
+    "sha256": "c8f60503583cc194a75ce13a48676a34afe33667ce217b76796c4646d6f07c18"
+  },
+  "binding": {
+    "path": "artifacts/upstream-first/host-runtime-health-binding.json",
+    "sha256": "69f4409de7b7d640f6f7c5e318fa78eb36710223645385be631a8b81477f3c61"
+  },
+  "helpers": [
+    {
+      "path": ".artifacts/advance-host-runtime-health-reports.mjs",
+      "sha256": "0f687c3d2fb82a2d286328a1d6e202315926755355a12aa8a8e2113a174bad75"
+    },
+    {
+      "path": ".artifacts/capture-host-runtime-health-validation.mjs",
+      "sha256": "07adf55f138599030e4a4d2f6c3cbe7b2ceb0fdce25dd196c55de03068bb5b19"
+    }
+  ],
+  "reports": [
+    {
+      "path": "IMPLEMENTATION_STATUS.md",
+      "sha256": "c16487156ea95af0ec65306c43b0bf41357e7a2acee6d239004e34442094ccc1"
+    },
+    {
+      "path": "artifacts/upstream-first/evidence.json",
+      "sha256": "594b038d1aee45249928ca4f48136be5090da9f6b836b374ce87dc972ead762a"
+    }
+  ],
+  "checks": [
+    {
+      "path": ".artifacts/host-runtime-health-binding.log",
+      "sha256": "37e878dbf13feb79bc84ed7408e34b4c91fe74d220b2de33ce2567b5f6e6e6fb"
+    },
+    {
+      "path": ".artifacts/host-runtime-health-audit-final.log",
+      "sha256": "20d2a2069f087942477d064072f02153b202ccf34f169bc8c8cab7e7ab152d88"
+    },
+    {
+      "path": ".artifacts/host-runtime-health-gate0-final.log",
+      "sha256": "505d74ef938f5d34d85490d37e0176ba804d93272fcf465ce2544a02c56b3f90"
+    },
+    {
+      "path": ".artifacts/host-runtime-health-report-generation.log",
+      "sha256": "fe010532f71a6341467ae5719b29ac19470895de1d481156335b8f70a3273ed5"
+    }
+  ]
+}

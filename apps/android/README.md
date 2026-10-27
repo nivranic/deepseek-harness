@@ -89,6 +89,8 @@ The application binds download storage to the current verified Host principal an
 
 Support export labels current Native Gateway transport ownership separately from historical Link observations. HTTP callback counts and mux subscriptions belong to a client generation; model reconnect counters retain their own lifetime. Protocol facts and pairing roles remain last-known observations after refresh failure, never health or authorization guarantees. Capability fields use a fixed allowlist. The [diagnostic decision](../../.agents/notes/implemented/architecture/2026-09-27-android-native-gateway-diagnostics.md) owns these rules; the [installed-app scenario](../web/tests/android-native-diagnostics.e2e.ts) exercises the existing scanner pipeline.
 
+Runtime health is a fetch-time Host observation: when the paired Host advertises `host.diagnostics.v1`, the export calls `hostDiagnostics/health` and embeds the §41 snapshot verbatim — the six component states plus the readiness verdict, in the Host's own vocabulary. An unpaired wire, an unadvertised capability, a timeout, or a deviating answer leaves the snapshot uncollected instead of guessing a component.
+
 ## Model Experience
 
 The companion displays Host-owned Session events and returns explicit human answers through the current Gateway. It does not execute a model locally or add a separate transcript. The keyless acceptance scenario replays recorded model output; it does not qualify a live provider.

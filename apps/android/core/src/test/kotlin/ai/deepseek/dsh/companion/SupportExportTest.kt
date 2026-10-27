@@ -124,6 +124,38 @@ class SupportExportTest {
         assertEquals("\"lite\"", paired["liteSession"]!!.jsonObject["runtimeMode"].toString())
     }
 
+    @Test fun runtimeHealthProjectsAsTheHostPlaneSegment() {
+        val health = HostRuntimeHealth(
+            ready = false,
+            process = HostHealthComponent(HostHealthState.UP, "pid 4242"),
+            runtime = HostHealthComponent(HostHealthState.UP, "node v22.19.0"),
+            sessionStore = HostHealthComponent(HostHealthState.DOWN, "sessionPersistence is not composed"),
+            pluginState = HostHealthComponent(HostHealthState.DEGRADED, "1 plugin fiber(s) failed"),
+            connection = HostHealthComponent(HostHealthState.DOWN, "webServer is not composed"),
+            modelProvider = HostHealthComponent(HostHealthState.UP, "llm is composed"),
+        )
+        val value = Json.parseToJsonElement(encodeSupportDocument(product, snapshot.copy(runtimeHealth = health),
+            identity, policy.maximumBytes).decodeToString()).jsonObject
+        val segment = value["runtimeHealth"]!!.jsonObject
+        assertEquals(health.toJson(), segment)
+        assertEquals("\"hostDiagnostics/health\"", segment["producer"].toString())
+        assertEquals("\"fetch-time\"", segment["observation"].toString())
+        assertEquals("false", segment["ready"].toString())
+        val components = segment["components"]!!.jsonObject
+        assertEquals(setOf("process", "runtime", "sessionStore", "pluginState", "connection", "modelProvider"), components.keys)
+        assertEquals("\"degraded\"", components["pluginState"]!!.jsonObject["state"].toString())
+        assertEquals("\"1 plugin fiber(s) failed\"", components["pluginState"]!!.jsonObject["detail"].toString())
+        assertFalse(value["uncollected"].toString().contains("runtime-health"))
+        assertTrue(value["uncollected"].toString().contains("updates"))
+        // A null snapshot keeps the segment absent; the uncollected entry stays in front of updates.
+        val without = Json.parseToJsonElement(encodeSupportDocument(product, snapshot.copy(runtimeHealth = null),
+            identity, policy.maximumBytes).decodeToString()).jsonObject
+        assertFalse(without.containsKey("runtimeHealth"))
+        val uncollected = without["uncollected"].toString()
+        assertTrue(uncollected.contains("runtime-health"))
+        assertTrue(uncollected.indexOf("runtime-health") < uncollected.indexOf("updates"))
+    }
+
     @Test fun failedDescriptionDoesNotRetainCapabilityOrProtocolValues() {
         val unavailable = snapshot.copy(wire = WireDiagnosticSnapshot.LegacyLink(link.copy(descriptionState = LinkDescriptionState.FAILED,
             descriptionFailure = LinkDescriptionFailure.REFUSED, description = null)))

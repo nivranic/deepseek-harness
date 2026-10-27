@@ -80,6 +80,7 @@ internal fun HostCapabilityDetails(observation: NativeHostObservation, generatio
                             NativeObservedCapability.MODEL_SELECT -> R.string.native_capabilities_model_select
                             NativeObservedCapability.SUBAGENT_CATALOG -> R.string.native_capabilities_subagent_catalog
                             NativeObservedCapability.TOOL_CATALOG -> R.string.native_capabilities_tool_catalog
+                            NativeObservedCapability.HOST_DIAGNOSTICS -> R.string.native_capabilities_host_diagnostics
                         }
                         val support = if (capability in protocol.capabilities) R.string.native_capabilities_supported else R.string.native_capabilities_absent
                         Text(stringResource(R.string.native_capabilities_entry, stringResource(label), stringResource(support)),

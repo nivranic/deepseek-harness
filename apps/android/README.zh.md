@@ -89,6 +89,8 @@ Session、Workspace 和交互观察只在传输故障或已分类的暂时性 Ho
 
 支持导出将当前 Native Gateway 传输所有权与历史 Link 观察分别标记。HTTP 回调计数与 mux 订阅属于客户端代次，模型重连计数保留各自生命周期。刷新失败后，协议事实与配对角色仍是最近已知观察，不能保证健康或授权。能力字段使用固定白名单。[诊断决策](../../.agents/notes/implemented/architecture/2026-09-27-android-native-gateway-diagnostics.zh.md)拥有这些规则；[已安装应用场景](../web/tests/android-native-diagnostics.e2e.ts)验证既有扫描器流程。
 
+运行时健康是取数时点的 Host 观察：配对 Host 通告 `host.diagnostics.v1` 时，导出调用 `hostDiagnostics/health` 并逐字嵌入 §41 快照——六组件状态加就绪判定，全部使用 Host 自己的词汇。未配对线路、未通告能力、超时或偏离形状的回答让该快照保持未收集，而不是猜测某个组件。
+
 ## 模型体验
 
 伴随端展示 Host 持有的 Session 事件，通过当前 Gateway 返回显式的人类答案。它不在本地执行模型，也不增加独立的对话记录。无密钥验收场景回放录制的模型输出，不代表真实提供方已通过验收。
