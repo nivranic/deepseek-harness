@@ -55,7 +55,7 @@ The Web bundle mounts the package with Connection, `dsh-commands`, `dsh-client-u
 
 ### What to expect
 
-The dialog reports three phases: preparing, download started, or failed. Closing the dialog does not cancel an in-flight download, and the dialog does not reopen when that operation later settles. One session admits one active download at a time; repeated gestures share that operation. The export includes the live session's newest events: the host endpoint flushes a live root session before reading, so a slash-triggered ZIP includes the `command/run` and `command/done` pair that started the download; cold persisted sessions need no flush. Each logical log uses the current generation's canonical filename inside the archive (`session.jsonl` for v0, otherwise `session.vN.jsonl`), including beneath each sub-session directory. Images use `media/<attachmentId>.<ext>`, and generic files use `files/<digest-prefix>/<digest>/<name>`. Generic-file bytes are read and compressed as bounded chunks, so exporting a large upload does not buffer it in full.
+The dialog reports three phases: preparing, download started, or failed. Closing the dialog does not cancel an in-flight download, and the dialog does not reopen when that operation later settles. One session admits one active download at a time; repeated gestures share that operation. The export includes the live session's newest events: the host endpoint flushes a live root session before reading, so a slash-triggered ZIP includes the `command/run` and `command/done` pair that started the download; cold persisted sessions need no flush. Each logical log uses the current generation's canonical filename inside the archive (`session.jsonl` for v0, otherwise `session.vN.jsonl`), including beneath each sub-session directory. Images use `media/<attachmentId>.<ext>`, and generic files use `files/<digest-prefix>/<digest>/<name>`. Generic-file bytes are read and compressed as bounded chunks, so exporting a large upload does not buffer it in full. The archive is deterministic — the same session exports byte-identical bytes — and the route advertises `Accept-Ranges: bytes`, so a download manager that re-requests with `Range` continues an interrupted download from the bytes it already holds.
 
 ### Failures
 
@@ -80,6 +80,8 @@ The package has two halves. The Host half ([`src/index.ts`](src/index.ts)) regis
 Both entry paths issue a `HEAD` preflight to `/api/session.export?...`, then hand the GET URL to the browser download manager without buffering the ZIP in JavaScript. One controller owns one in-flight download per session, collapses concurrent gestures into that operation, and cancels the preflight on plugin disposal. Modal state lives in a snapshot store keyed by session, so the button and the command share one dialog per session.
 
 The Host route is a feature-owned exact Fetch contribution. Connection applies its Host/Origin and browser-session checks and bridges the streaming `Response`; this package owns query validation, live-session flushes, handle-based log reads and attachment reads, ZIP generation, and HTTP status semantics.
+
+Archive determinism and range resume: every ZIP entry carries the fixed `SESSION_LOG_ZIP_MTIME` timestamp, so the same session produces byte-identical archives and a resumed range cannot splice mismatched halves. A plain GET streams one generation with `Accept-Ranges: bytes` and no `Content-Length`; a `HEAD` measures one generation and reports its exact `Content-Length`; a GET with one well-formed `bytes=N-`/`bytes=N-M` range measures once, then answers `206` with the sliced second generation (`416` when the start is past the end), so only resume requests pay a second archive generation. Suffix ranges, multi-ranges, other units, and a reversed end are ignored per HTTP and served as a plain 200.
 
 </details>
 
@@ -122,7 +124,7 @@ None. The log-only command lifecycle and browser download do not change the deri
 These limits define when this package is a poor fit or needs special operational care. They are current package constraints, not a task backlog.
 
 - **Browser download, not a Host-path writer** — the browser chooses the local destination; no Host path or native folder action is returned.
-- **Preflight reports only pre-stream failures** — a descendant or attachment failure after the browser accepts the GET is reported by the browser download manager, not by the dialog.
+- **Preflight reports only pre-stream failures** — a descendant or attachment failure after the browser accepts a plain GET is reported by the browser download manager, not by the dialog; a range (resume) request that fails mid-generation answers HTTP 500 instead.
 
 <a id="dev-note"></a>
 ### Dev Note

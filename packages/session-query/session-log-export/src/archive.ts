@@ -39,6 +39,17 @@ export type SessionLogCompressionLevel = 0 | 1 | 2 | 3 | 4 | 5 | 6 | 7 | 8 | 9
 /** Balanced default used when Session export configuration omits a compression level. */
 export const DEFAULT_SESSION_LOG_COMPRESSION_LEVEL: SessionLogCompressionLevel = 6
 
+/**
+ * Fixed entry mtime for every archive entry. fflate stamps `Date.now()` into the
+ * DOS date/time fields when an entry carries no mtime, so two exports of one
+ * Session would differ byte-for-byte and any resumed byte-range download would
+ * splice mismatched halves into a corrupt archive. One fixed timestamp keeps the
+ * archive deterministic — same Session, same bytes — which is the precondition
+ * the export route's `206 Partial Content` support relies on. 2000-01-01T00:00:00Z
+ * sits safely inside the DOS date domain (1980–2107).
+ */
+export const SESSION_LOG_ZIP_MTIME = 946684800000
+
 /** The services a session-log export needs (the live-session store is optional). */
 export interface SessionLogExportDeps {
   readonly sessionQuery: SessionQueryEngine | undefined
@@ -564,6 +575,7 @@ export function streamSessionLogZip(
         try {
           for await (const entry of sessionLogZipEntries(deps, rootContent, sessionId, includeDescendants, producerSignal)) {
             const deflate = new ZipDeflate(entry.path, { level: compressionLevel })
+            deflate.mtime = SESSION_LOG_ZIP_MTIME
             archive.add(deflate)
             if ('content' in entry) {
               await pushArtifactChunks(deflate, entry.content, controller, capacity, producerSignal)

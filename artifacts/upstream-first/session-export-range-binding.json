@@ -1,0 +1,16 @@
+{
+  "status": "PASS",
+  "controls": 3,
+  "sourceRecord": {
+    "path": "artifacts/upstream-first/session-export-range-source.json",
+    "sha256": "2e352220810ea6feac078f79f8194fcfa77e80bb82d88029563aace1cfeb1bd3"
+  },
+  "generator": {
+    "path": "artifacts/upstream-first/write-reports.mjs",
+    "sha256": "088d2f527bf43933907f2d672ef10ffe84b669db24216e6c5ce3b84e1de006fa"
+  },
+  "helper": {
+    "path": ".artifacts/check-session-export-range-binding.mjs",
+    "sha256": "b5205f29c04cb4dd76d99172418e296bff0d7caed7cc53e880419b1bf13770b6"
+  }
+}

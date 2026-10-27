@@ -55,7 +55,7 @@ Web bundle 将本包与 Connection、`dsh-commands`、`dsh-client-ui-commands` �
 
 ### 预期行为
 
-弹窗报告三个阶段：准备中、开始下载或失败。关闭弹窗不会取消正在进行的下载，该操作随后结束时弹窗也不会重新打开。每个会话同时只允许一项下载，重复操作共用该任务。导出包含实时会话的最新事件：Host 端点在读取前会 flush 活动的根会话，因此斜杠命令触发的 ZIP 会包含启动下载的 `command/run` 与 `command/done` 事件对；非活动的持久化会话不需要 flush。每份逻辑日志在归档中使用当前 generation 的规范文件名（v0 为 `session.jsonl`，其他版本为 `session.vN.jsonl`），每个子会话目录下也遵循同一规则。图片使用 `media/<attachmentId>.<ext>`，通用文件使用 `files/<digest-prefix>/<digest>/<name>`。通用文件以有界分块读取并压缩，因此导出大型上传文件时不会把它完整缓冲进内存。
+弹窗报告三个阶段：准备中、开始下载或失败。关闭弹窗不会取消正在进行的下载，该操作随后结束时弹窗也不会重新打开。每个会话同时只允许一项下载，重复操作共用该任务。导出包含实时会话的最新事件：Host 端点在读取前会 flush 活动的根会话，因此斜杠命令触发的 ZIP 会包含启动下载的 `command/run` 与 `command/done` 事件对；非活动的持久化会话不需要 flush。每份逻辑日志在归档中使用当前 generation 的规范文件名（v0 为 `session.jsonl`，其他版本为 `session.vN.jsonl`），每个子会话目录下也遵循同一规则。图片使用 `media/<attachmentId>.<ext>`，通用文件使用 `files/<digest-prefix>/<digest>/<name>`。通用文件以有界分块读取并压缩，因此导出大型上传文件时不会把它完整缓冲进内存。归档是确定性的——同一会话导出逐字节相同的档案——路由声明 `Accept-Ranges: bytes`，因此携带 `Range` 重新请求的下载管理器可以从已持有的字节继续中断的下载。
 
 ### 失败
 
@@ -80,6 +80,8 @@ Web bundle 将本包与 Connection、`dsh-commands`、`dsh-client-ui-commands` �
 两条入口都会先向 `/api/session.export?...` 发出 `HEAD` 预检请求，然后把 GET URL 交给浏览器下载管理器，JavaScript 不缓冲 ZIP。一个控制器按会话持有一项进行中的下载，把并发操作折叠进该任务，并在插件释放时取消预检。弹窗状态存放在按会话键控的快照存储中，因此按钮与命令按会话共享一个弹窗。
 
 Host 路由是由该功能拥有的精确 Fetch 路由贡献。Connection 应用 Host/Origin 与浏览器会话检查并桥接流式 `Response`；本包拥有查询校验、活动会话 flush、基于句柄的日志读取与附件读取、ZIP 生成和 HTTP 状态语义。
+
+归档确定性与范围续传：每个 ZIP 条目携带固定的 `SESSION_LOG_ZIP_MTIME` 时间戳，因此同一会话产出逐字节相同的归档，续传范围不会拼接错配的两半。普通 GET 单遍流式生成，携带 `Accept-Ranges: bytes` 而无 `Content-Length`；`HEAD` 测量一遍生成并报告精确的 `Content-Length`；携带单个合法 `bytes=N-`/`bytes=N-M` 范围的 GET 先测量再以 `206` 回答切片后的第二遍生成（起点越过末尾时为 `416`），因此只有续传请求支付第二遍归档生成。后缀范围、多范围、其他单位与倒置端点按 HTTP 忽略并按普通 200 提供。
 
 </details>
 
@@ -122,7 +124,7 @@ Host 路由是由该功能拥有的精确 Fetch 路由贡献。Connection 应用
 这些限制说明本包何时不合适，或何时需要特别的运维注意。它们是当前包约束，不是任务积压。
 
 - **浏览器下载，而非 Host 路径写入**——目标位置由浏览器选择；不会返回 Host 路径或原生文件夹操作。
-- **预检只报告流式传输前的失败**——浏览器接受 GET 后发生的子会话或附件读取失败由浏览器下载管理器报告，不通过弹窗报告。
+- **预检只报告流式传输前的失败**——浏览器接受普通 GET 后发生的子会话或附件读取失败由浏览器下载管理器报告，不通过弹窗；范围（续传）请求在生成中途失败时改以 HTTP 500 回答。
 
 <a id="dev-note"></a>
 ### 开发备注
