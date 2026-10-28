@@ -1,6 +1,7 @@
 /** §43 support bundle: deterministic producer, sanitizer, manifest, checksums, and collector validation. */
 import { createHash } from 'node:crypto'
 import type { JsonValue } from '@deepseek-ai/dsh-util-values'
+import { carriedSecretShape } from './redact.ts'
 import type { DiagnosticsSnapshot, SupportBundle, SupportBundleEntry, SupportBundleEntryKind, SupportBundleManifestEntry } from './types.ts'
 
 /** Canonical per-entry serialization: stable key order is the producer's, not JSON.stringify's. */
@@ -43,13 +44,21 @@ export function sanitizeSupportBundleEntry(
 }
 
 /**
- * Refuse secret-shaped keys at any depth and confirm JSON safety (a value the
- * canonical serializer could silently mangle never enters a bundle); the
- * sanitizer never trusts a shallow shape.
+ * Refuse secret-shaped keys at any depth, secret-shaped free-text values under
+ * any key, and confirm JSON safety (a value the canonical serializer could
+ * silently mangle never enters a bundle); the sanitizer never trusts a shallow
+ * shape. A bare hash-shaped string (a revision or digest) matches no secret
+ * shape and passes.
  * @returns the same value typed at the wire's JsonValue vocabulary.
  */
 function scanKeys(value: unknown, path: string): JsonValue {
   if (value === null || typeof value === 'string' || typeof value === 'number' || typeof value === 'boolean') {
+    if (typeof value === 'string') {
+      const shape = carriedSecretShape(value)
+      if (shape !== undefined) {
+        throw new Error(`support bundle entry "${path}" carries a ${shape}-shaped value`)
+      }
+    }
     return value
   }
   if (Array.isArray(value)) return value.map(member => scanKeys(member, path))

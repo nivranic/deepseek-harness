@@ -91,6 +91,8 @@ Session、Workspace 和交互观察只在传输故障或已分类的暂时性 Ho
 
 运行时健康是取数时点的 Host 观察：配对 Host 通告 `host.diagnostics.v1` 时，导出调用 `hostDiagnostics/health` 并逐字嵌入 §41 快照——六组件状态加就绪判定，全部使用 Host 自己的词汇。未配对线路、未通告能力、超时或偏离形状的回答让该快照保持未收集，而不是猜测某个组件。
 
+Support bundle 工件携带独立校验者：SupportBundleCollector 从 §43 规范序列化（kind 先行、顶层 content 键按码元序、嵌套对象逐字）重推导每条 SHA-256 与链式校验和，并对 Node collector 拒绝的每种篡改形态大声失败。其 JVM 测试验证 [Node producer](../../packages/api/host-diagnostics/README.zh.md) 发出的封存候选夹具并重推导出相同链式校验和——双平台同候选证明。
+
 ## 模型体验
 
 伴随端展示 Host 持有的 Session 事件，通过当前 Gateway 返回显式的人类答案。它不在本地执行模型，也不增加独立的对话记录。无密钥验收场景回放录制的模型输出，不代表真实提供方已通过验收。

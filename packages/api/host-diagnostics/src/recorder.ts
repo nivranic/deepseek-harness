@@ -15,6 +15,7 @@ import type { Context } from '@deepseek-ai/cordis'
 import type {} from '@deepseek-ai/dsh-agent'
 import { dshHomePath } from '@deepseek-ai/dsh-home-paths'
 import type { SessionTelemetryRecord, TelemetryConsent } from '@deepseek-ai/dsh-session-telemetry'
+import { redactSecretShapedText } from './redact.ts'
 import type { DiagnosticsCrashFact, DiagnosticsErrorFact } from './types.ts'
 
 /** History bound for the durable crash log; the boot scan keeps the newest facts. */
@@ -111,17 +112,20 @@ export class DiagnosticsRecorder {
   }
 
   /**
-   * Record one normalized agent error into the capped ring.
+   * Record one normalized agent error into the capped ring. The message is the
+   * one free-text channel into the §42 payload, so a credential-shaped span it
+   * quotes is redacted here — at the ring's single entry point — never carried
+   * into `describe()` or a §43 bundle entry.
    * @param agentId - the failing agent's id.
    * @param turn - the turn in which the failure surfaced.
    * @param step - the step at which the failure surfaced.
-   * @param error - the failure, verbatim; non-Error values normalize to name `Error`.
+   * @param error - the failure; non-Error values normalize to name `Error`.
    */
   recordError(agentId: string, turn: number, step: number, error: unknown): void {
     const { name, message } = error instanceof Error
       ? { name: error.name, message: error.message }
       : { name: 'Error', message: String(error) }
-    this.errorFacts.push({ time: Date.now(), name, message, agentId, turn, step })
+    this.errorFacts.push({ time: Date.now(), name, message: redactSecretShapedText(message), agentId, turn, step })
     if (this.errorFacts.length > MAX_LAST_ERROR_FACTS) {
       this.errorFacts.splice(0, this.errorFacts.length - MAX_LAST_ERROR_FACTS)
     }

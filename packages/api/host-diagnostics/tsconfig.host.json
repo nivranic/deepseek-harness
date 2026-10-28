@@ -10,6 +10,7 @@
     "src/client.ts",
     "src/index.ts",
     "src/recorder.ts",
+    "src/redact.ts",
     "src/support-bundle.ts",
     "src/types.ts"
   ],

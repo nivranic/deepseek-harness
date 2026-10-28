@@ -1,0 +1,16 @@
+{
+  "status": "PASS",
+  "controls": 3,
+  "sourceRecord": {
+    "path": "artifacts/upstream-first/support-bundle-value-hygiene-source.json",
+    "sha256": "c9f90aa66accc652c794e1dc876f5654adc7cfe956bc81642fe6e3c680a0a329"
+  },
+  "generator": {
+    "path": "artifacts/upstream-first/write-reports.mjs",
+    "sha256": "6d2bcd9fea6d767b2298b46cfd81e23eb8a679b27605c8f6954c253d8b558094"
+  },
+  "helper": {
+    "path": ".artifacts/check-support-bundle-value-hygiene-binding.mjs",
+    "sha256": "8c6730b09623679c8afe4b3f618f62fa31003864c8e1e2f3d258d024d634bf62"
+  }
+}

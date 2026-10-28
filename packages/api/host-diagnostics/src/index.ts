@@ -88,12 +88,30 @@ function presence(owner: unknown, serviceName: string): HealthComponent {
     : { state: 'up', detail: `${serviceName} is composed` }
 }
 
+/**
+ * Read the stamped build revision: the desktop stamp writer validates the
+ * 40-hex shape when it sets `DSH_BUILD_REVISION`, so an inherited value that
+ * is neither a 40-hex commit sha nor unset is a misconfiguration this seam
+ * refuses loud — at load (the constructor call) and again at every describe
+ * (a launcher may stamp between them) — instead of quoting it into the §42
+ * payload verbatim.
+ * @returns the stamped 40-hex revision, or the honest source-tree marker.
+ * @throws Error naming the malformed stamp.
+ */
+function readStampedRevision(): string {
+  const stamped = process.env.DSH_BUILD_REVISION
+  if (stamped === undefined || stamped === 'source-tree') return 'source-tree'
+  if (/^[0-9a-f]{40}$/u.test(stamped)) return stamped
+  throw new Error(`DSH_BUILD_REVISION must be a 40-hex commit sha, got "${stamped.slice(0, 24)}"`)
+}
+
 /** Host-diagnostics service (`ctx.hostDiagnostics`) composing §41/§42 facts. */
 export class HostDiagnosticsService extends TypertRemoteService {
   private readonly recorder: DiagnosticsRecorder
 
   constructor(ctx: Context) {
     super(ctx, 'hostDiagnostics', { namespace: 'hostDiagnostics', capabilities: HOST_DIAGNOSTICS_REMOTE_CAPABILITIES })
+    readStampedRevision()
     this.recorder = new DiagnosticsRecorder(ctx)
   }
 
@@ -178,7 +196,7 @@ export class HostDiagnosticsService extends TypertRemoteService {
     return {
       productVersion: descriptor.productVersion,
       // Read per call: a launcher may stamp the revision before its first describe.
-      sourceRevision: process.env.DSH_BUILD_REVISION ?? 'source-tree',
+      sourceRevision: readStampedRevision(),
       apiProtocolVersion: descriptor.apiProtocolVersion,
       sessionFormatVersion: descriptor.sessionFormatVersion,
       hostId: descriptor.hostId,

@@ -581,3 +581,160 @@ describe('Degraded-capable probes (§41)', () => {
     expect(snapshot.health.ready).toBe(false)
   })
 })
+
+describe('§42 sanitizer audit — free-text redaction (gen-84)', () => {
+  it('redacts each forbidden category quoted in an error message, keeping the failure text', async () => {
+    const { ctx, service } = bench()
+    ctx.emit('agent/error', { agent: { id: 'agent-1' } as Agent, turn: 1, step: 1, error: new Error('provider call failed: api_key=Ab12cd34ef56gh78 at step 2') })
+    ctx.emit('agent/error', { agent: { id: 'agent-1' } as Agent, turn: 1, step: 2, error: new Error('header Authorization: Bearer abcdefghijklmno12345 was rejected') })
+    ctx.emit('agent/error', { agent: { id: 'agent-1' } as Agent, turn: 1, step: 3, error: new Error('provider rejected key sk-Abcdefghij12345 mid-turn') })
+    ctx.emit('agent/error', { agent: { id: 'agent-1' } as Agent, turn: 1, step: 4, error: new Error('login failed for password: "Sup3rSecretPassw0rdX"') })
+    const snapshot = await service.describe()
+    const messages = snapshot.lastErrors.map(fact => fact.message)
+    expect(messages[0]).toBe('provider call failed: [redacted:assignment] at step 2')
+    expect(messages[1]).toBe('header Authorization: [redacted:bearer] was rejected')
+    expect(messages[2]).toBe('provider rejected key [redacted:key] mid-turn')
+    expect(messages[3]).toBe('login failed for [redacted:assignment]')
+    const serialized = JSON.stringify(snapshot)
+    expect(serialized).not.toContain('Ab12cd34ef56gh78')
+    expect(serialized).not.toContain('abcdefghijklmno12345')
+    expect(serialized).not.toContain('sk-Abcdefghij12345')
+    expect(serialized).not.toContain('Sup3rSecretPassw0rdX')
+  })
+
+  it('carries the redacted messages into the §43 bundle entry with no secret shape surviving', async () => {
+    const { ctx, service } = bench()
+    ctx.emit('agent/error', { agent: { id: 'agent-2' } as Agent, turn: 3, step: 1, error: new Error('upstream said Bearer zzzz0000aaaa1111bbbb is invalid') })
+    const bundle = await service.supportBundle()
+    validateSupportBundle(bundle)
+    const serialized = JSON.stringify(bundle)
+    expect(serialized).toContain('[redacted:bearer]')
+    expect(serialized).not.toContain('zzzz0000aaaa1111bbbb')
+  })
+
+  it('keeps clean diagnostics text and hash-shaped values untouched', async () => {
+    const { ctx, service } = bench()
+    ctx.emit('agent/error', { agent: { id: 'agent-3' } as Agent, turn: 1, step: 1, error: new Error('boom') })
+    const snapshot = await service.describe()
+    expect(snapshot.lastErrors[0]?.message).toBe('boom')
+    expect(snapshot.sourceRevision).toMatch(/^(?:source-tree|[0-9a-f]{40})$/u)
+  })
+
+  it('refuses a secret-shaped string value under a benign key at the bundle sanitizer', () => {
+    expect(() => buildSupportBundle([
+      { kind: 'session-headers', path: 'session-headers.json', content: { sessions: [{ note: 'Bearer abcdefghijklmno12' }] } },
+    ])).toThrow(/bearer-shaped value/u)
+    expect(() => buildSupportBundle([
+      { kind: 'session-headers', path: 'session-headers.json', content: { sessions: [{ note: 'sk-Abcdefghij12345' }] } },
+    ])).toThrow(/key-shaped value/u)
+  })
+
+  it('maps every §42 spec bullet to a payload field, connectivity through transports plus the health connection row', async () => {
+    const { service } = bench((ctx: Context) => {
+      ctx.provide('loader', {})
+    })
+    const snapshot = await service.describe()
+    expect(snapshot.productVersion).toBe('0.0.0-fixture')
+    expect(snapshot.sourceRevision).toMatch(/^(?:source-tree|[0-9a-f]{40})$/u)
+    expect(snapshot.apiProtocolVersion).toBe(1)
+    expect(snapshot.sessionFormatVersion).toBe(3)
+    expect(snapshot.hostId).toBe('host-1')
+    expect(snapshot.platform).toBe('linux')
+    expect(snapshot.arch).toBe('x64')
+    expect(snapshot.runtimeMode).toBe('full')
+    expect(snapshot.nodeVersion).toBe(process.version)
+    expect(Array.isArray(snapshot.transports)).toBe(true)
+    expect(snapshot.health.connection.state).toBe('down')
+    expect(Array.isArray(snapshot.plugins)).toBe(true)
+    expect(Array.isArray(snapshot.migrations)).toBe(true)
+    expect(Array.isArray(snapshot.crash)).toBe(true)
+    expect(Array.isArray(snapshot.lastErrors)).toBe(true)
+  })
+
+  it('fails loud at load and at describe for a malformed DSH_BUILD_REVISION', async () => {
+    const previous = process.env.DSH_BUILD_REVISION
+    try {
+      process.env.DSH_BUILD_REVISION = 'banana'
+      expect(() => bench()).toThrow(/DSH_BUILD_REVISION must be a 40-hex commit sha/u)
+      delete process.env.DSH_BUILD_REVISION
+      const { service } = bench()
+      process.env.DSH_BUILD_REVISION = 'short'
+      await expect(service.describe()).rejects.toThrow(/DSH_BUILD_REVISION must be a 40-hex commit sha/u)
+    } finally {
+      if (previous === undefined) delete process.env.DSH_BUILD_REVISION
+      else process.env.DSH_BUILD_REVISION = previous
+    }
+  })
+})
+
+describe('§43 same-candidate collector (gen-84)', () => {
+  const CANDIDATE_CHECKSUM = 'b0919adec35e7dbb5807c88fe3f2a032da5b5c182f72574de08c9f6210af35f4'
+
+  const candidate = (): ReturnType<typeof buildSupportBundle> => buildSupportBundle([
+    {
+      kind: 'diagnostics',
+      path: 'diagnostics.json',
+      content: {
+        productVersion: '1.2.3',
+        sourceRevision: '0123456789abcdef0123456789abcdef01234567',
+        apiProtocolVersion: 1,
+        sessionFormatVersion: 0,
+        hostId: '11111111-2222-4333-8444-555555555555',
+        platform: 'linux',
+        arch: 'x64',
+        runtimeMode: 'full',
+        nodeVersion: 'v22.0.0',
+        transports: [],
+        capabilities: [],
+        plugins: [{ moduleName: 'fixture-plugin', enabled: true, fiberPhase: 'active' }],
+        migrations: [{ from: 0, to: 1, releasedIn: '1.0.0' }],
+        crash: [],
+        lastErrors: [{ time: 1700000000000, name: 'Error', message: 'call failed: [redacted:assignment]', agentId: 'agent-1', turn: 2, step: 1 }],
+        health: {
+          process: { state: 'up', detail: 'pid 1' },
+          runtime: { state: 'up', detail: 'node v22.0.0' },
+          sessionStore: { state: 'up', detail: 'sessionPersistence is composed' },
+          pluginState: { state: 'up', detail: 'pluginInventory is composed' },
+          connection: { state: 'down', detail: 'webServer is not composed' },
+          modelProvider: { state: 'up', detail: 'llm is composed' },
+          ready: true,
+        },
+      },
+    },
+    sessionHeadersBundleEntry([
+      { id: 'sess-a', createdAt: 1700000000000, isSeeded: false, revision: 'r1', cwd: '/tmp/one', eventCount: 12, sizeBytes: 2048 },
+      { id: 'sess-b', createdAt: 1700000000999, isSeeded: true, revision: 'r2', parentSession: 'sess-a' },
+    ] as const),
+    settingsExportBundleEntry([
+      { ns: 'llm.deepseek', revision: 3, applies: 'live', value: { model: 'deepseek-chat' }, redacted: ['apiKey'] },
+      { ns: 'web.search', revision: 1, applies: 'restart', value: { enabled: false }, redacted: [] },
+    ] as const),
+  ])
+
+  it('builds the sealed candidate at its pinned chain checksum and equals the fixture bytes', () => {
+    const bundle = candidate()
+    expect(bundle.checksum).toBe(CANDIDATE_CHECKSUM)
+    const fixture = JSON.parse(readFileSync(new URL('./fixtures/support-bundle-candidate.json', import.meta.url), 'utf8')) as ReturnType<typeof buildSupportBundle>
+    expect(bundle).toEqual(fixture)
+  })
+
+  it('the collector accepts the sealed fixture artifact and refuses every tamper shape', () => {
+    const fixture = JSON.parse(readFileSync(new URL('./fixtures/support-bundle-candidate.json', import.meta.url), 'utf8')) as ReturnType<typeof buildSupportBundle>
+    validateSupportBundle(fixture)
+    const flippedEntry = structuredClone(fixture)
+    ;(flippedEntry.entries[0]!.content as Record<string, unknown>).productVersion = '9.9.9'
+    expect(() => { validateSupportBundle(flippedEntry) }).toThrow(/fails its checksum/u)
+    const flippedChain: ReturnType<typeof buildSupportBundle> = { ...fixture, checksum: '0'.repeat(64) }
+    expect(() => { validateSupportBundle(flippedChain) }).toThrow(/chained checksum fails/u)
+    const droppedRow: ReturnType<typeof buildSupportBundle> = { ...fixture, manifest: fixture.manifest.slice(0, -1) }
+    expect(() => { validateSupportBundle(droppedRow) }).toThrow(/disagree in count/u)
+  })
+
+  it('proves the redacted form rides the sealed candidate — no secret shape anywhere in the artifact', () => {
+    const fixture = JSON.parse(readFileSync(new URL('./fixtures/support-bundle-candidate.json', import.meta.url), 'utf8')) as ReturnType<typeof buildSupportBundle>
+    validateSupportBundle(fixture)
+    expect(JSON.stringify(fixture)).not.toMatch(/Bearer[ \t]+[A-Za-z0-9._~+/=-]{8,}|\bsk-[A-Za-z0-9_-]{8,}\b/u)
+    const lastError = (fixture.entries[0]!.content as { lastErrors: { message: string }[] }).lastErrors[0]
+    expect(lastError?.message).toBe('call failed: [redacted:assignment]')
+  })
+})

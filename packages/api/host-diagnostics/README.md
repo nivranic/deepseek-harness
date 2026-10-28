@@ -22,7 +22,7 @@ One Typert Remote owner (`ctx.hostDiagnostics`, capability `host.diagnostics.v1`
 <a id="model-experience"></a>
 ## Support Bundle
 
-`supportBundle()` produces the section 43 artifact: sanitized entries (a recursive secret-shape scan at any depth refuses api-key/bearer/secret/password/credential keys), a per-entry SHA-256 manifest over canonical key-sorted serialization, a chained checksum over the ordered manifest rows, and collector validation that recomputes every digest and fails loud on tampering — input order never leaks, so four platforms running the same candidate produce byte-identical bundles. The artifact's content entries: the §42 diagnostics snapshot; `session-headers.json` — when a session store is composed and holds at least one session — one row per stored session (header facts and store counts, never event content), sorted by id; and `settings-export.json` — when the settings seam is composed and registers namespaces — one row per namespace with the seam-stripped resolved value (`redactSecrets`), sorted by namespace.
+`supportBundle()` produces the section 43 artifact: sanitized entries (a recursive secret-shape scan at any depth refuses api-key/bearer/secret/password/credential keys and rejects string values that carry a secret shape), a per-entry SHA-256 manifest over canonical key-sorted serialization, a chained checksum over the ordered manifest rows, and collector validation that recomputes every digest and fails loud on tampering — input order never leaks, so four platforms running the same candidate produce byte-identical bundles. The sealed candidate fixture is derived from fixed inputs through the producer (never hand-written), and the Kotlin companion collector re-derives the same digests and chained checksum from it — the two-platform same-candidate proof. The artifact's content entries: the §42 diagnostics snapshot; `session-headers.json` — when a session store is composed and holds at least one session — one row per stored session (header facts and store counts, never event content), sorted by id; and `settings-export.json` — when the settings seam is composed and registers namespaces — one row per namespace with the seam-stripped resolved value (`redactSecrets`), sorted by namespace.
 
 ## Model Experience
 
@@ -38,7 +38,7 @@ None; health and diagnostics reads do not alter a model request.
 <a id="known-limitations-and-deferred-work"></a>
 
 - **Degraded probes cover partial failure where a signal exists** — failed plugin fibers and a provider-less LLM owner degrade; components without a partial-failure signal (sessionStore, connection) stay presence-based.
-- **Crash and last-error recording is always on** — a pid-safe boot marker under `$DSH_HOME` turns an unclean previous shutdown into a durable capped crash log, and the agent error relay fills a process-local capped ring; facts carry identity and text only.
+- **Crash and last-error recording is always on** — a pid-safe boot marker under `$DSH_HOME` turns an unclean previous shutdown into a durable capped crash log, and the agent error relay fills a process-local capped ring; facts carry identity and text only, the text value-redacted at the write entry.
 - **No client surface yet** — the payload's consumers (settings, support collection) land with their increments; the seam and its wire are the contract.
 
 <a id="dev-note"></a>
@@ -47,7 +47,7 @@ None; health and diagnostics reads do not alter a model request.
 <details>
 <summary>Working context for maintainers — click to expand</summary>
 
-The probes are `ctx.get()` lookups over optionally composed services: `sessionPersistence`, `loader`, `llm`, `webServer`, `pluginInventory` (§42 rows), `hostDescription` (descriptor facts; a missing owner fails `describe` loud with `gateway/service-unavailable`), and `sessionTelemetry` (§44 crash-facts egress; the recorder snapshots consent once at construction and stays silent without the owner or the `crashDiagnostics` kind). The migration table is the static released chain imported from the session-format packages — no build-time introspection to keep in sync.
+The probes are `ctx.get()` lookups over optionally composed services: `sessionPersistence`, `loader`, `llm`, `webServer`, `pluginInventory` (§42 rows), `hostDescription` (descriptor facts; a missing owner fails `describe` loud with `gateway/service-unavailable`), and `sessionTelemetry` (§44 crash-facts egress; the recorder snapshots consent once at construction and stays silent without the owner or the `crashDiagnostics` kind). `DSH_BUILD_REVISION` stamps the `sourceRevision` when it is a 40-hex commit sha; `source-tree` marks an unstamped source launch, and any other value fails the plugin's load. The migration table is the static released chain imported from the session-format packages — no build-time introspection to keep in sync.
 
 </details>
 

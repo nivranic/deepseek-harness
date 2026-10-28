@@ -22,7 +22,7 @@ kind: "package-reference"
 <a id="model-experience"></a>
 ## Support Bundle
 
-`supportBundle()` 产出第 43 节工件：经脱敏的条目（任意深度的递归秘密形状扫描拒绝 api-key/bearer/secret/password/credential 键）、按规范化键序序列化的逐条 SHA-256 manifest、对有序 manifest 行的链式校验和，以及重算每个摘要并对篡改大声失败的 collector 校验——输入顺序绝不外泄，四个平台运行同一候选产出字节一致的 bundle。 工件的内容条目：第 42 节诊断快照；`session-headers.json`——当会话存储已组合且持有至少一个会话时——每个存储会话一行（头部事实与存储计数，绝不含事件内容），按 id 排序；以及 `settings-export.json`——当 settings 接缝已组合且注册命名空间时——每个命名空间一行，携带接缝脱敏后的解析值（`redactSecrets`），按命名空间排序。
+`supportBundle()` 产出第 43 节工件：经脱敏的条目（任意深度的递归秘密形状扫描拒绝 api-key/bearer/secret/password/credential 键，并拒绝携带秘密形态的字符串值）、按规范化键序序列化的逐条 SHA-256 manifest、对有序 manifest 行的链式校验和，以及重算每个摘要并对篡改大声失败的 collector 校验——输入顺序绝不外泄，四个平台运行同一候选产出字节一致的 bundle。封存的候选夹具由固定输入经生产 producer 派生（绝不手写），Kotlin 伴生端 collector 从它重推导出相同摘要与链式校验和——双平台同候选证明。 工件的内容条目：第 42 节诊断快照；`session-headers.json`——当会话存储已组合且持有至少一个会话时——每个存储会话一行（头部事实与存储计数，绝不含事件内容），按 id 排序；以及 `settings-export.json`——当 settings 接缝已组合且注册命名空间时——每个命名空间一行，携带接缝脱敏后的解析值（`redactSecrets`），按命名空间排序。
 
 ## Model Experience
 
@@ -38,7 +38,7 @@ None；health 与诊断读取不会改变任何模型请求。
 <a id="known-limitations-and-deferred-work"></a>
 
 - **降级探测覆盖有信号的部分故障**——失败插件 fiber 与无提供方的 LLM owner 降级；暂无部分故障信号的组件（sessionStore、connection）保持存在性探测。
-- **Crash 与 last-error 记录常开**——`$DSH_HOME` 下 pid 安全的启动标记把上一次未干净关闭识别为持久且有上限的 crash 日志，agent 错误 relay 填充进程本地且有上限的环形记录；事实只携带身份与文本。
+- **Crash 与 last-error 记录常开**——`$DSH_HOME` 下 pid 安全的启动标记把上一次未干净关闭识别为持久且有上限的 crash 日志，agent 错误 relay 填充进程本地且有上限的环形记录；事实只携带身份与文本，文本在写入口做值级擦洗。
 - **尚无客户端表面**——载荷的消费方（设置、支持收集）随各自增量落地；本接缝与其 wire 即契约。
 
 <a id="dev-note"></a>
@@ -47,7 +47,7 @@ None；health 与诊断读取不会改变任何模型请求。
 <details>
 <summary>维护者工作上下文——点击展开</summary>
 
-探测是对可选组合服务的 `ctx.get()` 查找：`sessionPersistence`、`loader`、`llm`、`webServer`、`pluginInventory`（§42 行）、`hostDescription`（描述符事实；缺失 owner 时 `describe` 以 `gateway/service-unavailable` 大声失败），以及 `sessionTelemetry`（第 44 节 crash 事实外发；recorder 在构造时一次性快照同意状态，owner 缺席或 `crashDiagnostics` 关闭时保持静默）。迁移表是从 session-format 包静态导入的已发布链——不做构建期内省，无需保持同步。
+探测是对可选组合服务的 `ctx.get()` 查找：`sessionPersistence`、`loader`、`llm`、`webServer`、`pluginInventory`（§42 行）、`hostDescription`（描述符事实；缺失 owner 时 `describe` 以 `gateway/service-unavailable` 大声失败），以及 `sessionTelemetry`（第 44 节 crash 事实外发；recorder 在构造时一次性快照同意状态，owner 缺席或 `crashDiagnostics` 关闭时保持静默）。`DSH_BUILD_REVISION` 为 40 位十六进制 commit sha 时盖戳 `sourceRevision`；`source-tree` 标记未盖戳的源码启动，任何其他值使插件加载失败。迁移表是从 session-format 包静态导入的已发布链——不做构建期内省，无需保持同步。
 
 </details>
 

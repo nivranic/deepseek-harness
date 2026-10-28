@@ -1,0 +1,66 @@
+{
+  "status": "PASS",
+  "scope": "Report bindings and audit for the support-bundle-value-hygiene increment: the gen-84 §42/§43 value-hygiene closure (the three-shape credential redaction module redact.ts naming a Bearer credential, an sk- prefixed key and an api-key/token/password-style assignment, applied at the recorder's single write entry so every recorded message enters the ring already redacted to [redacted:<kind>] placeholders — the recorder is the only write path, no other fact source can bypass it; the sanitizer's value-level refusal beside its key scan — carriedSecretShape on every string value makes a shape-carrying value fail the whole bundle loud, the division of labor pinned in the README: redaction for owner-controlled recorded text, refusal for assembled values the bundle would publish; and the DSH_BUILD_REVISION stamp validation through readStampedRevision accepting exactly a 40-hex commit sha or the literal source-tree, called from the constructor so a malformed stamp fails the plugin's load — misconfiguration failing loud at the earliest resolvable point — and re-read per describe call so a corrected environment variable takes effect without a reload) — beside the two-platform same-candidate proof: the sealed candidate fixture derived from fixed inputs through the production buildSupportBundle by tests/gen-candidate.mjs (never hand-written, so it cannot drift from the producer's rules, its chain checksum pinned), and the Kotlin companion collector SupportBundleCollector re-implementing validation with zero shared code — strict shape checks, the canonical per-entry serialization (kind first, top-level content keys in code-unit order, nested objects in insertion order, the producer's exact JS escape set), SHA-256 per entry, manifest order and the chained checksum — validating the same fixture bytes on the JVM and re-deriving the same chained checksum, with the four tamper shapes (a mutated entry value, a forged chain checksum, a dropped manifest row, an unsorted manifest) refused identically to the Node collector; the honest debug record: the serialization was byte-identical at 978 bytes once the Kotlin port stopped sorting nested objects, the last failing assertion was the test's own assertEquals argument order placing its message string in the expected slot, and the CDATA-tail pollution of the extraction probe that briefly suggested a remaining byte divergence — all recorded, none hidden; beside the four rejected alternatives (widening the value scan past the three shapes, sharing the serializer across platforms, running the Kotlin lane against a live Host export, claiming a Swift lane the CI synchronize gap leaves unverifiable) and the honest gate record: typecheck EXIT 0 (the host face's tsconfig files list gaining redact.ts after the honest TS6307 first round), lint Found 0 warnings and 0 errors on 3876 files with 90 rules using 20 threads in 91.9s (3875→3876: redact.ts joins the lint face; the first round's 27 findings — the i-folded character-class duplicate, seven deprecated toThrowError calls, three void-expression arrow shorthands and the untyped JSON.parse fixture reads — fixed in the source the same session, none suppressed), the docs lane green in one combined log (doc-quick 17 passed in 63.92s with doc-sync 37 passed in 205.97s — the Summary word-budget restoration keeping the value-hygiene facts single-homed in the Support Bundle section, and the android README link-depth fix that had briefly escaped the repository root, each an honest designed gate the lane then passed), pairing 970 pairs all consistent in its honest direct-round form (the 969→970 reconciliation riding the prose: the new 2026-10-28-support-bundle-value-hygiene note pair beside the re-recorded host-diagnostics and android README pairs), the serial double audit round green at 92 files / 1156 tests on both passes (the gen-83 91-file lineage list plus the host-diagnostics diagnostics spec entering the lineage for the first time, 1113→1156 carrying its forty-three cases whole), gate0 PASS (1938 paths / 129 components / 81 sections / 1983 lines — honestly recorded unchanged from the captured UPSTREAM_DELTA.json); the android lane honestly narrowed: the scanner-env gradle :core:test lane green at 88 suites / 629 tests (87→88 suites and 624→629 tests: the collector's five JVM cases), no APK repackage (both app faces staying at their gen-83 sealed bytes), no connected round and no physical device touched; the ledger §41-44 rewrite narrowing the family row (81 sections kept; §41-44 at 2072/8 with the sanitizer-and-collector half flipped to its closed form beside the appended gen-84 landing, the gen-83 and gen-82 narrations preserved verbatim; every prior family row keeping its sealed form — §31 at its gen-78 11411/28, §33 its gen-72 1641/11, §32 its gen-70 6041/25, §34/35 their gen-81 1879/11, §23 its gen-61 429/2 and §67 its gen-59 637/8); and the 68-key derivation ruling: the prepare oracle derives exactly 68 replaced prior build outputs over the host-status-surface record — the remotes client lib face and the ui-sidebar bundle re-emitted by the repo-wide build, plus core.jar, sixty-one test-result XML files and three binary report products under apps/android/core rewritten by the honest :core:test lane (the XML half carrying per-run timings) — with every prior generation's set staying exactly as sealed at HEAD (the gen-83 hostStatusSurfaceReplacedBuildOutputs at exactly its twenty-seven, the gen-82 hostRuntimeHealthReplacedBuildOutputs at its eighty-one, the gen-80 sharedDiffCorpusReplacedBuildOutputs at its seven, the gen-78 networkMatrixReplacedBuildOutputs at its two, the gen-77 resumeFeedReplacedBuildOutputs at its sixty-five, the gen-76B toolJournalReplacedBuildOutputs at its seventy-one and the rest as sealed), the source-side tracked keys resolving through the new before archive; the prior-audit trailer spelling honestly recorded: the gen-83 audit lanes sealed their EXIT trailer in the short EXIT=0 form, this generation's prepare anchoring on the prior's actual sealed bytes while every gen-84 lane keeps the canonical EXIT_CODE=N trailer; the remaining open channels (the physical-device acceptance lanes, the Swift collector lane, the Phase 8 secure outbound relay and the CI synchronize gap) all stay open — so no whole-section PASS is granted; full Upstream-First objective remains in progress",
+  "gate0": {
+    "validation": "PASS",
+    "gate0": "PASS",
+    "paths": 1938,
+    "components": 129,
+    "specificationCoverage": {
+      "status": "PASS",
+      "numberedSections": 81,
+      "nonEmptySourceLines": 1983,
+      "acceptanceProven": false
+    }
+  },
+  "sourceRecord": {
+    "path": "artifacts/upstream-first/support-bundle-value-hygiene-source.json",
+    "sha256": "00159523b934a5f108b99d5034f26220a202e4364db77873bdcdd221e9ada12b"
+  },
+  "generator": {
+    "path": "artifacts/upstream-first/write-reports.mjs",
+    "sha256": "8c9a6b84c9f5ef91bd3da74dd21dd90fc136643b5e46fb8ef88d6baaa87ebe2d"
+  },
+  "binding": {
+    "path": "artifacts/upstream-first/support-bundle-value-hygiene-binding.json",
+    "sha256": "8f386adc628e4952e4e2c8d77e91e0cdf343092b265ee18024a93743a110cc20"
+  },
+  "helpers": [
+    {
+      "path": ".artifacts/advance-support-bundle-value-hygiene-reports.mjs",
+      "sha256": "be9f2bdf1260736b6ac51f70b15c3b3dcec4169be0c55ee6df2e49adad128815"
+    },
+    {
+      "path": ".artifacts/capture-support-bundle-value-hygiene-validation.mjs",
+      "sha256": "29b542e4e7d2a701bb1c2fd18565229a4e73faf84f725e157b0fd35173639e57"
+    }
+  ],
+  "reports": [
+    {
+      "path": "IMPLEMENTATION_STATUS.md",
+      "sha256": "7bcacda0332bfabc6aab8741e92e933e9c1c7f52d188b15a913acdc465e20ed8"
+    },
+    {
+      "path": "artifacts/upstream-first/evidence.json",
+      "sha256": "3c48d9a80f3d2025b67dd4099236a23206937a12261d156f6c22a481de17310f"
+    }
+  ],
+  "checks": [
+    {
+      "path": ".artifacts/support-bundle-value-hygiene-binding.log",
+      "sha256": "3cf9fad14b0416c42df35bfd97f9c84e71564c9fa1643d6727db84d9a91cfb70"
+    },
+    {
+      "path": ".artifacts/support-bundle-value-hygiene-audit-final.log",
+      "sha256": "e305838a2b61f393e640fffc4dd9c16866e9ba95e06ba64346481ec2c5d584a1"
+    },
+    {
+      "path": ".artifacts/support-bundle-value-hygiene-gate0-final.log",
+      "sha256": "7e00efd82bd2a2b91b03ca80537dcc4af46cd09eb318ff58520cb2d7d7d8a48a"
+    },
+    {
+      "path": ".artifacts/support-bundle-value-hygiene-report-generation.log",
+      "sha256": "6616630463c8eb3ffd69d218e03ffc25be7852a2f9e639de6ae42558801b921d"
+    }
+  ]
+}

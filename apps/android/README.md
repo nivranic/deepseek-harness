@@ -91,6 +91,8 @@ Support export labels current Native Gateway transport ownership separately from
 
 Runtime health is a fetch-time Host observation: when the paired Host advertises `host.diagnostics.v1`, the export calls `hostDiagnostics/health` and embeds the §41 snapshot verbatim — the six component states plus the readiness verdict, in the Host's own vocabulary. An unpaired wire, an unadvertised capability, a timeout, or a deviating answer leaves the snapshot uncollected instead of guessing a component.
 
+Support-bundle artifacts carry an independent verifier: SupportBundleCollector re-derives every per-entry SHA-256 and the chained checksum from the §43 canonical serialization (kind first, top-level content keys in code-unit order, nested objects verbatim) and fails loud on any tamper shape the Node collector refuses. Its JVM test validates the sealed candidate fixture the [Node producer](../../packages/api/host-diagnostics/README.md) emits and re-derives the same chained checksum — the two-platform same-candidate proof.
+
 ## Model Experience
 
 The companion displays Host-owned Session events and returns explicit human answers through the current Gateway. It does not execute a model locally or add a separate transcript. The keyless acceptance scenario replays recorded model output; it does not qualify a live provider.
