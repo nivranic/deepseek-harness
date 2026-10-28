@@ -11,6 +11,7 @@ import pluginInventoryRemote from '@deepseek-ai/dsh-host-plugin-inventory/remote
 import deviceTrustRemote from '@deepseek-ai/dsh-api-device-trust/remote'
 import nativeRemote from '@deepseek-ai/dsh-api-native-remote/remote'
 import hostDescriptionRemote from '@deepseek-ai/dsh-api-host-description/remote'
+import hostDiagnosticsRemote from '@deepseek-ai/dsh-api-host-diagnostics/remote'
 import messageFeedbackRemote from '@deepseek-ai/dsh-message-feedback/remote'
 import sessionFeedbackRemote from '@deepseek-ai/dsh-command-feedback/remote'
 import presentedFilesRemote from '@deepseek-ai/dsh-client-ui-deliverables/remote'
@@ -44,6 +45,7 @@ export type { ClientRemote } from '@deepseek-ai/dsh-api-gateway/client'
 export type { HostDescriptor, HostId, HostTransport } from '@deepseek-ai/dsh-api-host-description/types'
 export type {} from './host-preparation.ts'
 export type {} from '@deepseek-ai/dsh-api-host-description/remote'
+export type {} from '@deepseek-ai/dsh-api-host-diagnostics/remote'
 export type { PluginInventorySnapshot } from '@deepseek-ai/dsh-host-plugin-inventory/types'
 export type {} from '@deepseek-ai/dsh-agent-presets/remote'
 export type {} from '@deepseek-ai/dsh-commands/remote'
@@ -183,7 +185,8 @@ export async function apply(ctx: Context): Promise<() => Promise<void>> {
   try {
     for (const contribution of [
       agentPresetsRemote, commandsRemote, settingsControllerRemote, goalsRemote, llmRemote, dynamicRemote,
-      hostDescriptionRemote, pluginInventoryRemote, deviceTrustRemote, nativeRemote, messageFeedbackRemote, sessionFeedbackRemote,
+      hostDescriptionRemote, hostDiagnosticsRemote, pluginInventoryRemote, deviceTrustRemote,
+      nativeRemote, messageFeedbackRemote, sessionFeedbackRemote,
       fileUploadsRemote, presentedFilesRemote, sessionReferencesRemote,
       subagentsRemote, sessionRemote, workspaceRemote, workspaceFilesRemote,
     ]) {

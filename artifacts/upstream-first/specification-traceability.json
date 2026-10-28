@@ -1,7 +1,7 @@
 {
   "schemaVersion": 1,
   "status": "IN_PROGRESS",
-  "capturedAt": "2026-10-27T08:39:52.212Z",
+  "capturedAt": "2026-10-27T15:16:11.746Z",
   "fullGoalComplete": false,
   "specification": {
     "path": "artifacts/upstream-first/original-specification.md",
@@ -4571,9 +4571,11 @@
         "SECURITY_STATUS.md",
         "RELEASE_STATUS.md",
         "apps/android/core/src/test/kotlin/ai/deepseek/dsh/companion/HostRuntimeHealthTest.kt",
-        ".agents/notes/implemented/testing/2026-10-27-host-runtime-health.md"
+        ".agents/notes/implemented/testing/2026-10-27-host-runtime-health.md",
+        "packages/client/ui-settings-host-status/tests/components.client.spec.tsx",
+        ".agents/notes/implemented/architecture/2026-10-27-host-status-surface.md"
       ],
-      "remaining": "可接受请求的 readiness、脱敏和同候选 support collector 验证仍待完成。共享诊断由 gen-82 落地伴生端词汇：HostRuntimeHealth 严格解析 §41 六组件+就绪判定（经 WireValue.toJsonElement 全字段必须在场、词汇精确，任何偏差整体拒绝——健康快照绝不携带猜测组件），fetchHostRuntimeHealth 以空参调 hostDiagnostics/health（2 秒 withTimeoutOrNull、CancellationException 重抛、未配对/未通告/超时/坏形一律归 null），NativeObservedCapability 增 HOST_DIAGNOSTICS(\"host.diagnostics.v1\") 且 forEndpoint 只映射 health 端点（伴生端不消费 describe/supportBundle），SupportLocalSnapshot 增可空 runtimeHealth、文档发 runtimeHealth 段（producer=hostDiagnostics/health、observation=fetch-time）、uncollected 保 runtime-health 在 updates 前的 null 形；两个枚举联动如实入档：allowlist 投影多发 \"host.diagnostics.v1\":false（support-native-gateway.json fixture 28 字节诚实增量、另两份不变）、能力对话框穷举 when 补分支配中文标签。分类型默认关闭 telemetry 半句陈旧性修正：四类 consent 全 default(false) 的 telemetry 基线早已达标（出厂组合 env 门播种、DISABLED 主开关+env 退出行齐全），族句该半照 gen-77 基线口径翻为已达标。",
+      "remaining": "脱敏和同候选 support collector 验证仍待完成。可接受请求的 readiness 判定面由 gen-83 收口宿主侧呈现：ui-settings-host-status 分区无条件注册 settings.section（id host-status、order 16——hostDiagnostics 是设置面宿主必备服务，无法应答的宿主以分区错误行+重试呈现而非导航项消失），注入面 health() 解包 RemoteResult（ok:false 拒绝使全部拒绝形态落组件唯一错误态），判定行信宿主派生 ready 绝不客户端重推导（连接组件刻意排除该推导——CLI/桌面管道无网络载体是合法部署形态），六组件行 HOST_STATUS_COMPONENTS 派生 keyof HealthSnapshot 同源（宿主侧重命名组件即构建失败直到行与文案跟随）、StateDot 映射 up→done/degraded→warning/down→error（ongoing 保留给进行中过渡的动画环、§41 degraded 是已稳定部分失败）、非敏感探针 detail 原文透传，locale 双语与 data-host-ready/逐行 data-component-state 测试钩子齐备；hostDiagnostics 命名空间经 remotes 聚合 $mount 挂载并以 export type {} 再导出声明合并抵达客户端（消费程序 ctx.remote.hostDiagnostics 类型检查正依赖该转发）；无实时刷新边界如实记档（进入面读一次+手动重试，§41 家族今天没有 health 变更转发事件可订阅）。共享诊断由 gen-82 落地伴生端词汇：HostRuntimeHealth 严格解析 §41 六组件+就绪判定（经 WireValue.toJsonElement 全字段必须在场、词汇精确，任何偏差整体拒绝——健康快照绝不携带猜测组件），fetchHostRuntimeHealth 以空参调 hostDiagnostics/health（2 秒 withTimeoutOrNull、CancellationException 重抛、未配对/未通告/超时/坏形一律归 null），NativeObservedCapability 增 HOST_DIAGNOSTICS(\"host.diagnostics.v1\") 且 forEndpoint 只映射 health 端点（伴生端不消费 describe/supportBundle），SupportLocalSnapshot 增可空 runtimeHealth、文档发 runtimeHealth 段（producer=hostDiagnostics/health、observation=fetch-time）、uncollected 保 runtime-health 在 updates 前的 null 形；两个枚举联动如实入档：allowlist 投影多发 \"host.diagnostics.v1\":false（support-native-gateway.json fixture 28 字节诚实增量、另两份不变）、能力对话框穷举 when 补分支配中文标签。分类型默认关闭 telemetry 半句陈旧性修正：四类 consent 全 default(false) 的 telemetry 基线早已达标（出厂组合 env 门播种、DISABLED 主开关+env 退出行齐全），族句该半照 gen-77 基线口径翻为已达标。",
       "evidenceLimit": "这些路径是已定位的候选证据；尚未逐条证明本节每一项要求，不授予整节 PASS。"
     },
     {
@@ -4674,9 +4676,11 @@
         "SECURITY_STATUS.md",
         "RELEASE_STATUS.md",
         "apps/android/core/src/test/kotlin/ai/deepseek/dsh/companion/HostRuntimeHealthTest.kt",
-        ".agents/notes/implemented/testing/2026-10-27-host-runtime-health.md"
+        ".agents/notes/implemented/testing/2026-10-27-host-runtime-health.md",
+        "packages/client/ui-settings-host-status/tests/components.client.spec.tsx",
+        ".agents/notes/implemented/architecture/2026-10-27-host-status-surface.md"
       ],
-      "remaining": "可接受请求的 readiness、脱敏和同候选 support collector 验证仍待完成。共享诊断由 gen-82 落地伴生端词汇：HostRuntimeHealth 严格解析 §41 六组件+就绪判定（经 WireValue.toJsonElement 全字段必须在场、词汇精确，任何偏差整体拒绝——健康快照绝不携带猜测组件），fetchHostRuntimeHealth 以空参调 hostDiagnostics/health（2 秒 withTimeoutOrNull、CancellationException 重抛、未配对/未通告/超时/坏形一律归 null），NativeObservedCapability 增 HOST_DIAGNOSTICS(\"host.diagnostics.v1\") 且 forEndpoint 只映射 health 端点（伴生端不消费 describe/supportBundle），SupportLocalSnapshot 增可空 runtimeHealth、文档发 runtimeHealth 段（producer=hostDiagnostics/health、observation=fetch-time）、uncollected 保 runtime-health 在 updates 前的 null 形；两个枚举联动如实入档：allowlist 投影多发 \"host.diagnostics.v1\":false（support-native-gateway.json fixture 28 字节诚实增量、另两份不变）、能力对话框穷举 when 补分支配中文标签。分类型默认关闭 telemetry 半句陈旧性修正：四类 consent 全 default(false) 的 telemetry 基线早已达标（出厂组合 env 门播种、DISABLED 主开关+env 退出行齐全），族句该半照 gen-77 基线口径翻为已达标。",
+      "remaining": "脱敏和同候选 support collector 验证仍待完成。可接受请求的 readiness 判定面由 gen-83 收口宿主侧呈现：ui-settings-host-status 分区无条件注册 settings.section（id host-status、order 16——hostDiagnostics 是设置面宿主必备服务，无法应答的宿主以分区错误行+重试呈现而非导航项消失），注入面 health() 解包 RemoteResult（ok:false 拒绝使全部拒绝形态落组件唯一错误态），判定行信宿主派生 ready 绝不客户端重推导（连接组件刻意排除该推导——CLI/桌面管道无网络载体是合法部署形态），六组件行 HOST_STATUS_COMPONENTS 派生 keyof HealthSnapshot 同源（宿主侧重命名组件即构建失败直到行与文案跟随）、StateDot 映射 up→done/degraded→warning/down→error（ongoing 保留给进行中过渡的动画环、§41 degraded 是已稳定部分失败）、非敏感探针 detail 原文透传，locale 双语与 data-host-ready/逐行 data-component-state 测试钩子齐备；hostDiagnostics 命名空间经 remotes 聚合 $mount 挂载并以 export type {} 再导出声明合并抵达客户端（消费程序 ctx.remote.hostDiagnostics 类型检查正依赖该转发）；无实时刷新边界如实记档（进入面读一次+手动重试，§41 家族今天没有 health 变更转发事件可订阅）。共享诊断由 gen-82 落地伴生端词汇：HostRuntimeHealth 严格解析 §41 六组件+就绪判定（经 WireValue.toJsonElement 全字段必须在场、词汇精确，任何偏差整体拒绝——健康快照绝不携带猜测组件），fetchHostRuntimeHealth 以空参调 hostDiagnostics/health（2 秒 withTimeoutOrNull、CancellationException 重抛、未配对/未通告/超时/坏形一律归 null），NativeObservedCapability 增 HOST_DIAGNOSTICS(\"host.diagnostics.v1\") 且 forEndpoint 只映射 health 端点（伴生端不消费 describe/supportBundle），SupportLocalSnapshot 增可空 runtimeHealth、文档发 runtimeHealth 段（producer=hostDiagnostics/health、observation=fetch-time）、uncollected 保 runtime-health 在 updates 前的 null 形；两个枚举联动如实入档：allowlist 投影多发 \"host.diagnostics.v1\":false（support-native-gateway.json fixture 28 字节诚实增量、另两份不变）、能力对话框穷举 when 补分支配中文标签。分类型默认关闭 telemetry 半句陈旧性修正：四类 consent 全 default(false) 的 telemetry 基线早已达标（出厂组合 env 门播种、DISABLED 主开关+env 退出行齐全），族句该半照 gen-77 基线口径翻为已达标。",
       "evidenceLimit": "这些路径是已定位的候选证据；尚未逐条证明本节每一项要求，不授予整节 PASS。"
     },
     {
@@ -4737,9 +4741,11 @@
         "SECURITY_STATUS.md",
         "RELEASE_STATUS.md",
         "apps/android/core/src/test/kotlin/ai/deepseek/dsh/companion/HostRuntimeHealthTest.kt",
-        ".agents/notes/implemented/testing/2026-10-27-host-runtime-health.md"
+        ".agents/notes/implemented/testing/2026-10-27-host-runtime-health.md",
+        "packages/client/ui-settings-host-status/tests/components.client.spec.tsx",
+        ".agents/notes/implemented/architecture/2026-10-27-host-status-surface.md"
       ],
-      "remaining": "可接受请求的 readiness、脱敏和同候选 support collector 验证仍待完成。共享诊断由 gen-82 落地伴生端词汇：HostRuntimeHealth 严格解析 §41 六组件+就绪判定（经 WireValue.toJsonElement 全字段必须在场、词汇精确，任何偏差整体拒绝——健康快照绝不携带猜测组件），fetchHostRuntimeHealth 以空参调 hostDiagnostics/health（2 秒 withTimeoutOrNull、CancellationException 重抛、未配对/未通告/超时/坏形一律归 null），NativeObservedCapability 增 HOST_DIAGNOSTICS(\"host.diagnostics.v1\") 且 forEndpoint 只映射 health 端点（伴生端不消费 describe/supportBundle），SupportLocalSnapshot 增可空 runtimeHealth、文档发 runtimeHealth 段（producer=hostDiagnostics/health、observation=fetch-time）、uncollected 保 runtime-health 在 updates 前的 null 形；两个枚举联动如实入档：allowlist 投影多发 \"host.diagnostics.v1\":false（support-native-gateway.json fixture 28 字节诚实增量、另两份不变）、能力对话框穷举 when 补分支配中文标签。分类型默认关闭 telemetry 半句陈旧性修正：四类 consent 全 default(false) 的 telemetry 基线早已达标（出厂组合 env 门播种、DISABLED 主开关+env 退出行齐全），族句该半照 gen-77 基线口径翻为已达标。",
+      "remaining": "脱敏和同候选 support collector 验证仍待完成。可接受请求的 readiness 判定面由 gen-83 收口宿主侧呈现：ui-settings-host-status 分区无条件注册 settings.section（id host-status、order 16——hostDiagnostics 是设置面宿主必备服务，无法应答的宿主以分区错误行+重试呈现而非导航项消失），注入面 health() 解包 RemoteResult（ok:false 拒绝使全部拒绝形态落组件唯一错误态），判定行信宿主派生 ready 绝不客户端重推导（连接组件刻意排除该推导——CLI/桌面管道无网络载体是合法部署形态），六组件行 HOST_STATUS_COMPONENTS 派生 keyof HealthSnapshot 同源（宿主侧重命名组件即构建失败直到行与文案跟随）、StateDot 映射 up→done/degraded→warning/down→error（ongoing 保留给进行中过渡的动画环、§41 degraded 是已稳定部分失败）、非敏感探针 detail 原文透传，locale 双语与 data-host-ready/逐行 data-component-state 测试钩子齐备；hostDiagnostics 命名空间经 remotes 聚合 $mount 挂载并以 export type {} 再导出声明合并抵达客户端（消费程序 ctx.remote.hostDiagnostics 类型检查正依赖该转发）；无实时刷新边界如实记档（进入面读一次+手动重试，§41 家族今天没有 health 变更转发事件可订阅）。共享诊断由 gen-82 落地伴生端词汇：HostRuntimeHealth 严格解析 §41 六组件+就绪判定（经 WireValue.toJsonElement 全字段必须在场、词汇精确，任何偏差整体拒绝——健康快照绝不携带猜测组件），fetchHostRuntimeHealth 以空参调 hostDiagnostics/health（2 秒 withTimeoutOrNull、CancellationException 重抛、未配对/未通告/超时/坏形一律归 null），NativeObservedCapability 增 HOST_DIAGNOSTICS(\"host.diagnostics.v1\") 且 forEndpoint 只映射 health 端点（伴生端不消费 describe/supportBundle），SupportLocalSnapshot 增可空 runtimeHealth、文档发 runtimeHealth 段（producer=hostDiagnostics/health、observation=fetch-time）、uncollected 保 runtime-health 在 updates 前的 null 形；两个枚举联动如实入档：allowlist 投影多发 \"host.diagnostics.v1\":false（support-native-gateway.json fixture 28 字节诚实增量、另两份不变）、能力对话框穷举 when 补分支配中文标签。分类型默认关闭 telemetry 半句陈旧性修正：四类 consent 全 default(false) 的 telemetry 基线早已达标（出厂组合 env 门播种、DISABLED 主开关+env 退出行齐全），族句该半照 gen-77 基线口径翻为已达标。",
       "evidenceLimit": "这些路径是已定位的候选证据；尚未逐条证明本节每一项要求，不授予整节 PASS。"
     },
     {
@@ -4808,9 +4814,11 @@
         "SECURITY_STATUS.md",
         "RELEASE_STATUS.md",
         "apps/android/core/src/test/kotlin/ai/deepseek/dsh/companion/HostRuntimeHealthTest.kt",
-        ".agents/notes/implemented/testing/2026-10-27-host-runtime-health.md"
+        ".agents/notes/implemented/testing/2026-10-27-host-runtime-health.md",
+        "packages/client/ui-settings-host-status/tests/components.client.spec.tsx",
+        ".agents/notes/implemented/architecture/2026-10-27-host-status-surface.md"
       ],
-      "remaining": "可接受请求的 readiness、脱敏和同候选 support collector 验证仍待完成。共享诊断由 gen-82 落地伴生端词汇：HostRuntimeHealth 严格解析 §41 六组件+就绪判定（经 WireValue.toJsonElement 全字段必须在场、词汇精确，任何偏差整体拒绝——健康快照绝不携带猜测组件），fetchHostRuntimeHealth 以空参调 hostDiagnostics/health（2 秒 withTimeoutOrNull、CancellationException 重抛、未配对/未通告/超时/坏形一律归 null），NativeObservedCapability 增 HOST_DIAGNOSTICS(\"host.diagnostics.v1\") 且 forEndpoint 只映射 health 端点（伴生端不消费 describe/supportBundle），SupportLocalSnapshot 增可空 runtimeHealth、文档发 runtimeHealth 段（producer=hostDiagnostics/health、observation=fetch-time）、uncollected 保 runtime-health 在 updates 前的 null 形；两个枚举联动如实入档：allowlist 投影多发 \"host.diagnostics.v1\":false（support-native-gateway.json fixture 28 字节诚实增量、另两份不变）、能力对话框穷举 when 补分支配中文标签。分类型默认关闭 telemetry 半句陈旧性修正：四类 consent 全 default(false) 的 telemetry 基线早已达标（出厂组合 env 门播种、DISABLED 主开关+env 退出行齐全），族句该半照 gen-77 基线口径翻为已达标。",
+      "remaining": "脱敏和同候选 support collector 验证仍待完成。可接受请求的 readiness 判定面由 gen-83 收口宿主侧呈现：ui-settings-host-status 分区无条件注册 settings.section（id host-status、order 16——hostDiagnostics 是设置面宿主必备服务，无法应答的宿主以分区错误行+重试呈现而非导航项消失），注入面 health() 解包 RemoteResult（ok:false 拒绝使全部拒绝形态落组件唯一错误态），判定行信宿主派生 ready 绝不客户端重推导（连接组件刻意排除该推导——CLI/桌面管道无网络载体是合法部署形态），六组件行 HOST_STATUS_COMPONENTS 派生 keyof HealthSnapshot 同源（宿主侧重命名组件即构建失败直到行与文案跟随）、StateDot 映射 up→done/degraded→warning/down→error（ongoing 保留给进行中过渡的动画环、§41 degraded 是已稳定部分失败）、非敏感探针 detail 原文透传，locale 双语与 data-host-ready/逐行 data-component-state 测试钩子齐备；hostDiagnostics 命名空间经 remotes 聚合 $mount 挂载并以 export type {} 再导出声明合并抵达客户端（消费程序 ctx.remote.hostDiagnostics 类型检查正依赖该转发）；无实时刷新边界如实记档（进入面读一次+手动重试，§41 家族今天没有 health 变更转发事件可订阅）。共享诊断由 gen-82 落地伴生端词汇：HostRuntimeHealth 严格解析 §41 六组件+就绪判定（经 WireValue.toJsonElement 全字段必须在场、词汇精确，任何偏差整体拒绝——健康快照绝不携带猜测组件），fetchHostRuntimeHealth 以空参调 hostDiagnostics/health（2 秒 withTimeoutOrNull、CancellationException 重抛、未配对/未通告/超时/坏形一律归 null），NativeObservedCapability 增 HOST_DIAGNOSTICS(\"host.diagnostics.v1\") 且 forEndpoint 只映射 health 端点（伴生端不消费 describe/supportBundle），SupportLocalSnapshot 增可空 runtimeHealth、文档发 runtimeHealth 段（producer=hostDiagnostics/health、observation=fetch-time）、uncollected 保 runtime-health 在 updates 前的 null 形；两个枚举联动如实入档：allowlist 投影多发 \"host.diagnostics.v1\":false（support-native-gateway.json fixture 28 字节诚实增量、另两份不变）、能力对话框穷举 when 补分支配中文标签。分类型默认关闭 telemetry 半句陈旧性修正：四类 consent 全 default(false) 的 telemetry 基线早已达标（出厂组合 env 门播种、DISABLED 主开关+env 退出行齐全），族句该半照 gen-77 基线口径翻为已达标。",
       "evidenceLimit": "这些路径是已定位的候选证据；尚未逐条证明本节每一项要求，不授予整节 PASS。"
     },
     {

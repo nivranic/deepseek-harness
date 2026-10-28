@@ -2821,20 +2821,59 @@ const hostRuntimeHealthReplacedBuildOutputs = new Set([
 ]);
 assert.equal(hostRuntimeHealthReplacedBuildOutputs.size, 81, 'Host runtime health replaced build outputs must stay exactly eighty-one');
 
-const hostRuntimeHealthPath = 'artifacts/upstream-first/host-runtime-health-source.json';
-assert.equal(digest(hostRuntimeHealthPath), '17dd54ee7cf36d6d8683b56d769634e364e3f151a64effd972ce7ddd6610dc16', 'Host runtime health source record changed');
-const hostRuntimeHealth = JSON.parse(readFileSync(resolve(root, hostRuntimeHealthPath), 'utf8'));
-for (const file of hostRuntimeHealth.builtFiles.filter(file => hostRuntimeHealthReplacedBuildOutputs.has(file.path + ':' + file.sha256))) assert.match(file.sha256, /^[a-f0-9]{64}$/u, 'Current Host runtime health replaced build outputs malformed: ' + file.path);
-assert.equal(hostRuntimeHealth.baseSha, sourceSha);
+// The gen-83 host-status-surface adjudication: the 27 replaced prior build
+// outputs over the host-runtime-health record (the web dist html pair beside the
+// vanished hash-named preview chunks, the remotes client lib face, the
+// ui-primitives/sidebar/trajectory/documentpreview bundle re-emissions and the
+// client-runner slot-catalog face, plus both APKs of the clean-repackage round),
+// twenty-five keys chain-resolvable through the prior archives beside the two
+// APK keys first sealed by the prior record itself — the folded family, no
+// unrecoverable inputs.
+const hostStatusSurfaceReplacedBuildOutputs = new Set([
+  'apps/android/app/build/outputs/apk/androidTest/debug/app-debug-androidTest.apk:8f652b762fefaafbdfab032edc2f9ec4a933c4e8b237dcc47c873b6949b4fe79',
+  'apps/android/app/build/outputs/apk/debug/app-debug.apk:301e99b7e3ad86a260be791e9a4ad97ac3ad8d1680063cc4f4a03ac192550184',
+  'apps/web/dist/index.html:7c8f8f327b9576ac3a48d7423287ad233c5ab8d1484efe1f6fc8e1f7d87e5e98',
+  'apps/web/dist/preview.html:2c3db2b023231a5379bd92aacfedb6fe46b725d35c192a13532fa289cfe54f56',
+  'apps/web/dist/preview/bootstrap-D2ss8xap.js:32265ce631f67c8bb30424770ab51fc976975735b09c742a1f6d993e2ff260a2',
+  'apps/web/dist/preview/bootstrap-D2ss8xap.js.map:58a189601092b5c5a395c6607756739f020783f9087796fc3dd2d33043d236d5',
+  'apps/web/dist/preview/worker-C8-_ANaz.js:81099e5732dfe0c32bacd5897316b7956c5a0a22da01b4a0c6e21d0a3b9d9aa1',
+  'apps/web/dist/preview/worker-C8-_ANaz.js.map:b86073903693417b1c463dadf946893ada184dd6239719e7b3d5a6e92f39efab',
+  'packages/api/remotes/lib/client.js:c8c6b7eb551aa9a277bbc58f8eb2bea7931efdec5f5ebed9346c52bdba2fc905',
+  'packages/api/remotes/lib/client.js.map:c20aee81ca05f7364606fc1c18395cb2614821e78388824b86c1285523e870b0',
+  'packages/api/remotes/lib/types/client/index.d.ts:86de2ea514c43ef332282253d0546d30f9014fb682203c2cbf318b5611c80fcb',
+  'packages/api/remotes/lib/types/client/index.d.ts.map:cbabcb8cb085cc66d3ffc208a899340c4db19e25d3371ce41d7473fa184475e2',
+  'packages/api/remotes/lib/types/client/index.js:c80e27f610024296fd95765898d3350cf6a9a17649789e8495a98a76fa7d495c',
+  'packages/api/remotes/lib/types/client/index.js.map:defd9f5c3385a35af8c3933158c5238649d4c305b1c14fd3f2c23d014e1b2e07',
+  'packages/client/ui-primitives/lib/index.js:41cba93d5b7b06dd4edf51b6c6cd787b63295d9c92023ca220466e74a5933272',
+  'packages/client/ui-primitives/lib/index.js.map:94628f9b8169b262d71c36483060b08ac1b782393cb74a81113f7789dd859a1a',
+  'packages/client/ui-sidebar-documentpreview/lib/client.js:b692e27dc34a2f6d5cf660c1923053e0469e2f34b664950861f2a7ed9deef63e',
+  'packages/client/ui-sidebar-documentpreview/lib/client.js.map:bb13f413070dee4d4e73aef4f7019685c957b028e55cc4eb9e729731de39d9f8',
+  'packages/client/ui-sidebar/lib/client.js:d4512398cba90ab22e8de2fa67ecac8e18e9cab6ed9ce8a6e600b3397c7b0867',
+  'packages/client/ui-sidebar/lib/client.js.map:766af5c84150c545b1832b988996a47a5d37c9f79b54c789a2bd2d06edf48cd1',
+  'packages/client/ui-trajectory/lib/client.js:304bfc09cffaf48e037789d7487cf47c15e8ebb1236bf099b267d7ad54d52fc7',
+  'packages/client/ui-trajectory/lib/client.js.map:7d731cdac4a426fd4a3f690616301a55f2bfb86bd4a3fe1c7f185438c59974c5',
+  'packages/extensions/cordis-client-runner/lib/client.js:d2066a0715e9b15ae08b4d821a09bcb561474e6bf19ac99865e53399a2625a8a',
+  'packages/extensions/cordis-client-runner/lib/client.js.map:da4961f4e5e763a247a17446181e53c1cf58a235931b5a1232eede84816f7b38',
+  'packages/extensions/cordis-client-runner/lib/types/client/slot-catalog.d.ts.map:b2ef354106be4d46b4df59bfabc15bcd73d08a1915e9d12dec4a7a3f97c2d67e',
+  'packages/extensions/cordis-client-runner/lib/types/client/slot-catalog.js:2552a86f10b06ddd12dfb2c23e8e99f1e978d57f62c6420299a7d252d740035e',
+  'packages/extensions/cordis-client-runner/lib/types/client/slot-catalog.js.map:03cf956059d6c5d16628347e4a4914507e6c8746f348d79ad4beda480e443bb7',
+]);
+assert.equal(hostStatusSurfaceReplacedBuildOutputs.size, 27, 'Host status surface replaced build outputs must stay exactly twenty-seven');
+
+const hostStatusSurfacePath = 'artifacts/upstream-first/host-status-surface-source.json';
+assert.equal(digest(hostStatusSurfacePath), 'c892eac1508801b8b94c1d205883d320729af8680f0a5c4a11bd580c6c72fe1d', 'Host status surface source record changed');
+const hostStatusSurface = JSON.parse(readFileSync(resolve(root, hostStatusSurfacePath), 'utf8'));
+for (const file of hostStatusSurface.builtFiles.filter(file => hostStatusSurfaceReplacedBuildOutputs.has(file.path + ':' + file.sha256))) assert.match(file.sha256, /^[a-f0-9]{64}$/u, 'Current Host status surface replaced build outputs malformed: ' + file.path);
+assert.equal(hostStatusSurface.baseSha, sourceSha);
 for (const field of ['sourceFiles', 'builtFiles', 'logs', 'helpers', 'historicalRecords', 'screenshots', 'observations', 'comparisons']) {
-  for (const file of hostRuntimeHealth[field].filter(file => !file.path.endsWith('.tsbuildinfo')).filter(file => !hostRuntimeHealthReplacedBuildOutputs.has(file.path + ':' + file.sha256))) assert.equal(digest(file.path), file.sha256, 'Current Host runtime health ' + field + ' changed: ' + file.path);
+  for (const file of hostStatusSurface[field].filter(file => !file.path.endsWith('.tsbuildinfo')).filter(file => !hostStatusSurfaceReplacedBuildOutputs.has(file.path + ':' + file.sha256))) assert.equal(digest(file.path), file.sha256, 'Current Host status surface ' + field + ' changed: ' + file.path);
 }
-for (const path of hostRuntimeHealth.removedPaths) assert.equal(existsSync(resolve(root, path)), false, 'Retired entry returned: ' + path);
-const hostRuntimeHealthHistory = new Map();
-for (const record of hostRuntimeHealth.historicalRecords) {
+for (const path of hostStatusSurface.removedPaths) assert.equal(existsSync(resolve(root, path)), false, 'Retired entry returned: ' + path);
+const hostStatusSurfaceHistory = new Map();
+for (const record of hostStatusSurface.historicalRecords) {
   for (const file of JSON.parse(readFileSync(resolve(root, record.path), 'utf8')).files) {
-    assert.equal(digest(file.path), file.sha256, 'Host runtime health saved input changed: ' + file.path);
-    hostRuntimeHealthHistory.set(file.originalPath + ':' + file.sha256, file.path);
+    assert.equal(digest(file.path), file.sha256, 'Host status surface saved input changed: ' + file.path);
+    hostStatusSurfaceHistory.set(file.originalPath + ':' + file.sha256, file.path);
   }
 }
 
@@ -2990,6 +3029,17 @@ for (const record of hostRuntimeHealth.historicalRecords) {
 
 
 
+
+
+
+// The gen-83 clean-repackage ruling: the two APK keys of the host-runtime-health
+// record whose bytes the clean repackage walked off the disk — first sealed by that
+// record itself, held by no archive — exempted beside its own sealed set.
+const hostRuntimeHealthCleanRepackageOutputs = new Set([
+  'apps/android/app/build/outputs/apk/androidTest/debug/app-debug-androidTest.apk:8f652b762fefaafbdfab032edc2f9ec4a933c4e8b237dcc47c873b6949b4fe79',
+  'apps/android/app/build/outputs/apk/debug/app-debug.apk:301e99b7e3ad86a260be791e9a4ad97ac3ad8d1680063cc4f4a03ac192550184',
+]);
+assert.equal(hostRuntimeHealthCleanRepackageOutputs.size, 2, 'Host runtime health clean repackage outputs must stay exactly two');
 
 // The browser-dedupe generation sealed four client bundles it rebuilt mid-increment and the
 // hosts-roster-rename generation sealed one ui-sidebar client bundle it rebuilt; later
@@ -6193,6 +6243,173 @@ const androidFollowWindowReplacedBuildOutputs = new Set([
   'apps/android/app/build/outputs/apk/androidTest/debug/app-debug-androidTest.apk:60e38885467e72e940dbcf0aa0bd871d429d70ecd8418b102feaf04d11091d85',
   'apps/android/app/build/outputs/apk/debug/app-debug.apk:99b1053b96dfc8b1f6e7ae869646680e37eff41d2849863e1226367441982a40',
 ]);
+
+const hostRuntimeHealthPath = 'artifacts/upstream-first/host-runtime-health-source.json';
+assert.equal(digest(hostRuntimeHealthPath), '17dd54ee7cf36d6d8683b56d769634e364e3f151a64effd972ce7ddd6610dc16', 'Host runtime health source record changed');
+const hostRuntimeHealth = JSON.parse(readFileSync(resolve(root, hostRuntimeHealthPath), 'utf8'));
+for (const file of hostRuntimeHealth.builtFiles.filter(file => hostRuntimeHealthCleanRepackageOutputs.has(file.path + ':' + file.sha256))) assert.match(file.sha256, /^[a-f0-9]{64}$/u, 'Current Host runtime health clean repackage outputs malformed: ' + file.path);
+for (const file of hostRuntimeHealth.builtFiles.filter(file => hostRuntimeHealthReplacedBuildOutputs.has(file.path + ':' + file.sha256))) assert.match(file.sha256, /^[a-f0-9]{64}$/u, 'Current Host runtime health replaced build outputs malformed: ' + file.path);
+assert.equal(hostRuntimeHealth.baseSha, sourceSha);
+for (const field of ['sourceFiles', 'builtFiles', 'logs', 'helpers', 'historicalRecords', 'screenshots', 'observations', 'comparisons']) {
+  for (const file of hostRuntimeHealth[field].filter(file => !file.path.endsWith('.tsbuildinfo')).filter(file => !hostRuntimeHealthReplacedBuildOutputs.has(file.path + ':' + file.sha256)).filter(file => !hostRuntimeHealthCleanRepackageOutputs.has(file.path + ':' + file.sha256))) assert.equal(digest(hostStatusSurfaceHistory.get(file.path + ':' + file.sha256) ?? (file.path)), file.sha256, 'Current Host runtime health ' + field + ' changed: ' + file.path);
+}
+for (const path of hostRuntimeHealth.removedPaths) assert.equal(existsSync(resolve(root, path)), false, 'Retired entry returned: ' + path);
+// The newest record's saved-input history covers every prior archive;
+// per-record rebuilds were O(records x archives) file reads.
+const hostRuntimeHealthHistory = archivedInputs;
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
 
 const sessionExportRangePath = 'artifacts/upstream-first/session-export-range-source.json';
 assert.equal(digest(sessionExportRangePath), '2e352220810ea6feac078f79f8194fcfa77e80bb82d88029563aace1cfeb1bd3', 'Session export range source record changed');
@@ -15125,7 +15342,7 @@ for (const file of payloadInputArchive.files) {
   assert.equal(digest(nativeUploadDedupeHistory.get(file.path + ':' + file.sha256) ?? (nativeHostRestartHistory.get(file.path + ':' + file.sha256) ?? (nativeImageUploadBudgetHistory.get(file.path + ':' + file.sha256) ?? (nativeUploadBudgetHistory.get(file.path + ':' + file.sha256) ?? (androidAttachmentReceiptRecoveryHistory.get(file.path + ':' + file.sha256) ?? (androidNotificationPermissionHistory.get(file.path + ':' + file.sha256) ?? (androidPushForegroundHistory.get(file.path + ':' + file.sha256) ?? (androidViewDeepLinksHistory.get(file.path + ':' + file.sha256) ?? (androidShareIntakeHistory.get(file.path + ':' + file.sha256) ?? (androidCameraAttachmentsHistory.get(file.path + ':' + file.sha256) ?? (androidPhotoAttachmentsHistory.get(file.path + ':' + file.sha256) ?? (androidFileAttachmentsHistory.get(file.path + ':' + file.sha256) ?? (androidDownloadAdoptionHistory.get(file.path + ':' + file.sha256) ?? (androidDownloadCheckpointHistory.get(file.path + ':' + file.sha256) ?? (androidResourceSaveHistory.get(file.path + ':' + file.sha256) ?? (androidSubagentTimelineHistory.get(file.path + ':' + file.sha256) ?? (androidOperationCapabilitiesHistory.get(file.path + ':' + file.sha256) ?? (androidCapabilityPresentationHistory.get(file.path + ':' + file.sha256) ?? (nativeScannerCandidateHistory.get(file.path + ':' + file.sha256) ?? (nativeScannerAdoptionHistory.get(file.path + ':' + file.sha256) ?? (androidNativeDiagnosticsHistory.get(file.path + ':' + file.sha256) ?? (androidResourceAdoptionHistory.get(file.path + ':' + file.sha256) ?? (androidCursorResumeHistory.get(file.path + ':' + file.sha256) ?? (androidViewLocationHistory.get(file.path + ':' + file.sha256) ?? (androidHostRosterHistory.get(file.path + ':' + file.sha256) ?? (androidPromptRetryHistory.get(file.path + ':' + file.sha256) ?? (androidInputPersistenceHistory.get(file.path + ':' + file.sha256) ?? (androidInputRetentionHistory.get(file.path + ':' + file.sha256) ?? (androidSessionListHistory.get(file.path + ':' + file.sha256) ?? (androidCredentialRecoveryHistory.get(file.path + ':' + file.sha256) ?? (androidRepairingHistory.get(file.path + ':' + file.sha256) ?? (androidNativeLifecycleHistory.get(file.path + ':' + file.sha256) ?? (androidNativeCompanionHistory.get(file.path + ':' + file.sha256) ?? (androidGatewayHistory.get(file.path + ':' + file.sha256) ?? (nativePairingPresentationHistory.get(file.path + ':' + file.sha256) ?? (nativeRemoteTlsHistory.get(file.path + ':' + file.sha256) ?? (nativePairingHistory.get(file.path + ':' + file.sha256) ?? (deviceAdmissionLifecycleHistory.get(file.path + ':' + file.sha256) ?? (browserHostOriginHistory.get(file.path + ':' + file.sha256) ?? (diffRichViewerHistory.get(file.path + ':' + file.sha256) ?? (diffReadableCopyHistory.get(file.path + ':' + file.sha256) ?? (hostSelectionObserverHistory.get(file.path + ':' + file.sha256) ?? (mimeInferenceHistory.get(file.path + ':' + file.sha256) ?? (interruptedTransferHistory.get(file.path + ':' + file.sha256) ?? (rosterUiHistory.get(file.path + ':' + file.sha256) ?? (rosterSwitchHistory.get(file.path + ':' + file.sha256) ?? (retargetableEndpointHistory.get(file.path + ':' + file.sha256) ?? (binaryFactCardHistory.get(file.path + ':' + file.sha256) ?? (unifiedDiffPreviewHistory.get(file.path + ':' + file.sha256) ?? (durableRetainedAnswersHistory.get(file.path + ':' + file.sha256) ?? (permissionTierChipHistory.get(file.path + ':' + file.sha256) ?? (degradedProbesHistory.get(file.path + ':' + file.sha256) ?? (savedHostsHistory.get(file.path + ':' + file.sha256) ?? (telemetryGateHistory.get(file.path + ':' + file.sha256) ?? (settingsEntryHistory.get(file.path + ':' + file.sha256) ?? (sessionHeadersEntryHistory.get(file.path + ':' + file.sha256) ?? (diagnosticsRecorderHistory.get(file.path + ':' + file.sha256) ?? (telemetryConsentHistory.get(file.path + ':' + file.sha256) ?? (supportBundleHistory.get(file.path + ':' + file.sha256) ?? (hostDiagnosticsHistory.get(file.path + ':' + file.sha256) ?? (composerGateHistory.get(file.path + ':' + file.sha256) ?? (viewLocationHistory.get(file.path + ':' + file.sha256) ?? (followResumeHistory.get(file.path + ':' + file.sha256) ?? (approvalFactsHistory.get(file.path + ':' + file.sha256) ?? (commandRiskHistory.get(file.path + ':' + file.sha256) ?? (hostNamingHistory.get(file.path + ':' + file.sha256) ?? (designLanguageHistory.get(file.path + ':' + file.sha256) ?? (phoneTopBarHistory.get(file.path + ':' + file.sha256) ?? (runningLocationHistory.get(file.path + ':' + file.sha256) ?? (foldableFrameHistory.get(file.path + ':' + file.sha256) ?? (keyboardAvoidanceHistory.get(file.path + ':' + file.sha256) ?? (safeAreaInsetsHistory.get(file.path + ':' + file.sha256) ?? (branchGateDebtHistory.get(file.path + ':' + file.sha256) ?? (devicesSettingsSurfaceHistory.get(file.path + ':' + file.sha256) ?? (deviceIdentityConfirmationHistory.get(file.path + ':' + file.sha256) ?? (androidDeviceAdmissionHistory.get(file.path + ':' + file.sha256) ?? (admissionNonceLedgerHistory.get(file.path + ':' + file.sha256) ?? (remainingCapabilityPermissionsHistory.get(file.path + ':' + file.sha256) ?? (workspaceCapabilityPermissionsHistory.get(file.path + ':' + file.sha256) ?? (sessionCapabilityPermissionsHistory.get(file.path + ':' + file.sha256) ?? (perRequestAdmissionHistory.get(file.path + ':' + file.sha256) ?? (protocolInteropMatrixHistory.get(file.path + ':' + file.sha256) ?? (deviceRevokedStateHistory.get(file.path + ':' + file.sha256) ?? (deviceRoleAdmissionHistory.get(file.path + ':' + file.sha256) ?? (deviceTrustDurableHistory.get(file.path + ':' + file.sha256) ?? (deviceTrustHistory.get(file.path + ':' + file.sha256) ?? (linkAccessAuditHistory.get(file.path + ':' + file.sha256) ?? (androidRefusalLaneHistory.get(file.path + ':' + file.sha256) ?? (jobsFailureClassHistory.get(file.path + ':' + file.sha256) ?? (queueClassificationAdoptionHistory.get(file.path + ':' + file.sha256) ?? (uiClassificationAdoptionHistory.get(file.path + ':' + file.sha256) ?? (gatewayConsumptionHistory.get(file.path + ':' + file.sha256) ?? (scannerAarHistory.get(file.path + ':' + file.sha256) ?? (responsivePhoneDrawerHistory.get(file.path + ':' + file.sha256) ?? (diagnosticsOnlyTierHistory.get(file.path + ':' + file.sha256) ?? (swiftCiRecoveryHistory.get(file.path + ':' + file.sha256) ?? (androidMigrationHistory.get(file.path + ':' + file.sha256) ?? (interactionPermissionHistory.get(file.path + ':' + file.sha256) ?? (appleContractHistory.get(file.path + ':' + file.sha256) ?? (failureClassesAdoptionHistory.get(file.path + ':' + file.sha256) ?? (androidContractHistory.get(file.path + ':' + file.sha256) ?? (remoteFailureClassesHistory.get(file.path + ':' + file.sha256) ?? (remoteErrorEnvelopeSchemaHistory.get(file.path + ':' + file.sha256) ?? (remoteValidationDetailsHistory.get(file.path + ':' + file.sha256) ?? (readonlySchemaHistory.get(file.path + ':' + file.sha256) ?? (errorTypeModelHistory.get(file.path + ':' + file.sha256) ?? (errorCodeSchemaAccuracyHistory.get(file.path + ':' + file.sha256) ?? (errorCodeSchemaHistory.get(file.path + ':' + file.sha256) ?? (invalidStreamErrorsHistory.get(file.path + ':' + file.sha256) ?? (interactionReplyErrorsHistory.get(file.path + ':' + file.sha256) ?? (remoteErrorPropagationHistory.get(file.path + ':' + file.sha256) ?? (transportFailureSemanticsHistory.get(file.path + ':' + file.sha256) ?? (subagentInterruptTargetHistory.get(file.path + ':' + file.sha256) ?? (subagentPromptIdempotencyHistory.get(file.path + ':' + file.sha256) ?? (interactionReplyScopeHistory.get(file.path + ':' + file.sha256) ?? (specificationTraceabilityHistory.get(file.path + ':' + file.sha256) ?? (uploadHomeReplayHistory.get(file.path + ':' + file.sha256) ?? (cordisNativeReplayHistory.get(file.path + ':' + file.sha256) ?? (dynamicCordisUiHistory.get(file.path + ':' + file.sha256) ?? (dynamicCordisRuntimeHistory.get(file.path + ':' + file.sha256) ?? (pluginInventoryCapabilityHistory.get(file.path + ':' + file.sha256) ?? (fileUploadCapabilityHistory.get(file.path + ':' + file.sha256) ?? (feedbackCapabilityHistory.get(file.path + ':' + file.sha256) ?? (subagentHeaderHistory.get(file.path + ':' + file.sha256) ?? (file.path))))))))))))))))))))))))))))))))))))))))))))))))))))))))))))))))))))))))))))))))))))))))))))))))))))))))))))))))))))))))))))), file.sha256, `Desktop payload input archive changed: ${file.path}`);
 }
 const archivedSources = new Map(payloadInputArchive.files.map(file => [file.originalPath + ':' + file.sha256, file.path]));
-const capturedInputDigest = file => digest(hostRuntimeHealthHistory.get(file.path + ':' + file.sha256) ?? sessionExportRangeHistory.get(file.path + ':' + file.sha256) ?? sharedDiffCorpusHistory.get(file.path + ':' + file.sha256) ?? fileUploadEdgeHistory.get(file.path + ':' + file.sha256) ?? otaUpgradeHistory.get(file.path + ':' + file.sha256) ?? networkMatrixHistory.get(file.path + ':' + file.sha256) ?? resumeFeedHistory.get(file.path + ':' + file.sha256) ?? toolJournalHistory.get(file.path + ':' + file.sha256) ?? approvalAskHistory.get(file.path + ':' + file.sha256) ?? liveModelE2eHistory.get(file.path + ':' + file.sha256) ?? factsExportHistory.get(file.path + ':' + file.sha256) ?? attributionUaHistory.get(file.path + ':' + file.sha256) ?? presetStaleHistory.get(file.path + ':' + file.sha256) ?? catalogRefreshUiHistory.get(file.path + ':' + file.sha256) ?? liveCatalogE2eHistory.get(file.path + ':' + file.sha256) ?? liteReadersHistory.get(file.path + ':' + file.sha256) ?? liteIntakeHistory.get(file.path + ':' + file.sha256) ?? liteUrlfetchHistory.get(file.path + ':' + file.sha256) ?? liteRoundsHistory.get(file.path + ':' + file.sha256) ?? liteCatalogHistory.get(file.path + ':' + file.sha256) ?? liteHistoryHistory.get(file.path + ':' + file.sha256) ?? liteExecutorsHistory.get(file.path + ':' + file.sha256) ?? relayRetireHistory.get(file.path + ':' + file.sha256) ?? liteDeclarationsHistory.get(file.path + ':' + file.sha256) ?? liteHandoffHistory.get(file.path + ':' + file.sha256) ?? liteResumeHistory.get(file.path + ':' + file.sha256) ?? litePresetHistory.get(file.path + ':' + file.sha256) ?? liteHttpHistory.get(file.path + ':' + file.sha256) ?? liteFactsHistory.get(file.path + ':' + file.sha256) ?? liteAssemblyHistory.get(file.path + ':' + file.sha256) ?? litePermissionHistory.get(file.path + ':' + file.sha256) ?? liteToolsHistory.get(file.path + ':' + file.sha256) ?? litePersonaHistory.get(file.path + ':' + file.sha256) ?? liteToolHistory.get(file.path + ':' + file.sha256) ?? durableReceiptsHistory.get(file.path + ':' + file.sha256) ?? senderWiringHistory.get(file.path + ':' + file.sha256) ?? clientMutationHistory.get(file.path + ':' + file.sha256) ?? timeContextHistory.get(file.path + ':' + file.sha256) ?? loaderCompositionHistory.get(file.path + ':' + file.sha256) ?? clientDomainGraphHistory.get(file.path + ':' + file.sha256) ?? baselineRedRepairHistory.get(file.path + ':' + file.sha256) ?? revisionStampingHistory.get(file.path + ':' + file.sha256) ?? providerMetadataOutletHistory.get(file.path + ':' + file.sha256) ?? deviceTrustOutletHistory.get(file.path + ':' + file.sha256) ?? crashDiagnosticsOutletHistory.get(file.path + ':' + file.sha256) ?? deviceRevocationClosureHistory.get(file.path + ':' + file.sha256) ?? telemetryConsentSettingsHistory.get(file.path + ':' + file.sha256) ?? mutationIdempotencyLanesHistory.get(file.path + ':' + file.sha256) ?? connectionGateLocaleHistory.get(file.path + ':' + file.sha256) ?? diagnosticsSourceRevisionHistory.get(file.path + ':' + file.sha256) ?? tornRepairIntentHistory.get(file.path + ':' + file.sha256) ?? atomicDurabilityHistory.get(file.path + ':' + file.sha256) ?? approvalAskRiskHistory.get(file.path + ':' + file.sha256) ?? approvalFactsCompleteHistory.get(file.path + ':' + file.sha256) ?? viewHandoffQrHistory.get(file.path + ':' + file.sha256) ?? failureCopyHistory.get(file.path + ':' + file.sha256) ?? viewHandoffHistory.get(file.path + ':' + file.sha256) ?? headerOverflowHistory.get(file.path + ':' + file.sha256) ?? activeHostSwitchHistory.get(file.path + ':' + file.sha256) ?? androidFollowForegroundHistory.get(file.path + ':' + file.sha256) ?? androidFollowOutageHistory.get(file.path + ':' + file.sha256) ?? androidFollowLaneHistory.get(file.path + ':' + file.sha256) ?? androidFollowWindowHistory.get(file.path + ':' + file.sha256) ?? appleFollowResumeHistory.get(file.path + ':' + file.sha256) ?? appleViewLocationHistory.get(file.path + ':' + file.sha256) ?? appleLocationFactsHistory.get(file.path + ':' + file.sha256) ?? hostsRosterReorderHistory.get(file.path + ':' + file.sha256) ?? gatewayOutageHistory.get(file.path + ':' + file.sha256) ?? appleModelCatalogHistory.get(file.path + ':' + file.sha256) ?? modelEffortHistory.get(file.path + ':' + file.sha256) ?? sessionLocationFactsHistory.get(file.path + ':' + file.sha256) ?? modelSelectHistory.get(file.path + ':' + file.sha256) ?? modelSteerHistory.get(file.path + ':' + file.sha256) ?? sessionLocationChipHistory.get(file.path + ':' + file.sha256) ?? androidHostQuestionHistory.get(file.path + ':' + file.sha256) ?? appleRosterSwiftHistory.get(file.path + ':' + file.sha256) ?? diffSplitViewHistory.get(file.path + ':' + file.sha256) ?? hostsRosterRenameHistory.get(file.path + ':' + file.sha256) ?? browserDedupeVerificationHistory.get(file.path + ':' + file.sha256) ?? nativeDigestMemoryHistory.get(file.path + ':' + file.sha256) ?? browserUploadDedupeHistory.get(file.path + ':' + file.sha256) ?? nativeUploadDedupeHistory.get(file.path + ':' + file.sha256) ?? nativeHostRestartHistory.get(file.path + ':' + file.sha256) ?? nativeImageUploadBudgetHistory.get(file.path + ':' + file.sha256) ?? nativeUploadBudgetHistory.get(file.path + ':' + file.sha256) ?? androidAttachmentReceiptRecoveryHistory.get(file.path + ':' + file.sha256) ?? androidNotificationPermissionHistory.get(file.path + ':' + file.sha256) ?? androidPushForegroundHistory.get(file.path + ':' + file.sha256) ?? androidViewDeepLinksHistory.get(file.path + ':' + file.sha256) ?? androidShareIntakeHistory.get(file.path + ':' + file.sha256) ?? androidCameraAttachmentsHistory.get(file.path + ':' + file.sha256) ?? androidPhotoAttachmentsHistory.get(file.path + ':' + file.sha256) ?? androidFileAttachmentsHistory.get(file.path + ':' + file.sha256) ?? androidDownloadAdoptionHistory.get(file.path + ':' + file.sha256) ?? androidDownloadCheckpointHistory.get(file.path + ':' + file.sha256) ?? androidResourceSaveHistory.get(file.path + ':' + file.sha256) ?? androidSubagentTimelineHistory.get(file.path + ':' + file.sha256) ?? androidOperationCapabilitiesHistory.get(file.path + ':' + file.sha256) ?? androidCapabilityPresentationHistory.get(file.path + ':' + file.sha256) ?? nativeScannerCandidateHistory.get(file.path + ':' + file.sha256) ?? nativeScannerAdoptionHistory.get(file.path + ':' + file.sha256) ?? androidNativeDiagnosticsHistory.get(file.path + ':' + file.sha256) ?? androidResourceAdoptionHistory.get(file.path + ':' + file.sha256) ?? androidCursorResumeHistory.get(file.path + ':' + file.sha256) ?? androidViewLocationHistory.get(file.path + ':' + file.sha256) ?? androidHostRosterHistory.get(file.path + ':' + file.sha256) ?? androidPromptRetryHistory.get(file.path + ':' + file.sha256) ?? androidInputPersistenceHistory.get(file.path + ':' + file.sha256) ?? androidInputRetentionHistory.get(file.path + ':' + file.sha256) ?? androidSessionListHistory.get(file.path + ':' + file.sha256) ?? androidCredentialRecoveryHistory.get(file.path + ':' + file.sha256) ?? androidRepairingHistory.get(file.path + ':' + file.sha256) ?? androidNativeLifecycleHistory.get(file.path + ':' + file.sha256) ?? androidNativeCompanionHistory.get(file.path + ':' + file.sha256) ?? androidGatewayHistory.get(file.path + ':' + file.sha256) ?? nativePairingPresentationHistory.get(file.path + ':' + file.sha256) ?? nativeRemoteTlsHistory.get(file.path + ':' + file.sha256) ?? nativePairingHistory.get(file.path + ':' + file.sha256) ?? deviceAdmissionLifecycleHistory.get(file.path + ':' + file.sha256) ?? browserHostOriginHistory.get(file.path + ':' + file.sha256) ?? diffRichViewerHistory.get(file.path + ':' + file.sha256) ?? diffReadableCopyHistory.get(file.path + ':' + file.sha256) ?? hostSelectionObserverHistory.get(file.path + ':' + file.sha256) ?? mimeInferenceHistory.get(file.path + ':' + file.sha256) ?? interruptedTransferHistory.get(file.path + ':' + file.sha256) ?? rosterUiHistory.get(file.path + ':' + file.sha256) ?? rosterSwitchHistory.get(file.path + ':' + file.sha256) ?? retargetableEndpointHistory.get(file.path + ':' + file.sha256) ?? binaryFactCardHistory.get(file.path + ':' + file.sha256) ?? unifiedDiffPreviewHistory.get(file.path + ':' + file.sha256) ?? durableRetainedAnswersHistory.get(file.path + ':' + file.sha256) ?? permissionTierChipHistory.get(file.path + ':' + file.sha256) ?? degradedProbesHistory.get(file.path + ':' + file.sha256) ?? savedHostsHistory.get(file.path + ':' + file.sha256) ?? telemetryGateHistory.get(file.path + ':' + file.sha256) ?? settingsEntryHistory.get(file.path + ':' + file.sha256) ?? sessionHeadersEntryHistory.get(file.path + ':' + file.sha256) ?? diagnosticsRecorderHistory.get(file.path + ':' + file.sha256) ?? telemetryConsentHistory.get(file.path + ':' + file.sha256) ?? supportBundleHistory.get(file.path + ':' + file.sha256) ?? hostDiagnosticsHistory.get(file.path + ':' + file.sha256) ?? composerGateHistory.get(file.path + ':' + file.sha256) ?? viewLocationHistory.get(file.path + ':' + file.sha256) ?? followResumeHistory.get(file.path + ':' + file.sha256) ?? approvalFactsHistory.get(file.path + ':' + file.sha256) ?? commandRiskHistory.get(file.path + ':' + file.sha256) ?? hostNamingHistory.get(file.path + ':' + file.sha256) ?? designLanguageHistory.get(file.path + ':' + file.sha256) ?? phoneTopBarHistory.get(file.path + ':' + file.sha256) ?? runningLocationHistory.get(file.path + ':' + file.sha256) ?? foldableFrameHistory.get(file.path + ':' + file.sha256) ?? keyboardAvoidanceHistory.get(file.path + ':' + file.sha256) ?? safeAreaInsetsHistory.get(file.path + ':' + file.sha256) ?? branchGateDebtHistory.get(file.path + ':' + file.sha256) ?? devicesSettingsSurfaceHistory.get(file.path + ':' + file.sha256) ?? deviceIdentityConfirmationHistory.get(file.path + ':' + file.sha256) ?? androidDeviceAdmissionHistory.get(file.path + ':' + file.sha256) ?? admissionNonceLedgerHistory.get(file.path + ':' + file.sha256) ?? remainingCapabilityPermissionsHistory.get(file.path + ':' + file.sha256) ?? workspaceCapabilityPermissionsHistory.get(file.path + ':' + file.sha256) ?? sessionCapabilityPermissionsHistory.get(file.path + ':' + file.sha256) ?? perRequestAdmissionHistory.get(file.path + ':' + file.sha256) ?? protocolInteropMatrixHistory.get(file.path + ':' + file.sha256) ?? deviceRevokedStateHistory.get(file.path + ':' + file.sha256) ?? deviceRoleAdmissionHistory.get(file.path + ':' + file.sha256) ?? deviceTrustDurableHistory.get(file.path + ':' + file.sha256) ?? deviceTrustHistory.get(file.path + ':' + file.sha256) ?? linkAccessAuditHistory.get(file.path + ':' + file.sha256) ?? androidRefusalLaneHistory.get(file.path + ':' + file.sha256) ?? jobsFailureClassHistory.get(file.path + ':' + file.sha256) ?? queueClassificationAdoptionHistory.get(file.path + ':' + file.sha256) ?? uiClassificationAdoptionHistory.get(file.path + ':' + file.sha256) ?? gatewayConsumptionHistory.get(file.path + ':' + file.sha256) ?? scannerAarHistory.get(file.path + ':' + file.sha256) ?? responsivePhoneDrawerHistory.get(file.path + ':' + file.sha256) ?? diagnosticsOnlyTierHistory.get(file.path + ':' + file.sha256) ?? swiftCiRecoveryHistory.get(file.path + ':' + file.sha256) ?? androidMigrationHistory.get(file.path + ':' + file.sha256) ?? interactionPermissionHistory.get(file.path + ':' + file.sha256) ?? appleContractHistory.get(file.path + ':' + file.sha256) ?? failureClassesAdoptionHistory.get(file.path + ':' + file.sha256) ?? androidContractHistory.get(file.path + ':' + file.sha256) ?? remoteFailureClassesHistory.get(file.path + ':' + file.sha256) ?? remoteErrorEnvelopeSchemaHistory.get(file.path + ':' + file.sha256) ?? remoteValidationDetailsHistory.get(file.path + ':' + file.sha256) ?? readonlySchemaHistory.get(file.path + ':' + file.sha256) ?? errorTypeModelHistory.get(file.path + ':' + file.sha256) ?? errorCodeSchemaHistory.get(file.path + ':' + file.sha256) ?? clientAdmissionHistory.get(file.path + ':' + file.sha256) ?? hostDescriptionHistory.get(file.path + ':' + file.sha256) ?? archivedSources.get(file.path + ':' + file.sha256) ?? archivedBuilds.get(file.path + ':' + file.sha256) ?? file.path);
+const capturedInputDigest = file => digest(hostStatusSurfaceHistory.get(file.path + ':' + file.sha256) ?? hostRuntimeHealthHistory.get(file.path + ':' + file.sha256) ?? sessionExportRangeHistory.get(file.path + ':' + file.sha256) ?? sharedDiffCorpusHistory.get(file.path + ':' + file.sha256) ?? fileUploadEdgeHistory.get(file.path + ':' + file.sha256) ?? otaUpgradeHistory.get(file.path + ':' + file.sha256) ?? networkMatrixHistory.get(file.path + ':' + file.sha256) ?? resumeFeedHistory.get(file.path + ':' + file.sha256) ?? toolJournalHistory.get(file.path + ':' + file.sha256) ?? approvalAskHistory.get(file.path + ':' + file.sha256) ?? liveModelE2eHistory.get(file.path + ':' + file.sha256) ?? factsExportHistory.get(file.path + ':' + file.sha256) ?? attributionUaHistory.get(file.path + ':' + file.sha256) ?? presetStaleHistory.get(file.path + ':' + file.sha256) ?? catalogRefreshUiHistory.get(file.path + ':' + file.sha256) ?? liveCatalogE2eHistory.get(file.path + ':' + file.sha256) ?? liteReadersHistory.get(file.path + ':' + file.sha256) ?? liteIntakeHistory.get(file.path + ':' + file.sha256) ?? liteUrlfetchHistory.get(file.path + ':' + file.sha256) ?? liteRoundsHistory.get(file.path + ':' + file.sha256) ?? liteCatalogHistory.get(file.path + ':' + file.sha256) ?? liteHistoryHistory.get(file.path + ':' + file.sha256) ?? liteExecutorsHistory.get(file.path + ':' + file.sha256) ?? relayRetireHistory.get(file.path + ':' + file.sha256) ?? liteDeclarationsHistory.get(file.path + ':' + file.sha256) ?? liteHandoffHistory.get(file.path + ':' + file.sha256) ?? liteResumeHistory.get(file.path + ':' + file.sha256) ?? litePresetHistory.get(file.path + ':' + file.sha256) ?? liteHttpHistory.get(file.path + ':' + file.sha256) ?? liteFactsHistory.get(file.path + ':' + file.sha256) ?? liteAssemblyHistory.get(file.path + ':' + file.sha256) ?? litePermissionHistory.get(file.path + ':' + file.sha256) ?? liteToolsHistory.get(file.path + ':' + file.sha256) ?? litePersonaHistory.get(file.path + ':' + file.sha256) ?? liteToolHistory.get(file.path + ':' + file.sha256) ?? durableReceiptsHistory.get(file.path + ':' + file.sha256) ?? senderWiringHistory.get(file.path + ':' + file.sha256) ?? clientMutationHistory.get(file.path + ':' + file.sha256) ?? timeContextHistory.get(file.path + ':' + file.sha256) ?? loaderCompositionHistory.get(file.path + ':' + file.sha256) ?? clientDomainGraphHistory.get(file.path + ':' + file.sha256) ?? baselineRedRepairHistory.get(file.path + ':' + file.sha256) ?? revisionStampingHistory.get(file.path + ':' + file.sha256) ?? providerMetadataOutletHistory.get(file.path + ':' + file.sha256) ?? deviceTrustOutletHistory.get(file.path + ':' + file.sha256) ?? crashDiagnosticsOutletHistory.get(file.path + ':' + file.sha256) ?? deviceRevocationClosureHistory.get(file.path + ':' + file.sha256) ?? telemetryConsentSettingsHistory.get(file.path + ':' + file.sha256) ?? mutationIdempotencyLanesHistory.get(file.path + ':' + file.sha256) ?? connectionGateLocaleHistory.get(file.path + ':' + file.sha256) ?? diagnosticsSourceRevisionHistory.get(file.path + ':' + file.sha256) ?? tornRepairIntentHistory.get(file.path + ':' + file.sha256) ?? atomicDurabilityHistory.get(file.path + ':' + file.sha256) ?? approvalAskRiskHistory.get(file.path + ':' + file.sha256) ?? approvalFactsCompleteHistory.get(file.path + ':' + file.sha256) ?? viewHandoffQrHistory.get(file.path + ':' + file.sha256) ?? failureCopyHistory.get(file.path + ':' + file.sha256) ?? viewHandoffHistory.get(file.path + ':' + file.sha256) ?? headerOverflowHistory.get(file.path + ':' + file.sha256) ?? activeHostSwitchHistory.get(file.path + ':' + file.sha256) ?? androidFollowForegroundHistory.get(file.path + ':' + file.sha256) ?? androidFollowOutageHistory.get(file.path + ':' + file.sha256) ?? androidFollowLaneHistory.get(file.path + ':' + file.sha256) ?? androidFollowWindowHistory.get(file.path + ':' + file.sha256) ?? appleFollowResumeHistory.get(file.path + ':' + file.sha256) ?? appleViewLocationHistory.get(file.path + ':' + file.sha256) ?? appleLocationFactsHistory.get(file.path + ':' + file.sha256) ?? hostsRosterReorderHistory.get(file.path + ':' + file.sha256) ?? gatewayOutageHistory.get(file.path + ':' + file.sha256) ?? appleModelCatalogHistory.get(file.path + ':' + file.sha256) ?? modelEffortHistory.get(file.path + ':' + file.sha256) ?? sessionLocationFactsHistory.get(file.path + ':' + file.sha256) ?? modelSelectHistory.get(file.path + ':' + file.sha256) ?? modelSteerHistory.get(file.path + ':' + file.sha256) ?? sessionLocationChipHistory.get(file.path + ':' + file.sha256) ?? androidHostQuestionHistory.get(file.path + ':' + file.sha256) ?? appleRosterSwiftHistory.get(file.path + ':' + file.sha256) ?? diffSplitViewHistory.get(file.path + ':' + file.sha256) ?? hostsRosterRenameHistory.get(file.path + ':' + file.sha256) ?? browserDedupeVerificationHistory.get(file.path + ':' + file.sha256) ?? nativeDigestMemoryHistory.get(file.path + ':' + file.sha256) ?? browserUploadDedupeHistory.get(file.path + ':' + file.sha256) ?? nativeUploadDedupeHistory.get(file.path + ':' + file.sha256) ?? nativeHostRestartHistory.get(file.path + ':' + file.sha256) ?? nativeImageUploadBudgetHistory.get(file.path + ':' + file.sha256) ?? nativeUploadBudgetHistory.get(file.path + ':' + file.sha256) ?? androidAttachmentReceiptRecoveryHistory.get(file.path + ':' + file.sha256) ?? androidNotificationPermissionHistory.get(file.path + ':' + file.sha256) ?? androidPushForegroundHistory.get(file.path + ':' + file.sha256) ?? androidViewDeepLinksHistory.get(file.path + ':' + file.sha256) ?? androidShareIntakeHistory.get(file.path + ':' + file.sha256) ?? androidCameraAttachmentsHistory.get(file.path + ':' + file.sha256) ?? androidPhotoAttachmentsHistory.get(file.path + ':' + file.sha256) ?? androidFileAttachmentsHistory.get(file.path + ':' + file.sha256) ?? androidDownloadAdoptionHistory.get(file.path + ':' + file.sha256) ?? androidDownloadCheckpointHistory.get(file.path + ':' + file.sha256) ?? androidResourceSaveHistory.get(file.path + ':' + file.sha256) ?? androidSubagentTimelineHistory.get(file.path + ':' + file.sha256) ?? androidOperationCapabilitiesHistory.get(file.path + ':' + file.sha256) ?? androidCapabilityPresentationHistory.get(file.path + ':' + file.sha256) ?? nativeScannerCandidateHistory.get(file.path + ':' + file.sha256) ?? nativeScannerAdoptionHistory.get(file.path + ':' + file.sha256) ?? androidNativeDiagnosticsHistory.get(file.path + ':' + file.sha256) ?? androidResourceAdoptionHistory.get(file.path + ':' + file.sha256) ?? androidCursorResumeHistory.get(file.path + ':' + file.sha256) ?? androidViewLocationHistory.get(file.path + ':' + file.sha256) ?? androidHostRosterHistory.get(file.path + ':' + file.sha256) ?? androidPromptRetryHistory.get(file.path + ':' + file.sha256) ?? androidInputPersistenceHistory.get(file.path + ':' + file.sha256) ?? androidInputRetentionHistory.get(file.path + ':' + file.sha256) ?? androidSessionListHistory.get(file.path + ':' + file.sha256) ?? androidCredentialRecoveryHistory.get(file.path + ':' + file.sha256) ?? androidRepairingHistory.get(file.path + ':' + file.sha256) ?? androidNativeLifecycleHistory.get(file.path + ':' + file.sha256) ?? androidNativeCompanionHistory.get(file.path + ':' + file.sha256) ?? androidGatewayHistory.get(file.path + ':' + file.sha256) ?? nativePairingPresentationHistory.get(file.path + ':' + file.sha256) ?? nativeRemoteTlsHistory.get(file.path + ':' + file.sha256) ?? nativePairingHistory.get(file.path + ':' + file.sha256) ?? deviceAdmissionLifecycleHistory.get(file.path + ':' + file.sha256) ?? browserHostOriginHistory.get(file.path + ':' + file.sha256) ?? diffRichViewerHistory.get(file.path + ':' + file.sha256) ?? diffReadableCopyHistory.get(file.path + ':' + file.sha256) ?? hostSelectionObserverHistory.get(file.path + ':' + file.sha256) ?? mimeInferenceHistory.get(file.path + ':' + file.sha256) ?? interruptedTransferHistory.get(file.path + ':' + file.sha256) ?? rosterUiHistory.get(file.path + ':' + file.sha256) ?? rosterSwitchHistory.get(file.path + ':' + file.sha256) ?? retargetableEndpointHistory.get(file.path + ':' + file.sha256) ?? binaryFactCardHistory.get(file.path + ':' + file.sha256) ?? unifiedDiffPreviewHistory.get(file.path + ':' + file.sha256) ?? durableRetainedAnswersHistory.get(file.path + ':' + file.sha256) ?? permissionTierChipHistory.get(file.path + ':' + file.sha256) ?? degradedProbesHistory.get(file.path + ':' + file.sha256) ?? savedHostsHistory.get(file.path + ':' + file.sha256) ?? telemetryGateHistory.get(file.path + ':' + file.sha256) ?? settingsEntryHistory.get(file.path + ':' + file.sha256) ?? sessionHeadersEntryHistory.get(file.path + ':' + file.sha256) ?? diagnosticsRecorderHistory.get(file.path + ':' + file.sha256) ?? telemetryConsentHistory.get(file.path + ':' + file.sha256) ?? supportBundleHistory.get(file.path + ':' + file.sha256) ?? hostDiagnosticsHistory.get(file.path + ':' + file.sha256) ?? composerGateHistory.get(file.path + ':' + file.sha256) ?? viewLocationHistory.get(file.path + ':' + file.sha256) ?? followResumeHistory.get(file.path + ':' + file.sha256) ?? approvalFactsHistory.get(file.path + ':' + file.sha256) ?? commandRiskHistory.get(file.path + ':' + file.sha256) ?? hostNamingHistory.get(file.path + ':' + file.sha256) ?? designLanguageHistory.get(file.path + ':' + file.sha256) ?? phoneTopBarHistory.get(file.path + ':' + file.sha256) ?? runningLocationHistory.get(file.path + ':' + file.sha256) ?? foldableFrameHistory.get(file.path + ':' + file.sha256) ?? keyboardAvoidanceHistory.get(file.path + ':' + file.sha256) ?? safeAreaInsetsHistory.get(file.path + ':' + file.sha256) ?? branchGateDebtHistory.get(file.path + ':' + file.sha256) ?? devicesSettingsSurfaceHistory.get(file.path + ':' + file.sha256) ?? deviceIdentityConfirmationHistory.get(file.path + ':' + file.sha256) ?? androidDeviceAdmissionHistory.get(file.path + ':' + file.sha256) ?? admissionNonceLedgerHistory.get(file.path + ':' + file.sha256) ?? remainingCapabilityPermissionsHistory.get(file.path + ':' + file.sha256) ?? workspaceCapabilityPermissionsHistory.get(file.path + ':' + file.sha256) ?? sessionCapabilityPermissionsHistory.get(file.path + ':' + file.sha256) ?? perRequestAdmissionHistory.get(file.path + ':' + file.sha256) ?? protocolInteropMatrixHistory.get(file.path + ':' + file.sha256) ?? deviceRevokedStateHistory.get(file.path + ':' + file.sha256) ?? deviceRoleAdmissionHistory.get(file.path + ':' + file.sha256) ?? deviceTrustDurableHistory.get(file.path + ':' + file.sha256) ?? deviceTrustHistory.get(file.path + ':' + file.sha256) ?? linkAccessAuditHistory.get(file.path + ':' + file.sha256) ?? androidRefusalLaneHistory.get(file.path + ':' + file.sha256) ?? jobsFailureClassHistory.get(file.path + ':' + file.sha256) ?? queueClassificationAdoptionHistory.get(file.path + ':' + file.sha256) ?? uiClassificationAdoptionHistory.get(file.path + ':' + file.sha256) ?? gatewayConsumptionHistory.get(file.path + ':' + file.sha256) ?? scannerAarHistory.get(file.path + ':' + file.sha256) ?? responsivePhoneDrawerHistory.get(file.path + ':' + file.sha256) ?? diagnosticsOnlyTierHistory.get(file.path + ':' + file.sha256) ?? swiftCiRecoveryHistory.get(file.path + ':' + file.sha256) ?? androidMigrationHistory.get(file.path + ':' + file.sha256) ?? interactionPermissionHistory.get(file.path + ':' + file.sha256) ?? appleContractHistory.get(file.path + ':' + file.sha256) ?? failureClassesAdoptionHistory.get(file.path + ':' + file.sha256) ?? androidContractHistory.get(file.path + ':' + file.sha256) ?? remoteFailureClassesHistory.get(file.path + ':' + file.sha256) ?? remoteErrorEnvelopeSchemaHistory.get(file.path + ':' + file.sha256) ?? remoteValidationDetailsHistory.get(file.path + ':' + file.sha256) ?? readonlySchemaHistory.get(file.path + ':' + file.sha256) ?? errorTypeModelHistory.get(file.path + ':' + file.sha256) ?? errorCodeSchemaHistory.get(file.path + ':' + file.sha256) ?? clientAdmissionHistory.get(file.path + ':' + file.sha256) ?? hostDescriptionHistory.get(file.path + ':' + file.sha256) ?? archivedSources.get(file.path + ':' + file.sha256) ?? archivedBuilds.get(file.path + ':' + file.sha256) ?? file.path);
 assert.equal(digest(desktopContextRecordPath),
   'a76b0e3858d5e0c5dbaf5dfb4fe65e8a4d4668f7c41a5afac7605afb870d47c8', 'Desktop context source record changed');
 const desktopContextRecord = JSON.parse(readFileSync(resolve(root, desktopContextRecordPath), 'utf8'));
@@ -16034,7 +16251,9 @@ for (const check of fileUploadEdge.checks) evidence.checks.push({ ...check, sour
 for (const check of sharedDiffCorpus.checks) evidence.checks.push({ ...check, sourceRecord: sharedDiffCorpusPath });
 for (const check of sessionExportRange.checks) evidence.checks.push({ ...check, sourceRecord: sessionExportRangePath });
 for (const check of hostRuntimeHealth.checks) evidence.checks.push({ ...check, sourceRecord: hostRuntimeHealthPath });
-evidence.hostRuntimeHealth = { status: 'PASS', sourceRecord: hostRuntimeHealthPath, scope: hostRuntimeHealth.scope, ...hostRuntimeHealth.conclusions, limitations: hostRuntimeHealth.limitations, nextRequiredWork: hostRuntimeHealth.nextRequiredWork };
+for (const check of hostStatusSurface.checks) evidence.checks.push({ ...check, sourceRecord: hostStatusSurfacePath });
+evidence.hostStatusSurface = { status: 'PASS', sourceRecord: hostStatusSurfacePath, scope: hostStatusSurface.scope, ...hostStatusSurface.conclusions, limitations: hostStatusSurface.limitations, nextRequiredWork: hostStatusSurface.nextRequiredWork };
+evidence.hostRuntimeHealth = { historical: true, followup: hostStatusSurfacePath, status: 'PASS', sourceRecord: hostRuntimeHealthPath, scope: hostRuntimeHealth.scope, ...hostRuntimeHealth.conclusions, limitations: hostRuntimeHealth.limitations, nextRequiredWork: hostRuntimeHealth.nextRequiredWork };
 evidence.sessionExportRange = { historical: true, followup: hostRuntimeHealthPath, status: 'PASS', sourceRecord: sessionExportRangePath, scope: sessionExportRange.scope, ...sessionExportRange.conclusions, limitations: sessionExportRange.limitations, nextRequiredWork: sessionExportRange.nextRequiredWork };
 evidence.sharedDiffCorpus = { historical: true, followup: sessionExportRangePath, status: 'PASS', sourceRecord: sharedDiffCorpusPath, scope: sharedDiffCorpus.scope, ...sharedDiffCorpus.conclusions, limitations: sharedDiffCorpus.limitations, nextRequiredWork: sharedDiffCorpus.nextRequiredWork };
 evidence.fileUploadEdge = { historical: true, followup: sharedDiffCorpusPath, status: 'PASS', sourceRecord: fileUploadEdgePath, scope: fileUploadEdge.scope, ...fileUploadEdge.conclusions, limitations: fileUploadEdge.limitations, nextRequiredWork: fileUploadEdge.nextRequiredWork };
@@ -16294,7 +16513,7 @@ evidence.interactionRevision = { historical: true, followup: interactionExpiryPa
   ...interactionRevision.conclusions, limitations: interactionRevision.limitations };
 evidence.renameRevision = { historical: true, followup: interactionRevisionPath, status: 'PASS', sourceRecord: renameRevisionPath, scope: renameRevision.scope,
   ...renameRevision.conclusions, limitations: renameRevision.limitations };
-evidence.latestSourceRecord = hostRuntimeHealthPath;
+evidence.latestSourceRecord = hostStatusSurfacePath;
 evidence.cancelTarget = { historical: true, followup: renameRevisionPath, status: 'PASS', sourceRecord: cancelTargetPath, scope: cancelTarget.scope,
   ...cancelTarget.conclusions, limitations: cancelTarget.limitations };
 evidence.promptIdempotency = { historical: true, followup: cancelTargetPath, status: 'PASS', sourceRecord: promptIdempotencyPath, scope: promptIdempotency.scope,
@@ -17150,6 +17369,10 @@ gen-78 收口 OTA 真实升级路径资格验证（gen-71 preset-stale 自愈收
 ## §34/§35 文件上传边缘矩阵：真本地附件仓上的存储边缘收口
 
 gen-79 收口 §35 九项文件边缘中仓内可证明的存储边缘（既有证据只有上传/读取快乐路径回放——中途失败是否留已发布 digest、重启后同字节是否经内容寻址布局去重、含 NUL 字节是否渲染成文本预览卡均未被钉住）。形态三层：其一，packages/client/file-upload/tests/file-upload-edge.host.spec.ts 组装真服务栈（SessionStore+AgentRegistry+CommandRuntime+真 LocalAttachmentStore 跑临时 DSH_HOME+直接实例化 FileUploads），经其注册的流式路由发真实 POST——六用例：NUL 与高位字节经路由/暂存回执/别名路径/磁盘逐字节往返（attachmentId===Node sha256、alias 落 files/aa/digest/name、resolve 回 same ref）；零字节 body 配缺省名落默认叶子 file；CJK 与 emoji 显示名经 URL 编码链路原样存活（报告 📊 final v2.pdf）而 Windows 路径茎与保留字符消毒为安全叶子（C:\\Users\\ieme\\file<1>:v2.txt→file_1__v2.txt）；96MiB 图案流一次上传且公共 readFileStream 读回字节数/digest/抽查三偏移（0、1MiB-1、50,000,000）全等（readFileStreamVerbatim 自校验 digest+字节数，断言停留在公共面绝不伸进存储内部）；流中途失败返回 session/attachment-invalid{reason=ATTACHMENT_WRITE_FAILED}且 files/file-objects 零发布、tmp 零残留、同 Session 后续上传仍成功；跨服务实例（同根双 Context）旧回执 resolve undefined 而同字节重传经 file-objects 内容寻址去重同 attachment id、uploadDedupe 与 ensureFileByDigest 以第三第四名追加别名（digest 目录下四名字、file-objects/aa 恰一对象）。其二，documentpreview 签名嗅探加 NUL 启发式——任何含 NUL 字节落二进制卡（两条过去期待文本的截断图像断言因前缀含 NUL 诚实翻为 binary 卡，行为变更如实记录于 note）；ui-conversation 分类补空 type 与 application/x-unknown→逐字文件草稿（上行名钉 untyped.bin/probe.dat）。其三，客户端 digestBody 分块哈希端到端钉住：2.5MiB Blob 跨三个 1MiB 分块边界、经页面 fetch 载体上传一次（载体收到原 Blob）、第二次上传去重探针携带 digest===Node sha256(content)。三否决：桩附件仓（受测缝是存储事实——staging 清理、内容寻址发布、别名布局、digest 校验，桩只能复述断言）、合并单巨型测试（每条边缘一可读用例独立失败信息）、伸进存储内部取临时路径（断言停留在已发布布局与公共 readFileStream）。门禁（读日志内容）：typecheck EXIT 0（build:lib:host 链式+严格 client 面）、lint Found 0 warnings and 0 errors on 3864 files 90 rules 20 threads 43.1s（3863→3864=+1 新 host spec 入 lint 面）、doc-quick 17 passed in 36.11s+doc-sync 37 passed in 114.47s 单 combined 日志（pre/post git status 快照字节恒等零再生成；直跑 tsx 不在 Git Bash PATH 的 r0 调用工件旁置如实记）、pairing 定向直跑轮 964 全一致（963→964、note 三件套 2026-10-26-file-upload-edge-matrix testing 类、i18n 记录先行 --write）、审计双轮 87 files 1074 tests 两遍绿（gen-54 世系清单原样复用、1073→1074=orchestration 分类用例入世系、两遍文件集逐行比对恒等、双 EXIT_CODE=0）、gate0 双名镜像逐字节一致 1938 paths 129 components 81 sections 1983 lines（如实录自捕获 UPSTREAM_DELTA.json 非活树、acceptanceProven 恒 false）。裁定：派生 0（builtFiles 全 3615 非 tsbuildinfo 条目逐字节复放——本代零 android 构建、零打包步骤、typecheck 面零 lib 字节变化）、fallback 0、missBuilt 0——零键形（继 gen-66/67/68 与 gen-71 后）：advance 以纯 history-head 形降级 ota-upgrade 块（skip-only 循环获 fileUploadEdgeHistory 头）、无新集无过滤器无 malformed guard、零 UnrecoverableInputs；先代集合按 HEAD 封存一字不动（gen-78 networkMatrixReplacedBuildOutputs@2、gen-77 resumeFeed@65、gen-76B toolJournal@71 等）；源侧八键（六修改客户端/包文件+锁文件+台账对）经新 before 档 HEAD 字节解析；gen-73 SKELETON_RESET 三元组逐字携带。台账：§34/§35 族行收窄（remaining 694 字、candidateEvidence 2→5——边缘 host spec+sniff spec+note 入证据；存储边缘五项已证、共享 Diff 矩阵与 partial download/range 留待如实开放）、81 节恒定、§31 保持 gen-78 封存形（11411/28）、§33/§32/§23/§67 各守其先代封存形。诊断观察件如实封存三先在宿主条件：hygiene 双门 HEAD 态违规（admitEncodedImages 导入分类+四 ui-* locale-client 外部依赖——stash 探针实证先于本代）与 Windows GNU-tar C: 怪癖（pdf-license-bundle 本地失败、CI Linux 车道拥有）——均非本代回归、照实开放。本代无 android 轮（deviceRuns 空）、无 Swift 改动、生产源码仅 sniff.ts 一处 NUL 启发式。决策细节入 2026-10-26-file-upload-edge-matrix note 三件套（testing 类）。完整目标仍在推进（completeRc=false）。
+
+## §41 宿主侧就绪判定面：Web 设置呈现 Host 状态收口
+
+本代收口 §41-44 族句的「可接受请求的 readiness」半句——宿主侧 ready 判定早已完备（hostDiagnostics/health 应答六组件+派生 ready）却零消费面（全仓检索消费点唯伴生端、api-catalog 投影与包内 spec），官方 Web 客户端什么都不渲染；本代把它呈现给 Host 操作者。ui-settings-host-status 新包照 telemetry 分区体例注册 settings.section（id host-status、order 16 于 Hosts 与 Telemetry 之间）且**恒注册**——hostDiagnostics 是设置面宿主必备 Remote 命名空间、无能力可观察，无法应答 health 的宿主以分区错误行+重试呈现而非导航项消失；注入面单函数 health(): Promise<HealthSnapshot>，注册侧适配器解包生成客户端的 RemoteResult（ok:false 以远端失败拒绝使全部拒绝形态——未配对/未通告/超时/wire 错误——落进组件唯一错误态，ViewState/请求计数与 PluginInventory 同模式）；判定行信宿主派生 ready 绝不客户端重推导（连接组件刻意排除该推导——CLI/桌面管道无网络载体是合法部署形态，「连接行 down+判定 ready 并存是正确表现」钉入 README），六组件行 HOST_STATUS_COMPONENTS 派生 keyof HealthSnapshot 去 ready 同源（宿主重命名组件即构建失败直到行与文案跟随）、StateDot 映射 up→done/degraded→warning/down→error（ongoing 是保留给进行中过渡的动画运行环、§41 degraded 是已稳定部分失败——琥珀 warning 才是最近合法值，行内注释钉依据）、非敏感探针 detail 原文透传，data-host-ready 与逐行 data-component/data-component-state 测试钩子齐备，locale 双语字典完整。hostDiagnostics 命名空间经 dsh-api-remotes 聚合挂载（import+$mount 清单）并以 export type {} from …/remote 再导出声明合并抵达客户端——消费程序 ctx.remote.hostDiagnostics 类型检查正依赖该转发；**analyzer 雷如实入档**：试加的具名 HOST_DIAGNOSTICS_REMOTE_CAPABILITIES 转发使 verify-remote-error-envelope 的 analyzer（doc-sync 链）在解析产物 d.ts 时崩 TypeError——空 type 转发无符号安全、具名转发撤回，诊断靠 analyzer 2664 行临时 DIAG throw 定位（pkg/subpath/face/target 四元组拿事实）后还原零差异；顺带实证 host-diagnostics 不可加 tsconfig.client.json 叶（analyzer 会检查主入口 \`.\` 的源而 TypertAnalysisError）——device-trust 先例（无 client 叶+空转发）才是正确形态。四否决：跟能力通告动态注册（hostDiagnostics 非可选件且消失的导航行恰藏起分区要展示的失败）、客户端重推导 ready（两份推导会漂移——宿主 ready 是权威）、转发事件流实时刷新（§41 家族今天没有 health 变更事件可订阅——进入面读一次+手动重试为本代边界如实记 README Limitations）、挂 plugins 分区 tab（就绪是宿主整体事实非插件域细节）。测试：components.client.spec 六用例（全绿快照渲染断言六行 data 钩子+判定行 data-host-ready=true 与 ready 文案+detail 透传、modelProvider degraded 判定翻转、sessionStore down 判定翻转、health 拒绝→error+retry 恢复、pending promise 的 busy loading 形态、双字典逐组件与逐态非空）。门禁读日志：typecheck EXIT 0（独立车道日志——新包入 client 聚合 references、经 remotes 声明再导出解析 ctx.remote.hostDiagnostics）、lint 0 warnings 0 errors 43.3s 3875 文件 90 规则 20 线程（3869→3875=新包六源入 lint 面；两处初跑错——remotes $mount 行 max-len 153 与新包 map 回调 arrow-parens——修后绿形如实记）、doc-quick 17 passed 54.96s+doc-sync 37 passed 163.74s 单 combined 日志（README zh 骨架标准词对齐[进一步探索/已知限制与延期工作/开发备注+英文锚]、SENTENCE_MODEL_EXPERIENCE 加 host-status 条目、config-catalog regen 与 zh 手工镜像行、三对 pairing --write 重录——各中途 FAIL 均设计门）、pairing 独立直跑轮 969 对全一致（967→969=+host-status README 对+note 对 2026-10-27-host-status-surface architecture 类、config-catalog 对重录不加数）、审计双轮 91 文件/1113 测试两连绿双 EXIT_CODE=0 尾行（gen-80 的 90 清单+本代 components spec 入世系、1107→1113=+6 用例）、gate0 verify-audit JSON 双形态逐字节一致 1938/129/81/1983 PASS（paths 录自捕获 UPSTREAM_DELTA.json 恒定）+git diff --check clean、全仓 build EXIT 0（244 client artifacts/3 public values）。trace §41-44 族行 remaining 翻转收窄+gen-83 段追加（evidence 4→6：components spec+note 入证据；状态句「可接受请求的 readiness、脱敏和同候选 support collector 验证仍待完成」翻为「脱敏和同候选 support collector 验证仍待完成」+readiness 判定面 gen-83 收口叙述；remaining 1522 字、gen-82 段逐字保留、81 节保持）。android 车道如实：零 Android 源变更、无 connected 轮（gen-82 封存分类法保持成立）；gradle 验收聚合轮带 scanner env（E:/Mix/tools/dsh-scanner-output+receipt sourceSha 64fa6315，AAR bytes/sha256 与仓内 receipt 校验一致）双 APK cleanPackage 后定格——debug 465ccf64/androidTest e7a3c9f9（同日 clean 重打包两连字节稳定实测；**增量 UP-TO-DATE 的「IDENTICAL」是假象、clean 重打包见真形态**——均不复现 gen-82 封存字节 301e99b7/8f652b76；debug 的 301e99b7 复原尝试穷尽 stamp 矩阵[空/gen-81 commit 5819fc0e033f/gen-81 tree 730840a1d/四种组合]全不中、gen-82 轮无 lane 命令行存档——成因不可低成本复原如实记档，疑 resources.arsc/签名环境面）。prepare 派生 27 键（gen-82 记录的 builtFiles 被本代重写：apps/web/dist html 对+消失 hash 名 chunk 2[bootstrap/worker 换名]、remotes client lib 面 6、ui-primitives/sidebar/trajectory/documentpreview bundle 重发射 8、client-runner slot-catalog 面 5、双 APK 2——gen-80 七键族后首个纯 TS 材面族叠双 APK，advance 装 hostStatusSurfaceReplacedBuildOutputs@27、全部键经先代档案或本代 capture 可解析）。本代零 Kotlin、零 Swift，生产 TS 新包全套（六源+三配置+spec）+remotes 聚合缝（import/$mount/type 转发）+三装配文件（cordis.patch.yml/web-app package.json/tsconfig.base.json paths+tsconfig.client.json references）+slot-catalog 再生成+config-catalog 双语行+SENTENCE_MODEL_EXPERIENCE 登记+新包 README 双语+note 三件套+trace 生成器族行。
 
 ## §41-44 共享诊断：伴生端支持文档收集 Host 运行时健康快照收口
 

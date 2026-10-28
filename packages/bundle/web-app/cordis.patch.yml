@@ -275,6 +275,9 @@
     - id: ui-settings-hosts
       name: '@deepseek-ai/dsh-client-ui-settings-hosts'
 
+    - id: ui-settings-host-status
+      name: '@deepseek-ai/dsh-client-ui-settings-host-status'
+
     - id: ui-settings-telemetry
       name: '@deepseek-ai/dsh-client-ui-settings-telemetry'
 

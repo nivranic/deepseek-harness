@@ -3621,6 +3621,7 @@ export interface Config {
 - `@deepseek-ai/dsh-client-ui-settings`（[`packages/client/ui-settings/src/index.ts`](../packages/client/ui-settings/src/index.ts)）
 - `@deepseek-ai/dsh-client-ui-settings-devices`（[`packages/client/ui-settings-devices/src/index.ts`](../packages/client/ui-settings-devices/src/index.ts)）
 - `@deepseek-ai/dsh-client-ui-settings-general`（[`packages/client/ui-settings-general/src/index.ts`](../packages/client/ui-settings-general/src/index.ts)）
+- `@deepseek-ai/dsh-client-ui-settings-host-status`（[`packages/client/ui-settings-host-status/src/index.ts`](../packages/client/ui-settings-host-status/src/index.ts)）
 - `@deepseek-ai/dsh-client-ui-settings-hosts`（[`packages/client/ui-settings-hosts/src/index.ts`](../packages/client/ui-settings-hosts/src/index.ts)）
 - `@deepseek-ai/dsh-client-ui-settings-models`（[`packages/client/ui-settings-models/src/index.ts`](../packages/client/ui-settings-models/src/index.ts)）
 - `@deepseek-ai/dsh-client-ui-settings-plugin-inventory`（[`packages/client/ui-settings-plugin-inventory/src/index.ts`](../packages/client/ui-settings-plugin-inventory/src/index.ts)）

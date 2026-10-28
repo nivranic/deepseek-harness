@@ -83,6 +83,7 @@
     "@deepseek-ai/dsh-client-ui-settings-devices": "workspace:^",
     "@deepseek-ai/dsh-client-ui-settings-general": "workspace:^",
     "@deepseek-ai/dsh-client-ui-settings-hosts": "workspace:^",
+    "@deepseek-ai/dsh-client-ui-settings-host-status": "workspace:^",
     "@deepseek-ai/dsh-client-ui-settings-models": "workspace:^",
     "@deepseek-ai/dsh-client-ui-settings-plugin-inventory": "workspace:^",
     "@deepseek-ai/dsh-client-ui-settings-plugins": "workspace:^",
