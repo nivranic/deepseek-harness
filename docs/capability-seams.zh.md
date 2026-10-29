@@ -15,6 +15,14 @@ flowchart LR
   svc_linkAccess["ctx.linkAccess<br/>Native remote access carrier"]
   pkg_link_settings["link-settings"]
   svc_linkSettings["ctx.linkSettings<br/>Remote settings bridge"]
+  pkg_artifact["artifact"]
+  svc_artifacts["ctx.artifacts<br/>Artifact storage seam"]
+  pkg_artifact_local["artifact-local"]
+  pkg_code_runtime["code-runtime"]
+  svc_codeRuntime["ctx.codeRuntime<br/>Code execution seam"]
+  pkg_code_runtime_worker_thread["code-runtime-worker-thread"]
+  pkg_runtime_diagnostics_invariants["runtime-diagnostics/invariants"]
+  svc_invariants["ctx.invariants<br/>Package invariant registry"]
   pkg_api_link_controller["api/link-controller"]
   svc_linkController["ctx.linkController<br/>Link administration Remote owner"]
   pkg_action_cards["action-cards"]
@@ -332,8 +340,8 @@ flowchart LR
   pkg_agent_loop --> svc_agentLoop
   pkg_agent_preset_registry --> svc_agentPresets
   pkg_api_gateway --> svc_typertGateway
-  pkg_api_link_controller --> svc_linkController
   pkg_api_job_controller --> svc_jobController
+  pkg_api_link_controller --> svc_linkController
   pkg_api_remote_access --> svc_remoteAccess
   pkg_api_session_controller --> svc_sessionController
   pkg_api_session_controller --> svc_sessionFileReferences
@@ -345,6 +353,8 @@ flowchart LR
   pkg_api_workspace_controller --> svc_workspaceController
   pkg_api_workspace_files --> svc_workspaceFiles
   pkg_app_boot --> svc_profileContext
+  pkg_artifact --> svc_artifacts
+  pkg_artifact_local --> svc_artifacts
   pkg_attachment --> svc_attachments
   pkg_attachment_local --> svc_attachments
   pkg_authorization --> svc_authorization
@@ -356,6 +366,8 @@ flowchart LR
   pkg_client_modules --> svc_clientModules
   pkg_client_product_analytics --> svc_productAnalytics
   pkg_client_ui_plugin_manager --> svc_pluginRegistryProbe
+  pkg_code_runtime --> svc_codeRuntime
+  pkg_code_runtime_worker_thread --> svc_codeRuntime
   pkg_command_feedback --> svc_sessionFeedback
   pkg_commands --> svc_commands
   pkg_compaction --> svc_compaction
@@ -372,7 +384,6 @@ flowchart LR
   pkg_deepseek_account_platform --> svc_deepseekAccount
   pkg_deepseek_llm_api_extensions --> svc_deepseekLlmApiExtensions
   pkg_device_trust --> svc_deviceTrust
-  pkg_e2b --> svc_e2b
   pkg_electron_ipc --> svc_desktopGateway
   pkg_experimental_agent_team --> svc_agentTeams
   pkg_experimental_api_speech_to_text --> svc_speechController
@@ -432,6 +443,7 @@ flowchart LR
   pkg_ptc_runtime --> svc_ptcRuntime
   pkg_ptc_runtime_node --> svc_ptcRuntime
   pkg_pwsh_local --> svc_shell
+  pkg_runtime_diagnostics_invariants --> svc_invariants
   pkg_sandbox --> svc_sandbox
   pkg_sandbox_local --> svc_sandbox
   pkg_sandbox_policy --> svc_sandboxPolicy
@@ -671,6 +683,9 @@ flowchart LR
 | `ctx.deviceTrust` | `core` | [`device-trust`](../packages/remote/device-trust) | - | [`link-access`](../packages/remote/link-access) | - | 基于 SQLite 的宿主身份、一次性配对码与设备记录，link 载体据此授权。 |
 | `ctx.linkAccess` | `core` | [`link-access`](../packages/remote/link-access) | - | [`link-settings`](../packages/remote/link-settings) | - | 带 Ed25519 设备认证与角色门控 Allowlist 的 TLS 监听器，分发到现有 Typert 网关面。 |
 | `ctx.linkSettings` | `core` | [`link-settings`](../packages/remote/link-settings) | - | - | - | 拥有 `remote` 设置命名空间，并把其启用/审批/名称提交实时应用到 link 载体。 |
+| `ctx.artifacts` | `seam` | [`artifact`](../packages/artifact/artifact) | [`artifact-local`](../packages/artifact/artifact-local) | - | - | artifact_create/artifact_read 工具背后的 ctx.artifacts 资源通道：日志保留引用与状态，后端保留字节。 |
+| `ctx.codeRuntime` | `seam` | [`code-runtime`](../packages/code-runtime/code-runtime) | [`code-runtime-worker-thread`](../packages/code-runtime/code-runtime-worker-thread) | - | - | PTC runtime 桥接的 ctx.codeRuntime seam：带结构化绑定、预算与失败分类的有界代码运行。 |
+| `ctx.invariants` | `service` | `runtime-diagnostics/invariants` | - | - | - | 加载包属不变量安装器，并机械化强制其导出、发布、依赖与 bundle 接线。 |
 | `ctx.linkController` | `core` | `api/link-controller` | - | - | - | 把载体状态、配对签发与受信设备管理投影到面向本地 UI 的 `link` Remote 命名空间。 |
 | `ctx.actionCards` | `service` | [`action-cards`](../packages/experimental/action-cards) | - | [`creation-recommendations`](../packages/experimental/creation-recommendations), [`client-ui-action-cards`](../packages/experimental/client-ui-action-cards) | - | 负责卡片工具、卡片状态、用户操作和状态通知；各卡片种类注册自己的动作和处理器。 |
 | `ctx.pluginRecommendations` | `service` | [`plugin-recommendations`](../packages/experimental/plugin-recommendations) | - | [`client-ui-plugin-recommendations`](../packages/experimental/client-ui-plugin-recommendations) | - | 读取官方插件卡片的当前目录文本，并在用户点击后通过配置插件管理器启用该插件。 |

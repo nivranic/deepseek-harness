@@ -9,7 +9,7 @@ English | [中文](README.zh.md)
 
 ## Summary
 
-This package is the artifact host face: the `ctx.artifacts` resource channel plus the model-facing `artifact_create` and `artifact_read` tools. One call authors one complete artifact — text through `content` or raw bytes through base64 `data`, exactly one of the two — and the journal records the reference, its kind, title, authoring format, and lifecycle status (`artifact/created`, `artifact/status`), while the complete content bytes go to the resource channel and never ride an event (chapter 56). The shipped `dsh` composition enables this with no setup; artifacts survive restarts and companion surfaces render the pane from the journaled references. The branded `ArtifactId`, the `ArtifactFormat` discriminant, and the two `SessionEventMap` members live here too, so contract fixtures and native folds pin the wire shapes.
+This package is the artifact host face: the `ctx.artifacts` resource channel plus the model-facing `artifact_create` and `artifact_read` tools. One call authors one complete artifact — text through `content` or raw bytes through base64 `data`, exactly one — and the journal records the reference, kind, title, authoring format, and lifecycle status, while the content bytes go to the resource channel and never ride an event (chapter 56). The shipped `dsh` composition enables this with no setup; artifacts survive restarts and companion surfaces render the pane from the journaled references. The branded `ArtifactId`, `ArtifactFormat`, and the two `SessionEventMap` members live here.
 
 ## Table of Contents
 

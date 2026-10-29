@@ -9,7 +9,7 @@ kind: "package-reference"
 
 ## 概述
 
-本包是工件的宿主面：`ctx.artifacts` 资源通道加模型可见的 `artifact_create` 与 `artifact_read` 工具。一次调用创作一件完整工件——`content` 文本或 base64 `data` 字节，两者恰给其一——日志记录引用、类别、标题、创作格式与生命周期状态（`artifact/created`、`artifact/status`），完整内容字节进入资源通道、永不随事件走（第 56 章）。出厂 `dsh` 组合零配置启用；工件跨重启留存，伴侣面从日志引用渲染工件面板。品牌 `ArtifactId`、`ArtifactFormat` 判别式与两个 `SessionEventMap` 成员也住在这里，契约 fixture 与原生折叠因此钉住线形状。
+本包是工件的宿主面：`ctx.artifacts` 资源通道加模型可见的 `artifact_create` 与 `artifact_read` 工具。一次调用创作一件完整工件——`content` 文本或 base64 `data` 字节，两者恰给其一——日志记录引用、类别、标题、创作格式与生命周期状态，内容字节进入资源通道、永不随事件走（第 56 章）。出厂 `dsh` 组合零配置启用；工件跨重启留存，伴侣面从日志引用渲染工件面板。品牌 `ArtifactId`、`ArtifactFormat` 与两个 `SessionEventMap` 成员也住在这里。
 
 ## 目录
 

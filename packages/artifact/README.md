@@ -32,6 +32,7 @@ The `artifact/` group is chapter 56's host face: the `artifact_create` tool auth
 <a id="related-documentation"></a>
 ## Related documentation
 
+- [Attachment subsystem reference](../../docs/subsystems/attachment.md) — the `ctx.artifacts` `ArtifactStore` seam and the resource channel these references resolve against.
 - [Persistence catalog](../../docs/persistence-catalog.md) — the generated documentation of every journal event, artifacts included.
 - [Session event vocabulary](../core/session/README.md) — the merge-extensible `SessionEventMap` this family extends.
 - [Companion fold](../remote/link-contracts/README.md) — the reference fold that consumes these events into the artifact pane.

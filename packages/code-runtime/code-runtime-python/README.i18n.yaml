@@ -3,14 +3,14 @@
 # After editing either side, bring the other along and re-record with:
 #   pnpm run verify-translation-pairing --write packages/code-runtime/code-runtime-python/README.md
 /:
-  en: bbe3442c9f9cb686
-  zh: b03d88fca3245128
+  en: a8363e7076ea2714
+  zh: ce813d6420bbffc9
 /deepseek-ai-dsh-code-runtime-python:
   en: ccc3c8ecdb6f5ed8
   zh: ac98aede37d77154
 /deepseek-ai-dsh-code-runtime-python/summary:
-  en: e619bfd6dfdb2d74
-  zh: 4f377ce53aeb91bb
+  en: ebe678fc3841169f
+  zh: d5f42aa90e2df4db
 /deepseek-ai-dsh-code-runtime-python/table-of-contents:
   en: d152484eb41ac6b4
   zh: 09388d293f9be9cb

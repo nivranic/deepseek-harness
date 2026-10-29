@@ -77,12 +77,12 @@ kind: "package-reference"
 ```ts
 import type { Context } from '@deepseek-ai/cordis'
 import InvariantRegistry from '@deepseek-ai/dsh-invariants'
-import * as SessionInvariant from '@deepseek-ai/dsh-session/invariant'
+import * as ArtifactInvariant from '@deepseek-ai/dsh-artifact/invariant'
 
 declare const ctx: Context
 
 ctx.plugin(InvariantRegistry, { enabled: true })
-ctx.plugin(SessionInvariant)
+ctx.plugin(ArtifactInvariant)
 ```
 
 ### 检查失败时

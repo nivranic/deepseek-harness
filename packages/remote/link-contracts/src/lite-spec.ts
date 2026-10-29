@@ -92,7 +92,10 @@ interface LiteFoldState {
   pendingHandoff: string | null
 }
 
-/** The state before any event arrives. */
+/**
+ * The state before any event arrives.
+ * @returns the zero-value Lite domain: empty lists, no active stream, no pending handoff.
+ */
 export function emptyLiteDomain(): LiteDomainState {
   return {
     conversation: [],

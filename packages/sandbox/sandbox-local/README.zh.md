@@ -81,6 +81,7 @@ bwrap profile 组合只读宿主根目录、全新 `/dev` 与私有 PID 命名�
 Seatbelt profile 默认允许，带 `(deny file-write*)` 与来自共享 `writableRoots` 辅助函数的写入 allow-list，因此恰好管辖模式承诺的文件操作；每个根目录都经过规范化，因为 Seatbelt 匹配解析后的路径（`/tmp` 就是 `/private/tmp`）。
 
 Windows 档为每个工作区保留一个确定性写入 SID 和常驻 ACE，同时为每个活跃的会话/工作区对分配一个随机私有临时目录，以及不同的 SID 和可撤销 ACE——共享工作区的会话共享其预期写权限，却不会继承彼此的临时目录权限。新的提供方总会选择新的临时路径和 SID，因此崩溃残留既无法阻止恢复的会话，也无法向其授权。该档的 argv 把宿主进程自身的 binary 重新当作其 Node 运行时运行（[`dsh-node-spawn`](../../util/node-spawn/README.zh.md) 事实）：每次包装都携带匹配的 `env` 附加项——在 Electron 桌面 exe 下为 `ELECTRON_RUN_AS_NODE`——runner 会在受限命令启动前再次删除它们，因此它们绝不会到达被包装的进程。该档报告 `partial` 强制执行，因为受限令牌必须保留 Everyone，且 NTFS 硬链接会把同一文件对象别名为多个路径。
+
 Windows 档为每个工作区保留一个确定性写入 SID 和常驻 ACE，同时为每个活跃的会话/工作区对分配一个随机私有临时目录，以及不同的 SID 和可撤销 ACE——共享工作区的会话共享其预期写权限，却不会继承彼此的临时目录权限。新的提供方总会选择新的临时路径和 SID，因此崩溃残留既无法阻止恢复的会话，也无法向其授权。该档报告 `partial` 强制执行，因为 NTFS 硬链接会把同一文件对象别名为多个路径、读取仍不受限，且被其他 AppContainer 工具以包 SID 标记过的目录树对 Low 完整性子进程不可读。
 
 当内置 Windows runner 与技能注册表同时可用时，此提供方会注册 [ACL 诊断技能](../sandbox-windows-acl/README.zh.md#failures-and-recovery)。自定义 `runnerCommand` 不注册该技能；提供方释放时移除技能及其提取的资源。

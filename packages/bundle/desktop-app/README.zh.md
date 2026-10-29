@@ -9,7 +9,7 @@ kind: "package-bundle"
 
 ## 概述
 
-桌面表面 bundle：dsh 的 Electron 应用窗口，支持与代理交互对话、模型与设置管理以及会话历史，背后是与其他表面相同的模型访问、工具与安全默认值。[`cordis.patch.yml`](cordis.patch.yml) 叠加在 [`dsh-base`](../base/README.zh.md) 之上：设置编码 persona，插入桌面宿主行（workspace、[`electron-ipc`](../../host/electron-ipc/README.zh.md) 载体）以及 Web 表面的浏览器插件花名册外加一行桌面专属行（[ui-desktop](../../client/ui-desktop/README.zh.md)，关闭按钮偏好），并挂载本包的 `desktop-runtime` 粘合插件（配置 `{surfaceContext}`）。该表面与 [`dsh-web-app`](../web-app/README.zh.md) 的差异恰恰在载体：不绑定 webserver 行、不解析 `webStartup` 旗标，Connection 行以空信任清单保持挂载，提供其注册表服务与浏览器半。electron-ipc 行提供 `desktopGateway`，由 Electron 应用壳（`apps/desktop`）挂到其特权协议上；自适应目录选择器通过 `bindHost` 声明其回环绑定事实，因为没有可读的服务器绑定。本表面没有 URL 行、shell 变量或 HTTP 席位。
+桌面表面 bundle：dsh 的 Electron 窗口，支持与代理交互对话、模型与设置管理以及会话历史，背后是与其他表面相同的模型访问、工具与安全默认值。[`cordis.patch.yml`](cordis.patch.yml) 叠加在 [`dsh-base`](../base/README.zh.md) 之上，设置编码 persona，插入桌面宿主行与 Web 表面的浏览器插件花名册外加 [`ui-desktop`](../../client/ui-desktop/README.zh.md)，并挂载 `desktop-runtime` 粘合插件。与 [`dsh-web-app`](../web-app/README.zh.md) 不同：不绑定 webserver 行、不解析 `webStartup` 旗标，Connection 行保持空信任清单。[`electron-ipc`](../../host/electron-ipc/README.zh.md) 行提供 `desktopGateway`，由 Electron 应用壳挂到其特权协议上。
 
 ## 目录
 

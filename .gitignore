@@ -38,6 +38,11 @@ native/system/test/bin/
 
 # glm-hybrid-router 插件本地运行时产物
 .glm-router/
+
+# 本会话工具的本地运行时产物（不入库，也避免撑爆 git ls-files --others）
+.mimosa/
+.zcode/
+.merge-helpers/
 python/**/__pycache__/
 python/**/.pytest_cache/
 packages/**/__pycache__/
@@ -55,3 +60,8 @@ native/system/test/bin/
 
 # glm-hybrid-router 插件本地运行时产物
 .glm-router/
+
+# 本会话工具的本地运行时产物（不入库，也避免撑爆 git ls-files --others）
+.mimosa/
+.zcode/
+.merge-helpers/

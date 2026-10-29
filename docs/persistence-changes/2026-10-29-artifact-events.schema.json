@@ -1,0 +1,26 @@
+{
+  "formatVersion": 2,
+  "roots": [
+    {"key":"event:artifact/created","kind":"event","event":"artifact/created","surface":false,"digest":"18a9a30bd6e4c9519bbada9d53f7f5e7fb3b29d5040f7a810d406d6b6de75b12"},
+    {"key":"event:artifact/status","kind":"event","event":"artifact/status","surface":false,"digest":"3e0d43bd710d43096f1436af7500bb54ceaf59ed2a7494367a3e3387a1a2fced"}
+  ],
+  "types": [],
+  "nodes": {
+    "0657d3ca5ac4e7bf": {"kind":"primitive","type":"number"},
+    "12136401bae0866e": {"kind":"literal","value":"ready"},
+    "18a9a30bd6e4c951": {"kind":"object","properties":[{"name":"data","type":"e93999c63188171e","optional":false},{"name":"ignorable","type":"dacf3d5f3e4ff619","optional":true},{"name":"seq","type":"0657d3ca5ac4e7bf","optional":false},{"name":"time","type":"0657d3ca5ac4e7bf","optional":false},{"name":"type","type":"972242068f0394c2","optional":false}],"indices":[]},
+    "210f29d36ed34c5b": {"kind":"union","types":["12136401bae0866e","234142ee4f996f38","b57a2889408de36e"]},
+    "234142ee4f996f38": {"kind":"literal","value":"pending"},
+    "3e0d43bd710d4309": {"kind":"object","properties":[{"name":"data","type":"61faee43d5dc19ce","optional":false},{"name":"ignorable","type":"dacf3d5f3e4ff619","optional":true},{"name":"seq","type":"0657d3ca5ac4e7bf","optional":false},{"name":"time","type":"0657d3ca5ac4e7bf","optional":false},{"name":"type","type":"7880853d6a1fba4c","optional":false}],"indices":[]},
+    "4cd48f3e5108bd6e": {"kind":"primitive","type":"string"},
+    "4e44c9118152f682": {"kind":"literal","value":"text"},
+    "54490c5aea573c27": {"kind":"literal","value":"bytes"},
+    "61faee43d5dc19ce": {"kind":"object","properties":[{"name":"id","type":"4cd48f3e5108bd6e","optional":false},{"name":"status","type":"210f29d36ed34c5b","optional":false}],"indices":[]},
+    "7880853d6a1fba4c": {"kind":"literal","value":"artifact/status"},
+    "972242068f0394c2": {"kind":"literal","value":"artifact/created"},
+    "b2646baa24ec1ad3": {"kind":"union","types":["4e44c9118152f682","54490c5aea573c27"]},
+    "b57a2889408de36e": {"kind":"literal","value":"failed"},
+    "dacf3d5f3e4ff619": {"kind":"literal","value":true},
+    "e93999c63188171e": {"kind":"object","properties":[{"name":"format","type":"b2646baa24ec1ad3","optional":false},{"name":"id","type":"4cd48f3e5108bd6e","optional":false},{"name":"kind","type":"4cd48f3e5108bd6e","optional":false},{"name":"title","type":"4cd48f3e5108bd6e","optional":false}],"indices":[]}
+  }
+}

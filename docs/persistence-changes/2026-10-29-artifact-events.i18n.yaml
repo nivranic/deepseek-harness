@@ -1,0 +1,28 @@
+# Bilingual-pair consistency record for 2026-10-29-artifact-events.md (docs/i18n/README.md): per heading
+# section, a hash of its English and Chinese blocks outside code blocks and generated regions.
+# After editing either side, bring the other along and re-record with:
+#   pnpm run verify-translation-pairing --write docs/persistence-changes/2026-10-29-artifact-events.md
+/:
+  en: 3d5a424ae7d7e46b
+  zh: c22a8e4a62d8cc1a
+/2026-10-29-artifact-events:
+  en: 013a85cc571c5bb7
+  zh: ca04c470def38b11
+/2026-10-29-artifact-events/summary:
+  en: f1b06d8ec2ed0723
+  zh: 8f8c01d2f62640a9
+/2026-10-29-artifact-events/table-of-contents:
+  en: 6cf314a069ceb451
+  zh: 9adff678e9ecab3b
+/2026-10-29-artifact-events/declaration:
+  en: 6907136f28e48c90
+  zh: 02f8298485f3d8e7
+/2026-10-29-artifact-events/compatibility:
+  en: 5eb65e1a35d4ea6c
+  zh: 3c3c083d01eb05bf
+/2026-10-29-artifact-events/verification:
+  en: 6116dc5aa6e04e4b
+  zh: ae75f48dc6e81044
+/2026-10-29-artifact-events/dev-note:
+  en: b75c8458928b72b9
+  zh: 003ba4e17b4b5269

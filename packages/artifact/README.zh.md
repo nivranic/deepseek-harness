@@ -32,6 +32,7 @@ kind: "package-group"
 <a id="related-documentation"></a>
 ## 相关文档
 
+- [附件子系统参考](../../docs/subsystems/attachment.zh.md)——`ctx.artifacts` `ArtifactStore` seam 与这些引用所解析的资源通道。
 - [持久化目录](../../docs/persistence-catalog.zh.md)——每个日志事件的生成文档，含工件。
 - [会话事件词汇](../core/session/README.zh.md)——本族扩展的 merge-extensible `SessionEventMap`。
 - [伴侣折叠](../remote/link-contracts/README.zh.md)——把这些事件消费进工件面板的参考折叠。

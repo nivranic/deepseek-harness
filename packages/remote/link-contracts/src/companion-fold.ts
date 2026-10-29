@@ -134,7 +134,10 @@ export interface CompanionDomainState {
   readonly artifacts: readonly CompanionArtifact[]
 }
 
-/** The empty state before any record arrives. */
+/**
+ * The empty state before any record arrives.
+ * @returns the zero-value fold state: cursor 0 and every list empty.
+ */
 export function emptyCompanionDomain(): CompanionDomainState {
   return { cursor: 0, items: [], planActive: false, todos: [], goals: [], toolCalls: [], images: [], artifacts: [] }
 }
