@@ -1,0 +1,19 @@
+# Bilingual-pair consistency record for 2026-08-31-relay-presence.md (docs/i18n/README.md): per heading
+# section, a hash of its English and Chinese blocks outside code blocks and generated regions.
+# After editing either side, bring the other along and re-record with:
+#   pnpm run verify-translation-pairing --write .agents/notes/implemented/architecture/2026-08-31-relay-presence.md
+/agent-note-relay-presence-from-open-streams:
+  en: f9d007ef2646eb54
+  zh: 8a939a14a40624c7
+/agent-note-relay-presence-from-open-streams/problem:
+  en: 6a012bf15c3f4cc3
+  zh: 33ca62222135d3a7
+/agent-note-relay-presence-from-open-streams/decision:
+  en: b21977d6f518a35f
+  zh: 635f3d568837546e
+/agent-note-relay-presence-from-open-streams/consequences:
+  en: 03b52cc7e4e5bb36
+  zh: 13dc8f9238d30c7f
+/agent-note-relay-presence-from-open-streams/alternatives-considered:
+  en: 183b4018eb4ecc9c
+  zh: 3e31fc14739b5a20

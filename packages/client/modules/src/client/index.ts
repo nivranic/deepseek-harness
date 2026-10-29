@@ -24,9 +24,9 @@ export type { ClientReleaseChange } from './release-change.ts'
 export type { ClientEntries, ClientEntryState } from './entries.ts'
 export { exactPackageSpecifier, parseBootManifest, parseDshClient, stripClientSuffix } from './manifest.ts'
 export type {
-  BootManifest, BootModuleRow, BootPluginRow, ClientBootstrapModule, ClientBundleRegistration,
+  AppInfo, BootManifest, BootModuleRow, BootPluginRow, ClientBootstrapModule, ClientBundleRegistration,
   ClientModuleCreateOptions, ClientModuleLoader, ClientModuleLoaderTarget, ClientModuleRecord,
-  ClientModuleSystemOptions, DshWindow,
+  ClientModuleSystemOptions, DshWindow, HostRuntimeInfo,
   WebBootEntry, WebBootGraph, WebBootRelease,
 } from './manifest.ts'
 
@@ -56,7 +56,8 @@ export function createClientModuleSystem(
 export const inject = ['loader']
 
 /**
- * Enroll the kernel-built module system as `ctx.modules`.
+ * Enroll the kernel-built module system as `ctx.modules` and provide the boot
+ * document's installation facts as `ctx.appInfo`.
  * @param ctx - client root context.
  */
 export function apply(ctx: Context): void {
@@ -66,4 +67,10 @@ export function apply(ctx: Context): void {
     throw new Error('client-modules: the Loader has no client module system')
   }
   ctx.reflect.provide('modules', modules)
+  // The kernel parsed the same document before boot reached plugin adoption;
+  // the system's retained manifest is the validated read of the wire facts.
+  ctx.reflect.provide('appInfo', {
+    version: modules.manifest.version,
+    runtime: modules.manifest.runtime,
+  })
 }

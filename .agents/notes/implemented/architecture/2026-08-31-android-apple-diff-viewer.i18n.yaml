@@ -1,0 +1,19 @@
+# Bilingual-pair consistency record for 2026-08-31-android-apple-diff-viewer.md (docs/i18n/README.md): per heading
+# section, a hash of its English and Chinese blocks outside code blocks and generated regions.
+# After editing either side, bring the other along and re-record with:
+#   pnpm run verify-translation-pairing --write .agents/notes/implemented/architecture/2026-08-31-android-apple-diff-viewer.md
+/agent-note-the-read-only-diff-viewer-on-android-and-apple:
+  en: ebedf6cb5e384da5
+  zh: 684305021f3c9805
+/agent-note-the-read-only-diff-viewer-on-android-and-apple/problem:
+  en: f462a094d3e7468f
+  zh: c4cc6bb81a5c6273
+/agent-note-the-read-only-diff-viewer-on-android-and-apple/decision:
+  en: be01fd3d357d1714
+  zh: 9baca54c65218061
+/agent-note-the-read-only-diff-viewer-on-android-and-apple/consequences:
+  en: 36e635686682fd98
+  zh: 421e046242c610f1
+/agent-note-the-read-only-diff-viewer-on-android-and-apple/alternatives-considered:
+  en: bbbfa71e8b612ae7
+  zh: 048f6f60364222e1

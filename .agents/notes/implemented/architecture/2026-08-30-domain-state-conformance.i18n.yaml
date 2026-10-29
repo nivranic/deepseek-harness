@@ -1,0 +1,19 @@
+# Bilingual-pair consistency record for 2026-08-30-domain-state-conformance.md (docs/i18n/README.md): per heading
+# section, a hash of its English and Chinese blocks outside code blocks and generated regions.
+# After editing either side, bring the other along and re-record with:
+#   pnpm run verify-translation-pairing --write .agents/notes/implemented/architecture/2026-08-30-domain-state-conformance.md
+/agent-note-cross-language-domain-state-conformance:
+  en: 5f02649b55dc047c
+  zh: 88565616d2e83d6c
+/agent-note-cross-language-domain-state-conformance/problem:
+  en: ea3ffe0f8f645427
+  zh: 5b7445d3808116d2
+/agent-note-cross-language-domain-state-conformance/decision:
+  en: ad136d75d0b9abf8
+  zh: d0ff37cb23587555
+/agent-note-cross-language-domain-state-conformance/consequences:
+  en: c4ebcfc0191ab864
+  zh: eb0811a98a152fa1
+/agent-note-cross-language-domain-state-conformance/alternatives-considered:
+  en: cc9c93fdc86f18fd
+  zh: e3cd0a6351a01f9f

@@ -1,0 +1,19 @@
+# Bilingual-pair consistency record for 2026-08-31-android-lite-live-projection.md (docs/i18n/README.md): per heading
+# section, a hash of its English and Chinese blocks outside code blocks and generated regions.
+# After editing either side, bring the other along and re-record with:
+#   pnpm run verify-translation-pairing --write .agents/notes/implemented/architecture/2026-08-31-android-lite-live-projection.md
+/agent-note-the-android-lite-chat-live-projection:
+  en: 1e6c8744021c70c9
+  zh: 4d5708ddb254fd13
+/agent-note-the-android-lite-chat-live-projection/problem:
+  en: 7da396fa8c3ba1af
+  zh: 80b0b5195fd8fc7a
+/agent-note-the-android-lite-chat-live-projection/decision:
+  en: 0d139d034376878b
+  zh: 413618342b578818
+/agent-note-the-android-lite-chat-live-projection/consequences:
+  en: 2318ab72b497069f
+  zh: b7337162a8f9cdc0
+/agent-note-the-android-lite-chat-live-projection/alternatives-considered:
+  en: bd3ad964f6950269
+  zh: 705c327df44bfca5

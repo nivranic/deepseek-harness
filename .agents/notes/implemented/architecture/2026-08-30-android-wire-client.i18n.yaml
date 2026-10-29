@@ -1,0 +1,19 @@
+# Bilingual-pair consistency record for 2026-08-30-android-wire-client.md (docs/i18n/README.md): per heading
+# section, a hash of its English and Chinese blocks outside code blocks and generated regions.
+# After editing either side, bring the other along and re-record with:
+#   pnpm run verify-translation-pairing --write .agents/notes/implemented/architecture/2026-08-30-android-wire-client.md
+/agent-note-the-kotlin-wire-client-half:
+  en: dea0c9c7347552e8
+  zh: 6fe6c5b9c462ca87
+/agent-note-the-kotlin-wire-client-half/problem:
+  en: 1ff3ee3902ed1425
+  zh: a404ac733b4ffae1
+/agent-note-the-kotlin-wire-client-half/decision:
+  en: 7334e7816aa58639
+  zh: c1f2fe5e2f9e17b3
+/agent-note-the-kotlin-wire-client-half/consequences:
+  en: c2da57b82f254ecf
+  zh: 41882e4e49f1400f
+/agent-note-the-kotlin-wire-client-half/alternatives-considered:
+  en: bdbae6e8dc8717e7
+  zh: 7f79e8ca10a8c05e

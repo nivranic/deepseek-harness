@@ -1,0 +1,19 @@
+# Bilingual-pair consistency record for 2026-08-31-artifact-paged-reads.md (docs/i18n/README.md): per heading
+# section, a hash of its English and Chinese blocks outside code blocks and generated regions.
+# After editing either side, bring the other along and re-record with:
+#   pnpm run verify-translation-pairing --write .agents/notes/implemented/architecture/2026-08-31-artifact-paged-reads.md
+/agent-note-paged-artifact-reads:
+  en: 171a0a40d742adcf
+  zh: b85266f29ecb403f
+/agent-note-paged-artifact-reads/problem:
+  en: db40ab233f677d0c
+  zh: 04cefd1733febbb6
+/agent-note-paged-artifact-reads/decision:
+  en: 6697dde526388a5c
+  zh: cab02174a71ba9a9
+/agent-note-paged-artifact-reads/consequences:
+  en: 23a1fda7551623d2
+  zh: 4162e8b1ddce9075
+/agent-note-paged-artifact-reads/alternatives-considered:
+  en: c734258dfdc6fe35
+  zh: 8b37525b34ca5a66

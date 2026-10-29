@@ -1,0 +1,37 @@
+# Bilingual-pair consistency record for README.md (docs/i18n/README.md): per heading
+# section, a hash of its English and Chinese blocks outside code blocks and generated regions.
+# After editing either side, bring the other along and re-record with:
+#   pnpm run verify-translation-pairing --write packages/client/ui-desktop/README.md
+/:
+  en: 6a8bda50d6f49400
+  zh: e728701b39711794
+/dsh-client-ui-desktop:
+  en: 8356dce1c02b7620
+  zh: 308dde761aca7b7c
+/dsh-client-ui-desktop/summary:
+  en: 1edbc0dbd3534461
+  zh: ed77465d88078861
+/dsh-client-ui-desktop/table-of-contents:
+  en: 1bee2d06d354b256
+  zh: bd29bad061ee2ad2
+/dsh-client-ui-desktop/composition-is-the-surface-gate:
+  en: 68e0b48cfc84b105
+  zh: 08f016ea494b4558
+/dsh-client-ui-desktop/what-the-shell-does-with-it:
+  en: dba181de56b0f22d
+  zh: 94848768423b0681
+/dsh-client-ui-desktop/when-a-row-is-absent:
+  en: 5bdb5a510f0b5120
+  zh: 0ff1ce75dc2650fa
+/dsh-client-ui-desktop/dev-note:
+  en: 219aecaccc46ee6f
+  zh: dbb580d82bff5ae7
+/dsh-client-ui-desktop/model-experience:
+  en: 83150315677ea2eb
+  zh: e02b5fd4d12baaab
+/dsh-client-ui-desktop/model-experience/kv-cache-effect:
+  en: ca75c51c89c2c9b0
+  zh: 71703c7281d3b734
+/dsh-client-ui-desktop/known-limitations-and-deferred-work:
+  en: 774e4233063fecc1
+  zh: 83949b7352fd59ca

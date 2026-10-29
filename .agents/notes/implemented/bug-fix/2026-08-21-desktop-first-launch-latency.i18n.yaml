@@ -1,0 +1,22 @@
+# Bilingual-pair consistency record for 2026-08-21-desktop-first-launch-latency.md (docs/i18n/README.md): per heading
+# section, a hash of its English and Chinese blocks outside code blocks and generated regions.
+# After editing either side, bring the other along and re-record with:
+#   pnpm run verify-translation-pairing --write .agents/notes/implemented/bug-fix/2026-08-21-desktop-first-launch-latency.md
+/agent-note-desktop-first-launch-latency-prelude-before-the-heal-stamped-module-fallback-defender-as-the-cold-floor:
+  en: 933a5b402180e067
+  zh: a64ce80c89b5729d
+/agent-note-desktop-first-launch-latency-prelude-before-the-heal-stamped-module-fallback-defender-as-the-cold-floor/problem:
+  en: 2f797c80cf8a902c
+  zh: 7ac462123e4193f2
+/agent-note-desktop-first-launch-latency-prelude-before-the-heal-stamped-module-fallback-defender-as-the-cold-floor/decision:
+  en: 1cca61b9d112a779
+  zh: 71641a58adfed193
+/agent-note-desktop-first-launch-latency-prelude-before-the-heal-stamped-module-fallback-defender-as-the-cold-floor/second-round-from-7-s-to-the-2-3-s-target:
+  en: 6b1d734a38be3e3d
+  zh: 86bd7d40034477a2
+/agent-note-desktop-first-launch-latency-prelude-before-the-heal-stamped-module-fallback-defender-as-the-cold-floor/alternatives-considered:
+  en: 9e2b5337a034d675
+  zh: b8abb47dc428716b
+/agent-note-desktop-first-launch-latency-prelude-before-the-heal-stamped-module-fallback-defender-as-the-cold-floor/consequences:
+  en: c39303b1f8e6a50e
+  zh: 34bf94e8a7804ac9

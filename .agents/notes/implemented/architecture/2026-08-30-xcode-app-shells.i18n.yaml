@@ -1,0 +1,19 @@
+# Bilingual-pair consistency record for 2026-08-30-xcode-app-shells.md (docs/i18n/README.md): per heading
+# section, a hash of its English and Chinese blocks outside code blocks and generated regions.
+# After editing either side, bring the other along and re-record with:
+#   pnpm run verify-translation-pairing --write .agents/notes/implemented/architecture/2026-08-30-xcode-app-shells.md
+/agent-note-the-thin-xcode-app-shells:
+  en: a656ab07eb589025
+  zh: e158e4753906e0e4
+/agent-note-the-thin-xcode-app-shells/problem:
+  en: f7601fe8771514e7
+  zh: 1676321c4c37a459
+/agent-note-the-thin-xcode-app-shells/decision:
+  en: c3c670ad2698dfe7
+  zh: 7d42894b5f5ff89e
+/agent-note-the-thin-xcode-app-shells/consequences:
+  en: 5a60261391a0ec7e
+  zh: a45187aa279b3a76
+/agent-note-the-thin-xcode-app-shells/alternatives-considered:
+  en: 14287d61269a8f76
+  zh: f44b87c1fb56a50c

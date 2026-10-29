@@ -1,0 +1,19 @@
+# Bilingual-pair consistency record for 2026-08-30-remote-phase1-client-surface-and-contracts.md (docs/i18n/README.md): per heading
+# section, a hash of its English and Chinese blocks outside code blocks and generated regions.
+# After editing either side, bring the other along and re-record with:
+#   pnpm run verify-translation-pairing --write .agents/notes/implemented/architecture/2026-08-30-remote-phase1-client-surface-and-contracts.md
+/agent-note-remote-phase-1-client-surface-desktop-composition-and-link-contracts:
+  en: 828dc538218cbd12
+  zh: bc22fe2514181322
+/agent-note-remote-phase-1-client-surface-desktop-composition-and-link-contracts/problem:
+  en: 4a7d1004611f498a
+  zh: d8056bcab9709bcd
+/agent-note-remote-phase-1-client-surface-desktop-composition-and-link-contracts/decision:
+  en: 53ec4ebb277e6144
+  zh: 4b8116edfe4a95bc
+/agent-note-remote-phase-1-client-surface-desktop-composition-and-link-contracts/consequences:
+  en: cd2447cd467743c4
+  zh: 2c67da8befe69cac
+/agent-note-remote-phase-1-client-surface-desktop-composition-and-link-contracts/alternatives-considered:
+  en: cf773a01740b8f31
+  zh: 8df5a8ccc5fe6d96

@@ -71,7 +71,7 @@ const pluginMarketGeneratorDirectory = 'apps/plugin-market-generator'
  * market generator is a private repository tool, not a published application.
  */
 const standardReleaseMemberDirectory = new RegExp(
-  `^(?:packages/(?!experimental/)[^/]+/[^/]+|apps/(?!desktop(?:-host)?$|${pluginMarketGeneratorDirectory.slice('apps/'.length)}$)[^/]+|vendor/[^/]+)$`,
+  `^(?:packages/(?!experimental/)[^/]+/[^/]+|apps/(?!desktop(?:-host|-user)?$|${pluginMarketGeneratorDirectory.slice('apps/'.length)}$)[^/]+|vendor/[^/]+)$`,
   'u',
 )
 /** Installable application assembled by electron-builder rather than published to npm. */
@@ -86,6 +86,9 @@ const appPackageFiles: Readonly<Record<string, readonly string[]>> = {
   // (dist/preview.html and dist/preview/) backs opt-in experimental
   // packages and is not published.
   '@deepseek-ai/dsh-web-frontend': ['dist', '!dist/**/*.map', '!dist/preview.html', '!dist/preview'],
+  // The Electron app shell: its main/preload entries; the packaged exe is an
+  // electron-builder artifact, not an npm payload.
+  '@deepseek-ai/dsh-desktop': ['lib/*.js'],
 }
 
 /** The subset of package.json fields this constraint check cares about. */
@@ -355,6 +358,9 @@ export function expectedDshPackageFiles(manifest: PackageManifest, detailFiles: 
     ...exportDefault(manifest, './loader') === './lib/loader.js' ? ['lib/loader.js'] : [],
     // A store subpath ships its own bundle (single-entry builds; no shared chunk).
     ...exportDefault(manifest, './store') === './lib/store/index.js' ? ['lib/store/index.js'] : [],
+    // The link wire vocabulary ships as its own bundle beside the carrier entry
+    // (the reference client and native companions consume it without the server).
+    ...exportDefault(manifest, './protocol') === './lib/protocol.js' ? ['lib/protocol.js'] : [],
     // A surface bundle's startup row is its own bundle: the Loader imports it
     // as a row module, so it cannot ride inside the package entry.
     ...exportDefault(manifest, './startup') === './lib/startup.js' ? ['lib/startup.js'] : [],

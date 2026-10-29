@@ -4,11 +4,13 @@
  * COM world stands in for ole32/user32/kernel32, keeping the vtable dispatch,
  * result extraction, memory hygiene, and the WM_CLOSE poster covered on every
  * host. The worker entry is exercised the same way with a mocked process
- * boundary (env title + `process.send`). String conversion also runs through
- * real Koffi over test-owned buffers; only the Windows libraries are faked.
+ * boundary (env title + `process.send`). String conversion runs through the
+ * fake world's native read stubs; the win32-only group below pins the same
+ * path against real COM memory.
  */
 
 import { afterEach, describe, expect, it, vi } from 'vitest'
+import { readNativeUtf16 } from '../src/win32-dialog-bindings.ts'
 import { HRESULT_CANCELLED, runFolderDialog } from '../src/win32-dialog-logic.ts'
 
 const E_FAIL = 0x80004005 | 0
@@ -121,6 +123,8 @@ function installFakeKoffi(world: ComWorld, options: {
             }
             case 'CoTaskMemFree': return (ptr: unknown) => { world.freed.push(ptr) }
             case 'GetCurrentThreadId': return () => 31337
+            case 'lstrlenW': return (address: bigint) => (pointers.get(address)?.text as string).length
+            case 'RtlMoveMemory': return (dst: Buffer, src: bigint, _bytes: number) => { dst.write(pointers.get(src)?.text as string, 'utf16le') }
             case 'keybd_event': return (vk: number, _scan: number, flags: number, _extra: unknown) => {
               world.keyEvents.push({ vk, flags })
               world.nativeOrder.push(flags === 0 ? 'alt-down' : 'alt-up')
@@ -146,6 +150,10 @@ function installFakeKoffi(world: ComWorld, options: {
       proto: (declaration: string) => ({ declaration }),
       pointer: (type: unknown) => type,
       sizeof: (type: string) => { void type; return pointerSize },
+      // Regression guard: external ArrayBuffers over native memory fatally
+      // reject under the packaged Electron-as-Node runtime, so the bindings
+      // must never go through view() again.
+      view: () => { throw new Error('koffi.view must not be used: external ArrayBuffer fatal under Electron-as-Node') },
       register: (fn: (hwnd: unknown, lparam: unknown) => number) => { world.registered += 1; return { fn } },
       unregister: () => { world.unregistered += 1 },
       decode: (value: unknown, offsetOrType: unknown): unknown => {
@@ -206,7 +214,6 @@ describe('loadWin32DialogBindings over the fake COM world', () => {
     ])
     expect(world.nativeOrder.slice(-3)).toEqual(['alt-down', 'alt-up', 'show'])
     expect(world.freed).toHaveLength(1)
-    expect(world.str16PointerSizes).toEqual([FAKE_POINTER_SIZE])
     expect(world.released).toEqual(['item', 'dialog'])
     expect(world.uninitialized).toBe(1)
   })
@@ -219,7 +226,6 @@ describe('loadWin32DialogBindings over the fake COM world', () => {
     installFakeKoffi(world, { pointerSize, nameAddress })
     const bindings = await (await loadBindingsModule()).loadWin32DialogBindings()
     expect(runFolderDialog(bindings, 'Pick', vi.fn())).toBe(world.path)
-    expect(world.str16PointerSizes).toEqual([pointerSize])
     expect(world.freed).toEqual([nameAddress])
     expect(world.released).toEqual(['item', 'dialog'])
   })
@@ -228,31 +234,14 @@ describe('loadWin32DialogBindings over the fake COM world', () => {
     { label: 'zero-low-byte BMP code units', text: 'C:/fixture/安卓开发' },
     { label: 'surrogate pairs', text: 'C:/fixture/😀' },
     { label: 'more than 32 KiB', text: 'C:/' + '开'.repeat(17_000) },
-    { label: 'NUL termination', text: 'C:/开' + String.fromCharCode(0) + 'ignored' },
-  ])('decodes $label with real Koffi through resultPath', async ({ text }) => {
-    const { default: koffi } = await vi.importActual<typeof import('koffi')>('koffi')
-    const nul = String.fromCharCode(0)
-    const storage = Buffer.from(text + nul, 'utf16le')
-    const nameAddress = koffi.address(storage)
-    const pointerSize = koffi.sizeof('void *')
-    const expectedPointer = Buffer.alloc(pointerSize)
-    koffi.encode(expectedPointer, 'void *', nameAddress)
-    const world = comWorld()
-    const decodeString = vi.fn((pointer: Buffer): string => {
-      // Reject bad serialization before native code could dereference it.
-      expect(pointer).toEqual(expectedPointer)
-      return koffi.decode(pointer, 'str16') as string
-    })
-    installFakeKoffi(world, { pointerSize, nameAddress, decodeString })
+  ])('decodes $label through the native read stubs', async ({ text }) => {
+    const world = comWorld({ path: text })
+    installFakeKoffi(world)
     const bindings = await (await loadBindingsModule()).loadWin32DialogBindings()
 
-    expect(runFolderDialog(bindings, 'Pick', vi.fn())).toBe(text.split(nul)[0])
-    expect(decodeString).toHaveBeenCalledOnce()
-    expect(world.freed).toEqual([nameAddress])
+    expect(runFolderDialog(bindings, 'Pick', vi.fn())).toBe(text)
     expect(world.released).toEqual(['item', 'dialog'])
     expect(world.uninitialized).toBe(1)
-    // Keep the JS-owned allocation live until the synchronous native read ends.
-    expect(storage.toString('utf16le')).toBe(text + nul)
   })
 
   it('maps dismissal and the S_FALSE CoInitializeEx', async () => {
@@ -338,6 +327,50 @@ describe('closeThreadWindows over the fake COM world', () => {
     await expect(closeThreadWindows(777)).rejects.toThrow('EnumThreadWindows refused')
     expect(world.unregistered).toBe(1)
   })
+})
+
+describe('readNativeUtf16 against a real shell item', () => {
+  // win32-only: the packaged app's selection path died here — a real
+  // GetDisplayName address read through the old koffi.view external
+  // ArrayBuffer. This pins the replacement against real COM memory on every
+  // win32 host, under whatever heap the test runner itself uses.
+  it.skipIf(process.platform !== 'win32')('reads the filesystem path of a real GetDisplayName result', async () => {
+    const koffi = (await import('koffi')).default as unknown as import('../src/win32-dialog-bindings.ts').Koffi
+    const ole32 = koffi.load('ole32.dll')
+    const shell32 = koffi.load('shell32.dll')
+    const kernel32 = koffi.load('kernel32.dll')
+    const coInitializeEx = ole32.func('__stdcall', 'CoInitializeEx', 'int32', ['void *', 'uint32'])
+    const coTaskMemFree = ole32.func('__stdcall', 'CoTaskMemFree', 'void', ['void *'])
+    const shCreateItemFromParsingName = shell32.func('__stdcall', 'SHCreateItemFromParsingName', 'int32', ['str16', 'void *', 'void *', 'void *'])
+    const lstrlenW = kernel32.func('__stdcall', 'lstrlenW', 'int32', ['void *'])
+    const moveMemory = kernel32.func('__stdcall', 'RtlMoveMemory', 'void', ['void *', 'void *', 'size_t'])
+    expect(coInitializeEx(null, 2)).toBeGreaterThanOrEqual(0)
+
+    // IID_IShellItem in the little-endian GUID byte layout CoCreateInstance-style APIs expect.
+    const iid = Buffer.alloc(16)
+    iid.writeUInt32LE(0x43826d1e, 0)
+    iid.writeUInt16LE(0xe718, 4)
+    iid.writeUInt16LE(0x42ee, 6)
+    Buffer.from('bc55a1e261c37bfe', 'hex').copy(iid, 8)
+    const pointerSize = koffi.sizeof('void *')
+    const itemOut = Buffer.alloc(pointerSize)
+    const hr = shCreateItemFromParsingName(process.cwd(), null, iid, itemOut)
+    expect(hr, 'SHCreateItemFromParsingName').toBeGreaterThanOrEqual(0)
+
+    const item = koffi.decode(itemOut, 'void *')
+    const vtable = koffi.decode(item, 'void *')
+    const getDisplayName = koffi.decode(vtable, 5 * pointerSize, 'void *')
+    const protoGetDisplayName = koffi.proto('int32 __stdcall DshItemGetDisplayName(void *self, int32 form, _Out_ void **name)')
+    try {
+      const nameOut: unknown[] = [null]
+      const SIGDN_FILESYSPATH = 0x80058000 | 0
+      expect(koffi.call(getDisplayName, protoGetDisplayName, item, SIGDN_FILESYSPATH, nameOut)).toBe(0)
+      expect(readNativeUtf16(lstrlenW, moveMemory, nameOut[0]).toLowerCase()).toBe(process.cwd().toLowerCase())
+      coTaskMemFree(nameOut[0])
+    } finally {
+      koffi.call(koffi.decode(vtable, 2 * pointerSize, 'void *'), koffi.proto('uint32 __stdcall DshComRelease(void *self)'), item)
+    }
+  }, 30_000)
 })
 
 describe('the worker entry over a mocked process boundary', () => {

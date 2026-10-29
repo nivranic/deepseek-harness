@@ -182,6 +182,23 @@ Types: [Principal](typert.md)
 
 Source: [`packages/client/connection/src/rpc.ts`](../../packages/client/connection/src/rpc.ts)
 
+<a id="ctxdesktopgateway--desktopgateway"></a>
+
+### `ctx.desktopGateway` — `DesktopGateway`
+
+The desktop request target: the app shell hands every renderer fetch of its privileged scheme to DesktopGateway.handle and returns the answer unchanged.
+
+```ts cordis-catalog
+/**
+ * Answer one renderer request carried by the desktop bridge.
+ * @param request - the renderer's fetch request, unmodified.
+ * @returns the complete or streaming response.
+ */
+handle(request: Request): Promise<Response>
+```
+
+Source: [`packages/host/electron-ipc/src/index.ts`](../../packages/host/electron-ipc/src/index.ts)
+
 <a id="ctxwebapp--webapp"></a>
 
 ### `ctx.webApp` — `WebApp`

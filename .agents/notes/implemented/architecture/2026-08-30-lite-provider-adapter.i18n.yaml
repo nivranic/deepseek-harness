@@ -1,0 +1,19 @@
+# Bilingual-pair consistency record for 2026-08-30-lite-provider-adapter.md (docs/i18n/README.md): per heading
+# section, a hash of its English and Chinese blocks outside code blocks and generated regions.
+# After editing either side, bring the other along and re-record with:
+#   pnpm run verify-translation-pairing --write .agents/notes/implemented/architecture/2026-08-30-lite-provider-adapter.md
+/agent-note-lite-real-provider-adapter-skeleton:
+  en: ffcdfa5a1262abe7
+  zh: cd68ce97d839d70a
+/agent-note-lite-real-provider-adapter-skeleton/problem:
+  en: 4758eab64cb1bfcf
+  zh: 926f64d070a1661a
+/agent-note-lite-real-provider-adapter-skeleton/decision:
+  en: cb8b290921be4bf0
+  zh: 9371a739503c070a
+/agent-note-lite-real-provider-adapter-skeleton/consequences:
+  en: 014fb6d8544f272a
+  zh: 7989c444dd705ed5
+/agent-note-lite-real-provider-adapter-skeleton/alternatives-considered:
+  en: bc9940da486decde
+  zh: 9c5c75a47e3aea71

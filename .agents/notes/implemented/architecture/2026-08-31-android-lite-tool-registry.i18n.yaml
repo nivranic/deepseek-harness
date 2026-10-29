@@ -1,0 +1,19 @@
+# Bilingual-pair consistency record for 2026-08-31-android-lite-tool-registry.md (docs/i18n/README.md): per heading
+# section, a hash of its English and Chinese blocks outside code blocks and generated regions.
+# After editing either side, bring the other along and re-record with:
+#   pnpm run verify-translation-pairing --write .agents/notes/implemented/architecture/2026-08-31-android-lite-tool-registry.md
+/agent-note-the-android-lite-tool-registry:
+  en: c17b4d503fc0e8d9
+  zh: ff2f6720eebd5604
+/agent-note-the-android-lite-tool-registry/problem:
+  en: 09e92bc5c1a55036
+  zh: 975444df45f89ea0
+/agent-note-the-android-lite-tool-registry/decision:
+  en: aece30407540f2d0
+  zh: c23b36ed98cf4231
+/agent-note-the-android-lite-tool-registry/consequences:
+  en: ac0e3f3359470757
+  zh: b4f0e9b256ff3ce9
+/agent-note-the-android-lite-tool-registry/alternatives-considered:
+  en: 49d770bc146ae263
+  zh: 52523e58fc53d9f0

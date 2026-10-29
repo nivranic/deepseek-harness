@@ -9,6 +9,22 @@
 
 ```mermaid
 flowchart LR
+  pkg_device_trust["device-trust"]
+  svc_deviceTrust["ctx.deviceTrust<br/>Paired-device trust store"]
+  pkg_link_access["link-access"]
+  svc_linkAccess["ctx.linkAccess<br/>Native remote access carrier"]
+  pkg_link_settings["link-settings"]
+  svc_linkSettings["ctx.linkSettings<br/>Remote settings bridge"]
+  pkg_artifact["artifact"]
+  svc_artifacts["ctx.artifacts<br/>Artifact storage seam"]
+  pkg_artifact_local["artifact-local"]
+  pkg_code_runtime["code-runtime"]
+  svc_codeRuntime["ctx.codeRuntime<br/>Code execution seam"]
+  pkg_code_runtime_worker_thread["code-runtime-worker-thread"]
+  pkg_runtime_diagnostics_invariants["runtime-diagnostics/invariants"]
+  svc_invariants["ctx.invariants<br/>Package invariant registry"]
+  pkg_api_link_controller["api/link-controller"]
+  svc_linkController["ctx.linkController<br/>Link administration Remote owner"]
   pkg_action_cards["action-cards"]
   svc_actionCards["ctx.actionCards<br/>Optional action cards"]
   pkg_creation_recommendations["creation-recommendations"]
@@ -298,6 +314,8 @@ flowchart LR
   svc_webServer["ctx.webServer<br/>HTTP route registration"]
   pkg_client_modules["client-modules"]
   pkg_client_hmr["client-hmr"]
+  pkg_electron_ipc["electron-ipc"]
+  svc_desktopGateway["ctx.desktopGateway<br/>Desktop scheme bridge"]
   pkg_web_app["web-app"]
   svc_webApp["ctx.webApp<br/>Served Web GUI"]
   pkg_harness_dev_context["harness-dev-context"]
@@ -323,6 +341,7 @@ flowchart LR
   pkg_agent_preset_registry --> svc_agentPresets
   pkg_api_gateway --> svc_typertGateway
   pkg_api_job_controller --> svc_jobController
+  pkg_api_link_controller --> svc_linkController
   pkg_api_remote_access --> svc_remoteAccess
   pkg_api_session_controller --> svc_sessionController
   pkg_api_session_controller --> svc_sessionFileReferences
@@ -334,6 +353,8 @@ flowchart LR
   pkg_api_workspace_controller --> svc_workspaceController
   pkg_api_workspace_files --> svc_workspaceFiles
   pkg_app_boot --> svc_profileContext
+  pkg_artifact --> svc_artifacts
+  pkg_artifact_local --> svc_artifacts
   pkg_attachment --> svc_attachments
   pkg_attachment_local --> svc_attachments
   pkg_authorization --> svc_authorization
@@ -345,6 +366,8 @@ flowchart LR
   pkg_client_modules --> svc_clientModules
   pkg_client_product_analytics --> svc_productAnalytics
   pkg_client_ui_plugin_manager --> svc_pluginRegistryProbe
+  pkg_code_runtime --> svc_codeRuntime
+  pkg_code_runtime_worker_thread --> svc_codeRuntime
   pkg_command_feedback --> svc_sessionFeedback
   pkg_commands --> svc_commands
   pkg_compaction --> svc_compaction
@@ -360,6 +383,8 @@ flowchart LR
   pkg_deepseek_account --> svc_deepseekAccount
   pkg_deepseek_account_platform --> svc_deepseekAccount
   pkg_deepseek_llm_api_extensions --> svc_deepseekLlmApiExtensions
+  pkg_device_trust --> svc_deviceTrust
+  pkg_electron_ipc --> svc_desktopGateway
   pkg_experimental_agent_team --> svc_agentTeams
   pkg_experimental_api_speech_to_text --> svc_speechController
   pkg_experimental_browser_use_chrome_devtools_mcp --> svc_browserUse
@@ -396,6 +421,8 @@ flowchart LR
   pkg_inspector --> svc_inspector
   pkg_jobs --> svc_jobs
   pkg_jobs_local --> svc_jobs
+  pkg_link_access --> svc_linkAccess
+  pkg_link_settings --> svc_linkSettings
   pkg_llm --> svc_llm
   pkg_llm_deepseek --> svc_llm
   pkg_llm_pi_ai --> svc_llm
@@ -416,6 +443,7 @@ flowchart LR
   pkg_ptc_runtime --> svc_ptcRuntime
   pkg_ptc_runtime_node --> svc_ptcRuntime
   pkg_pwsh_local --> svc_shell
+  pkg_runtime_diagnostics_invariants --> svc_invariants
   pkg_sandbox --> svc_sandbox
   pkg_sandbox_local --> svc_sandbox
   pkg_sandbox_policy --> svc_sandboxPolicy
@@ -519,6 +547,7 @@ flowchart LR
   svc_deepseekAccount --> pkg_api_account_controller
   svc_deepseekAccount --> pkg_llm_deepseek
   svc_deepseekLlmApiExtensions --> pkg_llm_deepseek
+  svc_deviceTrust --> pkg_link_access
   svc_directoryPicker --> pkg_api_workspace_controller
   svc_dynamicCordisRunner --> pkg_tool_cordis
   svc_fileReferences --> pkg_api_session_controller
@@ -534,6 +563,7 @@ flowchart LR
   svc_jobs --> pkg_tool_jobs
   svc_jobs --> pkg_tool_pwsh
   svc_jobs --> pkg_tool_terminal
+  svc_linkAccess --> pkg_link_settings
   svc_llm --> pkg_agent_loop
   svc_llm --> pkg_compaction_basic
   svc_lsp --> pkg_tool_lsp
@@ -650,6 +680,13 @@ flowchart LR
 
 | ctx 键 | 角色 | 所属包 | 实现 | 直接消费方 | 配套插件 | 说明 |
 | --- | --- | --- | --- | --- | --- | --- |
+| `ctx.deviceTrust` | `core` | [`device-trust`](../packages/remote/device-trust) | - | [`link-access`](../packages/remote/link-access) | - | 基于 SQLite 的宿主身份、一次性配对码与设备记录，link 载体据此授权。 |
+| `ctx.linkAccess` | `core` | [`link-access`](../packages/remote/link-access) | - | [`link-settings`](../packages/remote/link-settings) | - | 带 Ed25519 设备认证与角色门控 Allowlist 的 TLS 监听器，分发到现有 Typert 网关面。 |
+| `ctx.linkSettings` | `core` | [`link-settings`](../packages/remote/link-settings) | - | - | - | 拥有 `remote` 设置命名空间，并把其启用/审批/名称提交实时应用到 link 载体。 |
+| `ctx.artifacts` | `seam` | [`artifact`](../packages/artifact/artifact) | [`artifact-local`](../packages/artifact/artifact-local) | - | - | artifact_create/artifact_read 工具背后的 ctx.artifacts 资源通道：日志保留引用与状态，后端保留字节。 |
+| `ctx.codeRuntime` | `seam` | [`code-runtime`](../packages/code-runtime/code-runtime) | [`code-runtime-worker-thread`](../packages/code-runtime/code-runtime-worker-thread) | - | - | PTC runtime 桥接的 ctx.codeRuntime seam：带结构化绑定、预算与失败分类的有界代码运行。 |
+| `ctx.invariants` | `service` | `runtime-diagnostics/invariants` | - | - | - | 加载包属不变量安装器，并机械化强制其导出、发布、依赖与 bundle 接线。 |
+| `ctx.linkController` | `core` | `api/link-controller` | - | - | - | 把载体状态、配对签发与受信设备管理投影到面向本地 UI 的 `link` Remote 命名空间。 |
 | `ctx.actionCards` | `service` | [`action-cards`](../packages/experimental/action-cards) | - | [`creation-recommendations`](../packages/experimental/creation-recommendations), [`client-ui-action-cards`](../packages/experimental/client-ui-action-cards) | - | 负责卡片工具、卡片状态、用户操作和状态通知；各卡片种类注册自己的动作和处理器。 |
 | `ctx.pluginRecommendations` | `service` | [`plugin-recommendations`](../packages/experimental/plugin-recommendations) | - | [`client-ui-plugin-recommendations`](../packages/experimental/client-ui-plugin-recommendations) | - | 读取官方插件卡片的当前目录文本，并在用户点击后通过配置插件管理器启用该插件。 |
 | `ctx.headlessStartup` | `core` | [`headless`](../packages/bundle/headless) | - | [`headless`](../packages/bundle/headless) | - | 将解析后的任务和运行选项提供给无界面运行器及其 sandbox-policy 配置。 |
@@ -751,6 +788,7 @@ flowchart LR
 | `ctx.webServer` | `core` | [`host-webserver`](../packages/host/webserver) | - | [`client-connection`](../packages/client/connection), [`client-modules`](../packages/client/modules), [`client-hmr`](../packages/client/hmr) | - | 普通的 node:http 载体：具名路由注册表、索引转换 tap，以及静态 dist 回退；Web 传输插件注册自己的路由。 |
 | `ctx.webApp` | `core` | [`web-app`](../packages/bundle/web-app) | - | [`harness-dev-context`](../packages/context/harness-dev-context) | - | web-runtime 行为其 Web GUI 公告一个 URL：配置了 publicUrl 时用它，否则用监听器 origin；DSH_WEB_URL、启动 URL 与 harness-dev-context 读取同一个值。 |
 | `ctx.clientModules` | `core` | [`client-modules`](../packages/client/modules) | - | [`client-hmr`](../packages/client/hmr) | - | 通过增量 `dsh.client` 扫描组合 __DSH_BOOT__ 入口图，提供插件组合包，并通知重建／图变更订阅方。 |
+| `ctx.desktopGateway` | `core` | `electron-ipc` | - | - | - | 进程内桌面载体：以共享 /api 链、Gateway Remote 流、客户端插件组合包与启动清单注入的 dist 应答 Electron 渲染端的特权协议 fetch；不绑定套接字。 |
 | `ctx.workflowEngine` | `seam` | [`workflow`](../packages/workflow/workflow) | [`workflow-ptc`](../packages/workflow/workflow-ptc) | [`tool-workflow`](../packages/workflow/tool-workflow), [`tool-ralph`](../packages/experimental/tool-ralph) | - | 每个上下文使用一个引擎，与 bash 相同，且没有具名提供方注册表；通用工作流与固定 Ralph 消费方启动运行，其中的 agent() 调用通过 ctx.subagents 扇出。 |
 | `ctx.webhookRuntime` | `core` | [`webhook`](../packages/experimental/webhook) | - | [`webhook-github`](../packages/experimental/webhook-github) | - | 提供方适配器分派已认证交付；可信插件注册独立的进程本地规则，runtime 把非 null 结果转换为普通的 Workspace-backed Session，不保留交付或完成状态。 |
 | `ctx.lsp` | `seam` | [`lsp`](../packages/lsp/lsp) | [`lsp-stdio`](../packages/lsp/lsp-stdio) | [`tool-lsp`](../packages/lsp/tool-lsp) | - | 提供方注册与选择，加上恰好四种操作的标准化查询执行；该 seam 不提供协议逃生口，后端必须转换为标准化请求和结果。 |

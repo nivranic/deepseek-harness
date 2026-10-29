@@ -1,0 +1,19 @@
+# Bilingual-pair consistency record for 2026-08-17-desktop-surface-electron-scheme-bridge.md (docs/i18n/README.md): per heading
+# section, a hash of its English and Chinese blocks outside code blocks and generated regions.
+# After editing either side, bring the other along and re-record with:
+#   pnpm run verify-translation-pairing --write .agents/notes/implemented/architecture/2026-08-17-desktop-surface-electron-scheme-bridge.md
+/agent-note-desktop-surface-over-electron-s-privileged-scheme-bridge:
+  en: c17624a73225dbfe
+  zh: 021680f4eba61097
+/agent-note-desktop-surface-over-electron-s-privileged-scheme-bridge/problem:
+  en: 40f777b069937026
+  zh: 799ae7a642381a0f
+/agent-note-desktop-surface-over-electron-s-privileged-scheme-bridge/decision:
+  en: 6ac76476e32de2d7
+  zh: 4d934b5886490b7e
+/agent-note-desktop-surface-over-electron-s-privileged-scheme-bridge/alternatives-considered:
+  en: 85a202b42549b8c6
+  zh: 0355a1f473645c83
+/agent-note-desktop-surface-over-electron-s-privileged-scheme-bridge/consequences:
+  en: 50537cbb4ec47fba
+  zh: 2817980c26c7046c

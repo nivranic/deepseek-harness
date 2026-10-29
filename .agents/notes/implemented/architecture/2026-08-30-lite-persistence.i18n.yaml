@@ -1,0 +1,19 @@
+# Bilingual-pair consistency record for 2026-08-30-lite-persistence.md (docs/i18n/README.md): per heading
+# section, a hash of its English and Chinese blocks outside code blocks and generated regions.
+# After editing either side, bring the other along and re-record with:
+#   pnpm run verify-translation-pairing --write .agents/notes/implemented/architecture/2026-08-30-lite-persistence.md
+/agent-note-lite-session-persistence-and-artifact-store:
+  en: 8ded19ab94a8f1e0
+  zh: b409ca12806ebc51
+/agent-note-lite-session-persistence-and-artifact-store/problem:
+  en: 355ba08ead793332
+  zh: 79047ac17aebf696
+/agent-note-lite-session-persistence-and-artifact-store/decision:
+  en: 53bb12ee2222fc85
+  zh: c7528fdb14623813
+/agent-note-lite-session-persistence-and-artifact-store/consequences:
+  en: 87dc6f5e5ef6e445
+  zh: aa8cc4e59a4d5625
+/agent-note-lite-session-persistence-and-artifact-store/alternatives-considered:
+  en: fa821b12ed02fe5e
+  zh: c0480f011074e89c

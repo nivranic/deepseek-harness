@@ -1,0 +1,19 @@
+# Bilingual-pair consistency record for 2026-08-31-android-lite-fold-foundation.md (docs/i18n/README.md): per heading
+# section, a hash of its English and Chinese blocks outside code blocks and generated regions.
+# After editing either side, bring the other along and re-record with:
+#   pnpm run verify-translation-pairing --write .agents/notes/implemented/architecture/2026-08-31-android-lite-fold-foundation.md
+/agent-note-the-android-lite-runtime-foundation-a-trilingual-lite-domain-fold:
+  en: 5f2f357c7eec2c9e
+  zh: 36c43c4ccaa1681b
+/agent-note-the-android-lite-runtime-foundation-a-trilingual-lite-domain-fold/problem:
+  en: 3a2e751bfb0c0049
+  zh: 0d9f4a51b95afe8c
+/agent-note-the-android-lite-runtime-foundation-a-trilingual-lite-domain-fold/decision:
+  en: ad13ff685c73ded6
+  zh: 1c2437db39c72d19
+/agent-note-the-android-lite-runtime-foundation-a-trilingual-lite-domain-fold/consequences:
+  en: f2c34c7252cd3f10
+  zh: f486181669ba626a
+/agent-note-the-android-lite-runtime-foundation-a-trilingual-lite-domain-fold/alternatives-considered:
+  en: f8cd8695dc66820f
+  zh: acd1cb2d87a5a4e8

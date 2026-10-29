@@ -1,0 +1,19 @@
+# Bilingual-pair consistency record for 2026-08-30-companion-files-view.md (docs/i18n/README.md): per heading
+# section, a hash of its English and Chinese blocks outside code blocks and generated regions.
+# After editing either side, bring the other along and re-record with:
+#   pnpm run verify-translation-pairing --write .agents/notes/implemented/architecture/2026-08-30-companion-files-view.md
+/agent-note-companionui-files-browser:
+  en: bbbc565376b5d4fc
+  zh: fcb611f7e8379180
+/agent-note-companionui-files-browser/problem:
+  en: 7dfeb48518515859
+  zh: 55510fee179e815d
+/agent-note-companionui-files-browser/decision:
+  en: 2569c0d01c4ae82e
+  zh: 31222a6219b3973f
+/agent-note-companionui-files-browser/consequences:
+  en: e231c7280bedfd43
+  zh: 7b73f05d07560a63
+/agent-note-companionui-files-browser/alternatives-considered:
+  en: 8e833b68de63a984
+  zh: 20fcd3e8240004c8

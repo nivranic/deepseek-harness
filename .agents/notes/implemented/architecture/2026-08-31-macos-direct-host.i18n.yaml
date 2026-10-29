@@ -1,0 +1,19 @@
+# Bilingual-pair consistency record for 2026-08-31-macos-direct-host.md (docs/i18n/README.md): per heading
+# section, a hash of its English and Chinese blocks outside code blocks and generated regions.
+# After editing either side, bring the other along and re-record with:
+#   pnpm run verify-translation-pairing --write .agents/notes/implemented/architecture/2026-08-31-macos-direct-host.md
+/agent-note-the-macos-direct-host-target:
+  en: dd459c819fcb6900
+  zh: b080d81e05e2c9f2
+/agent-note-the-macos-direct-host-target/problem:
+  en: 8def9d1a1f8931a0
+  zh: 57a67652fbcd48ce
+/agent-note-the-macos-direct-host-target/decision:
+  en: 6be0a04ff3c0dd53
+  zh: 40f3de0cfb1ce76f
+/agent-note-the-macos-direct-host-target/consequences:
+  en: 89bab4901fc23762
+  zh: ae229b3de7a303e3
+/agent-note-the-macos-direct-host-target/alternatives-considered:
+  en: 1b61676fd34614f7
+  zh: 761a3adcc4aec1df

@@ -1,0 +1,22 @@
+# Bilingual-pair consistency record for 2026-10-28-native-desktop-update-manager.md (docs/i18n/README.md): per heading
+# section, a hash of its English and Chinese blocks outside code blocks and generated regions.
+# After editing either side, bring the other along and re-record with:
+#   pnpm run verify-translation-pairing --write .agents/notes/proposed/feature/2026-10-28-native-desktop-update-manager.md
+/agent-note-standalone-native-desktop-update-manager:
+  en: b8fbcf22b61c7318
+  zh: 1d4d4b97a5202163
+/agent-note-standalone-native-desktop-update-manager/problem:
+  en: ce3990b41797e6f6
+  zh: 1cfb47afa7777ba4
+/agent-note-standalone-native-desktop-update-manager/proposal:
+  en: 075a21779018285d
+  zh: de700308a8b0ccd5
+/agent-note-standalone-native-desktop-update-manager/alternatives-considered:
+  en: 9e29e0ecb4ea7443
+  zh: c4060bc7cdbe97b9
+/agent-note-standalone-native-desktop-update-manager/acceptance-criteria:
+  en: 7a8fbe84ba15b4a5
+  zh: e380a4aa90035b2e
+/agent-note-standalone-native-desktop-update-manager/risks:
+  en: 2d911508d65ece24
+  zh: 1feea24ee9616b03

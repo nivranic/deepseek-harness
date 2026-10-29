@@ -1,0 +1,19 @@
+# Bilingual-pair consistency record for README.md (docs/i18n/README.md): per heading
+# section, a hash of its English and Chinese blocks outside code blocks and generated regions.
+# After editing either side, bring the other along and re-record with:
+#   pnpm run verify-translation-pairing --write apps/relay/README.md
+/dsh-relay-rendezvous:
+  en: 16e15562a48ae4c0
+  zh: 2f262aa4fe4754a6
+/dsh-relay-rendezvous/running:
+  en: 475d8f7e721146db
+  zh: eb2fb8d78c7d6bc0
+/dsh-relay-rendezvous/transport-encryption:
+  en: ae846be9eb546983
+  zh: 4e49e53c84c57b54
+/dsh-relay-rendezvous/cross-implementation-proof:
+  en: 37e4ab9a323fef11
+  zh: b0650c452e3e0a18
+/dsh-relay-rendezvous/boundaries:
+  en: dd09140ade62b50f
+  zh: f778008686a96557

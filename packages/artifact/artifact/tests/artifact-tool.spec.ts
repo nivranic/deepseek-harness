@@ -1,0 +1,224 @@
+/** The artifact producer against the real tool runtime and a real session: the
+ * `artifact_create` tool journals the reference and drives the resource channel. */
+
+import { describe, expect, it } from 'vitest'
+import { Context } from '@deepseek-ai/cordis'
+import type { Agent } from '@deepseek-ai/dsh-agent'
+import SystemPrompt from '@deepseek-ai/dsh-system-prompt'
+import { ToolCallId } from '@deepseek-ai/dsh-llm'
+import ToolRuntime, { type ToolExecutionResult } from '@deepseek-ai/dsh-tools'
+import * as NativeToolExecutor from '@deepseek-ai/dsh-tool-executor-native'
+import { Session, SessionId } from '@deepseek-ai/dsh-session'
+import * as plugin from '../src/index.ts'
+import { ArtifactId, ArtifactStore } from '../src/index.ts'
+
+const testToolSignal = new AbortController().signal
+
+/** In-memory resource channel standing in for the local backend. */
+class MemoryArtifactStore extends ArtifactStore {
+  readonly stored = new Map<string, Uint8Array>()
+  failNextPut = false
+
+  async put(id: ArtifactId, data: Uint8Array): Promise<void> {
+    if (this.failNextPut) throw new Error('disk full')
+    this.stored.set(id, data)
+  }
+
+  async get(id: ArtifactId): Promise<Uint8Array | null> {
+    return this.stored.get(id) ?? null
+  }
+
+  async remove(id: ArtifactId): Promise<void> {
+    this.stored.delete(id)
+  }
+}
+
+/** A parent Agent backed by a real Session — the tool reads `agent.session`. */
+function agentWithSession(id = 'parent-1'): Agent & { session: Session } {
+  const session = Session.create(SessionId(id))
+  return { id: SessionId(id), session } as unknown as Agent & { session: Session }
+}
+
+/** Mounts the real plugins with the memory channel as the provider; the
+ * loader instantiates the Service subclass, so the typed handle comes back
+ * off ctx.artifacts. */
+async function setup(): Promise<{ ctx: Context; store: MemoryArtifactStore }> {
+  const ctx = new Context()
+  await ctx.plugin(SystemPrompt)
+  await ctx.plugin(ToolRuntime)
+  await ctx.plugin(NativeToolExecutor)
+  await ctx.plugin(MemoryArtifactStore)
+  await ctx.plugin(plugin)
+  const store = ctx.artifacts as MemoryArtifactStore
+  return { ctx, store }
+}
+
+let callCounter = 0
+
+/** Run one tool through the batch runtime and return its single settled result. */
+async function callTool(ctx: Context, name: string, callId: string, args: unknown, agent?: Agent): Promise<ToolExecutionResult> {
+  const batch = await ctx.tools.execute({
+    calls: [{ type: 'tool-call', id: ToolCallId(callId), name, arguments: JSON.stringify(args) }],
+    signal: testToolSignal,
+    ...agent === undefined ? {} : { agent },
+  })
+  return batch.results[0]!.result
+}
+
+function callArtifact(ctx: Context, args: unknown, over: { agent?: Agent | undefined } = {}) {
+  const agent = 'agent' in over ? over.agent : agentWithSession()
+  return callTool(ctx, 'artifact_create', `call-${++callCounter}`, args, agent)
+}
+
+function text(result: { content: { type: string; text?: string }[] }): string {
+  return result.content.filter(b => b.type === 'text').map(b => b.text).join('')
+}
+
+describe('dsh-artifact tool', () => {
+  it('registers `artifact_create` with kind/title/content/data parameters', async () => {
+    const { ctx } = await setup()
+    const schema = ctx.tools.schemas().find(s => s.name === 'artifact_create')
+    expect(schema).toBeDefined()
+    const props = (schema!.parameters as { properties?: Record<string, unknown> }).properties ?? {}
+    expect(Object.keys(props)).toEqual(['kind', 'title', 'content', 'data'])
+    const readSchema = ctx.tools.schemas().find(s => s.name === 'artifact_read')
+    expect(readSchema).toBeDefined()
+  })
+
+  it('journals the reference and stores the bytes, ending ready', async () => {
+    const { ctx, store } = await setup()
+    const agent = agentWithSession('writer')
+    const result = await callArtifact(ctx, { kind: ' report ', title: '迁移报告', content: '# 报告\n正文' }, { agent })
+    expect(result.isError).toBe(false)
+    if (result.isError) throw new Error('expected artifact_create success')
+    const value = result.value as { id: string; kind: string; title: string; format: string; status: string }
+    expect(value).toEqual({ id: value.id, kind: 'report', title: '迁移报告', format: 'text', status: 'ready' })
+    expect(value.id).toMatch(/^art-/u)
+    expect(text(result)).toContain('迁移报告')
+    const events = agent.session.snapshotEvents().filter(e => e.type.startsWith('artifact/'))
+    expect(events.map(e => e.type)).toEqual(['artifact/created', 'artifact/status'])
+    expect(events[0]!.data).toEqual({ id: value.id, kind: 'report', title: '迁移报告', format: 'text' })
+    expect(events[1]!.data).toEqual({ id: value.id, status: 'ready' })
+    const stored = store.stored.get(value.id)
+    expect(stored).toBeDefined()
+    expect(new TextDecoder().decode(stored)).toBe('# 报告\n正文')
+  })
+
+  it('journals failed and errors when the channel refuses the bytes', async () => {
+    const { ctx, store } = await setup()
+    store.failNextPut = true
+    const agent = agentWithSession('failing')
+    const result = await callArtifact(ctx, { kind: 'report', title: 'R', content: 'x' }, { agent })
+    expect(result.isError).toBe(true)
+    expect(text(result)).toContain('disk full')
+    const events = agent.session.snapshotEvents().filter(e => e.type.startsWith('artifact/'))
+    expect(events.map(e => e.type)).toEqual(['artifact/created', 'artifact/status'])
+    expect((events[1]!.data as { status: string }).status).toBe('failed')
+  })
+
+  it('rejects a caller without an owning agent session and journals nothing', async () => {
+    const { ctx } = await setup()
+    const result = await callArtifact(ctx, { kind: 'report', title: 'R', content: 'x' }, { agent: undefined })
+    expect(result.isError).toBe(true)
+    expect(text(result)).toContain('owning agent session')
+  })
+
+  it('reads a stored artifact back with kind and title from the journal', async () => {
+    const { ctx } = await setup()
+    const agent = agentWithSession('reader')
+    const created = await callArtifact(ctx, { kind: 'report', title: '迁移报告', content: '# 报告\n正文' }, { agent })
+    if (created.isError) throw new Error('expected artifact_create success')
+    const read = await callTool(ctx, 'artifact_read', 'call-read-1', { id: (created.value as { id: string }).id }, agent)
+    expect(read.isError).toBe(false)
+    if (read.isError) throw new Error('expected artifact_read success')
+    expect(read.value).toEqual({ id: (created.value as { id: string }).id, kind: 'report', title: '迁移报告', format: 'text', content: '# 报告\n正文', truncated: false, size: 7 })
+  })
+
+  it('reads one UTF-16 range with offset and limit', async () => {
+    const { ctx } = await setup()
+    const agent = agentWithSession('pager')
+    const created = await callArtifact(ctx, { kind: 'report', title: 'R', content: '0123456789' }, { agent })
+    if (created.isError) throw new Error('expected artifact_create success')
+    const read = async (over: { offset?: number; limit?: number }) => await callTool(
+      ctx, 'artifact_read', 'call-page', { id: (created.value as { id: string }).id, ...over }, agent,
+    )
+    const first = await read({ offset: 0, limit: 4 })
+    expect(first.isError).toBe(false)
+    expect(first.value).toMatchObject({ content: '0123', truncated: true, size: 10 })
+    const tail = await read({ offset: 8 })
+    expect(tail.value).toMatchObject({ content: '89', truncated: false, size: 10 })
+    const negative = await read({ offset: -1 })
+    expect(negative.isError).toBe(true)
+  })
+
+  it('fails loud on an id the channel never stored', async () => {
+    const { ctx } = await setup()
+    const result = await callTool(ctx, 'artifact_read', 'call-read-2', { id: 'art-never-stored' }, agentWithSession('reader-2'))
+    expect(result.isError).toBe(true)
+    expect(text(result)).toContain('no content stored under id "art-never-stored"')
+  })
+
+  it('rejects an empty kind or title', async () => {
+    const { ctx } = await setup()
+    const blankKind = await callArtifact(ctx, { kind: '  ', title: 'R', content: 'x' })
+    expect(blankKind.isError).toBe(true)
+    const blankTitle = await callArtifact(ctx, { kind: 'report', title: '', content: 'x' })
+    expect(blankTitle.isError).toBe(true)
+  })
+
+  it('creates a bytes artifact from base64 data and pages it by byte', async () => {
+    const { ctx, store } = await setup()
+    const agent = agentWithSession('binary')
+    const raw = new Uint8Array([0, 1, 2, 250, 251, 255])
+    const wrapped = Buffer.from(raw).toString('base64').replace(/^(..)/u, '$1\n')
+    const result = await callArtifact(ctx, { kind: 'png', title: '图标', data: wrapped }, { agent })
+    expect(result.isError).toBe(false)
+    if (result.isError) throw new Error('expected artifact_create success')
+    const value = result.value as { id: string; format: string; status: string }
+    expect(value.format).toBe('bytes')
+    expect(store.stored.get(value.id)).toEqual(raw)
+    const created = agent.session.snapshotEvents().find(e => e.type === 'artifact/created')!
+    expect(created.data).toEqual({ id: value.id, kind: 'png', title: '图标', format: 'bytes' })
+    const page = await callTool(ctx, 'artifact_read', 'call-read-bin', { id: value.id, offset: 2, limit: 3 }, agent)
+    expect(page.isError).toBe(false)
+    expect(page.value).toMatchObject({
+      format: 'bytes',
+      kind: 'png',
+      data: Buffer.from(raw.subarray(2, 5)).toString('base64'),
+      truncated: true,
+      size: 6,
+    })
+  })
+
+  it('rejects both arms and neither arm with the same loud failure', async () => {
+    const { ctx } = await setup()
+    const both = await callArtifact(ctx, { kind: 'png', title: 'T', content: 'x', data: 'AA==' })
+    expect(both.isError).toBe(true)
+    expect(text(both)).toContain('exactly one of content or data')
+    const neither = await callArtifact(ctx, { kind: 'png', title: 'T' })
+    expect(neither.isError).toBe(true)
+    expect(text(neither)).toContain('exactly one of content or data')
+  })
+
+  it('rejects data that is not base64', async () => {
+    const { ctx } = await setup()
+    const result = await callArtifact(ctx, { kind: 'png', title: 'T', data: 'not*base64!' })
+    expect(result.isError).toBe(true)
+    expect(text(result)).toContain('base64-encoded')
+  })
+
+  it('reads an unjournaled id through the lossless base64 arm', async () => {
+    const { ctx } = await setup()
+    const agent = agentWithSession('owner')
+    const created = await callArtifact(ctx, { kind: 'report', title: 'R', content: 'hello' }, { agent })
+    if (created.isError) throw new Error('expected artifact_create success')
+    const read = await callTool(ctx, 'artifact_read', 'call-read-out', { id: (created.value as { id: string }).id }, agentWithSession('outsider'))
+    expect(read.isError).toBe(false)
+    expect(read.value).toMatchObject({
+      format: 'bytes',
+      data: Buffer.from('hello').toString('base64'),
+      truncated: false,
+      size: 5,
+    })
+  })
+})

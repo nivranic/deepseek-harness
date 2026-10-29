@@ -29,6 +29,7 @@ import { createHash } from 'node:crypto'
 import { createReadStream, existsSync, readFileSync, statSync } from 'node:fs'
 import { readFile } from 'node:fs/promises'
 import { createRequire } from 'node:module'
+import { release, type as osType } from 'node:os'
 import { dirname, isAbsolute, join } from 'node:path'
 import { Readable } from 'node:stream'
 import { fileURLToPath, pathToFileURL } from 'node:url'
@@ -39,11 +40,12 @@ import type { Entry } from '@deepseek-ai/cordis-plugin-loader'
 import type { IndexInjection } from '@deepseek-ai/dsh-host-webserver'
 import { PACKAGE_ASSET_SEGMENT, packageAssetMediaType } from './assets.ts'
 import { exactPackageSpecifier, parseDshClient, stripClientSuffix } from './client/manifest.ts'
-import type { WebBootBatch, WebBootBatchPhase, WebBootEntry, WebBootGraph, WebBootRelease } from './client/manifest.ts'
+import type { HostRuntimeInfo, WebBootBatch, WebBootBatchPhase, WebBootEntry, WebBootGraph, WebBootRelease } from './client/manifest.ts'
 
 export { stripClientSuffix } from './client/manifest.ts'
 export type {
-  BootManifest, BootModuleRow, BootPluginRow, WebBootBatch, WebBootBatchPhase, WebBootEntry, WebBootGraph, WebBootRelease,
+  BootManifest, BootModuleRow, BootPluginRow, HostRuntimeInfo, WebBootBatch, WebBootBatchPhase,
+  WebBootEntry, WebBootGraph, WebBootRelease,
 } from './client/manifest.ts'
 
 declare module '@deepseek-ai/cordis' {
@@ -636,10 +638,12 @@ window.__ModuleLoader__={
 
 /**
  * The web plugin table service: incremental `dsh.client` scan + wire composition
- * + bundle and package-asset route + index injection rows. Construction runs
- * the activation scan synchronously — a malformed declaration or missing bundle among the
- * already-loaded entries aggregates into one loud throw (FAILED fiber; the
- * boot activation audit reports it).
+ * + bundle and package-asset route + index injection rows. The Web carrier is
+ * optional: a webless surface (the desktop app) reads {@link graph},
+ * {@link clientPath}, and {@link fetchBundle} through its own carrier.
+ * Construction runs the activation scan synchronously — a malformed declaration
+ * or missing bundle among the already-loaded entries aggregates into one loud
+ * throw (FAILED fiber; the boot activation audit reports it).
  */
 export class ClientModuleRegistry extends Service {
   static inject = ['loader']
@@ -660,6 +664,10 @@ export class ClientModuleRegistry extends Service {
   private previousBatchResponses = new Map<string, LazyResponse>()
   private flushQueued = false
   private composed: WebBootGraph
+  /** The installation version stamped on every composed graph. */
+  private readonly version: string
+  /** The host runtime environment facts stamped on every composed graph. */
+  private readonly runtime: HostRuntimeInfo
 
   /**
    * Build the service: subscribe, seed, and run the activation flush.
@@ -672,6 +680,16 @@ export class ClientModuleRegistry extends Service {
     // The client build fixes this read into the built Host artifact.
     const commit = process.env.DSH_CLIENT_COMMIT_HASH
     this.release = commit === undefined ? { version } : { version, commit }
+    // The About settings section renders these beside the version. Only an
+    // Electron main process carries chrome/electron versions; a plain-Node
+    // host leaves both undefined and JSON.stringify drops them from the wire.
+    this.version = version
+    this.runtime = {
+      node: process.versions.node,
+      chrome: process.versions.chrome,
+      electron: process.versions.electron,
+      os: `${osType()} ${process.arch} ${release()}`,
+    }
     // Subscribe before seeding so a fiber arriving mid-activation lands in the
     // same dirty set (Set idempotence makes the overlap harmless). An entry-less
     // fiber is a child plugin or a manual mount — never a loader row; O(1) drop.
@@ -871,6 +889,8 @@ export class ClientModuleRegistry extends Service {
       release: this.release,
       entries,
       batches,
+      version: this.version,
+      runtime: this.runtime,
     }
   }
 

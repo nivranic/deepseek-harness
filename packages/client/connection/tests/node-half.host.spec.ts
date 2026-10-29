@@ -485,6 +485,24 @@ describe('connection node half', () => {
     expect(routes).toHaveLength(0)
   })
 
+  it('provides the Connection service without a webServer and binds /api when one appears later', async () => {
+    const ctx = new Context()
+    const routes: WebRoute[] = []
+    provideBrowserCredentials(ctx)
+    // The desktop shape: no webServer exists, so the plugin provides the
+    // service alone — a carrier reuses the shared fetch handler through its
+    // own bridge and nothing binds a socket.
+    const fiber = ctx.plugin({ inject: [...inject], apply })
+    await fiber.await()
+    expect(ctx.get('connection')).toBeDefined()
+    expect(routes).toHaveLength(0)
+    ctx.provide('webServer', fakeHttpServer(routes, []) as WebServer)
+    await new Promise(resolve => setTimeout(resolve, 0))
+    expect(routes.find(candidate => candidate.path === '/api')).toBeDefined()
+    await fiber.dispose()
+    expect(routes).toHaveLength(0)
+  })
+
   it('dispatches claimed /api endpoints and withdraws the claim', async () => {
     const ctx = new Context()
     const routes: WebRoute[] = []

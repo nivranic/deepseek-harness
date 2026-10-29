@@ -44,6 +44,13 @@ export const zh = {
   'hostRelease.unknown': '未解析',
   'hostRelease.reload': '刷新以加载新版本',
   'hostRelease.later': '暂不刷新',
+  'about.nav': '关于',
+  'about.product': '产品',
+  'about.version': '版本',
+  'about.kernel': '内核',
+  'about.electron': 'Electron',
+  'about.node': 'Node.js',
+  'about.os': '操作系统',
 } satisfies Record<string, string>
 
 /** The settings namespace key union. */
@@ -93,6 +100,13 @@ export const en = {
   'hostRelease.unknown': 'Unknown',
   'hostRelease.reload': 'Reload to load the new version',
   'hostRelease.later': 'Not now',
+  'about.nav': 'About',
+  'about.product': 'Product',
+  'about.version': 'Version',
+  'about.kernel': 'Kernel',
+  'about.electron': 'Electron',
+  'about.node': 'Node.js',
+  'about.os': 'Operating System',
 } satisfies Record<SettingsKey, string>
 
 /** Japanese copy, checked against the English keys. */
@@ -139,6 +153,13 @@ export const ja = {
   'hostRelease.unknown': '不明',
   'hostRelease.reload': '再読み込みして新しいバージョンを読み込む',
   'hostRelease.later': '後で',
+  'about.nav': 'バージョン情報',
+  'about.product': '製品',
+  'about.version': 'バージョン',
+  'about.kernel': 'カーネル',
+  'about.electron': 'Electron',
+  'about.node': 'Node.js',
+  'about.os': 'オペレーティングシステム',
 } satisfies Record<keyof typeof en, string>
 
 /** Spanish dictionary, checked against the English keys. */
@@ -185,6 +206,13 @@ export const es = {
   'hostRelease.unknown': 'Desconocido',
   'hostRelease.reload': 'Recargar para cargar la nueva versión.',
   'hostRelease.later': 'Ahora no',
+  'about.nav': 'Acerca de',
+  'about.product': 'Producto',
+  'about.version': 'Versión',
+  'about.kernel': 'Núcleo',
+  'about.electron': 'Electron',
+  'about.node': 'Node.js',
+  'about.os': 'Sistema operativo',
 } satisfies Record<keyof typeof en, string>
 
 /** French dictionary, checked against the English keys. */
@@ -231,6 +259,13 @@ export const fr = {
   'hostRelease.unknown': 'Inconnu',
   'hostRelease.reload': 'Recharger pour charger la nouvelle version',
   'hostRelease.later': 'Pas maintenant',
+  'about.nav': 'À propos',
+  'about.product': 'Produit',
+  'about.version': 'Version',
+  'about.kernel': 'Noyau',
+  'about.electron': 'Electron',
+  'about.node': 'Node.js',
+  'about.os': 'Système d’exploitation',
 } satisfies Record<keyof typeof en, string>
 
 /** German dictionary, checked against the English keys. */
@@ -277,6 +312,13 @@ export const de = {
   'hostRelease.unknown': 'Unbekannt',
   'hostRelease.reload': 'Neu laden, um die neue Version zu laden',
   'hostRelease.later': 'Nicht jetzt',
+  'about.nav': 'Über',
+  'about.product': 'Produkt',
+  'about.version': 'Version',
+  'about.kernel': 'Kernel',
+  'about.electron': 'Electron',
+  'about.node': 'Node.js',
+  'about.os': 'Betriebssystem',
 } satisfies Record<keyof typeof en, string>
 
 /** Russian dictionary, checked against the English keys. */
@@ -323,6 +365,13 @@ export const ru = {
   'hostRelease.unknown': 'Неизвестно',
   'hostRelease.reload': 'Перезагрузите, чтобы загрузить новую версию',
   'hostRelease.later': 'Не сейчас',
+  'about.nav': 'О программе',
+  'about.product': 'Продукт',
+  'about.version': 'Версия',
+  'about.kernel': 'Ядро',
+  'about.electron': 'Electron',
+  'about.node': 'Node.js',
+  'about.os': 'Операционная система',
 } satisfies Record<keyof typeof en, string>
 
 /** Portuguese dictionary, checked against the English keys. */
@@ -369,4 +418,11 @@ export const pt = {
   'hostRelease.unknown': 'Desconhecido',
   'hostRelease.reload': 'Recarregue para carregar a nova versão',
   'hostRelease.later': 'Agora não',
+  'about.nav': 'Sobre',
+  'about.product': 'Produto',
+  'about.version': 'Versão',
+  'about.kernel': 'Kernel',
+  'about.electron': 'Electron',
+  'about.node': 'Node.js',
+  'about.os': 'Sistema operacional',
 } satisfies Record<keyof typeof en, string>

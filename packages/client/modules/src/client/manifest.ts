@@ -38,6 +38,11 @@ declare module '@deepseek-ai/cordis' {
   interface Context {
     /** The client module system the web shell builds at boot (provided by the `./client` wrapper plugin). */
     modules: ClientModuleLoader
+    /**
+     * Installation facts carried on the boot document (provided by the
+     * `./client` wrapper plugin from the parsed manifest).
+     */
+    appInfo: AppInfo
   }
 }
 
@@ -82,6 +87,18 @@ export interface WebBootBatch {
   entries: string[]
 }
 
+/** Host runtime environment facts carried beside the installation version. */
+export interface HostRuntimeInfo {
+  /** Node.js version of the composing host process. */
+  node: string
+  /** Chromium version; present only when the host runs inside an Electron main process. */
+  chrome: string | undefined
+  /** Electron version; present only when the host runs inside an Electron main process. */
+  electron: string | undefined
+  /** One-line OS identification, e.g. `Windows_NT x64 10.0.26300`. */
+  os: string
+}
+
 /** Host release identity; two releases are the same when both fields are equal. */
 export interface WebBootRelease {
   /** Release version label. */
@@ -104,6 +121,14 @@ export interface WebBootGraph {
   entries: WebBootEntry[]
   /** Initial combo descriptors; every entry belongs to exactly one descriptor. */
   batches: WebBootBatch[]
+  /**
+   * The dsh installation version this graph was composed by (the composing
+   * package's own release version — the release flow bumps every package in
+   * lockstep). Absent from documents composed before the field existed.
+   */
+  version?: string
+  /** Host runtime environment facts; absent from documents composed before the field existed. */
+  runtime?: HostRuntimeInfo
 }
 
 /** The npm-package view of one boot row: what the module table needs to fetch the bundle. */
@@ -142,6 +167,10 @@ export interface BootManifest {
   modules: BootModuleRow[]
   /** Rows as entry composition consumes them. */
   plugins: BootPluginRow[]
+  /** The dsh installation version; undefined when the host document omits it. */
+  version: string | undefined
+  /** Host runtime environment facts; undefined when the host document omits them. */
+  runtime: HostRuntimeInfo | undefined
 }
 
 /**
@@ -234,6 +263,26 @@ export function parseBootManifest(wire: unknown): BootManifest {
   if (typeof graph.rev !== 'string') {
     throw new Error('client-modules: boot manifest rev must be a string')
   }
+  if (graph.version !== undefined && typeof graph.version !== 'string') {
+    throw new Error('client-modules: boot manifest version must be a string')
+  }
+  let runtime: HostRuntimeInfo | undefined
+  if (graph.runtime !== undefined) {
+    if (typeof graph.runtime !== 'object' || graph.runtime === null) {
+      throw new Error('client-modules: boot manifest runtime must be an object')
+    }
+    const { node, os, chrome, electron } = graph.runtime as Record<string, unknown>
+    if (typeof node !== 'string' || typeof os !== 'string') {
+      throw new Error('client-modules: boot manifest runtime.node and runtime.os must be strings')
+    }
+    if (chrome !== undefined && typeof chrome !== 'string') {
+      throw new Error('client-modules: boot manifest runtime.chrome must be a string')
+    }
+    if (electron !== undefined && typeof electron !== 'string') {
+      throw new Error('client-modules: boot manifest runtime.electron must be a string')
+    }
+    runtime = { node, os, chrome, electron }
+  }
   const release = decodeRelease(graph.release)
   if (release === null) {
     throw new Error('client-modules: boot manifest release must carry a string version and an optional string commit')
@@ -318,7 +367,14 @@ export function parseBootManifest(wire: unknown): BootManifest {
     }
     return { ...row, initialUrl }
   })
-  return { rev: graph.rev, ...(release === undefined ? {} : { release }), modules, plugins }
+  return {
+    rev: graph.rev,
+    ...(release === undefined ? {} : { release }),
+    modules,
+    plugins,
+    version: graph.version,
+    runtime,
+  }
 }
 
 /**
@@ -411,6 +467,29 @@ export interface DshWindow {
   __DSH_BOOT__?: unknown
   /** HTML-installed facade: a pending registration queue, then the live module-system target. */
   __ModuleLoader__?: ClientModuleLoaderTarget
+  /**
+   * Installation facts carried on the boot document (provided by the
+   * `./client` wrapper plugin from the parsed manifest).
+   */
+  appInfo?: AppInfo
+}
+
+/**
+ * Installation facts the host stamps on the boot document. Display-only: a
+ * consumer renders these, never branches product behavior on them.
+ */
+export interface AppInfo {
+  /**
+   * The dsh installation version this graph was composed by (the composing
+   * package's own release version); undefined when an older host composed the
+   * document without one.
+   */
+  version: string | undefined
+  /**
+   * Host runtime environment facts; undefined when an older host composed the
+   * document without the block.
+   */
+  runtime: HostRuntimeInfo | undefined
 }
 
 /** Per-module bookkeeping in {@link ClientModuleLoader.loadCache} (flat module-graph boundary). */

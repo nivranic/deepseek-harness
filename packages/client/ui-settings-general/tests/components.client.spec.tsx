@@ -3,6 +3,8 @@ import type { GlobalStandardProps } from '@deepseek-ai/dsh-client-ui-slots'
 import { afterEach, describe, expect, it, vi } from 'vitest'
 import { cleanup, fireEvent, render, screen, waitFor } from '@testing-library/react'
 import { allowAllAccess, bindSnapshotSelector, RemoteError } from '@deepseek-ai/dsh-client-test-runtime'
+import type { AboutSectionComponentProps, AboutSectionInjected } from '../src/client/AboutSection.tsx'
+import { AboutSection } from '../src/client/AboutSection.tsx'
 import type { GeneralSectionComponentProps } from '../src/client/GeneralSection.tsx'
 import { GeneralSection } from '../src/client/GeneralSection.tsx'
 import { CloseLabel, HeaderContent, TriggerContent } from '../src/client/chrome.tsx'
@@ -128,6 +130,37 @@ describe('GeneralSection', () => {
     const { renderSlot } = mount()
     expect(renderSlot).toHaveBeenCalledWith('settings.general.item', {})
     expect(screen.getByTestId('slot-settings.general.item')).toBeTruthy()
+  })
+})
+
+describe('AboutSection', () => {
+  function mount(appInfo: AboutSectionInjected['appInfo']) {
+    const props: AboutSectionComponentProps = { ...kit, close: vi.fn(), t, appInfo }
+    return render(<AboutSection {...props} />)
+  }
+
+  it('renders the product identity, the version, and the host runtime environment', () => {
+    mount({
+      version: '0.1.0-rc.7',
+      runtime: { node: '22.19.0', chrome: '142.0.7379.128', electron: '39.2.6', os: 'Windows_NT x64 10.0.26200' },
+    })
+    expect(screen.getByText('Product')).toBeTruthy()
+    expect(screen.getByText('DeepSeek Harness')).toBeTruthy()
+    expect(screen.getByText('Version')).toBeTruthy()
+    expect(screen.getByText('0.1.0-rc.7')).toBeTruthy()
+    expect(screen.getByText('Kernel')).toBeTruthy()
+    expect(screen.getByText('142.0.7379.128')).toBeTruthy()
+    expect(screen.getByText('Electron')).toBeTruthy()
+    expect(screen.getByText('39.2.6')).toBeTruthy()
+    expect(screen.getByText('Node.js')).toBeTruthy()
+    expect(screen.getByText('22.19.0')).toBeTruthy()
+    expect(screen.getByText('Operating System')).toBeTruthy()
+    expect(screen.getByText('Windows_NT x64 10.0.26200')).toBeTruthy()
+  })
+
+  it('renders placeholders where the boot document carried no facts', () => {
+    mount({ version: undefined, runtime: undefined })
+    expect(screen.getAllByText('—')).toHaveLength(5)
   })
 })
 

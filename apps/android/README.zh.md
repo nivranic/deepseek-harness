@@ -1,0 +1,48 @@
+# DSH Android 伴侣
+
+[English](README.md) | 中文
+
+Android 伴侣（原生化方案第 52、60 章）：`core` 是纯 JVM 领域与线缆模块，`app` 是其上的 Compose 七标签面——先配对，后在简约拟态基线下呈现会话/审批/计划/工具/文件/工件/子代理。
+
+## 目录
+
+| 路径 | 是什么 |
+| --- | --- |
+| [`core/src/main/kotlin/ai/deepseek/dsh/link/LinkContracts.kt`](core/src/main/kotlin/ai/deepseek/dsh/link/LinkContracts.kt) | 生成的契约模型，由 `pnpm run gen-link-contracts` 同步、`verify-link-contracts` 字节门禁 |
+| [`core/…/companion/DomainFold.kt`](core/src/main/kotlin/ai/deepseek/dsh/companion/DomainFold.kt) | 第 62 章领域状态折叠的 Kotlin 半边：与 TypeScript、Swift 回放同一份一致性 fixtures，折叠结果完全一致；工件面板按 Lite 词汇消费 artifact/created 与 artifact/status（第 56 章） |
+| [`core/…/companion/LiteFold.kt`](core/src/main/kotlin/ai/deepseek/dsh/companion/LiteFold.kt) | Lite 行为规范折叠的 Kotlin 半边（第 33/34/63 章）：与 TypeScript 参考折叠、Swift Lite 折叠回放同一份 lite-conformance fixtures——取消保留前缀、断流保留部分文本、工具按 id 配对——内嵌宿主运行时阶段的地基 |
+| [`core/…/companion/LiteToolRegistry.kt`](core/src/main/kotlin/ai/deepseek/dsh/companion/LiteToolRegistry.kt) | Lite 静态工具注册表（第 36 章）：编译期捆绑 web_search/url_fetch/image_inspect/attachment_read/artifact_create/calculator，run_tests 经 LITE_REQUIRES_FULL_RUNTIME 交接，未知名称返回 null 绝不动态分发 |
+| [`core/…/companion/LiteLoop.kt`](core/src/main/kotlin/ai/deepseek/dsh/companion/LiteLoop.kt) | Lite 循环驱动器（第 34 章）：经 LiteProviding 缝驱动 prompt→流块→工具分发（查注册表，交接名停而不执行）→message/turn 完成；取消折 turn/cancelled，抛错按 provider/network 分流折入错误——ScriptedLiteProvider 替身可测 |
+| [`core/…/companion/LiteStores.kt`](core/src/main/kotlin/ai/deepseek/dsh/companion/LiteStores.kt) | Lite 持久化：`LiteSession` 事件溯源 journal（重放经 LiteFold 复原全量状态）、`LiteFileSessionStore` 每 `<id>.litejournal 追加式 JSON 行原子替换、`LiteFileArtifactStore` 资源通道 `<id>.artifact` 原子写（第 11/56 章） |
+| [`core/…/companion/LiteArtifactReading.kt`](core/src/main/kotlin/ai/deepseek/dsh/companion/LiteArtifactReading.kt) | 第 56 章资源通道消费面：按 id 读取字节并决定呈现——markdown/text/report/patch 直接呈现文本、其余显示类型与字节数、缺失 id 为诚实空态；聊天面工件行按需读取 |
+| [`core/…/companion/LiteChat.kt`](core/src/main/kotlin/ai/deepseek/dsh/companion/LiteChat.kt) 及 [`app/…/LiteChatScreen.kt`](app/src/main/kotlin/ai/deepseek/dsh/companion/LiteChatScreen.kt) | Lite 聊天面：`send()` 驱动一回合并把回合结果事件记入 journal 持久化、重启经 journal 重放恢复；Compose 面经 `liveState` StateFlow 实时渲染 LiteDomainState——回合中逐事件发布流式部分与工具相位、回合间 journal 重放（镜像 Apple LiteChatView） |
+| [`core/…/companion/LiteHTTPProvider.kt`](core/src/main/kotlin/ai/deepseek/dsh/companion/LiteHTTPProvider.kt) | Lite 真实提供方：OpenAI 兼容流式 chat completion（JDK HttpClient）——SSE `data:`/`[DONE]`/裸 NDJSON 行解析、reasoning_content/content/工具调用增量、按 index 的碎片组装；传输失败映射 timeout/unreachable/dropped，非 2xx 为 Provider——对真实本地 HTTP 服务器回路测试 |
+| [`core/…/companion/NeumorphicTokens.kt`](core/src/main/kotlin/ai/deepseek/dsh/companion/NeumorphicTokens.kt) | 仅简约拟态的视觉基线（第 60 章）：单一风格、双色调浮起表面 |
+| [`core/…/link/LinkWire.kt`](core/src/main/kotlin/ai/deepseek/dsh/link/LinkWire.kt) 及同族 | 线缆客户端半边：直通 JSON 值与信封、JDK 提供方的 Ed25519 签名、叶子证书的 SPKI 钉扎、`LinkClient` 的 pair/describe/call/stream——对着真实本地 HTTP 服务器测试 |
+| [`core/…/companion/CompanionModels.kt`](core/src/main/kotlin/ai/deepseek/dsh/companion/CompanionModels.kt) | 视图模型——会话折叠/发送/取消、交互收件箱、带 UTF-16 分页读取的文件浏览、子代理列表——各自驱动 FakeWire 可测的 `WireDriving` 缝 |
+| [`core/…/companion/FileChanges.kt`](core/src/main/kotlin/ai/deepseek/dsh/companion/FileChanges.kt) | 工具轨迹到只读文件变更的投影（第 55 章首版）：write/edit/str_replace_editor 的已完成调用各成一 hunk，+N/−M 行数与增删行在工具标签折叠展开 |
+| [`core/…/companion/CompanionPush.kt`](core/src/main/kotlin/ai/deepseek/dsh/companion/CompanionPush.kt) | 第 70 章最小推送链路：`$events` 转发折为仅携带引用数据的推送（审批等待/提问等待/任务完成），设备端本地化标题，本地通知呈现，中继（APNs/FCM）延后 |
+| [`core/…/companion/NotificationGrant.kt`](core/src/main/kotlin/ai/deepseek/dsh/companion/NotificationGrant.kt) | 第 70 章运行时授权投影（Android 13+ 动态请求 POST_NOTIFICATIONS）：系统启用读数 + 本进程是否已问 + 用户末次回答——呈现随系统启用走、缺授权时一进程一问；app 侧 `NotificationGrantController` 持 StateFlow 接系统对话框 |
+| [`core/…/companion/RelayRendezvous.kt`](core/src/main/kotlin/ai/deepseek/dsh/companion/RelayRendezvous.kt) 及 [`core/…/companion/RelayClient.kt`](core/src/main/kotlin/ai/deepseek/dsh/companion/RelayClient.kt) | 中继会合地基（第 68/69 章）：`RelayRendezvous` 内存态单账号转发——设备注册（含 pushToken 槽）、仅引用信封向账号设备扇出、按 poll 排空；`RelayClient` 是 Noise 加密的 HTTP 消费者（惰性 XX 握手、帧式 AEAD 体、一次性密钥推送流），对照真实本地 Noise 应答方回路测试，`link/Noise.kt` 携带由 node 参考实现固定密钥向量钉住的 Noise_XX_25519_ChaChaPoly_SHA256 栈；信封经 `asPush()` 桥接第 70 章推送词汇；自托管壳见 [`apps/relay`](../relay/README.zh.md) |
+| [`core/…/companion/Handoff.kt`](core/src/main/kotlin/ai/deepseek/dsh/companion/Handoff.kt) | 第 40 章 Handoff L1 的设备侧：`LiteHandoff` 从折叠 Lite 状态（对话尾部、计划标志、待办、工件引用、发送方身份）构建快照线值并经 `session/handoff` 发送；拒绝或无会话应答读为 null |
+| [`app/`](app/src/main/kotlin/ai/deepseek/dsh/companion/MainActivity.kt) | Compose 壳：配对屏、六标签脚手架、来自 core tokens 的简约拟态主题 |
+| [`core/src/test/resources/`](core/src/test/resources/) | 测试回放的同步黄金 fixtures、一致性场景与钉扎证书 |
+
+## 构建与测试
+
+[Android Kotlin](../.github/workflows/android-kotlin.yml) 车道在 Ubuntu 上运行 `gradle test` 与 `:app:assembleDebug`（JDK 17、Gradle 8.14、不提交 wrapper、用 runner 的 Android SDK）；本地任何 Gradle 8.14+ 配 JDK 17 工具链加 Android SDK 即可。
+
+## 已知限制与延后工作
+
+- **生命周期感知收集**——各标签以 `collectAsStateWithLifecycle` 收集模型的 StateFlow，停止态暂停收集，不在后台空烧。
+- **握手级钉扎延后**——`LinkPinning` 校验叶子证书的 SPKI 指纹，但接入 TLS 握手要随应用模块的 OkHttp 栈到来；此处的 JDK `HttpClient` 不做钉扎。签名私钥本身经 `CredentialsCipher` 缝只在 AndroidKeyStore AES/GCM 封存下落盘。
+
+<a id="dev-note"></a>
+### 开发备注
+
+<details>
+<summary>维护者的工作上下文——点击展开</summary>
+
+无。
+
+</details>

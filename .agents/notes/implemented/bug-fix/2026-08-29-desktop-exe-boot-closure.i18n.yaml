@@ -1,0 +1,19 @@
+# Bilingual-pair consistency record for 2026-08-29-desktop-exe-boot-closure.md (docs/i18n/README.md): per heading
+# section, a hash of its English and Chinese blocks outside code blocks and generated regions.
+# After editing either side, bring the other along and re-record with:
+#   pnpm run verify-translation-pairing --write .agents/notes/implemented/bug-fix/2026-08-29-desktop-exe-boot-closure.md
+/agent-note-desktop-exe-boot-closure-over-the-dsh-base-layer:
+  en: 1213f6023e5c8c05
+  zh: e55d88dd6ed06679
+/agent-note-desktop-exe-boot-closure-over-the-dsh-base-layer/problem:
+  en: 545c06d0f3b41b91
+  zh: a452a230611bd58e
+/agent-note-desktop-exe-boot-closure-over-the-dsh-base-layer/decision:
+  en: 2eb4303c04a14313
+  zh: 1166d4c041d119d6
+/agent-note-desktop-exe-boot-closure-over-the-dsh-base-layer/alternatives-considered:
+  en: 41e4b10ecd86f417
+  zh: 50e62fed8e06d13f
+/agent-note-desktop-exe-boot-closure-over-the-dsh-base-layer/consequences:
+  en: 030f39e5f1b47bd2
+  zh: 29ba4f3d3b78618b

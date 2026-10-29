@@ -1,0 +1,19 @@
+# Bilingual-pair consistency record for 2026-08-30-link-attachment-surface.md (docs/i18n/README.md): per heading
+# section, a hash of its English and Chinese blocks outside code blocks and generated regions.
+# After editing either side, bring the other along and re-record with:
+#   pnpm run verify-translation-pairing --write .agents/notes/implemented/architecture/2026-08-30-link-attachment-surface.md
+/agent-note-the-link-attachment-surface:
+  en: 23c9fb0d804cfa63
+  zh: 0cb824d757921067
+/agent-note-the-link-attachment-surface/problem:
+  en: 905aa411a32ffaef
+  zh: c173ad184dd8a226
+/agent-note-the-link-attachment-surface/decision:
+  en: a80f09aa72ab8f38
+  zh: ddc3e4445e6c974c
+/agent-note-the-link-attachment-surface/consequences:
+  en: 36448121b45b982e
+  zh: e2ed20b15bd61e25
+/agent-note-the-link-attachment-surface/alternatives-considered:
+  en: a45d61ab88b50420
+  zh: 0e3cbfd06aaceec9

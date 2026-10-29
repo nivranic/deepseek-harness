@@ -9,6 +9,7 @@ import { AttachmentError } from '@deepseek-ai/dsh-attachment'
 import type {
   AttachmentAdmissionPart,
 } from '@deepseek-ai/dsh-attachment'
+import { ArtifactId } from '@deepseek-ai/dsh-artifact'
 import type { FileUploadReceiptId, StagedAttachment } from '@deepseek-ai/dsh-client-file-upload/types'
 import type {} from '@deepseek-ai/dsh-client-file-upload'
 import {
@@ -33,6 +34,7 @@ import {
   type ApiSessionCreated,
 } from './agent.ts'
 import type {
+  SessionArtifactRequest, SessionArtifactValue,
   SessionAttachmentRequest,
   SessionAttachmentValue,
   SessionCancelRequest,
@@ -41,15 +43,18 @@ import type {
   SessionCreateValue,
   SessionForkRequest,
   SessionForkValue,
+  SessionHandoffRequest,
+  SessionHandoffSnapshot,
+  SessionHandoffValue,
   SessionPromptRequest,
   SessionPromptValue,
+  SessionRequestId,
   SessionRenameRequest,
   SessionRenameValue,
   SessionSelectModelRequest,
   SessionSelectModelValue,
   SessionUpdateQueueRequest,
   SessionUpdateQueueValue,
-  SessionRequestId,
 } from './types.ts'
 
 type PromptContentCandidate =
@@ -201,6 +206,28 @@ export class SessionCommandController {
         {},
       )
     }
+  }
+
+  /**
+   * Accept one Lite handoff (chapter 40 L1): create the new full Session,
+   * pin its title, and queue the rendered handoff brief as the first user
+   * message — the durable record of the sending device's identity, and the prompt
+   * the receiving Agent picks up. Composes create + rename + queue prompt;
+   * no new journal vocabulary.
+   * @param request - the snapshot the sending device packaged.
+   * @returns the new Session's identity.
+   */
+  async handoff(request: SessionHandoffRequest): Promise<SessionHandoffValue> {
+    const created = await this.create({})
+    await this.rename({ sessionId: created.sessionId, title: handoffTitle(request.snapshot) })
+    const requestId = randomUUID() as SessionRequestId
+    await this.prompt({
+      requestId,
+      sessionId: created.sessionId,
+      mode: 'queue',
+      content: [{ type: 'text', text: renderHandoffBrief(request.snapshot) }],
+    }, { kind: 'user', rpcId: requestId })
+    return { sessionId: created.sessionId }
   }
 
   /**
@@ -378,6 +405,77 @@ export class SessionCommandController {
   }
 
   /**
+   * Read one artifact the addressed Session's log references: the journal
+   * proves the reference (kind, title, and format come from its
+   * artifact/created event), the resource channel serves the bytes. The
+   * journaled format picks the paging unit — UTF-16 code units for text,
+   * bytes for raw — and `data` is base64 of that range either way.
+   * @param request - Session and artifact identities used for authorization.
+   * @returns the reference metadata and base64-encoded content range.
+   */
+  async artifact(request: SessionArtifactRequest): Promise<SessionArtifactValue> {
+    let observed: SessionObservation
+    try {
+      observed = await this.ctx.sessionQuery.observeSession(request.sessionId)
+    } catch (error) {
+      if (error instanceof SessionQueryError && error.code === 'SESSION_QUERY_SESSION_NOT_FOUND') {
+        throw new RemoteError('session/not-found', `session "${request.sessionId}" not found`, { sessionId: request.sessionId })
+      }
+      throw new RemoteError(
+        'gateway/internal',
+        `artifact authorization unavailable for session "${request.sessionId}": ${String(error)}`,
+        {},
+      )
+    }
+    using source = observed
+    const created = source.events.findLast((event): event is SessionEvent<'artifact/created'> =>
+      event.type === 'artifact/created' && event.data.id === request.artifactId)
+    if (created === undefined) {
+      throw new RemoteError('session/artifact-error', 'Artifact is not referenced by this session.', { reason: 'ARTIFACT_NOT_REFERENCED' })
+    }
+    let stored: Uint8Array | null
+    try {
+      stored = await this.ctx.artifacts.get(ArtifactId(request.artifactId))
+    } catch (error) {
+      throw new RemoteError(
+        'gateway/internal',
+        `artifact storage unavailable for session "${request.sessionId}": ${String(error)}`,
+        {},
+      )
+    }
+    if (stored === null) {
+      throw new RemoteError('session/artifact-error', 'No artifact content stored under the referenced id.', { reason: 'ARTIFACT_CONTENT_MISSING' })
+    }
+    if ((request.offset ?? 0) < 0 || (request.limit !== undefined && request.limit < 0)) {
+      throw new RemoteError('session/artifact-error', 'Artifact read offset and limit must be non-negative.', { reason: 'ARTIFACT_BAD_RANGE' })
+    }
+    const start = request.offset ?? 0
+    if (created.data.format === 'text') {
+      const full = new TextDecoder().decode(stored)
+      const page = request.limit === undefined ? full.slice(start) : full.slice(start, start + request.limit)
+      return {
+        id: request.artifactId,
+        kind: created.data.kind,
+        title: created.data.title,
+        format: created.data.format,
+        data: Buffer.from(page, 'utf8').toString('base64'),
+        truncated: request.limit !== undefined && start + request.limit < full.length,
+        size: full.length,
+      }
+    }
+    const end = request.limit === undefined ? stored.length : Math.min(start + request.limit, stored.length)
+    return {
+      id: request.artifactId,
+      kind: created.data.kind,
+      title: created.data.title,
+      format: created.data.format,
+      data: Buffer.from(stored.subarray(start, end)).toString('base64'),
+      truncated: end < stored.length,
+      size: stored.length,
+    }
+  }
+
+  /**
    * Mutate one pending Inbox occurrence, restoring an ordinary cold Agent when needed.
    * @param request - Session, queue item, and requested mutation.
    * @returns acknowledgement that the queue mutation was applied.
@@ -515,6 +613,43 @@ export class SessionCommandController {
     }
     return undefined
   }
+}
+
+/** The pinned title a handed-off session opens with. */
+function handoffTitle(snapshot: SessionHandoffSnapshot): string {
+  return `设备接力：${snapshot.requestedCapability}`
+}
+
+/**
+ * Render the chapter-40 snapshot as the handoff brief — the first user
+ * message of the new Session, carrying the sending device's identity durably.
+ * Deterministic: same snapshot, same brief, on every host.
+ */
+function renderHandoffBrief(snapshot: SessionHandoffSnapshot): string {
+  const lines: string[] = [
+    `【设备接力】${snapshot.sender.platform} 设备「${snapshot.sender.deviceId}」的 Lite 会话 ${snapshot.sourceSessionId} 请求在宿主继续执行能力「${snapshot.requestedCapability}」。`,
+    `- 计划模式：${snapshot.planActive ? '开' : '关'}`,
+  ]
+  if (snapshot.modelPreference !== undefined) {
+    lines.push(`- 模型偏好：${snapshot.modelPreference}`)
+  }
+  if (snapshot.todo.length > 0) {
+    lines.push(`- 待办：${snapshot.todo.map(todo => todo.content).join('；')}`)
+  } else {
+    lines.push('- 待办：无')
+  }
+  for (const ref of snapshot.artifactRefs) {
+    lines.push(`- 工件引用：${ref.title}（${ref.kind}，${ref.id}，${ref.status}）`)
+  }
+  lines.push(`- 溯源：${new Date(snapshot.sender.at).toISOString()} · ${snapshot.sender.deviceId} · ${snapshot.sender.platform}`)
+  if (snapshot.recentContext.length > 0) {
+    lines.push('', '最近对话：')
+    for (const row of snapshot.recentContext) {
+      lines.push(`${row.role === 'user' ? '[用户]' : '[助手]'} ${row.text}`)
+    }
+  }
+  lines.push('', '请在本机继续完成上述能力所需的工作。')
+  return lines.join('\n')
 }
 
 /** Replace each file part with the file or image its staged receipt names. */

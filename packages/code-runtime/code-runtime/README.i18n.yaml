@@ -1,0 +1,70 @@
+# Bilingual-pair consistency record for README.md (docs/i18n/README.md): per heading
+# section, a hash of its English and Chinese blocks outside code blocks and generated regions.
+# After editing either side, bring the other along and re-record with:
+#   pnpm run verify-translation-pairing --write packages/code-runtime/code-runtime/README.md
+/:
+  en: 42b09bcb8ca43a1e
+  zh: 7585d4d39959b0d7
+/deepseek-ai-dsh-code-runtime:
+  en: f0a01c8d094b4c77
+  zh: 122b7c912d41d58d
+/deepseek-ai-dsh-code-runtime/summary:
+  en: 025faa850b4b2017
+  zh: e0645d25dc3bfce7
+/deepseek-ai-dsh-code-runtime/table-of-contents:
+  en: d152484eb41ac6b4
+  zh: 09388d293f9be9cb
+/deepseek-ai-dsh-code-runtime/use-this-package:
+  en: a2c059af9b69fba6
+  zh: b70815c68af97bc2
+/deepseek-ai-dsh-code-runtime/use-this-package/run-a-program:
+  en: e177e350c49f2b3d
+  zh: 8a9b945f76ed8a97
+/deepseek-ai-dsh-code-runtime/use-this-package/choose-a-backend:
+  en: 6fa3feb9c248f9bd
+  zh: 24544ef369104fdb
+/deepseek-ai-dsh-code-runtime/use-this-package/name-your-bindings-portably:
+  en: 4e46c1672701b8df
+  zh: 0353c5855c9ff6be
+/deepseek-ai-dsh-code-runtime/use-this-package/what-can-go-wrong:
+  en: 6c33ecff7b546e22
+  zh: 65cc3ca7c99167f3
+/deepseek-ai-dsh-code-runtime/understand-the-implementation:
+  en: 686d570f5e669fa4
+  zh: 2075cf27c30f251a
+/deepseek-ai-dsh-code-runtime/understand-the-implementation/design-concept:
+  en: f3148e6b61788e95
+  zh: 68289eb858d2b4ed
+/deepseek-ai-dsh-code-runtime/understand-the-implementation/service-api:
+  en: 69c4461b9bd4b1bd
+  zh: 3b4015bdde007eec
+/deepseek-ai-dsh-code-runtime/understand-the-implementation/vocabulary:
+  en: 255a5609ec2a6ec0
+  zh: bcd9947c1762ca02
+/deepseek-ai-dsh-code-runtime/understand-the-implementation/portable-identifiers:
+  en: 01c82c6e73180979
+  zh: e29b066f9f82c8b4
+/deepseek-ai-dsh-code-runtime/understand-the-implementation/source-map:
+  en: 0dba64e8448247b0
+  zh: 440901014bc82d45
+/deepseek-ai-dsh-code-runtime/further-exploration:
+  en: 6453c7ea04323c5f
+  zh: c29d89b8d303cb40
+/deepseek-ai-dsh-code-runtime/model-experience:
+  en: 6d177b3df308e75c
+  zh: 9bfd2958fdb5b6ea
+/deepseek-ai-dsh-code-runtime/model-experience/kv-cache-effect:
+  en: 40294c1c31b74824
+  zh: 081cebc2e2650f03
+/deepseek-ai-dsh-code-runtime/known-limitations-and-deferred-work:
+  en: 02e3498f5097b389
+  zh: 0ee418f6dcfc107a
+/deepseek-ai-dsh-code-runtime/known-limitations-and-deferred-work/dev-note:
+  en: d56846da29ad869c
+  zh: 0397151a7e29b8ba
+/deepseek-ai-dsh-code-runtime/known-limitations-and-deferred-work/dev-note/future-persistent-kernel-backend:
+  en: cfefaae6ed9705d5
+  zh: 3cca5b1bd92445b0
+/deepseek-ai-dsh-code-runtime/known-limitations-and-deferred-work/dev-note/future-container-backend:
+  en: 2b94202842f0556c
+  zh: 5aa0311fa621a018

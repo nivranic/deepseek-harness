@@ -6,8 +6,9 @@
  * `.agents/notes/archived/process/2026-07-02-tool-schema-catalog.md`.
  */
 
-import { globSync, readFileSync, writeFileSync } from 'node:fs'
-import { basename, dirname, resolve } from 'node:path'
+import { globSync, mkdtempSync, readFileSync, writeFileSync } from 'node:fs'
+import { tmpdir } from 'node:os'
+import { basename, dirname, join, resolve } from 'node:path'
 import { Context } from '@deepseek-ai/cordis'
 import LlmRuntime from '@deepseek-ai/dsh-llm'
 import type { ToolSchema } from '@deepseek-ai/dsh-llm'
@@ -72,6 +73,8 @@ import BrowserUseRegistry from '@deepseek-ai/dsh-browser-use'
 import * as StagehandBrowserTools from '@deepseek-ai/dsh-experimental-browser-use-stagehand-native'
 import type TeamService from '@deepseek-ai/dsh-experimental-agent-team'
 import * as ToolTeam from '@deepseek-ai/dsh-experimental-tool-agent-team'
+import * as ToolArtifact from '@deepseek-ai/dsh-artifact'
+import LocalArtifactStore from '@deepseek-ai/dsh-artifact-local'
 import * as ToolTodo from '@deepseek-ai/dsh-tool-todo'
 import type PluginManager from '@deepseek-ai/dsh-plugin-manager'
 import * as PluginManagerTools from '@deepseek-ai/dsh-plugin-manager/tools'
@@ -639,6 +642,21 @@ const TOOL_PACKAGES: ToolPackage[] = [
     scope: ctx => catalogChildScopes.get(ctx) as Agent,
     note:
       'All nine tools are scoped to implicit Team Leads and durable teammates. The shipped dsh-base bundle keeps the package disabled; the documented Agent Teams profile patch enables it while disabling the legacy continuable-child control names.',
+  },
+  {
+    pkg: '@deepseek-ai/dsh-artifact',
+    dir: 'artifact',
+    source: 'packages/artifact/artifact/src/index.ts',
+    requires: ['ctx.tools', 'ctx.artifacts', 'owning Agent session (create)'],
+    writes: ['tool/call', 'artifact/created', 'artifact/status', 'tool/result'],
+    async mount(ctx) {
+      // The tool injects the resource channel; boot the local backend over a
+      // throwaway home so the schema boots exactly as shipped.
+      await ctx.plugin(LocalArtifactStore, { dshHome: mkdtempSync(join(tmpdir(), 'dsh-tool-catalog-')) })
+      await ctx.plugin(ToolArtifact)
+    },
+    note:
+      'artifact_create is the chapter-56 producer: the model authors one complete artifact per call — `content` text or base64 `data` bytes, journaled as the artifact format; the journal keeps the reference and its status, the resource channel keeps the bytes. artifact_read is the symmetric read face over the same channel, paging text by UTF-16 code unit and bytes by byte.',
   },
   {
     pkg: '@deepseek-ai/dsh-tool-todo',

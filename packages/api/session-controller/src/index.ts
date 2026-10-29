@@ -35,7 +35,9 @@ import type {
   ModelCatalog,
   SessionWorkspacePathApplication,
   SessionAddress,
+  SessionArtifactRequest,
   SessionAttachmentRequest,
+  SessionArtifactValue,
   SessionAttachmentValue,
   SessionCancelRequest,
   SessionCancelValue,
@@ -64,6 +66,8 @@ import type {
   SessionProjectionsValue,
   SessionUpdateQueueRequest,
   SessionUpdateQueueValue,
+  SessionHandoffRequest,
+  SessionHandoffValue,
 } from './types.ts'
 
 export type * from './types.ts'
@@ -136,6 +140,7 @@ export class SessionController extends TypertRemoteService {
   static inject = [
     'agentDefaultModel',
     'agents',
+    'artifacts',
     'attachments',
     'fileUploads',
     'fs',
@@ -489,6 +494,17 @@ export class SessionController extends TypertRemoteService {
   }
 
   /**
+   * Accept one Lite handoff: create the new full Session and queue the
+   * rendered snapshot brief as its first user message.
+   * @param request - the snapshot the sending device packaged.
+   * @returns the new Session's identity.
+   */
+  @Remote('handoff')
+  handoff(request: SessionHandoffRequest): Promise<SessionHandoffValue> {
+    return this.commands.handoff(request)
+  }
+
+  /**
    * Read one image from the attachment store after gateway authorization.
    * @param request - image reference and gateway permission scope; Session existence is not checked.
    * @returns the durable attachment reference and base64-encoded bytes.
@@ -496,6 +512,16 @@ export class SessionController extends TypertRemoteService {
   @Remote('attachment')
   attachment(request: SessionAttachmentRequest): Promise<SessionAttachmentValue> {
     return this.commands.attachment(request)
+  }
+
+  /**
+   * Read one artifact proven referenced by the addressed Session log.
+   * @param request - Session and artifact identities used for authorization.
+   * @returns the journaled reference metadata and base64-encoded bytes.
+   */
+  @Remote('artifact')
+  artifact(request: SessionArtifactRequest): Promise<SessionArtifactValue> {
+    return this.commands.artifact(request)
   }
 
   /**

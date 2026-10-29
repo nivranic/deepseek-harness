@@ -43,6 +43,7 @@
 | `@deepseek-ai/dsh-tool-ralph` | `ralph` | `ctx.tools`、`ctx.workflowEngine`、`ctx.subagents`、`ctx.systemPrompt`、`a calling Agent (exec.agent parents every fresh round)` | `tool/call`、`tool/result`、`workflow and child session events during execution` | - | 固定的前台工作流会在每个 Round 启动一个全新的结构化子级；模型只能选择不可变目标和可选的 Round 上限。 |
 | `@deepseek-ai/dsh-tool-skill` | `skill` | `ctx.workingDirectory`、`ctx.tools`、`ctx.agents`、`ctx.skills` | `tool/call`、`tool/result`、`user/message replacement catalogs via agent.inject()` | - | - |
 | `@deepseek-ai/dsh-tool-session-query` | `session_event_read`、`session_event_search`、`session_event_trace`、`session_search`、`session_trace` | `ctx.tools`、`ctx.systemPrompt`、`ctx.sessionQuery`、`a calling Agent for workspace authority` | `tool/call`、`tool/result` | - | 这 5 个只读工具会隐藏提供方游标，并根据不可变的调用 agent 会话为每个结果授权。该包需要选择启用；需要强制截止时间或限制行内输出的组合还会挂载通用超时或 spill 策略。 |
+| `@deepseek-ai/dsh-artifact` | `artifact_create`、`artifact_read` | `ctx.tools`、`ctx.artifacts`、`owning Agent session`（create） | `tool/call`、`artifact/created`、`artifact/status`、`tool/result` | - | artifact_create 是第 56 章的生产方：模型每次调用创作一件完整工件——`content` 文本或 base64 `data` 字节，并以工件格式记入日志；日志只保留引用与状态，资源通道保留字节。artifact_read 是同一通道上的对称读取面，文本按 UTF-16 码元分页、字节按字节分页。 |
 | `@deepseek-ai/dsh-experimental-tool-subagent-oar` | `subagent_oar` | `ctx.tools`, `ctx.subagents` | `tool/call`, `tool/result`, `parent subagent catalog and completion notices` | - | subagent_oar 工具在为外部提供方配置的别名之间选择。本目录展示 Codex 和 Claude Code 别名；每个部署自行选择提供方。原生模型和权限设置由所选提供方的配置决定。 |
 | `@deepseek-ai/dsh-tool-subagent` | `list_subagent_models`、`subagent` | `ctx.tools`、`ctx.subagents`、`ctx.systemPrompt`、`ctx.sessionProjections`、`用于模型发现和所选路由校验的 ctx.llm` | `tool/call`、`tool/result`、`child session events through the chosen provider` | `subagent`、`subagent_fork` | 加载时的 `toolName` 选择委派名称（默认为 `subagent`）；`modelSelection` 增加可选路由字段。`modelDiscovery` 默认关闭，每个作用域由一个实例注册共享发现工具。Web 与 Desktop preset 启用 spawn 发现和路由字段，并为 `subagent_fork` 保持路由字段关闭。Host 设置服务为每个新顶层 Session 记录授权；子 Session 继承该授权。没有已记录策略时，发现和显式选择只允许当前父级路由。每次委派都会立即返回子代理 id；本地子代理接受后续消息，外部后端自动汇报单次执行结果。 |
 | `@deepseek-ai/dsh-tool-subagent-control` | `interrupt_agent`、`list_agents`、`send_message` | `ctx.tools`、`ctx.subagents`、`ctx.agents` | `tool/call`、`tool/result`、`child session events through ctx.subagents` | - | 这些是用于发现、中断托管 subagent 和向本地子代理发送消息的全局命名工具：绑定提供方的 `tool-subagent` 实例注册不同的委派工具；本包的一个实例注册 `send_message`、`interrupt_agent` 和 `list_agents`。 |
@@ -2653,6 +2654,76 @@ subagent_oar 工具在为外部提供方配置的别名之间选择。本目录�
 来源：[`packages/experimental/tool-agent-team/src/index.ts`](../packages/experimental/tool-agent-team/src/index.ts)
 
 这 10 个工具限定于隐式 Team Lead 与持久 teammate 作用域。随产品发布的 dsh-base bundle 默认禁用该包；文档中的 Agent Teams profile patch 会启用它，并禁用旧 continuable child 的同名控制工具。
+
+
+<a id="deepseek-aidsh-artifact"></a>
+
+## `@deepseek-ai/dsh-artifact`
+
+### `artifact_create`
+
+创建一件持久工件——用户保留的一等输出文件（报告、设计文档、补丁、生成的数据集、图像等二进制文件）。给它一个简短的 `kind` 标签（如 markdown、report、patch、json、png）、面向人类的 `title`，并在本次调用中给出**完整**内容——`content` 文本，或 base64 编码进 `data` 的原始字节；两者恰给其一。工件被持久存储，并作为可按 id 引用的引用记入日志；不要用它存放属于你回复的草稿文本，也不要把一件工件拆成多次调用。
+
+```json
+{
+  "type": "object",
+  "properties": {
+    "kind": {
+      "type": "string",
+      "description": "Short kind tag, e.g. markdown, report, patch, json, png."
+    },
+    "title": {
+      "type": "string",
+      "description": "Human-facing artifact title."
+    },
+    "content": {
+      "type": "string",
+      "description": "The COMPLETE artifact content as text. Exactly one of content or data."
+    },
+    "data": {
+      "type": "string",
+      "description": "The COMPLETE artifact bytes, base64-encoded. Exactly one of content or data."
+    }
+  },
+  "required": [
+    "kind",
+    "title"
+  ]
+}
+```
+
+Source: [`packages/artifact/artifact/src/index.ts`](../packages/artifact/artifact/src/index.ts)
+
+artifact_create 是第 56 章的生产方：模型每次调用创作一件完整工件——`content` 文本或 base64 `data` 字节，并以工件格式记入日志；日志只保留引用与状态，资源通道保留字节。artifact_read 是同一通道上的对称读取面，文本按 UTF-16 码元分页、字节按字节分页。
+
+### `artifact_read`
+
+按引用 id 读回一件工件。返回与创建时一致的内容，若调用会话记录过该工件则附上类别与标题。文本工件返回其 `content`（默认整件，或以 offset 与 limit 读一个 UTF-16 区间）；字节工件返回 base64 `data`（默认整件，或读一个字节区间）。读取不修改工件。
+
+```json
+{
+  "type": "object",
+  "properties": {
+    "id": {
+      "type": "string",
+      "description": "The artifact reference id an artifact_create result reported."
+    },
+    "offset": {
+      "type": "integer",
+      "description": "Range start — UTF-16 code units for text artifacts, bytes for bytes artifacts; defaults to 0."
+    },
+    "limit": {
+      "type": "integer",
+      "description": "Maximum returned units of the artifact format; omitted reads through the end."
+    }
+  },
+  "required": [
+    "id"
+  ]
+}
+```
+
+Source: [`packages/artifact/artifact/src/index.ts`](../packages/artifact/artifact/src/index.ts)
 
 
 <a id="deepseek-aidsh-tool-todo"></a>

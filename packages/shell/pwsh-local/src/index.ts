@@ -115,6 +115,13 @@ export function assertServiceablePwshConfig(config: Config): void {
   }
 }
 
+/** An exact argv plus environment additions its confining runner's own invocation requires. */
+export interface PreparedArgv {
+  argv: readonly string[]
+  /** Environment additions merged over the spec's environment (the wrapped argv's spawn facts). */
+  runnerEnv?: Readonly<Record<string, string>>
+}
+
 /**
  * Local PowerShell executor over `ctx.subprocess`. Bounded output, spill
  * files, and managed-range termination are the subprocess service's mechanics;
@@ -200,6 +207,7 @@ export class PwshLocalExecutor extends ShellExecutor {
     stdoutMaxBytes: number,
     signal: AbortSignal | undefined,
     argv: readonly string[],
+    runnerEnv?: Readonly<Record<string, string>>,
   ): SubprocessSpawnSpec {
     const collect = (maxBytes: number): SubprocessCollect =>
       ({ maxBytes, spill: { maxBytes: this.config.maxSpillBytes.get() } })
@@ -213,7 +221,9 @@ export class PwshLocalExecutor extends ShellExecutor {
       },
       graceMs: this.config.graceMs.get(),
       signal,
-      env: { ...ENV_OVERRIDES, ...spec.env, ...spec.dshEnv },
+      // The confining runner's own invocation preconditions merge LAST: they
+      // are spawn facts for argv, not environment content the command owns.
+      env: { ...ENV_OVERRIDES, ...spec.env, ...spec.dshEnv, ...runnerEnv },
     }
   }
 
@@ -237,14 +247,16 @@ export class PwshLocalExecutor extends ShellExecutor {
    * deadline, and cancellation semantics of this executor. Subclasses use this
    * after replacing the public command's shell argv at an execution boundary.
    * @param spec - resolved execution settings and caller-owned command metadata.
-   * @param argvOrPrepare - exact argv, or preparation using the execution cancellation signal.
+   * @param argvOrPrepare - exact argv, or preparation using the execution
+   *   cancellation signal; a preparation may return a {@link PreparedArgv}
+   *   whose environment additions ride on the spawn.
    * @param onStarted - installs provider facts synchronously before the handle can settle.
    * @returns the live execution handle; spawn rejection settles the handle as
    *   killed while `result()` carries the same failure as its rejection.
    */
   protected async executeArgv(
     spec: ShellExecSpec,
-    argvOrPrepare: readonly string[] | ((signal: AbortSignal) => Promise<readonly string[]>),
+    argvOrPrepare: readonly string[] | ((signal: AbortSignal) => Promise<readonly string[] | PreparedArgv>),
     onStarted?: (process: ShellExecution) => void,
   ): Promise<ShellExecution> {
     // Deadline wiring by expiry policy. Each arm supplies the spawn signal,
@@ -271,6 +283,7 @@ export class PwshLocalExecutor extends ShellExecutor {
     }
 
     let argv: readonly string[] = []
+    let runnerEnv: Readonly<Record<string, string>> | undefined
     let preparationTimedOut = false
     if (typeof argvOrPrepare === 'function') {
       const signal = spawnSignal ?? new AbortController().signal
@@ -278,11 +291,13 @@ export class PwshLocalExecutor extends ShellExecutor {
       const abort = (): void => { cancelled.reject(signal.reason) }
       signal.addEventListener('abort', abort, { once: true })
       try {
-        argv = await Promise.race([
+        const prepared = await Promise.race([
           Promise.resolve().then(() => { signal.throwIfAborted(); return argvOrPrepare(signal) }),
           cancelled.promise,
         ])
         signal.throwIfAborted()
+        argv = 'argv' in prepared ? prepared.argv : prepared
+        runnerEnv = 'argv' in prepared ? prepared.runnerEnv : undefined
       } catch (error) {
         if (!classify().timedOut) {
           disarm()
@@ -300,7 +315,7 @@ export class PwshLocalExecutor extends ShellExecutor {
     let syncSpawnError: { error: unknown } | undefined
     try {
       if (!preparationTimedOut) {
-        running = this.ctx.subprocess.spawn(this.spawnSpec(spec, spec.stdoutMaxBytes, spawnSignal, argv))
+        running = this.ctx.subprocess.spawn(this.spawnSpec(spec, spec.stdoutMaxBytes, spawnSignal, argv, runnerEnv))
       }
     } catch (error) {
       syncSpawnError = { error }

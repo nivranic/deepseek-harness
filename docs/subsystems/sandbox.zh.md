@@ -124,7 +124,7 @@ interface RunnerFailureRule {
 }
 ```
 
-`ConfinedArgv` 是消费方实际 spawn 的内容。除了替换后的 argv，它还携带后端的强制执行事实和两种正交的 stderr 分类器。`denialSignatures` 用于识别沙箱正常工作时受限命令被阻止的情况。`runnerFailureRules` 用于识别沙箱 runner 在执行命令之前拒绝或失败的情况；消费方应先检查后者，将其作为沙箱基础设施故障上报，而非普通任务失败。
+`ConfinedArgv` 是消费方实际 spawn 的内容。除了替换后的 argv，它还携带 runner 自身调用所需的环境附加项、后端的强制执行事实和两种正交的 stderr 分类器。`denialSignatures` 用于识别沙箱正常工作时受限命令被阻止的情况。`runnerFailureRules` 用于识别沙箱 runner 在执行命令之前拒绝或失败的情况；消费方应先检查后者，将其作为沙箱基础设施故障上报，而非普通任务失败。
 
 ```ts type-equiv
 /**
@@ -135,6 +135,17 @@ interface RunnerFailureRule {
 interface ConfinedArgv {
   /** The wrapped argv (runner, profile, separator, then the caller's argv). */
   argv: string[]
+  /**
+   * Environment additions the runner's own invocation requires before the
+   * wrapped argv can execute (absent for runners that are plain
+   * executables). A consumer spawning {@link argv} must merge these into
+   * the child environment: the Windows ACL runner reuses the host process's
+   * binary as its Node runtime, which under the Electron desktop exe only
+   * runs scripts in `ELECTRON_RUN_AS_NODE` mode. The runner deletes the
+   * entry again before starting the confined command, so it never reaches
+   * the wrapped process.
+   */
+  env?: Readonly<Record<string, string>>
   /** How completely the selected backend enforces the policy's file effects. */
   enforcement: SandboxEnforcement
   /**
@@ -188,8 +199,9 @@ Abstract process-sandbox service. confine must return enforcing argv or fail clo
  * @param policy - the file-effect policy this execution runs under,
  *   carried per call (see {@link SandboxPolicy}).
  * @param signal - cancellation while the provider resolves the policy and runner.
- * @returns the argv to spawn instead, plus the enforcement completeness
- *   the selected backend achieves for it.
+ * @returns the argv to spawn instead, any environment additions the
+ *   runner's invocation requires, and the enforcement completeness the
+ *   selected backend achieves for it.
  */
 abstract confine(argv: readonly string[], policy: SandboxPolicy, signal?: AbortSignal): Promise<ConfinedArgv>
 ```

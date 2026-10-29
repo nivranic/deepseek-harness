@@ -110,6 +110,14 @@ export interface ISession {
     attachment: ImageAttachmentRef,
   ): Promise<RemoteResult<{ attachment: ImageAttachmentRef; data: Uint8Array }>>
   /**
+   * Resolve one artifact referenced by this session into its journaled metadata and bytes.
+   * @param artifactId - reference id found in an artifact/created row of the folded log.
+   * @returns the metadata (including the journaled `format`) and decoded bytes.
+   */
+  readArtifact(
+    artifactId: string,
+  ): Promise<RemoteResult<{ id: string; kind: string; title: string; format: 'text' | 'bytes'; data: Uint8Array }>>
+  /**
    * Apply one edit, remove, or Steer action to a still-pending queue occurrence.
    * @param itemId - agent-owned inbox occurrence identity.
    * @param action - requested queue operation.

@@ -1,0 +1,19 @@
+# Bilingual-pair consistency record for 2026-08-30-workspace-files-endpoints.md (docs/i18n/README.md): per heading
+# section, a hash of its English and Chinese blocks outside code blocks and generated regions.
+# After editing either side, bring the other along and re-record with:
+#   pnpm run verify-translation-pairing --write .agents/notes/implemented/architecture/2026-08-30-workspace-files-endpoints.md
+/agent-note-read-only-workspacefiles-remote-endpoints:
+  en: b540d2ecbf264330
+  zh: a3b0de5b3d55331d
+/agent-note-read-only-workspacefiles-remote-endpoints/problem:
+  en: 5e626d2bb50be688
+  zh: e517a46c5f2a2ccb
+/agent-note-read-only-workspacefiles-remote-endpoints/decision:
+  en: e35587655b00f0cc
+  zh: 62100e10448ae747
+/agent-note-read-only-workspacefiles-remote-endpoints/consequences:
+  en: 2c118e10d4513f8e
+  zh: 1a2ce0877d2053ce
+/agent-note-read-only-workspacefiles-remote-endpoints/alternatives-considered:
+  en: caab63168a9b6ed8
+  zh: f6257d2e3010c255

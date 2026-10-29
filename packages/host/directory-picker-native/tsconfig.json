@@ -16,6 +16,9 @@
     },
     {
       "path": "../../util/native-command"
+    },
+    {
+      "path": "../../util/node-spawn"
     }
   ]
 }

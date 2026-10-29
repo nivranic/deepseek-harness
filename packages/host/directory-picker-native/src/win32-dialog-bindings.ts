@@ -16,7 +16,9 @@ import type { Win32DialogBindings, Win32FolderDialog } from './win32-dialog-logi
 
 interface KoffiFunction { (...args: unknown[]): unknown }
 interface KoffiLibrary { func(convention: string, name: string, result: string, args: string[]): KoffiFunction }
-interface Koffi {
+
+/** The koffi surface the bindings and their real-COM tests consume. */
+export interface Koffi {
   load(path: string): KoffiLibrary
   proto(declaration: string): unknown
   pointer(type: unknown): unknown
@@ -28,19 +30,27 @@ interface Koffi {
 }
 
 /**
- * Read a valid NUL-terminated UTF-16 allocation without an external buffer.
- * Generic `koffi.decode(..., 'str16')` expects a pointer variable, so the
- * buffer holds the string address rather than the string bytes.
- * @param koffi - the loaded koffi binding.
- * @param address - the string address surfaced by the `_Out_ void **` param.
- * @param pointerSize - the process's pointer width (`koffi.sizeof('void *')`).
- * @returns the decoded UTF-16 path.
+ * Read the NUL-terminated UTF-16 string at a native address into a
+ * self-owned buffer. The copy runs through `lstrlenW` for the exact byte
+ * length and `RtlMoveMemory` for the transfer: `koffi.view` materializes an
+ * external ArrayBuffer over native memory, which the N-API layer fatally
+ * rejects under the packaged app's Electron-as-Node runtime, and
+ * `decode(address, 'str16')` segfaults on a raw address under every tested
+ * runtime.
+ * @param lstrlenW - `kernel32!lstrlenW` bound through koffi.
+ * @param moveMemory - `kernel32!RtlMoveMemory` bound through koffi.
+ * @param address - the native string address (koffi out-param value).
+ * @returns the decoded string.
  */
-function readUtf16(koffi: Koffi, address: unknown, pointerSize: number): string {
-  const pointer = Buffer.alloc(8)
-  // koffi 3 surfaces `_Out_ void **` values as BigInt native addresses.
-  pointer.writeBigUInt64LE(BigInt(address as bigint | number))
-  return koffi.decode(pointer.subarray(0, pointerSize), 'str16') as string
+export function readNativeUtf16(
+  lstrlenW: (address: unknown) => unknown,
+  moveMemory: (dst: unknown, src: unknown, bytes: number) => unknown,
+  address: unknown,
+): string {
+  const length = lstrlenW(address) as number
+  const bytes = Buffer.alloc((length + 1) * 2)
+  moveMemory(bytes, address, bytes.length)
+  return bytes.toString('utf16le', 0, length * 2)
 }
 
 const COINIT_APARTMENTTHREADED = 0x2
@@ -105,6 +115,8 @@ export async function loadWin32DialogBindings(): Promise<Win32DialogBindings> {
   const coCreateInstance = ole32.func('__stdcall', 'CoCreateInstance', 'int32', ['void *', 'void *', 'uint32', 'void *', 'void *'])
   const coTaskMemFree = ole32.func('__stdcall', 'CoTaskMemFree', 'void', ['void *'])
   const getCurrentThreadId = kernel32.func('__stdcall', 'GetCurrentThreadId', 'uint32', [])
+  const lstrlenW = kernel32.func('__stdcall', 'lstrlenW', 'int32', ['void *'])
+  const moveMemory = kernel32.func('__stdcall', 'RtlMoveMemory', 'void', ['void *', 'void *', 'size_t'])
   const keybdEvent = user32.func('__stdcall', 'keybd_event', 'void', ['uint8', 'uint8', 'uint32', 'uintptr'])
 
   const protoShow = koffi.proto('int32 __stdcall DshDialogShow(void *self, void *owner)')
@@ -167,7 +179,7 @@ export async function loadWin32DialogBindings(): Promise<Win32DialogBindings> {
             const nameOut: unknown[] = [null]
             const gotName = method(item, SLOT_GET_DISPLAY_NAME, protoGetDisplayName)(SIGDN_FILESYSPATH, nameOut)
             if (gotName < 0) return { hr: gotName }
-            const path = readUtf16(koffi, nameOut[0], pointerSize)
+            const path = readNativeUtf16(lstrlenW, moveMemory, nameOut[0])
             coTaskMemFree(nameOut[0])
             return { hr: gotName, path }
           } finally {

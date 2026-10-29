@@ -1,0 +1,19 @@
+# Bilingual-pair consistency record for 2026-08-30-macos-swift-lane.md (docs/i18n/README.md): per heading
+# section, a hash of its English and Chinese blocks outside code blocks and generated regions.
+# After editing either side, bring the other along and re-record with:
+#   pnpm run verify-translation-pairing --write .agents/notes/implemented/architecture/2026-08-30-macos-swift-lane.md
+/agent-note-the-macos-swift-lane:
+  en: 6987a7172a755d25
+  zh: eed1375404933e99
+/agent-note-the-macos-swift-lane/problem:
+  en: a44a6bd8ee23f77d
+  zh: e94232fec0bdb4ca
+/agent-note-the-macos-swift-lane/decision:
+  en: b01c5f6dc514c44b
+  zh: 8e568d825889473c
+/agent-note-the-macos-swift-lane/consequences:
+  en: 3342f909d2967fa5
+  zh: 9a7896ae22ab736c
+/agent-note-the-macos-swift-lane/alternatives-considered:
+  en: c81922dc1b640a46
+  zh: 9e9b6c377b31ff56

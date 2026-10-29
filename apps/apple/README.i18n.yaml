@@ -1,0 +1,37 @@
+# Bilingual-pair consistency record for README.md (docs/i18n/README.md): per heading
+# section, a hash of its English and Chinese blocks outside code blocks and generated regions.
+# After editing either side, bring the other along and re-record with:
+#   pnpm run verify-translation-pairing --write apps/apple/README.md
+/:
+  en: 5416aa63ccc15e70
+  zh: 122dc938399a13d1
+/apps-apple-apple-remote-companion:
+  en: c705a9d1c55205a4
+  zh: 964bf45bcb612766
+/apps-apple-apple-remote-companion/summary:
+  en: e375c94f66b61b3a
+  zh: 0ddc4fabe386c3f5
+/apps-apple-apple-remote-companion/table-of-contents:
+  en: 80b31a934611cb4a
+  zh: e746e683af2e5452
+/apps-apple-apple-remote-companion/use-this-package:
+  en: 67d444c071dd8326
+  zh: 4544c4f2e86f701c
+/apps-apple-apple-remote-companion/use-this-package/observable-behavior:
+  en: 3a3f72d41613e177
+  zh: ad3378ef6e791eda
+/apps-apple-apple-remote-companion/understand-the-implementation:
+  en: 4ffd567f8c942d85
+  zh: e0a0101cd5981baa
+/apps-apple-apple-remote-companion/understand-the-implementation/source-map:
+  en: 8e74c67d0244ac7d
+  zh: 922633a487c14098
+/apps-apple-apple-remote-companion/further-exploration:
+  en: eff17fee43c37d07
+  zh: b7d96df8b71a02b5
+/apps-apple-apple-remote-companion/known-limitations-and-deferred-work:
+  en: d31d10e9fce5b2a1
+  zh: e733369bcaa2cac6
+/apps-apple-apple-remote-companion/known-limitations-and-deferred-work/dev-note:
+  en: e67f633dc6fe7773
+  zh: 3bb0c20c93f16f98

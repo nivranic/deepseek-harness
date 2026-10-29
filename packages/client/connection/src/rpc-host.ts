@@ -1,4 +1,7 @@
-/** Host registry and HTTP adapter for generic Connection RPC channels. */
+/** Host registry and HTTP adapter for generic Connection RPC channels. The
+ * registry is transport-neutral; each channel's physical route binds only
+ * while a webServer exists (a webless surface carries channels on its own
+ * bridge). */
 
 import { Context, Service } from '@deepseek-ai/cordis'
 import type { WebRoute } from '@deepseek-ai/dsh-host-webserver'
@@ -79,7 +82,8 @@ export class HostConnectionService extends Service implements HostConnectionHand
   readonly allowsRemoteAuthorities: boolean
 
   /**
-   * Provide the Host half over the active HTTP server.
+   * Provide the Host half; the HTTP route each channel registers binds only
+   * while a webServer exists.
    * @param ctx - owning Connection plugin context.
    * @param trustedHosts - deployment authorities accepted by the Host/Origin fence.
    * @param browserAuth - process token and persistent browser-session owner.
@@ -270,10 +274,21 @@ export class HostConnectionService extends Service implements HostConnectionHand
         await bridge(req, res, fetchHandler, admission.peer)
       },
     }
-    return owner.effect(
-      () => owner.webServer.register(route),
-      `client-connection: ${channel} rpc channel`,
-    )
+    // Carrier binding: a webServer present NOW gets the route synchronously
+    // (the registration contract callers observe); one appearing later (a
+    // webserver fiber restart) rebinds through the inject watcher. A webless
+    // surface leaves the channel registry-only: the inject never fires.
+    let disposeRoute: (() => Promise<void>) | undefined
+    const bind = (): void => {
+      if (disposeRoute !== undefined || owner.get('webServer') === undefined) return
+      disposeRoute = owner.effect(() => owner.webServer.register(route), `client-connection: ${channel} rpc channel`)
+    }
+    bind()
+    const watcher = owner.inject(['webServer'], bind)
+    return async () => {
+      await watcher.dispose()
+      await disposeRoute?.()
+    }
   }
 
   private registerInterceptor(

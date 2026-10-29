@@ -1,12 +1,17 @@
 /**
- * @deepseek-ai/dsh-host-webserver — node:http route registration — node:https
- * when `tls` names a certificate and key — with optional gzip, index injection
- * for the Peer a page speaks for, and one fallback seat. It serves no files;
- * the composing application owns dist serving. Electron uses file:// plus IPC
- * instead, and this package never prints the URL.
- * Route handlers retain direct response ownership; a route or the fallback may
- * instead give a resource, which maps a Fetch `Request` to a `Response` and
- * also answers in-process reads.
+ * @deepseek-ai/dsh-host-webserver — Web route-registration plugin: a node:http
+ * server — node:https when `tls` names a certificate and key — plus the
+ * `webServer` service (HTTP and upgrade route registries with optional gzip,
+ * the structured index injection table with raw transform taps behind it, and
+ * the single fallback seat for everything no route claims). It knows no
+ * harness concepts and serves no files; the composing application's frontend
+ * plugin owns dist serving through the fallback hook. Route handlers retain
+ * direct response ownership; a route or the fallback may instead give a
+ * resource, which maps a Fetch `Request` to a `Response` and also answers
+ * in-process reads. Web shape only — the desktop surface binds no socket; the
+ * Electron renderer loads the built frontend and carries fetch through the
+ * in-process privileged-scheme bridge (dsh-host-electron-ipc). This package
+ * never prints: the URL line belongs to the shell.
  */
 
 import { readFile } from 'node:fs/promises'

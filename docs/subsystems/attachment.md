@@ -183,6 +183,36 @@ interface RequestImageAttachment {
 
 Generated from source by `scripts/gen-cordis-catalog.ts` (verified fresh by `pnpm run verify-cordis-catalog` in doc-sync; regenerate with `pnpm run gen-cordis-catalog`) — the language sides differ only in locale-specific paired document paths. Signature blocks use a `ts cordis-catalog` fence and keep the original source JSDoc; dispatch modes are defined in the [primer](../cordis-primer.md#dispatch-modes), and the framework-inherited `ctx` API lives in [cordis-api/inherited.md](../cordis-api/inherited.md).
 
+<a id="ctxartifacts--artifactstore-abstract-seam"></a>
+
+### `ctx.artifacts` — `ArtifactStore` (abstract seam)
+
+Durable artifact content channel — chapter 56's resource channel. Journal events carry references only; the complete bytes of one artifact live here, keyed by the reference identity `artifact/created` minted.
+
+```ts cordis-catalog
+/**
+ * Durably write one artifact's complete content bytes under its id.
+ * @param id - the artifact reference identity from `artifact/created`.
+ * @param data - the complete content bytes.
+ */
+abstract put(id: ArtifactId, data: Uint8Array): Promise<void>
+
+/**
+ * Read one artifact's content bytes back.
+ * @param id - the artifact reference identity.
+ * @returns the stored bytes, or null when nothing is stored under the id.
+ */
+abstract get(id: ArtifactId): Promise<Uint8Array | null>
+
+/**
+ * Remove one artifact's content bytes.
+ * @param id - the artifact reference identity to delete.
+ */
+abstract remove(id: ArtifactId): Promise<void>
+```
+
+Source: [`packages/artifact/artifact/src/index.ts`](../../packages/artifact/artifact/src/index.ts)
+
 <a id="ctxattachments--attachmentstore-abstract-seam"></a>
 
 ### `ctx.attachments` — `AttachmentStore` (abstract seam)

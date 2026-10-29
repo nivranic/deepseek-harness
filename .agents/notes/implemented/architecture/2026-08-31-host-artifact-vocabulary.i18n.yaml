@@ -1,0 +1,19 @@
+# Bilingual-pair consistency record for 2026-08-31-host-artifact-vocabulary.md (docs/i18n/README.md): per heading
+# section, a hash of its English and Chinese blocks outside code blocks and generated regions.
+# After editing either side, bring the other along and re-record with:
+#   pnpm run verify-translation-pairing --write .agents/notes/implemented/architecture/2026-08-31-host-artifact-vocabulary.md
+/agent-note-the-host-artifact-vocabulary:
+  en: dedb8f524e0f55fb
+  zh: ac11c43335b35d53
+/agent-note-the-host-artifact-vocabulary/problem:
+  en: a2571a96cc7918bd
+  zh: 09ee8d1e87c36eee
+/agent-note-the-host-artifact-vocabulary/decision:
+  en: eed20af39fce75ff
+  zh: 5622cae171106ccb
+/agent-note-the-host-artifact-vocabulary/consequences:
+  en: e27b972c3b0f6a54
+  zh: a2bffe44bd4294a6
+/agent-note-the-host-artifact-vocabulary/alternatives-considered:
+  en: a4e64adfe7922425
+  zh: b64895f2eb93e49c

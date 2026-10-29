@@ -1,0 +1,19 @@
+# Bilingual-pair consistency record for 2026-08-31-android-apple-push-chain.md (docs/i18n/README.md): per heading
+# section, a hash of its English and Chinese blocks outside code blocks and generated regions.
+# After editing either side, bring the other along and re-record with:
+#   pnpm run verify-translation-pairing --write .agents/notes/implemented/architecture/2026-08-31-android-apple-push-chain.md
+/agent-note-the-minimal-push-chain-on-android-and-apple:
+  en: 09910ccaddabdd19
+  zh: b1c5cf2bf5c3a23a
+/agent-note-the-minimal-push-chain-on-android-and-apple/problem:
+  en: 9875b02189e1c5b8
+  zh: b03c2b65310ca7b5
+/agent-note-the-minimal-push-chain-on-android-and-apple/decision:
+  en: 6aede7c846440620
+  zh: 99f0d675a91de490
+/agent-note-the-minimal-push-chain-on-android-and-apple/consequences:
+  en: ddcc0c5e5279a01f
+  zh: 19fc1a86346a8240
+/agent-note-the-minimal-push-chain-on-android-and-apple/alternatives-considered:
+  en: 64138b594ba5d115
+  zh: adcf8ec0257cd3bb

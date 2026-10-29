@@ -128,6 +128,9 @@ const NON_SOURCE_DIRECTORIES = new Set([
 /** Glob traversal exclusions corresponding to the non-source path predicate. */
 export const TRANSLATION_SCOPE_GLOB_EXCLUDES = [
   '.agents/notes/archived/**',
+  // A foreign workspace directory that lives in this checkout while a parallel
+  // session works on it; it is not part of this repository's documentation corpus.
+  'desktop-manager/**',
   '**/node_modules/**',
   '**/lib/**',
   '**/.pnpm-store/**',

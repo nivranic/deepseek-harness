@@ -1,0 +1,19 @@
+# Bilingual-pair consistency record for 2026-08-30-companion-subagent-surface.md (docs/i18n/README.md): per heading
+# section, a hash of its English and Chinese blocks outside code blocks and generated regions.
+# After editing either side, bring the other along and re-record with:
+#   pnpm run verify-translation-pairing --write .agents/notes/implemented/architecture/2026-08-30-companion-subagent-surface.md
+/agent-note-companionui-subagent-surface:
+  en: 77721c2600c2d669
+  zh: 73397c6ad07fb64a
+/agent-note-companionui-subagent-surface/problem:
+  en: 4175f89d2e3bdf1e
+  zh: cf27571e742311b8
+/agent-note-companionui-subagent-surface/decision:
+  en: 45fb730f5b423a3b
+  zh: e2ac8883105b3ba6
+/agent-note-companionui-subagent-surface/consequences:
+  en: 3ea346e363c3704b
+  zh: 871afdd22c07b6a6
+/agent-note-companionui-subagent-surface/alternatives-considered:
+  en: 185acd2924d9b13c
+  zh: 05762dc7e992d623

@@ -1,0 +1,19 @@
+# Bilingual-pair consistency record for 2026-08-30-session-event-link-contracts.md (docs/i18n/README.md): per heading
+# section, a hash of its English and Chinese blocks outside code blocks and generated regions.
+# After editing either side, bring the other along and re-record with:
+#   pnpm run verify-translation-pairing --write .agents/notes/implemented/architecture/2026-08-30-session-event-link-contracts.md
+/agent-note-session-event-vocabulary-in-dsh-link-contracts:
+  en: 7f52b38c6f521219
+  zh: 091036d468b597f8
+/agent-note-session-event-vocabulary-in-dsh-link-contracts/problem:
+  en: e85126404443e565
+  zh: 9ad6fdc2ec4c6e36
+/agent-note-session-event-vocabulary-in-dsh-link-contracts/decision:
+  en: c80c1805eb02a0fa
+  zh: d480d4ecec2386c9
+/agent-note-session-event-vocabulary-in-dsh-link-contracts/consequences:
+  en: 013e9c38830ce58b
+  zh: 01981894976e9469
+/agent-note-session-event-vocabulary-in-dsh-link-contracts/alternatives-considered:
+  en: b54a601d28d2107b
+  zh: 201e3996e06fa80e

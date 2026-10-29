@@ -9,12 +9,15 @@
 
 import { spawn, type StdioOptions } from 'node:child_process'
 import { fileURLToPath } from 'node:url'
+import { nodeSpawnCommand } from '@deepseek-ai/dsh-node-spawn'
 import type { Win32DialogWorkerData } from './win32-dialog-worker.ts'
 
 /**
  * Spawn the dialog child process. Built consumers launch the bundled CJS
  * entry next to this module under plain node; unbuilt (source) consumers
- * bootstrap tsx first, mirroring the dsh CLI's source launch. The child
+ * bootstrap tsx first, mirroring the dsh CLI's source launch. Under the
+ * packaged desktop app the executable is the Electron binary, which runs
+ * the worker as Node only through the spawn facts' env entry. The child
  * opens its dialog as foreground on its own: `runFolderDialog` synthesizes
  * an Alt press before `Show`, which matters when a background host spawned
  * the child.
@@ -22,13 +25,14 @@ import type { Win32DialogWorkerData } from './win32-dialog-worker.ts'
  * @returns the spawned child process.
  */
 export function spawnDialogWorker(data: Win32DialogWorkerData): ReturnType<typeof spawn> {
-  const env = { ...process.env, DSH_DIALOG_TITLE: data.title }
+  const node = nodeSpawnCommand()
+  const env = { ...process.env, ...node.env, DSH_DIALOG_TITLE: data.title }
   const stdio: StdioOptions = ['ignore', 'inherit', 'inherit', 'ipc']
   /* v8 ignore next 3 -- the built-output arm: tests always run unbuilt (src/) */
   if (!import.meta.url.endsWith('.ts')) {
-    return spawn(process.execPath, [fileURLToPath(new URL('./worker.cjs', import.meta.url))], { env, stdio, windowsHide: true })
+    return spawn(node.command, [fileURLToPath(new URL('./worker.cjs', import.meta.url))], { env, stdio, windowsHide: true })
   }
-  return spawn(process.execPath, ['--import', import.meta.resolve('tsx/esm'), fileURLToPath(new URL('./win32-dialog-worker.ts', import.meta.url))], { env, stdio, windowsHide: true })
+  return spawn(node.command, ['--import', import.meta.resolve('tsx/esm'), fileURLToPath(new URL('./win32-dialog-worker.ts', import.meta.url))], { env, stdio, windowsHide: true })
 }
 
 export { closeThreadWindows } from './win32-dialog-bindings.ts'

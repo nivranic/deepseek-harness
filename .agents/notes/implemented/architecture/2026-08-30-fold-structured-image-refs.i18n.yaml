@@ -1,0 +1,19 @@
+# Bilingual-pair consistency record for 2026-08-30-fold-structured-image-refs.md (docs/i18n/README.md): per heading
+# section, a hash of its English and Chinese blocks outside code blocks and generated regions.
+# After editing either side, bring the other along and re-record with:
+#   pnpm run verify-translation-pairing --write .agents/notes/implemented/architecture/2026-08-30-fold-structured-image-refs.md
+/agent-note-structured-image-references-in-the-companion-fold:
+  en: b42722f91f65b1b8
+  zh: 5a10412093cf1429
+/agent-note-structured-image-references-in-the-companion-fold/problem:
+  en: 1d4e95c593cf156d
+  zh: 2bbae6859fa396bf
+/agent-note-structured-image-references-in-the-companion-fold/decision:
+  en: 378cb74a1a9e7d40
+  zh: 7ac84399bfd52177
+/agent-note-structured-image-references-in-the-companion-fold/consequences:
+  en: e1aff12c343f5794
+  zh: c1d6da81d65782a1
+/agent-note-structured-image-references-in-the-companion-fold/alternatives-considered:
+  en: db70aaeb1f8fdc22
+  zh: ac0ce30a5a66674b

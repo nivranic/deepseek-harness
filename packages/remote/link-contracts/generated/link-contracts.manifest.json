@@ -1,0 +1,1653 @@
+{
+  "contract": "dsh-link",
+  "version": 1,
+  "types": [
+    {
+      "name": "LinkDeviceRole",
+      "shape": [
+        "observer",
+        "controller",
+        "administrator"
+      ]
+    },
+    {
+      "name": "LinkError",
+      "shape": [
+        "link-unavailable",
+        "link-disabled",
+        "bad-request"
+      ]
+    },
+    {
+      "name": "LinkPairingPayload",
+      "shape": "object",
+      "fields": [
+        {
+          "name": "v",
+          "kind": "const",
+          "value": 1
+        },
+        {
+          "name": "kind",
+          "kind": "const",
+          "value": "dsh-link-pairing"
+        },
+        {
+          "name": "hostId",
+          "kind": "string"
+        },
+        {
+          "name": "hostName",
+          "kind": "string"
+        },
+        {
+          "name": "endpoint",
+          "kind": "string"
+        },
+        {
+          "name": "spkiFingerprint",
+          "kind": "string"
+        },
+        {
+          "name": "code",
+          "kind": "string"
+        },
+        {
+          "name": "expiresAt",
+          "kind": "number"
+        }
+      ],
+      "fixture": "pairing-payload"
+    },
+    {
+      "name": "LinkPairResponse",
+      "shape": "object",
+      "fields": [
+        {
+          "name": "deviceId",
+          "kind": "string"
+        },
+        {
+          "name": "hostId",
+          "kind": "string"
+        },
+        {
+          "name": "hostName",
+          "kind": "string"
+        },
+        {
+          "name": "role",
+          "kind": "enum",
+          "ref": "LinkDeviceRole"
+        },
+        {
+          "name": "linkProtocolVersion",
+          "kind": "number"
+        }
+      ],
+      "fixture": "pair-response"
+    },
+    {
+      "name": "LinkSessionCapabilities",
+      "shape": "object",
+      "fields": [
+        {
+          "name": "list",
+          "kind": "boolean"
+        },
+        {
+          "name": "history",
+          "kind": "boolean"
+        },
+        {
+          "name": "follow",
+          "kind": "boolean"
+        },
+        {
+          "name": "prompt",
+          "kind": "boolean"
+        },
+        {
+          "name": "cancel",
+          "kind": "boolean"
+        }
+      ]
+    },
+    {
+      "name": "LinkWorkspaceCapabilities",
+      "shape": "object",
+      "fields": [
+        {
+          "name": "follow",
+          "kind": "boolean"
+        }
+      ]
+    },
+    {
+      "name": "LinkInteractionCapabilities",
+      "shape": "object",
+      "fields": [
+        {
+          "name": "approval",
+          "kind": "boolean"
+        },
+        {
+          "name": "question",
+          "kind": "boolean"
+        }
+      ]
+    },
+    {
+      "name": "LinkCapabilities",
+      "shape": "object",
+      "fields": [
+        {
+          "name": "session",
+          "kind": "object",
+          "ref": "LinkSessionCapabilities"
+        },
+        {
+          "name": "workspace",
+          "kind": "object",
+          "ref": "LinkWorkspaceCapabilities"
+        },
+        {
+          "name": "interaction",
+          "kind": "object",
+          "ref": "LinkInteractionCapabilities"
+        }
+      ]
+    },
+    {
+      "name": "LinkHostDescription",
+      "shape": "object",
+      "fields": [
+        {
+          "name": "linkProtocolVersion",
+          "kind": "number"
+        },
+        {
+          "name": "hostVersion",
+          "kind": "string"
+        },
+        {
+          "name": "hostId",
+          "kind": "string"
+        },
+        {
+          "name": "hostName",
+          "kind": "string"
+        },
+        {
+          "name": "runtimeClass",
+          "kind": "string"
+        },
+        {
+          "name": "sessionFormatVersion",
+          "kind": "number"
+        },
+        {
+          "name": "allowRemoteApproval",
+          "kind": "boolean"
+        },
+        {
+          "name": "capabilities",
+          "kind": "object",
+          "ref": "LinkCapabilities"
+        }
+      ],
+      "fixture": "host-description"
+    },
+    {
+      "name": "LinkCarrierStatus",
+      "shape": "object",
+      "fields": [
+        {
+          "name": "listening",
+          "kind": "boolean"
+        },
+        {
+          "name": "endpoint",
+          "kind": "string",
+          "optional": true
+        },
+        {
+          "name": "spkiFingerprint",
+          "kind": "string",
+          "optional": true
+        },
+        {
+          "name": "bindError",
+          "kind": "string",
+          "optional": true
+        }
+      ],
+      "fixture": "carrier-status"
+    },
+    {
+      "name": "LinkDeviceRecord",
+      "shape": "object",
+      "fields": [
+        {
+          "name": "deviceId",
+          "kind": "string"
+        },
+        {
+          "name": "name",
+          "kind": "string"
+        },
+        {
+          "name": "role",
+          "kind": "enum",
+          "ref": "LinkDeviceRole"
+        },
+        {
+          "name": "createdAt",
+          "kind": "number"
+        },
+        {
+          "name": "lastSeenAt",
+          "kind": "number",
+          "optional": true
+        },
+        {
+          "name": "revokedAt",
+          "kind": "number",
+          "optional": true
+        }
+      ],
+      "fixture": "device-record"
+    },
+    {
+      "name": "LinkAdminStatus",
+      "shape": "object",
+      "fields": [
+        {
+          "name": "listening",
+          "kind": "boolean"
+        },
+        {
+          "name": "endpoint",
+          "kind": "string",
+          "optional": true
+        },
+        {
+          "name": "spkiFingerprint",
+          "kind": "string",
+          "optional": true
+        },
+        {
+          "name": "bindError",
+          "kind": "string",
+          "optional": true
+        },
+        {
+          "name": "hostName",
+          "kind": "string"
+        },
+        {
+          "name": "allowRemoteApproval",
+          "kind": "boolean"
+        },
+        {
+          "name": "deviceCount",
+          "kind": "number"
+        }
+      ],
+      "fixture": "admin-status"
+    },
+    {
+      "name": "LinkSessionEventKind",
+      "shape": [
+        "turn/start",
+        "turn/end",
+        "step/start",
+        "step/end",
+        "user/message",
+        "assistant/attempt",
+        "assistant/message",
+        "tool/call",
+        "tool/result",
+        "artifact/created",
+        "artifact/status",
+        "plan/mode",
+        "todo/write",
+        "goal/change",
+        "session/end-seed"
+      ]
+    },
+    {
+      "name": "LinkChunkRowKind",
+      "shape": [
+        "chunkrow/text-chunks",
+        "chunkrow/reasoning-chunks",
+        "chunkrow/tool-call-chunks"
+      ]
+    },
+    {
+      "name": "LinkArtifactStatus",
+      "shape": [
+        "pending",
+        "ready",
+        "failed"
+      ]
+    },
+    {
+      "name": "LinkArtifactFormat",
+      "shape": [
+        "text",
+        "bytes"
+      ]
+    },
+    {
+      "name": "LinkTodoStatus",
+      "shape": [
+        "pending",
+        "in_progress",
+        "completed"
+      ]
+    },
+    {
+      "name": "LinkTurnEndReasonKind",
+      "shape": [
+        "completed",
+        "aborted",
+        "blocked",
+        "error",
+        "max-tokens",
+        "interrupted"
+      ]
+    },
+    {
+      "name": "LinkGoalOperation",
+      "shape": [
+        "create",
+        "edit",
+        "pause",
+        "resume",
+        "complete",
+        "block",
+        "clear"
+      ]
+    },
+    {
+      "name": "LinkGoalPhase",
+      "shape": [
+        "active",
+        "paused",
+        "blocked",
+        "complete"
+      ]
+    },
+    {
+      "name": "LinkTodoItem",
+      "shape": "object",
+      "fields": [
+        {
+          "name": "content",
+          "kind": "string"
+        },
+        {
+          "name": "status",
+          "kind": "enum",
+          "ref": "LinkTodoStatus"
+        }
+      ]
+    },
+    {
+      "name": "LinkTodoWriteData",
+      "shape": "object",
+      "fields": [
+        {
+          "name": "todos",
+          "kind": "object-array",
+          "ref": "LinkTodoItem"
+        }
+      ],
+      "fixture": "event-todo-write",
+      "sessionEvents": [
+        "todo/write"
+      ]
+    },
+    {
+      "name": "LinkArtifactCreatedData",
+      "shape": "object",
+      "fields": [
+        {
+          "name": "id",
+          "kind": "string"
+        },
+        {
+          "name": "kind",
+          "kind": "string"
+        },
+        {
+          "name": "title",
+          "kind": "string"
+        },
+        {
+          "name": "format",
+          "kind": "enum",
+          "ref": "LinkArtifactFormat"
+        }
+      ],
+      "fixture": "event-artifact-created",
+      "sessionEvents": [
+        "artifact/created"
+      ]
+    },
+    {
+      "name": "LinkArtifactStatusData",
+      "shape": "object",
+      "fields": [
+        {
+          "name": "id",
+          "kind": "string"
+        },
+        {
+          "name": "status",
+          "kind": "enum",
+          "ref": "LinkArtifactStatus"
+        }
+      ],
+      "fixture": "event-artifact-status",
+      "sessionEvents": [
+        "artifact/status"
+      ]
+    },
+    {
+      "name": "LinkPlanModeData",
+      "shape": "object",
+      "fields": [
+        {
+          "name": "active",
+          "kind": "boolean"
+        }
+      ],
+      "fixture": "event-plan-mode",
+      "sessionEvents": [
+        "plan/mode"
+      ]
+    },
+    {
+      "name": "LinkGoalBlockReason",
+      "shape": "object",
+      "fields": [
+        {
+          "name": "code",
+          "kind": "string"
+        },
+        {
+          "name": "message",
+          "kind": "string"
+        }
+      ]
+    },
+    {
+      "name": "LinkGoalSnapshot",
+      "shape": "object",
+      "fields": [
+        {
+          "name": "id",
+          "kind": "string"
+        },
+        {
+          "name": "revision",
+          "kind": "number"
+        },
+        {
+          "name": "objective",
+          "kind": "string"
+        },
+        {
+          "name": "phase",
+          "kind": "enum",
+          "ref": "LinkGoalPhase"
+        },
+        {
+          "name": "blockedReason",
+          "kind": "object",
+          "ref": "LinkGoalBlockReason",
+          "optional": true
+        },
+        {
+          "name": "maxGoalRounds",
+          "kind": "number"
+        }
+      ]
+    },
+    {
+      "name": "LinkGoalChangeData",
+      "shape": "object",
+      "fields": [
+        {
+          "name": "kind",
+          "kind": "const",
+          "value": "goal/change"
+        },
+        {
+          "name": "version",
+          "kind": "const",
+          "value": 1
+        },
+        {
+          "name": "operation",
+          "kind": "enum",
+          "ref": "LinkGoalOperation"
+        },
+        {
+          "name": "goal",
+          "kind": "object",
+          "ref": "LinkGoalSnapshot",
+          "optional": true
+        },
+        {
+          "name": "roundsStarted",
+          "kind": "number",
+          "optional": true
+        },
+        {
+          "name": "createdAt",
+          "kind": "number",
+          "optional": true
+        },
+        {
+          "name": "updatedAt",
+          "kind": "number",
+          "optional": true
+        },
+        {
+          "name": "clearedAt",
+          "kind": "number",
+          "optional": true
+        }
+      ],
+      "fixture": "event-goal-change",
+      "sessionEvents": [
+        "goal/change"
+      ]
+    },
+    {
+      "name": "LinkTurnStartData",
+      "shape": "object",
+      "fields": [
+        {
+          "name": "turn",
+          "kind": "number"
+        }
+      ],
+      "fixture": "event-turn-start",
+      "sessionEvents": [
+        "turn/start"
+      ]
+    },
+    {
+      "name": "LinkTurnEndReason",
+      "shape": "object",
+      "fields": [
+        {
+          "name": "kind",
+          "kind": "enum",
+          "ref": "LinkTurnEndReasonKind"
+        }
+      ]
+    },
+    {
+      "name": "LinkTurnEndData",
+      "shape": "object",
+      "fields": [
+        {
+          "name": "turn",
+          "kind": "number"
+        },
+        {
+          "name": "reason",
+          "kind": "object",
+          "ref": "LinkTurnEndReason"
+        }
+      ],
+      "fixture": "event-turn-end",
+      "sessionEvents": [
+        "turn/end"
+      ]
+    },
+    {
+      "name": "LinkStepSpanData",
+      "shape": "object",
+      "fields": [
+        {
+          "name": "turn",
+          "kind": "number"
+        },
+        {
+          "name": "step",
+          "kind": "number"
+        }
+      ],
+      "fixture": "event-step-start",
+      "sessionEvents": [
+        "step/start",
+        "step/end"
+      ]
+    },
+    {
+      "name": "LinkMessageSource",
+      "shape": "object",
+      "fields": [
+        {
+          "name": "kind",
+          "kind": "string"
+        },
+        {
+          "name": "plugin",
+          "kind": "string",
+          "optional": true
+        },
+        {
+          "name": "provider",
+          "kind": "string",
+          "optional": true
+        },
+        {
+          "name": "model",
+          "kind": "string",
+          "optional": true
+        },
+        {
+          "name": "callId",
+          "kind": "string",
+          "optional": true
+        }
+      ]
+    },
+    {
+      "name": "LinkContentBlock",
+      "shape": "object",
+      "fields": [
+        {
+          "name": "type",
+          "kind": "string"
+        },
+        {
+          "name": "text",
+          "kind": "string",
+          "optional": true
+        },
+        {
+          "name": "attachment",
+          "kind": "object",
+          "ref": "LinkImageAttachmentRef",
+          "optional": true
+        }
+      ]
+    },
+    {
+      "name": "LinkUserMessageData",
+      "shape": "object",
+      "fields": [
+        {
+          "name": "id",
+          "kind": "string"
+        },
+        {
+          "name": "role",
+          "kind": "const",
+          "value": "user"
+        },
+        {
+          "name": "content",
+          "kind": "object-array",
+          "ref": "LinkContentBlock"
+        },
+        {
+          "name": "source",
+          "kind": "object",
+          "ref": "LinkMessageSource"
+        }
+      ],
+      "fixture": "event-user-message",
+      "sessionEvents": [
+        "user/message"
+      ]
+    },
+    {
+      "name": "LinkStreamRecord",
+      "shape": "object",
+      "fields": [
+        {
+          "name": "type",
+          "kind": "string"
+        },
+        {
+          "name": "time0",
+          "kind": "number"
+        },
+        {
+          "name": "index",
+          "kind": "number"
+        },
+        {
+          "name": "dt",
+          "kind": "number-array"
+        },
+        {
+          "name": "texts",
+          "kind": "string-array",
+          "optional": true
+        },
+        {
+          "name": "id",
+          "kind": "string",
+          "optional": true
+        },
+        {
+          "name": "name",
+          "kind": "string",
+          "optional": true
+        },
+        {
+          "name": "args",
+          "kind": "string-array",
+          "optional": true
+        }
+      ]
+    },
+    {
+      "name": "LinkAssistantAttemptData",
+      "shape": "object",
+      "fields": [
+        {
+          "name": "turn",
+          "kind": "number"
+        },
+        {
+          "name": "step",
+          "kind": "number"
+        },
+        {
+          "name": "stream",
+          "kind": "object-array",
+          "ref": "LinkStreamRecord"
+        }
+      ],
+      "fixture": "event-assistant-attempt",
+      "sessionEvents": [
+        "assistant/attempt"
+      ]
+    },
+    {
+      "name": "LinkTokenUsage",
+      "shape": "object",
+      "fields": [
+        {
+          "name": "inputTokens",
+          "kind": "number"
+        },
+        {
+          "name": "outputTokens",
+          "kind": "number"
+        },
+        {
+          "name": "totalTokens",
+          "kind": "number",
+          "optional": true
+        }
+      ]
+    },
+    {
+      "name": "LinkAssistantMessage",
+      "shape": "object",
+      "fields": [
+        {
+          "name": "id",
+          "kind": "string"
+        },
+        {
+          "name": "role",
+          "kind": "const",
+          "value": "assistant"
+        },
+        {
+          "name": "content",
+          "kind": "object-array",
+          "ref": "LinkContentBlock"
+        },
+        {
+          "name": "source",
+          "kind": "object",
+          "ref": "LinkMessageSource"
+        }
+      ]
+    },
+    {
+      "name": "LinkAssistantMessageData",
+      "shape": "object",
+      "fields": [
+        {
+          "name": "turn",
+          "kind": "number"
+        },
+        {
+          "name": "step",
+          "kind": "number"
+        },
+        {
+          "name": "message",
+          "kind": "object",
+          "ref": "LinkAssistantMessage"
+        },
+        {
+          "name": "stream",
+          "kind": "object-array",
+          "ref": "LinkStreamRecord"
+        },
+        {
+          "name": "usage",
+          "kind": "object",
+          "ref": "LinkTokenUsage",
+          "optional": true
+        },
+        {
+          "name": "interrupted",
+          "kind": "boolean",
+          "optional": true
+        }
+      ],
+      "fixture": "event-assistant-message",
+      "sessionEvents": [
+        "assistant/message"
+      ]
+    },
+    {
+      "name": "LinkToolCallData",
+      "shape": "object",
+      "fields": [
+        {
+          "name": "turn",
+          "kind": "number"
+        },
+        {
+          "name": "step",
+          "kind": "number"
+        },
+        {
+          "name": "callId",
+          "kind": "string"
+        },
+        {
+          "name": "name",
+          "kind": "string"
+        },
+        {
+          "name": "arguments",
+          "kind": "string"
+        }
+      ],
+      "fixture": "event-tool-call",
+      "sessionEvents": [
+        "tool/call"
+      ]
+    },
+    {
+      "name": "LinkToolError",
+      "shape": "object",
+      "fields": [
+        {
+          "name": "name",
+          "kind": "string"
+        },
+        {
+          "name": "code",
+          "kind": "string"
+        }
+      ]
+    },
+    {
+      "name": "LinkToolResultMessage",
+      "shape": "object",
+      "fields": [
+        {
+          "name": "id",
+          "kind": "string"
+        },
+        {
+          "name": "role",
+          "kind": "const",
+          "value": "tool"
+        },
+        {
+          "name": "toolCallId",
+          "kind": "string"
+        },
+        {
+          "name": "content",
+          "kind": "object-array",
+          "ref": "LinkContentBlock"
+        },
+        {
+          "name": "source",
+          "kind": "object",
+          "ref": "LinkMessageSource"
+        },
+        {
+          "name": "isError",
+          "kind": "boolean",
+          "optional": true
+        }
+      ]
+    },
+    {
+      "name": "LinkToolResultData",
+      "shape": "object",
+      "fields": [
+        {
+          "name": "turn",
+          "kind": "number"
+        },
+        {
+          "name": "step",
+          "kind": "number"
+        },
+        {
+          "name": "message",
+          "kind": "object",
+          "ref": "LinkToolResultMessage"
+        },
+        {
+          "name": "error",
+          "kind": "object",
+          "ref": "LinkToolError",
+          "optional": true
+        }
+      ],
+      "fixture": "event-tool-result",
+      "sessionEvents": [
+        "tool/result"
+      ]
+    },
+    {
+      "name": "LinkTextChunksData",
+      "shape": "object",
+      "fields": [
+        {
+          "name": "type",
+          "kind": "string"
+        },
+        {
+          "name": "time0",
+          "kind": "number"
+        },
+        {
+          "name": "index",
+          "kind": "number"
+        },
+        {
+          "name": "dt",
+          "kind": "number-array"
+        },
+        {
+          "name": "texts",
+          "kind": "string-array"
+        }
+      ],
+      "fixture": "chunkrow-text-chunks",
+      "chunkRows": [
+        "chunkrow/text-chunks",
+        "chunkrow/reasoning-chunks"
+      ]
+    },
+    {
+      "name": "LinkToolCallChunksData",
+      "shape": "object",
+      "fields": [
+        {
+          "name": "type",
+          "kind": "string"
+        },
+        {
+          "name": "time0",
+          "kind": "number"
+        },
+        {
+          "name": "index",
+          "kind": "number"
+        },
+        {
+          "name": "dt",
+          "kind": "number-array"
+        },
+        {
+          "name": "id",
+          "kind": "string"
+        },
+        {
+          "name": "name",
+          "kind": "string",
+          "optional": true
+        },
+        {
+          "name": "args",
+          "kind": "string-array"
+        }
+      ],
+      "fixture": "chunkrow-tool-call-chunks",
+      "chunkRows": [
+        "chunkrow/tool-call-chunks"
+      ]
+    },
+    {
+      "name": "LinkFileEntryType",
+      "shape": [
+        "file",
+        "directory",
+        "other"
+      ]
+    },
+    {
+      "name": "LinkFileEntry",
+      "shape": "object",
+      "fields": [
+        {
+          "name": "name",
+          "kind": "string"
+        },
+        {
+          "name": "type",
+          "kind": "enum",
+          "ref": "LinkFileEntryType"
+        },
+        {
+          "name": "size",
+          "kind": "number",
+          "optional": true
+        }
+      ]
+    },
+    {
+      "name": "LinkFileListValue",
+      "shape": "object",
+      "fields": [
+        {
+          "name": "path",
+          "kind": "string"
+        },
+        {
+          "name": "entries",
+          "kind": "object-array",
+          "ref": "LinkFileEntry"
+        }
+      ],
+      "fixture": "file-list"
+    },
+    {
+      "name": "LinkSubagentActivity",
+      "shape": [
+        "running",
+        "inactive"
+      ]
+    },
+    {
+      "name": "LinkSubagentMode",
+      "shape": [
+        "one-shot",
+        "external",
+        "continuable"
+      ]
+    },
+    {
+      "name": "LinkSubagentDiagnosticReason",
+      "shape": [
+        "corrupt",
+        "unsupported",
+        "unavailable"
+      ]
+    },
+    {
+      "name": "LinkSubagentEntry",
+      "shape": "object",
+      "fields": [
+        {
+          "name": "kind",
+          "kind": "const",
+          "value": "child"
+        },
+        {
+          "name": "id",
+          "kind": "string"
+        },
+        {
+          "name": "activity",
+          "kind": "enum",
+          "ref": "LinkSubagentActivity",
+          "optional": true
+        },
+        {
+          "name": "hasChildren",
+          "kind": "boolean",
+          "optional": true
+        },
+        {
+          "name": "mode",
+          "kind": "enum",
+          "ref": "LinkSubagentMode",
+          "optional": true
+        },
+        {
+          "name": "label",
+          "kind": "string",
+          "optional": true
+        },
+        {
+          "name": "reason",
+          "kind": "enum",
+          "ref": "LinkSubagentDiagnosticReason",
+          "optional": true
+        }
+      ],
+      "fixture": "subagent-entry"
+    },
+    {
+      "name": "LinkSubagentCatalog",
+      "shape": "object",
+      "fields": [
+        {
+          "name": "entries",
+          "kind": "object-array",
+          "ref": "LinkSubagentEntry"
+        },
+        {
+          "name": "parentAvailable",
+          "kind": "boolean"
+        }
+      ],
+      "fixture": "subagent-catalog"
+    },
+    {
+      "name": "LinkFileReadValue",
+      "shape": "object",
+      "fields": [
+        {
+          "name": "content",
+          "kind": "string"
+        },
+        {
+          "name": "truncated",
+          "kind": "boolean"
+        },
+        {
+          "name": "size",
+          "kind": "number"
+        },
+        {
+          "name": "mediaType",
+          "kind": "string"
+        }
+      ],
+      "fixture": "file-read"
+    },
+    {
+      "name": "LinkImageMediaType",
+      "shape": [
+        "image/png",
+        "image/jpeg",
+        "image/webp",
+        "image/gif"
+      ]
+    },
+    {
+      "name": "LinkImageDimensions",
+      "shape": "object",
+      "fields": [
+        {
+          "name": "width",
+          "kind": "number"
+        },
+        {
+          "name": "height",
+          "kind": "number"
+        }
+      ]
+    },
+    {
+      "name": "LinkImageAttachmentRef",
+      "shape": "object",
+      "fields": [
+        {
+          "name": "attachmentId",
+          "kind": "string"
+        },
+        {
+          "name": "mediaType",
+          "kind": "enum",
+          "ref": "LinkImageMediaType"
+        },
+        {
+          "name": "bytes",
+          "kind": "number"
+        },
+        {
+          "name": "width",
+          "kind": "number"
+        },
+        {
+          "name": "height",
+          "kind": "number"
+        },
+        {
+          "name": "name",
+          "kind": "string",
+          "optional": true
+        },
+        {
+          "name": "originalDimensions",
+          "kind": "object",
+          "ref": "LinkImageDimensions",
+          "optional": true
+        }
+      ],
+      "fixture": "image-attachment-ref"
+    },
+    {
+      "name": "LinkArtifactReadValue",
+      "shape": "object",
+      "fields": [
+        {
+          "name": "id",
+          "kind": "string"
+        },
+        {
+          "name": "kind",
+          "kind": "string"
+        },
+        {
+          "name": "title",
+          "kind": "string"
+        },
+        {
+          "name": "format",
+          "kind": "enum",
+          "ref": "LinkArtifactFormat"
+        },
+        {
+          "name": "data",
+          "kind": "string"
+        },
+        {
+          "name": "truncated",
+          "kind": "boolean"
+        },
+        {
+          "name": "size",
+          "kind": "number"
+        }
+      ],
+      "fixture": "artifact-read"
+    },
+    {
+      "name": "LinkHandoffContextRole",
+      "shape": [
+        "user",
+        "assistant"
+      ]
+    },
+    {
+      "name": "LinkHandoffContextRow",
+      "shape": "object",
+      "fields": [
+        {
+          "name": "role",
+          "kind": "enum",
+          "ref": "LinkHandoffContextRole"
+        },
+        {
+          "name": "text",
+          "kind": "string"
+        }
+      ],
+      "fixture": "handoff-context-row"
+    },
+    {
+      "name": "LinkHandoffTodo",
+      "shape": "object",
+      "fields": [
+        {
+          "name": "content",
+          "kind": "string"
+        },
+        {
+          "name": "status",
+          "kind": "string"
+        }
+      ],
+      "fixture": "handoff-todo"
+    },
+    {
+      "name": "LinkHandoffArtifactRef",
+      "shape": "object",
+      "fields": [
+        {
+          "name": "id",
+          "kind": "string"
+        },
+        {
+          "name": "kind",
+          "kind": "string"
+        },
+        {
+          "name": "title",
+          "kind": "string"
+        },
+        {
+          "name": "status",
+          "kind": "enum",
+          "ref": "LinkArtifactStatus"
+        }
+      ],
+      "fixture": "handoff-artifact-ref"
+    },
+    {
+      "name": "LinkHandoffSender",
+      "shape": "object",
+      "fields": [
+        {
+          "name": "deviceId",
+          "kind": "string"
+        },
+        {
+          "name": "platform",
+          "kind": "string"
+        },
+        {
+          "name": "at",
+          "kind": "number"
+        }
+      ],
+      "fixture": "handoff-sender"
+    },
+    {
+      "name": "LinkHandoffRuntime",
+      "shape": [
+        "lite"
+      ]
+    },
+    {
+      "name": "LinkHandoffSnapshot",
+      "shape": "object",
+      "fields": [
+        {
+          "name": "sourceSessionId",
+          "kind": "string"
+        },
+        {
+          "name": "sourceRuntime",
+          "kind": "enum",
+          "ref": "LinkHandoffRuntime"
+        },
+        {
+          "name": "requestedCapability",
+          "kind": "string"
+        },
+        {
+          "name": "recentContext",
+          "kind": "object-array",
+          "ref": "LinkHandoffContextRow"
+        },
+        {
+          "name": "planActive",
+          "kind": "boolean"
+        },
+        {
+          "name": "todo",
+          "kind": "object-array",
+          "ref": "LinkHandoffTodo"
+        },
+        {
+          "name": "artifactRefs",
+          "kind": "object-array",
+          "ref": "LinkHandoffArtifactRef"
+        },
+        {
+          "name": "modelPreference",
+          "kind": "string",
+          "optional": true
+        },
+        {
+          "name": "sender",
+          "kind": "object",
+          "ref": "LinkHandoffSender"
+        }
+      ],
+      "fixture": "handoff-snapshot"
+    },
+    {
+      "name": "LinkHandoffValue",
+      "shape": "object",
+      "fields": [
+        {
+          "name": "sessionId",
+          "kind": "string"
+        }
+      ],
+      "fixture": "handoff-value"
+    },
+    {
+      "name": "LinkAttachmentReadValue",
+      "shape": "object",
+      "fields": [
+        {
+          "name": "attachment",
+          "kind": "object",
+          "ref": "LinkImageAttachmentRef"
+        },
+        {
+          "name": "data",
+          "kind": "string"
+        }
+      ],
+      "fixture": "attachment-read"
+    },
+    {
+      "name": "LinkPromptImagePart",
+      "shape": "object",
+      "fields": [
+        {
+          "name": "type",
+          "kind": "const",
+          "value": "image"
+        },
+        {
+          "name": "mediaType",
+          "kind": "enum",
+          "ref": "LinkImageMediaType"
+        },
+        {
+          "name": "data",
+          "kind": "string"
+        },
+        {
+          "name": "name",
+          "kind": "string",
+          "optional": true
+        }
+      ],
+      "fixture": "prompt-image-part"
+    }
+  ],
+  "fixtures": [
+    {
+      "id": "pairing-payload",
+      "type": "LinkPairingPayload",
+      "sha256": "b40c26bb35d93c11c8da12ccf5cf2cf84243d22ed3d48a6177709620ded1cc4a"
+    },
+    {
+      "id": "pair-response",
+      "type": "LinkPairResponse",
+      "sha256": "e6b7065c108e3a389713d9505e66b5587a6f60385523d79ca5772988f1565ad7"
+    },
+    {
+      "id": "host-description",
+      "type": "LinkHostDescription",
+      "sha256": "f9f2083c273c540e623bc542b5e0f5e77ae9c534d9806f1e3272208860416480"
+    },
+    {
+      "id": "carrier-status",
+      "type": "LinkCarrierStatus",
+      "sha256": "a124aaf769e32b5b0a96f5ee38da057c31dee6002eb4ccb23c8d93ae6b323f6d"
+    },
+    {
+      "id": "device-record",
+      "type": "LinkDeviceRecord",
+      "sha256": "17aaf9a859759e372dff39d78607933d85ef0f1cbc92e526555735fadf226004"
+    },
+    {
+      "id": "admin-status",
+      "type": "LinkAdminStatus",
+      "sha256": "06cb99a082e09161bdbd2fdcf50f8cc9483a768954e68391dadc09d8009ffb32"
+    },
+    {
+      "id": "event-turn-start",
+      "type": "LinkTurnStartData",
+      "sha256": "158b175fbfdd184299daf609fb8d45efe75489226b61736a41b3cb181f6fe5e3"
+    },
+    {
+      "id": "event-turn-end",
+      "type": "LinkTurnEndData",
+      "sha256": "057ffcb2a82d96257ef2d9e21ca5e360cfbe43720d888d9fc4816d0754282a31"
+    },
+    {
+      "id": "event-step-start",
+      "type": "LinkStepSpanData",
+      "sha256": "96c1b014cc069a511b3bffeda7daa3c8d84c88a5878d98bccf8daed4229d0828"
+    },
+    {
+      "id": "event-user-message",
+      "type": "LinkUserMessageData",
+      "sha256": "da710de34c2eebae2953d9a0fc1b1bc60c96941b91659de8829d564fa90c7df6"
+    },
+    {
+      "id": "event-assistant-attempt",
+      "type": "LinkAssistantAttemptData",
+      "sha256": "d82d335565497fe355c9f0744852c94baf579c2ac0cf420c3cb61f95fdb95a14"
+    },
+    {
+      "id": "event-assistant-message",
+      "type": "LinkAssistantMessageData",
+      "sha256": "f15bea7924a9b2a6ec019f8473e0a0f2239db617337f56be816221d1f1233a2d"
+    },
+    {
+      "id": "event-tool-call",
+      "type": "LinkToolCallData",
+      "sha256": "d4d20b326f64c547ab77c9149d54ed600512e32dcdc2b357c485f239f0eace8e"
+    },
+    {
+      "id": "event-tool-result",
+      "type": "LinkToolResultData",
+      "sha256": "23c20fa5aa32eb7fbe0e26f67755054ecfcdc9924d6bd4c24111407a9b6b7181"
+    },
+    {
+      "id": "event-artifact-created",
+      "type": "LinkArtifactCreatedData",
+      "sha256": "b8914f71f850ea33af99f7b37b981cd045e760a55600b7151efceb4419fa9149"
+    },
+    {
+      "id": "event-artifact-status",
+      "type": "LinkArtifactStatusData",
+      "sha256": "681b277e915ccd40c26ffd3b20f5159e3f6345c9a10ebf4803f69a1948189788"
+    },
+    {
+      "id": "event-plan-mode",
+      "type": "LinkPlanModeData",
+      "sha256": "fa5c6480f5fe8b937833535f92d3cea0214cef456265448064b02836abfaebb1"
+    },
+    {
+      "id": "event-todo-write",
+      "type": "LinkTodoWriteData",
+      "sha256": "c349eb1fc2e33f77ce08ff4429fcfd1d053a06bb382bcec647818dfffe12982d"
+    },
+    {
+      "id": "event-goal-change",
+      "type": "LinkGoalChangeData",
+      "sha256": "b56af30ef2941f20605a010c8a0a9a9eff0e17644a5b940f5a06ea8f6dd22383"
+    },
+    {
+      "id": "chunkrow-text-chunks",
+      "type": "LinkTextChunksData",
+      "sha256": "de163b8d55875983be7d8a0b0ec7cf2e0dc044f4225f624e9a32f57776985840"
+    },
+    {
+      "id": "chunkrow-tool-call-chunks",
+      "type": "LinkToolCallChunksData",
+      "sha256": "c96f68675a72d7fd7a7f0a333d3ef401f8a34480246d4785aa22c9c564a5ce95"
+    },
+    {
+      "id": "file-list",
+      "type": "LinkFileListValue",
+      "sha256": "d5711fa06413f44d4a91ee5f4af236a2cbfcbb3745516082b6ea750d256a53a6"
+    },
+    {
+      "id": "subagent-entry",
+      "type": "LinkSubagentEntry",
+      "sha256": "5638125aeec34496e736ce9effcae122f7d381bb0370a0064d25fa5447095cbe"
+    },
+    {
+      "id": "subagent-catalog",
+      "type": "LinkSubagentCatalog",
+      "sha256": "5fe08e099a72081a8da4baba80bfc5b471ad41c987809dec972e0ba81b8c4d0b"
+    },
+    {
+      "id": "file-read",
+      "type": "LinkFileReadValue",
+      "sha256": "42dba5a26e35a1963aed7eaf756a754f1aeb9d3102736df3b1221752ac6ae7f7"
+    },
+    {
+      "id": "image-attachment-ref",
+      "type": "LinkImageAttachmentRef",
+      "sha256": "7736b2261ef480c3e61be8083eecd018fff82b68336c450d47668c450bd1a4f6"
+    },
+    {
+      "id": "handoff-context-row",
+      "type": "LinkHandoffContextRow",
+      "sha256": "46ca92c2fa0cd9f5888e66de34b59eaf88bcc9cdd4526d62d33db1ab072808d0"
+    },
+    {
+      "id": "handoff-todo",
+      "type": "LinkHandoffTodo",
+      "sha256": "d719317a4e14e6fbc0472f99fd5203d4fcb6b613bb8262ec109ac912fb4aa7b5"
+    },
+    {
+      "id": "handoff-artifact-ref",
+      "type": "LinkHandoffArtifactRef",
+      "sha256": "ac22370aa02bcaa3d53f64fa186eb1adf5db8d61d3126bf1784058933c8f6236"
+    },
+    {
+      "id": "handoff-sender",
+      "type": "LinkHandoffSender",
+      "sha256": "efc339c7c35cac33bdd7ad2b880885977b6a775064e0c187df6f4de8a59c52be"
+    },
+    {
+      "id": "handoff-snapshot",
+      "type": "LinkHandoffSnapshot",
+      "sha256": "0d71388ab6c8502b0a118e2a0a316dc6c78c50dfb439006ec8e728d8f1766c8d"
+    },
+    {
+      "id": "handoff-value",
+      "type": "LinkHandoffValue",
+      "sha256": "710fda5c2a6f78389c6433f394a3b63ec9b66e85e03b3573b72c92869337a566"
+    },
+    {
+      "id": "artifact-read",
+      "type": "LinkArtifactReadValue",
+      "sha256": "5ee8b0817d06faad70b43d6f77e991c28bfbbabd00c4995fff3174b729df5504"
+    },
+    {
+      "id": "attachment-read",
+      "type": "LinkAttachmentReadValue",
+      "sha256": "75cf06d363c8b8e89ca11b766bdacf58570354e5113e49284f907a9dd01355c7"
+    },
+    {
+      "id": "prompt-image-part",
+      "type": "LinkPromptImagePart",
+      "sha256": "10d67eb5c89db4c55192b4ebefbdebef36d7b828dd04d7b86c1af08905714176"
+    }
+  ]
+}

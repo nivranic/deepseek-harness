@@ -4,7 +4,8 @@
  * onboarding stage — and registers everything on the Settings pages that
  * belongs to no single feature: the trigger/header chrome content,
  * local-document action, General section, `settings` dictionaries, and the
- * Host release change confirmation.
+ * Host release change confirmation. The About section renders the boot
+ * document's installation facts as ownerless product copy.
  * Feature-owned rows and sections stay with their features.
  * Export discipline: packages/client/AGENTS.md.
  */
@@ -37,6 +38,8 @@ import { DesktopUpdateBadge } from './DesktopUpdateIndicator.tsx'
 import type { DesktopUpdateBridge } from '../types.ts'
 import { DesktopUpdateSource } from './desktop-update-source.ts'
 import { CloseLabel, HeaderContent, TriggerContent } from './chrome.tsx'
+import { AboutSection } from './AboutSection.tsx'
+import type { AboutSectionInjected } from './AboutSection.tsx'
 import { GeneralSection } from './GeneralSection.tsx'
 import { CurrentVersionRow } from './CurrentVersionRow.tsx'
 import { DeveloperToolsRow, type DeveloperToolsRowInjected } from './DeveloperToolsRow.tsx'
@@ -52,6 +55,7 @@ export type {
 export type {
   GeneralSectionComponentProps,
 } from './GeneralSection.tsx'
+export type { AboutSectionComponentProps, AboutSectionInjected } from './AboutSection.tsx'
 export type { SettingsDocumentActionInjected, SettingsDocumentActionProps } from './SettingsDocumentAction.tsx'
 export type { SettingsDocumentState } from './settings-document-store.ts'
 export { SettingsDocumentStore } from './settings-document-store.ts'
@@ -71,8 +75,11 @@ const NS = 'settings'
  * Required services (cordis fiber inject). The target slots are declared by
  * ui-settings' apply, whose activation order relative to this one is NOT
  * constrained; registrations depend on their slots through `slots.inject()`.
+ * `remote.settings` carries the Settings mirror the document action reads;
+ * `appInfo` arrives from the client-modules wrapper (the modules row mounts
+ * in every browser composition) and feeds the About section.
  */
-export const inject = ['slots', 'locale', 'connection', 'remote', 'remote.settings', 'configForms', 'shortcuts', 'modules', 'remoteAccess']
+export const inject = ['slots', 'locale', 'connection', 'remote', 'remote.settings', 'configForms', 'shortcuts', 'modules', 'remoteAccess', 'appInfo']
 
 /**
  * Register the `settings` dictionaries, the chrome content, and the General
@@ -253,6 +260,18 @@ export function apply(ctx: ClientContext): void {
     locale: NS,
     children: { 'settings.general.item': { kind: 'list', scope: 'root' } },
   }, GeneralSection))
+
+  // About comes last in the nav: product identity and the installation
+  // version from the boot document, owned here as ownerless product copy.
+  const aboutInjected = (): AboutSectionInjected => ({ appInfo: ctx.appInfo })
+  ctx.slots.inject('settings.section', () => ctx.slots.register({
+    name: 'settings.section',
+    id: 'about',
+    order: 30,
+    label: () => t('about.nav'),
+    locale: NS,
+    inject: aboutInjected,
+  }, AboutSection))
   // The page's module system applies no plugin update from another Host release; this dialog offers the reload.
   const releasePromptInjected = (): HostReleasePromptInjected => ({
     dismissRelease: () => { ctx.modules.entries.dismissRelease() },

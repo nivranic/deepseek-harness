@@ -3,7 +3,7 @@
 import { Hash } from 'node:crypto'
 import { mkdirSync, mkdtempSync, readFileSync, realpathSync, rmSync, statSync, utimesSync, writeFileSync } from 'node:fs'
 import { SourceMap } from 'node:module'
-import { tmpdir } from 'node:os'
+import { release, tmpdir, type as osType } from 'node:os'
 import { dirname, join } from 'node:path'
 import { pathToFileURL } from 'node:url'
 import { runInNewContext } from 'node:vm'
@@ -506,6 +506,23 @@ describe('client bundle activation', () => {
     mkdirSync(dirname(clientPath), { recursive: true })
     writeFileSync(clientPath, 'module.exports = {}\n')
     expect(construct([currentName]).graph().entries.map(entry => entry.id)).toEqual([currentName])
+  })
+
+  it('stamps the composing installation version on the graph', () => {
+    writeBuiltPackage('@fixture/versioned-graph', {})
+    const own = JSON.parse(readFileSync(new URL('../package.json', import.meta.url), 'utf8')) as { version: string }
+    expect(construct(['@fixture/versioned-graph']).graph().version).toBe(own.version)
+  })
+
+  it('stamps the host runtime environment on the graph', () => {
+    writeBuiltPackage('@fixture/runtime-graph', {})
+    const runtime = construct(['@fixture/runtime-graph']).graph().runtime
+    expect(runtime).toBeDefined()
+    expect(runtime!.node).toBe(process.versions.node)
+    expect(runtime!.os).toBe(`${osType()} ${process.arch} ${release()}`)
+    // A plain-Node host carries no Electron process facts.
+    expect(runtime!.electron).toBeUndefined()
+    expect(runtime!.chrome).toBeUndefined()
   })
 
   it('groups missing bundles under one source-build instruction with a package/path list', () => {

@@ -1,0 +1,19 @@
+# Bilingual-pair consistency record for 2026-08-30-companion-tool-trajectory.md (docs/i18n/README.md): per heading
+# section, a hash of its English and Chinese blocks outside code blocks and generated regions.
+# After editing either side, bring the other along and re-record with:
+#   pnpm run verify-translation-pairing --write .agents/notes/implemented/architecture/2026-08-30-companion-tool-trajectory.md
+/agent-note-companionui-tool-trajectory:
+  en: c69015c4184f23e4
+  zh: f7ec8f3b6bf4cf78
+/agent-note-companionui-tool-trajectory/problem:
+  en: d101b3d90fe3261d
+  zh: c0bbe62cc02a805b
+/agent-note-companionui-tool-trajectory/decision:
+  en: f8f62112c5a5c7be
+  zh: 30f710e9fb7dd905
+/agent-note-companionui-tool-trajectory/consequences:
+  en: c67e3212b596cc84
+  zh: dd9863ea8ec37816
+/agent-note-companionui-tool-trajectory/alternatives-considered:
+  en: da61ce4d79159ec5
+  zh: 52375bb80a21c603

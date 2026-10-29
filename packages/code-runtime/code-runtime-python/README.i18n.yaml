@@ -1,0 +1,61 @@
+# Bilingual-pair consistency record for README.md (docs/i18n/README.md): per heading
+# section, a hash of its English and Chinese blocks outside code blocks and generated regions.
+# After editing either side, bring the other along and re-record with:
+#   pnpm run verify-translation-pairing --write packages/code-runtime/code-runtime-python/README.md
+/:
+  en: a8363e7076ea2714
+  zh: ce813d6420bbffc9
+/deepseek-ai-dsh-code-runtime-python:
+  en: ccc3c8ecdb6f5ed8
+  zh: ac98aede37d77154
+/deepseek-ai-dsh-code-runtime-python/summary:
+  en: ebe678fc3841169f
+  zh: d5f42aa90e2df4db
+/deepseek-ai-dsh-code-runtime-python/table-of-contents:
+  en: d152484eb41ac6b4
+  zh: 09388d293f9be9cb
+/deepseek-ai-dsh-code-runtime-python/use-this-package:
+  en: 0881b539d3441abc
+  zh: a6817e27a18085ae
+/deepseek-ai-dsh-code-runtime-python/use-this-package/what-you-get:
+  en: 4f6f5fea1de9a5b6
+  zh: f86dd848d4b50f7e
+/deepseek-ai-dsh-code-runtime-python/use-this-package/the-wire:
+  en: 1df274fe1ca5ad9d
+  zh: c8a4260cef44eeb6
+/deepseek-ai-dsh-code-runtime-python/use-this-package/what-can-go-wrong:
+  en: 6baafa3d058085c5
+  zh: 07a3d5b840d56775
+/deepseek-ai-dsh-code-runtime-python/understand-the-implementation:
+  en: c288d7264474ae84
+  zh: f9c8293fb65297df
+/deepseek-ai-dsh-code-runtime-python/understand-the-implementation/design-concept:
+  en: a43bf401f56c7ef6
+  zh: 96d074eb2d614694
+/deepseek-ai-dsh-code-runtime-python/understand-the-implementation/wire-contract:
+  en: 3f278f3d4f3da271
+  zh: 194b10f0c519984f
+/deepseek-ai-dsh-code-runtime-python/understand-the-implementation/lossless-json-crossing:
+  en: b1523b81ab7e6f58
+  zh: 0a518f5a5f850ede
+/deepseek-ai-dsh-code-runtime-python/understand-the-implementation/mirror-alignment:
+  en: 7d4b8b5a8fcd14b3
+  zh: 66362300935b9a74
+/deepseek-ai-dsh-code-runtime-python/understand-the-implementation/source-map:
+  en: cac6818e0bbe4bd1
+  zh: 8432dd66c19e5ec4
+/deepseek-ai-dsh-code-runtime-python/further-exploration:
+  en: 247564508a0a2a7e
+  zh: b57988d9cc75612f
+/deepseek-ai-dsh-code-runtime-python/model-experience:
+  en: 5c4b4c9f7ea05c54
+  zh: d3253b80598c1e60
+/deepseek-ai-dsh-code-runtime-python/model-experience/kv-cache-effect:
+  en: 40294c1c31b74824
+  zh: 081cebc2e2650f03
+/deepseek-ai-dsh-code-runtime-python/known-limitations-and-deferred-work:
+  en: cb57a1e6a1c6325c
+  zh: be6b5ab9b2e79d1b
+/deepseek-ai-dsh-code-runtime-python/known-limitations-and-deferred-work/dev-note:
+  en: e67f633dc6fe7773
+  zh: 3bb0c20c93f16f98

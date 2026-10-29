@@ -1,0 +1,19 @@
+# Bilingual-pair consistency record for 2026-08-19-win32-dialog-result-reader-fatal.md (docs/i18n/README.md): per heading
+# section, a hash of its English and Chinese blocks outside code blocks and generated regions.
+# After editing either side, bring the other along and re-record with:
+#   pnpm run verify-translation-pairing --write .agents/notes/implemented/bug-fix/2026-08-19-win32-dialog-result-reader-fatal.md
+/agent-note-the-win32-folder-dialog-result-read-fatally-rejects-under-the-packaged-electron-runtime:
+  en: 02961ca06b9e5e5c
+  zh: 3fc1166a28772f15
+/agent-note-the-win32-folder-dialog-result-read-fatally-rejects-under-the-packaged-electron-runtime/problem:
+  en: 7f9fbbbb8c0283e1
+  zh: 7c6ed7f63a9a42c2
+/agent-note-the-win32-folder-dialog-result-read-fatally-rejects-under-the-packaged-electron-runtime/decision:
+  en: a8410a59310dd256
+  zh: 366a4050656e3ac2
+/agent-note-the-win32-folder-dialog-result-read-fatally-rejects-under-the-packaged-electron-runtime/alternatives-considered:
+  en: d808906b1b48f681
+  zh: 339f1b7d215331b9
+/agent-note-the-win32-folder-dialog-result-read-fatally-rejects-under-the-packaged-electron-runtime/consequences:
+  en: e2c3e1bcb1ba0dc7
+  zh: 83f6c1b01dedabbc

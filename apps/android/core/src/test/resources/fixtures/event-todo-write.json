@@ -1,0 +1,12 @@
+{
+  "todos": [
+    {
+      "content": "编译伴侣应用",
+      "status": "in_progress"
+    },
+    {
+      "content": "跑契约回放测试",
+      "status": "pending"
+    }
+  ]
+}

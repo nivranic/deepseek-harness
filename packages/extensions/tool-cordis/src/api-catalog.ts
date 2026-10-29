@@ -460,6 +460,29 @@ export const SERVICE_API: readonly ServiceApiEntry[] = [
     ],
   },
   {
+    key: 'artifacts',
+    summary: 'Durable artifact content channel — chapter 56\'s resource channel.',
+    description: 'Durable artifact content channel — chapter 56\'s resource channel. Journal events carry references only; the complete bytes of one artifact live here, keyed by the reference identity `artifact/created` minted.',
+    methods: [
+      {
+        signature: 'abstract put(id: ArtifactId, data: Uint8Array): Promise<void>',
+        description: 'Durably write one artifact\'s complete content bytes under its id.',
+        parameters: [{ name: 'id', description: 'the artifact reference identity from `artifact/created`.' }, { name: 'data', description: 'the complete content bytes.' }],
+      },
+      {
+        signature: 'abstract get(id: ArtifactId): Promise<Uint8Array | null>',
+        description: 'Read one artifact\'s content bytes back.',
+        parameters: [{ name: 'id', description: 'the artifact reference identity.' }],
+        returns: 'the stored bytes, or null when nothing is stored under the id.',
+      },
+      {
+        signature: 'abstract remove(id: ArtifactId): Promise<void>',
+        description: 'Remove one artifact\'s content bytes.',
+        parameters: [{ name: 'id', description: 'the artifact reference identity to delete.' }],
+      },
+    ],
+  },
+  {
     key: 'attachments',
     summary: 'Immutable binary attachment service.',
     description: 'Immutable binary attachment service. Implementations validate bytes before publishing a reference.',
@@ -634,7 +657,7 @@ export const SERVICE_API: readonly ServiceApiEntry[] = [
   {
     key: 'clientModules',
     summary: 'The web plugin table service: incremental `dsh.client` scan + wire composition + bundle and package-asset route + index injection rows.',
-    description: 'The web plugin table service: incremental `dsh.client` scan + wire composition + bundle and package-asset route + index injection rows. Construction runs the activation scan synchronously — a malformed declaration or missing bundle among the already-loaded entries aggregates into one loud throw (FAILED fiber; the boot activation audit reports it).',
+    description: 'The web plugin table service: incremental `dsh.client` scan + wire composition + bundle and package-asset route + index injection rows. The Web carrier is optional: a webless surface (the desktop app) reads graph, clientPath, and fetchBundle through its own carrier. Construction runs the activation scan synchronously — a malformed declaration or missing bundle among the already-loaded entries aggregates into one loud throw (FAILED fiber; the boot activation audit reports it).',
     methods: [
       {
         signature: 'graph(): WebBootGraph',
@@ -677,6 +700,29 @@ export const SERVICE_API: readonly ServiceApiEntry[] = [
         description: 'Fires after any flush that recomposed the graph (row added/removed, or a rebuilt rev change). Pull model: listeners re-read graph.',
         parameters: [{ name: 'listener', description: 'notified with no payload.' }],
         returns: 'the unsubscriber.',
+      },
+    ],
+  },
+  {
+    key: 'codeRuntime',
+    summary: 'Registers one `ctx.codeRuntime` implementation.',
+    description: 'Registers one `ctx.codeRuntime` implementation. Program, budget, abort, and substrate failures resolve in CodeRunResult; only Service Definition contract misuse rejects. Implementations bridge structured-cloneable bindings, materialize each declared namespace rejection class, treat programs as hostile peers, isolate runs from one another, and terminate and await in-flight runs during disposal.',
+    methods: [
+      {
+        signature: 'abstract readonly language: string',
+        description: 'The source language run expects `program` to be written in, as a lowercase identifier. Informational, not gating — a consumer that generates language-specific presentation (typed SDK stubs, usage instructions) switches on it and fails loud on a language it cannot present. Well-known values: `\'typescript\'` and `\'python\'`, those `dsh-tools` presents; only `\'typescript\'` has a published backend.',
+        parameters: [],
+      },
+      {
+        signature: 'abstract readonly isolation: string',
+        description: 'The execution substrate, as a lowercase identifier. Informational, not gating — a descriptor so deployments and diagnostics can tell backends apart, not a security claim. Well-known values: `\'worker-thread\'`, `\'process\'`, `\'container\'`.',
+        parameters: [],
+      },
+      {
+        signature: 'abstract run(request: CodeRunRequest): Promise<CodeRunResult>',
+        description: 'Execute one program against the request\'s bindings and capture what it emitted. See the class doc for the resolution contract (error is a result field; rejection means Service Definition contract misuse only).',
+        parameters: [{ name: 'request', description: 'the program, its bindings, and the abort signal; the request carries everything the runtime acts on, with no hidden defaults.' }],
+        returns: 'the run\'s outcome: completion value (when transferable), the ordered log capture, and the failure (if any).',
       },
     ],
   },
@@ -1116,6 +1162,75 @@ export const SERVICE_API: readonly ServiceApiEntry[] = [
         description: 'Prepare every currently registered field from one immutable base request. A provider whose preparation throws, or whose value cannot be cloned, is omitted from this request; the first such failure per field is logged. Only cancellation rejects. Field values are cloned and frozen; providers retain no mutable alias to the outgoing request.',
         parameters: [{ name: 'request', description: 'exact serialized request facts before extension fields.' }],
         returns: 'detached fields and their idempotent joint acceptance transaction.',
+      },
+    ],
+  },
+  {
+    key: 'desktopGateway',
+    summary: 'The desktop request target: the app shell hands every renderer fetch of its privileged scheme to DesktopGateway.handle and returns the answer unchanged.',
+    description: 'The desktop request target: the app shell hands every renderer fetch of its privileged scheme to DesktopGateway.handle and returns the answer unchanged.',
+    methods: [
+      {
+        signature: 'handle(request: Request): Promise<Response>',
+        description: 'Answer one renderer request carried by the desktop bridge.',
+        parameters: [{ name: 'request', description: 'the renderer\'s fetch request, unmodified.' }],
+        returns: 'the complete or streaming response.',
+      },
+    ],
+  },
+  {
+    key: 'deviceTrust',
+    summary: 'The Host\'s device trust store: stable Host identity, one-time pairing codes consumed atomically, and the device records the link carrier authorizes against.',
+    description: 'The Host\'s device trust store: stable Host identity, one-time pairing codes consumed atomically, and the device records the link carrier authorizes against.',
+    methods: [
+      {
+        signature: 'async hostIdentity(): Promise<HostIdentity>',
+        description: 'Resolve this store\'s stable Host identity, creating it on first use.',
+        parameters: [],
+        returns: 'the Host identity record.',
+      },
+      {
+        signature: 'async createPairing(ttlSeconds: number): Promise<PendingPairing>',
+        description: 'Issue one pairing code. The code is 256 random bits shown once (QR) and stored only as its SHA-256 digest, so a database read cannot mint credentials.',
+        parameters: [{ name: 'ttlSeconds', description: 'lifetime of the code, from issue to expiry.' }],
+        returns: 'the pending pairing to display to the device being paired.',
+      },
+      {
+        signature: 'async consumePairing( code: string, device: { readonly name: string; readonly publicKeySpki: string }, role: DeviceRole, ): Promise<PairedDevice>',
+        description: 'Consume one pairing code and register the device. Consumption is atomic: the code row is deleted first and a second consumer of the same code fails, whether the two calls race or follow one another.',
+        parameters: [{ name: 'code', description: 'pairing code from {@link DeviceTrustStore.createPairing}.' }, { name: 'device', description: 'user-chosen name and verified public key of the pairing device.' }, { name: 'role', description: 'authorization role granted to the device.' }],
+        returns: 'the durable device record just created.',
+        throws: ['{@link DeviceTrustError} when the code is unknown or expired.'],
+      },
+      {
+        signature: 'async device(deviceId: DeviceId): Promise<PairedDevice | undefined>',
+        description: 'Read one device record, including revoked ones.',
+        parameters: [{ name: 'deviceId', description: 'identity of the device to read.' }],
+        returns: 'the record, or `undefined` when no such device exists.',
+      },
+      {
+        signature: 'async devices(): Promise<readonly PairedDevice[]>',
+        description: 'List every device record, revoked ones included, oldest first.',
+        parameters: [],
+        returns: 'every device record in the store.',
+      },
+      {
+        signature: 'async revoke(deviceId: DeviceId): Promise<PairedDevice | undefined>',
+        description: 'Revoke one device. A revoked device keeps its record (audit) and loses authorization immediately; revoking twice is a no-op.',
+        parameters: [{ name: 'deviceId', description: 'identity of the device to revoke.' }],
+        returns: 'the device record after revocation, or `undefined` when unknown.',
+      },
+      {
+        signature: 'async touch(deviceId: DeviceId): Promise<void>',
+        description: 'Record that a trusted device just made an authorized request. Revoked devices are never touched, so re-pairing cannot resurrect `lastSeenAt`.',
+        parameters: [{ name: 'deviceId', description: 'identity of the device that was just authorized.' }],
+        returns: 'resolution after the write settles.',
+      },
+      {
+        signature: 'async close(): Promise<void>',
+        description: 'Close the database; every later primitive rejects. Idempotent.',
+        parameters: [],
+        returns: 'resolution after the medium is released.',
       },
     ],
   },
@@ -1736,6 +1851,19 @@ export const SERVICE_API: readonly ServiceApiEntry[] = [
     ],
   },
   {
+    key: 'invariants',
+    summary: 'Package-owned invariant registry with global and regex-based selection.',
+    description: 'Package-owned invariant registry with global and regex-based selection.',
+    methods: [
+      {
+        signature: 'register(packageName: string, installer: InvariantInstaller): () => void',
+        description: 'Register one package\'s invariant installer. The package name is reserved even when filtering disables its checks. Enabled installers run in a child fiber; failure disposes that fiber and releases the reservation.',
+        parameters: [{ name: 'packageName', description: 'full npm package name that owns the contribution.' }, { name: 'installer', description: 'listener or startup-check installer for the child context.' }],
+        returns: 'an effect-scoped disposer for the registration.',
+      },
+    ],
+  },
+  {
     key: 'jobController',
     summary: 'Host service backing the generated `ctx.remote.job` namespace.',
     description: 'Host service backing the generated `ctx.remote.job` namespace.',
@@ -1824,6 +1952,121 @@ export const SERVICE_API: readonly ServiceApiEntry[] = [
         returns: 'disposer that detaches this controller.',
       },
     ],
+  },
+  {
+    key: 'linkAccess',
+    summary: 'The native remote access carrier service: TLS listener, device authentication, remote endpoint authorization, and the pairing ingress over the existing gateway surface.',
+    description: 'The native remote access carrier service: TLS listener, device authentication, remote endpoint authorization, and the pairing ingress over the existing gateway surface.',
+    methods: [
+      {
+        signature: 'async endpoint(): Promise<string | undefined>',
+        description: 'The carrier endpoint the pairing QR carries.',
+        parameters: [],
+        returns: 'the bound `https://` endpoint, or `undefined` while stopped.',
+        throws: ['when a bind attempt failed and the carrier was not restarted.'],
+      },
+      {
+        signature: 'async spkiFingerprint(): Promise<string | undefined>',
+        description: 'The fingerprint devices pin when pairing with this host.',
+        parameters: [],
+        returns: 'lowercase hex SHA-256 of the host certificate\'s SPKI, or `undefined` while stopped.',
+        throws: ['when a bind attempt failed and the carrier was not restarted.'],
+      },
+      {
+        signature: 'async carrierStatus(): Promise<LinkCarrierStatus>',
+        description: 'Live carrier facts for a local administration surface: whether the TLS listener is bound, the endpoint and fingerprint while it is, and why the last bind attempt failed when one did.',
+        parameters: [],
+        returns: 'the current carrier status.',
+      },
+      {
+        signature: 'deviceName(): string',
+        description: 'The device-facing host name; the OS hostname until LinkAccessService.setDeviceName overrides it.',
+        parameters: [],
+        returns: 'the host name carried in pairing payloads and descriptions.',
+      },
+      {
+        signature: 'setDeviceName(name: string): void',
+        description: 'Override the device-facing host name shown to paired devices.',
+        parameters: [{ name: 'name', description: 'non-empty replacement name.' }],
+      },
+      {
+        signature: 'isRemoteApprovalAllowed(): boolean',
+        description: 'Whether answering remote approvals and questions is currently allowed.',
+        parameters: [],
+        returns: 'the live approval switch.',
+      },
+      {
+        signature: 'setAllowRemoteApproval(value: boolean): void',
+        description: 'Flip the independent remote-approval switch without touching the carrier.',
+        parameters: [{ name: 'value', description: 'whether paired controllers may answer interactions.' }],
+      },
+      {
+        signature: 'async setCarrierEnabled(enabled: boolean): Promise<void>',
+        description: 'Bind or unbind the TLS carrier at runtime. Operations serialize, so a rapid off/on sequence never double-binds; enabling an already-bound carrier and disabling a stopped one are both no-ops.',
+        parameters: [{ name: 'enabled', description: 'whether the carrier should be listening.' }],
+        throws: ['when a bind attempt fails; a later call may retry it.'],
+      },
+      {
+        signature: 'async createPairing(): Promise<LinkPairingPayload>',
+        description: 'Issue one pairing payload for the QR display: host identity, endpoint, certificate fingerprint, and a one-time short-lived code.',
+        parameters: [],
+        returns: 'the payload rendered into the pairing QR code.',
+        throws: ['when the carrier is stopped or its last bind attempt failed.'],
+      },
+      {
+        signature: 'async trustedDevices(): Promise<readonly PairedDevice[]>',
+        description: 'List every device record, revoked ones included.',
+        parameters: [],
+        returns: 'the trust store\'s device records.',
+      },
+      {
+        signature: 'async revokeDevice(deviceId: DeviceId): Promise<PairedDevice | undefined>',
+        description: 'Revoke one paired device; its next request is refused.',
+        parameters: [{ name: 'deviceId', description: 'identity of the device to revoke.' }],
+        returns: 'the device record after revocation, or `undefined` when unknown.',
+      },
+    ],
+  },
+  {
+    key: 'linkController',
+    summary: 'Host service backing the generated `ctx.remote.link` namespace.',
+    description: 'Host service backing the generated `ctx.remote.link` namespace. Every method reads the link-access carrier; a composition without the carrier fails each call with `link-unavailable` instead of failing at load.',
+    methods: [
+      {
+        signature: '@Remote async status(): Promise<LinkStatusValue>',
+        description: 'Report the live carrier and identity facts the settings page renders: listening state, LAN endpoint, certificate fingerprint, bind diagnostics, device-facing name, the approval switch, and the trusted-device count.',
+        parameters: [],
+        returns: 'the cross-device status row.',
+        throws: ['RemoteError when no link carrier is mounted.'],
+      },
+      {
+        signature: '@Remote async createPairing(): Promise<LinkPairingValue>',
+        description: 'Issue one pairing payload for the QR display: host identity, endpoint, certificate fingerprint, and a one-time short-lived code.',
+        parameters: [],
+        returns: 'the payload rendered into the pairing QR code.',
+        throws: ['RemoteError when no carrier is mounted or its carrier is stopped or failed to bind.'],
+      },
+      {
+        signature: '@Remote async devices(): Promise<LinkDeviceValue[]>',
+        description: 'List every trusted device, revoked ones included, for the device manager.',
+        parameters: [],
+        returns: 'one row per device record; the device public key never rides the wire.',
+        throws: ['RemoteError when no link carrier is mounted.'],
+      },
+      {
+        signature: '@Remote async revokeDevice(deviceId: string): Promise<LinkDeviceValue | undefined>',
+        description: 'Revoke one paired device; its next request is refused.',
+        parameters: [{ name: 'deviceId', description: 'identity of the device to revoke.' }],
+        returns: 'the device row after revocation, or `undefined` when unknown.',
+        throws: ['RemoteError when the id is empty or no link carrier is mounted.'],
+      },
+    ],
+  },
+  {
+    key: 'linkSettings',
+    summary: 'The remote settings bridge: applies the entry\'s live configuration to the link-access carrier on mount and after every settings-form write.',
+    description: 'The remote settings bridge: applies the entry\'s live configuration to the link-access carrier on mount and after every settings-form write.',
+    methods: [],
   },
   {
     key: 'liveshareShares',
@@ -2496,7 +2739,7 @@ export const SERVICE_API: readonly ServiceApiEntry[] = [
         signature: 'abstract confine(argv: readonly string[], policy: SandboxPolicy, signal?: AbortSignal): Promise<ConfinedArgv>',
         description: 'Wrap `argv` so it executes confined under `policy` on this host; the caller spawns the returned argv in place of its own.',
         parameters: [{ name: 'argv', description: 'the exact argv the caller is about to spawn (program plus arguments), NOT a shell string — a shell-shaped consumer passes `[\'bash\', \'-c\', command]`.' }, { name: 'policy', description: 'the file-effect policy this execution runs under, carried per call (see {@link SandboxPolicy}).' }, { name: 'signal', description: 'cancellation while the provider resolves the policy and runner.' }],
-        returns: 'the argv to spawn instead, plus the enforcement completeness the selected backend achieves for it.',
+        returns: 'the argv to spawn instead, any environment additions the runner\'s invocation requires, and the enforcement completeness the selected backend achieves for it.',
       },
     ],
   },
@@ -2676,10 +2919,22 @@ export const SERVICE_API: readonly ServiceApiEntry[] = [
         returns: 'acknowledgement that the Agent accepted the prompt.',
       },
       {
+        signature: '@Remote(\'handoff\') handoff(request: SessionHandoffRequest): Promise<SessionHandoffValue>',
+        description: 'Accept one Lite handoff: create the new full Session and queue the rendered snapshot brief as its first user message.',
+        parameters: [{ name: 'request', description: 'the snapshot the sending device packaged.' }],
+        returns: 'the new Session\'s identity.',
+      },
+      {
         signature: '@Remote(\'attachment\') attachment(request: SessionAttachmentRequest): Promise<SessionAttachmentValue>',
         description: 'Read one image from the attachment store after gateway authorization.',
         parameters: [{ name: 'request', description: 'image reference and gateway permission scope; Session existence is not checked.' }],
         returns: 'the durable attachment reference and base64-encoded bytes.',
+      },
+      {
+        signature: '@Remote(\'artifact\') artifact(request: SessionArtifactRequest): Promise<SessionArtifactValue>',
+        description: 'Read one artifact proven referenced by the addressed Session log.',
+        parameters: [{ name: 'request', description: 'Session and artifact identities used for authorization.' }],
+        returns: 'the journaled reference metadata and base64-encoded bytes.',
       },
       {
         signature: '@Remote(\'updateQueue\') updateQueue(request: SessionUpdateQueueRequest): Promise<SessionUpdateQueueValue>',
@@ -5484,6 +5739,10 @@ export const TYPE_API: readonly TypeApiEntry[] = [
     declaration: 'export interface ArchiveSessionOptions {\n    readonly stopActivity?: boolean;\n}',
   },
   {
+    name: 'ArtifactId',
+    declaration: 'export type ArtifactId = Branded<\'ArtifactId\'>;',
+  },
+  {
     name: 'AskOptions',
     declaration: 'export interface AskOptions {\n    options?: readonly string[];\n    header?: string;\n    multiSelect?: true;\n}',
   },
@@ -5716,6 +5975,34 @@ export const TYPE_API: readonly TypeApiEntry[] = [
     declaration: 'export interface ClientArtifactBaseline {\n    readonly path: string;\n    readonly mtimeMs: number;\n    readonly ctimeMs: number;\n    readonly size: number;\n}',
   },
   {
+    name: 'CodeBindingErrorClass',
+    declaration: 'export interface CodeBindingErrorClass {\n    name: string;\n    memberNameProperty: string;\n}',
+  },
+  {
+    name: 'CodeBindingFunction',
+    declaration: 'export type CodeBindingFunction = (args: unknown) => Promise<CodeJsonValue>;',
+  },
+  {
+    name: 'CodeBindingNamespace',
+    declaration: 'export interface CodeBindingNamespace {\n    global: string;\n    functions: Record<string, CodeBindingFunction>;\n    errorClass?: CodeBindingErrorClass;\n}',
+  },
+  {
+    name: 'CodeJsonValue',
+    declaration: 'export type CodeJsonValue = null | boolean | number | string | CodeJsonValue[] | {\n    [key: string]: CodeJsonValue;\n};',
+  },
+  {
+    name: 'CodeRunFailure',
+    declaration: 'export interface CodeRunFailure {\n    kind: \'exception\' | \'timeout\' | \'abort\' | \'worker-exit\' | \'invalid-output\' | \'output-limit\';\n    message: string;\n}',
+  },
+  {
+    name: 'CodeRunRequest',
+    declaration: 'export interface CodeRunRequest {\n    program: string;\n    bindings: CodeBindingNamespace[];\n    signal?: AbortSignal;\n}',
+  },
+  {
+    name: 'CodeRunResult',
+    declaration: 'export interface CodeRunResult {\n    value?: CodeJsonValue;\n    logs: string[];\n    error?: CodeRunFailure;\n}',
+  },
+  {
     name: 'CollectedOutput',
     declaration: 'export interface CollectedOutput {\n    text: string;\n    truncated: boolean;\n    spillPath?: string;\n}',
   },
@@ -5805,7 +6092,7 @@ export const TYPE_API: readonly TypeApiEntry[] = [
   },
   {
     name: 'ConfinedArgv',
-    declaration: 'export interface ConfinedArgv {\n    argv: string[];\n    enforcement: SandboxEnforcement;\n    denialSignatures: readonly string[];\n    runnerFailureRules: readonly RunnerFailureRule[];\n}',
+    declaration: 'export interface ConfinedArgv {\n    argv: string[];\n    env?: Readonly<Record<string, string>>;\n    enforcement: SandboxEnforcement;\n    denialSignatures: readonly string[];\n    runnerFailureRules: readonly RunnerFailureRule[];\n}',
   },
   {
     name: 'ConfinedSandboxMode',
@@ -6094,6 +6381,14 @@ export const TYPE_API: readonly TypeApiEntry[] = [
   {
     name: 'DeveloperMessage',
     declaration: 'export interface DeveloperMessage extends MessageBase {\n    readonly role: \'developer\';\n}',
+  },
+  {
+    name: 'DeviceId',
+    declaration: 'export type DeviceId = Branded<\'DeviceId\'>;',
+  },
+  {
+    name: 'DeviceRole',
+    declaration: 'export type DeviceRole = \'observer\' | \'controller\' | \'administrator\';',
   },
   {
     name: 'DiffCallView',
@@ -6528,6 +6823,14 @@ export const TYPE_API: readonly TypeApiEntry[] = [
     declaration: 'export interface HostConnectionRpc {\n    handle(channel: string, handler: ConnectionRpcHandler): () => Promise<void>;\n    intercept(channel: \'/api\', matches: ConnectionRpcEndpointMatcher, handler: ConnectionRpcHandler): () => Promise<void>;\n}',
   },
   {
+    name: 'HostIdentity',
+    declaration: 'export interface HostIdentity {\n    readonly hostId: string;\n}',
+  },
+  {
+    name: 'HostRuntimeInfo',
+    declaration: 'export interface HostRuntimeInfo {\n    node: string;\n    chrome: string | undefined;\n    electron: string | undefined;\n    os: string;\n}',
+  },
+  {
     name: 'ImageAttachmentLimits',
     declaration: 'export interface ImageAttachmentLimits {\n    maxImageBytes: number;\n    maxImagesPerMessage: number;\n    maxMessageImageBytes: number;\n    maxImagePixels: number;\n    maxImageDimension: number;\n    mediaTypes: readonly ImageMediaType[];\n}',
   },
@@ -6614,6 +6917,14 @@ export const TYPE_API: readonly TypeApiEntry[] = [
   {
     name: 'InvalidTimeZoneError',
     declaration: 'export interface InvalidTimeZoneError {\n    readonly code: \'invalid_time_zone\';\n    readonly message: string;\n}',
+  },
+  {
+    name: 'InvariantFailure',
+    declaration: 'export type InvariantFailure = (message: string) => never;',
+  },
+  {
+    name: 'InvariantInstaller',
+    declaration: 'export interface InvariantInstaller {\n    (ctx: Context, fail: InvariantFailure): void | Promise<void>;\n    readonly inject?: Inject;\n}',
   },
   {
     name: 'InvocationDescriptor',
@@ -6774,6 +7085,26 @@ export const TYPE_API: readonly TypeApiEntry[] = [
   {
     name: 'KvUnitDescriptor',
     declaration: 'export interface KvUnitDescriptor {\n    readonly name: string;\n    readonly version: number;\n    readonly tables: readonly string[];\n    readonly hasGlobal: boolean;\n    readonly layout?: \'single\' | \'per-record\';\n    readonly compatibleVersions?: readonly number[];\n}',
+  },
+  {
+    name: 'LinkCarrierStatus',
+    declaration: 'export interface LinkCarrierStatus {\n    readonly listening: boolean;\n    readonly endpoint?: string;\n    readonly spkiFingerprint?: string;\n    readonly bindError?: string;\n}',
+  },
+  {
+    name: 'LinkDeviceValue',
+    declaration: 'export interface LinkDeviceValue {\n    readonly deviceId: string;\n    readonly name: string;\n    readonly role: \'observer\' | \'controller\' | \'administrator\';\n    readonly createdAt: number;\n    readonly lastSeenAt?: number;\n    readonly revokedAt?: number;\n}',
+  },
+  {
+    name: 'LinkPairingPayload',
+    declaration: 'export interface LinkPairingPayload {\n    readonly v: 1;\n    readonly kind: \'dsh-link-pairing\';\n    readonly hostId: string;\n    readonly hostName: string;\n    readonly endpoint: string;\n    readonly spkiFingerprint: string;\n    readonly code: string;\n    readonly expiresAt: number;\n}',
+  },
+  {
+    name: 'LinkPairingValue',
+    declaration: 'export type LinkPairingValue = {\n    readonly v: 1;\n    readonly kind: \'dsh-link-pairing\';\n    readonly hostId: string;\n    readonly hostName: string;\n    readonly endpoint: string;\n    readonly spkiFingerprint: string;\n    readonly code: string;\n    readonly expiresAt: number;\n};',
+  },
+  {
+    name: 'LinkStatusValue',
+    declaration: 'export interface LinkStatusValue {\n    readonly listening: boolean;\n    readonly endpoint?: string;\n    readonly spkiFingerprint?: string;\n    readonly bindError?: string;\n    readonly hostName: string;\n    readonly allowRemoteApproval: boolean;\n    readonly deviceCount: number;\n}',
   },
   {
     name: 'ListVersionsOptions',
@@ -7280,6 +7611,10 @@ export const TYPE_API: readonly TypeApiEntry[] = [
     declaration: 'export interface PaidTranslationSpec extends TranslationSpecFields {\n    readonly provider: PaidTranslationProvider;\n    readonly sessionId: SessionId;\n}',
   },
   {
+    name: 'PairedDevice',
+    declaration: 'export interface PairedDevice {\n    readonly deviceId: DeviceId;\n    readonly name: string;\n    readonly publicKeySpki: string;\n    readonly role: DeviceRole;\n    readonly createdAt: number;\n    readonly lastSeenAt: number | undefined;\n    readonly revokedAt: number | undefined;\n}',
+  },
+  {
     name: 'PaneOpenArgs',
     declaration: 'export interface PaneOpenArgs {\n    id: string;\n    title?: string;\n    focus?: true;\n    closeOnEscape?: true;\n    holdToasts?: true;\n    rows?: number;\n    columns?: number;\n}',
   },
@@ -7302,6 +7637,10 @@ export const TYPE_API: readonly TypeApiEntry[] = [
   {
     name: 'PendingModule',
     declaration: 'export interface PendingModule {\n    url: string;\n    reason: \'host-module\' | \'unmanaged-plugin\' | \'module-comparison\';\n}',
+  },
+  {
+    name: 'PendingPairing',
+    declaration: 'export interface PendingPairing {\n    readonly code: string;\n    readonly expiresAt: number;\n}',
   },
   {
     name: 'PendingRemoteEventInfo',
@@ -8044,6 +8383,14 @@ export const TYPE_API: readonly TypeApiEntry[] = [
     declaration: 'export type SessionAddress = {\n    readonly kind: \'session\';\n    readonly sessionId: SessionId;\n} | {\n    readonly kind: \'subagent\';\n    readonly parentSessionId: SessionId;\n    readonly childSessionId: SessionId;\n    readonly mode: \'one-shot\' | \'continuable\' | \'unknown\';\n};',
   },
   {
+    name: 'SessionArtifactRequest',
+    declaration: 'export interface SessionArtifactRequest {\n    readonly sessionId: SessionId;\n    readonly artifactId: string;\n    readonly offset?: number;\n    readonly limit?: number;\n}',
+  },
+  {
+    name: 'SessionArtifactValue',
+    declaration: 'export interface SessionArtifactValue {\n    readonly id: string;\n    readonly kind: string;\n    readonly title: string;\n    readonly format: \'text\' | \'bytes\';\n    readonly data: string;\n    readonly truncated: boolean;\n    readonly size: number;\n}',
+  },
+  {
     name: 'SessionAssistantStreamAttempt',
     declaration: 'export interface SessionAssistantStreamAttempt {\n    readonly attemptId: LlmAttemptId;\n    readonly startedAfterSeq: SessionSeqCursor;\n    readonly turn: number;\n    readonly step: number;\n    readonly nextIndex: number;\n    readonly stream: readonly JsonValue[];\n}',
   },
@@ -8238,6 +8585,34 @@ export const TYPE_API: readonly TypeApiEntry[] = [
   {
     name: 'SessionHandleReadResult',
     declaration: 'export interface SessionHandleReadResult {\n    readonly eventState: SessionSeedEventState;\n    readonly events: readonly SessionEvent[];\n}',
+  },
+  {
+    name: 'SessionHandoffArtifactRef',
+    declaration: 'export interface SessionHandoffArtifactRef {\n    readonly id: string;\n    readonly kind: string;\n    readonly title: string;\n    readonly status: \'pending\' | \'ready\' | \'failed\';\n}',
+  },
+  {
+    name: 'SessionHandoffContextRow',
+    declaration: 'export interface SessionHandoffContextRow {\n    readonly role: \'user\' | \'assistant\';\n    readonly text: string;\n}',
+  },
+  {
+    name: 'SessionHandoffRequest',
+    declaration: 'export interface SessionHandoffRequest {\n    readonly snapshot: SessionHandoffSnapshot;\n}',
+  },
+  {
+    name: 'SessionHandoffSender',
+    declaration: 'export interface SessionHandoffSender {\n    readonly deviceId: string;\n    readonly platform: string;\n    readonly at: number;\n}',
+  },
+  {
+    name: 'SessionHandoffSnapshot',
+    declaration: 'export interface SessionHandoffSnapshot {\n    readonly sourceSessionId: string;\n    readonly sourceRuntime: \'lite\';\n    readonly requestedCapability: string;\n    readonly recentContext: readonly SessionHandoffContextRow[];\n    readonly planActive: boolean;\n    readonly todo: readonly SessionHandoffTodoRow[];\n    readonly artifactRefs: readonly SessionHandoffArtifactRef[];\n    readonly modelPreference?: string;\n    readonly sender: SessionHandoffSender;\n}',
+  },
+  {
+    name: 'SessionHandoffTodoRow',
+    declaration: 'export interface SessionHandoffTodoRow {\n    readonly content: string;\n    readonly status: string;\n}',
+  },
+  {
+    name: 'SessionHandoffValue',
+    declaration: 'export interface SessionHandoffValue {\n    readonly sessionId: SessionId;\n}',
   },
   {
     name: 'SessionHeader',
@@ -9741,7 +10116,7 @@ export const TYPE_API: readonly TypeApiEntry[] = [
   },
   {
     name: 'WebBootGraph',
-    declaration: 'export interface WebBootGraph {\n    rev: string;\n    release?: WebBootRelease;\n    entries: WebBootEntry[];\n    batches: WebBootBatch[];\n}',
+    declaration: 'export interface WebBootGraph {\n    rev: string;\n    release?: WebBootRelease;\n    entries: WebBootEntry[];\n    batches: WebBootBatch[];\n    version?: string;\n    runtime?: HostRuntimeInfo;\n}',
   },
   {
     name: 'WebBootRelease',

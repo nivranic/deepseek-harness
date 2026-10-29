@@ -1,0 +1,85 @@
+# Bilingual-pair consistency record for README.md (docs/i18n/README.md): per heading
+# section, a hash of its English and Chinese blocks outside code blocks and generated regions.
+# After editing either side, bring the other along and re-record with:
+#   pnpm run verify-translation-pairing --write packages/workflow/workflow-worker-thread/README.md
+/:
+  en: 7c5774f41105447e
+  zh: e8c7421cba2f867e
+/deepseek-ai-dsh-workflow-worker-thread:
+  en: 10b4847cad1a74cc
+  zh: f019cb35f69cfebd
+/deepseek-ai-dsh-workflow-worker-thread/summary:
+  en: e279ed34fb601303
+  zh: fac854db477cda04
+/deepseek-ai-dsh-workflow-worker-thread/table-of-contents:
+  en: d152484eb41ac6b4
+  zh: 09388d293f9be9cb
+/deepseek-ai-dsh-workflow-worker-thread/use-this-package:
+  en: 278e1bd4b5d5b1da
+  zh: 327cf0138ded9f8b
+/deepseek-ai-dsh-workflow-worker-thread/use-this-package/minimal-configuration:
+  en: dc6d5ae25690bfee
+  zh: 244172b1b7f8b03f
+/deepseek-ai-dsh-workflow-worker-thread/use-this-package/what-a-run-gives-you:
+  en: 00e521b4fd8b6b8f
+  zh: c4b8400f97b76fec
+/deepseek-ai-dsh-workflow-worker-thread/use-this-package/trust-expectations:
+  en: 1798e1edb2673cfb
+  zh: fcc2c179e07bd914
+/deepseek-ai-dsh-workflow-worker-thread/understand-the-implementation:
+  en: a94abec256cc943a
+  zh: 94d972af1b9abdac
+/deepseek-ai-dsh-workflow-worker-thread/understand-the-implementation/design-concept:
+  en: 6ec95692f5ec0485
+  zh: 188f337110a9b747
+/deepseek-ai-dsh-workflow-worker-thread/understand-the-implementation/source-map:
+  en: 51ec29d6c7cf5a4f
+  zh: 1be54a33f4c1bc8f
+/deepseek-ai-dsh-workflow-worker-thread/understand-the-implementation/run-sequence:
+  en: 0dbe80495e4e53f7
+  zh: 6cadd0f4ef19b1ae
+/deepseek-ai-dsh-workflow-worker-thread/understand-the-implementation/value-boundary:
+  en: 000f40d874edf8a0
+  zh: fe8daad2ec3d2c30
+/deepseek-ai-dsh-workflow-worker-thread/understand-the-implementation/cancellation-and-disposal:
+  en: 652c767aab2d80d6
+  zh: 1c9223fc975bab57
+/deepseek-ai-dsh-workflow-worker-thread/understand-the-implementation/outcome-and-event-guarantees:
+  en: a0c7b9d1ca9fa9bf
+  zh: c806d2df07aa8378
+/deepseek-ai-dsh-workflow-worker-thread/further-exploration:
+  en: 70df8ca1cde4e296
+  zh: 080c71fab894a68e
+/deepseek-ai-dsh-workflow-worker-thread/model-experience:
+  en: 215e7ba838619b7b
+  zh: a311da3843709f90
+/deepseek-ai-dsh-workflow-worker-thread/model-experience/child-agent-requests:
+  en: 8f3d45818caf7681
+  zh: 2b05d2b97bfa67da
+/deepseek-ai-dsh-workflow-worker-thread/model-experience/child-agent-requests/what-the-model-sees:
+  en: 207131ad9d942e73
+  zh: 482dc514468f6adf
+/deepseek-ai-dsh-workflow-worker-thread/model-experience/child-agent-requests/token-effect:
+  en: fbb1aff05d52916a
+  zh: 8b3a0b6e23122247
+/deepseek-ai-dsh-workflow-worker-thread/model-experience/child-agent-requests/kv-cache-effect:
+  en: 570d14fe68851690
+  zh: 8e570164957e489e
+/deepseek-ai-dsh-workflow-worker-thread/model-experience/parent-tool-result-indirectly:
+  en: 75d061c2151624a7
+  zh: 71e58e020b60ff90
+/deepseek-ai-dsh-workflow-worker-thread/model-experience/parent-tool-result-indirectly/what-the-model-sees:
+  en: d140f7516474a102
+  zh: 8b6a1947c795bcde
+/deepseek-ai-dsh-workflow-worker-thread/model-experience/parent-tool-result-indirectly/token-effect:
+  en: df0131331835aae5
+  zh: 8b25904a5737d1b7
+/deepseek-ai-dsh-workflow-worker-thread/model-experience/parent-tool-result-indirectly/kv-cache-effect:
+  en: f5d5f97a153f7c70
+  zh: 3d6bc05b9eadfbc2
+/deepseek-ai-dsh-workflow-worker-thread/known-limitations-and-deferred-work:
+  en: c617ee2eb2f65826
+  zh: dde4f2d48839062a
+/deepseek-ai-dsh-workflow-worker-thread/known-limitations-and-deferred-work/dev-note:
+  en: 30a2d12d51cc3107
+  zh: 3f5e4456ffb71dbf

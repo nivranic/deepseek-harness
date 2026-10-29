@@ -9,7 +9,7 @@ English | [中文](README.zh.md)
 
 ## Summary
 
-Browsers reach the web GUI over HTTP through `dsh-host-webserver`: a `node:http` server — `node:https` once `tls` names a certificate and key — where other plugins register named routes, upgrade routes, index startup inputs, and one fallback. It serves no files — the `/api` bridge, plugin bundles, the HMR event stream, and the SPA dist belong to the plugins that register them. Route matching is fixed: exact over the whole table, then longest prefix, then the fallback. It serves browsers only; Electron loads dist over `file://` and carries fetch over an IPC bridge.
+Browsers reach the web GUI over HTTP through `dsh-host-webserver`: a `node:http` server — `node:https` once `tls` names a certificate and key — where other plugins register named routes, upgrade routes, index startup inputs, and one fallback. It serves no files — the `/api` bridge, plugin bundles, the HMR event stream, and the SPA dist belong to the registering plugins. Route matching is fixed: exact, then longest prefix, then the fallback. It serves browsers only; the desktop surface binds no socket — its renderer fetches through the in-process [`dsh-host-electron-ipc`](../electron-ipc/README.md) bridge. This package never prints; the URL line belongs to the shell.
 
 ## Table of Contents
 

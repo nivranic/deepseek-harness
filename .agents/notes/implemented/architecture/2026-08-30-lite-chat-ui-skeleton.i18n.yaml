@@ -1,0 +1,19 @@
+# Bilingual-pair consistency record for 2026-08-30-lite-chat-ui-skeleton.md (docs/i18n/README.md): per heading
+# section, a hash of its English and Chinese blocks outside code blocks and generated regions.
+# After editing either side, bring the other along and re-record with:
+#   pnpm run verify-translation-pairing --write .agents/notes/implemented/architecture/2026-08-30-lite-chat-ui-skeleton.md
+/agent-note-lite-chat-ui-skeleton:
+  en: c1117e62a90f5512
+  zh: 149feef9b9ebb8fc
+/agent-note-lite-chat-ui-skeleton/problem:
+  en: beb2841a4c0ca673
+  zh: 5e653b9810ebf7a9
+/agent-note-lite-chat-ui-skeleton/decision:
+  en: f76815d641b19437
+  zh: f3dbaaaf96ff53f3
+/agent-note-lite-chat-ui-skeleton/consequences:
+  en: 932a7539ba16e732
+  zh: 7bdf21e162253bcf
+/agent-note-lite-chat-ui-skeleton/alternatives-considered:
+  en: 77526cf34a6bc774
+  zh: 05582c4464cf62fa

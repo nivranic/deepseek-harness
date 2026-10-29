@@ -97,7 +97,9 @@ export const VIEWER_ENDPOINT_CLASSES = {
   'job/kill': 'owner-only', // owner background jobs
   'job/list': 'owner-only', // owner background jobs
   'fileReferences/list': 'owner-only', // owner composer reference search
+  'session/artifact': 'owner-only', // owner reads one artifact of a Session; no reader role names it yet
   'session/create': 'owner-only', // owner creates a Session
+  'session/handoff': 'owner-only', // owner accepts a Lite handoff into a new full Session
   'session/initializeDefaultModel': 'owner-only', // owner initializes a Session default model
   'session/openWorkspacePath': 'owner-only', // owner opens a Workspace path
   'session/search': 'owner-only', // owner searches across Sessions
@@ -112,6 +114,12 @@ export const VIEWER_ENDPOINT_CLASSES = {
   'settings/openSettingsDocument': 'owner-only', // owner settings
   'settings/replace': 'owner-only', // owner settings
   'settings/update': 'owner-only', // owner settings
+  // Owner cross-device link administration stays on the owner's own settings page; the controller
+  // dispatches only through local carriers, and a paired device must never mint pairings or revoke peers.
+  'link/createPairing': 'owner-only', // owner one-time pairing QR payload
+  'link/devices': 'owner-only', // owner trusted-device listing
+  'link/revokeDevice': 'owner-only', // owner trusted-device revocation
+  'link/status': 'owner-only', // owner link carrier status
   'terminal/attach': 'owner-only', // owner terminals
   'terminal/close': 'owner-only', // owner terminals
   'terminal/create': 'owner-only', // owner terminals

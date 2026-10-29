@@ -1,0 +1,19 @@
+# Bilingual-pair consistency record for 2026-08-31-android-lite-persistence.md (docs/i18n/README.md): per heading
+# section, a hash of its English and Chinese blocks outside code blocks and generated regions.
+# After editing either side, bring the other along and re-record with:
+#   pnpm run verify-translation-pairing --write .agents/notes/implemented/architecture/2026-08-31-android-lite-persistence.md
+/agent-note-android-lite-persistence:
+  en: 61ab92ed6e3cd4a5
+  zh: 201f3cb5e72d54f8
+/agent-note-android-lite-persistence/problem:
+  en: b5a02232248ae3af
+  zh: 42f8f397883de8e8
+/agent-note-android-lite-persistence/decision:
+  en: dcc2432f250692c4
+  zh: 394582de5286b8f1
+/agent-note-android-lite-persistence/consequences:
+  en: 1bc941a80d34c489
+  zh: 546da26ec04a358d
+/agent-note-android-lite-persistence/alternatives-considered:
+  en: 01f33ad7933acd8b
+  zh: b5ec18a920f607b8

@@ -242,8 +242,8 @@ export interface Config {
 
 ## `@deepseek-ai/dsh-api-session-controller`
 
-- `inject`: `agentDefaultModel` · `agents` · `attachments` · `fileUploads` · `fs` · `llm` · `remoteAccess` · `sessions` · `sessionProjections` · `sessionQuery` · `typert` · `typertGateway` · `workspaceRegistry`
-- `source`: [`packages/api/session-controller/src/index.ts:110`](../packages/api/session-controller/src/index.ts)
+- `inject`: `agentDefaultModel` · `agents` · `artifacts` · `attachments` · `fileUploads` · `fs` · `llm` · `remoteAccess` · `sessions` · `sessionProjections` · `sessionQuery` · `typert` · `typertGateway` · `workspaceRegistry`
+- `source`: [`packages/api/session-controller/src/index.ts:114`](../packages/api/session-controller/src/index.ts)
 
 ```ts config-catalog
 /** Session Controller deployment policy. */
@@ -365,6 +365,24 @@ export interface Config {
 }
 ```
 <!-- END GENERATED config-catalog:@deepseek-ai/dsh-api-workspace-files -->
+
+<!-- BEGIN GENERATED config-catalog:@deepseek-ai/dsh-artifact-local -->
+<a id="deepseek-aidsh-artifact-local"></a>
+
+## `@deepseek-ai/dsh-artifact-local`
+
+- `source`: [`packages/artifact/artifact-local/src/index.ts:27`](../packages/artifact/artifact-local/src/index.ts)
+
+```ts config-catalog
+/** Local artifact backend configuration. */
+export interface Config {
+  /** Explicit harness home; omitted follows `DSH_HOME`, then `~/.dsh`. */
+  dshHome?: string
+  /** Days stored artifact bytes may age before the sweep removes them; omitted keeps every artifact forever. */
+  retentionDays?: number
+}
+```
+<!-- END GENERATED config-catalog:@deepseek-ai/dsh-artifact-local -->
 
 <!-- BEGIN GENERATED config-catalog:@deepseek-ai/dsh-attachment-local -->
 <a id="deepseek-aidsh-attachment-local"></a>
@@ -723,6 +741,45 @@ export interface Config {
 ```
 <!-- END GENERATED config-catalog:@deepseek-ai/dsh-client-ui-trajectory -->
 
+<!-- BEGIN GENERATED config-catalog:@deepseek-ai/dsh-code-runtime-worker-thread -->
+<a id="deepseek-aidsh-code-runtime-worker-thread"></a>
+
+## `@deepseek-ai/dsh-code-runtime-worker-thread`
+
+- `source`: [`packages/code-runtime/code-runtime-worker-thread/src/index.ts:25`](../packages/code-runtime/code-runtime-worker-thread/src/index.ts)
+
+```ts config-catalog
+/** Plugin config: every execution cap, changeable from `cordis.yml` (no hardcoded tunables). */
+export interface Config {
+  /**
+   * Busy-time budget in milliseconds: the run fails with kind `'timeout'`
+   * once the worker's MEASURED event-loop active time
+   * (`worker.performance.eventLoopUtilization()`) exceeds this. Metering
+   * measured busy time — not wall time, not host-side pending-call
+   * bookkeeping — is what makes the budget both fair (a program awaiting a
+   * slow tool accrues nothing) and ungameable (a hot loop accrues whether
+   * or not a decoy dispatch is in flight).
+   */
+  computeMs?: number
+  /**
+   * Wall-clock ceiling in milliseconds; never pauses for anything. The
+   * backstop for what busy-time cannot see (a program awaiting a promise
+   * nobody will resolve). At most `2_147_483_647` (Node's maximum
+   * `setTimeout` delay, about 24.9 days): a longer value is rejected at load
+   * because `setTimeout` would clamp it to 1 ms.
+   */
+  maxWallMs?: number
+  /**
+   * Hard cap for serialized log-array, completion-value, and failure-message payloads;
+   * fixed result-envelope syntax is excluded.
+   */
+  maxOutputBytes?: number
+  /** The worker's max old-generation heap in MiB (`resourceLimits`); overflow kills the worker, surfacing as kind `'worker-exit'`. */
+  maxOldGenerationSizeMb?: number
+}
+```
+<!-- END GENERATED config-catalog:@deepseek-ai/dsh-code-runtime-worker-thread -->
+
 <!-- BEGIN GENERATED config-catalog:@deepseek-ai/dsh-compaction-basic -->
 <a id="deepseek-aidsh-compaction-basic"></a>
 
@@ -874,6 +931,48 @@ export interface Config {
 }
 ```
 <!-- END GENERATED config-catalog:@deepseek-ai/dsh-deepseek-account-platform -->
+
+<!-- BEGIN GENERATED config-catalog:@deepseek-ai/dsh-desktop-app -->
+<a id="deepseek-aidsh-desktop-app"></a>
+
+## `@deepseek-ai/dsh-desktop-app`
+
+- `source`: [`packages/bundle/desktop-app/src/index.ts:33`](../packages/bundle/desktop-app/src/index.ts)
+
+```ts config-catalog
+/** Plugin config: the composed deployment settings. */
+export interface Config {
+  /**
+   * Register the model-visible surface context (the `app:desktop-surface`
+   * prompt section). A one-shot non-interactive layer can turn it off when
+   * its user is not in the window, so the orientation text would be false.
+   */
+  surfaceContext: boolean
+}
+```
+<!-- END GENERATED config-catalog:@deepseek-ai/dsh-desktop-app -->
+
+<!-- BEGIN GENERATED config-catalog:@deepseek-ai/dsh-device-trust -->
+<a id="deepseek-aidsh-device-trust"></a>
+
+## `@deepseek-ai/dsh-device-trust`
+
+- `source`: [`packages/remote/device-trust/src/index.ts:75`](../packages/remote/device-trust/src/index.ts)
+
+```ts config-catalog
+/** Plugin configuration. */
+export interface DeviceTrustConfig {
+  /**
+   * Filesystem path to the SQLite database file. The special value `:memory:`
+   * opens an in-process database (tests). Defaults to
+   * `<dshHome>/device-trust.sqlite`.
+   */
+  path?: string
+  /** Harness home used when `path` is omitted; defaults to `$DSH_HOME` or `~/.dsh`. */
+  dshHome?: string
+}
+```
+<!-- END GENERATED config-catalog:@deepseek-ai/dsh-device-trust -->
 
 <!-- BEGIN GENERATED config-catalog:@deepseek-ai/dsh-experimental-agent-team -->
 <a id="deepseek-aidsh-experimental-agent-team"></a>
@@ -1733,6 +1832,28 @@ export interface Config {
 ```
 <!-- END GENERATED config-catalog:@deepseek-ai/dsh-hooks-codex -->
 
+<!-- BEGIN GENERATED config-catalog:@deepseek-ai/dsh-host-directory-picker-auto -->
+<a id="deepseek-aidsh-host-directory-picker-auto"></a>
+
+## `@deepseek-ai/dsh-host-directory-picker-auto`
+
+- `inject`: `connection` · `loader`
+- `source`: [`packages/host/directory-picker-auto/src/index.ts:42`](../packages/host/directory-picker-auto/src/index.ts)
+
+```ts config-catalog
+/** Plugin config: the bind fact a webless composition declares directly. */
+export interface Config {
+  /**
+   * The effective bind host, declared by a composition that runs no
+   * webserver (the desktop app binds no socket and declares its loopback
+   * posture here). Absent on a served composition, where the webServer's
+   * bind is the fact.
+   */
+  bindHost?: '127.0.0.1' | '0.0.0.0'
+}
+```
+<!-- END GENERATED config-catalog:@deepseek-ai/dsh-host-directory-picker-auto -->
+
 <!-- BEGIN GENERATED config-catalog:@deepseek-ai/dsh-host-directory-picker-browse -->
 <a id="deepseek-aidsh-host-directory-picker-browse"></a>
 
@@ -1840,7 +1961,7 @@ export interface Config {
 
 ## `@deepseek-ai/dsh-host-webserver`
 
-- `source`: [`packages/host/webserver/src/index.ts:97`](../packages/host/webserver/src/index.ts)
+- `source`: [`packages/host/webserver/src/index.ts:102`](../packages/host/webserver/src/index.ts)
 
 ```ts config-catalog
 /** Web server listen, TLS, and response-compression config. */
@@ -1888,6 +2009,26 @@ export interface TlsConfig {
 ```
 <!-- END GENERATED config-catalog:@deepseek-ai/dsh-host-webserver -->
 
+<!-- BEGIN GENERATED config-catalog:@deepseek-ai/dsh-invariants -->
+<a id="deepseek-aidsh-invariants"></a>
+
+## `@deepseek-ai/dsh-invariants`
+
+- `source`: [`packages/runtime-diagnostics/invariants/src/index.ts:15`](../packages/runtime-diagnostics/invariants/src/index.ts)
+
+```ts config-catalog
+/** Runtime invariant selection configured on the service plugin. */
+export interface Config {
+  /** Global switch; defaults to `true`. */
+  readonly enabled?: boolean
+  /** Case-sensitive JavaScript regex sources that admit package names; empty admits all. */
+  readonly package_allowlist?: string[]
+  /** Case-sensitive JavaScript regex sources that exclude package names after allowlist matching. */
+  readonly package_blocklist?: string[]
+}
+```
+<!-- END GENERATED config-catalog:@deepseek-ai/dsh-invariants -->
+
 <!-- BEGIN GENERATED config-catalog:@deepseek-ai/dsh-jobs-local -->
 <a id="deepseek-aidsh-jobs-local"></a>
 
@@ -1916,6 +2057,85 @@ export interface Config {
 }
 ```
 <!-- END GENERATED config-catalog:@deepseek-ai/dsh-jobs-local -->
+
+<!-- BEGIN GENERATED config-catalog:@deepseek-ai/dsh-link-access -->
+<a id="deepseek-aidsh-link-access"></a>
+
+## `@deepseek-ai/dsh-link-access`
+
+- `inject`: `connection` · `typertGateway` · `deviceTrust`
+- `source`: [`packages/remote/link-access/src/index.ts:77`](../packages/remote/link-access/src/index.ts)
+
+```ts config-catalog
+/** Plugin configuration. */
+export interface LinkAccessConfig {
+  /** Bind the TLS carrier at load. Remote access stays off until this or the runtime switch enables it. */
+  enabled?: boolean
+  /**
+   * Bind address; `0.0.0.0` selects every interface and derives the pairing
+   * endpoint from the first non-internal IPv4 address.
+   */
+  host?: string
+  /** Bind port; `0` takes an OS-assigned port (tests). */
+  port?: number
+  /** Harness home owning the TLS material directory; defaults to `$DSH_HOME` or `~/.dsh`. */
+  dshHome?: string
+  /**
+   * The complete remote endpoint allowlist, replacing the default surface.
+   * Every row states its invocation kind and minimum device role.
+   */
+  endpoints?: LinkEndpointInput[]
+  /** Independent switch for answering remote approvals and questions; `Can prompt` never implies this. */
+  allowRemoteApproval?: boolean
+  /** Role granted to devices at pairing. Default `controller` (an ordinary phone). */
+  pairingRole?: 'observer' | 'controller'
+  /** Pairing code lifetime in seconds. */
+  pairingTtlSeconds?: number
+  /** Accepted request-timestamp skew in seconds. */
+  clockSkewSeconds?: number
+  /** Carrier cap for unary RPC bodies. */
+  maxRequestBodyBytes?: number
+}
+
+/** Configuration-facing allowlist row before resolution to {@link LinkEndpointAccess}. */
+export interface LinkEndpointInput {
+  /** Canonical `<namespace>/<method>` endpoint, or `$events` / `$events/result`. */
+  readonly endpoint: string
+  /** How the endpoint is invoked through the carrier. */
+  readonly kind: LinkEndpointKind
+  /** Minimum device role allowed to invoke the endpoint. */
+  readonly minRole: LinkMinimumRole
+}
+
+/** How a remote endpoint is invoked through the carrier. */
+export type LinkEndpointKind = 'unary' | 'stream'
+
+/** Roles a deployment may pin as an endpoint's minimum. */
+export type LinkMinimumRole = 'observer' | 'controller'
+```
+<!-- END GENERATED config-catalog:@deepseek-ai/dsh-link-access -->
+
+<!-- BEGIN GENERATED config-catalog:@deepseek-ai/dsh-link-settings -->
+<a id="deepseek-aidsh-link-settings"></a>
+
+## `@deepseek-ai/dsh-link-settings`
+
+- `inject`: `linkAccess`
+- `refs`: `Volatile` (`@deepseek-ai/cordis`)
+- `source`: [`packages/remote/link-settings/src/index.ts:36`](../packages/remote/link-settings/src/index.ts)
+
+```ts config-catalog
+/** The bridge's live configuration: the `remote` fields as volatile plugin config. */
+export interface LinkSettingsConfig {
+  /** Live listener switch. */
+  enabled: Volatile<boolean>
+  /** Live approval switch. */
+  allowRemoteApproval: Volatile<boolean>
+  /** Live device-facing host name. */
+  deviceName: Volatile<string>
+}
+```
+<!-- END GENERATED config-catalog:@deepseek-ai/dsh-link-settings -->
 
 <!-- BEGIN GENERATED config-catalog:@deepseek-ai/dsh-llm-deepseek-account -->
 <a id="deepseek-aidsh-llm-deepseek-account"></a>
@@ -2857,7 +3077,7 @@ export interface Config {
 
 ## `@deepseek-ai/dsh-sandbox-local`
 
-- `source`: [`packages/sandbox/sandbox-local/src/index.ts:45`](../packages/sandbox/sandbox-local/src/index.ts)
+- `source`: [`packages/sandbox/sandbox-local/src/index.ts:46`](../packages/sandbox/sandbox-local/src/index.ts)
 
 ```ts config-catalog
 /** Plugin config. All optional — `static Config` supplies the defaults. */
@@ -4762,6 +4982,37 @@ export interface Config {
 ```
 <!-- END GENERATED config-catalog:@deepseek-ai/dsh-workflow-ptc -->
 
+<!-- BEGIN GENERATED config-catalog:@deepseek-ai/dsh-workflow-worker-thread -->
+<a id="deepseek-aidsh-workflow-worker-thread"></a>
+
+## `@deepseek-ai/dsh-workflow-worker-thread`
+
+- `inject`: `subagents`
+- `source`: [`packages/workflow/workflow-worker-thread/src/index.ts:32`](../packages/workflow/workflow-worker-thread/src/index.ts)
+
+```ts config-catalog
+/** Plugin config (all optional — `static Config` supplies the defaults). */
+export interface Config {
+  /** The `ctx.subagents` provider children run on (default `spawn`). */
+  provider?: string
+  /** Concurrent `agent()` ceiling; `0` (the default) auto-resolves to `min(16, max(1, cores - 2))`. */
+  maxConcurrentAgents?: number
+  /** Total `agent()` calls one run may start — the runaway-loop backstop (default 1000). */
+  maxTotalAgents?: number
+  /** Items accepted by a single `parallel()`/`pipeline()` call (default 4096). */
+  maxItemsPerCall?: number
+  /** vm timeout for the script's initial synchronous slice, inside the worker (default 5000 ms). */
+  syncTimeoutMs?: number
+  /**
+   * How long after a cancellation an unsettled script may keep running before
+   * the run force-settles `cancelled` and its worker is TERMINATED (default
+   * 5000 ms); also bounds `dispose()`.
+   */
+  disposeGraceMs?: number
+}
+```
+<!-- END GENERATED config-catalog:@deepseek-ai/dsh-workflow-worker-thread -->
+
 <!-- BEGIN GENERATED config-catalog:@deepseek-ai/dsh-working-directory -->
 <a id="deepseek-aidsh-working-directory"></a>
 
@@ -4817,8 +5068,10 @@ These load from a `cordis.yml` entry with no `config:` block; they declare no co
 | `@deepseek-ai/dsh-acp-app` | `cmdlineArgs` | [`packages/bundle/acp-app/src/index.ts`](../packages/bundle/acp-app/src/index.ts) |
 | `@deepseek-ai/dsh-agent` | `sessionProjections` | [`packages/core/agent/src/index.ts`](../packages/core/agent/src/index.ts) |
 | `@deepseek-ai/dsh-api-account-controller` | `deepseekAccount` · `agents` | [`packages/api/account-controller/src/index.ts`](../packages/api/account-controller/src/index.ts) |
+| `@deepseek-ai/dsh-api-link-controller` | — | [`packages/api/link-controller/src/index.ts`](../packages/api/link-controller/src/index.ts) |
 | `@deepseek-ai/dsh-api-remote-access` | — | [`packages/api/remote-access/src/index.ts`](../packages/api/remote-access/src/index.ts) |
 | `@deepseek-ai/dsh-api-remotes` | `typertGateway` | [`packages/api/remotes/src/index.ts`](../packages/api/remotes/src/index.ts) |
+| `@deepseek-ai/dsh-artifact` | `tools` · `artifacts` | [`packages/artifact/artifact/src/index.ts`](../packages/artifact/artifact/src/index.ts) |
 | `@deepseek-ai/dsh-authorization` | `credentials` | [`packages/credentials/authorization/src/index.ts`](../packages/credentials/authorization/src/index.ts) |
 | `@deepseek-ai/dsh-browser-use` | — | [`packages/browser-use/browser-use/src/index.ts`](../packages/browser-use/browser-use/src/index.ts) |
 | `@deepseek-ai/dsh-client-file-upload` | `agents` · `attachments` · `commands` · `connection` | [`packages/client/file-upload/src/index.ts`](../packages/client/file-upload/src/index.ts) |
@@ -4835,7 +5088,9 @@ These load from a `cordis.yml` entry with no `config:` block; they declare no co
 | `@deepseek-ai/dsh-client-ui-conversation` | — | [`packages/client/ui-conversation/src/index.ts`](../packages/client/ui-conversation/src/index.ts) |
 | `@deepseek-ai/dsh-client-ui-cordis` | — | [`packages/extensions/ui-cordis/src/index.ts`](../packages/extensions/ui-cordis/src/index.ts) |
 | `@deepseek-ai/dsh-client-ui-creation-recommendations` | — | [`packages/experimental/client-ui-creation-recommendations/src/index.ts`](../packages/experimental/client-ui-creation-recommendations/src/index.ts) |
+| `@deepseek-ai/dsh-client-ui-deepseek-model-label-1017` | — | [`packages/client/ui-deepseek-model-label-1017/src/index.ts`](../packages/client/ui-deepseek-model-label-1017/src/index.ts) |
 | `@deepseek-ai/dsh-client-ui-deliverables` | `connection` · `sessionQuery` · `sessionController` · `workspaceFiles` · `fs` · `sandboxPolicy` · `workspaceChanges` | [`packages/client/ui-deliverables/src/index.ts`](../packages/client/ui-deliverables/src/index.ts) |
+| `@deepseek-ai/dsh-client-ui-desktop` | — | [`packages/client/ui-desktop/src/index.ts`](../packages/client/ui-desktop/src/index.ts) |
 | `@deepseek-ai/dsh-client-ui-directory-picker-browse` | — | [`packages/client/ui-directory-picker-browse/src/index.ts`](../packages/client/ui-directory-picker-browse/src/index.ts) |
 | `@deepseek-ai/dsh-client-ui-directory-picker-native` | — | [`packages/client/ui-directory-picker-native/src/index.ts`](../packages/client/ui-directory-picker-native/src/index.ts) |
 | `@deepseek-ai/dsh-client-ui-entry-customization` | — | [`packages/client/ui-entry-customization/src/index.ts`](../packages/client/ui-entry-customization/src/index.ts) |
@@ -4901,8 +5156,8 @@ These load from a `cordis.yml` entry with no `config:` block; they declare no co
 | `@deepseek-ai/dsh-fs-ssh` | `ssh` · `sandboxPolicy` | [`packages/ssh/fs-ssh/src/index.ts`](../packages/ssh/fs-ssh/src/index.ts) |
 | `@deepseek-ai/dsh-goal-round-driver` | `agents` · `goals` · `sessions` | [`packages/goal/goal-round-driver/src/index.ts`](../packages/goal/goal-round-driver/src/index.ts) |
 | `@deepseek-ai/dsh-harness-dev-context` | `systemPrompt` · `sessionProjections` · `webApp` | [`packages/context/harness-dev-context/src/index.ts`](../packages/context/harness-dev-context/src/index.ts) |
-| `@deepseek-ai/dsh-host-directory-picker-auto` | `webServer` · `connection` · `loader` | [`packages/host/directory-picker-auto/src/index.ts`](../packages/host/directory-picker-auto/src/index.ts) |
 | `@deepseek-ai/dsh-host-directory-picker-native` | — | [`packages/host/directory-picker-native/src/index.ts`](../packages/host/directory-picker-native/src/index.ts) |
+| `@deepseek-ai/dsh-host-electron-ipc` | `clientModules` · `connection` · `typertGateway` | [`packages/host/electron-ipc/src/index.ts`](../packages/host/electron-ipc/src/index.ts) |
 | `@deepseek-ai/dsh-host-plugin-inventory` | `loader` | [`packages/host/plugin-inventory/src/index.ts`](../packages/host/plugin-inventory/src/index.ts) |
 | `@deepseek-ai/dsh-llm` | — | [`packages/llm/llm/src/index.ts`](../packages/llm/llm/src/index.ts) |
 | `@deepseek-ai/dsh-lsp` | — | [`packages/lsp/lsp/src/index.ts`](../packages/lsp/lsp/src/index.ts) |
@@ -4942,6 +5197,7 @@ Abstract service classes — a deployment loads a concrete implementation packag
 | `package` | `class` | `inject` | `source` |
 | --- | --- | --- | --- |
 | `@deepseek-ai/dsh-attachment` | `AttachmentStore` | — | [`packages/attachment/attachment/src/index.ts`](../packages/attachment/attachment/src/index.ts) |
+| `@deepseek-ai/dsh-code-runtime` | `CodeRuntime` | — | [`packages/code-runtime/code-runtime/src/index.ts`](../packages/code-runtime/code-runtime/src/index.ts) |
 | `@deepseek-ai/dsh-compaction` | `CompactionEngine` | — | [`packages/compaction/compaction/src/index.ts`](../packages/compaction/compaction/src/index.ts) |
 | `@deepseek-ai/dsh-credentials` | `CredentialProvider` | — | [`packages/credentials/credentials/src/index.ts`](../packages/credentials/credentials/src/index.ts) |
 | `@deepseek-ai/dsh-deepseek-account` | `DeepSeekAccount` | — | [`packages/credentials/deepseek-account/src/index.ts`](../packages/credentials/deepseek-account/src/index.ts) |
@@ -4980,6 +5236,7 @@ Imported as libraries by other packages; a `cordis.yml` cannot load them.
 | `@deepseek-ai/dsh-client-ui-slots` | — | [`packages/client/ui-slots/src/index.ts`](../packages/client/ui-slots/src/index.ts) |
 | `@deepseek-ai/dsh-client-web` | — | [`packages/client/web/src/index.ts`](../packages/client/web/src/index.ts) |
 | `@deepseek-ai/dsh-cmdline` | — | [`packages/boot/cmdline/src/index.ts`](../packages/boot/cmdline/src/index.ts) |
+| `@deepseek-ai/dsh-code-runtime-python` | — | [`packages/code-runtime/code-runtime-python/src/index.ts`](../packages/code-runtime/code-runtime-python/src/index.ts) |
 | `@deepseek-ai/dsh-cua-bundle` | — | [`packages/experimental/cua-bundle/src/index.ts`](../packages/experimental/cua-bundle/src/index.ts) |
 | `@deepseek-ai/dsh-deque` | — | [`packages/util/deque/src/index.ts`](../packages/util/deque/src/index.ts) |
 | `@deepseek-ai/dsh-experimental-agent-team-profile` | — | [`packages/experimental/agent-team-profile/src/index.ts`](../packages/experimental/agent-team-profile/src/index.ts) |
@@ -5003,10 +5260,13 @@ Imported as libraries by other packages; a `cordis.yml` cannot load them.
 | `@deepseek-ai/dsh-http-proxy` | — | [`packages/util/http-proxy/src/index.ts`](../packages/util/http-proxy/src/index.ts) |
 | `@deepseek-ai/dsh-launch-environment` | — | [`packages/util/launch-environment/src/index.ts`](../packages/util/launch-environment/src/index.ts) |
 | `@deepseek-ai/dsh-lazy-require` | — | [`packages/util/lazy-require/src/index.ts`](../packages/util/lazy-require/src/index.ts) |
+| `@deepseek-ai/dsh-link-client` | — | [`packages/remote/link-client/src/index.ts`](../packages/remote/link-client/src/index.ts) |
+| `@deepseek-ai/dsh-link-contracts` | — | [`packages/remote/link-contracts/src/index.ts`](../packages/remote/link-contracts/src/index.ts) |
 | `@deepseek-ai/dsh-llm-deepseek` | — | [`packages/llm/llm-deepseek/src/index.ts`](../packages/llm/llm-deepseek/src/index.ts) |
 | `@deepseek-ai/dsh-llm-mock-server` | — | [`packages/test-support/llm-mock-server/src/index.ts`](../packages/test-support/llm-mock-server/src/index.ts) |
 | `@deepseek-ai/dsh-loader-smoke` | — | [`packages/test-support/loader-smoke/src/index.ts`](../packages/test-support/loader-smoke/src/index.ts) |
 | `@deepseek-ai/dsh-native-command` | — | [`packages/util/native-command/src/index.ts`](../packages/util/native-command/src/index.ts) |
+| `@deepseek-ai/dsh-node-spawn` | — | [`packages/util/node-spawn/src/index.ts`](../packages/util/node-spawn/src/index.ts) |
 | `@deepseek-ai/dsh-official-bundles` | — | [`packages/util/official-bundles/src/index.ts`](../packages/util/official-bundles/src/index.ts) |
 | `@deepseek-ai/dsh-output-retention` | — | [`packages/util/output-retention/src/index.ts`](../packages/util/output-retention/src/index.ts) |
 | `@deepseek-ai/dsh-package-manifest` | — | [`packages/util/package-manifest/src/index.ts`](../packages/util/package-manifest/src/index.ts) |

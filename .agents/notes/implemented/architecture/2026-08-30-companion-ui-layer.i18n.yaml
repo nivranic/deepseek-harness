@@ -1,0 +1,19 @@
+# Bilingual-pair consistency record for 2026-08-30-companion-ui-layer.md (docs/i18n/README.md): per heading
+# section, a hash of its English and Chinese blocks outside code blocks and generated regions.
+# After editing either side, bring the other along and re-record with:
+#   pnpm run verify-translation-pairing --write .agents/notes/implemented/architecture/2026-08-30-companion-ui-layer.md
+/agent-note-companionui-the-swiftui-application-layer:
+  en: fbf77e8228782963
+  zh: 6d7b7dc1a6d681b6
+/agent-note-companionui-the-swiftui-application-layer/problem:
+  en: 4e582eda92cace55
+  zh: ffdfd4c40d274d48
+/agent-note-companionui-the-swiftui-application-layer/decision:
+  en: 51d993c890796b39
+  zh: bf83af1defa09c9d
+/agent-note-companionui-the-swiftui-application-layer/consequences:
+  en: 5ef4b919763f1255
+  zh: 29c9afaeea7da082
+/agent-note-companionui-the-swiftui-application-layer/alternatives-considered:
+  en: 75e9721e4338997d
+  zh: e4a9062981f313e3

@@ -34,6 +34,7 @@ import {
 } from '@deepseek-ai/node-addon-system/landlock-run'
 import { Context } from '@deepseek-ai/cordis'
 import z from '@deepseek-ai/schemastery'
+import { nodeSpawnCommand, type NodeSpawnCommand } from '@deepseek-ai/dsh-node-spawn'
 import { SandboxProvider, SandboxUnavailableError, SandboxUnsupportedPolicyError, canonicalPath } from '@deepseek-ai/dsh-sandbox'
 import type { ConfinedArgv, ConfinedSandboxMode, RunnerFailureRule, SandboxEnforcement, SandboxPolicy } from '@deepseek-ai/dsh-sandbox'
 import type { SessionId } from '@deepseek-ai/dsh-session'
@@ -98,7 +99,11 @@ function defaultProbeSeatbelt(seatbeltExec: string, timeoutMs: number): boolean 
  * sole candidate, so the product never probes; the probe exists for override
  * chains and mirrors the other rungs' shape.
  */
-function defaultProbeWindowsAcl(runnerInvocation: string[], timeoutMs: number): boolean {
+function defaultProbeWindowsAcl(
+  runnerInvocation: string[],
+  runnerEnv: Readonly<Record<string, string>>,
+  timeoutMs: number,
+): boolean {
   const program = runnerInvocation[0]
   if (program === undefined) return false
   const probe = spawnSync(program, [
@@ -108,6 +113,7 @@ function defaultProbeWindowsAcl(runnerInvocation: string[], timeoutMs: number): 
   ], {
     timeout: timeoutMs,
     stdio: 'ignore',
+    env: { ...process.env, ...runnerEnv },
   })
   return probe.status === 0
 }
@@ -132,6 +138,8 @@ export interface SandboxInternals {
   windowsAclRunnerArgs?: string[]
   /** Replaces the resolved windows-acl runner built entry path (a fake lib/runner.js location). */
   windowsAclRunnerEntry?: string
+  /** Replaces the resolved plain-Node spawn facts (a fake Electron host for the env contract). */
+  nodeSpawn?: () => NodeSpawnCommand
   /** Replaces the functional windows-acl probe (the win32 chain's sole rung — only consulted if that chain ever grows). */
   probeWindowsAcl?: () => boolean
   /** Replaces the private-temp-directory removal at provider dispose (a throwing fake exercises the cleanup-failure path). */
@@ -318,9 +326,11 @@ export class LocalSandboxProvider extends SandboxProvider {
    * @param argv - the exact argv the caller is about to spawn.
    * @param policy - the file-effect policy this execution runs under.
    * @param signal - cancellation before policy resolution or grant creation.
-   * @returns the wrapped argv plus the selected backend's enforcement completeness, denial
-   *   signatures, and structured runner-failure rules; throws the fail-closed
-   *   `SANDBOX_UNAVAILABLE` error when the platform has no usable runner.
+   * @returns the wrapped argv, any environment additions the runner's own
+   *   invocation requires, plus the selected backend's enforcement
+   *   completeness, denial signatures, and structured runner-failure rules;
+   *   throws the fail-closed `SANDBOX_UNAVAILABLE` error when the platform
+   *   has no usable runner.
    */
   async confine(argv: readonly string[], policy: SandboxPolicy, signal?: AbortSignal): Promise<ConfinedArgv> {
     signal?.throwIfAborted()
@@ -335,12 +345,25 @@ export class LocalSandboxProvider extends SandboxProvider {
     }
     const selected = this.selectRunner(policy.mode)
     const runnerArgv = this.runnerArgv(selected.runner, policy)
+    const runnerEnv = this.runnerEnv(selected.runner)
     return Promise.resolve<ConfinedArgv>({
       argv: [...runnerArgv, '--', ...argv],
+      ...runnerEnv === undefined ? {} : { env: runnerEnv },
       enforcement: selected.enforcement,
       denialSignatures: DENIAL_SIGNATURES[selected.runner],
       runnerFailureRules: RUNNER_FAILURE_RULES[selected.runner],
     })
+  }
+
+  /**
+   * The selected rung's runner environment additions: the windows-acl runner
+   * reuses the host process's binary as its Node runtime, so its plain-Node
+   * spawn facts (under the Electron desktop exe: `ELECTRON_RUN_AS_NODE`)
+   * ride on every wrap. Every other rung invokes a plain executable and
+   * contributes nothing.
+   */
+  private runnerEnv(runner: SelectedRunner['runner']): Readonly<Record<string, string>> | undefined {
+    return runner === 'windows-acl' ? this.windowsAclRunnerEnv() : undefined
   }
 
   /** The selected rung's runner invocation (program + profile arguments) for one policy. */
@@ -546,7 +569,7 @@ export class LocalSandboxProvider extends SandboxProvider {
       }
       case 'windows-acl': {
         const probe = this.internals.probeWindowsAcl
-          ?? (() => defaultProbeWindowsAcl(this.windowsAclRunnerInvocation(), this.probeTimeoutMs))
+          ?? (() => defaultProbeWindowsAcl(this.windowsAclRunnerInvocation(), this.windowsAclRunnerEnv(), this.probeTimeoutMs))
         return probe() ? 'partial' : 'unusable'
       }
       default: return assertNever(runner)
@@ -569,17 +592,37 @@ export class LocalSandboxProvider extends SandboxProvider {
    * Pin the source loader and TypeScript paths to this installation, independently
    * of target cwd or environment overrides.
    * The prefix stays `[node, runner, ...]` — a future native-exe runner keeps
-   * the same argv contract and only swaps these entries.
+   * the same argv contract and only swaps these entries. The executable is
+   * the host process itself re-run as plain Node (see
+   * {@link windowsAclRunnerEnv}).
    */
   private windowsAclRunnerInvocation(): string[] {
     const override = this.internals.windowsAclRunnerArgs
     if (override !== undefined) return override
+    const { command } = this.nodeSpawn()
     const builtEntry = this.internals.windowsAclRunnerEntry ?? fileURLToPath(import.meta.resolve('@deepseek-ai/dsh-sandbox-windows-acl/runner'))
-    if (existsSync(builtEntry)) return [process.execPath, builtEntry]
+    if (existsSync(builtEntry)) return [command, builtEntry]
     const sourceEntry = fileURLToPath(import.meta.resolve('@deepseek-ai/dsh-sandbox-windows-acl/src/runner.ts'))
     const sourceConfig = fileURLToPath(new URL('../../../../tsconfig.base.json', import.meta.url))
     const registration = `import { register } from ${JSON.stringify(import.meta.resolve('tsx/esm/api'))}; register({ tsconfig: ${JSON.stringify(sourceConfig)} });`
-    return [process.execPath, '--import', `data:text/javascript,${encodeURIComponent(registration)}`, sourceEntry]
+    return [command, '--import', `data:text/javascript,${encodeURIComponent(registration)}`, sourceEntry]
+  }
+
+  /**
+   * The windows-acl runner's environment additions: the plain-Node spawn
+   * facts of the host process (under the Electron desktop exe:
+   * `ELECTRON_RUN_AS_NODE`, without which the executable boots the whole app
+   * instead of the runner). An argv override carries its own complete
+   * invocation and contributes nothing.
+   */
+  private windowsAclRunnerEnv(): Readonly<Record<string, string>> {
+    if (this.internals.windowsAclRunnerArgs !== undefined) return {}
+    return this.nodeSpawn().env
+  }
+
+  /** The resolved plain-Node spawn facts for the host process. */
+  private nodeSpawn(): NodeSpawnCommand {
+    return this.internals.nodeSpawn?.() ?? nodeSpawnCommand()
   }
 }
 

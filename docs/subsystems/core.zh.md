@@ -875,6 +875,26 @@ Types: [Session](session.zh.md)
 
 Source: [`packages/core/agent/src/index.ts`](../../packages/core/agent/src/index.ts)
 
+<a id="ctxinvariants--invariantregistry"></a>
+
+### `ctx.invariants` — `InvariantRegistry`
+
+Package-owned invariant registry with global and regex-based selection.
+
+```ts cordis-catalog
+/**
+ * Register one package's invariant installer. The package name is reserved
+ * even when filtering disables its checks. Enabled installers run in a child
+ * fiber; failure disposes that fiber and releases the reservation.
+ * @param packageName - full npm package name that owns the contribution.
+ * @param installer - listener or startup-check installer for the child context.
+ * @returns an effect-scoped disposer for the registration.
+ */
+register(packageName: string, installer: InvariantInstaller): () => void
+```
+
+Source: [`packages/runtime-diagnostics/invariants/src/index.ts`](../../packages/runtime-diagnostics/invariants/src/index.ts)
+
 <a id="agent-events"></a>
 
 ### `agent/*` events

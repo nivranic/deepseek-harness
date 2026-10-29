@@ -1,0 +1,19 @@
+# Bilingual-pair consistency record for 2026-08-31-relay-streaming-delivery.md (docs/i18n/README.md): per heading
+# section, a hash of its English and Chinese blocks outside code blocks and generated regions.
+# After editing either side, bring the other along and re-record with:
+#   pnpm run verify-translation-pairing --write .agents/notes/implemented/architecture/2026-08-31-relay-streaming-delivery.md
+/agent-note-relay-streaming-delivery:
+  en: 768bbcf3b7ac4c28
+  zh: 4a11aa5fe00b9a69
+/agent-note-relay-streaming-delivery/problem:
+  en: 5ae1addf941033c8
+  zh: 2c92a8a16bb955b7
+/agent-note-relay-streaming-delivery/decision:
+  en: 4ed1a42f9774d53a
+  zh: 47cd903e0806df66
+/agent-note-relay-streaming-delivery/consequences:
+  en: 5aa7c5a6223a8830
+  zh: a6aacc1d3db9a44e
+/agent-note-relay-streaming-delivery/alternatives-considered:
+  en: 13532b0b0726ee54
+  zh: 532083f388c52af3

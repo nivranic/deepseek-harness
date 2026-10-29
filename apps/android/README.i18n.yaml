@@ -1,0 +1,19 @@
+# Bilingual-pair consistency record for README.md (docs/i18n/README.md): per heading
+# section, a hash of its English and Chinese blocks outside code blocks and generated regions.
+# After editing either side, bring the other along and re-record with:
+#   pnpm run verify-translation-pairing --write apps/android/README.md
+/dsh-android-companion:
+  en: ca22b25ea10902c6
+  zh: f74392680dd519cb
+/dsh-android-companion/layout:
+  en: c953ac659a4e935e
+  zh: 3287c20b6b3e344e
+/dsh-android-companion/building-and-testing:
+  en: ace4f0dbf5edc85b
+  zh: ad671ac7852aaca4
+/dsh-android-companion/known-limitations-and-deferred-work:
+  en: 67cd2bc926874fea
+  zh: 7343d40d2e9001ec
+/dsh-android-companion/known-limitations-and-deferred-work/dev-note:
+  en: e67f633dc6fe7773
+  zh: 3bb0c20c93f16f98

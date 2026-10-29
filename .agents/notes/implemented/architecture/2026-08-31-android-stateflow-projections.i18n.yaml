@@ -1,0 +1,19 @@
+# Bilingual-pair consistency record for 2026-08-31-android-stateflow-projections.md (docs/i18n/README.md): per heading
+# section, a hash of its English and Chinese blocks outside code blocks and generated regions.
+# After editing either side, bring the other along and re-record with:
+#   pnpm run verify-translation-pairing --write .agents/notes/implemented/architecture/2026-08-31-android-stateflow-projections.md
+/agent-note-observable-state-projections-in-the-android-models:
+  en: dde3df88bf3edccb
+  zh: 3bf1f1d143d30a17
+/agent-note-observable-state-projections-in-the-android-models/problem:
+  en: ced4d37ee83b5ebc
+  zh: e0904a66dbe4f2fb
+/agent-note-observable-state-projections-in-the-android-models/decision:
+  en: fe65e3347f821f05
+  zh: f50cdcb6ea43c216
+/agent-note-observable-state-projections-in-the-android-models/consequences:
+  en: fa0a2c341ffdbec7
+  zh: 6aa117dbfaa4bc47
+/agent-note-observable-state-projections-in-the-android-models/alternatives-considered:
+  en: 7c7967eb52e9eee8
+  zh: 54e2a52e5144906a

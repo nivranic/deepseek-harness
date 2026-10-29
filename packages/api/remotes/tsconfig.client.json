@@ -82,6 +82,9 @@
       "path": "../session-controller/tsconfig.client.json"
     },
     {
+      "path": "../link-controller"
+    },
+    {
       "path": "../workspace-files/tsconfig.client.json"
     },
     {

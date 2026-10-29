@@ -1,0 +1,19 @@
+# Bilingual-pair consistency record for 2026-08-31-android-apple-artifact-pane.md (docs/i18n/README.md): per heading
+# section, a hash of its English and Chinese blocks outside code blocks and generated regions.
+# After editing either side, bring the other along and re-record with:
+#   pnpm run verify-translation-pairing --write .agents/notes/implemented/architecture/2026-08-31-android-apple-artifact-pane.md
+/agent-note-the-read-only-artifacts-pane-on-android-and-apple:
+  en: ca2a17e501bfd64c
+  zh: 4216887f7fe29051
+/agent-note-the-read-only-artifacts-pane-on-android-and-apple/problem:
+  en: 30608eab1d9d9f55
+  zh: e9efc72aa5a1ec4b
+/agent-note-the-read-only-artifacts-pane-on-android-and-apple/decision:
+  en: e8fbe82ee90f024c
+  zh: 400ba8c8fc1cd9e9
+/agent-note-the-read-only-artifacts-pane-on-android-and-apple/consequences:
+  en: af16bb315c151b06
+  zh: 812adf64a5d29d0d
+/agent-note-the-read-only-artifacts-pane-on-android-and-apple/alternatives-considered:
+  en: dd83e41d6a3f2a6d
+  zh: d54a29f5454cefe3

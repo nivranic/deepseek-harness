@@ -87,6 +87,13 @@ export function assertServiceableBashConfig(config: Config): void {
   }
 }
 
+/** An exact argv plus environment additions its confining runner's own invocation requires. */
+export interface PreparedArgv {
+  argv: readonly string[]
+  /** Environment additions merged over the spec's environment (the wrapped argv's spawn facts). */
+  runnerEnv?: Readonly<Record<string, string>>
+}
+
 /**
  * Local bash executor over `ctx.subprocess`. Bounded output, spill files,
  * managed-range SIGTERM→SIGKILL escalation, and quiescence are the subprocess
@@ -153,6 +160,7 @@ export class LocalBashExecutor extends ShellExecutor {
     argv: readonly string[],
     stdoutMaxBytes: number,
     signal: AbortSignal | undefined,
+    runnerEnv?: Readonly<Record<string, string>>,
   ): SubprocessSpawnSpec {
     const collect = (maxBytes: number): SubprocessCollect =>
       ({ maxBytes, spill: { maxBytes: this.config.maxSpillBytes.get() } })
@@ -168,8 +176,10 @@ export class LocalBashExecutor extends ShellExecutor {
       signal,
       // One explicit env map for the seam, layered so the trusted dshEnv
       // snapshot beats both the caller's env and the terminal overrides; the
-      // subprocess service merges the whole map after its ambient scrub.
-      env: { ...ENV_OVERRIDES, ...spec.env, ...spec.dshEnv },
+      // subprocess service merges the whole map after its ambient scrub. A
+      // confining runner's own invocation preconditions (the argv's spawn
+      // facts) merge LAST, above all environment content.
+      env: { ...ENV_OVERRIDES, ...spec.env, ...spec.dshEnv, ...runnerEnv },
     }
   }
 
@@ -193,14 +203,16 @@ export class LocalBashExecutor extends ShellExecutor {
    * deadline, and cancellation semantics of this executor. Subclasses use this
    * after replacing the public command's shell argv at an execution boundary.
    * @param spec - resolved execution settings and caller-owned command metadata.
-   * @param argvOrPrepare - exact argv, or preparation using the execution cancellation signal.
+   * @param argvOrPrepare - exact argv, or preparation using the execution
+   *   cancellation signal; a preparation may return a {@link PreparedArgv}
+   *   whose environment additions ride on the spawn.
    * @param onStarted - installs provider facts synchronously before the handle can settle.
    * @returns the live execution handle; spawn rejection settles the handle as
    *   killed while `result()` carries the same failure as its rejection.
    */
   protected async executeArgv(
     spec: ShellExecSpec,
-    argvOrPrepare: readonly string[] | ((signal: AbortSignal) => Promise<readonly string[]>),
+    argvOrPrepare: readonly string[] | ((signal: AbortSignal) => Promise<readonly string[] | PreparedArgv>),
     onStarted?: (process: ShellExecution) => void,
   ): Promise<ShellExecution> {
     // Deadline wiring by expiry policy. Each arm supplies the spawn signal,
@@ -227,6 +239,7 @@ export class LocalBashExecutor extends ShellExecutor {
     }
 
     let argv: readonly string[] = []
+    let runnerEnv: Readonly<Record<string, string>> | undefined
     let preparationTimedOut = false
     if (typeof argvOrPrepare === 'function') {
       const signal = spawnSignal ?? new AbortController().signal
@@ -234,11 +247,13 @@ export class LocalBashExecutor extends ShellExecutor {
       const abort = (): void => { cancelled.reject(signal.reason) }
       signal.addEventListener('abort', abort, { once: true })
       try {
-        argv = await Promise.race([
+        const prepared = await Promise.race([
           Promise.resolve().then(() => { signal.throwIfAborted(); return argvOrPrepare(signal) }),
           cancelled.promise,
         ])
         signal.throwIfAborted()
+        argv = 'argv' in prepared ? prepared.argv : prepared
+        runnerEnv = 'argv' in prepared ? prepared.runnerEnv : undefined
       } catch (error) {
         if (!classify().timedOut) {
           disarm()
@@ -256,7 +271,7 @@ export class LocalBashExecutor extends ShellExecutor {
     let syncSpawnError: { error: unknown } | undefined
     try {
       if (!preparationTimedOut) {
-        running = this.ctx.subprocess.spawn(this.spawnSpec(spec, argv, spec.stdoutMaxBytes, spawnSignal))
+        running = this.ctx.subprocess.spawn(this.spawnSpec(spec, argv, spec.stdoutMaxBytes, spawnSignal, runnerEnv))
       }
     } catch (error) {
       syncSpawnError = { error }

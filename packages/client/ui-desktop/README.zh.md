@@ -1,0 +1,67 @@
+---
+description: "桌面偏好设置：窗口关闭行为、开机自启与跨设备访问（开关、设备名、配对二维码、受信设备）的 General 设置行。"
+kind: "package-reference"
+---
+
+# dsh-client-ui-desktop
+
+[English](README.md) | 中文
+
+<a id="summary"></a>
+## 概述
+
+桌面表面偏好：通用设置里的两行——决定点击窗口关闭按钮后的行为（缩小到系统托盘，默认；或直接退出），以及是否随操作系统登录自启（在托盘静默启动，默认关闭）。跨设备各行驱动远程访问：启用跨设备访问、允许远程审批与设备名绑定 `link-settings` 条目配置；受信设备块调用 `link` Remote 命名空间——实时 LAN 状态、配对二维码与逐设备吊销。本包为双面结构：宿主半声明 `ui-desktop` 条目的易变配置；浏览器半经共享 config-form 服务渲染这些设置行。
+
+
+## 目录
+
+- [概述](#summary)
+- [组合即表面之门](#composition-is-the-surface-gate)
+- [壳如何消费](#what-the-shell-does-with-it)
+- [行缺席时](#when-a-row-is-absent)
+- [Model Experience](#model-experience)
+- [Known Limitations and Deferred Work](#known-limitations-and-deferred-work)
+- [开发备注](#dev-note)
+
+<a id="composition-is-the-surface-gate"></a>
+## 组合即表面之门
+
+只有桌面 bundle 组合这两行。Web 花名册从不引用本包，因此 Web 表面既看不到这些设置行，也没有 `ui-desktop` 配置节——表面专属性强依赖花名册，绝不依赖运行时事实：`appInfo` 按契约仅作展示，而条目未组合之处，settings describe 本就无从报告。
+
+<a id="what-the-shell-does-with-it"></a>
+## 壳如何消费
+
+Electron 应用壳（[`apps/desktop-user`](../../../apps/desktop-user)）在关闭按钮按下时经 settings 服务读取该配置节，设置行里的改动对下一次按下立即生效。`tray` 先建好托盘入口（透明 PNG 素材，缩放到托盘的物理槽位）再隐藏窗口；`quit` 走正常的有界关闭拆除。节不可读（树仍在启动，或花名册漂移）时回退到 `tray`——schema 默认值——窗口保持可关而不是被搁置，并留下一次日志报告。托盘建不起来（含素材缺失）时直接真实关闭：一个隐藏后无从唤回的窗口永远不可接受。托盘关闭既是默认，壳就以单实例运行：再次启动唤出隐藏窗口，而不是叠起第二棵树。
+
+`launchAtLogin` 拥有操作系统的登录自启项：壳在树首次可服务设置时、以及此后每次设置提交时，把它同步进系统自启注册表，拨动开关在下一次登录前即已落地。自启项以 `--hidden` 启动应用：窗口全程保持托盘态，整棵树在隐藏状态完成启动——之后唤出（点托盘或桌面快捷方式）即刻可用，不再支付冷启动成本。默认关闭：登录时的常驻开销由用户主动选择，不是我们的默认。
+
+<a id="when-a-row-is-absent"></a>
+## 行缺席时
+
+表单加载中、尚未接受、或未暴露给此客户端时，这些行不渲染——与所有 config-form 行相同的降级。只读的设置文档会禁用选项，而不是隐藏整行。
+
+<a id="dev-note"></a>
+## 开发备注
+
+<details>
+<summary>维护者的工作上下文——点击展开</summary>
+
+托盘与登录条目的实现位于 Electron 应用壳（`apps/desktop-user`）；本包只拥有条目配置与设置行。
+
+</details>
+
+<a id="model-experience"></a>
+## Model Experience
+
+无：本包只贡献窗口 chrome 偏好；这里没有任何东西到达模型请求。
+
+#### KV Cache effect
+
+无；本包既不组装也不发送供应商请求。
+
+## Known Limitations and Deferred Work
+
+<a id="known-limitations-and-deferred-work"></a>
+
+- **非 Windows 桌面构建保持"关闭即退出"、且无登录自启** —— 壳只在 Windows 上实现并验证托盘与登录项路径；其他桌面目标需要各自的壳侧接入后 `tray` 与 `launchAtLogin` 才能在那里兑现契约。
+- **托盘与气泡文案跟随操作系统语言** —— 托盘活在 Web 表面及其 locale 服务之外，壳按 OS 语言在 zh/en 间选择。

@@ -1,0 +1,54 @@
+{
+  "extends": "../../../tsconfig.base.json",
+  "compilerOptions": {
+    "rootDir": "src",
+    "outDir": "lib/types"
+  },
+  "include": [
+    "src"
+  ],
+  "references": [
+    {
+      "path": "../../../vendor/cordis"
+    },
+    {
+      "path": "../../api/link-controller"
+    },
+    {
+      "path": "../../api/workspace-controller/tsconfig.host.json"
+    },
+    {
+      "path": "../../artifact/artifact"
+    },
+    {
+      "path": "../../core/session"
+    },
+    {
+      "path": "../../goal/goal"
+    },
+    {
+      "path": "../../llm/llm"
+    },
+    {
+      "path": "../../plan/plan-mode"
+    },
+    {
+      "path": "../../remote/link-access"
+    },
+    {
+      "path": "../../runtime-diagnostics/invariants"
+    },
+    {
+      "path": "../../subagent/subagent"
+    },
+    {
+      "path": "../../todo/tool-todo"
+    },
+    {
+      "path": "../../api/session-controller/tsconfig.host.json"
+    },
+    {
+      "path": "../../attachment/attachment"
+    }
+  ]
+}

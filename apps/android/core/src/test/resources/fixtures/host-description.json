@@ -1,0 +1,25 @@
+{
+  "linkProtocolVersion": 1,
+  "hostVersion": "0.1.2-alpha.1",
+  "hostId": "9f2c1a44-1e6a-4a5e-b1d0-77c2f4a19a30",
+  "hostName": "Studio Desk",
+  "runtimeClass": "full",
+  "sessionFormatVersion": 0,
+  "allowRemoteApproval": false,
+  "capabilities": {
+    "session": {
+      "list": true,
+      "history": true,
+      "follow": true,
+      "prompt": true,
+      "cancel": true
+    },
+    "workspace": {
+      "follow": true
+    },
+    "interaction": {
+      "approval": false,
+      "question": false
+    }
+  }
+}

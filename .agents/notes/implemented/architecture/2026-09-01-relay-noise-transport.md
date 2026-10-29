@@ -1,0 +1,23 @@
+# Agent Note: Relay Noise Transport
+
+Status: implemented
+
+English | [中文](2026-09-01-relay-noise-transport.zh.md)
+
+## Problem
+
+Every relay endpoint rode plaintext HTTP: envelopes, roster queries, and presence lines crossed the network readable and forgeable by anyone on the path. The plan's relay chapter names "Noise 或 TLS 加密" as the missing piece; the PoC floor deferred it.
+
+## Decision
+
+The transport is Noise_XX_25519_ChaChaPoly_SHA256, carried over HTTP as the courier — every runtime involved (node:crypto, JDK 17, CryptoKit) ships X25519, ChaCha20-Poly1305, and SHA-256 natively, while TLS would have dragged certificate generation into a deliberately zero-dependency shell. `POST /relay/noise/hello` carries handshake message 1 and answers message 2 plus the `x-relay-session` header — the transcript hash after message 2, which the client verifies against its own transcript, so the id is derived, not asserted; `POST /relay/noise/complete` carries message 3 and answers one encrypted `{"ok":true}` frame proving key confirmation. Every rendezvous body is then u16-length-prefixed ChaChaPoly frames under the split keys with empty associated data and the Noise 64-bit little-endian counter nonce; poll and stream answer frame sequences, the others one frame each. The stream request carries a client-generated 32-byte one-time key inside the already-encrypted body and the stream encrypts under its own cipher state — the design fix for the failure the selftest caught first: sharing the session counters between HTTP responses and live stream pushes makes the interleaving nondeterministic and the tags mismatch. Sessions idle out after 15 minutes (410, re-handshake); the handshake endpoints stay plaintext because Noise conceals the static keys inside messages 2 and 3 by design.
+
+All four runtimes implement the framework directly — SymmetricState (chaining key, transcript hash), CipherState (key, counter), and the XX message sequence for both roles — with no Noise library anywhere. Since no CI lane runs the node service, interop is pinned by fixed-key vectors: `apps/relay/gen-relay-vectors.mjs` drives one handshake and both traffic directions under pinned scalars, and the Kotlin (`link/Noise.kt`) and Swift (`Noise.swift`) ports must reproduce the handshake bytes, session id, channel binding, split keys, and every frame byte-for-byte. The node reference selftest covers the full flow over a real local socket; the native lanes replay the vectors and run full client flows against local Noise responders (JDK HttpServer; an NWListener server that parses requests and routes). Two JDK facts carried the port: the XDH KeyFactory reads u-coordinate BigIntegers in little-endian byte order (raw bytes reverse into the spec), and a pinned scalar's public key has no direct derivation entry point — a KeyAgreement against the importable u=9 base point yields it, since scalarmult_base(s) = DH(s, 9).
+
+## Consequences
+
+The relay path is now confidential and integrity-protected against network observers; the relay itself still terminates the session (it routes by account, so it reads what it decrypts — link security, not end-to-end secrecy; a host↔device end-to-end layer would sit above this). Plaintaintext GET endpoints are gone; every consumer of the reference shell speaks Noise or gets 410. The `rt-` rendezvous tokens remain the only authorization — XX authenticates transport identities but the relay deliberately does not authorize by them. The node client needed an explicit `close()` teardown on its stream object: an async generator suspended waiting for the next frame cannot observe `return()`, so undici's 5-minute body timeout was the only thing that could break the wait. Remaining on the relay lane: APNs/FCM delivery (needs external push credentials) and background wakeup on top of it.
+
+## Alternatives considered
+
+Front TLS with a reverse proxy was rejected — the shell's zero-dependency property is the deployment story, and node cannot mint X.509 certificates without new dependencies. Running the whole HTTP conversation inside one Noise TCP tunnel (TLS-style) was rejected — JDK HttpClient and URLSession cannot be handed a custom transport, so the clients would have had to reimplement HTTP. Noise_NK with a pre-shared relay static key was rejected — XX needs nothing distributed out of band and hides both identities from passive observers. A second full Noise handshake per stream (instead of the one-time in-request key) was rejected — it doubles the handshake round trips to solve what one random key already solves, since the stream is server→client only.

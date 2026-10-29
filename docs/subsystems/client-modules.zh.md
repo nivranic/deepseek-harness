@@ -82,6 +82,14 @@ interface WebBootGraph {
   entries: WebBootEntry[]
   /** Initial combo descriptors; every entry belongs to exactly one descriptor. */
   batches: WebBootBatch[]
+  /**
+   * The dsh installation version this graph was composed by (the composing
+   * package's own release version — the release flow bumps every package in
+   * lockstep). Absent from documents composed before the field existed.
+   */
+  version?: string
+  /** Host runtime environment facts; absent from documents composed before the field existed. */
+  runtime?: HostRuntimeInfo
 }
 ```
 
@@ -133,7 +141,7 @@ Generated from source by `scripts/gen-cordis-catalog.ts` (verified fresh by `pnp
 
 ### `ctx.clientModules` — `ClientModuleRegistry`
 
-The web plugin table service: incremental `dsh.client` scan + wire composition + bundle and package-asset route + index injection rows. Construction runs the activation scan synchronously — a malformed declaration or missing bundle among the already-loaded entries aggregates into one loud throw (FAILED fiber; the boot activation audit reports it).
+The web plugin table service: incremental `dsh.client` scan + wire composition + bundle and package-asset route + index injection rows. The Web carrier is optional: a webless surface (the desktop app) reads graph, clientPath, and fetchBundle through its own carrier. Construction runs the activation scan synchronously — a malformed declaration or missing bundle among the already-loaded entries aggregates into one loud throw (FAILED fiber; the boot activation audit reports it).
 
 ```ts cordis-catalog
 /**

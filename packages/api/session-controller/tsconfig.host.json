@@ -126,6 +126,9 @@
     },
     {
       "path": "../../session/working-directory"
+    },
+    {
+      "path": "../../artifact/artifact"
     }
   ]
 }

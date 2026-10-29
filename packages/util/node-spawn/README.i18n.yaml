@@ -1,0 +1,31 @@
+# Bilingual-pair consistency record for README.md (docs/i18n/README.md): per heading
+# section, a hash of its English and Chinese blocks outside code blocks and generated regions.
+# After editing either side, bring the other along and re-record with:
+#   pnpm run verify-translation-pairing --write packages/util/node-spawn/README.md
+/:
+  en: 64fc111982c4116a
+  zh: aae1229958f99c1a
+/dsh-node-spawn:
+  en: 5c8ed686cc0aca85
+  zh: 3dc5613815ebcbed
+/dsh-node-spawn/summary:
+  en: 1cfec9bb8793f60e
+  zh: e2d68a9895f77c95
+/dsh-node-spawn/table-of-contents:
+  en: be596764e728c76a
+  zh: ecc28e20541ffc7b
+/dsh-node-spawn/surface:
+  en: 5a20e03a748d4837
+  zh: 50df3fdd8867a806
+/dsh-node-spawn/dev-note:
+  en: d66cbc7f3ea56bbf
+  zh: 0fc32ae298969ede
+/dsh-node-spawn/model-experience:
+  en: 02743bbf8ade887f
+  zh: 2ba389e89f474840
+/dsh-node-spawn/model-experience/kv-cache-effect:
+  en: 2fd7355cccfbbdb6
+  zh: e3f37fd715ef4364
+/dsh-node-spawn/known-limitations-and-deferred-work:
+  en: 13a6ab9df98d99dc
+  zh: f3f1055011415af8

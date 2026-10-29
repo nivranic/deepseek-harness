@@ -1,0 +1,19 @@
+# Bilingual-pair consistency record for 2026-08-19-electron-exe-node-children.md (docs/i18n/README.md): per heading
+# section, a hash of its English and Chinese blocks outside code blocks and generated regions.
+# After editing either side, bring the other along and re-record with:
+#   pnpm run verify-translation-pairing --write .agents/notes/implemented/bug-fix/2026-08-19-electron-exe-node-children.md
+/agent-note-node-children-under-the-packaged-electron-exe-re-run-as-node:
+  en: b0e763c86f674624
+  zh: 1ddb905180748907
+/agent-note-node-children-under-the-packaged-electron-exe-re-run-as-node/problem:
+  en: 179f4fe7e8af7605
+  zh: 2e6826af743be8dc
+/agent-note-node-children-under-the-packaged-electron-exe-re-run-as-node/decision:
+  en: a1a7a2800c0d0211
+  zh: 5dbef3170fb0b134
+/agent-note-node-children-under-the-packaged-electron-exe-re-run-as-node/alternatives-considered:
+  en: f276095f188a08a2
+  zh: 2722779fa9b89988
+/agent-note-node-children-under-the-packaged-electron-exe-re-run-as-node/consequences:
+  en: d83379a32e6e749f
+  zh: a150593c4dc18abd

@@ -199,6 +199,7 @@ declare module '@deepseek-ai/dsh-typert-protocol' {
       readonly requestedPreset: string
     }
     'session/attachment-invalid': { readonly reason: string }
+    'session/artifact-error': { readonly reason: string }
     'session/queue-item-not-found': { readonly itemId: MessageId }
     'session/steer-unavailable': { readonly itemId: MessageId }
     'session/title-invalid': { readonly sessionId: SessionId }
@@ -340,11 +341,99 @@ export interface SessionAttachmentRequest {
   readonly attachment: ImageAttachmentRef
 }
 
+/** One recent conversation row a handoff snapshot carries verbatim. */
+export interface SessionHandoffContextRow {
+  /** Authoring side of the row, as the source runtime recorded it. */
+  readonly role: 'user' | 'assistant'
+  /** Row text, already the runtime's final rendering. */
+  readonly text: string
+}
+
+/** One artifact reference a handoff snapshot names for the receiving host. */
+export interface SessionHandoffArtifactRef {
+  readonly id: string
+  readonly kind: string
+  readonly title: string
+  readonly status: 'pending' | 'ready' | 'failed'
+}
+
+/** One todo row a handoff snapshot carries with its verbatim status. */
+export interface SessionHandoffTodoRow {
+  readonly content: string
+  /** The source runtime's status word, verbatim. */
+  readonly status: string
+}
+
+/** The sending device's identity and send time — chapter 40's sender record. */
+export interface SessionHandoffSender {
+  readonly deviceId: string
+  readonly platform: string
+  /** Unix epoch milliseconds at the sending device. */
+  readonly at: number
+}
+
+/**
+ * The chapter-40 Handoff L1 snapshot: what a Lite session packages when a
+ * capability requires the full runtime. Chapter 40's list is permissive —
+ * this carries exactly the parts the Lite vocabulary actually holds (plan
+ * is one active flag there; a conversation summary stays to the sender).
+ */
+export interface SessionHandoffSnapshot {
+  readonly sourceSessionId: string
+  readonly sourceRuntime: 'lite'
+  /** The capability name whose requirement raised the handoff. */
+  readonly requestedCapability: string
+  /** Last conversation rows, oldest first, verbatim. */
+  readonly recentContext: readonly SessionHandoffContextRow[]
+  /** Whether the source session had its plan mode active. */
+  readonly planActive: boolean
+  readonly todo: readonly SessionHandoffTodoRow[]
+  readonly artifactRefs: readonly SessionHandoffArtifactRef[]
+  /** Model the source runtime used, when it knows one. */
+  readonly modelPreference?: string
+  readonly sender: SessionHandoffSender
+}
+
+/** Handoff request: the snapshot rides whole; the host owns rendering. */
+export interface SessionHandoffRequest {
+  readonly snapshot: SessionHandoffSnapshot
+}
+
+/** Handoff response: the newly created full Session's identity. */
+export interface SessionHandoffValue {
+  readonly sessionId: SessionId
+}
+
 /** Durable image read response value. */
 export interface SessionAttachmentValue {
   /** Supplied reference after ID, format, byte length, and dimensions verification; display fields are preserved. */
   readonly attachment: ImageAttachmentRef
   readonly data: string
+}
+
+/** Durable artifact read request. */
+export interface SessionArtifactRequest {
+  readonly sessionId: SessionId
+  readonly artifactId: string
+  /** Start of the returned range — UTF-16 code units for text artifacts, bytes for bytes artifacts; defaults to 0. */
+  readonly offset?: number
+  /** Maximum returned units of the artifact's journaled format; omitted reads through the end. */
+  readonly limit?: number
+}
+
+/** Durable artifact read response value. */
+export interface SessionArtifactValue {
+  readonly id: string
+  readonly kind: string
+  readonly title: string
+  /** Which arm the artifact was authored in; `data` and `size` units follow it. */
+  readonly format: 'text' | 'bytes'
+  /** Base64 of the returned range — its UTF-8 bytes for text artifacts, its raw bytes for bytes artifacts. */
+  readonly data: string
+  /** Whether `limit` cut the range before the artifact's end. */
+  readonly truncated: boolean
+  /** Total content length — UTF-16 code units for text artifacts, bytes for bytes artifacts. */
+  readonly size: number
 }
 
 /** Pending queue mutation request. */
