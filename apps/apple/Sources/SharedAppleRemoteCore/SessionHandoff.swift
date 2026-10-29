@@ -1,7 +1,7 @@
 import Foundation
 
-/// Who and where a handoff came from (chapter 40's provenance record).
-public struct HandoffProvenance: Equatable, Sendable {
+/// The sending device's identity and send time (chapter 40's sender record).
+public struct HandoffSender: Equatable, Sendable {
     /// The sending device's paired identity.
     public let deviceId: String
     /// The sending device's platform tag.
@@ -85,7 +85,7 @@ public enum SessionHandoff {
     /// - Parameters:
     ///   - sourceSessionId: the source runtime's session identity.
     ///   - capability: the capability whose requirement raised the handoff.
-    ///   - provenance: device identity and send time.
+    ///   - sender: device identity and send time.
     ///   - recentContext: trailing conversation rows, oldest first.
     ///   - planActive: whether the source session had plan mode active.
     ///   - todo: the source session's todo rows.
@@ -95,7 +95,7 @@ public enum SessionHandoff {
     public static func snapshotValue(
         sourceSessionId: String,
         capability: String,
-        provenance: HandoffProvenance,
+        sender: HandoffSender,
         recentContext: [HandoffContextRow],
         planActive: Bool,
         todo: [HandoffTodoRow],
@@ -121,10 +121,10 @@ public enum SessionHandoff {
                 "title": .string(artifact.title),
                 "status": .string(artifact.status),
             ]) }),
-            "provenance": .object([
-                "deviceId": .string(provenance.deviceId),
-                "platform": .string(provenance.platform),
-                "at": .number(provenance.at),
+            "sender": .object([
+                "deviceId": .string(sender.deviceId),
+                "platform": .string(sender.platform),
+                "at": .number(sender.at),
             ]),
         ]
         if let modelPreference {

@@ -38,7 +38,7 @@ class HandoffTest {
             fold.state,
             sourceSessionId = "lite-7f3a",
             capability = "run_tests",
-            provenance = HandoffProvenance(deviceId = "dev-phone", platform = "android", at = 1_782_000_000_000),
+            sender = HandoffSender(deviceId = "dev-phone", platform = "android", at = 1_782_000_000_000),
             modelPreference = "deepseek-chat",
         )
         val json = snapshot.toJsonElement().toString()
@@ -64,7 +64,7 @@ class HandoffTest {
             foldedState(),
             sourceSessionId = "lite-1",
             capability = "run_tests",
-            provenance = HandoffProvenance("dev-phone", "android", 1L),
+            sender = HandoffSender("dev-phone", "android", 1L),
         )
         assertEquals("session-hnd-1", handoff.send(snapshot))
         val call = wire.calls.first { it.first == "session/handoff" }
@@ -76,7 +76,7 @@ class HandoffTest {
     fun refusalAndMissingAnswerReadAsNull() = runTest {
         val refused = FakeWire()
         refused.stub("session/handoff") { throw ai.deepseek.dsh.link.LinkClientException.Refused("role", "observer may not hand off") }
-        assertNull(LiteHandoff(refused).send(LiteHandoff(refused).snapshotValue(foldedState(), "lite-1", "run_tests", HandoffProvenance("d", "android", 1L))))
+        assertNull(LiteHandoff(refused).send(LiteHandoff(refused).snapshotValue(foldedState(), "lite-1", "run_tests", HandoffSender("d", "android", 1L))))
 
         val empty = FakeWire()
         empty.stub("session/handoff") { WireValue.ObjectValue(emptyMap()) }

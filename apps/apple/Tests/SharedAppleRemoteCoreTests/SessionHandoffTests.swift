@@ -8,7 +8,7 @@ final class SessionHandoffTests: XCTestCase {
         let snapshot = SessionHandoff.snapshotValue(
             sourceSessionId: "lite-7f3a",
             capability: "run_tests",
-            provenance: HandoffProvenance(deviceId: "dev-phone", platform: "ios", at: 1_782_000_000_000),
+            sender: HandoffSender(deviceId: "dev-phone", platform: "ios", at: 1_782_000_000_000),
             recentContext: [
                 HandoffContextRow(role: "user", text: "帮我跑一遍测试"),
                 HandoffContextRow(role: "assistant", text: "需要宿主。"),
@@ -26,7 +26,7 @@ final class SessionHandoffTests: XCTestCase {
         XCTAssertEqual(fields["requestedCapability"], .string("run_tests"))
         XCTAssertEqual(fields["planActive"], .bool(true))
         XCTAssertEqual(fields["modelPreference"], .string("deepseek-chat"))
-        XCTAssertEqual(fields["provenance"], .object([
+        XCTAssertEqual(fields["sender"], .object([
             "deviceId": .string("dev-phone"),
             "platform": .string("ios"),
             "at": .number(1_782_000_000_000),
@@ -52,7 +52,7 @@ final class SessionHandoffTests: XCTestCase {
         let snapshot = SessionHandoff.snapshotValue(
             sourceSessionId: "lite-1",
             capability: "workflow",
-            provenance: HandoffProvenance(deviceId: "dev-pad", platform: "ios", at: 1),
+            sender: HandoffSender(deviceId: "dev-pad", platform: "ios", at: 1),
             recentContext: [],
             planActive: false,
             todo: [],
@@ -74,7 +74,7 @@ final class SessionHandoffTests: XCTestCase {
         let snapshot = SessionHandoff.snapshotValue(
             sourceSessionId: "lite-1",
             capability: "run_tests",
-            provenance: HandoffProvenance(deviceId: "dev-phone", platform: "ios", at: 1),
+            sender: HandoffSender(deviceId: "dev-phone", platform: "ios", at: 1),
             recentContext: [],
             planActive: false,
             todo: [],

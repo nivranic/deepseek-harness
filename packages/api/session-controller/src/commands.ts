@@ -211,7 +211,7 @@ export class SessionCommandController {
   /**
    * Accept one Lite handoff (chapter 40 L1): create the new full Session,
    * pin its title, and queue the rendered handoff brief as the first user
-   * message — the durable record of origin and provenance, and the prompt
+   * message — the durable record of the sending device's identity, and the prompt
    * the receiving Agent picks up. Composes create + rename + queue prompt;
    * no new journal vocabulary.
    * @param request - the snapshot the sending device packaged.
@@ -622,12 +622,12 @@ function handoffTitle(snapshot: SessionHandoffSnapshot): string {
 
 /**
  * Render the chapter-40 snapshot as the handoff brief — the first user
- * message of the new Session, carrying origin and provenance durably.
+ * message of the new Session, carrying the sending device's identity durably.
  * Deterministic: same snapshot, same brief, on every host.
  */
 function renderHandoffBrief(snapshot: SessionHandoffSnapshot): string {
   const lines: string[] = [
-    `【设备接力】${snapshot.provenance.platform} 设备「${snapshot.provenance.deviceId}」的 Lite 会话 ${snapshot.sourceSessionId} 请求在宿主继续执行能力「${snapshot.requestedCapability}」。`,
+    `【设备接力】${snapshot.sender.platform} 设备「${snapshot.sender.deviceId}」的 Lite 会话 ${snapshot.sourceSessionId} 请求在宿主继续执行能力「${snapshot.requestedCapability}」。`,
     `- 计划模式：${snapshot.planActive ? '开' : '关'}`,
   ]
   if (snapshot.modelPreference !== undefined) {
@@ -641,7 +641,7 @@ function renderHandoffBrief(snapshot: SessionHandoffSnapshot): string {
   for (const ref of snapshot.artifactRefs) {
     lines.push(`- 工件引用：${ref.title}（${ref.kind}，${ref.id}，${ref.status}）`)
   }
-  lines.push(`- 溯源：${new Date(snapshot.provenance.at).toISOString()} · ${snapshot.provenance.deviceId} · ${snapshot.provenance.platform}`)
+  lines.push(`- 溯源：${new Date(snapshot.sender.at).toISOString()} · ${snapshot.sender.deviceId} · ${snapshot.sender.platform}`)
   if (snapshot.recentContext.length > 0) {
     lines.push('', '最近对话：')
     for (const row of snapshot.recentContext) {

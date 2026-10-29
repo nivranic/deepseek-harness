@@ -23,7 +23,7 @@
       "status": "ready"
     }
   ],
-  "provenance": {
+  "sender": {
     "deviceId": "dev-phone",
     "platform": "ios",
     "at": 1782000000000

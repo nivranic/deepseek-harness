@@ -24,7 +24,7 @@ const snapshot: SessionHandoffSnapshot = {
   todo: [{ content: '在宿主继续执行测试', status: 'pending' }],
   artifactRefs: [{ id: 'art-lite-1', kind: 'report', title: '本机报告', status: 'ready' }],
   modelPreference: 'deepseek-chat',
-  provenance: { deviceId: 'dev-phone', platform: 'ios', at: 1_782_000_000_000 },
+  sender: { deviceId: 'dev-phone', platform: 'ios', at: 1_782_000_000_000 },
 }
 
 async function handoffHarness(providers: string[] = ['fixture']): Promise<{
@@ -128,7 +128,7 @@ describe('Session handoff (chapter 40 L1)', () => {
       planActive: false,
       todo: [],
       artifactRefs: [],
-      provenance: { deviceId: 'dev-pad', platform: 'android', at: 1_782_000_100_000 },
+      sender: { deviceId: 'dev-pad', platform: 'android', at: 1_782_000_100_000 },
     }
     await controller.handoff({ snapshot: lean })
     const brief = briefTextOf(followup.mock.calls[0])

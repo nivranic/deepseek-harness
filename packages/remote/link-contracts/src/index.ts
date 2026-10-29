@@ -12,7 +12,7 @@
 import type { LinkCarrierStatus, LinkHostDescription, LinkPairValue, LinkPairingPayload } from '@deepseek-ai/dsh-link-access/protocol'
 import type { LinkDeviceValue, LinkStatusValue } from '@deepseek-ai/dsh-api-link-controller/types'
 import type { WorkspaceFilesListValue, WorkspaceFilesReadValue } from '@deepseek-ai/dsh-api-workspace-controller'
-import type { SessionArtifactValue, SessionAttachmentValue, SessionHandoffArtifactRef, SessionHandoffContextRow, SessionHandoffProvenance, SessionHandoffSnapshot, SessionHandoffTodoRow, SessionHandoffValue, SessionPromptRequest } from '@deepseek-ai/dsh-api-session-controller/types'
+import type { SessionArtifactValue, SessionAttachmentValue, SessionHandoffArtifactRef, SessionHandoffContextRow, SessionHandoffSender, SessionHandoffSnapshot, SessionHandoffTodoRow, SessionHandoffValue, SessionPromptRequest } from '@deepseek-ai/dsh-api-session-controller/types'
 import { ArtifactId } from '@deepseek-ai/dsh-artifact/types'
 import { AttachmentId } from '@deepseek-ai/dsh-attachment'
 import type { ImageAttachmentRef } from '@deepseek-ai/dsh-attachment'
@@ -678,9 +678,9 @@ export const LINK_CONTRACT_TYPES: readonly ContractType[] = [
     ],
   },
   {
-    name: 'LinkHandoffProvenance',
+    name: 'LinkHandoffSender',
     shape: 'object',
-    fixture: 'handoff-provenance',
+    fixture: 'handoff-sender',
     fields: [
       { name: 'deviceId', kind: 'string' },
       { name: 'platform', kind: 'string' },
@@ -705,7 +705,7 @@ export const LINK_CONTRACT_TYPES: readonly ContractType[] = [
       { name: 'todo', kind: 'object-array', ref: 'LinkHandoffTodo' },
       { name: 'artifactRefs', kind: 'object-array', ref: 'LinkHandoffArtifactRef' },
       { name: 'modelPreference', kind: 'string', optional: true },
-      { name: 'provenance', kind: 'object', ref: 'LinkHandoffProvenance' },
+      { name: 'sender', kind: 'object', ref: 'LinkHandoffSender' },
     ],
   },
   {
@@ -819,7 +819,7 @@ export interface ContractFixture {
   readonly value: LinkPairingPayload | LinkPairValue | LinkHostDescription | LinkCarrierStatus | LinkDeviceValue | LinkStatusValue
   | LinkSessionEventPayload | LinkChunkRowPayload | WorkspaceFilesListValue | WorkspaceFilesReadValue
   | SubagentListEntry | LinkSubagentCatalogValue
-  | ImageAttachmentRef | SessionAttachmentValue | SessionArtifactValue | SessionHandoffSnapshot | SessionHandoffContextRow | SessionHandoffTodoRow | SessionHandoffArtifactRef | SessionHandoffProvenance | SessionHandoffValue | Extract<SessionPromptRequest['content'][number], { type: 'image' }>
+  | ImageAttachmentRef | SessionAttachmentValue | SessionArtifactValue | SessionHandoffSnapshot | SessionHandoffContextRow | SessionHandoffTodoRow | SessionHandoffArtifactRef | SessionHandoffSender | SessionHandoffValue | Extract<SessionPromptRequest['content'][number], { type: 'image' }>
 }
 
 /** The golden fixtures; ids match the table's `fixture` rows. */
@@ -1117,9 +1117,9 @@ export const LINK_CONTRACT_FIXTURES: readonly ContractFixture[] = [
     value: { id: 'art-lite-1', kind: 'report', title: '本机报告', status: 'ready' } satisfies SessionHandoffArtifactRef,
   },
   {
-    type: 'LinkHandoffProvenance',
-    id: 'handoff-provenance',
-    value: { deviceId: 'dev-phone', platform: 'ios', at: 1_782_000_000_000 } satisfies SessionHandoffProvenance,
+    type: 'LinkHandoffSender',
+    id: 'handoff-sender',
+    value: { deviceId: 'dev-phone', platform: 'ios', at: 1_782_000_000_000 } satisfies SessionHandoffSender,
   },
   {
     type: 'LinkHandoffSnapshot',
@@ -1132,7 +1132,7 @@ export const LINK_CONTRACT_FIXTURES: readonly ContractFixture[] = [
       planActive: true,
       todo: [{ content: '在宿主继续执行测试', status: 'pending' }],
       artifactRefs: [{ id: 'art-lite-1', kind: 'report', title: '本机报告', status: 'ready' }],
-      provenance: { deviceId: 'dev-phone', platform: 'ios', at: 1_782_000_000_000 },
+      sender: { deviceId: 'dev-phone', platform: 'ios', at: 1_782_000_000_000 },
     } satisfies SessionHandoffSnapshot,
   },
   {

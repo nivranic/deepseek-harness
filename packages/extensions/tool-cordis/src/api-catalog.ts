@@ -8595,16 +8595,16 @@ export const TYPE_API: readonly TypeApiEntry[] = [
     declaration: 'export interface SessionHandoffContextRow {\n    readonly role: \'user\' | \'assistant\';\n    readonly text: string;\n}',
   },
   {
-    name: 'SessionHandoffProvenance',
-    declaration: 'export interface SessionHandoffProvenance {\n    readonly deviceId: string;\n    readonly platform: string;\n    readonly at: number;\n}',
-  },
-  {
     name: 'SessionHandoffRequest',
     declaration: 'export interface SessionHandoffRequest {\n    readonly snapshot: SessionHandoffSnapshot;\n}',
   },
   {
+    name: 'SessionHandoffSender',
+    declaration: 'export interface SessionHandoffSender {\n    readonly deviceId: string;\n    readonly platform: string;\n    readonly at: number;\n}',
+  },
+  {
     name: 'SessionHandoffSnapshot',
-    declaration: 'export interface SessionHandoffSnapshot {\n    readonly sourceSessionId: string;\n    readonly sourceRuntime: \'lite\';\n    readonly requestedCapability: string;\n    readonly recentContext: readonly SessionHandoffContextRow[];\n    readonly planActive: boolean;\n    readonly todo: readonly SessionHandoffTodoRow[];\n    readonly artifactRefs: readonly SessionHandoffArtifactRef[];\n    readonly modelPreference?: string;\n    readonly provenance: SessionHandoffProvenance;\n}',
+    declaration: 'export interface SessionHandoffSnapshot {\n    readonly sourceSessionId: string;\n    readonly sourceRuntime: \'lite\';\n    readonly requestedCapability: string;\n    readonly recentContext: readonly SessionHandoffContextRow[];\n    readonly planActive: boolean;\n    readonly todo: readonly SessionHandoffTodoRow[];\n    readonly artifactRefs: readonly SessionHandoffArtifactRef[];\n    readonly modelPreference?: string;\n    readonly sender: SessionHandoffSender;\n}',
   },
   {
     name: 'SessionHandoffTodoRow',

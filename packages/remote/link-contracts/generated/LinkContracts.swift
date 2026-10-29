@@ -380,7 +380,7 @@ public struct LinkHandoffArtifactRef: Codable {
     public let title: String
     public let status: LinkArtifactStatus
 }
-public struct LinkHandoffProvenance: Codable {
+public struct LinkHandoffSender: Codable {
     public let deviceId: String
     public let platform: String
     public let at: Double
@@ -397,7 +397,7 @@ public struct LinkHandoffSnapshot: Codable {
     public let todo: [LinkHandoffTodo]
     public let artifactRefs: [LinkHandoffArtifactRef]
     public let modelPreference: String?
-    public let provenance: LinkHandoffProvenance
+    public let sender: LinkHandoffSender
 }
 public struct LinkHandoffValue: Codable {
     public let sessionId: String

@@ -364,8 +364,8 @@ export interface SessionHandoffTodoRow {
   readonly status: string
 }
 
-/** Who and where the handoff came from — chapter 40's provenance record. */
-export interface SessionHandoffProvenance {
+/** The sending device's identity and send time — chapter 40's sender record. */
+export interface SessionHandoffSender {
   readonly deviceId: string
   readonly platform: string
   /** Unix epoch milliseconds at the sending device. */
@@ -391,7 +391,7 @@ export interface SessionHandoffSnapshot {
   readonly artifactRefs: readonly SessionHandoffArtifactRef[]
   /** Model the source runtime used, when it knows one. */
   readonly modelPreference?: string
-  readonly provenance: SessionHandoffProvenance
+  readonly sender: SessionHandoffSender
 }
 
 /** Handoff request: the snapshot rides whole; the host owns rendering. */

@@ -2,8 +2,8 @@ package ai.deepseek.dsh.companion
 
 import ai.deepseek.dsh.link.WireValue
 
-/** Who and where a handoff came from (chapter 40's provenance record). */
-data class HandoffProvenance(val deviceId: String, val platform: String, val at: Long)
+/** The sending device's identity and send time (chapter 40's sender record). */
+data class HandoffSender(val deviceId: String, val platform: String, val at: Long)
 
 /**
  * The chapter-40 Handoff L1 device side: package one Lite session's folded
@@ -20,7 +20,7 @@ class LiteHandoff(private val wire: WireDriving) {
      * @param state the session's folded domain state.
      * @param sourceSessionId the Lite journal's session identity.
      * @param capability the capability whose requirement raised the handoff.
-     * @param provenance device identity and send time.
+     * @param sender device identity and send time.
      * @param modelPreference the model the Lite provider used, if known.
      * @param contextRows how many trailing conversation rows to carry.
      */
@@ -28,7 +28,7 @@ class LiteHandoff(private val wire: WireDriving) {
         state: LiteDomainState,
         sourceSessionId: String,
         capability: String,
-        provenance: HandoffProvenance,
+        sender: HandoffSender,
         modelPreference: String? = null,
         contextRows: Int = 6,
     ): WireValue.ObjectValue = WireValue.ObjectValue(buildMap {
@@ -54,10 +54,10 @@ class LiteHandoff(private val wire: WireDriving) {
             "status" to WireValue.StringValue(artifact.status),
         )) }))
         if (modelPreference != null) put("modelPreference", WireValue.StringValue(modelPreference))
-        put("provenance", WireValue.ObjectValue(mapOf(
-            "deviceId" to WireValue.StringValue(provenance.deviceId),
-            "platform" to WireValue.StringValue(provenance.platform),
-            "at" to WireValue.NumberValue(provenance.at.toDouble()),
+        put("sender", WireValue.ObjectValue(mapOf(
+            "deviceId" to WireValue.StringValue(sender.deviceId),
+            "platform" to WireValue.StringValue(sender.platform),
+            "at" to WireValue.NumberValue(sender.at.toDouble()),
         )))
     })
 

@@ -1346,7 +1346,7 @@
       "fixture": "handoff-artifact-ref"
     },
     {
-      "name": "LinkHandoffProvenance",
+      "name": "LinkHandoffSender",
       "shape": "object",
       "fields": [
         {
@@ -1362,7 +1362,7 @@
           "kind": "number"
         }
       ],
-      "fixture": "handoff-provenance"
+      "fixture": "handoff-sender"
     },
     {
       "name": "LinkHandoffRuntime",
@@ -1412,9 +1412,9 @@
           "optional": true
         },
         {
-          "name": "provenance",
+          "name": "sender",
           "kind": "object",
-          "ref": "LinkHandoffProvenance"
+          "ref": "LinkHandoffSender"
         }
       ],
       "fixture": "handoff-snapshot"
@@ -1620,14 +1620,14 @@
       "sha256": "ac22370aa02bcaa3d53f64fa186eb1adf5db8d61d3126bf1784058933c8f6236"
     },
     {
-      "id": "handoff-provenance",
-      "type": "LinkHandoffProvenance",
+      "id": "handoff-sender",
+      "type": "LinkHandoffSender",
       "sha256": "efc339c7c35cac33bdd7ad2b880885977b6a775064e0c187df6f4de8a59c52be"
     },
     {
       "id": "handoff-snapshot",
       "type": "LinkHandoffSnapshot",
-      "sha256": "4892ceae68a16e8bbf41d0c44846c23094e5e35787545d6fa4e23e0436eae183"
+      "sha256": "0d71388ab6c8502b0a118e2a0a316dc6c78c50dfb439006ec8e728d8f1766c8d"
     },
     {
       "id": "handoff-value",

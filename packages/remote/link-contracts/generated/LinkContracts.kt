@@ -382,7 +382,7 @@ data class LinkHandoffArtifactRef(
     val title: String,
     val status: LinkArtifactStatus,
 )
-data class LinkHandoffProvenance(
+data class LinkHandoffSender(
     val deviceId: String,
     val platform: String,
     val at: Double,
@@ -399,7 +399,7 @@ data class LinkHandoffSnapshot(
     val todo: List<LinkHandoffTodo>,
     val artifactRefs: List<LinkHandoffArtifactRef>,
     val modelPreference: String? = null,
-    val provenance: LinkHandoffProvenance,
+    val sender: LinkHandoffSender,
 )
 data class LinkHandoffValue(
     val sessionId: String,
