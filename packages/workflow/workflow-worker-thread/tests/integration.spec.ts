@@ -3,24 +3,12 @@ import { Context } from '@deepseek-ai/cordis'
 import { SessionId } from '@deepseek-ai/dsh-session'
 import AgentLoop from '@deepseek-ai/dsh-agent-loop'
 import { mountAgentLoopTestDependencies } from '@deepseek-ai/dsh-agent-loop-testkit'
-import InvariantRegistry from '@deepseek-ai/dsh-invariants'
-import * as SessionInvariant from '@deepseek-ai/dsh-session/invariant'
-import * as AgentInvariant from '@deepseek-ai/dsh-agent/invariant'
-import * as AgentLoopInvariant from '@deepseek-ai/dsh-agent-loop/invariant'
-import SubagentRuntime from '@deepseek-ai/dsh-subagent'
+import SubagentRuntime, { STRUCTURED_OUTPUT_TOOL } from '@deepseek-ai/dsh-subagent'
 import * as spawn from '@deepseek-ai/dsh-subagent-spawn-in-process'
-import { STRUCTURED_OUTPUT_TOOL } from '@deepseek-ai/dsh-subagent-in-process-driver'
 import { MockAdapter, textResponse, toolCallResponse } from '../../../core/agent-loop/tests/mock-adapter.ts'
 import WorkerThreadWorkflowEngine from '../src/index.ts'
 
 type Script = ConstructorParameters<typeof MockAdapter>[0]
-
-async function mountInvariants(ctx: Context): Promise<void> {
-  await ctx.plugin(InvariantRegistry)
-  await ctx.plugin(SessionInvariant)
-  await ctx.plugin(AgentInvariant)
-  await ctx.plugin(AgentLoopInvariant)
-}
 
 /**
  * The whole in-process stack, keyless, with the script in a REAL worker
@@ -34,13 +22,12 @@ async function setup(script: Script) {
   const ctx = new Context()
   const adapter = new MockAdapter(script)
   await mountAgentLoopTestDependencies(ctx)
-  await mountInvariants(ctx)
   await ctx.plugin(AgentLoop, { agents: [] })
   await ctx.plugin(SubagentRuntime)
   await ctx.plugin(spawn, { providerName: 'spawn' })
   await ctx.plugin(WorkerThreadWorkflowEngine, {})
   ctx.llm.registerAdapter(['mock'], adapter)
-  const parent = ctx.agentLoop.create(SessionId('parent'), { provider: 'mock', model: 'mock' })
+  const parent = await ctx.agentLoop.create(SessionId('parent'), { provider: 'mock', model: 'mock' })
   return { ctx, parent, adapter }
 }
 

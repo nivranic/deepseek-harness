@@ -145,15 +145,27 @@ function methodNotAllowed(): Response {
 }
 
 /**
+ * The desktop carrier rides no Client-to-Host uplink: the renderer posts one
+ * payload and reads, so every logical stream opens over an already-empty
+ * uplink (a Gateway-owned endpoint drops those items anyway).
+ */
+function emptyUplink(): AsyncIterable<unknown> {
+  return (async function* () {})()
+}
+
+/**
  * Carry one Gateway Remote stream as newline-delimited JSON frames: a
  * `{"k":"v","v":…}` frame per stream item, a terminal `{"k":"e",…}` frame
  * carrying the gateway's own failure projection. The renderer's abort drops
  * the fetch, whose cancellation aborts the logical stream at the gateway.
  * @param request - the renderer's POST whose path names the stream endpoint.
  * @param gateway - the Typert gateway owning the wire stream adapter.
+ * @param peer - the owner Peer the desktop renderer speaks for.
  * @returns the streaming NDJSON response.
  */
-async function serveStream(request: Request, gateway: Context['typertGateway']): Promise<Response> {
+async function serveStream(
+  request: Request, gateway: Context['typertGateway'], peer: Context['connection']['browserPeer'],
+): Promise<Response> {
   if (request.method !== 'POST') return methodNotAllowed()
   // The endpoint is a Gateway Remote stream name (`$events`) or a
   // `namespace/method` endpoint; slashes are ordinary endpoint bytes, so only
@@ -172,7 +184,7 @@ async function serveStream(request: Request, gateway: Context['typertGateway']):
         controller.enqueue(encoder.encode(`${JSON.stringify(frame)}\n`))
       }
       try {
-        const source = await gateway.wireStream.open(endpoint, payload, lifetime.signal)
+        const source = await gateway.wireStream.open(endpoint, payload, emptyUplink(), peer, lifetime.signal)
         for await (const item of source) {
           send({ k: 'v', v: item })
           if (lifetime.signal.aborted) return
@@ -257,18 +269,21 @@ export function apply(ctx: Context): void {
   // arrives from this process's own renderer through the app's privileged
   // scheme, never from the network.
   const apiFetch = ctx.connection.createSharedFetchHandler(API_PATH)
+  // Every renderer request arrives from this process's own owner surface, so
+  // all three dynamic branches speak as the connection's shared browser Peer.
+  const peer = ctx.connection.browserPeer
   const gateway: DesktopGateway = {
     async handle(request) {
       const url = new URL(request.url)
       const pathname = decodeURIComponent(url.pathname)
       if (pathname === API_PATH || pathname.startsWith(`${API_PATH}/`)) {
-        return apiFetch.fetch(request)
+        return apiFetch.fetch(request, peer)
       }
       if (pathname.startsWith(STREAM_PREFIX)) {
-        return await serveStream(request, ctx.typertGateway)
+        return await serveStream(request, ctx.typertGateway, peer)
       }
       if (pathname.startsWith(PLUGINS_PREFIX)) {
-        return ctx.clientModules.bundleFetch(request)
+        return ctx.clientModules.fetchBundle(request)
       }
       return serveStatic(pathname, request.method, distRoot, distIndex, renderIndex)
     },

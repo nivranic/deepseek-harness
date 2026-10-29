@@ -65,6 +65,10 @@ const SIGDN_FILESYSPATH = 0x80058000 | 0
  */
 const DPI_AWARENESS_CONTEXTS = [-4, -3, -2]
 const WM_CLOSE = 0x10
+/** `VK_MENU`: the synthesized Alt press's virtual key. */
+const VK_MENU = 0x12
+/** `KEYEVENTF_KEYUP`: the synthesized Alt press's release flag. */
+const KEYEVENTF_KEYUP = 0x2
 
 /** IFileOpenDialog vtable slots (IUnknown 0-2, IModalWindow 3, IFileDialog 4+). */
 const SLOT_RELEASE = 2
@@ -98,7 +102,7 @@ const IID_IFILE_OPEN_DIALOG = guidBytes('d57c7288-d4ad-4768-be02-9d969532d960')
  * @returns the bindings {@link runFolderDialog} sequences against.
  */
 export async function loadWin32DialogBindings(): Promise<Win32DialogBindings> {
-  const koffi = (await import('koffi')).default as unknown as Koffi
+  const koffi = (await import('koffi')).default as Koffi
   const ole32 = koffi.load('ole32.dll')
   const user32 = koffi.load('user32.dll')
   const kernel32 = koffi.load('kernel32.dll')
@@ -113,6 +117,7 @@ export async function loadWin32DialogBindings(): Promise<Win32DialogBindings> {
   const getCurrentThreadId = kernel32.func('__stdcall', 'GetCurrentThreadId', 'uint32', [])
   const lstrlenW = kernel32.func('__stdcall', 'lstrlenW', 'int32', ['void *'])
   const moveMemory = kernel32.func('__stdcall', 'RtlMoveMemory', 'void', ['void *', 'void *', 'size_t'])
+  const keybdEvent = user32.func('__stdcall', 'keybd_event', 'void', ['uint8', 'uint8', 'uint32', 'uintptr'])
 
   const protoShow = koffi.proto('int32 __stdcall DshDialogShow(void *self, void *owner)')
   const protoSetOptions = koffi.proto('int32 __stdcall DshDialogSetOptions(void *self, uint32 options)')
@@ -152,6 +157,10 @@ export async function loadWin32DialogBindings(): Promise<Win32DialogBindings> {
       coUninitialize()
     },
     currentThreadId: () => getCurrentThreadId() as number,
+    pressAltForForeground: () => {
+      keybdEvent(VK_MENU, 0, 0, 0)
+      keybdEvent(VK_MENU, 0, KEYEVENTF_KEYUP, 0)
+    },
     createFolderDialog: (): Win32FolderDialog => {
       const out = Buffer.alloc(pointerSize)
       const created = coCreateInstance(CLSID_FILE_OPEN_DIALOG, null, CLSCTX_INPROC_SERVER, IID_IFILE_OPEN_DIALOG, out) as number
@@ -192,7 +201,7 @@ export async function loadWin32DialogBindings(): Promise<Win32DialogBindings> {
  * @param threadId - the dialog thread's native id (from the `showing` notice).
  */
 export async function closeThreadWindows(threadId: number): Promise<void> {
-  const koffi = (await import('koffi')).default as unknown as Koffi
+  const koffi = (await import('koffi')).default as Koffi
   const user32 = koffi.load('user32.dll')
   const enumThreadWindows = user32.func('__stdcall', 'EnumThreadWindows', 'int', ['uint32', 'void *', 'intptr'])
   const postMessageW = user32.func('__stdcall', 'PostMessageW', 'int', ['void *', 'uint32', 'uintptr', 'intptr'])

@@ -9,8 +9,8 @@
  * @module @deepseek-ai/dsh-link-contracts
  */
 
+import { joinAssistantStreamText, type AssistantStreamRecord } from '@deepseek-ai/dsh-llm'
 import type { SessionEventMap } from '@deepseek-ai/dsh-session/types'
-import type { ChunkRow } from '@deepseek-ai/dsh-session/chunk-rows'
 // Type-only edges that pull each plugin's `SessionEventMap` merge into this
 // program, so the fold's payload reads see the merged vocabulary.
 import type {} from '@deepseek-ai/dsh-goal'
@@ -240,10 +240,8 @@ function renderEvent(tag: string, record: CompanionRecord): string {
       return ''
     case 'user/message':
       return blockText((data as SessionEventMap['user/message']).content)
-    case 'assistant/chunk': {
-      const chunk = (data as SessionEventMap['assistant/chunk']).chunk
-      return 'text' in chunk && typeof chunk.text === 'string' ? chunk.text : ''
-    }
+    case 'assistant/attempt':
+      return joinAssistantStreamText((data as SessionEventMap['assistant/attempt']).stream)
     case 'assistant/message': {
       const payload = data as SessionEventMap['assistant/message']
       const base = blockText(payload.message.content)
@@ -269,7 +267,7 @@ function renderEvent(tag: string, record: CompanionRecord): string {
     }
     case 'chunkrow/text-chunks':
     case 'chunkrow/reasoning-chunks': {
-      const payload = data as Extract<ChunkRow, { type: 'text-chunks' }>['data']
+      const payload = data as Extract<AssistantStreamRecord, { type: 'text-chunks' }>
       return payload.texts.join('')
     }
     case 'chunkrow/tool-call-chunks':
@@ -348,8 +346,8 @@ export function foldCompanionRecord(state: CompanionFoldState, record: Companion
     case 'tool/result': {
       const payload = data as SessionEventMap['tool/result']
       collectImages(payload.message.content, state.images)
-      const callId = (payload.message.content as ReadonlyArray<{ toolCallId?: string }>)[0]?.toolCallId
-      const index = callId === undefined ? -1 : state.toolCalls.findIndex(call => call.id === callId)
+      const callId = payload.message.toolCallId
+      const index = state.toolCalls.findIndex(call => call.id === callId)
       const target = index === -1 ? undefined : state.toolCalls[index]
       if (target === undefined) break
       state.toolCalls[index] = {

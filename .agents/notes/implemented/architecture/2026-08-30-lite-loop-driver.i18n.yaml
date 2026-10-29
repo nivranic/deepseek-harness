@@ -1,6 +1,19 @@
-# Bilingual-pair consistency record (docs/i18n/README.md): the git blob hash of each
-# side as of the last confirmed-consistent state. Both languages carry equal authority;
-# after editing either side, bring the other along and re-record with:
+# Bilingual-pair consistency record for 2026-08-30-lite-loop-driver.md (docs/i18n/README.md): per heading
+# section, a hash of its English and Chinese blocks outside code blocks and generated regions.
+# After editing either side, bring the other along and re-record with:
 #   pnpm run verify-translation-pairing --write .agents/notes/implemented/architecture/2026-08-30-lite-loop-driver.md
-2026-08-30-lite-loop-driver.md: b2a357c9931353ab8380873c14ae4d6e0c8fc09b
-2026-08-30-lite-loop-driver.zh.md: b3aa27e41a072cedcebb6236d53c25848ee1d318
+/agent-note-lite-loop-driver-skeleton:
+  en: 0b70916146b8083b
+  zh: 2b42632fcf87191e
+/agent-note-lite-loop-driver-skeleton/problem:
+  en: 3d7598fe5af20f9f
+  zh: 8e3b5fbf16b04679
+/agent-note-lite-loop-driver-skeleton/decision:
+  en: 83fefa38a28721a2
+  zh: 7c0c3284bda99128
+/agent-note-lite-loop-driver-skeleton/consequences:
+  en: dd896130f4c34bff
+  zh: 0b15ca0e8be3c283
+/agent-note-lite-loop-driver-skeleton/alternatives-considered:
+  en: 05213a5530150e70
+  zh: 5da0d490bf4f099c

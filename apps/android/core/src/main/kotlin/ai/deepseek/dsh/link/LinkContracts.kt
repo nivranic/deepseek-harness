@@ -87,7 +87,7 @@ enum class LinkSessionEventKind(val wire: String) {
     STEP_START("step/start"),
     STEP_END("step/end"),
     USER_MESSAGE("user/message"),
-    ASSISTANT_CHUNK("assistant/chunk"),
+    ASSISTANT_ATTEMPT("assistant/attempt"),
     ASSISTANT_MESSAGE("assistant/message"),
     TOOL_CALL("tool/call"),
     TOOL_RESULT("tool/result"),
@@ -206,10 +206,7 @@ data class LinkMessageSource(
 data class LinkContentBlock(
     val type: String,
     val text: String? = null,
-    val toolCallId: String? = null,
-    val isError: Boolean? = null,
     val attachment: LinkImageAttachmentRef? = null,
-    val content: List<LinkContentBlock>? = null,
 )
 data class LinkUserMessageData(
     val id: String,
@@ -217,15 +214,20 @@ data class LinkUserMessageData(
     val content: List<LinkContentBlock>,
     val source: LinkMessageSource,
 )
-data class LinkStreamChunk(
+data class LinkStreamRecord(
     val type: String,
-    val index: Double? = null,
-    val text: String? = null,
+    val time0: Double,
+    val index: Double,
+    val dt: List<Double>,
+    val texts: List<String>? = null,
+    val id: String? = null,
+    val name: String? = null,
+    val args: List<String>? = null,
 )
-data class LinkAssistantChunkData(
+data class LinkAssistantAttemptData(
     val turn: Double,
     val step: Double,
-    val chunk: LinkStreamChunk,
+    val stream: List<LinkStreamRecord>,
 )
 data class LinkTokenUsage(
     val inputTokens: Double,
@@ -242,6 +244,7 @@ data class LinkAssistantMessageData(
     val turn: Double,
     val step: Double,
     val message: LinkAssistantMessage,
+    val stream: List<LinkStreamRecord>,
     val usage: LinkTokenUsage? = null,
     val interrupted: Boolean? = null,
 )
@@ -258,9 +261,11 @@ data class LinkToolError(
 )
 data class LinkToolResultMessage(
     val id: String,
-    val role: String, // constant "user"
+    val role: String, // constant "tool"
+    val toolCallId: String,
     val content: List<LinkContentBlock>,
     val source: LinkMessageSource,
+    val isError: Boolean? = null,
 )
 data class LinkToolResultData(
     val turn: Double,
@@ -269,15 +274,15 @@ data class LinkToolResultData(
     val error: LinkToolError? = null,
 )
 data class LinkTextChunksData(
-    val turn: Double,
-    val step: Double,
+    val type: String,
+    val time0: Double,
     val index: Double,
     val dt: List<Double>,
     val texts: List<String>,
 )
 data class LinkToolCallChunksData(
-    val turn: Double,
-    val step: Double,
+    val type: String,
+    val time0: Double,
     val index: Double,
     val dt: List<Double>,
     val id: String,
@@ -304,6 +309,7 @@ enum class LinkSubagentActivity(val wire: String) {
 }
 enum class LinkSubagentMode(val wire: String) {
     ONE_SHOT("one-shot"),
+    EXTERNAL("external"),
     CONTINUABLE("continuable"),
 }
 enum class LinkSubagentDiagnosticReason(val wire: String) {

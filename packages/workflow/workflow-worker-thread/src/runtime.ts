@@ -41,7 +41,7 @@ const SUPPORTED_AGENT_OPTIONS = new Set(['label', 'phase', 'schema', 'provider',
 const DEFERRED_AGENT_OPTIONS = new Set(['effort', 'isolation', 'agentType'])
 
 /** Flatten a child's final output blocks to text (the non-schema `agent()` result). */
-function outputText(blocks: ContentBlock[]): string {
+function outputText(blocks: readonly ContentBlock[]): string {
   return blocks
     .filter((block): block is Extract<ContentBlock, { type: 'text' }> => block.type === 'text')
     .map(block => block.text)

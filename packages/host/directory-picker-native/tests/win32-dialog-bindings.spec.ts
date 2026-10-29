@@ -4,8 +4,9 @@
  * COM world stands in for ole32/user32/kernel32, keeping the vtable dispatch,
  * result extraction, memory hygiene, and the WM_CLOSE poster covered on every
  * host. The worker entry is exercised the same way with a mocked process
- * boundary (env title + `process.send`). Real-COM behavior is pinned by the
- * win32-only smoke in win32-dialog.spec.ts.
+ * boundary (env title + `process.send`). String conversion runs through the
+ * fake world's native read stubs; the win32-only group below pins the same
+ * path against real COM memory.
  */
 
 import { afterEach, describe, expect, it, vi } from 'vitest'
@@ -14,11 +15,7 @@ import { HRESULT_CANCELLED, runFolderDialog } from '../src/win32-dialog-logic.ts
 
 const E_FAIL = 0x80004005 | 0
 const WM_CLOSE = 0x10
-/**
- * Deliberately NOT 8: the bindings must derive vtable offsets and out-buffer
- * sizes from koffi.sizeof('void *'), and a hardcoded 8 anywhere fails against
- * this width (the win32-ia32 bug class).
- */
+/** Four-byte defaults catch hardcoded x64 vtable offsets on every host. */
 const FAKE_POINTER_SIZE = 4
 
 interface ComWorld {
@@ -38,9 +35,15 @@ interface ComWorld {
   freed: unknown[]
   released: string[]
   posted: { hwnd: unknown; message: number }[]
+  /** Buffer sizes handed to the fake `decode(..., 'str16')`. */
+  str16PointerSizes: number[]
   registered: number
   unregistered: number
   uninitialized: number
+  /** The synthesized keybd_event calls, in order. */
+  keyEvents: { vk: number; flags: number }[]
+  /** Cross-cutting call trace shared by keybd_event and the dialog Show slot. */
+  nativeOrder: string[]
 }
 
 function comWorld(overrides: Partial<ComWorld> = {}): ComWorld {
@@ -49,26 +52,39 @@ function comWorld(overrides: Partial<ComWorld> = {}): ComWorld {
     hasThreadDpi: true, supportedDpiContexts: [-4], enumThrows: false,
     path: 'C:\\选中\\directory',
     titles: [], options: [], dpiContexts: [], freed: [], released: [], posted: [],
+    str16PointerSizes: [],
     registered: 0, unregistered: 0, uninitialized: 0,
+    keyEvents: [], nativeOrder: [],
     ...overrides,
   }
 }
 
-/** Sentinel pointer objects standing in for native addresses. */
+/** Sentinel pointer addresses standing in for native pointers. */
 interface FakePtr { kind: string; [key: string]: unknown }
 
-function installFakeKoffi(world: ComWorld): void {
-  const dialogPtr: FakePtr = { kind: 'dialog' }
-  const itemPtr: FakePtr = { kind: 'item' }
-  const namePtr: FakePtr = { kind: 'name', text: world.path }
-  const outBuffers = new Map<unknown, FakePtr>()
+function installFakeKoffi(world: ComWorld, options: {
+  pointerSize?: number
+  nameAddress?: bigint
+  decodeString?: (pointer: Buffer) => string
+} = {}): void {
+  const pointerSize = options.pointerSize ?? FAKE_POINTER_SIZE
+  const dialogPtr = 0x1100n
+  const itemPtr = 0x2200n
+  const namePtr = options.nameAddress ?? 0x3300n
+  const pointers = new Map<bigint, FakePtr>([
+    [dialogPtr, { kind: 'dialog' }],
+    [itemPtr, { kind: 'item' }],
+    [namePtr, { kind: 'name', text: world.path }],
+  ])
+  const outBuffers = new Map<unknown, bigint>()
+  world.str16PointerSizes = []
 
   const dispatch = (self: FakePtr, slot: number, args: unknown[]): number => {
     if (self.kind === 'dialog') {
       switch (slot) {
         case 9: world.options.push(args[0] as number); return 0
         case 17: world.titles.push(args[0] as string); return 0
-        case 3: return world.showHr
+        case 3: world.nativeOrder.push('show'); return world.showHr
         case 20: {
           if (world.getResultHr < 0) return world.getResultHr
           ;(args[0] as unknown[])[0] = itemPtr
@@ -99,16 +115,20 @@ function installFakeKoffi(world: ComWorld): void {
             case 'CoCreateInstance': return (...args: unknown[]) => {
               if (world.coCreateHr < 0) return world.coCreateHr
               // The out-pointer must be allocated at the fake's pointer width.
-              if ((args[4] as Buffer).length !== FAKE_POINTER_SIZE) {
-                throw new Error(`CoCreateInstance out buffer must be ${FAKE_POINTER_SIZE} bytes`)
+              if ((args[4] as Buffer).length !== pointerSize) {
+                throw new Error(`CoCreateInstance out buffer must be ${pointerSize} bytes`)
               }
               outBuffers.set(args[4], dialogPtr)
               return 0
             }
             case 'CoTaskMemFree': return (ptr: unknown) => { world.freed.push(ptr) }
             case 'GetCurrentThreadId': return () => 31337
-            case 'lstrlenW': return (ptr: FakePtr) => (ptr.text as string).length
-            case 'RtlMoveMemory': return (dst: Buffer, src: FakePtr, _bytes: number) => { dst.write(src.text as string, 'utf16le') }
+            case 'lstrlenW': return (address: bigint) => (pointers.get(address)?.text as string).length
+            case 'RtlMoveMemory': return (dst: Buffer, src: bigint, _bytes: number) => { dst.write(pointers.get(src)?.text as string, 'utf16le') }
+            case 'keybd_event': return (vk: number, _scan: number, flags: number, _extra: unknown) => {
+              world.keyEvents.push({ vk, flags })
+              world.nativeOrder.push(flags === 0 ? 'alt-down' : 'alt-up')
+            }
             case 'SetThreadDpiAwarenessContext': {
               if (!world.hasThreadDpi) throw new Error(`${dll}: SetThreadDpiAwarenessContext not found`)
               return (context: unknown) => {
@@ -129,7 +149,7 @@ function installFakeKoffi(world: ComWorld): void {
       }),
       proto: (declaration: string) => ({ declaration }),
       pointer: (type: unknown) => type,
-      sizeof: (type: string) => { void type; return FAKE_POINTER_SIZE },
+      sizeof: (type: string) => { void type; return pointerSize },
       // Regression guard: external ArrayBuffers over native memory fatally
       // reject under the packaged Electron-as-Node runtime, so the bindings
       // must never go through view() again.
@@ -137,14 +157,23 @@ function installFakeKoffi(world: ComWorld): void {
       register: (fn: (hwnd: unknown, lparam: unknown) => number) => { world.registered += 1; return { fn } },
       unregister: () => { world.unregistered += 1 },
       decode: (value: unknown, offsetOrType: unknown): unknown => {
+        if (offsetOrType === 'str16') {
+          const buffer = value as Buffer
+          if (buffer.length !== pointerSize) throw new Error(`str16 pointer buffer must be ${pointerSize} bytes, got ${buffer.length}`)
+          world.str16PointerSizes.push(buffer.length)
+          if (options.decodeString) return options.decodeString(buffer)
+          const address = pointerSize === 8 ? buffer.readBigUInt64LE(0) : BigInt(buffer.readUInt32LE(0))
+          return pointers.get(address)?.text
+        }
         if (typeof offsetOrType === 'number') {
           // Vtable slot read: offsets must be multiples of the fake width.
-          if (offsetOrType % FAKE_POINTER_SIZE !== 0) throw new Error(`vtable offset ${offsetOrType} is not pointer-aligned`)
+          if (offsetOrType % pointerSize !== 0) throw new Error(`vtable offset ${offsetOrType} is not pointer-aligned`)
           const owner = (value as { owner: FakePtr }).owner
-          return { call: (args: unknown[]) => dispatch(owner, offsetOrType / FAKE_POINTER_SIZE, args) }
+          return { call: (args: unknown[]) => dispatch(owner, offsetOrType / pointerSize, args) }
         }
-        // decode(x, 'void *'): out-buffer read or vtable read.
+        // decode(x, 'void *'): out-buffer read or object-pointer read.
         if (outBuffers.has(value)) return outBuffers.get(value)
+        if (typeof value === 'bigint') return { owner: pointers.get(value) }
         return { owner: value as FakePtr }
       },
       call: (fn: { call: (args: unknown[]) => number }, _proto: unknown, _self: unknown, ...args: unknown[]) => fn.call(args),
@@ -176,18 +205,43 @@ describe('loadWin32DialogBindings over the fake COM world', () => {
     expect(world.titles).toEqual(['选择工作区目录'])
     expect(world.options).toHaveLength(1)
     expect(showing).toHaveBeenCalledWith(31337)
+    // One synthesized Alt press (down, then up) immediately precedes Show, so
+    // the dialog's activation attempt finds this process as the recent-input
+    // owner.
+    expect(world.keyEvents).toEqual([
+      { vk: 0x12, flags: 0 },
+      { vk: 0x12, flags: 2 },
+    ])
+    expect(world.nativeOrder.slice(-3)).toEqual(['alt-down', 'alt-up', 'show'])
     expect(world.freed).toHaveLength(1)
     expect(world.released).toEqual(['item', 'dialog'])
     expect(world.uninitialized).toBe(1)
   })
 
-  it('reads a UTF-16 path whose BMP code unit has a zero low byte (U+5F00 开)', async () => {
-    // 开 = U+5F00 → UTF-16LE bytes 00 5F. A scan that treats any zero low
-    // byte as NUL truncates here and returns the nonexistent ...\安卓.
-    const world = comWorld({ path: 'C:\\fixture\\安卓开发' })
+  it.each([
+    { pointerSize: 4, nameAddress: 0xf1233300n },
+    { pointerSize: 8, nameAddress: 0x123456783300n },
+  ])('preserves and frees a $pointerSize-byte BigInt address', async ({ pointerSize, nameAddress }) => {
+    const world = comWorld()
+    installFakeKoffi(world, { pointerSize, nameAddress })
+    const bindings = await (await loadBindingsModule()).loadWin32DialogBindings()
+    expect(runFolderDialog(bindings, 'Pick', vi.fn())).toBe(world.path)
+    expect(world.freed).toEqual([nameAddress])
+    expect(world.released).toEqual(['item', 'dialog'])
+  })
+
+  it.each([
+    { label: 'zero-low-byte BMP code units', text: 'C:/fixture/安卓开发' },
+    { label: 'surrogate pairs', text: 'C:/fixture/😀' },
+    { label: 'more than 32 KiB', text: 'C:/' + '开'.repeat(17_000) },
+  ])('decodes $label through the native read stubs', async ({ text }) => {
+    const world = comWorld({ path: text })
     installFakeKoffi(world)
     const bindings = await (await loadBindingsModule()).loadWin32DialogBindings()
-    expect(runFolderDialog(bindings, 'Pick', vi.fn())).toBe('C:\\fixture\\安卓开发')
+
+    expect(runFolderDialog(bindings, 'Pick', vi.fn())).toBe(text)
+    expect(world.released).toEqual(['item', 'dialog'])
+    expect(world.uninitialized).toBe(1)
   })
 
   it('maps dismissal and the S_FALSE CoInitializeEx', async () => {
@@ -196,6 +250,7 @@ describe('loadWin32DialogBindings over the fake COM world', () => {
     const { loadWin32DialogBindings } = await loadBindingsModule()
     const bindings = await loadWin32DialogBindings()
     expect(runFolderDialog(bindings, 'Pick', vi.fn())).toBeNull()
+    expect(world.keyEvents).toHaveLength(2)
     expect(world.released).toEqual(['dialog'])
     expect(world.uninitialized).toBe(1)
   })
@@ -353,6 +408,7 @@ describe('the worker entry over a mocked process boundary', () => {
         coInitializeSta: () => 0,
         coUninitialize: () => undefined,
         currentThreadId: () => 11,
+        pressAltForForeground: () => undefined,
         createFolderDialog: () => ({
           setOptions: () => 0,
           setTitle: () => 0,

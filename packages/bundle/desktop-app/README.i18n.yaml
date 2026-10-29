@@ -1,6 +1,46 @@
-# Bilingual-pair consistency record (docs/i18n/README.md): the git blob hash of each
-# side as of the last confirmed-consistent state. Both languages carry equal authority;
-# after editing either side, bring the other along and re-record with:
+# Bilingual-pair consistency record for README.md (docs/i18n/README.md): per heading
+# section, a hash of its English and Chinese blocks outside code blocks and generated regions.
+# After editing either side, bring the other along and re-record with:
 #   pnpm run verify-translation-pairing --write packages/bundle/desktop-app/README.md
-README.md: 78822d6db68c57c1e882e93d7507ee605e498f20
-README.zh.md: 2ec4757c752916380f58cea2131552841fa8e186
+/:
+  en: 9e77616b3f583735
+  zh: bdc54d303db1724d
+/deepseek-ai-dsh-desktop-app:
+  en: dd7aaf4ac172eeaf
+  zh: 61793acb7d29bcf5
+/deepseek-ai-dsh-desktop-app/summary:
+  en: d2c5bc32a5ec15f5
+  zh: f2124bd9b9e346b8
+/deepseek-ai-dsh-desktop-app/table-of-contents:
+  en: 11071ccb44677de3
+  zh: 483e22bda0cd43c4
+/deepseek-ai-dsh-desktop-app/understand-the-implementation:
+  en: 42b15ac6321706aa
+  zh: c5500056b41ce570
+/deepseek-ai-dsh-desktop-app/understand-the-implementation/design-concept:
+  en: 2f4dce8f254f2222
+  zh: dac563616d23674b
+/deepseek-ai-dsh-desktop-app/understand-the-implementation/composition-map:
+  en: 9f54a1157831425a
+  zh: d9f17de853e55a97
+/deepseek-ai-dsh-desktop-app/dev-note:
+  en: 1b2fab7a780badbb
+  zh: 126d7f7ece885501
+/deepseek-ai-dsh-desktop-app/model-experience:
+  en: 215e7ba838619b7b
+  zh: 215e7ba838619b7b
+/deepseek-ai-dsh-desktop-app/model-experience/harness-source-and-desktop-surface-context:
+  en: 524b2339becbb655
+  zh: 7f4f91c88385223b
+/deepseek-ai-dsh-desktop-app/model-experience/harness-source-and-desktop-surface-context/what-the-model-sees:
+  en: d67abe0158cdf23c
+  zh: a669c27cb4fb84b2
+/deepseek-ai-dsh-desktop-app/model-experience/harness-source-and-desktop-surface-context/token-effect:
+  en: fed9f7e3245a20b8
+  zh: 302da88a6babcdb5
+/deepseek-ai-dsh-desktop-app/model-experience/harness-source-and-desktop-surface-context/kv-cache-effect:
+  en: 9a80ef3220f7ca8d
+  zh: 0c05161b94961e18
+/deepseek-ai-dsh-desktop-app/known-limitations-and-deferred-work:
+  en: 1d5b895ee4475981
+  zh: 2264201a3d9ae75c

@@ -202,10 +202,10 @@
       name: '@deepseek-ai/dsh-client-ui-settings-plugin-inventory'
 
     # Desktop-only preference: the General row for what the window close
-    # button does (tray or quit). Its host half registers the `desktop`
-    # settings namespace, which the Electron app shell reads through the
-    # settings service at close time. The web roster never composes this
-    # row, so the preference and its namespace exist only here.
+    # button does (tray or quit). Its host half declares this entry's
+    # volatile configuration, which the Electron app shell reads through
+    # the settings service at close time. The web roster never composes
+    # this row, so the preference exists only here.
     - id: ui-desktop
       name: '@deepseek-ai/dsh-client-ui-desktop'
 
@@ -381,9 +381,6 @@
 
 - id: tool-subagent-fork
   disabled: true
-
-# `tool-subagent-report` is host-plane for the same reason as the registry
-# (see the dsh-web-app patch).
 
 - id: workflow-worker-thread
   disabled: true

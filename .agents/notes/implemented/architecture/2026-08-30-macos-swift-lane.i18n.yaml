@@ -1,6 +1,19 @@
-# Bilingual-pair consistency record (docs/i18n/README.md): the git blob hash of each
-# side as of the last confirmed-consistent state. Both languages carry equal authority;
-# after editing either side, bring the other along and re-record with:
+# Bilingual-pair consistency record for 2026-08-30-macos-swift-lane.md (docs/i18n/README.md): per heading
+# section, a hash of its English and Chinese blocks outside code blocks and generated regions.
+# After editing either side, bring the other along and re-record with:
 #   pnpm run verify-translation-pairing --write .agents/notes/implemented/architecture/2026-08-30-macos-swift-lane.md
-2026-08-30-macos-swift-lane.md: e18393100295a56d6a4e8c8aa1b2f8214a4a530a
-2026-08-30-macos-swift-lane.zh.md: cba3963a72b9c2c114a436e0d517d6be9dd98725
+/agent-note-the-macos-swift-lane:
+  en: 6987a7172a755d25
+  zh: eed1375404933e99
+/agent-note-the-macos-swift-lane/problem:
+  en: a44a6bd8ee23f77d
+  zh: e94232fec0bdb4ca
+/agent-note-the-macos-swift-lane/decision:
+  en: b01c5f6dc514c44b
+  zh: 8e568d825889473c
+/agent-note-the-macos-swift-lane/consequences:
+  en: 3342f909d2967fa5
+  zh: 9a7896ae22ab736c
+/agent-note-the-macos-swift-lane/alternatives-considered:
+  en: c81922dc1b640a46
+  zh: 9e9b6c377b31ff56

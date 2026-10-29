@@ -117,7 +117,7 @@ Read these when the backend contract is not enough. They move from the seam defi
 
 - [Code runtime seam](../code-runtime/README.md) — the abstract contract this backend implements.
 - [PTC mode Agent Note](../../../.agents/notes/implemented/feature/2026-06-15-ptc.md) — how `dsh-tools` consumes `ctx.codeRuntime` and presents `run_code`.
-- [Code runtime subsystem reference](../../../docs/subsystems/code-runtime.md) — request/result vocabulary, bindings, and failure taxonomy.
+- [PTC runtime subsystem reference](../../../docs/subsystems/ptc-runtime.md) — request/result vocabulary, bindings, and failure taxonomy.
 - [Generated configuration catalog](../../../docs/config-catalog.md#deepseek-aidsh-code-runtime-worker-thread) — every accepted config field and its source declaration.
 
 -----

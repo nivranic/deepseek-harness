@@ -10,7 +10,7 @@ import type { LinkDeviceValue, LinkPairingValue, LinkStatusValue } from '@deepse
 import { Button, Modal } from '@deepseek-ai/dsh-client-ui-primitives'
 import { renderSVG } from 'uqr'
 import type { ObservableSnapshot } from '@deepseek-ai/dsh-client-store'
-import type { SettingsScopeSnapshot } from '@deepseek-ai/dsh-client-ui-settings/client'
+import type { ConfigFormSnapshot } from '@deepseek-ai/dsh-client-ui-settings/client'
 import type { InjectFace, PropsLocale, PropsRuntime } from '@deepseek-ai/dsh-client-ui-slots'
 import type { RemoteSettings } from '../remote-settings.ts'
 import css from './RemoteDevicesRow.module.css'
@@ -33,8 +33,8 @@ export interface LinkAdminApi {
 /** Registration-side business face for the devices block. */
 export interface RemoteDevicesRowInjected {
   hooks: {
-    /** Remote namespace snapshot bound by the renderer. */
-    remote: ObservableSnapshot<SettingsScopeSnapshot<RemoteSettings>>
+    /** Remote entry form bound by the renderer. */
+    remote: ObservableSnapshot<ConfigFormSnapshot<RemoteSettings>>
   }
   /** The `link` Remote API wired by the renderer. */
   api: LinkAdminApi

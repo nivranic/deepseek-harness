@@ -55,7 +55,7 @@ export interface ChildStartRequest {
  */
 export interface ChildResult {
   /** The child's final assistant output blocks. */
-  output: ContentBlock[]
+  output: readonly ContentBlock[]
   /** The structured value, present iff the request carried a schema AND the provider honored it. */
   structured?: unknown
   /** Why the child run ended (`'completed'` is the only value the runtime branches on). */

@@ -69,7 +69,7 @@ The package is the Service Definition role of the code-execution capability seam
 
 The contract is three members a backend implements: `run(request)` executes one program against the request's bindings and resolves every program outcome — parse/transform failure, thrown exception, invalid completion, output overflow, budget expiry, abort, or substrate death — as a result `error` field, with rejection reserved for caller misuse such as a run submitted after disposal; `language` and `isolation` are read-only descriptors labeling the source language and execution substrate for deployments and diagnostics.
 
-The exhaustive semantics live in the [code runtime subsystem reference](../../../docs/subsystems/code-runtime.md); the exact signatures are in [`src/index.ts`](src/index.ts).
+The exhaustive semantics live in the [PTC runtime subsystem reference](../../../docs/subsystems/ptc-runtime.md); the exact signatures are in [`src/index.ts`](src/index.ts).
 
 ### Vocabulary
 
@@ -99,7 +99,7 @@ Read these when the package-level contract is not enough. They move from the PTC
 - [PTC mode Agent Note](../../../.agents/notes/implemented/feature/2026-06-15-ptc.md) — how the tool registry consumes `ctx.codeRuntime` and presents `run_code` to the model.
 - [Worker-thread backend](../code-runtime-worker-thread/README.md) — the shipped TypeScript execution backend.
 - [Python protocol package](../code-runtime-python/README.md) — the wire protocol for the CPython backend.
-- [Code runtime subsystem reference](../../../docs/subsystems/code-runtime.md) — request/result vocabulary, bindings, and the `ctx.codeRuntime` cordis surface.
+- [PTC runtime subsystem reference](../../../docs/subsystems/ptc-runtime.md) — request/result vocabulary, bindings, and the `ctx.codeRuntime` cordis surface.
 - [Capability seams](../../../.agents/notes/implemented/architecture/2026-06-13-capability-seams.md) — the Service Definition / Service Provider / Consumer split.
 
 -----

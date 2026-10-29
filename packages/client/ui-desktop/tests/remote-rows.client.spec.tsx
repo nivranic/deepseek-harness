@@ -1,7 +1,7 @@
 // @vitest-environment jsdom
 /**
- * The cross-device rows: the on/off toggles over the `remote` namespace, the
- * device-name editor, and the devices block — LAN status, the pairing QR
+ * The cross-device rows: the on/off toggles over the `link-settings` entry,
+ * the device-name editor, and the devices block — LAN status, the pairing QR
  * dialog, and revocation — against stubbed link Remote APIs.
  */
 
@@ -9,7 +9,7 @@ import { cleanup, fireEvent, render, screen, waitFor } from '@testing-library/re
 import { afterEach, describe, expect, it, vi } from 'vitest'
 import { bindSnapshotSelector } from '@deepseek-ai/dsh-client-test-runtime'
 import { createSnapshotStore } from '@deepseek-ai/dsh-client-store'
-import type { SettingsScopeSnapshot } from '@deepseek-ai/dsh-client-ui-settings/client'
+import type { ConfigFormSnapshot } from '@deepseek-ai/dsh-client-ui-settings/client'
 import type { LinkPairingValue } from '@deepseek-ai/dsh-api-link-controller/types'
 import { DeviceNameRow } from '../src/client/DeviceNameRow.tsx'
 import type { DeviceNameRowComponentProps } from '../src/client/DeviceNameRow.tsx'
@@ -22,7 +22,7 @@ import { zh } from '../src/client/locales.ts'
 
 afterEach(cleanup)
 
-type Snapshot = SettingsScopeSnapshot<RemoteSettings>
+type Snapshot = ConfigFormSnapshot<RemoteSettings>
 
 const BASE: Snapshot = {
   status: 'ready',
@@ -31,7 +31,6 @@ const BASE: Snapshot = {
   user: undefined,
   revision: 1,
   writable: true,
-  mode: 'host',
 }
 
 const t = (key: keyof typeof zh): string => zh[key]

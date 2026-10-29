@@ -82,7 +82,7 @@ describe('client wrapper enrollment', () => {
         exports: {},
       }, options),
     }
-    target.create({
+    const system = target.create({
       boot: {
         ...validGraph,
         version: '0.2.0',
@@ -91,6 +91,7 @@ describe('client wrapper enrollment', () => {
       staticModules: {},
     })
     const ctx = new Context()
+    ctx.provide('loader', { internal: system })
     apply(ctx)
     expect(ctx.appInfo).toEqual({
       version: '0.2.0',

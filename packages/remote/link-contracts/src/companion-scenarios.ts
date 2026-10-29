@@ -10,9 +10,9 @@
 import { ArtifactId } from '@deepseek-ai/dsh-artifact/types'
 import { AttachmentId } from '@deepseek-ai/dsh-attachment'
 import { MessageId, ToolCallId } from '@deepseek-ai/dsh-llm/brand'
+import type { AssistantStreamRecord } from '@deepseek-ai/dsh-llm'
 import type { GoalId } from '@deepseek-ai/dsh-goal/types'
 import type { SessionEventMap } from '@deepseek-ai/dsh-session/types'
-import type { ChunkRow } from '@deepseek-ai/dsh-session/chunk-rows'
 import { foldCompanionDomain, type CompanionDomainState, type CompanionRecord } from './companion-fold.ts'
 
 /** One golden scenario: its ordered records and the id the artifacts carry. */
@@ -25,7 +25,7 @@ function event<K extends keyof SessionEventMap>(seq: number, type: K, data: Sess
   return { type: 'event', event: { type, seq, time: 1_759_017_600_000 + seq, data } }
 }
 
-function chunks(seq: number, tag: 'chunkrow/text-chunks' | 'chunkrow/reasoning-chunks', data: Extract<ChunkRow, { type: 'text-chunks' }>['data']): CompanionRecord {
+function chunks(seq: number, tag: 'chunkrow/text-chunks' | 'chunkrow/reasoning-chunks', data: Extract<AssistantStreamRecord, { type: 'text-chunks' }>): CompanionRecord {
   return { type: 'chunks', event: { type: tag, seq, time: 1_759_017_600_000 + seq, data } }
 }
 
@@ -42,7 +42,7 @@ export const LINK_DOMAIN_SCENARIOS: readonly CompanionScenario[] = [
         source: { kind: 'user' },
       }),
       event(3, 'step/start', { turn: 1, step: 1 }),
-      chunks(4, 'chunkrow/text-chunks', { turn: 1, step: 1, index: 0, dt: [4, 6], texts: ['你好', '，构建'] }),
+      chunks(4, 'chunkrow/text-chunks', { type: 'text-chunks', time0: 1_759_017_600_004, index: 0, dt: [4, 6], texts: ['你好', '，构建'] }),
       event(5, 'assistant/message', {
         turn: 1,
         step: 1,
@@ -52,6 +52,7 @@ export const LINK_DOMAIN_SCENARIOS: readonly CompanionScenario[] = [
           content: [{ type: 'text', text: '已完成：登录页液态玻璃样式落地。' }],
           source: { kind: 'model', provider: 'deepseek', model: 'deepseek-chat' },
         },
+        stream: [{ type: 'text-chunks', time0: 1_759_017_600_005, index: 0, dt: [], texts: ['已完成：登录页液态玻璃样式落地。'] }],
         usage: { inputTokens: 120, outputTokens: 36, totalTokens: 156 },
       }),
       event(6, 'step/end', { turn: 1, step: 1 }),
@@ -92,6 +93,7 @@ export const LINK_DOMAIN_SCENARIOS: readonly CompanionScenario[] = [
           content: [{ type: 'text', text: '收到截图，已定位到间距样式。' }],
           source: { kind: 'model', provider: 'deepseek', model: 'deepseek-chat' },
         },
+        stream: [{ type: 'text-chunks', time0: 1_759_017_600_003, index: 0, dt: [], texts: ['收到截图，已定位到间距样式。'] }],
         usage: { inputTokens: 340, outputTokens: 28, totalTokens: 368 },
       }),
       event(4, 'turn/end', { turn: 1, reason: { kind: 'completed' } }),
@@ -159,12 +161,9 @@ export const LINK_DOMAIN_SCENARIOS: readonly CompanionScenario[] = [
         step: 1,
         message: {
           id: MessageId('m-tool-1'),
-          role: 'user',
-          content: [{
-            type: 'tool-result',
-            toolCallId: ToolCallId('call-1'),
-            content: [{ type: 'text', text: '已写入 42 行。' }],
-          }],
+          role: 'tool',
+          toolCallId: ToolCallId('call-1'),
+          content: [{ type: 'text', text: '已写入 42 行。' }],
           source: { kind: 'tool', callId: ToolCallId('call-1') },
         },
       }),
@@ -173,12 +172,9 @@ export const LINK_DOMAIN_SCENARIOS: readonly CompanionScenario[] = [
         step: 1,
         message: {
           id: MessageId('m-tool-x'),
-          role: 'user',
-          content: [{
-            type: 'tool-result',
-            toolCallId: ToolCallId('call-x'),
-            content: [{ type: 'text', text: '孤儿结果' }],
-          }],
+          role: 'tool',
+          toolCallId: ToolCallId('call-x'),
+          content: [{ type: 'text', text: '孤儿结果' }],
           source: { kind: 'tool', callId: ToolCallId('call-x') },
         },
       }),
@@ -187,13 +183,11 @@ export const LINK_DOMAIN_SCENARIOS: readonly CompanionScenario[] = [
         step: 1,
         message: {
           id: MessageId('m-tool-2'),
-          role: 'user',
-          content: [{
-            type: 'tool-result',
-            toolCallId: ToolCallId('call-2'),
-            content: [{ type: 'text', text: '2 个断言失败' }],
-          }],
+          role: 'tool',
+          toolCallId: ToolCallId('call-2'),
+          content: [{ type: 'text', text: '2 个断言失败' }],
           source: { kind: 'tool', callId: ToolCallId('call-2') },
+          isError: true,
         },
         error: { name: 'AssertionError', code: 'EXIT_1' },
       }),

@@ -1,6 +1,19 @@
-# Bilingual-pair consistency record (docs/i18n/README.md): the git blob hash of each
-# side as of the last confirmed-consistent state. Both languages carry equal authority;
-# after editing either side, bring the other along and re-record with:
+# Bilingual-pair consistency record for 2026-08-31-lite-artifact-content-reading.md (docs/i18n/README.md): per heading
+# section, a hash of its English and Chinese blocks outside code blocks and generated regions.
+# After editing either side, bring the other along and re-record with:
 #   pnpm run verify-translation-pairing --write .agents/notes/implemented/architecture/2026-08-31-lite-artifact-content-reading.md
-2026-08-31-lite-artifact-content-reading.md: 66adfa127342466c2107801acffece56284d3eab
-2026-08-31-lite-artifact-content-reading.zh.md: 19067acd1a430e98863566bc47daa70c9a991c5a
+/agent-note-reading-artifact-content-through-the-resource-channel:
+  en: 9eaf16aecd0a5382
+  zh: f6ae4f1466b648cd
+/agent-note-reading-artifact-content-through-the-resource-channel/problem:
+  en: e8e2e2d5875b8409
+  zh: ce6984ae6634563c
+/agent-note-reading-artifact-content-through-the-resource-channel/decision:
+  en: 2e7e6860b8366202
+  zh: 808873bdb0a52ba5
+/agent-note-reading-artifact-content-through-the-resource-channel/consequences:
+  en: 46bf0c865f62d12d
+  zh: 7ae6410702ce88ed
+/agent-note-reading-artifact-content-through-the-resource-channel/alternatives-considered:
+  en: f8481d3de4a62ebb
+  zh: 4245d4fee78de271

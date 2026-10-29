@@ -1,6 +1,70 @@
-# Bilingual-pair consistency record (docs/i18n/README.md): the git blob hash of each
-# side as of the last confirmed-consistent state. Both languages carry equal authority;
-# after editing either side, bring the other along and re-record with:
+# Bilingual-pair consistency record for README.md (docs/i18n/README.md): per heading
+# section, a hash of its English and Chinese blocks outside code blocks and generated regions.
+# After editing either side, bring the other along and re-record with:
 #   pnpm run verify-translation-pairing --write packages/code-runtime/code-runtime-worker-thread/README.md
-README.md: 683a774b00a2305b0489a62b1b33f9d20dddffe8
-README.zh.md: 34b828081ebbde7fea70f4dd409e2980c6942eea
+/:
+  en: 02298feedb8b9ddb
+  zh: 454c8a556d076d73
+/deepseek-ai-dsh-code-runtime-worker-thread:
+  en: 427a8f6276fea569
+  zh: 4ed1afd8f58823ba
+/deepseek-ai-dsh-code-runtime-worker-thread/summary:
+  en: e2a2055ec5fe8560
+  zh: 5a6bbc4d7e5d07e2
+/deepseek-ai-dsh-code-runtime-worker-thread/table-of-contents:
+  en: d152484eb41ac6b4
+  zh: 09388d293f9be9cb
+/deepseek-ai-dsh-code-runtime-worker-thread/use-this-package:
+  en: 36f5bc4d2635c093
+  zh: 80a8edc4b1efb654
+/deepseek-ai-dsh-code-runtime-worker-thread/use-this-package/minimal-configuration:
+  en: 41a9196e8499d185
+  zh: f6d9b6aa47261f4e
+/deepseek-ai-dsh-code-runtime-worker-thread/use-this-package/what-a-run-returns:
+  en: a4f5b0cb33b3e83b
+  zh: ac964b5d9e9b3cb3
+/deepseek-ai-dsh-code-runtime-worker-thread/use-this-package/containment-not-a-security-boundary:
+  en: 57663439e425718f
+  zh: b278565ed051ae66
+/deepseek-ai-dsh-code-runtime-worker-thread/use-this-package/what-can-go-wrong:
+  en: 507867597f462ca3
+  zh: 0147d5f245619c36
+/deepseek-ai-dsh-code-runtime-worker-thread/understand-the-implementation:
+  en: 7824816505e2b844
+  zh: 6b572f5609362825
+/deepseek-ai-dsh-code-runtime-worker-thread/understand-the-implementation/design-concept:
+  en: 8bfc23bbb15d3bd0
+  zh: f28b1d6c1aaca8a1
+/deepseek-ai-dsh-code-runtime-worker-thread/understand-the-implementation/execution-flow:
+  en: 69fe19089e1eab84
+  zh: c3282d61e3eaa289
+/deepseek-ai-dsh-code-runtime-worker-thread/understand-the-implementation/hostile-peer-port:
+  en: d34b480d3a033d9c
+  zh: 5d4987d755e6c029
+/deepseek-ai-dsh-code-runtime-worker-thread/understand-the-implementation/budgets:
+  en: 67c40bce5b7b3e66
+  zh: 118799241d876f01
+/deepseek-ai-dsh-code-runtime-worker-thread/understand-the-implementation/output-ledger:
+  en: 8719a188c278f3c8
+  zh: 2fa56b68ff2bab3e
+/deepseek-ai-dsh-code-runtime-worker-thread/understand-the-implementation/source-map:
+  en: 0eac518d0a894e49
+  zh: 0caa938b38c5ef21
+/deepseek-ai-dsh-code-runtime-worker-thread/understand-the-implementation/the-worker-entry-unbuilt-and-built:
+  en: b9fb3758def595f3
+  zh: 3a4d29d36bc65ef1
+/deepseek-ai-dsh-code-runtime-worker-thread/further-exploration:
+  en: 20e0f879a9f5e353
+  zh: bb8c755ce6f8998d
+/deepseek-ai-dsh-code-runtime-worker-thread/model-experience:
+  en: 292f7531ed6d71fe
+  zh: 0ab21878a4918d1c
+/deepseek-ai-dsh-code-runtime-worker-thread/model-experience/kv-cache-effect:
+  en: 40294c1c31b74824
+  zh: 081cebc2e2650f03
+/deepseek-ai-dsh-code-runtime-worker-thread/known-limitations-and-deferred-work:
+  en: 4b144ded590ad8ae
+  zh: bb542a5e1ec8b816
+/deepseek-ai-dsh-code-runtime-worker-thread/known-limitations-and-deferred-work/dev-note:
+  en: e67f633dc6fe7773
+  zh: 3bb0c20c93f16f98

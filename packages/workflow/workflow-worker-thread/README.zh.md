@@ -122,7 +122,7 @@ kind: "package-reference"
 - [工作流 seam](../workflow/README.zh.md)——`ctx.workflowEngine` 背后的运行与结果词汇。
 - [workflow 工具](../tool-workflow/README.zh.md)——在本引擎上运行脚本的模型侧消费方。
 - [组地图](../README.zh.md)——工作流能力家族及其包。
-- [动态工作流 Agent Note](../../../.agents/notes/implemented/feature/2026-07-05-dynamic-workflows.zh.md)——seam 设计及其决策。
+- [动态工作流 Agent Note](../../../.agents/notes/archived/feature/2026-07-05-dynamic-workflows.md)——seam 设计及其决策。
 
 -----
 

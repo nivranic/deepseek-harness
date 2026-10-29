@@ -122,7 +122,7 @@ Read these pages when the engine-level contract is not enough. They move from th
 - [Workflow seam](../workflow/README.md) — the run and result vocabulary behind `ctx.workflowEngine`.
 - [workflow tool](../tool-workflow/README.md) — the model-facing consumer that runs scripts on this engine.
 - [Group map](../README.md) — the workflow capability family and its packages.
-- [Dynamic workflows Agent Note](../../../.agents/notes/implemented/feature/2026-07-05-dynamic-workflows.md) — the seam design and its decisions.
+- [Dynamic workflows Agent Note](../../../.agents/notes/archived/feature/2026-07-05-dynamic-workflows.md) — the seam design and its decisions.
 
 -----
 

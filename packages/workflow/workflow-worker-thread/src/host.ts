@@ -12,10 +12,9 @@ import type { WorkerOptions } from 'node:worker_threads'
 import { fileURLToPath } from 'node:url'
 import type { Context } from '@deepseek-ai/cordis'
 import type { Agent } from '@deepseek-ai/dsh-agent'
-import { assertNever } from '@deepseek-ai/dsh-llm'
-import { snapshotJsonValue } from '@deepseek-ai/dsh-session'
 import type SubagentRuntime from '@deepseek-ai/dsh-subagent'
-import type { SubagentRun } from '@deepseek-ai/dsh-subagent'
+import type { SubagentActivation } from '@deepseek-ai/dsh-subagent'
+import { assertNever, snapshotJsonValue } from '@deepseek-ai/dsh-util-values'
 import type { WorkflowAgentEndInfo, WorkflowAgentInfo, WorkflowMeta, WorkflowResult, WorkflowRun, WorkflowRunId } from '@deepseek-ai/dsh-workflow'
 import { renderThrown } from './realm.ts'
 import type { ExecutionObserver } from './runtime.ts'
@@ -25,7 +24,7 @@ import type { ChildResult, ChildStartRequest, WorkerInit } from './types.ts'
 
 /** One published child and its shared quiescent-disposal transaction. */
 interface ChildRecord {
-  readonly run: SubagentRun
+  readonly activation: SubagentActivation
   disposal?: Promise<void>
 }
 
@@ -347,21 +346,26 @@ export class WorkerRun implements WorkflowRun {
 
   /** Await one provider-owned startup transaction and publish only while admitted. */
   private async startChild(callId: number, request: ChildStartRequest): Promise<void> {
-    let run: SubagentRun
+    let activation: SubagentActivation
     try {
-      run = await this.subagents.start(this.provider, {
-        prompt: [{ type: 'text', text: request.prompt }],
-        parent: this.parent,
+      activation = await this.subagents.startActivation({
+        provider: this.provider,
+        label: this.meta.name,
+        request: {
+          prompt: [{ type: 'text', text: request.prompt }],
+          parent: this.parent,
+          ...request.schema !== undefined ? { outputSchema: request.schema } : {},
+          ...request.provider !== undefined || request.model !== undefined
+            ? {
+              agentOptions: {
+                ...request.provider !== undefined ? { provider: request.provider } : {},
+                ...request.model !== undefined ? { model: request.model } : {},
+              },
+            }
+            : {},
+        },
         signal: this.controller.signal,
-        ...request.schema !== undefined ? { outputSchema: request.schema } : {},
-        ...request.provider !== undefined || request.model !== undefined
-          ? {
-            agentOptions: {
-              ...request.provider !== undefined ? { provider: request.provider } : {},
-              ...request.model !== undefined ? { model: request.model } : {},
-            },
-          }
-          : {},
+        delivery: 'caller',
       })
     } catch (error: unknown) {
       const failure = this.childAdmissionFailure()
@@ -375,19 +379,19 @@ export class WorkerRun implements WorkflowRun {
     if (failure !== undefined) {
       this.post(HostToWorkerType.ChildStartError, { callId, rendered: failure.rendered })
       try {
-        await run.dispose()
+        await activation.dispose()
       } catch (error: unknown) {
         this.ctx.logger.warn(`workflow-worker-thread: refused child dispose failed: ${renderThrown(error)}`)
       }
       return
     }
 
-    const record: ChildRecord = { run }
+    const record: ChildRecord = { activation }
     this.children.set(callId, record)
     // Attach result forwarding before publishing the child handle. Because the
     // callback itself runs in a later microtask, ChildStarted is still posted
     // first even for an already-settled scripted provider.
-    const forwardResult = run.result.then<() => void, () => void>(
+    const forwardResult = activation.result.then<() => void, () => void>(
       (result) => {
         try {
           const snapshot = snapshotJsonValue<ChildResult>({
@@ -407,7 +411,7 @@ export class WorkerRun implements WorkflowRun {
         return () => { this.post(HostToWorkerType.ChildFailed, { callId, rendered }) }
       },
     )
-    this.post(HostToWorkerType.ChildStarted, { callId, childId: run.id })
+    this.post(HostToWorkerType.ChildStarted, { callId, childId: activation.childId })
     void forwardResult.then((forward) => { forward() })
   }
 
@@ -438,7 +442,7 @@ export class WorkerRun implements WorkflowRun {
   private disposeChild(callId: number, record: ChildRecord): Promise<void> {
     if (record.disposal !== undefined) return record.disposal
     record.disposal = Promise.resolve()
-      .then(() => record.run.dispose())
+      .then(() => record.activation.dispose())
       .catch((error: unknown) => {
         this.ctx.logger.warn(`workflow-worker-thread: child dispose failed: ${renderThrown(error)}`)
       })

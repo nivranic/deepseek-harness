@@ -1,7 +1,8 @@
 /**
  * Registration: the General rows come from one apply, defer until the slot they
- * fill has been declared, bind the `desktop` settings namespace through the
- * shared scope service, and route their selects through the wire mutate path.
+ * fill has been declared, bind the `ui-desktop` entry's configuration through
+ * the shared config-form service, and route their selects through the wire
+ * mutate path.
  */
 
 import { Context } from '@deepseek-ai/cordis'
@@ -15,8 +16,8 @@ import type {
   CloseActionRowInjected, DeviceNameRowInjected, LaunchAtLoginRowInjected,
   RemoteDevicesRowInjected, RemoteToggleRowInjected,
 } from '../src/client/index.ts'
-import { DesktopSettingsSchema, DESKTOP_SETTINGS_NAMESPACE } from '../src/desktop-settings.ts'
-import { REMOTE_SETTINGS_NAMESPACE } from '../src/remote-settings.ts'
+import { DESKTOP_SETTINGS_ENTRY } from '../src/desktop-settings.ts'
+import { REMOTE_SETTINGS_ENTRY } from '../src/remote-settings.ts'
 import z from '@deepseek-ai/schemastery'
 
 const RemoteSettingsTestSchema = z.object({
@@ -25,10 +26,18 @@ const RemoteSettingsTestSchema = z.object({
   deviceName: z.string().default('HOST-PC'),
 })
 
+// Mirrors the `ui-desktop` entry's host-side configuration schema; the wire
+// view only rehydrates the envelope, so the fixture keeps its own copy.
+const DesktopSettingsTestSchema = z.object({
+  closeAction: z.union(['tray', 'quit']).default('tray'),
+  launchAtLogin: z.boolean().default(false),
+})
+
 function view(closeAction: 'tray' | 'quit', revision: number, launchAtLogin = false) {
   return {
-    ns: DESKTOP_SETTINGS_NAMESPACE,
-    schema: DesktopSettingsSchema.toJSON(),
+    ns: DESKTOP_SETTINGS_ENTRY,
+    autoGenerate: false,
+    schema: DesktopSettingsTestSchema.toJSON(),
     value: { closeAction, launchAtLogin },
     applies: 'live' as const,
     secrets: [],
@@ -38,7 +47,8 @@ function view(closeAction: 'tray' | 'quit', revision: number, launchAtLogin = fa
 
 function remoteView(enabled: boolean, revision: number) {
   return {
-    ns: REMOTE_SETTINGS_NAMESPACE,
+    ns: REMOTE_SETTINGS_ENTRY,
+    autoGenerate: true,
     schema: RemoteSettingsTestSchema.toJSON(),
     value: { enabled, allowRemoteApproval: false, deviceName: 'HOST-PC' },
     applies: 'live' as const,
@@ -84,7 +94,7 @@ async function bench() {
       mutate: (...args: unknown[]) => {
         mutate(...args)
         const [ns] = args as [string]
-        const next = ns === REMOTE_SETTINGS_NAMESPACE ? remoteView(true, 7) : view('quit', 2)
+        const next = ns === REMOTE_SETTINGS_ENTRY ? remoteView(true, 7) : view('quit', 2)
         return Promise.resolve({ ok: true as const, value: next })
       },
     },
@@ -140,7 +150,7 @@ describe('ui-desktop apply', () => {
       expect(closeFace.hooks.desktopClose.getSnapshot().value).toEqual({ closeAction: 'quit', launchAtLogin: false })
     })
     expect(mutate).toHaveBeenCalledWith(
-      DESKTOP_SETTINGS_NAMESPACE,
+      DESKTOP_SETTINGS_ENTRY,
       [{ op: 'set', path: ['closeAction'], value: 'quit' }],
       1,
     )
@@ -158,17 +168,17 @@ describe('ui-desktop apply', () => {
     deviceNameFace.commit('Studio Desk')
     await vi.waitFor(() => { expect(mutate).toHaveBeenCalledTimes(3) })
     expect(mutate).toHaveBeenCalledWith(
-      REMOTE_SETTINGS_NAMESPACE,
+      REMOTE_SETTINGS_ENTRY,
       [{ op: 'set', path: ['enabled'], value: true }],
       7,
     )
     expect(mutate).toHaveBeenCalledWith(
-      REMOTE_SETTINGS_NAMESPACE,
+      REMOTE_SETTINGS_ENTRY,
       [{ op: 'set', path: ['allowRemoteApproval'], value: true }],
       7,
     )
     expect(mutate).toHaveBeenCalledWith(
-      REMOTE_SETTINGS_NAMESPACE,
+      REMOTE_SETTINGS_ENTRY,
       [{ op: 'set', path: ['deviceName'], value: 'Studio Desk' }],
       7,
     )
@@ -196,7 +206,7 @@ describe('ui-desktop apply', () => {
       expect(launchFace.hooks.desktopLaunch.getSnapshot().value).toEqual({ closeAction: 'quit', launchAtLogin: false })
     })
     expect(mutate).toHaveBeenCalledWith(
-      DESKTOP_SETTINGS_NAMESPACE,
+      DESKTOP_SETTINGS_ENTRY,
       [{ op: 'set', path: ['launchAtLogin'], value: true }],
       1,
     )

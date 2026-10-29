@@ -1,6 +1,19 @@
-# Bilingual-pair consistency record (docs/i18n/README.md): the git blob hash of each
-# side as of the last confirmed-consistent state. Both languages carry equal authority;
-# after editing either side, bring the other along and re-record with:
+# Bilingual-pair consistency record for 2026-08-31-android-lite-chat-surface.md (docs/i18n/README.md): per heading
+# section, a hash of its English and Chinese blocks outside code blocks and generated regions.
+# After editing either side, bring the other along and re-record with:
 #   pnpm run verify-translation-pairing --write .agents/notes/implemented/architecture/2026-08-31-android-lite-chat-surface.md
-2026-08-31-android-lite-chat-surface.md: 4cefb233efec587403e4b4c667461d46830e28f0
-2026-08-31-android-lite-chat-surface.zh.md: fca80514c863e5eeaab1cba27cb31b19f2c90099
+/agent-note-the-android-lite-chat-surface:
+  en: 6f9e9f541ee81f99
+  zh: ddb204bb6b127a5f
+/agent-note-the-android-lite-chat-surface/problem:
+  en: e835e3684ef13eaf
+  zh: 571b4cce519fe895
+/agent-note-the-android-lite-chat-surface/decision:
+  en: ac507902d9bc5e33
+  zh: 57729449bd4b7246
+/agent-note-the-android-lite-chat-surface/consequences:
+  en: 6fb0204d171116cf
+  zh: 670e1d5042841dfa
+/agent-note-the-android-lite-chat-surface/alternatives-considered:
+  en: ddd4c14ae39cb33f
+  zh: a610871ddc135559

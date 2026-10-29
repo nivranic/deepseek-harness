@@ -29,7 +29,7 @@ kind: "package-reference"
 
 ### 何时使用
 
-需要实时诊断的组合请使用注册表。[`agent-spine-demo`](../../../packages/examples/agent-spine-demo/README.zh.md) 中的标准 agent 组合已挂载它及四个核心有状态配套入口——`dsh-session`、`dsh-agent`、`dsh-scope` 与 `dsh-agent-loop`。自定义组合挂载注册表，并为任何其他已加载、且希望检查其约定的包添加配套入口。单独加载注册表不会安装任何检查：它自身不携带任何产品检查，因此从不挂载配套入口的组合不会观察到任何诊断行为。
+需要实时诊断的组合请使用注册表。组合挂载注册表，并为任何希望检查其约定的已加载包添加配套入口；四个核心有状态配套入口覆盖 `dsh-session`、`dsh-agent`、`dsh-scope` 与 `dsh-agent-loop`。单独加载注册表不会安装任何检查：它自身不携带任何产品检查，因此从不挂载配套入口的组合不会观察到任何诊断行为。
 
 ### 启用检查与选择包
 
@@ -97,14 +97,14 @@ ctx.plugin(SessionInvariant)
 <details>
 <summary>实现细节——点击展开</summary>
 
-本节解释注册表背后的设计；可观察行为已在[使用本包](#use-this-package)中说明。完整决策理由见[不变式服务 Agent Note](../../../.agents/notes/implemented/architecture/2026-07-19-package-owned-invariant-service.zh.md)。
+本节解释注册表背后的设计；可观察行为已在[使用本包](#use-this-package)中说明。完整决策理由见[不变式服务 Agent Note](../../../.agents/notes/archived/architecture/2026-07-19-package-invariant-runtime-contracts.md)。
 
 ### 设计理念
 
 - **与产品无关的注册表。** 服务不导入任何 session、agent、scope 或 agent-loop 包，也不包含它们的检查；配套入口把检查放在其归属者旁边。
 - **真实关系，而非人为断言。** 配套入口只检查其包拥有的事件流或可变数据关系；确认方法、插件名、注入或固定纯函数结果是类型、加载或单元测试关注点，绝不是运行时不变量。
 - **注册保留归属。** 即使过滤器让 installer 保持非活动，包名也会被保留，因此两个插件永远不会静默认领同一个名字。
-- **穷尽接线，机械强制。** `pnpm run verify-package-invariants` 拒绝生成标记、未说明的空 installer、省略或忽略 reporter 的非空 installer、错误注册名，以及不完整的导出、发布、依赖或 bundle 接线（[约定笔记](../../../.agents/notes/implemented/architecture/2026-07-19-package-invariant-runtime-contracts.zh.md)）。
+- **穷尽接线，机械强制。** `pnpm run verify-package-invariants` 拒绝生成标记、未说明的空 installer、省略或忽略 reporter 的非空 installer、错误注册名，以及不完整的导出、发布、依赖或 bundle 接线（[约定笔记](../../../.agents/notes/archived/architecture/2026-07-19-package-invariant-runtime-contracts.md)）。
 
 ### 源码地图
 
@@ -126,10 +126,9 @@ ctx.plugin(SessionInvariant)
 
 当包级约定不够用时阅读以下页面。它们从生成的服务参考逐步进入决策证据与组地图。
 
-- [运行时不变式子系统](../../../docs/subsystems/invariants.zh.md)——`Config`、installer、服务与配套入口约定的生成参考。
 - [生成的配置目录](../../../docs/config-catalog.zh.md#deepseek-aidsh-invariants)——每个受支持配置字段及其源声明。
-- [包自有不变式服务 Agent Note](../../../.agents/notes/implemented/architecture/2026-07-19-package-owned-invariant-service.zh.md)——检查为何放在归属者旁边，以及注册表为何拥有选择与生命周期。
-- [不变式运行时约定 Agent Note](../../../.agents/notes/implemented/architecture/2026-07-19-package-invariant-runtime-contracts.zh.md)——运行时不变量可以断言什么，以及强制配套入口接线的机械门禁。
+- [包自有不变式服务 Agent Note](../../../.agents/notes/archived/architecture/2026-07-19-package-invariant-runtime-contracts.md)——检查为何放在归属者旁边，以及注册表为何拥有选择与生命周期。
+- [不变式运行时约定 Agent Note](../../../.agents/notes/archived/architecture/2026-07-19-package-invariant-runtime-contracts.md)——运行时不变量可以断言什么，以及强制配套入口接线的机械门禁。
 - [runtime-diagnostics 组地图](../../README.zh.md)——相邻的诊断包。
 
 -----

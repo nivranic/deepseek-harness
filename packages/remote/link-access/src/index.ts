@@ -20,7 +20,7 @@ import { createRequire } from 'node:module'
 import { hostname, networkInterfaces } from 'node:os'
 import { join } from 'node:path'
 import { Context, Service } from '@deepseek-ai/cordis'
-import type { ConnectionFetchHandler } from '@deepseek-ai/dsh-client-connection'
+import type { ConnectionFetchHandler, PeerScope } from '@deepseek-ai/dsh-client-connection'
 // Activates the typertGateway Context merge used by the stream route.
 import type {} from '@deepseek-ai/dsh-api-gateway'
 import {
@@ -168,6 +168,12 @@ export class LinkAccessService extends Service {
   private readonly bindPort: number
   private readonly bindHome: string | undefined
   private readonly sharedFetch: ConnectionFetchHandler
+  /**
+   * The Peer every link dispatch speaks for. The carrier authenticates paired
+   * devices itself (Ed25519 signatures plus the role-gated allowlist), so one
+   * owner-principal Peer shared across requests names the admission class.
+   */
+  private readonly peer: PeerScope
   private readonly lastTouch = new Map<DeviceId, number>()
   private carrierPromise: Promise<CarrierState> | undefined
   private carrierObserved: Promise<CarrierState | undefined> = Promise.resolve(undefined)
@@ -194,6 +200,7 @@ export class LinkAccessService extends Service {
     this.bindPort = resolved.port
     this.bindHome = resolved.dshHome
     this.sharedFetch = ctx.connection.createSharedFetchHandler('/api')
+    this.peer = ctx.connection.createPeer({ principal: { kind: 'owner' } })
     if (resolved.enabled) void this.beginCarrier()
     ctx.effect(() => async () => {
       await this.setCarrierEnabled(false)
@@ -489,7 +496,7 @@ export class LinkAccessService extends Service {
       ...body.length > 0 && canSendBody ? { body: body.toString('utf8') } : {},
       signal: abort.signal,
     })
-    const response = await this.sharedFetch.fetch(request)
+    const response = await this.sharedFetch.fetch(request, this.peer)
     await pumpResponse(res, response)
   }
 
@@ -532,7 +539,16 @@ export class LinkAccessService extends Service {
       'cache-control': 'no-store',
     })
     try {
-      const source = await this.ctx.typertGateway.wireStream.open(endpoint, payload, lifetime.signal)
+      // The carrier protocol carries one request body in and the NDJSON
+      // downlink out; no Client-to-Host uplink exists, so the stream opens
+      // over an empty uplink iterable.
+      const source = await this.ctx.typertGateway.wireStream.open(
+        endpoint,
+        payload,
+        (async function* (): AsyncGenerator {})(),
+        this.peer,
+        lifetime.signal,
+      )
       for await (const item of source) {
         await writeFrame(res, { k: 'v', v: item })
         if (lifetime.signal.aborted) return

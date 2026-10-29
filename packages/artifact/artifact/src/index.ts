@@ -202,7 +202,8 @@ export function apply(ctx: Context): void {
       const agent = exec.agent
       const created = agent === undefined
         ? undefined
-        : agent.session.events.findLast((event): event is SessionEvent<'artifact/created'> =>
+        // oxlint-disable-next-line typescript/no-deprecated -- Existing Session history read; migration deferred.
+        : agent.session.snapshotEvents().findLast((event): event is SessionEvent<'artifact/created'> =>
           event.type === 'artifact/created' && event.data.id === id)
       const start = args.offset ?? 0
       // The journal's format decides the read arm: journaled text pages by

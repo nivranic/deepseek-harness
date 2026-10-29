@@ -1,9 +1,7 @@
 /** Desktop-surface preferences stored in the Host user-settings document. */
 
-import z from '@deepseek-ai/schemastery'
-
-/** Settings namespace owned by the ui-desktop plugin. */
-export const DESKTOP_SETTINGS_NAMESPACE = 'desktop'
+/** Roster entry whose live configuration carries the desktop preferences. */
+export const DESKTOP_SETTINGS_ENTRY = 'ui-desktop'
 
 /** Field carrying what the window close button does. */
 export const DESKTOP_CLOSE_FIELD = 'closeAction'
@@ -14,7 +12,7 @@ export const DESKTOP_LAUNCH_FIELD = 'launchAtLogin'
 /** What the desktop window's close button does. */
 export type DesktopCloseAction = 'tray' | 'quit'
 
-/** Durable desktop section shared by the Host schema and the browser scope. */
+/** Durable desktop section shared by the entry's configuration and the browser scope. */
 export interface DesktopSettings {
   /** What the close button does: hide to the system tray (the default) or quit. */
   closeAction: DesktopCloseAction
@@ -26,9 +24,3 @@ export interface DesktopSettings {
    */
   launchAtLogin: boolean
 }
-
-/** Durable desktop schema; also the wire envelope the browser scope validates against. */
-export const DesktopSettingsSchema: z<DesktopSettings> = z.object({
-  [DESKTOP_CLOSE_FIELD]: z.union(['tray', 'quit']).default('tray'),
-  [DESKTOP_LAUNCH_FIELD]: z.boolean().default(false),
-})

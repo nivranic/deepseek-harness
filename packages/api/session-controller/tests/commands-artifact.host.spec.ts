@@ -1,7 +1,7 @@
 /** The session/artifact authorization surface: journal-proven references, channel-served bytes, loud failures. */
 
 import { Context } from '@deepseek-ai/cordis'
-import SessionStore, { SessionId } from '@deepseek-ai/dsh-session'
+import SessionStore, { SESSION_FORMAT_VERSION, SessionId } from '@deepseek-ai/dsh-session'
 import type { SessionEvent, SessionHeader } from '@deepseek-ai/dsh-session'
 import { describe, expect, it, vi } from 'vitest'
 import { ApiSessionAgentController } from '../src/agent.ts'
@@ -16,7 +16,7 @@ async function persistedController(
   const ctx = new Context()
   await ctx.plugin(SessionStore)
   const sessionId = SessionId('cold-artifact')
-  const meta: SessionHeader = { version: 0, id: sessionId, createdAt: 1, cwd: '/workspace' }
+  const meta: SessionHeader = { version: SESSION_FORMAT_VERSION, id: sessionId, createdAt: 1, cwd: '/workspace', isSeeded: false }
   ctx.provide('sessionPersistence', testSessionPersistence(ctx, {
     list: () => Promise.resolve([meta]),
     inspect: () => Promise.resolve({ meta, events }),
@@ -32,7 +32,7 @@ function createdEvent(seq: number, id: string, kind: string, title: string, form
 }
 
 async function expectFailure(operation: Promise<unknown>, code: string): Promise<void> {
-  await expect(operation).rejects.toMatchObject({ failure: { code } })
+  await expect(operation).rejects.toMatchObject({ code })
 }
 
 describe('Session artifact authorization', () => {
@@ -54,7 +54,7 @@ describe('Session artifact authorization', () => {
     )
     await expect(controller.artifact({ sessionId, artifactId: 'art-1', offset: 2, limit: 4 }))
       .resolves.toEqual({ id: 'art-1', kind: 'report', title: 'R', format: 'text', data: Buffer.from('2345').toString('base64'), truncated: true, size: 10 })
-    await expectFailure(controller.artifact({ sessionId, artifactId: 'art-1', offset: -1 }), 'artifact-error')
+    await expectFailure(controller.artifact({ sessionId, artifactId: 'art-1', offset: -1 }), 'session/artifact-error')
     await ctx.fiber.dispose()
   })
 
@@ -63,7 +63,7 @@ describe('Session artifact authorization', () => {
       [createdEvent(0, 'art-1', 'report', 'R')],
       { get: () => Promise.resolve(new Uint8Array()) },
     )
-    await expectFailure(controller.artifact({ sessionId, artifactId: 'art-other' }), 'artifact-error')
+    await expectFailure(controller.artifact({ sessionId, artifactId: 'art-other' }), 'session/artifact-error')
     await ctx.fiber.dispose()
   })
 
@@ -72,7 +72,7 @@ describe('Session artifact authorization', () => {
       [createdEvent(0, 'art-gone', 'report', 'R')],
       { get: () => Promise.resolve(null) },
     )
-    await expectFailure(controller.artifact({ sessionId, artifactId: 'art-gone' }), 'artifact-error')
+    await expectFailure(controller.artifact({ sessionId, artifactId: 'art-gone' }), 'session/artifact-error')
     await ctx.fiber.dispose()
   })
 
@@ -85,13 +85,13 @@ describe('Session artifact authorization', () => {
       { resolveAgent: vi.fn() } as unknown as ApiSessionAgentController,
       '/workspace',
     )
-    await expectFailure(controller.artifact({ sessionId: SessionId('missing'), artifactId: 'art-1' }), 'session-not-found')
+    await expectFailure(controller.artifact({ sessionId: SessionId('missing'), artifactId: 'art-1' }), 'session/not-found')
 
     const { ctx: failing, controller: failingController, sessionId } = await persistedController(
       [createdEvent(0, 'art-1', 'report', 'R')],
       { get: () => Promise.reject(new Error('disk offline')) },
     )
-    await expectFailure(failingController.artifact({ sessionId, artifactId: 'art-1' }), 'internal')
+    await expectFailure(failingController.artifact({ sessionId, artifactId: 'art-1' }), 'gateway/internal')
     await ctx.fiber.dispose()
     await failing.fiber.dispose()
   })

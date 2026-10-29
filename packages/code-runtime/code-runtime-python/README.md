@@ -1,6 +1,6 @@
 ---
 description: "fd-3 wire protocol between a Node host and a CPython subprocess for users and maintainers building or debugging the Python code-execution backend."
-kind: "package-library"
+kind: "package-reference"
 ---
 
 # @deepseek-ai/dsh-code-runtime-python
@@ -85,9 +85,9 @@ Completion values and binding arguments cross as exact JSON: values serialize wi
 Read these when the protocol contract is not enough. They move from the seam definition to the protocol's design record and the companion backend.
 
 - [Code runtime seam](../code-runtime/README.md) — the abstract contract the Python backend implements.
-- [fd-3 protocol Agent Note](../../../.agents/notes/implemented/architecture/2026-07-31-code-runtime-python-fd3-protocol.md) — design rationale, wire contract, and the mirror-alignment decision.
+- [fd-3 protocol Agent Note](../../../.agents/notes/implemented/architecture/2026-07-31-ptc-runtime-python-fd3-protocol.md) — design rationale, wire contract, and the mirror-alignment decision.
 - [Worker-thread backend](../code-runtime-worker-thread/README.md) — the shipped TypeScript sibling, the model for the Python backend's behavior.
-- [Code runtime subsystem reference](../../../docs/subsystems/code-runtime.md) — request/result vocabulary, bindings, and failure taxonomy.
+- [PTC runtime subsystem reference](../../../docs/subsystems/ptc-runtime.md) — request/result vocabulary, bindings, and failure taxonomy.
 
 -----
 

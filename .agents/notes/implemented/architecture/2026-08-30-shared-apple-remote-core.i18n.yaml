@@ -1,6 +1,19 @@
-# Bilingual-pair consistency record (docs/i18n/README.md): the git blob hash of each
-# side as of the last confirmed-consistent state. Both languages carry equal authority;
-# after editing either side, bring the other along and re-record with:
+# Bilingual-pair consistency record for 2026-08-30-shared-apple-remote-core.md (docs/i18n/README.md): per heading
+# section, a hash of its English and Chinese blocks outside code blocks and generated regions.
+# After editing either side, bring the other along and re-record with:
 #   pnpm run verify-translation-pairing --write .agents/notes/implemented/architecture/2026-08-30-shared-apple-remote-core.md
-2026-08-30-shared-apple-remote-core.md: bf65df42c7c33d55567ab76be057dde3c68b7818
-2026-08-30-shared-apple-remote-core.zh.md: 90250f96dce8a5493bb87dfb55e0e01d030ae041
+/agent-note-shared-apple-remote-core-phase-2-opening-increment:
+  en: a6e8da633bbabc6a
+  zh: 1bf55e2203f4a993
+/agent-note-shared-apple-remote-core-phase-2-opening-increment/problem:
+  en: fa285ced3576d461
+  zh: 3e3beb7bd8db9c54
+/agent-note-shared-apple-remote-core-phase-2-opening-increment/decision:
+  en: 09a437b2acb9a5c5
+  zh: 9915176cbdd3b567
+/agent-note-shared-apple-remote-core-phase-2-opening-increment/consequences:
+  en: fff03be1f0d94bc5
+  zh: 86d8c3864bc36506
+/agent-note-shared-apple-remote-core-phase-2-opening-increment/alternatives-considered:
+  en: eec9d5f91e6b94ee
+  zh: f47ca7d02cf9514f

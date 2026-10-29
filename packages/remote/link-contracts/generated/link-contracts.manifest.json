@@ -304,7 +304,7 @@
         "step/start",
         "step/end",
         "user/message",
-        "assistant/chunk",
+        "assistant/attempt",
         "assistant/message",
         "tool/call",
         "tool/result",
@@ -674,25 +674,9 @@
           "optional": true
         },
         {
-          "name": "toolCallId",
-          "kind": "string",
-          "optional": true
-        },
-        {
-          "name": "isError",
-          "kind": "boolean",
-          "optional": true
-        },
-        {
           "name": "attachment",
           "kind": "object",
           "ref": "LinkImageAttachmentRef",
-          "optional": true
-        },
-        {
-          "name": "content",
-          "kind": "object-array",
-          "ref": "LinkContentBlock",
           "optional": true
         }
       ]
@@ -727,7 +711,7 @@
       ]
     },
     {
-      "name": "LinkStreamChunk",
+      "name": "LinkStreamRecord",
       "shape": "object",
       "fields": [
         {
@@ -735,19 +719,41 @@
           "kind": "string"
         },
         {
+          "name": "time0",
+          "kind": "number"
+        },
+        {
           "name": "index",
-          "kind": "number",
+          "kind": "number"
+        },
+        {
+          "name": "dt",
+          "kind": "number-array"
+        },
+        {
+          "name": "texts",
+          "kind": "string-array",
           "optional": true
         },
         {
-          "name": "text",
+          "name": "id",
           "kind": "string",
+          "optional": true
+        },
+        {
+          "name": "name",
+          "kind": "string",
+          "optional": true
+        },
+        {
+          "name": "args",
+          "kind": "string-array",
           "optional": true
         }
       ]
     },
     {
-      "name": "LinkAssistantChunkData",
+      "name": "LinkAssistantAttemptData",
       "shape": "object",
       "fields": [
         {
@@ -759,14 +765,14 @@
           "kind": "number"
         },
         {
-          "name": "chunk",
-          "kind": "object",
-          "ref": "LinkStreamChunk"
+          "name": "stream",
+          "kind": "object-array",
+          "ref": "LinkStreamRecord"
         }
       ],
-      "fixture": "event-assistant-chunk",
+      "fixture": "event-assistant-attempt",
       "sessionEvents": [
-        "assistant/chunk"
+        "assistant/attempt"
       ]
     },
     {
@@ -829,6 +835,11 @@
           "name": "message",
           "kind": "object",
           "ref": "LinkAssistantMessage"
+        },
+        {
+          "name": "stream",
+          "kind": "object-array",
+          "ref": "LinkStreamRecord"
         },
         {
           "name": "usage",
@@ -902,7 +913,11 @@
         {
           "name": "role",
           "kind": "const",
-          "value": "user"
+          "value": "tool"
+        },
+        {
+          "name": "toolCallId",
+          "kind": "string"
         },
         {
           "name": "content",
@@ -913,6 +928,11 @@
           "name": "source",
           "kind": "object",
           "ref": "LinkMessageSource"
+        },
+        {
+          "name": "isError",
+          "kind": "boolean",
+          "optional": true
         }
       ]
     },
@@ -950,11 +970,11 @@
       "shape": "object",
       "fields": [
         {
-          "name": "turn",
-          "kind": "number"
+          "name": "type",
+          "kind": "string"
         },
         {
-          "name": "step",
+          "name": "time0",
           "kind": "number"
         },
         {
@@ -981,11 +1001,11 @@
       "shape": "object",
       "fields": [
         {
-          "name": "turn",
-          "kind": "number"
+          "name": "type",
+          "kind": "string"
         },
         {
-          "name": "step",
+          "name": "time0",
           "kind": "number"
         },
         {
@@ -1070,6 +1090,7 @@
       "name": "LinkSubagentMode",
       "shape": [
         "one-shot",
+        "external",
         "continuable"
       ]
     },
@@ -1504,14 +1525,14 @@
       "sha256": "da710de34c2eebae2953d9a0fc1b1bc60c96941b91659de8829d564fa90c7df6"
     },
     {
-      "id": "event-assistant-chunk",
-      "type": "LinkAssistantChunkData",
-      "sha256": "43ba46f21b45368728f43b95db430af7b64a484644c42a8ba2513038871fcecd"
+      "id": "event-assistant-attempt",
+      "type": "LinkAssistantAttemptData",
+      "sha256": "d82d335565497fe355c9f0744852c94baf579c2ac0cf420c3cb61f95fdb95a14"
     },
     {
       "id": "event-assistant-message",
       "type": "LinkAssistantMessageData",
-      "sha256": "e38264708490dd23aa7acefa8367904fb6dd56a9d0d061f0b72cb4275262cc79"
+      "sha256": "f15bea7924a9b2a6ec019f8473e0a0f2239db617337f56be816221d1f1233a2d"
     },
     {
       "id": "event-tool-call",
@@ -1521,7 +1542,7 @@
     {
       "id": "event-tool-result",
       "type": "LinkToolResultData",
-      "sha256": "0d09dc25cab669e475bce4445c427d15ebacb13f02e8ecd17cefcbacc93a4697"
+      "sha256": "23c20fa5aa32eb7fbe0e26f67755054ecfcdc9924d6bd4c24111407a9b6b7181"
     },
     {
       "id": "event-artifact-created",
@@ -1551,12 +1572,12 @@
     {
       "id": "chunkrow-text-chunks",
       "type": "LinkTextChunksData",
-      "sha256": "0f13e3f001227b07efaa8a626d1d211a4b716eadae02bcf6f21d484c2c2618f1"
+      "sha256": "de163b8d55875983be7d8a0b0ec7cf2e0dc044f4225f624e9a32f57776985840"
     },
     {
       "id": "chunkrow-tool-call-chunks",
       "type": "LinkToolCallChunksData",
-      "sha256": "c6d10161bef837e69d0250992765437fd6b6bd4ba3e358c677f54390a9c518a6"
+      "sha256": "c96f68675a72d7fd7a7f0a333d3ef401f8a34480246d4785aa22c9c564a5ce95"
     },
     {
       "id": "file-list",

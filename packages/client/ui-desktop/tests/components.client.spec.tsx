@@ -1,7 +1,7 @@
 // @vitest-environment jsdom
 /**
- * The General-section rows: two-option radio groups over the bound namespace
- * snapshot. Loading, absent namespaces, and a not-yet-accepted value render
+ * The General-section rows: two-option radio groups over the bound entry
+ * form snapshot. Loading, absent forms, and a not-yet-accepted value render
  * nothing; a read-only document disables the control without hiding it.
  */
 
@@ -9,7 +9,7 @@ import { cleanup, fireEvent, render, screen } from '@testing-library/react'
 import { afterEach, describe, expect, it, vi } from 'vitest'
 import { bindSnapshotSelector } from '@deepseek-ai/dsh-client-test-runtime'
 import { createSnapshotStore } from '@deepseek-ai/dsh-client-store'
-import type { SettingsScopeSnapshot } from '@deepseek-ai/dsh-client-ui-settings/client'
+import type { ConfigFormSnapshot } from '@deepseek-ai/dsh-client-ui-settings/client'
 import { CloseActionRow } from '../src/client/CloseActionRow.tsx'
 import type { CloseActionRowComponentProps } from '../src/client/CloseActionRow.tsx'
 import { LaunchAtLoginRow } from '../src/client/LaunchAtLoginRow.tsx'
@@ -19,7 +19,7 @@ import { zh } from '../src/client/locales.ts'
 
 afterEach(cleanup)
 
-type Snapshot = SettingsScopeSnapshot<DesktopSettings>
+type Snapshot = ConfigFormSnapshot<DesktopSettings>
 
 const BASE: Snapshot = {
   status: 'ready',
@@ -28,7 +28,6 @@ const BASE: Snapshot = {
   user: undefined,
   revision: 1,
   writable: true,
-  mode: 'host',
 }
 
 function renderRow(state: Partial<Snapshot> = {}) {

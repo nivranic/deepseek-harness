@@ -85,7 +85,7 @@ public enum LinkSessionEventKind: String, Codable {
     case stepStart = "step/start"
     case stepEnd = "step/end"
     case userMessage = "user/message"
-    case assistantChunk = "assistant/chunk"
+    case assistantAttempt = "assistant/attempt"
     case assistantMessage = "assistant/message"
     case toolCall = "tool/call"
     case toolResult = "tool/result"
@@ -204,10 +204,7 @@ public struct LinkMessageSource: Codable {
 public struct LinkContentBlock: Codable {
     public let type: String
     public let text: String?
-    public let toolCallId: String?
-    public let isError: Bool?
     public let attachment: LinkImageAttachmentRef?
-    public let content: [LinkContentBlock]?
 }
 public struct LinkUserMessageData: Codable {
     public let id: String
@@ -215,15 +212,20 @@ public struct LinkUserMessageData: Codable {
     public let content: [LinkContentBlock]
     public let source: LinkMessageSource
 }
-public struct LinkStreamChunk: Codable {
+public struct LinkStreamRecord: Codable {
     public let type: String
-    public let index: Double?
-    public let text: String?
+    public let time0: Double
+    public let index: Double
+    public let dt: [Double]
+    public let texts: [String]?
+    public let id: String?
+    public let name: String?
+    public let args: [String]?
 }
-public struct LinkAssistantChunkData: Codable {
+public struct LinkAssistantAttemptData: Codable {
     public let turn: Double
     public let step: Double
-    public let chunk: LinkStreamChunk
+    public let stream: [LinkStreamRecord]
 }
 public struct LinkTokenUsage: Codable {
     public let inputTokens: Double
@@ -240,6 +242,7 @@ public struct LinkAssistantMessageData: Codable {
     public let turn: Double
     public let step: Double
     public let message: LinkAssistantMessage
+    public let stream: [LinkStreamRecord]
     public let usage: LinkTokenUsage?
     public let interrupted: Bool?
 }
@@ -256,9 +259,11 @@ public struct LinkToolError: Codable {
 }
 public struct LinkToolResultMessage: Codable {
     public let id: String
-    public let role: String // constant "user"
+    public let role: String // constant "tool"
+    public let toolCallId: String
     public let content: [LinkContentBlock]
     public let source: LinkMessageSource
+    public let isError: Bool?
 }
 public struct LinkToolResultData: Codable {
     public let turn: Double
@@ -267,15 +272,15 @@ public struct LinkToolResultData: Codable {
     public let error: LinkToolError?
 }
 public struct LinkTextChunksData: Codable {
-    public let turn: Double
-    public let step: Double
+    public let type: String
+    public let time0: Double
     public let index: Double
     public let dt: [Double]
     public let texts: [String]
 }
 public struct LinkToolCallChunksData: Codable {
-    public let turn: Double
-    public let step: Double
+    public let type: String
+    public let time0: Double
     public let index: Double
     public let dt: [Double]
     public let id: String
@@ -302,6 +307,7 @@ public enum LinkSubagentActivity: String, Codable {
 }
 public enum LinkSubagentMode: String, Codable {
     case oneShot = "one-shot"
+    case external = "external"
     case continuable = "continuable"
 }
 public enum LinkSubagentDiagnosticReason: String, Codable {

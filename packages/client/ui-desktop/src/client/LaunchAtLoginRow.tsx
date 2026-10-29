@@ -6,7 +6,7 @@
 
 import type { DesktopSettings } from '../desktop-settings.ts'
 import type { ObservableSnapshot } from '@deepseek-ai/dsh-client-store'
-import type { SettingsScopeSnapshot } from '@deepseek-ai/dsh-client-ui-settings/client'
+import type { ConfigFormSnapshot } from '@deepseek-ai/dsh-client-ui-settings/client'
 import type { InjectFace, PropsLocale, PropsRuntime } from '@deepseek-ai/dsh-client-ui-slots'
 // The preference-row layout this package already owns (title/description plus
 // a two-option segmented control); shared, not forked.
@@ -18,8 +18,8 @@ const OPTIONS: readonly boolean[] = [true, false]
 /** Registration-side business face for the host-backed preference. */
 export interface LaunchAtLoginRowInjected {
   hooks: {
-    /** Desktop namespace snapshot bound by the renderer as useDesktopLaunch. */
-    desktopLaunch: ObservableSnapshot<SettingsScopeSnapshot<DesktopSettings>>
+    /** Desktop entry form bound by the renderer as useDesktopLaunch. */
+    desktopLaunch: ObservableSnapshot<ConfigFormSnapshot<DesktopSettings>>
   }
   /** Persist one autostart choice. */
   select: (value: boolean) => void

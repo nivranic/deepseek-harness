@@ -1,6 +1,19 @@
-# Bilingual-pair consistency record (docs/i18n/README.md): the git blob hash of each
-# side as of the last confirmed-consistent state. Both languages carry equal authority;
-# after editing either side, bring the other along and re-record with:
+# Bilingual-pair consistency record for 2026-08-30-remote-host-settings-and-admin-surface.md (docs/i18n/README.md): per heading
+# section, a hash of its English and Chinese blocks outside code blocks and generated regions.
+# After editing either side, bring the other along and re-record with:
 #   pnpm run verify-translation-pairing --write .agents/notes/implemented/architecture/2026-08-30-remote-host-settings-and-admin-surface.md
-2026-08-30-remote-host-settings-and-admin-surface.md: d53f5b2731923b20644b373bfd66c906eaf3e8eb
-2026-08-30-remote-host-settings-and-admin-surface.zh.md: 7aec7148d1c9386a22b4fb79d2e884a9c70b12a0
+/agent-note-remote-host-settings-and-link-administration-surface-phase-1-host-half:
+  en: 6884f6d11490f9c2
+  zh: 9fa37520ac5d3cd2
+/agent-note-remote-host-settings-and-link-administration-surface-phase-1-host-half/problem:
+  en: 3770291e9d7173cf
+  zh: 47ec794f4d9553d1
+/agent-note-remote-host-settings-and-link-administration-surface-phase-1-host-half/decision:
+  en: 1d524076725b4167
+  zh: bc29632a328f0135
+/agent-note-remote-host-settings-and-link-administration-surface-phase-1-host-half/consequences:
+  en: 44edf474a60b8d00
+  zh: 2d7755954a78998c
+/agent-note-remote-host-settings-and-link-administration-surface-phase-1-host-half/alternatives-considered:
+  en: 3a9fd12e50972509
+  zh: f4255ea1d6567d59

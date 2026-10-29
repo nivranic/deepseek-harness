@@ -1,6 +1,19 @@
-# Bilingual-pair consistency record (docs/i18n/README.md): the git blob hash of each
-# side as of the last confirmed-consistent state. Both languages carry equal authority;
-# after editing either side, bring the other along and re-record with:
+# Bilingual-pair consistency record for 2026-08-30-android-kotlin-skeleton.md (docs/i18n/README.md): per heading
+# section, a hash of its English and Chinese blocks outside code blocks and generated regions.
+# After editing either side, bring the other along and re-record with:
 #   pnpm run verify-translation-pairing --write .agents/notes/implemented/architecture/2026-08-30-android-kotlin-skeleton.md
-2026-08-30-android-kotlin-skeleton.md: c7bae0cf7a2d1b37d2271c6ddf18de5382cdc00e
-2026-08-30-android-kotlin-skeleton.zh.md: b998a097d2e67c828a2804ffd30e002def316b73
+/agent-note-the-android-kotlin-skeleton-and-its-lane:
+  en: 14c6e2afa8423e44
+  zh: 8f760261184e6555
+/agent-note-the-android-kotlin-skeleton-and-its-lane/problem:
+  en: 4241735f546b9b12
+  zh: 7b326f0e7194745a
+/agent-note-the-android-kotlin-skeleton-and-its-lane/decision:
+  en: 36688612c17f24ec
+  zh: 0abfbdf5704cdf35
+/agent-note-the-android-kotlin-skeleton-and-its-lane/consequences:
+  en: dac9144ea8ea03e9
+  zh: 514ddc323b237423
+/agent-note-the-android-kotlin-skeleton-and-its-lane/alternatives-considered:
+  en: 46f839af9abb5fef
+  zh: 571407274d88781a

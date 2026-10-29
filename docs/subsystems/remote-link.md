@@ -180,7 +180,7 @@ Host service backing the generated `ctx.remote.link` namespace. Every method rea
  * listening state, LAN endpoint, certificate fingerprint, bind diagnostics,
  * device-facing name, the approval switch, and the trusted-device count.
  * @returns the cross-device status row.
- * @throws TypertRemoteFailure when no link carrier is mounted.
+ * @throws RemoteError when no link carrier is mounted.
  */
 @Remote async status(): Promise<LinkStatusValue>
 
@@ -188,14 +188,14 @@ Host service backing the generated `ctx.remote.link` namespace. Every method rea
  * Issue one pairing payload for the QR display: host identity, endpoint,
  * certificate fingerprint, and a one-time short-lived code.
  * @returns the payload rendered into the pairing QR code.
- * @throws TypertRemoteFailure when no carrier is mounted or its carrier is stopped or failed to bind.
+ * @throws RemoteError when no carrier is mounted or its carrier is stopped or failed to bind.
  */
 @Remote async createPairing(): Promise<LinkPairingValue>
 
 /**
  * List every trusted device, revoked ones included, for the device manager.
  * @returns one row per device record; the device public key never rides the wire.
- * @throws TypertRemoteFailure when no link carrier is mounted.
+ * @throws RemoteError when no link carrier is mounted.
  */
 @Remote async devices(): Promise<LinkDeviceValue[]>
 
@@ -203,7 +203,7 @@ Host service backing the generated `ctx.remote.link` namespace. Every method rea
  * Revoke one paired device; its next request is refused.
  * @param deviceId - identity of the device to revoke.
  * @returns the device row after revocation, or `undefined` when unknown.
- * @throws TypertRemoteFailure when the id is empty or no link carrier is mounted.
+ * @throws RemoteError when the id is empty or no link carrier is mounted.
  */
 @Remote async revokeDevice(deviceId: string): Promise<LinkDeviceValue | undefined>
 ```
@@ -214,7 +214,7 @@ Source: [`packages/api/link-controller/src/index.ts`](../../packages/api/link-co
 
 ### `ctx.linkSettings` — `LinkSettingsService`
 
-The remote settings bridge: registers the `remote` namespace on mount and pushes every resolved value into the link-access carrier.
+The remote settings bridge: applies the entry's live configuration to the link-access carrier on mount and after every settings-form write.
 
 Source: [`packages/remote/link-settings/src/index.ts`](../../packages/remote/link-settings/src/index.ts)
 <!-- END GENERATED cordis-surface -->

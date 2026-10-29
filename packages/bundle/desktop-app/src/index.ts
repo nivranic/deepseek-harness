@@ -2,16 +2,16 @@
  * @deepseek-ai/dsh-desktop-app — the desktop-surface bundle's runtime glue
  * plugin plus the bundle patch (`cordis.patch.yml`, declared by the
  * `dsh.bundle.patch` manifest field). The plugin registers the
- * desktop-surface prompt section; the carrier (desktopGateway) and the window
- * belong to the electron-ipc row and the app shell, and no URL line, shell
- * variable, or HTTP seat exists on this surface.
+ * desktop-surface prompt section and the harness-checkout prompt section plus
+ * runtime context; the carrier (desktopGateway) and the window belong to the
+ * electron-ipc row and the app shell, and no URL line, shell variable, or
+ * HTTP seat exists on this surface.
  * @module @deepseek-ai/dsh-desktop-app
  */
 
 import { fileURLToPath } from 'node:url'
 import type { Context } from '@deepseek-ai/cordis'
 import z from '@deepseek-ai/schemastery'
-import { addHarnessSourceSection } from '@deepseek-ai/dsh-app-boot'
 import type {} from '@deepseek-ai/dsh-system-prompt'
 
 /** Stable Cordis plugin name. */
@@ -19,6 +19,15 @@ export const name = 'desktop-app'
 
 /** This dsh installation's root, from either this package's source or built entry. */
 const SOURCE_ROOT = fileURLToPath(new URL('../../../..', import.meta.url))
+
+/** Prompt-section and runtime-context name for the implementation checkout. */
+const HARNESS_SOURCE = 'harness:source'
+
+/** Static guidance of the harness-source section; the runtime context carries the path itself. */
+const HARNESS_SOURCE_PROMPT = 'The runtime context names the DeepSeek Harness implementation checkout. '
+  + 'The checkout location and current working directory are separate values and may differ; '
+  + 'never infer the working directory from the checkout path. Use pwd to determine the current working directory. '
+  + 'Use this checkout only to inspect or extend DSH itself.'
 
 /** Plugin config: the composed deployment settings. */
 export interface Config {
@@ -51,7 +60,18 @@ function desktopSurfacePrompt(): string {
 export function apply(ctx: Context, config: Config): void {
   if (!config.surfaceContext) return
   ctx.inject(['systemPrompt'], (promptCtx) => {
-    addHarnessSourceSection(promptCtx, SOURCE_ROOT)
+    promptCtx.systemPrompt.section({
+      name: HARNESS_SOURCE,
+      order: promptCtx.systemPrompt.getSectionOrder('HARNESS_SOURCE'),
+      interpolate: false,
+      text: HARNESS_SOURCE_PROMPT,
+    })
+    promptCtx.systemPrompt.context({
+      name: HARNESS_SOURCE,
+      order: promptCtx.systemPrompt.getContextOrder('HARNESS_SOURCE'),
+      interpolate: false,
+      text: `Current DeepSeek Harness implementation checkout: ${JSON.stringify(SOURCE_ROOT)}.`,
+    })
     promptCtx.systemPrompt.section({
       name: 'app:desktop-surface',
       order: -98,

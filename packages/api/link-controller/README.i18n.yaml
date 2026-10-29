@@ -1,6 +1,37 @@
-# Bilingual-pair consistency record (docs/i18n/README.md): the git blob hash of each
-# side as of the last confirmed-consistent state. Both languages carry equal authority;
-# after editing either side, bring the other along and re-record with:
+# Bilingual-pair consistency record for README.md (docs/i18n/README.md): per heading
+# section, a hash of its English and Chinese blocks outside code blocks and generated regions.
+# After editing either side, bring the other along and re-record with:
 #   pnpm run verify-translation-pairing --write packages/api/link-controller/README.md
-README.md: aa7f82fade60183e0a4e4948ad5ccc655a1b4ba2
-README.zh.md: b4f2a2926a4c1e8cd1a84f6f193c7b5cb1a7614a
+/:
+  en: 8ddacdd616b8ae76
+  zh: 44c71270452601bc
+/deepseek-ai-dsh-api-link-controller:
+  en: aea096caf6fb4dff
+  zh: 0e70840b5de61595
+/deepseek-ai-dsh-api-link-controller/summary:
+  en: 2a04fb769c609c94
+  zh: 7447aa83e5437a99
+/deepseek-ai-dsh-api-link-controller/table-of-contents:
+  en: 80b31a934611cb4a
+  zh: e746e683af2e5452
+/deepseek-ai-dsh-api-link-controller/use-this-package:
+  en: fa1a6013a8c4634c
+  zh: f9840b9ebf04d63a
+/deepseek-ai-dsh-api-link-controller/use-this-package/observable-behavior:
+  en: 8ee4b7fdf60cc783
+  zh: 903a920c1a583f1e
+/deepseek-ai-dsh-api-link-controller/understand-the-implementation:
+  en: 847f7e430edabc17
+  zh: 825e26e2c1634dc3
+/deepseek-ai-dsh-api-link-controller/understand-the-implementation/source-map:
+  en: fd012efc36d3f067
+  zh: c4697164b40f5767
+/deepseek-ai-dsh-api-link-controller/further-exploration:
+  en: 6da038446ad89504
+  zh: f5cfc6c0ab487bbe
+/deepseek-ai-dsh-api-link-controller/known-limitations-and-deferred-work:
+  en: d5d167e281c8df58
+  zh: 5709c093434fa8b4
+/deepseek-ai-dsh-api-link-controller/known-limitations-and-deferred-work/dev-note:
+  en: e67f633dc6fe7773
+  zh: 3bb0c20c93f16f98

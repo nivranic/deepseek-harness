@@ -1,12 +1,12 @@
 /**
  * Cross-device remote preferences stored in the Host user-settings document.
- * This file mirrors the `remote` namespace the `dsh-link-settings` host plugin
- * owns and registers; the values commit through the shared settings scope, and
- * the bridge applies them live to the link carrier.
+ * This file mirrors the `link-settings` roster entry's configuration the
+ * `dsh-link-settings` host bridge owns; the values commit through the shared
+ * config-form service, and the bridge applies them live to the link carrier.
  */
 
-/** Settings namespace owned by the host link-settings bridge (mirror). */
-export const REMOTE_SETTINGS_NAMESPACE = 'remote'
+/** Roster entry whose live configuration the host link-settings bridge owns (mirror). */
+export const REMOTE_SETTINGS_ENTRY = 'link-settings'
 
 /** Field carrying whether the TLS carrier listens for paired devices. */
 export const REMOTE_ENABLED_FIELD = 'enabled'
@@ -17,7 +17,7 @@ export const REMOTE_APPROVAL_FIELD = 'allowRemoteApproval'
 /** Field carrying the device-facing host name. */
 export const REMOTE_DEVICE_NAME_FIELD = 'deviceName'
 
-/** The `remote` namespace section as the browser scope validates it. */
+/** The `link-settings` entry's section as the browser form validates it. */
 export interface RemoteSettings {
   /** Whether the TLS carrier listens for paired devices; off by default. */
   enabled: boolean

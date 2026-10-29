@@ -1,6 +1,6 @@
 {
   "name": "@deepseek-ai/dsh-client-ui-desktop",
-  "description": "Desktop-surface preferences: the General-settings row for what the window close button does (tray or quit), plus the host namespace the Electron app shell reads",
+  "description": "Desktop-surface preferences: the General-settings row for what the window close button does (tray or quit), plus the host entry configuration the Electron app shell reads",
   "version": "0.1.2-alpha.1",
   "publishConfig": {
     "access": "public"

@@ -17,9 +17,10 @@ import type { Win32DialogWorkerData } from './win32-dialog-worker.ts'
  * entry next to this module under plain node; unbuilt (source) consumers
  * bootstrap tsx first, mirroring the dsh CLI's source launch. Under the
  * packaged desktop app the executable is the Electron binary, which runs
- * the worker as Node only through the spawn facts' env entry. The dialog is
- * the child's first window, so Windows activates it without a foreground
- * call.
+ * the worker as Node only through the spawn facts' env entry. The child
+ * opens its dialog as foreground on its own: `runFolderDialog` synthesizes
+ * an Alt press before `Show`, which matters when a background host spawned
+ * the child.
  * @param data - the child payload (dialog title).
  * @returns the spawned child process.
  */

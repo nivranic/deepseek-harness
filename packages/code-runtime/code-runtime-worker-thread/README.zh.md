@@ -117,7 +117,7 @@ kind: "package-reference"
 
 - [代码运行时 seam](../code-runtime/README.zh.md)——此后端实现的抽象约定。
 - [PTC mode Agent Note](../../../.agents/notes/implemented/feature/2026-06-15-ptc.zh.md)——`dsh-tools` 如何消费 `ctx.codeRuntime` 并呈现 `run_code`。
-- [代码运行时子系统参考](../../../docs/subsystems/code-runtime.zh.md)——请求／结果词汇、绑定与失败分类体系。
+- [PTC 运行时子系统参考](../../../docs/subsystems/ptc-runtime.zh.md)——请求／结果词汇、绑定与失败分类体系。
 - [生成配置目录](../../../docs/config-catalog.zh.md#deepseek-aidsh-code-runtime-worker-thread)——每个受支持配置字段及其源声明。
 
 -----

@@ -1,6 +1,19 @@
-# Bilingual-pair consistency record (docs/i18n/README.md): the git blob hash of each
-# side as of the last confirmed-consistent state. Both languages carry equal authority;
-# after editing either side, bring the other along and re-record with:
+# Bilingual-pair consistency record for 2026-08-30-carrier-session-slice-e2e.md (docs/i18n/README.md): per heading
+# section, a hash of its English and Chinese blocks outside code blocks and generated regions.
+# After editing either side, bring the other along and re-record with:
 #   pnpm run verify-translation-pairing --write .agents/notes/implemented/architecture/2026-08-30-carrier-session-slice-e2e.md
-2026-08-30-carrier-session-slice-e2e.md: dcd3d1fb303dcce39f0c6bc6ca31cfa4dcd35b24
-2026-08-30-carrier-session-slice-e2e.zh.md: f3959a7a79bb0bfad1c7027bc2b1d14f063cda84
+/agent-note-carrier-level-session-slice-e2e:
+  en: c2caf2ba8ae537cd
+  zh: 2bf9aae02de62a07
+/agent-note-carrier-level-session-slice-e2e/problem:
+  en: 85876817e3944738
+  zh: 1eae2b0f9bd79c7a
+/agent-note-carrier-level-session-slice-e2e/decision:
+  en: 8427625a9968f0c1
+  zh: be2fe7c4136ecba4
+/agent-note-carrier-level-session-slice-e2e/consequences:
+  en: d92eda9f2f85e712
+  zh: c584a83f5533e6a0
+/agent-note-carrier-level-session-slice-e2e/alternatives-considered:
+  en: a3133a963bd10ad4
+  zh: 142e5419a1ba474c

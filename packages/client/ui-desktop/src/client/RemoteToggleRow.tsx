@@ -6,7 +6,7 @@
 
 import type { RemoteSettings } from '../remote-settings.ts'
 import type { ObservableSnapshot } from '@deepseek-ai/dsh-client-store'
-import type { SettingsScopeSnapshot } from '@deepseek-ai/dsh-client-ui-settings/client'
+import type { ConfigFormSnapshot } from '@deepseek-ai/dsh-client-ui-settings/client'
 import type { InjectFace, PropsLocale, PropsRuntime } from '@deepseek-ai/dsh-client-ui-slots'
 import type { DesktopSettingsKey } from './locales.ts'
 import css from './CloseActionRow.module.css'
@@ -17,10 +17,10 @@ const OPTIONS: readonly boolean[] = [true, false]
 /** Registration-side business face for one remote boolean preference. */
 export interface RemoteToggleRowInjected {
   hooks: {
-    /** Remote namespace snapshot bound by the renderer. */
-    remote: ObservableSnapshot<SettingsScopeSnapshot<RemoteSettings>>
+    /** Remote entry form bound by the renderer. */
+    remote: ObservableSnapshot<ConfigFormSnapshot<RemoteSettings>>
   }
-  /** Namespace field this row flips. */
+  /** Entry field this row flips. */
   field: 'enabled' | 'allowRemoteApproval'
   /** Copy keys for the title and description lines. */
   titleKey: DesktopSettingsKey

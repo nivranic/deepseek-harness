@@ -21,7 +21,7 @@ const root = resolve(dirname(fileURLToPath(import.meta.url)), '..')
 // `pnpm install --production` there instead of packing the staged closure.
 const STAGE_DIR = join(tmpdir(), 'dsh-desktop-stage')
 const OUT_DIR = join(root, 'dist-desktop', 'out')
-const DESKTOP_APP = '@deepseek-ai/dsh-desktop'
+const DESKTOP_APP = '@deepseek-ai/dsh-desktop-user'
 
 // Electron runtime and builder-toolchain downloads default to a mirror for
 // constrained networks; an explicit environment value always wins.
@@ -62,8 +62,8 @@ async function readJson<T>(path: string, hint: string): Promise<T> {
 async function main(): Promise<void> {
   // Build artifacts the stage consumes; their absence means an unbuilt tree,
   // not a packaging condition.
-  if (!existsSync(join(root, 'apps', 'desktop', 'lib', 'main.js'))) {
-    fail('apps/desktop/lib/main.js not found; run `pnpm run build` first')
+  if (!existsSync(join(root, 'apps', 'desktop-user', 'lib', 'main.js'))) {
+    fail('apps/desktop-user/lib/main.js not found; run `pnpm run build` first')
   }
   if (!existsSync(join(root, 'apps', 'web', 'dist', 'index.html'))) {
     fail('apps/web/dist/index.html not found; run `pnpm run build` first')
@@ -76,7 +76,7 @@ async function main(): Promise<void> {
   // check also rejects stale dist trees from a plain `pnpm run build`.
   readClientBuildRecord(root, officialClientBuildEnvironment(root))
   const electronManifest = await readJson<{ version: string }>(
-    join(root, 'apps', 'desktop', 'node_modules', 'electron', 'package.json'),
+    join(root, 'apps', 'desktop-user', 'node_modules', 'electron', 'package.json'),
     'the Electron runtime',
   )
   const electronVersion = electronManifest.version
@@ -93,8 +93,8 @@ async function main(): Promise<void> {
   // The shell's bundled entries and static resources ride beside the
   // closure's package.json; a files-filtered deploy may omit them, so always
   // lay them down.
-  cpSync(join(root, 'apps', 'desktop', 'lib'), join(STAGE_DIR, 'lib'), { recursive: true, force: true })
-  cpSync(join(root, 'apps', 'desktop', 'resources'), join(STAGE_DIR, 'resources'), { recursive: true, force: true })
+  cpSync(join(root, 'apps', 'desktop-user', 'lib'), join(STAGE_DIR, 'lib'), { recursive: true, force: true })
+  cpSync(join(root, 'apps', 'desktop-user', 'resources'), join(STAGE_DIR, 'resources'), { recursive: true, force: true })
 
   // Materialize every link that escapes the stage: file-linked workspace
   // packages land in the closure as junctions back into the repository, and
@@ -181,11 +181,11 @@ async function main(): Promise<void> {
   console.log('build-desktop-exe: running electron-builder (win)')
   // Invoke the builder CLI through node directly: `pnpm exec` runs its own
   // dependency-status install first, which cannot work while packaging.
-  const builderCli = join(root, 'apps', 'desktop', 'node_modules', 'electron-builder', 'cli.js')
+  const builderCli = join(root, 'apps', 'desktop-user', 'node_modules', 'electron-builder', 'cli.js')
   const builderCode = await run(
     process.execPath,
     [builderCli, '--win', '--x64', '--project', STAGE_DIR],
-    join(root, 'apps', 'desktop'),
+    join(root, 'apps', 'desktop-user'),
     { CI: 'true', CSC_IDENTITY_AUTO_DISCOVERY: 'false' },
     false,
   )

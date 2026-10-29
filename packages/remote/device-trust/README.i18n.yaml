@@ -1,6 +1,40 @@
-# Bilingual-pair consistency record (docs/i18n/README.md): the git blob hash of each
-# side as of the last confirmed-consistent state. Both languages carry equal authority;
-# after editing either side, bring the other along and re-record with:
+# Bilingual-pair consistency record for README.md (docs/i18n/README.md): per heading
+# section, a hash of its English and Chinese blocks outside code blocks and generated regions.
+# After editing either side, bring the other along and re-record with:
 #   pnpm run verify-translation-pairing --write packages/remote/device-trust/README.md
-README.md: bbdae1fe2bb8f5770d752df4363165b039bbd346
-README.zh.md: e7ae754a0a9e05a98bfdb7c439416fb6d91b7b5d
+/:
+  en: 16a8396496eb3c55
+  zh: 23fa918c5a614d62
+/deepseek-ai-dsh-device-trust:
+  en: aa8acb5b6a8360d7
+  zh: 1d6ddfafb47ea139
+/deepseek-ai-dsh-device-trust/summary:
+  en: ee4549abd620c22b
+  zh: 6bc9213480b68681
+/deepseek-ai-dsh-device-trust/table-of-contents:
+  en: 80b31a934611cb4a
+  zh: e746e683af2e5452
+/deepseek-ai-dsh-device-trust/use-this-package:
+  en: 4fa86da031453959
+  zh: 0f74cdd1aed646fb
+/deepseek-ai-dsh-device-trust/use-this-package/configuration:
+  en: 68dc2a35d44a06f8
+  zh: 0fdf138e96bc53b9
+/deepseek-ai-dsh-device-trust/use-this-package/observable-behavior:
+  en: 6005eb197646e78a
+  zh: b227531650361eb3
+/deepseek-ai-dsh-device-trust/understand-the-implementation:
+  en: f5ca9fc7d03a30f8
+  zh: 038498bd8c802d5c
+/deepseek-ai-dsh-device-trust/understand-the-implementation/source-map:
+  en: 6d85e98a82d47f40
+  zh: 4ad3583e57fdd881
+/deepseek-ai-dsh-device-trust/further-exploration:
+  en: 080307e0e07b7f01
+  zh: 34aa1bd3917e0e53
+/deepseek-ai-dsh-device-trust/known-limitations-and-deferred-work:
+  en: ffeb7622fcf17ad8
+  zh: 9838066cdf6be137
+/deepseek-ai-dsh-device-trust/known-limitations-and-deferred-work/dev-note:
+  en: e67f633dc6fe7773
+  zh: 3bb0c20c93f16f98

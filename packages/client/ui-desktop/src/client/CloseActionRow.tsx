@@ -6,7 +6,7 @@
 
 import type { DesktopCloseAction, DesktopSettings } from '../desktop-settings.ts'
 import type { ObservableSnapshot } from '@deepseek-ai/dsh-client-store'
-import type { SettingsScopeSnapshot } from '@deepseek-ai/dsh-client-ui-settings/client'
+import type { ConfigFormSnapshot } from '@deepseek-ai/dsh-client-ui-settings/client'
 import type { InjectFace, PropsLocale, PropsRuntime } from '@deepseek-ai/dsh-client-ui-slots'
 import type { DesktopSettingsKey } from './locales.ts'
 import css from './CloseActionRow.module.css'
@@ -17,8 +17,8 @@ const OPTIONS: readonly DesktopCloseAction[] = ['tray', 'quit']
 /** Registration-side business face for the host-backed preference. */
 export interface CloseActionRowInjected {
   hooks: {
-    /** Desktop namespace snapshot bound by the renderer as useDesktopClose. */
-    desktopClose: ObservableSnapshot<SettingsScopeSnapshot<DesktopSettings>>
+    /** Desktop entry form bound by the renderer as useDesktopClose. */
+    desktopClose: ObservableSnapshot<ConfigFormSnapshot<DesktopSettings>>
   }
   /** Persist one close-button behavior. */
   select: (value: DesktopCloseAction) => void

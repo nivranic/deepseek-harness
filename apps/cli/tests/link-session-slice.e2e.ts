@@ -15,11 +15,10 @@ import { tmpdir } from 'node:os'
 import { join } from 'node:path'
 import { fileURLToPath } from 'node:url'
 import { Context } from '@deepseek-ai/cordis'
-import { boot, healProfilesModuleFallback, loadOverlayPatches } from '@deepseek-ai/dsh-app-boot'
+import { boot, loadOverlayPatches } from '@deepseek-ai/dsh-app-boot'
 import { RpcId } from '@deepseek-ai/dsh-client-connection'
 import { provideCmdline } from '@deepseek-ai/dsh-cmdline'
 import { linkSigningInput } from '@deepseek-ai/dsh-link-access/protocol'
-import { settingsNamespace } from '@deepseek-ai/dsh-settings'
 import type { PatchOptions } from '@deepseek-ai/cordis-plugin-include'
 import { afterAll, beforeAll, describe, expect, it } from 'vitest'
 
@@ -27,7 +26,6 @@ const CONFIG_DIR = fileURLToPath(new URL('../config/', import.meta.url))
 const REPO_ROOT = fileURLToPath(new URL('../../..', import.meta.url))
 const BASE_PATCH = join(REPO_ROOT, 'packages/bundle/base/cordis.patch.yml')
 const DESKTOP_PATCH = join(REPO_ROOT, 'packages/bundle/desktop-app/cordis.patch.yml')
-const INSTALL_ANCHOR = join(REPO_ROOT, 'apps/cli/package.json')
 
 /** One paired device's wire identity. */
 interface PairedDevice {
@@ -67,7 +65,6 @@ async function bootComposition(home: string): Promise<Context> {
       },
     },
   ]
-  await healProfilesModuleFallback({ installAnchor: INSTALL_ANCHOR, home })
   const profileDir = join(home, 'profiles', 'spec')
   await mkdir(profileDir, { recursive: true })
   await writeFile(join(profileDir, 'cordis.yml'), '[]\n')
@@ -164,8 +161,7 @@ describe('the carrier-level session slice', () => {
     await expect(link.endpoint()).resolves.toBeUndefined()
 
     // The settings switch binds the real carrier through the live bridge.
-    const remote = settingsNamespace('remote')
-    await ctx.settings.update(remote, { enabled: true, deviceName: 'Slice Host' })
+    await ctx.settings.update('link-settings', { enabled: true, deviceName: 'Slice Host' })
     await viWaitFor(async () => {
       if (await link.endpoint() === undefined) throw new Error('carrier not bound yet')
     })
@@ -206,7 +202,7 @@ describe('the carrier-level session slice', () => {
     expect(answer.json).toMatchObject({ error: 'forbidden', reason: 'approval-disabled' })
 
     // Flipping the switch back unbinds the carrier.
-    await ctx.settings.update(remote, { enabled: false })
+    await ctx.settings.update('link-settings', { enabled: false })
     await viWaitFor(async () => {
       if (await link.endpoint() !== undefined) throw new Error('carrier still bound')
     })

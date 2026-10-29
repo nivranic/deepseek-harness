@@ -11,10 +11,9 @@ import { tmpdir } from 'node:os'
 import { dirname, join } from 'node:path'
 import { fileURLToPath } from 'node:url'
 import { Context } from '@deepseek-ai/cordis'
-import { boot, healProfilesModuleFallback, loadOverlayPatches } from '@deepseek-ai/dsh-app-boot'
+import { boot, loadOverlayPatches } from '@deepseek-ai/dsh-app-boot'
 import { RpcId } from '@deepseek-ai/dsh-client-connection'
 import { provideCmdline } from '@deepseek-ai/dsh-cmdline'
-import { settingsNamespace } from '@deepseek-ai/dsh-settings'
 import type { DesktopGateway } from '@deepseek-ai/dsh-host-electron-ipc'
 import type { PatchOptions } from '@deepseek-ai/cordis-plugin-include'
 import { afterAll, beforeAll, describe, expect, it } from 'vitest'
@@ -24,8 +23,6 @@ const REPO_ROOT = fileURLToPath(new URL('../../..', import.meta.url))
 /** The shipped desktop surface: the dsh-base and dsh-desktop-app bundle patches over an empty preset root. */
 const BASE_PATCH = join(REPO_ROOT, 'packages/bundle/base/cordis.patch.yml')
 const DESKTOP_PATCH = join(REPO_ROOT, 'packages/bundle/desktop-app/cordis.patch.yml')
-/** The installation anchor whose dependency surface the preset module fallback mirrors. */
-const INSTALL_ANCHOR = join(REPO_ROOT, 'apps/cli/package.json')
 
 /**
  * Boot the shipped desktop composition, minus the rows that would touch the
@@ -62,10 +59,9 @@ async function bootDesktop(settingsFile: string): Promise<Context> {
       },
     },
   ]
-  // Bare plugin names resolve through the profile module fallback, the same
-  // mechanism the real desktop boot uses.
+  // Bare plugin names resolve through the app-boot runtime resolution service,
+  // the same mechanism the real desktop boot uses.
   const home = dirname(settingsFile)
-  await healProfilesModuleFallback({ installAnchor: INSTALL_ANCHOR, home })
   const profileDir = join(home, 'profiles', 'spec')
   await mkdir(profileDir, { recursive: true })
   const rootConfig = join(profileDir, 'cordis.yml')
@@ -143,26 +139,26 @@ describe('the shipped desktop composition', () => {
     // resolves (and re-resolves on every commit) with the schema defaults —
     // autostart stays OFF until the user opts in.
     const settings = ctx.get('settings')!
-    const ns = settingsNamespace('desktop')
-    expect(settings.get(ns)).toEqual({ closeAction: 'tray', launchAtLogin: false })
-    await settings.update(ns, { closeAction: 'quit' })
-    expect(settings.get(ns)).toEqual({ closeAction: 'quit', launchAtLogin: false })
-    await settings.update(ns, { closeAction: 'tray', launchAtLogin: true })
-    expect(settings.get(ns)).toEqual({ closeAction: 'tray', launchAtLogin: true })
-    await settings.update(ns, { launchAtLogin: false })
-    expect(settings.get(ns)).toEqual({ closeAction: 'tray', launchAtLogin: false })
+    const desktopPreferences = () => settings.describe().find(row => row.ns === 'ui-desktop')?.value
+    expect(desktopPreferences()).toEqual({ closeAction: 'tray', launchAtLogin: false })
+    await settings.update('ui-desktop', { closeAction: 'quit' })
+    expect(desktopPreferences()).toEqual({ closeAction: 'quit', launchAtLogin: false })
+    await settings.update('ui-desktop', { closeAction: 'tray', launchAtLogin: true })
+    expect(desktopPreferences()).toEqual({ closeAction: 'tray', launchAtLogin: true })
+    await settings.update('ui-desktop', { launchAtLogin: false })
+    expect(desktopPreferences()).toEqual({ closeAction: 'tray', launchAtLogin: false })
   })
 
   it('ships cross-device access off by default and answers the local link surface', async () => {
-    // The `remote` namespace the link-settings bridge owns resolves with all
-    // three defaults off, and the carrier stays unbound — remote access never
-    // opens by default. The link Remote namespace answers locally through the
-    // same /api chain, pairs nothing while the carrier is off, and lists no
-    // devices; a paired device could not reach these endpoints at all, because
-    // the remote allowlist carries none of them.
+    // The `link-settings` entry's live configuration (the `remote` fields)
+    // resolves with all three defaults off, and the carrier stays unbound —
+    // remote access never opens by default. The link Remote namespace answers
+    // locally through the same /api chain, pairs nothing while the carrier is
+    // off, and lists no devices; a paired device could not reach these
+    // endpoints at all, because the remote allowlist carries none of them.
     const settings = ctx.get('settings')!
-    const remote = settingsNamespace('remote')
-    const section = settings.get(remote) as { enabled: boolean; allowRemoteApproval: boolean; deviceName: string }
+    const section = settings.describe().find(row => row.ns === 'link-settings')?.value as
+      { enabled: boolean; allowRemoteApproval: boolean; deviceName: string }
     expect(section.enabled).toBe(false)
     expect(section.allowRemoteApproval).toBe(false)
     expect(typeof section.deviceName).toBe('string')

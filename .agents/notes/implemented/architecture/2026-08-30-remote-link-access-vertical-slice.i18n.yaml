@@ -1,6 +1,19 @@
-# Bilingual-pair consistency record (docs/i18n/README.md): the git blob hash of each
-# side as of the last confirmed-consistent state. Both languages carry equal authority;
-# after editing either side, bring the other along and re-record with:
+# Bilingual-pair consistency record for 2026-08-30-remote-link-access-vertical-slice.md (docs/i18n/README.md): per heading
+# section, a hash of its English and Chinese blocks outside code blocks and generated regions.
+# After editing either side, bring the other along and re-record with:
 #   pnpm run verify-translation-pairing --write .agents/notes/implemented/architecture/2026-08-30-remote-link-access-vertical-slice.md
-2026-08-30-remote-link-access-vertical-slice.md: 1f91e32bbc4a9b463a0ca93c328a8eb75a907535
-2026-08-30-remote-link-access-vertical-slice.zh.md: ad4b79450a553c8ad410dedcf4c0a55f97d2b315
+/agent-note-remote-link-access-vertical-slice-poc-2:
+  en: 7652ab2f2a8219b5
+  zh: 80ad1d16595f650a
+/agent-note-remote-link-access-vertical-slice-poc-2/problem:
+  en: d5a54c21cf0f5b85
+  zh: b70407bde999f259
+/agent-note-remote-link-access-vertical-slice-poc-2/decision:
+  en: c87f618e3227fc69
+  zh: de4734efac997284
+/agent-note-remote-link-access-vertical-slice-poc-2/consequences:
+  en: 601741423ef68d84
+  zh: e0b830c601e553ec
+/agent-note-remote-link-access-vertical-slice-poc-2/alternatives-considered:
+  en: 8ceead9bd1d64532
+  zh: 78a84ccf1a6b04cb

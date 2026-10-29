@@ -1,4 +1,4 @@
-/** The package's node half: namespace registration plus an explained empty invariant companion. */
+/** The package's node half: entry configuration plus an explained empty invariant companion. */
 
 import { describe, expect, it } from 'vitest'
 import { Context } from '@deepseek-ai/cordis'

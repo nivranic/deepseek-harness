@@ -1,8 +1,9 @@
 /** The chapter-40 handoff L1 command: create + pin title + queue the rendered snapshot brief. */
 
 import { Context } from '@deepseek-ai/cordis'
-import AgentRegistry, { Inbox } from '@deepseek-ai/dsh-agent'
+import AgentRegistry from '@deepseek-ai/dsh-agent'
 import type { Agent } from '@deepseek-ai/dsh-agent'
+import { createInboxStub } from '@deepseek-ai/dsh-agent-loop-testkit'
 import SessionStore, { SessionId } from '@deepseek-ai/dsh-session'
 import type { Session } from '@deepseek-ai/dsh-session'
 import { describe, expect, it, vi } from 'vitest'
@@ -43,12 +44,12 @@ async function handoffHarness(providers: string[] = ['fixture']): Promise<{
   ctx.provide('llm', {
     listProviders: () => providers.map(id => ({ id, name: id })),
   } as never)
-  const renameTitle = vi.fn((session: Session, title: string) => ({ title, eventSeq: session.events.length }))
+  const renameTitle = vi.fn((session: Session, title: string) => ({ title, eventSeq: session.snapshotEvents().length }))
   ctx.provide('sessionTitle', { rename: renameTitle } as never)
   const followup = vi.fn()
   const ensureSession = vi.fn((sessionId: SessionId, cwd: string) => {
     const session = ctx.sessions.create(sessionId, { meta: { cwd } })
-    const inbox = new Inbox(session, { inserted: () => {}, discarded: () => {}, claimed: () => {} })
+    const inbox = createInboxStub()
     const agent = {
       id: sessionId,
       session,

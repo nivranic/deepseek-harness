@@ -1,6 +1,19 @@
-# Bilingual-pair consistency record (docs/i18n/README.md): the git blob hash of each
-# side as of the last confirmed-consistent state. Both languages carry equal authority;
-# after editing either side, bring the other along and re-record with:
+# Bilingual-pair consistency record for 2026-08-31-android-lite-http-provider.md (docs/i18n/README.md): per heading
+# section, a hash of its English and Chinese blocks outside code blocks and generated regions.
+# After editing either side, bring the other along and re-record with:
 #   pnpm run verify-translation-pairing --write .agents/notes/implemented/architecture/2026-08-31-android-lite-http-provider.md
-2026-08-31-android-lite-http-provider.md: 1a0a8185d73b4893b07043602d3cae1360ac1c3b
-2026-08-31-android-lite-http-provider.zh.md: 49d06b98ca0383f24832f05c8f80e32754a4bc7e
+/agent-note-the-android-lite-http-provider:
+  en: e114186abd673dc4
+  zh: 927897e4dc530092
+/agent-note-the-android-lite-http-provider/problem:
+  en: fd43a0556b972947
+  zh: 7d3c1c9415a43912
+/agent-note-the-android-lite-http-provider/decision:
+  en: 9ecdffce0f6238ef
+  zh: ef486d432b195dcf
+/agent-note-the-android-lite-http-provider/consequences:
+  en: 5cc5e901cda6fc2d
+  zh: bbccb356102dc103
+/agent-note-the-android-lite-http-provider/alternatives-considered:
+  en: a7db08db2b0fc5c2
+  zh: bb2accb798c7e9c3

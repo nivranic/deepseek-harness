@@ -6,7 +6,8 @@ import { Context } from '@deepseek-ai/cordis'
 import type { Agent } from '@deepseek-ai/dsh-agent'
 import SystemPrompt from '@deepseek-ai/dsh-system-prompt'
 import { ToolCallId } from '@deepseek-ai/dsh-llm'
-import ToolRuntime from '@deepseek-ai/dsh-tools'
+import ToolRuntime, { type ToolExecutionResult } from '@deepseek-ai/dsh-tools'
+import * as NativeToolExecutor from '@deepseek-ai/dsh-tool-executor-native'
 import { Session, SessionId } from '@deepseek-ai/dsh-session'
 import * as plugin from '../src/index.ts'
 import { ArtifactId, ArtifactStore } from '../src/index.ts'
@@ -45,6 +46,7 @@ async function setup(): Promise<{ ctx: Context; store: MemoryArtifactStore }> {
   const ctx = new Context()
   await ctx.plugin(SystemPrompt)
   await ctx.plugin(ToolRuntime)
+  await ctx.plugin(NativeToolExecutor)
   await ctx.plugin(MemoryArtifactStore)
   await ctx.plugin(plugin)
   const store = ctx.artifacts as MemoryArtifactStore
@@ -52,15 +54,20 @@ async function setup(): Promise<{ ctx: Context; store: MemoryArtifactStore }> {
 }
 
 let callCounter = 0
+
+/** Run one tool through the batch runtime and return its single settled result. */
+async function callTool(ctx: Context, name: string, callId: string, args: unknown, agent?: Agent): Promise<ToolExecutionResult> {
+  const batch = await ctx.tools.execute({
+    calls: [{ type: 'tool-call', id: ToolCallId(callId), name, arguments: JSON.stringify(args) }],
+    signal: testToolSignal,
+    ...agent === undefined ? {} : { agent },
+  })
+  return batch.results[0]!.result
+}
+
 function callArtifact(ctx: Context, args: unknown, over: { agent?: Agent | undefined } = {}) {
   const agent = 'agent' in over ? over.agent : agentWithSession()
-  return ctx.tools.execute({
-    signal: testToolSignal,
-    callId: ToolCallId(`call-${++callCounter}`),
-    name: 'artifact_create',
-    arguments: args,
-    ...agent ? { agent } : {},
-  })
+  return callTool(ctx, 'artifact_create', `call-${++callCounter}`, args, agent)
 }
 
 function text(result: { content: { type: string; text?: string }[] }): string {
@@ -88,7 +95,7 @@ describe('dsh-artifact tool', () => {
     expect(value).toEqual({ id: value.id, kind: 'report', title: '迁移报告', format: 'text', status: 'ready' })
     expect(value.id).toMatch(/^art-/u)
     expect(text(result)).toContain('迁移报告')
-    const events = agent.session.events.filter(e => e.type.startsWith('artifact/'))
+    const events = agent.session.snapshotEvents().filter(e => e.type.startsWith('artifact/'))
     expect(events.map(e => e.type)).toEqual(['artifact/created', 'artifact/status'])
     expect(events[0]!.data).toEqual({ id: value.id, kind: 'report', title: '迁移报告', format: 'text' })
     expect(events[1]!.data).toEqual({ id: value.id, status: 'ready' })
@@ -104,7 +111,7 @@ describe('dsh-artifact tool', () => {
     const result = await callArtifact(ctx, { kind: 'report', title: 'R', content: 'x' }, { agent })
     expect(result.isError).toBe(true)
     expect(text(result)).toContain('disk full')
-    const events = agent.session.events.filter(e => e.type.startsWith('artifact/'))
+    const events = agent.session.snapshotEvents().filter(e => e.type.startsWith('artifact/'))
     expect(events.map(e => e.type)).toEqual(['artifact/created', 'artifact/status'])
     expect((events[1]!.data as { status: string }).status).toBe('failed')
   })
@@ -121,13 +128,7 @@ describe('dsh-artifact tool', () => {
     const agent = agentWithSession('reader')
     const created = await callArtifact(ctx, { kind: 'report', title: '迁移报告', content: '# 报告\n正文' }, { agent })
     if (created.isError) throw new Error('expected artifact_create success')
-    const read = await ctx.tools.execute({
-      signal: testToolSignal,
-      callId: ToolCallId('call-read-1'),
-      name: 'artifact_read',
-      arguments: { id: (created.value as { id: string }).id },
-      agent,
-    })
+    const read = await callTool(ctx, 'artifact_read', 'call-read-1', { id: (created.value as { id: string }).id }, agent)
     expect(read.isError).toBe(false)
     if (read.isError) throw new Error('expected artifact_read success')
     expect(read.value).toEqual({ id: (created.value as { id: string }).id, kind: 'report', title: '迁移报告', format: 'text', content: '# 报告\n正文', truncated: false, size: 7 })
@@ -138,13 +139,9 @@ describe('dsh-artifact tool', () => {
     const agent = agentWithSession('pager')
     const created = await callArtifact(ctx, { kind: 'report', title: 'R', content: '0123456789' }, { agent })
     if (created.isError) throw new Error('expected artifact_create success')
-    const read = async (over: { offset?: number; limit?: number }) => await ctx.tools.execute({
-      signal: testToolSignal,
-      callId: ToolCallId('call-page'),
-      name: 'artifact_read',
-      arguments: { id: (created.value as { id: string }).id, ...over },
-      agent,
-    })
+    const read = async (over: { offset?: number; limit?: number }) => await callTool(
+      ctx, 'artifact_read', 'call-page', { id: (created.value as { id: string }).id, ...over }, agent,
+    )
     const first = await read({ offset: 0, limit: 4 })
     expect(first.isError).toBe(false)
     expect(first.value).toMatchObject({ content: '0123', truncated: true, size: 10 })
@@ -156,13 +153,7 @@ describe('dsh-artifact tool', () => {
 
   it('fails loud on an id the channel never stored', async () => {
     const { ctx } = await setup()
-    const result = await ctx.tools.execute({
-      signal: testToolSignal,
-      callId: ToolCallId('call-read-2'),
-      name: 'artifact_read',
-      arguments: { id: 'art-never-stored' },
-      agent: agentWithSession('reader-2'),
-    })
+    const result = await callTool(ctx, 'artifact_read', 'call-read-2', { id: 'art-never-stored' }, agentWithSession('reader-2'))
     expect(result.isError).toBe(true)
     expect(text(result)).toContain('no content stored under id "art-never-stored"')
   })
@@ -186,15 +177,9 @@ describe('dsh-artifact tool', () => {
     const value = result.value as { id: string; format: string; status: string }
     expect(value.format).toBe('bytes')
     expect(store.stored.get(value.id)).toEqual(raw)
-    const created = agent.session.events.find(e => e.type === 'artifact/created')!
+    const created = agent.session.snapshotEvents().find(e => e.type === 'artifact/created')!
     expect(created.data).toEqual({ id: value.id, kind: 'png', title: '图标', format: 'bytes' })
-    const page = await ctx.tools.execute({
-      signal: testToolSignal,
-      callId: ToolCallId('call-read-bin'),
-      name: 'artifact_read',
-      arguments: { id: value.id, offset: 2, limit: 3 },
-      agent,
-    })
+    const page = await callTool(ctx, 'artifact_read', 'call-read-bin', { id: value.id, offset: 2, limit: 3 }, agent)
     expect(page.isError).toBe(false)
     expect(page.value).toMatchObject({
       format: 'bytes',
@@ -227,13 +212,7 @@ describe('dsh-artifact tool', () => {
     const agent = agentWithSession('owner')
     const created = await callArtifact(ctx, { kind: 'report', title: 'R', content: 'hello' }, { agent })
     if (created.isError) throw new Error('expected artifact_create success')
-    const read = await ctx.tools.execute({
-      signal: testToolSignal,
-      callId: ToolCallId('call-read-out'),
-      name: 'artifact_read',
-      arguments: { id: (created.value as { id: string }).id },
-      agent: agentWithSession('outsider'),
-    })
+    const read = await callTool(ctx, 'artifact_read', 'call-read-out', { id: (created.value as { id: string }).id }, agentWithSession('outsider'))
     expect(read.isError).toBe(false)
     expect(read.value).toMatchObject({
       format: 'bytes',

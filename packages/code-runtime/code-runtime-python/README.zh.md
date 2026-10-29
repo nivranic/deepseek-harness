@@ -85,9 +85,9 @@ host 侧校验会静默丢弃垃圾，因此格式错误或伪造的帧绝不会
 当协议约定不够用时阅读以下内容。它们从 seam 定义进入协议的设计记录与配套后端。
 
 - [代码运行时 seam](../code-runtime/README.zh.md)——Python 后端实现的抽象约定。
-- [fd-3 协议 Agent Note](../../../.agents/notes/implemented/architecture/2026-07-31-code-runtime-python-fd3-protocol.zh.md)——设计理由、协议约定与镜像对齐决策。
+- [fd-3 协议 Agent Note](../../../.agents/notes/implemented/architecture/2026-07-31-ptc-runtime-python-fd3-protocol.zh.md)——设计理由、协议约定与镜像对齐决策。
 - [Worker 线程后端](../code-runtime-worker-thread/README.zh.md)——已发布的 TypeScript 兄弟包，是 Python 后端行为的模板。
-- [代码运行时子系统参考](../../../docs/subsystems/code-runtime.zh.md)——请求／结果词汇、绑定与失败分类体系。
+- [PTC 运行时子系统参考](../../../docs/subsystems/ptc-runtime.zh.md)——请求／结果词汇、绑定与失败分类体系。
 
 -----
 

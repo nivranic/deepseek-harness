@@ -1,6 +1,19 @@
-# Bilingual-pair consistency record (docs/i18n/README.md): the git blob hash of each
-# side as of the last confirmed-consistent state. Both languages carry equal authority;
-# after editing either side, bring the other along and re-record with:
+# Bilingual-pair consistency record for 2026-08-31-android-lite-loop-driver.md (docs/i18n/README.md): per heading
+# section, a hash of its English and Chinese blocks outside code blocks and generated regions.
+# After editing either side, bring the other along and re-record with:
 #   pnpm run verify-translation-pairing --write .agents/notes/implemented/architecture/2026-08-31-android-lite-loop-driver.md
-2026-08-31-android-lite-loop-driver.md: b88c253e2131f6093e4bf70ff6f3519902f55a6d
-2026-08-31-android-lite-loop-driver.zh.md: 0921b4d142cc960408c19e4c68f2347bede1e38e
+/agent-note-the-android-lite-loop-driver:
+  en: 694aebc0bcb54c87
+  zh: 2ee0737dd1aaecbf
+/agent-note-the-android-lite-loop-driver/problem:
+  en: f0416acc53fbd02d
+  zh: 7552fb99dce464dc
+/agent-note-the-android-lite-loop-driver/decision:
+  en: 40d63a42233c0442
+  zh: 9825fc9234e97304
+/agent-note-the-android-lite-loop-driver/consequences:
+  en: 14b06b10708dd164
+  zh: 13d06eaa96f5eef7
+/agent-note-the-android-lite-loop-driver/alternatives-considered:
+  en: 5c5c7f6956b8627a
+  zh: 26bb716d3d458dbe

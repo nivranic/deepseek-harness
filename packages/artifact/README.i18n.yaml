@@ -1,6 +1,25 @@
-# Bilingual-pair consistency record (docs/i18n/README.md): the git blob hash of each
-# side as of the last confirmed-consistent state. Both languages carry equal authority;
-# after editing either side, bring the other along and re-record with:
+# Bilingual-pair consistency record for README.md (docs/i18n/README.md): per heading
+# section, a hash of its English and Chinese blocks outside code blocks and generated regions.
+# After editing either side, bring the other along and re-record with:
 #   pnpm run verify-translation-pairing --write packages/artifact/README.md
-README.md: 29767e6b9ecef25640cd27c0a7f634158c6f6e91
-README.zh.md: 00972ca52a0610f7c2f03a67a101ba4d69f6d6d7
+/:
+  en: b12c1e947399729f
+  zh: 9cf25cf1156603bc
+/artifact-artifact-vocabulary-family:
+  en: 86b4e597ed1f2d77
+  zh: 34a5b532251aab57
+/artifact-artifact-vocabulary-family/summary:
+  en: ea32a7f4ed259af9
+  zh: 97547e20f8e61f48
+/artifact-artifact-vocabulary-family/table-of-contents:
+  en: 1eb35b015a6c423f
+  zh: a8a3dceee2c9e943
+/artifact-artifact-vocabulary-family/packages:
+  en: 39ddfc5689f3dee8
+  zh: 02fc1517871723bc
+/artifact-artifact-vocabulary-family/related-documentation:
+  en: e6254360aaf6004e
+  zh: 6284e2a2d41feca3
+/artifact-artifact-vocabulary-family/dev-note:
+  en: 45be119f49485db5
+  zh: 73e9443af7a07433

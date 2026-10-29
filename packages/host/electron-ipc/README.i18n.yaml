@@ -1,6 +1,28 @@
-# Bilingual-pair consistency record (docs/i18n/README.md): the git blob hash of each
-# side as of the last confirmed-consistent state. Both languages carry equal authority;
-# after editing either side, bring the other along and re-record with:
+# Bilingual-pair consistency record for README.md (docs/i18n/README.md): per heading
+# section, a hash of its English and Chinese blocks outside code blocks and generated regions.
+# After editing either side, bring the other along and re-record with:
 #   pnpm run verify-translation-pairing --write packages/host/electron-ipc/README.md
-README.md: 5570a0d44fcb56d5a0e6c9c96bdde4d8be7f77b4
-README.zh.md: ccd01f31ff8a9ce7540f200b4f162f043967c584
+/:
+  en: e94e43b18bef3a97
+  zh: fa701850d868133d
+/deepseek-ai-dsh-host-electron-ipc:
+  en: 8254068ea3a6145b
+  zh: e8ee7ac48947b655
+/deepseek-ai-dsh-host-electron-ipc/summary:
+  en: 657b6540e9e2c9ad
+  zh: f7548e52bd4e38e0
+/deepseek-ai-dsh-host-electron-ipc/table-of-contents:
+  en: 6dc8d9b0018230ee
+  zh: 898f212712b50de2
+/deepseek-ai-dsh-host-electron-ipc/dev-note:
+  en: 805e8590009e21b1
+  zh: 8c538e4e1e8f448a
+/deepseek-ai-dsh-host-electron-ipc/model-experience:
+  en: 072344ac9ecd076a
+  zh: 1846865e6810f440
+/deepseek-ai-dsh-host-electron-ipc/model-experience/kv-cache-effect:
+  en: ca75c51c89c2c9b0
+  zh: 6c9e01d76d7ff3c7
+/deepseek-ai-dsh-host-electron-ipc/known-limitations-and-deferred-work:
+  en: 7a182271240541dc
+  zh: 504e4cda0704f4bb

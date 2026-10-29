@@ -1,6 +1,19 @@
-# Bilingual-pair consistency record (docs/i18n/README.md): the git blob hash of each
-# side as of the last confirmed-consistent state. Both languages carry equal authority;
-# after editing either side, bring the other along and re-record with:
+# Bilingual-pair consistency record for 2026-08-31-android-notification-grant.md (docs/i18n/README.md): per heading
+# section, a hash of its English and Chinese blocks outside code blocks and generated regions.
+# After editing either side, bring the other along and re-record with:
 #   pnpm run verify-translation-pairing --write .agents/notes/implemented/architecture/2026-08-31-android-notification-grant.md
-2026-08-31-android-notification-grant.md: eced65236ecec880d72d431364a0297258cc9a4e
-2026-08-31-android-notification-grant.zh.md: 037f75f739057393da0c9223676a295c3f8c7cd2
+/agent-note-the-android-runtime-notification-grant:
+  en: 1b34a2d625127bbc
+  zh: 32cac8554b570c6e
+/agent-note-the-android-runtime-notification-grant/problem:
+  en: 1490fc910fde4a8f
+  zh: ba39afdc786de18b
+/agent-note-the-android-runtime-notification-grant/decision:
+  en: ed9de777375244fd
+  zh: f6b491963c275eb2
+/agent-note-the-android-runtime-notification-grant/consequences:
+  en: b472eaadbf2d4d74
+  zh: 78273457db5b7457
+/agent-note-the-android-runtime-notification-grant/alternatives-considered:
+  en: 34605214d940ea92
+  zh: 9e09c090cd9626fe

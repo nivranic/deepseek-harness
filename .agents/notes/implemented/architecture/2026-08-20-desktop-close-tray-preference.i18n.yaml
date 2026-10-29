@@ -1,6 +1,19 @@
-# Bilingual-pair consistency record (docs/i18n/README.md): the git blob hash of each
-# side as of the last confirmed-consistent state. Both languages carry equal authority;
-# after editing either side, bring the other along and re-record with:
+# Bilingual-pair consistency record for 2026-08-20-desktop-close-tray-preference.md (docs/i18n/README.md): per heading
+# section, a hash of its English and Chinese blocks outside code blocks and generated regions.
+# After editing either side, bring the other along and re-record with:
 #   pnpm run verify-translation-pairing --write .agents/notes/implemented/architecture/2026-08-20-desktop-close-tray-preference.md
-2026-08-20-desktop-close-tray-preference.md: df1ed92eea0c2122eb75a1ab42385188427068fd
-2026-08-20-desktop-close-tray-preference.zh.md: 1c947de6124f0e5e78246cd744cb3fb5566dc143
+/agent-note-desktop-close-button-preference-tray-by-default-composition-gated:
+  en: 32214db299ae7b56
+  zh: a448a3e5c179fa24
+/agent-note-desktop-close-button-preference-tray-by-default-composition-gated/problem:
+  en: 96563f5b961260fa
+  zh: 2e420b5fc5e0d7c2
+/agent-note-desktop-close-button-preference-tray-by-default-composition-gated/decision:
+  en: e3afe82eabfb90ff
+  zh: 21bc057b542a2cf6
+/agent-note-desktop-close-button-preference-tray-by-default-composition-gated/alternatives-considered:
+  en: c7f1d7e9e7ce27a6
+  zh: 2266df63382aa217
+/agent-note-desktop-close-button-preference-tray-by-default-composition-gated/consequences:
+  en: 3ea4ed2a5e709c5a
+  zh: 81f1d6cdc75eb98c

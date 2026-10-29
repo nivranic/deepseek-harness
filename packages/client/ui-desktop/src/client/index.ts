@@ -2,14 +2,15 @@
  * Desktop-surface preference plugin, browser half: the General-settings rows
  * choosing what the window close button does (hide to the system tray, or
  * quit) and whether the app auto-starts hidden at login, written to the
- * `desktop` settings namespace the host half registers. Only the desktop
+ * `ui-desktop` entry's live configuration the host half owns. Only the
+ * desktop
  * composition composes these rows, so the web surface never sees them —
  * composition is the surface gate, never a runtime fact.
  * Export discipline: packages/client/AGENTS.md.
  */
 
 import type { Context as ClientContext } from '@deepseek-ai/cordis'
-// Type-only: pulls ctx.locale, ctx.slots, and ctx.settingsScope Context merges
+// Type-only: pulls ctx.locale, ctx.slots, and ctx.configForms Context merges
 // into this program. Cross-plugin collaboration goes through the service,
 // never a value import (client bundle purity gate).
 import type {} from '@deepseek-ai/dsh-client-locale/client'
@@ -29,11 +30,11 @@ import type { LinkAdminApi, RemoteDevicesRowInjected } from './RemoteDevicesRow.
 import { RemoteToggleRow } from './RemoteToggleRow.tsx'
 import type { RemoteToggleRowInjected } from './RemoteToggleRow.tsx'
 import {
-  DESKTOP_CLOSE_FIELD, DESKTOP_LAUNCH_FIELD, DESKTOP_SETTINGS_NAMESPACE, type DesktopSettings,
+  DESKTOP_CLOSE_FIELD, DESKTOP_LAUNCH_FIELD, DESKTOP_SETTINGS_ENTRY, type DesktopSettings,
 } from '../desktop-settings.ts'
 import {
   REMOTE_APPROVAL_FIELD, REMOTE_DEVICE_NAME_FIELD, REMOTE_ENABLED_FIELD,
-  REMOTE_SETTINGS_NAMESPACE, type RemoteSettings,
+  REMOTE_SETTINGS_ENTRY, type RemoteSettings,
 } from '../remote-settings.ts'
 import { en, zh } from './locales.ts'
 
@@ -48,7 +49,7 @@ export type { DesktopSettingsKey } from './locales.ts'
 const NS = 'settings.desktop'
 
 /** Required services (cordis fiber inject). */
-export const inject = ['slots', 'locale', 'settingsScope', 'remote', 'remote.link']
+export const inject = ['slots', 'locale', 'configForms', 'remote', 'remote.link']
 
 /**
  * Register the `settings.desktop` dictionaries and the General-section rows.
@@ -56,12 +57,12 @@ export const inject = ['slots', 'locale', 'settingsScope', 'remote', 'remote.lin
  */
 export function apply(ctx: ClientContext): void {
   ctx.effect(() => ctx.locale.register(NS, { zh, en }), 'ui-desktop: dictionaries')
-  // The scope derives from the shared describe mirror; each row re-renders on
+  // The form derives from the shared describe mirror; each row re-renders on
   // every commit (its own write, an external settings edit, a reconnect).
-  const scope = ctx.settingsScope.bind<DesktopSettings>({ namespace: DESKTOP_SETTINGS_NAMESPACE })
+  const form = ctx.configForms.get<DesktopSettings>(DESKTOP_SETTINGS_ENTRY)
   const injectedClose = (): CloseActionRowInjected => ({
-    hooks: { desktopClose: scope },
-    select: (value) => { void scope.set(DESKTOP_CLOSE_FIELD, value) },
+    hooks: { desktopClose: form },
+    select: (value) => { void form.set(DESKTOP_CLOSE_FIELD, value) },
   })
   ctx.slots.inject('settings.general.item', () => ctx.slots.register({
     name: 'settings.general.item',
@@ -71,8 +72,8 @@ export function apply(ctx: ClientContext): void {
     inject: injectedClose,
   }, CloseActionRow))
   const injectedLaunch = (): LaunchAtLoginRowInjected => ({
-    hooks: { desktopLaunch: scope },
-    select: (value) => { void scope.set(DESKTOP_LAUNCH_FIELD, value) },
+    hooks: { desktopLaunch: form },
+    select: (value) => { void form.set(DESKTOP_LAUNCH_FIELD, value) },
   })
   ctx.slots.inject('settings.general.item', () => ctx.slots.register({
     name: 'settings.general.item',
@@ -82,15 +83,15 @@ export function apply(ctx: ClientContext): void {
     inject: injectedLaunch,
   }, LaunchAtLoginRow))
 
-  // The cross-device rows bind the `remote` namespace the link-settings
-  // bridge owns on the host; the link Remote API carries the admin calls.
-  const remoteScope = ctx.settingsScope.bind<RemoteSettings>({ namespace: REMOTE_SETTINGS_NAMESPACE })
+  // The cross-device rows bind the `link-settings` entry the bridge owns on
+  // the host; the link Remote API carries the admin calls.
+  const remoteForm = ctx.configForms.get<RemoteSettings>(REMOTE_SETTINGS_ENTRY)
   const injectedAccess = (): RemoteToggleRowInjected => ({
-    hooks: { remote: remoteScope },
+    hooks: { remote: remoteForm },
     field: REMOTE_ENABLED_FIELD,
     titleKey: 'accessTitle',
     descriptionKey: 'accessDescription',
-    select: (value) => { void remoteScope.set(REMOTE_ENABLED_FIELD, value) },
+    select: (value) => { void remoteForm.set(REMOTE_ENABLED_FIELD, value) },
   })
   ctx.slots.inject('settings.general.item', () => ctx.slots.register({
     name: 'settings.general.item',
@@ -100,11 +101,11 @@ export function apply(ctx: ClientContext): void {
     inject: injectedAccess,
   }, RemoteToggleRow))
   const injectedApproval = (): RemoteToggleRowInjected => ({
-    hooks: { remote: remoteScope },
+    hooks: { remote: remoteForm },
     field: REMOTE_APPROVAL_FIELD,
     titleKey: 'approvalTitle',
     descriptionKey: 'approvalDescription',
-    select: (value) => { void remoteScope.set(REMOTE_APPROVAL_FIELD, value) },
+    select: (value) => { void remoteForm.set(REMOTE_APPROVAL_FIELD, value) },
   })
   ctx.slots.inject('settings.general.item', () => ctx.slots.register({
     name: 'settings.general.item',
@@ -114,11 +115,11 @@ export function apply(ctx: ClientContext): void {
     inject: injectedApproval,
   }, RemoteToggleRow))
   const injectedDeviceName = (): DeviceNameRowInjected => ({
-    hooks: { remote: remoteScope },
+    hooks: { remote: remoteForm },
     titleKey: 'deviceNameTitle',
     descriptionKey: 'deviceNameDescription',
     placeholderKey: 'deviceNamePlaceholder',
-    commit: (value) => { void remoteScope.set(REMOTE_DEVICE_NAME_FIELD, value) },
+    commit: (value) => { void remoteForm.set(REMOTE_DEVICE_NAME_FIELD, value) },
   })
   ctx.slots.inject('settings.general.item', () => ctx.slots.register({
     name: 'settings.general.item',
@@ -141,7 +142,7 @@ export function apply(ctx: ClientContext): void {
     revokeDevice: deviceId => unwrap(() => ctx.remote.link.revokeDevice(deviceId)),
   }
   const injectedDevices = (): RemoteDevicesRowInjected => ({
-    hooks: { remote: remoteScope },
+    hooks: { remote: remoteForm },
     api: linkApi,
   })
   ctx.slots.inject('settings.general.item', () => ctx.slots.register({

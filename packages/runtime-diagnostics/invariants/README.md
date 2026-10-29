@@ -29,7 +29,7 @@ Mount the registry when a composition should verify its own runtime contracts, t
 
 ### When to use it
 
-Use the registry for compositions that want live diagnostics. The standard agent composition in [`agent-spine-demo`](../../../packages/examples/agent-spine-demo/README.md) already mounts it with the four core stateful companions — `dsh-session`, `dsh-agent`, `dsh-scope`, and `dsh-agent-loop`. Custom compositions mount the registry and add companions for any other loaded package whose contracts they want checked. Loading the registry alone installs no checks: it ships no product checks of its own, so a composition that never mounts a companion observes no diagnostic behavior.
+Use the registry for compositions that want live diagnostics. A composition mounts the registry and adds companions for any loaded package whose contracts it wants checked; the four core stateful companions cover `dsh-session`, `dsh-agent`, `dsh-scope`, and `dsh-agent-loop`. Loading the registry alone installs no checks: it ships no product checks of its own, so a composition that never mounts a companion observes no diagnostic behavior.
 
 ### Enabling checks and selecting packages
 
@@ -97,14 +97,14 @@ A violation throws an `InvariantError` from the context that reported it: it car
 <details>
 <summary>Implementation internals — click to expand</summary>
 
-This section explains the design behind the registry; the observable behavior is covered in [Use this package](#use-this-package). The full decision rationale lives in the [invariant-service Agent Note](../../../.agents/notes/implemented/architecture/2026-07-19-package-owned-invariant-service.md).
+This section explains the design behind the registry; the observable behavior is covered in [Use this package](#use-this-package). The full decision rationale lives in the [invariant-service Agent Note](../../../.agents/notes/archived/architecture/2026-07-19-package-invariant-runtime-contracts.md).
 
 ### Design philosophy
 
 - **Product-independent registry.** The service imports no session, agent, scope, or agent-loop package and contains none of their checks; companions carry checks next to their owners.
 - **Real relationships, not synthetic assertions.** A companion checks an event-stream or mutable-data relationship its package owns; confirming a method, plugin name, injection, or fixed pure result is a type, load, or unit-test concern, never a runtime invariant.
 - **Registration reserves ownership.** A package name is reserved even when filters keep its installer inactive, so two plugins can never silently claim the same name.
-- **Exhaustive wiring, mechanically enforced.** `pnpm run verify-package-invariants` rejects generated markers, unexplained empty installers, non-empty installers that omit or ignore the reporter, wrong registration names, and incomplete export, publication, dependency, or bundle wiring ([contracts note](../../../.agents/notes/implemented/architecture/2026-07-19-package-invariant-runtime-contracts.md)).
+- **Exhaustive wiring, mechanically enforced.** `pnpm run verify-package-invariants` rejects generated markers, unexplained empty installers, non-empty installers that omit or ignore the reporter, wrong registration names, and incomplete export, publication, dependency, or bundle wiring ([contracts note](../../../.agents/notes/archived/architecture/2026-07-19-package-invariant-runtime-contracts.md)).
 
 ### Source map
 
@@ -126,10 +126,9 @@ This section explains the design behind the registry; the observable behavior is
 
 Read these pages when the package-level contract is not enough. They move from the generated service reference to the decision evidence and the group map.
 
-- [Runtime invariants subsystem](../../../docs/subsystems/invariants.md) — the generated reference for `Config`, the installer, the service, and the companion contract.
 - [Generated configuration catalog](../../../docs/config-catalog.md#deepseek-aidsh-invariants) — every accepted config field and its source declaration.
-- [Package-owned invariant service Agent Note](../../../.agents/notes/implemented/architecture/2026-07-19-package-owned-invariant-service.md) — why checks live beside their owners and the registry owns selection and lifecycle.
-- [Invariant runtime contracts Agent Note](../../../.agents/notes/implemented/architecture/2026-07-19-package-invariant-runtime-contracts.md) — what a runtime invariant may assert and the mechanical gate that enforces companion wiring.
+- [Package-owned invariant service Agent Note](../../../.agents/notes/archived/architecture/2026-07-19-package-invariant-runtime-contracts.md) — why checks live beside their owners and the registry owns selection and lifecycle.
+- [Invariant runtime contracts Agent Note](../../../.agents/notes/archived/architecture/2026-07-19-package-invariant-runtime-contracts.md) — what a runtime invariant may assert and the mechanical gate that enforces companion wiring.
 - [Runtime-diagnostics group map](../../README.md) — adjacent diagnostics packages.
 
 -----

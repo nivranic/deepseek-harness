@@ -1,6 +1,19 @@
-# Bilingual-pair consistency record (docs/i18n/README.md): the git blob hash of each
-# side as of the last confirmed-consistent state. Both languages carry equal authority;
-# after editing either side, bring the other along and re-record with:
+# Bilingual-pair consistency record for 2026-08-31-host-artifact-producer.md (docs/i18n/README.md): per heading
+# section, a hash of its English and Chinese blocks outside code blocks and generated regions.
+# After editing either side, bring the other along and re-record with:
 #   pnpm run verify-translation-pairing --write .agents/notes/implemented/architecture/2026-08-31-host-artifact-producer.md
-2026-08-31-host-artifact-producer.md: 5ca97d0b15d69aa8ebc92adb9ee2f5617df14afc
-2026-08-31-host-artifact-producer.zh.md: c971ba3f79261a98079ff443420d626669f12bec
+/agent-note-the-host-artifact-producer:
+  en: 266c1f5e6b63ba22
+  zh: 77d875fd62842a5d
+/agent-note-the-host-artifact-producer/problem:
+  en: 18f01190a7b37cd5
+  zh: 71b1e6d60379b595
+/agent-note-the-host-artifact-producer/decision:
+  en: 6899b4d11fbe9b1c
+  zh: da380c8fb35a3946
+/agent-note-the-host-artifact-producer/consequences:
+  en: 55f4c8e778478d1c
+  zh: d662615bc21a1b7c
+/agent-note-the-host-artifact-producer/alternatives-considered:
+  en: aa1edd058d59c0e3
+  zh: 2f473a942ecb54a7

@@ -4,7 +4,7 @@ import { Context } from '@deepseek-ai/cordis'
 import { describe, expect, it } from 'vitest'
 import type { LinkCarrierStatus, LinkPairingPayload } from '@deepseek-ai/dsh-link-access/protocol'
 import type { PairedDevice } from '@deepseek-ai/dsh-device-trust'
-import { TypertRemoteFailure } from '@deepseek-ai/dsh-typert-protocol'
+import { RemoteError } from '@deepseek-ai/dsh-typert-protocol'
 import { LinkController } from '../src/index.ts'
 
 const PAIRING: LinkPairingPayload = {
@@ -68,12 +68,12 @@ function mountController(options: {
   return { ctx, controller, revoked }
 }
 
-function failureOf(promise: Promise<unknown>): Promise<TypertRemoteFailure> {
+function failureOf(promise: Promise<unknown>): Promise<RemoteError> {
   return promise.then(() => {
     throw new Error('expected the call to reject')
   }, (error: unknown) => {
-    expect(error).toBeInstanceOf(TypertRemoteFailure)
-    return error as TypertRemoteFailure
+    expect(error).toBeInstanceOf(RemoteError)
+    return error as RemoteError
   })
 }
 
@@ -110,7 +110,7 @@ describe('api-link-controller host owner', () => {
     const stopped = mountController({ pairingError: new Error('link access: carrier is disabled; enable it before pairing') })
     try {
       const refusal = await failureOf(stopped.controller.createPairing())
-      expect(refusal.failure.code).toBe('link-disabled')
+      expect(refusal.code).toBe('link-disabled')
     } finally {
       await stopped.ctx.fiber.dispose()
     }
@@ -149,7 +149,7 @@ describe('api-link-controller host owner', () => {
     const { ctx, controller } = mountController()
     try {
       const empty = await failureOf(controller.revokeDevice(''))
-      expect(empty.failure.code).toBe('bad-request')
+      expect(empty.code).toBe('gateway/bad-request')
     } finally {
       await ctx.fiber.dispose()
     }
@@ -158,7 +158,7 @@ describe('api-link-controller host owner', () => {
     const bareController = new LinkController(bare)
     try {
       const unavailable = await failureOf(bareController.status())
-      expect(unavailable.failure.code).toBe('link-unavailable')
+      expect(unavailable.code).toBe('link-unavailable')
     } finally {
       await bare.fiber.dispose()
     }

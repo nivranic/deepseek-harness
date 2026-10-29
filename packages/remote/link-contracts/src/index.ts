@@ -17,10 +17,10 @@ import { ArtifactId } from '@deepseek-ai/dsh-artifact/types'
 import { AttachmentId } from '@deepseek-ai/dsh-attachment'
 import type { ImageAttachmentRef } from '@deepseek-ai/dsh-attachment'
 import type { SessionId } from '@deepseek-ai/dsh-session/types'
-import type { SubagentCatalog, SubagentListEntry } from '@deepseek-ai/dsh-subagent'
+import type { SubagentListEntry } from '@deepseek-ai/dsh-subagent'
 import { MessageId, ToolCallId } from '@deepseek-ai/dsh-llm/brand'
+import type { AssistantStreamRun } from '@deepseek-ai/dsh-llm'
 import type { SessionEventMap } from '@deepseek-ai/dsh-session/types'
-import type { ChunkRow } from '@deepseek-ai/dsh-session/chunk-rows'
 import type { GoalId } from '@deepseek-ai/dsh-goal/types'
 // Type-only edges that pull each plugin's `SessionEventMap` merge into this
 // program, so the session-event fixtures below can pin the merged payloads.
@@ -205,7 +205,7 @@ export const LINK_CONTRACT_TYPES: readonly ContractType[] = [
     name: 'LinkSessionEventKind',
     shape: [
       'turn/start', 'turn/end', 'step/start', 'step/end',
-      'user/message', 'assistant/chunk', 'assistant/message',
+      'user/message', 'assistant/attempt', 'assistant/message',
       'tool/call', 'tool/result',
       'artifact/created', 'artifact/status',
       'plan/mode', 'todo/write', 'goal/change', 'session/end-seed',
@@ -384,10 +384,7 @@ export const LINK_CONTRACT_TYPES: readonly ContractType[] = [
     fields: [
       { name: 'type', kind: 'string' },
       { name: 'text', kind: 'string', optional: true },
-      { name: 'toolCallId', kind: 'string', optional: true },
-      { name: 'isError', kind: 'boolean', optional: true },
       { name: 'attachment', kind: 'object', ref: 'LinkImageAttachmentRef', optional: true },
-      { name: 'content', kind: 'object-array', ref: 'LinkContentBlock', optional: true },
     ],
   },
   {
@@ -403,23 +400,28 @@ export const LINK_CONTRACT_TYPES: readonly ContractType[] = [
     ],
   },
   {
-    name: 'LinkStreamChunk',
+    name: 'LinkStreamRecord',
     shape: 'object',
     fields: [
       { name: 'type', kind: 'string' },
-      { name: 'index', kind: 'number', optional: true },
-      { name: 'text', kind: 'string', optional: true },
+      { name: 'time0', kind: 'number' },
+      { name: 'index', kind: 'number' },
+      { name: 'dt', kind: 'number-array' },
+      { name: 'texts', kind: 'string-array', optional: true },
+      { name: 'id', kind: 'string', optional: true },
+      { name: 'name', kind: 'string', optional: true },
+      { name: 'args', kind: 'string-array', optional: true },
     ],
   },
   {
-    name: 'LinkAssistantChunkData',
+    name: 'LinkAssistantAttemptData',
     shape: 'object',
-    sessionEvents: ['assistant/chunk'],
-    fixture: 'event-assistant-chunk',
+    sessionEvents: ['assistant/attempt'],
+    fixture: 'event-assistant-attempt',
     fields: [
       { name: 'turn', kind: 'number' },
       { name: 'step', kind: 'number' },
-      { name: 'chunk', kind: 'object', ref: 'LinkStreamChunk' },
+      { name: 'stream', kind: 'object-array', ref: 'LinkStreamRecord' },
     ],
   },
   {
@@ -450,6 +452,7 @@ export const LINK_CONTRACT_TYPES: readonly ContractType[] = [
       { name: 'turn', kind: 'number' },
       { name: 'step', kind: 'number' },
       { name: 'message', kind: 'object', ref: 'LinkAssistantMessage' },
+      { name: 'stream', kind: 'object-array', ref: 'LinkStreamRecord' },
       { name: 'usage', kind: 'object', ref: 'LinkTokenUsage', optional: true },
       { name: 'interrupted', kind: 'boolean', optional: true },
     ],
@@ -480,9 +483,11 @@ export const LINK_CONTRACT_TYPES: readonly ContractType[] = [
     shape: 'object',
     fields: [
       { name: 'id', kind: 'string' },
-      { name: 'role', kind: 'const', value: 'user' },
+      { name: 'role', kind: 'const', value: 'tool' },
+      { name: 'toolCallId', kind: 'string' },
       { name: 'content', kind: 'object-array', ref: 'LinkContentBlock' },
       { name: 'source', kind: 'object', ref: 'LinkMessageSource' },
+      { name: 'isError', kind: 'boolean', optional: true },
     ],
   },
   {
@@ -503,8 +508,8 @@ export const LINK_CONTRACT_TYPES: readonly ContractType[] = [
     chunkRows: ['chunkrow/text-chunks', 'chunkrow/reasoning-chunks'],
     fixture: 'chunkrow-text-chunks',
     fields: [
-      { name: 'turn', kind: 'number' },
-      { name: 'step', kind: 'number' },
+      { name: 'type', kind: 'string' },
+      { name: 'time0', kind: 'number' },
       { name: 'index', kind: 'number' },
       { name: 'dt', kind: 'number-array' },
       { name: 'texts', kind: 'string-array' },
@@ -516,8 +521,8 @@ export const LINK_CONTRACT_TYPES: readonly ContractType[] = [
     chunkRows: ['chunkrow/tool-call-chunks'],
     fixture: 'chunkrow-tool-call-chunks',
     fields: [
-      { name: 'turn', kind: 'number' },
-      { name: 'step', kind: 'number' },
+      { name: 'type', kind: 'string' },
+      { name: 'time0', kind: 'number' },
       { name: 'index', kind: 'number' },
       { name: 'dt', kind: 'number-array' },
       { name: 'id', kind: 'string' },
@@ -555,7 +560,7 @@ export const LINK_CONTRACT_TYPES: readonly ContractType[] = [
   },
   {
     name: 'LinkSubagentMode',
-    shape: ['one-shot', 'continuable'],
+    shape: ['one-shot', 'external', 'continuable'],
     fields: [],
   },
   {
@@ -782,7 +787,7 @@ export type LinkSessionEventPayload =
   | SessionEventMap['step/start']
   | SessionEventMap['step/end']
   | SessionEventMap['user/message']
-  | SessionEventMap['assistant/chunk']
+  | SessionEventMap['assistant/attempt']
   | SessionEventMap['assistant/message']
   | SessionEventMap['tool/call']
   | SessionEventMap['tool/result']
@@ -793,9 +798,16 @@ export type LinkSessionEventPayload =
   | SessionEventMap['goal/change']
 
 /** `data` payloads of the packed chunk-row records the table models. */
-export type LinkChunkRowPayload =
-  | Extract<ChunkRow, { type: 'text-chunks' }>['data']
-  | Extract<ChunkRow, { type: 'tool-call-chunks' }>['data']
+export type LinkChunkRowPayload = AssistantStreamRun
+
+/**
+ * The subagent catalog list value the companion renders: the direct-child
+ * rows plus the delivery-time parent availability hint.
+ */
+export interface LinkSubagentCatalogValue {
+  readonly entries: readonly SubagentListEntry[]
+  readonly parentAvailable: boolean
+}
 
 /** One golden fixture: the wire bytes every language decodes identically. */
 export interface ContractFixture {
@@ -806,7 +818,7 @@ export interface ContractFixture {
   /** The exact JSON the wire carries, pinned to the owning protocol type. */
   readonly value: LinkPairingPayload | LinkPairValue | LinkHostDescription | LinkCarrierStatus | LinkDeviceValue | LinkStatusValue
   | LinkSessionEventPayload | LinkChunkRowPayload | WorkspaceFilesListValue | WorkspaceFilesReadValue
-  | SubagentListEntry | SubagentCatalog
+  | SubagentListEntry | LinkSubagentCatalogValue
   | ImageAttachmentRef | SessionAttachmentValue | SessionArtifactValue | SessionHandoffSnapshot | SessionHandoffContextRow | SessionHandoffTodoRow | SessionHandoffArtifactRef | SessionHandoffProvenance | SessionHandoffValue | Extract<SessionPromptRequest['content'][number], { type: 'image' }>
 }
 
@@ -912,13 +924,13 @@ export const LINK_CONTRACT_FIXTURES: readonly ContractFixture[] = [
     } satisfies SessionEventMap['user/message'],
   },
   {
-    type: 'LinkAssistantChunkData',
-    id: 'event-assistant-chunk',
+    type: 'LinkAssistantAttemptData',
+    id: 'event-assistant-attempt',
     value: {
       turn: 1,
       step: 1,
-      chunk: { type: 'text-delta', index: 0, text: '你好' },
-    } satisfies SessionEventMap['assistant/chunk'],
+      stream: [{ type: 'text-chunks', time0: 1_759_017_600_004, index: 0, dt: [4, 6], texts: ['你好', '，构建'] }],
+    } satisfies SessionEventMap['assistant/attempt'],
   },
   {
     type: 'LinkAssistantMessageData',
@@ -932,6 +944,7 @@ export const LINK_CONTRACT_FIXTURES: readonly ContractFixture[] = [
         content: [{ type: 'text', text: '已完成：登录页液态玻璃样式落地。' }],
         source: { kind: 'model', provider: 'deepseek', model: 'deepseek-chat' },
       },
+      stream: [{ type: 'text-chunks', time0: 1_759_017_600_005, index: 0, dt: [], texts: ['已完成：登录页液态玻璃样式落地。'] }],
       usage: { inputTokens: 120, outputTokens: 36, totalTokens: 156 },
     } satisfies SessionEventMap['assistant/message'],
   },
@@ -954,12 +967,9 @@ export const LINK_CONTRACT_FIXTURES: readonly ContractFixture[] = [
       step: 1,
       message: {
         id: MessageId('m-tool-1'),
-        role: 'user',
-        content: [{
-          type: 'tool-result',
-          toolCallId: ToolCallId('call-1'),
-          content: [{ type: 'text', text: '已写入 42 行。' }],
-        }],
+        role: 'tool',
+        toolCallId: ToolCallId('call-1'),
+        content: [{ type: 'text', text: '已写入 42 行。' }],
         source: { kind: 'tool', callId: ToolCallId('call-1') },
       },
     } satisfies SessionEventMap['tool/result'],
@@ -1008,25 +1018,25 @@ export const LINK_CONTRACT_FIXTURES: readonly ContractFixture[] = [
     type: 'LinkTextChunksData',
     id: 'chunkrow-text-chunks',
     value: {
-      turn: 1,
-      step: 1,
+      type: 'text-chunks',
+      time0: 1_759_017_600_004,
       index: 0,
       dt: [4, 6],
       texts: ['你好', '，构建'],
-    } satisfies Extract<ChunkRow, { type: 'text-chunks' }>['data'],
+    } satisfies Extract<AssistantStreamRun, { type: 'text-chunks' }>,
   },
   {
     type: 'LinkToolCallChunksData',
     id: 'chunkrow-tool-call-chunks',
     value: {
-      turn: 1,
-      step: 1,
+      type: 'tool-call-chunks',
+      time0: 1_759_017_600_004,
       index: 0,
       dt: [5],
       id: ToolCallId('call-1'),
       name: 'write_file',
       args: ['{"path"', ':["Log'],
-    } satisfies Extract<ChunkRow, { type: 'tool-call-chunks' }>['data'],
+    } satisfies Extract<AssistantStreamRun, { type: 'tool-call-chunks' }>,
   },
   {
     type: 'LinkFileListValue',
@@ -1066,7 +1076,7 @@ export const LINK_CONTRACT_FIXTURES: readonly ContractFixture[] = [
         },
       ],
       parentAvailable: true,
-    } satisfies SubagentCatalog,
+    } satisfies LinkSubagentCatalogValue,
   },
   {
     type: 'LinkFileReadValue',

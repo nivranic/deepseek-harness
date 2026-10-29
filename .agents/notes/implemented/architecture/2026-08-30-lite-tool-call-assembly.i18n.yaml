@@ -1,6 +1,19 @@
-# Bilingual-pair consistency record (docs/i18n/README.md): the git blob hash of each
-# side as of the last confirmed-consistent state. Both languages carry equal authority;
-# after editing either side, bring the other along and re-record with:
+# Bilingual-pair consistency record for 2026-08-30-lite-tool-call-assembly.md (docs/i18n/README.md): per heading
+# section, a hash of its English and Chinese blocks outside code blocks and generated regions.
+# After editing either side, bring the other along and re-record with:
 #   pnpm run verify-translation-pairing --write .agents/notes/implemented/architecture/2026-08-30-lite-tool-call-assembly.md
-2026-08-30-lite-tool-call-assembly.md: 1c87381ed2a652c8f10cabaeac56dd8cc11ac91f
-2026-08-30-lite-tool-call-assembly.zh.md: 1ac5833c1f311b92ce223049704ef7d54789cb34
+/agent-note-lite-tool-call-fragment-assembly:
+  en: a8a37814db7205c8
+  zh: df02d0cb681173d4
+/agent-note-lite-tool-call-fragment-assembly/problem:
+  en: 443cf0cbe3fbb1b6
+  zh: d6cdaafae6c7b501
+/agent-note-lite-tool-call-fragment-assembly/decision:
+  en: fa791cc141749261
+  zh: 26547e641d84a348
+/agent-note-lite-tool-call-fragment-assembly/consequences:
+  en: 6264738b7ad0687a
+  zh: 9658165e8dedd7c8
+/agent-note-lite-tool-call-fragment-assembly/alternatives-considered:
+  en: 27251524b8eda65a
+  zh: 546efb3d8262462f

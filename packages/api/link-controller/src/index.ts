@@ -12,11 +12,20 @@
 import { Context } from '@deepseek-ai/cordis'
 import type { DeviceId, PairedDevice } from '@deepseek-ai/dsh-device-trust'
 import type { LinkAccessService } from '@deepseek-ai/dsh-link-access'
-import { Remote, TypertRemoteFailure, TypertRemoteService } from '@deepseek-ai/dsh-typert-protocol'
+import { Remote, RemoteError, TypertRemoteService } from '@deepseek-ai/dsh-typert-protocol'
 import { z } from 'zod'
 import type { LinkDeviceValue, LinkPairingValue, LinkStatusValue } from './types.ts'
 
 export type { LinkDeviceValue, LinkError, LinkPairingValue, LinkStatusValue } from './types.ts'
+
+declare module '@deepseek-ai/dsh-typert-protocol' {
+  interface RemoteErrorDetailsMap {
+    /** This deployment composes no link carrier. */
+    'link-unavailable': {}
+    /** The carrier is stopped or its last bind attempt failed. */
+    'link-disabled': {}
+  }
+}
 
 /** Wire-boundary shape of one revoke request; an empty id never reaches the store. */
 const linkRevokeRequestSchema = z.object({ deviceId: z.string().min(1) })
@@ -46,11 +55,7 @@ export class LinkController extends TypertRemoteService {
   private link(): LinkAccessService {
     const link = this.ctx.get('linkAccess')
     if (link === undefined) {
-      throw new TypertRemoteFailure({
-        code: 'link-unavailable',
-        message: 'this deployment composes no link carrier',
-        details: {},
-      })
+      throw new RemoteError('link-unavailable', 'this deployment composes no link carrier', {})
     }
     return link
   }
@@ -60,7 +65,7 @@ export class LinkController extends TypertRemoteService {
    * listening state, LAN endpoint, certificate fingerprint, bind diagnostics,
    * device-facing name, the approval switch, and the trusted-device count.
    * @returns the cross-device status row.
-   * @throws TypertRemoteFailure when no link carrier is mounted.
+   * @throws RemoteError when no link carrier is mounted.
    */
   @Remote
   async status(): Promise<LinkStatusValue> {
@@ -81,26 +86,27 @@ export class LinkController extends TypertRemoteService {
    * Issue one pairing payload for the QR display: host identity, endpoint,
    * certificate fingerprint, and a one-time short-lived code.
    * @returns the payload rendered into the pairing QR code.
-   * @throws TypertRemoteFailure when no carrier is mounted or its carrier is stopped or failed to bind.
+   * @throws RemoteError when no carrier is mounted or its carrier is stopped or failed to bind.
    */
   @Remote
   async createPairing(): Promise<LinkPairingValue> {
     const link = this.link()
     try {
       return await link.createPairing()
-    } catch {
-      throw new TypertRemoteFailure({
-        code: 'link-disabled',
-        message: 'the link carrier is stopped or failed to bind; enable cross-device access first',
-        details: {},
-      })
+    } catch (error: unknown) {
+      throw new RemoteError(
+        'link-disabled',
+        'the link carrier is stopped or failed to bind; enable cross-device access first',
+        {},
+        { cause: error },
+      )
     }
   }
 
   /**
    * List every trusted device, revoked ones included, for the device manager.
    * @returns one row per device record; the device public key never rides the wire.
-   * @throws TypertRemoteFailure when no link carrier is mounted.
+   * @throws RemoteError when no link carrier is mounted.
    */
   @Remote
   async devices(): Promise<LinkDeviceValue[]> {
@@ -111,17 +117,13 @@ export class LinkController extends TypertRemoteService {
    * Revoke one paired device; its next request is refused.
    * @param deviceId - identity of the device to revoke.
    * @returns the device row after revocation, or `undefined` when unknown.
-   * @throws TypertRemoteFailure when the id is empty or no link carrier is mounted.
+   * @throws RemoteError when the id is empty or no link carrier is mounted.
    */
   @Remote
   async revokeDevice(deviceId: string): Promise<LinkDeviceValue | undefined> {
     const parsed = linkRevokeRequestSchema.safeParse({ deviceId })
     if (!parsed.success) {
-      throw new TypertRemoteFailure({
-        code: 'bad-request',
-        message: 'device id must not be empty',
-        details: {},
-      })
+      throw new RemoteError('gateway/bad-request', 'device id must not be empty', {})
     }
     const revoked = await this.link().revokeDevice(parsed.data.deviceId as DeviceId)
     return revoked === undefined ? undefined : deviceView(revoked)

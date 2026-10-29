@@ -1,18 +1,12 @@
-/** Bridge behavior: namespace defaults, live application, containment, disposal. */
+/** Bridge behavior: volatile-config defaults, live application, containment, disposal. */
 
 import { hostname } from 'node:os'
 import { Context } from '@deepseek-ai/cordis'
-import { SettingsProvider, settingsNamespace, type SettingsNamespace } from '@deepseek-ai/dsh-settings'
+import { brandString } from '@deepseek-ai/dsh-brand'
 import { describe, expect, it } from 'vitest'
-import LinkSettingsService, { REMOTE_SETTINGS_NAMESPACE } from '../src/index.ts'
-
-class MemorySettings extends SettingsProvider {
-  readonly writable = true
-  protected load(): Promise<Record<string, unknown>> { return Promise.resolve({}) }
-  protected persist(_ns: SettingsNamespace, _section: Record<string, unknown>): Promise<void> {
-    return Promise.resolve()
-  }
-}
+import type { SettingsNamespace } from '@deepseek-ai/dsh-settings/types'
+import { liveConfig } from '../../../settings/settings/tests/live-config.ts'
+import LinkSettingsService from '../src/index.ts'
 
 /** Recorded carrier calls, in arrival order. */
 interface CarrierCall {
@@ -41,21 +35,34 @@ function settle(): Promise<void> {
   return new Promise(resolve => setTimeout(resolve, 0))
 }
 
-async function mountBridge(failEnable = false): Promise<{ ctx: Context; calls: CarrierCall[] }> {
+interface Bridge {
+  readonly ctx: Context
+  readonly calls: CarrierCall[]
+  readonly update: (patch: Record<string, unknown>) => Promise<void>
+}
+
+async function mountBridge(failEnable = false): Promise<Bridge> {
   const ctx = new Context()
   const calls: CarrierCall[] = []
   provideLinkAccess(ctx, calls, failEnable)
-  await ctx.plugin(MemorySettings).await()
-  await ctx.plugin(LinkSettingsService).await()
-  return { ctx, calls }
+  const configuration = await liveConfig(ctx, LinkSettingsService)
+  return {
+    ctx,
+    calls,
+    update: async (patch) => {
+      await configuration.update(patch)
+      // One settings-document commit the bridge re-applies after; emitting it
+      // here stands in for the settings service's own post-write emission.
+      ctx.emit('settings/document-updated', brandString<SettingsNamespace>('link-settings'), 1)
+      await settle()
+    },
+  }
 }
 
 describe('link-settings bridge', () => {
-  it('registers the remote namespace and applies its defaults once on mount', async () => {
+  it('applies the configuration defaults once on mount', async () => {
     const { ctx, calls } = await mountBridge()
     try {
-      expect(ctx.settings.get(settingsNamespace(REMOTE_SETTINGS_NAMESPACE)))
-        .toEqual({ enabled: false, allowRemoteApproval: false, deviceName: hostname() })
       expect(calls).toEqual([
         { method: 'name', value: hostname() },
         { method: 'approval', value: false },
@@ -67,14 +74,9 @@ describe('link-settings bridge', () => {
   })
 
   it('applies every committed field live, keeping name and approval ahead of the carrier', async () => {
-    const { ctx, calls } = await mountBridge()
+    const { ctx, calls, update } = await mountBridge()
     try {
-      await ctx.settings.update(settingsNamespace(REMOTE_SETTINGS_NAMESPACE), {
-        enabled: true,
-        allowRemoteApproval: true,
-        deviceName: 'Studio Desk',
-      })
-      await settle()
+      await update({ enabled: true, allowRemoteApproval: true, deviceName: 'Studio Desk' })
       expect(calls.slice(3)).toEqual([
         { method: 'name', value: 'Studio Desk' },
         { method: 'approval', value: true },
@@ -86,10 +88,9 @@ describe('link-settings bridge', () => {
   })
 
   it('maps an empty committed device name back to the OS hostname', async () => {
-    const { ctx, calls } = await mountBridge()
+    const { ctx, calls, update } = await mountBridge()
     try {
-      await ctx.settings.update(settingsNamespace(REMOTE_SETTINGS_NAMESPACE), { deviceName: '' })
-      await settle()
+      await update({ deviceName: '' })
       expect(calls.at(-3)).toEqual({ method: 'name', value: hostname() })
     } finally {
       await ctx.fiber.dispose()
@@ -97,31 +98,24 @@ describe('link-settings bridge', () => {
   })
 
   it('contains a carrier bind failure instead of failing the commit', async () => {
-    const { ctx, calls } = await mountBridge(true)
+    const { ctx, calls, update } = await mountBridge(true)
     try {
-      await ctx.settings.update(settingsNamespace(REMOTE_SETTINGS_NAMESPACE), { enabled: true })
-      await settle()
+      await update({ enabled: true })
       expect(calls.at(-1)).toEqual({ method: 'carrier', value: true })
       // A later commit still applies after the contained failure.
-      await ctx.settings.update(settingsNamespace(REMOTE_SETTINGS_NAMESPACE), { enabled: false })
-      await settle()
+      await update({ enabled: false })
       expect(calls.at(-1)).toEqual({ method: 'carrier', value: false })
     } finally {
       await ctx.fiber.dispose()
     }
   })
 
-  it('unregisters the namespace on disposal so later commits fail loud', async () => {
-    const ctx = new Context()
-    const calls: CarrierCall[] = []
-    provideLinkAccess(ctx, calls)
-    await ctx.plugin(MemorySettings).await()
-    const bridge = ctx.plugin(LinkSettingsService)
-    await bridge.await()
-    await bridge.dispose()
-    await expect(ctx.settings.update(settingsNamespace(REMOTE_SETTINGS_NAMESPACE), { enabled: true }))
-      .rejects.toThrow(/not registered/u)
-    expect(calls.filter(call => call.method === 'carrier' && call.value === true)).toEqual([])
+  it('stops re-applying after the bridge disposes', async () => {
+    const { ctx, calls } = await mountBridge()
+    const before = calls.length
     await ctx.fiber.dispose()
+    ctx.emit('settings/document-updated', brandString<SettingsNamespace>('link-settings'), 2)
+    await settle()
+    expect(calls.length).toBe(before)
   })
 })

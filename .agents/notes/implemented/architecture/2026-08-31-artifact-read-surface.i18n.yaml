@@ -1,6 +1,19 @@
-# Bilingual-pair consistency record (docs/i18n/README.md): the git blob hash of each
-# side as of the last confirmed-consistent state. Both languages carry equal authority;
-# after editing either side, bring the other along and re-record with:
+# Bilingual-pair consistency record for 2026-08-31-artifact-read-surface.md (docs/i18n/README.md): per heading
+# section, a hash of its English and Chinese blocks outside code blocks and generated regions.
+# After editing either side, bring the other along and re-record with:
 #   pnpm run verify-translation-pairing --write .agents/notes/implemented/architecture/2026-08-31-artifact-read-surface.md
-2026-08-31-artifact-read-surface.md: 7aaa20dddd7e5507dbad89c6c704813c307b78da
-2026-08-31-artifact-read-surface.zh.md: bfa7de6788562c347621bd679317aa632ddaca77
+/agent-note-the-artifact-read-surface:
+  en: 2537e49e853ee928
+  zh: 6c34e9d2d3f886f9
+/agent-note-the-artifact-read-surface/problem:
+  en: dbbd444a7a5e641b
+  zh: a4256bc4be8a95f5
+/agent-note-the-artifact-read-surface/decision:
+  en: 7f10625766a2d10e
+  zh: b5e8b7f4e7fbdf3e
+/agent-note-the-artifact-read-surface/consequences:
+  en: fbb04347d0cd4c48
+  zh: 3d758cccac448ae2
+/agent-note-the-artifact-read-surface/alternatives-considered:
+  en: cdec2acb15a42f79
+  zh: c4d89709bf160903

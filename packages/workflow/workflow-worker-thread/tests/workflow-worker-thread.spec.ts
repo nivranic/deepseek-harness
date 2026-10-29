@@ -59,10 +59,9 @@ interface ControlledRun {
 class StubProvider implements SubagentProvider {
   readonly capabilities: SubagentCapabilities = {
     agentOptions: true,
+    agentPreset: false,
     outputSchema: true,
     depthLimit: true,
-    toolFilter: true,
-    persona: false,
   }
   readonly inheritsParentContext = false
   readonly runs: ControlledRun[] = []
@@ -115,7 +114,6 @@ class StubProvider implements SubagentProvider {
     if (request.signal.aborted) throw new Error('child start aborted before publication')
     return {
       id: SessionId(`stub-child-${index}`),
-      localAgent: undefined,
       result: terminal.promise,
       dispose: () => {
         controlled.disposeCalls += 1
@@ -469,11 +467,11 @@ describe('dsh-workflow-worker-thread', { timeout: 120_000 }, () => {
       await ctx.plugin(SubagentRuntime)
       const provider: SubagentProvider = {
         name: 'rejecting',
-        capabilities: { agentOptions: true, outputSchema: true, depthLimit: true, toolFilter: true, persona: false },
+        capabilities: { agentOptions: true, agentPreset: false, outputSchema: true, depthLimit: true },
         inheritsParentContext: false,
         start: async () => ({
           id: SessionId('reject-child'),
-          localAgent: undefined,
+
           result: Promise.reject(new Error('backend exploded')),
           dispose: () => Promise.resolve(),
         }),
@@ -506,9 +504,8 @@ describe('dsh-workflow-worker-thread', { timeout: 120_000 }, () => {
         structured: () => { /* deliberately outside lossless JSON */ },
         stopReason: 'completed',
       } as unknown as SubagentResult
-      const start = vi.spyOn(ctx.subagents, 'start').mockResolvedValue({
-        id: SessionId('raw-invalid-child'),
-        localAgent: undefined,
+      const start = vi.spyOn(ctx.subagents, 'startActivation').mockResolvedValue({
+        childId: SessionId('raw-invalid-child'),
         result: Promise.resolve(invalid),
         dispose: () => Promise.resolve(),
       })
@@ -528,11 +525,11 @@ describe('dsh-workflow-worker-thread', { timeout: 120_000 }, () => {
       await ctx.plugin(SubagentRuntime)
       const provider: SubagentProvider = {
         name: 'bad-dispose',
-        capabilities: { agentOptions: true, outputSchema: true, depthLimit: true, toolFilter: true, persona: false },
+        capabilities: { agentOptions: true, agentPreset: false, outputSchema: true, depthLimit: true },
         inheritsParentContext: false,
         start: async () => ({
           id: SessionId('bad-dispose-child'),
-          localAgent: undefined,
+
           result: Promise.resolve({ output: [{ type: 'text', text: 'fine' }], stopReason: 'completed' }),
           cancel: () => { /* settled already */ },
           dispose: () => { throw new Error('dispose exploded') },
@@ -550,11 +547,11 @@ describe('dsh-workflow-worker-thread', { timeout: 120_000 }, () => {
       await ctx.plugin(SubagentRuntime)
       const provider: SubagentProvider = {
         name: 'coercion-trap-dispose',
-        capabilities: { agentOptions: true, outputSchema: true, depthLimit: true, toolFilter: true, persona: false },
+        capabilities: { agentOptions: true, agentPreset: false, outputSchema: true, depthLimit: true },
         inheritsParentContext: false,
         start: async () => ({
           id: SessionId('trap-child'),
-          localAgent: undefined,
+
           result: Promise.resolve({ output: [{ type: 'text', text: 'fine' }], stopReason: 'completed' }),
           cancel: () => { /* settled already */ },
           // The rejection VALUE's own coercion throws: a warn built with bare
@@ -901,7 +898,7 @@ describe('dsh-workflow-worker-thread', { timeout: 120_000 }, () => {
       const aborted: string[] = []
       const provider: SubagentProvider = {
         name: 'signal-only',
-        capabilities: { agentOptions: true, outputSchema: true, depthLimit: true, toolFilter: true, persona: false },
+        capabilities: { agentOptions: true, agentPreset: false, outputSchema: true, depthLimit: true },
         inheritsParentContext: false,
         start: async (request) => {
           let settle!: (result: SubagentResult) => void
@@ -912,7 +909,6 @@ describe('dsh-workflow-worker-thread', { timeout: 120_000 }, () => {
           }, { once: true })
           return {
             id: SessionId('signal-only-child'),
-            localAgent: undefined,
             result,
             dispose: () => Promise.resolve(),
           }
@@ -1199,7 +1195,7 @@ describe('dsh-workflow-worker-thread', { timeout: 120_000 }, () => {
       const warn = vi.spyOn(ctx.logger, 'warn').mockImplementation(() => ctx.logger)
       const provider: SubagentProvider = {
         name: 'late-ready',
-        capabilities: { agentOptions: true, outputSchema: true, depthLimit: true, toolFilter: true, persona: false },
+        capabilities: { agentOptions: true, agentPreset: false, outputSchema: true, depthLimit: true },
         inheritsParentContext: false,
         start: (request) => {
           requested.resolve(request)
@@ -1234,7 +1230,7 @@ describe('dsh-workflow-worker-thread', { timeout: 120_000 }, () => {
 
       ready.resolve({
         id: SessionId('late-ready-child'),
-        localAgent: undefined,
+
         result: Promise.resolve({ output: [], stopReason: 'aborted' }),
         dispose: () => {
           disposeCalls += 1
@@ -1260,7 +1256,7 @@ describe('dsh-workflow-worker-thread', { timeout: 120_000 }, () => {
       const signalAborts: unknown[] = []
       const provider: SubagentProvider = {
         name: 'doomed',
-        capabilities: { agentOptions: true, outputSchema: true, depthLimit: true, toolFilter: true, persona: false },
+        capabilities: { agentOptions: true, agentPreset: false, outputSchema: true, depthLimit: true },
         inheritsParentContext: false,
         start: async (request) => {
           request.signal.addEventListener('abort', () => {
@@ -1271,7 +1267,6 @@ describe('dsh-workflow-worker-thread', { timeout: 120_000 }, () => {
           }, { once: true })
           return {
             id: SessionId('doomed-child'),
-            localAgent: undefined,
             result: new Promise(() => { /* never settles; the reap is the teardown */ }),
             dispose: () => Promise.reject(new Error('dispose exploded during reap')),
           }

@@ -69,7 +69,7 @@ binding-global 与 error-class 名称是语言可移植的：必须匹配 `[A-Za
 
 约定是后端实现的三个成员：`run(request)` 针对请求的绑定执行一段程序，并把每个程序结果——解析／转换失败、抛出异常、无效完成值、输出溢出、预算到期、中止或基底终止——都作为结果 `error` 字段 resolve，reject 只留给调用方误用，例如在 dispose 后提交运行；`language` 与 `isolation` 是只读描述符，为部署与诊断标注源语言与执行基底。
 
-穷尽式语义见[代码运行时子系统参考](../../../docs/subsystems/code-runtime.zh.md)；确切签名见 [`src/index.ts`](src/index.ts)。
+穷尽式语义见[PTC 运行时子系统参考](../../../docs/subsystems/ptc-runtime.zh.md)；确切签名见 [`src/index.ts`](src/index.ts)。
 
 ### 词汇
 
@@ -99,7 +99,7 @@ binding-global 与 error-class 名称是语言可移植的：必须匹配标识�
 - [PTC mode Agent Note](../../../.agents/notes/implemented/feature/2026-06-15-ptc.zh.md)——工具注册表如何消费 `ctx.codeRuntime` 并把 `run_code` 呈现给模型。
 - [Worker 线程后端](../code-runtime-worker-thread/README.zh.md)——已发布的 TypeScript 执行后端。
 - [Python 协议包](../code-runtime-python/README.zh.md)——CPython 后端的协议格式。
-- [代码运行时子系统参考](../../../docs/subsystems/code-runtime.zh.md)——请求／结果词汇、绑定与 `ctx.codeRuntime` 的 cordis 接口面。
+- [PTC 运行时子系统参考](../../../docs/subsystems/ptc-runtime.zh.md)——请求／结果词汇、绑定与 `ctx.codeRuntime` 的 cordis 接口面。
 - [能力 seam](../../../.agents/notes/implemented/architecture/2026-06-13-capability-seams.zh.md)——Service Definition / Service Provider / Consumer 拆分。
 
 -----

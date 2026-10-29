@@ -21,10 +21,13 @@
       "path": "../../../vendor/loader"
     },
     {
+      "path": "../../client/connection/tsconfig.host.json"
+    },
+    {
       "path": "../webserver"
     },
     {
-      "path": "../../runtime-diagnostics/invariants"
+      "path": "../../util/launch-environment"
     }
   ]
 }

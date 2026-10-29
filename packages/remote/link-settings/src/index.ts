@@ -1,35 +1,25 @@
 /**
  * @deepseek-ai/dsh-link-settings — the settings bridge for the native remote
- * access carrier. It owns the `remote` user-settings namespace — enable
- * cross-device access, allow remote approval, and the device-facing host
- * name — and applies every commit live to `ctx.linkAccess`: flipping the TLS
- * listener, the independent approval switch, and the advertised name. A
- * composition that mounts this bridge makes the namespace the owner of those
- * three fields; headless deployments keep configuring the carrier plugin
- * itself.
+ * access carrier. The `remote` fields — enable cross-device access, allow
+ * remote approval, and the device-facing host name — are this entry's volatile
+ * plugin configuration, editable through the shared settings forms and applied
+ * live to `ctx.linkAccess`: flipping the TLS listener, the independent
+ * approval switch, and the advertised name. A composition that mounts this
+ * bridge makes its entry the owner of those three fields; headless
+ * deployments keep configuring the carrier plugin itself.
  * @module @deepseek-ai/dsh-link-settings
  */
 
 import { hostname } from 'node:os'
-import { Context, Service } from '@deepseek-ai/cordis'
+import { Context, Service, type Volatile } from '@deepseek-ai/cordis'
 // Activates the linkAccess Context merge the bridge drives.
 import type {} from '@deepseek-ai/dsh-link-access'
-import { settingsNamespace } from '@deepseek-ai/dsh-settings'
+// Type-only: the settings Context merge and the `settings/document-updated`
+// event that follows every settings-form write.
+import type {} from '@deepseek-ai/dsh-settings'
 import z from '@deepseek-ai/schemastery'
 
-/** Settings namespace owned by this bridge. */
-export const REMOTE_SETTINGS_NAMESPACE = 'remote'
-
-/** Field carrying whether the TLS carrier listens for paired devices. */
-export const REMOTE_ENABLED_FIELD = 'enabled'
-
-/** Field carrying whether paired controllers may answer remote interactions. */
-export const REMOTE_APPROVAL_FIELD = 'allowRemoteApproval'
-
-/** Field carrying the device-facing host name. */
-export const REMOTE_DEVICE_NAME_FIELD = 'deviceName'
-
-/** The `remote` namespace section. */
+/** The `remote` section as the bridge resolves it. */
 export interface RemoteSettings {
   /** Whether the TLS carrier listens for paired devices; off by default. */
   enabled: boolean
@@ -42,49 +32,65 @@ export interface RemoteSettings {
   deviceName: string
 }
 
-/** Durable remote section shared by the Host schema and the browser scope. */
-export const RemoteSettingsSchema: z<RemoteSettings> = z.object({
-  [REMOTE_ENABLED_FIELD]: z.boolean().default(false),
-  [REMOTE_APPROVAL_FIELD]: z.boolean().default(false),
-  [REMOTE_DEVICE_NAME_FIELD]: z.string().default(hostname()),
+/** The bridge's live configuration: the `remote` fields as volatile plugin config. */
+export interface LinkSettingsConfig {
+  /** Live listener switch. */
+  enabled: Volatile<boolean>
+  /** Live approval switch. */
+  allowRemoteApproval: Volatile<boolean>
+  /** Live device-facing host name. */
+  deviceName: Volatile<string>
+}
+
+/** The `remote` section of this entry's configuration. */
+export const Config = z.object({
+  enabled: z.boolean().default(false).volatile(),
+  allowRemoteApproval: z.boolean().default(false).volatile(),
+  deviceName: z.string().default(hostname()).volatile(),
 })
 
 declare module '@deepseek-ai/cordis' {
   interface Context {
-    /** Applies the `remote` settings namespace to the link carrier. */
+    /** Applies the `remote` settings to the link carrier. */
     linkSettings: LinkSettingsService
   }
 }
 
 /**
- * The remote settings bridge: registers the `remote` namespace on mount and
- * pushes every resolved value into the link-access carrier.
+ * The remote settings bridge: applies the entry's live configuration to the
+ * link-access carrier on mount and after every settings-form write.
  * @typert service linkSettings
  */
 export class LinkSettingsService extends Service {
-  static inject = ['settings', 'linkAccess']
+  static inject = ['linkAccess']
+  static Config = Config
 
   /**
-   * Register the namespace, apply its current value once, and follow every
-   * commit for the bridge's lifetime.
-   * @param ctx - Host context with the settings service and the link carrier.
+   * Apply the current configuration once and follow every settings-form
+   * write for the bridge's lifetime.
+   * @param ctx - Host context with the link carrier.
+   * @param config - the entry's live volatile configuration.
    */
-  constructor(ctx: Context) {
+  constructor(ctx: Context, config: LinkSettingsConfig) {
     super(ctx, 'linkSettings')
-    const scope = ctx.settings.register(settingsNamespace(REMOTE_SETTINGS_NAMESPACE), RemoteSettingsSchema)
-    const follow = (value: RemoteSettings): void => {
-      void this.apply(value)
+    const apply = (): void => {
+      void this.apply({
+        enabled: config.enabled.get(),
+        allowRemoteApproval: config.allowRemoteApproval.get(),
+        deviceName: config.deviceName.get(),
+      })
     }
-    follow(scope.get())
-    const unwatch = scope.watch(follow)
-    ctx.effect(() => () => { unwatch() }, 'link-settings.watch')
+    apply()
+    // Volatile fields update in place without remounting the entry, so a
+    // settings write lands here as an event, not as a new instance.
+    ctx.on('settings/document-updated', () => { apply() })
   }
 
   /**
    * Push one resolved section into the carrier: name and approval switch
    * first, then the listener, so a newly enabled carrier advertises the
    * committed identity. A bind failure is contained here — the carrier
-   * reports it through its status and the namespace keeps the user's intent.
+   * reports it through its status and the entry keeps the user's intent.
    * @param value - resolved `remote` section.
    */
   private async apply(value: RemoteSettings): Promise<void> {

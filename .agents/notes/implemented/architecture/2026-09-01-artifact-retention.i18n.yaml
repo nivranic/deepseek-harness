@@ -1,6 +1,19 @@
-# Bilingual-pair consistency record (docs/i18n/README.md): the git blob hash of each
-# side as of the last confirmed-consistent state. Both languages carry equal authority;
-# after editing either side, bring the other along and re-record with:
+# Bilingual-pair consistency record for 2026-09-01-artifact-retention.md (docs/i18n/README.md): per heading
+# section, a hash of its English and Chinese blocks outside code blocks and generated regions.
+# After editing either side, bring the other along and re-record with:
 #   pnpm run verify-translation-pairing --write .agents/notes/implemented/architecture/2026-09-01-artifact-retention.md
-2026-09-01-artifact-retention.md: 1c2479bdc3117df6d18bcf7e094c265ae871b814
-2026-09-01-artifact-retention.zh.md: f86ce7f94e77fa9fcb972b06bc6c3669ca34709b
+/agent-note-artifact-byte-retention:
+  en: 764e31745726f1df
+  zh: b90055be5cd5fdaa
+/agent-note-artifact-byte-retention/problem:
+  en: 82603c62d3bf80b4
+  zh: 643390974643df55
+/agent-note-artifact-byte-retention/decision:
+  en: f18ac63ec5c5f5d4
+  zh: 5e1837d7f4332a13
+/agent-note-artifact-byte-retention/consequences:
+  en: f97d2758fbfc1f8c
+  zh: 7323f3f67c8278df
+/agent-note-artifact-byte-retention/alternatives-considered:
+  en: 836826878e27bc5a
+  zh: eec10e094b5e7b29

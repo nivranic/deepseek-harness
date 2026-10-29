@@ -1,6 +1,7 @@
-# Bilingual-pair consistency record (docs/i18n/README.md): the git blob hash of each
-# side as of the last confirmed-consistent state. Both languages carry equal authority;
-# after editing either side, bring the other along and re-record with:
+# Bilingual-pair consistency record for remote-link.md (docs/i18n/README.md): per heading
+# section, a hash of its English and Chinese blocks outside code blocks and generated regions.
+# After editing either side, bring the other along and re-record with:
 #   pnpm run verify-translation-pairing --write docs/subsystems/remote-link.md
-remote-link.md: d5359a2a4e746b161213d48aedf0ee017a4208ab
-remote-link.zh.md: 6085f7d38b64996ceaaa9f46471ed00db765b7a9
+/remote-link-access:
+  en: d65a6a877e933b6f
+  zh: 4f5c13378665af6d

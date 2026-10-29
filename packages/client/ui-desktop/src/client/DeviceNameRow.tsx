@@ -7,7 +7,7 @@
 import { useEffect, useState } from 'react'
 import type { RemoteSettings } from '../remote-settings.ts'
 import type { ObservableSnapshot } from '@deepseek-ai/dsh-client-store'
-import type { SettingsScopeSnapshot } from '@deepseek-ai/dsh-client-ui-settings/client'
+import type { ConfigFormSnapshot } from '@deepseek-ai/dsh-client-ui-settings/client'
 import type { InjectFace, PropsLocale, PropsRuntime } from '@deepseek-ai/dsh-client-ui-slots'
 import type { DesktopSettingsKey } from './locales.ts'
 import css from './CloseActionRow.module.css'
@@ -15,8 +15,8 @@ import css from './CloseActionRow.module.css'
 /** Registration-side business face for the device-name preference. */
 export interface DeviceNameRowInjected {
   hooks: {
-    /** Remote namespace snapshot bound by the renderer. */
-    remote: ObservableSnapshot<SettingsScopeSnapshot<RemoteSettings>>
+    /** Remote entry form bound by the renderer. */
+    remote: ObservableSnapshot<ConfigFormSnapshot<RemoteSettings>>
   }
   /** Copy keys for the title and description lines. */
   titleKey: DesktopSettingsKey

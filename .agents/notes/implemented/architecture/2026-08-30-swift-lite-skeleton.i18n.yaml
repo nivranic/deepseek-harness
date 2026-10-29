@@ -1,6 +1,19 @@
-# Bilingual-pair consistency record (docs/i18n/README.md): the git blob hash of each
-# side as of the last confirmed-consistent state. Both languages carry equal authority;
-# after editing either side, bring the other along and re-record with:
+# Bilingual-pair consistency record for 2026-08-30-swift-lite-skeleton.md (docs/i18n/README.md): per heading
+# section, a hash of its English and Chinese blocks outside code blocks and generated regions.
+# After editing either side, bring the other along and re-record with:
 #   pnpm run verify-translation-pairing --write .agents/notes/implemented/architecture/2026-08-30-swift-lite-skeleton.md
-2026-08-30-swift-lite-skeleton.md: 5700a5f3759141fecd3d4fbf49f7a61ac2af4120
-2026-08-30-swift-lite-skeleton.zh.md: 0923cfc10eb66798d74f422e6fc09ff22f432c23
+/agent-note-swift-lite-runtime-skeleton:
+  en: 87e870e6afff883f
+  zh: 2c2956dfbd7939be
+/agent-note-swift-lite-runtime-skeleton/problem:
+  en: ae95ea33400d554a
+  zh: 042b632c305b0019
+/agent-note-swift-lite-runtime-skeleton/decision:
+  en: 88679a2251c71d8f
+  zh: 12a442f2b6668c4a
+/agent-note-swift-lite-runtime-skeleton/consequences:
+  en: 327373cc240883ec
+  zh: 2def5a466e993f2a
+/agent-note-swift-lite-runtime-skeleton/alternatives-considered:
+  en: 00a1acd1930042b7
+  zh: 9dd9d956d267781f

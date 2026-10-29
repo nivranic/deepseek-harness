@@ -40,7 +40,7 @@ function stageDist(): { index: string; asset: string } {
 function fakeModules(bundles: Record<string, string> = {}) {
   return {
     graph: () => ({ rev: 'graph-rev', entries: [], batches: [] }),
-    bundleFetch: (request: Request): Response => {
+    fetchBundle: (request: Request): Response => {
       if (request.method !== 'GET' && request.method !== 'HEAD') {
         return new Response(null, { status: 405 })
       }
