@@ -6,7 +6,7 @@
  */
 
 import { mkdir, open } from 'node:fs/promises'
-import { DatabaseSync } from 'node:sqlite'
+import type { DatabaseSync } from 'node:sqlite'
 import { dirname, resolve } from 'node:path'
 
 /**
@@ -46,6 +46,9 @@ async function createDatabaseFile(path: string): Promise<void> {
  * @returns the open handle with pragmas applied and the trust tables ensured.
  */
 export async function openDatabase(path: string): Promise<DatabaseSync> {
+  // Loaded lazily so merely mounting the plugin never touches the experimental
+  // `node:sqlite` module (its load-time ExperimentalWarning would reach stderr).
+  const { DatabaseSync } = await import('node:sqlite')
   const actual = path === ':memory:' ? path : resolve(path)
   if (actual !== ':memory:') {
     await mkdir(dirname(actual), { recursive: true, mode: 0o700 })
