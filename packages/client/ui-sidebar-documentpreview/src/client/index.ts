@@ -25,21 +25,20 @@ import type { TextPreviewInjected } from './TextPreview.tsx'
 import { TextTitle } from './TextTitle.tsx'
 import { TEXTPREVIEW_ID, textDefinition } from './definition.ts'
 import { textFace } from './face.ts'
-import { createReadByteWindow, createReadHead, createReadPage } from './rpc.ts'
+import { createReadPage } from './rpc.ts'
 import { createTextStore } from './store.ts'
-import { en, zh } from './locales.ts'
-import { admittedDocumentPreviews } from './document/admission.ts'
-import { parseFileAddress } from '@deepseek-ai/dsh-util-workspace-path'
-import { DocumentPreviewRegistry, matchingDocumentPreviews } from './contract/registry.ts'
-import { documentTabInfoFactory } from './contract/document.ts'
-import { apply as registerText, PLAIN_BODY_ID } from './text/index.ts'
+import { en, ja, es, fr, de, ru, pt, zh } from './locales.ts'
+import { DocumentPreviewRegistry } from './document/registry.ts'
+import { documentTabInfoFactory } from './document/contract.ts'
+import { apply as registerText } from './text/index.ts'
 import { apply as registerMarkdown } from './markdown/index.ts'
 import { apply as registerHtml } from './html/index.ts'
 import { apply as registerImage } from './image/index.ts'
 import { apply as registerPdf } from './pdf/index.ts'
 import { apply as registerCode } from './code/index.ts'
-import { apply as registerDiff } from './diff/index.ts'
-import { apply as registerBinary } from './binary/index.ts'
+import { apply as registerOffice } from './office/index.ts'
+import { apply as registerExcel } from './excel/index.ts'
+import { Config } from '../config.ts'
 
 // Values stay package-private unless another package needs them; the plugin
 // surface is `apply`, `inject`, and the store factory another registration may
@@ -47,10 +46,10 @@ import { apply as registerBinary } from './binary/index.ts'
 export type { SidebarDocumentPreviewKey } from './locales.ts'
 export type { TextPreviewProps } from './TextPreview.tsx'
 export type { TextInjected } from './face.ts'
-export type { ReadWorkspaceFilePage, SessionFile, WorkspaceFilesReadRemote } from './rpc.ts'
+export type { ReadDocumentBytes, DocumentFileBytes, ReadWorkspaceFilePage, SessionFile, WorkspaceFilesReadRemote } from './rpc.ts'
 export type { TextPage, TextState, TextStore, TextTabState } from './store.ts'
-export type { DocumentContent, DocumentPreviewProps, DocumentTextPage } from './contract/document.ts'
-export type { DocumentLoadMode, DocumentPreviewDefinition } from './contract/registry.ts'
+export type { DocumentContent, DocumentPreviewProps, DocumentTextPage } from './document/contract.ts'
+export type { DocumentLoadMode, DocumentPreviewDefinition } from './document/registry.ts'
 
 declare module '@deepseek-ai/cordis' {
   interface Context {
@@ -78,91 +77,54 @@ declare module '@deepseek-ai/dsh-client-ui-slots' {
 
 /**
  * Required browser services: the tab registry, the slot registry, copy, and the
- * Remote carrier with its `workspaceFiles` namespace.
+ * workspace Remote for bytes and paged text reads.
  */
-export const inject = ['slots', 'locale', 'sidebarRightTabs', 'remote', 'remote.workspaceFiles']
+export const inject = ['slots', 'locale', 'sidebarRightTabs', 'remote', 'remote.workspaceFiles', 'configForms', 'resources', 'fileDrag']
 
 /**
  * Client plugin body: register the type, its dictionaries, its body, and its chip title.
- * @param ctx - client root context carrying the registry, the slots, copy, and the Remote face.
+ * @param ctx - client root context carrying the registry, slots, copy, and file readers.
  */
 export function apply(ctx: ClientContext): void {
+  const config = Config((globalThis as { __DSH_DOCUMENT_PREVIEW_CONFIG__?: unknown }).__DSH_DOCUMENT_PREVIEW_CONFIG__ ?? {})
   const previews = new DocumentPreviewRegistry()
   const disposePreviews = ctx.reflect.provide('documentPreviews', previews)
   ctx.effect(() => disposePreviews)
-  ctx.effect(() => ctx.locale.register(NS, { zh, en }), 'ui-sidebar-documentpreview: dictionaries')
+  ctx.effect(() => ctx.sidebarRightTabs.register(textDefinition()), 'ui-sidebar-documentpreview: text type')
+  ctx.effect(() => ctx.locale.register(NS, { zh, en, ja, es, fr, de, ru, pt }), 'ui-sidebar-documentpreview: dictionaries')
 
-  ctx.effect(() => {
-    // admitted-Host lifecycle scaffold is deliberately self-contained (client bundle purity forbids cross-plugin client-face value imports)
-    /* jscpd:ignore-start */
-    let host: typeof ctx.remote.$host | undefined
-    let remove: (() => void) | undefined
-    const refresh = (): void => {
-      const next = ctx.remote.$host
-      if (next === host) return
-      host = next
-      remove?.()
-      remove = undefined
-      if (next.capabilities?.includes('workspace-files.stat.v1') !== true
-        || !next.capabilities.includes('workspace-files.read-text.v1') && !next.capabilities.includes('workspace-files.read-all.v1')) return
-      const capabilities = next.capabilities
-      const lifetime = new AbortController()
-      const dispose = ctx.effect(function* () {
-        yield () => { lifetime.abort() }
-        const store = createTextStore()
-        // The windowed read exists only where the Host advertises it; without
-        // the capability complete-byte loads stay one `readAll` call.
-        const readWindow = capabilities.includes('workspace-files.read-bytes.v1')
-          ? createReadByteWindow(ctx.remote)
-          : undefined
-        const face = textFace(
-          createReadPage(ctx.remote),
-          (file, signal) => ctx.remote.workspaceFiles.readAll(file.sessionId, file.path, signal),
-          lifetime.signal,
-          readWindow,
-          readWindow === undefined ? undefined : createReadHead(ctx.remote),
-        )
-        const source = admittedDocumentPreviews(previews, capabilities)
-        yield ctx.sidebarRightTabs.register({
-          ...textDefinition(),
-          subscribeAvailability: listener => source.subscribe(listener),
-          canOpen(address) {
-            if (lifetime.signal.aborted || ctx.remote.$host !== next) return false
-            const file = parseFileAddress(address)
-            if (file?.scope !== 'session') return false
-            const definitions = source.getSnapshot()
-            return definitions.some(item => item.id === PLAIN_BODY_ID) || matchingDocumentPreviews(definitions, file.path).length > 0
-          },
-        })
-        yield ctx.slots.inject('sidebar.right.pane.tab', () => ctx.slots.register(
-          {
-            name: 'sidebar.right.pane.tab', key: TEXTPREVIEW_ID, locale: NS, store,
-            children: {
-              'sidebar.right.tab.document': { kind: 'keyed', scope: 'session', inject: { hooks: { tabInfo: documentTabInfoFactory } } },
-            },
-            inject: (sessionId, actions): TextPreviewInjected => ({ ...face(sessionId, actions), hooks: { documentPreviews: source } }),
-          },
-          TextPreview,
-        ))
-        yield ctx.slots.inject('sidebar.right.pane.tab.title', () => ctx.slots.register(
-          { name: 'sidebar.right.pane.tab.title', key: TEXTPREVIEW_ID },
-          TextTitle,
-        ))
-
-      }, 'ui-sidebar-documentpreview: admitted Host entries')
-      remove = () => { lifetime.abort(); void dispose() }
-    }
-    /* jscpd:ignore-end */
-    refresh()
-    const stop = ctx.on('connection/reset', refresh)
-    return () => { stop(); remove?.() }
-  }, 'ui-sidebar-documentpreview: Host lifecycle')
+  const store = createTextStore()
+  const face = textFace(
+    createReadPage(ctx.remote),
+    (file, signal) => ctx.remote.workspaceFiles.readBytes(file.sessionId, file.path, {}, signal),
+    ctx.resources,
+  )
+  const source = { getSnapshot: previews.getSnapshot, subscribe: previews.subscribe }
+  ctx.effect(() => ctx.slots.inject('sidebar.right.pane.tab', () => ctx.slots.register(
+    {
+      name: 'sidebar.right.pane.tab', key: TEXTPREVIEW_ID, locale: NS, store,
+      children: {
+        'sidebar.right.tab.document': { kind: 'keyed', scope: 'session', inject: { hooks: { tabInfo: documentTabInfoFactory } } },
+        'sidebar.right.tab.document.actions': { kind: 'list', scope: 'session' },
+        'sidebar.right.tab.document.unpreviewable': { kind: 'list', scope: 'session' },
+        'sidebar.right.tab.document.action': { kind: 'keyed', scope: 'session', inject: { hooks: { tabInfo: documentTabInfoFactory } } },
+      },
+      inject: (sessionId, actions): TextPreviewInjected => ({
+        ...face(sessionId, actions), hooks: { documentPreviews: source },
+      }),
+    },
+    TextPreview,
+  )), 'ui-sidebar-documentpreview: text body')
+  ctx.effect(() => ctx.slots.inject('sidebar.right.pane.tab.title', () => ctx.slots.register(
+    { name: 'sidebar.right.pane.tab.title', key: TEXTPREVIEW_ID },
+    TextTitle,
+  )), 'ui-sidebar-documentpreview: text title')
   registerText(ctx)
   registerMarkdown(ctx)
   registerHtml(ctx)
   registerImage(ctx)
   registerPdf(ctx)
+  registerOffice(ctx, config.office)
+  registerExcel(ctx, config.excel)
   registerCode(ctx)
-  registerDiff(ctx)
-  registerBinary(ctx)
 }

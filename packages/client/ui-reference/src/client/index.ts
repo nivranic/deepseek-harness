@@ -2,6 +2,8 @@
  * Unified Web `@` reference source. File and session discovery run through
  * the cancellable generated Remote namespaces in parallel with deterministic
  * ordering and labels.
+ * Candidate requests retain an existing Client Session through completion
+ * and wait for its initial history open to succeed before contacting the Host.
  *
  * Rows carry only what distinguishes them: a file names its parent directory
  * (nothing at the workspace root), a directory listing names none because its
@@ -12,14 +14,18 @@
  * @module @deepseek-ai/dsh-client-ui-reference/client
  */
 // Type-only: pulls the generated Remote API and ctx.remote merge through the Client assembly boundary.
-import type { FILE_REFERENCE_REMOTE_CAPABILITIES, SESSION_REFERENCE_REMOTE_CAPABILITIES } from '@deepseek-ai/dsh-api-remotes/client'
-import type { ConnectionHandle } from '@deepseek-ai/dsh-client-connection/client'
+import type {} from '@deepseek-ai/dsh-api-remotes/client'
 // Type-only: pulls the locale plugin's Context merge (ctx.locale).
 import type {} from '@deepseek-ai/dsh-client-locale/client'
 import type {} from '@deepseek-ai/dsh-client-ui-sidebar-right/client'
+import type {} from '@deepseek-ai/dsh-client-ui-renderer/client'
 import type { Context as ClientContext } from '@deepseek-ai/cordis'
 import type { ISessions } from '@deepseek-ai/dsh-api-session-controller/client'
 import { relativeTime } from '@deepseek-ai/dsh-client-ui-primitives'
+import type { UserTextNodeProps } from '@deepseek-ai/dsh-client-ui-conversation/client'
+import { FileReference, FolderReference, type FileReferenceInjected } from './FileReference.tsx'
+import { fileReferenceRule, folderReferenceRule } from './user-text-rules.ts'
+export type {} from './user-text-rules.ts'
 import type {
   ClientSessionContext, InputTriggerCrumb, InputTriggerServiceContract, InputTriggerSource,
 } from '@deepseek-ai/dsh-client-ui-input-trigger/client'
@@ -27,68 +33,104 @@ import { formatFileMention } from '@deepseek-ai/dsh-file-reference/grammar'
 import type { FileReferenceCandidate } from '@deepseek-ai/dsh-file-reference/types'
 import type { SessionReferenceMentionCandidate } from '@deepseek-ai/dsh-session-reference/types'
 import { abbreviateHomePath, fileAddressFor } from '@deepseek-ai/dsh-util-workspace-path'
-import { en, NS, zh, type ReferenceKey } from './locales.ts'
+import { en, ja, es, fr, de, ru, pt, NS, zh, type ReferenceKey } from './locales.ts'
+
+declare module '@deepseek-ai/dsh-api-session-controller/client' {
+  interface SessionReferenceSourceMap {
+    /** File and Session candidates waiting for initial history and their RPC results. */
+    referenceCandidates: unknown
+  }
+}
 
 /** Required services: the trigger registry, the Remote namespaces, and the copy. */
 export const inject = [
   'inputTriggers', 'locale', 'sessions', 'remote', 'remote.fileReferences',
-  'remote.sessionReferenceResolver', 'sidebarRight', 'sidebarRightTabs', 'connection',
+  'remote.sessionReferenceResolver', 'sidebarRight', 'slots', 'uiConversation',
 ]
 
 /**
- * Register the combined `@file` / `@session` source.
+ * Register the combined `@file` / `@session` source and independent file/folder text providers.
  * @param ctx - client root context.
  */
 export function apply(ctx: ClientContext): void {
-  ctx.effect(() => ctx.locale.register(NS, { zh, en }), 'ui-reference: dictionaries')
+  ctx.effect(() => ctx.locale.register(NS, { zh, en, ja, es, fr, de, ru, pt }), 'ui-reference: dictionaries')
   const t = ctx.locale.bind(NS)
   const sessions = ctx.get('sessions') as ISessions
-  const connection = ctx.get('connection') as ConnectionHandle
-  const supports = (capability: typeof FILE_REFERENCE_REMOTE_CAPABILITIES[number]['id'] | typeof SESSION_REFERENCE_REMOTE_CAPABILITIES[number]['id']): boolean =>
-    ctx.remote.$host.capabilities?.includes(capability) === true
+  ctx.uiConversation.userText.register(fileReferenceRule)
+  ctx.uiConversation.userText.register(folderReferenceRule)
+  ctx.slots.inject('conversation.user.text.node', function* () {
+    yield ctx.slots.register({
+      name: 'conversation.user.text.node', key: 'file', priority: 100, locale: NS,
+      inject: (sessionId: UserTextNodeProps<'file'>['sessionId']): FileReferenceInjected => ({
+        openFile: (path) => {
+          const cwd = sessions.list.getSnapshot().byId[sessionId]?.cwd
+          ctx.sidebarRight.openResource(fileAddressFor(sessionId, cwd, path))
+        },
+      }),
+    }, FileReference)
+    yield ctx.slots.register({ name: 'conversation.user.text.node', key: 'folder', priority: 100 }, FolderReference)
+  })
   const source: InputTriggerSource = {
     trigger: '@',
     name: 'reference',
     showGroupTitle: false,
-    subscribeCandidates: (_session, listener) => connection.generation.subscribe(listener),
     async candidates(session: ClientSessionContext, { query, quoted, drilled, signal }) {
-      const host = ctx.remote.$host
-      const cancelled = (): boolean => signal.aborted
-      if (cancelled()) return []
-      const fileLookup = supports('file-reference.list.v1') ? ctx.remote.fileReferences.list(session.sessionId, query, signal)
-        .then(result => result.ok ? result.value : [])
-        : Promise.resolve([] as FileReferenceCandidate[])
-      const sessionLookup = quoted === true || !supports('session-reference.candidates.v1')
-        ? Promise.resolve([] as SessionReferenceMentionCandidate[])
-        : ctx.remote.sessionReferenceResolver.candidates(session.sessionId, query, signal)
-          .then(result => result.ok ? result.value : [])
-      const [fileItems, sessionItems] = await Promise.all([fileLookup, sessionLookup])
-      if (cancelled() || ctx.remote.$host !== host) return []
+      if (sessions.binding(session.sessionId) === undefined) {
+        throw new Error(`reference candidates require a retained session "${session.sessionId}"`)
+      }
+      const [fileItems, sessionItems] = await sessions.using(
+        session.sessionId,
+        { source: 'referenceCandidates', signal },
+        async (reference) => {
+          signal.throwIfAborted()
+          const state = reference.binding.session.getSnapshot()
+          if (state.openState !== 'open') {
+            throw state.openError ?? new Error(`session "${session.sessionId}" is not open`)
+          }
+          const fileLookup = ctx.remote.fileReferences.list(session.sessionId, query, signal)
+            .then(result => result.ok ? result.value : [])
+          const sessionLookup = quoted === true
+            ? Promise.resolve([] as SessionReferenceMentionCandidate[])
+            : ctx.remote.sessionReferenceResolver.candidates(session.sessionId, query, signal)
+              .then(result => result.ok ? result.value : [])
+          return Promise.all([fileLookup, sessionLookup])
+        },
+      )
+      if (signal.aborted) return []
       // The header already names the directory being listed; rows repeat it only
       // when there is no header to carry it.
       const withLocation = crumbsFor(query, quoted === true, drilled, t) === undefined
       const now = Date.now()
       const home = ctx.remote.$host.home
       const listed = sessions.list.getSnapshot().byId
+      const sessionRows = sessionItems.map((candidate) => {
+        const summary = listed[candidate.sessionId]
+        const child = summary?.origin === 'subagent' && summary.parentId === session.sessionId
+        return {
+          child,
+          row: sessionCandidate(
+            candidate,
+            candidate.displayTitle ?? candidate.label,
+            summary?.updatedAt ?? candidate.createdAt,
+            now,
+            home,
+            t(child ? 'section.subagents' : 'section.sessions'),
+            t,
+          ),
+        }
+      })
       return [
         ...fileItems.flatMap(candidate => fileCandidate(candidate, quoted === true, withLocation, t)),
-        ...sessionItems.map(candidate => sessionCandidate(
-          candidate,
-          listed[candidate.sessionId]?.updatedAt ?? candidate.createdAt,
-          now,
-          home,
-          t,
-        )),
+        ...sessionRows.filter(item => item.child).map(item => item.row),
+        ...sessionRows.filter(item => !item.child).map(item => item.row),
       ]
     },
     header(_session: ClientSessionContext, req) {
-      if (!supports('file-reference.list.v1')) return undefined
       return crumbsFor(req.query, req.quoted === true, req.drilled, t)
     },
     onPick({ candidate, action }) {
       const value = parseCandidate(candidate.value)
       if (value?.kind === 'file') {
-        if (!supports('file-reference.list.v1')) return undefined
         // A directory row carries two verbs: the settling pick resolves the
         // folder itself as an atomic reference, while the drill action (Tab /
         // row chevron / a header crumb) keeps the literal descent text and
@@ -107,7 +149,6 @@ export function apply(ctx: ClientContext): void {
         }
       }
       if (value?.kind === 'session') {
-        if (!supports('session-reference.candidates.v1')) return undefined
         return {
           insert: {
             source: 'reference',
@@ -120,24 +161,13 @@ export function apply(ctx: ClientContext): void {
       }
       return undefined
     },
-    // session-file tab resolution restated deliberately (client bundle purity forbids the shared-helper import)
-    /* jscpd:ignore-start */
-    canOpenReference(session, { ref, appearance }) {
+    openReference(session, { ref, appearance }) {
       if (appearance !== 'file') return false
-      const path = ref.startsWith('@"') ? ref.slice(2, -1) : ref.slice(1)
-      const cwd = sessions.list.getSnapshot().byId[session.sessionId]?.cwd
-      return ctx.sidebarRightTabs.candidates(fileAddressFor(session.sessionId, cwd, path)).length > 0
-    },
-    subscribeReferenceAvailability: (_session, listener) => ctx.sidebarRightTabs.subscribe(listener),
-    openReference(session, reference) {
-      if (source.canOpenReference?.(session, reference) !== true) return false
-      const { ref } = reference
       const path = ref.startsWith('@"') ? ref.slice(2, -1) : ref.slice(1)
       const cwd = sessions.list.getSnapshot().byId[session.sessionId]?.cwd
       ctx.sidebarRight.openResource(fileAddressFor(session.sessionId, cwd, path))
       return true
     },
-    /* jscpd:ignore-end */
     codec: {
       clipboardText: ref => ref,
       serialize: ref => Promise.resolve(ref),
@@ -233,9 +263,11 @@ function fileCandidate(
 
 function sessionCandidate(
   candidate: SessionReferenceMentionCandidate,
+  label: string,
   updatedAt: number,
   now: number,
   home: string | undefined,
+  section: string,
   t: Translate,
 ) {
   const { unit, n } = relativeTime(updatedAt, now)
@@ -247,14 +279,14 @@ function sessionCandidate(
     : candidate.cwd === undefined ? t('candidate.noCwd') : abbreviateHomePath(candidate.cwd, home)
   const value: ReferenceCandidateValue = {
     kind: 'session',
-    label: candidate.label,
+    label,
     mention: candidate.mention,
   }
   return {
-    name: candidate.label,
+    name: label,
     description: location === undefined ? age : `${location} · ${age}`,
     icon: 'session' as const,
-    section: t('section.sessions'),
+    section,
     value: JSON.stringify(value),
   }
 }

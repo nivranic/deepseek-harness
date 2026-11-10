@@ -4,6 +4,7 @@ import type { Context } from '@deepseek-ai/cordis'
 import type {} from '@deepseek-ai/dsh-agent/types'
 import type { ConnectionHandle } from '@deepseek-ai/dsh-client-connection/client'
 import type {} from '@deepseek-ai/dsh-client-file-upload/client'
+import { typertOwnedValue } from '@deepseek-ai/dsh-typert-protocol'
 import { createSessionControlStream } from './transport.ts'
 import { ClientSessions } from './sessions/service.ts'
 import type { SessionRemotes } from './sessions/remotes.ts'
@@ -24,8 +25,6 @@ export type {
   SessionRemote,
 } from './transport.ts'
 export { createScope, scopeOf } from './scope.ts'
-export { decodeSessionViewLocation, encodeSessionViewLocation } from './view-location.ts'
-export type { SessionViewLocation } from './view-location.ts'
 export type { AgentContext, AgentScopeHandle } from './scope.ts'
 export { SessionCreateError, SessionForkError } from './sessions/service.ts'
 export type { SessionBinding, SessionListState, SessionSummary } from './sessions/service.ts'
@@ -33,7 +32,7 @@ export type {
   SessionListPhase,
   SessionListSnapshot,
   SessionSearchResultItem,
-  SubagentCatalogSnapshot,
+  SessionProjectionSnapshot,
 } from './sessions/manager.ts'
 export type { Session } from './sessions/session.ts'
 export type {
@@ -50,7 +49,9 @@ export type {
   SessionFace,
   SubmissionHandle,
 } from './contract/session.ts'
-export type { ISessions } from './contract/sessions.ts'
+export type {
+  ISessions, SessionReference, SessionRetainInfo, SessionRetainOptions, SessionTarget,
+} from './contract/sessions.ts'
 export { MutableSessionEventSource } from './contract/events.ts'
 export type {
   AssistantLiveChunkEvent,
@@ -72,9 +73,19 @@ export type {
   PendingSubmissionImageAttachment,
   PendingSubmissionPlacement,
   PromptError,
-  QueuedMessage,
   SessionSnapshot,
 } from './contract/snapshot.ts'
+
+/** Consumer-owned reference labels; extend this map through the package's canonical /client entry. */
+export interface SessionReferenceSourceMap {
+  /** Temporary Client Controller work, including fork-title preparation. */
+  controllerOperation: unknown
+  /** A Client Gateway invocation's synchronous Context ownership. */
+  gateway: unknown
+}
+
+/** Declaration-merge-extensible labels carried by independent Client references. */
+export type SessionReferenceSource = Extract<keyof SessionReferenceSourceMap, string>
 
 declare module '@deepseek-ai/cordis' {
   interface Context {
@@ -100,6 +111,7 @@ export const inject = [
  */
 export function apply(ctx: Context): void {
   const remotes = ctx.remote as unknown as SessionRemotes
+  const connection = ctx.get('connection') as ConnectionHandle
   const sessions = new ClientSessions(ctx, remotes)
   ctx.remote.$on('api-session/added', (summary) => { sessions.handleSessionAdded(summary) })
   ctx.remote.$on('api-session/removed', (sessionId) => { sessions.handleSessionRemoved(sessionId) })
@@ -117,15 +129,21 @@ export function apply(ctx: Context): void {
     accept: (frame) => { sessions.handleControlFrame(frame) },
     failed: (error) => { console.error('[session-controller] control stream failed:', error) },
   })
-  control.start()
-  const connection = ctx.get('connection') as ConnectionHandle
-  ctx.effect(() => connection.generation.subscribe(() => { sessions.handleSubagentGenerationChanged() }),
-    'session-controller: subagent generation')
-  ctx.on('connection/reset', () => { sessions.handleConnected() })
-  if (ctx.remote.$host.home !== undefined) sessions.handleConnected()
+  const connected = (): void => {
+    if (connection.generation.getSnapshot() === undefined) return
+    // A ready control baseline may arrive before Cordis delivers connection/reset.
+    sessions.handleConnected()
+    control.restart()
+    control.start()
+  }
+  ctx.effect(() => connection.generation.subscribe(connected), 'session-controller.client.generation')
+  connected()
   ctx.typert.contexts.registerClient('agent', {
-    identity: candidate => sessions.scopeOf(candidate),
-    resolve: sessionId => sessions.resolveAgentScope(sessionId),
+    identity: candidate => sessions.sessionOf(candidate)?.sessionId,
+    resolve: (sessionId) => {
+      const reference = sessions.retainAgentScope(sessionId)
+      return typertOwnedValue(reference.binding.ctx, () => { reference.release() })
+    },
   })
   ctx.effect(() => async () => { await control.dispose() }, 'session-controller.client.control')
 }

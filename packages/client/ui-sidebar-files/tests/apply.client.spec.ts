@@ -7,19 +7,16 @@
  * and face — and that every registration is gone after dispose, which is what
  * makes a reload safe.
  */
-import { describe, expect, it, onTestFinished, vi } from 'vitest'
+import { describe, expect, it, vi } from 'vitest'
 import { Context } from '@deepseek-ai/cordis'
+import type { ShortcutCommand } from '@deepseek-ai/dsh-client-shortcuts/client'
 import { SidebarRightTabRegistry } from '@deepseek-ai/dsh-client-ui-sidebar-right/src/client/tab-registry.ts'
 import { FILES_ID, FILES_KIND } from '../src/client/definition.tsx'
 import { apply, inject } from '../src/client/index.ts'
 import { apply as hostApply } from '../src/index.ts'
 import { FilesBody } from '../src/client/FilesBody.tsx'
 import { FilesTitle } from '../src/client/FilesTitle.tsx'
-import { en, zh } from '../src/client/locales.ts'
-import type { FilesRegistrationInjected } from '../src/client/index.ts'
-import type { createFilesStore } from '../src/client/store.ts'
-import type { SessionId } from '@deepseek-ai/dsh-session/types'
-import type { TabId } from '@deepseek-ai/dsh-client-ui-dockkit'
+import { en, ja, zh, es, fr, de, ru, pt } from '../src/client/locales.ts'
 
 interface Recorded {
   name: string
@@ -30,7 +27,7 @@ interface Recorded {
   component: unknown
 }
 
-async function boot(capabilities = ['workspace-files.list.v1']) {
+async function boot() {
   const ctx = new Context()
   const tabs = new SidebarRightTabRegistry(ctx)
   const registered: Recorded[] = []
@@ -52,54 +49,39 @@ async function boot(capabilities = ['workspace-files.list.v1']) {
     }),
   }
   const workspaceFiles = { list: vi.fn() }
+  const sidebar = { commandTarget: vi.fn(), openTabFromTarget: vi.fn() }
+  const commands: ShortcutCommand[] = []
+  ctx.provide('shortcuts', { register: (command: ShortcutCommand) => {
+    commands.push(command)
+    return () => { commands.splice(commands.indexOf(command), 1) }
+  } } as never)
+  ctx.provide('sidebarRight', sidebar as never)
   ctx.provide('sidebarRightTabs', tabs as never)
   ctx.provide('slots', slots as never)
   ctx.provide('locale', locale as never)
-  const remote = { workspaceFiles, $host: { capabilities, home: undefined, platform: undefined, isLoopback: false } }
-  ctx.provide('remote', remote as never)
+  ctx.provide('remote', { workspaceFiles } as never)
   ctx.provide('remote.workspaceFiles', workspaceFiles as never)
   const fiber = ctx.plugin({ inject: [...inject], apply })
-  onTestFinished(async () => { await fiber.dispose() })
   await fiber.await()
-  return { tabs, registered, dictionaries, fiber, ctx, remote }
+  return { tabs, registered, dictionaries, fiber, sidebar, commands }
 }
 
 describe('ui-sidebar-files apply', () => {
-  it('withdraws the type and retires pending listings and retained callbacks on replacement', async () => {
-    const h = await boot([])
-    expect(h.tabs.get(FILES_KIND)).toBeUndefined()
-    expect(h.registered).toEqual([])
-    h.remote.$host = { ...h.remote.$host, capabilities: ['workspace-files.list.v1'] }
-    h.ctx.emit('connection/reset')
-    const registration = h.registered.find(entry => entry.component === FilesBody)!
-    const store = (registration.store as ReturnType<typeof createFilesStore>).create()
-    const injectFace = registration.inject as (id: SessionId, actions: typeof store.actions) => FilesRegistrationInjected
-    const face = injectFace('file-list-session' as SessionId, store.actions)
-    const tab = 'file-list-tab' as TabId
-    const pending = Promise.withResolvers<unknown>()
-    h.remote.workspaceFiles.list.mockReturnValueOnce(pending.promise)
-    face.start(tab, '/root', new AbortController().signal)
-    const signal = h.remote.workspaceFiles.list.mock.calls[0]![2] as AbortSignal
-    expect(signal.aborted).toBe(false)
-    h.remote.$host = { ...h.remote.$host, capabilities: [] }
-    h.ctx.emit('connection/reset')
-    expect(h.tabs.get(FILES_KIND)).toBeUndefined()
-    expect(h.registered).toEqual([])
-    expect(signal.aborted).toBe(true)
-    pending.resolve({ ok: true, value: { entries: [], truncated: false } })
-    await pending.promise
-    expect(store.getSnapshot().byTab[tab]).toBeUndefined()
-    face.start(tab, '/retained', new AbortController().signal)
-    face.load(tab, '/retained', new AbortController().signal)
-    face.toggle(tab, '/retained', false, new AbortController().signal)
-    expect(h.remote.workspaceFiles.list).toHaveBeenCalledOnce()
-    expect(store.getSnapshot().byTab[tab]).toBeUndefined()
-    h.remote.$host = { ...h.remote.$host, capabilities: ['workspace-files.list.v1'] }
-    h.ctx.emit('connection/reset')
-    expect(h.tabs.get(FILES_KIND)).toBeDefined()
-    expect(h.registered.find(entry => entry.component === FilesBody)?.store).not.toBe(registration.store)
+  it('opens files for the command target and refuses without a selected Session', async () => {
+    const h = await boot()
+    try {
+      const command = h.commands[0]!
+      const input = { region: 'page', modal: null, target: null } as const
+      expect(command.resolve(input)).toEqual({ status: 'blocked', reason: 'shortcut.noSession' })
+      const target = { sessionId: 'files-session' }
+      h.sidebar.commandTarget.mockReturnValue(target)
+      const result = command.resolve(input)
+      if (result.status !== 'handled') throw new Error('Expected files command to be available')
+      result.run()
+      expect(h.sidebar.openTabFromTarget).toHaveBeenCalledWith('files', target)
+    } finally { await h.fiber.dispose() }
+    expect(h.commands).toEqual([])
   })
-
   it('keeps the host Loader entry inert', () => {
     expect(hostApply).not.toThrow()
   })
@@ -112,7 +94,7 @@ describe('ui-sidebar-files apply', () => {
     expect(definition?.title('sidebar://files')).toBe('type.label')
     expect(definition?.guide?.map(entry => [entry.order, entry.title(), entry.description?.()]))
       .toEqual([[10, 'guide.title', 'guide.description']])
-    expect(dictionaries.get('sidebarFiles')).toEqual({ zh, en })
+    expect(dictionaries.get('sidebarFiles')).toEqual({ zh, en, ja, es, fr, de, ru, pt })
     // The seat key is the implementation's id, not the kind: an extension may
     // take the kind over, and the seat must still find this body.
     expect(registered.map(entry => [entry.name, entry.key, entry.locale, entry.component])).toEqual([

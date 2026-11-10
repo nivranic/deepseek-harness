@@ -7,29 +7,37 @@
 
 import { randomUUID } from 'node:crypto'
 import { Context, Service, symbols } from '@deepseek-ai/cordis'
-import type { ConnectionRpcHandler } from '@deepseek-ai/dsh-client-connection'
+import type {
+  ConnectionRpcAttachment,
+  ConnectionRpcHandler,
+} from '@deepseek-ai/dsh-client-connection'
+import type { RemoteAccessDecision } from '@deepseek-ai/dsh-api-remote-access'
+import { callResources, eventResources } from './access.ts'
 import { Deque } from '@deepseek-ai/dsh-deque'
 import type { WebUpgradeRoute } from '@deepseek-ai/dsh-host-webserver'
-import { deadline, timeoutOf, MAX_TIMER_DELAY_MS } from '@deepseek-ai/dsh-timeout'
+import { MAX_TIMER_DELAY_MS } from '@deepseek-ai/dsh-timeout'
+import type {} from '@deepseek-ai/dsh-cmdline'
 import z from '@deepseek-ai/schemastery'
-import { DIAGNOSTICS_ONLY_ENDPOINTS, decodeRemoteRequest, type RemoteProtocolVersion, SUPPORTED_REMOTE_PROTOCOL_VERSIONS } from './protocol.ts'
 export type { TypertGatewayFaultDetails } from './remote-error-codes.ts'
-import type { DeviceId } from '@deepseek-ai/dsh-api-device-trust/types'
-import type {} from '@deepseek-ai/dsh-api-device-trust'
 import {
   RemoteError,
+  isRemoteJsonValue,
   remoteErrorOf,
   remoteMethods,
   type InvocationDescriptor,
   type InvocationParameterDescriptor,
+  type PeerScope,
+  type Principal,
+  type RemoteAccessResource,
+  type RemoteInvocation,
+  type RemoteMethodMarker,
   type TypertCodec,
   type TypertGatewayBinding,
-  type RemoteCapabilityPermission,
 } from '@deepseek-ai/dsh-typert-protocol'
 import type {
   InvokeRemoteRequest,
+  PendingRemoteEventInfo,
   TypertGateway,
-  TypertGatewayDeviceConnection,
   TypertGatewayErrorCode,
   TypertGatewayWireStream,
   TypertRemoteEventDispatch,
@@ -39,20 +47,15 @@ import type {
   TypertRemoteEventSource,
 } from './types.ts'
 import {
-  RemoteStreamConnectionHandle,
   RemoteStreamMuxServer,
   rejectRemoteStreamUpgrade,
 } from './stream-server.ts'
-export { RemoteStreamMuxServer } from './stream-server.ts'
-export type { RemoteStreamConnectionHandle } from './stream-server.ts'
-export { REMOTE_STREAM_MUX_PATH } from './stream-protocol.ts'
 import {
   REMOTE_EVENT_STREAM_ENDPOINT,
   REMOTE_EVENT_STREAM_READY,
   REMOTE_EVENT_RESULT_ENDPOINT,
   REMOTE_STREAM_MUX_PATH,
   isRemoteEventAgentId,
-  isRemoteJsonValue,
   parseRemoteEventResult,
   projectRemoteEventRequest,
   restoreRemoteEventRejection,
@@ -63,14 +66,13 @@ import {
   type RemoteEventId,
   type RemoteEventInvocationFrame,
   type RemoteEventReadyFrame,
-  type RemoteInteractionRecord,
   type RemoteStreamFailure,
 } from './stream-protocol.ts'
 
 export type {
   InvokeRemoteRequest,
+  PendingRemoteEventInfo,
   TypertGateway,
-  TypertGatewayDeviceConnection,
   TypertGatewayErrorCode,
   TypertGatewayWireStream,
   TypertRemoteEventContext,
@@ -80,7 +82,15 @@ export type {
   TypertRemoteEventOutcome,
   TypertRemoteEventSource,
 } from './types.ts'
-export type { RemoteEventHostInfo, RemoteInteractionOrigin, RemoteInteractionPolicy, RemoteInteractionRecord, RemoteInteractionSessionId } from './stream-protocol.ts'
+export type { RemoteEventHostInfo } from './stream-protocol.ts'
+export { REMOTE_STREAM_MUX_PATH } from './stream-protocol.ts'
+export { RemoteStreamMuxServer } from './stream-server.ts'
+export type {
+  RemoteInteractionOrigin,
+  RemoteInteractionPolicy,
+  RemoteInteractionRecord,
+  RemoteInteractionSessionId,
+} from './protocol.ts'
 
 interface GatewayErrorOptions {
   readonly cause?: unknown
@@ -95,9 +105,23 @@ interface ResolvedBinding {
 interface PreparedInvocation {
   readonly endpoint: string
   readonly descriptor: InvocationDescriptor
+  /** Service view bound to a Context carrying `invocation`, so the method reads it as `this.ctx.invocation`. */
   readonly receiver: object
   readonly args: readonly unknown[]
   readonly method: (...args: never[]) => unknown
+  readonly invocation: GatewayInvocation
+}
+
+/** Carrier inputs `GatewayInvocation.uplink()` decodes on first use. */
+interface UplinkSource {
+  readonly window: RemoteInvocation['uplinkWindow']
+  /** Carrier items; an immediately ended iterable when the carrier has none. */
+  readonly source: AsyncIterable<unknown>
+  /** Descriptor codec, or the JSON-safety codec when the descriptor declares no uplink. */
+  readonly codec: TypertCodec
+  readonly endpoint: string
+  /** Fail the logical stream with a Remote failure as the reason. */
+  readonly abort: (reason: unknown) => void
 }
 
 interface RegisteredRemoteEventSource {
@@ -106,30 +130,22 @@ interface RegisteredRemoteEventSource {
   readonly host: RemoteEventHostInfo
 }
 
-/** Signed device admission fields decoded from a stream open or request envelope. */
-interface DeviceAdmissionWire {
-  readonly deviceId: string
-  readonly timestamp: number
-  readonly nonce: string
-  readonly signature: string
-}
-
 interface RemoteEventClient {
-  readonly version: RemoteProtocolVersion
+  readonly peer: PeerScope
   readonly id: RemoteEventClientId
   readonly queue: RemoteEventQueue
+  readonly signal: AbortSignal
   readonly deliveries: Map<RemoteEventId, PendingRemoteEvent>
-  /** Interaction reply permissions this client holds; enforced Host-side on every result. */
-  readonly replyPermissions: ReadonlySet<string>
-  /** The admitted device identity when the stream opened with one; anonymous streams leave it absent. */
-  readonly deviceId?: DeviceId
+  /** The stream's Peer principal: only the owner answers scoped waterfalls and receives every broadcast. */
+  readonly principal: Principal
+  /** Only owner streams receive scoped waterfalls they could answer; other Peers receive admitted broadcasts only. */
+  readonly answers: boolean
 }
 
 interface PendingRemoteEvent {
   readonly id: RemoteEventId
   readonly source: TypertRemoteEventInvocation
   readonly frame: RemoteEventInvocationFrame
-  readonly interaction?: RemoteInteractionRecord
   readonly deliveries: Set<RemoteEventClient>
   releaseContext: () => void
   releaseSignal: () => void
@@ -139,36 +155,27 @@ type ConnectionRpcResult = Awaited<ReturnType<ConnectionRpcHandler>>
 type ConnectionRpcError = Extract<ConnectionRpcResult, { readonly ok: false }>['error']
 const NEVER_ABORTED_SIGNAL = new AbortController().signal
 const DEFAULT_WEBSOCKET_HEARTBEAT_INTERVAL_MS = 2_000
+const DEFAULT_STREAM_INBOX_BYTES = 262_144
+const EMPTY_ASYNC_ITERABLE: AsyncIterable<never> = {
+  [Symbol.asyncIterator]: () => ({ next: () => Promise.resolve({ value: undefined, done: true }) }),
+}
+const UPLINK_DONE: IteratorReturnResult<undefined> = { value: undefined, done: true }
+const SRC_JSON_CODEC: TypertCodec = { mode: 'src-json' }
 
-/** Gateway transport and forwarded-interaction configuration. */
+/** Gateway transport configuration. */
 export interface Config {
   /** WebSocket Ping interval from 1 through 2,147,483,647 milliseconds. @default 2000 */
   readonly websocketHeartbeatIntervalMs?: number
-  /** Optional Host-owned lifetimes for forwarded interactions; omitted kinds have no Gateway deadline. */
-  readonly interactionTimeoutMs?: {
-    /** Approval lifetime in milliseconds, from 1 through 2,147,483,647. */
-    readonly approval?: number
-    /** Question lifetime in milliseconds, from 1 through 2,147,483,647. */
-    readonly question?: number
-  }
-  /**
-   * Interaction reply permissions an anonymous connected Remote client holds.
-   * The requiredPermission on a pending interaction is enforced Host-side: a
-   * reply from a client without it is rejected without settling or consuming
-   * the delivery, so the underlying tool side effect never runs. A client that
-   * presents a signed device admission at stream open instead receives the
-   * section 21 permission set of its device-trust role.
-   */
-  readonly interactionReplyPermissions?: {
-    /** Whether anonymous clients may answer approvals ('approval.respond'). @default true */
-    readonly approval?: boolean
-    /** Whether anonymous clients may answer questions ('question.respond'). @default true */
-    readonly question?: boolean
-  }
+  /** Buffered uplink frame bytes one logical stream may hold before it fails with `gateway/uplink-overflow`. @default 262144 */
+  readonly streamInboxBytes?: number
+  /** Per-message compression for the Remote stream WebSocket; `'none'` disables the extension. @default 'deflate' */
+  readonly websocketCompression?: 'none' | 'deflate'
 }
 
 interface ResolvedConfig extends Config {
   readonly websocketHeartbeatIntervalMs: number
+  readonly streamInboxBytes: number
+  readonly websocketCompression: 'none' | 'deflate'
 }
 
 /**
@@ -213,96 +220,36 @@ export class TypertGatewayError extends RemoteError<TypertGatewayErrorCode> {
  * @typert service typertGateway
  */
 export class TypertGatewayService extends Service implements TypertGateway {
-  static inject = ['typert']
+  static inject = ['typert', 'remoteAccess']
   static Config: z<Config> = z.object({
     websocketHeartbeatIntervalMs: z.number().step(1).min(1).max(MAX_TIMER_DELAY_MS)
       .default(DEFAULT_WEBSOCKET_HEARTBEAT_INTERVAL_MS),
-    interactionTimeoutMs: z.object({
-      approval: z.number().step(1).min(1).max(MAX_TIMER_DELAY_MS),
-      question: z.number().step(1).min(1).max(MAX_TIMER_DELAY_MS),
-    }),
-    interactionReplyPermissions: z.object({
-      approval: z.boolean().default(true),
-      question: z.boolean().default(true),
-    }).default({ approval: true, question: true }),
+    streamInboxBytes: z.number().step(1).min(1).default(DEFAULT_STREAM_INBOX_BYTES),
+    websocketCompression: z.union([z.const('none'), z.const('deflate')]).default('deflate'),
   })
 
   /** Carrier adapter shared by the WebSocket mux and local Host transports. */
   readonly wireStream: TypertGatewayWireStream = {
-    open: (endpoint, payload, signal) => this.openWireStream(endpoint, payload, signal),
+    open: (endpoint, payload, uplink, peer, signal) =>
+      this.openWireStream(endpoint, payload, uplink, peer, signal, new AbortController()),
     failure: error => rpcError(error),
-  }
-
-  /**
-   * Capture the caller's Cordis context for a native carrier. Direct methods
-   * resolve services in that context on every call. Device identity is required
-   * except for one-time pairing redemption; browser cookies cannot authorize it.
-   * @returns RPC and stream callbacks retaining the caller's service scope.
-   */
-  createDeviceConnection(): TypertGatewayDeviceConnection {
-    return {
-      rpc: (endpoint, payload, signal) => this.dispatchRpc(endpoint, payload, signal, true),
-      stream: {
-        open: (endpoint, payload, signal, connection) => this.openWireStream(endpoint, payload, signal, true, connection),
-        failure: error => rpcError(error),
-      },
-    }
-  }
-
-  /**
-   * Terminate every physical Remote stream connection a device currently holds.
-   * The carrier sockets are destroyed without a close handshake, so every
-   * logical stream on them ends as carrier loss and clients follow their
-   * reconnect policy; the device's admission itself is untouched.
-   * @param request - device identity whose live connections end now.
-   * @returns how many physical connections were destroyed; zero when the device holds none.
-   */
-  terminateDeviceConnections(request: { deviceId: DeviceId }): { terminated: number } {
-    const bound = this.deviceConnections.get(request.deviceId)
-    if (bound === undefined) return { terminated: 0 }
-    this.deviceConnections.delete(request.deviceId)
-    for (const connection of bound) connection.terminate()
-    return { terminated: bound.size }
-  }
-
-  /** Bind one physical connection to the device whose admitted stream opened on it. */
-  private bindDeviceConnection(deviceId: DeviceId, connection: RemoteStreamConnectionHandle): () => void {
-    let bound = this.deviceConnections.get(deviceId)
-    if (bound === undefined) {
-      bound = new Set()
-      this.deviceConnections.set(deviceId, bound)
-    }
-    bound.add(connection)
-    return () => {
-      // A replacement binding may already have replaced the entry; only the
-      // owning set may remove the handle.
-      if (this.deviceConnections.get(deviceId) !== bound) return
-      bound.delete(connection)
-      if (bound.size === 0) this.deviceConnections.delete(deviceId)
-    }
   }
 
   private srcClaims: ReadonlySet<string> | undefined
   private remoteEvents: RegisteredRemoteEventSource | undefined
   private readonly remoteEventClients = new Map<RemoteEventClientId, RemoteEventClient>()
   private readonly pendingRemoteEvents = new Map<RemoteEventId, PendingRemoteEvent>()
-  private readonly interactionReplyPermissions: ReadonlySet<string>
-  /** Physical stream connections bound to the device whose admitted stream opened on them. */
-  private readonly deviceConnections = new Map<DeviceId, Set<RemoteStreamConnectionHandle>>()
 
   /**
    * Register the Gateway against the active Typert registry.
+   * WebSocket admission waits for launcher-owned application readiness when supplied;
+   * direct invocation and in-process streams remain available independently.
    * @param ctx - owning Host Context with Typert registry access.
    * @param config - validated Gateway transport configuration.
    */
-  constructor(ctx: Context, private readonly config: Config) {
+  constructor(ctx: Context, config: Config) {
     super(ctx, 'typertGateway')
     const resolved = config as ResolvedConfig
-    const replyPermissions = config.interactionReplyPermissions ?? { approval: true, question: true }
-    this.interactionReplyPermissions = new Set([
-      ...replyPermissions.approval === true ? ['approval.respond' as const] : [],
-      ...replyPermissions.question === true ? ['question.respond' as const] : [],
-    ])
     ctx.on('internal/service', () => {
       this.srcClaims = undefined
     })
@@ -310,34 +257,98 @@ export class TypertGatewayService extends Service implements TypertGateway {
       connectionCtx.connection.rpc.intercept(
         '/api',
         endpoint => this.claimsEndpoint(endpoint),
-        (endpoint, payload, signal) => this.dispatchRpc(endpoint, payload, signal),
+        (endpoint, payload, signal, peer) => this.dispatchRpc(endpoint, payload, signal, peer),
       )
     })
     ctx.inject(['connection', 'webServer'], (webCtx) => {
-      const mux = new RemoteStreamMuxServer(
-        (endpoint, payload, signal, connection) => this.openWireStream(endpoint, payload, signal, false, connection),
-        this.wireStream.failure,
-        resolved.websocketHeartbeatIntervalMs,
-      )
-      webCtx.effect(() => {
-        const route: WebUpgradeRoute = {
-          path: REMOTE_STREAM_MUX_PATH,
-          handler: (req, socket, head) => {
-            const rejection = webCtx.connection.requestRejection(req)
-            if (rejection !== undefined) {
-              rejectRemoteStreamUpgrade(socket, rejection)
-              return
-            }
-            mux.handleUpgrade(req, socket, head)
+      const listen = (): void => {
+        const mux = new RemoteStreamMuxServer(
+          (endpoint, payload, uplink, peer, control, window) =>
+            this.openWireStream(endpoint, payload, uplink, peer, control.signal, control, window),
+          this.wireStream.failure,
+          {
+            heartbeatIntervalMs: resolved.websocketHeartbeatIntervalMs,
+            streamInboxBytes: resolved.streamInboxBytes,
+            compression: resolved.websocketCompression === 'deflate',
           },
+        )
+        const releases = new Set<Promise<void>>()
+        webCtx.effect(function* () {
+          yield async () => {
+            await mux.close()
+            await Promise.all(releases)
+          }
+          const route: WebUpgradeRoute = {
+            path: REMOTE_STREAM_MUX_PATH,
+            handler: (req, socket, head) => {
+              const admission = webCtx.connection.admitConnection(req)
+              if ('rejection' in admission) {
+                rejectRemoteStreamUpgrade(socket, admission.rejection)
+                return
+              }
+              const release = (): void => {
+                // release removes the API Peer synchronously, before awaiting
+                // scope cleanup or any logical-stream iterator's return.
+                const done = admission.release().catch((error: unknown) => {
+                  console.error('[api-gateway] Peer release failed:', error)
+                })
+                releases.add(done)
+                void done.then(() => { releases.delete(done) })
+              }
+              const closed = (): void => {
+                socket.removeListener('error', release)
+                release()
+              }
+              socket.on('error', release)
+              socket.once('close', closed)
+              if (socket.destroyed) {
+                closed()
+                return
+              }
+              try {
+                mux.handleUpgrade(req, socket, head, admission.peer)
+              } catch (error) {
+                release()
+                socket.destroy()
+                console.error('[api-gateway] Remote stream upgrade failed:', error)
+              }
+            },
+          }
+          yield webCtx.webServer.registerUpgrade(route)
+        }, `api-gateway: ${REMOTE_STREAM_MUX_PATH} WebSocket`)
+      }
+      // Existing pages reconnect before the new Host prints its URL. No stream
+      // may enter until the launcher has activated and audited its controllers.
+      const ready = webCtx.get('appReady')
+      if (ready === undefined) listen()
+      else webCtx.effect(() => {
+        let closed = false
+        const cancel = ready.onReady(() => { if (!closed) listen() })
+        return () => {
+          closed = true
+          cancel()
         }
-        const unregister = webCtx.webServer.registerUpgrade(route)
-        return async () => {
-          unregister()
-          await mux.close()
-        }
-      }, `api-gateway: ${REMOTE_STREAM_MUX_PATH} WebSocket`)
+      }, 'api-gateway: application readiness')
     })
+  }
+
+  /**
+   * Check for an active owner Client event stream, the only kind that can answer forwarded waterfalls.
+   * @returns whether an owner stream is open and has not been cancelled.
+   */
+  hasLiveClient(): boolean {
+    for (const client of this.remoteEventClients.values()) {
+      if (client.answers && !client.signal.aborted) return true
+    }
+    return false
+  }
+
+  /**
+   * Inspect unsettled forwarded events without changing their lifetime.
+   * @returns detached event names and Agent identities.
+   */
+  getPendingRemoteEvents(): readonly PendingRemoteEventInfo[] {
+    return [...this.pendingRemoteEvents.values()].map(({ frame }) => ({ event: frame.event, agentId: frame.agentId }))
   }
 
   /**
@@ -361,7 +372,7 @@ export class TypertGatewayService extends Service implements TypertGateway {
       this.remoteEvents = undefined
       lifetime.abort(error)
     })
-    const registration: RegisteredRemoteEventSource = { lifetime, done, host: { home: host.home, platform: host.platform } }
+    const registration: RegisteredRemoteEventSource = { lifetime, done, host: { home: host.home, ...host.platform === undefined ? {} : { platform: host.platform } } }
     this.remoteEvents = registration
     return async () => {
       if (this.remoteEvents === registration) {
@@ -383,14 +394,26 @@ export class TypertGatewayService extends Service implements TypertGateway {
     return this.srcClaims.has(endpoint)
   }
 
+  /**
+   * The `resources` readers of a method, read from the root Service's class
+   * metadata so a Context method's receiver is not resolved before access is
+   * decided; `undefined` when the Service is absent or the method declares none.
+   */
+  private resourceReaders(descriptor: InvocationDescriptor): RemoteMethodMarker['resources'] {
+    const receiver: unknown = this.ctx.get(descriptor.service)
+    if (!isObject(receiver)) return undefined
+    const member = descriptor.implementation ?? descriptor.method
+    return remoteMethods(originalOf(receiver)).find(marker => marker.method === member)?.resources
+  }
+
   private collectSrcClaims(): ReadonlySet<string> {
     const claims = new Set<string>()
     for (const [serviceKey, definition] of Object.entries(this.ctx.reflect.props)) {
       if (definition.type !== 'service') continue
-      const receiver = this.ctx.get(serviceKey) as unknown
+      const receiver: unknown = this.ctx.get(serviceKey)
       if (!isObject(receiver)) continue
       const original = originalOf(receiver)
-      const binding = Reflect.get(original, 'typertRemote') as unknown
+      const binding: unknown = Reflect.get(original, 'typertRemote')
       if (!isObject(binding) || typeof Reflect.get(binding, 'namespace') !== 'string') continue
       const namespace = Reflect.get(binding, 'namespace') as string
       for (const candidate of remoteMethods(original)) {
@@ -408,9 +431,18 @@ export class TypertGatewayService extends Service implements TypertGateway {
   capabilities(): readonly string[] {
     const ids = new Set<string>()
     const available: string[] = []
-    for (const { binding, original } of this.activeBindings('host/describe')) {
+    for (const [serviceKey, definition] of Object.entries(this.ctx.reflect.props)) {
+      if (definition.type !== 'service') continue
+      const receiver: unknown = this.ctx.get(serviceKey)
+      if (!isObject(receiver)) continue
+      const original = originalOf(receiver)
+      const bindingValue: unknown = Reflect.get(original, 'typertRemote')
+      if (!isObject(bindingValue)) continue
+      const binding = bindingValue as TypertGatewayBinding
+      const declared = binding.capabilities ?? []
+      if (declared.length === 0) continue
       const methods = new Set(remoteMethods(original).map(marker => marker.exportName ?? marker.method))
-      for (const capability of binding.capabilities ?? []) {
+      for (const capability of declared) {
         if (ids.has(capability.id)) throw new Error(`duplicate Remote capability ${JSON.stringify(capability.id)}`)
         ids.add(capability.id)
         let ready = true
@@ -446,8 +478,11 @@ export class TypertGatewayService extends Service implements TypertGateway {
    * @throws {@link TypertGatewayError} for dispatch, provider, or boundary failures; lookup-policy and business errors retain identity.
    */
   async invoke(request: InvokeRemoteRequest): Promise<unknown> {
-    const prepared = await this.prepareInvocation(request)
-    if (prepared.descriptor.mode === 'stream') {
+    return this.invokePrepared(await this.prepareInvocation(request, new AbortController()))
+  }
+
+  private async invokePrepared(prepared: PreparedInvocation): Promise<unknown> {
+    if (prepared.descriptor.mode !== undefined) {
       throw new TypertGatewayError(
         'gateway/signature-invalid',
         prepared.endpoint,
@@ -458,19 +493,31 @@ export class TypertGatewayService extends Service implements TypertGateway {
     try {
       return await Reflect.apply(prepared.method, prepared.receiver, prepared.args) as unknown
     } catch (error) {
-      if (request.signal?.aborted === true) throw remoteCancelled(prepared.endpoint, error)
+      if (prepared.invocation.signal.aborted) throw remoteCancelled(prepared.endpoint, error)
       throw error
+    } finally {
+      // A unary call's uplink is readable only while the method runs.
+      await prepared.invocation.close()
     }
   }
 
   /**
    * Open one live stream Remote method without assuming a physical carrier.
-   * @param request - decoded endpoint and named wire arguments.
+   * @param request - decoded endpoint, named wire arguments, and the Client uplink when the carrier has one.
    * @returns a cancellation-aware iterable over the business results.
    */
   async stream(request: InvokeRemoteRequest): Promise<AsyncIterable<unknown>> {
-    const prepared = await this.prepareInvocation(request)
-    if (prepared.descriptor.mode !== 'stream') {
+    return this.openStream(request, new AbortController())
+  }
+
+  /**
+   * `control` belongs to the logical stream: a rejected uplink item aborts it
+   * with the Remote failure as the reason so the carrier delivers that failure.
+   */
+  private async openStream(request: InvokeRemoteRequest, control: AbortController): Promise<AsyncIterable<unknown>> {
+    const prepared = await this.prepareInvocation(request, control)
+    if (prepared.descriptor.mode === undefined) {
+      await prepared.invocation.close()
       throw new TypertGatewayError(
         'gateway/signature-invalid',
         prepared.endpoint,
@@ -481,10 +528,12 @@ export class TypertGatewayService extends Service implements TypertGateway {
     try {
       source = Reflect.apply(prepared.method, prepared.receiver, prepared.args) as unknown
     } catch (error) {
-      if (request.signal?.aborted === true) throw remoteCancelled(prepared.endpoint, error)
+      await prepared.invocation.close()
+      if (prepared.invocation.signal.aborted) throw remoteCancelled(prepared.endpoint, error)
       throw error
     }
     if (!isIterable(source)) {
+      await prepared.invocation.close()
       throw new TypertGatewayError(
         'gateway/result-invalid',
         prepared.endpoint,
@@ -492,145 +541,66 @@ export class TypertGatewayService extends Service implements TypertGateway {
         { field: 'result' },
       )
     }
-    return cancellableStream(
-      source,
-      prepared.endpoint,
-      request.signal ?? NEVER_ABORTED_SIGNAL,
-    )
-  }
-
-  /**
-   * Reject a business request from the diagnostics-only tier with the shared
-   * compatibility failure so Clients present the same upgrade guidance as an
-   * unknown version.
-   * @param endpoint - endpoint the degraded tier attempted beyond Host discovery.
-   * @returns compatibility failure naming the endpoint and full-tier versions.
-   */
-  private diagnosticsOnlyRejection(endpoint: string): RemoteError {
-    return new RemoteError('gateway/protocol-unsupported', 'Remote request API protocol is limited to diagnostics on this Host; update the application before reconnecting', {
-      endpoint, supportedApiProtocolVersions: [...SUPPORTED_REMOTE_PROTOCOL_VERSIONS],
-    })
+    return cancellableStream(source, prepared.endpoint, prepared.invocation)
   }
 
   private async dispatchRpc(
     endpoint: string,
     payload: unknown,
     signal: AbortSignal,
-    requireDevice = false,
+    peer: PeerScope,
   ): Promise<ConnectionRpcResult> {
-    let version: RemoteProtocolVersion
-    let device: unknown
-    try {
-      const decoded = decodeRemoteRequest(endpoint, payload)
-      payload = decoded.payload
-      version = decoded.version
-      device = decoded.device
-      if (requireDevice && device === undefined && endpoint !== 'deviceTrust/redeemPairing') {
-        throw this.deviceIdentityRequired(endpoint)
-      }
-      if (decoded.diagnosticsOnly && !DIAGNOSTICS_ONLY_ENDPOINTS.has(endpoint)) return rpcFailure(this.diagnosticsOnlyRejection(endpoint))
-      if (decoded.device !== undefined && endpoint !== REMOTE_EVENT_RESULT_ENDPOINT) {
-        await this.admitRpcDevice(endpoint, parseDeviceAdmission(decoded.device))
-      }
-    } catch (error) {
-      return rpcFailure(error)
-    }
     if (endpoint === REMOTE_EVENT_RESULT_ENDPOINT) {
-      const checkCancellation = (): void => {
-        if (signal.aborted) throw remoteCancelled(endpoint, signal.reason)
-      }
       try {
-        checkCancellation()
+        assertPeerLive(peer, endpoint)
+        requireInteractions(peer, endpoint)
+        // oxlint-disable-next-line typescript/no-unnecessary-condition -- other packages merge non-owner kinds into PrincipalMap.
+        if (peer.principal.kind !== 'owner') {
+          throw new TypertGatewayError('gateway/invocation-unavailable', endpoint, 'only owner Peers answer forwarded Remote events')
+        }
         const result = parseRemoteEventResultPayload(payload)
         const client = this.remoteEventClients.get(result.clientId)
         if (client === undefined) {
-          throw new RemoteError('interaction-closed', 'Interaction delivery is no longer active', { eventId: result.eventId })
+          throw new Error('typert gateway: Remote event result identifies no active event stream')
         }
-        await this.admitEventResult(client, device)
-        checkCancellation()
-        this.receiveRemoteEventResult(client, result, version)
+        if (client.peer !== peer) {
+          throw new TypertGatewayError(
+            'gateway/interactions-forbidden', endpoint,
+            'Remote event result belongs to another Peer',
+          )
+        }
+        this.receiveRemoteEventResult(client, result)
         return { ok: true, value: undefined }
       } catch (error) {
         return rpcFailure(error)
       }
     }
-    return this.invokeRpc(endpoint, payload, signal)
+    return this.invokeRpc(endpoint, payload, signal, peer)
   }
 
   private async openWireStream(
     endpoint: string,
     payload: unknown,
+    uplink: AsyncIterable<unknown>,
+    peer: PeerScope,
     signal: AbortSignal,
-    requireDevice = false,
-    connection?: RemoteStreamConnectionHandle,
+    control: AbortController,
+    uplinkWindow?: RemoteInvocation['uplinkWindow'],
   ): Promise<AsyncIterable<unknown>> {
-    const decoded = decodeRemoteRequest(endpoint, payload)
-    if (decoded.diagnosticsOnly && !DIAGNOSTICS_ONLY_ENDPOINTS.has(endpoint)) throw this.diagnosticsOnlyRejection(endpoint)
-    payload = decoded.payload
     if (endpoint === REMOTE_EVENT_STREAM_ENDPOINT) {
-      const args: unknown = isObject(payload) ? Reflect.get(payload, 'args') : undefined
-      if (requireDevice && (!isObject(args) || Reflect.get(args, 'device') === undefined)) {
-        throw this.deviceIdentityRequired(endpoint)
-      }
-      return this.openRemoteEvents(payload, signal, decoded.version, connection)
+      // A Gateway-owned stream reads no uplink: releasing it now keeps its items out of the bounded inbox.
+      releaseUplink(uplink)
+      assertPeerLive(peer, endpoint)
+      requireInteractions(peer, endpoint)
+      return this.openRemoteEvents(payload, signal, peer)
     }
-    if (decoded.device !== undefined) {
-      return this.openDeviceBusinessStream(endpoint, payload, parseDeviceAdmission(decoded.device), signal, connection)
-    }
-    if (requireDevice) throw this.deviceIdentityRequired(endpoint)
-    return this.stream(remoteRequest(endpoint, payload, signal))
-  }
-
-  private deviceIdentityRequired(endpoint: string): RemoteError {
-    return new RemoteError('gateway/permission-denied', 'Remote operation requires a signed device identity', {
-      endpoint, reason: 'device-identity',
-    })
-  }
-
-  /** Admission and revocation belong to iterator lifetime, including time spent opening the business stream. */
-  private async *openDeviceBusinessStream(
-    endpoint: string,
-    payload: unknown,
-    device: DeviceAdmissionWire,
-    signal: AbortSignal,
-    connection?: RemoteStreamConnectionHandle,
-  ): AsyncGenerator {
-    const revoked = new AbortController()
-    const stop = this.ctx.on('deviceTrust/grantsRevoked', ({ revokedAt, deviceIds }) => {
-      if (!deviceIds.includes(device.deviceId as DeviceId)) return
-      revoked.abort(new RemoteError('device/already-revoked', 'Device grant was revoked during its Remote stream', {
-        deviceId: device.deviceId, revokedAt,
-      }))
-    })
-    const lifetime = AbortSignal.any([signal, revoked.signal])
-    const checkCancellation = (): void => {
-      if (lifetime.aborted) throw remoteCancelled(endpoint, lifetime.reason)
-    }
-    let unbind: (() => void) | undefined
-    try {
-      checkCancellation()
-      await this.admitRpcDevice(endpoint, device)
-      if (connection !== undefined) unbind = this.bindDeviceConnection(device.deviceId as DeviceId, connection)
-      checkCancellation()
-      const source = await this.stream(remoteRequest(endpoint, payload, lifetime))
-      for await (const value of source) {
-        checkCancellation()
-        yield value
-      }
-    } catch (error) {
-      if (revoked.signal.aborted) throw revoked.signal.reason
-      throw error
-    } finally {
-      unbind?.()
-      stop()
-    }
+    return this.openStream({ ...remoteRequest(endpoint, payload, signal, peer), uplink, uplinkWindow }, control)
   }
 
   private async *openRemoteEvents(
     payload: unknown,
     signal: AbortSignal,
-    version: RemoteProtocolVersion = 1,
-    connection?: RemoteStreamConnectionHandle,
+    peer: PeerScope,
   ): AsyncGenerator<
     RemoteEventEmitFrame | RemoteEventInvocationFrame | RemoteEventCancellationFrame
     | RemoteEventReadyFrame
@@ -641,16 +611,13 @@ export class TypertGatewayService extends Service implements TypertGateway {
       || !Object.hasOwn(payload, 'args')
       || !isObject(payload.args)
       || !isPlainObject(payload.args)
-      || Reflect.ownKeys(payload.args).some(key => key !== 'device')) {
+      || Reflect.ownKeys(payload.args).length !== 0) {
       throw new TypertGatewayError(
         'gateway/arguments-invalid',
         REMOTE_EVENT_STREAM_ENDPOINT,
-        'forwarded Remote event stream requires an empty args object or a device admission',
+        'forwarded Remote event stream requires an empty args object',
       )
     }
-    const device = Object.hasOwn(payload.args, 'device')
-      ? parseDeviceAdmission(payload.args.device)
-      : undefined
     const registration = this.remoteEvents
     if (registration === undefined) {
       throw new TypertGatewayError(
@@ -659,39 +626,28 @@ export class TypertGatewayService extends Service implements TypertGateway {
         'forwarded Remote event source is unavailable',
       )
     }
-    let client: RemoteEventClient | undefined
-    const revocation = new AbortController()
-    const stopRevocation = device === undefined ? undefined : this.ctx.on('deviceTrust/grantsRevoked', ({ revokedAt, deviceIds }) => {
-      if (!deviceIds.includes(device.deviceId as DeviceId)) return
-      revocation.abort(new RemoteError('device/already-revoked', 'device grant was revoked during its Remote event stream', {
-        deviceId: device.deviceId, revokedAt,
-      }))
-      if (client !== undefined) this.removeRemoteEventClient(client)
-    })
-    const lifetime = AbortSignal.any([signal, registration.lifetime.signal, revocation.signal])
-    let unbind: (() => void) | undefined
-    try {
-      lifetime.throwIfAborted()
-      const replyPermissions = device === undefined ? this.interactionReplyPermissions : await this.admitDeviceClient(device)
-      if (device !== undefined && connection !== undefined) unbind = this.bindDeviceConnection(device.deviceId as DeviceId, connection)
-      lifetime.throwIfAborted()
-      let clientId = randomUUID() as RemoteEventClientId
-      while (this.remoteEventClients.has(clientId)) clientId = randomUUID() as RemoteEventClientId
-      client = {
-        version, id: clientId, queue: new RemoteEventQueue(), deliveries: new Map(), replyPermissions,
-        ...device === undefined ? {} : { deviceId: device.deviceId as DeviceId },
-      }
-      this.remoteEventClients.set(clientId, client)
+    const lifetime = AbortSignal.any([signal, registration.lifetime.signal, peer.signal])
+    let clientId = randomUUID() as RemoteEventClientId
+    while (this.remoteEventClients.has(clientId)) clientId = randomUUID() as RemoteEventClientId
+    const client: RemoteEventClient = {
+      peer,
+      id: clientId,
+      queue: new RemoteEventQueue(),
+      signal: lifetime,
+      deliveries: new Map(),
+      principal: peer.principal,
+      // oxlint-disable-next-line typescript/no-unnecessary-condition -- other packages merge non-owner kinds into PrincipalMap.
+      answers: peer.principal.kind === 'owner',
+    }
+    this.remoteEventClients.set(clientId, client)
+    if (client.answers) {
       for (const pending of this.pendingRemoteEvents.values()) this.deliverRemoteEvent(pending, client)
-      yield { ...REMOTE_EVENT_STREAM_READY, clientId, host: registration.host,
-        ...(version === 2 ? { pendingInteractionIds: [...client.deliveries.values()]
-          .filter(pending => pending.interaction !== undefined).map(pending => pending.id) } : {}),
-      }
+    }
+    try {
+      yield { ...REMOTE_EVENT_STREAM_READY, clientId, host: registration.host }
       yield* client.queue.iterate(lifetime)
     } finally {
-      unbind?.()
-      stopRevocation?.()
-      if (client !== undefined) this.removeRemoteEventClient(client)
+      this.removeRemoteEventClient(client)
     }
   }
 
@@ -719,7 +675,21 @@ export class TypertGatewayService extends Service implements TypertGateway {
       event: frame.event,
       args: frame.args,
     }
-    for (const client of this.remoteEventClients.values()) client.queue.push(wire)
+    let resolved = false
+    let resources: readonly RemoteAccessResource[] | undefined
+    for (const client of this.remoteEventClients.values()) {
+      if (!client.answers) {
+        // A non-owner receives the whole notification or nothing: its resources decide, payloads are never trimmed,
+        // and a notification with invalid resources reaches no non-owner.
+        if (!resolved) {
+          resources = eventResources(frame.resources, frame.args)
+          resolved = true
+        }
+        if (resources === undefined) continue
+        if (this.ctx.remoteAccess.decide({ principal: client.principal, action: `event:${frame.event}`, resources }).kind === 'deny') continue
+      }
+      client.queue.push(wire)
+    }
   }
 
   private startRemoteEvent(source: TypertRemoteEventInvocation): void {
@@ -749,28 +719,15 @@ export class TypertGatewayService extends Service implements TypertGateway {
         source.resolve({ kind: 'next' })
         return
       }
-      const createdAt = Date.now()
-      const timeoutMs = source.interaction === undefined
-        ? undefined : this.config.interactionTimeoutMs?.[source.interaction.type]
-      const expiry = timeoutMs === undefined ? undefined
-        : deadline(projected.signal, timeoutMs, 'GATEWAY_INTERACTION_EXPIRED')
-      const signal = expiry?.signal ?? projected.signal
+      const signals = new Set(projected.signal === undefined ? [] : [projected.signal])
       const abort = (): void => {
-        if (expiry !== undefined && timeoutOf(expiry.signal, 'GATEWAY_INTERACTION_EXPIRED') !== undefined) {
-          this.expireRemoteEvent(pending)
-          return
-        }
-        const reason = signal?.reason as unknown
+        const reason: unknown = [...signals].find(signal => signal.aborted)?.reason
         this.cancelRemoteEvent(pending, reason instanceof Error
           ? reason
           : new Error('typert gateway: Remote event was cancelled', { cause: reason }))
       }
       const pending: PendingRemoteEvent = {
         id,
-        ...(source.interaction === undefined ? {} : { interaction: {
-          ...source.interaction, requestId: id, createdAt, status: 'pending' as const, revision: 1,
-          ...(timeoutMs === undefined ? {} : { expiresAt: createdAt + timeoutMs }),
-        } }),
         source,
         frame: {
           type: 'waterfall',
@@ -782,65 +739,36 @@ export class TypertGatewayService extends Service implements TypertGateway {
         deliveries: new Set(),
         releaseContext,
         releaseSignal: () => {
-          signal?.removeEventListener('abort', abort)
-          expiry?.[Symbol.dispose]()
+          for (const signal of signals) signal.removeEventListener('abort', abort)
         },
       }
       this.pendingRemoteEvents.set(id, pending)
-      signal?.addEventListener('abort', abort, { once: true })
-      if (signal?.aborted === true) abort()
-      else for (const client of this.remoteEventClients.values()) this.deliverRemoteEvent(pending, client)
+      for (const signal of signals) signal.addEventListener('abort', abort, { once: true })
+      if ([...signals].some(signal => signal.aborted)) abort()
+      else {
+        for (const client of this.remoteEventClients.values()) {
+          if (client.answers) this.deliverRemoteEvent(pending, client)
+        }
+      }
     } catch (error) {
       source.reject(error)
     }
   }
 
   private deliverRemoteEvent(pending: PendingRemoteEvent, client: RemoteEventClient): void {
-    if (this.expireRemoteEventIfDue(pending)) return
     pending.deliveries.add(client)
     client.deliveries.set(pending.id, pending)
-    client.queue.push(client.version === 2 && pending.interaction !== undefined
-      ? { ...pending.frame, interaction: pending.interaction } : pending.frame)
+    client.queue.push(pending.frame)
   }
 
   private receiveRemoteEventResult(
     client: RemoteEventClient,
     result: ReturnType<typeof parseRemoteEventResult>,
-    version: RemoteProtocolVersion,
   ): void {
     const pending = this.pendingRemoteEvents.get(result.eventId)
-    if (pending === undefined || !pending.deliveries.has(client) || this.expireRemoteEventIfDue(pending)) {
-      throw new RemoteError('interaction-closed', 'Interaction delivery is no longer active', { eventId: result.eventId })
-    }
-    if (version !== client.version) {
-      throw new RemoteError('gateway/input-invalid', 'Remote event result protocol must match its delivery generation', {
-        endpoint: REMOTE_EVENT_RESULT_ENDPOINT, field: 'apiProtocolVersion',
-      })
-    }
-    if (client.version === 2 && pending.interaction !== undefined) {
-      if (result.interactionRevision === undefined) {
-        throw new RemoteError('gateway/input-invalid', 'Interaction result requires its delivered revision', {
-          endpoint: REMOTE_EVENT_RESULT_ENDPOINT, field: 'interactionRevision',
-        })
-      }
-      if (result.interactionRevision !== pending.interaction.revision) {
-        throw new RemoteError('revision-conflict', 'Interaction revision does not match the pending request', {
-          eventId: result.eventId,
-          expectedRevision: pending.interaction.revision,
-          receivedRevision: result.interactionRevision,
-        })
-      }
-    } else if (result.interactionRevision !== undefined) {
-      throw new RemoteError('gateway/input-invalid', 'Remote event delivery has no interaction revision', {
-        endpoint: REMOTE_EVENT_RESULT_ENDPOINT, field: 'interactionRevision',
-      })
-    }
-    const requiredPermission = pending.interaction?.requiredPermission
-    if (requiredPermission !== undefined && !client.replyPermissions.has(requiredPermission)) {
-      throw new RemoteError('gateway/permission-denied',
-        'Client is not permitted to answer this interaction kind',
-        { endpoint: REMOTE_EVENT_RESULT_ENDPOINT, httpStatus: 403 })
-    }
+    // Settlement and Client replacement may race the result request. Results
+    // from a completed event or a superseded delivery are idempotent no-ops.
+    if (pending === undefined || !pending.deliveries.has(client)) return
     this.removeRemoteEventDelivery(pending, client)
     if (result.outcome.kind === 'result') {
       this.settleRemoteEvent(pending, {
@@ -854,107 +782,9 @@ export class TypertGatewayService extends Service implements TypertGateway {
     }
   }
 
-  /** Device-owned deliveries require a fresh proof from that same device on every reply. */
-  private async admitEventResult(client: RemoteEventClient, value: unknown): Promise<void> {
-    if (client.deviceId === undefined && value === undefined) return
-    const reject = (): never => {
-      throw new RemoteError('gateway/permission-denied', 'Remote event result does not prove its delivery device identity', {
-        endpoint: REMOTE_EVENT_RESULT_ENDPOINT, reason: 'device-identity',
-      })
-    }
-    if (client.deviceId === undefined || value === undefined) reject()
-    const device = parseDeviceAdmission(value)
-    if (device.deviceId !== client.deviceId) reject()
-    await this.admitDeviceClient(device)
-  }
-
   private removeRemoteEventDelivery(pending: PendingRemoteEvent, client: RemoteEventClient): void {
     pending.deliveries.delete(client)
     client.deliveries.delete(pending.id)
-  }
-
-  /**
-   * Resolve one signed device admission and derive the connecting client's
-   * reply permissions from its section 21 role set. The device-trust service
-   * is resolved lazily: a composition without it advertises no device
-   * capabilities, and a device identity presented to such a Gateway fails
-   * loud here instead of silently falling back to the anonymous default.
-   * @param device - the admission fields parsed from the stream open payload.
-   * @returns the admitted device's permission set as reply permissions.
-   */
-  private async admitDeviceClient(device: DeviceAdmissionWire): Promise<ReadonlySet<string>> {
-    const deviceTrust = this.ctx.get('deviceTrust')
-    if (deviceTrust === undefined) {
-      throw new TypertGatewayError(
-        'gateway/service-unavailable',
-        REMOTE_EVENT_STREAM_ENDPOINT,
-        'device admission requires the device-trust service',
-      )
-    }
-    const admission = await deviceTrust.admitDevice({
-      deviceId: device.deviceId as DeviceId,
-      timestamp: device.timestamp,
-      nonce: device.nonce,
-      signature: device.signature,
-    })
-    return new Set<string>(admission.permissions)
-  }
-
-  /**
-   * Verify one signed per-request device admission and gate the endpoint on
-   * the caller's role set. The capability owning the endpoint declares its
-   * `requiredPermission`; a device caller without it — and a device caller on
-   * an undeclared capability — is refused before dispatch, while anonymous
-   * requests never take this path. Failures throw; the RPC path folds them
-   * through its envelope and the stream path surfaces them as the open error.
-   * @param endpoint - canonical Remote endpoint the device wants to invoke.
-   * @param device - the envelope's validated `device` field.
-   */
-  private async admitRpcDevice(endpoint: string, device: DeviceAdmissionWire): Promise<void> {
-    const deviceTrust = this.ctx.get('deviceTrust')
-    if (deviceTrust === undefined) {
-      throw new TypertGatewayError(
-        'gateway/service-unavailable',
-        endpoint,
-        'device admission requires the device-trust service',
-      )
-    }
-    const admission = await deviceTrust.admitDevice({
-      deviceId: device.deviceId as DeviceId,
-      timestamp: device.timestamp,
-      nonce: device.nonce,
-      signature: device.signature,
-    })
-    const required = this.requiredPermissionOf(endpoint)
-    if (required === undefined) {
-      throw new RemoteError(
-        'gateway/permission-denied',
-        'no capability declares device access for this endpoint',
-        { endpoint, role: admission.role, reason: 'undeclared' },
-      )
-    }
-    if (!admission.permissions.includes(required)) {
-      throw new RemoteError(
-        'gateway/permission-denied',
-        `device role "${admission.role}" does not hold the required permission`,
-        { endpoint, role: admission.role, required },
-      )
-    }
-  }
-
-  /** The owning capability's declared permission for one endpoint, if any. */
-  private requiredPermissionOf(endpoint: string): RemoteCapabilityPermission | undefined {
-    const separator = endpoint.indexOf('/')
-    if (separator <= 0) return undefined
-    const namespace = endpoint.slice(0, separator)
-    const method = endpoint.slice(separator + 1)
-    for (const { binding } of this.activeBindings(endpoint)) {
-      if (binding.namespace !== namespace) continue
-      for (const capability of binding.capabilities ?? []) {
-        if (capability.methods.includes(method)) return capability.requiredPermission
-      }
-    }
-    return undefined
   }
 
   private removeRemoteEventClient(client: RemoteEventClient): void {
@@ -964,32 +794,17 @@ export class TypertGatewayService extends Service implements TypertGateway {
   }
 
   private settleRemoteEvent(pending: PendingRemoteEvent, outcome: TypertRemoteEventOutcome): void {
-    this.finishRemoteEvent(pending, outcome.kind === 'result' ? 'resolved' : 'delegated')
+    this.finishRemoteEvent(pending)
     pending.source.resolve(outcome)
   }
 
   private cancelRemoteEvent(pending: PendingRemoteEvent, reason: unknown): void {
     if (this.pendingRemoteEvents.get(pending.id) !== pending) return
-    this.finishRemoteEvent(pending, 'cancelled')
+    this.finishRemoteEvent(pending)
     pending.source.reject(reason)
   }
 
-  private expireRemoteEventIfDue(pending: PendingRemoteEvent): boolean {
-    const expiresAt = pending.interaction?.expiresAt
-    if (expiresAt === undefined || Date.now() < expiresAt) return false
-    this.expireRemoteEvent(pending)
-    return true
-  }
-
-  private expireRemoteEvent(pending: PendingRemoteEvent): void {
-    if (this.pendingRemoteEvents.get(pending.id) !== pending) return
-    this.finishRemoteEvent(pending, 'expired')
-    pending.source.reject(new RemoteError('interaction-expired', 'Remote interaction expired before a response was accepted', {
-      eventId: pending.id,
-    }))
-  }
-
-  private finishRemoteEvent(pending: PendingRemoteEvent, status: Exclude<RemoteInteractionRecord['status'], 'pending'>): void {
+  private finishRemoteEvent(pending: PendingRemoteEvent): void {
     this.pendingRemoteEvents.delete(pending.id)
     pending.releaseSignal()
     pending.releaseContext()
@@ -999,11 +814,7 @@ export class TypertGatewayService extends Service implements TypertGateway {
       type: 'cancel',
       eventId: pending.id,
     }
-    for (const client of clients) {
-      client.queue.push(client.version === 2 && pending.interaction !== undefined
-        ? { ...cancellation, interaction: { ...pending.interaction, status, revision: pending.interaction.revision + 1 } }
-        : cancellation)
-    }
+    for (const client of clients) client.queue.push(cancellation)
   }
 
   private closeRemoteEvents(reason: unknown): void {
@@ -1013,24 +824,64 @@ export class TypertGatewayService extends Service implements TypertGateway {
     for (const client of [...this.remoteEventClients.values()]) client.queue.end()
   }
 
-  private async invokeRpc(endpoint: string, payload: unknown, signal: AbortSignal): Promise<ConnectionRpcResult> {
+  private async invokeRpc(
+    endpoint: string,
+    payload: unknown,
+    signal: AbortSignal,
+    peer: PeerScope,
+  ): Promise<ConnectionRpcResult> {
     try {
-      const value = await this.invoke(remoteRequest(endpoint, payload, signal))
+      const prepared = await this.prepareInvocation(
+        remoteRequest(endpoint, payload, signal, peer),
+        new AbortController(),
+      )
+      const value = await this.invokePrepared(prepared)
       // A void or explicitly absent business result carries no `value` field;
       // JSON has no `undefined`, and the envelope's optional slot is the one
       // representation of absence that both args and results already use.
-      return { ok: true, value }
+      return encodeRpcResult(value, prepared.descriptor.result)
     } catch (error) {
       return rpcFailure(error)
     }
   }
 
-  private async prepareInvocation(request: InvokeRemoteRequest): Promise<PreparedInvocation> {
+  /** `control` fails the logical stream when an uplink item is rejected; unary calls hand over an inert one. */
+  private async prepareInvocation(
+    request: InvokeRemoteRequest,
+    control: AbortController,
+  ): Promise<PreparedInvocation> {
     const endpoint = endpointOf(request.namespace, request.method)
+    assertPeerLive(request.peer, endpoint)
     const descriptor = this.resolveDescriptor(request.namespace, request.method, endpoint)
     assertExactArguments(request.args, descriptor, endpoint)
-    const receiverContext = await this.resolveReceiverContext(descriptor, request.args, endpoint)
-    const receiver = receiverContext.get(descriptor.service) as unknown
+    const validated = validateArguments(descriptor, request.args, endpoint)
+    // Access precedes lookup resolution, so a refused call activates nothing.
+    // oxlint-disable-next-line typescript/no-unnecessary-condition -- other packages merge non-owner kinds into PrincipalMap.
+    if (request.peer.principal.kind !== 'owner') {
+      const resources = callResources(
+        this.ctx.typert,
+        this.resourceReaders(descriptor),
+        descriptor,
+        validated,
+        request.signal ?? NEVER_ABORTED_SIGNAL,
+      )
+      const decision: RemoteAccessDecision = resources === undefined
+        ? { kind: 'deny', reason: 'resource-invalid' }
+        : this.ctx.remoteAccess.decide({
+          principal: request.peer.principal,
+          action: `${descriptor.namespace}/${descriptor.method}`,
+          resources,
+          args: validated,
+        })
+      if (decision.kind === 'deny') {
+        throw new RemoteError('remote-access/denied', `remote access: ${endpoint}: access denied (${decision.reason})`, {
+          action: endpoint,
+          reason: decision.reason,
+        })
+      }
+    }
+    const receiverContext = await this.resolveReceiverContext(descriptor, validated, endpoint)
+    const receiver: unknown = receiverContext.get(descriptor.service)
     if (!isObject(receiver)) {
       throw new TypertGatewayError(
         'gateway/service-unavailable',
@@ -1040,10 +891,29 @@ export class TypertGatewayService extends Service implements TypertGateway {
     }
     validateBinding(receiver, descriptor.service, descriptor.namespace, endpoint)
     const args = await Promise.all(descriptor.parameters.map(parameter =>
-      this.resolveParameter(parameter, request.args, endpoint)))
-    if (descriptor.cancellation !== undefined) args.push(request.signal ?? NEVER_ABORTED_SIGNAL)
+      this.resolveParameter(parameter, validated, endpoint)))
+    const signal = methodSignal(request, control, descriptor.mode === 'stream')
+    const invocation = new GatewayInvocation(
+      { namespace: request.namespace, method: request.method, args: request.args },
+      descriptor.service,
+      request.peer,
+      signal,
+      {
+        source: request.uplink ?? EMPTY_ASYNC_ITERABLE,
+        window: request.uplinkWindow,
+        codec: descriptor.uplink?.codec ?? SRC_JSON_CODEC,
+        endpoint,
+        abort: (reason) => { control.abort(reason) },
+      },
+    )
+    if (descriptor.cancellation !== undefined) args.push(signal)
+    // The method runs on a Service view bound to a Context carrying this call:
+    // Cordis rebinds `this.ctx` to the accessing Context, so `this.ctx.invocation`
+    // is this call and nothing travels through the parameter list. The view
+    // resolves the Service the plain read above already found.
+    const callReceiver = receiverContext.extend({ invocation }).get(descriptor.service) as object
     const implementation = descriptor.implementation ?? descriptor.method
-    const method = Reflect.get(receiver, implementation) as unknown
+    const method: unknown = Reflect.get(callReceiver, implementation)
     if (typeof method !== 'function') {
       throw new TypertGatewayError(
         'gateway/method-unavailable',
@@ -1051,7 +921,14 @@ export class TypertGatewayService extends Service implements TypertGateway {
         `active Service ${JSON.stringify(descriptor.service)} has no callable method ${JSON.stringify(implementation)}`,
       )
     }
-    return { endpoint, descriptor, receiver, args, method: method as (...args: never[]) => unknown }
+    return {
+      endpoint,
+      descriptor,
+      receiver: callReceiver,
+      args,
+      method: method as (...args: never[]) => unknown,
+      invocation,
+    }
   }
 
   private resolveDescriptor(namespace: string, method: string, endpoint: string): InvocationDescriptor {
@@ -1069,7 +946,14 @@ export class TypertGatewayService extends Service implements TypertGateway {
 
   private resolveSrcDescriptor(namespace: string, method: string, endpoint: string): InvocationDescriptor {
     const candidates: InvocationDescriptor[] = []
-    for (const { binding, original } of this.activeBindings(endpoint)) {
+    for (const [serviceKey, definition] of Object.entries(this.ctx.reflect.props)) {
+      if (definition.type !== 'service') continue
+      const receiver: unknown = this.ctx.get(serviceKey)
+      if (!isObject(receiver)) continue
+      const original = originalOf(receiver)
+      const value: unknown = Reflect.get(original, 'typertRemote')
+      if (value === undefined) continue
+      const binding = readBinding(value, original, serviceKey, endpoint)
       if (binding.namespace !== namespace) continue
       const marker = remoteMethods(original).find(candidate => (candidate.exportName ?? candidate.method) === method)
       if (marker === undefined) continue
@@ -1086,19 +970,6 @@ export class TypertGatewayService extends Service implements TypertGateway {
       )
     }
     return candidates[0] as InvocationDescriptor
-  }
-
-  private *activeBindings(endpoint: string): Generator<ResolvedBinding> {
-    for (const [serviceKey, definition] of Object.entries(this.ctx.reflect.props)) {
-      if (definition.type !== 'service') continue
-      const receiver = this.ctx.get(serviceKey) as unknown
-      if (!isObject(receiver)) continue
-      const original = originalOf(receiver)
-      const value = Reflect.get(original, 'typertRemote') as unknown
-      if (value === undefined) continue
-      const binding = readBinding(value, original, serviceKey, endpoint)
-      yield { binding, original }
-    }
   }
 
   private srcDescriptor(
@@ -1249,13 +1120,10 @@ export class TypertGatewayService extends Service implements TypertGateway {
     args: Readonly<Record<string, unknown>>,
     endpoint: string,
   ): Promise<unknown> {
-    // An absent field reached assertExactArguments' allowance, so this parameter
-    // takes undefined; a present-but-undefined field is not JSON-safe input and
-    // still fails decode. Lookup ids are never omissible, so absence here only
-    // ever belongs to a json parameter.
+    // Lookup ids are never omissible, so an absent field belongs to a json parameter that takes undefined.
     if (!Object.hasOwn(args, parameter.wire)) return undefined
+    if (parameter.source === 'json') return args[parameter.wire]
     const value = decode(parameter.codec, args[parameter.wire], endpoint, parameter.wire)
-    if (parameter.source === 'json') return value
     const key = parameter.lookup
     /* v8 ignore next -- registry validation rejects strict descriptors without a key, and SRC derivation always supplies one. */
     if (key === undefined) {
@@ -1308,6 +1176,67 @@ export class TypertGatewayService extends Service implements TypertGateway {
   }
 }
 
+function encodeRpcResult(value: unknown, codec: TypertCodec): ConnectionRpcResult {
+  const attachments: ConnectionRpcAttachment[] = []
+  const writeBytes = (bytes: Uint8Array, path: readonly (string | number)[]): null => {
+    attachments.push({ path: [...path], bytes })
+    return null
+  }
+  const encoded = codec.mode === 'strict'
+    ? codec.encode?.(value, writeBytes) ?? value
+    : encodeRuntimeResult(value, writeBytes)
+  return { ok: true, value: encoded, ...(attachments.length === 0 ? {} : { attachments }) }
+}
+
+function encodeRuntimeResult(
+  input: unknown,
+  writeBytes: (bytes: Uint8Array, path: readonly (string | number)[]) => null,
+): unknown {
+  const path: (string | number)[] = []
+  const ancestors = new Set<object>()
+  const extract = (input: unknown, key: string): unknown => {
+    // Capture accessors and toJSON once, before materializing the JSON metadata.
+    let value = input
+    if (input !== null && typeof input === 'object' && !(input instanceof Uint8Array)) {
+      const toJSON: unknown = Reflect.get(input, 'toJSON')
+      if (typeof toJSON === 'function') value = Reflect.apply(toJSON, input, [key])
+    }
+    if (value instanceof Uint8Array) return writeBytes(value, path)
+    if (typeof value !== 'object' || value === null) return value
+    if (value instanceof Number || value instanceof String || value instanceof Boolean) return value.valueOf()
+    if (ancestors.has(value)) throw new TypeError('gateway: circular RPC result')
+    ancestors.add(value)
+    let copy: object
+    if (Array.isArray(value)) {
+      const items: unknown[] = []
+      // JSON arrays include every index, even holes and non-enumerable elements.
+      for (let index = 0, length = value.length; index < length; index++) items.push(child(value[index], index))
+      copy = items
+    } else {
+      const fields: Record<string, unknown> = {}
+      for (const key of Object.keys(value)) {
+        const item: unknown = Reflect.get(value, key)
+        // A toJSON method on the projected object must not run a second time.
+        if (key === 'toJSON' && typeof item === 'function') continue
+        const extracted = child(item, key)
+        if (key === '__proto__') Object.defineProperty(fields, key, { value: extracted, enumerable: true })
+        else fields[key] = extracted
+      }
+      copy = fields
+    }
+    ancestors.delete(value)
+    return copy
+  }
+  const child = (value: unknown, key: string | number): unknown => {
+    if (typeof value !== 'object' || value === null) return value
+    path.push(key)
+    const extracted = extract(value, String(key))
+    path.pop()
+    return extracted
+  }
+  return extract(input, 'value')
+}
+
 type RemoteEventWireFrame =
   | RemoteEventEmitFrame
   | RemoteEventInvocationFrame
@@ -1331,15 +1260,18 @@ class RemoteEventQueue {
     this.waiter?.()
   }
 
+  /**
+   * Yield buffered and later frames until the queue ends or `signal` aborts.
+   * An abort discards the frames still buffered, so a revoked Peer receives none of them.
+   * @param signal - Client generation lifetime.
+   * @returns the queued wire frames in push order.
+   */
   async *iterate(signal: AbortSignal): AsyncGenerator<RemoteEventWireFrame> {
     const abort = (): void => { this.end() }
     signal.addEventListener('abort', abort, { once: true })
     try {
       while (true) {
-        while (this.frames.size > 0) {
-          if (signal.aborted) return
-          yield this.frames.popFront() as RemoteEventWireFrame
-        }
+        while (this.frames.size > 0 && !signal.aborted) yield this.frames.popFront() as RemoteEventWireFrame
         if (this.closed || signal.aborted) return
         await new Promise<void>((resolve) => { this.waiter = resolve })
         this.waiter = undefined
@@ -1363,6 +1295,15 @@ function assertRemoteEventName(frame: { readonly event: unknown }): void {
   }
 }
 
+function requireInteractions(peer: PeerScope, endpoint: string): void {
+  if (peer.interactions !== 'answer') {
+    throw new TypertGatewayError(
+      'gateway/interactions-forbidden', endpoint,
+      'forwarded Remote events require interactions=answer',
+    )
+  }
+}
+
 function parseRemoteEventResultPayload(payload: unknown): ReturnType<typeof parseRemoteEventResult> {
   if (!isObject(payload)
     || !isPlainObject(payload)
@@ -1373,7 +1314,14 @@ function parseRemoteEventResultPayload(payload: unknown): ReturnType<typeof pars
   return parseRemoteEventResult(payload.args)
 }
 
-function remoteRequest(endpoint: string, payload: unknown, signal: AbortSignal): InvokeRemoteRequest {
+function remoteRequest(
+  endpoint: string,
+  payload: unknown,
+  signal: AbortSignal,
+  peer: PeerScope,
+): InvokeRemoteRequest {
+  // A disposed Peer is refused whatever it sent.
+  assertPeerLive(peer, endpoint)
   const segments = endpoint.split('/')
   if (segments.length !== 2 || segments[0] === '' || segments[1] === '') {
     throw new Error(`invalid Remote endpoint ${JSON.stringify(endpoint)}`)
@@ -1387,7 +1335,34 @@ function remoteRequest(endpoint: string, payload: unknown, signal: AbortSignal):
     || !isPlainObject(payload.args)) {
     throw new Error('Remote payload must contain exactly one plain-object args field')
   }
-  return { namespace, method, args: payload.args, signal }
+  return { namespace, method, args: payload.args, signal, peer }
+}
+
+/**
+ * The signal a method observes. A carrier that supplies an uplink fails the
+ * stream through `control` when an item is rejected, so that invocation joins
+ * `control` with the carrier signal; a stream also ends with its Peer. Every
+ * other invocation keeps the carrier signal's identity.
+ */
+function methodSignal(request: InvokeRemoteRequest, control: AbortController, stream: boolean): AbortSignal {
+  const carrier = request.signal
+  if (request.uplink === undefined && !stream) return carrier ?? NEVER_ABORTED_SIGNAL
+  const joined = carrier === undefined || carrier === control.signal ? [control.signal] : [carrier, control.signal]
+  // `AbortSignal.any` leaves each source only a weak reference to the joined signal,
+  // so per-stream joins on a Host-lifetime Peer signal accumulate nothing.
+  return AbortSignal.any(stream ? [...joined, request.peer.signal] : joined)
+}
+
+/**
+ * Refuse a call whose Peer has been disposed.
+ * @param peer - Peer the call speaks for.
+ * @param endpoint - endpoint named in the failure.
+ * @throws {@link TypertGatewayError} `gateway/peer-disposed` once the Peer is disposed.
+ */
+function assertPeerLive(peer: PeerScope, endpoint: string): void {
+  if (peer.signal.aborted) {
+    throw new TypertGatewayError('gateway/peer-disposed', endpoint, 'the calling Peer has been disposed')
+  }
 }
 
 function isIterable(value: unknown): value is Iterable<unknown> | AsyncIterable<unknown> {
@@ -1399,35 +1374,199 @@ function isIterable(value: unknown): value is Iterable<unknown> | AsyncIterable<
 async function *cancellableStream(
   source: Iterable<unknown> | AsyncIterable<unknown>,
   endpoint: string,
-  signal: AbortSignal,
+  invocation: GatewayInvocation,
 ): AsyncGenerator {
-  const asyncFactory = Reflect.get(source, Symbol.asyncIterator) as unknown
-  const syncFactory = Reflect.get(source, Symbol.iterator) as unknown
+  const { signal } = invocation
+  const asyncFactory: unknown = Reflect.get(source, Symbol.asyncIterator)
+  const syncFactory: unknown = Reflect.get(source, Symbol.iterator)
   const iterator = typeof asyncFactory === 'function'
     ? Reflect.apply(asyncFactory, source, []) as AsyncIterator<unknown>
     : Reflect.apply(syncFactory as (...args: never[]) => Iterator<unknown>, source, [])
   let rejectAbort: ((error: unknown) => void) | undefined
-  const aborted = new Promise<never>((_resolve, reject) => { rejectAbort = reject })
   const onAbort = (): void => {
-    rejectAbort?.(remoteCancelled(endpoint, signal.reason))
+    rejectAbort?.(streamAbortFailure(endpoint, signal.reason))
   }
   signal.addEventListener('abort', onAbort, { once: true })
   try {
-    if (signal.aborted) throw remoteCancelled(endpoint, signal.reason)
     while (true) {
+      if (signal.aborted) throw streamAbortFailure(endpoint, signal.reason)
+      // Reusing a pending cancellation promise retains every completed race.
+      const aborted = new Promise<never>((_resolve, reject) => { rejectAbort = reject })
+      // next() can abort and throw synchronously before the race subscribes.
+      void aborted.catch(() => undefined)
       const next = await Promise.race([Promise.resolve(iterator.next()), aborted])
+      rejectAbort = undefined
       if (next.done === true) return
       yield next.value
     }
   } finally {
+    rejectAbort = undefined
     signal.removeEventListener('abort', onAbort)
+    // The uplink closes first so a method blocked on `uplink.next()` unwinds
+    // before its iterator is asked to return.
+    await invocation.close()
     await iterator.return?.()
   }
+}
+
+/**
+ * The failure a stream surfaces for its abort: a Remote failure used as the
+ * reason is the Gateway or carrier failing the stream itself (a rejected,
+ * overflowing, or misplaced uplink item); any other abort is a cancellation.
+ */
+function streamAbortFailure(endpoint: string, reason: unknown): unknown {
+  return remoteErrorOf(reason) === undefined ? remoteCancelled(endpoint, reason) : reason
 }
 
 /** Carrier-signal cancellation as the shared failure vocabulary expresses it. */
 function remoteCancelled(endpoint: string, cause: unknown): RemoteError<'gateway/cancelled'> {
   return new RemoteError('gateway/cancelled', `Remote invocation "${endpoint}" was aborted`, {}, { cause })
+}
+
+/**
+ * The iterable `invocation.uplink()` returns. Each uplink item passes the
+ * descriptor codec, or the JSON-safety check when the descriptor declares no
+ * uplink, before delivery; a rejected item fails the whole logical stream.
+ * Iteration ends when the Client half-closes or the downlink finishes, and
+ * fails when the stream is cancelled, so a method blocked on the uplink always
+ * wakes.
+ */
+class UplinkDecoder implements AsyncIterable<unknown>, AsyncIterator<unknown> {
+  private readonly source: AsyncIterator<unknown>
+  private readonly interrupted = new Set<PromiseWithResolvers<IteratorResult<unknown>>>()
+  private readonly onAbort = (): void => {
+    const failure = streamAbortFailure(this.endpoint, this.signal.reason)
+    for (const read of this.interrupted) read.reject(failure)
+  }
+  private closed = false
+
+  constructor(
+    uplink: AsyncIterable<unknown>,
+    private readonly codec: TypertCodec,
+    private readonly endpoint: string,
+    private readonly signal: AbortSignal,
+    private readonly abort: (reason: unknown) => void,
+  ) {
+    this.source = uplink[Symbol.asyncIterator]()
+    signal.addEventListener('abort', this.onAbort, { once: true })
+  }
+
+  [Symbol.asyncIterator](): AsyncIterator<unknown> {
+    return this
+  }
+
+  async next(): Promise<IteratorResult<unknown>> {
+    // A cancelled stream reports the cancellation on every read, closed or not.
+    if (this.signal.aborted) throw streamAbortFailure(this.endpoint, this.signal.reason)
+    if (this.closed) return UPLINK_DONE
+    // Only pending reads belong to the decoder; finish() must wake all of them.
+    const interrupted = Promise.withResolvers<IteratorResult<unknown>>()
+    this.interrupted.add(interrupted)
+    // The source can abort and throw synchronously before the race subscribes.
+    void interrupted.promise.catch(() => undefined)
+    let next: IteratorResult<unknown>
+    try {
+      next = await Promise.race([this.source.next(), interrupted.promise])
+    } finally {
+      this.interrupted.delete(interrupted)
+    }
+    if (next.done === true) {
+      this.finish()
+      return UPLINK_DONE
+    }
+    let value: unknown
+    try {
+      // A top-level `undefined` is the absent `value` of its frame: without a codec it is the item itself.
+      value = next.value === undefined && this.codec.mode === 'src-json'
+        ? undefined
+        : decode(this.codec, next.value, this.endpoint, 'uplink')
+    } catch (failure) {
+      // The codec failure (`gateway/input-invalid`, field `uplink`) fails the whole logical stream.
+      this.abort(failure)
+      throw failure
+    }
+    return { value, done: false }
+  }
+
+  /** Downlink finished or the method stopped reading: unread uplink items are dropped. */
+  return(): Promise<IteratorResult<unknown>> {
+    if (!this.closed) {
+      this.finish()
+      // The carrier owns the source iterator; a generator blocked in next()
+      // completes this return once it yields, so it is not awaited here.
+      void Promise.resolve().then(() => this.source.return?.()).catch(() => undefined)
+    }
+    return Promise.resolve(UPLINK_DONE)
+  }
+
+  private finish(): void {
+    this.closed = true
+    this.signal.removeEventListener('abort', this.onAbort)
+    for (const read of this.interrupted) read.resolve(UPLINK_DONE)
+  }
+}
+
+/**
+ * The context of one Remote call as the receiving method reads it through
+ * `this.ctx.invocation`. The uplink is decoded on first use and released when
+ * the call's downlink finishes.
+ */
+class GatewayInvocation implements RemoteInvocation {
+  private decoder: UplinkDecoder | undefined
+  private taken = false
+
+  get uplinkWindow(): RemoteInvocation['uplinkWindow'] { return this.uplink_.window }
+
+  /**
+   * @param request - decoded endpoint and wire arguments.
+   * @param service - Cordis service key of the receiver.
+   * @param peer - Peer the call speaks for.
+   * @param signal - the signal the method observes.
+   * @param uplink - carrier items and the codec that decodes them.
+   */
+  constructor(
+    readonly request: RemoteInvocation['request'],
+    readonly service: string,
+    readonly peer: PeerScope,
+    readonly signal: AbortSignal,
+    private readonly uplink_: UplinkSource,
+  ) {}
+
+  uplink<In = unknown>(): AsyncIterable<In> {
+    if (this.taken) {
+      throw new Error(`typert gateway: ${this.uplink_.endpoint}: invocation.uplink() is available once per call`)
+    }
+    this.taken = true
+    const { source, codec, endpoint, abort } = this.uplink_
+    this.decoder = new UplinkDecoder(source, codec, endpoint, this.signal, abort)
+    // The descriptor codec decides what arrives; `In` is the caller's assertion.
+    return this.decoder as AsyncIterable<In>
+  }
+
+  /**
+   * The downlink finished: release the uplink. Unread items are dropped, and a
+   * carrier iterable the method never took is returned so it stops producing;
+   * a later `uplink()` throws like a second one would.
+   * @returns settles once a taken uplink has closed.
+   */
+  async close(): Promise<void> {
+    if (this.decoder !== undefined) {
+      await this.decoder.return()
+      return
+    }
+    this.taken = true
+    releaseUplink(this.uplink_.source)
+  }
+}
+
+/**
+ * Return a carrier uplink nobody will read, so it drops later items instead of
+ * buffering them. The carrier owns the iterator and `return()` is not awaited:
+ * a generator blocked in `next()` completes it only once it yields.
+ * @param source - the carrier's uplink iterable.
+ */
+function releaseUplink(source: AsyncIterable<unknown>): void {
+  void Promise.resolve().then(() => source[Symbol.asyncIterator]().return?.()).catch(() => undefined)
 }
 
 function rpcFailure(error: unknown): ConnectionRpcResult {
@@ -1460,7 +1599,7 @@ function validateBinding(
   endpoint: string,
 ): ResolvedBinding {
   const original = originalOf(receiver)
-  const value = Reflect.get(original, 'typertRemote') as unknown
+  const value: unknown = Reflect.get(original, 'typertRemote')
   if (value === undefined) {
     throw new TypertGatewayError(
       'gateway/binding-invalid',
@@ -1492,11 +1631,11 @@ function readBinding(
       `Service ${JSON.stringify(serviceKey)} has an inconsistent typertRemote binding`,
     )
   }
-  return value as unknown as TypertGatewayBinding
+  return value as TypertGatewayBinding
 }
 
 function originalOf(receiver: object): object {
-  const original = Reflect.get(receiver, symbols.original) as unknown
+  const original: unknown = Reflect.get(receiver, symbols.original)
   return isObject(original) ? original : receiver
 }
 
@@ -1572,6 +1711,28 @@ function assertExactArguments(
   throw new TypertGatewayError('gateway/arguments-invalid', endpoint, `args fields do not match the descriptor: ${clauses.join('; ')}`)
 }
 
+/**
+ * Decode every present JSON argument once through its parameter codec; a
+ * Typert codec drops object fields its compiled type does not declare. Lookup
+ * and Context identities keep their wire values; dispatch decodes and resolves
+ * them only after the access check. An absent field stays absent; a present
+ * `undefined` is not JSON-safe and fails decoding.
+ */
+function validateArguments(
+  descriptor: InvocationDescriptor,
+  args: Readonly<Record<string, unknown>>,
+  endpoint: string,
+): Readonly<Record<string, unknown>> {
+  const entries: [string, unknown][] = []
+  if (descriptor.invocation.kind === 'context') entries.push([descriptor.invocation.wire, args[descriptor.invocation.wire]])
+  for (const parameter of descriptor.parameters) {
+    if (!Object.hasOwn(args, parameter.wire)) continue
+    const value = args[parameter.wire]
+    entries.push([parameter.wire, parameter.source === 'json' ? decode(parameter.codec, value, endpoint, parameter.wire) : value])
+  }
+  return Object.fromEntries(entries)
+}
+
 function decode(
   codec: TypertCodec,
   value: unknown,
@@ -1580,7 +1741,7 @@ function decode(
 ): unknown {
   try {
     if (codec.mode === 'strict') {
-      value = codec.schema.parse(value)
+      value = codec.create().parse(value)
       /* v8 ignore next -- generated optional-input codecs are the only strict codecs that return undefined. */
       if (value === undefined) return value
     }
@@ -1639,37 +1800,6 @@ function isPlainObject(value: object): value is Record<string, unknown> {
 
 function isObject(value: unknown): value is object {
   return (typeof value === 'object' && value !== null) || typeof value === 'function'
-}
-
-/**
- * Validate the optional device admission argument of a Remote event stream
- * open payload at the wire boundary.
- * @param value - the `args.device` field the client presented.
- * @returns the admission fields to verify against the device-trust grants.
- * @throws TypertGatewayError `gateway/arguments-invalid` when the field is
- * not `{deviceId, timestamp, nonce, signature}` with a non-empty deviceId
- * string, a safe-integer epoch-ms timestamp, a non-empty nonce string, and a
- * non-empty signature string.
- */
-function parseDeviceAdmission(value: unknown): DeviceAdmissionWire {
-  if (!isObject(value)
-    || !isPlainObject(value)
-    || Reflect.ownKeys(value).length !== 4
-    || typeof value.deviceId !== 'string'
-    || value.deviceId === ''
-    || typeof value.timestamp !== 'number'
-    || !Number.isSafeInteger(value.timestamp)
-    || typeof value.nonce !== 'string'
-    || value.nonce === ''
-    || typeof value.signature !== 'string'
-    || value.signature === '') {
-    throw new TypertGatewayError(
-      'gateway/arguments-invalid',
-      REMOTE_EVENT_STREAM_ENDPOINT,
-      'device admission requires deviceId, an integer timestamp, a nonce, and a signature',
-    )
-  }
-  return { deviceId: value.deviceId, timestamp: value.timestamp, nonce: value.nonce, signature: value.signature }
 }
 
 export default TypertGatewayService

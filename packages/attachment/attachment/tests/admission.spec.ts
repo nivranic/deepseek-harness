@@ -10,14 +10,17 @@ const FILE_REF: FileAttachmentRef = {
   name: 'notes.md',
   bytes: 12,
 }
+const STORED_REF: ImageAttachmentRef = {
+  attachmentId: 'stored-1' as ImageAttachmentRef['attachmentId'],
+  mediaType: 'image/png',
+  bytes: 8,
+  width: 2,
+  height: 2,
+}
 
 /** Delegation double: records the exact saveImages batch and answers ordered refs. */
 function storeOf() {
   const mocks = {
-    imageLimits: {
-      maxImageBytes: 4, maxImagesPerMessage: 2, maxMessageImageBytes: 4,
-      maxImagePixels: 4, maxImageDimension: 2, mediaTypes: ['image/png'] as const,
-    },
     saveImages: vi.fn((inputs: readonly SaveImageAttachment[]) => Promise.resolve(inputs.map((input, index): ImageAttachmentRef => ({
       attachmentId: `att-${index + 1}` as ImageAttachmentRef['attachmentId'],
       mediaType: input.mediaType,
@@ -115,47 +118,6 @@ describe('admitEncodedFile', () => {
 })
 
 describe('AttachmentStore.admitPromptContent', () => {
-  const staged = {
-    type: 'staged-image' as const,
-    attachment: {
-      attachmentId: 'normalized' as ImageAttachmentRef['attachmentId'],
-      mediaType: 'image/png' as const, bytes: 1, width: 1, height: 1,
-    },
-    originalBytes: 3,
-  }
-
-  it('preserves staged references while counting their original bytes with inline images', async () => {
-    const { store, mocks } = storeOf()
-    await expect(store.admitPromptContent([
-      staged,
-      { type: 'file', attachment: FILE_REF },
-      { type: 'image', mediaType: 'image/png', data: 'AQ==' },
-    ])).resolves.toEqual([
-      { type: 'image', attachment: staged.attachment },
-      { type: 'file', attachment: FILE_REF },
-      { type: 'image', attachment: { attachmentId: 'att-1', mediaType: 'image/png', bytes: 1, width: 1, height: 1 } },
-    ])
-    expect(mocks.saveImages).toHaveBeenCalledWith([{ data: Uint8Array.of(1), mediaType: 'image/png' }])
-  })
-
-  it('rejects mixed and repeated image occurrences before saving inline data', async () => {
-    const { store, mocks } = storeOf()
-    const inline = { type: 'image' as const, mediaType: 'image/png' as const, data: 'AQI=' }
-    await expect(store.admitPromptContent([staged, inline])).rejects.toMatchObject({ code: 'IMAGES_TOO_LARGE' })
-    await expect(store.admitPromptContent([staged, staged])).rejects.toMatchObject({ code: 'IMAGES_TOO_LARGE' })
-    await expect(store.admitPromptContent([staged, staged, inline])).rejects.toMatchObject({ code: 'TOO_MANY_IMAGES' })
-    expect(mocks.saveImages).not.toHaveBeenCalled()
-  })
-
-  it('does not write staged images again and still rejects malformed inline base64', async () => {
-    const { store, mocks } = storeOf()
-    await expect(store.admitPromptContent([staged])).resolves.toEqual([{ type: 'image', attachment: staged.attachment }])
-    await expect(store.admitPromptContent([
-      staged, { type: 'image', mediaType: 'image/png', data: 'A' },
-    ])).rejects.toMatchObject({ code: 'INVALID_IMAGE_BASE64' })
-    expect(mocks.saveImages).not.toHaveBeenCalled()
-  })
-
   it('passes through text and durable files without touching image storage', async () => {
     const store = Object.setPrototypeOf({
       saveImages: () => { throw new Error('prompts without image uploads must not reach the store') },
@@ -182,5 +144,51 @@ describe('AttachmentStore.admitPromptContent', () => {
       { type: 'text', text: 'between' },
       { type: 'image', attachment: { attachmentId: 'att-2', mediaType: 'image/png', bytes: 1, width: 1, height: 1 } },
     ])
+  })
+
+  it('passes stored images through in part order and stores only the encoded ones', async () => {
+    const { store, mocks } = storeOf()
+    // The stored upload's 4 bytes and the encoded byte fill the budget exactly; the normalized 8 bytes do not count.
+    Object.defineProperty(store, 'imageLimits', { value: { maxImagesPerMessage: 2, maxMessageImageBytes: 5 } })
+    await expect(store.admitPromptContent([
+      { type: 'image', attachment: STORED_REF, encodedBytes: 4 },
+      { type: 'text', text: 'between' },
+      { type: 'image', mediaType: 'image/png', data: 'AQ==' },
+    ])).resolves.toEqual([
+      { type: 'image', attachment: STORED_REF },
+      { type: 'text', text: 'between' },
+      { type: 'image', attachment: { attachmentId: 'att-1', mediaType: 'image/png', bytes: 1, width: 1, height: 1 } },
+    ])
+    expect(mocks.saveImages).toHaveBeenCalledTimes(1)
+    expect((mocks.saveImages.mock.calls[0]?.[0] as readonly SaveImageAttachment[]).length).toBe(1)
+  })
+
+  it('counts stored images toward the image-count limit before storing anything', async () => {
+    const { store, mocks } = storeOf()
+    Object.defineProperty(store, 'imageLimits', { value: { maxImagesPerMessage: 1, maxMessageImageBytes: 100 } })
+    await expect(store.admitPromptContent([
+      { type: 'image', attachment: STORED_REF, encodedBytes: 1 },
+      { type: 'image', mediaType: 'image/png', data: 'AQ==' },
+    ])).rejects.toMatchObject({ code: 'TOO_MANY_IMAGES' })
+    await expect(store.admitPromptContent([
+      { type: 'image', attachment: STORED_REF, encodedBytes: 1 },
+      { type: 'image', attachment: { ...STORED_REF, attachmentId: 'stored-2' as ImageAttachmentRef['attachmentId'] }, encodedBytes: 1 },
+    ])).rejects.toMatchObject({ code: 'TOO_MANY_IMAGES' })
+    expect(mocks.saveImages).not.toHaveBeenCalled()
+  })
+
+  it('counts stored upload bytes with encoded bytes toward the message byte limit before storing anything', async () => {
+    const { store, mocks } = storeOf()
+    Object.defineProperty(store, 'imageLimits', { value: { maxImagesPerMessage: 4, maxMessageImageBytes: 5 } })
+    // Two 3-byte uploads each fit alone; together they exceed one message.
+    await expect(store.admitPromptContent([
+      { type: 'image', attachment: STORED_REF, encodedBytes: 3 },
+      { type: 'image', attachment: { ...STORED_REF, attachmentId: 'stored-2' as ImageAttachmentRef['attachmentId'] }, encodedBytes: 3 },
+    ])).rejects.toMatchObject({ code: 'IMAGES_TOO_LARGE' })
+    await expect(store.admitPromptContent([
+      { type: 'image', attachment: STORED_REF, encodedBytes: 3 },
+      { type: 'image', mediaType: 'image/png', data: PNG },
+    ])).rejects.toMatchObject({ code: 'IMAGES_TOO_LARGE' })
+    expect(mocks.saveImages).not.toHaveBeenCalled()
   })
 })

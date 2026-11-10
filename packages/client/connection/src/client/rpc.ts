@@ -2,42 +2,36 @@
 
 import {
   RpcId,
-  ConnectionHttpError,
-  ConnectionTransportError,
   type ClientRequest,
   type RpcId as RpcIdType,
 } from '../rpc.ts'
 import type { ClientConnectionRpc, ConnectionRpcResult } from '../rpc.ts'
 import { randomUuid } from './random-uuid.ts'
 
-const INTERNAL_BASE = 'http://dsh.internal'
 const CHANNEL_PATTERN = /^\/[A-Za-z0-9._~-]+$/
 const ENDPOINT_SEGMENT_PATTERN = /^[A-Za-z0-9_$.-]+$/
 
-/** Transport this caller posts through; same signature as the global `fetch`. */
-export type RpcFetch = (input: URL, init: RequestInit) => Promise<Response>
+/**
+ * Transport this caller posts through; same signature as the global `fetch`.
+ * Receives the document-relative route so a carrier resolves it against its own base.
+ */
+export type RpcFetch = (input: string | URL, init: RequestInit) => Promise<Response>
 
-/** Worker-local opener for decoded Gateway Remote streams. */
+/** Worker-local opener for decoded Gateway Remote streams; `uplink` carries the Client's items for the stream. */
 export type RpcStreamOpen = (
   endpoint: string,
   payload: unknown,
   signal: AbortSignal,
+  uplink?: AsyncIterable<unknown>,
 ) => AsyncIterable<unknown>
 
 /**
  * Create the browser-backed generic RPC caller.
  * @param doFetch - transport override; defaults to the page's global fetch.
  * @param openStream - optional worker-local Gateway stream carrier.
- * @param captureAuthenticationFailure - capture a generation-scoped HTTP 401 reporter before dispatch.
- * @param resolveBaseUrl - explicit selected base for every call; `undefined` keeps the page origin.
  * @returns caller that owns request correlation and response-envelope validation.
  */
-export function createWebConnectionRpc(
-  doFetch?: RpcFetch,
-  openStream?: RpcStreamOpen,
-  captureAuthenticationFailure?: () => (() => void) | undefined,
-  resolveBaseUrl?: () => string | undefined,
-): ClientConnectionRpc {
+export function createWebConnectionRpc(doFetch?: RpcFetch, openStream?: RpcStreamOpen): ClientConnectionRpc {
   const send: RpcFetch = doFetch ?? ((input, init) => globalThis.fetch(input, init))
   return {
     async call(channel, endpoint, payload, signal) {
@@ -49,50 +43,98 @@ export function createWebConnectionRpc(
         method: endpoint,
         payload,
       }
-      const reportAuthenticationFailure = captureAuthenticationFailure?.()
-      signal?.throwIfAborted()
-      const url = new URL(`${channel}/${endpoint}`, resolveBaseUrl?.() ?? resolveBase())
-      const init: RequestInit = {
-        method: 'POST',
-        headers: { 'content-type': 'application/json' },
-        body: JSON.stringify(message),
-        ...signal === undefined ? {} : { signal },
-      }
-      let response: Response
-      try {
-        response = await send(url, init)
-      } catch (cause) {
-        signal?.throwIfAborted()
-        throw new ConnectionTransportError(`transport interrupted for ${channel}/${endpoint}`, { cause })
-      }
-      signal?.throwIfAborted()
+      // The channel key is absolute; a page posts the document-relative form, and
+      // a carrier that resolves against the Host root accepts the same form.
+      const route = `${channel}/${endpoint}`.slice(1)
+      const response = await send(
+        route,
+        {
+          method: 'POST',
+          headers: { 'content-type': 'application/json' },
+          body: JSON.stringify(message),
+          ...signal === undefined ? {} : { signal },
+        },
+      )
       if (!response.ok) {
-        if (response.status === 401 && signal?.aborted !== true) reportAuthenticationFailure?.()
-        throw new ConnectionHttpError(response.status, `transport failure for ${channel}/${endpoint}: HTTP ${response.status}`)
+        throw new Error(`transport failure for ${channel}/${endpoint}: HTTP ${response.status}`)
       }
-      let text: string
-      try {
-        text = await response.text()
-      } catch (cause) {
-        signal?.throwIfAborted()
-        throw new ConnectionTransportError(`response interrupted for ${channel}/${endpoint}`, { cause })
-      }
+      const mediaType = response.headers.get('content-type')?.split(';', 1)[0]?.trim().toLowerCase()
+      const full = mediaType === 'multipart/form-data'
+        ? await parseBinaryResponse(response)
+        : parseConnectionResponse(await response.json())
       signal?.throwIfAborted()
-      const full = parseConnectionResponse(JSON.parse(text) as unknown)
       if (full.rpcId !== rpcId) {
         throw new Error(`rpcId mismatch for ${endpoint}: sent ${rpcId}, got ${full.rpcId}`)
       }
       return full.result
     },
     ...openStream === undefined ? {} : {
-      open(channel, endpoint, payload, signal) {
+      open(channel, endpoint, payload, signal, uplink) {
         assertTarget(channel, endpoint)
         if (channel !== '/api') {
           throw new Error(`connection: worker-local streams require the /api channel, got ${JSON.stringify(channel)}`)
         }
-        return openStream(endpoint, payload, signal)
+        return openStream(endpoint, payload, signal, uplink)
       },
     },
+  }
+}
+
+async function parseBinaryResponse(response: Response): Promise<ReturnType<typeof parseConnectionResponse>> {
+  const body = await response.formData()
+  const fields = new Map<string, string | Blob>()
+  for (const [name, value] of body) {
+    if (fields.has(name)) throw new TypeError('connection: invalid binary response fields')
+    fields.set(name, value)
+  }
+  const metadata = fields.get('metadata')
+  fields.delete('metadata')
+  if (typeof metadata !== 'string') {
+    throw new TypeError('connection: invalid binary response fields')
+  }
+  const envelope: unknown = JSON.parse(metadata)
+  const full = parseConnectionResponse(envelope)
+  if (!full.result.ok || !isRecord(envelope) || !Array.isArray(envelope.attachments) || envelope.attachments.length === 0) {
+    throw new TypeError('connection: invalid binary response result')
+  }
+  const root = { value: full.result.value }
+  for (const attachment of envelope.attachments) {
+    if (!isRecord(attachment) || attachment.codec !== 'bytes' || typeof attachment.part !== 'string'
+      || !Array.isArray(attachment.path)) {
+      throw new TypeError('connection: invalid binary response attachment')
+    }
+    const data = fields.get(attachment.part)
+    fields.delete(attachment.part)
+    if (!(data instanceof Blob)) {
+      throw new TypeError('connection: invalid binary response fields')
+    }
+    let parent: object = root
+    let key: string | number = 'value'
+    for (const segment of attachment.path) {
+      const value: unknown = Reflect.get(parent, key)
+      if (typeof value !== 'object' || value === null) {
+        throw new TypeError('connection: invalid binary response path')
+      }
+      if (Array.isArray(value)) {
+        if (typeof segment !== 'number' || !Number.isSafeInteger(segment) || segment < 0 || segment >= value.length) {
+          throw new TypeError('connection: invalid binary response path')
+        }
+      } else if (typeof segment !== 'string') {
+        throw new TypeError('connection: invalid binary response path')
+      }
+      if (!Object.hasOwn(value, segment)) throw new TypeError('connection: invalid binary response path')
+      parent = value
+      key = segment
+    }
+    if (Reflect.get(parent, key) !== null) throw new TypeError('connection: invalid binary response placeholder')
+    Object.defineProperty(parent, key, {
+      value: new Uint8Array(await data.arrayBuffer()), enumerable: true, writable: true, configurable: true,
+    })
+  }
+  if (fields.size !== 0) throw new TypeError('connection: invalid binary response fields')
+  return {
+    rpcId: full.rpcId,
+    result: { ok: true, value: root.value },
   }
 }
 
@@ -129,11 +171,6 @@ function parseConnectionResponse(value: unknown): {
 
 function isRecord(value: unknown): value is Record<PropertyKey, unknown> {
   return typeof value === 'object' && value !== null && !Array.isArray(value)
-}
-
-function resolveBase(): string {
-  const location = (globalThis as { location?: { origin?: string } }).location
-  return location?.origin !== undefined && location.origin !== 'null' ? location.origin : INTERNAL_BASE
 }
 
 function assertTarget(channel: string, endpoint: string): void {

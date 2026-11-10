@@ -7,9 +7,9 @@ import type {
   WorkspaceId, WorkspaceSnapshot, WorkspaceView,
 } from '@deepseek-ai/dsh-api-workspace-controller/client'
 import type {} from '@deepseek-ai/dsh-client-locale/client'
-import { bindSnapshotSelector, makeTranslate } from '@deepseek-ai/dsh-client-test-runtime'
+import { allowAllAccess, bindSnapshotSelector, makeTranslate } from '@deepseek-ai/dsh-client-test-runtime'
 import { zh as commonZh } from '@deepseek-ai/dsh-client-locale/src/locales/zh.ts'
-import type { SessionPendingInteractionSnapshot } from '@deepseek-ai/dsh-client-ui-session/client'
+import type { SessionStatusSnapshot } from '@deepseek-ai/dsh-client-ui-session/client'
 import type { DirectoryFlowOwnerProps, WorkspacePickerProps } from '../src/client/contract/slots.ts'
 import { WorkspacePicker } from '../src/client/WorkspacePicker.tsx'
 import { zh } from '../src/client/locales.ts'
@@ -17,9 +17,6 @@ import { zh } from '../src/client/locales.ts'
 // Every fixture carries the resource hook the resources plugin merges into GlobalStandardProps.
 const useResource = (() => ({ status: 'none' as const, value: undefined, failure: undefined, reload: () => {} })) as GlobalStandardProps['useResource']
 const usePanelInfo: GlobalStandardProps['usePanelInfo'] = selector => selector({ activePanelId: null })
-
-const HOST_FACTS = { home: undefined, platform: undefined, isLoopback: true, capabilities: ['workspace.follow.v1', 'workspace.manage.v1'] }
-const useHostInfo: WorkspacePickerProps['useHostInfo'] = selector => selector(HOST_FACTS)
 
 afterEach(cleanup)
 
@@ -38,11 +35,11 @@ function hook<T>(snapshot: T) {
   return function select<S>(selector: (state: T) => S): S { return selector(snapshot) }
 }
 const sessions: SessionListState = {
-  ids: [], byId: {}, current: undefined, phase: 'ready', subagentsByParent: {}, jobsBySession: {}, currentAddress: undefined,
+  ids: [], byId: {}, phase: 'ready', projectionsBySession: {},
 }
-const noPendingInteraction: SessionPendingInteractionSnapshot = new Map()
+const noPendingInteraction: SessionStatusSnapshot = new Map()
 const workspaceState = (items: readonly WorkspaceView[]): WorkspaceSnapshot => ({
-  items, archivedSessionIds: [], state: 'idle', phase: 'ready', error: null,
+  items, archivedSessionIds: [], pinnedSessionIds: [], state: 'idle', phase: 'ready', error: null,
 })
 function anchor(): { current: HTMLElement } {
   const element = document.createElement('button')
@@ -91,7 +88,6 @@ function mount(
   items: readonly WorkspaceView[] = [workspace('alpha', 'Alpha')],
   createWorkspace = vi.fn(),
   occupancy = occupancySource(),
-  hostHook: WorkspacePickerProps['useHostInfo'] = useHostInfo,
 ) {
   const onPick = vi.fn()
   const onClose = vi.fn()
@@ -102,13 +98,14 @@ function mount(
       open
       anchorRef={anchorRef}
       useSessions={hook(sessions)}
-      useSessionPendingInteraction={hook(noPendingInteraction)}
+      useSessionStatus={hook(noPendingInteraction)}
+      useSessionRetainInfo={() => undefined}
       usePanelInfo={usePanelInfo} useResource={useResource}
       useWorkspaces={hook(workspaceState(nextItems))}
+      {...allowAllAccess}
       onPick={onPick}
       onClose={onClose}
       createWorkspace={createWorkspace}
-      useHostInfo={hostHook}
       useDirectoryFlow={occupancy.useDirectoryFlow}
       renderSlot={renderSlot}
       t={t}
@@ -128,34 +125,18 @@ function chooseAdd(): void {
 }
 
 describe('WorkspacePicker', () => {
-  it.each(['success', 'failure'] as const)('discards a pending adoption %s from a replaced Host', async (outcome) => {
-    let host = HOST_FACTS
-    let resolve!: (value: WorkspaceView) => void
-    let reject!: (error: Error) => void
-    const createWorkspace = vi.fn(() => new Promise<WorkspaceView>((accept, fail) => { resolve = accept; reject = fail }))
-    const b = mount([workspace('alpha')], createWorkspace, occupancySource(), selector => selector(host))
-    chooseAdd()
-    const oldOwner = b.probe.owner!
-    act(() => { oldOwner.onPicked('/old') })
-    host = { ...HOST_FACTS }
-    b.rerenderItems([workspace('alpha')])
-    chooseAdd()
-    act(() => { oldOwner.onCancel(); oldOwner.onError('old error'); oldOwner.onPicked('/stale') })
-    expect(screen.getByTestId('directory-flow').getAttribute('data-busy')).toBe('false')
-    await act(async () => {
-      if (outcome === 'success') resolve(workspace('old-created'))
-      else reject(new Error('old failure'))
-    })
-    expect(b.onPick).not.toHaveBeenCalled()
-    expect(createWorkspace).toHaveBeenCalledTimes(1)
-    expect(screen.queryByRole('dialog')).toBeNull()
-    expect(screen.getByTestId('directory-flow')).toBeTruthy()
-  })
-  it('lists same-title Workspaces separately and forwards the selected id', () => {
-    const b = mount([workspace('alpha', 'Shared'), workspace('beta', 'Shared')])
-    const entries = screen.getAllByRole('menuitem', { name: 'Shared' })
-    expect(entries).toHaveLength(2)
-    fireEvent.click(entries[1]!)
+  it('labels same-title Workspaces with distinguishing path suffixes and forwards the selected id', () => {
+    const b = mount([
+      { ...workspace('alpha', 'Shared'), path: '/one/a/Shared' },
+      { ...workspace('beta', 'Shared'), path: '/two/a/Shared' },
+      workspace('gamma', 'Alone'),
+    ])
+    expect(screen.getAllByRole('menuitem').map(entry => entry.textContent))
+      .toEqual(['Shared one/a/Shared', 'Shared two/a/Shared', 'Alone', '添加工作区…'])
+    // The full path stays reachable when a narrow menu truncates the row.
+    expect(screen.getByText('two/a/Shared').parentElement?.title).toBe('/two/a/Shared')
+    expect(screen.getByRole('menuitem', { name: 'Alone' }).querySelector('[title]')).toBeNull()
+    fireEvent.click(screen.getByRole('menuitem', { name: 'Shared two/a/Shared' }))
     expect(b.onPick).toHaveBeenCalledWith(wid('beta'))
   })
 
@@ -248,10 +229,11 @@ describe('WorkspacePicker', () => {
     render(
       <WorkspacePicker
         open useSessions={hook(sessions)} useWorkspaces={hook(workspaceState([workspace('alpha', 'Alpha')]))}
-        useSessionPendingInteraction={hook(noPendingInteraction)}
+        useSessionStatus={hook(noPendingInteraction)}
+        useSessionRetainInfo={() => undefined}
         usePanelInfo={usePanelInfo} useResource={useResource}
+        {...allowAllAccess}
         onPick={vi.fn()} onClose={vi.fn()} createWorkspace={vi.fn()}
-        useHostInfo={useHostInfo}
         useDirectoryFlow={occupancySource().useDirectoryFlow} renderSlot={renderSlot} t={t}
       />,
     )
@@ -266,10 +248,11 @@ describe('WorkspacePicker', () => {
     render(
       <WorkspacePicker
         open anchorRef={anchor()} useSessions={hook(sessions)} useWorkspaces={hook(state)}
-        useSessionPendingInteraction={hook(noPendingInteraction)}
+        useSessionStatus={hook(noPendingInteraction)}
+        useSessionRetainInfo={() => undefined}
         usePanelInfo={usePanelInfo} useResource={useResource}
+        {...allowAllAccess}
         onPick={vi.fn()} onClose={vi.fn()} createWorkspace={vi.fn()}
-        useHostInfo={useHostInfo}
         useDirectoryFlow={occupancySource().useDirectoryFlow} renderSlot={renderSlot} t={t}
       />,
     )

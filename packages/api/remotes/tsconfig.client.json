@@ -7,7 +7,6 @@
   },
   "files": [
     "src/client/index.ts",
-    "src/client/host-preparation.ts",
     "src/remote-events.ts",
     "src/types.ts"
   ],
@@ -52,9 +51,6 @@
       "path": "../../llm/llm"
     },
     {
-      "path": "../../preset/agent-presets"
-    },
-    {
       "path": "../../settings/settings"
     },
     {
@@ -97,7 +93,40 @@
       "path": "../../client/ui-deliverables/tsconfig.host.json"
     },
     {
-      "path": "../native-remote"
+      "path": "../../client/product-analytics/tsconfig.client.json"
+    },
+    {
+      "path": "../../core/session"
+    },
+    {
+      "path": "../../schedule/schedule"
+    },
+    {
+      "path": "../../interaction/permission-presets"
+    },
+    {
+      "path": "../../preset/agent-preset-registry"
+    },
+    {
+      "path": "../job-controller/tsconfig.client.json"
+    },
+    {
+      "path": "../terminal-controller/tsconfig.client.json"
+    },
+    {
+      "path": "../../boot/plugin-manager"
+    },
+    {
+      "path": "../../boot/plugin-market"
+    },
+    {
+      "path": "../../document/office-to-pdf"
+    },
+    {
+      "path": "../account-controller"
+    },
+    {
+      "path": "../../credentials/deepseek-account"
     }
   ]
 }

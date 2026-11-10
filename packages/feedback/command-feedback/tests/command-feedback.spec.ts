@@ -1,3 +1,4 @@
+import SessionProjectionRegistry from '@deepseek-ai/dsh-session-projection'
 import { beforeEach, describe, expect, it, vi } from 'vitest'
 import { Context } from '@deepseek-ai/cordis'
 import Loader from '@deepseek-ai/cordis-plugin-loader'
@@ -8,7 +9,7 @@ import SessionStore, { foldSurface, Session, SessionId } from '@deepseek-ai/dsh-
 import * as commandFeedback from '@deepseek-ai/dsh-command-feedback'
 import type { FeedbackRecord } from '@deepseek-ai/dsh-command-feedback/types'
 import { remoteMethods } from '@deepseek-ai/dsh-typert-protocol'
-import { unsupportedInbox } from '@deepseek-ai/dsh-agent-loop-testkit'
+import { unsupportedModel, unsupportedInbox } from '@deepseek-ai/dsh-agent-loop-testkit'
 
 const { USER_ID, getOrCreateAnonymousUserId } = vi.hoisted(() => {
   const USER_ID = '01234567-89ab-4cde-8f01-23456789abcd'
@@ -36,6 +37,7 @@ function stubAgent(ctx: Context, id: string): { agent: Agent; session: Session }
     id: session.id,
     options: {},
     session,
+    model: unsupportedModel(),
     inbox: unsupportedInbox(),
     ctx: new Context(),
     get status() { return status },
@@ -53,11 +55,12 @@ function stubAgent(ctx: Context, id: string): { agent: Agent; session: Session }
 async function harness(): Promise<Harness> {
   const ctx = new Context()
   await ctx.plugin(CommandRuntime)
+  await ctx.plugin(SessionProjectionRegistry)
   await ctx.plugin(AgentRegistry)
   await ctx.plugin(SessionStore)
   const plugin = await ctx.plugin(commandFeedback)
   const { agent, session } = stubAgent(ctx, `command-feedback-${Math.random()}`)
-  ctx.agents.register(agent)
+  await ctx.agents.register(agent)
   return { ctx, agent, session, plugin }
 }
 
@@ -65,7 +68,8 @@ async function harness(): Promise<Harness> {
 async function run(test: Harness, suffix = ''): Promise<{ kind: string; text?: string }> {
   const settled = await test.ctx.commands.execute(
     test.agent,
-    { line: `/feedback${suffix}`, submittedAttachments: [] },
+    `/feedback${suffix}`,
+    [],
     new AbortController().signal,
   )
   if (settled === undefined) throw new Error('feedback command was not registered')
@@ -97,7 +101,6 @@ describe('@deepseek-ai/dsh-command-feedback registration', () => {
       definitionId: '@deepseek-ai/dsh-command-feedback',
       name: 'feedback',
       description: 'Record feedback about this session',
-      risk: 'low',
       input: { hint: '<text>' },
     })
     expect(test.ctx.commands.find(test.agent, 'feedback')).toMatchObject({ recordInput: false })
@@ -210,8 +213,8 @@ describe('/feedback human command', () => {
     const signal = new AbortController().signal
     // Command adapters may dispatch concurrent requests without awaiting one another.
     const settled = await Promise.all([
-      test.ctx.commands.execute(test.agent, { line: '/feedback first', submittedAttachments: [] }, signal),
-      test.ctx.commands.execute(test.agent, { line: '/feedback second', submittedAttachments: [] }, signal),
+      test.ctx.commands.execute(test.agent, '/feedback first', [], signal),
+      test.ctx.commands.execute(test.agent, '/feedback second', [], signal),
     ])
     expect(settled.map(item => item?.result)).toEqual([
       { kind: 'success', text: `Feedback recorded for session ${test.session.id}\nAnonymous user: ${USER_ID}.` },
@@ -253,7 +256,7 @@ describe('/feedback human command', () => {
     const test = await harness()
     const controller = new AbortController()
     controller.abort(new Error('user cancelled the command'))
-    await expect(test.ctx.commands.execute(test.agent, { line: '/feedback too late', submittedAttachments: [] }, controller.signal))
+    await expect(test.ctx.commands.execute(test.agent, '/feedback too late', [], controller.signal))
       .rejects.toThrow('user cancelled the command')
     expect(test.session.snapshotEvents()).toEqual([])
   })

@@ -3,6 +3,7 @@ import { Context } from '@deepseek-ai/cordis'
 import { createUserMessage } from '@deepseek-ai/dsh-llm'
 import SessionStore, { SessionId, SessionLogOffset, SessionSeq } from '@deepseek-ai/dsh-session'
 import type { Session, SessionSeq as SessionSeqType } from '@deepseek-ai/dsh-session'
+import AgentRegistry from '@deepseek-ai/dsh-agent'
 import SessionProjectionRegistry from '@deepseek-ai/dsh-session-projection'
 import SessionTitleService from '@deepseek-ai/dsh-session-title'
 
@@ -12,6 +13,7 @@ async function harness(withTitleService: boolean): Promise<{ ctx: Context; sessi
   const ctx = new Context()
   await ctx.plugin(SessionStore)
   await ctx.plugin(SessionProjectionRegistry)
+  await ctx.plugin(AgentRegistry)
   if (withTitleService) await ctx.plugin(SessionTitleService, CONFIG)
   return { ctx, session: ctx.sessions.create(SessionId('titled')) }
 }
@@ -33,7 +35,6 @@ describe('title projection unit', () => {
     const { ctx, session } = await harness(true)
     const snapshot = ctx.sessionProjections.snapshot(session)
     expect(snapshot.values.title).toBeNull()
-    expect(snapshot.values.titleRevision).toBeNull()
     expect(ctx.sessionProjections.checkpoint(session).title).toEqual({ ver: 1, seq: -1, val: null })
   })
 
@@ -48,29 +49,11 @@ describe('title projection unit', () => {
     session.append('turn/start', { turn: 1 })
     expect(changes).toEqual([
       { key: 'title', value: 'First title', seq: firstSeq },
-      { key: 'titleRevision', value: firstSeq, seq: firstSeq },
       { key: 'title', value: 'Second title', seq: secondSeq },
-      { key: 'titleRevision', value: secondSeq, seq: secondSeq },
     ])
     const snapshot = ctx.sessionProjections.snapshot(session)
     expect(snapshot.values.title).toBe('Second title')
-    expect(snapshot.values.titleRevision).toBe(secondSeq)
-    expect(snapshot.values.titleRevision).not.toBe(snapshot.asOfSeq)
     expect(snapshot.asOfSeq).toBe(session.seq - 1)
-  })
-
-  it('rebuilds a missing title revision from the durable log instead of the checkpoint watermark', async () => {
-    const { ctx, session } = await harness(true)
-    const titleSeq = appendTitle(session, 'Stored title')
-    session.append('turn/start', { turn: 1 })
-    const checkpoint = { ...ctx.sessionProjections.checkpoint(session) }
-    delete checkpoint.titleRevision
-    expect(ctx.sessionProjections.restoreFloor(checkpoint)).toBe(0)
-    const restored = ctx.sessionProjections.restore(
-      checkpoint, session.snapshotEvents(), SessionLogOffset(0), session.header, session.inheritedEventCount,
-    )
-    expect(restored.snapshot.values.titleRevision).toBe(titleSeq)
-    expect(restored.snapshot.asOfSeq).toBeGreaterThan(titleSeq)
   })
 
   it('reads the version-1 string checkpoint format used by existing title caches', async () => {
@@ -91,13 +74,11 @@ describe('title projection unit', () => {
   it('has no title key without the title service, and drops it when the service unloads (HMR safety)', async () => {
     const { ctx, session } = await harness(false)
     expect('title' in ctx.sessionProjections.snapshot(session).values).toBe(false)
-    expect('titleRevision' in ctx.sessionProjections.snapshot(session).values).toBe(false)
     const fiber = await ctx.plugin(SessionTitleService, CONFIG)
     appendTitle(session, 'Ephemeral')
     expect(ctx.sessionProjections.snapshot(session).values.title).toBe('Ephemeral')
     await fiber.dispose()
     expect('title' in ctx.sessionProjections.snapshot(session).values).toBe(false)
-    expect('titleRevision' in ctx.sessionProjections.snapshot(session).values).toBe(false)
   })
 
   it('keeps thousands of title inputs as a bounded aggregate and checkpoints it', async () => {
@@ -111,10 +92,8 @@ describe('title projection unit', () => {
     }
     await ctx.plugin(SessionTitleService, CONFIG)
 
-    const state = ctx.sessionProjections.stateOf(session, 'titleInput')
-    expect(state?.count).toBe(5_000)
-    expect(state?.first?.text).toBe('message 0')
-    expect(state?.lastSeq).toBe(session.seq - 1)
+    const state = ctx.sessionProjections.checkpoint(session).titleInput?.val
+    expect(state).toMatchObject({ count: 5_000, first: { text: 'message 0' }, lastSeq: session.seq - 1 })
     expect(ctx.sessionProjections.checkpoint(session).titleInput).toBeDefined()
   })
 

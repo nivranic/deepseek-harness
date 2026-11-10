@@ -6,7 +6,6 @@
  * gate, and the per-key ensureReady strong-wait policy.
  */
 import { describe, expect, it } from 'vitest'
-import { RemoteError } from '@deepseek-ai/dsh-client-test-runtime'
 import type { SessionId } from '@deepseek-ai/dsh-api-remotes/client'
 import { CommandDefinitionId } from '@deepseek-ai/dsh-commands/brand'
 import type { CommandDescriptor } from '../src/client/directory.ts'
@@ -24,13 +23,13 @@ function deferred<T>() {
 }
 
 const CMDS: CommandDescriptor[] = [
-  { name: 'plan', description: 'plan mode', risk: 'low' },
-  { name: 'goal', description: 'set goal', risk: 'moderate', input: { hint: 'goal text' } },
+  { name: 'plan', description: 'plan mode' },
+  { name: 'goal', description: 'set goal', input: { hint: 'goal text' } },
 ]
 
 const S2_CMDS: CommandDescriptor[] = [
   ...CMDS,
-  { name: 'attach', description: 'attach a file', risk: 'low', input: { hint: 'path' } },
+  { name: 'attach', description: 'attach a file', input: { hint: 'path' } },
 ]
 
 /** Directory over per-key pull queues: each fetch appends a hand-settled deferred. */
@@ -55,13 +54,12 @@ function bench() {
 
 describe('status and resolve (per key)', () => {
   it('resolves bilingual aliases by definition identity and retains exact-name priority', async () => {
-    const goal: CommandDescriptor = {
+    const goal = {
       definitionId: CommandDefinitionId('@deepseek-ai/dsh-command-goal'),
       name: 'objective',
       description: 'Reworded description.',
-      risk: 'moderate',
     }
-    const exact: CommandDescriptor = { name: 'goal', description: 'independent exact-name entry', risk: 'low' }
+    const exact = { name: 'goal', description: 'independent exact-name entry' }
     const { dir, pull } = bench()
     const refreshed = dir.refresh(S1)
     pull(S1, 0).resolve([goal])
@@ -127,7 +125,7 @@ describe('epoch guard (per key)', () => {
     pull(S1, 1).resolve(CMDS)
     await second
     expect(dir.resolve(S1, 'plan')).toBeDefined()
-    pull(S1, 0).resolve([{ name: 'stale', description: 'old world', risk: 'low' }])
+    pull(S1, 0).resolve([{ name: 'stale', description: 'old world' }])
     await first
     expect(dir.resolve(S1, 'stale')).toBeUndefined()
     expect(dir.resolve(S1, 'plan')).toBeDefined()
@@ -171,7 +169,7 @@ describe('invalidateAll (commands-changed soft)', () => {
     expect(dir.status(S1)).toBe('ready')
     expect(dir.resolve(S2, 'attach')).toBeDefined()
 
-    pull(S1, 1).resolve([{ name: 'fresh', description: 'new world', risk: 'low' }])
+    pull(S1, 1).resolve([{ name: 'fresh', description: 'new world' }])
     await Promise.resolve()
     await Promise.resolve()
     expect(dir.resolve(S1, 'fresh')).toBeDefined()
@@ -229,7 +227,7 @@ describe('resetSession (preset-change hard)', () => {
     expect(countOf(S1)).toBe(2)
     expect(countOf(S2)).toBe(1)
 
-    pull(S1, 1).resolve([{ name: 'fresh', description: 'new composition', risk: 'low' }])
+    pull(S1, 1).resolve([{ name: 'fresh', description: 'new composition' }])
     await Promise.resolve()
     await Promise.resolve()
     expect(dir.resolve(S1, 'fresh')).toBeDefined()
@@ -299,9 +297,8 @@ describe('ensureReady (per key)', () => {
   it('rejects when the awaited pull fails (no silent downgrade)', async () => {
     const { dir, pull } = bench()
     const wait = dir.ensureReady(S1, signal())
-    const failure = new RemoteError('host/capability-unavailable', 'warmup boom', { capability: 'command.catalog.v1' })
-    pull(S1, 0).reject(failure)
-    await expect(wait).rejects.toBe(failure)
+    pull(S1, 0).reject(new Error('warmup boom'))
+    await expect(wait).rejects.toThrow('command directory warmup failed: warmup boom')
   })
 
   it('retries from failed state with a fresh pull', async () => {
@@ -336,7 +333,7 @@ describe('ensureReady (per key)', () => {
     const { dir, pull } = bench()
     const wait = dir.ensureReady(S1, signal())
     void dir.refresh(S1) // supersedes pull #0 with pull #1
-    pull(S1, 0).resolve([{ name: 'stale', description: 'loser', risk: 'low' }])
+    pull(S1, 0).resolve([{ name: 'stale', description: 'loser' }])
     pull(S1, 1).resolve(CMDS)
     await expect(wait).resolves.toEqual(CMDS)
   })

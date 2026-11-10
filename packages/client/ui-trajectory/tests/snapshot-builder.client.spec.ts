@@ -1,5 +1,6 @@
 import { describe, expect, it } from 'vitest'
 import type { RequestView } from '@deepseek-ai/dsh-client-ui-conversation/client'
+import { PartialArguments } from '@deepseek-ai/dsh-util-values'
 import type {
   TrajectoryContribution, TrajectoryConversationViewNode, TrajectoryRequestHeaderState,
 } from '../src/client/trajectory-contract.ts'
@@ -27,8 +28,7 @@ function contribution(
 ): TrajectoryConversationViewNode {
   return {
     key, kind: key, id: key, target: 'trajectory', anchorSeq,
-    location: data.kind === 'tool' && !('kind' in data.root)
-      ? stepLocation(data.root.turn, data.root.step) : { kind: 'session' },
+    location: { kind: 'session' },
     data,
   }
 }
@@ -67,30 +67,6 @@ function compactionRequest(startSeq: number): Extract<RequestView, { purpose: 'c
 }
 
 describe('TrajectorySnapshotBuilder', () => {
-  it('keeps call-time schemas for reused root and nested ids in different steps', () => {
-    const nodes: TrajectoryConversationViewNode[] = []
-    for (const step of [1, 2]) {
-      nodes.push(contribution(`header-${step}`, step * 10, {
-        kind: 'request-header', header: {
-          seq: step * 10, time: step * 10, location: stepLocation(1, step),
-          prompt: { system: '', config: { provider: 'test', model: 'test' }, tools: [
-            { name: 'read', description: `schema-${step}`, parameters: {} },
-          ] },
-        },
-      }))
-      nodes.push(contribution(`tool-${step}`, step * 10 + 1, {
-        kind: 'tool', root: {
-          callId: 'root', name: 'read', argsRaw: '{}', turn: 1, step, time: step * 10 + 1,
-          subCalls: [{ callId: 'child', name: 'read', argsRaw: '{}', turn: 1, step, time: step * 10 + 2, subCalls: [] }],
-        },
-      }))
-    }
-    const snapshot = new TrajectorySnapshotBuilder().replace({ nodes })
-    expect([...snapshot.callSchemas].map(([key, schema]) => [key, schema.description])).toEqual([
-      ['[1,1,"root"]', 'schema-1'], ['[1,1,"child"]', 'schema-1'],
-      ['[1,2,"root"]', 'schema-2'], ['[1,2,"child"]', 'schema-2'],
-    ])
-  })
   it('inherits one request header across requests without repeating its prompt change', () => {
     const prompt = {
       config: { provider: 'test', model: 'test' },
@@ -241,7 +217,7 @@ describe('TrajectorySnapshotBuilder', () => {
       contribution('tool', 7, {
         kind: 'tool',
         root: {
-          callId: 'call-edit',
+          phase: 'start' as const, args: PartialArguments.fromText('{}'), callId: 'call-edit',
           name: 'edit',
           argsRaw: '{}',
           turn: 1,
@@ -257,7 +233,7 @@ describe('TrajectorySnapshotBuilder', () => {
     expect(snapshot.requests.map(request => request.purpose === 'assistant'
       ? request.prompt?.system
       : undefined)).toEqual(['base prompt', 'exact prompt'])
-    expect(snapshot.callSchemas.get(JSON.stringify([1, 2, 'call-edit']))).toEqual(exactPrompt.tools[0])
+    expect(snapshot.callSchemas.get('call-edit')).toEqual(exactPrompt.tools[0])
   })
 
   it('applies session boundaries and turn errors with linear request indexes', () => {

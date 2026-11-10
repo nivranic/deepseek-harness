@@ -25,13 +25,13 @@ kind: "package-reference"
 <a id="use-this-package"></a>
 ## 使用本包
 
-与 `ui-conversation`、`ui-commands` 一起挂载本插件；Like/Dislike 对随即出现在每个轮次收尾助手消息的动作行中，位于复制与分支之间，输入框菜单里的「反馈」行则打开弹窗。已记录的评分显示实心图标，不需要悬停也一直可见。点赞和点踩都会打开弹窗：七个分类标签和一个详情框都可不填；提交后才会记录带所填内容的对应评分并弹出感谢 toast，对话日志随每个反馈事件一起投递。再次点击已记录的评分会直接撤回，不打开弹窗。不带文本的 `/feedback`，无论是从菜单选中还是直接输入后发送，都会为 Session 打开同一个弹窗；`/feedback <text>` 仍走宿主命令路径并显示确认行。
-
-消息反馈要求 `feedback.message.read.v1`；缺少读取支持时隐藏入口且不探测列表。新增或修改评分还要求 `feedback.message.put.v1`，撤回已提交评分要求 `feedback.message.delete.v1`。只读评分保留静态图标。Session 弹窗独立要求 `feedback.session.record.v1`。替换连接会丢弃反馈弹窗、等待提示和缓存版本，同时保留独立消息输入框。保留的回调和迟到回执不能影响替换连接，已接受的变更不会自动重放。
+与 `ui-conversation`、`ui-commands` 一起挂载本插件；Like/Dislike 对随即出现在每个轮次收尾助手消息的动作行中，位于复制与分支之间，输入框菜单里的「反馈」会打开同一个弹窗。挂载 `session-log-export` 后，会话标题栏的更多操作菜单也会增加「反馈」。已记录的评分显示实心图标，不需要悬停也一直可见。点赞和点踩都会打开弹窗：七个分类标签和一个详情框都可不填；提交后才会记录带所填内容的对应评分并弹出感谢 toast，对话日志随每个反馈事件一起投递。再次点击已记录的评分会直接撤回，不打开弹窗。不带文本的 `/feedback`，无论是从菜单选中还是直接输入后发送，都会为 Session 打开同一个弹窗；`/feedback <text>` 仍走宿主命令路径并显示确认行。
 
 ### 失败
 
 评分或列表加载失败在行内展示；提交失败通过警告 toast 展示，弹窗保持打开以便修正草稿。只有已定稿的消息能到达消息条目——被中断冻结的部分输出不带 `messageId`，因此没有反馈控件。
+
+访问控制：评分按钮只在当前 Peer 可以在该会话上调用 `messageFeedback/put` 时渲染；`/feedback` 装饰不做前端判断，没有权限时提交由 Host 拒绝。
 
 -----
 
@@ -41,9 +41,9 @@ kind: "package-reference"
 <details>
 <summary>实现细节——点击展开</summary>
 
-本包贡献 `conversation.chat.assistant-actions` 的 `feedback` 条目（order 10），由 ui-conversation 声明并渲染在已定稿助手消息的 IconActions 行内；同时贡献 `conversation.input.overlay` 的 `feedback-dialog` 条目（order 2），它通过 body portal 渲染 Modal 与 Toast 基元，并让 toast 以其所在的输入框卡片为中心。`/feedback` 装饰是经 `ctx.commandUi.decorate` 注册的 `action`，因此菜单选中或不带参数的回车会消费触发 token 并打开弹窗，而带参数的命令行仍到达宿主命令。
+本包贡献 `conversation.chat.assistant-actions` 的 `feedback` 条目（order 10），由 ui-conversation 声明并渲染在已定稿助手消息的 IconActions 行内；同时贡献 `conversation.input.overlay` 的 `feedback-dialog` 条目（order 2），它通过 body portal 渲染 Modal 与 Toast 基元，并让 toast 以其所在的输入框卡片为中心。`feedbackUi.openSession(sessionId)` Client 服务打开同一个 Session 级弹窗，不记录反馈；标题栏菜单和命令装饰共用此方法。`/feedback` 装饰是经 `ctx.commandUi.decorate` 注册的 `action`，因此菜单选中或不带参数的回车会消费触发 token 并打开弹窗，而带参数的命令行仍到达宿主命令。
 
-每个 Session 由一个消息控制器和一个弹窗控制器服务。可写消息控件在首次 hover 或 focus 时共享一次列表读取；只读和仅删除入口在显示时加载。变更在起始 Host 代际内串行执行，并使用最后观察到的条目版本；冲突通过权威回执对账。撤回立即清除缓存条目与待完成请求归属，曾被观察的 Session 在准入后重新加载，未观察的 Session 保持不查询。弹窗按目标派发。成功可以在同一连接内确认已关闭的草稿，但替换连接或销毁会抑制所有旧确认与失败。传输拒绝转换为可显式重试的失败。
+每个 Session 有一个 `MessageFeedbackController` 支撑所有消息控件，以及一个 `FeedbackDialogController` 拥有弹窗草稿、提交与 toast 序号。消息控制器只读取一次 `messageFeedback.list`，且延迟到首次 hover 或 focus 才发起，而非挂载时触发；变更串行执行，每次都携带最后观察到的版本，`version-conflict` 响应带回权威条目，据此对账视图而不重新拉取。任一评分操作执行前，该行都会检查已提交条目：评分相同则调用 `retract`，它会在串行队列内重新检查评分并在并发变更后变为无操作；其他状态则携带所选评分打开弹窗。弹窗控制器按目标提交：消息目标通过消息控制器 put 一条带弹窗备注与分类的对应评分，Session 目标通过 `ctx.remote.sessionFeedback` 记录。成功会关闭草稿并弹出确认 toast；被替换的旧草稿迟到的成功只弹确认 toast、不关闭新草稿；失败会保留弹窗并弹出停留时间更长的警告 toast。
 
 </details>
 
@@ -91,5 +91,3 @@ kind: "package-reference"
 无。
 
 </details>
-
-**运行时不变式：** 不发布伴生入口。插件持有两个 slot 注册、一个命令装饰，以及一个按 Session 划分的控制器对 map；它们都由插件 fiber 的同一个 effect disposer 释放。生命周期规格测试证明，所属 fiber 释放时会撤销所有注册并丢弃所有控制器，因此不存在需要在运行时检查的第二权威来源。

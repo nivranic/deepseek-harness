@@ -1,7 +1,7 @@
 /** Shared trajectory record data and formatting contracts. */
 
 import type { HTMLAttributes } from 'react'
-import type { ImageAttachmentRef } from '@deepseek-ai/dsh-attachment'
+import type { FileAttachmentRef, ImageAttachmentRef } from '@deepseek-ai/dsh-attachment'
 import type { ConversationPromptSnapshot } from '@deepseek-ai/dsh-client-ui-conversation/client'
 import type { TrajectoryTranslate } from './locales.ts'
 
@@ -30,6 +30,8 @@ export interface TrajectorySourceBlock {
   type: string
   content: string
   attachment?: ImageAttachmentRef
+  /** Ordinary file metadata; never passed to the image loader. */
+  file?: FileAttachmentRef
   callId?: string
   toolName?: string
 }
@@ -64,6 +66,8 @@ export interface TrajectoryCellProps extends HTMLAttributes<HTMLDivElement> {
   previousPromptDetail?: ConversationPromptSnapshot
   /** Full assistant/tool result content for the details panel. */
   outputDetail?: string
+  /** Committed result event used to inspect a live-only value. */
+  resultSeq?: number
   /** Full assistant reasoning content for the details panel. */
   thinkingDetail?: string
   /** Original message blocks in source order for the details panel. */
@@ -80,9 +84,9 @@ export interface TrajectoryCellProps extends HTMLAttributes<HTMLDivElement> {
   resultPreviewMarkdown?: string
   /** Tool call id used to link message source blocks to tool records. */
   callId?: string
-  /** Enclosing model execution for a root or nested Tool record. */
-  callLocation?: { readonly turn: number; readonly step: number }
-  /** Tool-only result failure state. */
+  /** Recorded tool name; independent of the display summary. */
+  toolName?: string
+  /** Failed operation or interrupted assistant output. */
   isError?: boolean
   /** Own duration in seconds, or `null` when no duration is known. */
   timeSeconds: number | null
@@ -109,11 +113,8 @@ export interface TrajectoryCellProps extends HTMLAttributes<HTMLDivElement> {
  */
 export function trajectoryRecordId(cell: TrajectoryCellProps): string {
   if (cell.recordId !== undefined) return cell.recordId
-  if (cell.callId !== undefined && cell.callLocation !== undefined) {
-    return JSON.stringify([cell.kind, cell.callLocation.turn, cell.callLocation.step, cell.callId])
-  }
-  if (cell.sourceSeq !== undefined) return `${cell.kind}\u0000seq\u0000${cell.sourceSeq}`
   if (cell.callId !== undefined) return `${cell.kind}\u0000call\u0000${cell.callId}`
+  if (cell.sourceSeq !== undefined) return `${cell.kind}\u0000seq\u0000${cell.sourceSeq}`
   return `${cell.kind}\u0000index\u0000${cell.index}`
 }
 

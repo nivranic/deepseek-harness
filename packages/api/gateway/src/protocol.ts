@@ -1,13 +1,35 @@
 /** Versioned Remote request envelopes shared by Host and Client carriers. */
 
+import type { Branded } from '@deepseek-ai/dsh-brand'
 import { RemoteError } from '@deepseek-ai/dsh-typert-protocol'
+import type { RemoteEventId } from './stream-protocol.ts'
 export type {} from './remote-error-codes.ts'
-export type {
-  RemoteInteractionOrigin,
-  RemoteInteractionPolicy,
-  RemoteInteractionRecord,
-  RemoteInteractionSessionId,
-} from './stream-protocol.ts'
+
+/**
+ * Cross-client interaction model retained from the downstream lane pending the
+ * audit-phase port onto the upstream RemoteEvent* family; consumers keep their
+ * wire contracts while the definitions live here.
+ */
+export type RemoteInteractionSessionId = Branded<'RemoteInteractionSessionId'>
+
+/** Application-owned identity and required response permission for one interaction. */
+export type RemoteInteractionOrigin = { readonly sessionId: RemoteInteractionSessionId } & RemoteInteractionPolicy
+
+/** Response operation required by the application's interaction kind. */
+export type RemoteInteractionPolicy = (
+  | { readonly type: 'approval'; readonly requiredPermission: 'approval.respond' }
+  | { readonly type: 'question'; readonly requiredPermission: 'question.respond' }
+)
+
+/** Host-owned record retained across Client generations; not a device authorization grant. */
+export type RemoteInteractionRecord = RemoteInteractionOrigin & {
+  readonly requestId: RemoteEventId
+  readonly createdAt: number
+  /** Host deadline timestamp when the deployment configures expiry for this kind. */
+  readonly expiresAt?: number
+  readonly status: 'pending' | 'resolved' | 'delegated' | 'cancelled' | 'expired'
+  readonly revision: number
+}
 
 /** Current application request protocol, independent of release and Session versions. */
 export const API_PROTOCOL_VERSION = 2

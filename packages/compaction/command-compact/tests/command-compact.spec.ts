@@ -64,13 +64,13 @@ class StubCompactionEngine extends CompactionEngine {
     result: CompactionResult,
     sourceCommandId: Parameters<CompactionEngine['compactNow']>[2],
   ): CompactionResult {
-    const provenance = {
+    const operationIds = {
       compactionId: result.compactionId,
       ...sourceCommandId === undefined ? {} : { sourceCommandId },
     }
-    agent.session.append('compaction/start', { ...provenance, turn: null })
+    agent.session.append('compaction/start', { ...operationIds, turn: null })
     agent.session.append('compaction/summary', {
-      ...provenance,
+      ...operationIds,
       summary: result.summary,
       shadowedRange: result.shadowedRange,
       shadowedSeqs: result.shadowedSeqs,
@@ -78,8 +78,8 @@ class StubCompactionEngine extends CompactionEngine {
       provider: 'command-test',
       model: 'command-test',
     })
-    agent.session.append('compaction/end', { ...provenance, turn: null })
-    return { ...result, ...provenance }
+    agent.session.append('compaction/end', { ...operationIds, turn: null })
+    return { ...result, ...operationIds }
   }
 }
 
@@ -110,7 +110,7 @@ async function run(
   suffix = '',
   controller = new AbortController(),
 ): Promise<NonNullable<Awaited<ReturnType<CommandRuntime['execute']>>>> {
-  const execution = await test.ctx.commands.execute(test.agent, { line: `/compact${suffix}`, submittedAttachments: [] }, controller.signal)
+  const execution = await test.ctx.commands.execute(test.agent, `/compact${suffix}`, [], controller.signal)
   if (execution === undefined) throw new Error('compact command was not registered')
   return execution
 }
@@ -165,7 +165,6 @@ describe('@deepseek-ai/dsh-command-compact registration', () => {
       definitionId: '@deepseek-ai/dsh-command-compact',
       name: 'compact',
       description: 'Compact older conversation history',
-      risk: 'moderate',
     })
 
     await test.plugin.dispose()
@@ -209,8 +208,8 @@ describe('/compact human command', () => {
   it.each([
     ['busy', 'Compaction is unavailable because this process has an active compaction, or the agent is not idle.'],
     ['cancelled', 'Compaction cancelled.'],
-    ['changed', 'The history selected for compaction changed before it could be replaced. The conversation is unchanged; the attempt is recorded in the session log.'],
-    ['summary', 'Compaction could not produce a useful summary. The conversation is unchanged; the attempt is recorded in the session log.'],
+    ['changed', 'The history selected for compaction changed before it could be replaced. The attempt is recorded in the session log.'],
+    ['summary', 'Compaction could not produce a useful summary. The attempt is recorded in the session log.'],
     ['commit', 'Compaction did not finish cleanly; some session history may have changed. Inspect the current session state before retrying.'],
     ['persistence', 'Compaction finished, but the session could not be saved.'],
   ] as const)('maps expected %s failures to direct errors', async (code, text) => {

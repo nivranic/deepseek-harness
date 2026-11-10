@@ -9,9 +9,6 @@
   ],
   "references": [
     {
-      "path": "../../api/remotes/tsconfig.client.json"
-    },
-    {
       "path": "../../api/workspace-controller/tsconfig.client.json"
     },
     {
@@ -27,6 +24,9 @@
       "path": "../ui-primitives"
     },
     {
+      "path": "../ui-conversation/tsconfig.client.json"
+    },
+    {
       "path": "../ui-renderer"
     },
     {
@@ -36,10 +36,13 @@
       "path": "../ui-layout"
     },
     {
-      "path": "../ui-conversation"
+      "path": "../locale/tsconfig.client.json"
     },
     {
-      "path": "../locale"
+      "path": "../shortcuts/tsconfig.client.json"
+    },
+    {
+      "path": "../product-analytics/tsconfig.client.json"
     }
   ]
 }

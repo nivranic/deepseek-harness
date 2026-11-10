@@ -25,13 +25,11 @@ Web GUI 的 goal 界面同时显示持久 goal 状态及当前的进程本地激
 <a id="use-this-package"></a>
 ## 使用本包
 
-与 `ui-conversation` 及 goal 领域包一起挂载本插件；只要会话存在目标，条带就会作为 composer 上下文堆栈的第二张卡片出现（位于 Todo 之后、Queue 之前）。已 armed 的 active goal 提供暂停动作；active-but-disarmed 或 paused 的 goal 提供恢复；编辑重写目标文本；清除移除目标，并在投影追上之前抑制条带。
-
-条带要求 `goal.read.v1`，每个动作还要求对应 Goal 操作能力。缺少读取能力时不发实时读取请求，并隐藏条带。连接撤销立即清除进程内激活状态；替换连接会丢弃 Goal 编辑器与等待动作状态，消息输入框草稿保持不变。保留的回调和迟到回执不能修改或关闭替换连接的编辑器；Host 已接受的编辑仍然持久化，Client 不会自动重放。
+与 `ui-conversation` 及 goal 领域包一起挂载本插件；只要会话存在目标，条带就会作为 composer 上下文堆栈的第二张卡片出现（位于 Todo 之后、Queue 之前）。Todo 与 Goal 使用相同的面板 elevation，使其位于 composer 层级之上。已 armed 的 active goal 提供暂停动作；active-but-disarmed、paused 或 blocked 的 goal 提供恢复；编辑在 ui-primitives 的 `InlineEditor` 中重写目标文本，多行目标编辑后仍保留换行；清除移除目标，并在投影追上之前抑制条带。
 
 ### 指令输入气泡
 
-每条持久的 `/goal` 运行都投影为一个右对齐的用户样式气泡，标签为 `Command input`（或 `指令输入`），渲染在通用命令结果行之前；开头的 `/goal` token 经 ui-primitives 的 `projectUserText` 以等宽代码字体渲染为指令引用 chip，目标文本保持正文字体。它不含时间戳、复制或分支操作，重新加载时会依据运行记录重建。
+每条持久的 `/goal` 运行都投影为一个右对齐的用户样式气泡，标签为 `Command input`（或 `指令输入`），渲染在通用命令结果行之前；开头的 `/goal` token 经共享的 `conversation.user.text` Factory 与 Goal 自有的 `command` renderer，使用 `facts.commands` 中的实际执行 token 范围， 以等宽代码字体渲染为指令引用 chip，目标文本保持正文字体。它不含时间戳、复制或分支操作，重新加载时会依据运行记录重建。
 
 ### 失败
 
@@ -45,7 +43,9 @@ Web GUI 的 goal 界面同时显示持久 goal 状态及当前的进程本地激
 <details>
 <summary>实现细节——点击展开</summary>
 
-持久 goal 经 `useProjection('goal')` 到达。注册方私有钩子提供进程内激活状态与当前连接的动作权限。激活读取仅在存在读取能力且有观察者时运行；连接撤销清除其权限，事件、投影与读取 epoch 拒绝已被取代的响应。同一代际内的 running 刷新保留最后一次激活状态。受支持动作捕获已准入 Host 快照，并在调用时读取投影 CAS ref。替换连接改变 GoalBar key，使旧等待动作不能隐藏替换后的目标或编辑表单。条带对同帧变更手势进行 single-flight 限制，传输拒绝转换为可重试的本地错误。指令输入投影仍是独立的 Conversation Definition，不创建 `user/message` 或模型轮次。
+持久 goal 经 `useProjection('goal')` 到达（由历史尾页播种、`session/projection` 帧更新）。注入面携带注册方私有的激活钩子源与四个变更动词。该源仅在框架钩子观察它时启动；启动后会读取 `ctx.remote.goals.get`、订阅 `goal/activation-changed`，并在 running 状态或连接重置时刷新。实时事件 epoch 会让在途读取失效，因此较旧的 HTTP 响应不能覆盖较新的 activation 变化；running 刷新会保留最后一次已知 activation，直到读取完成。条带不持有领域存储或跨插件缓存。每个变更在调用时从会话当前投影值读取 CAS ref，比较并交换（RPC 的 CAS）就是陈旧性护栏。由于 React 的 pending 渲染无法拦住同一帧内的点击，条带会同步为变更建立 single-flight 防护。指令输入投影是独立的 Conversation Definition，在通用命令结果 Node 之前构建 `command-input` Chat Node；它绝不创建 `user/message` 或模型轮次。
+
+激活状态读取持有临时的 `goalActivation` 客户端引用，仅在该会话首次历史打开成功后发送 `goals.get`。binding 已失效或打开失败时不发送 RPC。读取被拒绝时记录错误，不改变投影中的目标或最后一次已知激活状态；读取结束时释放临时引用。
 
 </details>
 
@@ -79,6 +79,7 @@ Web GUI 的 goal 界面同时显示持久 goal 状态及当前的进程本地激
 这些限制界定了当前 goal 界面。它们是当前包约束，不是 goal 领域对比或任务积压。
 
 - **Host 状态与 preset 无关**——把活跃会话切换到 `minimal` 后，Host 拥有的 goal 仍会保留。`/goal` 与 goal 工具会消失，但该条带仍可编辑、暂停、恢复或清除 goal。
+- **无轮次预算控制**——该条带无法提高 `maxGoalRounds`。恢复已用完全部轮次的 goal（例如因轮次上限而受阻的 goal）会失败，并显示行内错误；需先请 agent 提高该 goal 的轮次上限。
 
 <a id="dev-note"></a>
 ### 开发备注
@@ -89,5 +90,3 @@ Web GUI 的 goal 界面同时显示持久 goal 状态及当前的进程本地激
 无。
 
 </details>
-
-**运行时不变式：** 不发布伴生入口。插件只注册一个 GoalBar dock，其释放已由 HMR（热模块替换）安全性用例证明；持久状态来自 goal projection，进程本地 activation 来自入口私有钩子源，且该源只在框架钩子观察期间订阅。

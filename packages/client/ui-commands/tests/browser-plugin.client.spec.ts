@@ -8,7 +8,7 @@
  */
 import { Context } from '@deepseek-ai/cordis'
 import { describe, expect, it, onTestFinished } from 'vitest'
-import { createScope, scopeOf } from '@deepseek-ai/dsh-api-session-controller/client'
+import { TestSessions } from '@deepseek-ai/dsh-client-test-runtime'
 import { SlotRegistry } from '@deepseek-ai/dsh-client-ui-renderer/client'
 import type { SessionId } from '@deepseek-ai/dsh-session/types'
 import type { InputTriggerSource } from '@deepseek-ai/dsh-client-ui-input-trigger/client'
@@ -28,19 +28,20 @@ async function bench() {
       return () => { sources.delete(`${src.trigger} ${src.name}`) }
     },
   })
-  const scopes = new Map<SessionId, Context>()
-  ctx.provide('sessions', {
-    scope: (id: SessionId) => scopes.get(id),
-    scopeOf: (c: Context) => scopeOf(c),
-    subagentAddress: (id: SessionId) => id === sid('child')
-      ? { parentSessionId: sid('parent'), childSessionId: id, mode: 'continuable' as const }
-      : undefined,
+  const sessions = new TestSessions(async (action) => { await action() }, ctx)
+  onTestFinished(async () => {
+    await sessions.disposeScopes()
+    await ctx.fiber.dispose()
   })
+  ctx.provide('sessions', sessions)
+  await sessions.add({ id: 's1' })
+  await sessions.add({ id: 'child' })
+  sessions.retainFor(ctx, sid('s1'))
+  sessions.retainFor(ctx, { parentSessionId: sid('parent'), childSessionId: sid('child'), mode: 'continuable' })
   const commandsRemote = { list: () => Promise.resolve({ ok: true as const, value: [] }) }
   // The service subscribes its cache-invalidation events on construction, so
   // the Remote face needs `$on` even where this spec dispatches none.
-  ctx.provide('remote', { commands: commandsRemote, $host: { capabilities: ['command.catalog.v1', 'command.execute.v1'] }, $on: () => () => {} })
-  ctx.provide('connection', { generation: { getSnapshot: () => undefined, subscribe: () => () => {} } })
+  ctx.provide('remote', { commands: commandsRemote, $on: () => () => {} })
   ctx.provide('remote.commands', commandsRemote)
   await ctx.plugin(SlotRegistry).await()
   ctx.slots.register({
@@ -50,16 +51,16 @@ async function bench() {
   const fiber = ctx.plugin({ inject: [...inject], apply })
   await fiber.await()
   const mint = (key: string) => {
-    const handle = createScope(ctx, sid(key))
-    scopes.set(sid(key), handle.ctx)
-    return handle
+    const id = sid(key)
+    const binding = sessions.binding(id) ?? sessions.retainFor(ctx, id).binding
+    return { ctx: binding.ctx, fiber: binding.ctx.fiber }
   }
   return { ctx, fiber, sources, slots: ctx.slots, mint }
 }
 
 describe('apply', () => {
   it('declares the services it binds', () => {
-    expect(inject).toEqual(['inputTriggers', 'sessions', 'remote', 'remote.commands', 'locale', 'connection'])
+    expect(inject).toEqual(['inputTriggers', 'sessions', 'remote', 'remote.commands', 'locale'])
   })
 
   it('mounts ctx.commandUi, registers the source and the overlay entry, and folds up on disposal', async () => {

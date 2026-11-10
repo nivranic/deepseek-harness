@@ -7,7 +7,7 @@
   },
   "files": [
     "src/index.ts",
-    "src/capabilities.ts",
+    "src/changes.ts",
     "src/presented.ts",
     "src/present-open.ts"
   ],
@@ -31,7 +31,10 @@
       "path": "../../llm/llm"
     },
     {
-      "path": "../../fs/tool-present"
+      "path": "../../deliverables/tool-present"
+    },
+    {
+      "path": "../../deliverables/workspace-changes"
     },
     {
       "path": "../../api/session-controller/tsconfig.host.json"

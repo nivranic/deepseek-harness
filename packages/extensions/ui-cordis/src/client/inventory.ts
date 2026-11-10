@@ -43,8 +43,6 @@ export interface CordisInventory extends HostObservable<CordisInventorySnapshot>
   retire(pluginId: CordisDynamicPluginId): void
   /** Drop what was read; the next refresh starts from nothing (a reconnect may be a new host). */
   reset(): void
-  /** End the owner lifetime and discard late reads. */
-  dispose(): void
 }
 
 /**
@@ -62,7 +60,6 @@ export function createCordisInventory(
   let inFlight: Promise<void> | undefined
   // Bumped by reset; a read whose generation is stale publishes nothing.
   let generation = 0
-  let disposed = false
 
   const publish = (next: CordisInventorySnapshot): void => {
     snapshot = next
@@ -76,7 +73,7 @@ export function createCordisInventory(
       return () => { listeners.delete(fn) }
     },
     refresh: () => {
-      if (disposed || inFlight !== undefined) return
+      if (inFlight !== undefined) return
       const issued = generation
       inFlight = port.inventory().then(
         (rows) => {
@@ -103,21 +100,14 @@ export function createCordisInventory(
       ).then(() => { if (issued === generation) inFlight = undefined })
     },
     retire: (pluginId) => {
-      if (disposed) return
       const removed = new Set(snapshot.removed)
       removed.add(pluginId)
       publish({ ...snapshot, rows: snapshot.rows.filter(row => row.pluginId !== pluginId), removed })
     },
-    dispose: () => {
-      disposed = true
-      generation += 1
-      inFlight = undefined
-      publish({ rows: [], removed: new Set(), read: false })
-    },
     reset: () => {
       generation += 1
       inFlight = undefined
-      publish({ rows: [], removed: new Set(), read: false })
+      publish({ rows: [], removed: snapshot.removed, read: false })
     },
   }
 }

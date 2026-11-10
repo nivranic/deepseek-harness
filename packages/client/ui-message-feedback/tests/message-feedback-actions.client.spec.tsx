@@ -45,8 +45,8 @@ function mount(options: {
   ensureResult?: MessageFeedbackActionResult
   retractResult?: MessageFeedbackActionResult
   status?: MessageFeedbackView['status']
-  putAvailable?: boolean
-  deleteAvailable?: boolean
+  /** The Session access answer for recording message feedback; allowed when omitted. */
+  allowed?: boolean
 } = {}) {
   const view: MessageFeedbackView = {
     status: options.status ?? 'ready',
@@ -60,27 +60,20 @@ function mount(options: {
   const current = vi.fn((_id: MessageId) => options.committed ?? options.current)
   const useFeedback = (<T,>(select: (v: MessageFeedbackView) => T): T =>
     useSyncExternalStore(() => () => {}, () => select(view))) as never
-  const props = {
-    access: {
-      generation: 1, read: true, put: options.putAvailable ?? true,
-      delete: options.deleteAvailable ?? true, record: true, current: () => true,
-    },
-    messageId: MSG, ensure, current, retract, openDialog, useFeedback, t,
-  } as unknown as Parameters<typeof MessageFeedbackActions>[0]
-  return { ...render(<MessageFeedbackActions {...props} />), ensure, retract, openDialog }
+  const useAccess = vi.fn((_action: string) => options.allowed ?? true)
+  const props = { messageId: MSG, ensure, current, retract, openDialog, useFeedback, t } as unknown as
+    Parameters<typeof MessageFeedbackActions>[0]
+  return { ...render(<MessageFeedbackActions {...props} useAccess={useAccess} />), ensure, retract, openDialog, useAccess }
 }
 
 describe('MessageFeedbackActions', () => {
-  it('renders a read-only committed rating without mutation buttons', () => {
-    const ui = mount({ current: item(), putAvailable: false, deleteAvailable: false })
-    expect(ui.getByRole('img', { name: zh['action.like'] })).toBeDefined()
-    expect(ui.queryByRole('button')).toBeNull()
-  })
+  it('renders nothing and reads nothing while the current Peer may not record message feedback in this Session', () => {
+    const ui = mount({ allowed: false })
 
-  it('offers only retraction when delete is supported independently of put', () => {
-    const ui = mount({ current: item(), putAvailable: false })
-    expect(ui.getAllByRole('button')).toHaveLength(1)
-    expect(ui.getByRole('button', { name: zh['action.likeActive'] })).toBeDefined()
+    expect(ui.useAccess).toHaveBeenCalledWith('messageFeedback/put')
+    expect(ui.queryByLabelText(zh['action.like'])).toBeNull()
+    expect(ui.queryByLabelText(zh['action.dislike'])).toBeNull()
+    expect(ui.ensure).not.toHaveBeenCalled()
   })
 
   it('renders both rating buttons unpressed with no recorded feedback', () => {
@@ -233,7 +226,6 @@ describe('MessageFeedbackActions', () => {
     const useFeedback = (<T,>(select: (v: MessageFeedbackView) => T): T =>
       useSyncExternalStore(() => () => {}, () => select(view))) as never
     const props = {
-      access: { generation: 1, read: true, put: true, delete: true, record: true, current: () => true },
       messageId: MSG,
       ensure: vi.fn(() => Promise.resolve<MessageFeedbackActionResult>({ ok: true })),
       current: () => recorded,
@@ -242,7 +234,7 @@ describe('MessageFeedbackActions', () => {
       useFeedback,
       t,
     } as unknown as Parameters<typeof MessageFeedbackActions>[0]
-    const ui = render(<MessageFeedbackActions {...props} />)
+    const ui = render(<MessageFeedbackActions {...props} useAccess={() => true} />)
     const errors: unknown[] = []
     const onError = (event: ErrorEvent): void => { errors.push(event.error) }
     window.addEventListener('error', onError)
@@ -264,7 +256,6 @@ describe('MessageFeedbackActions', () => {
       useSyncExternalStore(() => () => {}, () => select(view))) as never
     const openDialog = vi.fn()
     const props = {
-      access: { generation: 1, read: true, put: true, delete: true, record: true, current: () => true },
       messageId: MSG,
       ensure: vi.fn(() => gate),
       current: () => undefined,
@@ -273,7 +264,7 @@ describe('MessageFeedbackActions', () => {
       useFeedback,
       t,
     } as unknown as Parameters<typeof MessageFeedbackActions>[0]
-    const ui = render(<MessageFeedbackActions {...props} />)
+    const ui = render(<MessageFeedbackActions {...props} useAccess={() => true} />)
     const errors: unknown[] = []
     const onError = (event: ErrorEvent): void => { errors.push(event.error) }
     window.addEventListener('error', onError)
@@ -299,7 +290,6 @@ describe('MessageFeedbackActions', () => {
     const useFeedback = (<T,>(select: (v: MessageFeedbackView) => T): T =>
       useSyncExternalStore(() => () => {}, () => select(view))) as never
     const props = {
-      access: { generation: 1, read: true, put: true, delete: true, record: true, current: () => true },
       messageId: MSG,
       ensure: vi.fn(() => Promise.resolve<MessageFeedbackActionResult>({ ok: true })),
       current: () => item({ rating: 'negative' }),
@@ -308,7 +298,7 @@ describe('MessageFeedbackActions', () => {
       useFeedback,
       t,
     } as unknown as Parameters<typeof MessageFeedbackActions>[0]
-    const ui = render(<MessageFeedbackActions {...props} />)
+    const ui = render(<MessageFeedbackActions {...props} useAccess={() => true} />)
     const errors: unknown[] = []
     const onError = (event: ErrorEvent): void => { errors.push(event.error) }
     window.addEventListener('error', onError)

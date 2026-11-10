@@ -1,17 +1,14 @@
 /** One Host-generation model catalog shared by every Session selector. */
 
 import type { Context as ClientContext } from '@deepseek-ai/cordis'
-import type { ModelCatalog } from '@deepseek-ai/dsh-api-remotes/client'
+import type { ModelCatalog, ModelSelection, ModelProviderGroup } from '@deepseek-ai/dsh-api-remotes/client'
 import { createSnapshotStore, type SnapshotStore } from '@deepseek-ai/dsh-client-store'
-import { classifyRemoteFailure, type RemoteFailureClass } from '@deepseek-ai/dsh-typert-protocol'
 
 /** Observable lifecycle of the shared model catalog. */
 export interface ModelCatalogState {
   value: ModelCatalog | null
   status: 'idle' | 'loading' | 'ready' | 'error'
   error: string | null
-  /** Shared §45 classification of the load failure; `null` while none, `unknown` keeps the raw message. */
-  errorClass: RemoteFailureClass | null
 }
 
 /** Loads at most one model catalog for the current Host generation. */
@@ -21,8 +18,18 @@ export class ModelCatalogDirectory {
     value: null,
     status: 'idle',
     error: null,
-    errorClass: null,
   })
+
+  private readonly reasoning = new Map<string, ModelProviderGroup['models'][number]['reasoning']>()
+
+  /**
+   * Read the last advertised reasoning metadata, including unavailable models.
+   * @param selection - provider and model whose effort is displayed.
+   * @returns reasoning metadata observed during this Host generation.
+   */
+  reasoningFor(selection: ModelSelection): ModelProviderGroup['models'][number]['reasoning'] {
+    return this.reasoning.get(JSON.stringify([selection.provider, selection.model]))
+  }
 
   private generation = 0
   private inflight: Promise<ModelCatalog> | undefined
@@ -30,16 +37,14 @@ export class ModelCatalogDirectory {
   /**
    * @param ctx - the providing plugin's context, whose `remote.session`
    * namespace carries the Host-generation catalog.
-   * @param available - whether the admitted Host advertises model selection.
    */
-  constructor(private readonly ctx: ClientContext, private readonly available: () => boolean) {}
+  constructor(private readonly ctx: ClientContext) {}
 
   /**
    * Return the current generation's catalog, sharing its one in-flight load.
    * @returns the loaded global catalog.
    */
   load(): Promise<ModelCatalog> {
-    if (!this.available()) return Promise.reject(new Error('Host does not advertise model.select.v1'))
     const state = this.store.getSnapshot()
     if (state.status === 'ready' && state.value !== null) return Promise.resolve(state.value)
     if (this.inflight !== undefined) return this.inflight
@@ -47,14 +52,18 @@ export class ModelCatalogDirectory {
     this.store.update((draft) => {
       draft.status = 'loading'
       draft.error = null
-      draft.errorClass = null
     })
     const operation = this.ctx.remote.session.modelCatalog().then((response) => {
       if (!response.ok) {
-        throw response.error
+        throw new Error(`${response.error.code}: ${response.error.message}`)
       }
       if (generation === this.generation) {
-        this.store.set({ value: response.value, status: 'ready', error: null, errorClass: null })
+        for (const group of response.value.groups) {
+          for (const model of group.models) {
+            this.reasoning.set(JSON.stringify([group.id, model.id]), model.reasoning)
+          }
+        }
+        this.store.set({ value: response.value, status: 'ready', error: null })
       }
       return response.value
     }).catch((error: unknown) => {
@@ -62,7 +71,6 @@ export class ModelCatalogDirectory {
         this.store.update((draft) => {
           draft.status = 'error'
           draft.error = error instanceof Error ? error.message : String(error)
-          draft.errorClass = classifyRemoteFailure(error)
         })
       }
       throw error
@@ -81,18 +89,19 @@ export class ModelCatalogDirectory {
     this.generation += 1
     this.inflight = undefined
     const value = clear ? null : this.store.getSnapshot().value
-    this.store.set({ value, status: 'idle', error: null, errorClass: null })
+    this.store.set({ value, status: 'idle', error: null })
   }
 
   /** Invalidate and reload the catalog after a Host-side model input changes. */
   refresh(): void {
     this.invalidate()
-    if (this.available()) void this.load().catch(() => { /* the selector exposes the shared error */ })
+    void this.load().catch(() => { /* the selector exposes the shared error */ })
   }
 
   /** Clear Host-specific values and load the replacement Host generation. */
   resetGeneration(): void {
+    this.reasoning.clear()
     this.invalidate(true)
-    if (this.available()) void this.load().catch(() => { /* the selector exposes the shared error */ })
+    void this.load().catch(() => { /* the selector exposes the shared error */ })
   }
 }

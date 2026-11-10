@@ -1,20 +1,20 @@
 /** Browser approval consumer over the existing scoped Remote Event waterfall. */
 import type { Context as ClientContext } from '@deepseek-ai/cordis'
 import type {} from '@deepseek-ai/dsh-api-remotes/client'
-import type { ConnectionHandle, ConnectionHostInfo } from '@deepseek-ai/dsh-client-connection/client'
 import type {} from '@deepseek-ai/dsh-api-session-controller/client'
 import type { ComposerChainProps } from '@deepseek-ai/dsh-client-ui-conversation/client'
 import type {} from '@deepseek-ai/dsh-client-ui-renderer/client'
 import type { PendingInteractionPublisher } from '@deepseek-ai/dsh-client-ui-session/client'
 import type { TypertClientEventListener } from '@deepseek-ai/dsh-typert-protocol'
-import type { HostObservable } from '@deepseek-ai/dsh-client-ui-slots'
 import type {} from '@deepseek-ai/dsh-client-locale/client'
+import type { ShortcutCommandId } from '@deepseek-ai/dsh-client-shortcuts/client'
+import { ApprovalCard } from './ApprovalCard.tsx'
 import { ApprovalPanel } from './ApprovalPanel.tsx'
 import { PendingApproval } from './contract/slots.ts'
-import type { ApprovalPanelInjected } from './contract/slots.ts'
-import { en, zh } from './locales.ts'
+import { en, ja, es, fr, de, ru, pt, zh } from './locales.ts'
 
 export type {
+  ApprovalCardInput,
   ApprovalComposerProps,
   ApprovalDecision,
   ApprovalDetailOwnerProps,
@@ -24,7 +24,7 @@ export type {
 export type { ApprovalKey } from './locales.ts'
 
 /** Required services: Agent scopes, Remote Events, Session UI, Slot registry, and copy. */
-export const inject = ['sessions', 'remote', 'uiSession', 'slots', 'locale', 'connection']
+export const inject = ['sessions', 'remote', 'uiSession', 'slots', 'locale']
 
 const NS = 'approval'
 
@@ -50,8 +50,7 @@ async function answerApproval(
       ? {}
       : { callId: request.callId }),
     ...(request.reason === undefined ? {} : { reason: request.reason }),
-    ...(request.risk === undefined ? {} : { risk: request.risk }),
-    ...(request.escalation === undefined ? {} : { escalation: request.escalation }),
+    ...(request.displayReason === undefined ? {} : { displayReason: request.displayReason }),
     ...(request.signal === undefined ? {} : { signal: request.signal }),
   })
   const completed = Promise.withResolvers<void>()
@@ -78,28 +77,32 @@ async function answerApproval(
  * @param ctx - Client root context.
  */
 export function apply(ctx: ClientContext): void {
-  ctx.effect(() => ctx.locale.register(NS, { zh, en }), 'ui-approval: dictionaries')
+  ctx.effect(() => ctx.locale.register(NS, { zh, en, ja, es, fr, de, ru, pt }), 'ui-approval: dictionaries')
+  ctx.inject(['shortcuts'], (scope) => {
+    const t = ctx.locale.bind(NS)
+    scope.effect(() => scope.shortcuts.registerFixed({
+      id: 'approval.allow' as ShortcutCommandId, label: () => t('allow'), keys: ['Enter'], bindings: [{ code: 'Enter', modifiers: [] }], group: 'approval',
+    }), 'ui-approval: fixed allow reference')
+    scope.effect(() => scope.shortcuts.registerFixed({
+      id: 'approval.reject' as ShortcutCommandId, label: () => t('reject'), keys: ['Esc'], bindings: [{ code: 'Escape', modifiers: [] }], group: 'approval',
+    }), 'ui-approval: fixed reject reference')
+  })
   const registerPendingInteraction = ctx.uiSession.registerPendingInteraction<PendingApproval>(
     () => 0,
   )
-  const connection = ctx.get('connection') as ConnectionHandle
-  // The approval fact block (specification §38) names the execution Host;
-  // undefined while no generation is ready.
-  const hostFacts: HostObservable<ConnectionHostInfo | undefined> = {
-    getSnapshot: () => connection.generation.getSnapshot()?.host,
-    subscribe: (listener: () => void) => connection.generation.subscribe(listener),
-  }
+  ctx.slots.registerFactory({
+    name: 'conversation.approval.card', scope: 'session', locale: NS,
+    children: { 'conversation.approval.detail': { kind: 'single', scope: 'session' } },
+  }, ApprovalCard)
   ctx.slots.inject('conversation.composer', () => ctx.slots.register({
     name: 'conversation.composer',
     priority: 1,
     select: ({ pendingInteraction }: ComposerChainProps): PendingApproval | null =>
       pendingInteraction instanceof PendingApproval ? pendingInteraction : null,
-    inject: (): ApprovalPanelInjected => ({ hooks: { hostFacts } }),
     locale: NS,
-    children: {
-      'conversation.approval.detail': { kind: 'single', scope: 'session' },
-      'conversation.approval.target': { kind: 'single', scope: 'session' },
-    },
+    inject: () => ({
+      resolveReason: (reason: NonNullable<PendingApproval['displayReason']>) => ctx.locale.resolveText(reason),
+    }),
   }, ApprovalPanel))
   ctx.remote.$on('approval/request', function (request, next) {
     return answerApproval(ctx, this, request, next, registerPendingInteraction)

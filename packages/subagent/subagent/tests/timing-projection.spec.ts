@@ -1,13 +1,25 @@
+import { mountWorkingDirectoryFixture } from './working-directory-fixture.ts'
 import { describe, expect, it } from 'vitest'
 import { Context } from '@deepseek-ai/cordis'
-import SessionStore, { SessionLogOffset, SessionSeq } from '@deepseek-ai/dsh-session'
-import type { SessionEvent } from '@deepseek-ai/dsh-session'
+import SessionStore from '@deepseek-ai/dsh-session'
+import type { SessionEvent, TurnEndReason } from '@deepseek-ai/dsh-session'
 import SessionProjectionRegistry from '@deepseek-ai/dsh-session-projection'
 import SubagentRuntime from '../src/index.ts'
-import { subagentTimingProjectionDefinition, type TimingState } from '../src/projection.ts'
+import { SUBAGENT_DESCRIPTOR_VERSION } from '../src/descriptor.ts'
+import { subagentIdentityProjectionDefinition, subagentTimingProjectionDefinition, type TimingState } from '../src/projection.ts'
 
-function event(type: SessionEvent['type'], seq: number, time: number): SessionEvent {
-  return { type, seq, time, data: {} } as SessionEvent
+function event(
+  type: SessionEvent['type'],
+  seq: number,
+  time: number,
+  reason: TurnEndReason = { kind: 'completed' },
+): SessionEvent {
+  return {
+    type,
+    seq,
+    time,
+    data: type === 'turn/end' ? { turn: 1, reason } : {},
+  } as SessionEvent
 }
 
 function fold(events: SessionEvent[]) {
@@ -17,27 +29,23 @@ function fold(events: SessionEvent[]) {
 }
 
 describe('subagent timing projection', () => {
-  it('rebuilds an old timing checkpoint before exposing a cancellation target', async () => {
-    const ctx = new Context()
-    try {
-      await ctx.plugin(SessionStore)
-      await ctx.plugin(SessionProjectionRegistry)
-      ctx.sessionProjections.register(subagentTimingProjectionDefinition)
-      const session = ctx.sessions.create()
-      const events = [event('turn/start', 0, 100), event('subagent/descriptor', 1, 110)]
-      const restored = ctx.sessionProjections.restore({
-        subagentTiming: { ver: 2, seq: SessionSeq(1), val: { settledMs: 0, active: { since: 100, through: 110 }, descriptorSeen: true } },
-      }, events, SessionLogOffset(0), session.header, SessionLogOffset(0))
-      expect(restored.snapshot.values.subagentTiming).toEqual({ settledMs: 0, active: { since: 100, through: 110, startSeq: 0 } })
-      expect(restored.checkpoint.subagentTiming?.ver).toBe(3)
-    } finally { await ctx.fiber.dispose() }
+  it('preserves historical one-shot identity without inventing a label', () => {
+    const descriptor = {
+      ...event('subagent/descriptor', 1, 110),
+      data: { version: SUBAGENT_DESCRIPTOR_VERSION, mode: 'one-shot', provider: 'spawn' },
+    } as SessionEvent
+    const state = subagentIdentityProjectionDefinition.apply(subagentIdentityProjectionDefinition.init(), descriptor)
+    expect(subagentIdentityProjectionDefinition.wire.view(state)).toEqual({ mode: 'one-shot', seq: 1 })
   })
 
-  it('registers with the optional session projection registry', async () => {
+  it('waits for the session projection registry and releases its projections on unload', async () => {
     const ctx = new Context()
     await ctx.plugin(SessionStore)
+    await mountWorkingDirectoryFixture(ctx)
+    const pending = ctx.plugin(SubagentRuntime)
+    expect(ctx.get('subagents')).toBeUndefined()
     await ctx.plugin(SessionProjectionRegistry)
-    const serviceFiber = await ctx.plugin(SubagentRuntime)
+    const serviceFiber = await pending
 
     const before = ctx.sessionProjections.snapshot(ctx.sessions.create()).values
     expect(before.subagentTiming).toEqual({ settledMs: 0 })
@@ -60,7 +68,7 @@ describe('subagent timing projection', () => {
       event('turn/end', 5, 4_100),
       event('turn/start', 6, 10_000),
       event('turn/end', 7, 12_000),
-    ])).toEqual({ settledMs: 5_100 })
+    ])).toEqual({ settledMs: 5_100, lastTurnCompleted: true })
   })
 
   it('exposes an open turn start and never subtracts time for reversed boundaries', () => {
@@ -70,7 +78,24 @@ describe('subagent timing projection', () => {
       event('turn/end', 2, 900),
       event('turn/start', 3, 2_000),
       event('assistant/attempt', 4, 2_500),
-    ])).toEqual({ settledMs: 0, active: { since: 2_000, through: 2_500, startSeq: 3 } })
+    ])).toEqual({ settledMs: 0, active: { since: 2_000, through: 2_500 } })
+  })
+
+  it('publishes only the latest closed turn completion and clears it when another turn opens', () => {
+    expect(fold([
+      event('turn/start', 0, 100),
+      event('subagent/descriptor', 1, 110),
+      event('turn/end', 2, 200),
+      event('turn/start', 3, 300),
+      event('turn/end', 4, 400, { kind: 'interrupted' }),
+    ])).toEqual({ settledMs: 200, lastTurnCompleted: false })
+
+    expect(fold([
+      event('turn/start', 0, 100),
+      event('subagent/descriptor', 1, 110),
+      event('turn/end', 2, 200),
+      event('turn/start', 3, 300),
+    ])).toEqual({ settledMs: 100, active: { since: 300, through: 300 } })
   })
 
   it('ignores completed pre-descriptor turns and unrelated events', () => {

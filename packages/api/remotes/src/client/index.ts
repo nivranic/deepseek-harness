@@ -1,64 +1,66 @@
 /** Platform-neutral assembly of generated Host Remote contributions. */
 
 import type { Context } from '@deepseek-ai/cordis'
-import agentPresetsRemote from '@deepseek-ai/dsh-agent-presets/remote'
+import productAnalyticsRemote from '@deepseek-ai/dsh-client-product-analytics/remote'
+export type {} from '@deepseek-ai/dsh-client-product-analytics/remote'
+import agentPresetsRemote from '@deepseek-ai/dsh-agent-preset-registry/remote'
+import userQuestionsRemote from '@deepseek-ai/dsh-user-questions/remote'
 import commandsRemote from '@deepseek-ai/dsh-commands/remote'
+import accountRemote from '@deepseek-ai/dsh-api-account-controller/remote'
 import settingsControllerRemote from '@deepseek-ai/dsh-api-settings-controller/remote'
+import officeToPdfRemote from '@deepseek-ai/dsh-office-to-pdf/remote'
 import goalsRemote from '@deepseek-ai/dsh-goal/remote'
+import scheduleRemote from '@deepseek-ai/dsh-schedule/remote'
 import llmRemote from '@deepseek-ai/dsh-llm/remote'
 import dynamicRemote from '@deepseek-ai/dsh-cordis-host-runner/remote'
+import pluginManagerRemote from '@deepseek-ai/dsh-plugin-manager/remote'
+import toolResultsRemote from '@deepseek-ai/dsh-client-ui-trajectory/remote'
+import pluginRegistryProbeRemote from '@deepseek-ai/dsh-client-ui-plugin-manager/remote'
+import pluginMarketRemote from '@deepseek-ai/dsh-plugin-market/remote'
 import pluginInventoryRemote from '@deepseek-ai/dsh-host-plugin-inventory/remote'
-import deviceTrustRemote from '@deepseek-ai/dsh-api-device-trust/remote'
-import nativeRemote from '@deepseek-ai/dsh-api-native-remote/remote'
-import hostDescriptionRemote from '@deepseek-ai/dsh-api-host-description/remote'
-import hostDiagnosticsRemote from '@deepseek-ai/dsh-api-host-diagnostics/remote'
 import messageFeedbackRemote from '@deepseek-ai/dsh-message-feedback/remote'
+import permissionPresetsRemote from '@deepseek-ai/dsh-permission-presets/remote'
 import sessionFeedbackRemote from '@deepseek-ai/dsh-command-feedback/remote'
-import presentedFilesRemote from '@deepseek-ai/dsh-client-ui-deliverables/remote'
 import fileUploadsRemote from '@deepseek-ai/dsh-client-file-upload/remote'
 import sessionReferencesRemote from '@deepseek-ai/dsh-session-reference/remote'
 import subagentsRemote from '@deepseek-ai/dsh-subagent/remote'
 import sessionRemote from '@deepseek-ai/dsh-api-session-controller/remote'
+import jobRemote from '@deepseek-ai/dsh-api-job-controller/remote'
 import workspaceRemote from '@deepseek-ai/dsh-api-workspace-controller/remote'
+import terminalRemote from '@deepseek-ai/dsh-api-terminal-controller/remote'
 import workspaceFilesRemote from '@deepseek-ai/dsh-api-workspace-files/remote'
 import type { ClientRemote } from '@deepseek-ai/dsh-api-gateway/client'
-import { createHostPreparation, admitHostOperation } from './host-preparation.ts'
 
-export type { SETTINGS_REMOTE_CAPABILITIES, CREDENTIAL_REMOTE_CAPABILITIES } from '@deepseek-ai/dsh-api-settings-controller/capabilities'
-export type { LLM_REMOTE_CAPABILITIES } from '@deepseek-ai/dsh-llm/capabilities'
-export type { MESSAGE_FEEDBACK_REMOTE_CAPABILITIES } from '@deepseek-ai/dsh-message-feedback/capabilities'
-export type { SESSION_FEEDBACK_REMOTE_CAPABILITIES } from '@deepseek-ai/dsh-command-feedback/capabilities'
-export type { DYNAMIC_CORDIS_REMOTE_CAPABILITIES } from '@deepseek-ai/dsh-cordis-host-runner/capabilities'
-export type { PLUGIN_INVENTORY_REMOTE_CAPABILITIES } from '@deepseek-ai/dsh-host-plugin-inventory/capabilities'
-export type { DEVICE_TRUST_REMOTE_CAPABILITIES } from '@deepseek-ai/dsh-api-device-trust/capabilities'
-export type { FILE_UPLOAD_REMOTE_CAPABILITIES } from '@deepseek-ai/dsh-client-file-upload/capabilities'
-export type { SUBAGENT_REMOTE_CAPABILITIES } from '@deepseek-ai/dsh-subagent/capabilities'
-export type { GOAL_REMOTE_CAPABILITIES } from '@deepseek-ai/dsh-goal/capabilities'
-export type { COMMAND_REMOTE_CAPABILITIES } from '@deepseek-ai/dsh-commands/capabilities'
-export type { FILE_REFERENCE_REMOTE_CAPABILITIES, SKILL_CATALOG_REMOTE_CAPABILITIES } from '@deepseek-ai/dsh-api-session-controller/capabilities'
-export type { SESSION_REFERENCE_REMOTE_CAPABILITIES } from '@deepseek-ai/dsh-session-reference/capabilities'
-export type { WORKSPACE_FILES_REMOTE_CAPABILITIES } from '@deepseek-ai/dsh-api-workspace-files/capabilities'
-export type { WORKSPACE_REMOTE_CAPABILITIES, DIRECTORY_PICKER_REMOTE_CAPABILITIES } from '@deepseek-ai/dsh-api-workspace-controller/capabilities'
-export type {} from '@deepseek-ai/dsh-client-ui-deliverables/remote'
-export type * from '@deepseek-ai/dsh-client-ui-deliverables/types'
 export type { ClientRemote } from '@deepseek-ai/dsh-api-gateway/client'
-export type { HostDescriptor, HostId, HostTransport } from '@deepseek-ai/dsh-api-host-description/types'
-export type {} from './host-preparation.ts'
-export type {} from '@deepseek-ai/dsh-api-host-description/remote'
-export type {} from '@deepseek-ai/dsh-api-host-diagnostics/remote'
+export type {
+  BundleDetail, BundleInfo, BundleRowInfo, ChangeResult, IncompatiblePlugin, InspectOptions, InstallBundleOptions, InstallSpecKind,
+  ManagementError, PackageResult,
+  PluginChange, PluginEntryId, PluginInfo, PluginInspectProblem, PluginInstallCancellation, PluginInstallFailureKind,
+  PluginInstallLogChunk, PluginInstallProgress, PluginInstallRequestId, PluginRegistries, PluginSpecInspection,
+  PluginUpdateProgress, PluginUpdateResult, PluginUpdateStep, PluginVersion, PluginVersionList, RegistryAttempt,
+  ReadOnlyReason, Registry, RestartReason,
+} from '@deepseek-ai/dsh-plugin-manager/types'
+export type {} from '@deepseek-ai/dsh-plugin-manager/remote'
+export type {} from '@deepseek-ai/dsh-client-ui-plugin-manager/remote'
+export type {} from '@deepseek-ai/dsh-client-ui-trajectory/remote'
+export type {} from '@deepseek-ai/dsh-plugin-market/remote'
+export type {
+  MarketCompatibility, MarketIndexSummary, MarketInstallation, MarketInstallationStatus, MarketListingEntry, MarketListingVersion,
+  MarketQuery, MarketSearchResult, MarketSort, PluginDetail, PluginDetailDocumentId, PluginDetailOrigin,
+} from '@deepseek-ai/dsh-plugin-market/types'
 export type { PluginInventorySnapshot } from '@deepseek-ai/dsh-host-plugin-inventory/types'
-export type {} from '@deepseek-ai/dsh-agent-presets/remote'
+export type {} from '@deepseek-ai/dsh-agent-preset-registry/remote'
+export type {} from '@deepseek-ai/dsh-user-questions/remote'
 export type {} from '@deepseek-ai/dsh-commands/remote'
 export type {} from '@deepseek-ai/dsh-api-settings-controller/remote'
+export type {} from '@deepseek-ai/dsh-api-account-controller/remote'
 export type {} from '@deepseek-ai/dsh-goal/remote'
+export type {} from '@deepseek-ai/dsh-schedule/remote'
+export type {} from '@deepseek-ai/dsh-office-to-pdf/remote'
 export type {} from '@deepseek-ai/dsh-llm/remote'
 export type {} from '@deepseek-ai/dsh-host-plugin-inventory/remote'
-export type {} from '@deepseek-ai/dsh-api-device-trust/remote'
-export type { DeviceId, DeviceView, DeviceRole } from '@deepseek-ai/dsh-api-device-trust/types'
-export type { PairingIssuance } from '@deepseek-ai/dsh-api-device-trust/types'
-export type { NativeRemoteInfo, NativePairingPayload } from '@deepseek-ai/dsh-api-native-remote/types'
-export type {} from '@deepseek-ai/dsh-api-native-remote/remote'
 export type {} from '@deepseek-ai/dsh-message-feedback/remote'
+export type {} from '@deepseek-ai/dsh-permission-presets/remote'
 export type {} from '@deepseek-ai/dsh-command-feedback/remote'
 export type {} from '@deepseek-ai/dsh-client-file-upload/remote'
 export type {} from '@deepseek-ai/dsh-session-reference/remote'
@@ -66,11 +68,14 @@ export type {} from '@deepseek-ai/dsh-subagent/remote'
 export type * from '@deepseek-ai/dsh-subagent/client'
 export type {} from '@deepseek-ai/dsh-api-session-controller/remote'
 export type * from '@deepseek-ai/dsh-api-session-controller/types'
+export type {} from '@deepseek-ai/dsh-api-job-controller/remote'
+export type * from '@deepseek-ai/dsh-api-job-controller/types'
 export type {} from '@deepseek-ai/dsh-api-workspace-controller/remote'
 export type * from '@deepseek-ai/dsh-api-workspace-controller/types'
 export type {} from '@deepseek-ai/dsh-api-workspace-files/remote'
 export type * from '@deepseek-ai/dsh-api-workspace-files/types'
-export type { SessionJob as JobView } from '@deepseek-ai/dsh-api-session-controller/types'
+export type {} from '@deepseek-ai/dsh-api-terminal-controller/remote'
+export type * from '@deepseek-ai/dsh-api-terminal-controller/types'
 // The forwarded-event allowlist's selection seat: without it in the consumer's
 // compilation face `TypertRemoteEvent` is `never` and every `$on` call fails.
 export type { ApiRemoteForwardedEvent } from '../types.ts'
@@ -81,7 +86,8 @@ export type {} from '@deepseek-ai/dsh-commands/types'
 export type {} from '@deepseek-ai/dsh-cordis-host-runner/types'
 export type {} from '@deepseek-ai/dsh-credentials/types'
 export type {} from '@deepseek-ai/dsh-llm/types'
-export type {} from '@deepseek-ai/dsh-agent-presets/types'
+export type {} from '@deepseek-ai/dsh-agent-preset-registry/types'
+export type {} from '@deepseek-ai/dsh-permission-presets/types'
 export type {} from '@deepseek-ai/dsh-settings/types'
 export type {} from '@deepseek-ai/dsh-user-approval/types'
 export type {} from '@deepseek-ai/dsh-user-questions/types'
@@ -148,7 +154,7 @@ export type {
 // Provider registry and discovery vocabulary for the llm namespace.
 export type {
   LlmConfigurableProvider, LlmDiscoveredModel,
-  LlmModelDiscoveryRequest, LlmProviderInfo,
+  LlmModelDiscoveryRequest, LlmNativeAuth, LlmProviderInfo,
 } from '@deepseek-ai/dsh-llm/types'
 // Reference-discovery result vocabulary for the fileReferences and
 // sessionReferenceResolver namespaces.
@@ -180,27 +186,26 @@ export const inject = ['remote']
  * @returns disposer after every selected Remote namespace is ready.
  */
 export async function apply(ctx: Context): Promise<() => Promise<void>> {
-  const stopPreparation = ctx.remote.$prepare(createHostPreparation(hostDescriptionRemote), admitHostOperation)
   const disposers: Array<() => Promise<void>> = []
   try {
     for (const contribution of [
-      agentPresetsRemote, commandsRemote, settingsControllerRemote, goalsRemote, llmRemote, dynamicRemote,
-      hostDescriptionRemote, hostDiagnosticsRemote, pluginInventoryRemote, deviceTrustRemote,
-      nativeRemote, messageFeedbackRemote, sessionFeedbackRemote,
-      fileUploadsRemote, presentedFilesRemote, sessionReferencesRemote,
-      subagentsRemote, sessionRemote, workspaceRemote, workspaceFilesRemote,
+      productAnalyticsRemote, agentPresetsRemote, commandsRemote, settingsControllerRemote, accountRemote,
+      goalsRemote, llmRemote, dynamicRemote, scheduleRemote,
+      pluginInventoryRemote, pluginManagerRemote, pluginMarketRemote, pluginRegistryProbeRemote, toolResultsRemote,
+      messageFeedbackRemote, sessionFeedbackRemote,
+      fileUploadsRemote, sessionReferencesRemote,
+      permissionPresetsRemote, subagentsRemote, sessionRemote, jobRemote, workspaceRemote, workspaceFilesRemote, terminalRemote,
+      officeToPdfRemote, userQuestionsRemote,
     ]) {
       disposers.push(await ctx.remote.$mount(contribution))
     }
   } catch (error) {
     for (const dispose of disposers.reverse()) await dispose()
-    await stopPreparation()
     throw error
   }
   // Unwound in reverse mount order, so a namespace never outlives one mounted
   // after it.
   return async () => {
     for (const dispose of disposers.reverse()) await dispose()
-    await stopPreparation()
   }
 }

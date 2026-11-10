@@ -1,39 +1,32 @@
 /** Client owner for forwarded Remote Event subscriptions and deliveries. */
 
 import type { Context } from '@deepseek-ai/cordis'
-import { RemoteError } from '@deepseek-ai/dsh-typert-protocol'
 import type {
   ConnectionGenerationSource,
-  ConnectionGenerationProgress,
   ConnectionHostInfo,
   ConnectionHandle,
 } from '@deepseek-ai/dsh-client-connection/client'
 import type {
   TypertClientEventListener,
+  TypertOwnedValue,
   TypertRemoteEvent,
 } from '@deepseek-ai/dsh-typert-protocol'
+import { isRemoteJsonValue, isTypertOwnedValue } from '@deepseek-ai/dsh-typert-protocol'
 import { randomUUID } from '@deepseek-ai/dsh-util-crypto'
-import { encodeRemotePayload, type RemoteProtocolVersion } from '../protocol.ts'
-import type { RemotePreparationFacts, RemoteInteractionReplyScope } from './preparation.ts'
-import { RetainedAnswersStore, type RetainedAnswerRecord } from './retained-answers.ts'
 import {
   REMOTE_EVENT_RESULT_ENDPOINT,
   REMOTE_EVENT_STREAM_ENDPOINT,
+  REMOTE_EVENT_STREAM_PAYLOAD,
   isRemoteEventAgentId,
   isRemoteEventClientId,
   isRemoteEventId,
-  parseRemoteInteractionRecord,
-  isRemoteJsonValue,
   projectRemoteEventRejection,
   type RemoteEventClientId,
-  type RemoteEventId,
   type RemoteEventDownlinkFrame,
   type RemoteEventEmitFrame,
   type RemoteEventInvocationFrame,
   type RemoteEventResult,
 } from '../stream-protocol.ts'
-
-type RetainedRemoteAnswer = RetainedAnswerRecord
 
 /** Open the Gateway-internal forwarded-event stream on the selected carrier. */
 export type RemoteEventStreamOpener = (
@@ -71,28 +64,19 @@ export class ClientRemoteEvents {
   private readonly eventPrefix = `internal/api-gateway/remote-event/${randomUUID()}/`
   private readonly unregisterGeneration: () => void
   private activeGeneration: Promise<void> | undefined
-  private readonly unanswered = new Map<RemoteEventId, RetainedRemoteAnswer>()
 
   /**
    * @param ownerCtx - Client Gateway root used for Agent Context resolution.
    * @param connection - Connection carrier used for HTTP result calls.
    * @param openStream - selected in-process or WebSocket stream opener.
-   * @param prepare - application discovery before attaching the event stream.
-   * @param retainedAnswers - durable retained-answer store seeded into replay state.
    */
   constructor(
     private readonly ownerCtx: Context,
     private readonly connection: ConnectionHandle,
     private readonly openStream: RemoteEventStreamOpener,
-    private readonly prepare: (signal: AbortSignal, progress?: ConnectionGenerationProgress) => Promise<RemotePreparationFacts>,
-    retainedAnswers?: RetainedAnswersStore,
   ) {
-    this.retainedAnswers = retainedAnswers
-    for (const [id, record] of retainedAnswers?.snapshot() ?? []) this.unanswered.set(id, record)
     this.unregisterGeneration = connection.registerGenerationSource(this.runGeneration)
   }
-
-  private readonly retainedAnswers: RetainedAnswersStore | undefined
 
   /**
    * Register one typed Remote Event listener in its calling fiber.
@@ -108,7 +92,7 @@ export class ClientRemoteEvents {
   ): () => void {
     const dispose = privateEvents(callerCtx).on(
       this.eventKey(event),
-      listener as unknown as RemoteEventListener,
+      listener as RemoteEventListener,
     )
     return () => { dispose() }
   }
@@ -117,12 +101,11 @@ export class ClientRemoteEvents {
   async dispose(): Promise<void> {
     this.unregisterGeneration()
     await Promise.allSettled([this.activeGeneration])
-    this.unanswered.clear()
   }
 
   /** Track the current generation so plugin disposal waits for listener work to stop. */
-  private readonly runGeneration: ConnectionGenerationSource = (signal, ready, progress) => {
-    const tracked = this.pumpEvents(signal, ready, progress).finally(() => {
+  private readonly runGeneration: ConnectionGenerationSource = (signal, ready) => {
+    const tracked = this.pumpEvents(signal, ready).finally(() => {
       if (this.activeGeneration === tracked) this.activeGeneration = undefined
     })
     this.activeGeneration = tracked
@@ -140,54 +123,29 @@ export class ClientRemoteEvents {
   private async pumpEvents(
     signal: AbortSignal,
     ready: (host: ConnectionHostInfo) => void,
-    progress: ConnectionGenerationProgress,
   ): Promise<void> {
-    const facts = await this.prepare(signal, progress)
-    const version = facts.apiProtocolVersion
-    signal.throwIfAborted()
     let clientId: RemoteEventClientId | undefined
-    let replyScope: RemoteInteractionReplyScope | undefined
     const failed = new AbortController()
     const generationSignal = AbortSignal.any([signal, failed.signal])
     const active = new Map<string, AbortController>()
     const tasks = new Set<Promise<void>>()
     const source = this.openStream(
       REMOTE_EVENT_STREAM_ENDPOINT,
-      encodeRemotePayload({}, version),
+      REMOTE_EVENT_STREAM_PAYLOAD,
       generationSignal,
     )
     let streamFailed = false
     let streamError: unknown
     try {
       for await (const value of source) {
-        generationSignal.throwIfAborted()
         if (clientId === undefined) {
-          let opening: ReturnType<typeof parseRemoteEventReady>
-          try {
-            opening = parseRemoteEventReady(value, version)
-          } catch (error) {
-            throw new RemoteError('gateway/stream-invalid', toError(error, 'client api: invalid Remote event readiness').message,
-              { stream: REMOTE_EVENT_STREAM_ENDPOINT }, { cause: error })
-          }
+          const opening = parseRemoteEventReady(value)
           clientId = opening.clientId
-          replyScope = opening.pendingInteractionIds === undefined ? undefined : facts.interactionReplyScope
-          const pendingIds = new Set(opening.pendingInteractionIds)
-          for (const [id, answer] of this.unanswered) {
-            if (replyScope === undefined || answer.scope !== replyScope || !pendingIds.has(id)) this.dropRetained(id)
-          }
-          const { interactionReplyScope: _scope, ...hostFacts } = facts
-          ready({ ...hostFacts, home: opening.host.home, platform: opening.host.platform })
+          ready(opening.host)
           continue
         }
-        let frame: ReturnType<typeof parseRemoteEventFrame>
-        try {
-          frame = parseRemoteEventFrame(value, version)
-        } catch (error) {
-          throw new RemoteError('gateway/stream-invalid', toError(error, 'client api: invalid Remote event frame').message,
-            { stream: REMOTE_EVENT_STREAM_ENDPOINT }, { cause: error })
-        }
+        const frame = parseRemoteEventFrame(value)
         if (frame.type === 'cancel') {
-          this.dropRetained(frame.eventId)
           active.get(frame.eventId)?.abort(new Error('client api: Remote event was cancelled by the Host'))
           continue
         }
@@ -198,7 +156,7 @@ export class ClientRemoteEvents {
         const controller = new AbortController()
         active.set(frame.eventId, controller)
         const deliverySignal = AbortSignal.any([generationSignal, controller.signal])
-        const task = this.answer(frame, clientId, deliverySignal, version, replyScope)
+        const task = this.answer(frame, clientId, deliverySignal)
           .catch((error: unknown) => {
             if (!deliverySignal.aborted) failed.abort(error)
           })
@@ -229,77 +187,44 @@ export class ClientRemoteEvents {
     frame: RemoteEventInvocationFrame,
     clientId: RemoteEventClientId,
     signal: AbortSignal,
-    version: RemoteProtocolVersion,
-    scope: RemoteInteractionReplyScope | undefined,
   ): Promise<void> {
-    const saved = this.unanswered.get(frame.eventId)
-    if (saved !== undefined && saved.scope === scope && saved.revision === frame.interaction?.revision) {
-      await this.sendAnswer(frame, clientId, saved.outcome, signal, version, saved)
-      return
-    }
-    this.dropRetained(frame.eventId)
     const adapter = this.ownerCtx.typert.contexts.getClient('agent')
-    let target: Context | undefined
+    let resolved: Context | TypertOwnedValue<Context> | undefined
     try {
-      target = adapter?.resolve(frame.agentId)
+      resolved = adapter?.resolve(frame.agentId)
     } catch (error) {
       this.reportError(frame.event, error)
     }
-    let outcome: RemoteEventReplyOutcome = { kind: 'next' }
-    if (target !== undefined) {
-      try {
-        outcome = await this.dispatchWaterfall(target, frame, signal)
-      } catch (error) {
-        if (signal.aborted) return
-        outcome = { kind: 'rejected', error: projectRemoteEventRejection(error) }
+    const owned = isTypertOwnedValue(resolved) ? resolved : undefined
+    try {
+      const target = isTypertOwnedValue(resolved) ? resolved.value : resolved
+      let outcome: RemoteEventReplyOutcome = { kind: 'next' }
+      if (target !== undefined) {
+        try {
+          outcome = await this.dispatchWaterfall(target, frame, signal)
+        } catch (error) {
+          if (signal.aborted) return
+          outcome = { kind: 'rejected', error: projectRemoteEventRejection(error) }
+        }
       }
+      if (signal.aborted) return
+      const result: RemoteEventResult = {
+        clientId,
+        eventId: frame.eventId,
+        outcome: outcome.kind === 'result' && outcome.value === undefined
+          ? { kind: 'result' }
+          : outcome,
+      }
+      const response = await this.connection.rpc.call(
+        '/api',
+        REMOTE_EVENT_RESULT_ENDPOINT,
+        { args: result },
+        signal,
+      )
+      if (!response.ok) throw new Error(response.error.message)
+    } finally {
+      owned?.[Symbol.dispose]()
     }
-    if (signal.aborted) return
-    const wireOutcome: RemoteEventResult['outcome'] = outcome.kind === 'result' && outcome.value === undefined
-      ? { kind: 'result' } : outcome
-    // Retain an immutable wire value; listeners may mutate their returned object after completion.
-    const reply = structuredClone(wireOutcome)
-    let retained: RetainedRemoteAnswer | undefined
-    if (scope !== undefined && frame.interaction !== undefined && reply.kind !== 'next') {
-      retained = { scope, revision: frame.interaction.revision, outcome: reply }
-      this.unanswered.set(frame.eventId, retained)
-      this.retainedAnswers?.retain(frame.eventId, retained)
-    }
-    await this.sendAnswer(frame, clientId, reply, signal, version, retained)
-  }
-
-  private async sendAnswer(
-    frame: RemoteEventInvocationFrame,
-    clientId: RemoteEventClientId,
-    outcome: RemoteEventResult['outcome'],
-    signal: AbortSignal,
-    version: RemoteProtocolVersion,
-    retained: RetainedRemoteAnswer | undefined,
-  ): Promise<void> {
-    const result: RemoteEventResult = {
-      clientId,
-      eventId: frame.eventId,
-      ...(frame.interaction === undefined ? {} : { interactionRevision: frame.interaction.revision }),
-      outcome,
-    }
-    const response = await this.connection.rpc.call(
-      '/api',
-      REMOTE_EVENT_RESULT_ENDPOINT,
-      encodeRemotePayload({ ...result }, version),
-      signal,
-    )
-    if (retained !== undefined && this.unanswered.get(frame.eventId) === retained) {
-      this.dropRetained(frame.eventId)
-    }
-    if (!response.ok && response.error.code !== 'interaction-closed') {
-      throw new RemoteError(response.error.code as never, response.error.message, response.error.details as never)
-    }
-  }
-
-  /** Forget one retained answer in memory and in the durable store together. */
-  private dropRetained(id: RemoteEventId): void {
-    this.unanswered.delete(id)
-    this.retainedAnswers?.remove(id)
   }
 
   private async dispatchWaterfall(
@@ -312,14 +237,12 @@ export class ClientRemoteEvents {
       agent: target,
       signal,
     }
-    const value = await abortable(
-      Promise.resolve(privateEvents(target).waterfall(
-        target,
-        this.eventKey(frame.event),
-        request,
-        () => Promise.resolve(REMOTE_EVENT_NEXT),
-      )),
-      signal,
+    // Cancellation reaches the handler, whose Context remains owned until it settles.
+    const value = await privateEvents(target).waterfall(
+      target,
+      this.eventKey(frame.event),
+      request,
+      () => Promise.resolve(REMOTE_EVENT_NEXT),
     )
     if (value !== REMOTE_EVENT_NEXT && value !== undefined && !isRemoteJsonValue(value)) {
       throw new TypeError('Remote event listener result is not lossless JSON data')
@@ -339,42 +262,35 @@ export class ClientRemoteEvents {
 }
 
 /** Validate and return one generation's Client identity and Host facts. */
-function parseRemoteEventReady(value: unknown, version: RemoteProtocolVersion): {
+function parseRemoteEventReady(value: unknown): {
   readonly clientId: RemoteEventClientId
   readonly host: ConnectionHostInfo
-  readonly pendingInteractionIds?: readonly RemoteEventId[]
 } {
   if (!isRemoteEventRecord(value)
-    || !hasExactRemoteEventKeys(value, ['type', 'clientId', 'host',
-      ...(version === 2 && Object.hasOwn(value, 'pendingInteractionIds') ? ['pendingInteractionIds'] : []),
-    ])
+    || !hasExactRemoteEventKeys(value, ['type', 'clientId', 'host'])
     || value.type !== 'ready'
     || !isRemoteEventClientId(value.clientId)
-    || !isRemoteEventRecord(value.host)
-    || !hasExactRemoteEventKeys(value.host, ['home', 'platform'])
-    || typeof value.host.home !== 'string'
-    || typeof value.host.platform !== 'string') {
+    || !isRemoteEventRecord(value.host)) {
     throw new TypeError('client api: forwarded Remote event stream did not begin with ready')
   }
-  const ids = value.pendingInteractionIds
-  if (Object.hasOwn(value, 'pendingInteractionIds')
-    && (!Array.isArray(ids) || !ids.every(isRemoteEventId) || new Set(ids).size !== ids.length)) {
-    throw new TypeError('client api: invalid pending interaction snapshot')
+  const { clientId, host } = value
+  // A generation opened by a Host that predates the platform field carries home alone.
+  if (hasExactRemoteEventKeys(host, ['home']) && typeof host.home === 'string') {
+    return { clientId, host: { home: host.home } }
   }
-  return { clientId: value.clientId, host: { home: value.host.home, platform: value.host.platform },
-    ...(Array.isArray(ids) ? { pendingInteractionIds: ids as RemoteEventId[] } : {}),
+  if (hasExactRemoteEventKeys(host, ['home', 'platform']) && typeof host.home === 'string' && typeof host.platform === 'string') {
+    return { clientId, host: { home: host.home, platform: host.platform } }
   }
+  throw new TypeError('client api: forwarded Remote event stream did not begin with ready')
 }
 
 /** Validate one untrusted value from the Gateway-internal forwarded-event stream. */
-function parseRemoteEventFrame(value: unknown, version: RemoteProtocolVersion): Exclude<RemoteEventDownlinkFrame, { type: 'ready' }> {
+function parseRemoteEventFrame(value: unknown): Exclude<RemoteEventDownlinkFrame, { type: 'ready' }> {
   if (!isRemoteEventRecord(value)) invalidRemoteEventFrame()
   if (value.type === 'cancel'
-    && hasExactRemoteEventKeys(value, ['type', 'eventId', ...(version === 2 && Object.hasOwn(value, 'interaction') ? ['interaction'] : [])])
+    && hasExactRemoteEventKeys(value, ['type', 'eventId'])
     && isRemoteEventId(value.eventId)) {
-    return { type: 'cancel', eventId: value.eventId,
-      ...(Object.hasOwn(value, 'interaction') ? { interaction: parseRemoteInteractionRecord(value.interaction, value.eventId, false) } : {}),
-    }
+    return { type: 'cancel', eventId: value.eventId }
   }
   if (value.type === 'emit'
     && hasExactRemoteEventKeys(value, ['type', 'event', 'args'])
@@ -384,9 +300,7 @@ function parseRemoteEventFrame(value: unknown, version: RemoteProtocolVersion): 
     return { type: 'emit', event: value.event, args: value.args }
   }
   if (value.type === 'waterfall'
-    && hasExactRemoteEventKeys(value, ['type', 'event', 'eventId', 'agentId', 'request',
-      ...(version === 2 && Object.hasOwn(value, 'interaction') ? ['interaction'] : []),
-    ])
+    && hasExactRemoteEventKeys(value, ['type', 'event', 'eventId', 'agentId', 'request'])
     && validRemoteEventName(value.event)
     && isRemoteEventId(value.eventId)
     && isRemoteEventAgentId(value.agentId)
@@ -400,7 +314,6 @@ function parseRemoteEventFrame(value: unknown, version: RemoteProtocolVersion): 
       eventId: value.eventId,
       agentId: value.agentId,
       request: value.request,
-      ...(Object.hasOwn(value, 'interaction') ? { interaction: parseRemoteInteractionRecord(value.interaction, value.eventId, true) } : {}),
     }
   }
   invalidRemoteEventFrame()
@@ -423,20 +336,6 @@ function validRemoteEventName(value: unknown): value is string {
 
 function invalidRemoteEventFrame(): never {
   throw new TypeError('client api: invalid forwarded Remote event frame')
-}
-
-/** Race listener completion against its delivery lifetime. */
-async function abortable<T>(value: T | PromiseLike<T>, signal: AbortSignal): Promise<T> {
-  signal.throwIfAborted()
-  let rejectAbort: ((reason: unknown) => void) | undefined
-  const aborted = new Promise<never>((_resolve, reject) => { rejectAbort = reject })
-  const onAbort = (): void => { rejectAbort?.(signal.reason) }
-  signal.addEventListener('abort', onAbort, { once: true })
-  try {
-    return await Promise.race([Promise.resolve(value), aborted])
-  } finally {
-    signal.removeEventListener('abort', onAbort)
-  }
 }
 
 function privateEvents(ctx: Context): PrivateEventContext {

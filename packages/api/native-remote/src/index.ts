@@ -11,7 +11,6 @@ import { REMOTE_STREAM_MUX_PATH, RemoteStreamMuxServer } from '@deepseek-ai/dsh-
 import { Remote, TypertRemoteService } from '@deepseek-ai/dsh-typert-protocol'
 import type {} from '@deepseek-ai/dsh-api-device-trust'
 import { loadTlsIdentity, type CertificateConfig } from './tls-identity.ts'
-import { NATIVE_REMOTE_CAPABILITIES } from './capabilities.ts'
 import type { NativeHttpRequestBudget, NativeRemoteInfo } from './types.ts'
 
 export type { NativeHttpRequestBudget, NativeRemoteInfo, NativePairingPayload } from './types.ts'
@@ -74,7 +73,7 @@ export class NativeRemoteService extends TypertRemoteService {
    * @param config - validated listener and certificate bounds.
    */
   constructor(ctx: Context, private readonly config: Config) {
-    super(ctx, 'nativeRemote', { namespace: 'nativeRemote', capabilities: NATIVE_REMOTE_CAPABILITIES })
+    super(ctx, 'nativeRemote', { namespace: 'nativeRemote' })
     if (config.headersTimeoutMs > config.requestTimeoutMs) {
       throw new Error('native-remote: headersTimeoutMs must not exceed requestTimeoutMs')
     }

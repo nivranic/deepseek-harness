@@ -39,17 +39,6 @@ export type SessionLogCompressionLevel = 0 | 1 | 2 | 3 | 4 | 5 | 6 | 7 | 8 | 9
 /** Balanced default used when Session export configuration omits a compression level. */
 export const DEFAULT_SESSION_LOG_COMPRESSION_LEVEL: SessionLogCompressionLevel = 6
 
-/**
- * Fixed entry mtime for every archive entry. fflate stamps `Date.now()` into the
- * DOS date/time fields when an entry carries no mtime, so two exports of one
- * Session would differ byte-for-byte and any resumed byte-range download would
- * splice mismatched halves into a corrupt archive. One fixed timestamp keeps the
- * archive deterministic — same Session, same bytes — which is the precondition
- * the export route's `206 Partial Content` support relies on. 2000-01-01T00:00:00Z
- * sits safely inside the DOS date domain (1980–2107).
- */
-export const SESSION_LOG_ZIP_MTIME = 946684800000
-
 /** The services a session-log export needs (the live-session store is optional). */
 export interface SessionLogExportDeps {
   readonly sessionQuery: SessionQueryEngine | undefined
@@ -207,9 +196,8 @@ function fileEntryPath(ref: FileAttachmentRef): string {
 }
 
 /**
- * Collect every attachment reference inside one content array, descending into
- * nested tool results the way the live attachment route does.
- * @param content - an event content array (or nested tool-result content).
+ * Collect direct attachment blocks from one declared V4 content array.
+ * @param content - an event or message content array.
  * @param images - image dedupe map keyed by attachment id.
  * @param files - file dedupe map keyed by attachment id and stored name.
  */
@@ -219,12 +207,9 @@ function collectAttachmentRefs(
   files: Map<string, FileAttachmentRef>,
 ): void {
   if (!Array.isArray(content)) return
-  const pending: unknown[] = []
-  for (const item of content) pending.push(item)
-  while (pending.length > 0) {
-    const value = pending.pop()
+  for (const value of content) {
     if (typeof value !== 'object' || value === null || Array.isArray(value)) continue
-    const block = value as { type?: unknown; attachment?: unknown; content?: unknown }
+    const block = value as { type?: unknown; attachment?: unknown }
     if (block.type === 'image' && typeof block.attachment === 'object' && block.attachment !== null) {
       const ref = block.attachment as ImageAttachmentRef
       images.set(String(ref.attachmentId), ref)
@@ -233,16 +218,12 @@ function collectAttachmentRefs(
       const ref = block.attachment as FileAttachmentRef
       files.set(`${String(ref.attachmentId)}\u0000${ref.name}`, ref)
     }
-    if (Array.isArray(block.content)) {
-      for (const item of block.content) pending.push(item)
-    }
   }
 }
 
 /**
- * Collect every attachment reference one session event carries, across the same
- * carriers the live attachment route scans (direct content, message content,
- * inserted messages, and completed blocks in embedded Assistant streams).
+ * Collect references only from declared first-party content fields and completed
+ * Assistant blocks. Unknown events and unrelated payload fields remain opaque.
  * @param event - one parsed JSONL event object.
  * @param images - image dedupe map keyed by attachment id.
  * @param files - file dedupe map keyed by attachment id and stored name.
@@ -252,18 +233,43 @@ function collectEventAttachmentRefs(
   images: Map<string, ImageAttachmentRef>,
   files: Map<string, FileAttachmentRef>,
 ): void {
-  const data = (event as { data?: unknown }).data
+  if (typeof event !== 'object' || event === null || Array.isArray(event)) return
+  const row = event as { type?: unknown; data?: unknown }
+  const data = row.data
   if (typeof data !== 'object' || data === null) return
   const carrier = data as {
     content?: unknown
     message?: { content?: unknown }
-    inserted?: Array<{ content?: unknown }>
+    inserted?: unknown
+    summary?: unknown
+    rawOutput?: unknown
     stream?: Array<{ type?: unknown; chunk?: { type?: unknown; block?: unknown } }>
   }
-  collectAttachmentRefs(carrier.content, images, files)
-  if (carrier.message !== undefined) collectAttachmentRefs(carrier.message.content, images, files)
-  if (carrier.inserted !== undefined) {
-    for (const message of carrier.inserted) collectAttachmentRefs(message.content, images, files)
+  switch (row.type) {
+    case 'user/message': case 'tool/ptc-dispatch':
+      collectAttachmentRefs(carrier.content, images, files)
+      return
+    case 'system/message': case 'developer/message': case 'tool/result': case 'team/message/queued':
+      collectAttachmentRefs(carrier.message?.content, images, files)
+      return
+    case 'agent/inbox/spliced': {
+      const messages = carrier.inserted
+      if (!Array.isArray(messages)) return
+      for (const message of messages as readonly unknown[]) {
+        if (typeof message !== 'object' || message === null || Array.isArray(message)) continue
+        collectAttachmentRefs((message as { readonly content?: unknown }).content, images, files)
+      }
+      return
+    }
+    case 'compaction/summary':
+      collectAttachmentRefs(carrier.summary, images, files)
+      collectAttachmentRefs(carrier.rawOutput, images, files)
+      return
+    case 'assistant/message':
+      collectAttachmentRefs(carrier.message?.content, images, files)
+      break
+    case 'assistant/attempt': break
+    default: return
   }
   if (carrier.stream !== undefined) {
     for (const record of carrier.stream) {
@@ -575,7 +581,6 @@ export function streamSessionLogZip(
         try {
           for await (const entry of sessionLogZipEntries(deps, rootContent, sessionId, includeDescendants, producerSignal)) {
             const deflate = new ZipDeflate(entry.path, { level: compressionLevel })
-            deflate.mtime = SESSION_LOG_ZIP_MTIME
             archive.add(deflate)
             if ('content' in entry) {
               await pushArtifactChunks(deflate, entry.content, controller, capacity, producerSignal)

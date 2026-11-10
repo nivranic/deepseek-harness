@@ -18,6 +18,23 @@
 | 11 | Lite | DEFERRED | 前置能力完成后再准入 |
 | 12 | Release/RC | IN_PROGRESS | Windows runtime/wheel 与 unsigned Desktop 先行验证；completeRc=false，安装、签名及跨平台证据缺失 |
 
+## 官方 master f3803c9697 三方合并闭环（Upstream Refresh 增量）
+
+把官方 master `f3803c9697`（基线 `c291e796` 之后的全部官方演进）三方合并进本车道（合并左 HEAD `0c837779489`＝gen-84），验收标准按接力指令钉死为 `pnpm run typecheck` 五门，已达成：EXIT=0，Host Typert 16.5s/host compiler/client compiler/host aggregate/client aggregate 5 passed, 0 failed（.merge-helpers/typecheck-full{,2,3}.log，lockfile 重生成后复验同样 5 passed）。
+
+主线工作与根因记录（全部入 .merge-helpers/port-notes/2026-11-10-native-remote-peer-port-parked.md 附 1-5）：
+
+- **TS6310 根因结案**：旧 tsc-loop.sh 第 14 行 `tsc -b <face> --noEmit` 制造「Referenced project may not disable emit」伪错误；官方 typecheck 实为 `tsc -b tsconfig.{host,client}.json`（8192MB 堆，经 scripts/build.ts --scope typecheck）。
+- **双向 adopt 循环**（.merge-helpers/tsc-adopt.sh）：host 面 276 文件 lane→official 逐错采纳 + 官方优先模式；教训＝循环只修失败文件，不追「编译通过但内容陈旧的被引用方」（mcp-client index、pwsh/bash background.ts、tool-web search.ts、tool-workflow index 等手工翻官方版）。
+- **§32/§37/§38 可选字段软化**：ToolDefinition 五字段（version/risk/permissions/supportsLite/supportsRemote）与 CommandDefinition/Descriptor.risk 改为可选+条件展开，官方 adopt 的 ~50 工具文件不带这些字段即可编译；fail-loud 值校验随 Lite 目录回植再补。
+- **TS2878 根因**：合并决议把 apps/web/tsconfig.json 的 exclude 整表取官方，丢失 lane 独有 41 条测试排除（android/native-remote 9 条 + host-plane/capabilities 32 条）；这些测试 import 非引用工程包（dsh-session/dsh-llm/dsh-api-* 等）经 paths 解析进他工程 src 触发裸 TS2878。修复＝include 回官方三目、exclude 恢复官方∪lane 并集（lane 侧由 tsconfig.host.json files 行承载编译覆盖，不丢）。
+- **typert 门 capabilities 静态声明摘除**：官方 analyzer 对 TypertRemoteService super() 第三参只收 namespace 字符串字面量，lane 五处（device-trust/host-description/host-diagnostics/native-remote/command-feedback）capabilities 声明全部摘除；capabilities.ts 常量、再导出与协议层 TypertGatewayBindingOptions.capabilities+校验环保留在案，静态声明重植需扩 analyzer。
+- **封存三族**（文件保留、从双面聚合摘除，重植设计入 port-note）：native-remote/device-connection（PeerScope/PrincipalMap device 变体五步移植清单）、Lite 预设目录簇（官方 registry Loader 化，旧名册制作废）、remote-error-model 分析子系统（WorkspaceAnalyzer.analyzeRemoteErrors）；另 capabilities e2e 呈现族四件与 jsonl torn-tail 加固同批封存。
+- **lockfile 对齐**：pnpm-lock.yaml 工作树 158 行裁剪＝connection 等包采纳官方 package.json 后的正确重生成（pnpm install --lockfile-only 复核 Already up to date）。
+- **新模块**：apps/desktop-host/src/build-revision.ts（applyBuildRevisionStamp 从车道回植，main() 早接线+再导出）。
+
+如实边界：本增量验收门仅 typecheck 五门；lint/test/doc-sync/敌我迭代审计/快照门未跑（后续闭环轮次）。合并策略按「官方有→采纳官方版；lane 独有→最小适配或封存待重植」执行，全部封存件与重植入口登记在 port-note。
+
 ## Android 外壳消费 Gateway 失败契约
 
 [历史来源记录](artifacts/upstream-first/gateway-consumption-source.json)把外壳的契约消费接缝落地：LinkWire 不再丢弃其本就校验过的信封 details（单次结果与流失败帧两径保留），LinkClientException.Refused 携带 code、envelopeMessage 与结构化 details 透出；GatewayFailurePresentation 消费共享 RemoteFailureClasses 镜像——已知类别得到唯一的下一步动作与呈现文案，词汇表之外的码保持不透明诊断（code 与 message 原样、details 留存信封）；文件查看器先查分类器再走私有 lite-fold 细化。契约测试 + core 185/185（含 LinkClientTest 信封保留用例），:app:assembleDebug 通过门禁，重建 APK 在本地 AVD 安装启动零崩溃。局限：未驱动真实 Host↔设备拒绝交换（需 Host 配对夹具）；呈现文案为外壳本地中文常量（独立模块，不适用 web/desktop 字典模式）。

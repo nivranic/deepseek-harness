@@ -3,7 +3,8 @@
  * conversation.chat.assistant-actions strip, the feedback dialog and its
  * acknowledgement and failure toasts in conversation.input.overlay, and the `/feedback`
  * decoration that opens the dialog from the composer menu or a bare typed
- * command. One FeedbackSurface per Session backs every entry in that Session.
+ * command. The feedbackUi service opens the same dialog for other plugins.
+ * One FeedbackSurface per Session backs every entry in that Session.
  * @module @deepseek-ai/dsh-client-ui-message-feedback/client
  */
 
@@ -21,12 +22,11 @@ import type {} from '@deepseek-ai/dsh-client-locale/client'
 import type {} from '@deepseek-ai/dsh-client-ui-renderer/client'
 import type {} from '@deepseek-ai/dsh-client-ui-chat/client'
 import type {} from '@deepseek-ai/dsh-client-ui-session/client'
-import type { ConnectionHandle } from '@deepseek-ai/dsh-client-connection/client'
-import { createFeedbackAccess } from './access.ts'
-import { CapabilityAwareFeedbackDialog, CapabilityAwareMessageFeedbackActions } from './CapabilityAwareFeedback.tsx'
+import { FeedbackDialog } from './FeedbackDialog.tsx'
+import { MessageFeedbackActions } from './MessageFeedbackActions.tsx'
 import type { FeedbackDialogInjected, MessageFeedbackInjected } from './slots.ts'
 import { FeedbackSurface } from './surface.ts'
-import { en, zh } from './locales.ts'
+import { en, ja, es, fr, de, ru, pt, zh } from './locales.ts'
 
 export type {
   MessageFeedbackActionFailure, MessageFeedbackActionResult, MessageFeedbackStatus,
@@ -38,28 +38,37 @@ export type {
 } from './slots.ts'
 export type { MessageFeedbackKey } from './locales.ts'
 
+/** Opens the existing Session feedback form without submitting feedback. */
+export interface FeedbackUi {
+  /**
+   * Open the Session feedback draft without recording feedback.
+   * @param sessionId - Session whose feedback draft to open.
+   */
+  openSession(sessionId: SessionId): void
+}
+
+declare module '@deepseek-ai/cordis' {
+  interface Context {
+    feedbackUi: FeedbackUi
+  }
+}
+
 /** Dictionary namespace owned by this plugin. */
 const NS = 'feedback'
 
 /** Required services: the slot registry, the two Remote namespaces, and the copy. */
-export const inject = ['slots', 'remote', 'remote.messageFeedback', 'remote.sessionFeedback', 'locale', 'connection']
+export const inject = ['slots', 'remote', 'remote.messageFeedback', 'remote.sessionFeedback', 'locale']
 
 /**
  * Client plugin body: the per-message feedback entry, the Session's dialog
- * entry, the `/feedback` decoration, and their per-session surfaces.
+ * entry, the `feedbackUi` service, the `/feedback` decoration, and their
+ * per-session surfaces.
  * @param ctx - client root context.
  */
 export function apply(ctx: ClientContext): void {
-  ctx.effect(() => ctx.locale.register(NS, { zh, en }), 'ui-message-feedback: dictionaries')
+  ctx.effect(() => ctx.locale.register(NS, { zh, en, ja, es, fr, de, ru, pt }), 'ui-message-feedback: dictionaries')
 
   const surfaces = new Map<SessionId, FeedbackSurface>()
-  const connection = ctx.get('connection') as ConnectionHandle
-  let disposed = false
-  const feedbackAccess = createFeedbackAccess(() => ctx.remote.$host, () => !disposed,
-    listener => connection.generation.subscribe(listener))
-  ctx.effect(() => connection.generation.subscribe(() => {
-    for (const surface of surfaces.values()) surface.handleGenerationChanged()
-  }), 'ui-message-feedback: connection withdrawal')
   const surfaceFor = (sessionId: SessionId): FeedbackSurface => {
     let surface = surfaces.get(sessionId)
     if (surface === undefined) {
@@ -69,16 +78,20 @@ export function apply(ctx: ClientContext): void {
     return surface
   }
   ctx.effect(() => () => {
-    disposed = true
     for (const surface of surfaces.values()) surface.dispose()
     surfaces.clear()
   }, 'ui-message-feedback: per-session surfaces')
+
+  const feedbackUi: FeedbackUi = {
+    openSession: (sessionId) => { surfaceFor(sessionId).dialog.open({ kind: 'session' }) },
+  }
+  ctx.provide('feedbackUi', feedbackUi)
 
   // A reconnect can only invalidate what was already read; a cold Session
   // stays cold until something asks for it.
   ctx.on('connection/reset', () => {
     for (const { feedback } of surfaces.values()) {
-      feedback.resyncIfObserved()
+      if (feedback.getSnapshot().status !== 'cold') void feedback.resync()
     }
   })
 
@@ -88,17 +101,16 @@ export function apply(ctx: ClientContext): void {
     order: 10,
     locale: NS,
     inject: (sessionId): MessageFeedbackInjected => {
-      const surface = surfaceFor(sessionId)
-      const { feedback } = surface
+      const { feedback, dialog } = surfaceFor(sessionId)
       return {
-        hooks: { feedback, feedbackAccess },
+        hooks: { feedback },
         ensure: () => feedback.ensure(),
         current: messageId => feedback.getSnapshot().items.get(messageId),
         retract: (messageId, rating) => feedback.retract(messageId, rating),
-        openDialog: (messageId, rating) => { surface.open({ kind: 'message', messageId, rating }) },
+        openDialog: (messageId, rating) => { dialog.open({ kind: 'message', messageId, rating }) },
       }
     },
-  }, CapabilityAwareMessageFeedbackActions))
+  }, MessageFeedbackActions))
 
   ctx.slots.inject('conversation.input.overlay', () => ctx.slots.register({
     name: 'conversation.input.overlay',
@@ -108,7 +120,7 @@ export function apply(ctx: ClientContext): void {
     inject: (sessionId): FeedbackDialogInjected => {
       const { dialog } = surfaceFor(sessionId)
       return {
-        hooks: { dialog: dialog.state, feedbackAccess },
+        hooks: { dialog: dialog.state },
         edit: (draft) => { dialog.edit(draft) },
         submit: () => dialog.submitDraft(),
         dismiss: () => { dialog.dismiss() },
@@ -116,15 +128,15 @@ export function apply(ctx: ClientContext): void {
         dismissToast: (seq) => { dialog.dismissToast(seq) },
       }
     },
-  }, CapabilityAwareFeedbackDialog))
+  }, FeedbackDialog))
 
   // The Host keeps `/feedback <text>` for a typed remark; a bare invocation
   // from the menu or the composer opens the dialog instead.
   ctx.inject(['commandUi'], (scope: ClientContext) => {
     scope.effect(() => scope.commandUi.decorate({
       name: 'feedback',
-      available: () => !disposed && ctx.remote.$host.capabilities?.includes('feedback.session.record.v1') === true,
-      ui: { kind: 'action', run: (session) => { if (!disposed) surfaceFor(session.sessionId).open({ kind: 'session' }) } },
+      available: () => true,
+      ui: { kind: 'action', run: (session) => { feedbackUi.openSession(session.sessionId) } },
     }), 'ui-message-feedback: /feedback decoration')
   })
 }

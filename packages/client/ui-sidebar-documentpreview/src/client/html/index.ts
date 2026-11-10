@@ -1,11 +1,12 @@
 /** Builtin HTML metadata and keyed body registration; assembly belongs to the package entry. */
 import type { Context } from '@deepseek-ai/cordis'
 import type {} from '../index.ts'
-import type { DocumentPreviewDefinition } from '../contract/registry.ts'
+import type { DocumentPreviewDefinition } from '../document/registry.ts'
 import { hostFileOf } from '../rpc.ts'
 import { HtmlBody } from './HtmlBody.tsx'
-import type { HtmlBodyProps } from './HtmlBody.tsx'
-import { en, zh } from './locales.ts'
+import type { HtmlBodyInjected } from './HtmlBody.tsx'
+import type {} from '@deepseek-ai/dsh-client-ui-settings/client'
+import { en, ja, es, fr, de, ru, pt, zh } from './locales.ts'
 
 /** HTML implementation identity, shared by metadata and the keyed slot. */
 export const HTML_BODY_ID = '@deepseek-ai/dsh-client-ui-sidebar-documentpreview/html'
@@ -16,7 +17,7 @@ export const HTML_BODY_ID = '@deepseek-ai/dsh-client-ui-sidebar-documentpreview/
  * @returns metadata for complete HTML documents.
  */
 export function htmlBodyDefinition(title: () => string): DocumentPreviewDefinition {
-  return { id: HTML_BODY_ID, extensions: ['html', 'htm'], priority: 'builtin', title, loading: 'bytes-complete', wrap: false, requiredCapabilities: ['workspace-files.read-related.v1'] }
+  return { id: HTML_BODY_ID, extensions: ['html', 'htm'], priority: 'builtin', title, loading: 'bytes-complete', wrap: false }
 }
 
 /**
@@ -25,30 +26,18 @@ export function htmlBodyDefinition(title: () => string): DocumentPreviewDefiniti
  */
 export function apply(ctx: Context): void {
   const t = ctx.locale.bind('documentHtml')
-  ctx.effect(() => ctx.locale.register('documentHtml', { zh, en }))
+  ctx.effect(() => ctx.locale.register('documentHtml', { zh, en, ja, es, fr, de, ru, pt }))
   ctx.effect(() => ctx.documentPreviews.register(htmlBodyDefinition(() => t('title'))))
-  ctx.effect(() => ctx.slots.inject('sidebar.right.tab.document', () => {
-    const host = ctx.remote.$host
-    const lifetime = new AbortController()
-    const cancelled = () => ({
-      ok: false as const,
-      error: Object.assign(new Error('HTML reader belongs to a replaced or disposed owner'), {
-        name: 'RemoteError', isDSHRemoteError: true as const, code: 'gateway/cancelled' as const, details: {},
-      }),
-    })
-    const dispose = ctx.slots.register({
+  ctx.effect(() => ctx.slots.inject('sidebar.right.tab.document', () => ctx.slots.register(
+    {
       name: 'sidebar.right.tab.document', key: HTML_BODY_ID, locale: 'documentHtml',
-      inject: (): Pick<HtmlBodyProps, 'readRelated'> => ({
+      inject: (): HtmlBodyInjected => ({
+        hooks: { interactivePreview: ctx.configForms.developerTools.enabled },
         readRelated: (address, relativePath, signal) => {
           const file = hostFileOf(address)
-          signal = AbortSignal.any([signal, lifetime.signal])
-          const retired = (): boolean => signal.aborted || ctx.remote.$host !== host
-          if (retired()) return Promise.resolve(cancelled())
-          return ctx.remote.workspaceFiles.readRelated(file.sessionId, file.path, relativePath, signal)
-            .then(result => retired() ? cancelled() : result)
+          return ctx.remote.workspaceFiles.readBytes(file.sessionId, relativePath, { baseFile: file.path }, signal)
         },
       }),
-    }, HtmlBody)
-    return () => { lifetime.abort(); dispose() }
-  }))
+    }, HtmlBody,
+  )))
 }

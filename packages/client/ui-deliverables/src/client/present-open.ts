@@ -1,68 +1,94 @@
-/** Native action status and metadata admitted for one Host generation. */
+/** Shared native-open status for delivery cards, the changed-files card, and closing-message file mentions. */
 import { createSnapshotStore } from '@deepseek-ai/dsh-client-store'
-import type { ClientRemote } from '@deepseek-ai/dsh-api-remotes/client'
 import type { SessionId } from '@deepseek-ai/dsh-session/types'
-import type { PRESENTED_FILE_REMOTE_CAPABILITIES } from '../capabilities.ts'
-import { presentedFileKey, type PresentedAction, type PresentedHost } from '../presented.ts'
+import { changedFileUrl } from '../changes.ts'
+import { presentedFileUrl, PRESENT_HOST_ROUTE, isPresentedHost, type PresentedAction, type PresentedHost } from '../presented.ts'
 
-/** State of the latest explicit native gesture for one saved file. */
-export type PresentedOpenPhase = 'opening' | 'opened' | 'revealing' | 'revealed' | 'error' | 'revealError' | 'nativeUnavailable'
+/** Failure feedback for the shared native opening control. */
+export type PresentedOpenFailure = 'openError' | 'revealError'
 
-/** Desktop metadata paired with the currently advertised action entries. */
-export interface PresentedHostView extends PresentedHost {
-  readonly actions: readonly PresentedAction[]
-}
+/**
+ * Settled result of one native file gesture, for the contributed control to
+ * announce: the Host acknowledged an application open or a file-manager
+ * reveal, the gesture failed, or the request was deliberately dropped because
+ * the same file was already opening or this controller was disposed. Only an
+ * acknowledged operation may be announced as a success.
+ */
+export type PresentedOpenOutcome =
+  | { readonly kind: 'opened' }
+  | { readonly kind: 'revealed' }
+  | { readonly kind: 'failed'; readonly failure: PresentedOpenFailure }
+  | { readonly kind: 'skipped' }
 
-/** One plugin's native requests; replacement cancels work without replaying gestures. */
+/** State published on the owning file card. */
+export type PresentedOpenPhase = 'opening' | 'revealing' | 'error' | 'revealError' | 'nativeUnavailable'
+
+/** One browser plugin's file-open requests, cancelled when that plugin is disposed. */
 export class PresentedOpenController {
-  /** Declaration coordinates key transient gesture status across rendered cards. */
+  /** File action URLs key the state across Sessions, turns, and both clickable surfaces. */
   readonly state = createSnapshotStore<Record<string, PresentedOpenPhase | undefined>>({})
-  /** Current metadata, an unavailable API, or a retryable metadata failure. */
-  readonly host = createSnapshotStore<PresentedHostView | 'unsupported' | 'error' | null>(null)
+  /** Native destination metadata, or a retryable read failure. */
+  readonly host = createSnapshotStore<PresentedHost | 'error' | null>(null)
   private loading: Promise<void> | undefined
-  private generation = new AbortController()
+  private metadata = new AbortController()
   private readonly lifetime = new AbortController()
-  private readonly pending = new Set<Promise<void>>()
-  private metadataHost: ClientRemote['$host'] | undefined
-
-  /** @param remote - current Host facts and generated native file namespace. */
-  constructor(private readonly remote: Pick<ClientRemote, '$host' | 'presentedFiles'>) {
-    if (!this.supports('presented-file.desktop.v1')) this.host.set('unsupported')
-  }
+  private readonly pending = new Set<Promise<void | PresentedOpenOutcome>>()
 
   /**
-   * Execute one admitted gesture while coalescing concurrent actions for its coordinates.
+   * Open a declared file once while a request for the same coordinates is pending.
+   * Failures remain visible on the card and a later gesture retries them.
    * @param sessionId - viewed Session, including a fork's own identity.
    * @param seq - durable delivery event sequence.
    * @param index - original file index within that event.
    * @param action - default application open or file-manager reveal.
-   * @returns after acknowledgement or a retryable error; unavailable operations send nothing.
+   * @param application - registered handler identifier for an explicit application choice.
+   * @returns the settled outcome after publishing card status; a dropped
+   * request reports `{ kind: 'skipped' }` and announces nothing.
    */
-  async open(sessionId: SessionId, seq: number, index: number, action: PresentedAction = 'open'): Promise<void> {
-    const host = this.host.getSnapshot()
-    if (this.lifetime.signal.aborted || this.metadataHost !== this.remote.$host
-      || host === null || typeof host === 'string' || !host.available
-      || !this.supports('presented-file.desktop.v1')
-      || !this.supports(action === 'open' ? 'presented-file.open.v1' : 'presented-file.reveal.v1')) return
-    const key = presentedFileKey(sessionId, seq, index)
-    const phase = this.state.getSnapshot()[key]
-    if (phase === 'opening' || phase === 'revealing') return
-    this.state.update((state) => { state[key] = action === 'open' ? 'opening' : 'revealing' })
-    const task = this.request(key, { sessionId, seq, index }, action)
-    this.pending.add(task)
-    try { await task }
-    finally { this.pending.delete(task) }
+  open(
+    sessionId: SessionId, seq: number, index: number, action: PresentedAction = 'open', application?: string,
+  ): Promise<PresentedOpenOutcome> {
+    return this.openUrl(presentedFileUrl(sessionId, seq, index), action, application)
   }
 
   /**
-   * Read advertised desktop metadata, coalescing reads; later calls retry errors.
-   * @returns after current metadata or a retryable failure is published.
+   * Open one recorded changed file in the Host's default application.
+   * @param sessionId - viewed Session.
+   * @param seq - durable workspace/changes event sequence.
+   * @param index - original file index within that event.
+   * @param action - application open or file-manager reveal.
+   * @param application - registered handler identifier for an explicit application choice.
+   * @returns the settled outcome after publishing card status; a dropped
+   * request reports `{ kind: 'skipped' }` and announces nothing.
+   */
+  openChanged(
+    sessionId: SessionId, seq: number, index: number, action: PresentedAction = 'open', application?: string,
+  ): Promise<PresentedOpenOutcome> {
+    return this.openUrl(changedFileUrl(sessionId, seq, index), action, application)
+  }
+
+  private async openUrl(url: string, action: PresentedAction, application?: string): Promise<PresentedOpenOutcome> {
+    const phase = this.state.getSnapshot()[url]
+    if (this.lifetime.signal.aborted || phase === 'opening' || phase === 'revealing') return { kind: 'skipped' }
+    this.state.update((state) => { state[url] = action === 'open' ? 'opening' : 'revealing' })
+    const task = this.request(url, action, application)
+    this.pending.add(task)
+    try {
+      return await task
+    } finally {
+      this.pending.delete(task)
+    }
+  }
+
+  /**
+   * Read the serving desktop metadata, coalescing concurrent reads; a later call retries failure.
+   * @returns after metadata or a retryable error is published.
    */
   async loadHost(): Promise<void> {
-    if (this.lifetime.signal.aborted || !this.supports('presented-file.desktop.v1')) return
+    if (this.lifetime.signal.aborted) return
     if (this.loading !== undefined) return this.loading
     this.host.set(null)
-    const task = this.readHost(AbortSignal.any([this.lifetime.signal, this.generation.signal]))
+    const task = this.readHost(AbortSignal.any([this.lifetime.signal, this.metadata.signal]))
     this.loading = task
     this.pending.add(task)
     try { await task }
@@ -72,63 +98,56 @@ export class PresentedOpenController {
     }
   }
 
-  /** Cancel generation-owned work and withdraw metadata and gesture status without replay. */
+  /** Invalidate desktop metadata on connection replacement; mounted cards request the new Host. */
   resetHost(): void {
     const wasLoading = this.loading !== undefined
-    this.generation.abort()
-    this.generation = new AbortController()
+    this.metadata.abort()
+    this.metadata = new AbortController()
     this.loading = undefined
-    this.metadataHost = undefined
-    this.state.set({})
-    this.host.set(this.supports('presented-file.desktop.v1') ? null : 'unsupported')
+    this.host.set(null)
     if (wasLoading) void this.loadHost()
   }
 
-  private supports(capability: typeof PRESENTED_FILE_REMOTE_CAPABILITIES[number]['id']): boolean {
-    return this.remote.$host.capabilities?.includes(capability) === true
-  }
-
   private async readHost(signal: AbortSignal): Promise<void> {
-    const owner = this.remote.$host
-    let host: PresentedHostView | 'error' = 'error'
+    let host: PresentedHost | 'error' = 'error'
     try {
-      const result = await this.remote.presentedFiles.desktop(signal)
-      if (result.ok) {
-        const actions: PresentedAction[] = []
-        if (this.supports('presented-file.open.v1')) actions.push('open')
-        if (this.supports('presented-file.reveal.v1')) actions.push('reveal')
-        host = { ...result.value, actions }
+      const response = await fetch(PRESENT_HOST_ROUTE, { signal })
+      if (response.ok) {
+        const value: unknown = await response.json()
+        if (isPresentedHost(value)) host = value
       }
     } catch {
-      // Generated Remote failures and transport rejection share the retry action.
       host = 'error'
     }
-    if (!signal.aborted && this.remote.$host === owner) {
-      this.metadataHost = host === 'error' ? undefined : owner
-      this.host.set(host)
-    }
+    if (!signal.aborted) this.host.set(host)
   }
 
-  /** Cancel outstanding requests and await their final publication checks. */
+  /** Cancel outstanding requests, suppress their announcements, and wait until they settle. */
   async dispose(): Promise<void> {
     this.lifetime.abort()
     await Promise.all(this.pending)
   }
 
-  private async request(
-    key: string, request: { sessionId: SessionId; seq: number; index: number }, action: PresentedAction,
-  ): Promise<void> {
-    const owner = this.remote.$host
-    const signal = AbortSignal.any([this.lifetime.signal, this.generation.signal])
+  private async request(url: string, action: PresentedAction, application?: string): Promise<PresentedOpenOutcome> {
     const failure = action === 'open' ? 'error' : 'revealError'
-    let phase: PresentedOpenPhase = action === 'open' ? 'opened' : 'revealed'
+    let phase: PresentedOpenPhase | undefined
     try {
-      const result = await this.remote.presentedFiles[action](request, signal)
-      if (!result.ok) phase = result.error.code === 'presented-file/path-unavailable' ? 'nativeUnavailable' : failure
+      const target = action === 'reveal' ? `${url}&action=reveal`
+        : application === undefined ? url : `${url}&application=${encodeURIComponent(application)}`
+      const response = await fetch(target, { method: 'POST', signal: this.lifetime.signal })
+      if (!response.ok) phase = response.status === 422 ? 'nativeUnavailable' : failure
     } catch {
-      // Transport failures share the retryable card state with Host action failures.
+      // Transport failures share the retryable card state with Host open failures.
       phase = failure
     }
-    if (!signal.aborted && this.remote.$host === owner) this.state.update((state) => { state[key] = phase })
+    if (!this.lifetime.signal.aborted) {
+      this.state.update((state) => {
+        if (phase === undefined) Reflect.deleteProperty(state, url)
+        else state[url] = phase
+      })
+    }
+    if (this.lifetime.signal.aborted) return { kind: 'skipped' }
+    if (phase === undefined) return { kind: action === 'open' ? 'opened' : 'revealed' }
+    return { kind: 'failed', failure: action === 'reveal' ? 'revealError' : 'openError' }
   }
 }

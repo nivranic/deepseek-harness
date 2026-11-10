@@ -13,12 +13,9 @@
  * a string outside the grammar, `workspace-file/unknown-workspace` when the
  * address carries no Session — and ends.
  *
- * Metadata requires advertised stat support. Without changes support the stream
- * yields one stat and ends. Registration replacement retires pending reads and
- * reopens held resources against the new Host. With changes support,
- * the first frame is the file's `stat`; every Host-reported write yields the
- * metadata with its reported version; a reported disappearance, or a write while the
- * last stat had failed, runs `stat` again. Failures travel as `ok: false` frames, never as thrown errors: the
+ * The first frame is the file's `stat`; subsequent invalidations run `stat`
+ * again unless their version or absence is already known. Reconnection also
+ * restats the file. Failures travel as `ok: false` frames, never as thrown errors: the
  * Remote face does not reject, and anything thrown inside the stream is a
  * programming error the resource model lets surface. A failed stat does not end
  * the stream: the next write stats again. One {@link ChangeFeed}
@@ -43,22 +40,16 @@ interface HostFile {
 /**
  * Build the `file` provider over one Remote face and one change feed.
  * @param remote - the Remote face carrying `workspaceFiles.stat`.
- * @param changes - the per-session change fan-out.
- * @param lifetime - registration cancellation, independent from individual resource holders.
+ * @param changes - target-scoped change streams shared by file resources.
  * @returns the provider to register into `ctx.resources`.
  */
 export function createFileResourceProvider(
   remote: WorkspaceFilesRemote,
   changes: ChangeFeed,
-  lifetime?: AbortSignal,
 ): ResourceProvider<'file'> {
-  const host = remote.$host
   return {
     protocol: 'file',
     async *open(address, { signal }): AsyncIterable<RemoteResult<WorkspaceFileStat>> {
-      signal = lifetime === undefined ? signal : AbortSignal.any([signal, lifetime])
-      const retired = (): boolean => signal.aborted || remote.$host !== host
-      if (retired() || host.capabilities?.includes('workspace-files.stat.v1') !== true) return
       const resolved = resolve(address)
       if (!resolved.ok) {
         yield resolved
@@ -66,26 +57,33 @@ export function createFileResourceProvider(
       }
       const { sessionId, path } = resolved.value
       // Queue changes delivered to this Client while stat is pending.
-      const notices = host.capabilities.includes('workspace-files.changes.v1')
-        ? changes.follow(sessionId, signal) : undefined
+      const notices = changes.follow(sessionId, path, signal)
       const stat = (): Promise<RemoteResult<WorkspaceFileStat>> => remote.workspaceFiles.stat(sessionId, path, signal)
+      // Read through a call: a plain `signal.aborted` is narrowed to `false` by
+      // the first check and would read as always-false after the later awaits.
+      const aborted = (): boolean => signal.aborted
       // Undefined while the last stat failed: the follow is on the address, not
       // on the file, so a write can still bring the file live.
       let current: WorkspaceFileStat | undefined
       try {
-        if (notices !== undefined && !await notices.ready || retired()) return
+        if (!await notices.ready) {
+          if (aborted()) return
+          const result = await stat()
+          if (!aborted()) yield result
+          return
+        }
+        if (aborted()) return
         const first = await stat()
-        if (retired()) return
+        if (aborted()) return
         if (first.ok) {
-          notices?.bind(first.value.absolutePath)
+          notices.bind(first.value.absolutePath)
           current = first.value
           yield { ok: true, value: current }
         } else {
           yield first
         }
-        if (notices === undefined) return
         for await (const notice of notices) {
-          if (retired()) return
+          if (aborted()) return
           if (current === undefined) {
             // Still gone: nothing new to report.
             if (notice.kind === 'absent') continue
@@ -93,13 +91,10 @@ export function createFileResourceProvider(
             // Frames report observations: holding this version already means the
             // consumer learns nothing new.
             if (notice.version === current.version) continue
-            current = { ...current, version: notice.version }
-            yield { ok: true, value: current }
-            continue
           }
           // A Host notice may mean stale content.
           const again = await stat()
-          if (retired()) return
+          if (aborted()) return
           if (!again.ok) {
             current = undefined
             yield again
@@ -110,7 +105,7 @@ export function createFileResourceProvider(
           yield { ok: true, value: current }
         }
       } finally {
-        notices?.dispose()
+        notices.dispose()
       }
     },
   }

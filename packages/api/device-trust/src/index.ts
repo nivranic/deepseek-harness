@@ -18,7 +18,6 @@ import z from '@deepseek-ai/schemastery'
 import type { SessionTelemetryRecord, TelemetryConsent } from '@deepseek-ai/dsh-session-telemetry'
 import { RemoteError, TypertRemoteService, Remote } from '@deepseek-ai/dsh-typert-protocol'
 import { DomainError, type KvTable } from '@deepseek-ai/dsh-storage-domain'
-import { DEVICE_TRUST_REMOTE_CAPABILITIES } from './capabilities.ts'
 import { DEVICE_ROLE_PERMISSIONS } from './permissions.ts'
 import { deviceTrustDomainSpec } from './spec.ts'
 import type { DeviceGrantRecord } from './spec.ts'
@@ -169,7 +168,7 @@ export class DeviceTrustService extends TypertRemoteService {
   private grants?: KvTable<DeviceId, DeviceGrantRecord>
 
   constructor(ctx: Context, config: Config = {}) {
-    super(ctx, 'deviceTrust', { namespace: 'deviceTrust', capabilities: DEVICE_TRUST_REMOTE_CAPABILITIES })
+    super(ctx, 'deviceTrust', { namespace: 'deviceTrust' })
     this.resolved = {
       pairingTtlMs: config.pairingTtlMs ?? 300_000,
       defaultRole: config.defaultRole ?? 'viewer',

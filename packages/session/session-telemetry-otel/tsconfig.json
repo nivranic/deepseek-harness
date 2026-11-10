@@ -36,7 +36,7 @@
       "path": "../../identity/anonymous-user-id"
     },
     {
-      "path": "../../settings/settings"
+      "path": "../../telemetry/otel"
     }
   ]
 }

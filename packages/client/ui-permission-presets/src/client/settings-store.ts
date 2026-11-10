@@ -1,7 +1,6 @@
 /**
  * Permission default-settings controller. The permission descriptor comes
- * from the shared describe mirror (the dynamic preset enum lives in the
- * namespace schema, which per-namespace scopes do not carry); writes target
+ * from the shared describe mirror and choices from the permission catalog; writes target
  * only `defaultPreset`, carry the descriptor revision, and fold their answer
  * back into the mirror.
  */
@@ -11,9 +10,9 @@ import type { SettingsNamespaceView } from '@deepseek-ai/dsh-api-remotes/client'
 import {
   createSnapshotStore, type SnapshotStore,
 } from '@deepseek-ai/dsh-client-store'
-import type {
-  SchemaNode, SettingsDescribeFace, SettingsSchemaService,
-} from '@deepseek-ai/dsh-client-ui-settings/client'
+import type { SettingsDescribeFace } from '@deepseek-ai/dsh-client-ui-settings/client'
+import type { PermissionCatalog } from '@deepseek-ai/dsh-permission-presets/client'
+import type { PermissionCatalogDirectory } from './catalog.ts'
 import { displayPermissionPreset } from './presentation.ts'
 
 /** Permission's settings namespace on the host wire. */
@@ -37,44 +36,21 @@ export interface PermissionSettingsState {
   revision: number
 }
 
-interface ConstChoice {
-  type: string
-  value?: unknown
-  meta?: { description?: unknown }
-}
-
-/**
- * Read the dynamic preset enum encoded by the host's `defaultPreset` schema.
- * @param view - permission namespace descriptor.
- * @param schema - settings schema operations.
- * @returns current value and selectable options.
+/** Resolve the new-session choices from the permission domain's catalog.
+ * @param view Live configuration descriptor.
+ * @param catalog Configured permission options and effective default.
+ * @returns Current choice and labels for its allowed options.
  */
-export function permissionDefaultOf(view: SettingsNamespaceView, schema: SettingsSchemaService): {
+export function permissionDefaultOf(view: SettingsNamespaceView, catalog: PermissionCatalog): {
   currentValue: string
   options: PermissionDefaultOption[]
 } {
-  const value = (view.value as { defaultPreset?: unknown } | null)?.defaultPreset
-  if (typeof value !== 'string') throw new Error('permission settings has no defaultPreset value')
-  const node = schema.nodeAtPath(schema.rehydrate(view.schema), ['defaultPreset'])
-  if (node === undefined) throw new Error('permission settings schema has no defaultPreset field')
-  const rawChoices = node.type === 'union'
-    ? (node.list as SchemaNode[] | undefined) ?? []
-    : [node]
-  const options = rawChoices.flatMap((candidate) => {
-    const choice = candidate as unknown as ConstChoice
-    if (choice.type !== 'const' || typeof choice.value !== 'string') return []
-    const described = choice.meta?.description
-    return [{
-      id: choice.value,
-      label: typeof described === 'string' && described.length > 0
-        ? displayPermissionPreset(choice.value, described)
-        : displayPermissionPreset(choice.value, choice.value),
-    }]
-  })
-  if (options.length === 0 || !options.some(option => option.id === value)) {
-    throw new Error('permission settings schema does not advertise its current preset')
-  }
-  return { currentValue: value, options }
+  const currentValue = (view.value as { defaultPreset?: string }).defaultPreset ?? catalog.defaultPreset
+  const options = catalog.defaultOptions.map(option => ({
+    id: option.value, label: displayPermissionPreset(option.value, option.name),
+  }))
+  if (!options.some(option => option.id === currentValue)) throw new Error('permission catalog does not advertise its current default')
+  return { currentValue, options }
 }
 
 /** Controller deriving the row from the shared mirror and writing the default through it. */
@@ -90,21 +66,20 @@ export class PermissionPresetSettingsController {
   })
 
   private following: (() => void) | undefined
-  private viewHost: ClientContext['remote']['$host'] | undefined
-  private savingHost: ClientContext['remote']['$host'] | undefined
-  private readonly writes = new Set<Promise<void>>()
+  private followingCatalog: (() => void) | undefined
+  private saving = false
   private disposed = false
 
   /**
    * @param describeFace - the shared mirror's read/fold face (descriptor and schema source).
    * @param ctx - the row plugin's context, whose `remote.settings` namespace
    * carries the `defaultPreset` write.
-   * @param schema - settings-owned schema operations.
+   * @param catalog - configured permission choices and their effective default.
    */
   constructor(
     private readonly describeFace: SettingsDescribeFace,
     private readonly ctx: ClientContext,
-    private readonly schema: SettingsSchemaService,
+    private readonly catalog: Pick<PermissionCatalogDirectory, 'store' | 'load'>,
   ) {}
 
   /**
@@ -114,11 +89,13 @@ export class PermissionPresetSettingsController {
   async load(): Promise<void> {
     if (this.disposed) return
     this.following ??= this.describeFace.subscribe(() => { this.derive() })
+    this.followingCatalog ??= this.catalog.store.subscribe(() => { this.derive() })
     this.store.update((state) => {
       state.status = 'loading'
       state.error = null
     })
     await this.describeFace.ensure()
+    try { await this.catalog.load() } catch (error) { this.fail(error); return }
     this.derive()
   }
 
@@ -128,30 +105,14 @@ export class PermissionPresetSettingsController {
    * control is disabled during the save, so this only drops programmatic
    * double-submits rather than user intent.
    * @param preset - advertised preset key.
-   * A retained gesture requires a descriptor from the current Host. Replacing
-   * that Host suppresses the old response without replaying the write.
-   * @returns settlement of this write; {@link store} carries success or failure.
+   * @returns nothing; {@link store} carries success or failure.
    */
-  select(preset: string): Promise<void> {
-    if (this.disposed) return Promise.resolve()
-    const host = this.ctx.remote.$host
+  async select(preset: string): Promise<void> {
     const state = this.store.getSnapshot()
-    const mirrored = this.describeFace.getSnapshot()
-    const view = mirrored.view?.namespaces
+    const view = this.describeFace.getSnapshot().view?.namespaces
       .find(entry => entry.ns === PERMISSION_SETTINGS_NS)
-    if (this.viewHost !== host || view === undefined || !state.writable
-      || this.savingHost === host || mirrored.status !== 'ready'
-      || host.capabilities?.includes('settings.read.v1') !== true
-      || !host.capabilities.includes('settings.write.v1')) return Promise.resolve()
-    const operation = this.save(preset, view.revision, host)
-    this.writes.add(operation)
-    const finished = (): void => { this.writes.delete(operation) }
-    void operation.then(finished, finished)
-    return operation
-  }
-
-  private async save(preset: string, revision: number, host: ClientContext['remote']['$host']): Promise<void> {
-    this.savingHost = host
+    if (view === undefined || !state.writable || this.saving) return
+    this.saving = true
     this.store.update((draft) => {
       draft.status = 'saving'
       draft.error = null
@@ -161,17 +122,14 @@ export class PermissionPresetSettingsController {
       response = await this.ctx.remote.settings.mutate(
         PERMISSION_SETTINGS_NS,
         [{ op: 'set', path: ['defaultPreset'], value: preset }],
-        revision,
+        view.revision,
       )
-    } catch (error) {
-      if (!this.disposed && this.ctx.remote.$host === host) this.fail(error)
-      return
     } finally {
       // Cleared before the fold below, whose publish reaches `derive` through
       // this row's own subscription and is skipped while a save is pending.
-      if (this.savingHost === host) this.savingHost = undefined
+      this.saving = false
     }
-    if (this.disposed || this.ctx.remote.$host !== host) return
+    if (this.disposed) return
     if (!response.ok) {
       this.fail(response.error)
       return
@@ -181,42 +139,19 @@ export class PermissionPresetSettingsController {
     this.describeFace.acceptView(response.value)
   }
 
-  /**
-   * Stop following the mirror and reject new gestures without undoing dispatched writes.
-   * @returns settlement after pending writes stop publishing into this controller.
-   */
-  async dispose(): Promise<void> {
+  /** Stop following the mirror; later publishes leave the snapshot alone. */
+  dispose(): void {
     this.disposed = true
     this.following?.()
     this.following = undefined
-    await Promise.allSettled([...this.writes])
+    this.followingCatalog?.()
+    this.followingCatalog = undefined
   }
 
   private derive(): void {
-    if (this.disposed) return
-    const host = this.ctx.remote.$host
+    if (this.disposed || this.saving) return
     const mirrored = this.describeFace.getSnapshot()
-    if (this.savingHost === host && mirrored.view !== undefined) return
-    this.viewHost = mirrored.view === undefined ? undefined : host
-    if (mirrored.status === 'unavailable') {
-      // The terminal non-loopback state: this client keeps Host persistence disabled, so
-      // the row hides itself exactly like an unserved namespace.
-      this.store.update((state) => {
-        state.status = 'unavailable'
-        state.writable = false
-        state.currentValue = ''
-        state.options = []
-      })
-      return
-    }
     if (mirrored.view === undefined) {
-      this.store.update((state) => {
-        state.status = 'loading'
-        state.error = null
-        state.writable = false
-        state.currentValue = ''
-        state.options = []
-      })
       // A held failure with no answer is a failed row; without one the read
       // is still in flight and the row keeps its loading state.
       if (mirrored.error !== null) this.fail(new Error(mirrored.error))
@@ -233,7 +168,9 @@ export class PermissionPresetSettingsController {
       return
     }
     try {
-      const resolved = permissionDefaultOf(view, this.schema)
+      const catalog = this.catalog.store.getSnapshot().value
+      if (catalog === null) return
+      const resolved = permissionDefaultOf(view, catalog)
       const { writable } = mirrored.view
       this.store.update((state) => {
         state.status = 'ready'

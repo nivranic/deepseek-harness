@@ -9,7 +9,7 @@
  */
 import type { ComponentType } from 'react'
 import type {
-  PickOutcome, ReferenceInsert, TokenSpan,
+  CommandClaim, PickOutcome, ReferenceInsert, TokenSpan,
 } from '@deepseek-ai/dsh-client-ui-conversation/client'
 import type { IconProps } from '@deepseek-ai/dsh-client-ui-primitives'
 import type { SessionId } from '@deepseek-ai/dsh-session/types'
@@ -57,11 +57,6 @@ export interface InputTriggerCandidate {
    */
   readonly label?: string
   readonly description?: string
-  /**
-   * Source-owned trailing badge on the row (for example a Host-assessed risk
-   * tier, specification §37); already-localized text the row renders as-is.
-   */
-  readonly tag?: string
   /** Reference glyph token, or an icon component from the shared icon set. */
   readonly icon?: InputTriggerCandidateIcon | ComponentType<IconProps>
   readonly hint?: string
@@ -172,14 +167,6 @@ export interface InputTriggerSource {
   readonly showGroupTitle?: boolean
   candidates(session: ClientSessionContext, req: CandidateRequest): Promise<readonly InputTriggerCandidate[]>
   /**
-   * Observe changes that invalidate candidates and headers independently of the draft.
-   * The controller cancels old queries, clears visible rows, and retries warmup.
-   * @param session - stable session projection.
-   * @param listener - invalidation callback, called after source state changes.
-   * @returns subscription disposer.
-   */
-  subscribeCandidates?(session: ClientSessionContext, listener: () => void): () => void
-  /**
    * Synchronous breadcrumb rendered above this source's group, re-polled on
    * every hit. Implementing IS the participation claim; `undefined` means
    * this request needs no header. A crumb pick routes back through
@@ -212,9 +199,17 @@ export interface InputTriggerSource {
     envelope: SubmitEnvelope,
   ): Promise<PickOutcome>
   /**
+   * Restore-time claim resolution for a persisted command chip. Answers the
+   * claim `matchSpace` would make for `token` (e.g. '/goal') after awaiting
+   * the source's own warmup, and never acts: a token that would open a
+   * popup, run an action, or execute detached answers undefined. Rejects when
+   * the warmup fails or `signal` aborts.
+   */
+  matchClaim?(session: ClientSessionContext, token: string, signal: AbortSignal): Promise<CommandClaim | undefined>
+  /**
    * Scope-birth prewarm hook (fire-and-forget): the per-session controller
-   * calls it at scope birth and after candidate invalidation so sources can
-   * fetch their backing data before the next interaction. Calls must deduplicate.
+   * calls it once when the session scope comes alive so sources can fetch
+   * their backing data before the first interaction.
    */
   warm?(session: ClientSessionContext): void
   /**
@@ -236,24 +231,10 @@ export interface InputTriggerSource {
    */
   subscribeLexicon?(session: ClientSessionContext, listener: () => void): () => void
   /**
-   * Read current preview eligibility without fetching or changing the draft.
-   * @param session - session owning the reference.
-   * @param reference - source-owned id and optional glyph.
-   * @returns true only when the source can preview this reference now.
-   */
-  canOpenReference?(session: ClientSessionContext, reference: Pick<ReferenceInsert, 'ref' | 'appearance'>): boolean
-  /**
-   * Observe eligibility changes independent from lexicon names.
-   * @param session - session owning the reference.
-   * @param listener - re-polls current eligibility.
-   * @returns subscription disposer.
-   */
-  subscribeReferenceAvailability?(session: ClientSessionContext, listener: () => void): () => void
-  /**
    * Open a reference preview without changing or submitting the draft.
    * @param session - session owning the composer.
    * @param reference - source-owned id and optional chip glyph; text references retain their trigger.
-   * @returns whether this source accepted the currently eligible preview; false leaves the editor gesture unchanged.
+   * @returns whether this source accepted the preview, possibly awaiting its catalog; false leaves the editor gesture unchanged.
    */
   openReference?(session: ClientSessionContext, reference: Pick<ReferenceInsert, 'ref' | 'appearance'>): boolean
   /** Reference codec; required for sources producing insert outcomes. */

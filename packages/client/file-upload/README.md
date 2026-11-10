@@ -10,6 +10,7 @@ English | [中文](README.zh.md)
 ## Summary
 
 Store files or normalized images for one Session and receive an opaque receipt for a later prompt. Browser file callers can send a `Blob`, exact bytes or a `ReadableStream<Uint8Array>`, observe progress and cancel active work. Served pages stream bodies without aggregating bytes on the page thread; pages whose Host runs elsewhere supply their own carrier. Image callers use encoded Remote staging. Receipts remain local to the receiving Host process and Session, while accepted messages retain durable attachment references.
+This package lets browser features store a `Blob`, exact bytes, or a `ReadableStream<Uint8Array>` for one Session and receive an opaque receipt for a later prompt. Served pages send Blob and stream bodies without aggregating their bytes on the page thread; pages whose Host runs in another execution context supply a Fetch-shaped carrier before Cordis boots. Callers can observe consumed bytes and cancel an active operation. A stream body is consumed once and transfers ownership when it crosses a Worker boundary. An image upload stages a normalized prompt image that a later prompt cites by receipt.
 
 ## Table of Contents
 
@@ -25,7 +26,7 @@ Store files or normalized images for one Session and receive an opaque receipt f
 <a id="use-this-package"></a>
 ## Use this package
 
-Mount the package before a consumer that injects `fileUpload`, then call `ctx.fileUpload.upload(sessionId, body, name, signal, onProgress)`. The Session identity addresses both the raw route and generated Remote fallback; callers do not assemble either request.
+Mount the package before a consumer that injects `fileUpload`, then call `ctx.fileUpload.upload(sessionId, body, name, signal, onProgress)`, or `ctx.fileUpload.uploadImage(sessionId, blob, mediaType, name, signal, onProgress)` for a prompt image. The Session identity addresses both the raw route and generated Remote fallback; callers do not assemble either request.
 
 The Host also accepts `fileUploads/uploadImage({ data, mediaType, name? })` under `image-upload.stage.v1` with `prompt.send` permission. It validates and normalizes canonical base64 image input through the attachment service, returning `receiptId` and the normalized `image` reference for an ordered `staged-image` prompt part. This encoded Remote operation is independent of the browser file transport.
 
@@ -40,7 +41,7 @@ File staging requires `file-upload.stage.v1` on the current Host. The Client cap
   name: '@deepseek-ai/dsh-client-file-upload'
 ```
 
-The package has no Cordis configuration fields. A `Blob` uses XMLHttpRequest inside a dedicated Worker so the service can report browser upload progress, including the total when the browser provides it. A `ReadableStream` transfers to that Worker and feeds Fetch incrementally; progress reports consumed bytes without a total. An `AbortSignal` terminates the dedicated Worker or reaches a page-owned carrier. Exact bytes and fixture Blob inputs use the generated Remote.
+The package has no Cordis configuration fields. A `Blob` uses XMLHttpRequest inside a dedicated Worker so the service can report browser upload progress, including the total when the browser provides it. A `ReadableStream` transfers to that Worker and feeds Fetch incrementally; progress reports consumed bytes without a total. An `AbortSignal` terminates the dedicated Worker or reaches a page-owned carrier. Exact bytes use the generated Remote.
 
 -----
 
@@ -50,13 +51,14 @@ The package has no Cordis configuration fields. A `Blob` uses XMLHttpRequest ins
 <details>
 <summary>Implementation internals — click to expand</summary>
 
-The Client plugin provides `ctx.fileUpload`. Its `upload()` method receives the owning Session identity, assembles the raw route request, and invokes the generated Remote fallback for replayable inputs. The provider reads the optional pre-Cordis `__DSH_FILE_UPLOAD__` hook once. Without a hook, each non-fixture raw request owns a short-lived Worker and releases it after completion, failure, or cancellation. With the hook, the service sends the body through the page-owned Fetch carrier; the Web Worker runtime transfers stream bodies through its request frame and exposes them to the Host HTTP bridge as backpressured chunks.
+The Client plugin provides `ctx.fileUpload`. Its `upload()` method receives the owning Session identity, assembles the raw route request, and invokes the generated Remote for exact bytes. The provider reads the optional pre-Cordis `__DSH_FILE_UPLOAD__` hook once. Without a hook, each Blob or stream request owns a short-lived Worker and releases it after completion, failure, or cancellation. With the hook, the service sends the body through the page-owned Fetch carrier; the Web Worker runtime transfers stream bodies through its request frame and exposes them to the Host HTTP bridge as backpressured chunks.
 
 The Host plugin provides `ctx.fileUploads`. It owns the authenticated streaming route, encoded Remote fallback, command receipt resolver, and staged-receipt lifecycle; encoded admission, attachment-error recognition, and byte storage stay behind `ctx.attachments`. File and image receipt tables use the receiving Agent's Session object as their key; the two receipt kinds cannot substitute for one another. Image receipts privately retain the source encoded byte count so prompt admission can combine staged and inline images under the original-byte budget. Normalized image metadata does not expose or replace that count. The Session Controller registers the resolver that can resume a cold ordinary Agent and consumes receipts during prompt admission. Prompt delivery holds each receipt binding in a disposable transaction: disposal restores the previous binding until successful delivery commits it, and queue or history observation then retires the committed receipt.
+The Host plugin provides `ctx.fileUploads`. It owns the authenticated streaming route, encoded Remote fallback, command receipt resolver, and staged-receipt lifecycle; encoded admission, attachment-error recognition, and byte storage stay behind `ctx.attachments`. A raw upload with a `mediaType` query parameter reads at most the smaller of the deployment's per-image and per-message image byte limits and stores the image through `ctx.attachments.saveImages`; its receipt records the upload's byte length and resolves to that image during prompt admission, where those bytes count toward the per-message image byte limit, and commands accept only file receipts. A cancelled image upload receives no receipt: cancellation before storage begins stores nothing, and an image whose storage already began stays stored. Host callers supply an Agent with its runtime-owned context; receipt tables use that Agent's exact Session object as their key. The Session Controller registers the resolver that can resume a cold ordinary Agent and consumes receipts during prompt admission. Prompt delivery holds each receipt binding in a disposable transaction: disposal restores the previous binding until successful delivery commits it, and queue or history observation then retires the committed receipt.
 
 | File | Role |
 |---|---|
-| [`src/index.ts`](src/index.ts) | Host streaming route, attachment-service admission, and Agent-scoped receipt lifecycle |
+| [`src/index.ts`](src/index.ts) | Host streaming route, attachment-service admission, and Session-owned receipt lifecycle |
 | [`src/types.ts`](src/types.ts) | encoded request, receipt, and durable result types |
 | [`src/client/contract.ts`](src/client/contract.ts) | Client upload, progress, and page-hook types |
 | [`src/client/runtime.ts`](src/client/runtime.ts) | Dedicated Worker and page-owned carrier implementations |
@@ -64,7 +66,7 @@ The Host plugin provides `ctx.fileUploads`. It owns the authenticated streaming 
 
 </details>
 
-**Runtime invariant:** No companion is published. Each upload receipt belongs to one exact Session, and each request uses one selected carrier. Unsupported stream carriers fail before the body is sent.
+Each upload receipt belongs to one exact Session, and each request uses one selected carrier. Unsupported stream carriers fail before the body is sent.
 
 -----
 

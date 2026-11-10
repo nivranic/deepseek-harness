@@ -18,7 +18,7 @@ import { HOST_DIAGNOSTICS_REMOTE_CAPABILITIES } from '@deepseek-ai/dsh-api-host-
 import { COMMAND_REMOTE_CAPABILITIES } from '@deepseek-ai/dsh-commands/capabilities'
 import { TOOL_REMOTE_CAPABILITIES } from '@deepseek-ai/dsh-tools/capabilities'
 import { LLM_REMOTE_CAPABILITIES } from '@deepseek-ai/dsh-llm/capabilities'
-import { AGENT_PRESET_REMOTE_CAPABILITIES } from '@deepseek-ai/dsh-agent-presets/capabilities'
+import { AGENT_PRESET_REMOTE_CAPABILITIES } from '@deepseek-ai/dsh-agent-preset-registry/capabilities'
 import { SUBAGENT_REMOTE_CAPABILITIES } from '@deepseek-ai/dsh-subagent/capabilities'
 import { admitHostOperation, createHostPreparation } from '../src/client/host-preparation.ts'
 

@@ -20,27 +20,25 @@ When users type `/` or `@` at the caret in the Web GUI, this package opens a gro
 - [Known Limitations and Deferred Work](#known-limitations-and-deferred-work)
 - [Dev Note](#dev-note)
 
-A source may implement `subscribeCandidates` to invalidate discovery independently of its lexicon. Notifications cancel the old query and immediately clear menu rows and headers, then retry deduplicated warming and refresh the open menu after source observers settle. Programmatic launchers retain their single-source roster; disposal releases subscriptions and cancels queued refreshes.
-
-Deferred refresh uses the existing menu generation and the latest trigger span. Re-detecting the same query does not cancel its replacement fetch; changing the query or closing the menu supersedes queued work.
-
 -----
 
 <a id="use-this-package"></a>
 ## Use this package
 
-Mount this plugin alongside `ui-conversation`; the menu then appears in the input overlay when the user types a trigger under the caret. Grouped candidates render under title rows, or under the section headings a source attaches to its own rows; a pick routes to the source, and the consuming surface applies the result — a slash command opens its popup or executes, a reference inserts its inline token. A row shows its icon, its title (the candidate `label`, or the `name` when no label is given), the `name` as a trailing alias when the label is not the name in another letter case, and the description right-aligned; a query matches either the name or the label.
+Mount this plugin alongside `ui-conversation`; the menu then appears in the input overlay when the user types a trigger under the caret. Grouped candidates render under title rows, or under the section headings a source attaches to its own rows; a pick routes to the source, and the consuming surface applies the result — a slash command opens its popup or executes, a reference inserts its inline token. Menu icons and navigation chevrons use the `--dsw-alias-menu-icon` color. A row shows its icon, its title (the candidate `label`, or the `name` when no label is given), the `name` as a trailing alias when the label is not the name in another letter case, and the description right-aligned; a query matches either the name or the label.
 
 ### Keyboard and mouse
 
-The composer surface keeps focus while the menu is open: rows pick on mousedown, the highlight rides `aria-activedescendant`, and a pointer press outside both the menu and the composer card dismisses it. Space and Enter adjudication polls the optional `matchSpace`/`matchEnter` hooks in registration order; the first non-undefined answer wins, and a source can refuse a submission it cannot consume whole. Tab acts on the highlighted completion: a candidate declaring `drill: true` routes through `onPick` with `action: 'drill'`, while an ordinary candidate settles through `action: 'pick'`; without a highlight, Tab passes untouched so native focus traversal survives. A drillable row's trailing chevron exposes the same second verb to pointer users. A source implementing the optional `header` hook additionally publishes crumbs above its group: the pipeline re-polls it on every hit with the live query and whether a drill, rather than typing, produced it, and a crumb pick routes back through `onPick` with `action: 'drill'`.
+The composer surface keeps focus while the menu is open: rows pick on mousedown, the highlight rides `aria-activedescendant`, and a pointer press outside both the menu and the composer card dismisses it. Opening it from the launcher button puts the keyboard back in the editor before the menu opens, so the arrows drive it there too. Space and Enter adjudication polls the optional `matchSpace`/`matchEnter` hooks in registration order; the first non-undefined answer wins, and a source can refuse a submission it cannot consume whole. Restoring a persisted command chip polls the optional `matchClaim` hook through `resolveClaim`: it awaits the source's own warmup and answers only a claim, never opening a popup, running an action, or executing the command. Tab acts on the highlighted completion: a candidate declaring `drill: true` routes through `onPick` with `action: 'drill'`, while an ordinary candidate settles through `action: 'pick'`; without a highlight Tab passes untouched so native focus traversal survives. Escape and Shift+Tab leave the menu instead, never settling: the exit gesture cannot consume or rewrite the draft. A dismissed menu stays dismissed: the same token re-tracked with the same query keeps its menu closed, so restoring the caret after a pointer dismissal — or after a settled command closes the surface it opened — cannot bring the menu back; typing a new query or moving to another token re-arms it. A drillable row's trailing chevron exposes the same second verb to pointer users. A source implementing the optional `header` hook additionally publishes crumbs above its group: the pipeline re-polls it on every hit with the live query and whether a drill, rather than typing, produced it, and a crumb pick routes back through `onPick` with `action: 'drill'`.
 
-Sources pair `canOpenReference(session, reference)` with `openReference` and may publish viewer changes through `subscribeReferenceAvailability`. Eligibility reads are synchronous and never fetch. The controller publishes source, lexicon and viewer changes through `referenceAvailability`, and rechecks eligibility before opening. Chips route by source name; editable tokens use the current lexicon. Unavailable or disposed owners leave the editor gesture unchanged.
+A source may implement `openReference(session, reference)` to open a draft reference without submitting it. Acceptance may precede asynchronous catalog loading. Chips route by source name; editable tokens route through the current source lexicon. Returning `false`, a missing source, or a disposed controller leaves the editor gesture unchanged.
 
 -----
 
 <a id="understand-the-implementation"></a>
 ## Understand the implementation
+
+Menus use the shared `MenuSurface` material, including the macOS backing for background blur; custom content follows the [menu rules](../../../docs/web-styling.md#component-rules).
 
 <details>
 <summary>Implementation internals — click to expand</summary>
@@ -59,7 +57,7 @@ Read these pages when the trigger pipeline is not enough. They move from the pip
 - [ui-commands](../ui-commands/README.md) — registers the `/` command source into this pipeline and owns the command popup shell.
 - [ui-reference](../ui-reference/README.md) — registers the `@` file and session reference sources.
 - [ui-conversation](../ui-conversation/README.md) — declares the input overlay slot and owns the composer and input machine.
-- [Web client architecture](../../../.agents/notes/implemented/architecture/2026-07-19-gui-web-client-architecture.md) — how browser plugin rows load and register slots.
+- [Web client architecture](../../../docs/subsystems/web-client.md) — how browser plugin rows load and register slots.
 
 -----
 
@@ -91,5 +89,3 @@ These limits define the current trigger pipeline. They are current package const
 None.
 
 </details>
-
-**Runtime invariant:** No companion is published. The trigger pipeline is a browser-side pure core (detect/reduce/match) plus a registry whose disposal is proven by the HMR-safety spec; it emits no cordis events and owns no cross-plugin mutable state.

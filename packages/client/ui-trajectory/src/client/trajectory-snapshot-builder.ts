@@ -79,14 +79,13 @@ function withRequestConfig(
 
 function captureSchemas(
   block: ToolCallBlock,
-  scope: { readonly turn: number; readonly step: number },
   toolsByName: ReadonlyMap<string, ToolSchema>,
   output: Map<string, ToolSchema>,
 ): void {
   const name = 'kind' in block ? block.call?.name : block.name
   const schema = name === undefined ? undefined : toolsByName.get(name)
-  if (schema !== undefined) output.set(JSON.stringify([scope.turn, scope.step, block.callId]), schema)
-  for (const child of block.subCalls) captureSchemas(child, scope, toolsByName, output)
+  if (schema !== undefined) output.set(block.callId, schema)
+  for (const child of block.subCalls) captureSchemas(child, toolsByName, output)
 }
 
 function indexTools(tools: readonly ToolSchema[]): ReadonlyMap<string, ToolSchema> {
@@ -252,14 +251,10 @@ export class TrajectorySnapshotBuilder implements ConversationViewBuilder<
         continue
       }
       if (data.kind === 'tool') {
-        if ('kind' in data.root) {
-          finalized.push(data.root)
-          eventLocations.set(data.root.seq, contribution.location)
-        }
+        if ('kind' in data.root) finalized.push(data.root)
         else runningCalls.push(data.root)
-        const location = contribution.location
-        if (location.kind === 'step' && previousHeader !== undefined && previousHeader.seq < contribution.anchorSeq) {
-          captureSchemas(data.root, { turn: location.turn.turn, step: location.step.step }, previousTools, callSchemas)
+        if (previousHeader !== undefined && previousHeader.seq < contribution.anchorSeq) {
+          captureSchemas(data.root, previousTools, callSchemas)
         }
         continue
       }
@@ -311,6 +306,7 @@ export const trajectoryViewDefinition: ConversationViewDefinition<
   TrajectorySnapshot
 > = {
   target: 'trajectory',
+  toolCallFocus: callId => callId,
   create: () => new TrajectorySnapshotBuilder(),
 }
 

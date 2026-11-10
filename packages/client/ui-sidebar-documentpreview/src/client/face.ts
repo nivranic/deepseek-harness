@@ -19,24 +19,18 @@
 import type { BoundActions } from '@deepseek-ai/dsh-client-store'
 import type { TabId } from '@deepseek-ai/dsh-client-ui-dockkit'
 import type { SessionId } from '@deepseek-ai/dsh-session/types'
-import type { ReadDocumentByteWindow, ReadDocumentBytes, ReadWorkspaceFilePage, SessionFile } from './rpc.ts'
-import { documentFileBytes } from './rpc.ts'
-import type { TransferWindow } from './contract/transfer.ts'
-import { assembleTransfer, decodeTransferWindow } from './contract/transfer.ts'
+import type { ReadDocumentBytes, ReadWorkspaceFilePage, SessionFile } from './rpc.ts'
 import type { TextStore } from './store.ts'
-import type { DocumentLoadMode } from './contract/registry.ts'
-import { sniffDocument } from './contract/sniff.ts'
+import type { DocumentLoadMode } from './document/registry.ts'
+import type { Resources } from '@deepseek-ai/dsh-client-resources/client'
+import { ResourceGroup } from './document/resource-group.ts'
 
 /** The preview's injected business face, as the body receives it. */
 export interface TextInjected {
-  /**
-   * Inspect an unknown file's header; absence means the Host lacks bounded byte reads.
-   * A new inspection retires previous reads and clears loaded contents.
-   * @param tabId - owning tab.
-   * @param file - addressed file.
-   * @param signal - tab lifetime.
-   */
-  readonly sniff?: (tabId: TabId, file: SessionFile, signal: AbortSignal) => void
+  /** Observe one renderer dependency. @param tabId - owning tab. @param address - resource address. @param signal - tab lifetime. */
+  readonly addResource: (tabId: TabId, address: string, signal: AbortSignal) => void
+  /** Replace dependency membership. @param tabId - owning tab. @param addresses - resource addresses. @param signal - tab lifetime. */
+  readonly setResources: (tabId: TabId, addresses: readonly string[], signal: AbortSignal) => void
   /**
    * Read one page into the store. A page of a newer file version than the pages
    * held, arriving past the first line, is not kept: the tab's pages are dropped
@@ -66,7 +60,9 @@ export interface TextInjected {
    * @param signal - tab lifetime.
    * @param observedVersion - metadata version observed at read start.
    */
-  readonly loadAll: (tabId: TabId, file: SessionFile, signal: AbortSignal, observedVersion?: string) => void
+  readonly loadAll: (
+    tabId: TabId, file: SessionFile, signal: AbortSignal, observedVersion?: string,
+  ) => void
   /**
    * Discard the old complete result and read again.
    * @param tabId - owning tab.
@@ -74,17 +70,18 @@ export interface TextInjected {
    * @param signal - tab lifetime.
    * @param observedVersion - metadata version observed at read start.
    */
-  readonly reloadAll: (tabId: TabId, file: SessionFile, signal: AbortSignal, observedVersion?: string) => void
+  readonly reloadAll: (
+    tabId: TabId, file: SessionFile, signal: AbortSignal, observedVersion?: string,
+  ) => void
   /**
-   * Continue an interrupted windowed complete-byte read from its first missing
-   * byte. The received prefix is kept, not re-read; a Host-reported version
-   * change under the attempt restarts from zero instead.
+   * Begin a renderer-owned load without reading source bytes.
    * @param tabId - owning tab.
-   * @param file - the session and workspace path the tab's address names.
    * @param signal - tab lifetime.
-   * @param observedVersion - metadata version observed at read start.
+   * @param rendererId - selected implementation.
+   * @param observedVersion - metadata version observed at request start.
+   * @param reload - discard the previous content revision.
    */
-  readonly resumeAll: (tabId: TabId, file: SessionFile, signal: AbortSignal, observedVersion?: string) => void
+  readonly prepareRenderer: (tabId: TabId, signal: AbortSignal, rendererId: string, observedVersion?: string, reload?: boolean) => void
 }
 
 /**
@@ -93,35 +90,25 @@ export interface TextInjected {
  * which also arms the one abort listener that forgets the tab.
  */
 interface TabReads {
+  group: ResourceGroup
   generation: number
   version: string | undefined
   mode: DocumentLoadMode
-  /**
-   * A windowed complete-byte transfer interrupted mid-file: the windows
-   * received, their total, the version they belong to, and the size the Host
-   * last reported. Absent once the transfer completes, restarts, or the mode
-   * switches.
-   */
-  interrupted: { chunks: Uint8Array[]; received: number; baseVersion: string; size: number | undefined } | undefined
+  rendererId?: string
+  controller?: AbortController
 }
 
 /**
  * Bind the preview's face to one paged read and one complete-byte read.
  * @param read - the bound `workspaceFiles.read` call.
- * @param readAll - ordinary complete-byte Remote read.
- * @param lifetime - optional registration lifetime joined with each tab signal.
- * @param readWindow - optional windowed byte read; when present, complete-byte
- * loads run window by window and an interrupted attempt resumes from its first
- * missing byte instead of restarting.
- * @param readHead - optional bounded prefix read for content-type inference.
+ * @param readAll - complete-byte workspace Remote read.
+ * @param resources - shared metadata sources for the document and its dependencies.
  * @returns the Slot `inject` factory: bound actions in, face out. The slot's session id is unused because the address carries its own.
  */
 export function textFace(
   read: ReadWorkspaceFilePage,
   readAll: ReadDocumentBytes,
-  lifetime?: AbortSignal,
-  readWindow?: ReadDocumentByteWindow,
-  readHead?: ReadDocumentBytes,
+  resources: Resources,
 ): (sessionId: SessionId, actions: BoundActions<TextStore>) => TextInjected {
   return (_sessionId: SessionId, actions: BoundActions<TextStore>): TextInjected => {
     const tabs = new Map<TabId, TabReads>()
@@ -130,27 +117,33 @@ export function textFace(
     const readsOf = (tabId: TabId, signal: AbortSignal): TabReads => {
       const held = tabs.get(tabId)
       if (held !== undefined) return held
-      const created: TabReads = { generation: 0, version: undefined, mode: 'text-pages', interrupted: undefined }
+      const created: TabReads = {
+        generation: 0, version: undefined, mode: 'text-pages',
+        group: new ResourceGroup(resources, () => { actions.resourceChanged(tabId) }),
+      }
       tabs.set(tabId, created)
       signal.addEventListener('abort', () => {
+        created.controller?.abort()
+        created.group.close()
         tabs.delete(tabId)
         actions.forget(tabId)
       }, { once: true })
       return created
     }
-    const modeOf = (tabId: TabId, signal: AbortSignal, mode: DocumentLoadMode): TabReads => {
+    const modeOf = (tabId: TabId, signal: AbortSignal, mode: DocumentLoadMode, rendererId?: string): TabReads => {
       const reads = readsOf(tabId, signal)
-      if (reads.mode !== mode) {
+      if (reads.mode !== mode || reads.rendererId !== rendererId) {
+        reads.controller?.abort()
+        if (rendererId === undefined) delete reads.rendererId
+        else reads.rendererId = rendererId
         reads.mode = mode
         reads.generation++
         reads.version = undefined
-        reads.interrupted = undefined
-        actions.reset(tabId, true)
+        actions.reset(tabId)
       }
       return reads
     }
     const loadPage = (tabId: TabId, file: SessionFile, offset: number, signal: AbortSignal, observedVersion?: string): void => {
-      signal = lifetime === undefined ? signal : AbortSignal.any([signal, lifetime])
       if (signal.aborted) return
       const reads = modeOf(tabId, signal, 'text-pages')
       const { generation } = reads
@@ -171,166 +164,60 @@ export function textFace(
         actions.page(tabId, result.value)
       })
     }
-    /**
-     * Drive one windowed complete-byte attempt. Each settled window extends the
-     * received prefix; a failure keeps the prefix for `resumeAll` (nothing kept
-     * when no byte arrived); a version change under the attempt restarts from
-     * zero, because a resume would join two file versions; the eof window
-     * assembles the complete result. Every step yields to the tab's generation
-     * and lifetime first, so a restart or a closed tab retires the loop.
-     */
-    const runWindows = (
-      readWindow: ReadDocumentByteWindow,
-      tabId: TabId, file: SessionFile, signal: AbortSignal, observedVersion: string | undefined,
-      reads: TabReads, generation: number, held?: TabReads['interrupted'],
+    const loadAll = (
+      tabId: TabId, file: SessionFile, signal: AbortSignal, observedVersion?: string,
     ): void => {
-      const chunks = held?.chunks ?? []
-      let received = held?.received ?? 0
-      let baseVersion = held?.baseVersion
-      let size = held?.size
-      if (held !== undefined) actions.transferProgress(tabId, received, size)
-      void (async () => {
-        for (;;) {
-          const result = await readWindow(file, received, signal)
-          if (signal.aborted || reads.generation !== generation) return
-          if (!result.ok) {
-            reads.interrupted = received > 0 && baseVersion !== undefined
-              ? { chunks, received, baseVersion, size }
-              : undefined
-            actions.failed(tabId, result.error)
-            return
-          }
-          let window: TransferWindow
-          try {
-            window = decodeTransferWindow(result.value)
-          } catch (error) {
-            reads.interrupted = undefined
-            actions.failed(tabId, Object.assign(
-              new Error('document file byte window has malformed base64 data', { cause: error }),
-              { name: 'RemoteError', isDSHRemoteError: true as const, code: 'gateway/internal' as const, details: {} },
-            ))
-            return
-          }
-          if (baseVersion === undefined) baseVersion = window.version
-          else if (window.version !== baseVersion) {
-            // The file changed under the attempt; joining the prefix with newer
-            // windows would show two versions as one, so the read starts over.
-            reads.interrupted = undefined
-            restart(tabId, file, signal, observedVersion, 'bytes-complete')
-            return
-          }
-          if (window.offset !== received || (window.data.byteLength === 0 && !window.eof)) {
-            reads.interrupted = undefined
-            actions.failed(tabId, Object.assign(
-              new Error('document byte window broke the transfer contract'),
-              { name: 'RemoteError', isDSHRemoteError: true as const, code: 'gateway/internal' as const, details: {} },
-            ))
-            return
-          }
-          chunks.push(window.data)
-          received += window.data.byteLength
-          size = window.bytes
-          actions.transferProgress(tabId, received, size)
-          if (window.eof) {
-            reads.interrupted = undefined
-            reads.version = baseVersion
-            actions.complete(tabId, {
-              absolutePath: window.absolutePath, version: baseVersion, offset: 0, eof: true,
-              data: assembleTransfer(chunks),
-              ...window.bytes !== undefined ? { bytes: window.bytes } : {},
-            })
-            return
-          }
-        }
-      })()
-    }
-    const loadAll = (tabId: TabId, file: SessionFile, signal: AbortSignal, observedVersion?: string): void => {
-      signal = lifetime === undefined ? signal : AbortSignal.any([signal, lifetime])
       if (signal.aborted) return
       const reads = modeOf(tabId, signal, 'bytes-complete')
-      const { generation } = reads
-      reads.interrupted = undefined
+      reads.controller?.abort()
+      const controller = new AbortController()
+      reads.controller = controller
+      const lifetime = AbortSignal.any([signal, controller.signal])
       actions.loading(tabId, 'bytes-complete', observedVersion)
-      if (readWindow !== undefined) {
-        runWindows(readWindow, tabId, file, signal, observedVersion, reads, generation)
-        return
-      }
-      void readAll(file, signal).then((result) => {
-        if (signal.aborted || reads.generation !== generation) return
+      void readAll(file, lifetime).then((result) => {
+        if (lifetime.aborted) return
         if (!result.ok) {
           actions.failed(tabId, result.error)
           return
         }
-        let file
-        try {
-          file = documentFileBytes(result.value)
-        } catch (error) {
-          actions.failed(tabId, Object.assign(
-            new Error('document file byte response has malformed base64 data', { cause: error }),
-            { name: 'RemoteError', isDSHRemoteError: true as const, code: 'gateway/internal' as const, details: {} },
-          ))
-          return
-        }
+        const file = result.value
         reads.version = file.version
         actions.complete(tabId, file)
+      }, (error: unknown) => {
+        if (lifetime.aborted) return
+        actions.failed(tabId, Object.assign(
+          new Error(error instanceof Error ? error.message : String(error), { cause: error }),
+          { name: 'RemoteError', isDSHRemoteError: true as const, code: 'gateway/internal' as const, details: {} },
+        ))
       })
     }
     const restart = (
       tabId: TabId, file: SessionFile, signal: AbortSignal, observedVersion?: string, mode: DocumentLoadMode = 'text-pages',
     ): void => {
-      signal = lifetime === undefined ? signal : AbortSignal.any([signal, lifetime])
       if (signal.aborted) return
       const reads = readsOf(tabId, signal)
+      reads.controller?.abort()
       reads.generation += 1
       reads.version = undefined
-      reads.interrupted = undefined
-      actions.reset(tabId, true)
+      actions.reset(tabId)
       if (mode === 'text-pages') loadPage(tabId, file, 1, signal, observedVersion)
       else loadAll(tabId, file, signal, observedVersion)
     }
     return {
-      ...readHead === undefined ? {} : {
-        sniff: (tabId: TabId, file: SessionFile, signal: AbortSignal): void => {
-          signal = lifetime === undefined ? signal : AbortSignal.any([signal, lifetime])
-          if (signal.aborted) return
-          const reads = readsOf(tabId, signal)
-          const generation = ++reads.generation
-          reads.version = undefined
-          reads.interrupted = undefined
-          actions.reset(tabId)
-          actions.sniffing(tabId)
-          void readHead(file, signal).then((result) => {
-            if (signal.aborted || reads.generation !== generation) return
-            let match
-            if (result.ok && result.value.offset === 0) {
-              let data: Uint8Array
-              try {
-                data = documentFileBytes(result.value).data
-              } catch {
-                // Malformed header bytes cannot select a renderer; ordinary reads report failures.
-                actions.sniffed(tabId, undefined)
-                return
-              }
-              match = sniffDocument(data)
-            }
-            actions.sniffed(tabId, match)
-          })
-        },
+      addResource: (tabId, address, signal) => {
+        if (!signal.aborted) readsOf(tabId, signal).group.add(address)
+      },
+      setResources: (tabId, addresses, signal) => {
+        if (!signal.aborted) readsOf(tabId, signal).group.set(addresses)
       },
       loadPage, reloadPages: restart, loadAll,
-      reloadAll: (tabId, file, signal, observedVersion) => { restart(tabId, file, signal, observedVersion, 'bytes-complete') },
-      resumeAll: (tabId: TabId, file: SessionFile, signal: AbortSignal, observedVersion?: string): void => {
-        signal = lifetime === undefined ? signal : AbortSignal.any([signal, lifetime])
-        if (signal.aborted || readWindow === undefined) return
-        const reads = readsOf(tabId, signal)
-        if (reads.mode !== 'bytes-complete') return
-        const held = reads.interrupted
-        if (held === undefined) return
-        const { generation } = reads
-        reads.interrupted = undefined
-        actions.loading(tabId, 'bytes-complete', observedVersion)
-        runWindows(readWindow, tabId, file, signal, observedVersion, reads, generation, held)
+      prepareRenderer: (tabId, signal, rendererId, observedVersion, reload = false) => {
+        if (signal.aborted) return
+        modeOf(tabId, signal, 'renderer', rendererId)
+        if (reload) actions.reset(tabId)
+        actions.loading(tabId, 'renderer', observedVersion, rendererId)
       },
+      reloadAll: (tabId, file, signal, observedVersion) => { restart(tabId, file, signal, observedVersion, 'bytes-complete') },
     }
   }
 }

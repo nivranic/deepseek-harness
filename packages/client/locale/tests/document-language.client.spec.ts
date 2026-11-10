@@ -20,7 +20,6 @@ import { LOCALE_SETTINGS_NAMESPACE, LocaleSettingsSchema } from '../src/locale-s
 /** Boot the plugin over a stub Host settings document. */
 async function bench(preference?: string) {
   const ctx = new Context()
-  ctx.provide('connection', { generation: { getSnapshot: () => undefined, subscribe: (listener: () => void) => ctx.on('connection/reset', listener) } })
   await ctx.plugin(SlotRegistry).await()
   let stored = preference
   let revision = 0
@@ -28,7 +27,7 @@ async function bench(preference?: string) {
     ns: LOCALE_SETTINGS_NAMESPACE,
     schema: LocaleSettingsSchema.toJSON(),
     value: stored === undefined ? {} : { preference: stored },
-    applies: 'live' as const,
+    autoGenerate: true, applies: 'live' as const,
     secrets: [],
     revision,
   })
@@ -42,8 +41,7 @@ async function bench(preference?: string) {
     return { ok: true as const, value: namespace() }
   })
   // The settings transport and the forwarded-event port the plugin injects.
-  const remote = new TestRemote(ctx, { settings: { describe: describeRpc, mutate } })
-  remote.$host = { home: undefined, platform: undefined, isLoopback: true, capabilities: ['settings.read.v1', 'settings.write.v1'] }
+  new TestRemote(ctx, { settings: { describe: describeRpc, mutate } })
   await ctx.plugin({ inject: [...settingsInject], apply: settingsApply }).await()
   await ctx.plugin({ inject: [...inject], apply }).await()
   return { ctx, locale: ctx.get('locale') as LocaleRuntime }
@@ -98,5 +96,22 @@ describe('document language', () => {
     locale.addLanguage({ id: 'pt-BR', label: 'Português', fallback: 'en' })
     locale.setLocale('pt-BR')
     expect(langOf()).toBe('pt-BR')
+  })
+
+  it('does not rewrite the document language for catalog changes with the same active locale', async () => {
+    const { locale } = await bench()
+    const observer = new MutationObserver(() => {})
+    observer.observe(document.documentElement, { attributes: true, attributeFilter: ['lang'] })
+    try {
+      const remove = locale.addLanguage({ id: 'it', label: 'Italiano', fallback: 'en' })
+      expect(observer.takeRecords()).toHaveLength(0)
+      remove()
+      expect(observer.takeRecords()).toHaveLength(0)
+      locale.setLocale('en')
+      expect(observer.takeRecords()).toHaveLength(1)
+      expect(langOf()).toBe('en')
+    } finally {
+      observer.disconnect()
+    }
   })
 })

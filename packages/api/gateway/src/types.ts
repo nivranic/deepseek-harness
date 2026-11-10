@@ -4,10 +4,8 @@
  */
 
 import type { Context } from '@deepseek-ai/cordis'
-import type { DeviceId } from '@deepseek-ai/dsh-api-device-trust/types'
-import type { ConnectionRpcHandler } from '@deepseek-ai/dsh-client-connection'
-import type { RemoteStreamConnectionHandle } from './stream-server.ts'
-import type { RemoteEventHostInfo, RemoteInteractionOrigin } from './stream-protocol.ts'
+import type { PeerScope, RemoteUplinkWindow, TypertResourceReader } from '@deepseek-ai/dsh-typert-protocol'
+import type { RemoteEventAgentId, RemoteEventHostInfo } from './stream-protocol.ts'
 
 /** One Remote method request after a carrier has decoded its envelope. */
 export interface InvokeRemoteRequest {
@@ -17,6 +15,15 @@ export interface InvokeRemoteRequest {
   readonly method: string
   /** Named wire values; fields must exactly match the descriptor. */
   readonly args: Readonly<Record<string, unknown>>
+  /**
+   * Client uplink items of this logical stream, delivered to the method through
+   * `invocation.uplink()`; absent means an immediately ended iterable.
+   */
+  readonly uplink?: AsyncIterable<unknown>
+  /** Carrier-provided frame capacity; absent for carriers without an encoded-frame inbox limit. */
+  readonly uplinkWindow?: RemoteUplinkWindow | undefined
+  /** Peer the call speaks for; every carrier and in-process caller names it explicitly. */
+  readonly peer: PeerScope
   /** Carrier or direct-caller cancellation injected only into cancellation-aware methods. */
   readonly signal?: AbortSignal
 }
@@ -27,6 +34,12 @@ export interface TypertRemoteEventFrame {
   readonly event: string
   /** Original event argument list after the owner validates it for JSON transport. */
   readonly args: readonly unknown[]
+  /**
+   * Readers of the resources the arguments carry, keyed by resource kind and
+   * called with the arguments as positional parameters. Absent or empty for
+   * a notification that touches the global resource.
+   */
+  readonly resources?: Readonly<Record<string, TypertResourceReader>>
 }
 
 /** Live Host values used to project one scoped Remote Event. */
@@ -55,8 +68,6 @@ export interface TypertRemoteEventInvocation {
   /** Sole request argument before the waterfall's `next()` callback. */
   readonly request: object
   readonly context: TypertRemoteEventContext
-  /** Application-declared interaction identity; the Gateway owns its lifecycle record. */
-  readonly interaction?: RemoteInteractionOrigin
   /** Resume the source's Cordis listener with a Client result or `next()`. */
   readonly resolve: (outcome: TypertRemoteEventOutcome) => void
   /** Reject the source's Cordis listener after cancellation, transport failure, or Client rejection. */
@@ -83,16 +94,18 @@ export interface TypertGatewayWireStream {
    * Open one logical stream from its wire endpoint and payload.
    * @param endpoint - canonical Remote endpoint or Gateway-owned stream name.
    * @param payload - decoded carrier payload.
+   * @param uplink - Client-to-Host items of the logical stream; a Gateway-owned endpoint returns its iterator
+   * as soon as it opens, so the carrier drops those items instead of buffering them.
+   * @param peer - Peer the stream speaks for; required, never defaulted.
    * @param signal - logical-stream cancellation.
-   * @param connection - handle of the physical carrier the stream opened on, when
-   * the caller owns one; admitted device streams bind it for connection hygiene.
    * @returns validated stream values.
    */
   readonly open: (
     endpoint: string,
     payload: unknown,
+    uplink: AsyncIterable<unknown>,
+    peer: PeerScope,
     signal: AbortSignal,
-    connection?: RemoteStreamConnectionHandle,
   ) => Promise<AsyncIterable<unknown>>
 
   /**
@@ -107,14 +120,6 @@ export interface TypertGatewayWireStream {
   }
 }
 
-/** Device-authenticated RPC and streams bound to the factory caller's Cordis context. */
-export interface TypertGatewayDeviceConnection {
-  /** Decode and authorize one device RPC; unsigned pairing redemption is the sole exception. */
-  readonly rpc: ConnectionRpcHandler
-  /** Open device-owned streams; device grants remain revocable throughout iteration. */
-  readonly stream: TypertGatewayWireStream
-}
-
 /** Stable infrastructure and boundary failures emitted before or after business execution. */
 export type TypertGatewayErrorCode =
   | 'gateway/ambiguous-endpoint'
@@ -125,15 +130,25 @@ export type TypertGatewayErrorCode =
   | 'gateway/context-unavailable'
   | 'gateway/definition-unavailable'
   | 'gateway/input-invalid'
+  | 'gateway/interactions-forbidden'
   | 'gateway/invocation-unavailable'
   | 'gateway/lookup-failed'
   | 'gateway/lookup-not-found'
   | 'gateway/lookup-unavailable'
   | 'gateway/method-unavailable'
+  | 'gateway/peer-disposed'
+  | 'gateway/protocol'
   | 'gateway/provider-mismatch'
   | 'gateway/result-invalid'
   | 'gateway/service-unavailable'
   | 'gateway/signature-invalid'
+  | 'gateway/uplink-overflow'
+
+/** Public metadata of one unsettled forwarded Remote event. */
+export interface PendingRemoteEventInfo {
+  readonly event: string
+  readonly agentId: RemoteEventAgentId
+}
 
 /** Host dispatcher consumed by Connection adapters. */
 export interface TypertGateway {
@@ -141,27 +156,17 @@ export interface TypertGateway {
   readonly wireStream: TypertGatewayWireStream
 
   /**
-   * Capture the caller's Cordis context for a native carrier. Direct methods
-   * resolve services in that context on every call. Device identity is required
-   * except for one-time pairing redemption; browser cookies cannot authorize it.
-   * @returns RPC and stream callbacks retaining the caller's service scope.
+   * Check for an active owner Client event stream, the only kind that can answer forwarded waterfalls.
+   * @returns whether an owner stream is open and has not been cancelled.
    */
-  createDeviceConnection(): TypertGatewayDeviceConnection
+  hasLiveClient(): boolean
+
+  /** @returns detached metadata for all unsettled forwarded events in arrival order. */
+  getPendingRemoteEvents(): readonly PendingRemoteEventInfo[]
 
   /**
-   * Terminate every physical Remote stream connection a device currently
-   * holds. Carriers are destroyed without a close handshake, so each logical
-   * stream ends as carrier loss; the device's admission and grants survive.
-   * @param request - device identity whose live connections end now.
-   * @returns how many physical connections were destroyed; zero when none.
-   */
-  terminateDeviceConnections(request: { deviceId: DeviceId }): { terminated: number }
-
-  /**
-   * Read explicit capability ids from active Remote bindings whose required
-   * methods are available. Withdrawn strict definitions are not advertised.
-   * This describes operations, not a caller's authorization to invoke them.
-   * @returns unique capability ids in lexical order.
+   * Read the explicit operation sets of live Remote owners without invoking them.
+   * @returns sorted capability ids whose required method definitions are available.
    * @throws for duplicate ids, invalid method declarations, or inconsistent bindings.
    */
   capabilities(): readonly string[]
@@ -187,7 +192,7 @@ export interface TypertGateway {
 
   /**
    * Open one live stream Remote method without assuming a physical carrier.
-   * @param request - decoded endpoint and named wire arguments.
+   * @param request - decoded endpoint, named wire arguments, and the Client uplink when the carrier has one.
    * @returns a cancellation-aware iterable over the business results.
    */
   stream(request: InvokeRemoteRequest): Promise<AsyncIterable<unknown>>

@@ -15,7 +15,6 @@ import { sessionFormatV0ToV1 } from '@deepseek-ai/dsh-session-format-v0-to-v1'
 import { sessionFormatV1ToV2 } from '@deepseek-ai/dsh-session-format-v1-to-v2'
 import { sessionFormatV2ToV3 } from '@deepseek-ai/dsh-session-format-v2-to-v3'
 import { Remote, RemoteError, TypertRemoteService } from '@deepseek-ai/dsh-typert-protocol'
-import { HOST_DIAGNOSTICS_REMOTE_CAPABILITIES } from './capabilities.ts'
 import { DiagnosticsRecorder } from './recorder.ts'
 import { buildSupportBundle, diagnosticsBundleEntry, sessionHeadersBundleEntry, settingsExportBundleEntry, validateSupportBundle } from './support-bundle.ts'
 import type { SupportBundle } from './types.ts'
@@ -110,7 +109,7 @@ export class HostDiagnosticsService extends TypertRemoteService {
   private readonly recorder: DiagnosticsRecorder
 
   constructor(ctx: Context) {
-    super(ctx, 'hostDiagnostics', { namespace: 'hostDiagnostics', capabilities: HOST_DIAGNOSTICS_REMOTE_CAPABILITIES })
+    super(ctx, 'hostDiagnostics', { namespace: 'hostDiagnostics' })
     readStampedRevision()
     this.recorder = new DiagnosticsRecorder(ctx)
   }

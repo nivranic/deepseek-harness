@@ -1,19 +1,9 @@
 /**
  * OpenTelemetry Service Provider for the DeepSeek Harness telemetry capability.
  *
- * Composes the OTel JS SDK as-is — a `LoggerProvider` with a
- * `BatchLogRecordProcessor` and an OTLP/HTTP log exporter — and maps each
- * record handed over by the capture coordinator onto `logger.emit()`. Ledger
- * records ride the package's own instrumentation scope; direct
- * `channel: 'ops'` records (the section 44 crashDiagnostics,
- * deviceTrustMetadata, and providerMetadata exits — device-trust revocation
- * facts, producer in dsh-device-trust; llm provider call facts, producer in
- * dsh-llm-deepseek) ride the distinct
- * `@deepseek-ai/dsh-session-telemetry-otel/ops` scope. After that call,
- * batching, retry, queueing, and loss policy use the SDK's documented behavior, configured
- * verbatim through the `exporter`/`processor` passthroughs. This package owns
- * capture mode and an outer shutdown deadline: the SDK's export timeout does
- * not bound its preceding `forceFlush()` wait.
+ * Authorizes feedback-bounded capture and hands complete event strings to the
+ * Session-log reporter. This plugin owns resource identity and an outer
+ * shutdown deadline; the reporter owns byte-bounded SDK delivery.
  *
  * @module @deepseek-ai/dsh-session-telemetry-otel
  */
@@ -23,12 +13,10 @@ import z from '@deepseek-ai/schemastery'
 import type { Context } from '@deepseek-ai/cordis'
 import type {} from '@deepseek-ai/dsh-command-feedback'
 import type {} from '@deepseek-ai/dsh-message-feedback'
-import type {} from '@deepseek-ai/dsh-settings'
 import { Session, type SessionEvent } from '@deepseek-ai/dsh-session'
 import {
   SessionTelemetryBackend,
   SessionTelemetryCoordinator,
-  TELEMETRY_CONSENT_NAMESPACE,
   TELEMETRY_CONSENT_OFF,
   TELEMETRY_DATA_KINDS,
   resolveTelemetryConsent,
@@ -42,19 +30,8 @@ import {
 } from '@deepseek-ai/dsh-session-telemetry'
 import { APP_IDENTITY } from '@deepseek-ai/dsh-llm'
 import { getOrCreateAnonymousUserId } from '@deepseek-ai/dsh-anonymous-user-id'
-import {
-  BatchLogRecordProcessor,
-  LoggerProvider,
-  type BatchLogRecordProcessorOptions,
-} from '@opentelemetry/sdk-logs'
-import { OTLPLogExporter } from '@opentelemetry/exporter-logs-otlp-http'
-import type { OTLPExporterNodeConfigBase } from '@opentelemetry/otlp-exporter-base'
-import { SeverityNumber, type AnyValue } from '@opentelemetry/api-logs'
-import { resourceFromAttributes } from '@opentelemetry/resources'
-
-// The package's own manifest is the single source of the instrumentation-scope
-// version (same pattern as dsh-llm's attribution identity).
-const { version } = createRequire(import.meta.url)('../package.json') as { version: string }
+import type { LogExporterOptions, SessionLogProcessorOptions, SessionLogReporter } from '@deepseek-ai/dsh-otel'
+import { SeverityNumber } from '@opentelemetry/api-logs'
 
 /** Session-sharing policy selected by {@link Config.mode}. */
 export enum SessionTelemetryMode {
@@ -108,10 +85,8 @@ function sharingStatusFor(mode: SessionTelemetryMode): SessionTelemetrySharingSt
 }
 
 /**
- * Plugin configuration: one sharing policy, the section 44 per-kind consent
- * record, two verbatim SDK option objects, and one DSH-owned shutdown bound.
- * Modes with any opted-in exit (sessionTelemetry, crashDiagnostics,
- * deviceTrustMetadata, or providerMetadata consent) validate their endpoint
+ * Plugin configuration: sharing policy, SDK transport options, byte/count queue
+ * settings, and an overall shutdown bound. Uploading modes validate their endpoint
  * and shutdown deadline at plugin load; `DISABLED` reads neither.
  */
 export interface Config {
@@ -119,65 +94,40 @@ export interface Config {
   mode?: SessionTelemetryMode
   /**
    * Section 44 per-kind telemetry consent: one boolean per data kind, every
-   * kind defaulting to off, no master switch. The sessionTelemetry,
-   * crashDiagnostics, deviceTrustMetadata, and providerMetadata kinds gate
-   * provider construction — any one opted in builds the SDK pipeline
-   * (load-time transport validation included); sessionTelemetry additionally
-   * wires feedback capture, crashDiagnostics, deviceTrustMetadata, and
-   * providerMetadata share the direct ops exit (device-trust revocation
-   * facts, producer in dsh-device-trust; llm provider call facts, producer
-   * in dsh-llm-deepseek). With the user-settings service composed this is the
-   * composition-layer SEED — it registers as the `telemetry-consent`
-   * namespace's base layer, the user layer wins, and the effect is
-   * restart-scoped because the pipeline gate is decided at construction.
-   * Without the service, this record is the whole consent. Either path
-   * resolves once at load into the backend's `consent` field;
-   * {@link mode} remains the upload policy.
+   * kind defaulting to off, no master switch. The `sessionTelemetry` kind
+   * gates the feedback pipeline — withheld consent keeps every upload local
+   * exactly like `DISABLED`; `mode` remains the upload policy. The other
+   * kinds reserve the section 44 vocabulary for their exits; this backend
+   * has no channel for them yet, so opting in changes nothing here.
    */
   consent?: Partial<TelemetryConsent>
   /**
-   * Passed verbatim to the SDK's OTLP/HTTP log exporter — the complete
-   * `OTLPExporterNodeConfigBase` shape (`headers`, `timeoutMillis`,
-   * `compression`, `keepAlive`, …), owned and documented by the SDK. `url`
-   * is the one field this package requires and validates itself.
+   * Explicit SDK HTTP transport settings, including optional routing headers.
+   * Ambient credentials are not inherited. URL is required while uploading.
+   * Exporter self-observability metering is not supported.
    */
-  exporter?: OTLPExporterNodeConfigBase & {
+  exporter?: Omit<LogExporterOptions, 'url'> & {
     /** Full logs endpoint (e.g. `https://collector.example.com/v1/logs`). Required outside `DISABLED`; validated at load. */
     url?: string
   }
   /**
-   * Passed verbatim to `BatchLogRecordProcessor` (minus the exporter slot,
-   * which this plugin fills); the SDK owns and documents these knobs.
+   * Count, queue, cadence, and per-request watchdog settings for the byte-bounded
+   * processor. A watchdog warning never releases an unsettled transport slot.
+   * SDK processor self-observability metering is not supported.
    */
-  processor?: Omit<BatchLogRecordProcessorOptions, 'exporter'>
+  processor?: SessionLogProcessorOptions
   /** Maximum time spent awaiting the SDK provider's complete shutdown path. */
   shutdownTimeoutMillis?: number
-}
-
-/**
- * Build one consent-record schema: one boolean per section 44 data kind, every
- * kind defaulting to off, no master key. Both homes of the five names — the
- * plugin's own {@link Config.consent} field and the `telemetry-consent`
- * settings namespace — call this builder off the seam's kind list, so they
- * cannot drift apart. The input side stays per-key optional (a composition may
- * seed a partial record) while the output side is always the complete record.
- * @returns a fresh schema instance each call, so metadata attached to one home never reaches the other.
- */
-function buildTelemetryConsentSchema() {
-  // Object.fromEntries widens the tuple's five entries to a string index; the
-  // assertion restores the per-kind keys the tuple covers by construction.
-  const fields = Object.fromEntries(
-    TELEMETRY_DATA_KINDS.map(kind => [kind, z.boolean().default(false)]),
-  ) as { [K in TelemetryDataKind]: z<boolean> }
-  return z.object(fields)
+  /** Uncompressed OTLP request byte limit, at most 4,000,000. */
+  maxRequestBytes?: number
 }
 
 /**
  * Schemastery validator for {@link Config}; cordis runs it before the plugin
- * starts. It checks only the top-level fields; value checks live in the constructor
- * so their errors name the fields. Both SDK option objects pass through unchanged:
- * the SDK defines and validates their fields. Re-declaring them here would
- * silently drop every field this plugin did not repeat.
+ * starts. The constructor validates endpoint and shutdown requirements; the
+ * reporter validates Session byte and queue limits. SDK transport and
+ * processor settings use the reporter's accepted option types, which exclude
+ * self-observability metering.
  */
 export const Config: z<Config> = z.object({
   mode: z.union(Object.values(SessionTelemetryMode)).default(DEFAULT_TELEMETRY_MODE),
@@ -185,7 +135,23 @@ export const Config: z<Config> = z.object({
   exporter: z.any(),
   processor: z.any(),
   shutdownTimeoutMillis: z.number(),
+  maxRequestBytes: z.number().step(1).min(1).max(4_000_000),
 })
+
+/**
+ * Build one consent-record schema: one boolean per section 44 data kind, every
+ * kind defaulting to off, no master key. The builder runs off the seam's kind
+ * list, so this Config cannot drift from the consent vocabulary.
+ * @returns a fresh schema instance each call.
+ */
+function buildTelemetryConsentSchema() {
+  // Object.fromEntries widens the tuple's entries to a string index; the
+  // assertion restores the per-kind keys the tuple covers by construction.
+  const fields = Object.fromEntries(
+    TELEMETRY_DATA_KINDS.map(kind => [kind, z.boolean().default(false)]),
+  ) as { [K in TelemetryDataKind]: z<boolean> }
+  return z.object(fields)
+}
 
 /** Default outer allowance for the SDK's complete shutdown sequence. */
 export const DEFAULT_SHUTDOWN_TIMEOUT_MILLIS = 3_000
@@ -195,49 +161,23 @@ export const DEFAULT_SHUTDOWN_TIMEOUT_MILLIS = 3_000
 const MAX_TIMER_DELAY_MILLIS = 2_147_483_647
 
 /** Severity mapping from the Service Definition's three-level vocabulary to OTel severity numbers. */
-const SEVERITY: Record<SessionTelemetrySeverity, { severityNumber: SeverityNumber; severityText: string }> = {
-  info: { severityNumber: SeverityNumber.INFO, severityText: 'INFO' },
-  warn: { severityNumber: SeverityNumber.WARN, severityText: 'WARN' },
-  error: { severityNumber: SeverityNumber.ERROR, severityText: 'ERROR' },
-}
-
-/** Project one seam record onto the SDK log-record shape shared by both instrumentation scopes. */
-function toSdkLogRecord(record: SessionTelemetryRecord) {
-  return {
-    timestamp: record.time,
-    observedTimestamp: record.time,
-    ...SEVERITY[record.severity],
-    // JSON-serializable by the seam's contract (validated at Session.append
-    // for ledger records, owned by the ops producer) — exactly the AnyValue subset.
-    body: record.body as AnyValue,
-    attributes: record.attributes,
-  }
+const SEVERITY: Record<SessionTelemetrySeverity, SeverityNumber> = {
+  info: SeverityNumber.INFO,
+  warn: SeverityNumber.WARN,
+  error: SeverityNumber.ERROR,
 }
 
 /**
  * The backend plugin — the only entry a deployment loads. It always registers
- * the `sessionTelemetry` service (duplicate load throws). Outside `DISABLED`,
- * any of the sessionTelemetry, crashDiagnostics, deviceTrustMetadata, or
- * providerMetadata consent kinds opted in constructs the SDK pipeline:
- * sessionTelemetry wires the on-demand {@link SessionTelemetryCoordinator}
- * (feedback-authorized ledger records under the package scope),
- * crashDiagnostics, deviceTrustMetadata, and providerMetadata share the
- * direct ops exit under the `/ops` scope, and every opted-in combination
- * runs its exits side by side. With none of the four kinds opted in — the
- * section 44 default — or under `DISABLED`, no
- * SDK state exists and recorded feedback only warns locally. Outside
- * `DISABLED`, a composed user-settings service additionally receives the
- * `telemetry-consent` namespace registration: the composition-layer consent
- * seeds its base, the user layer decides the final record, and the
- * restart-scoped effect means a user edit lands at the next start, never
- * mid-run.
+ * the `sessionTelemetry` service (duplicate load throws). `FEEDBACK_ONLY` wires the SDK
+ * pipeline and on-demand {@link SessionTelemetryCoordinator}; `DISABLED` constructs no
+ * SDK state and listens only to warn when recorded feedback stays local.
  */
 export class OpenTelemetrySessionBackend extends SessionTelemetryBackend {
-  static inject = ['sessions']
+  static inject = ['sessions', 'otel']
   static Config = Config
 
-  private readonly provider: LoggerProvider | undefined
-  private readonly opsEmit: SessionTelemetrySink['emit'] | undefined = undefined
+  private readonly provider: SessionLogReporter | undefined
   private readonly shutdownTimeoutMillis: number
   override readonly sharing: SessionTelemetrySharingStatus
   override readonly consent: TelemetryConsent
@@ -255,38 +195,14 @@ export class OpenTelemetrySessionBackend extends SessionTelemetryBackend {
       })
       return
     }
-    // The user-settings seam is resolved lazily and optionality is a legal
-    // composition, not misconfiguration (the gateway's device-trust
-    // precedent): with the service present, the composition-layer seed above
-    // registers as the `telemetry-consent` namespace's base and the user
-    // layer decides the final record; without it the seed stands as resolved.
-    // `applies: 'restart'` is honest — the gate below reads what this one
-    // construction resolves, so a user edit takes effect at the next start.
-    const settings = ctx.get('settings')
-    if (settings !== undefined) {
-      const scope = settings.register(TELEMETRY_CONSENT_NAMESPACE, buildTelemetryConsentSchema(), {
-        base: this.consent,
-        applies: 'restart',
-      })
-      this.consent = resolveTelemetryConsent(scope.get())
-    }
-    const sessionKind = telemetryKindAllowed(this.consent, 'sessionTelemetry')
-    const crashKind = telemetryKindAllowed(this.consent, 'crashDiagnostics')
-    const deviceTrustKind = telemetryKindAllowed(this.consent, 'deviceTrustMetadata')
-    const providerKind = telemetryKindAllowed(this.consent, 'providerMetadata')
-    if (!sessionKind) {
-      // §44 默认关闭: the sessionTelemetry kind is off — alone or beside an
-      // opted-in crash, device-trust, or provider exit — so no feedback
-      // capture exists and recorded feedback stays local; sharing keeps
-      // naming the mode.
+    if (!telemetryKindAllowed(this.consent, 'sessionTelemetry')) {
+      // §44 default off: withheld sessionTelemetry consent keeps every upload
+      // local with the same containment as `DISABLED`; sharing keeps naming the mode.
+      this.provider = undefined
+      this.shutdownTimeoutMillis = DEFAULT_SHUTDOWN_TIMEOUT_MILLIS
       ctx.on('session/event', (session, event) => {
         if (isFeedback(session, event)) ctx.logger.warn(CONSENT_WITHHELD_WARNING)
       })
-    }
-    if (!sessionKind && !crashKind && !deviceTrustKind && !providerKind) {
-      // No consented exit remains, so no SDK state exists either.
-      this.provider = undefined
-      this.shutdownTimeoutMillis = DEFAULT_SHUTDOWN_TIMEOUT_MILLIS
       return
     }
 
@@ -304,10 +220,7 @@ export class OpenTelemetrySessionBackend extends SessionTelemetryBackend {
     if (parsed.protocol !== 'http:' && parsed.protocol !== 'https:') {
       throw new Error(`session-telemetry-otel: exporter.url must be http(s), got ${parsed.protocol}`)
     }
-    // The one processor field checked beyond the SDK's own validation: the
-    // SDK accepts a non-positive batch size, but its shutdown drain then
-    // splices empty batches without consuming the queue — dispose would hang
-    // forever with records queued. Misconfiguration fails at load instead.
+    // Reject empty batches before allocating the reporter.
     const batchSize = config.processor?.maxExportBatchSize
     if (batchSize !== undefined && (!Number.isInteger(batchSize) || batchSize < 1)) {
       throw new Error(`session-telemetry-otel: processor.maxExportBatchSize must be a positive integer, got ${String(batchSize)}`)
@@ -317,57 +230,31 @@ export class OpenTelemetrySessionBackend extends SessionTelemetryBackend {
       throw new Error(`session-telemetry-otel: shutdownTimeoutMillis must be a positive finite number no greater than ${MAX_TIMER_DELAY_MILLIS}, got ${String(shutdownTimeoutMillis)}`)
     }
     this.shutdownTimeoutMillis = shutdownTimeoutMillis
-    this.provider = new LoggerProvider({
-      resource: resourceFromAttributes({
+    const { version } = createRequire(import.meta.url)('../package.json') as { version: string }
+    const reporter = ctx.otel.createSessionLogReporter({
+      scope: { name: '@deepseek-ai/dsh-session-telemetry-otel', version },
+      exporter: { ...config.exporter, url },
+      ...(config.processor === undefined ? {} : { processor: config.processor }),
+      ...(config.maxRequestBytes === undefined ? {} : { maxRequestBytes: config.maxRequestBytes }),
+      resourceAttributes: {
         'service.name': APP_IDENTITY.product,
         'service.version': APP_IDENTITY.version,
-        // OTel semconv's standard user attribute, carried once per export
-        // batch on the Resource rather than per record: the collector
-        // aggregates by Resource, and the id is process-stable anyway.
         'user.id': getOrCreateAnonymousUserId(),
-      }),
-      processors: [
-        new BatchLogRecordProcessor({
-          ...config.processor,
-          // The complete validated exporter object, verbatim: every SDK
-          // option (`timeoutMillis`, `compression`, `keepAlive`, …) reaches
-          // the exporter — rebuilding selected fields here would silently
-          // ignore the rest. App identity travels in the Resource
-          // (service.name/version); the transport-level user-agent is the
-          // SDK's own, per the axiom.
-          exporter: new OTLPLogExporter(config.exporter),
-        }),
-      ],
+      },
+      onFailure: (message, error) => { ctx.logger.warn(message, error) },
     })
-    const opsLogger = this.provider.getLogger('@deepseek-ai/dsh-session-telemetry-otel/ops', version)
-    if (crashKind || deviceTrustKind || providerKind) {
-      // The §44 direct ops exits — crash diagnostics, device-trust revocation
-      // facts (producer in dsh-device-trust), and llm provider call facts
-      // (producer in dsh-llm-deepseek) — ride the same SDK pipeline under
-      // their own instrumentation scope; the kinds with no producer yet have
-      // no outlet here.
-      this.opsEmit = (record) => {
-        opsLogger.emit(toSdkLogRecord(record))
-      }
-    }
-    if (!sessionKind) {
-      // No coordinator composes into a non-session exit (crash diagnostics,
-      // device-trust revocation, or llm provider calls, any or all), so this
-      // backend owns its drain: queued ops records flush at fiber disposal,
-      // with the same failure containment the coordinator applies on its
-      // path.
-      ctx.effect(() => async () => {
-        try {
-          await this.shutdown()
-        } catch (error) {
-          ctx.logger.warn(`telemetry: ops exit shutdown failed: ${String(error)}`)
-        }
-      }, 'telemetry ops exit')
-      return
-    }
-    const ledger = this.provider.getLogger('@deepseek-ai/dsh-session-telemetry-otel', version)
+    this.provider = reporter
     const enqueue: SessionTelemetrySink['emit'] = (record) => {
-      ledger.emit(toSdkLogRecord(record))
+      if (record.sourceEvent === undefined) {
+        ctx.logger.warn('Session log record withheld: redaction removed sourceEvent')
+        return
+      }
+      reporter.reportSessionLog({
+        sessionId: record.sourceEvent.sessionId,
+        event: { ...record.sourceEvent.envelope, data: record.body },
+        severityNumber: SEVERITY[record.severity],
+        attributes: record.attributes,
+      })
     }
     const backend: SessionTelemetrySink = {
       emit: enqueue,
@@ -393,7 +280,7 @@ export class OpenTelemetrySessionBackend extends SessionTelemetryBackend {
       if (committed === undefined) return
       const session = Session.fromRestore(
         snapshot.meta.id, snapshot.events, snapshot.meta, snapshot.inheritedEventCount,
-        'detached',
+        'detached', ctx.sessions.messageProjections,
       )
       // fromRestore appends a lifecycle marker that this submission did not commit.
       if (isFeedback(session, committed)) coordinator.captureSession(session, committed.seq)
@@ -401,38 +288,17 @@ export class OpenTelemetrySessionBackend extends SessionTelemetryBackend {
   }
 
   /**
-   * Drop direct ledger records: only a new canonical feedback submission can
-   * authorize capture through the private coordinator sink, for every
-   * provider. Direct ops records are the crashDiagnostics,
-   * deviceTrustMetadata, and providerMetadata exit — they upload through
-   * the `/ops` scope when any of those kinds is opted in, and otherwise
-   * have no pipeline to reach (`DISABLED`, all three kinds withheld, or no
-   * consented exit at all).
-   * @param record - the direct record; ledger copies never upload, ops copies
-   * only under crashDiagnostics, deviceTrustMetadata, or providerMetadata consent.
+   * Drop direct records. Only a new canonical feedback submission can authorize
+   * capture through the private coordinator sink, for every provider.
+   * @param _record - the direct record, never uploaded.
    */
-  emit(record: SessionTelemetryRecord): void {
-    if (record.channel !== 'ops') return
-    this.opsEmit?.(record)
-  }
-
-  // The Service Definition's optional flush() hint is deliberately NOT implemented. The
-  // batch processor exports on its own cadence (`processor.scheduledDelayMillis`,
-  // the SDK's documented knob), and this backend is the SDK pipeline's only
-  // caller — forwarding the hint to `forceFlush()` would be the sole source of
-  // concurrent flushes, whose undocumented interactions with shutdown's
-  // internal drain (concurrent-flush guard, provider-level flush timeout)
-  // silently drop tail records. Rationale and the revival trigger: the
-  // revival Agent Note.
+  emit(_record: SessionTelemetryRecord): void {}
 
   /**
-   * Ask the SDK to drain and quiesce, but reject after the backend-owned
-   * deadline. OTel's processor export timeout wraps `exportCompleted` only;
-   * shutdown awaits `exporter.forceFlush()` first, which can remain pending
-   * when the transport never obtains a socket. The provider promise remains
-   * observed after the deadline so a later rejection cannot become unhandled.
-   * `DISABLED` has no provider and resolves immediately.
-   * @returns resolves when the SDK pipeline quiesces or is disabled, or rejects at the configured deadline.
+   * Drain queued HTTP requests until the deployment deadline. The watchdog
+   * never releases an unsettled transport slot. At the outer deadline,
+   * queued records are abandoned and no further requests may start.
+   * @returns completion after transport shutdown, or rejection at the configured deadline.
    */
   async shutdown(): Promise<void> {
     if (this.provider === undefined) return
@@ -440,6 +306,7 @@ export class OpenTelemetrySessionBackend extends SessionTelemetryBackend {
     let timer: ReturnType<typeof setTimeout> | undefined
     const deadline = new Promise<never>((_resolve, reject) => {
       timer = setTimeout(() => {
+        this.provider?.stopPending()
         reject(new Error(`session-telemetry-otel: provider shutdown exceeded ${this.shutdownTimeoutMillis}ms`))
       }, this.shutdownTimeoutMillis)
     })

@@ -10,19 +10,17 @@
  * it draws (`FilesBody.tsx`, `FilesTitle.tsx`), what it says (`locales.ts`),
  * and this module, which only wires them together.
  */
+import type { ShortcutCommandId } from '@deepseek-ai/dsh-client-shortcuts/client'
 import type { Context as ClientContext } from '@deepseek-ai/cordis'
 import type {} from '@deepseek-ai/dsh-api-remotes/client'
 import type {} from '@deepseek-ai/dsh-client-ui-renderer/client'
 import type {} from '@deepseek-ai/dsh-client-ui-session/client'
 import type {} from '@deepseek-ai/dsh-client-ui-sidebar-right/client'
 import { FILES_ID, filesDefinition } from './definition.tsx'
-import type { FilesInjected } from './face.ts'
-import type { ObservableSnapshot } from '@deepseek-ai/dsh-client-store'
-import type { SidebarRightTabDefinition } from '@deepseek-ai/dsh-client-ui-sidebar-right/client'
-import { createList, filesFace } from './face.ts'
+import { createList, createWatch, filesFace } from './face.ts'
 import { FilesBody } from './FilesBody.tsx'
 import { FilesTitle } from './FilesTitle.tsx'
-import { en, zh } from './locales.ts'
+import { en, ja, es, fr, de, ru, pt, zh } from './locales.ts'
 import { createFilesStore } from './store.ts'
 
 export type { SidebarFilesKey } from './locales.ts'
@@ -30,16 +28,18 @@ export type { DirLevel, FilesState, FilesTabState, LevelState } from './store.ts
 export type { FilesInjected, ListWorkspaceDirectory, WorkspaceFilesListRemote } from './face.ts'
 export type { FilesBodyProps } from './FilesBody.tsx'
 
-/** Registration inputs for file routing and observable viewer availability. */
-export interface FilesRegistrationInjected extends FilesInjected {
-  /**
-   * Whether a currently registered viewer claims this resource.
-   * @param address - Session file address.
-   * @returns whether an open action is available.
-   */
-  readonly canOpenFile: (address: string) => boolean
-  /** Viewer registrations; changes invalidate file-row actions. */
-  readonly hooks: { readonly fileOpeners: ObservableSnapshot<readonly SidebarRightTabDefinition[]> }
+declare module '@deepseek-ai/dsh-client-ui-slots' {
+  interface SlotMap {
+    /** Workspace directory actions after the file tree's reload control. */
+    'sidebar.right.tab.files.actions': {
+      kind: 'list'
+      scope: 'session'
+      owner: {
+        /** Absolute directory path displayed by the file tree. */
+        readonly absolutePath: string
+      }
+    }
+  }
 }
 
 /** This package's copy namespace. */
@@ -49,7 +49,7 @@ const NS = 'sidebarFiles'
  * Required browser services: the tab registry, the keyed seat, the Remote
  * carrier and its namespace, and copy.
  */
-export const inject = ['slots', 'locale', 'sidebarRightTabs', 'remote', 'remote.workspaceFiles']
+export const inject = ['slots', 'locale', 'sidebarRightTabs', 'sidebarRight', 'remote', 'remote.workspaceFiles']
 
 /**
  * Client plugin body: register the type, its dictionaries, its body, and its chip title.
@@ -57,44 +57,41 @@ export const inject = ['slots', 'locale', 'sidebarRightTabs', 'remote', 'remote.
  */
 export function apply(ctx: ClientContext): void {
   const t = ctx.locale.bind(NS)
-  ctx.effect(() => ctx.locale.register(NS, { zh, en }), 'ui-sidebar-files: dictionaries')
-  ctx.effect(() => {
-    let host: typeof ctx.remote.$host | undefined
-    let remove: (() => void) | undefined
-    const refresh = (): void => {
-      const next = ctx.remote.$host
-      if (host === next) return
-      host = next
-      remove?.()
-      remove = undefined
-      if (next.capabilities?.includes('workspace-files.list.v1') !== true) return
-      const lifetime = new AbortController()
-      const store = createFilesStore()
-      const face = filesFace(createList(ctx.remote), lifetime.signal)
-      const fileOpeners = {
-        getSnapshot: () => ctx.sidebarRightTabs.entries(),
-        subscribe: (listener: () => void) => ctx.sidebarRightTabs.subscribe(listener),
-      }
-      const dispose = ctx.effect(function* () {
-        yield () => { lifetime.abort() }
-        yield ctx.sidebarRightTabs.register(filesDefinition(t))
-        yield ctx.slots.inject('sidebar.right.pane.tab', () => ctx.slots.register(
-          { name: 'sidebar.right.pane.tab', key: FILES_ID, locale: NS, store,
-            inject: (sessionId, actions): FilesRegistrationInjected => ({
-              ...face(sessionId, actions), hooks: { fileOpeners },
-              canOpenFile: address => !lifetime.signal.aborted && ctx.remote.$host === next
-                && ctx.sidebarRightTabs.candidates(address).length > 0,
-            }),
-          }, FilesBody,
-        ))
-        yield ctx.slots.inject('sidebar.right.pane.tab.title', () => ctx.slots.register(
-          { name: 'sidebar.right.pane.tab.title', key: FILES_ID }, FilesTitle,
-        ))
-      }, 'ui-sidebar-files: admitted Host entries')
-      remove = () => { lifetime.abort(); void dispose() }
-    }
-    refresh()
-    const stop = ctx.on('connection/reset', refresh)
-    return () => { stop(); remove?.() }
-  }, 'ui-sidebar-files: Host lifecycle')
+  ctx.inject(['shortcuts'], (ctx) => {
+    ctx.effect(() => ctx.shortcuts.register({
+      id: 'workspace.files' as ShortcutCommandId, label: () => t('guide.title'), aliases: ['workspace files', 'files'],
+      defaults: {
+        'desktop:macos': { code: 'KeyP', modifiers: ['primary'] },
+        'desktop:windows': { code: 'KeyP', modifiers: ['primary'] },
+        'desktop:linux': { code: 'KeyP', modifiers: ['primary'] },
+        'web:macos': { code: 'KeyP', modifiers: ['primary', 'alt'] },
+        'web:windows': { code: 'KeyP', modifiers: ['primary', 'alt'] },
+      },
+      // Each tab plugin owns its command's availability, localized refusal, and tab kind.
+      /* jscpd:ignore-start */
+      regions: ['page', 'editable', 'terminal'], modals: [],
+      resolve: ({ target: element }) => {
+        const target = ctx.sidebarRight.commandTarget(element)
+        if (target === undefined) return { status: 'blocked', reason: t('shortcut.noSession') }
+        return { status: 'handled', run: () => { ctx.sidebarRight.openTabFromTarget('files', target) } }
+      },
+      /* jscpd:ignore-end */
+    }), 'ui-sidebar-files: shortcut')
+  })
+  ctx.effect(() => ctx.sidebarRightTabs.register(filesDefinition(t)), 'ui-sidebar-files: files type')
+  ctx.effect(() => ctx.locale.register(NS, { zh, en, ja, es, fr, de, ru, pt }), 'ui-sidebar-files: dictionaries')
+
+  const store = createFilesStore()
+  const inject = filesFace(createList(ctx.remote), createWatch(ctx.remote))
+  ctx.effect(() => ctx.slots.inject('sidebar.right.pane.tab', () => ctx.slots.register(
+    {
+      name: 'sidebar.right.pane.tab', key: FILES_ID, locale: NS, store, inject,
+      children: { 'sidebar.right.tab.files.actions': { kind: 'list', scope: 'session' } },
+    },
+    FilesBody,
+  )), 'ui-sidebar-files: files tab body')
+  ctx.effect(() => ctx.slots.inject('sidebar.right.pane.tab.title', () => ctx.slots.register(
+    { name: 'sidebar.right.pane.tab.title', key: FILES_ID },
+    FilesTitle,
+  )), 'ui-sidebar-files: files tab title')
 }

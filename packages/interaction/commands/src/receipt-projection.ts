@@ -7,7 +7,7 @@
  */
 
 import type { Context } from '@deepseek-ai/cordis'
-import type { ProjectionDefinition } from '@deepseek-ai/dsh-session-projection'
+import type { ProjectionDefinition, ProjectionHandle } from '@deepseek-ai/dsh-session-projection'
 import type { SessionEvent } from '@deepseek-ai/dsh-session'
 import { z } from 'zod'
 
@@ -72,7 +72,7 @@ const commandReceiptProjection = {
   init: (): CommandReceiptRow[] => [],
   apply: applyReceiptEvent,
   stateVersion: 1,
-} satisfies ProjectionDefinition<'commandReceipts'>
+} satisfies ProjectionDefinition<'commandReceipts', CommandReceiptRow[]>
 
 /**
  * One-event receipt-state transition. Only a `command/done` carrying a
@@ -127,8 +127,8 @@ export function findCommandReceipt(
  * Register the command receipt projection in the session-projection
  * registry. The registration is an effect on the calling fiber.
  * @param ctx - context whose `sessionProjections` service is available.
- * @returns the exact disposer that unregisters the unit.
+ * @returns awaitable yielding the ready projection handle; the registry disposes the unit with the calling context.
  */
-export function registerCommandReceiptProjection(ctx: Context): () => void {
+export function registerCommandReceiptProjection(ctx: Context): Promise<ProjectionHandle<CommandReceiptRow[]>> {
   return ctx.sessionProjections.register(commandReceiptProjection)
 }

@@ -48,6 +48,8 @@ declare module '@deepseek-ai/dsh-typert-protocol' {
       | { readonly stream: string }
     /** Received stream data failed validation; event-generation failure suspends automatic reconnect until explicit recovery. */
     'gateway/stream-invalid': { readonly stream: string }
+    /** The Client connection is not ready to admit this operation; reconnect does not automatically resubmit it. */
+    'gateway/connection-unavailable': TypertGatewayFaultDetails
     /** This delivery can no longer accept an answer; it does not identify which Client settled the interaction. */
     'interaction-closed': { readonly eventId: RemoteEventId }
     /** The Host deadline elapsed before the pending interaction was settled. */
@@ -58,48 +60,32 @@ declare module '@deepseek-ai/dsh-typert-protocol' {
       readonly expectedRevision: number
       readonly receivedRevision: number
     }
-    /** More than one active Remote declaration owns the requested endpoint. */
     'gateway/ambiguous-endpoint': TypertGatewayFaultDetails
-    /** Named request arguments do not match the endpoint descriptor. */
     'gateway/arguments-invalid': TypertGatewayFaultDetails
-    /** The service has no valid Remote binding for the selected endpoint. */
     'gateway/binding-invalid': TypertGatewayFaultDetails
-    /** A Context resolver threw an unclassified failure before business invocation. */
     'gateway/context-failed': TypertGatewayFaultDetails
-    /** The Context resolver found no receiver for the requested identity. */
     'gateway/context-not-found': TypertGatewayFaultDetails
-    /** The required scoped Context provider is not available. */
     'gateway/context-unavailable': TypertGatewayFaultDetails
-    /** The Client connection is not ready to admit this operation; reconnect does not automatically resubmit it. */
-    'gateway/connection-unavailable': TypertGatewayFaultDetails
-    /** The selected Remote method has no available reflection definition. */
     'gateway/definition-unavailable': TypertGatewayFaultDetails
-    /** A supplied wire value fails its codec or interaction delivery metadata requirements. */
     'gateway/input-invalid': TypertGatewayFaultDetails
-    /** No active Remote method exports the requested endpoint. */
+    'gateway/interactions-forbidden': TypertGatewayFaultDetails
     'gateway/invocation-unavailable': TypertGatewayFaultDetails
-    /** An object lookup provider threw an unclassified failure before business invocation. */
     'gateway/lookup-failed': TypertGatewayFaultDetails
-    /** The object lookup provider found no value for the requested identity. */
     'gateway/lookup-not-found': TypertGatewayFaultDetails
-    /** A required object lookup provider or provider key is unavailable. */
     'gateway/lookup-unavailable': TypertGatewayFaultDetails
-    /** The selected provider has no callable implementation of the requested Remote method. */
     'gateway/method-unavailable': TypertGatewayFaultDetails
-    /** A live provider does not match the declared owner, wire field or strict type identity. */
-    'gateway/provider-mismatch': TypertGatewayFaultDetails
-    /** Required application preparation was withdrawn and has no replacement owner. */
+    'gateway/peer-disposed': TypertGatewayFaultDetails
     'gateway/preparation-unavailable': TypertGatewayFaultDetails
+    'gateway/protocol': TypertGatewayFaultDetails
     /** The supplied or negotiated API protocol is unsupported; update the application before reconnecting. */
     'gateway/protocol-unsupported': {
       readonly endpoint: string
       readonly supportedApiProtocolVersions: readonly number[]
     }
-    /** A stream Remote method returned neither Iterable nor AsyncIterable. */
+    'gateway/provider-mismatch': TypertGatewayFaultDetails
     'gateway/result-invalid': TypertGatewayFaultDetails
-    /** The service required by the Remote endpoint is unavailable. */
     'gateway/service-unavailable': TypertGatewayFaultDetails
-    /** The Remote signature or invocation mode is incompatible with the selected dispatch path. */
     'gateway/signature-invalid': TypertGatewayFaultDetails
+    'gateway/uplink-overflow': TypertGatewayFaultDetails
   }
 }

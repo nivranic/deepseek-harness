@@ -15,9 +15,12 @@ export { ClientWorkspaceModel } from './model.ts'
 export type {
   WorkspaceFollowSink, WorkspaceListPhase, WorkspaceRemote, WorkspaceSnapshot,
 } from './model.ts'
-export { WorkspaceController, WorkspaceCreateError } from './service.ts'
+export { WorkspaceArchiveError, WorkspaceController, WorkspaceCreateError } from './service.ts'
 export type { IWorkspaces, WorkspaceSource } from './service.ts'
-export type { WorkspaceId, WorkspaceView } from '../types.ts'
+export type {
+  SessionActivity, SessionActivityItem, SessionActivityKind, SessionActivityKindMap, WorkspaceId,
+  WorkspaceView,
+} from '../types.ts'
 
 type WorkspaceBaselineFrame = Extract<WorkspaceFollowFrame, { type: 'baseline' }>
 
@@ -42,7 +45,7 @@ export const inject = ['remote', 'remote.workspace']
  * @param ctx - Client root Context.
  */
 export function apply(ctx: Context): void {
-  const model = new ClientWorkspaceModel(ctx.remote.workspace, () => ctx.remote.$host)
+  const model = new ClientWorkspaceModel(ctx.remote.workspace)
   new WorkspaceController(ctx, model)
   const control = createWorkspaceStateStream(ctx.remote, {
     accept: model,
@@ -50,9 +53,6 @@ export function apply(ctx: Context): void {
     failed: (error) => { model.handleStreamFailure(error) },
   })
   control.start()
-  ctx.effect(() => ctx.on('connection/reset', () => {
-    model.synchronizeHost()
-  }), 'workspace-controller.client.generation')
   ctx.effect(
     () => async () => { await control.dispose() },
     'workspace-controller.client.control',
@@ -81,7 +81,6 @@ export function createWorkspaceStateStream(
 ): WorkspaceStateStream {
   const stream = remote.$stream<WorkspaceFollowFrame>({
     name: 'Workspace state stream',
-    available: host => host.capabilities?.includes('workspace.follow.v1') === true,
     open: signal => remote.workspace.follow(signal),
     ended: accepted => accepted
       ? new RemoteStreamCarrierError('Workspace state stream ended without a terminal result')
@@ -99,6 +98,9 @@ export function createWorkspaceStateStream(
 
 function acceptIncrement(accept: WorkspaceFollowSink, frame: WorkspaceFollowIncrement): void {
   switch (frame.type) {
+    case 'replace':
+      accept.replaceBaseline(frame.value)
+      return
     case 'upsert':
       accept.upsertView(frame.workspace)
       return
@@ -110,6 +112,9 @@ function acceptIncrement(accept: WorkspaceFollowSink, frame: WorkspaceFollowIncr
       return
     case 'archived':
       accept.replaceArchived(frame.archivedSessionIds)
+      return
+    case 'pinned':
+      accept.replacePinned(frame.pinnedSessionIds)
       return
     /* v8 ignore next -- the generated Remote codec validates this closed union */
     default:

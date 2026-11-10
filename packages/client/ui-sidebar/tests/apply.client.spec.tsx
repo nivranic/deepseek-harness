@@ -1,3 +1,4 @@
+import { createSnapshotStore } from '@deepseek-ai/dsh-client-store'
 /** Sidebar shell slot registration and its Session/layout callbacks. */
 import { Context, type Fiber } from '@deepseek-ai/cordis'
 import { afterEach, describe, expect, expectTypeOf, it, vi } from 'vitest'
@@ -7,7 +8,8 @@ import { LocaleRuntime } from '@deepseek-ai/dsh-client-locale/client'
 import { apply, inject } from '@deepseek-ai/dsh-client-ui-sidebar/client'
 import type { SidebarRootInjected } from '@deepseek-ai/dsh-client-ui-sidebar/client'
 import type { MainPanelId } from '@deepseek-ai/dsh-client-ui-layout/client'
-import { TestRemote } from '@deepseek-ai/dsh-client-test-runtime'
+import type { TrackProductEvent } from '@deepseek-ai/dsh-client-product-analytics/client'
+import { HeaderLeadingControls } from '../src/client/HeaderLeadingControls.tsx'
 import { apply as hostApply } from '../src/index.ts'
 
 const owners = new Set<Fiber>()
@@ -31,10 +33,9 @@ async function bench(declare = true) {
   await owner.await()
   if (ctx === undefined) throw new Error('the sidebar fixture owner did not activate')
   await ctx.plugin(SlotRegistry).await()
-  const remote = new TestRemote(ctx)
-  remote.$host = { home: undefined, platform: undefined, isLoopback: true, capabilities: ['session.manage.v1'] }
   const layout = { toggleSidebar: vi.fn(), selectPanel: vi.fn() }
   const uiWorkspace = { startSession: vi.fn() }
+  ctx.provide('shortcuts', { catalog: createSnapshotStore([]) } as never)
   ctx.provide('layout', layout)
   ctx.provide('uiWorkspace', uiWorkspace as never)
   ctx.provide('locale', new LocaleRuntime(ctx))
@@ -44,42 +45,21 @@ async function bench(declare = true) {
       { name: 'root', children: {
         'sidebar': { kind: 'single', scope: 'root' },
         'main': { kind: 'keyed', scope: 'root' },
+        'shell.leading': { kind: 'single', scope: 'root' },
       } },
       SidebarFrame,
     )
   }
-  return { ctx, slots, layout, uiWorkspace, remote }
+  return { ctx, slots, layout, uiWorkspace }
 }
 
 describe('ui-sidebar apply', () => {
-  it('observes capability replacement and blocks retained creation callbacks', async () => {
-    const b = await bench()
-    await b.ctx.plugin({ inject: [...inject], apply }).await()
-    const injected = (b.slots.entries('sidebar')[0]!.inject as () => SidebarRootInjected)()
-    const changed = vi.fn()
-    const dispose = injected.hooks.sessionManagement.subscribe(changed)
-    expect(injected.hooks.sessionManagement.getSnapshot()).toBe(true)
-    b.remote.$host = { home: undefined, platform: undefined, isLoopback: true, capabilities: [] }
-    b.ctx.emit('connection/reset')
-    expect(changed).toHaveBeenCalledOnce()
-    expect(injected.hooks.sessionManagement.getSnapshot()).toBe(false)
-    injected.startSession()
-    expect(b.uiWorkspace.startSession).not.toHaveBeenCalled()
-    b.remote.$host = { home: undefined, platform: undefined, isLoopback: true, capabilities: ['session.manage.v1'] }
-    b.ctx.emit('connection/reset')
-    injected.startSession()
-    expect(b.uiWorkspace.startSession).toHaveBeenCalledOnce()
-    dispose()
-    b.ctx.emit('connection/reset')
-    expect(changed).toHaveBeenCalledTimes(2)
-  })
-
   it('keeps the host Loader entry inert', () => {
     expect(hostApply).not.toThrow()
   })
 
   it('declares only the services it uses', () => {
-    expect(inject).toEqual(['slots', 'layout', 'uiWorkspace', 'locale', 'remote'])
+    expect(inject).toEqual(['slots', 'layout', 'uiWorkspace', 'locale', 'shortcuts'])
   })
 
   it('registers the shell and declares its child seats', async () => {
@@ -94,9 +74,17 @@ describe('ui-sidebar apply', () => {
     expect(b.slots.spec('sidebar.panellist')).toEqual({ kind: 'list', scope: 'root' })
     // Copy rides the standard locale seat, not the inject face.
     expect(b.slots.entries('sidebar')[0]!.locale).toBe('sidebar')
+    // The window-chrome occupant reuses the shell's inject face and locale.
+    const leading = b.slots.entries('shell.leading')
+    expect(leading).toHaveLength(1)
+    expect(leading[0]!.component).toBe(HeaderLeadingControls)
+    expect(leading[0]!.locale).toBe('sidebar')
+    expect(leading[0]!.inject).toBe(b.slots.entries('sidebar')[0]!.inject)
     const injected = (b.slots.entries('sidebar')[0]!.inject as () => SidebarRootInjected)()
-    expect(Object.keys(injected)).toEqual(['startSession', 'toggleSidebar', 'selectPanel', 'hooks'])
+    expect(Object.keys(injected)).toEqual(['startSession', 'toggleSidebar', 'selectPanel', 'setPinned', 'trackEntryClick', 'hooks'])
     expect(injected.hooks.panels.getSnapshot()).toEqual([])
+    expect(injected.hooks.entryPins.getSnapshot()).toEqual([])
+    expect(injected.hooks.entryActions.getSnapshot()).toBe(false)
     expect(b.slots.entries('main')).toEqual([])
     // Both arms delegate to the Workspace UI's shared New Session action.
     injected.startSession('workspace' as never)
@@ -111,18 +99,49 @@ describe('ui-sidebar apply', () => {
     expectTypeOf<Parameters<SidebarRootInjected['selectPanel']>[0]>().toEqualTypeOf<MainPanelId>()
   })
 
+  it('forwards entry clicks to the optional product analytics service without tracking panel selection', async () => {
+    const b = await bench()
+    await b.ctx.plugin({ inject: [...inject], apply }).await()
+    const injected = (b.slots.entries('sidebar')[0]!.inject as () => SidebarRootInjected)()
+    // Ordinary Web mounts no analytics service; reporting is then a no-op.
+    expect(() => { injected.trackEntryClick({ menu_name: 'more', position: 'sidebar' }) }).not.toThrow()
+    const track = vi.fn<TrackProductEvent>()
+    b.ctx.provide('productAnalytics', { track } as never)
+    injected.trackEntryClick({ menu_name: 'new_session', position: 'titlebar' })
+    expect(track).toHaveBeenCalledExactlyOnceWith('sidebar_menu_click', { menu_name: 'new_session', position: 'titlebar' })
+    // Selection only navigates; the clicked control reports its own entry and position.
+    injected.selectPanel('plugins' as MainPanelId)
+    injected.selectPanel('schedules' as MainPanelId)
+    expect(b.layout.selectPanel.mock.calls).toEqual([['plugins'], ['schedules']])
+    expect(track).toHaveBeenCalledOnce()
+    // The window-chrome occupant shares the same reporting callback.
+    const leading = (b.slots.entries('shell.leading')[0]!.inject as () => SidebarRootInjected)()
+    leading.trackEntryClick({ menu_name: 'cron', position: 'sidebar_more' })
+    expect(track).toHaveBeenLastCalledWith('sidebar_menu_click', { menu_name: 'cron', position: 'sidebar_more' })
+  })
+
   it('waits for the sidebar declaration before registering', async () => {
     const b = await bench(false)
     const fiber = b.ctx.plugin({ inject: [...inject], apply })
     await fiber.await()
     expect(b.slots.entries('sidebar')).toHaveLength(0)
-    const disposeRoot = b.slots.register({
+    expect(b.slots.spec('sidebar.panellist')).toBeUndefined()
+    const declareSidebar = () => b.slots.register({
       name: 'root',
       children: { sidebar: { kind: 'single', scope: 'root' } },
     }, SidebarFrame)
+    const disposeRoot = declareSidebar()
     expect(b.slots.entries('sidebar')).toHaveLength(1)
+    expect(b.slots.spec('sidebar.panellist')).toEqual({ kind: 'list', scope: 'root' })
     disposeRoot()
+    expect(b.slots.entries('sidebar')).toEqual([])
+    expect(b.slots.spec('sidebar.panellist')).toBeUndefined()
+    const disposeReplacement = declareSidebar()
+    expect(b.slots.entries('sidebar')).toHaveLength(1)
+    expect(b.slots.spec('sidebar.panellist')).toEqual({ kind: 'list', scope: 'root' })
     await fiber.dispose()
+    expect(b.slots.spec('sidebar.panellist')).toBeUndefined()
+    disposeReplacement()
   })
 
   it('projects plugin-owned panel entries and removes them with their owner', async () => {
@@ -162,39 +181,12 @@ describe('ui-sidebar apply', () => {
     await fiber.await()
     await fiber.dispose()
     expect(b.slots.entries('sidebar')).toHaveLength(0)
+    expect(b.slots.entries('shell.leading')).toHaveLength(0)
     expect(b.slots.spec('sidebar.brand.mark')).toBeUndefined()
     expect(b.slots.spec('sidebar.brand.name')).toBeUndefined()
     expect(b.slots.spec('sidebar.workspaces')).toBeUndefined()
     expect(b.slots.spec('sidebar.footer.action')).toBeUndefined()
     expect(b.slots.spec('sidebar.panellist')).toBeUndefined()
     expect(b.slots.entries('main')).toHaveLength(0)
-  })
-})
-
-describe('phone-tier conversation affordances', () => {
-  it('registers the Sessions back button on the header leading seat once declared', async () => {
-    const b = await bench(false)
-    const HeaderFrame = ({ renderSlot }: PropsRenderSlots<'conversation.session.header.leading'>) =>
-      renderSlot('conversation.session.header.leading', {})
-    const HeaderHost = ({ renderSlot }: PropsRenderSlots<'conversation.session.header'>) =>
-      renderSlot('conversation.session.header', {})
-    b.slots.register(
-      { name: 'root', children: {
-        'conversation.session.header': { kind: 'single', scope: 'session' },
-      } },
-      HeaderHost,
-    )
-    b.slots.register(
-      { name: 'conversation.session.header', children: {
-        'conversation.session.header.leading': { kind: 'list', scope: 'session' },
-      } },
-      HeaderFrame,
-    )
-    await b.ctx.plugin({ inject: [...inject], apply }).await()
-    const entries = b.slots.entries('conversation.session.header.leading')
-    expect(entries.map(entry => entry.options.id)).toEqual(['sidebar.phoneBack'])
-    const injected = (entries[0]!.inject as () => { toggleSidebar: () => void })()
-    injected.toggleSidebar()
-    expect(b.layout.toggleSidebar).toHaveBeenCalledOnce()
   })
 })

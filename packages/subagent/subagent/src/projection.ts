@@ -18,40 +18,37 @@ export interface TimingState {
   /** Milliseconds accumulated across completed post-descriptor turns. */
   settledMs: number
   /** Current open interval kept paired inside the fold. */
-  active?: { since: number; through: number; startSeq: SessionSeq } | undefined
+  active?: { since: number; through: number } | undefined
   /** Latest pre-descriptor turn start, promoted when the child's own descriptor arrives. */
-  pendingTurnStart?: { since: number; startSeq: SessionSeq } | undefined
+  pendingTurnStart?: number | undefined
   /** Whether the fold has crossed a descriptor in this logical log. */
   descriptorSeen: boolean
+  /** Whether the latest closed post-descriptor turn completed normally; absent while a turn is open or before one closes. */
+  lastTurnCompleted?: boolean | undefined
 }
 
 const activeIntervalSchema = z.object({
   since: z.number().int().nonnegative(),
   through: z.number().int().nonnegative(),
-  startSeq: z.number().int().nonnegative().max(Number.MAX_SAFE_INTEGER).transform(SessionSeq),
 }).strict()
 
 const projectionSchema: z.ZodType<SubagentTimingProjection> = z.object({
   settledMs: z.number().int().nonnegative(),
   active: activeIntervalSchema.optional(),
-}).strict().transform(({ settledMs, active }) => ({
+  lastTurnCompleted: z.boolean().optional(),
+}).strict().transform(({ settledMs, active, lastTurnCompleted }) => ({
   settledMs,
   ...active === undefined ? {} : { active },
+  ...lastTurnCompleted === undefined ? {} : { lastTurnCompleted },
 }))
 
 const timingStateSchema: z.ZodType<TimingState> = z.object({
   settledMs: z.number().int().nonnegative(),
   active: activeIntervalSchema.optional(),
-  pendingTurnStart: activeIntervalSchema.omit({ through: true }).optional(),
+  pendingTurnStart: z.number().int().nonnegative().optional(),
   descriptorSeen: z.boolean(),
+  lastTurnCompleted: z.boolean().optional(),
 }).strict()
-
-declare module '@deepseek-ai/dsh-session-projection/types' {
-  interface SessionProjectionStateMap {
-    subagentTiming: TimingState
-    subagent: IdentityState
-  }
-}
 
 /**
  * Fold turn boundaries around the child's own durable descriptor.
@@ -67,18 +64,19 @@ export const subagentTimingProjectionDefinition = {
   init: () => ({ descriptorSeen: false, settledMs: 0 }),
   apply: (state, event) => {
     if (event.type === 'turn/start') {
+      const { lastTurnCompleted: _closed, ...openState } = state
       return state.descriptorSeen
-        ? { ...state, active: { since: event.time, through: event.time, startSeq: event.seq } }
-        : { ...state, pendingTurnStart: { since: event.time, startSeq: event.seq } }
+        ? { ...openState, active: { since: event.time, through: event.time } }
+        : { ...openState, pendingTurnStart: event.time }
     }
     if (event.type === 'subagent/descriptor') {
-      const active = state.active ?? state.pendingTurnStart
+      const activeSince = state.active?.since ?? state.pendingTurnStart
       return {
         descriptorSeen: true,
         settledMs: 0,
-        ...(active === undefined
+        ...(activeSince === undefined
           ? {}
-          : { active: { since: active.since, startSeq: active.startSeq, through: event.time } }),
+          : { active: { since: activeSince, through: event.time } }),
       }
     }
     if (event.type === 'turn/end') {
@@ -92,6 +90,7 @@ export const subagentTimingProjectionDefinition = {
       return {
         ...rest,
         settledMs: state.settledMs + Math.max(0, event.time - active.since),
+        lastTurnCompleted: event.data.reason.kind === 'completed',
       }
     }
     if (state.active === undefined) return state
@@ -102,6 +101,7 @@ export const subagentTimingProjectionDefinition = {
     view: state => ({
       settledMs: state.settledMs,
       ...(state.active === undefined ? {} : { active: state.active }),
+      ...(state.lastTurnCompleted === undefined ? {} : { lastTurnCompleted: state.lastTurnCompleted }),
     }),
   },
   stateVersion: 3,

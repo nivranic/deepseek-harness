@@ -1,9 +1,10 @@
 /**
  * Stage one of tab-type registration: what a type IS.
  *
- * A registration describes address recognition, ranking, the tab title and guide
- * entries. A changing `canOpen` predicate publishes through `subscribeAvailability`.
- * Per-tab and per-session inputs belong to the keyed
+ * A registration is purely static — which addresses the type recognizes, how it
+ * ranks against other types that recognize the same one, what the tab chip says,
+ * and whether the type offers an entry box on the guide page. Nothing here is
+ * per-tab, per-session, or a runtime hook: stage two is the keyed
  * `sidebar.right.pane.tab` registration that supplies the body under the same
  * `kind`, and everything a body needs at runtime arrives in its props.
  *
@@ -23,6 +24,7 @@
  * Thunked copy (`title`, `guide[].title`, `guide[].description`) is read again
  * on every use, so a language change needs no re-registration.
  */
+import type { ShortcutCommandId } from '@deepseek-ai/dsh-client-shortcuts/client'
 import type { ComponentType } from 'react'
 import type { Context } from '@deepseek-ai/cordis'
 import type { IconProps } from '@deepseek-ai/dsh-client-ui-primitives'
@@ -58,6 +60,10 @@ const DEFAULT_BAND: SidebarRightTabPriority = 'extension'
 
 /** One entry capsule the guide page offers, contributed by the type it opens (picking it opens that type as a page). */
 export interface SidebarRightGuideEntry {
+  /** Effective shortcut shown on this entry, when the provider registers one. */
+  readonly commandId?: ShortcutCommandId
+  /** Stable entry identity within its provider. */
+  readonly id: string
   /** Ascending position among every registered type's entries. */
   readonly order: number
   /**
@@ -78,6 +84,8 @@ export interface SidebarRightGuideEntry {
 
 /** A guide entry as the registry lists it: with the kind of the type that contributed it, which is what picking it opens. */
 export interface SidebarRightGuideBox extends SidebarRightGuideEntry {
+  /** Active implementation identity used to dispatch the entry renderer. */
+  readonly providerId: string
   readonly kind: string
 }
 
@@ -94,6 +102,10 @@ export interface SidebarRightTabDefinition {
   readonly id: string
   /** Type discriminator: what the tabs of this type are, and what `openTab` names. */
   readonly kind: string
+  /** Each open by kind creates independent content; omission keeps one page per kind in each pane. */
+  readonly multiple?: boolean
+  /** Lazily keep a visited body mounted through hiding, Session changes and docking; default false. */
+  readonly keepMounted?: boolean
   /**
    * Resource-address globs this type recognizes; omit for a page type, which is
    * opened by kind and recognizes no address.
@@ -116,12 +128,6 @@ export interface SidebarRightTabDefinition {
    * @returns whether this type will open it.
    */
   readonly canOpen?: (address: string) => boolean
-  /**
-   * Observe changes to this type's address availability without replacing open tabs.
-   * @param listener - invalidates registry snapshots after `canOpen` changes.
-   * @returns disposer owned by this type's registration.
-   */
-  readonly subscribeAvailability?: (listener: () => void) => () => void
   /**
    * The tab chip's initial text, captured into the layout record at open time.
    * @param address - the address being opened.
@@ -242,10 +248,12 @@ export class SidebarRightTabRegistry {
    * so is an `id` already in use.
    * @param definition - the contributed type.
    * @returns idempotent disposer.
-   * @throws when the id is taken, the kind cannot coexist, or availability observation fails; a failed observation leaves no registration.
+   * @throws when the id is taken, or the kind is already registered in a way this one cannot coexist with.
    */
   register(definition: SidebarRightTabDefinition): () => void {
     const { id, kind } = definition
+    const entries = definition.guide ?? []
+    if (new Set(entries.map(entry => entry.id)).size !== entries.length) throw new Error(`sidebarRight: duplicate guide entry id in "${id}"`)
     const band = definition.priority ?? DEFAULT_BAND
     if (this.ids.has(id)) throw new Error(`sidebarRight: tab type id "${id}" is already registered`)
     const held = this.kinds.get(kind)
@@ -262,20 +270,12 @@ export class SidebarRightTabRegistry {
     const dispose = this.ctx.effect(() => {
       this.ids.add(id)
       const slot = this.enter(kind, entry)
-      const remove = (): void => {
+      this.refresh()
+      return () => {
         this.ids.delete(id)
         this.leave(kind, slot, entry)
         this.refresh()
       }
-      let stop: (() => void) | undefined
-      try {
-        stop = definition.subscribeAvailability?.(() => { this.refresh() })
-      } catch (error) {
-        remove()
-        throw error
-      }
-      this.refresh()
-      return () => { stop?.(); remove() }
     }, `sidebarRight.tabs.register(${JSON.stringify(id)})`)
     return () => { void dispose() }
   }
@@ -407,7 +407,7 @@ export class SidebarRightTabRegistry {
   private refresh(): void {
     this.cached = this.active().map(entry => entry.definition)
     this.guideEntries = this.cached
-      .flatMap(definition => (definition.guide ?? []).map(entry => ({ ...entry, kind: definition.kind })))
+      .flatMap(definition => (definition.guide ?? []).map(entry => ({ ...entry, kind: definition.kind, providerId: definition.id })))
       .sort((left, right) => left.order - right.order)
     notifySubscribers(this.listeners, '[ui-sidebar-right] tab registry')
   }

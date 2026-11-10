@@ -58,7 +58,7 @@ describe.skipIf(webSnapshotMode() === 'record')('checkpoint capture order throug
           formatVersion: session.header.version, inheritedEventCount: session.inheritedEventCount,
         })
       } else {
-        expect(cache.cachedSnapshot(session.header, session.inheritedEventCount, ['title'])?.values.title)
+        expect(cache.cachedSnapshot(session.header, ['title'])?.values.title)
           .toBe(latestTitle)
       }
       const actual = [JSON.stringify({ type: 'session', ...session.header }), ...events.map(event => JSON.stringify(event))].join('\n') + '\n'

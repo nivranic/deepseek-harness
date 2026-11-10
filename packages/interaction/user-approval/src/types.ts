@@ -106,6 +106,8 @@ export interface ApprovalRequestEvent {
   readonly risk?: ApprovalRisk
   /** Structured sandbox-escalation facts, when the ask is a sandbox escalation. */
   readonly escalation?: ApprovalEscalationFact
+  /** Localized presentation only; never persisted in approval audit events. */
+  readonly displayReason?: { readonly en: string; readonly [locale: string]: string }
   /** Cancellation lifetime of the pending request. */
   readonly signal?: AbortSignal
 }

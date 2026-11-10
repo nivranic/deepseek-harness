@@ -1,4 +1,4 @@
-import { fileExtension, FileTypeIcon, fileSizeText, IconCloseFill14 } from '@deepseek-ai/dsh-client-ui-primitives'
+import { fileExtension, FileTypeIcon, fileSizeText, IconCloseFillRegular } from '@deepseek-ai/dsh-client-ui-primitives'
 import css from './FileCard.module.css'
 
 /** Localized strings consumed by one pending-file card. */
@@ -28,7 +28,7 @@ export function FileCard({
   progress?: number
   labels: FileCardLabels
   onRemove: () => void
-  onRetry?: () => void
+  onRetry: () => void
 }) {
   const extension = fileExtension(name).toUpperCase().slice(0, 8)
   const meta = state === 'uploading'
@@ -36,11 +36,10 @@ export function FileCard({
     : state === 'error'
       ? labels.failed
       : [extension, fileSizeText(bytes)].filter(part => part !== '').join(' ')
-  const failed = state === 'error'
-  const retryable = failed && onRetry !== undefined
+  const retryable = state === 'error'
   return (
     <div
-      className={`${css.card}${failed ? ` ${css.failed}` : ''}`}
+      className={`${css.card}${retryable ? ` ${css.failed}` : ''}`}
       title={name}
     >
       <span className={css.icon} aria-hidden>
@@ -58,16 +57,16 @@ export function FileCard({
         : (
           <span className={css.body} aria-label={labels.label}>
             <span className={css.name}>{name}</span>
-            <span className={`${css.meta}${failed ? ` ${css.metaFailed}` : ''}`}>{meta}</span>
+            <span className={css.meta}>{meta}</span>
           </span>
         )}
       <button
         type="button"
-        className={failed ? `${css.remove} ${css.removeFailed}` : css.remove}
+        className={retryable ? `${css.remove} ${css.removeFailed}` : css.remove}
         aria-label={labels.remove}
         onClick={onRemove}
       >
-        <IconCloseFill14 size={12} />
+        <IconCloseFillRegular size={12} />
       </button>
       {state === 'uploading' && (
         <span className={css.progressTrack} aria-hidden>

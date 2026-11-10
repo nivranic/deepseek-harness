@@ -52,7 +52,7 @@ function sourceOf(gateway: GatewayProbe): TypertRemoteEventSource {
 }
 
 function emitRaw(ctx: Context, event: string, args: readonly unknown[]): void {
-  const emit = ctx.emit.bind(ctx) as unknown as (name: string, ...values: readonly unknown[]) => void
+  const emit = ctx.emit.bind(ctx) as (name: string, ...values: readonly unknown[]) => void
   emit(event, ...args)
 }
 
@@ -63,7 +63,7 @@ function waterfallRaw(
   args: readonly unknown[],
   next: () => Promise<unknown>,
 ): Promise<unknown> {
-  const waterfall = ctx.waterfall.bind(ctx) as unknown as (
+  const waterfall = ctx.waterfall.bind(ctx) as (
     receiver: object,
     name: string,
     ...values: readonly unknown[]
@@ -123,6 +123,16 @@ describe('Remote event Host source', () => {
       },
     })
 
+    emitRaw(ctx, 'schedule/changed', [])
+    await expect(first.next()).resolves.toEqual({
+      done: false,
+      value: { event: 'schedule/changed', args: [] },
+    })
+    await expect(second.next()).resolves.toEqual({
+      done: false,
+      value: { event: 'schedule/changed', args: [] },
+    })
+
     const firstDone = first.next()
     firstAbort.abort(new Error('first Client disconnected'))
     emitRaw(ctx, 'commands/change', [])
@@ -139,6 +149,33 @@ describe('Remote event Host source', () => {
     await fiber.dispose()
     expect(gateway.source).toBeUndefined()
     expect(gateway.removals).toBe(1)
+    await ctx.fiber.dispose()
+  })
+
+  it('attaches each declared resource reader to its forwarded notification', async () => {
+    const { ctx, gateway, fiber } = await setup()
+    const abort = new AbortController()
+    const stream = sourceOf(gateway)(abort.signal)[Symbol.asyncIterator]()
+    const cases: readonly (readonly [string, readonly unknown[], string])[] = [
+      ['api-session/activity', ['s-activity', 1], 's-activity'],
+      ['api-session/added', [{ sessionId: 's-added' }], 's-added'],
+      ['api-session/error', ['s-error', 'boom'], 's-error'],
+      ['api-session/removed', ['s-removed'], 's-removed'],
+      ['api-session/status', ['s-status', true], 's-status'],
+    ]
+    for (const [event, args, sessionId] of cases) {
+      emitRaw(ctx, event, args)
+      const next = await stream.next()
+      if (next.done === true || 'context' in next.value) throw new Error(`${event} was not forwarded as a notification`)
+      const frame = next.value
+      expect(frame).toMatchObject({ event, args })
+      expect(frame.resources?.['session']?.(...frame.args)).toBe(sessionId)
+    }
+    // An event that declares no resources carries no readers, so access control sees the global resource.
+    emitRaw(ctx, 'commands/change', [])
+    await expect(stream.next()).resolves.toEqual({ done: false, value: { event: 'commands/change', args: [] } })
+    abort.abort(new Error('Client disconnected'))
+    await fiber.dispose()
     await ctx.fiber.dispose()
   })
 
@@ -173,7 +210,7 @@ describe('Remote event Host source', () => {
     const abort = new AbortController()
     const iterator = sourceOf(gateway)(abort.signal)[Symbol.asyncIterator]()
     const agentCtx = ctx.extend()
-    const agent = { id: 'agent-1', ctx: agentCtx, session: { id: 'session-1' } }
+    const agent = { id: 'agent-1', ctx: agentCtx }
     const target = scopeTarget(ctx, agent)
     const request = { questions: [], agent }
 
@@ -197,19 +234,9 @@ describe('Remote event Host source', () => {
       event: 'user-questions/request',
       request,
       context: { value: agentCtx, subject: agent, agentId: 'agent-1' },
-      interaction: { sessionId: 'session-1', type: 'question', requiredPermission: 'question.respond' },
     })
     claimedDispatch.resolve({ kind: 'result', value: 'client answer' })
     await expect(claimed).resolves.toBe('client answer')
-
-    const approval = waterfallRaw(ctx, target, 'approval/request', [{ agent, toolName: 'fixture' }],
-      () => Promise.resolve('host fallback'))
-    const approvalDispatch = invocationOf((await iterator.next()).value)
-    expect(approvalDispatch.interaction).toEqual({
-      sessionId: 'session-1', type: 'approval', requiredPermission: 'approval.respond',
-    })
-    approvalDispatch.resolve({ kind: 'result', value: 'allowed-once' })
-    await expect(approval).resolves.toBe('allowed-once')
 
     const delegated = waterfallRaw(
       ctx,
@@ -248,7 +275,7 @@ describe('Remote event Host source', () => {
     const abort = new AbortController()
     const iterator = sourceOf(gateway)(abort.signal)[Symbol.asyncIterator]()
     const delivery = iterator.next()
-    const agent = { id: 'agent-1', ctx: ctx.extend(), session: { id: 'session-1' } }
+    const agent = { id: 'agent-1', ctx: ctx.extend() }
     const reason = new Error('forwarded event source removed')
     const pending = waterfallRaw(
       ctx,

@@ -4,8 +4,8 @@
  * roster's own Connection and is answered by endpoint name.
  */
 
-import { describe, expect, it as unit, onTestFinished, vi } from 'vitest'
-import { RemoteStream, RemoteStreamCarrierError, type ClientRemote, type RemoteStreamOptions } from '@deepseek-ai/dsh-api-gateway/client'
+import { describe, expect, onTestFinished, vi } from 'vitest'
+import { RemoteStreamCarrierError, type ClientRemote } from '@deepseek-ai/dsh-api-gateway/client'
 import { SessionId } from '@deepseek-ai/dsh-session/types'
 import { RemoteError } from '@deepseek-ai/dsh-typert-protocol'
 import { frames, openStream, type RemoteMock, type StreamScript } from '@deepseek-ai/dsh-remote-mock'
@@ -13,6 +13,7 @@ import { createClientTest, type TestClient, webApp } from '@deepseek-ai/dsh-clie
 import {
   ClientWorkspaceModel,
   createWorkspaceStateStream,
+  WorkspaceArchiveError,
   WorkspaceController,
   WorkspaceCreateError,
   type WorkspaceFollowSink,
@@ -43,7 +44,6 @@ async function pluginClient(mock: RemoteMock, start: () => Promise<TestClient>, 
 async function gatewayClient(mock: RemoteMock, start: () => Promise<TestClient>): Promise<{ remote: ClientRemote; client: TestClient }> {
   mock.load(workspaceWorld)
   const client = await start()
-  await vi.waitFor(() => { expect(client.ctx.remote.$host.capabilities).toContain('workspace.follow.v1') })
   return { remote: client.ctx.remote, client }
 }
 
@@ -59,6 +59,7 @@ function accepts(overrides: Partial<WorkspaceFollowSink> = {}): WorkspaceFollowS
     removeView: ignore,
     replaceOrder: ignore,
     replaceArchived: ignore,
+    replacePinned: ignore,
     ...overrides,
   }
 }
@@ -100,7 +101,7 @@ describe('Workspace Controller Client apply', () => {
     })
   })
 
-  pluginTest('publishes exhausted carrier retries as a gateway/transport-interrupted error state', async ({ mock, start }) => {
+  pluginTest('publishes exhausted carrier retries as a gateway/internal error state', async ({ mock, start }) => {
     // Neither generation reaches an accepted baseline, so the retry budget runs
     // out and the escaping carrier failure crosses the stream boundary marked.
     const client = await pluginClient(mock, start, followGenerations([
@@ -110,7 +111,7 @@ describe('Workspace Controller Client apply', () => {
     await vi.waitFor(() => {
       expect(client.ctx.workspaces.list.getSnapshot()).toMatchObject({
         state: 'error',
-        error: { code: 'gateway/transport-interrupted', message: 'generation lost again' },
+        error: { code: 'gateway/internal', message: 'generation lost again' },
       })
     })
     expect(streamStates(client.mock)).toEqual(['failed', 'failed'])
@@ -145,41 +146,6 @@ describe('Workspace Controller Client apply', () => {
 })
 
 describe('Workspace state stream', () => {
-  unit('opens no follow while unsupported and opens once when support arrives', async () => {
-    let capabilities: string[] = []
-    const listeners = new Set<() => void>()
-    const source = { generation: {
-      getSnapshot: () => ({ id: 1, host: { home: '/fixture', platform: 'linux', capabilities } }),
-      subscribe: (listener: () => void) => { listeners.add(listener); return () => { listeners.delete(listener) } },
-    } }
-    const follow = vi.fn(async function* (signal: AbortSignal) {
-      yield baseline('restored')
-      await new Promise<void>((resolve) => {
-        if (signal.aborted) resolve()
-        else signal.addEventListener('abort', () => { resolve() }, { once: true })
-      })
-    })
-    const remote = {
-      $stream: <Item>(options: RemoteStreamOptions<Item>) => new RemoteStream(source, options),
-      workspace: { follow },
-    } as unknown as ClientRemote
-    const replaceBaseline = vi.fn()
-    const failed = vi.fn()
-    const stream = createWorkspaceStateStream(remote, { accept: accepts({ replaceBaseline }), failed })
-    stream.start()
-    try {
-      await vi.waitFor(() => { expect(listeners.size).toBe(1) })
-      expect(follow).not.toHaveBeenCalled()
-      capabilities = ['workspace.follow.v1']
-      for (const listener of [...listeners]) listener()
-      await vi.waitFor(() => { expect(replaceBaseline).toHaveBeenCalledWith(baseline('restored').value) })
-      expect(follow).toHaveBeenCalledOnce()
-      expect(failed).not.toHaveBeenCalled()
-    } finally {
-      await stream.dispose()
-    }
-    expect(listeners.size).toBe(0)
-  })
   it('delivers one baseline followed by increments', async ({ mock, start }) => {
     const { remote } = await gatewayClient(mock, start)
     const opening = baseline('one')
@@ -189,6 +155,7 @@ describe('Workspace state stream', () => {
       { type: 'remove', workspaceId: view.workspaceId },
       { type: 'order', workspaceIds: [view.workspaceId] },
       { type: 'archived', archivedSessionIds: [sid('session-one')] },
+      { type: 'pinned', pinnedSessionIds: [sid('session-two')] },
     ]
     mock.stream(FOLLOW, openStream([opening, ...increments]))
     const replaceBaseline = vi.fn<WorkspaceFollowSink['replaceBaseline']>()
@@ -196,22 +163,56 @@ describe('Workspace state stream', () => {
     const removeView = vi.fn<WorkspaceFollowSink['removeView']>()
     const replaceOrder = vi.fn<WorkspaceFollowSink['replaceOrder']>()
     const replaceArchived = vi.fn<WorkspaceFollowSink['replaceArchived']>()
+    const replacePinned = vi.fn<WorkspaceFollowSink['replacePinned']>()
     const stream = createWorkspaceStateStream(remote, {
-      accept: accepts({ replaceBaseline, upsertView, removeView, replaceOrder, replaceArchived }),
+      accept: accepts({ replaceBaseline, upsertView, removeView, replaceOrder, replaceArchived, replacePinned }),
       failed: vi.fn(),
     })
 
     stream.start()
     stream.start()
-    await vi.waitFor(() => { expect(replaceArchived).toHaveBeenCalledOnce() })
+    await vi.waitFor(() => { expect(replacePinned).toHaveBeenCalledOnce() })
 
     expect(replaceBaseline).toHaveBeenCalledWith(opening.value)
     expect(upsertView).toHaveBeenCalledWith(view)
     expect(removeView).toHaveBeenCalledWith(view.workspaceId)
     expect(replaceOrder).toHaveBeenCalledWith([view.workspaceId])
     expect(replaceArchived).toHaveBeenCalledWith(['session-one'])
+    expect(replacePinned).toHaveBeenCalledWith(['session-two'])
     await stream.dispose()
     expect(streamStates(mock)).toEqual(['cancelled'])
+  })
+
+  it('applies a replace increment in place, so a Workspace hidden and shown again never errors or reconnects', async ({ mock, start }) => {
+    const { remote } = await gatewayClient(mock, start)
+    mock.stream(FOLLOW, openStream([baseline('one', 'two')]))
+    const model = new ClientWorkspaceModel(remote.workspace)
+    const carrierFailed = vi.fn(() => { model.handleCarrierFailure() })
+    const failed = vi.fn((error: unknown) => { model.handleStreamFailure(error) })
+    const stream = createWorkspaceStateStream(remote, { accept: model, carrierFailed, failed })
+    const states = new Set<string>()
+    model.subscribe(() => { states.add(model.getSnapshot().state) })
+    const ids = (): string[] => model.getSnapshot().items.map(item => item.workspaceId).sort()
+    const replace = (...workspaceIds: string[]): WorkspaceFollowFrame => ({ type: 'replace', value: baseline(...workspaceIds).value })
+
+    stream.start()
+    await vi.waitFor(() => { expect(ids()).toEqual(['one', 'two']) })
+    // Access to `two` is revoked, restored through a replace, revoked again, and restored through an upsert.
+    mock.streams.push(FOLLOW, replace('one'))
+    await vi.waitFor(() => { expect(ids()).toEqual(['one']) })
+    mock.streams.push(FOLLOW, replace('one', 'two'))
+    await vi.waitFor(() => { expect(ids()).toEqual(['one', 'two']) })
+    mock.streams.push(FOLLOW, replace('one'))
+    await vi.waitFor(() => { expect(ids()).toEqual(['one']) })
+    mock.streams.push(FOLLOW, { type: 'upsert', workspace: workspace('two') })
+    await vi.waitFor(() => { expect(ids()).toEqual(['one', 'two']) })
+
+    expect(states).not.toContain('error')
+    expect(model.getSnapshot()).toMatchObject({ phase: 'ready', state: 'idle', error: null })
+    expect(carrierFailed).not.toHaveBeenCalled()
+    expect(failed).not.toHaveBeenCalled()
+    expect(streamStates(mock)).toEqual(['open'])
+    await stream.dispose()
   })
 
   it('retains the old state across carrier loss and applies the replacement baseline', async ({ mock, start }) => {
@@ -342,14 +343,26 @@ describe('Workspace state stream', () => {
 })
 
 describe('WorkspaceController', () => {
+  it('returns no Workspace when startup is ineligible without changing the list', async ({ mock, start }) => {
+    const { remote, client } = await gatewayClient(mock, start)
+    const model = new ClientWorkspaceModel(remote.workspace)
+    model.replaceBaseline({ items: [], archivedSessionIds: [], pinnedSessionIds: [] })
+    const controller = new WorkspaceController(client.ctx, model)
+    const before = model.getSnapshot()
+    mock.remote.workspace.initializeDefault.mockResolvedValueOnce({ ok: true, value: undefined })
+    await expect(controller.initializeDefault()).resolves.toBeUndefined()
+    expect(model.getSnapshot()).toBe(before)
+  })
+
   it('publishes the model source and exposes successful Workspace commands', async ({ mock, start }) => {
     const { remote, client } = await gatewayClient(mock, start)
-    const model = new ClientWorkspaceModel(remote.workspace, () => remote.$host)
-    model.replaceBaseline({ items: [workspace('one')], archivedSessionIds: [] })
+    const model = new ClientWorkspaceModel(remote.workspace)
+    model.replaceBaseline({ items: [workspace('one')], archivedSessionIds: [], pinnedSessionIds: [] })
     const controller = new WorkspaceController(client.ctx, model)
 
     expect(controller.list).toBe(model)
     expect(client.ctx.workspaces.list).toBe(model)
+    await expect(controller.initializeDefault(new AbortController().signal)).resolves.toMatchObject({ workspaceId: 'default' })
     await expect(controller.create({ path: '/work/created' })).resolves.toMatchObject({ workspaceId: 'created' })
     await expect(controller.rename(wid('one'), 'renamed')).resolves.toMatchObject({ title: 'renamed' })
     await expect(controller.insertBefore(wid('one'))).resolves.toBeUndefined()
@@ -357,21 +370,31 @@ describe('WorkspaceController', () => {
       sessionIds: ['session'],
     })
     await expect(controller.archiveSession(sid('session'))).resolves.toBeUndefined()
+    await expect(controller.unarchiveSession(sid('session'))).resolves.toBeUndefined()
+    await expect(controller.pinSession(sid('session'))).resolves.toBeUndefined()
+    await expect(controller.unpinSession(sid('session'))).resolves.toBeUndefined()
     await expect(controller.delete(wid('one'))).resolves.toBeUndefined()
     // Each command crosses the wire as one positional request object.
     expect(mock.log.requests('workspace/create')).toEqual([{ path: '/work/created' }])
     expect(mock.log.requests('workspace/rename')).toEqual([{ workspaceId: 'one', title: 'renamed' }])
     expect(mock.log.requests('workspace/insertBefore')).toEqual([{ workspaceId: 'one' }])
     expect(mock.log.requests('workspace/insertSessionBefore')).toEqual([{ workspaceId: 'one', sessionId: 'session' }])
-    expect(mock.log.requests('workspace/archiveSession')).toEqual([{ sessionId: 'session' }])
+    await expect(controller.archiveSession(sid('session'), { stopActivity: true })).resolves.toBeUndefined()
+    expect(mock.log.requests('workspace/archiveSession')).toEqual([{ sessionId: 'session' }, { sessionId: 'session', stopActivity: true }])
+    expect(mock.log.requests('workspace/unarchiveSession')).toEqual([{ sessionId: 'session' }])
+    expect(mock.log.requests('workspace/pinSession')).toEqual([{ sessionId: 'session' }])
+    expect(mock.log.requests('workspace/unpinSession')).toEqual([{ sessionId: 'session' }])
     expect(mock.log.requests('workspace/delete')).toEqual([{ workspaceId: 'one' }])
   })
 
   it('maps generated business failures to the command facade errors', async ({ mock, start }) => {
     const { remote, client } = await gatewayClient(mock, start)
-    const controller = new WorkspaceController(client.ctx, new ClientWorkspaceModel(remote.workspace, () => remote.$host))
+    const controller = new WorkspaceController(client.ctx, new ClientWorkspaceModel(remote.workspace))
     const missingWorkspace = new RemoteError('workspace/not-found', 'gone', { workspaceId: wid('missing') })
     const missingSession = new RemoteError('session/not-found', 'missing session', { sessionId: sid('session') })
+
+    mock.remote.workspace.initializeDefault.mockResolvedValueOnce(err(new RemoteError('gateway/internal', 'directory denied', {})))
+    await expect(controller.initializeDefault()).rejects.toBeInstanceOf(WorkspaceCreateError)
 
     mock.remote.workspace.create.mockResolvedValueOnce(err(new RemoteError('workspace/invalid-path', 'missing path', { path: '/missing' })))
     const create = controller.create({ path: '/missing' })
@@ -385,8 +408,28 @@ describe('WorkspaceController', () => {
     mock.remote.workspace.insertBefore.mockResolvedValueOnce(err(missingWorkspace))
     await expect(controller.insertBefore(wid('missing'))).rejects.toThrow('workspace reorder failed: workspace/not-found: gone')
     mock.remote.workspace.archiveSession.mockResolvedValueOnce(err(missingSession))
-    await expect(controller.archiveSession(sid('session')))
-      .rejects.toThrow('workspace session archive failed: session/not-found: missing session')
+    const archiveMissing = controller.archiveSession(sid('session'))
+    await expect(archiveMissing).rejects.toBeInstanceOf(WorkspaceArchiveError)
+    await expect(archiveMissing).rejects.toThrow('workspace session archive failed: session/not-found: missing session')
+    // The active-session refusal keeps its structured details so a surface
+    // can name what still runs.
+    const active = new RemoteError('workspace/session-active', 'session is active', {
+      sessionId: sid('session'), activity: [{ kind: 'probe' }, { kind: 'probe-items', items: [{ id: 'item-1' }] }],
+    })
+    mock.remote.workspace.archiveSession.mockResolvedValueOnce(err(active))
+    await expect(controller.archiveSession(sid('session'))).rejects.toMatchObject({
+      name: 'WorkspaceArchiveError',
+      rpcError: { code: 'workspace/session-active', details: { activity: [{ kind: 'probe' }, { kind: 'probe-items', items: [{ id: 'item-1' }] }] } },
+    })
+    mock.remote.workspace.unarchiveSession.mockResolvedValueOnce(err(missingSession))
+    await expect(controller.unarchiveSession(sid('session')))
+      .rejects.toThrow('workspace session unarchive failed: session/not-found: missing session')
+    mock.remote.workspace.pinSession.mockResolvedValueOnce(err(missingSession))
+    await expect(controller.pinSession(sid('session')))
+      .rejects.toThrow('workspace session pin failed: session/not-found: missing session')
+    mock.remote.workspace.unpinSession.mockResolvedValueOnce(err(missingSession))
+    await expect(controller.unpinSession(sid('session')))
+      .rejects.toThrow('workspace session unpin failed: session/not-found: missing session')
     mock.remote.workspace.insertSessionBefore.mockResolvedValueOnce(err(new RemoteError(
       'workspace/move-invalid', 'invalid move', { workspaceId: wid('missing'), sessionId: sid('session') },
     )))
@@ -396,7 +439,7 @@ describe('WorkspaceController', () => {
 
   it('receives a carrier throw as the client\'s gateway/internal fold, never as a rejection', async ({ mock, start }) => {
     const { remote, client } = await gatewayClient(mock, start)
-    const controller = new WorkspaceController(client.ctx, new ClientWorkspaceModel(remote.workspace, () => remote.$host))
+    const controller = new WorkspaceController(client.ctx, new ClientWorkspaceModel(remote.workspace))
 
     mock.remote.workspace.create.mockImplementation(() => Promise.reject(new Error('create wire down')))
     const create = controller.create({ path: '/work/created' })
@@ -407,3 +450,11 @@ describe('WorkspaceController', () => {
     expect(mock.log.calls('workspace/create').map(call => call.state)).toEqual(['failed'])
   })
 })
+
+// The wire relays whatever families the Host's providers report; this suite merges its own.
+declare module '@deepseek-ai/dsh-workspace/types' {
+  interface SessionActivityKindMap {
+    probe: true
+    'probe-items': true
+  }
+}

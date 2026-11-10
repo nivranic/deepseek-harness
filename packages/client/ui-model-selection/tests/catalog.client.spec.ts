@@ -12,23 +12,22 @@ const catalog = (model: string): ModelCatalog => ({
 
 function directory(models: () => Promise<unknown>): ModelCatalogDirectory {
   // The providing plugin's context, scripted down to the one method it calls.
-  return new ModelCatalogDirectory({ remote: { session: { modelCatalog: models } } } as never, () => true)
+  return new ModelCatalogDirectory({ remote: { session: { modelCatalog: models } } } as never)
 }
 
 describe('ModelCatalogDirectory', () => {
   it('shares one failing request, exposes the RPC error, and permits a retry', async () => {
-    const failure = new RemoteError('gateway/internal', 'catalog offline', {})
     const models = vi.fn()
       .mockResolvedValueOnce({
-        ok: false, error: failure,
+        ok: false, error: new RemoteError('gateway/internal', 'catalog offline', {}),
       })
       .mockResolvedValueOnce({ ok: true, value: catalog('recovered') })
     const subject = directory(models)
 
     const first = subject.load()
     expect(subject.load()).toBe(first)
-    await expect(first).rejects.toBe(failure)
-    expect(subject.store.getSnapshot()).toMatchObject({ status: 'error', error: 'catalog offline' })
+    await expect(first).rejects.toThrow('gateway/internal: catalog offline')
+    expect(subject.store.getSnapshot()).toMatchObject({ status: 'error', error: 'gateway/internal: catalog offline' })
     await expect(subject.load()).resolves.toEqual(catalog('recovered'))
     expect(models).toHaveBeenCalledTimes(2)
   })
@@ -82,14 +81,14 @@ describe('ModelCatalogDirectory', () => {
     subject.refresh()
     await vi.waitFor(() => {
       expect(subject.store.getSnapshot()).toEqual({
-        value: catalog('old'), status: 'error', error: 'refresh failed', errorClass: 'unknown',
+        value: catalog('old'), status: 'error', error: 'refresh failed',
       })
     })
 
     subject.resetGeneration()
     await vi.waitFor(() => {
       expect(subject.store.getSnapshot()).toEqual({
-        value: null, status: 'error', error: 'reset failed', errorClass: 'unknown',
+        value: null, status: 'error', error: 'reset failed',
       })
     })
   })

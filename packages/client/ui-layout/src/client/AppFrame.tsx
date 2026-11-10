@@ -19,7 +19,7 @@ import type { ReactNode } from 'react'
 import type {
   PropsLocale, PropsRenderSlots, PropsRuntime, PropsStore,
 } from '@deepseek-ai/dsh-client-ui-slots'
-import { computeColumns, RIGHTBAR_DEFAULT_RATIO, SIDEBAR_AUTO_COLLAPSE, SIDEBAR_DEFAULT, SIDEBAR_OVERLAY_MAX, SIDEBAR_OVERLAY_WIDTH } from './columns.ts'
+import { CENTER_MIN, clampWidth, computeColumns, RIGHTBAR_DEFAULT_RATIO, RIGHTBAR_MAX_RATIO, RIGHTBAR_MIN, SIDEBAR_AUTO_COLLAPSE, SIDEBAR_COLLAPSED, SIDEBAR_DEFAULT } from './columns.ts'
 import { DocumentTitle } from './DocumentTitle.tsx'
 import type { createLayoutStore } from './stores.ts'
 import css from './AppFrame.module.css'
@@ -27,7 +27,7 @@ import css from './AppFrame.module.css'
 /** Full composed props: runtime share + child-slot render share + store share. */
 export type AppFrameProps =
   & PropsRuntime<'root'>
-  & PropsRenderSlots<'sidebar' | 'main' | 'rightbar' | 'shell.overlay'>
+  & PropsRenderSlots<'sidebar' | 'main' | 'rightbar' | 'shell.bottom' | 'shell.overlay' | 'shell.leading'>
   & PropsStore<ReturnType<typeof createLayoutStore>>
   & PropsLocale<'common'>
 
@@ -130,35 +130,6 @@ export function AppFrame({
   const frameRef = useRef<HTMLDivElement | null>(null)
   const viewport = layoutInfo.viewportWidth
 
-  // The on-screen keyboard (iOS keyboard, Android IME, or a floating
-  // keyboard) can shrink the visual viewport without resizing the layout
-  // viewport: pin the frame to the visible height so the bottom of the
-  // conversation, including the composer, never sits under it. Pinch zoom
-  // also shrinks the visual viewport, but it is zoom, not the keyboard — the
-  // frame keeps its layout box there.
-  useLayoutEffect(() => {
-    const viewport = window.visualViewport
-    const el = frameRef.current
-    /* v8 ignore next -- the ref is always attached by effect time: the frame div renders unconditionally. */
-    // Runtime `undefined` (jsdom, older browsers) arrives typed as `null`;
-    // fold both absences into one undefined guard.
-    const view: VisualViewport | undefined = viewport ?? undefined
-    if (view === undefined || el === null) return
-    const apply = () => {
-      const keyboardCovers = view.scale === 1 && view.height < window.innerHeight - 1
-      if (keyboardCovers) el.style.height = `${view.height}px`
-      else el.style.removeProperty('height')
-    }
-    apply()
-    view.addEventListener('resize', apply)
-    view.addEventListener('scroll', apply)
-    return () => {
-      view.removeEventListener('resize', apply)
-      view.removeEventListener('scroll', apply)
-      el.style.removeProperty('height')
-    }
-  }, [])
-
   // Track the frame's own box (not the window): rAF-throttled ResizeObserver.
   useLayoutEffect(() => {
     const el = frameRef.current
@@ -186,32 +157,21 @@ export function AppFrame({
     }
   }, [actions])
 
-  const overlayTier = viewport > 0 && viewport < SIDEBAR_OVERLAY_MAX
-  const narrow = !overlayTier && viewport < SIDEBAR_AUTO_COLLAPSE
-  const sidebarCollapsed = narrow || overlayTier ? !layoutInfo.narrowExpanded : layoutInfo.sidebar === 0
-  const sidebarPreference = overlayTier
-    ? SIDEBAR_OVERLAY_WIDTH
-    : sidebarCollapsed
-      ? 0
-      : layoutInfo.sidebar === 0 ? SIDEBAR_DEFAULT : layoutInfo.sidebar
+  const narrow = viewport < SIDEBAR_AUTO_COLLAPSE
+  const sidebarCollapsed = narrow ? !layoutInfo.narrowExpanded : layoutInfo.sidebar === 0
+  const sidebarPreference = sidebarCollapsed
+    ? 0
+    : layoutInfo.sidebar === 0 ? SIDEBAR_DEFAULT : layoutInfo.sidebar
   const rightbarPreference = layoutInfo.rightbar ?? viewport * RIGHTBAR_DEFAULT_RATIO
+  // Desktop reopen controls occupy the frame's shell.leading seat (macOS) or
+  // the Windows caption row; neither platform keeps an icon rail.
+  const darwin = document.documentElement.dataset.platform === 'darwin'
+  const collapsedWidth = darwin
+    || document.documentElement.hasAttribute('data-windows-titlebar') ? 0 : SIDEBAR_COLLAPSED
   // Opening on a narrow frame collapses the left sidebar. Eligibility must
   // include that space before the occupant's first shown report arrives.
-  const trackedSidebar = overlayTier ? 0 : sidebarPreference
-  const normal = computeColumns(viewport, !layoutInfo.rightbarShown && narrow ? 0 : trackedSidebar, rightbarPreference)
-  const cols = computeColumns(viewport, trackedSidebar, layoutInfo.rightbarTrack ? rightbarPreference : 0)
-  const drawerOpen = overlayTier && layoutInfo.narrowExpanded
-
-  // Keyboard dismissal of the phone-tier drawer: the scrim handles pointer
-  // dismissal, and both route through the same toggle so states cannot diverge.
-  useEffect(() => {
-    if (!drawerOpen) return
-    const onKey = (e: KeyboardEvent) => {
-      if (e.key === 'Escape') actions.toggleSidebar()
-    }
-    window.addEventListener('keydown', onKey)
-    return () => { window.removeEventListener('keydown', onKey) }
-  }, [drawerOpen, actions])
+  const normal = computeColumns(viewport, !layoutInfo.rightbarShown && narrow ? 0 : sidebarPreference, rightbarPreference, collapsedWidth)
+  const cols = computeColumns(viewport, sidebarPreference, layoutInfo.rightbarTrack ? rightbarPreference : 0, collapsedWidth)
   const colsRef = useRef(cols)
   colsRef.current = cols
   const rightbarWidth = useRef(normal.rightbar)
@@ -225,6 +185,42 @@ export function AppFrame({
   // Track-level transitions pause for the whole gesture: eased tracks would
   // detach the column edge from the pointer (AppFrame.module.css).
   const [dragging, setDragging] = useState(false)
+  // Track easing is scoped to a discrete open/close toggle: data-animating
+  // goes up when the collapse state or the rightbar track flips and comes down
+  // at transition end (timeout as the reduced-motion/covered-frame fallback).
+  // Steady-state viewport updates stay instant (AppFrame.module.css), and so
+  // does a toggle arriving together with a viewport change — that is the
+  // responsive auto-collapse firing mid window-resize, where easing would
+  // chase the live window edge. The counter restarts the settle window when a
+  // re-toggle interrupts a running transition.
+  const [animating, setAnimating] = useState(0)
+  const trackToggle = `${sidebarCollapsed}:${layoutInfo.rightbarTrack}`
+  const previousToggle = useRef(trackToggle)
+  const previousViewport = useRef(viewport)
+  useLayoutEffect(() => {
+    const viewportChanged = previousViewport.current !== viewport
+    previousViewport.current = viewport
+    if (previousToggle.current === trackToggle) return
+    previousToggle.current = trackToggle
+    if (viewportChanged) return
+    setAnimating(token => token + 1)
+  }, [trackToggle, viewport])
+  useEffect(() => {
+    if (animating === 0) return
+    const frame = frameRef.current
+    /* v8 ignore next -- the ref is always attached by effect time: the frame div renders unconditionally. */
+    if (frame === null) return
+    const settle = () => { setAnimating(0) }
+    const onTransitionEnd = (event: TransitionEvent) => {
+      if (event.target === frame && event.propertyName === 'grid-template-columns') settle()
+    }
+    frame.addEventListener('transitionend', onTransitionEnd)
+    const timer = setTimeout(settle, 600)
+    return () => {
+      frame.removeEventListener('transitionend', onTransitionEnd)
+      clearTimeout(timer)
+    }
+  }, [animating])
   const onDragEnd = useCallback(() => { setDragging(false) }, [])
   const onSidebarStart = useCallback(() => { sidebarBase.current = colsRef.current.sidebar; setDragging(true) }, [])
   const onSidebarDrag = useCallback((dx: number) => {
@@ -235,32 +231,46 @@ export function AppFrame({
     actions.setRightbar(rightbarBase.current - dx)
   }, [actions])
   const productTitle = process.env.DSH_CLIENT_TITLE ?? t('brand.localBuild')
+  // The rendered template lets the grid solve the squeeze natively: the centre
+  // declares its protected minimum and the right column bids up to the clamped
+  // preference, so a window resize lands in the same layout pass as the frame
+  // edge. The JS solve lags the viewport by a ResizeObserver + rAF frame; when
+  // it priced the squeeze itself, the centre column absorbed each width change
+  // whole and was corrected two frames later — visible jitter. cols keeps only
+  // the discrete decisions (track present, collapse state) and the drag base.
+  const rightbarMax = cols.rightbar === 0 ? 0 : clampWidth(rightbarPreference, RIGHTBAR_MIN, viewport * RIGHTBAR_MAX_RATIO)
   const sidebar = useMemo(() => renderSlot('sidebar', {
     collapsed: sidebarCollapsed,
-    width: overlayTier ? SIDEBAR_OVERLAY_WIDTH : cols.sidebar,
-  }), [renderSlot, sidebarCollapsed, cols.sidebar, overlayTier])
+    width: cols.sidebar,
+  }), [renderSlot, sidebarCollapsed, cols.sidebar])
   const main = useMemo(() => (
     <MainPanel usePanelInfo={usePanelInfo} renderSlot={renderSlot} />
   ), [usePanelInfo, renderSlot])
   const overlays = useMemo(() => renderSlot('shell.overlay', {}), [renderSlot])
+  // Window-chrome seat over the main panels' top-left corner: only a fully
+  // hidden sidebar column on macOS desktop leaves window chrome without a
+  // home — the Windows zero-width collapse keeps its controls in the caption
+  // row (ui-sidebar). AppFrame.module.css publishes the matching
+  // --dsh-frame-leading-clearance under the same collapsed condition.
+  const leading = useMemo(() => renderSlot('shell.leading', {}), [renderSlot])
+  const leadingMounted = darwin && sidebarCollapsed
 
   return (
     <div
       ref={frameRef}
       className={css.frame}
       style={{
-        // The phone tier never reserves a sidebar track: computeColumns maps a
-        // zero preference to the 56px rail, which the drawer replaces.
+        ...(document.documentElement.hasAttribute('data-windows-titlebar')
+          ? { '--dsh-windows-sidebar-width': `${cols.sidebar}px` } : {}),
         gridTemplateColumns:
-          `${overlayTier ? 0 : cols.sidebar}px minmax(0, 1fr) ${cols.rightbar}px`,
+          `${cols.sidebar}px minmax(${cols.rightbar === 0 ? 0 : CENTER_MIN}px, 1fr) minmax(0px, ${rightbarMax}px)`,
       }}
       data-sidebar-collapsed={sidebarCollapsed || undefined}
-      data-sidebar-overlay={overlayTier || undefined}
-      data-sidebar-open={drawerOpen || undefined}
       data-rightbar-collapsed={cols.rightbar === 0 || undefined}
       data-rightbar-fullscreen={layoutInfo.rightbarFullscreen || undefined}
       data-rightbar-instant={layoutInfo.rightbarInstant || undefined}
       data-dragging={dragging || undefined}
+      data-animating={animating > 0 || undefined}
     >
       <DocumentTitle
         productTitle={productTitle}
@@ -276,23 +286,19 @@ export function AppFrame({
           {renderSlot('rightbar', { width: normal.rightbar, viewportWidth: viewport, canShow: normal.rightbar > 0 })}
         </RightbarColumn>
       </>
+      <div className={css.bottomRow} data-shell-bottom>
+        {renderSlot('shell.bottom', {})}
+      </div>
       <div className={css.overlayLayer} data-shell-overlay>
         {overlays}
       </div>
-      {/* Phone-tier drawer (§7): the scrim replaces the grid track as the
-          dismissal surface; Escape follows the same action so keyboard and
-          pointer dismissal cannot diverge. */}
-      {drawerOpen && (
-        <div
-          className={css.drawerScrim}
-          data-sidebar-scrim
-          aria-hidden="true"
-          onClick={() => { actions.toggleSidebar() }}
-        />
+      {leadingMounted && (
+        <div className={css.leadingSeat} data-shell-leading>
+          {leading}
+        </div>
       )}
-      {/* The collapsed rail is fixed-width: no resize handle while closed. The
-          overlay drawer is not resizable either. */}
-      {!sidebarCollapsed && !overlayTier && <DragHandle side="sidebar" left={cols.sidebar} onStart={onSidebarStart} onDrag={onSidebarDrag} onEnd={onDragEnd} />}
+      {/* The collapsed rail is fixed-width: no resize handle while closed. */}
+      {!sidebarCollapsed && <DragHandle side="sidebar" left={cols.sidebar} onStart={onSidebarStart} onDrag={onSidebarDrag} onEnd={onDragEnd} />}
       {layoutInfo.rightbarShown && !layoutInfo.rightbarFullscreen && normal.rightbar > 0 && (
         <DragHandle side="rightbar" left={viewport - normal.rightbar} onStart={onRightbarStart} onDrag={onRightbarDrag} onEnd={onDragEnd} />
       )}

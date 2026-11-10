@@ -12,7 +12,7 @@ import type {
   EditorConfig, LexicalNode, NodeKey, SerializedLexicalNode, Spread,
 } from 'lexical'
 import { DecoratorNode } from 'lexical'
-import type { ReferenceInsert } from '../../contract/input.ts'
+import type { ReferenceInsert } from '../../contract/draft-editor.ts'
 import { ReferenceChip } from './ReferenceChip.tsx'
 
 /** JSON form of one chip (Lexical node serialization contract). */
@@ -39,8 +39,6 @@ export class ReferenceChipNode extends DecoratorNode<JSX.Element> {
   __clipboardText: string
   /** Owner-resolution failure flag: chip renders invalid; serialization must fail. */
   __invalid: boolean
-  /** Transient current preview eligibility; omitted from draft serialization. */
-  __openable = false
 
   /** Lexical node registry type tag. */
   static override getType(): string {
@@ -53,7 +51,7 @@ export class ReferenceChipNode extends DecoratorNode<JSX.Element> {
    * @returns a copy carrying the same NodeKey.
    */
   static override clone(node: ReferenceChipNode): ReferenceChipNode {
-    const clone = new ReferenceChipNode(
+    return new ReferenceChipNode(
       {
         source: node.__source,
         ref: node.__ref,
@@ -64,8 +62,6 @@ export class ReferenceChipNode extends DecoratorNode<JSX.Element> {
       node.__invalid,
       node.__key,
     )
-    clone.__openable = node.__openable
-    return clone
   }
 
   /**
@@ -162,11 +158,6 @@ export class ReferenceChipNode extends DecoratorNode<JSX.Element> {
     writable.__invalid = invalid
   }
 
-  /** @param openable - current eligibility; unchanged values do not dirty the node. */
-  setOpenable(openable: boolean): void {
-    if (this.getLatest().__openable !== openable) this.getWritable().__openable = openable
-  }
-
   /** Owner-resolution failure bit. */
   isInvalid(): boolean {
     return this.getLatest().__invalid
@@ -199,7 +190,6 @@ export class ReferenceChipNode extends DecoratorNode<JSX.Element> {
         label={this.__label}
         appearance={this.__appearance}
         invalid={this.__invalid}
-        openable={this.__openable}
       />
     )
   }

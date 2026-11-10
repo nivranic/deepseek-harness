@@ -1,8 +1,8 @@
 /**
  * Client mirror of the Host settings document: the one `settings.describe`
  * reader in the browser. Every settings consumer derives from this store —
- * per-namespace scopes through `SettingsScopeBinder.bind`, cross-namespace
- * surfaces through the binder's shared describe face — so startup cost and
+ * shared entry forms through `ConfigForms.get`, cross-namespace
+ * surfaces through the provider's shared describe face — so startup cost and
  * freshness are properties of this class, not of how many features own a
  * preference. The Host stays the fact source: the mirror re-reads on the
  * invalidations its owning plugin subscribes to and folds write answers in
@@ -17,7 +17,7 @@ import { createSnapshotStore, type SnapshotStore } from '@deepseek-ai/dsh-client
 export interface SettingsDescribeView {
   /** Every namespace a live Host plugin registered, as the Host reported it. */
   namespaces: readonly SettingsNamespaceView[]
-  /** Whether the provider accepts writes and this Host advertises Settings write support. */
+  /** Whether the settings provider accepts writes. */
   writable: boolean
   /** Whether a native settings document exists for the Host to open. */
   hasDocument: boolean
@@ -26,13 +26,12 @@ export interface SettingsDescribeView {
 /** Mirror state every derived settings surface renders from. */
 export interface SettingsMirrorSnapshot {
   /**
-   * `loading` also covers pending discovery; `unavailable` means memory
-   * persistence or explicitly absent read support. A replacement
-   * generation clears its predecessor's view. Within one generation, `ready`
-   * survives failed refreshes; `idle` lets `ensure` retry an unanswered read.
+   * `ready` persists across later failed refreshes (the held view keeps serving);
+   * `idle` means no answer is held and no read is running, so `ensure` will
+   * start one.
    */
-  status: 'idle' | 'loading' | 'ready' | 'unavailable'
-  /** The current generation's last good answer; undefined until its first success. */
+  status: 'idle' | 'loading' | 'ready'
+  /** The last good answer; undefined until the first success. */
   view: SettingsDescribeView | undefined
   /** The latest refresh failure message, cleared by the next success. */
   error: string | null
@@ -53,8 +52,8 @@ export interface SettingsDescribeFace {
    */
   subscribe(listener: () => void): () => void
   /**
-   * Join an active read or start one from `idle` when Host support is known.
-   * Pending discovery may resolve without an answer; observe snapshot status.
+   * Resolve once an answer is held, reading only from `idle`. A settled mirror
+   * holds either a view or the read's error.
    * @returns settlement of the current or newly started read, if any.
    */
   ensure(): Promise<void>
@@ -76,19 +75,14 @@ export class SettingsDescribeMirror implements SettingsDescribeFace {
   private inFlight: Promise<void> | undefined
   private rerun = false
   private generation = 0
-  private host: ClientContext['remote']['$host'] | undefined
 
   /**
    * @param ctx - the providing plugin's context, whose `remote.settings`
    * namespace answers the describe read.
-   * @param persistence - client-selected Host persistence; non-loopback pages may remain process-local.
    */
-  constructor(
-    private readonly ctx: ClientContext,
-    private readonly persistence: 'host' | 'memory' = 'host',
-  ) {
+  constructor(private readonly ctx: ClientContext) {
     this.store = createSnapshotStore<SettingsMirrorSnapshot>({
-      status: persistence === 'host' ? 'idle' : 'unavailable',
+      status: 'idle',
       view: undefined,
       error: null,
     })
@@ -114,9 +108,6 @@ export class SettingsDescribeMirror implements SettingsDescribeFace {
    * @returns settlement after this call's freshness is reflected.
    */
   load(): Promise<void> {
-    if (this.persistence === 'memory') return Promise.resolve()
-    this.syncHost()
-    if (!this.canRead()) return Promise.resolve()
     if (this.inFlight !== undefined) {
       this.rerun = true
       return this.inFlight
@@ -128,13 +119,10 @@ export class SettingsDescribeMirror implements SettingsDescribeFace {
   }
 
   /**
-   * Join an active read or start one from `idle` when Host support is known.
-   * Pending discovery may resolve without an answer; observe snapshot status.
+   * Resolve once an answer is held, reading only from `idle`.
    * @returns settlement of the current or newly started read, if any.
    */
   ensure(): Promise<void> {
-    if (this.persistence === 'memory') return Promise.resolve()
-    this.syncHost()
     if (this.inFlight !== undefined) return this.inFlight
     if (this.getSnapshot().status === 'idle') return this.load()
     return Promise.resolve()
@@ -148,8 +136,6 @@ export class SettingsDescribeMirror implements SettingsDescribeFace {
    * @param view - the namespace view a settings write answered with.
    */
   acceptView(view: SettingsNamespaceView): void {
-    this.syncHost()
-    if (!this.canRead()) return
     const before = this.store.getSnapshot()
     this.generation += 1
     if (this.inFlight !== undefined) this.rerun = true
@@ -169,22 +155,6 @@ export class SettingsDescribeMirror implements SettingsDescribeFace {
     return this.store.getSnapshot().view?.namespaces.find(row => row.ns === ns)
   }
 
-  private canRead(): boolean {
-    return this.ctx.remote.$host.capabilities?.includes('settings.read.v1') === true
-  }
-
-  /** A replacement Host cannot inherit the previous generation's document or write authority. */
-  private syncHost(): void {
-    const host = this.ctx.remote.$host
-    if (host === this.host) return
-    this.host = host
-    this.generation += 1
-    this.store.set({
-      status: this.canRead() ? 'idle' : host.capabilities === undefined ? 'loading' : 'unavailable',
-      view: undefined, error: null,
-    })
-  }
-
   private async run(): Promise<void> {
     // The in-flight slot must clear in the same synchronous segment that
     // observes `rerun` false (and on abrupt exit): a `.finally()` on the
@@ -192,9 +162,6 @@ export class SettingsDescribeMirror implements SettingsDescribeFace {
     // that gap would mark a rerun nobody reads, losing the read.
     try {
       do {
-        this.syncHost()
-        if (!this.canRead()) return
-        const host = this.ctx.remote.$host
         const before = this.store.getSnapshot()
         if (before.status === 'idle') this.store.set({ ...before, status: 'loading' })
         // Cleared immediately before the wire read goes out: a load() marked
@@ -213,12 +180,9 @@ export class SettingsDescribeMirror implements SettingsDescribeFace {
           outcome = { failure: error instanceof Error ? error.message : String(error) }
         }
         // A write answer invalidates a document read before that write committed.
-        if (generation !== this.generation || host !== this.ctx.remote.$host) continue
+        if (generation !== this.generation) continue
         if ('view' in outcome) {
-          this.store.set({ status: 'ready', view: {
-            ...outcome.view,
-            writable: outcome.view.writable && host.capabilities?.includes('settings.write.v1') === true,
-          }, error: null })
+          this.store.set({ status: 'ready', view: outcome.view, error: null })
         } else {
           const held = this.store.getSnapshot()
           // No answer yet: fall back to idle so `ensure` retries; with one, the

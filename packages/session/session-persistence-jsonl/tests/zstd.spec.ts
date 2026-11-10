@@ -8,7 +8,7 @@ import { performance } from 'node:perf_hooks'
 import { SessionSeq, SessionId } from '@deepseek-ai/dsh-session'
 import type { SessionEvent, SessionHeader } from '@deepseek-ai/dsh-session'
 import type { SessionPersistence } from '@deepseek-ai/dsh-session-persistence'
-import JsonlSessionPersistence from '@deepseek-ai/dsh-session-persistence-jsonl'
+import * as JsonlSessionPersistence from '@deepseek-ai/dsh-session-persistence-jsonl'
 import {
   generationLogPath, logPath, scanLog, sessionDir, toHeaderLine, type JsonlCompression,
 } from '../src/format.ts'
@@ -440,7 +440,7 @@ describe('JsonlSessionPersistence: default Zstandard encoding', () => {
             turn: 1, step: 1,
             message: {
               id: 'v2-to-v3-system-fc06c3f7720f3bc94ea7a2b7fadde6a5b100c6ab6ca342d2222bd017184a0b67',
-              role: 'system', source: { kind: 'plugin', plugin: '@deepseek-ai/dsh-system-prompt' }, content: [],
+              role: 'system', source: { kind: 'system-prompt' }, content: [],
             },
           },
         },
@@ -467,10 +467,8 @@ describe('JsonlSessionPersistence: default Zstandard encoding', () => {
     const root = await freshRoot()
     const ctx = new Context()
     contexts.push(ctx)
-    let backend!: JsonlSessionPersistence
-    await ctx.plugin((inner: Context) => {
-      backend = new JsonlSessionPersistence(inner, { root })
-    })
+    await ctx.plugin((inner: Context) => JsonlSessionPersistence.apply(inner, { root }))
+    const backend = ctx.sessionPersistence
     const header = meta('direct-default')
     const path = logPath(root, header.cwd, header.id, 'zstd')
 
@@ -520,7 +518,10 @@ describe('JsonlSessionPersistence: default Zstandard encoding', () => {
     buffer[eventFrame.end - 1] = buffer[eventFrame.end - 1]! ^ 0xFF
     await writeFile(path, buffer)
 
-    expect((await ctx.sessionPersistence.list()).map(item => item.header.id)).toEqual([header.id])
+    const listed = await ctx.sessionPersistence.list()
+    expect(listed.map(item => item.header.id)).toEqual([header.id])
+    expect(listed[0]?.formatStatus).toBe('current')
+    expect((await ctx.sessionPersistence.stat(header.id))?.formatStatus).toBe('current')
     await expect(readAll(ctx.sessionPersistence, header.id)).rejects.toThrow(/frame at byte .* failed validation/)
   })
 
@@ -642,172 +643,6 @@ describe('JsonlSessionPersistence: default Zstandard encoding', () => {
     expect(scanZstdFrames(repaired).tornStart).toBeUndefined()
     expect(scanLog(await decodeCompleteFrames(repaired)).events)
       .toEqual([...oneTurnLog(), openTurn[0]!, openTurn[1]!, ...closers])
-  })
-
-  it('recovers intent-carried records after a crash between truncation and rewrite', async () => {
-    const root = await freshRoot()
-    const ctx = await mount(root)
-    const header = meta('intent-crashed-before-rewrite', '/proj')
-    vi.spyOn(ctx.logger, 'warn').mockImplementation(() => undefined)
-    await writeLog(ctx.sessionPersistence, header, oneTurnLog())
-    const path = logPath(root, header.cwd, header.id, 'zstd')
-    const committed = await readFile(path)
-    const recovered: SessionEvent[] = [
-      { type: 'turn/start', seq: SessionSeq(6), time: 7, data: { turn: 2 } },
-      { type: 'step/start', seq: SessionSeq(7), time: 8, data: { turn: 2, step: 1 } },
-    ]
-    // Simulate the crash window by hand: truncation landed, the intent holds
-    // the recovered records, their rewrite never did.
-    await writeFile(`${path}.repair-intent`, `${JSON.stringify({ version: 1, id: header.id, truncateTo: committed.length, events: recovered })}\n`)
-
-    const reopen = await mount(root)
-    const loaded = await readAll(reopen.sessionPersistence, header.id)
-    expect(loaded.events.map(event => event.seq)).toEqual([0, 1, 2, 3, 4, 5, 6, 7])
-
-    const closers: SessionEvent[] = [
-      { type: 'step/end', seq: SessionSeq(8), time: 9, data: { turn: 2, step: 1 } },
-      { type: 'turn/end', seq: SessionSeq(9), time: 10, data: { turn: 2, reason: { kind: 'interrupted' } } },
-    ]
-    await appendBatch(reopen.sessionPersistence, header.id, closers)
-    const repaired = await readFile(path)
-    expect(repaired.subarray(0, committed.length)).toEqual(committed)
-    expect(scanZstdFrames(repaired).tornStart).toBeUndefined()
-    expect(scanLog(await decodeCompleteFrames(repaired)).events)
-      .toEqual([...oneTurnLog(), ...recovered, ...closers])
-    await expect(stat(`${path}.repair-intent`)).rejects.toMatchObject({ code: 'ENOENT' })
-  })
-
-  it('discards a stale intent whose records the log already rewrote, without duplicating them', async () => {
-    const root = await freshRoot()
-    const ctx = await mount(root)
-    const header = meta('intent-stale-after-rewrite', '/proj')
-    vi.spyOn(ctx.logger, 'warn').mockImplementation(() => undefined)
-    const rewritten: SessionEvent[] = [...oneTurnLog(), { type: 'turn/start', seq: SessionSeq(6), time: 7, data: { turn: 2 } }]
-    await writeLog(ctx.sessionPersistence, header, rewritten)
-    const path = logPath(root, header.cwd, header.id, 'zstd')
-    // Simulate a crash between the durable rewrite and the intent's removal.
-    await writeFile(`${path}.repair-intent`, `${JSON.stringify({ version: 1, id: header.id, truncateTo: 0, events: rewritten.slice(6) })}\n`)
-
-    const reopen = await mount(root)
-    const loaded = await readAll(reopen.sessionPersistence, header.id)
-    expect(loaded.events).toEqual(rewritten)
-
-    const closers: SessionEvent[] = [
-      { type: 'step/start', seq: SessionSeq(7), time: 8, data: { turn: 2, step: 1 } },
-    ]
-    await appendBatch(reopen.sessionPersistence, header.id, closers)
-    const repaired = await readFile(path)
-    expect(scanZstdFrames(repaired).tornStart).toBeUndefined()
-    expect(scanLog(await decodeCompleteFrames(repaired)).events).toEqual([...rewritten, ...closers])
-    await expect(stat(`${path}.repair-intent`)).rejects.toMatchObject({ code: 'ENOENT' })
-  })
-
-  it('keeps a torn frame authoritative when its duplicate intent also survived', async () => {
-    const root = await freshRoot()
-    const ctx = await mount(root)
-    const header = meta('intent-duplicate-of-torn', '/proj')
-    vi.spyOn(ctx.logger, 'warn').mockImplementation(() => undefined)
-    await writeLog(ctx.sessionPersistence, header, oneTurnLog())
-    const path = logPath(root, header.cwd, header.id, 'zstd')
-    const recovered: SessionEvent[] = [
-      { type: 'turn/start', seq: SessionSeq(6), time: 7, data: { turn: 2 } },
-      { type: 'step/start', seq: SessionSeq(7), time: 8, data: { turn: 2, step: 1 } },
-    ]
-    const tornPlaintext = [
-      ...recovered.map(e => JSON.stringify(e)),
-      JSON.stringify({
-        type: 'assistant/attempt',
-        seq: SessionSeq(8),
-        time: 9,
-        data: {
-          turn: 2,
-          step: 1,
-          stream: [{ type: 'text-chunks', time0: 9, index: 0, dt: [], texts: [deterministicNoise(300_000)] }],
-        },
-      }),
-    ].join('\n') + '\n'
-    await appendFile(path, await tornFrame(tornPlaintext, (decoded) => {
-      const newlines = decoded.match(/\n/g)?.length ?? 0
-      return newlines >= 2 && !decoded.endsWith('\n')
-    }))
-    // A crash after the intent landed but before truncation leaves both the
-    // torn frame and its intent on disk; the frame's own recovery is used.
-    await writeFile(`${path}.repair-intent`, `${JSON.stringify({ version: 1, id: header.id, truncateTo: 0, events: recovered })}\n`)
-
-    const reopen = await mount(root)
-    const loaded = await readAll(reopen.sessionPersistence, header.id)
-    expect(loaded.events.map(event => event.seq)).toEqual([0, 1, 2, 3, 4, 5, 6, 7])
-
-    const closers: SessionEvent[] = [
-      { type: 'step/end', seq: SessionSeq(8), time: 9, data: { turn: 2, step: 1 } },
-    ]
-    await appendBatch(reopen.sessionPersistence, header.id, closers)
-    const repaired = await readFile(path)
-    expect(scanZstdFrames(repaired).tornStart).toBeUndefined()
-    expect(scanLog(await decodeCompleteFrames(repaired)).events)
-      .toEqual([...oneTurnLog(), ...recovered, ...closers])
-    await expect(stat(`${path}.repair-intent`)).rejects.toMatchObject({ code: 'ENOENT' })
-  })
-
-  it('recovers only the records a partially completed rewrite left behind', async () => {
-    const root = await freshRoot()
-    const ctx = await mount(root)
-    const header = meta('intent-partial-rewrite', '/proj')
-    vi.spyOn(ctx.logger, 'warn').mockImplementation(() => undefined)
-    // The rewrite landed seq 6 durably, then tore again before seq 7; the
-    // intent still carries both, so only the missing tail re-appends.
-    const persisted: SessionEvent[] = [...oneTurnLog(), { type: 'turn/start', seq: SessionSeq(6), time: 7, data: { turn: 2 } }]
-    await writeLog(ctx.sessionPersistence, header, persisted)
-    const path = logPath(root, header.cwd, header.id, 'zstd')
-    const intentEvents: SessionEvent[] = [
-      { type: 'turn/start', seq: SessionSeq(6), time: 7, data: { turn: 2 } },
-      { type: 'step/start', seq: SessionSeq(7), time: 8, data: { turn: 2, step: 1 } },
-    ]
-    await writeFile(`${path}.repair-intent`, `${JSON.stringify({ version: 1, id: header.id, truncateTo: 0, events: intentEvents })}\n`)
-
-    const reopen = await mount(root)
-    const loaded = await readAll(reopen.sessionPersistence, header.id)
-    expect(loaded.events.map(event => event.seq)).toEqual([0, 1, 2, 3, 4, 5, 6, 7])
-
-    const closers: SessionEvent[] = [
-      { type: 'step/end', seq: SessionSeq(8), time: 9, data: { turn: 2, step: 1 } },
-    ]
-    await appendBatch(reopen.sessionPersistence, header.id, closers)
-    const repaired = await readFile(path)
-    expect(scanZstdFrames(repaired).tornStart).toBeUndefined()
-    expect(scanLog(await decodeCompleteFrames(repaired)).events).toEqual([...persisted, intentEvents[1]!, ...closers])
-    await expect(stat(`${path}.repair-intent`)).rejects.toMatchObject({ code: 'ENOENT' })
-  })
-
-  it('rejects a repair intent recorded for a different session', async () => {
-    const root = await freshRoot()
-    const ctx = await mount(root)
-    const header = meta('intent-foreign-id', '/proj')
-    vi.spyOn(ctx.logger, 'warn').mockImplementation(() => undefined)
-    await writeLog(ctx.sessionPersistence, header, oneTurnLog())
-    const path = logPath(root, header.cwd, header.id, 'zstd')
-    await writeFile(`${path}.repair-intent`, `${JSON.stringify({ version: 1, id: SessionId('another-session'), truncateTo: 0, events: [] })}\n`)
-
-    const reopen = await mount(root)
-    await expect(readAll(reopen.sessionPersistence, header.id)).rejects.toThrow(/repair intent does not belong to this session/)
-  })
-
-  it('leaves no intent behind when a raw torn tail holds no complete records', async () => {
-    const root = await freshRoot('dsh-jsonl-raw-intent-')
-    const ctx = await mount(root, 'none')
-    const header = meta('raw-intent-absent', '/proj')
-    vi.spyOn(ctx.logger, 'warn').mockImplementation(() => undefined)
-    await writeLog(ctx.sessionPersistence, header, oneTurnLog())
-    const path = logPath(root, header.cwd, header.id, 'none')
-    await appendFile(path, '{"type":"turn/start","seq":6,"time":7,"data":{"turn')
-
-    const closers: SessionEvent[] = [
-      { type: 'step/start', seq: SessionSeq(6), time: 8, data: { turn: 2, step: 1 } },
-    ]
-    await appendBatch(ctx.sessionPersistence, header.id, closers)
-    const repaired = await readFile(path)
-    expect(scanLog(repaired).events).toEqual([...oneTurnLog(), ...closers])
-    await expect(stat(`${path}.repair-intent`)).rejects.toMatchObject({ code: 'ENOENT' })
   })
 
   it('retries the torn-tail rewrite when its first durable write fails', async () => {
@@ -948,7 +783,7 @@ describe('JsonlSessionPersistence: default Zstandard encoding', () => {
     expect((await readAll(ctx.sessionPersistence, header.id)).events).toEqual([...oneTurnLog(), ...secondTurn])
   })
 
-  it('skips empty, incomplete, and non-header compressed artifacts while rejecting malformed header frames', async () => {
+  it('skips unreadable compressed headers during discovery while rejecting targeted reads', async () => {
     const root = await freshRoot()
     for (const [id, content] of [
       ['empty', Buffer.alloc(0)],
@@ -969,7 +804,7 @@ describe('JsonlSessionPersistence: default Zstandard encoding', () => {
       JSON.stringify({ type: 'turn/start' }),
       '',
     ].join('\n')))
-    await expect(ctx.sessionPersistence.list()).rejects.toThrow(/first frame is not exactly one header line/)
+    expect(await ctx.sessionPersistence.list()).toEqual([])
     await expect(ctx.sessionPersistence.open(twoLinesId, 'read'))
       .rejects.toThrow(/first frame is not exactly one header line/)
   })
@@ -990,7 +825,11 @@ describe('JsonlSessionPersistence: default Zstandard encoding', () => {
       .rejects.toThrow(/empty or header-less Zstandard session log/)
     await expect(ctx.sessionPersistence.open(SessionId('empty-header'), 'read'))
       .rejects.toThrow(/first frame is not exactly one header line/)
-    await expect(ctx.sessionPersistence.list()).rejects.toThrow(/header frame failed validation/)
+    expect(await ctx.sessionPersistence.list()).toEqual([])
+    await expect(ctx.sessionPersistence.stat(SessionId('bad-checksum')))
+      .rejects.toThrow(/header frame failed validation/)
+    await expect(ctx.sessionPersistence.open(SessionId('bad-checksum'), 'read'))
+      .rejects.toThrow(/frame at byte 0 failed validation/)
   })
 })
 

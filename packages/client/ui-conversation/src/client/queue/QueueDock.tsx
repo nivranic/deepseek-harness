@@ -1,50 +1,47 @@
 import type { Context } from '@deepseek-ai/cordis'
 import { useEffect, useId, useMemo, useState } from 'react'
 import type { FileAttachmentRef, ImageAttachmentRef } from '@deepseek-ai/dsh-attachment'
-import { classifyRemoteFailure } from '@deepseek-ai/dsh-typert-protocol'
-import type { HostObservable, InjectFace, PropsLocale, PropsRuntime } from '@deepseek-ai/dsh-client-ui-slots'
+import type { PropsLocale, PropsRenderFactories, PropsRuntime } from '@deepseek-ai/dsh-client-ui-slots'
 import type { SessionId } from '@deepseek-ai/dsh-session/types'
 import {
-  IconCheckOutline16, IconChevronDownOutline14, IconChevronUpOutline14, IconCloseOutline16,
-  FileTypeIcon, fileSizeText, IconEditOutline16, IconQueueOutline14, IconSendOutline14,
-  IconTrashOutline16, projectUserText, Tooltip,
+  IconCheckOutlineRegular, IconChevronDownOutlineRegular, IconChevronUpOutlineRegular, IconCloseOutlineRegular,
+  FileTypeIcon, fileSizeText, IconEditOutlineRegular, InlineEditor, IconQueueOutlineRegular, IconSendOutlineRegular,
+  IconTrashOutlineRegular, Tooltip,
 } from '@deepseek-ai/dsh-client-ui-primitives'
-import type { QueueAction, QueueItemId, QueueRow } from '../contract/queue.ts'
+import type { InboxState } from '@deepseek-ai/dsh-agent/types'
+import type { QueueAction } from '@deepseek-ai/dsh-api-session-controller/types'
+import type { MessageId } from '@deepseek-ai/dsh-llm/brand'
+import type { UserTextFacts } from '../index.ts'
 import { NS } from '../locales.ts'
 import css from './QueueDock.module.css'
 
+const EMPTY_QUEUE = [] as const
+const QUEUE_TEXT_FACTS: Readonly<Partial<UserTextFacts>> = {
+  collapseWhitespace: true,
+  trimWhitespace: true,
+}
+
+function textOf(content: InboxState['next-turn'][number]['content']): string | null {
+  if (!content.every(block => block.type === 'text')) return null
+  return content.map(block => block.text).join('')
+}
+
 /** Queue operations injected by the session-scoped registration. */
 export interface QueueDockInjected {
-  updateQueue: (itemId: QueueItemId, action: QueueAction) => Promise<void>
+  updateQueue: (itemId: MessageId, action: QueueAction) => Promise<void>
   notify: (level: 'info' | 'error', text: string) => void
   /** Resolve one durable queued image into a session-scoped browser URL. */
   loadImage: (attachment: ImageAttachmentRef) => Promise<string>
 }
 
 /**
- * Present a failed queue action through the shared Remote failure
- * classification: classes with actionable copy get their class text, and
- * everything else (including non-Remote errors) keeps the action's static
- * failure string.
- */
-function queueFailureText(error: unknown, fallback: string, t: QueueDockProps['t']): string {
-  switch (classifyRemoteFailure(error)) {
-    case 'authentication': return t('queue.failureAuthentication')
-    case 'compatibility': return t('queue.failureCompatibility')
-    case 'host-state': case 'transport': return t('queue.failureRetry')
-    case 'conflict': return t('queue.failureRefresh')
-    default: return fallback
-  }
-}
-
-/**
- * Durable references carried by one queued row. Queue frames are wire data
+ * Durable references carried by one queued row. Inbox projections are wire data
  * despite their typed face, so an image block without a reference is skipped
  * rather than trusted.
  * @param content - the row's wire content blocks.
  * @returns the row's durable image references in block order.
  */
-function queueAttachments(content: QueueRow['content']): Array<
+function queueAttachments(content: InboxState['next-turn'][number]['content']): Array<
   | { readonly type: 'image'; readonly attachment: ImageAttachmentRef }
   | { readonly type: 'file'; readonly attachment: FileAttachmentRef }
 > {
@@ -98,18 +95,27 @@ function QueueThumb({ attachment, loadImage, label }: {
 
 /** Full props of a dock entry: InputZone owner share + session standard kit + global seat + the locale seat. */
 export type QueueDockProps = PropsRuntime<'conversation.input.dock'> & QueueDockInjected & PropsLocale<'conversation'>
+  & PropsRenderFactories
 
 /**
  * Queue strip: one item renders directly; multiple items default to a
- * collapsible count header; an empty queue renders nothing. Local submissions
+ * collapsible count header; an empty queue renders nothing. Local queued submissions
  * show sending status and disabled actions until their Host queue rows arrive.
  */
-export function QueueDock({ useSession, updateQueue, notify, loadImage, t }: QueueDockProps) {
-  const inbox = useSession(s => s.queue)
-  const queue = useMemo(() => inbox.filter(row => row.placement === 'queued'), [inbox])
+export function QueueDock({ useSession, useProjection, updateQueue, notify, loadImage, renderFactorySlot, t }: QueueDockProps) {
+  const inbox = useProjection('inbox') as unknown as InboxState | undefined
   const pendingSubmissions = useSession(s => s.pendingSubmissions)
+  const queue = useMemo(() => {
+    const rows = inbox?.['next-turn'] ?? EMPTY_QUEUE
+    const inChat = new Set(pendingSubmissions.filter(item => item.placement === 'transcript').map(item => item.requestId))
+    return inChat.size === 0 ? rows : rows.filter(({ source }) => (
+      source.kind !== 'user' || !('rpcId' in source) || !inChat.has(source.rpcId)
+    ))
+  }, [inbox, pendingSubmissions])
   const pendingQueue = useMemo(() => {
-    const admitted = new Set(queue.flatMap(row => row.rpcId === undefined ? [] : [row.rpcId]))
+    const admitted = new Set(queue.flatMap(({ source }) => (
+      source.kind === 'user' && 'rpcId' in source ? [source.rpcId] : []
+    )))
     return pendingSubmissions.filter(submission => (
       submission.placement === 'queued' && !admitted.has(submission.requestId)
     ))
@@ -117,8 +123,8 @@ export function QueueDock({ useSession, updateQueue, notify, loadImage, t }: Que
   const rowCount = queue.length + pendingQueue.length
   const running = useSession(s => s.running)
   const queueMutable = useSession(s => s.subagent === null || s.subagent.address.mode === 'continuable')
-  const [editing, setEditing] = useState<{ id: QueueItemId; text: string } | null>(null)
-  const [busy, setBusy] = useState<QueueItemId | null>(null)
+  const [editing, setEditing] = useState<{ id: MessageId; text: string } | null>(null)
+  const [busy, setBusy] = useState<MessageId | null>(null)
   const [collapsed, setCollapsed] = useState(true)
   const listId = useId()
 
@@ -134,7 +140,7 @@ export function QueueDock({ useSession, updateQueue, notify, loadImage, t }: Que
   const listVisible = rowCount === 1 || expanded
 
   const applyAction = async (
-    itemId: QueueItemId,
+    itemId: MessageId,
     action: QueueAction,
     failure: string,
   ): Promise<boolean> => {
@@ -142,11 +148,8 @@ export function QueueDock({ useSession, updateQueue, notify, loadImage, t }: Que
     try {
       await updateQueue(itemId, action)
       return true
-    } catch (error) {
-      // Queue operations are Remote calls: failures the shared vocabulary
-      // classifies present their class copy; anything else keeps the action's
-      // static failure text (the raw error stays in the console/diagnostics).
-      notify('error', queueFailureText(error, failure, t))
+    } catch {
+      notify('error', failure)
       return false
     } finally {
       setBusy(current => current === itemId ? null : current)
@@ -174,41 +177,32 @@ export function QueueDock({ useSession, updateQueue, notify, loadImage, t }: Que
             disabled={interactionActive}
             onClick={() => { setCollapsed(value => !value) }}
           >
-            <span className={css.lead} aria-hidden><IconQueueOutline14 /></span>
+            <span className={css.lead} aria-hidden><IconQueueOutlineRegular /></span>
             <span className={css.count}>{t('queue.count', { n: rowCount })}</span>
             {!listVisible && pendingQueue.length > 0 && (
               <span className={css.status} role="status">{t('queue.sending')}</span>
             )}
             <span className={css.chevron} aria-hidden>
-              {expanded ? <IconChevronDownOutline14 /> : <IconChevronUpOutline14 />}
+              {expanded ? <IconChevronDownOutlineRegular /> : <IconChevronUpOutlineRegular />}
             </span>
           </button>
         )}
         <ul id={listId} className={css.list} hidden={!listVisible}>
           {listVisible && queue.map((row) => {
             const attachments = queueAttachments(row.content)
+            const text = textOf(row.content)
             return (
               <li key={row.id} className={css.row}>
                 {/* Single-item strip has no count header, so the row itself carries the queue glyph. */}
-                {rowCount === 1 && <span className={css.lead} aria-hidden><IconQueueOutline14 /></span>}
+                {rowCount === 1 && <span className={css.lead} aria-hidden><IconQueueOutlineRegular /></span>}
                 {editing?.id === row.id
                   ? (
-                    <input
-                      autoFocus
-                      className={css.editor}
-                      aria-label={t('queue.edit')}
+                    <InlineEditor
                       value={editing.text}
-                      onChange={(event) => { setEditing({ id: row.id, text: event.currentTarget.value }) }}
-                      onKeyDown={(event) => {
-                        if (event.key === 'Escape') {
-                          setEditing(null)
-                          return
-                        }
-                        if (event.key === 'Enter' && !event.nativeEvent.isComposing) {
-                          event.preventDefault()
-                          void saveEdit()
-                        }
-                      }}
+                      label={t('queue.edit')}
+                      onChange={(text) => { setEditing({ id: row.id, text }) }}
+                      onSave={() => { void saveEdit() }}
+                      onCancel={() => { setEditing(null) }}
                     />
                   )
                   : (
@@ -233,14 +227,18 @@ export function QueueDock({ useSession, updateQueue, notify, loadImage, t }: Que
                             ))}
                         </span>
                       )}
-                      <span className={css.preview}>{projectUserText(row.preview, [])}</span>
+                      <span className={css.preview}>{renderFactorySlot('conversation.user.text', {
+                        text: row.content.filter(block => block.type === 'text').map(block => block.text).join(''),
+                        facts: QUEUE_TEXT_FACTS,
+                        interactive: false, ellipsis: true,
+                      })}</span>
                     </>
                   )}
                 {queueMutable && <div className={css.actions}>
                   {editing?.id === row.id
                     ? (
                       <>
-                        <Tooltip label={t('queue.save')} side="bottom" delayMs={500}>
+                        <Tooltip portal label={t('queue.save')} side="bottom" delayMs={500}>
                           <button
                             type="button"
                             className={css.action}
@@ -248,10 +246,10 @@ export function QueueDock({ useSession, updateQueue, notify, loadImage, t }: Que
                             disabled={busy !== null || editing.text.trim() === ''}
                             onClick={() => { void saveEdit() }}
                           >
-                            <IconCheckOutline16 size={14} />
+                            <IconCheckOutlineRegular size={14} />
                           </button>
                         </Tooltip>
-                        <Tooltip label={t('queue.cancelEdit')} side="bottom" delayMs={500}>
+                        <Tooltip portal label={t('queue.cancelEdit')} side="bottom" delayMs={500}>
                           <button
                             type="button"
                             className={css.action}
@@ -259,30 +257,30 @@ export function QueueDock({ useSession, updateQueue, notify, loadImage, t }: Que
                             disabled={busy !== null}
                             onClick={() => { setEditing(null) }}
                           >
-                            <IconCloseOutline16 size={14} />
+                            <IconCloseOutlineRegular size={14} />
                           </button>
                         </Tooltip>
                       </>
                     )
                     : (
                       <>
-                        <Tooltip label={t('queue.edit')} side="bottom" delayMs={500} disabled={row.text === null}>
+                        <Tooltip portal label={t('queue.edit')} side="bottom" delayMs={500} disabled={text === null}>
                           <button
                             type="button"
                             className={css.action}
                             aria-label={t('queue.edit')}
                             // Disabled buttons fire no hover events, so the
                             // unsupported hint stays a native title.
-                            title={row.text === null ? t('queue.edit.unsupported') : undefined}
-                            disabled={busy !== null || row.text === null}
+                            title={text === null ? t('queue.edit.unsupported') : undefined}
+                            disabled={busy !== null || text === null}
                             onClick={() => {
-                              if (row.text !== null) setEditing({ id: row.id, text: row.text })
+                              if (text !== null) setEditing({ id: row.id, text: text })
                             }}
                           >
-                            <IconEditOutline16 size={14} />
+                            <IconEditOutlineRegular size={14} />
                           </button>
                         </Tooltip>
-                        <Tooltip label={t('queue.remove')} side="bottom" delayMs={500}>
+                        <Tooltip portal label={t('queue.remove')} side="bottom" delayMs={500}>
                           <button
                             type="button"
                             className={css.action}
@@ -296,10 +294,10 @@ export function QueueDock({ useSession, updateQueue, notify, loadImage, t }: Que
                               )
                             }}
                           >
-                            <IconTrashOutline16 size={14} />
+                            <IconTrashOutlineRegular size={14} />
                           </button>
                         </Tooltip>
-                        <Tooltip label={t('queue.steer')} side="bottom" delayMs={500} disabled={!running}>
+                        <Tooltip portal label={t('queue.steer')} side="bottom" delayMs={500} disabled={!running}>
                           <button
                             type="button"
                             className={css.action}
@@ -314,7 +312,7 @@ export function QueueDock({ useSession, updateQueue, notify, loadImage, t }: Que
                               )
                             }}
                           >
-                            <IconSendOutline14 />
+                            <IconSendOutlineRegular />
                           </button>
                         </Tooltip>
                       </>
@@ -326,7 +324,7 @@ export function QueueDock({ useSession, updateQueue, notify, loadImage, t }: Que
           {listVisible && pendingQueue.map((submission) => {
             return (
               <li key={submission.requestId} className={`${css.row} ${css.pendingRow}`} data-submission-echo="">
-                {rowCount === 1 && <span className={css.lead} aria-hidden><IconQueueOutline14 /></span>}
+                {rowCount === 1 && <span className={css.lead} aria-hidden><IconQueueOutlineRegular /></span>}
                 {submission.attachments.length > 0 && (
                   <span className={css.attachments}>
                     {submission.attachments.map((attachment, index) => attachment.type === 'image'
@@ -347,7 +345,11 @@ export function QueueDock({ useSession, updateQueue, notify, loadImage, t }: Que
                       ))}
                   </span>
                 )}
-                <span className={css.preview}>{projectUserText(submission.text, [])}</span>
+                <span className={css.preview}>{renderFactorySlot('conversation.user.text', {
+                  text: submission.text,
+                  facts: QUEUE_TEXT_FACTS,
+                  interactive: false, ellipsis: true,
+                })}</span>
                 <span className={css.status} role="status">{t('queue.sending')}</span>
                 {queueMutable && <div className={css.actions}>
                   <button
@@ -357,7 +359,7 @@ export function QueueDock({ useSession, updateQueue, notify, loadImage, t }: Que
                     title={t('queue.sending')}
                     disabled
                   >
-                    <IconEditOutline16 size={14} />
+                    <IconEditOutlineRegular size={14} />
                   </button>
                   <button
                     type="button"
@@ -366,7 +368,7 @@ export function QueueDock({ useSession, updateQueue, notify, loadImage, t }: Que
                     title={t('queue.sending')}
                     disabled
                   >
-                    <IconTrashOutline16 size={14} />
+                    <IconTrashOutlineRegular size={14} />
                   </button>
                   <button
                     type="button"
@@ -375,7 +377,7 @@ export function QueueDock({ useSession, updateQueue, notify, loadImage, t }: Que
                     title={t('queue.sending')}
                     disabled
                   >
-                    <IconSendOutline14 />
+                    <IconSendOutlineRegular />
                   </button>
                 </div>}
               </li>
@@ -390,40 +392,24 @@ export function QueueDock({ useSession, updateQueue, notify, loadImage, t }: Que
 /** Registers queue actions backed by the session-scoped conversation service. */
 export const queueDockEntry = {
   name: 'conversation-queue-dock',
-  inject: ['slots', 'conversation', 'sessions', 'uiConversation', 'remote'],
+  inject: ['slots', 'conversation', 'sessions', 'uiConversation'],
   apply(ctx: Context): void {
-    const controlCapability: HostObservable<boolean> = {
-      getSnapshot: () => ctx.remote.$host.capabilities?.includes('session.control.v1') === true,
-      subscribe: listener => ctx.on('connection/reset', listener),
-    }
     ctx.slots.inject('conversation.input.dock', () => ctx.slots.register({
       name: 'conversation.input.dock',
       id: 'queue',
       order: 20,
       locale: NS,
-      inject: (sessionId: SessionId): QueueDockInjected & { hooks: { controlCapability: HostObservable<boolean> } } => {
+      inject: (sessionId: SessionId): QueueDockInjected => {
         const actx = ctx.sessions.scope(sessionId)
         if (actx === undefined) throw new Error(`queue dock: session "${sessionId}" resolved no scope`)
         const conversation = actx.get('conversation')
         if (conversation === undefined) throw new Error('queue dock: conversation service unavailable')
         return {
-          hooks: { controlCapability },
           updateQueue: (itemId, action) => conversation.updateQueue(itemId, action),
           notify: (level, text) => { conversation.input.for(actx).notify(level, text) },
           loadImage: attachment => ctx.uiConversation.imageUrl(sessionId, attachment),
         }
       },
-    }, ControlAwareQueueDock))
+    }, QueueDock))
   },
-}
-
-
-/**
- * Hide old-generation queue controls while the Host does not advertise them.
- * @param props - queue data and renderer-bound capability hook.
- * @returns the queue dock only for an admitted control-capable Host.
- */
-export function ControlAwareQueueDock({ useControlCapability, ...props }:
-  QueueDockProps & InjectFace<{ hooks: { controlCapability: HostObservable<boolean> } }>) {
-  return useControlCapability(value => value) ? <QueueDock {...props} /> : null
 }

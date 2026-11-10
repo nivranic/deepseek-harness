@@ -56,7 +56,6 @@ async function bench(options: { recordResult?: unknown; recordCarrier?: unknown 
     },
   }
   class RemoteService extends Service {
-    readonly $host = { home: undefined, platform: undefined, isLoopback: true, capabilities: ['feedback.message.read.v1', 'feedback.message.put.v1', 'feedback.message.delete.v1', 'feedback.session.record.v1'] }
     constructor(serviceCtx: Context) {
       super(serviceCtx, 'remote')
     }
@@ -68,7 +67,6 @@ async function bench(options: { recordResult?: unknown; recordCarrier?: unknown 
       return carried(options.recordResult ?? { ok: true as const, value: { recorded: true as const } })
     },
   }
-  ctx.provide('connection', { generation: { getSnapshot: () => undefined, subscribe: () => () => {} } })
   new RemoteService(ctx)
   ctx.provide('remote.messageFeedback', messageFeedback)
   ctx.provide('remote.sessionFeedback', sessionFeedback)
@@ -164,6 +162,20 @@ describe('ui-message-feedback browser plugin', () => {
     expect(dialog.hooks.dialog.getSnapshot().target).toEqual({ kind: 'session' })
 
     expect(b.dialogEntry()!.inject!(sid('s2')).hooks.dialog.getSnapshot()).toMatchObject({ target: null, toast: 0 })
+  })
+
+  it('opens the shared Session dialog through feedbackUi without recording anything', async () => {
+    const b = await bench()
+    await b.fiber.await()
+    const dialog = b.dialogEntry()!.inject!(sid('s1'))
+    b.ctx.feedbackUi.openSession(sid('s1'))
+    expect(dialog.hooks.dialog.getSnapshot().target).toEqual({ kind: 'session' })
+    expect(b.dialogEntry()!.inject!(sid('s2')).hooks.dialog.getSnapshot().target).toBeNull()
+    expect(b.calls).toEqual([])
+    dialog.dismiss()
+    expect(b.calls).toEqual([])
+    await b.fiber.dispose()
+    expect(b.ctx.get('feedbackUi')).toBeUndefined()
   })
 
   it('records a Session remark through the sessionFeedback Remote and a message judgment through put', async () => {

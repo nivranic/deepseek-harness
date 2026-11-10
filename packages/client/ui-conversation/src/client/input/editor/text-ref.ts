@@ -4,7 +4,7 @@ import type { EditorConfig, LexicalEditor, SerializedTextNode } from 'lexical'
 import { TextNode } from 'lexical'
 import { registerLexicalTextEntity } from '@lexical/text'
 import { mergeRegister } from '@lexical/utils'
-import { $getRoot } from 'lexical'
+import { $getRoot, HISTORY_MERGE_TAG } from 'lexical'
 import { scanTextRefs } from '../decorations.ts'
 import css from './composer-editor.module.css'
 
@@ -13,8 +13,6 @@ export type SerializedTextRefNode = SerializedTextNode
 
 /** One matched plain-text reference as a styled, fully editable text node. */
 export class TextRefNode extends TextNode {
-  /** Transient preview eligibility, excluded from serialized text. */
-  __openable = false
   /** Lexical node registry type tag. */
   static override getType(): string {
     return 'composer-text-ref'
@@ -26,9 +24,7 @@ export class TextRefNode extends TextNode {
    * @returns a copy carrying the same NodeKey.
    */
   static override clone(node: TextRefNode): TextRefNode {
-    const clone = new TextRefNode(node.__text, node.__key)
-    clone.__openable = node.__openable
-    return clone
+    return new TextRefNode(node.__text, node.__key)
   }
 
   /**
@@ -56,33 +52,10 @@ export class TextRefNode extends TextNode {
   /** Style the span the base TextNode mounts. */
   override createDOM(config: EditorConfig): HTMLElement {
     const el = super.createDOM(config)
-    el.className = clsx(el.className, css.reference, css.textRef, this.__openable && css.openable)
+    el.className = clsx(el.className, css.reference, css.textRef, this.getTextContent().startsWith('/') && css.openable)
     el.setAttribute('spellcheck', 'false')
     el.setAttribute('data-composer-text-ref', '')
-    el.toggleAttribute('data-reference-openable', this.__openable)
     return el
-  }
-
-  /**
-   * Set transient preview eligibility without changing serialized text.
-   * @param openable - current eligibility; unchanged values do not dirty the node.
-   */
-  setOpenable(openable: boolean): void {
-    if (this.getLatest().__openable !== openable) this.getWritable().__openable = openable
-  }
-
-  /**
-   * Update preview styling while preserving the base text node’s formatting.
-   * @param previous - last committed text node.
-   * @param element - existing editable span.
-   * @param config - editor text-format configuration.
-   * @returns whether the base text implementation requires a replacement element.
-   */
-  override updateDOM(previous: this, element: HTMLElement, config: EditorConfig): boolean {
-    const replace = super.updateDOM(previous, element, config)
-    element.classList.toggle(clsx(css.openable), this.__openable)
-    element.toggleAttribute('data-reference-openable', this.__openable)
-    return replace
   }
 
   /** Entity nodes never merge with plain siblings (the transform owns their bounds). */
@@ -97,28 +70,18 @@ export class TextRefNode extends TextNode {
 }
 
 /**
- * Register the plain-text reference entity transform. The claim decoration
- * has precedence on the leading-token seat: while a command claim holds, the
- * claimed token must stay a plain TextNode (transforms register per concrete
- * node class, so a TextRefNode would never receive the TextNode claim
- * transform and the warn color would be lost).
+ * Register the plain-text reference entity transform.
  * @param editor - the shell-owned editor.
  * @param lexiconOf - live per-trigger name-roll accessor (the controller's aggregated store).
- * @param activeToken - live claim token accessor; null while unclaimed.
  * @returns the unregister disposer.
  */
 export function registerTextRefDecoration(
   editor: LexicalEditor,
   lexiconOf: () => ReadonlyMap<'/' | '@', readonly string[]>,
-  activeToken: () => string | null,
 ): () => void {
   const getMatch = (text: string): { start: number; end: number } | null => {
-    const claim = activeToken()
-    for (const range of scanTextRefs(text, lexiconOf())) {
-      if (claim !== null && range.start === 0 && text.slice(range.start, range.end) === claim.trimEnd()) continue
-      return { start: range.start, end: range.end }
-    }
-    return null
+    const range = scanTextRefs(text, lexiconOf())[0]
+    return range === undefined ? null : { start: range.start, end: range.end }
   }
   return mergeRegister(
     ...registerLexicalTextEntity(
@@ -139,5 +102,5 @@ export function registerTextRefDecoration(
 export function rescanTextRefs(editor: LexicalEditor): void {
   editor.update(() => {
     for (const node of $getRoot().getAllTextNodes()) node.markDirty()
-  })
+  }, { tag: HISTORY_MERGE_TAG })
 }

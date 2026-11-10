@@ -8,8 +8,8 @@
 import type { Context } from '@deepseek-ai/cordis'
 import z from '@deepseek-ai/schemastery'
 import type { DatabaseSync } from 'node:sqlite'
-import { closeOwnedKvUnits, StorageError, UNIT_NAME_RE, storageBackendServiceKey } from '@deepseek-ai/dsh-storage'
-import type { KvFacet, KvUnit, KvUnitDescriptor, OwnedKvUnit, StorageBackend } from '@deepseek-ai/dsh-storage'
+import { StorageError, UNIT_NAME_RE, storageBackendServiceKey } from '@deepseek-ai/dsh-storage'
+import type { KvFacet, KvUnit, KvUnitDescriptor, StorageBackend } from '@deepseek-ai/dsh-storage'
 import { openDatabase, recordTableName, type JournalMode } from './schema.ts'
 import { SqliteKvUnit } from './unit.ts'
 
@@ -50,16 +50,19 @@ export const Config: z<Config> = z.object({
 /**
  * The SQLite {@link StorageBackend}. Owns one `DatabaseSync` connection and
  * the open-unit table; `kv.open` validates names, enforces the per-unit
- * version stamp in `units`, and ensures the unit's record tables.
+ * version stamp in `units`, and ensures the unit's record tables. A failed
+ * rollback makes all reads, writes, and opens reject the retained failure;
+ * close the backend and recreate it before further use.
  */
 export class SqliteStorageBackend implements StorageBackend {
   /** The key-value facet; the only shape this backend serves. */
-  readonly kv: KvFacet = { open: (descriptor, onBackendClose) => this.openUnit(descriptor, onBackendClose) }
+  readonly kv: KvFacet = { open: descriptor => this.openUnit(descriptor) }
 
   private readonly ready: Promise<DatabaseSync>
   /** Open (or still-opening) units by name; presence is the double-open guard. */
-  private readonly units = new Map<string, Promise<OwnedKvUnit>>()
+  private readonly units = new Map<string, Promise<SqliteKvUnit>>()
   private closing: Promise<void> | undefined
+  private failure: StorageError | undefined
 
   /**
    * @param config - Validated plugin configuration.
@@ -72,10 +75,11 @@ export class SqliteStorageBackend implements StorageBackend {
     this.ready.catch(() => {})
   }
 
-  private openUnit(descriptor: KvUnitDescriptor, onBackendClose?: () => Promise<void>): Promise<KvUnit> {
+  private openUnit(descriptor: KvUnitDescriptor): Promise<KvUnit> {
     if (this.closing !== undefined) {
       return Promise.reject(new StorageError('closed', 'sqlite storage backend is closed'))
     }
+    if (this.failure !== undefined) return Promise.reject(this.failure)
     if (!UNIT_NAME_RE.test(descriptor.name)) {
       return Promise.reject(new Error(`kv unit name '${descriptor.name}' violates ${UNIT_NAME_RE}`))
     }
@@ -89,26 +93,25 @@ export class SqliteStorageBackend implements StorageBackend {
     }
     // Reserve the name synchronously so a concurrent second open of the same
     // name rejects instead of racing past the guard during the awaits below.
-    const pending = this.materializeUnit(descriptor, onBackendClose)
+    const pending = this.materializeUnit(descriptor)
     this.units.set(descriptor.name, pending)
     pending.catch(() => this.units.delete(descriptor.name))
-    return pending.then(opened => opened.unit)
+    return pending
   }
 
-  private async materializeUnit(descriptor: KvUnitDescriptor, onBackendClose?: () => Promise<void>): Promise<OwnedKvUnit> {
+  private async materializeUnit(descriptor: KvUnitDescriptor): Promise<SqliteKvUnit> {
     const db = await this.ready
+    this.ensureUsable()
     const row = db.prepare('SELECT version FROM units WHERE name = ?').get(descriptor.name) as
       | { version: number }
       | undefined
-    if (row !== undefined && row.version !== descriptor.version) {
+    if (row === undefined) {
+      db.prepare('INSERT INTO units (name, version) VALUES (?, ?)').run(descriptor.name, descriptor.version)
+    } else if (row.version !== descriptor.version && !descriptor.compatibleVersions?.includes(row.version)) {
       throw new StorageError(
         'version-mismatch',
         `kv unit '${descriptor.name}' is stamped version ${row.version} on the medium, incompatible with descriptor version ${descriptor.version}`,
       )
-    }
-    if (this.closing !== undefined) throw new StorageError('closed', 'sqlite storage backend is closed')
-    if (row === undefined) {
-      db.prepare('INSERT INTO units (name, version) VALUES (?, ?)').run(descriptor.name, descriptor.version)
     }
     for (const table of descriptor.tables) {
       // Both segments passed UNIT_NAME_RE, so the identifier is safe in DDL.
@@ -119,10 +122,18 @@ export class SqliteStorageBackend implements StorageBackend {
         ) STRICT
       `)
     }
-    const unit = new SqliteKvUnit(db, descriptor, () => {
-      this.units.delete(descriptor.name)
-    })
-    return { unit, onBackendClose }
+    return new SqliteKvUnit(
+      db,
+      descriptor,
+      row?.version ?? descriptor.version,
+      () => { this.units.delete(descriptor.name) },
+      () => { this.ensureUsable() },
+      (error) => { this.failure = error },
+    )
+  }
+
+  private ensureUsable(): void {
+    if (this.failure !== undefined) throw this.failure
   }
 
   /**
@@ -144,8 +155,11 @@ export class SqliteStorageBackend implements StorageBackend {
       // every unit call, so there is nothing left to release here.
       return
     }
-    const opened = await Promise.allSettled(this.units.values())
-    await closeOwnedKvUnits(opened.flatMap(result => result.status === 'fulfilled' ? [result.value] : []), () => { db.close() })
+    for (const pending of [...this.units.values()]) {
+      const unit = await pending.catch(() => undefined)
+      await unit?.close()
+    }
+    db.close()
   }
 }
 

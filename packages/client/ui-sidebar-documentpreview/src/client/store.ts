@@ -17,8 +17,7 @@ import { defineStore, type EngineStoreHandle } from '@deepseek-ai/dsh-client-sto
 import type { TabId } from '@deepseek-ai/dsh-client-ui-dockkit'
 import type { WorkspaceFileText } from '@deepseek-ai/dsh-api-workspace-files/types'
 import type { DocumentFileBytes } from './rpc.ts'
-import type { DocumentLoadMode } from './contract/registry.ts'
-import { sniffDocument, type DocumentSignature } from './contract/sniff.ts'
+import type { DocumentLoadMode } from './document/registry.ts'
 
 /**
  * One page as the store keeps it: its text and the Host's line count, which
@@ -32,16 +31,18 @@ export interface TextPage {
 
 /** One tab's pages and view. */
 export interface TextTabState {
-  /** Header inspection is settled even when no supported signature matches. */
-  sniff?: { readonly status: 'pending' } | { readonly status: 'done'; readonly match: DocumentSignature | undefined }
+  autoRefresh: boolean
+  resourcesDirty: boolean
   /** Explicit viewer choice for this tab; absence follows automatic matching. */
   rendererId?: string
   /** Current display-loading mode; absent before the first read. */
   mode?: DocumentLoadMode
+  /** Implementation owning source loading; absent for ordinary file reads. */
+  contentRendererId?: string
+  /** Current content revision, incremented whenever loaded content is discarded. */
+  loadRevision: number
   /** Full byte result used by complete-file renderers. */
   complete?: DocumentFileBytes
-  /** A windowed transfer's progress; held across an interruption so the reader sees what resume keeps. */
-  transfer?: { readonly received: number; readonly size: number | undefined }
   /** The file version the loaded pages belong to; absent before the first page. */
   version: string | undefined
   /** Metadata version observed when this tab began its current read generation. */
@@ -73,6 +74,9 @@ export interface TextState {
  */
 export function fresh(): TextTabState {
   return {
+    autoRefresh: true,
+    resourcesDirty: false,
+    loadRevision: 0,
     version: undefined,
     observedVersion: undefined,
     pages: {},
@@ -92,15 +96,16 @@ function bucket(state: TextState, tabId: TabId): TextTabState {
 
 /** The preview store's write set; every action names the tab it writes. */
 type TextActions = {
-  sniffing: (draft: TextState, tabId: TabId) => void
-  sniffed: (draft: TextState, tabId: TabId, match: DocumentSignature | undefined) => void
+  toggledAutoRefresh: (draft: TextState, tabId: TabId) => void
+  resourceChanged: (draft: TextState, tabId: TabId) => void
   selected: (draft: TextState, tabId: TabId, rendererId: string | undefined) => void
-  loading: (draft: TextState, tabId: TabId, mode?: DocumentLoadMode, observedVersion?: string) => void
+  loading: (draft: TextState, tabId: TabId, mode?: DocumentLoadMode, observedVersion?: string, contentRendererId?: string) => void
+  rendered: (draft: TextState, tabId: TabId, revision: number, version: string) => void
+  rendererFailed: (draft: TextState, tabId: TabId, revision: number) => void
   complete: (draft: TextState, tabId: TabId, file: DocumentFileBytes) => void
-  transferProgress: (draft: TextState, tabId: TabId, received: number, size: number | undefined) => void
   page: (draft: TextState, tabId: TabId, page: WorkspaceFileText) => void
   failed: (draft: TextState, tabId: TabId, failure: RemoteFailure) => void
-  reset: (draft: TextState, tabId: TabId, keepSniff?: boolean) => void
+  reset: (draft: TextState, tabId: TabId) => void
   scrolled: (draft: TextState, tabId: TabId, scrollTop: number) => void
   toggledWrap: (draft: TextState, tabId: TabId) => void
   navigated: (draft: TextState, tabId: TabId, revision: number) => void
@@ -118,12 +123,11 @@ export function createTextStore(): EngineStoreHandle<TextState, TextActions> {
   return defineStore({
     init: (): TextState => ({ byTab: {} }),
     actions: {
-      /** @param d - draft. @param tabId - owning tab. */
-      sniffing: (d, tabId: TabId) => { bucket(d, tabId).sniff = { status: 'pending' } },
-      /** @param d - draft. @param tabId - owning tab. @param match - recognized header, if any. */
-      sniffed: (d, tabId: TabId, match: DocumentSignature | undefined) => {
-        bucket(d, tabId).sniff = { status: 'done', match }
+      toggledAutoRefresh: (d, tabId: TabId) => {
+        const state = bucket(d, tabId)
+        state.autoRefresh = !state.autoRefresh
       },
+      resourceChanged: (d, tabId: TabId) => { bucket(d, tabId).resourcesDirty = true },
       /** @param d - draft. @param tabId - owning tab. @param rendererId - manual choice, or automatic selection. */
       selected: (d, tabId: TabId, rendererId: string | undefined) => {
         if (rendererId === undefined) delete bucket(d, tabId).rendererId
@@ -135,37 +139,41 @@ export function createTextStore(): EngineStoreHandle<TextState, TextActions> {
        * @param tabId - the tab being drawn.
        * @param mode - selected renderer's loading mode.
        * @param observedVersion - metadata version at read start; later pages retain the initial observation.
+       * @param contentRendererId - implementation owning source loading.
        */
-      loading: (d, tabId: TabId, mode?: DocumentLoadMode, observedVersion?: string) => {
+      loading: (d, tabId: TabId, mode?: DocumentLoadMode, observedVersion?: string, contentRendererId?: string) => {
         const state = bucket(d, tabId)
         if (state.version === undefined && !state.loading) state.observedVersion = observedVersion
+        if (contentRendererId === undefined) delete state.contentRendererId
+        else state.contentRendererId = contentRendererId
         state.loading = true
         state.failure = undefined
-        delete state.transfer
         if (mode !== undefined) state.mode = mode
+      },
+      /**
+       * @param d - draft. @param tabId - owning tab.
+       * @param revision - active content revision. @param version - displayed source version.
+       */
+      rendered: (d, tabId: TabId, revision: number, version: string) => {
+        const state = d.byTab[tabId]
+        if (state?.mode !== 'renderer' || state.loadRevision !== revision) return
+        state.version = version
+        state.loading = false
+      },
+      /** @param d - draft. @param tabId - owning tab. @param revision - failed content revision. */
+      rendererFailed: (d, tabId: TabId, revision: number) => {
+        const state = d.byTab[tabId]
+        if (state?.mode !== 'renderer' || state.loadRevision !== revision) return
+        state.loading = false
       },
       /** @param d - draft. @param tabId - owning tab. @param file - complete byte result for this view. */
       complete: (d, tabId: TabId, file: DocumentFileBytes) => {
         const state = bucket(d, tabId)
         state.complete = file
-        if (state.sniff?.status === 'done') state.sniff = { status: 'done', match: sniffDocument(file.data) }
         state.version = file.version
         state.eof = true
         state.loading = false
         state.failure = undefined
-        delete state.transfer
-      },
-      /**
-       * Record one settled window of a windowed complete-byte transfer. The
-       * progress survives an interruption, so the failed state can say how much
-       * a resume keeps.
-       * @param d - draft state.
-       * @param tabId - the tab being drawn.
-       * @param received - bytes received across the whole attempt.
-       * @param size - the complete file size when the Host reports it.
-       */
-      transferProgress: (d, tabId: TabId, received: number, size: number | undefined) => {
-        bucket(d, tabId).transfer = { received, size }
       },
       /**
        * Keep one page. A page from a newer file version invalidates the pages
@@ -198,14 +206,13 @@ export function createTextStore(): EngineStoreHandle<TextState, TextActions> {
        * Drop every page, keeping the view, for a re-read from the first line.
        * @param d - draft state.
        * @param tabId - the tab being drawn.
-       * @param keepSniff - retain settled header selection when changing loading mode.
        */
-      reset: (d, tabId: TabId, keepSniff = false) => {
+      reset: (d, tabId: TabId) => {
         const state = bucket(d, tabId)
-        if (!keepSniff || state.sniff?.status === 'pending') delete state.sniff
+        state.resourcesDirty = false
+        state.loadRevision++
         state.pages = {}
         delete state.complete
-        delete state.transfer
         state.eof = false
         state.version = undefined
         state.observedVersion = undefined

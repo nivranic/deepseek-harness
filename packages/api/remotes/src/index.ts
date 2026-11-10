@@ -25,7 +25,8 @@ import type {} from '@deepseek-ai/dsh-cordis-host-runner/types'
 import type {} from '@deepseek-ai/dsh-credentials/types'
 import type {} from '@deepseek-ai/dsh-goal/types'
 import type {} from '@deepseek-ai/dsh-llm/types'
-import type {} from '@deepseek-ai/dsh-agent-presets/types'
+import type {} from '@deepseek-ai/dsh-agent-preset-registry/types'
+import type {} from '@deepseek-ai/dsh-permission-presets/types'
 import type {} from '@deepseek-ai/dsh-settings/types'
 import type {} from '@deepseek-ai/dsh-user-approval'
 import type {} from '@deepseek-ai/dsh-user-questions'
@@ -52,8 +53,9 @@ function remoteEventSource(ctx: Context): TypertRemoteEventSource {
     const disposers = API_REMOTE_FORWARDED_EVENTS.map((entry) => {
       const { event, mode } = entry
       if (mode === 'emit') {
+        const resources = 'resources' in entry ? entry.resources : undefined
         return ctx.on(event as never, ((...args: unknown[]) => {
-          queue.push({ event, args: assertJsonArgs(event, args) })
+          queue.push({ event, args: assertJsonArgs(event, args), ...resources === undefined ? {} : { resources } })
         }) as never)
       }
       return ctx.on(event as never, (function (

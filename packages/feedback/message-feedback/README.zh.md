@@ -66,8 +66,6 @@ Host 发现分别声明 `feedback.message.read.v1`、`feedback.message.put.v1` �
 | [`src/index.ts`](src/index.ts) | Remote 服务、payload 校验、事件投影与持久化所有权 |
 | [`src/types.ts`](src/types.ts) | 请求、结果和 Session 事件声明；仅类型 |
 
-不发布运行时不变式伴生入口：服务直接从校验后的权威事件推导反馈，不持有可独立修改的投影。
-
 各自的 API 见[反馈子系统](../../../docs/subsystems/feedback.zh.md)、[Session 持久化](../../../docs/subsystems/persistence.zh.md)和[浏览器消费方](../../client/ui-message-feedback/README.zh.md)。
 
 <a id="model-experience"></a>

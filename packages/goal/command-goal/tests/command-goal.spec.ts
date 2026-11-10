@@ -9,7 +9,7 @@ import type { GoalRef } from '@deepseek-ai/dsh-goal'
 import SessionStore, { Session, SessionId, type SessionEvent } from '@deepseek-ai/dsh-session'
 import SessionProjectionRegistry from '@deepseek-ai/dsh-session-projection'
 import * as commandGoal from '@deepseek-ai/dsh-command-goal'
-import { createInboxStub } from '@deepseek-ai/dsh-agent-loop-testkit'
+import { unsupportedModel, createInboxStub } from '@deepseek-ai/dsh-agent-loop-testkit'
 
 interface Harness {
   readonly ctx: Context
@@ -28,6 +28,7 @@ function stubAgent(ctx: Context, id: string): { agent: Agent; session: Session }
     id: session.id,
     options: {},
     session,
+    model: unsupportedModel(),
     inbox,
     ctx: new Context(),
     get status() { return status },
@@ -52,7 +53,7 @@ async function harness(): Promise<Harness> {
   await ctx.plugin(GoalService)
   const plugin = await ctx.plugin(commandGoal)
   const { agent, session } = stubAgent(ctx, `command-goal-${Math.random()}`)
-  ctx.agents.register(agent)
+  await ctx.agents.register(agent)
   return { ctx, agent, session, plugin }
 }
 
@@ -75,7 +76,8 @@ function domainEvents(session: Session): readonly SessionEvent[] {
 async function run(test: Harness, suffix = ''): Promise<NonNullable<Awaited<ReturnType<CommandRuntime['execute']>>>['result']> {
   const execution = await test.ctx.commands.execute(
     test.agent,
-    { line: `/goal${suffix}`, submittedAttachments: [] },
+    `/goal${suffix}`,
+    [],
     new AbortController().signal,
   )
   if (execution === undefined) throw new Error('goal command was not registered')
@@ -100,7 +102,6 @@ describe('@deepseek-ai/dsh-command-goal registration', () => {
       definitionId: '@deepseek-ai/dsh-command-goal',
       name: 'goal',
       description: 'Set or view the goal for a long-running task',
-      risk: 'moderate',
       input: { hint: '[<objective>|clear|edit <objective>|pause|resume]', attachments: true },
     })
     expect(test.ctx.commands.find(test.agent, 'goal')).toBeDefined()
@@ -281,7 +282,7 @@ describe('/goal attachments', () => {
       { type: 'image' as const, mediaType: 'image/png' as const, data: PNG, name: 'ref.png' },
       ...(includeFile ? [{ type: 'file' as const, receiptId: 'receipt-notes' }] : []),
     ]
-    const execution = await test.ctx.commands.execute(test.agent, { line: `/goal${suffix}`, submittedAttachments: attachments }, new AbortController().signal)
+    const execution = await test.ctx.commands.execute(test.agent, `/goal${suffix}`, attachments, new AbortController().signal)
     if (execution === undefined) throw new Error('goal command was not registered')
     return execution.result
   }

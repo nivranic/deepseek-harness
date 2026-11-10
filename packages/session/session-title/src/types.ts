@@ -17,7 +17,7 @@ import type { OptionalSessionSeq, SessionSeq } from '@deepseek-ai/dsh-session/ty
 export type SessionTitleProviderId = Branded<'SessionTitleProviderId'>
 
 /** Exact auxiliary model route that produced a title. */
-export interface SessionTitleModelProvenance {
+export interface SessionTitleModelIdentity {
   /** Registered LLM provider route. */
   readonly provider: string
   /** Provider model id. */
@@ -30,7 +30,7 @@ export type SessionTitleSource =
   | {
     readonly kind: 'provider'
     readonly provider: SessionTitleProviderId
-    readonly model?: SessionTitleModelProvenance
+    readonly model?: SessionTitleModelIdentity
   }
   | {
     /** Explicit user rename: pins the title — automatic generation stops scheduling. */
@@ -77,17 +77,7 @@ export interface TitleInputState {
 }
 
 declare module '@deepseek-ai/dsh-session-projection/types' {
-  interface SessionProjectionStateMap {
-    /** Durable title event seq, or null before the first title. */
-    titleRevision: number | null
-    /** Latest logged title text, or null. */
-    title: string | null
-    /** Eligible human title input. */
-    titleInput: TitleInputState
-  }
   interface SessionProjectionMap {
-    /** Durable title event seq for conditional renames; independent of the stream cursor. */
-    titleRevision: number | null
     /**
      * The session's current normalized title — the latest `session/title`
      * event's text (last-wins), or `null` before the first title lands. A

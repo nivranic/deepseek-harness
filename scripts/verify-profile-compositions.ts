@@ -1,10 +1,10 @@
 /** Check shipped profile layers using the launcher's parser and patch semantics. */
 
-import { globSync, readFileSync } from 'node:fs'
+import { readFileSync } from 'node:fs'
 import { resolve } from 'node:path'
 import ts from 'typescript'
 import { composeEntries, loadOverlayPatches } from '@deepseek-ai/dsh-app-boot'
-import { isCordisGroupEntry, loadCordisYaml } from './cordis-yaml.ts'
+import { isCordisGroupEntry } from './cordis-yaml.ts'
 
 const PROFILE_SOURCE = 'packages/boot/app-boot/src/profile.ts'
 const DESKTOP_SOURCE = 'apps/desktop/src/project-manager.ts'
@@ -73,38 +73,13 @@ function visitEntries(
   }
 }
 
-function presetPlaneErrors(repoRoot: string, label: string, entries: readonly unknown[]): string[] {
-  const hostIds = new Set<string>()
-  const hostPackages = new Set<string>()
-  visitEntries(entries, (entry, active) => {
-    if (!active) return
-    if (typeof entry.id === 'string' && typeof entry.name === 'string') hostIds.add(entry.id)
-    if (typeof entry.name === 'string') hostPackages.add(entry.name)
-  })
-  if (!hostPackages.has('@deepseek-ai/dsh-agent-presets')) return []
-  const files = globSync('packages/preset/agent-presets/presets/*/agent.cordis.yml', { cwd: repoRoot })
-    .map(file => file.replaceAll('\\', '/')).sort()
-  if (files.length === 0) return [`${label}: shipped preset roster is empty`]
-  return files.flatMap((file) => {
-    const preset = loadCordisYaml(readFileSync(resolve(repoRoot, file), 'utf8'))
-    if (!Array.isArray(preset)) throw new Error(`${file}: preset must be a Loader entry array`)
-    const repeated = new Set<string>()
-    visitEntries(preset, (entry, active) => {
-      if (active && typeof entry.id === 'string' && typeof entry.name === 'string' && hostIds.has(entry.id)) {
-        repeated.add(entry.id)
-      }
-    })
-    return [...repeated].map(id => `${label}: ${file}: row ${JSON.stringify(id)} is also active in the host composition; a row belongs to exactly one plane`)
-  })
-}
-
 /**
  * Check every declared CLI profile and the Desktop's core bundle list plus its private patch.
  * Expressions in plugin configuration remain unevaluated. Repeated row ids share one
  * Loader tree even across nested groups; ordinary plugin config arrays are not entry lists.
  * @param repoRoot - Source checkout containing the profile declarations and patches.
  * @param bundlePatches - Workspace package names mapped to their declared patch paths.
- * @returns Diagnostics for repeated ids, Host/preset overlap, or unreadable/missing layers.
+ * @returns Diagnostics for repeated ids or unreadable/missing layers.
  * @throws when a source roster is absent, empty, or no longer a statically readable declaration.
  */
 export function profileCompositionErrors(repoRoot: string, bundlePatches: ReadonlyMap<string, string>): string[] {
@@ -136,7 +111,7 @@ export function profileCompositionErrors(repoRoot: string, bundlePatches: Readon
           seen.add(row.id)
         }
       })
-      return [...problems, ...presetPlaneErrors(repoRoot, profile.label, entries)]
+      return problems
     } catch (error) {
       return [`${profile.label}: ${error instanceof Error ? error.message : String(error)}`]
     }

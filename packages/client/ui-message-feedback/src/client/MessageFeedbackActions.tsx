@@ -9,23 +9,27 @@
 
 import { useCallback, useEffect, useRef, useState } from 'react'
 import {
-  IconDislikeFill16, IconDislikeOutline16, IconLikeFill16, IconLikeOutline16, Tooltip,
+  IconDislikeFillRegular, IconDislikeOutlineRegular, IconLikeFillRegular, IconLikeOutlineRegular, Tooltip,
 } from '@deepseek-ai/dsh-client-ui-primitives'
 import type { MessageFeedbackRating } from '@deepseek-ai/dsh-message-feedback/types'
 import type { MessageFeedbackActionFailure } from './controller.ts'
 import type { MessageFeedbackActionProps } from './slots.ts'
-import type { FeedbackAccess } from './access.ts'
 import css from './MessageFeedbackActions.module.css'
 
 /**
- * One message's feedback controls.
- * @param props - the owner's message identity, the injected verbs, and the
- * shared feedback hook.
- * @returns the rating buttons with any failure notice beside them.
+ * One message's feedback controls, rendered only while the current Peer may
+ * record message feedback in this Session.
+ * @param props - the owner's message identity, the injected verbs, the
+ * shared feedback hook, and the Session access Hook.
+ * @returns the rating buttons with any failure notice beside them, or nothing without access.
  */
-export function MessageFeedbackActions({
-  messageId, ensure, current, retract, openDialog, useFeedback, t, access,
-}: Omit<MessageFeedbackActionProps, 'useFeedbackAccess'> & { access: FeedbackAccess }) {
+export function MessageFeedbackActions(props: MessageFeedbackActionProps) {
+  return props.useAccess('messageFeedback/put') ? <FeedbackRatingButtons {...props} /> : null
+}
+
+function FeedbackRatingButtons({
+  messageId, ensure, current, retract, openDialog, useFeedback, t,
+}: MessageFeedbackActionProps) {
   const item = useFeedback(view => view.items.get(messageId))
   const loadFailed = useFeedback(view => view.status === 'error')
   const rating = item?.rating
@@ -36,11 +40,10 @@ export function MessageFeedbackActions({
   // Session's feedback is read once on first hover/focus rather than on mount.
   const seeded = useRef(false)
   const seed = useCallback(() => {
-    if (!access.current()) return
     if (seeded.current) return
     seeded.current = true
     void ensure()
-  }, [access, ensure])
+  }, [ensure])
 
   const alive = useRef(true)
   useEffect(() => () => { alive.current = false }, [])
@@ -53,24 +56,22 @@ export function MessageFeedbackActions({
   // dialog and records only after submission. The decision waits for the
   // seeding read, so a click on a cold row still sees the stored judgment.
   const choose = useCallback((nextRating: MessageFeedbackRating) => {
-    if (!access.current()) return
     setPending(true)
     setFailure(null)
     void ensure().then((loaded) => {
-      if (!alive.current || !access.current()) return
+      if (!alive.current) return
       if (!loaded.ok || current(messageId)?.rating !== nextRating) {
         setPending(false)
-        if (access.put) openDialog(messageId, nextRating)
+        openDialog(messageId, nextRating)
         return
       }
-      if (!access.delete) { setPending(false); return }
       void retract(messageId, nextRating).then((result) => {
-        if (!alive.current || !access.current()) return
+        if (!alive.current) return
         setPending(false)
         if (!result.ok) setFailure(errorCopy(result))
       })
     })
-  }, [access, current, ensure, errorCopy, messageId, openDialog, retract])
+  }, [current, ensure, errorCopy, messageId, openDialog, retract])
 
   const onLike = useCallback(() => { choose('positive') }, [choose])
   const onDislike = useCallback(() => { choose('negative') }, [choose])
@@ -80,7 +81,7 @@ export function MessageFeedbackActions({
 
   return (
     <>
-      {(rating === 'positive' ? access.delete : access.put) && <Tooltip label={likeLabel} side="bottom">
+      <Tooltip label={likeLabel} side="bottom">
         <button
           type="button"
           className={css.action}
@@ -92,10 +93,10 @@ export function MessageFeedbackActions({
           onPointerEnter={seed}
           onClick={onLike}
         >
-          {rating === 'positive' ? <IconLikeFill16 /> : <IconLikeOutline16 />}
+          {rating === 'positive' ? <IconLikeFillRegular /> : <IconLikeOutlineRegular />}
         </button>
-      </Tooltip>}
-      {(rating === 'negative' ? access.delete : access.put) && <Tooltip label={dislikeLabel} side="bottom">
+      </Tooltip>
+      <Tooltip label={dislikeLabel} side="bottom">
         <button
           type="button"
           className={css.action}
@@ -107,11 +108,9 @@ export function MessageFeedbackActions({
           onPointerEnter={seed}
           onClick={onDislike}
         >
-          {rating === 'negative' ? <IconDislikeFill16 /> : <IconDislikeOutline16 />}
+          {rating === 'negative' ? <IconDislikeFillRegular /> : <IconDislikeOutlineRegular />}
         </button>
-      </Tooltip>}
-      {rating === 'positive' && !access.delete && <span role="img" aria-label={t('action.like')}><IconLikeFill16 /></span>}
-      {rating === 'negative' && !access.delete && <span role="img" aria-label={t('action.dislike')}><IconDislikeFill16 /></span>}
+      </Tooltip>
       {failure === null && loadFailed && (
         <span className={css.failure} role="status">{t('error.load')}</span>
       )}

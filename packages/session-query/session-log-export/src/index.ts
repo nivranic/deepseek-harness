@@ -1,4 +1,4 @@
-/** Session-log download command and Host-owned streaming route. */
+/** Session export command and Host-owned ZIP download and Markdown copy routes. */
 
 import type { Context } from '@deepseek-ai/cordis'
 import type { CommandDefinitionId } from '@deepseek-ai/dsh-commands/brand'
@@ -17,6 +17,8 @@ import {
   type SessionLogCompressionLevel,
   type SessionLogExportReady,
 } from './archive.ts'
+import { formatSessionMarkdown } from './markdown.ts'
+import { SESSION_LOG_EXPORT_PATH, SESSION_MARKDOWN_EXPORT_PATH } from './routes.ts'
 
 export {
   DEFAULT_SESSION_LOG_COMPRESSION_LEVEL,
@@ -24,7 +26,6 @@ export {
   readSessionLogText,
   serializeSessionLog,
   SESSION_LOG_FILENAME,
-  SESSION_LOG_ZIP_MTIME,
   sessionLogExportDeps,
   sessionLogZipEntries,
   sessionLogZipFilename,
@@ -36,12 +37,12 @@ export type {
   SessionLogExportReady,
   SessionLogZipEntry,
 } from './archive.ts'
+export { formatSessionMarkdown } from './markdown.ts'
 
 export const name = 'session-log-download'
 export const inject = ['commands', 'connection']
 
-/** Stable browser download path retained across the transport migration. */
-export const SESSION_LOG_EXPORT_PATH = '/api/session.export'
+export { SESSION_LOG_EXPORT_PATH } from './routes.ts'
 
 /** Session-log archive policy. */
 export interface Config {
@@ -72,8 +73,7 @@ const REQUESTED: CommandResult = {
 }
 
 /**
- * Register the Web-only `/export` command and the authenticated ZIP download
- * route, which serves deterministic archives with HTTP byte-range resume.
+ * Register the `/export` command and authenticated ZIP download and Markdown copy routes.
  * @param ctx - Host context carrying the human-command registry.
  * @param config - resolved compression policy.
  */
@@ -82,7 +82,6 @@ export function apply(ctx: Context, config: Config = {}): void {
     definitionId: brandString<CommandDefinitionId>('@deepseek-ai/dsh-session-log-export'),
     name: 'export',
     description: 'Download this Session log as a ZIP archive',
-    risk: 'moderate' as const,
     handler: invocation => Promise.resolve(invocation.rawInput.trim() === ''
       ? REQUESTED
       : { kind: 'error', text: 'The Web /export command does not accept a path.' }),
@@ -102,110 +101,73 @@ export function apply(ctx: Context, config: Config = {}): void {
       return new Response(null, { status: response.status, headers: response.headers })
     },
   })
+  connectionOf(ctx).fetch.register({
+    path: SESSION_MARKDOWN_EXPORT_PATH,
+    methods: ['GET', 'HEAD'],
+    requestBody: 'buffered',
+    fetch: async (request) => {
+      const response = await sessionMarkdownResponse(ctx, request)
+      if (request.method === 'GET') return response
+      await response.body?.cancel()
+      return new Response(null, { status: response.status, headers: response.headers })
+    },
+  })
 }
 
 function connectionOf(ctx: Context): SessionLogConnection {
   return Reflect.get(ctx, 'connection') as SessionLogConnection
 }
 
-/** Byte-range forms this route serves: `bytes=N-` and `bytes=N-M`, digits only. */
-const RANGE_REQUEST = /^bytes=(\d+)-(\d*)$/
-
-/** One satisfiable-looking `bytes=` range request. */
-interface ByteRangeRequest {
-  /** First byte position requested. */
-  readonly start: number
-  /** Last byte position requested; undefined when the client sent `N-`. */
-  readonly end: number | undefined
-}
-
 /**
- * Parse one Range header into the `bytes=N-`/`bytes=N-M` form this route
- * serves. Suffix ranges, multi-ranges, other units, and a last byte before
- * the first are not errors: HTTP requires ignoring such headers, and the
- * caller then serves the whole archive.
- * @param header - the raw Range header value.
- * @returns the parsed range, or undefined when the header is not one single
- * well-formed ascending byte range.
+ * Produce one complete Session transcript as Markdown from one Session
+ * observation. The read is a detached export observation through
+ * session-query's live-preferred corpus, so it creates no Agent, retains no
+ * Session, and writes no Session data. The formatter reads the latest title from
+ * the same event snapshot as the body. Abort is observed before and after the
+ * read; the corpus read itself has no cancellation parameter.
+ * @param ctx - host context carrying Connection and session-query.
+ * @param request - authenticated Fetch request with a required `sessionId` query.
+ * @returns the Markdown response, or a sanitized status for invalid, missing, or unavailable reads.
  */
-function parseRangeRequest(header: string): ByteRangeRequest | undefined {
-  const match = header.match(RANGE_REQUEST)
-  if (match === null) return undefined
-  const start = Number(match[1])
-  const end = match[2] === '' ? undefined : Number(match[2])
-  if (end !== undefined && end < start) return undefined
-  return { start, end }
-}
-
-/**
- * Measure one archive generation's total byte length.
- * @param ready - the mounted export services.
- * @param rootContent - the already-serialized root log.
- * @param sessionId - the root session id.
- * @param includeDescendants - whether to include every subagent descendant.
- * @param compressionLevel - the resolved DEFLATE level.
- * @param request - the driving request; aborts propagate, failures map to 500.
- * @returns the total bytes, or undefined when generation fails mid-archive.
- */
-async function measureArchiveBytes(
-  ready: SessionLogExportReady,
-  rootContent: string,
-  sessionId: SessionId,
-  includeDescendants: boolean,
-  compressionLevel: SessionLogCompressionLevel,
-  request: Request,
-): Promise<number | undefined> {
+async function sessionMarkdownResponse(ctx: Context, request: Request): Promise<Response> {
+  const sessionIdValue = new URL(request.url).searchParams.get('sessionId')
+  if (sessionIdValue === null || sessionIdValue.length === 0) {
+    return new Response('missing or invalid sessionId query parameter', { status: 400 })
+  }
+  const sessionQuery = ctx.get('sessionQuery')
+  if (sessionQuery === undefined) {
+    return new Response('session markdown export is unavailable: missing session-query service', { status: 500 })
+  }
+  const sessionId = brandString<SessionId>(sessionIdValue)
   try {
-    let totalBytes = 0
-    for await (const chunk of streamSessionLogZip(
-      ready, rootContent, sessionId, includeDescendants, compressionLevel, request.signal,
-    )) {
-      totalBytes += chunk.byteLength
-    }
-    return totalBytes
-  } catch {
     request.signal.throwIfAborted()
-    // A mid-archive failure (missing descendant log, attachment read error)
-    // maps to the caller's 500, which does not echo the error because it may
-    // carry absolute host paths into the browser error bar.
-    return undefined
+    const snapshot = await sessionQuery.readSession(sessionId)
+    request.signal.throwIfAborted()
+    const metadata = await ctx.get('sessionPersistence')?.stat(sessionId, { signal: request.signal })
+    request.signal.throwIfAborted()
+    return new Response(formatSessionMarkdown(snapshot.events, metadata?.location?.path), {
+      headers: { 'content-type': 'text/markdown; charset=utf-8' },
+    })
+  } catch (error: unknown) {
+    request.signal.throwIfAborted()
+    // Absence is session-query's decision: match its stable error code rather
+    // than adding a Host value dependency on the session-query error class.
+    if (isSessionNotFound(error)) return new Response('session not found', { status: 404 })
+    // Every other failure stays opaque: the message may carry absolute host
+    // paths into the browser toast.
+    return new Response('session markdown export failed to read the stored log', { status: 500 })
   }
 }
 
 /**
- * Re-emit a deterministic archive stream starting at `start` for `length`
- * bytes; source chunks past the range drain through without re-emission.
- * @param stream - the freshly generated archive stream.
- * @param start - first byte to emit.
- * @param length - how many bytes to emit.
- * @returns the sliced stream; it closes when the source archive ends.
+ * Identify the session-query "not found" failure by its stable machine code.
+ * @param error - an arbitrary rejection from the query service.
+ * @returns whether the error reports a missing Session.
  */
-function sliceByteRange(
-  stream: ReadableStream<Uint8Array>,
-  start: number,
-  length: number,
-): ReadableStream<Uint8Array> {
-  let skipped = 0
-  let emitted = 0
-  return stream.pipeThrough(new TransformStream<Uint8Array, Uint8Array>({
-    transform(chunk, controller) {
-      if (emitted >= length) return
-      let view = chunk
-      if (skipped < start) {
-        const toSkip = start - skipped
-        if (chunk.byteLength <= toSkip) {
-          skipped += chunk.byteLength
-          return
-        }
-        skipped = start
-        view = chunk.subarray(toSkip)
-      }
-      const room = length - emitted
-      if (view.byteLength > room) view = view.subarray(0, room)
-      emitted += view.byteLength
-      controller.enqueue(view)
-    },
-  }))
+function isSessionNotFound(error: unknown): boolean {
+  return error instanceof Error
+    && 'code' in error
+    && error.code === 'SESSION_QUERY_SESSION_NOT_FOUND'
 }
 
 async function sessionLogExportResponse(
@@ -252,64 +214,21 @@ async function sessionLogExportResponse(
   if (rootContent === undefined) {
     return new Response('session not found', { status: 404 })
   }
-  const includeDescendants = descendantsValue === 'true'
-  const headers = new Headers({
-    'content-type': 'application/zip',
-    'content-disposition': `attachment; filename="${sessionLogZipFilename(sessionId)}"`,
-    'accept-ranges': 'bytes',
-  })
-  // HEAD reports the archive's exact length without streaming a body. HTTP
-  // requires ignoring a Range header received with any method other than GET,
-  // so HEAD measures one generation and stops.
-  if (request.method === 'HEAD') {
-    const totalBytes = await measureArchiveBytes(
-      ready, rootContent, sessionId, includeDescendants, compressionLevel, request,
-    )
-    if (totalBytes === undefined) {
-      return new Response('session log export failed to read the stored log', { status: 500 })
-    }
-    headers.set('content-length', String(totalBytes))
-    return new Response(null, { status: 200, headers })
-  }
-  const rangeHeader = request.headers.get('range')
-  const range = rangeHeader === null ? undefined : parseRangeRequest(rangeHeader)
-  // A plain download streams one generation and carries no Content-Length:
-  // the archive's compressed size is unknown without generating it, and the
-  // browser download continues from a later 206's Content-Range anyway.
-  if (range === undefined) {
-    return new Response(
-      streamSessionLogZip(
-        ready, rootContent, sessionId, includeDescendants, compressionLevel, request.signal,
-      ),
-      { status: 200, headers },
-    )
-  }
-  // A range request needs the archive's total length before the first byte
-  // ships: the first streaming pass measures it, and the fixed entry mtime
-  // makes the second pass byte-identical, so the measured length describes
-  // the served bytes. Only resume requests pay the second generation.
-  const totalBytes = await measureArchiveBytes(
-    ready, rootContent, sessionId, includeDescendants, compressionLevel, request,
-  )
-  if (totalBytes === undefined) {
-    return new Response('session log export failed to read the stored log', { status: 500 })
-  }
-  if (range.start >= totalBytes) {
-    headers.set('content-range', `bytes */${totalBytes}`)
-    return new Response(null, { status: 416, headers })
-  }
-  const end = Math.min(range.end ?? (totalBytes - 1), totalBytes - 1)
-  const length = end - range.start + 1
-  headers.set('content-range', `bytes ${range.start}-${end}/${totalBytes}`)
-  headers.set('content-length', String(length))
-  return new Response(
-    sliceByteRange(
-      streamSessionLogZip(
-        ready, rootContent, sessionId, includeDescendants, compressionLevel, request.signal,
-      ),
-      range.start,
-      length,
+  const response = new Response(
+    streamSessionLogZip(
+      ready,
+      rootContent,
+      sessionId,
+      descendantsValue === 'true',
+      compressionLevel,
+      request.signal,
     ),
-    { status: 206, headers },
+    {
+      headers: {
+        'content-type': 'application/zip',
+        'content-disposition': `attachment; filename="${sessionLogZipFilename(sessionId)}"`,
+      },
+    },
   )
+  return response
 }

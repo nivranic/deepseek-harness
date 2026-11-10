@@ -1,6 +1,7 @@
 /** Wire messages for Gateway-owned Remote streams and event-result RPCs. */
 
 import type { Branded } from '@deepseek-ai/dsh-brand'
+import { isRemoteJsonValue } from '@deepseek-ai/dsh-typert-protocol'
 
 /** Exact WebSocket route carrying every Typert Remote stream. */
 export const REMOTE_STREAM_MUX_PATH = '/api/remote.mux'
@@ -23,34 +24,12 @@ export type RemoteEventClientId = Branded<'RemoteEventClientId'>
 /** Opaque correlation id for one pending Host-to-Client Remote Event. */
 export type RemoteEventId = Branded<'RemoteEventId'>
 
-/** Session identity projected by the application into the interaction wire record. */
-export type RemoteInteractionSessionId = Branded<'RemoteInteractionSessionId'>
-
-/** Application-owned identity and required response permission for one interaction. */
-export type RemoteInteractionOrigin = { readonly sessionId: RemoteInteractionSessionId } & RemoteInteractionPolicy
-
-/** Response operation required by the application's interaction kind. */
-export type RemoteInteractionPolicy = (
-  | { readonly type: 'approval'; readonly requiredPermission: 'approval.respond' }
-  | { readonly type: 'question'; readonly requiredPermission: 'question.respond' }
-)
-
-/** Host-owned record retained across Client generations; not a device authorization grant. */
-export type RemoteInteractionRecord = RemoteInteractionOrigin & {
-  readonly requestId: RemoteEventId
-  readonly createdAt: number
-  /** Host deadline timestamp when the deployment configures expiry for this kind. */
-  readonly expiresAt?: number
-  readonly status: 'pending' | 'resolved' | 'delegated' | 'cancelled' | 'expired'
-  readonly revision: number
-}
-
 /** Stable Host facts published with every established Client event generation. */
 export interface RemoteEventHostInfo {
   /** Host account home used only to abbreviate displayed filesystem paths. */
   readonly home: string
   /** Host Node.js platform value; the running-location surface shows it. */
-  readonly platform: string
+  readonly platform?: string
 }
 
 /** Opening item that binds later HTTP results to this active event stream. */
@@ -59,8 +38,6 @@ export interface RemoteEventReadyFrame {
   readonly clientId: RemoteEventClientId
   /** Stable Host facts attached to this connection generation. */
   readonly host: RemoteEventHostInfo
-  /** Protocol-2 pending interaction snapshot; absent Hosts do not support Client answer retention. */
-  readonly pendingInteractionIds?: readonly RemoteEventId[]
 }
 
 /** Opaque Agent identity carried by one scoped Remote Event. */
@@ -80,16 +57,12 @@ export interface RemoteEventInvocationFrame {
   readonly eventId: RemoteEventId
   readonly agentId: RemoteEventAgentId
   readonly request: Readonly<Record<string, unknown>>
-  /** Present on protocol-2 deliveries for application-declared interactions. */
-  readonly interaction?: RemoteInteractionRecord
 }
 
 /** Cancellation of a pending waterfall previously delivered under the same id. */
 export interface RemoteEventCancellationFrame {
   readonly type: 'cancel'
   readonly eventId: RemoteEventId
-  /** Terminal record supplied to protocol-2 interaction consumers. */
-  readonly interaction?: RemoteInteractionRecord
 }
 
 /** Every item carried by the Gateway-internal forwarded-event stream. */
@@ -117,8 +90,6 @@ export interface RemoteEventRejection {
 export interface RemoteEventResult {
   readonly clientId: RemoteEventClientId
   readonly eventId: RemoteEventId
-  /** Echo of the delivered interaction revision; required for protocol-2 interactions. */
-  readonly interactionRevision?: number
   readonly outcome:
     | { readonly kind: 'next' }
     | { readonly kind: 'result'; readonly value?: unknown }
@@ -132,24 +103,17 @@ export interface RemoteEventResult {
  */
 export function parseRemoteEventResult(value: unknown): RemoteEventResult {
   if (!isRecord(value)
-    || !hasOnlyKeys(value, ['clientId', 'eventId', 'outcome'], ['interactionRevision'])
+    || !exactKeys(value, ['clientId', 'eventId', 'outcome'])
     || !isRemoteEventClientId(value.clientId)
     || !isRemoteEventId(value.eventId)
-    || !isRecord(value.outcome)
-    || (Object.hasOwn(value, 'interactionRevision')
-      && (typeof value.interactionRevision !== 'number' || !Number.isSafeInteger(value.interactionRevision)
-        || value.interactionRevision < 1))) {
+    || !isRecord(value.outcome)) {
     throw new Error('api gateway: invalid Remote event result')
   }
   const outcome = value.outcome
-  const identity = {
-    clientId: value.clientId,
-    eventId: value.eventId,
-    ...(typeof value.interactionRevision === 'number' ? { interactionRevision: value.interactionRevision } : {}),
-  }
   if (outcome.kind === 'next' && exactKeys(outcome, ['kind'])) {
     return {
-      ...identity,
+      clientId: value.clientId,
+      eventId: value.eventId,
       outcome: { kind: 'next' },
     }
   }
@@ -157,7 +121,8 @@ export function parseRemoteEventResult(value: unknown): RemoteEventResult {
     && (exactKeys(outcome, ['kind']) || exactKeys(outcome, ['kind', 'value']))
     && (!Object.hasOwn(outcome, 'value') || isRemoteJsonValue(outcome.value))) {
     return {
-      ...identity,
+      clientId: value.clientId,
+      eventId: value.eventId,
       outcome: Object.hasOwn(outcome, 'value')
         ? { kind: 'result', value: outcome.value }
         : { kind: 'result' },
@@ -166,7 +131,8 @@ export function parseRemoteEventResult(value: unknown): RemoteEventResult {
   if (outcome.kind === 'rejected'
     && exactKeys(outcome, ['kind', 'error'])) {
     return {
-      ...identity,
+      clientId: value.clientId,
+      eventId: value.eventId,
       outcome: { kind: 'rejected', error: parseRemoteEventRejection(outcome.error) },
     }
   }
@@ -241,15 +207,6 @@ export function restoreRemoteEventRejection(rejection: RemoteEventRejection): Er
 }
 
 /**
- * Test whether a value crosses JSON transport without coercion or omission.
- * @param value - candidate boundary value.
- * @returns whether the value is losslessly JSON-compatible.
- */
-export function isRemoteJsonValue(value: unknown): boolean {
-  return visitJsonValue(value, new Set<object>())
-}
-
-/**
  * Recognize a non-empty Remote Event correlation id at a wire boundary.
  * @param value - untrusted wire value.
  * @returns whether the value is a valid Remote Event id.
@@ -276,7 +233,7 @@ export function isRemoteEventAgentId(value: unknown): value is RemoteEventAgentI
   return typeof value === 'string' && value.length > 0
 }
 
-/** One logical stream request sent from the browser. */
+/** One logical stream request sent from the browser: open, one uplink item, uplink half-close, or cancel. */
 export type RemoteStreamClientMessage =
   | {
     readonly type: 'open'
@@ -284,6 +241,8 @@ export type RemoteStreamClientMessage =
     readonly endpoint: string
     readonly payload: unknown
   }
+  | { readonly type: 'item'; readonly streamId: string; readonly value?: unknown }
+  | { readonly type: 'end'; readonly streamId: string }
   | { readonly type: 'cancel'; readonly streamId: string }
 
 /** Carrier-safe failure delivered by the Host. */
@@ -306,15 +265,23 @@ export type RemoteStreamServerMessage =
  */
 export function parseRemoteStreamClientMessage(text: string): RemoteStreamClientMessage {
   return parseMessage(text, (value) => {
-    if (value.type === 'cancel' && exactKeys(value, ['type', 'streamId']) && validId(value.streamId)) {
-      return value as unknown as RemoteStreamClientMessage
+    if ((value.type === 'cancel' || value.type === 'end')
+      && exactKeys(value, ['type', 'streamId'])
+      && validId(value.streamId)) {
+      return value as RemoteStreamClientMessage
+    }
+    if (value.type === 'item'
+      && (exactKeys(value, ['type', 'streamId']) || exactKeys(value, ['type', 'streamId', 'value']))
+      && validId(value.streamId)
+      && (!Object.hasOwn(value, 'value') || isRemoteJsonValue(value.value))) {
+      return value as RemoteStreamClientMessage
     }
     if (value.type === 'open'
       && exactKeys(value, ['type', 'streamId', 'endpoint', 'payload'])
       && validId(value.streamId)
       && typeof value.endpoint === 'string'
       && value.endpoint.length > 0) {
-      return value as unknown as RemoteStreamClientMessage
+      return value as RemoteStreamClientMessage
     }
     throw new Error('api gateway: invalid Remote stream client message')
   })
@@ -330,10 +297,10 @@ export function parseRemoteStreamServerMessage(text: string): RemoteStreamServer
     if (value.type === 'item'
       && (exactKeys(value, ['type', 'streamId']) || exactKeys(value, ['type', 'streamId', 'value']))
       && validId(value.streamId)) {
-      return value as unknown as RemoteStreamServerMessage
+      return value as RemoteStreamServerMessage
     }
     if (value.type === 'end' && exactKeys(value, ['type', 'streamId']) && validId(value.streamId)) {
-      return value as unknown as RemoteStreamServerMessage
+      return value as RemoteStreamServerMessage
     }
     if (value.type === 'error'
       && exactKeys(value, ['type', 'streamId', 'error'])
@@ -343,7 +310,7 @@ export function parseRemoteStreamServerMessage(text: string): RemoteStreamServer
       && typeof value.error.code === 'string'
       && typeof value.error.message === 'string'
       && isRecord(value.error.details)) {
-      return value as unknown as RemoteStreamServerMessage
+      return value as RemoteStreamServerMessage
     }
     throw new Error('api gateway: invalid Remote stream server message')
   })
@@ -413,62 +380,4 @@ function stringProperty(value: object | undefined, key: string): string | undefi
   if (value === undefined) return undefined
   const candidate: unknown = Reflect.get(value, key)
   return typeof candidate === 'string' ? candidate : undefined
-}
-
-function visitJsonValue(value: unknown, ancestors: Set<object>): boolean {
-  if (value === null || typeof value === 'string' || typeof value === 'boolean') return true
-  if (typeof value === 'number') return Number.isFinite(value) && !Object.is(value, -0)
-  if (typeof value !== 'object') return false
-  if (ancestors.has(value)) return false
-  ancestors.add(value)
-  try {
-    if (Array.isArray(value)) {
-      if (Object.getPrototypeOf(value) !== Array.prototype
-        || Reflect.ownKeys(value).length !== value.length + 1) return false
-      for (let index = 0; index < value.length; index++) {
-        if (!Object.hasOwn(value, index) || !visitJsonValue(value[index], ancestors)) return false
-      }
-      return true
-    }
-    const prototype: unknown = Object.getPrototypeOf(value)
-    if (prototype !== Object.prototype && prototype !== null) return false
-    for (const key of Reflect.ownKeys(value)) {
-      if (typeof key !== 'string') return false
-      const descriptor = Object.getOwnPropertyDescriptor(value, key)
-      if (descriptor?.enumerable !== true || !visitJsonValue(Reflect.get(value, key), ancestors)) return false
-    }
-    return true
-  } finally {
-    ancestors.delete(value)
-  }
-}
-
-/**
- * Validate a protocol-2 interaction record against its enclosing event identity and phase.
- * @param value - untrusted record received from the Host.
- * @param eventId - enclosing delivery identity.
- * @param pending - whether the enclosing frame opens rather than closes the interaction.
- * @returns the exact validated record without dropping fields.
- */
-export function parseRemoteInteractionRecord(
-  value: unknown,
-  eventId: RemoteEventId,
-  pending: boolean,
-): RemoteInteractionRecord {
-  if (!isRecord(value)
-    || !hasOnlyKeys(value, ['requestId', 'sessionId', 'type', 'createdAt', 'status', 'revision', 'requiredPermission'], ['expiresAt'])
-    || value.requestId !== eventId || typeof value.sessionId !== 'string' || value.sessionId.length === 0
-    || typeof value.createdAt !== 'number' || !Number.isSafeInteger(value.createdAt)
-    || value.createdAt < 0 || Object.is(value.createdAt, -0)
-    || (Object.hasOwn(value, 'expiresAt') && (typeof value.expiresAt !== 'number'
-      || !Number.isSafeInteger(value.expiresAt) || value.expiresAt <= value.createdAt))
-    || !((value.type === 'approval' && value.requiredPermission === 'approval.respond')
-      || (value.type === 'question' && value.requiredPermission === 'question.respond'))
-    || (pending ? value.status !== 'pending' || value.revision !== 1
-      : typeof value.status !== 'string'
-        || !['resolved', 'delegated', 'cancelled', 'expired'].includes(value.status) || value.revision !== 2)
-    || (value.status === 'expired' && !Object.hasOwn(value, 'expiresAt'))) {
-    throw new TypeError('api gateway: invalid interaction record')
-  }
-  return value as unknown as RemoteInteractionRecord
 }

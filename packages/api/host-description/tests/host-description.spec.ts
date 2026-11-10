@@ -3,6 +3,7 @@ import { tmpdir } from 'node:os'
 import { join } from 'node:path'
 import { afterEach, expect, it } from 'vitest'
 import { Context } from '@deepseek-ai/cordis'
+import { Peer } from '@deepseek-ai/dsh-client-connection'
 import { Remote, TypertRemoteService } from '@deepseek-ai/dsh-typert-protocol'
 import TypertRegistry from '@deepseek-ai/dsh-typert-registry'
 import TypertGateway from '@deepseek-ai/dsh-api-gateway'
@@ -52,7 +53,7 @@ it('returns stable identity and three independently owned version fields through
   expect(descriptor.arch).toBe(process.arch)
   expect(descriptor.serverTime).toBeGreaterThanOrEqual(before)
   expect(descriptor.serverTime).toBeLessThanOrEqual(Date.now())
-  await expect(ctx.typertGateway.invoke({ namespace: 'host', method: 'describe', args: {} }))
+  await expect(ctx.typertGateway.invoke({ peer: new Peer(ctx.root, { principal: { kind: 'owner' } }), namespace: 'host', method: 'describe', args: {} }))
     .resolves.toMatchObject({ hostId: descriptor.hostId, capabilities: ['host.describe.v1', 'host.negotiate.v1'] })
   const expected: unknown = JSON.parse(await readFile(new URL('./expected/host-description.json', import.meta.url), 'utf8'))
   expect({ ...descriptor, hostId: '<HostId>', productVersion: '<ProductVersion>', platform: '<Platform>', arch: '<Arch>', serverTime: 0 })
@@ -83,7 +84,7 @@ it('selects the highest shared protocol while retaining the legacy discovery vie
   expect(legacy.apiProtocolVersion).toBe(1)
   expect(legacy.supportedApiProtocolVersions).toEqual([2, 1])
   for (const offers of [[1, 2], [2, 1], [99, 2]]) {
-    await expect(ctx.typertGateway.invoke({ namespace: 'host', method: 'negotiate', args: { supportedApiProtocolVersions: offers } }))
+    await expect(ctx.typertGateway.invoke({ peer: new Peer(ctx.root, { principal: { kind: 'owner' } }), namespace: 'host', method: 'negotiate', args: { supportedApiProtocolVersions: offers } }))
       .resolves.toMatchObject({ hostId: legacy.hostId, apiProtocolVersion: 2 })
   }
   expect(ctx.hostDescription.negotiate([1]).apiProtocolVersion).toBe(1)

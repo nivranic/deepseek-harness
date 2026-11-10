@@ -1,24 +1,70 @@
 /** Strict per-session header/body content inserted into the resident conversation layout. */
 
-import { useEffect } from 'react'
+import { useLayoutEffect, useMemo, useRef, useState } from 'react'
 import clsx from 'clsx'
+import { Button, IconEllipsisOutlineRegular, Menu, Tooltip } from '@deepseek-ai/dsh-client-ui-primitives'
 import type { SessionListState, SessionSummary } from '@deepseek-ai/dsh-api-session-controller/client'
 import type { SessionId } from '@deepseek-ai/dsh-session/types'
-import type { ConnectionHostInfo, ConnectionState } from '@deepseek-ai/dsh-client-connection/client'
 import type {
-  ConversationSessionHeaderSlotProps, ConversationSessionSlotProps,
+  ConversationSessionHeaderSlotProps, ConversationSessionSlotProps, ConversationViewActionsOwnerProps,
 } from '../contract/slots.ts'
-import { conversationPhase } from '../contract/snapshot.ts'
 import { resolveActiveView } from '../view-selection.ts'
+import { FIXED_VIEW_ID } from '../view-pins.ts'
+import { DefaultConversationViews } from './DefaultConversationViews.tsx'
 import css from './ConversationRoot.module.css'
-import { permissionTierLabel } from './PermissionSelect.tsx'
-import { HeaderOverflowMenu, usePhoneTier } from './HeaderOverflowMenu.tsx'
 
 /** Full props composed from the strict session body contract. */
 export type ConversationSessionProps = ConversationSessionSlotProps
 
 /** Full props composed from the strict session header contract. */
 export type ConversationSessionHeaderProps = ConversationSessionHeaderSlotProps
+
+type ViewsMoreMenuProps =
+  Omit<ConversationViewActionsOwnerProps, 'onDismiss'>
+  & Pick<ConversationSessionHeaderSlotProps, 'renderSlot'>
+  & { readonly label: string; readonly current: boolean }
+
+/** The View tab row's More launcher; its menu rows come from `conversation.session.header.views.actions`. */
+function ViewsMoreMenu({ label, current, entries, onOpen, onPinnedChange, renderSlot }: ViewsMoreMenuProps) {
+  const [open, setOpen] = useState(false)
+  const onDismiss = (): void => { setOpen(false) }
+  return (
+    <Menu open={open} onClose={onDismiss} portal autoFocus className={css.viewsMoreAnchor} listClassName={css.viewsMoreMenu}
+      anchor={(
+        <Tooltip label={label} portal>
+          <Button size="sm" className={clsx(css.viewsMore, current && css.viewsMoreActive)} aria-label={label} aria-haspopup="menu" aria-expanded={open}
+            onClick={() => { setOpen(value => !value) }}>
+            <IconEllipsisOutlineRegular size={13} />
+          </Button>
+        </Tooltip>
+      )}>
+      {renderSlot('conversation.session.header.views.actions', { entries, onOpen, onPinnedChange, onDismiss })}
+    </Menu>
+  )
+}
+
+/** Approximate 13px text advance: full-width glyphs take one em, other glyphs about half. */
+const WIDE_GLYPH = /[\u1100-\u115F\u2E80-\uA4CF\uAC00-\uD7A3\uF900-\uFAFF\uFE30-\uFE4F\uFF00-\uFF60\uFFE0-\uFFE6]/u
+const WIDE_GLYPH_WIDTH = 13
+const NARROW_GLYPH_WIDTH = 7
+/** Mirrors the `.tabLabel` max-width in `ConversationRoot.module.css`. */
+const TAB_LABEL_MAX_WIDTH = 88
+
+/** Estimate whether a View tab label exceeds its 88px cell. */
+function labelNeedsTooltip(label: string): boolean {
+  let width = 0
+  for (const glyph of label) width += WIDE_GLYPH.test(glyph) ? WIDE_GLYPH_WIDTH : NARROW_GLYPH_WIDTH
+  return width > TAB_LABEL_MAX_WIDTH
+}
+
+/** One View tab label; its full-name tooltip is offered only when the text is expected to overflow. */
+function ViewTabLabel({ label }: { readonly label: string }) {
+  return (
+    <Tooltip label={label} portal disabled={!labelNeedsTooltip(label)}>
+      <span className={css.tabLabel}>{label}</span>
+    </Tooltip>
+  )
+}
 
 interface Breadcrumb {
   readonly id: SessionId
@@ -54,117 +100,75 @@ function equalBreadcrumbs(left: readonly Breadcrumb[], right: readonly Breadcrum
     })
 }
 
-/** Connection states that keep retrying; the chip dot marks them as transient. */
-const TRANSIENT_LOCATION_STATES: ReadonlySet<ConnectionState> = new Set(['connecting', 'authenticating', 'reconnecting'])
-
-/** Blocked states the dot flags until recovery or re-pairing intervenes. */
-const BLOCKED_LOCATION_STATES: ReadonlySet<ConnectionState> = new Set([
-  'offline', 'host-not-ready', 'auth-expired', 'device-revoked', 'identity-changed', 'incompatible', 'fatal',
-])
-
-/** Last path segment of a workspace location; blank when the path carries none. */
-function workspaceNameOf(cwd: string | undefined): string | undefined {
-  return cwd?.split(/[\\/]/u).filter(Boolean).at(-1)
-}
-
-/**
- * Section 29's lean running-location chip. Visible text stays Host, platform, workspace
- * name, permission tier, and any non-ready state word; the title additionally publishes
- * the runtime mode and the full workspace path so every location fact is reachable.
- * @param props - Host facts, workspace path, permission projection, online state, locale.
- * @returns the chip element, or nothing while no Host generation exists.
- */
-function RunningLocationChip({ host, workspacePath, permissions, connectionState, t }: {
-  host: ConnectionHostInfo
-  workspacePath: string | undefined
-  permissions: { readonly currentValue: string } | undefined
-  connectionState: ConnectionState | undefined
-  t: ConversationSessionHeaderProps['t']
-}) {
-  const workspaceName = workspaceNameOf(workspacePath)
-  const stateWord = connectionState !== undefined && connectionState !== 'ready'
-    ? t(`session.locationState.${connectionState}`)
-    : undefined
-  const visible = [
-    host.descriptor !== undefined
-      ? t('session.runningLocationNamed', { name: host.descriptor.displayName, platform: host.platform })
-      : t('session.runningLocation', { platform: host.platform }),
-    ...workspaceName !== undefined ? [workspaceName] : [],
-    ...permissions !== undefined ? [permissionTierLabel(permissions.currentValue, t)] : [],
-    ...stateWord !== undefined ? [stateWord] : [],
-  ].join(' · ')
-  const detail = [
-    visible,
-    ...host.descriptor !== undefined ? [t('session.runtimeMode.full')] : [],
-    ...workspacePath !== undefined ? [workspacePath] : [],
-  ].join(' · ')
-  const dot = connectionState !== undefined && BLOCKED_LOCATION_STATES.has(connectionState) ? css.headerHostDotBlocked
-    : connectionState !== undefined && TRANSIENT_LOCATION_STATES.has(connectionState) ? css.headerHostDotTransient
-      : css.headerHostDot
-  return (
-    <span className={css.headerHost} data-conversation-running-location="" title={detail}>
-      <span className={dot} aria-hidden="true" />
-      {visible}
-    </span>
-  )
-}
-
 /**
  * Renders Session header chrome above the resident conversation scrollport.
  * @param props - Strict Session store, view ledger, navigation, render, and locale shares.
- * @returns the hidden blank-session header or visible title and tabs.
+ * @returns Session navigation controls, with title and tabs after conversation starts.
  */
 export function ConversationSessionHeader({
-  sessionId, useSession, useSessions, useConversation, useConversationViews, useHostFacts, useConnectionState, useProjection, useStore,
-  renderSlot, open, selectView, t,
+  sessionId, hideChrome, useSessions, useConversationViews, useStore,
+  renderSlot, open, selectView, setPinned, t, useEntryPins, useEntryActions,
 }: ConversationSessionHeaderProps) {
   const tabs = useConversationViews(value => value)
   const selectedId = useStore(s => s.view)
   const active = resolveActiveView(tabs, selectedId)
   const ancestry = useSessions(s => deriveAncestry(s, sessionId), equalBreadcrumbs)
-  const session = useSession(s => s)
-  const conversation = useConversation(s => s)
-  const host = useHostFacts(value => value)
-  // Section 29 keeps the chip lean but publishes every location fact: the
-  // workspace rides the visible text, and runtime mode plus the full workspace
-  // path ride the title alongside the live online state.
-  const workspacePath = useSessions(s => s.byId[sessionId]?.cwd)
-  const connectionState = useConnectionState(value => value)
-  // Section 10's running-location chip carries the current permission tier;
-  // a permission-less Host or Draft leaves the chip as Host facts alone.
-  const permissions = useProjection('permissions')
-  const phoneTier = usePhoneTier()
-  const hideChrome = session.blank && conversationPhase(session, conversation) === 'blank'
-
+  const unpinned = useEntryPins(ids => ids)
+  const hasEntryActions = useEntryActions(registered => registered)
+  const showTabs = !hideChrome && tabs.length > 1
+  const tabRow = useRef<HTMLDivElement>(null)
+  const [visibleViewLimit, setVisibleViewLimit] = useState(1)
+  // Observe only the available row width; individual tabs are not measured.
+  useLayoutEffect(() => {
+    const row = tabRow.current
+    if (row === null || !hasEntryActions) return
+    const updateLimit = (): void => {
+      setVisibleViewLimit(Math.max(1, Math.floor((row.clientWidth - 48) / 120)))
+    }
+    updateLimit()
+    if (typeof ResizeObserver === 'undefined') return
+    const observer = new ResizeObserver(updateLimit)
+    observer.observe(row)
+    return () => { observer.disconnect() }
+  }, [showTabs, hasEntryActions])
+  const { visibleTabs, moreTabs } = useMemo(() => {
+    const preferred = [
+      ...tabs.filter(tab => tab.id === FIXED_VIEW_ID),
+      ...tabs.filter(tab => tab.id !== FIXED_VIEW_ID && !unpinned.includes(tab.id)),
+    ]
+    const visibleTabs = hasEntryActions ? preferred.slice(0, visibleViewLimit) : preferred
+    const visibleIds = new Set(visibleTabs.map(tab => tab.id))
+    return { visibleTabs, moreTabs: tabs.filter(tab => !visibleIds.has(tab.id)) }
+  }, [tabs, unpinned, hasEntryActions, visibleViewLimit])
+  const currentInMore = moreTabs.some(tab => tab.id === active?.id)
   return (
-    <header
-      className={clsx(css.header, hideChrome && css.headerHidden)}
-      aria-hidden={hideChrome || undefined}
-    >
-      {!hideChrome && (
-        <>
-          <div className={css.titleRow}>
-            <div className={css.headerLeading}>
-              {renderSlot('conversation.session.header.leading', {})}
-            </div>
+    <>
+      <div className={css.titleRow}>
+        {!hideChrome && (
+          <>
             <div className={css.titleCluster}>
               <nav className={css.crumbs} aria-label={t('session.hierarchy')}>
                 {ancestry.map((summary, index) => {
                   const last = index === ancestry.length - 1
-                  const title = (
-                    <button
-                      type="button"
-                      className={clsx(
-                        css.crumb,
-                        summary.subagent && css.crumbSubagent,
-                        last && css.crumbCurrent,
-                      )}
-                      disabled={last}
-                      onClick={() => { open(summary.id) }}
-                    >
-                      {summary.displayTitle}
-                    </button>
-                  )
+                  // The current crumb has no navigation, so it is plain text
+                  // rather than a disabled button: on darwin desktop a button
+                  // would subtract itself from the header's drag row (ui-web
+                  // base.css) and leave the title inert for dragging too.
+                  const title = last
+                    ? (
+                      <span className={clsx(css.crumb, summary.subagent && css.crumbSubagent, css.crumbCurrent)}>
+                        {summary.displayTitle}
+                      </span>
+                    )
+                    : (
+                      <button
+                        type="button"
+                        className={clsx(css.crumb, summary.subagent && css.crumbSubagent)}
+                        onClick={() => { open(summary.id) }}
+                      >
+                        {summary.displayTitle}
+                      </button>
+                    )
                   const lineage = last || summary.subagent
                   const lineageOwner = {
                     lineageSessionId: summary.id,
@@ -198,41 +202,52 @@ export function ConversationSessionHeader({
                 {ancestry.length === 0 && <span className={css.crumbCurrent}>{sessionId}</span>}
               </nav>
               <div className={css.headerActions}>
-                {!phoneTier && renderSlot('conversation.session.header.actions', {})}
+                {renderSlot('conversation.session.header.actions', {})}
               </div>
             </div>
             <div className={css.headerUtilities}>
-              {host !== undefined && <RunningLocationChip host={host} workspacePath={workspacePath}
-                permissions={permissions} connectionState={connectionState} t={t} />}
-              {phoneTier
-                ? <HeaderOverflowMenu t={t}
-                  actions={renderSlot('conversation.session.header.actions', {})}
-                  utilities={renderSlot('conversation.session.header.utilities', {})} />
-                : renderSlot('conversation.session.header.utilities', {})}
+              {renderSlot('conversation.session.header.utilities', {})}
             </div>
-            <div className={css.headerCorner} data-conversation-header-corner="">
-              {renderSlot('conversation.session.header.corner', {})}
-            </div>
+          </>
+        )}
+        <div className={css.headerCorner} data-conversation-header-corner="">
+          {renderSlot('conversation.session.header.corner', {})}
+        </div>
+      </div>
+      {showTabs && (
+        // data-conversation-tabs: marks the tab strip, which the window-chrome
+        // geometry and the browser coverage lane anchor on.
+        <div ref={tabRow} className={css.tabs}>
+          <div className={css.viewTabs} role="tablist" data-conversation-tabs="">
+            {visibleTabs.map(viewTab => (
+              <button
+                key={viewTab.id}
+                type="button"
+                role="tab"
+                aria-selected={viewTab.id === active?.id}
+                className={clsx(css.tab, viewTab.id === active?.id && css.tabActive)}
+                onClick={() => { selectView(viewTab.id) }}
+              >
+                <ViewTabLabel label={viewTab.label} />
+              </button>
+            ))}
           </div>
-          {tabs.length > 1 && (
-            <div className={css.tabs} role="tablist">
-              {tabs.map(viewTab => (
-                <button
-                  key={viewTab.id}
-                  type="button"
-                  role="tab"
-                  aria-selected={viewTab.id === active?.id}
-                  className={clsx(css.tab, viewTab.id === active?.id && css.tabActive)}
-                  onClick={() => { selectView(viewTab.id) }}
-                >
-                  {viewTab.label}
-                </button>
-              ))}
-            </div>
+          {hasEntryActions && (
+            <ViewsMoreMenu
+              label={t('session.moreViews')}
+              current={currentInMore}
+              entries={moreTabs.map(viewTab => ({
+                id: viewTab.id, label: viewTab.label,
+                pinned: !unpinned.includes(viewTab.id), active: viewTab.id === active?.id,
+              }))}
+              onOpen={selectView}
+              onPinnedChange={setPinned}
+              renderSlot={renderSlot}
+            />
           )}
-        </>
+        </div>
       )}
-    </header>
+    </>
   )
 }
 
@@ -242,39 +257,6 @@ export function ConversationSessionHeader({
  * @param props - Strict Session input/store, view ledger, and render shares.
  * @returns the active view area, or null while the Session remains blank.
  */
-export function ConversationSession({
-  useSession, useConversation, useConversationViews, useInput, inputActions, useStore, actions,
-  renderSlot, bindDraftMirror, openView, useHistoryAvailable, t,
-}: ConversationSessionProps) {
-  const tabs = useConversationViews(value => value)
-  const selectedId = useStore(s => s.view)
-  const active = resolveActiveView(tabs, selectedId)
-  const session = useSession(s => s)
-  const conversation = useConversation(s => s)
-  const historyAvailable = useHistoryAvailable(value => value)
-  const inputState = useInput(s => s)
-  const storedDraft = useStore(s => s.draft)
-  const viewRequest = useStore(s => s.viewRequest ?? null)
-
-  useEffect(() => {
-    if (inputState.draft === '' && storedDraft !== '') inputActions.setDraft(storedDraft)
-    const unmirror = bindDraftMirror(actions.setDraft)
-    return () => { unmirror() }
-    // Mount-only (deps pinned to inputActions): later store writes come from
-    // the machine mirror, not this seed effect.
-  }, [inputActions])
-
-  const blank = session.blank && conversationPhase(session, conversation) === 'blank'
-  if (historyAvailable && blank) return null
-  return (
-    <div className={css.viewArea}>
-      {!historyAvailable && <div role="status" className={css.historyUnavailable}>{t('session.historyUnavailable')}</div>}
-      {!blank && active !== undefined && renderSlot('conversation.view', {
-        historyAvailable,
-        viewRequest,
-        openView,
-        completeViewRequest: actions.completeViewRequest,
-      }, { only: active.id })}
-    </div>
-  )
+export function ConversationSession(props: ConversationSessionProps) {
+  return <DefaultConversationViews {...props} />
 }

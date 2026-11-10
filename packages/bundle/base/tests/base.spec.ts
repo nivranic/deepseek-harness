@@ -40,8 +40,7 @@ describe('dsh-base bundle', () => {
       sessionTelemetry: { __jsExpr: "process.env.DSH_TELEMETRY_CONSENT === '1'" },
     })
     expect(rows.find(row => row.id === 'hmr')).toMatchObject({
-      disabled: true,
-      config: { root: ['.'] },
+      config: { root: [] },
     })
     expect(rows.filter(row => row.id === 'subagent-codex')).toHaveLength(0)
     expect(rows.filter(row => row.id === 'subagent-claude-code')).toHaveLength(0)

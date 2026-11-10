@@ -12,11 +12,12 @@ import type { HostObservable } from '@deepseek-ai/dsh-client-ui-slots'
 import type { GoalActivation, GoalId } from '@deepseek-ai/dsh-goal/client'
 
 /**
- * Client failures for missing projected state, withdrawn authority, or a rejected transport request.
+ * The one failure the strip reports without a wire call: the session projects
+ * no goal, so no CAS ref exists to address a mutation to.
  */
 export interface GoalLocalFailure {
   readonly ok: false
-  readonly error: { readonly code: 'no-current-goal' | 'goal-context-changed' | 'goal-request-failed'; readonly message: string }
+  readonly error: { readonly code: 'no-current-goal'; readonly message: string }
 }
 
 /**
@@ -40,7 +41,6 @@ export interface GoalActivationSnapshot {
 export interface GoalActivationInjected {
   readonly hooks: {
     readonly goalActivation: HostObservable<GoalActivationSnapshot>
-    readonly goalAccess: HostObservable<GoalAccessSnapshot>
   }
 }
 
@@ -60,11 +60,4 @@ export interface GoalBarActions {
 }
 
 /** Injected business face of the GoalBar dock entry. */
-export type GoalBarInjected = GoalActivationInjected
-
-/** Current connection authority; replacing it resets Host-owned edit and pending state. */
-export interface GoalAccessSnapshot {
-  readonly generation: number
-  readonly readable: boolean
-  readonly actions: Partial<GoalBarActions>
-}
+export type GoalBarInjected = GoalBarActions & GoalActivationInjected

@@ -1,20 +1,23 @@
 // @vitest-environment jsdom
 /** Document extension registration and dispatch through the production Sidebar and Slot renderer. */
+import { byteResult } from './fixtures.client.ts'
+import { createSnapshotStore } from '@deepseek-ai/dsh-client-store'
 import { afterEach, beforeEach, describe, expect, it, vi } from 'vitest'
 import { act, fireEvent, screen, waitFor } from '@testing-library/react'
 import { SlotTestRuntime } from '@deepseek-ai/dsh-client-test-runtime'
 import { LocaleRuntime } from '@deepseek-ai/dsh-client-locale/client'
 import type { SessionId } from '@deepseek-ai/dsh-session/types'
-import type { ClientRemote } from '@deepseek-ai/dsh-api-gateway/client'
 import { absoluteFileAddress, sessionFileAddress } from '@deepseek-ai/dsh-util-workspace-path'
 import { apply as resourcesApply, inject as resourcesInject } from '@deepseek-ai/dsh-client-resources/src/client/index.ts'
 import { apply as sidebarApply, inject as sidebarInject } from '@deepseek-ai/dsh-client-ui-sidebar-right/src/client/index.ts'
 import { apply, inject } from '../src/client/index.ts'
-import type { DocumentPreviewProps } from '../src/client/contract/document.ts'
-import type { DocumentLoadMode } from '../src/client/contract/registry.ts'
+import type { DocumentPreviewProps } from '../src/client/document/contract.ts'
+import type { DocumentLoadMode } from '../src/client/document/registry.ts'
+import type { WorkspaceFilesReadRemote } from '../src/client/rpc.ts'
 import { PLAIN_BODY_ID } from '../src/client/text/index.ts'
 
 const SESSION = 'documents' as SessionId
+const SHORTCUT_CATALOG: readonly never[] = []
 let runtime: SlotTestRuntime | undefined
 let animations: PropertyDescriptor | undefined
 
@@ -33,10 +36,13 @@ afterEach(async () => {
   }
 })
 
-async function boot(inspectHeaders = false) {
+async function boot() {
   const rt = await SlotTestRuntime.create()
+  rt.ctx.provide('fileDrag', { actions: { prepare: async () => ({ start: () => true, release: () => {} }), reportFailure: () => {} }, read: () => undefined } satisfies import('@deepseek-ai/cordis').Context['fileDrag'])
   runtime = rt
-  rt.ctx.provide('layout', { openRightbar: vi.fn(), closeRightbar: vi.fn() } as never)
+  rt.ctx.provide('configForms', { developerTools: { enabled: createSnapshotStore(true) } } as never)
+  rt.ctx.provide('layout', { openRightbar: vi.fn(), closeRightbar: vi.fn(), panelInfo: rt.panelInfo } as never)
+  rt.ctx.provide('shortcuts', { register: () => () => {}, catalog: { getSnapshot: () => SHORTCUT_CATALOG, subscribe: () => () => {} } } as never)
   const locale = new LocaleRuntime(rt.ctx)
   rt.ctx.provide('locale', locale)
   rt.slots.installLocale(locale)
@@ -45,18 +51,14 @@ async function boot(inspectHeaders = false) {
     'conversation.session.header.corner': { kind: 'single', scope: 'session' },
   })
   await rt.sessions.add({ id: SESSION })
+  await rt.sessions.retainFor(rt.ctx, SESSION, { source: 'mainView' }).ready
   await rt.mount({ inject: [...resourcesInject], apply: resourcesApply })
-  const read = vi.fn<ClientRemote['workspaceFiles']['read']>().mockImplementation(async (_sessionId, _path, range) => ({
+  const read = vi.fn<WorkspaceFilesReadRemote['workspaceFiles']['read']>().mockImplementation(async (_sessionId, _path, range) => ({
     ok: true,
     value: { absolutePath: '/host/notes', version: 'v1', bytes: 18, offset: range.offset ?? 1, text: range.offset === 3 ? 'third' : 'first\nsecond', lines: range.offset === 3 ? 1 : 2, eof: range.offset === 3 },
   }))
-  const bytes = vi.fn<ClientRemote['workspaceFiles']['readAll']>().mockResolvedValue({
-    ok: true, value: { absolutePath: '/host/notes', version: 'v1', offset: 0, data: btoa('all'), bytes: 3, eof: true },
-  })
-  const readBytes = vi.fn<ClientRemote['workspaceFiles']['readBytes']>().mockImplementation(async () => bytes(SESSION, 'notes', new AbortController().signal))
-  const workspaceFiles = { read, readAll: bytes, readBytes }
-  rt.ctx.provide('remote', { workspaceFiles, $host: { capabilities: [...inspectHeaders ? ['workspace-files.read-bytes.v1'] : [], 'workspace-files.stat.v1', 'workspace-files.read-text.v1', 'workspace-files.read-all.v1', 'workspace-files.read-related.v1'] } } as never)
-  rt.ctx.provide('remote.workspaceFiles', workspaceFiles as never)
+  const bytes = vi.fn(async () => byteResult(new TextEncoder().encode('all')))
+  rt.remote.provideNamespaces({ workspaceFiles: { read, readBytes: bytes } })
   rt.ctx.effect(() => rt.ctx.resources.register({
     protocol: 'file',
     open: async function* (_address, { signal }) {
@@ -84,14 +86,14 @@ async function boot(inspectHeaders = false) {
             data-renderer={id} data-renderer-tab={tab.id}
             data-renderer-path={resource.value?.absolutePath} data-renderer-version={resource.value?.version}
           >
-            {props.content.kind === 'text' ? props.content.text : new TextDecoder().decode(props.content.data)}
+            {props.content.kind === 'text' ? props.content.text : props.content.kind === 'bytes' ? new TextDecoder().decode(props.content.data) : 'renderer'}
           </div>
         )
       },
     ))
     return () => { removeBody(); removeDefinition() }
   })
-  return { rt, view, open, register, read, bytes, readBytes }
+  return { rt, view, open, register, read, bytes }
 }
 
 describe('document extension seat', () => {
@@ -101,7 +103,9 @@ describe('document extension seat', () => {
       const h = await boot()
       act(() => { h.rt.ctx.sidebarRight.openResource(sessionFileAddress('address-session', path)) })
       await waitFor(() => { expect(h.view.container.querySelectorAll('[data-textpreview-line]')).toHaveLength(2) })
-      expect(h.read).toHaveBeenCalledExactlyOnceWith('address-session', path, { offset: 1 }, expect.any(AbortSignal))
+      expect(h.read.mock.calls).toEqual([
+        ['address-session', path, { offset: 1 }, expect.any(AbortSignal)],
+      ])
       expect(h.bytes).not.toHaveBeenCalled()
     },
   )
@@ -148,7 +152,7 @@ describe('document extension seat', () => {
     })
     const tab = h.view.container.querySelector('[data-renderer-tab]')?.getAttribute('data-renderer-tab')
     expect(h.read).not.toHaveBeenCalled()
-    expect(h.bytes).toHaveBeenCalledTimes(1)
+    expect(h.bytes).toHaveBeenCalledOnce()
     fireEvent.click(h.view.container.querySelector('[data-document-viewer-menu]')!)
     fireEvent.click(screen.getByRole('menuitem', { name: 'builtin-reader' }))
     await waitFor(() => { expect(h.view.container.querySelector('[data-renderer="builtin-reader"]')?.textContent).toBe('first\nsecond') })
@@ -170,87 +174,6 @@ describe('document extension seat', () => {
     })
     await act(async () => { await remove!() })
     await waitFor(() => { expect(h.view.container.querySelector('[data-document-markdown]')).not.toBeNull() })
-    expect(h.read).toHaveBeenCalledTimes(1)
+    expect(h.read).toHaveBeenCalledOnce()
   })
-})
-
-
-describe('unknown-extension content routing', () => {
-  it('selects an image from its header and keeps a manual text choice', async () => {
-    const h = await boot(true)
-    h.bytes.mockResolvedValue({ ok: true, value: { absolutePath: '/host/photo', version: 'v1', offset: 0, data: 'iVBORw0KGgo=', bytes: 8, eof: true } })
-    h.open('photo.unknown')
-    await waitFor(() => { expect(h.view.container.querySelector('[data-document-preview]')?.getAttribute('data-document-preview')).toContain('/image') })
-    expect(h.read).not.toHaveBeenCalled()
-    expect(h.readBytes).toHaveBeenCalledWith(SESSION, 'photo.unknown', { offset: 0, length: 64 }, expect.any(AbortSignal))
-    fireEvent.click(h.view.container.querySelector<HTMLButtonElement>('[data-document-viewer-menu]')!)
-    fireEvent.click(screen.getByRole('menuitem', { name: 'Plain text' }))
-    await waitFor(() => { expect(h.view.container.querySelectorAll('[data-textpreview-line]')).toHaveLength(2) })
-    expect(h.view.container.querySelector('[data-document-preview]')?.getAttribute('data-document-preview')).toBe(PLAIN_BODY_ID)
-    expect(h.readBytes).toHaveBeenCalledTimes(2)
-  })
-
-  it('falls back once for an unrecognized header', async () => {
-    const h = await boot(true)
-    h.open('notes.unknown')
-    await waitFor(() => { expect(h.view.container.querySelectorAll('[data-textpreview-line]')).toHaveLength(2) })
-    expect(h.readBytes).toHaveBeenCalledTimes(1)
-    expect(h.read).toHaveBeenCalledTimes(1)
-  })
-
-  it('does not inspect known extensions', async () => {
-    const h = await boot(true)
-    h.open('notes.md')
-    await waitFor(() => { expect(h.read).toHaveBeenCalled() })
-    expect(h.readBytes).not.toHaveBeenCalled()
-  })
-
-  it('rechecks an unknown header when the reader reloads', async () => {
-    const h = await boot(true)
-    h.open('notes.unknown')
-    await waitFor(() => { expect(h.view.container.querySelectorAll('[data-textpreview-line]')).toHaveLength(2) })
-    fireEvent.click(h.view.container.querySelector<HTMLButtonElement>('[data-textpreview-tool="reload"]')!)
-    await waitFor(() => { expect(h.read).toHaveBeenCalledTimes(2) })
-    expect(h.readBytes).toHaveBeenCalledTimes(2)
-  })
-})
-
-
-describe('header and complete-file disagreement', () => {
-  it('uses the complete-file signature when the file changes after inspection', async () => {
-    const h = await boot(true)
-    h.readBytes.mockImplementation(async (_session, _path, range) => ({
-      ok: true, value: { absolutePath: '/host/file', version: range.length === 64 ? 'v1' : 'v2', offset: 0,
-        data: range.length === 64 ? 'iVBORw0KGgo=' : 'UEsDBA==', bytes: 4, eof: true },
-    }))
-    h.open('archive.unknown')
-    await waitFor(() => { expect(h.view.container.querySelector('[data-document-preview]')?.getAttribute('data-document-preview')).toContain('/binary') })
-    expect(h.read).not.toHaveBeenCalled()
-    expect(h.readBytes).toHaveBeenCalledTimes(2)
-  })
-
-  it('falls back to text after a failed header read without retrying inspection', async () => {
-    const h = await boot(true)
-    h.readBytes.mockResolvedValue({ ok: false, error: {
-      name: 'RemoteError', isDSHRemoteError: true, code: 'gateway/internal', message: 'unavailable', details: {},
-    } })
-    h.open('notes.unknown')
-    await waitFor(() => { expect(h.view.container.querySelectorAll('[data-textpreview-line]')).toHaveLength(2) })
-    expect(h.readBytes).toHaveBeenCalledTimes(1)
-    expect(h.read).toHaveBeenCalledTimes(1)
-  })
-})
-
-
-it('retains a manually selected inferred image when reloading its bytes', async () => {
-  const h = await boot(true)
-  h.bytes.mockResolvedValue({ ok: true, value: { absolutePath: '/host/photo', version: 'v1', offset: 0, data: 'iVBORw0KGgo=', bytes: 8, eof: true } })
-  h.open('photo.unknown')
-  await waitFor(() => { expect(h.readBytes).toHaveBeenCalledTimes(2) })
-  fireEvent.click(h.view.container.querySelector<HTMLButtonElement>('[data-document-viewer-menu]')!)
-  fireEvent.click(screen.getByRole('menuitem', { name: 'Image' }))
-  fireEvent.click(h.view.container.querySelector<HTMLButtonElement>('[data-textpreview-tool="reload"]')!)
-  await waitFor(() => { expect(h.readBytes).toHaveBeenCalledTimes(3) })
-  expect(h.view.container.querySelector('[data-document-preview]')?.getAttribute('data-document-preview')).toContain('/image')
-  expect(h.read).not.toHaveBeenCalled()
 })

@@ -6,6 +6,7 @@ const unit = (close: () => Promise<void>): KvUnit => ({
   loadAll: async () => ({ tables: {}, global: null }),
   putRecord: async () => {},
   deleteRecord: async () => {},
+  deleteRecords: async () => {},
   setGlobal: async () => {},
   close,
 })

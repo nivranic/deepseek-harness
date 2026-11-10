@@ -50,13 +50,13 @@ class LoaderCompactionEngine extends CompactionEngine {
     _signal: AbortSignal,
     sourceCommandId?: Parameters<CompactionEngine['compactNow']>[2],
   ): Promise<CompactionResult | null> {
-    const provenance = {
+    const operationIds = {
       compactionId: RESULT.compactionId,
       ...sourceCommandId === undefined ? {} : { sourceCommandId },
     }
-    agent.session.append('compaction/start', { ...provenance, turn: null })
+    agent.session.append('compaction/start', { ...operationIds, turn: null })
     agent.session.append('compaction/summary', {
-      ...provenance,
+      ...operationIds,
       summary: RESULT.summary,
       shadowedRange: RESULT.shadowedRange,
       shadowedSeqs: RESULT.shadowedSeqs,
@@ -64,8 +64,8 @@ class LoaderCompactionEngine extends CompactionEngine {
       provider: 'loader-test',
       model: 'loader-test',
     })
-    agent.session.append('compaction/end', { ...provenance, turn: null })
-    return Promise.resolve({ ...RESULT, ...provenance })
+    agent.session.append('compaction/end', { ...operationIds, turn: null })
+    return Promise.resolve({ ...RESULT, ...operationIds })
   }
 }
 
@@ -123,9 +123,8 @@ describe('command-compact real Loader composition', () => {
       definitionId: '@deepseek-ai/dsh-command-compact',
       name: 'compact',
       description: 'Compact older conversation history',
-      risk: 'moderate',
     })
-    const execution = await context.commands.execute(agent, { line: '/compact', submittedAttachments: [] }, new AbortController().signal)
+    const execution = await context.commands.execute(agent, '/compact', [], new AbortController().signal)
     if (execution === undefined) throw new Error('Loader composition did not resolve /compact')
     expect(execution.result).toEqual({
       kind: 'success',

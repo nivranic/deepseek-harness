@@ -20,27 +20,25 @@ kind: "package-reference"
 - [已知限制与延期工作](#known-limitations-and-deferred-work)
 - [开发备注](#dev-note)
 
-来源可实现 `subscribeCandidates`，独立于名称词表通知发现结果失效。通知会取消旧查询并立即清空菜单候选和面包屑，随后重试去重预热，并在来源观察者处理完成后刷新已打开的菜单。程序化入口保持单一来源，销毁时释放订阅并取消排队刷新。
-
-延迟刷新使用既有菜单代次和最新触发范围。重新识别同一查询不会取消替代请求；更换查询或关闭菜单会取代排队中的工作。
-
 -----
 
 <a id="use-this-package"></a>
 ## 使用本包
 
-与 `ui-conversation` 一起挂载本插件；用户在光标处键入触发器时，菜单随即出现在输入浮层中。分组候选项渲染在标题行之下，或渲染在 source 附加在自己各行上的小节标题之下；pick 路由到 source，消费方表面应用其结果——斜杠命令打开其弹窗或执行，引用插入其行内 token。每一行显示图标、标题（候选项的 `label`，没有 label 时显示 `name`）、当标题不是 `name` 的另一种大小写写法时跟在标题后的 `name` 别名，以及右对齐的说明；查询同时匹配 name 与 label。
+与 `ui-conversation` 一起挂载本插件；用户在光标处键入触发器时，菜单随即出现在输入浮层中。分组候选项渲染在标题行之下，或渲染在 source 附加在自己各行上的小节标题之下；pick 路由到 source，消费方表面应用其结果——斜杠命令打开其弹窗或执行，引用插入其行内 token。菜单图标和导航箭头使用 `--dsw-alias-menu-icon` 文本色。每一行显示图标、标题（候选项的 `label`，没有 label 时显示 `name`）、当标题不是 `name` 的另一种大小写写法时跟在标题后的 `name` 别名，以及右对齐的说明；查询同时匹配 name 与 label。
 
 ### 键盘与鼠标
 
-菜单打开期间 composer 表面保持焦点：行在 mousedown 时完成 pick，高亮由 `aria-activedescendant` 承载，指针落在菜单与所在 composer 卡片之外即关闭菜单。空格与回车裁决按注册序轮询可选的 `matchSpace`／`matchEnter` 钩子；第一个非 undefined 的应答胜出，source 也可以拒绝它无法整体消费的提交。Tab 会作用于高亮补全项：声明 `drill: true` 的候选项以 `action: 'drill'` 进入 `onPick`，普通候选项则以 `action: 'pick'` 完成选定；没有高亮项时 Tab 原样放行，原生焦点遍历不受影响。可下钻行尾的 chevron 向指针用户提供同一个动词。实现可选 `header` 钩子的 source 还会在其分组上方发布面包屑：流水线在每次命中时用实时查询、以及该查询由下钻还是由键入产生这一事实重新询问它，点击面包屑经 `onPick` 以 `action: 'drill'` 回到该 source。
+菜单打开期间 composer 表面保持焦点：行在 mousedown 时完成 pick，高亮由 `aria-activedescendant` 承载，指针落在菜单与所在 composer 卡片之外即关闭菜单。从 launcher 按钮打开菜单时会先把键盘还给编辑器再开菜单，因此方向键在那里同样可用。空格与回车裁决按注册序轮询可选的 `matchSpace`／`matchEnter` 钩子；第一个非 undefined 的应答胜出，source 也可以拒绝它无法整体消费的提交。恢复持久化的命令 chip 时，`resolveClaim` 轮询可选的 `matchClaim` 钩子：它等待 source 自身预热完成，只应答 claim，从不打开弹窗、运行动作或执行命令。Tab 会作用于高亮补全项：声明 `drill: true` 的候选项以 `action: 'drill'` 进入 `onPick`，普通候选项则以 `action: 'pick'` 完成选定；没有高亮项时 Tab 原样放行，原生焦点遍历不受影响。Escape 与 Shift+Tab 则是离开菜单——它们从不选定，因此退出动作不会消耗或改写草稿。被关闭的菜单保持关闭：同一个 token 以同一查询重新 track 时菜单不会重开——因此指针关闭之后恢复光标、或已选定的命令关闭它自己打开的界面，都不会把菜单召回来；输入新的查询或移到另一个 token 才会重新武装。可下钻行尾的 chevron 向指针用户提供同一个动词。实现可选 `header` 钩子的 source 还会在其分组上方发布面包屑：流水线在每次命中时用实时查询、以及该查询由下钻还是由键入产生这一事实重新询问它，点击面包屑经 `onPick` 以 `action: 'drill'` 回到该 source。
 
-来源通过 `canOpenReference(session, reference)` 配合 `openReference` 提供预览，并可用 `subscribeReferenceAvailability` 发布查看器变化。可用性查询同步执行且不发起请求。控制器通过 `referenceAvailability` 发布来源、词表和查看器变化，打开前再次检查可用性。标签按来源名称路由，可编辑文本按当前词表路由。来源不可用或已释放时，保留编辑器原有的手势处理。
+来源可以实现 `openReference(session, reference)`，打开草稿引用而不提交。来源可以先接受预览请求，再异步加载目录。标签按来源名称路由；可编辑文本按来源当前的词表路由。返回 `false`、来源缺失或控制器已释放时，保留编辑器原有的手势处理。
 
 -----
 
 <a id="understand-the-implementation"></a>
 ## 理解实现
+
+菜单采用共享 `MenuSurface` 材质，包括用于背景模糊的 macOS 底层；自定义内容遵循[菜单规则](../../../docs/web-styling.zh.md#component-rules)。
 
 <details>
 <summary>实现细节——点击展开</summary>
@@ -59,7 +57,7 @@ kind: "package-reference"
 - [ui-commands](../ui-commands/README.zh.md)——把 `/` 命令 source 注册进本流水线并拥有命令弹窗外壳。
 - [ui-reference](../ui-reference/README.zh.md)——注册 `@` 文件与会话引用 source。
 - [ui-conversation](../ui-conversation/README.zh.md)——声明输入浮层 slot 并拥有 composer 与输入状态机。
-- [Web 客户端架构](../../../.agents/notes/implemented/architecture/2026-07-19-gui-web-client-architecture.zh.md)——浏览器插件行如何加载并注册 slot。
+- [Web 客户端架构](../../../docs/subsystems/web-client.zh.md)——浏览器插件行如何加载并注册 slot。
 
 -----
 
@@ -91,5 +89,3 @@ kind: "package-reference"
 无。
 
 </details>
-
-**运行时不变式：** 不发布伴生入口。触发流水线是浏览器侧纯内核（检测／归约／匹配）加一个注册表，其资源释放已由 HMR（热模块替换）安全性测试证明；它不发出 Cordis 事件，也不持有跨插件可变状态。

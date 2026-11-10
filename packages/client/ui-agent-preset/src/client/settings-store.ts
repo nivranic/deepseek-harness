@@ -7,37 +7,14 @@
  */
 
 import type { Context as ClientContext } from '@deepseek-ai/cordis'
+// Type-only: pulls the ctx.remote merge into this program.
+import type {} from '@deepseek-ai/dsh-api-remotes/client'
 import { createSnapshotStore, type SnapshotStore } from '@deepseek-ai/dsh-client-store'
-import type { SETTINGS_REMOTE_CAPABILITIES } from '@deepseek-ai/dsh-api-remotes/client'
-import type { AGENT_PRESET_REMOTE_CAPABILITIES } from '@deepseek-ai/dsh-agent-presets/capabilities'
-import type { AgentPresetRoster } from '@deepseek-ai/dsh-agent-presets/types'
+import type { AgentPresetRoster } from '@deepseek-ai/dsh-agent-preset-registry/types'
+import { isBuiltInPreset } from './locales.ts'
 
 /** The agent-preset settings namespace on the host wire. */
-export const AGENT_PRESET_SETTINGS_NS = 'agent-presets'
-
-/**
- * Read this preset surface's operation support from the admitted Host; this does not grant permission.
- * @param ctx - Client context with admitted Host facts.
- * @param capability - owner-declared operation set.
- * @returns whether this Host advertises the operation set.
- */
-export function hasHostCapability(
-  ctx: ClientContext,
-  capability: typeof AGENT_PRESET_REMOTE_CAPABILITIES[number]['id'] | typeof SETTINGS_REMOTE_CAPABILITIES[number]['id'],
-): boolean {
-  return ctx.remote.$host.capabilities?.includes(capability) === true
-}
-
-/** Write only the named agent-preset settings fields. */
-async function writeAgentPresetSettings(
-  ctx: ClientContext,
-  patch: { default?: string; modeSelectionEnabled?: boolean },
-): Promise<string | undefined> {
-  if (!hasHostCapability(ctx, 'agent-preset.catalog.v1')
-    || !hasHostCapability(ctx, 'settings.write.v1')) return undefined
-  const response = await ctx.remote.settings.update(AGENT_PRESET_SETTINGS_NS, patch, undefined)
-  return response.ok ? undefined : response.error.message
-}
+export const AGENT_PRESET_SETTINGS_NS = 'agent-preset-registry'
 
 /**
  * Persist one preset as the default for sessions created later.
@@ -47,38 +24,34 @@ async function writeAgentPresetSettings(
  * the host resolves at session creation.
  * @param ctx - the browser plugin context carrying the Remote namespaces.
  * @param id - the preset to make default.
- * @returns the failure message, or undefined after writing or skipping unavailable catalog or Settings write support.
+ * @param expectedRevision - optional fence for an automatic correction based on a previous settings read.
+ * @returns the failure message, or undefined once the write landed.
  */
-export function writeDefaultPreset(
+export async function writeDefaultPreset(
   ctx: ClientContext,
   id: string,
+  expectedRevision?: number,
 ): Promise<string | undefined> {
-  return writeAgentPresetSettings(ctx, { default: id })
-}
-
-/**
- * Persist whether new-session surfaces expose preset selection.
- * @param ctx - the browser plugin context carrying the Remote namespaces.
- * @param enabled - whether the picker should be exposed.
- * @returns the failure message, or undefined after writing or skipping unavailable catalog or Settings write support.
- */
-export function writeModeSelectionEnabled(
-  ctx: ClientContext,
-  enabled: boolean,
-): Promise<string | undefined> {
-  return writeAgentPresetSettings(ctx, { modeSelectionEnabled: enabled })
+  const response = await ctx.remote.settings.update(AGENT_PRESET_SETTINGS_NS, { selectedDefault: id }, expectedRevision)
+  return response.ok ? undefined : response.error.message
 }
 
 /** One selectable preset. */
 export interface AgentPresetOption {
   /** Preset id, written to Settings and the label's fallback. */
   id: string
-  /** Whether the preset ships with the deployment or was authored locally. */
-  trust: 'system' | 'user'
   /** Display name the preset published, absent when it published none. */
   name?: string
   /** One sentence on what the preset is for. */
   description?: string
+}
+
+/** Whether a shipped preset requires the Coding Tools preference.
+ * @param preset Roster entry; named custom overrides keep their own behavior.
+ * @returns True only for the built-in PTC and Minimal presets.
+ */
+export function requiresCodingTools(preset: AgentPresetOption | undefined): boolean {
+  return preset !== undefined && isBuiltInPreset(preset) && (preset.id === 'ptc' || preset.id === 'minimal')
 }
 
 /** One roster entry exactly as the host reports it. */
@@ -87,19 +60,20 @@ export type RosterPreset = AgentPresetRoster['presets'][number]
 /** The roster, or the message to show in its place. */
 export type RosterRead = { ok: true; value: AgentPresetRoster } | { ok: false; error: string }
 
-const EMPTY_ROSTER: AgentPresetRoster = { presets: [], authorable: false, modeSelectionEnabled: false }
+const EMPTY_ROSTER: AgentPresetRoster = { presets: [] }
 
 /**
- * Read the advertised catalog; absent support produces an empty roster without dispatch.
+ * Read the roster, turning a refusal into the message every surface shows.
  * @param ctx - the browser plugin context carrying the Remote namespaces.
  * @returns the roster, or the message to show in its place.
  */
 export async function readRoster(ctx: ClientContext): Promise<RosterRead> {
-  const host = ctx.remote.$host
-  if (!hasHostCapability(ctx, 'agent-preset.catalog.v1')) return { ok: true, value: EMPTY_ROSTER }
   const result = await ctx.remote.agentPresets.list()
-  if (ctx.remote.$host !== host) return { ok: true, value: EMPTY_ROSTER }
   if (result.ok) return { ok: true, value: result.value }
+  // Agent presets are optional: without that service every session uses the
+  // Host composition, so callers receive the same empty roster as a mounted
+  // service with no configured roots.
+  if (result.error.code === 'gateway/invocation-unavailable') return { ok: true, value: EMPTY_ROSTER }
   return { ok: false, error: result.error.message }
 }
 
@@ -143,11 +117,10 @@ export async function beginRosterRead<S extends { status: string; error: string 
  * @returns one option per selectable preset, in roster order.
  */
 export function presetOptions(
-  presets: readonly { id: string; trust: 'system' | 'user'; name?: string; description?: string; broken?: string }[],
+  presets: readonly { id: string; name?: string; description?: string; broken?: string }[],
 ): AgentPresetOption[] {
   return presets.filter(preset => preset.broken === undefined).map(preset => ({
     id: preset.id,
-    trust: preset.trust,
     ...preset.name === undefined ? {} : { name: preset.name },
     ...preset.description === undefined ? {} : { description: preset.description },
   }))
@@ -171,8 +144,6 @@ export class AgentPresetSettingsController {
   /** Roster snapshot the renderer subscribes to. */
   readonly store: SnapshotStore<AgentPresetSettingsState> = createSnapshotStore(INITIAL)
 
-  private loadGeneration = 0
-
   /**
    * @param ctx - the browser plugin context (the roster read).
    */
@@ -191,15 +162,9 @@ export class AgentPresetSettingsController {
    * @returns once the snapshot reflects the host.
    */
   async load(): Promise<void> {
-    const generation = ++this.loadGeneration
-    this.set({ status: 'loading', error: null })
-    const roster = await readRoster(this.ctx)
-    if (generation !== this.loadGeneration) return
-    if (!roster.ok) {
-      this.set({ status: 'error', error: roster.error })
-      return
-    }
-    const { presets } = roster.value
+    const roster = await beginRosterRead(this.ctx, this.store)
+    if (roster === undefined) return
+    const { presets } = roster
     if (presets.length === 0) {
       this.set({ status: 'unavailable', options: [] })
       return

@@ -13,13 +13,11 @@ export interface GoalActivationDeps {
   readonly projection: HostObservable<GoalProjection | null | undefined>
   /** Session snapshot; running flips trigger a fresh authoritative read. */
   readonly session: HostObservable<{ readonly running: boolean }>
-  /** Whether this generation advertises Goal reads. */
-  readonly canRead: () => boolean
-  /** Read the current live goal at call time. */
+  /** Read live activation after initial history; rejected reads leave the current snapshot unchanged. */
   readonly getGoal: () => Promise<RemoteResult<GoalView | undefined>>
   /** Subscribe to activation edges after the transport delivers them. */
   readonly subscribeActivation: (listener: (goal: GoalActivationChanged['goal']) => void) => () => void
-  /** Withdraw authority on generation loss and refresh on establishment. */
+  /** Refresh after a connection-generation reset. */
   readonly subscribeReset: (listener: () => void) => () => void
 }
 
@@ -57,13 +55,13 @@ export function createGoalActivationSource(deps: GoalActivationDeps): HostObserv
   }
 
   const startRead = (ref: GoalRef | undefined): void => {
-    if (ref === undefined || !deps.canRead()) return
+    if (ref === undefined) return
     const read = ++readEpoch
     const startedAtEvent = eventEpoch
     const startedAtProjection = projectionEpoch
     void deps.getGoal().then((result) => {
       if (read !== readEpoch || startedAtEvent !== eventEpoch || startedAtProjection !== projectionEpoch) return
-      if (!deps.canRead() || !result.ok) return
+      if (!result.ok) return
       const goal = result.value
       /* v8 ignore next 4 -- projection drive is the authoritative clear edge; an active projection with no live goal is transient. */
       if (goal === undefined) {
@@ -71,8 +69,8 @@ export function createGoalActivationSource(deps: GoalActivationDeps): HostObserv
         return
       }
       publish({ id: goal.id, revision: goal.revision, activation: goal.activation })
-    }, () => {
-      // A rejected transport read supplies no newer activation; withdrawal clears old authority.
+    }, (error: unknown) => {
+      console.warn('[ui-goal] goal activation read failed:', error)
     })
   }
 
@@ -93,7 +91,6 @@ export function createGoalActivationSource(deps: GoalActivationDeps): HostObserv
   const onActivation = (goal: GoalActivationChanged['goal']): void => {
     eventEpoch++
     readEpoch++
-    if (!deps.canRead()) return
     publish(goal === undefined
       ? {}
       : { id: goal.id, revision: goal.revision, activation: goal.activation })
@@ -109,9 +106,7 @@ export function createGoalActivationSource(deps: GoalActivationDeps): HostObserv
   const onReset = (): void => {
     eventEpoch++
     projectionEpoch++
-    readEpoch++
-    publish({})
-    refreshProjection()
+    startRead(activeRef(deps.projection.getSnapshot()))
   }
 
   const start = (): void => {
@@ -122,14 +117,13 @@ export function createGoalActivationSource(deps: GoalActivationDeps): HostObserv
       deps.subscribeReset(onReset),
     ]
     running = deps.session.getSnapshot().running
-    onReset()
+    refreshProjection()
   }
 
   const stop = (): void => {
     for (const dispose of disposers) dispose()
     disposers = []
     readEpoch++
-    snapshot = {}
   }
 
   return {

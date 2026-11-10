@@ -9,19 +9,19 @@
  * `rankByName`). A host/contribution name collision fails loud. Every
  * execute addresses the session's agent by sessionId — sessions are always
  * agent-backed.
+ * Catalog RPCs retain an existing Client Session through completion and
+ * wait for its initial history open to succeed before contacting the Host.
  */
 import { Service } from '@deepseek-ai/cordis'
 import type { Context } from '@deepseek-ai/cordis'
 // Type-only: pulls the ctx.remote merge and the forwarded-event key face
 // (`commands/change` rides the allowlist) into this program.
-import type { COMMAND_REMOTE_CAPABILITIES, RemoteHostFacts } from '@deepseek-ai/dsh-api-remotes/client'
-import type { ConnectionHandle } from '@deepseek-ai/dsh-client-connection/client'
+import type {} from '@deepseek-ai/dsh-api-remotes/client'
 import type { CommandResult } from '@deepseek-ai/dsh-commands/types'
-import type { CommandMutationId } from '@deepseek-ai/dsh-commands/brand'
-import { randomUUID } from '@deepseek-ai/dsh-util-crypto'
 import type { Context as ClientContext } from '@deepseek-ai/cordis'
-import type { ISessions } from '@deepseek-ai/dsh-api-session-controller/client'
+import type { ISessions, SessionBinding } from '@deepseek-ai/dsh-api-session-controller/client'
 import type { SessionId } from '@deepseek-ai/dsh-session/types'
+import { WeakMapWithValues } from '@deepseek-ai/dsh-util-values'
 import type { TranslateNS } from '@deepseek-ai/dsh-client-locale/client'
 import { rankByName } from '@deepseek-ai/dsh-client-ui-primitives'
 import type {
@@ -35,6 +35,13 @@ import { PopupSelectController } from './popup.ts'
 import { builtinRowFace, sectionRows } from './presentation.ts'
 import { claimToken } from './resolution.ts'
 import type { TokenSegment } from './popup.ts'
+
+declare module '@deepseek-ai/dsh-api-session-controller/client' {
+  interface SessionReferenceSourceMap {
+    /** A command-catalog fetch waiting for initial history and its RPC result. */
+    commandCatalog: unknown
+  }
+}
 
 declare module '@deepseek-ai/cordis' {
   interface Events {
@@ -58,46 +65,22 @@ function submittedCommandName(line: string): string {
   return (separator === -1 ? trimmed : trimmed.slice(0, separator)).slice(1)
 }
 
-/**
- * One session's last submission that returned no settled execution, kept so a
- * resubmission of the identical draft reuses its clientMutationId.
- */
-interface PendingSubmission {
-  /** Complete submitted line; one half of the draft identity. */
-  readonly line: string
-  /** Submitted attachments held by reference; the other half, compared item by item. */
-  readonly attachments: readonly SubmitAttachment[]
-  /** Retry identity carried by that submission. */
-  readonly id: CommandMutationId
-}
-
-/** Item-by-item attachment equality: image bytes compare as their base64 text. */
-function sameAttachments(left: readonly SubmitAttachment[], right: readonly SubmitAttachment[]): boolean {
-  return left.length === right.length && left.every((l, index) => {
-    const r = right[index]
-    if (r === undefined || l.type !== r.type) return false
-    if (l.type === 'file') return r.type === 'file' && l.receiptId === r.receiptId
-    return r.type === 'image' && l.mediaType === r.mediaType && l.data === r.data && l.name === r.name
-  })
-}
-
 /** Live mutable state in one holder (service methods run behind the caller-ctx tracker). */
 interface LiveState {
-  disposed: boolean
   readonly contributions: Map<string, CommandContribution>
   readonly decorations: Map<string, CommandDecoration>
-  readonly popups: Map<SessionId, PopupSelectController<ClientSessionContext>>
-  readonly pendingSubmissions: Map<SessionId, PendingSubmission>
+  readonly popups: WeakMapWithValues<SessionBinding, PopupSelectController<ClientSessionContext>>
 }
 
 /** Command surface: session-keyed directory + '/' source + contribution registry + per-session popups. */
 export class CommandUiRuntime extends Service implements CommandUiContract {
-  static inject = ['inputTriggers', 'sessions', 'remote', 'remote.commands', 'connection']
+  static inject = ['inputTriggers', 'sessions', 'remote', 'remote.commands']
 
   private readonly directory: CommandDirectory
-  private readonly candidateHosts = new WeakMap<InputTriggerCandidate, RemoteHostFacts>()
   private readonly live: LiveState = {
-    disposed: false, contributions: new Map(), decorations: new Map(), popups: new Map(), pendingSubmissions: new Map(),
+    contributions: new Map(),
+    decorations: new Map(),
+    popups: new WeakMapWithValues(),
   }
   /** `command`-namespace translator (composer refusal notices). */
   private readonly t: TranslateNS<'command'>
@@ -112,23 +95,30 @@ export class CommandUiRuntime extends Service implements CommandUiContract {
     if (locale === undefined) throw new Error('ui-commands: locale service unavailable')
     this.t = locale.bind('command')
     this.directory = new CommandDirectory(async (sessionId) => {
-      if (!this.supports('command.catalog.v1') || this.sessions().subagentAddress(sessionId) !== undefined) return []
-      const host = ctx.remote.$host
-      const result = await ctx.remote.commands.list(sessionId)
-      if (!this.current(host)) return []
-      if (!result.ok) throw result.error
-      return result.value
+      const sessions = this.sessions()
+      if (sessions.subagentAddress(sessionId) !== undefined) return []
+      if (sessions.binding(sessionId) === undefined) {
+        throw new Error(`command catalog requires a retained session "${sessionId}"`)
+      }
+      return sessions.using(sessionId, { source: 'commandCatalog' }, async (reference) => {
+        const state = reference.binding.session.getSnapshot()
+        if (state.openState !== 'open') {
+          throw state.openError ?? new Error(`session "${sessionId}" is not open`)
+        }
+        const result = await ctx.remote.commands.list(sessionId)
+        if (!result.ok) throw new Error(`command.list failed: ${result.error.code}: ${result.error.message}`)
+        return result.value
+      })
     })
-    const connection = ctx.get('connection') as ConnectionHandle
     const inputTriggers = ctx.get('inputTriggers')
     if (inputTriggers === undefined) throw new Error('ui-commands: slash service unavailable')
     ctx.effect(() => inputTriggers.registerSource({
       trigger: '/',
       name: 'command',
-      subscribeCandidates: (_session, listener) => connection.generation.subscribe(listener),
       candidates: (session, req) => this.candidates(session, req),
       onPick: pick => this.dispatch(pick),
       matchSpace: (session, token) => this.matchSpace(session, token),
+      matchClaim: (session, token, signal) => this.matchClaim(session, token, signal),
       matchEnter: (session, line, signal, envelope) => this.matchEnter(session, line, signal, envelope),
       warm: (session) => { this.directory.warm(session.sessionId) },
     }), 'command: slash source')
@@ -137,15 +127,7 @@ export class CommandUiRuntime extends Service implements CommandUiContract {
     // registers nothing globally. Drop that key's old composition before
     // prewarming so a newly opened menu waits for the replacement catalog.
     ctx.remote.$on('agent-preset/selected', (sessionId) => { this.directory.resetSession(sessionId) })
-    ctx.effect(() => connection.generation.subscribe(() => {
-      for (const popup of this.live.popups.values()) popup.dismiss({ focusComposer: false })
-      this.directory.resetConnected()
-    }), 'command: generation withdrawal')
-    ctx.effect(() => () => {
-      this.live.disposed = true
-      this.directory.dispose()
-      for (const popup of this.live.popups.values()) popup.dismiss({ focusComposer: false })
-    }, 'command: disposal')
+    ctx.on('connection/reset', () => { this.directory.resetConnected() })
   }
 
   /**
@@ -185,51 +167,53 @@ export class CommandUiRuntime extends Service implements CommandUiContract {
   }
 
   /**
+   * Close every open popup for a command whose options have become stale.
+   * Pending loads and confirmations lose their binding; drafts stay intact.
+   * @param name - command name without the leading slash.
+   */
+  dismiss(name: string): void {
+    for (const popup of this.live.popups.values) {
+      // A catalog that went stale underneath the card takes its rows away; the
+      // composer keeps the keyboard the card was holding, like every other
+      // dismissal path.
+      if (popup.state.getSnapshot().command === name) popup.dismiss({ focusComposer: true })
+    }
+  }
+
+  /**
    * Resolve the per-session popup controller (lazy; dies with the session
    * scope). The controller's consume callback dispatches the scoped
    * consume-token event back to this session; focusComposer reaches the
-   * composer through the overlay slot currency.
+   * session's composer through the conversation input face.
    * @param actx - session-scope ctx.
    * @returns the resident controller.
+   * @throws when the Context no longer belongs to a retained Session generation.
    */
   popupFor(actx: ClientContext): PopupSelectController<ClientSessionContext> {
     const sessions = this.sessions()
-    const id = sessions.scopeOf(actx)
-    if (id === undefined) throw new Error('command.popupFor requires a session scope')
+    const session = sessions.sessionOf(actx)
+    const binding = session === undefined ? undefined : sessions.binding(session.sessionId)
+    if (binding === undefined || binding.session !== session) {
+      throw new Error('command.popupFor requires a retained Session scope')
+    }
     const { popups } = this.live
-    const existing = popups.get(id)
+    const existing = popups.get(binding)
     if (existing !== undefined) return existing
     const controller = new PopupSelectController<ClientSessionContext>({
-      consume: segment => actx.bail(actx, 'slash/input-consume-token', {
+      consume: segment => binding.ctx.bail(binding.ctx, 'slash/input-consume-token', {
         guard: segment.via === 'menu'
           ? { kind: 'span', span: segment.span }
           : { kind: 'bare-token', token: segment.token },
       }) === true,
-      focusComposer: () => { this.focusHooks.get(id)?.() },
+      // The shell took the keyboard; the composer restores it, caret included.
+      focusComposer: () => { binding.ctx.get('conversation')?.input.for(binding.ctx).focus() },
     })
-    popups.set(id, controller)
-    actx.effect(() => () => {
+    popups.set(binding, controller)
+    binding.ctx.effect(() => () => {
       controller.dispose()
-      popups.delete(id)
-      this.focusHooks.delete(id)
+      popups.delete(binding)
     }, 'command: session popup')
     return controller
-  }
-
-  /** Composer focus hooks by session (the overlay wiring binds the textarea focus here). */
-  private readonly focusHooks = new Map<SessionId, () => void>()
-
-  /**
-   * Bind one session's composer-focus hook (overlay slot wiring; unbind on unmount).
-   * @param id - session id.
-   * @param focus - textarea focus callback.
-   * @returns the unbind disposer.
-   */
-  bindComposerFocus(id: SessionId, focus: () => void): () => void {
-    this.focusHooks.set(id, focus)
-    return () => {
-      if (this.focusHooks.get(id) === focus) this.focusHooks.delete(id)
-    }
   }
 
   /**
@@ -238,16 +222,7 @@ export class CommandUiRuntime extends Service implements CommandUiContract {
    * shared name-and-label ranking for a typed one.
    */
   private async candidates(session: ClientSessionContext, req: CandidateRequest): Promise<readonly InputTriggerCandidate[]> {
-    const host = this.ctx.remote.$host
-    let list: readonly CommandDescriptor[]
-    try {
-      list = await this.directory.ensureReady(session.sessionId, req.signal)
-    } catch (error) {
-      if (!this.current(host) || req.signal.aborted) return []
-      throw error
-    }
-    if (!this.current(host) || req.signal.aborted) return []
-    if (!this.supports('command.execute.v1')) list = []
+    const list = await this.directory.ensureReady(session.sessionId, req.signal)
     const rows: InputTriggerCandidate[] = []
     const seen = new Set<string>()
     for (const c of list) {
@@ -255,8 +230,6 @@ export class CommandUiRuntime extends Service implements CommandUiContract {
       rows.push({
         name: c.name,
         ...(builtinRowFace(c, this.t) ?? { description: c.description }),
-        // Specification §37: the Host owns the tier, the client only displays it.
-        tag: this.t(`risk.${c.risk}`),
         ...(c.input !== undefined ? { hint: c.input.hint } : {}),
       })
     }
@@ -273,22 +246,17 @@ export class CommandUiRuntime extends Service implements CommandUiContract {
       })
     }
     const visible = rows.filter(c => req.position === 'leading' || c.hint === undefined)
-    const result = req.query === '' ? sectionRows(visible, this.t) : rankByName(visible, req.query)
-    for (const row of result) if (seen.has(row.name)) this.candidateHosts.set(row, host)
-    return result
+    return req.query === '' ? sectionRows(visible, this.t) : rankByName(visible, req.query)
   }
 
   /** Decision table, menu column: contribution/decorated-host → popup or action; host input → claim; host bare → detached execute. */
   private dispatch(pick: InputTriggerPick): PickOutcome {
-    const origin = this.candidateHosts.get(pick.candidate)
-    if (origin !== undefined && !this.current(origin)) return undefined
     const name = pick.candidate.name
     const contribution = this.live.contributions.get(name)
     if (contribution !== undefined && contribution.available(pick.session)) {
       this.invoke(name, contribution.ui, pick.session, { via: 'menu', span: pick.span })
       return 'handled'
     }
-    if (!this.supports('command.execute.v1')) return undefined
     const desc = this.directory.resolve(pick.session.sessionId, name)
     if (desc === undefined) return undefined // snapshot swapped between menu and pick → miss
     // A decoration replaces the HOST row's bare invocation with its popup or
@@ -309,11 +277,27 @@ export class CommandUiRuntime extends Service implements CommandUiContract {
 
   /** Decision table, space column: hot-key sync check; only host leadingInput claims. */
   private matchSpace(session: ClientSessionContext, token: string): PickOutcome {
-    if (!token.startsWith('/') || !this.supports('command.execute.v1')) return undefined
-    if (this.live.contributions.has(token.slice(1))) return undefined // popup and action kinds never claim on space
+    const claim = this.claimOf(session, token)
+    return claim === undefined ? undefined : { claim }
+  }
+
+  /**
+   * Restore column: the space column's answer once the session's catalog is
+   * ready (a warmup failure rejects). It only resolves; nothing is invoked or
+   * executed.
+   */
+  private async matchClaim(session: ClientSessionContext, token: string, signal: AbortSignal): Promise<CommandClaim | undefined> {
+    await this.directory.ensureReady(session.sessionId, signal)
+    return this.claimOf(session, token)
+  }
+
+  /** The host leadingInput claim a token names in the hot catalog; popup and action kinds never claim. */
+  private claimOf(session: ClientSessionContext, token: string): CommandClaim | undefined {
+    if (!token.startsWith('/')) return undefined
+    if (this.live.contributions.has(token.slice(1))) return undefined
     const desc = this.directory.resolve(session.sessionId, token.slice(1))
     if (desc === undefined || desc.input === undefined) return undefined
-    return { claim: this.leadingClaim(desc, session, token.slice(1)) }
+    return this.leadingClaim(desc, session, token.slice(1))
   }
 
   /**
@@ -355,16 +339,7 @@ export class CommandUiRuntime extends Service implements CommandUiContract {
       this.invoke(typedName, contribution.ui, session, { via: 'enter', token })
       return 'handled'
     }
-    const host = this.ctx.remote.$host
-    this.requireExecution(host)
-    try {
-      await this.directory.ensureReady(session.sessionId, signal)
-    } catch (error) {
-      this.requireExecution(host)
-      throw error
-    }
-    signal.throwIfAborted()
-    this.requireExecution(host)
+    await this.directory.ensureReady(session.sessionId, signal)
     const desc = this.directory.resolve(session.sessionId, typedName)
     if (desc === undefined) return undefined
     const name = desc.name
@@ -418,7 +393,6 @@ export class CommandUiRuntime extends Service implements CommandUiContract {
    * always sends the catalog name.
    */
   private leadingClaim(desc: CommandDescriptor, session: ClientSessionContext, shown: string): CommandClaim {
-    const host = this.ctx.remote.$host
     const token = `/${shown} `
     const line = `/${desc.name} `
     return {
@@ -426,7 +400,7 @@ export class CommandUiRuntime extends Service implements CommandUiContract {
       token,
       ...(desc.input !== undefined ? { hint: desc.input.hint } : {}),
       ...(desc.input?.attachments === true ? { attachments: true } : {}),
-      submit: (args, _actx, attachments) => this.execute(session, line + args, attachments, host),
+      submit: (args, _actx, attachments) => this.execute(session, line + args, attachments),
     }
   }
 
@@ -439,32 +413,16 @@ export class CommandUiRuntime extends Service implements CommandUiContract {
    * the outcome renders as a persistent flow node — the composer never
    * echoes it. A handler error result reports an error outcome so the
    * composer keeps the draft and attachments for correction.
-   * Every request carries a clientMutationId minted per submission intent;
-   * a retry of the identical draft reuses it so the Host replay receipt
-   * absorbs a duplicate delivery.
    * A refused call throws.
    */
   private async execute(
     session: ClientSessionContext,
     line: string,
     attachments: readonly SubmitAttachment[] = [],
-    host: RemoteHostFacts = this.ctx.remote.$host,
   ): Promise<SubmitOutcome> {
-    this.requireExecution(host)
-    // Specification §17: one clientMutationId per submission intent. A retry
-    // of the identical draft (line and attachments) reuses the pending id;
-    // any other submission mints a fresh one.
-    const pending = this.live.pendingSubmissions.get(session.sessionId)
-    const retry = pending !== undefined && pending.line === line && sameAttachments(pending.attachments, attachments)
-    const clientMutationId = retry ? pending.id : randomUUID() as CommandMutationId
-    if (!retry) this.live.pendingSubmissions.set(session.sessionId, { line, attachments, id: clientMutationId })
-    const result = await this.ctx.remote.commands.execute(session.sessionId, { line, submittedAttachments: attachments, clientMutationId })
-    this.requireExecution(host)
-    if (!result.ok) throw result.error
+    const result = await this.ctx.remote.commands.execute(session.sessionId, line, attachments)
+    if (!result.ok) throw new Error(`command.execute failed: ${result.error.code}: ${result.error.message}`)
     if (result.value === undefined) return { kind: 'error', text: `unknown or malformed command: ${line}` }
-    // A settled execution ends the intent. The Host records replay receipts
-    // for settled executions only, so an unsettled id can safely re-run.
-    this.live.pendingSubmissions.delete(session.sessionId)
     this.notifyExecuted(session.sessionId, submittedCommandName(line), result.value.result)
     // A submission consumes its attachments only after handler success; an
     // error outcome keeps the draft and attachments in the composer.
@@ -506,14 +464,12 @@ export class CommandUiRuntime extends Service implements CommandUiContract {
    * notice as immediate feedback.
    */
   private runDetached(desc: CommandDescriptor, session: ClientSessionContext, line: string): void {
-    const host = this.ctx.remote.$host
-    void this.execute(session, line, [], host).then(
+    void this.execute(session, line).then(
       (outcome) => {
         // matched:false maps to an error outcome with no logged lifecycle.
-        if (this.current(host) && outcome.kind === 'error') this.noticeFor(session.sessionId, 'error', outcome.text ?? `/${desc.name} failed`)
+        if (outcome.kind === 'error') this.noticeFor(session.sessionId, 'error', outcome.text ?? `/${desc.name} failed`)
       },
       (error: unknown) => {
-        if (!this.current(host)) return
         this.noticeFor(session.sessionId, 'error', error instanceof Error ? error.message : String(error))
       },
     )
@@ -542,20 +498,6 @@ export class CommandUiRuntime extends Service implements CommandUiContract {
   /** id → actx interchange (registered exchange point: this service coordinates for projection-only sources). */
   private scopeFor(id: SessionId): ClientContext | undefined {
     return this.sessions().scope(id)
-  }
-
-  private current(host: RemoteHostFacts): boolean {
-    return !this.live.disposed && this.ctx.remote.$host === host
-  }
-
-  private supports(capability: typeof COMMAND_REMOTE_CAPABILITIES[number]['id']): boolean {
-    return !this.live.disposed && this.ctx.remote.$host.capabilities?.includes(capability) === true
-  }
-
-  private requireExecution(host: RemoteHostFacts): void {
-    if (!this.current(host) || !this.supports('command.catalog.v1') || !this.supports('command.execute.v1')) {
-      throw new Error(this.t('notice.connectionChanged'))
-    }
   }
 
   private sessions(): ISessions {

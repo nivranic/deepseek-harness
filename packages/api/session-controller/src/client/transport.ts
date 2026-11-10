@@ -37,12 +37,6 @@ export {
 /** Pagination fields bound to an already-addressed Session journal. */
 export type ClientSessionPageRequest = Omit<SessionPageRequest, 'address' | 'throughSeq'>
 
-/** Follow-opening fields: pagination plus the §25 reconnect resume cut. */
-type ClientSessionFollowRequest = ClientSessionPageRequest & {
-  /** Inclusive durable seq already held; the reconnect opening omits records at or before it. */
-  readonly fromSeq?: number
-}
-
 /** Complete generated `ctx.remote.session` namespace. */
 export type SessionRemote = ClientRemote['session']
 
@@ -59,8 +53,6 @@ export type SessionJournalChange =
     readonly page: SessionJournalPage
     readonly entries: readonly SessionEventLikeEntry[]
     readonly hasMore: boolean
-    /** Replace only: the page opened a generation that resumed past the last held entry. */
-    readonly resumed?: true
   }
   | { readonly type: 'append'; readonly entry: SessionLiveEventEntry }
   | { readonly type: 'assistant-stream'; readonly frame: SessionAssistantStreamFrame }
@@ -126,7 +118,6 @@ export function createSessionControlStream(
 ): SessionControlStream {
   const stream = remote.$stream<SessionControlFrame>({
     name: 'session control stream',
-    available: host => host.capabilities?.includes('session.control.v1') === true,
     open: signal => remote.session.control(signal),
     ended: accepted => accepted
       ? new RemoteStreamCarrierError('session control stream ended without a terminal result')
@@ -147,7 +138,7 @@ export class SessionEventStream extends RemoteJournalStream<
   SessionJournalPage,
   SessionHistoryRecord,
   number,
-  ClientSessionFollowRequest,
+  ClientSessionPageRequest,
   SessionAssistantStreamFrame
 > {
   /**
@@ -162,7 +153,6 @@ export class SessionEventStream extends RemoteJournalStream<
   ) {
     super(remote, {
       name: 'session event stream',
-      available: host => host.capabilities?.includes('session.follow.v1') === true,
       emptyCursor: -1,
       entries: page => page.records,
       hasMore: page => page.hasMore,
@@ -180,7 +170,7 @@ export class SessionEventStream extends RemoteJournalStream<
 
   /** @inheritdoc */
   protected override async * follow(
-    request: ClientSessionFollowRequest,
+    request: ClientSessionPageRequest,
     signal: AbortSignal,
   ): AsyncIterable<RemoteJournalFrame<
     SessionHistoryRecord, number, SessionJournalPage, SessionAssistantStreamFrame
@@ -188,9 +178,9 @@ export class SessionEventStream extends RemoteJournalStream<
     let assistantRevision: number | undefined
     for await (const frame of this.remote.session.follow({
       address: this.address,
+      activate: true,
       assistantStream: true,
-      ...(request.maxMessages === undefined ? {} : { maxMessages: request.maxMessages }),
-      ...(request.fromSeq === undefined ? {} : { fromSeq: request.fromSeq }),
+      ...this.repairRequest(request),
     }, signal)) {
       if (frame.type === 'snapshot') {
         for (const record of frame.records) assertSessionWireEvent(record.event)
@@ -230,18 +220,6 @@ export class SessionEventStream extends RemoteJournalStream<
     }
   }
 
-  /**
-   * @inheritdoc
-   * A reconnect reopens from the inclusive seq of the last applied entry, so
-   * the Host omits the already-held tail (specification §25).
-   */
-  protected override resumeRequest(
-    initial: ClientSessionPageRequest,
-    cursor: number,
-  ): ClientSessionFollowRequest {
-    return { ...initial, fromSeq: cursor }
-  }
-
   /** @inheritdoc */
   protected override async readPage(
     request: ClientSessionPageRequest,
@@ -261,6 +239,9 @@ export class SessionEventStream extends RemoteJournalStream<
   protected override repairRequest(
     request: ClientSessionPageRequest,
   ): ClientSessionPageRequest {
-    return request.maxMessages === undefined ? {} : { maxMessages: request.maxMessages }
+    return {
+      ...(request.maxMessages === undefined ? {} : { maxMessages: request.maxMessages }),
+      ...(request.turnWindow === undefined ? {} : { turnWindow: request.turnWindow }),
+    }
   }
 }

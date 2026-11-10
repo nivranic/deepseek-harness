@@ -4,11 +4,11 @@
  * `useProjection('goal')`. A registrant-private activation hook source owns
  * the live Remote read and event subscription; the inject face carries that
  * hook plus the four mutation verbs through the generated Goal Remote API.
+ * Activation reads retain the Client Session through completion and wait
+ * for its initial history open to succeed before contacting the Host.
  * This plugin does not create goals; deployments may expose /goal separately.
  */
 import type { Context as ClientContext } from '@deepseek-ai/cordis'
-import type { ConnectionHandle } from '@deepseek-ai/dsh-client-connection/client'
-import { createGoalAccessSource } from './access-source.ts'
 import type { SessionId } from '@deepseek-ai/dsh-session/types'
 import type { HostObservable } from '@deepseek-ai/dsh-client-ui-slots'
 // Type-only: pulls the generated Remote API and ctx.remote merge through the Client assembly boundary.
@@ -27,18 +27,28 @@ import type {} from '@deepseek-ai/dsh-client-ui-renderer/client'
 import type {} from '@deepseek-ai/dsh-client-ui-session/client'
 // Type-only: the `goal` SessionProjectionMap key merge (single source, the domain's pure outlet).
 import type { GoalProjection, GoalRef } from '@deepseek-ai/dsh-goal/client'
-import type { GoalBarInjected } from './slots.ts'
+import type { GoalActionResult, GoalBarInjected } from './slots.ts'
 import { createGoalActivationSource } from './activation-source.ts'
 import { GoalDock } from './GoalBar.tsx'
 import { GoalCommandInputView } from './GoalCommandInputView.tsx'
+import { GoalCommandReference } from './GoalCommandReference.tsx'
 import { goalCommandInputDefinition } from './goal-command-input.ts'
-import { en, zh, type GoalKey } from './locales.ts'
+import { goalCommandReferenceRule } from './user-text-rules.ts'
+export type {} from './user-text-rules.ts'
+import { en, ja, es, fr, de, ru, pt, zh, type GoalKey } from './locales.ts'
 
 export { GoalBar, GoalDock } from './GoalBar.tsx'
 export type {
   GoalActionResult, GoalBarActions,
 } from './slots.ts'
 export type { GoalKey } from './locales.ts'
+
+declare module '@deepseek-ai/dsh-api-session-controller/client' {
+  interface SessionReferenceSourceMap {
+    /** A live goal read waiting for initial history and its RPC result. */
+    goalActivation: unknown
+  }
+}
 
 declare module '@deepseek-ai/dsh-client-ui-slots' {
   interface LocaleNamespaceMap {
@@ -51,7 +61,7 @@ declare module '@deepseek-ai/dsh-client-ui-slots' {
 const NS = 'goal'
 
 /** Required services for the Goal dock, command-input projection, Remote mutations, and copy. */
-export const inject = ['slots', 'sessions', 'remote', 'remote.goals', 'locale', 'uiConversation', 'connection']
+export const inject = ['slots', 'sessions', 'remote', 'remote.goals', 'locale', 'uiConversation']
 
 /**
  * Client plugin body: the GoalBar dock entry with its mutation verbs.
@@ -59,7 +69,14 @@ export const inject = ['slots', 'sessions', 'remote', 'remote.goals', 'locale', 
  */
 export function apply(ctx: ClientContext): void {
   ctx.uiConversation.events.register(goalCommandInputDefinition)
-  ctx.effect(() => ctx.locale.register(NS, { zh, en }), 'ui-goal: dictionaries')
+  ctx.uiConversation.userText.register(goalCommandReferenceRule)
+  ctx.effect(() => ctx.locale.register(NS, { zh, en, ja, es, fr, de, ru, pt }), 'ui-goal: dictionaries')
+
+  ctx.slots.inject('conversation.user.text.node', () => ctx.slots.register({
+    name: 'conversation.user.text.node',
+    key: 'command',
+    priority: 100,
+  }, GoalCommandReference))
 
   ctx.slots.inject('conversation.chat.node', () => ctx.slots.register({
     name: 'conversation.chat.node',
@@ -68,10 +85,6 @@ export function apply(ctx: ClientContext): void {
   }, GoalCommandInputView))
 
   const sessions = ctx.sessions
-  const connection = ctx.get('connection') as ConnectionHandle
-  const t = ctx.locale.bind(NS)
-  let disposed = false
-  ctx.effect(() => () => { disposed = true }, 'ui-goal: action lifetime')
 
   /** The session's current projected CAS ref, read at verb call time (no staleness fence: the RPC's CAS is the guard). */
   const refOf = (sessionId: SessionId): GoalRef | undefined => {
@@ -79,6 +92,11 @@ export function apply(ctx: ClientContext): void {
     const projection = face?.getSnapshot() as GoalProjection | null | undefined
     if (projection == null) return undefined
     return { id: projection.goal.id, revision: projection.goal.revision }
+  }
+
+  const noCurrentGoal: GoalActionResult = {
+    ok: false,
+    error: { code: 'no-current-goal', message: 'no current goal to mutate' },
   }
 
   ctx.slots.inject('conversation.input.dock', () => ctx.slots.register({
@@ -92,26 +110,46 @@ export function apply(ctx: ClientContext): void {
       const goalActivation = createGoalActivationSource({
         projection: binding.session.projections.faceOf('goal') as HostObservable<GoalProjection | null | undefined>,
         session: binding.session,
-        canRead: () => !disposed && ctx.remote.$host.capabilities?.includes('goal.read.v1') === true,
-        getGoal: () => ctx.remote.goals.get(sessionId),
+        getGoal: async () => {
+          if (sessions.binding(sessionId) !== binding) {
+            throw new Error(`ui-goal: session "${sessionId}" is unavailable`)
+          }
+          return sessions.using(sessionId, { source: 'goalActivation' }, async (reference) => {
+            const state = reference.binding.session.getSnapshot()
+            if (state.openState !== 'open') {
+              throw state.openError ?? new Error(`session "${sessionId}" is not open`)
+            }
+            return ctx.remote.goals.get(sessionId)
+          })
+        },
         subscribeActivation: listener => ctx.remote.$on('goal/activation-changed', (event) => {
           if (event.sessionId === sessionId) listener(event.goal)
         }),
-        subscribeReset: listener => connection.generation.subscribe(listener),
+        subscribeReset: listener => ctx.on('connection/reset', listener),
       })
-      const goalAccess = createGoalAccessSource({
-        host: () => ctx.remote.$host,
-        alive: () => !disposed,
-        subscribeGeneration: listener => connection.generation.subscribe(listener),
-        ref: () => refOf(sessionId),
-        edit: (ref, objective) => ctx.remote.goals.edit(sessionId, ref, { objective }),
-        pause: ref => ctx.remote.goals.pause(sessionId, ref),
-        resume: ref => ctx.remote.goals.resume(sessionId, ref),
-        clear: ref => ctx.remote.goals.clear(sessionId, ref),
-        connectionChanged: () => t('error.connectionChanged'),
-        requestFailed: () => t('error.requestFailed'),
-      })
-      return { hooks: { goalActivation, goalAccess } }
+      return {
+        hooks: { goalActivation },
+        onEdit: async (objective) => {
+          const ref = refOf(sessionId)
+          if (ref === undefined) return noCurrentGoal
+          return await ctx.remote.goals.edit(sessionId, ref, { objective })
+        },
+        onPause: async () => {
+          const ref = refOf(sessionId)
+          if (ref === undefined) return noCurrentGoal
+          return await ctx.remote.goals.pause(sessionId, ref)
+        },
+        onResume: async () => {
+          const ref = refOf(sessionId)
+          if (ref === undefined) return noCurrentGoal
+          return await ctx.remote.goals.resume(sessionId, ref)
+        },
+        onClear: async () => {
+          const ref = refOf(sessionId)
+          if (ref === undefined) return noCurrentGoal
+          return await ctx.remote.goals.clear(sessionId, ref)
+        },
+      }
     },
   }, GoalDock))
 }

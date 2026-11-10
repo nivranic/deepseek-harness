@@ -14,21 +14,18 @@ import type { ScopeKey, ScopeLayer } from '@deepseek-ai/dsh-scope'
 import { SessionSeq } from '@deepseek-ai/dsh-session'
 import type { Session, SessionEvent, SessionEventMap } from '@deepseek-ai/dsh-session'
 import { TypertRemoteService, Remote } from '@deepseek-ai/dsh-typert-protocol'
-import { CommandId, CommandMutationId } from './brand.ts'
-import { COMMAND_REMOTE_CAPABILITIES } from './capabilities.ts'
-import { findCommandReceipt, registerCommandReceiptProjection } from './receipt-projection.ts'
+import { CommandId } from './brand.ts'
 import type { CommandDefinitionId } from './brand.ts'
 import type {
   CommandDescriptor,
   CommandExecution,
-  CommandExecutionRequest,
   CommandInputDescriptor,
   CommandResult,
   CommandRisk,
   CommandSubmitAttachment,
 } from './types.ts'
 
-export { CommandDefinitionId, CommandId, CommandMutationId } from './brand.ts'
+export { CommandDefinitionId, CommandId } from './brand.ts'
 export type * from './types.ts'
 
 export const name = 'commands'
@@ -70,7 +67,7 @@ export interface CommandDefinition {
   /** Human-readable summary used in discovery UI. */
   readonly description: string
   /** Host-assessed risk tier (specification §37); the Host owns the classification, clients display it. */
-  readonly risk: CommandRisk
+  readonly risk?: CommandRisk
   /** Optional free-form input hint advertised to capable clients. */
   readonly input?: CommandInputDescriptor
   /**
@@ -214,14 +211,14 @@ function normalizeDefinition(definition: CommandDefinition): RegisteredCommand {
     })
   }
   const RISKS: readonly CommandRisk[] = ['low', 'moderate', 'high', 'critical']
-  if (!RISKS.includes(definition.risk)) {
+  if (definition.risk !== undefined && !RISKS.includes(definition.risk)) {
     throw new TypeError(`command "${definition.name}" risk must be one of ${RISKS.join(', ')}`)
   }
   const normalized = Object.freeze({
     ...definition.definitionId === undefined ? {} : { definitionId: definition.definitionId },
     name: definition.name,
     description: definition.description,
-    risk: definition.risk,
+    ...definition.risk === undefined ? {} : { risk: definition.risk },
     ...input === undefined ? {} : { input },
     ...definition.recordInput === undefined ? {} : { recordInput: definition.recordInput },
     handler: definition.handler,
@@ -230,7 +227,7 @@ function normalizeDefinition(definition: CommandDefinition): RegisteredCommand {
     ...normalized.definitionId === undefined ? {} : { definitionId: normalized.definitionId },
     name: normalized.name,
     description: normalized.description,
-    risk: normalized.risk,
+    ...normalized.risk === undefined ? {} : { risk: normalized.risk },
     ...normalized.input === undefined ? {} : { input: normalized.input },
   })
   return { definition: normalized, descriptor }
@@ -267,11 +264,6 @@ function normalizeResult(command: string, value: unknown): CommandResult {
   throw new TypeError(`command "${command}" returned unknown result kind "${String(result.kind)}"`)
 }
 
-/** Wire-boundary check on one client-minted mutation identity: a string that is non-empty, untrimmed, and at most 128 characters. */
-function isAdmissibleMutationId(id: unknown): boolean {
-  return typeof id === 'string' && id.length > 0 && id.length <= 128 && id.trim() === id
-}
-
 /**
  * Human-command registry. Plain-context definitions are global; definitions
  * registered through a command-injected child of an agent context shadow
@@ -291,13 +283,7 @@ export class CommandRuntime extends TypertRemoteService {
   private readonly fileReceipts: { resolver: CommandFileReceiptResolver | undefined } = { resolver: undefined }
 
   constructor(ctx: Context) {
-    super(ctx, 'commands', { capabilities: COMMAND_REMOTE_CAPABILITIES })
-    // The durable receipt projection registers whenever the
-    // session-projection service is composed; an id-carrying execute before
-    // that fails loud at its receipt query instead of silently re-running.
-    ctx.inject(['sessionProjections'], (projectionCtx) => {
-      projectionCtx.effect(() => registerCommandReceiptProjection(projectionCtx), 'commands: receipt projection')
-    })
+    super(ctx, 'commands')
   }
 
   /**
@@ -373,12 +359,9 @@ export class CommandRuntime extends TypertRemoteService {
    * for deferred collection.
    *
    * @param agent - exact receiving agent.
-   * @param request - the submission: the complete command line, its ordered
-   *   attachments, and an optional client-minted retry identity. A resend
-   *   whose id has a settled `command/done` receipt in the receiving
-   *   session's log returns that execution — reconstructed from the log by
-   *   the receipt projection — without re-running the handler or appending
-   *   events; a throw or abort settles no receipt, so its resends re-run.
+   * @param line - complete slash-command line.
+   * @param submittedAttachments - encoded images and staged file receipts accompanying the line,
+   *   in submission order; empty for a plain invocation.
    * @param signal - cancellation signal owned by the UI request.
    * @returns the settled execution (result + lifecycle pairing id), or
    *   `undefined` when syntax or name does not resolve.
@@ -386,21 +369,10 @@ export class CommandRuntime extends TypertRemoteService {
   @Remote
   async execute(
     agent: Agent,
-    request: CommandExecutionRequest,
+    line: string,
+    submittedAttachments: readonly CommandSubmitAttachment[],
     signal: AbortSignal,
   ): Promise<CommandExecution | undefined> {
-    const { line, submittedAttachments, clientMutationId } = request
-    // Identity validation precedes parsing: a malformed mutation id fails
-    // loud at the wire boundary even when the line itself would not resolve.
-    if (clientMutationId !== undefined && !isAdmissibleMutationId(clientMutationId)) {
-      throw new TypeError('clientMutationId must be a non-empty string of at most 128 characters')
-    }
-    if (clientMutationId !== undefined) {
-      // A settled receipt reports an established fact, so the hit returns
-      // even when this retry's signal is already aborted.
-      const settled = this.replayReceipt(agent.session, clientMutationId)
-      if (settled !== undefined) return settled
-    }
     const parsed = parseCommand(line)
     if (parsed === undefined) return undefined
     const command = this.view(agent).get(parsed.name)
@@ -412,15 +384,10 @@ export class CommandRuntime extends TypertRemoteService {
       name: parsed.name,
       ...command.definition.recordInput === false ? {} : { args: parsed.rawInput },
       source: { kind: 'user' },
-      ...clientMutationId === undefined ? {} : { clientMutationId },
     })
-    const settle = (mutationId: CommandMutationId | undefined, result: CommandResult): CommandExecution => {
-      // Only the settle path writes the id on `command/done` — that carried
-      // id IS the durable receipt marker. A thrown settlement
-      // (settleThrown) writes none, so its resends re-run.
+    const settle = (result: CommandResult): CommandExecution => {
       this.appendLifecycle(agent.session, 'command/done', {
         commandId, kind: result.kind,
-        ...mutationId === undefined ? {} : { clientMutationId: mutationId },
         ...result.text === undefined ? {} : { text: result.text },
         ...result.kind === 'success' && result.sourceEventSeq !== undefined
           ? { sourceEventSeq: result.sourceEventSeq }
@@ -431,14 +398,11 @@ export class CommandRuntime extends TypertRemoteService {
     let attachments: readonly (ImageBlock | FileBlock)[] = NO_ATTACHMENTS
     if (submittedAttachments.length > 0) {
       if (command.definition.input?.attachments !== true) {
-        return settle(clientMutationId, { kind: 'error', text: `/${parsed.name} does not accept attachments` })
+        return settle({ kind: 'error', text: `/${parsed.name} does not accept attachments` })
       }
       const store = this.ctx.get('attachments')
       if (store === undefined) {
-        return settle(clientMutationId, {
-          kind: 'error',
-          text: `/${parsed.name}: attachments are unavailable because no attachment store is composed`,
-        })
+        return settle({ kind: 'error', text: `/${parsed.name}: attachments are unavailable because no attachment store is composed` })
       }
       try {
         attachments = await admitCommandAttachments(
@@ -448,7 +412,7 @@ export class CommandRuntime extends TypertRemoteService {
         )
       } catch (error: unknown) {
         if (error instanceof AttachmentError) {
-          return settle(clientMutationId, { kind: 'error', text: error.message })
+          return settle({ kind: 'error', text: error.message })
         }
         this.settleThrown(agent.session, parsed.name, commandId, error)
         throw error
@@ -472,7 +436,7 @@ export class CommandRuntime extends TypertRemoteService {
       this.settleThrown(agent.session, parsed.name, commandId, error)
       throw error
     }
-    return settle(clientMutationId, result)
+    return settle(result)
   }
 
   /** Contained `command/done` error append for a thrown handler or admission failure. */
@@ -491,38 +455,6 @@ export class CommandRuntime extends TypertRemoteService {
   private mintCommandId(): CommandId {
     this.commandSeq += 1
     return CommandId(`cmd-${this.instanceToken}-${this.commandSeq}`)
-  }
-
-  /**
-   * Rebuild the settled execution a durable receipt covers, if any. The
-   * receipt rows are the session's own folded `command/done` settlements, so
-   * the answer survives a Host restart and never re-enters a handler.
-   * @param session - the receiving agent's session whose log owns the receipts.
-   * @param clientMutationId - the resent submission identity.
-   * @returns the rebuilt frozen execution, or `undefined` when no settled receipt covers the id.
-   */
-  private replayReceipt(session: Session, clientMutationId: CommandMutationId): CommandExecution | undefined {
-    // Absent service and unregistered key share one remedy — compose the
-    // session-projection capability alongside the command registry — so both
-    // composition failures fail loud through the same throw.
-    const receipts = this.ctx.get('sessionProjections')?.stateOf(session, 'commandReceipts')
-    if (receipts === undefined) {
-      throw new Error('commands: the commandReceipts receipt projection is unavailable; compose the session-projection service with the commands plugin before dispatching clientMutationId submissions')
-    }
-    const row = findCommandReceipt(receipts, clientMutationId)
-    if (row === undefined) return undefined
-    // The logged settlement is the fact: the result is rebuilt directly from
-    // it, not re-validated through normalizeResult.
-    return Object.freeze({
-      commandId: CommandId(row.commandId),
-      result: Object.freeze(row.kind === 'success'
-        ? {
-          kind: 'success',
-          ...row.text === undefined ? {} : { text: row.text },
-          ...row.sourceEventSeq === undefined ? {} : { sourceEventSeq: SessionSeq(row.sourceEventSeq) },
-        }
-        : { kind: 'error', text: row.text }),
-    })
   }
 
   /**

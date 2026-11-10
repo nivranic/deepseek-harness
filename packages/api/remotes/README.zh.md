@@ -7,6 +7,8 @@ kind: "package-reference"
 
 [English](README.md) | 中文
 
+桌面埋点遵循[产品采集策略](../../client/product-analytics/README.zh.md)及其动态应用配置，不包含 Web 使用情况。
+
 ## 概述
 
 为本应用选定的 Host Remote 能力提供双侧 BFF。Host 入口拥有转发事件名单并向 API Gateway 注册应用事件 source；Client 入口以运行时值形式导入生成的 `/remote` 产物，通过 `ctx.remote.$mount()` 挂载每项贡献，并重新导出对应的声明合并。Client 业务包依赖该外观，而不依赖 Gateway 实现或单独的 Remote 运行时入口。
@@ -40,6 +42,9 @@ Session 调用需要当前连接代次声明对应操作能力。Client 在单�
 生成的 `host` contribution 暴露 `ctx.remote.host.describe()`。其[拥有方](../host-description/README.zh.md)提供持久身份、独立版本与当前声明的能力；此外观以 Client 安全类型重新导出 `HostDescriptor`、`HostId` 和 `HostTransport`。
 
 Client 组合挂载 Commands、凭据、settings、Goal、动态 Cordis、文件与会话引用、只读 Host 插件清单、消息反馈、会话控制器和 Workspace 控制器 contribution。该组合卸载时，Cordis effect 的所有权机制会撤回所有贡献；`@deepseek-ai/dsh-api-gateway/client` 负责描述符校验、可追踪的 namespace 服务、直接与作用域方法、调用、流与取消。Client 入口通过 Cordis 消费共享的 `TypertClientRemote` 接口，不导入具体 Gateway；它只以 type-only 形式重新导出 Gateway Client face 的声明合并，因此消费端经由本外观取到转发事件词汇时，运行时不会多出一条通往 Gateway 实现的边。
+[`@deepseek-ai/dsh-api-session-controller`](../session-controller/README.zh.md) 拥有 agent（智能体）与会话身份策略，包括供其他 namespace 使用的 Typert lookup 解析器。本包选择并挂载生成的会话 contribution，无需直接依赖 `@deepseek-ai/dsh-session` 的运行时；激活策略由会话控制器负责。
+
+Client 组合挂载 Office 转换、Commands、凭据、settings、Goal、Schedule、动态 Cordis、文件与会话引用、只读 Host 插件清单、插件安装源响应比较、消息反馈、权限预设、会话控制器、subagents 和 Workspace 控制器 contribution。`permissionPresets` namespace 返回 current-session 控件使用的完整进程级目录。该组合卸载时，Cordis effect 的所有权机制会撤回所有贡献；`@deepseek-ai/dsh-api-gateway/client` 负责描述符校验、可追踪的 namespace 服务、直接与作用域方法、调用、流与取消。Client 入口通过 Cordis 消费共享的 `TypertClientRemote` 接口，不导入具体 Gateway；它只以 type-only 形式重新导出 Gateway Client face 的声明合并，因此消费端经由本外观取到转发事件词汇时，运行时不会多出一条通往 Gateway 实现的边。
 
 本 facade 同时是 Client 包指称 wire 类型词汇的正门。它以 type-only 方式转出 Remote 失败词汇（`RemoteResult`、`RemoteFailure`、`RemoteErrorCode`、`RemoteErrorDetailsMap`）、Host 事实（`RemoteHostFacts`），以及各已选领域对 Client 安全的载荷类型，因此 Client 功能包只 import 一个 specifier，不必伸手进 `dsh-typert-protocol`、Gateway 或某个拥有方的 Host 入口。有两类包刻意不走这道门：本装配自己选中的 API 层包——反向 import 会形成依赖环——以及它们的测试，后者直接从 `dsh-typert-protocol` 取失败词汇。UI 包的测试则从 [`dsh-client-test-runtime`](../../test-support/client-runtime/README.zh.md) 取 `RemoteError` 构造器。
 
@@ -63,11 +68,16 @@ Host 发现会在首次 `host/describe` 请求检查 Host 访问权限前报告 
 Host entry 为每条 Client 流独立注册一组 allowlist listener 和一个队列，并在普通事件入队前拒绝非 JSON 参数。对于 waterfall，它只投影顶层 agent 身份与 JSON 请求字段；Client 结果也必须能无损表示为 JSON，而 `next()` 会委托给后续 Host listener。每个作用域 waterfall 请求都必须以 `request.agent` 直接携带路由所用的 agent；Host 会在转发前拒绝缺失或不匹配的身份。该 source 在 `ctx.typertGateway.registerRemoteEvents()` 暴露 Gateway 内部的 `$events` 逻辑流前同步挂好所有 listener，因此首个 `ready` 项既能证明增量投递已就绪，也会携带供 Client 显示路径的 Host home 与 Node.js platform。撤回注册会中止活动流。
 
 Approval 和 Question 条目显式声明交互类型及所需回答权限。Host 事件源附带路由所用 Agent 的 Session 身份；Gateway 持有待处理记录并按协议版本投递。共享名单从 Gateway 中立的 `/protocol` 入口导入这些类型，避免将 Host Context 声明引入 Client 程序。该元数据不实现设备信任或回答授权。
+`emit` 条目可以声明 `resources`：以 `TypertResourceMap` 种类为键、类型由该事件自身参数决定的读取函数，例如 `api-session/added` 上的 `resources: { session: summary => summary.sessionId }`。Host entry 把它们原样附在每个转发帧上；只有访问控制在它们给出的资源上允许该事件时，Gateway 才把通知转发给非 owner Peer，未声明 `resources` 的通知触及内置的 `global` 资源。`api-session/activity`、`api-session/added`、`api-session/error`、`api-session/removed` 与 `api-session/status` 声明其 Session。一个通知只携带一个资源身份或不携带；集合类变化改走 follow 类流。
+
+Host entry 为每条 Client 流独立注册一组 allowlist listener 和一个队列，并在普通事件入队前拒绝非 JSON 参数。对于 waterfall，它只投影顶层 agent 身份与 JSON 请求字段；Client 结果也必须能无损表示为 JSON，而 `next()` 会委托给后续 Host listener。每个作用域 waterfall 请求都必须以 `request.agent` 直接携带路由所用的 agent；Host 会在转发前拒绝缺失或不匹配的身份。该 source 在 `ctx.typertGateway.registerRemoteEvents()` 暴露 Gateway 内部的 `$events` 逻辑流前同步挂好所有 listener，因此首个 `ready` 项既能证明增量投递已就绪，也会携带供 Client 显示路径的 Host home。撤回注册会中止活动流。
+
+无 payload 的 `schedule/changed` 事件使 Schedule 任务查询失效；Client 在收到通知及重连后重新读取。无 payload 的 `permission-presets/catalog-changed` 事件使进程目录失效。Client 在首次读取 `permissionPresets.catalog()` 前先订阅，并在通知后重新读取完整快照；该事件不携带目录状态，也不改变 Session 序号。
 
 <a id="build-boundary"></a>
 ## 构建边界
 
-仓库中的多数包只属于一个 TypeScript face：Host 包登记在根 `tsconfig.host.json`，Client 包登记在根 `tsconfig.client.json`。本包需要拆分，因为 Host 入口要参与 Host Typert 图，而 `src/client/index.ts` 必须等 Host tsdown 生成业务包的 `/remote` 声明后才能编译。
+仓库中的多数包只属于一个 TypeScript face：Host 包登记在根 `tsconfig.host.json`，Client 包登记在根 `tsconfig.client.json`。本包需要拆分，因为 Host 入口要参与 Host Typert 图，而 `src/client/index.ts` 必须等仅源码生成步骤写出业务包的 `/remote` 声明后才能编译。
 
 本包根 `tsconfig.json` 只是引用 `tsconfig.host.json` 与 `tsconfig.client.json` 的 solution。Host aggregate 和 Host 直接消费方引用前者，Client aggregate 和 Client 直接消费方引用后者；禁止把包根 solution 放进任一 aggregate 的依赖图。两个 project 拥有互不重叠的源码和 `.tsbuildinfo`，但共享 `lib/types` 输出目录——只有一处刻意的例外：`src/remote-events.ts` 与 `src/types.ts` **同时**列进两个 face 的 `files`，因为转发事件名单是「消费端能收到什么」的唯一控制点，Host 转发循环与 Client 的 `ctx.remote.$on` 键面必须读同一份声明，而不是两份可能彼此漂移的声明。
 
@@ -112,3 +122,4 @@ Workspace 准入使用 [Workspace Controller 声明](../workspace-controller/REA
 Directory Picker 准入分别使用同一所有者的原生选择、浏览与创建声明。Workspace 能力或其他目录操作集均不能授权不受支持的选择器请求。
 
 Workspace Files 准入使用所有者独立声明的元数据、列目录、文本、字节窗口、完整文件、关联文件和变更观察能力；支持一项不能允许另一项请求。
+客户端组装包含 account 命名空间，用于登录操作和可重连的账号快照。

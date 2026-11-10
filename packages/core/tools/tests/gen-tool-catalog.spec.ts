@@ -7,13 +7,10 @@ import {
   assertManifestComplete,
   assertToolsHarvested,
   collectToolCatalog,
-  mergeToolDescriptors,
   render,
-  renderToolDescriptors,
   type ToolCatalog,
   type ToolPackage,
 } from '../../../../scripts/gen-tool-catalog.ts'
-import type { ToolDescriptor } from '@deepseek-ai/dsh-tools'
 
 /** JSON Schema shape enough to reach the values AST extraction can't. */
 interface JsonSchema {
@@ -29,18 +26,20 @@ describe('gen-tool-catalog collectToolCatalog', () => {
     const catalog = await collectToolCatalog()
     const names = catalog.flatMap(entry => entry.schemas.map(s => s.name)).sort()
     expect(names).toEqual([
-      'ask_user_question', 'bash', 'bash', 'cordis_define', 'cordis_inspect_list',
-      'cordis_inspect_query', 'cordis_inspect_self', 'cordis_run', 'cordis_stop',
-      'cordis_undefine', 'create_goal', 'edit', 'exit_plan_mode', 'get_goal', 'glob', 'grep',
+      'ask_user_question', 'bash', 'bash', 'cordis_inspect_list',
+      'cordis_inspect_query',
+      'create_goal', 'create_worktree', 'edit', 'exit_plan_mode', 'get_goal', 'glob', 'grep',
       'interrupt_agent', 'interrupt_agent', 'job_kill', 'job_list', 'job_output',
-      'list_agents', 'list_agents', 'list_subagent_models', 'lsp', 'present', 'pwsh', 'pwsh', 'ralph',
-      'read', 'read_image', 'run_code', 'schedule_create', 'schedule_delete',
-      'schedule_list', 'send_message', 'send_message', 'session_event_read', 'session_event_search',
+      'list_agents', 'list_agents', 'list_mcp_resource_templates', 'list_mcp_resources',
+      'list_subagent_models', 'load_workspace_dependencies', 'lsp', 'plugin_manager', 'plugin_market', 'present', 'propose_action', 'pwsh', 'pwsh', 'ralph',
+      'read', 'read_image', 'read_mcp_resource', 'run_code', 'schedule_create', 'schedule_delete',
+      'schedule_list', 'schedule_update', 'send_message', 'send_message', 'session_event_read', 'session_event_search',
       'session_event_trace', 'session_search', 'session_trace', 'skill', 'spawn_teammate',
-      'str_replace_editor', 'subagent', 'team_task_create',
+      'stagehand_act', 'stagehand_extract', 'stagehand_navigate', 'stagehand_observe', 'stagehand_screenshot', 'stagehand_tabs',
+      'str_replace_editor', 'subagent', 'subagent_oar', 'team_task_create',
       'team_task_get', 'team_task_list', 'team_task_update', 'terminal_close', 'terminal_list',
       'terminal_open', 'terminal_read', 'terminal_send', 'terminal_signal', 'todo_write',
-      'update_goal', 'wait_agent', 'web_fetch', 'web_search', 'workflow', 'write',
+      'update_goal', 'wait_agent', 'web_fetch', 'web_search', 'workflow', 'working_directory', 'write',
     ])
     // Every tool carries a JSON-Schema `parameters` object (what the model sees).
     for (const entry of catalog) {
@@ -48,6 +47,11 @@ describe('gen-tool-catalog collectToolCatalog', () => {
         expect((schema.parameters as unknown as JsonSchema).type).toBe('object')
       }
     }
+    const directory = catalog.find(entry => entry.pkg === '@deepseek-ai/dsh-tool-working-directory')
+    expect(directory?.sources.working_directory).toBe('packages/session/tool-working-directory/src/index.ts')
+    const parameters = directory?.schemas[0]?.parameters
+    expect(parameters).toHaveProperty('properties.cd.type', 'string')
+    expect(parameters?.required ?? []).not.toContain('cd')
   })
 
   it('resolves a runtime-spread enum to its literal members (the payoff over AST)', async () => {
@@ -63,6 +67,8 @@ describe('gen-tool-catalog collectToolCatalog', () => {
 
   it('attributes each harvested tool with its registering plugin source', async () => {
     const catalog = await collectToolCatalog()
+    const ptc = catalog.find(entry => entry.pkg === '@deepseek-ai/dsh-tool-executor-ptc')
+    expect(ptc?.sources.run_code).toBe('packages/core/tool-executor-ptc/src/ptc.ts')
     const bash = catalog.find(entry => entry.pkg === '@deepseek-ai/dsh-tool-bash')
     expect(bash?.sources.bash).toBe('packages/shell/tool-bash/src/index.ts')
     const control = catalog.find(entry => entry.pkg === '@deepseek-ai/dsh-tool-subagent-control')
@@ -93,29 +99,6 @@ describe('gen-tool-catalog collectToolCatalog', () => {
     const subagent = catalog.find(entry => entry.pkg === '@deepseek-ai/dsh-tool-subagent')
     expect(subagent?.schemas.map(s => s.name)).toEqual(['list_subagent_models', 'subagent'])
     expect(subagent?.note).toMatch(/subagent_fork/)
-  })
-
-  it('harvests one §32 declaration per registered tool, keyed to the schema names', async () => {
-    const catalog = await collectToolCatalog()
-    for (const entry of catalog) {
-      expect(entry.descriptors.map(descriptor => descriptor.id).sort())
-        .toEqual(entry.schemas.map(schema => schema.name).sort())
-      for (const descriptor of entry.descriptors) {
-        expect(descriptor.version).toBe(1)
-        expect(['low', 'moderate', 'high', 'critical']).toContain(descriptor.risk)
-      }
-    }
-    const flat = catalog.flatMap(entry => entry.descriptors)
-    // The Lite companion's one bundled executor: only web_search may run on-device.
-    expect(flat.filter(descriptor => descriptor.supportsLite).map(descriptor => descriptor.id)).toEqual(['web_search'])
-    // The two human-answer tools are the only permission claims.
-    expect(flat.filter(descriptor => descriptor.permissions.length > 0).map(descriptor => descriptor.id).sort())
-      .toEqual(['ask_user_question', 'exit_plan_mode'])
-    // Shell-class surfaces carry the high tier (alternative compositions can
-    // ship one id twice, so compare the unique id set).
-    expect([...new Set(flat.filter(descriptor => descriptor.risk === 'high').map(descriptor => descriptor.id))].sort())
-      .toEqual(['bash', 'cordis_define', 'cordis_run', 'interrupt_agent', 'pwsh', 'ralph',
-        'run_code', 'send_message', 'spawn_teammate', 'subagent', 'terminal_send', 'workflow'])
   })
 })
 
@@ -164,7 +147,6 @@ describe('gen-tool-catalog render', () => {
         requires: ['ctx.tools'],
         writes: ['tool/result'],
         schemas: [{ name: 'demo', description: 'A demo tool.', parameters: { type: 'object', properties: {} } }],
-        descriptors: [{ id: 'demo', version: 1, risk: 'low', permissions: [], supportsLite: false, supportsRemote: true }],
       },
     ]
     const md = render(catalog)
@@ -174,51 +156,5 @@ describe('gen-tool-catalog render', () => {
     expect(md).toContain('A demo tool.')
     expect(md).toContain('```json')
     expect(md).toContain('Source: [`packages/demo/tool-demo/src/index.ts`]')
-  })
-})
-
-/** One §32 declaration literal with every field overridable per test. */
-function descriptor(overrides: Partial<ToolDescriptor> = {}): ToolDescriptor {
-  return { id: 'demo', version: 1, risk: 'low', permissions: [], supportsLite: false, supportsRemote: true, ...overrides }
-}
-
-describe('gen-tool-catalog mergeToolDescriptors', () => {
-  it('collapses an identical same-id declaration from an alternative composition', () => {
-    const catalog: ToolCatalog = [
-      { pkg: '@deepseek-ai/dsh-tool-demo', sources: {}, requires: [], writes: [], schemas: [], descriptors: [descriptor()] },
-      { pkg: '@deepseek-ai/dsh-tool-demo-alt', sources: {}, requires: [], writes: [], schemas: [], descriptors: [descriptor()] },
-    ]
-    expect(mergeToolDescriptors(catalog)).toEqual([descriptor()])
-  })
-
-  it('fails loudly when the same id carries conflicting declarations', () => {
-    const catalog: ToolCatalog = [
-      { pkg: '@deepseek-ai/dsh-tool-demo', sources: {}, requires: [], writes: [], schemas: [], descriptors: [descriptor()] },
-      {
-        pkg: '@deepseek-ai/dsh-tool-demo-alt', sources: {}, requires: [], writes: [], schemas: [],
-        descriptors: [descriptor({ risk: 'high' })],
-      },
-    ]
-    expect(() => { mergeToolDescriptors(catalog) })
-      .toThrow(/tool id "demo" carries conflicting host-only declarations/)
-  })
-})
-
-describe('gen-tool-catalog renderToolDescriptors', () => {
-  it('renders one {"tools":[...]} document entry per tool in the given order', () => {
-    // Sorting is mergeToolDescriptors' job; render stays a pure projection of its input.
-    const json = renderToolDescriptors([
-      descriptor({ id: 'zeta', risk: 'high', supportsLite: true }),
-      descriptor({ id: 'alpha', permissions: ['question.respond'] }),
-    ])
-    const document = JSON.parse(json) as { _comment: string; tools: ToolDescriptor[] }
-    expect(document.tools.map(tool => tool.id)).toEqual(['zeta', 'alpha'])
-    expect(document.tools[0]).toEqual({
-      id: 'zeta', version: 1, risk: 'high', permissions: [], supportsLite: true, supportsRemote: true,
-    })
-    expect(document.tools[1]).toEqual({
-      id: 'alpha', version: 1, risk: 'low', permissions: ['question.respond'], supportsLite: false, supportsRemote: true,
-    })
-    expect(document._comment).toMatch(/specification §32/)
   })
 })

@@ -8,14 +8,15 @@ import {
   type ConnectionSinks,
   type ConnectionState,
 } from './connection.ts'
-import { createFixtureConnectionRpc } from './fixture.ts'
-import {
-  SavedHostsStore, browserSavedHostsPersistence, browserSelectedHostPersistence, switchToSavedHost, type SavedHost,
-} from './saved-hosts.ts'
 import { createWebConnectionRpc, type RpcFetch, type RpcStreamOpen } from './rpc.ts'
 import { isLoopbackHostname } from '../loopback-hostname.ts'
 import type { ClientConnectionRpc } from '../rpc.ts'
 import { resolveConnectionConfig } from '../recovery-config.ts'
+import type { ConnectionInteractions } from '../connect-protocol.ts'
+import { openConnectionWebSocket, type ConnectionWebSocket, type ConnectionWebSocketFactory } from './socket.ts'
+
+export type { ConnectionInteractions } from '../connect-protocol.ts'
+export type { ConnectionWebSocket, ConnectionWebSocketFactory } from './socket.ts'
 
 declare module '@deepseek-ai/cordis' {
   interface Events {
@@ -29,11 +30,6 @@ declare module '@deepseek-ai/cordis' {
 }
 
 // ---- Browser-safe protocol and shared value re-exports ----
-export {
-  SavedHostsStore, browserSavedHostsPersistence, browserSelectedHostPersistence, MAX_SAVED_HOSTS,
-  switchToSavedHost, type SavedHost, type SavedHostsPersistence,
-  type SavedHostSwitchTarget, type SelectedHostPersistence,
-} from './saved-hosts.ts'
 export type {
   MessageId,
   RpcRequest, RpcResponse, RpcResult,
@@ -50,7 +46,6 @@ export {
 export type {
   ConnectionRecoveryConfig,
   ConnectionGeneration,
-  ConnectionGenerationProgress,
   ConnectionGenerationSource,
   ConnectionHostInfo,
   ConnectionSinks,
@@ -60,7 +55,6 @@ export type {
   ClientConnectionRpc, ConnectionRpcFailure, ConnectionRpcResult,
 } from '../rpc.ts'
 export type { RpcFetch } from './rpc.ts'
-export type { ConnectionHttpError, ConnectionTransportError } from '../rpc.ts'
 
 /** Observable identity and Host facts for the active connection generation. */
 export interface ConnectionGenerationState {
@@ -70,17 +64,9 @@ export interface ConnectionGenerationState {
   subscribe(listener: () => void): () => void
 }
 
-/** Selected browser HTTP origin; readiness and admitted identity belong to generation. */
-export interface ConnectionTargetState {
-  /** @returns the selected origin, or undefined for the page Host. */
-  getSnapshot(): string | undefined
-  /** @param listener - target-change observer. @returns its subscription disposer. */
-  subscribe(listener: () => void): () => void
-}
-
 /** Observable recovery lifecycle of the owned Connection loop. */
 export interface ConnectionStateSource {
-  /** Current state, or undefined before the loop starts and after it stops. */
+  /** Current state, or undefined before the first connection outcome. */
   getSnapshot(): ConnectionState | undefined
   /** Subscribe to state changes. */
   subscribe(listener: () => void): () => void
@@ -90,10 +76,10 @@ export interface ConnectionStateSource {
 export const inject: string[] = []
 
 /**
- * Carrier override installed on the page global before plugin boot. The served
- * web app leaves it unset and gets HTTP + WebSocket; a shell that owns a
- * different physical transport (the worker preview's postMessage tunnel)
- * provides both halves here instead of forking this plugin.
+ * Physical carrier selected when the Connection service is installed. The
+ * served web app omits it and gets HTTP + WebSocket; a shell that owns a
+ * different transport (the worker preview's postMessage tunnel) provides both
+ * halves instead of forking this plugin.
  */
 export interface ClientTransportHooks {
   /**
@@ -113,14 +99,24 @@ export interface ClientTransportHooks {
    */
   loadBundle?(url: string): Promise<void>
   /**
+   * Package-asset resolver for the module system, present when the page cannot
+   * request `plugins/<package>/assets/<path>` itself (the worker tunnel): it
+   * maps each reference to a URL the page can load. Absent in the served web app.
+   */
+  resolveAsset?(reference: string): string
+  /**
    * The transport owner declares the page owns the Host outright: the Host
    * runs inside a worker this page spawned, so no other party can reach it and
-   * the loopback stand-in for "the operator's own machine" is vacuous.
+   * the loopback stand-in for "the owner's own machine" is vacuous.
    * `ctx.connection.isLoopback` then reports the privileged surface reachable
    * regardless of the page authority. Only a shell that assembles its own
    * transport can set this; served pages never carry the global at all.
    */
   ownsHost?: boolean
+  /** Authenticated WebSocket factory; omission uses the browser API and its cookie jar. */
+  createWebSocket?: ConnectionWebSocketFactory
+  /** Host base URL for desktop or Node sockets; omission uses the document base. */
+  streamBaseUrl?: string
 }
 
 /** Page global carrying {@link ClientTransportHooks}; absent in the served web app. */
@@ -129,11 +125,30 @@ interface ClientTransportGlobal {
   __DSH_CONNECTION_RECOVERY__?: unknown
 }
 
+/** Browser location fields used to classify loopback authority. */
+export interface ConnectionLocation {
+  readonly hostname: string
+}
+
+/** Instance-local inputs for installing a Connection service. */
+export interface ConnectionInstallOptions {
+  /** Forwarded-event participation; omission selects answer for a page and none otherwise. */
+  readonly interactions?: ConnectionInteractions
+  /** Explicit physical carrier; omit for the browser HTTP + WebSocket carrier. */
+  readonly transport?: ClientTransportHooks
+  /** Reconnect timing overrides; omitted fields use controller defaults. */
+  readonly recovery?: ConnectionRecoveryConfig
+  /** Page location; omit for a non-browser composition. */
+  readonly location?: ConnectionLocation
+}
+
 /**
  * The ctx.connection service API. API Gateway supplies generation readiness
  * and reset callbacks; Connection stays independent of downstream domain state.
  */
 export interface ConnectionHandle {
+  /** Forwarded-event participation selected at installation. */
+  readonly interactions: ConnectionInteractions
   /**
    * Whether the privileged surface is reachable: the page authority is
    * loopback, the transport declares the page owns the Host
@@ -144,62 +159,16 @@ export interface ConnectionHandle {
   readonly generation: ConnectionGenerationState
   /** Current recovery lifecycle for connection-specific consumers. */
   readonly state: ConnectionStateSource
-  /** Selected origin observations, published after the previous generation is retired. */
-  readonly target: ConnectionTargetState
   /** Generic logical RPC channels over the same Connection transport. */
   readonly rpc: ClientConnectionRpc
   /**
-   * §28 saved-Host roster: identity facts of every admitted Host with a
-   * descriptor, recorded on each established generation, most recent first.
-   * The active Host is whichever row matches the current generation.
+   * Create a socket on the selected carrier; the channel owns framing and closing.
+   * @param path - absolute logical channel path, resolved beneath the Host mount.
+   * @returns a newly connecting socket using the installed authentication factory.
    */
-  readonly savedHosts: SavedHostsStore
-  /**
-   * Select a routable bookmark and persist its identity after retargeting.
-   * The served Web carrier accepts only its page origin; other Hosts need their own page.
-   * @param hostId - saved Host identity.
-   * @returns the selected row, or undefined for an absent, in-process or unsupported-origin bookmark.
-   */
-  selectSavedHost(hostId: string): SavedHost | undefined
-  /** Return to the page Host and clear the persisted selection. */
-  usePageHost(): void
-  /**
-   * Remove a bookmark and its persisted selection without stopping the active connection.
-   * @param hostId - saved Host identity to forget.
-   */
-  forgetSavedHost(hostId: string): void
-  /**
-   * Rename a saved Host in the roster without touching the active connection:
-   * a non-empty string overrides the descriptor name, `undefined` returns the
-   * row to descriptor facts; the choice survives reconnects.
-   * @param hostId - saved Host identity to rename.
-   * @param customName - client-chosen display name, or undefined to clear it.
-   */
-  renameSavedHost(hostId: string, customName: string | undefined): void
-  /**
-   * Move a saved Host one position in the roster's presented order without
-   * touching the active connection: the swap stamps an explicit order on every
-   * row, so the manual arrangement survives reconnects and reloads.
-   * @param hostId - saved Host identity to move.
-   * @param direction - `up` towards the front, `down` towards the end.
-   */
-  moveSavedHost(hostId: string, direction: 'up' | 'down'): void
+  openWebSocket(path: string): ConnectionWebSocket
   /** Reset retry progression and replace the current attempt immediately. */
   reconnect(): void
-  /**
-   * §28 switch seam: the selected cross-origin Host base, when one was set.
-   * @returns the absolute origin the browser HTTP carrier targets, or undefined for the page origin.
-   */
-  targetOrigin(): string | undefined
-  /**
-   * §28 switch seam: select the Host base every browser HTTP call targets and
-   * replace the current connection attempt. An absolute http(s) URL is reduced
-   * to its origin; anything else fails loudly. `undefined` returns to the page
-   * origin. Injected transports (`__DSH_TRANSPORT__`) and fixture benches own
-   * their carrier, so the selection only redirects the browser HTTP path here.
-   * @param origin - absolute http(s) URL of the selected Host, or undefined.
-   */
-  retarget(origin: string | undefined): void
   /**
    * Register the sole source defining Host generations. The source reports
    * ready only after its incremental listeners are attached.
@@ -252,48 +221,26 @@ function watchBrowserNetwork(controller: ConnectionController): () => void {
 }
 
 /**
- * Client plugin body: pick physical carriers by page mode and provide ctx.connection.
- * @param ctx - client cordis context.
+ * Install one Context-owned Connection service from explicit composition inputs.
+ * @param ctx - client Cordis context.
+ * @param options - interaction participation, physical carrier, reconnect timing, and page location.
  */
-export function apply(ctx: Context): void {
-  const pageLocation = typeof location === 'undefined' ? undefined : location
-  const pageOrigin = pageLocation?.origin
-  const httpPageOrigin = pageOrigin?.startsWith('http://') === true || pageOrigin?.startsWith('https://') === true
-    ? pageOrigin : undefined
-  const fixture = pageLocation !== undefined && new URLSearchParams(pageLocation.search).has('fixture')
-  const fixtureRpc = fixture ? createFixtureConnectionRpc() : undefined
-  const transport = (globalThis as ClientTransportGlobal).__DSH_TRANSPORT__
-  const recovery = resolveConnectionConfig((globalThis as ClientTransportGlobal).__DSH_CONNECTION_RECOVERY__)
+export function installConnection(ctx: Context, options: ConnectionInstallOptions = {}): void {
+  const pageLocation = options.location
+  const transport = options.transport
+  const recovery = options.recovery ?? {}
+  const interactions = options.interactions ?? (pageLocation === undefined ? 'none' : 'answer')
+  const rpc = transport?.rpc ?? createWebConnectionRpc(transport?.fetch, transport?.openStream)
   let generationSource: ConnectionGenerationSource | undefined
   let owner: ConnectionOwner | undefined
-  let selectedOrigin: string | undefined
-  const savedHosts = new SavedHostsStore(browserSavedHostsPersistence())
-  const browserHttp = httpPageOrigin !== undefined && fixtureRpc === undefined && transport === undefined
-  const canSelectBookmark = (row: SavedHost | undefined): row is SavedHost => row !== undefined
-    && row.origin !== 'in-process' && (!browserHttp || row.origin === httpPageOrigin)
-  // A served page cannot authorize cross-origin RPC. Keep its bookmarks but
-  // discard unsupported persisted selections before any connection starts.
-  const selectedHostPersistence = browserSelectedHostPersistence()
-  const selectedHostId = selectedHostPersistence?.read()
-  if (selectedHostId !== undefined) {
-    const row = savedHosts.list().find(item => item.hostId === selectedHostId)
-    if (canSelectBookmark(row)) selectedOrigin = row.origin
-    else selectedHostPersistence?.clear()
-  }
-  const rpc = fixtureRpc ?? transport?.rpc ?? createWebConnectionRpc(
-    transport?.fetch, transport?.openStream, () => owner?.controller.captureAuthenticationFailure(),
-    () => selectedOrigin,
-  )
   let generationId = 0
   let generation: ConnectionGeneration | undefined
   let state: ConnectionState | undefined
   const generationListeners = new Set<() => void>()
   const stateListeners = new Set<() => void>()
-  const targetListeners = new Set<() => void>()
   const publishGeneration = (next: ConnectionGeneration | undefined): void => {
     if (Object.is(generation, next)) return
     generation = next
-    if (next !== undefined) recordSavedHost(next.host)
     for (const listener of [...generationListeners]) {
       try {
         listener()
@@ -321,34 +268,15 @@ export function apply(ctx: Context): void {
     publishGeneration(undefined)
     publishState(undefined)
   }
-  const recordSavedHost = (host: ConnectionGeneration['host']): void => {
-    const descriptor = host.descriptor
-    if (descriptor === undefined) return
-    const row: SavedHost = {
-      hostId: descriptor.hostId,
-      displayName: descriptor.displayName,
-      platform: host.platform,
-      origin: fixtureRpc !== undefined || transport?.rpc !== undefined
-        ? 'in-process'
-        : selectedOrigin ?? httpPageOrigin ?? 'in-process',
-      lastConnectedAt: Date.now(),
-    }
-    savedHosts.record(row)
-  }
   const handle: ConnectionHandle = {
+    interactions,
+    openWebSocket: path => openConnectionWebSocket(path, transport?.createWebSocket, transport?.streamBaseUrl),
     isLoopback: transport?.ownsHost === true || pageLocation === undefined || isLoopbackHostname(pageLocation.hostname),
     generation: {
       getSnapshot: () => generation,
       subscribe: (listener) => {
         generationListeners.add(listener)
         return () => { generationListeners.delete(listener) }
-      },
-    },
-    target: {
-      getSnapshot: () => selectedOrigin,
-      subscribe: (listener) => {
-        targetListeners.add(listener)
-        return () => { targetListeners.delete(listener) }
       },
     },
     state: {
@@ -359,44 +287,8 @@ export function apply(ctx: Context): void {
       },
     },
     rpc,
-    savedHosts,
     reconnect() {
       owner?.controller.reconnect()
-    },
-    targetOrigin: () => selectedOrigin,
-    selectSavedHost(hostId) {
-      if (!canSelectBookmark(savedHosts.list().find(row => row.hostId === hostId))) return undefined
-      const row = switchToSavedHost(handle, hostId)
-      if (row !== undefined) selectedHostPersistence?.write(hostId)
-      return row
-    },
-    usePageHost() {
-      handle.retarget(undefined)
-      selectedHostPersistence?.clear()
-    },
-    forgetSavedHost(hostId) {
-      savedHosts.remove(hostId)
-      if (selectedHostPersistence?.read() === hostId) selectedHostPersistence.clear()
-    },
-    renameSavedHost(hostId, customName) {
-      savedHosts.rename(hostId, customName)
-    },
-    moveSavedHost(hostId, direction) {
-      savedHosts.moveHost(hostId, direction)
-    },
-    retarget(origin) {
-      const next = origin === undefined ? undefined : httpOriginOf(origin)
-      const changed = selectedOrigin !== next
-      selectedOrigin = next
-      owner?.controller.reconnect()
-      if (!changed) return
-      for (const listener of [...targetListeners]) {
-        try {
-          listener()
-        } catch (error) {
-          console.error('[connection] target listener threw:', error)
-        }
-      }
     },
     registerGenerationSource(source) {
       if (generationSource !== undefined) {
@@ -425,7 +317,7 @@ export function apply(ctx: Context): void {
           sinks.onConnected?.(host)
         },
         onStateChange: (state) => {
-          if (state !== 'ready') {
+          if (state !== 'connected') {
             publishGeneration(undefined)
           }
           if (!ownsGeneration()) return
@@ -444,16 +336,17 @@ export function apply(ctx: Context): void {
   ctx.provide('connection', handle)
 }
 
-/** Reduce one absolute http(s) URL to its origin; anything else fails loudly. */
-function httpOriginOf(value: string): string {
-  let url: URL
-  try {
-    url = new URL(value)
-  } catch {
-    throw new TypeError(`connection: retarget requires an absolute http(s) URL, got ${JSON.stringify(value)}`)
-  }
-  if (url.protocol !== 'https:' && url.protocol !== 'http:') {
-    throw new TypeError(`connection: retarget requires an http(s) URL, got ${JSON.stringify(value)}`)
-  }
-  return url.origin
+/**
+ * Client plugin body: read the page composition and install its Connection service.
+ * @param ctx - client Cordis context.
+ */
+export function apply(ctx: Context): void {
+  const globals = globalThis as ClientTransportGlobal
+  const pageLocation = typeof location === 'undefined' ? undefined : location
+  const transport = globals.__DSH_TRANSPORT__
+  installConnection(ctx, {
+    ...(transport === undefined ? {} : { transport }),
+    recovery: resolveConnectionConfig(globals.__DSH_CONNECTION_RECOVERY__),
+    ...(pageLocation === undefined ? {} : { location: pageLocation }),
+  })
 }
