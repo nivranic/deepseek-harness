@@ -14,7 +14,7 @@ import type {} from '@deepseek-ai/dsh-plugin-manager/types'
 import type {} from '@deepseek-ai/dsh-plugin-market/types'
 import type {} from '@deepseek-ai/dsh-schedule/client'
 import type { TypertForwardableEventEntry } from '@deepseek-ai/dsh-typert-protocol'
-import type { RemoteInteractionPolicy } from '@deepseek-ai/dsh-api-gateway'
+import type { RemoteInteractionPolicy } from '@deepseek-ai/dsh-api-gateway/protocol'
 
 /**
  * Host events this application forwards without renaming. The explicit mode is

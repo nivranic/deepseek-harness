@@ -8,6 +8,9 @@ import type { ProjectionCheckpoint } from '@deepseek-ai/dsh-session-projection'
 import type { SubagentPromptRequestId } from '../src/control-types.ts'
 import { findPromptReceipt, subagentPromptReceiptsProjectionDefinition as definition } from '../src/prompt-receipts.ts'
 
+/** Registration handle type returned by the awaited projection registration. */
+type ReceiptsRegistration = Awaited<ReturnType<InstanceType<typeof SessionProjectionRegistry>['register']>>
+
 function insertion(seq: number, message: UserMessage): SessionEvent<'agent/inbox/spliced'> {
   return { type: 'agent/inbox/spliced', seq: SessionSeq(seq), time: 0,
     data: { target: 'next-turn', start: 0, removedCount: 0, inserted: [message] } }
@@ -19,11 +22,14 @@ describe('subagent prompt receipts', () => {
     try {
       await ctx.plugin(SessionStore)
       await ctx.plugin(SessionProjectionRegistry)
+      let registration: Promise<ReceiptsRegistration> | undefined
       const owner = ctx.plugin({
         name: 'prompt-receipts', inject: ['sessionProjections'],
-        apply(context) { context.sessionProjections.register(definition) },
+        apply(context) { registration = context.sessionProjections.register(definition) },
       })
       await owner
+      const receipts = await registration
+      if (receipts === undefined) throw new Error('prompt-receipts registration did not start')
       const parent = ctx.sessions.create(SessionId('receipt-parent'))
       const requestId = '__proto__' as SubagentPromptRequestId
       const inherited = createUserMessage({ content: [{ type: 'text', text: 'parent request' }], source: { kind: 'user', rpcId: requestId } })
@@ -43,7 +49,10 @@ describe('subagent prompt receipts', () => {
       }
       expect(() => ctx.sessionProjections.restore(roundtrip, events, SessionLogOffset(0), header, SessionLogOffset(1))).toThrow()
       await owner.dispose()
-      expect(ctx.sessionProjections.stateOf(parent, 'subagentPromptReceipts')).toBeUndefined()
+      // The awaited handle retains its reader after unregistration, so the removal
+      // proof is the registry surface: a fresh restore no longer emits this projection.
+      const afterDispose = ctx.sessionProjections.restore({}, events, SessionLogOffset(0), header, SessionLogOffset(1))
+      expect(afterDispose.checkpoint).not.toHaveProperty('subagentPromptReceipts')
     } finally {
       await ctx.fiber.dispose()
     }

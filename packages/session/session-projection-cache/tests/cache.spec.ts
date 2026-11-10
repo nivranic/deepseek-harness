@@ -216,7 +216,7 @@ afterEach(async () => {
 describe('SessionProjectionCache write policy', () => {
   it('captures mutable projection values before waiting for log durability', async () => {
     const { ctx, root, cache } = await harness()
-    ctx.sessionProjections.register({
+    await ctx.sessionProjections.register({
       ...marks3Unit,
       init: () => ({ marks: [] }),
       apply: (state, event) => {
