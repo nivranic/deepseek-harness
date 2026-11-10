@@ -22,5 +22,5 @@ const activeTurnProjection = {
  * @param ctx - Session Controller context owning registration and withdrawal.
  */
 export function installActiveTurnProjection(ctx: Context): void {
-  ctx.sessionProjections.register(activeTurnProjection)
+  void ctx.sessionProjections.register(activeTurnProjection)
 }

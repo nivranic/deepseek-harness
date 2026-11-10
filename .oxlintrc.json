@@ -28,7 +28,69 @@
     "**/*.js",
     "**/*.mjs",
     "**/*.config.ts", // Tool and app configs are outside the repository TypeScript programs.
-    "packages/client/tsdown.client.ts" // Shared client build preset, also outside a TypeScript program.
+    "packages/client/tsdown.client.ts", // Shared client build preset, also outside a TypeScript program.
+    "packages/api/native-remote/**", // Parked upstream-merge subsystems: excluded from both face aggregates until replant; see .merge-helpers/port-notes/2026-11-10-native-remote-peer-port-parked.md.
+    "packages/client/ui-settings-devices/**", // Parked lane UI packages (settings host surfaces depend on the parked device-connection model).
+    "packages/client/ui-settings-hosts/**",
+    "packages/client/ui-settings-host-status/**",
+    "packages/client/ui-settings-telemetry/**",
+    "packages/client/ui-view-handoff/**",
+    "packages/api/remotes/src/client/host-preparation.ts", // Parked remotes preparation lane (preset registry migration pending replant).
+    "packages/api/remotes/tests/host-preparation.client.spec.ts",
+    "packages/api/gateway/tests/preparation.client.spec.ts", // Parked lane client specs excluded from the client face.
+    "packages/api/session-controller/tests/fake-api.client.ts",
+    "packages/api/session-controller/tests/subagent-generation.client.spec.ts",
+    "packages/api/session-controller/tests/rename-revision.client.spec.ts",
+    "packages/api/session-controller/tests/cancel-target.client.spec.ts",
+    "packages/api/workspace-files/tests/capabilities.client.spec.ts",
+    "packages/preset/agent-preset-registry/tests/lite-preset-projection.spec.ts", // Parked Lite catalog cluster (official registry is Loader-based).
+    "packages/typert/generator/tests/remote-errors.spec.ts", // Parked remote-error-model analyzer subsystem.
+    "scripts/gen-lite-preset-catalog.ts", // Parked scripts bound to the retired preset-roster API.
+    "scripts/gen-lite-preset-catalog.spec.ts",
+    "scripts/verify-remote-error-model.ts",
+    "scripts/verify-remote-error-model.spec.ts",
+    "scripts/gen-remote-error-envelope.ts",
+    "scripts/gen-remote-error-envelope.spec.ts",
+    "scripts/gen-tool-catalog.spec.ts",
+    "apps/web/tests/android-*.e2e.ts", // Parked android/native-remote e2e family (imports the parked native-remote package).
+    "apps/web/tests/android-gateway-driver.ts",
+    "apps/web/tests/android-companion-ui-driver.ts",
+    "apps/web/tests/android-host-restart.fixture.ts",
+    "apps/web/tests/native-remote-question.e2e.ts",
+    "apps/web/tests/native-remote-isolation.e2e.ts",
+    "apps/web/tests/native-remote-support.ts",
+    "apps/web/tests/validation-details.e2e.ts", // Parked host-plane lane e2e family: excluded from the apps/web client project, restored with the upstream merge.
+    "apps/web/tests/checkpoint-order.snapshot.ts",
+    "apps/web/tests/host-description.e2e.ts",
+    "apps/web/tests/file-capabilities.e2e.ts",
+    "apps/web/tests/preset-capabilities.e2e.ts",
+    "apps/web/tests/commands-capabilities.e2e.ts",
+    "apps/web/tests/goal-capabilities.e2e.ts",
+    "apps/web/tests/subagent-capabilities.e2e.ts",
+    "apps/web/tests/feedback-capabilities.e2e.ts",
+    "apps/web/tests/file-upload-capabilities.e2e.ts",
+    "apps/web/tests/file-upload-dedupe.e2e.ts",
+    "apps/web/tests/plugin-inventory-capabilities.e2e.ts",
+    "apps/web/tests/dynamic-cordis-capabilities.e2e.ts",
+    "apps/web/tests/interaction-closed.e2e.ts",
+    "apps/web/tests/interaction-cancel.e2e.ts",
+    "apps/web/tests/interaction-expiry.e2e.ts",
+    "apps/web/tests/host-restart.e2e.ts",
+    "apps/web/tests/host-restart.fixture.ts",
+    "apps/web/tests/tool-reused-id.snapshot.ts",
+    "apps/web/tests/question-retry.snapshot.ts",
+    "apps/web/tests/tool-reused-id.fixture.ts",
+    "apps/web/tests/prompt-idempotency.e2e.ts",
+    "apps/web/tests/transport-failure.e2e.ts",
+    "apps/web/tests/cancel-target.e2e.ts",
+    "apps/web/tests/rename-revision.e2e.ts",
+    "apps/web/tests/fixture-home-paths.ts",
+    "apps/web/tests/fixture-home-paths.spec.ts",
+    "apps/web/tests/hosts-settings.e2e.ts",
+    "apps/web/tests/device-interaction-reply.e2e.ts",
+    "apps/web/tests/diff-preview.e2e.ts",
+    "apps/web/tests/remote-welcome.e2e.ts",
+    "apps/web/tests/produced-files.e2e.ts"
   ],
   "overrides": [
     {

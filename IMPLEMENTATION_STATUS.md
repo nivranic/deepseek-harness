@@ -33,7 +33,7 @@
 - **lockfile 对齐**：pnpm-lock.yaml 工作树 158 行裁剪＝connection 等包采纳官方 package.json 后的正确重生成（pnpm install --lockfile-only 复核 Already up to date）。
 - **新模块**：apps/desktop-host/src/build-revision.ts（applyBuildRevisionStamp 从车道回植，main() 早接线+再导出）。
 
-如实边界：本增量验收门仅 typecheck 五门；lint/test/doc-sync/敌我迭代审计/快照门未跑（后续闭环轮次）。合并策略按「官方有→采纳官方版；lane 独有→最小适配或封存待重植」执行，全部封存件与重植入口登记在 port-note。
+如实边界：本增量验收门为 typecheck 五门（绿）；lint 后续轮已跑至 90 条残留——17 个与官方逐字节相同文件被 tsgolint 判 error 型（主因假说＝Windows 下 tsgolint 对 pnpm junction 的解析差异，官方 CI 为 Linux；决定性验证需 Linux 侧对照，见 port-note 附 6），封存面已入 lint ignore、五包裸引用修形、别名回收至官方原状、liveshare 端点完备门补 uploadDedupe 行。test/doc-sync/敌我迭代审计/快照门未跑（后续闭环轮次）。合并策略按「官方有→采纳官方版；lane 独有→最小适配或封存待重植」执行，全部封存件与重植入口登记在 port-note。
 
 ## Android 外壳消费 Gateway 失败契约
 

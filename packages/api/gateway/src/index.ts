@@ -372,7 +372,11 @@ export class TypertGatewayService extends Service implements TypertGateway {
       this.remoteEvents = undefined
       lifetime.abort(error)
     })
-    const registration: RegisteredRemoteEventSource = { lifetime, done, host: { home: host.home, ...host.platform === undefined ? {} : { platform: host.platform } } }
+    const hostFacts: RemoteEventHostInfo = {
+      home: host.home,
+      ...host.platform === undefined ? {} : { platform: host.platform },
+    }
+    const registration: RegisteredRemoteEventSource = { lifetime, done, host: hostFacts }
     this.remoteEvents = registration
     return async () => {
       if (this.remoteEvents === registration) {
