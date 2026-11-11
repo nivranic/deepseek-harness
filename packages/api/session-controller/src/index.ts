@@ -1,5 +1,6 @@
 /** Session Remote owner: cold reads, explicit Agent commands, and live control state. */
 
+import { SESSION_REMOTE_CAPABILITIES } from './capabilities.ts'
 import { hostname } from 'node:os'
 import { resolve } from 'node:path'
 import type { Agent } from '@deepseek-ai/dsh-agent'
@@ -31,6 +32,7 @@ import { buildModelCatalog, hasProviderApiKey } from './catalog.ts'
 import { SessionSkillCatalog } from './skill-catalog.ts'
 import { SessionMediaReferences } from './media-references.ts'
 import { ArchivedSessionGate } from './archived-session-gate.ts'
+import { installActiveTurnProjection } from './active-turn-projection.ts'
 import type {
   ModelCatalog,
   SessionWorkspacePathApplication,
@@ -176,7 +178,7 @@ export class SessionController extends TypertRemoteService {
    * @param internals - host integrations replaceable by direct unit tests.
    */
   constructor(ctx: Context, config: Config, internals: SessionControllerInternals = {}) {
-    super(ctx, 'sessionController', { namespace: 'session' })
+    super(ctx, 'sessionController', { namespace: 'session', capabilities: SESSION_REMOTE_CAPABILITIES })
     this.listWorkSliceMs = SessionController.Config(config).listWorkSliceMs
     this.fileApplications = internals.fileApplications ?? nativeFileApplications
     this.openFileApplication = internals.openFileApplication ?? openNativeFileApplication
@@ -189,6 +191,7 @@ export class SessionController extends TypertRemoteService {
   protected async [Service.init](): Promise<void> {
     const ctx = this.ctx
     ctx.typert.resources.register('session', { resolve: resolveSessionResource })
+    installActiveTurnProjection(ctx)
     this.agents = new ApiSessionAgentController(ctx)
     this.agents.initialize()
     this.commands = new SessionCommandController(ctx, this.agents, process.cwd())

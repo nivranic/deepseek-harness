@@ -2,8 +2,6 @@
 # section, a hash of its English and Chinese blocks outside code blocks and generated regions.
 # After editing either side, bring the other along and re-record with:
 #   pnpm run verify-translation-pairing --write docs/subsystems/sidebar-right.md
-sidebar-right.md: fa5ba3877569ec50a681a4f49e8b309dc5166936
-sidebar-right.zh.md: 1e8a28d8dbf1634cf78cf934fee0880ac7761dd7
 /right-sidebar:
   en: e84f3719f0a99a63
   zh: 387656d860d3c2c4
@@ -23,8 +21,8 @@ sidebar-right.zh.md: 1e8a28d8dbf1634cf78cf934fee0880ac7761dd7
   en: f58dc6ff6b0027a7
   zh: 707722fcbd096efc
 /right-sidebar/document-renderers:
-  en: 2bf47a890fce175e
-  zh: 45f81c579b8939a8
+  en: cb43d4155c3e0c40
+  zh: 5143d249c89285f6
 /right-sidebar/resource-model:
   en: 2916306e6cb9282c
   zh: cdec047989860202

@@ -1,6 +1,22 @@
-# Bilingual-pair consistency record (docs/i18n/README.md): the git blob hash of each
-# side as of the last confirmed-consistent state. Both languages carry equal authority;
-# after editing either side, bring the other along and re-record with:
+# Bilingual-pair consistency record for 2026-10-03-android-follow-outage.md (docs/i18n/README.md): per heading
+# section, a hash of its English and Chinese blocks outside code blocks and generated regions.
+# After editing either side, bring the other along and re-record with:
 #   pnpm run verify-translation-pairing --write .agents/notes/implemented/architecture/2026-10-03-android-follow-outage.md
-2026-10-03-android-follow-outage.md: 81bec09bbd67cc63ad0df69b0b197461f83259b2
-2026-10-03-android-follow-outage.zh.md: 086139dd249710a0a7e491108769f63640142380
+/agent-note-carrier-loss-lane-for-the-persisted-follow-window-25:
+  en: d7a8a66dcf3cf15e
+  zh: c589451622425c4a
+/agent-note-carrier-loss-lane-for-the-persisted-follow-window-25/problem:
+  en: 05f29b9bc56e6f44
+  zh: a28b43bd27286cae
+/agent-note-carrier-loss-lane-for-the-persisted-follow-window-25/decision:
+  en: 605d1440803c8639
+  zh: 77207a0399cd0beb
+/agent-note-carrier-loss-lane-for-the-persisted-follow-window-25/alternatives-considered:
+  en: 354c9e6e10a44a76
+  zh: d736087469555f82
+/agent-note-carrier-loss-lane-for-the-persisted-follow-window-25/consequences:
+  en: 3baed292af450399
+  zh: 898594314761f48e
+/agent-note-carrier-loss-lane-for-the-persisted-follow-window-25/open-work:
+  en: 42ce78766b7c2a6b
+  zh: b4b9fa82ff6cb449

@@ -1,6 +1,19 @@
-# Bilingual-pair consistency record (docs/i18n/README.md): the git blob hash of each
-# side as of the last confirmed-consistent state. Both languages carry equal authority;
-# after editing either side, bring the other along and re-record with:
+# Bilingual-pair consistency record for 2026-09-20-android-link-fixture-refusal-lane.md (docs/i18n/README.md): per heading
+# section, a hash of its English and Chinese blocks outside code blocks and generated regions.
+# After editing either side, bring the other along and re-record with:
 #   pnpm run verify-translation-pairing --write .agents/notes/implemented/feature/2026-09-20-android-link-fixture-refusal-lane.md
-2026-09-20-android-link-fixture-refusal-lane.md: 7b967ad36f83007778bb7f4dc624698e3e101fbc
-2026-09-20-android-link-fixture-refusal-lane.zh.md: 9f717a4ba1c52c54a64c1fcfe18b85f432d13d9c
+/agent-note-the-android-link-fixture-drives-a-classified-refusal-end-to-end:
+  en: 17ca5527e2150fbc
+  zh: e85ca6ad2a7a8798
+/agent-note-the-android-link-fixture-drives-a-classified-refusal-end-to-end/problem:
+  en: d183ffab9072f9a8
+  zh: 06d0133b80210259
+/agent-note-the-android-link-fixture-drives-a-classified-refusal-end-to-end/decision:
+  en: 3b0cf480128ce4e1
+  zh: ef488debc534feff
+/agent-note-the-android-link-fixture-drives-a-classified-refusal-end-to-end/alternatives-considered:
+  en: 75f7e8e0b97e309f
+  zh: 287d939812cda30f
+/agent-note-the-android-link-fixture-drives-a-classified-refusal-end-to-end/consequences:
+  en: 021cdf14891898ea
+  zh: bfa2d887874ddb89

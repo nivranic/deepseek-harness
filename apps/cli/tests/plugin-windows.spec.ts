@@ -12,7 +12,7 @@ afterEach(() => {
 })
 
 it.skipIf(process.platform !== 'win32').each(['global bin', 'node_modules/.bin'])(
-  'preserves literal arguments through the %s Windows shim', (location) => {
+  'preserves literal arguments through the %s Windows shim', async (location) => {
     const root = mkdtempSync(join(tmpdir(), 'dsh-plugin-windows-'))
     roots.push(root)
     const shim = join(root, location)
@@ -30,10 +30,10 @@ it.skipIf(process.platform !== 'win32').each(['global bin', 'node_modules/.bin']
     const literals = ['中文 & punctuation', 'embedded"quote', '', 'C:\\trailing\\',
       '%DSH_PLUGIN_LITERAL%', '!DSH_PLUGIN_LITERAL!', 'literal&echo unexpected>argument-marker.txt']
 
-    expect(runPlugin('sdk', ['add', path, ...literals])).toBe(0)
+    expect(await runPlugin('sdk', ['add', path, ...literals])).toBe(0)
 
     expect(JSON.parse(readFileSync(receipt, 'utf8'))).toEqual([
-      '--config.ignore-workspace-root-check=true', 'add', `file:${resolve('./plugin with spaces')}`, ...literals,
+      'add', `file:${resolve('./plugin with spaces')}`, ...literals,
     ])
     expect(existsSync(join(root, 'profiles/sdk/argument-marker.txt'))).toBe(false)
   },

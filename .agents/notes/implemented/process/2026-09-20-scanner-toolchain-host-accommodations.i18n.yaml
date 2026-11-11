@@ -1,6 +1,22 @@
-# Bilingual-pair consistency record (docs/i18n/README.md): the git blob hash of each
-# side as of the last confirmed-consistent state. Both languages carry equal authority;
-# after editing either side, bring the other along and re-record with:
+# Bilingual-pair consistency record for 2026-09-20-scanner-toolchain-host-accommodations.md (docs/i18n/README.md): per heading
+# section, a hash of its English and Chinese blocks outside code blocks and generated regions.
+# After editing either side, bring the other along and re-record with:
 #   pnpm run verify-translation-pairing --write .agents/notes/implemented/process/2026-09-20-scanner-toolchain-host-accommodations.md
-2026-09-20-scanner-toolchain-host-accommodations.md: e7bad6cdcbea195c4c73c83661ea04e20079e735
-2026-09-20-scanner-toolchain-host-accommodations.zh.md: f23fd8e8d8525d883bb96796a98d3df129ae44a8
+/agent-note-building-the-mobile-scanner-aar-behind-a-restricted-network-and-360-active-defense:
+  en: 05f216a8ee0a3470
+  zh: bccc096b20404033
+/agent-note-building-the-mobile-scanner-aar-behind-a-restricted-network-and-360-active-defense/problem:
+  en: 8e1bb427ceb0cc50
+  zh: 5d7936431ceb2ed8
+/agent-note-building-the-mobile-scanner-aar-behind-a-restricted-network-and-360-active-defense/current-upstream-boundary:
+  en: 96016d86f3e3dc5c
+  zh: 3a96ebaa1168d59c
+/agent-note-building-the-mobile-scanner-aar-behind-a-restricted-network-and-360-active-defense/decision:
+  en: ffed28f5ddfd04a5
+  zh: ad953f6a66e2f912
+/agent-note-building-the-mobile-scanner-aar-behind-a-restricted-network-and-360-active-defense/alternatives-considered:
+  en: 7a9c466d8472d32a
+  zh: 4c9b6e931fc8ffd2
+/agent-note-building-the-mobile-scanner-aar-behind-a-restricted-network-and-360-active-defense/consequences:
+  en: ff141ed9d6dc1648
+  zh: 2d4b0ec9fb00c0e1

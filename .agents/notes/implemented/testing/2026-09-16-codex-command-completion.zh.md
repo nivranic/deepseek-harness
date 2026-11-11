@@ -12,7 +12,7 @@ Codex 仍持有 yielded 命令时，脚本模型就可能宣布完成。文件�
 
 [Responses fixture](../../../../packages/subagent/subagent-codex/tests/responses-fixture.ts)为每次发出的 function call 分配独立 id。命令完成行为只接受最新发出 id 对应的唯一结果。运行中的 session 会触发已声明的 `write_stdin` 调用，参数使用返回的 session id；每次轮询获得新的 call id。只有命令元数据在输出区域之前明确给出退出码零，才允许完成。缺失、重复、无关、失败或矛盾的结果使 fixture 失败；命令打印的文本不能提供退出状态。
 
-[真实 Codex 命令测试](../../../../packages/subagent/subagent-codex/tests/real-product.spec.ts)保留固定版本 CLI 和本地 Responses 服务器。yielded 用例通过私有工作区文件阻止命令继续。测试只有在观察到轮询结果后才释放该文件，随后核对最终文件内容和受管进程退出。这种方式观察实际 yielding，无须假设固定等待长于启动时间。[既有清理决策](2026-09-07-subagent-teardown-test-budgets.zh.md)继续负责清理顺序和执行 lane 的预算。
+[真实 Codex 命令测试](../../../../packages/subagent/subagent-codex/tests/real-product.spec.ts)保留固定版本 CLI 和本地 Responses 服务器。yielded 用例通过私有工作区文件阻止命令继续。测试只有在观察到轮询结果后才释放该文件，随后核对最终文件内容和受管进程退出。这种方式观察实际 yielding，无须假设固定等待长于启动时间。[既有清理决策](../../archived/testing/2026-09-07-subagent-teardown-test-budgets.md)继续负责清理顺序和执行 lane 的预算。
 
 ## 考虑过的替代方案
 

@@ -9,8 +9,7 @@ kind: "package-reference"
 
 ## 概述
 
-为一个 Session 存储文件或规范化图片，取得供后续 prompt 使用的不透明凭证。浏览器文件调用方可以发送 `Blob`、精确字节或 `ReadableStream<Uint8Array>`，观察进度并取消活动工作。普通服务页面流式发送请求体，不在页面线程聚合字节；Host 位于其他位置的页面提供自己的载体。图片调用方使用编码 Remote 暂存。凭证仅保留在接收方 Host 进程和 Session 内，被接受的消息则保留持久附件引用。
-本包让浏览器功能为一个 Session 存储 `Blob`、精确字节或 `ReadableStream<Uint8Array>`，并取得供后续 prompt 使用的不透明凭证。普通服务页面发送 Blob 和 stream 请求体时，不会在页面线程聚合全部字节；Host 位于其他执行上下文中的页面会在 Cordis 启动前提供 Fetch 形式的载体。调用方可以观察已消费字节并取消活动操作。stream 请求体只能消费一次，跨 Worker 边界时会转移所有权。图片上传会暂存一张规整后的 prompt 图片，供后续 prompt 凭证引用。
+为一个 Session 存储文件或规范化图片，取得供后续 prompt 使用的不透明凭证。浏览器文件调用方可以发送 `Blob`、精确字节或 `ReadableStream<Uint8Array>`，观察进度并取消活动工作。普通服务页面流式发送请求体，不在页面线程聚合字节；Host 位于其他位置的页面提供自己的载体。图片调用方使用编码 Remote 暂存。凭证仅保留在接收方 Host 进程和 Session 内，被接受的消息则保留持久附件引用。 本包让浏览器功能为一个 Session 存储 `Blob`、精确字节或 `ReadableStream<Uint8Array>`，并取得供后续 prompt 使用的不透明凭证。普通服务页面发送 Blob 和 stream 请求体时，不会在页面线程聚合全部字节；Host 位于其他执行上下文中的页面会在 Cordis 启动前提供 Fetch 形式的载体。调用方可以观察已消费字节并取消活动操作。stream 请求体只能消费一次，跨 Worker 边界时会转移所有权。图片上传会暂存一张规整后的 prompt 图片，供后续 prompt 凭证引用。
 
 ## 目录
 
@@ -53,8 +52,7 @@ Host 还通过 `file-upload.dedupe.v1` 接受 `fileUploads/uploadDedupe({ digest
 
 Client 插件提供 `ctx.fileUpload`。其 `upload()` 方法接收所属 Session 标识，组装原始路由请求，并为精确字节调用生成的 Remote。提供方只读取一次可选的 Cordis 启动前 `__DSH_FILE_UPLOAD__` 钩子。没有该钩子时，每个 Blob 或 stream 请求拥有一个短期 Worker，并在完成、失败或取消后释放。存在该钩子时，服务通过页面自己提供的 Fetch 载体发送请求体；Web Worker runtime 会通过请求帧转移 stream 请求体，再以带背压的分片形式交给 Host HTTP bridge。
 
-Host 插件提供 `ctx.fileUploads`。它拥有经过认证的流式路由、编码 Remote 兜底、命令凭证解析器与暂存凭证生命周期；编码准入、附件错误识别与字节存储仍由 `ctx.attachments` 提供。文件与图片凭证表以接收方 Agent 的 Session 对象为键，两类凭证不能相互替代。图片凭证私下保留源编码字节数，使 prompt 准入能将暂存图片与内联图片合并计入原始字节预算。规范化图片元数据不公开也不替代该计数。Session Controller 注册可恢复休眠普通 Agent 的解析器，并在 prompt 准入时消费凭证。Prompt 投递通过可释放事务持有每个凭证绑定。成功投递提交事务前，释放会恢复原绑定；提交后，队列或历史观察会退休该凭证。
-Host 插件提供 `ctx.fileUploads`。它拥有经过认证的流式路由、编码 Remote 兜底、命令凭证解析器与暂存凭证生命周期；编码准入、附件错误识别与字节存储仍由 `ctx.attachments` 提供。带 `mediaType` 查询参数的原始上传最多读取部署配置的单张图片与单条消息图片字节上限中较小的一个，并通过 `ctx.attachments.saveImages` 存储图片；该凭证记录上传的字节数，在 prompt 准入时解析为这张图片，这些字节计入单条消息的图片总字节上限；命令只接受文件凭证。取消的图片上传不会取得凭证：存储开始前取消不存储任何内容，已开始存储的图片会保留。Host 调用方传入具有运行时所属上下文的 Agent；凭证表以该 Agent 的准确 Session 对象为键。Session Controller 注册可恢复休眠普通 Agent 的解析器，并在 prompt 准入时消费凭证。Prompt 投递通过可释放事务持有每个凭证绑定。成功投递提交事务前，释放会恢复原绑定；提交后，队列或历史观察会退休该凭证。
+Host 插件提供 `ctx.fileUploads`。它拥有经过认证的流式路由、编码 Remote 兜底、命令凭证解析器与暂存凭证生命周期；编码准入、附件错误识别与字节存储仍由 `ctx.attachments` 提供。文件与图片凭证表以接收方 Agent 的 Session 对象为键，两类凭证不能相互替代。图片凭证私下保留源编码字节数，使 prompt 准入能将暂存图片与内联图片合并计入原始字节预算。规范化图片元数据不公开也不替代该计数。Session Controller 注册可恢复休眠普通 Agent 的解析器，并在 prompt 准入时消费凭证。Prompt 投递通过可释放事务持有每个凭证绑定。成功投递提交事务前，释放会恢复原绑定；提交后，队列或历史观察会退休该凭证。 Host 插件提供 `ctx.fileUploads`。它拥有经过认证的流式路由、编码 Remote 兜底、命令凭证解析器与暂存凭证生命周期；编码准入、附件错误识别与字节存储仍由 `ctx.attachments` 提供。带 `mediaType` 查询参数的原始上传最多读取部署配置的单张图片与单条消息图片字节上限中较小的一个，并通过 `ctx.attachments.saveImages` 存储图片；该凭证记录上传的字节数，在 prompt 准入时解析为这张图片，这些字节计入单条消息的图片总字节上限；命令只接受文件凭证。取消的图片上传不会取得凭证：存储开始前取消不存储任何内容，已开始存储的图片会保留。Host 调用方传入具有运行时所属上下文的 Agent；凭证表以该 Agent 的准确 Session 对象为键。Session Controller 注册可恢复休眠普通 Agent 的解析器，并在 prompt 准入时消费凭证。Prompt 投递通过可释放事务持有每个凭证绑定。成功投递提交事务前，释放会恢复原绑定；提交后，队列或历史观察会退休该凭证。
 
 | 文件 | 职责 |
 |---|---|

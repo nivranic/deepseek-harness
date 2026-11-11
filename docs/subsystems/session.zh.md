@@ -888,24 +888,25 @@ resolveAgent(sessionId: SessionId): Promise<ApiSessionAgentResult>
 @Remote('modelCatalog') modelCatalog(): Promise<ModelCatalog>
 
 /**
- * Describe the serving desktop for Host-owned declared-file actions.
+ * Report whether this deployment can hand a Session workspace path to a native desktop.
+ * @returns true when the matching open operation is available.
+ */
+@Remote canOpenWorkspacePath(): boolean
+
+/**
+ * Describe the serving desktop for authenticated file-action routes.
  * @returns Host name, configured availability, and platform-specific file-manager behavior.
  */
 workspaceDesktop(): { name: string; available: boolean; fileManager: 'finder' | 'explorer' | 'directory' | null }
 
 /**
- * Open one authorized path prepared by a Host caller; this method is not a Remote operation.
- * @param request - Host filesystem path authorized and resolved by the caller.
- * @param signal - caller lifetime; abort terminates the native command.
- * @returns confirmation after the native opener accepts the path.
- * @throws The abort reason before dispatch; RemoteError for invalid paths, in-flight cancellation, or opener failures.
  * Verify one path through the composed filesystem and open it on the Host desktop.
  * @param request - path after best-effort Session workspace resolution.
  * @param signal - caller lifetime; abort terminates the native command.
  * @returns confirmation after the native opener accepts the path.
  * @throws RemoteError when the request is invalid, has no verified Host mapping, is cancelled, or the opener fails.
  */
-async openWorkspacePath( request: SessionOpenWorkspacePathRequest, signal: AbortSignal, ): Promise<SessionOpenWorkspacePathValue>
+@Remote('openWorkspacePath') async openWorkspacePath( request: SessionOpenWorkspacePathRequest, signal: AbortSignal, ): Promise<SessionOpenWorkspacePathValue>
 
 /**
  * Query current file handlers on the serving desktop without activating an Agent.
@@ -924,15 +925,6 @@ async openWorkspacePath( request: SessionOpenWorkspacePathRequest, signal: Abort
 @Remote('rename') rename(request: SessionRenameRequest): Promise<SessionRenameValue>
 
 /**
- * Rename against the title event revision captured before editing.
- * @param request - Session, proposed title and expected title revision.
- * @returns the normalized title and durable event sequence; conflicts preserve the current title.
- */
-@Remote('renameAt') renameAt(request: SessionRenameAtRequest): Promise<SessionRenameValue>
-
-/**
- * Fork one cold-readable completed-turn prefix into a new Session.
- * @param request - source Session and optional event anchor.
  * Fork one cold-readable exact event prefix into a new Session. An omitted
  * boundary selects the latest completed-turn prefix; an open cut receives
  * synthetic fork closers.
@@ -969,13 +961,6 @@ async openWorkspacePath( request: SessionOpenWorkspacePathRequest, signal: Abort
  * @returns acknowledgement that cancellation was requested.
  */
 @Remote('cancel') cancel(request: SessionCancelRequest): SessionCancelValue
-
-/**
- * Cancel only the observed open turn; stale or null targets leave later work intact.
- * @param request - Session identity and the observed turn/start sequence, or null.
- * @returns acknowledgement that cancellation was requested or the target is already inactive.
- */
-@Remote('cancelTurn') cancelTurn(request: SessionCancelTurnRequest): SessionCancelValue
 
 /**
  * Read one cold-safe, message-aligned Session history page.

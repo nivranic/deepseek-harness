@@ -1,6 +1,22 @@
-# Bilingual-pair consistency record (docs/i18n/README.md): the git blob hash of each
-# side as of the last confirmed-consistent state. Both languages carry equal authority;
-# after editing either side, bring the other along and re-record with:
+# Bilingual-pair consistency record for 2026-09-30-browser-dedupe-verification.md (docs/i18n/README.md): per heading
+# section, a hash of its English and Chinese blocks outside code blocks and generated regions.
+# After editing either side, bring the other along and re-record with:
 #   pnpm run verify-translation-pairing --write .agents/notes/implemented/architecture/2026-09-30-browser-dedupe-verification.md
-2026-09-30-browser-dedupe-verification.md: 8ccd2b802838e6c53128d70674cd18388ff50ede
-2026-09-30-browser-dedupe-verification.zh.md: a577323d3108b9170577455cf4f18b7237666a89
+/agent-note-the-real-browser-upload-deduplication-hit-and-the-namespace-access-fix-it-exposed:
+  en: d1afd7f44338b941
+  zh: 2bee70b4a1c1baef
+/agent-note-the-real-browser-upload-deduplication-hit-and-the-namespace-access-fix-it-exposed/problem:
+  en: feaf5e35226d8c75
+  zh: 8c8924c5bbb43974
+/agent-note-the-real-browser-upload-deduplication-hit-and-the-namespace-access-fix-it-exposed/decision:
+  en: 8776248fb192c73c
+  zh: 29d575be3e528c79
+/agent-note-the-real-browser-upload-deduplication-hit-and-the-namespace-access-fix-it-exposed/alternatives-considered:
+  en: e09f5125d9d7418f
+  zh: 1199cc9121f63361
+/agent-note-the-real-browser-upload-deduplication-hit-and-the-namespace-access-fix-it-exposed/consequences:
+  en: 589bf879ebe7d336
+  zh: ec1648b59a517450
+/agent-note-the-real-browser-upload-deduplication-hit-and-the-namespace-access-fix-it-exposed/open-work:
+  en: e43604ed4f77edf4
+  zh: 14f4a87b72d0c657

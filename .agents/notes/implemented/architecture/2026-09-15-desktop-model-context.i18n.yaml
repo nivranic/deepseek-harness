@@ -1,6 +1,19 @@
-# Bilingual-pair consistency record (docs/i18n/README.md): the git blob hash of each
-# side as of the last confirmed-consistent state. Both languages carry equal authority;
-# after editing either side, bring the other along and re-record with:
+# Bilingual-pair consistency record for 2026-09-15-desktop-model-context.md (docs/i18n/README.md): per heading
+# section, a hash of its English and Chinese blocks outside code blocks and generated regions.
+# After editing either side, bring the other along and re-record with:
 #   pnpm run verify-translation-pairing --write .agents/notes/implemented/architecture/2026-09-15-desktop-model-context.md
-2026-09-15-desktop-model-context.md: bad84e18fcb6f7dfa9117b88162007db306669f6
-2026-09-15-desktop-model-context.zh.md: 53d7a6158d2358ae0bd2084a1ca9afe8d372eb0f
+/agent-note-desktop-model-context-belongs-to-the-local-host:
+  en: 84af06cafa65776e
+  zh: 4707b090b27496e1
+/agent-note-desktop-model-context-belongs-to-the-local-host/problem:
+  en: 4a09141e9bf5b971
+  zh: c6ca1f42d9ba3de0
+/agent-note-desktop-model-context-belongs-to-the-local-host/decision:
+  en: 0929710d64733dd9
+  zh: c45d87ff857de2b1
+/agent-note-desktop-model-context-belongs-to-the-local-host/alternatives-considered:
+  en: 89bcc09e2b1d4a01
+  zh: 193e74a42857d281
+/agent-note-desktop-model-context-belongs-to-the-local-host/consequences:
+  en: 0922ff0cb24871d9
+  zh: 8d64da715540f7a9

@@ -2,8 +2,6 @@
 # section, a hash of its English and Chinese blocks outside code blocks and generated regions.
 # After editing either side, bring the other along and re-record with:
 #   pnpm run verify-translation-pairing --write packages/llm/llm/README.md
-README.md: 63b8155715613f4998182a04d8582aaf1f03b7de
-README.zh.md: ce926b457f7b812ea40fdc4c672e5fd1189321d5
 /:
   en: 860509fb08c860f4
   zh: b2c4448e8afc1f12
@@ -62,5 +60,5 @@ README.zh.md: ce926b457f7b812ea40fdc4c672e5fd1189321d5
   en: ecbc333b88e14d88
   zh: 77c725d92efd8646
 /deepseek-ai-dsh-llm/known-limitations-and-deferred-work/dev-note/open-items:
-  en: 6b1a7e903e13ee21
-  zh: bb62f2b1cc484bd5
+  en: da82bace457748ef
+  zh: 894068f1c3ba46ee

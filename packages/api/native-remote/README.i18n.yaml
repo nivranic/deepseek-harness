@@ -1,6 +1,37 @@
-# Bilingual-pair consistency record (docs/i18n/README.md): the git blob hash of each
-# side as of the last confirmed-consistent state. Both languages carry equal authority;
-# after editing either side, bring the other along and re-record with:
+# Bilingual-pair consistency record for README.md (docs/i18n/README.md): per heading
+# section, a hash of its English and Chinese blocks outside code blocks and generated regions.
+# After editing either side, bring the other along and re-record with:
 #   pnpm run verify-translation-pairing --write packages/api/native-remote/README.md
-README.md: 53fbf51d00f09c1c164c7d455096cb1ae370c70a
-README.zh.md: fac3b57c1ab28b9329ca601f344b73e49f904476
+/:
+  en: 056ae67e666f5b0e
+  zh: 717478617aba7e83
+/native-remote-connection:
+  en: ad68f111318d0f05
+  zh: a55c4aa2cf8d941c
+/native-remote-connection/summary:
+  en: 02a4c625f0835761
+  zh: e6ce2932d68cff6d
+/native-remote-connection/table-of-contents:
+  en: d152484eb41ac6b4
+  zh: 836ffb41ee595ffd
+/native-remote-connection/use-this-package:
+  en: 32e9021abf958dc3
+  zh: 6933f2e1f99489af
+/native-remote-connection/understand-the-implementation:
+  en: f138335fcb750010
+  zh: b2c5f3dafd42180a
+/native-remote-connection/further-exploration:
+  en: 19536c50de7605cb
+  zh: b4e2a2c5a65fe504
+/native-remote-connection/model-experience:
+  en: 051c052ac0b58f27
+  zh: 5a6764a42c0fb378
+/native-remote-connection/model-experience/kv-cache-effect:
+  en: 54349b02c3f82e26
+  zh: 220774b171d97541
+/native-remote-connection/known-limitations-and-deferred-work:
+  en: 0bce81a9f22aabeb
+  zh: a913436e39e6b61d
+/native-remote-connection/known-limitations-and-deferred-work/dev-note:
+  en: e67f633dc6fe7773
+  zh: e88aeb617ffb74ea

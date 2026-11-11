@@ -14,7 +14,7 @@ Status: implemented
 
 [`SessionProjectionCache.write`](../../../../packages/session/session-projection-cache/src/index.ts)先捕获投影及完整生命周期身份，再将日志 flush 与记录替换放入同一个队列位置。Session store 仍是唯一的 flush 分派者。已分离的 Session 使用现有持久化退休排空与冷读水位检查。投影 registry 已经返回脱离活状态的值，其复制行为保持不变。
 
-[缓存兼容决策](../architecture/2026-09-02-projcache-cross-version-read-compat.zh.md)继续负责格式与继承身份检查，包括 `inheritedEventCount`。[Session 观察决策](../architecture/2026-08-25-session-observations-and-projection-owned-client-state.zh.md)继续负责精确读取与 Client 投影归属。两项决策均未被替代，此变更不增加 Session 事件或存储格式代。
+[缓存兼容决策](../../archived/architecture/2026-09-02-projcache-cross-version-read-compat.md)继续负责格式与继承身份检查，包括 `inheritedEventCount`。[Session 观察决策](../architecture/2026-08-25-session-observations-and-projection-owned-client-state.zh.md)继续负责精确读取与 Client 投影归属。两项决策均未被替代，此变更不增加 Session 事件或存储格式代。
 
 ## 考虑过的替代方案
 

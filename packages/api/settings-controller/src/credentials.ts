@@ -10,6 +10,7 @@ import { credentialRef } from '@deepseek-ai/dsh-credentials'
 import type { CredentialProvider } from '@deepseek-ai/dsh-credentials'
 import type { CredentialInfo } from '@deepseek-ai/dsh-credentials/types'
 import { Remote, RemoteError, remoteValidationIssues, TypertRemoteService } from '@deepseek-ai/dsh-typert-protocol'
+import { CREDENTIAL_REMOTE_CAPABILITIES } from './capabilities.ts'
 import { z } from 'zod'
 
 /**
@@ -67,7 +68,7 @@ declare module '@deepseek-ai/cordis' {
 export class CredentialsController extends TypertRemoteService {
   /** @param ctx - Host context where a credential provider may be mounted. */
   constructor(ctx: Context) {
-    super(ctx, 'credentialsController', { namespace: 'credentials' })
+    super(ctx, 'credentialsController', { namespace: 'credentials', capabilities: CREDENTIAL_REMOTE_CAPABILITIES })
   }
 
   /**

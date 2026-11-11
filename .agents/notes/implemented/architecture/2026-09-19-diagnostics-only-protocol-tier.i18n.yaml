@@ -1,6 +1,46 @@
-# Bilingual-pair consistency record (docs/i18n/README.md): the git blob hash of each
-# side as of the last confirmed-consistent state. Both languages carry equal authority;
-# after editing either side, bring the other along and re-record with:
+# Bilingual-pair consistency record for 2026-09-19-diagnostics-only-protocol-tier.md (docs/i18n/README.md): per heading
+# section, a hash of its English and Chinese blocks outside code blocks and generated regions.
+# After editing either side, bring the other along and re-record with:
 #   pnpm run verify-translation-pairing --write .agents/notes/implemented/architecture/2026-09-19-diagnostics-only-protocol-tier.md
-2026-09-19-diagnostics-only-protocol-tier.md: 503dce2d06d765c397f4413fa7dff7bd6a3246b7
-2026-09-19-diagnostics-only-protocol-tier.zh.md: bf79f8b792b33aba39bdfdef04465d46b281521c
+/agent-note-diagnostics-only-protocol-tier-for-two-generation-old-clients:
+  en: 33a7552dd2a035b1
+  zh: 67259fc4b81a8405
+/agent-note-diagnostics-only-protocol-tier-for-two-generation-old-clients/problem:
+  en: 7ebd23432724b1ea
+  zh: f77a3bc47fe39a56
+/agent-note-diagnostics-only-protocol-tier-for-two-generation-old-clients/current-upstream-boundary:
+  en: d0fdfaeb35fe9c2e
+  zh: bfe262c5dccb6f99
+/agent-note-diagnostics-only-protocol-tier-for-two-generation-old-clients/decision:
+  en: e0cc3ce0bb243e1e
+  zh: 8fb82b09ff75b3eb
+/agent-note-diagnostics-only-protocol-tier-for-two-generation-old-clients/alternatives-considered:
+  en: 4622bbf4e624298a
+  zh: 1038bbffcc22efe5
+/agent-note-diagnostics-only-protocol-tier-for-two-generation-old-clients/contract:
+  en: 8cd92a01ee18338c
+  zh: 7706778db9475153
+/agent-note-diagnostics-only-protocol-tier-for-two-generation-old-clients/persistence:
+  en: d24d23c03e049611
+  zh: 7697ded2f598cd86
+/agent-note-diagnostics-only-protocol-tier-for-two-generation-old-clients/security:
+  en: 48a65addcf93a95f
+  zh: 66834d82d41dc7a4
+/agent-note-diagnostics-only-protocol-tier-for-two-generation-old-clients/compatibility:
+  en: 4d25c7a54f6c5fde
+  zh: ba452509493b552a
+/agent-note-diagnostics-only-protocol-tier-for-two-generation-old-clients/failure-handling:
+  en: 204e228285a9a327
+  zh: 8063afe74ca6750d
+/agent-note-diagnostics-only-protocol-tier-for-two-generation-old-clients/testing:
+  en: ee0d4d63da839015
+  zh: 49a4b44c3698efc8
+/agent-note-diagnostics-only-protocol-tier-for-two-generation-old-clients/rollout:
+  en: 9dcefd61320c394f
+  zh: 8065d0381e3b03b1
+/agent-note-diagnostics-only-protocol-tier-for-two-generation-old-clients/rollback:
+  en: 57ef31b33b11fca2
+  zh: b272710fc8f91673
+/agent-note-diagnostics-only-protocol-tier-for-two-generation-old-clients/consequences:
+  en: cf836a1afad8c009
+  zh: 1e617566374b9a64

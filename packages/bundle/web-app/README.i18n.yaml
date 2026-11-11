@@ -2,8 +2,6 @@
 # section, a hash of its English and Chinese blocks outside code blocks and generated regions.
 # After editing either side, bring the other along and re-record with:
 #   pnpm run verify-translation-pairing --write packages/bundle/web-app/README.md
-README.md: 6d53dc06caf4f7cffa61a843e646f43db086292a
-README.zh.md: 8105d7c13dd03764cf34812c593d1aac39f0342b
 /:
   en: af2e4e5296596e8f
   zh: 70c0b5ac93209d00
@@ -12,7 +10,7 @@ README.zh.md: 8105d7c13dd03764cf34812c593d1aac39f0342b
   zh: 7c54099b9edccf01
 /deepseek-ai-dsh-web-app/summary:
   en: 0a2a9876194543e5
-  zh: ff472776a44ae260
+  zh: 3e3c7b0241f527d0
 /deepseek-ai-dsh-web-app/table-of-contents:
   en: d152484eb41ac6b4
   zh: 09388d293f9be9cb
@@ -35,8 +33,8 @@ README.zh.md: 8105d7c13dd03764cf34812c593d1aac39f0342b
   en: fdf38cb6e1b24464
   zh: c14a8bcac9d4e5cd
 /deepseek-ai-dsh-web-app/understand-the-implementation:
-  en: 323742a00cfe67b2
-  zh: eff5245a82fc16e7
+  en: be4b32c1d5121f80
+  zh: 8692b0e6add1115d
 /deepseek-ai-dsh-web-app/understand-the-implementation/patch-semantics:
   en: a6d126f30b1594d7
   zh: 7f0ccc8a55d6f743

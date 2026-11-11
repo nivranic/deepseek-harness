@@ -1,6 +1,22 @@
-# Bilingual-pair consistency record (docs/i18n/README.md): the git blob hash of each
-# side as of the last confirmed-consistent state. Both languages carry equal authority;
-# after editing either side, bring the other along and re-record with:
+# Bilingual-pair consistency record for 2026-10-08-loader-composition-e2e.md (docs/i18n/README.md): per heading
+# section, a hash of its English and Chinese blocks outside code blocks and generated regions.
+# After editing either side, bring the other along and re-record with:
 #   pnpm run verify-translation-pairing --write .agents/notes/implemented/architecture/2026-10-08-loader-composition-e2e.md
-2026-10-08-loader-composition-e2e.md: 3ebae77d6b7d7b7e648228f2b4bb4356ed8918c6
-2026-10-08-loader-composition-e2e.zh.md: d5acc36b70915acb2b1b2f62a042de1a2a9c533b
+/agent-note-loader-composition-e2e-turns-green-consent-point-plus-activation-order-determinism:
+  en: d2279151266ab961
+  zh: f602779192cd0985
+/agent-note-loader-composition-e2e-turns-green-consent-point-plus-activation-order-determinism/problem:
+  en: b95f4fe65850f22b
+  zh: 219c023d3a0be623
+/agent-note-loader-composition-e2e-turns-green-consent-point-plus-activation-order-determinism/decision:
+  en: fcade47397f4b0e9
+  zh: 1925e394bfc427e2
+/agent-note-loader-composition-e2e-turns-green-consent-point-plus-activation-order-determinism/alternatives-considered:
+  en: fc09c1cf50ebcbba
+  zh: 179a7e4ebdaf5ee2
+/agent-note-loader-composition-e2e-turns-green-consent-point-plus-activation-order-determinism/consequences:
+  en: b3acbc468bb412bb
+  zh: 8a460dc68b2c95f5
+/agent-note-loader-composition-e2e-turns-green-consent-point-plus-activation-order-determinism/open-follow-ups:
+  en: 6e959cdfbc5bdb38
+  zh: e5a2b39f48133cef

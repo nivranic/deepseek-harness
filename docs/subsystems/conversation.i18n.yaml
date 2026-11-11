@@ -2,8 +2,6 @@
 # section, a hash of its English and Chinese blocks outside code blocks and generated regions.
 # After editing either side, bring the other along and re-record with:
 #   pnpm run verify-translation-pairing --write docs/subsystems/conversation.md
-conversation.md: 14e6521083e8b55615c4d1f988d8928d248d4dc8
-conversation.zh.md: 0519e9f7e8cb37d2c0e4a2bb79b118875aedf063
 /conversation-assembly:
   en: 986c210044271162
   zh: afe3372d8b68d963
@@ -17,8 +15,8 @@ conversation.zh.md: 0519e9f7e8cb37d2c0e4a2bb79b118875aedf063
   en: 62c0a5ae4ed7e1aa
   zh: 787ad4d04b79adaf
 /conversation-assembly/replayable-event-families:
-  en: c216e2df128b8cb9
-  zh: c039cf84b0d86ad8
+  en: 309f74bdc1b2cbac
+  zh: 1c693260ef162525
 /conversation-assembly/definition-and-typed-chat-payload:
   en: d8f5e4773704c718
   zh: f3db8c0d01080dba

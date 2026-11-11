@@ -1,6 +1,19 @@
-# Bilingual-pair consistency record (docs/i18n/README.md): the git blob hash of each
-# side as of the last confirmed-consistent state. Both languages carry equal authority;
-# after editing either side, bring the other along and re-record with:
+# Bilingual-pair consistency record for 2026-09-28-native-http-upload-budget.md (docs/i18n/README.md): per heading
+# section, a hash of its English and Chinese blocks outside code blocks and generated regions.
+# After editing either side, bring the other along and re-record with:
 #   pnpm run verify-translation-pairing --write .agents/notes/implemented/architecture/2026-09-28-native-http-upload-budget.md
-2026-09-28-native-http-upload-budget.md: 3ba88f90a5219bdc9166e4c298c3ed87ebd93a09
-2026-09-28-native-http-upload-budget.zh.md: b814f4f2b0ad92ce64bb4576bd1fb76a6e9b27c7
+/agent-note-native-file-uploads-use-the-receiving-listener-s-complete-http-body-budget:
+  en: 5bbab69f5fc41224
+  zh: c79bec53341b34f5
+/agent-note-native-file-uploads-use-the-receiving-listener-s-complete-http-body-budget/problem:
+  en: 9550312f5068bc68
+  zh: fcb6563728c2c178
+/agent-note-native-file-uploads-use-the-receiving-listener-s-complete-http-body-budget/decision:
+  en: 6cc68ebbde3d9ad8
+  zh: 7eb05c7e62057279
+/agent-note-native-file-uploads-use-the-receiving-listener-s-complete-http-body-budget/alternatives-considered:
+  en: bb82bf93ea0918aa
+  zh: f3fde1099f6f0e8c
+/agent-note-native-file-uploads-use-the-receiving-listener-s-complete-http-body-budget/consequences:
+  en: 211e1914a6609867
+  zh: a4e28e8aeb9d13e4

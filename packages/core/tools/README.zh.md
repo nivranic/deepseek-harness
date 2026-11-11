@@ -9,7 +9,6 @@ kind: "package-reference"
 
 ## 概述
 
-使用 `dsh-tools` 可向模型公开类型化能力、校验调用、执行允许／拒绝／询问策略，并在普通工具失败时返回最终结果而不中止当前轮次。通过 `mode` 选择原生 Function Calling（函数调用）、[PTC mode](#ptc-mode) 或两者；单个 agent（智能体）可用 `presentAs` 覆盖默认值。工具作者使用 `defineTool` 声明类型化参数与输出、协作式超时、并行安全属性、可选 UI 展示，以及规范 §32 的五个仅供宿主使用的声明字段（`version`、`risk`、`permissions`、`supportsLite`、`supportsRemote`），它们投影为 Remote 工具目录。模型会看到每个获准工具声明的名称、描述与参数 schema；按 agent 设置的限制可缩小该可见集合。
 使用 `dsh-tools` 可向模型公开类型化能力、校验调用、执行允许／拒绝／询问策略，并在普通工具失败时返回最终结果而不中止当前轮次。挂载原生或 PTC 执行器以选择模型交互和批次执行行为。工具作者使用 `defineTool` 声明类型化参数与输出、协作式超时、并行安全属性和可选 UI 展示。模型会看到每个获准工具声明的名称、描述与参数 schema；按 agent 设置的限制可缩小该可见集合。
 
 ## 目录
@@ -124,20 +123,9 @@ Agent 步骤的并发上限使用 [agent-loop 配置](../agent-loop/README.zh.md
 
 ### 源码地图
 
-| 文件 | 职责 |
-|---|---|
-| [`src/index.ts`](src/index.ts) | 插件入口：`ToolRuntime` 服务、配置、注册表、执行流水线、§32 描述符投影 |
-| [`src/types.ts`](src/types.ts) | `ToolDefinition`、`ToolExecution`、`ToolExecutionResult`、守卫与决策类型、`ToolDescriptor`/`ToolRisk` |
-| [`src/capabilities.ts`](src/capabilities.ts) | `tool.catalog.v1` Remote 能力声明 |
-| [`src/schema.ts`](src/schema.ts) | `defineTool` DSL：`ValueSchemaSpec`、`ParameterSchemaSpec`、`InferValue`、`InferArgs` |
-| [`src/json-schema.ts`](src/json-schema.ts) | 强制执行的原始 JSON Schema 子集与校验 |
-| [`src/presentation.ts`](src/presentation.ts) | 带 `card` 标签的 UI 呈现意图 |
-| [`src/ptc.ts`](src/ptc.ts) | PTC mode：SDK 生成、`run_code` 分发桥接层、结算 |
-| [`src/ts-types.ts`](src/ts-types.ts) | TypeScript SDK 类型渲染 |
-| [`src/py-types.ts`](src/py-types.ts) | Python SDK 类型渲染 |
-| [`src/invariant.ts`](src/invariant.ts) | 不变式配套 |
 - [`src/index.ts`](src/index.ts) — 插件入口与公共工具 API；作用域工具服务与执行器选择.
 - [`src/contracts.ts`](src/contracts.ts) — 工具定义、调用结果、守卫与策略决策.
+- [`src/capabilities.ts`](src/capabilities.ts) — `tool.catalog.v1` Remote 能力声明.
 - [`src/executor.ts`](src/executor.ts) — 执行器描述与批量输入输出.
 - [`src/pipeline.ts`](src/pipeline.ts) — 共享的 `prepare`、`dispatch`、`complete` 阶段、阶段结果类型与批次入口。
 - [`src/batch.ts`](src/batch.ts) — 并发调度、结果顺序与可选 Session 日志.

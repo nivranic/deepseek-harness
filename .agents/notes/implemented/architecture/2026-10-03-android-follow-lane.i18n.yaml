@@ -1,6 +1,22 @@
-# Bilingual-pair consistency record (docs/i18n/README.md): the git blob hash of each
-# side as of the last confirmed-consistent state. Both languages carry equal authority;
-# after editing either side, bring the other along and re-record with:
+# Bilingual-pair consistency record for 2026-10-03-android-follow-lane.md (docs/i18n/README.md): per heading
+# section, a hash of its English and Chinese blocks outside code blocks and generated regions.
+# After editing either side, bring the other along and re-record with:
 #   pnpm run verify-translation-pairing --write .agents/notes/implemented/architecture/2026-10-03-android-follow-lane.md
-2026-10-03-android-follow-lane.md: df3784297aadf37fc2923b163e232cfc19e618fe
-2026-10-03-android-follow-lane.zh.md: bf6451908db58521c6c64c39207417d993255fda
+/agent-note-installed-process-death-lane-for-the-persisted-follow-window-25:
+  en: ee3b24ad7ee80cb0
+  zh: 93f07a3aea303b4f
+/agent-note-installed-process-death-lane-for-the-persisted-follow-window-25/problem:
+  en: 179b89d812685834
+  zh: e16669f000228446
+/agent-note-installed-process-death-lane-for-the-persisted-follow-window-25/decision:
+  en: c5df213da1c09376
+  zh: 364c2dbca29582d3
+/agent-note-installed-process-death-lane-for-the-persisted-follow-window-25/alternatives-considered:
+  en: 9fdc5a5f1a8ab03c
+  zh: 9d57ca787cd1b426
+/agent-note-installed-process-death-lane-for-the-persisted-follow-window-25/consequences:
+  en: 9a24f25d49968256
+  zh: ea6b79a590f46449
+/agent-note-installed-process-death-lane-for-the-persisted-follow-window-25/open-work:
+  en: 7dc32fc9cc730aa8
+  zh: 1149689020e5c0c1

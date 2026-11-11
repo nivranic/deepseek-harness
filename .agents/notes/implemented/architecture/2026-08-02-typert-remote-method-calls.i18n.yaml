@@ -2,8 +2,6 @@
 # section, a hash of its English and Chinese blocks outside code blocks and generated regions.
 # After editing either side, bring the other along and re-record with:
 #   pnpm run verify-translation-pairing --write .agents/notes/implemented/architecture/2026-08-02-typert-remote-method-calls.md
-2026-08-02-typert-remote-method-calls.md: 05940b8ac374826207760523e625967b2cc2963a
-2026-08-02-typert-remote-method-calls.zh.md: a62974376653b5aa68b147228ffec013f8fed621
 /agent-note-typert-gateway-targeted-method-calls:
   en: 4d77bacdc36f246b
   zh: b884bf274df490af
@@ -74,5 +72,5 @@
   en: 7433bdb522bb2083
   zh: 545c17613b636f00
 /agent-note-typert-gateway-targeted-method-calls/consequences:
-  en: abab48251550f584
-  zh: 2568c46d78dbefdf
+  en: 65c7740e07a25a16
+  zh: 770e164df64a2a6c

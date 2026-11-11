@@ -1,6 +1,19 @@
-# Bilingual-pair consistency record (docs/i18n/README.md): the git blob hash of each
-# side as of the last confirmed-consistent state. Both languages carry equal authority;
-# after editing either side, bring the other along and re-record with:
+# Bilingual-pair consistency record for 2026-09-27-android-subagent-timeline.md (docs/i18n/README.md): per heading
+# section, a hash of its English and Chinese blocks outside code blocks and generated regions.
+# After editing either side, bring the other along and re-record with:
 #   pnpm run verify-translation-pairing --write .agents/notes/implemented/architecture/2026-09-27-android-subagent-timeline.md
-2026-09-27-android-subagent-timeline.md: 0d2aaa2cbd9ee9958c41bda23b8951090cd4748e
-2026-09-27-android-subagent-timeline.zh.md: c58ee0725e09473d9d1f75329aae13a13393674d
+/agent-note-android-owns-child-history-by-selected-parent-and-view-lifetime:
+  en: ae57a336d74d158c
+  zh: c4da043d12d455db
+/agent-note-android-owns-child-history-by-selected-parent-and-view-lifetime/problem:
+  en: f0e9f022ad5276de
+  zh: 711fb255be61bd01
+/agent-note-android-owns-child-history-by-selected-parent-and-view-lifetime/decision:
+  en: 988f2b0fafd02b16
+  zh: c4b1c8b3672e069f
+/agent-note-android-owns-child-history-by-selected-parent-and-view-lifetime/alternatives-considered:
+  en: 2382a7d1a4d541a8
+  zh: 8d3e13eafa1f575a
+/agent-note-android-owns-child-history-by-selected-parent-and-view-lifetime/consequences:
+  en: 2c898c63d777d009
+  zh: 4a1666ae073819b3

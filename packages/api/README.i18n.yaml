@@ -2,8 +2,6 @@
 # section, a hash of its English and Chinese blocks outside code blocks and generated regions.
 # After editing either side, bring the other along and re-record with:
 #   pnpm run verify-translation-pairing --write packages/api/README.md
-README.md: b2cde676bbfe90018b3c3f6faaa9f419a270a11e
-README.zh.md: 63b3b69ee3368d69101b783bbc570359cb20c024
 /:
   en: 97a0ed481b7db404
   zh: bb00e4c6df16ca10
@@ -17,8 +15,8 @@ README.zh.md: 63b3b69ee3368d69101b783bbc570359cb20c024
   en: 1eb35b015a6c423f
   zh: a8a3dceee2c9e943
 /api-remote-api-layers/packages:
-  en: 37388d921f2f47cf
-  zh: 24eb674c14dc2c6d
+  en: e6eaf29b7c00253e
+  zh: 5ffff9d194ceebcc
 /api-remote-api-layers/related-documentation:
   en: 507116ae09161df1
   zh: f5e538ac5fdaf454

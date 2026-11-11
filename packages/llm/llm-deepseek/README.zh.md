@@ -9,8 +9,7 @@ kind: "package-reference"
 
 ## 概述
 
-使用本包可通过 `deepseek-official` 路由流式调用 DeepSeek 模型，包括配置 thinking 与推理强度、向视觉模型输入图片，以及查看建议性模型目录。端点、凭据、目录与 thinking 策略均按请求解析，因此有效的用户设置更改会在下一个请求生效，无需重启进程。它适合 DeepSeek 官方 API 或 OpenAI 兼容网关；由于路由名不同，可与 pi-ai 包并用。每次完成的提供方调用还会在 `providerMetadata` 同意门下经可选的 telemetry owner 恰好外发一条仅含路由与结果事实的 ops 记录。
-提供共享的 DeepSeek Messages 传输、请求配置和模型能力。组合 [API key](../llm-deepseek-api-key/README.zh.md) 或[账号](../llm-deepseek-account/README.zh.md)插件以提供鉴权、模型发现与 provider 注册。有效的设置更改在后续请求生效，进行中的请求保留原配置。本包可与 [pi-ai 适配器](../llm-pi-ai/README.zh.md)并用。
+使用本包可通过 `deepseek-official` 路由流式调用 DeepSeek 模型，包括配置 thinking 与推理强度、向视觉模型输入图片，以及查看建议性模型目录。端点、凭据、目录与 thinking 策略均按请求解析，因此有效的用户设置更改会在下一个请求生效，无需重启进程。它适合 DeepSeek 官方 API 或 OpenAI 兼容网关；由于路由名不同，可与 pi-ai 包并用。每次完成的提供方调用还会在 `providerMetadata` 同意门下经可选的 telemetry owner 恰好外发一条仅含路由与结果事实的 ops 记录。 提供共享的 DeepSeek Messages 传输、请求配置和模型能力。组合 [API key](../llm-deepseek-api-key/README.zh.md) 或[账号](../llm-deepseek-account/README.zh.md)插件以提供鉴权、模型发现与 provider 注册。有效的设置更改在后续请求生效，进行中的请求保留原配置。本包可与 [pi-ai 适配器](../llm-pi-ai/README.zh.md)并用。
 
 `resolveAuth(connection)` 返回提供方持有的鉴权请求头，以及绑定本次请求凭据的可选失败回调。Messages 和 Files 直接使用这些请求头，不判断凭据类型。上传复用按端点和鉴权请求头的哈希隔离，不持久化原始凭据。
 

@@ -1,6 +1,22 @@
-# Bilingual-pair consistency record (docs/i18n/README.md): the git blob hash of each
-# side as of the last confirmed-consistent state. Both languages carry equal authority;
-# after editing either side, bring the other along and re-record with:
+# Bilingual-pair consistency record for 2026-10-02-apple-session-location-facts.md (docs/i18n/README.md): per heading
+# section, a hash of its English and Chinese blocks outside code blocks and generated regions.
+# After editing either side, bring the other along and re-record with:
 #   pnpm run verify-translation-pairing --write .agents/notes/implemented/architecture/2026-10-02-apple-session-location-facts.md
-2026-10-02-apple-session-location-facts.md: 81def7b01b3cda5712160b93a6dbac88f6b5e3ef
-2026-10-02-apple-session-location-facts.zh.md: aca5f356562f8e07a9d4e32957f5471ac5688be0
+/agent-note-apple-contract-adopts-the-session-location-facts-derivation-29:
+  en: bd318cbb006b8064
+  zh: 83fe969b29bad4e6
+/agent-note-apple-contract-adopts-the-session-location-facts-derivation-29/problem:
+  en: 4404a3852019ede8
+  zh: 8efb16344559a9bc
+/agent-note-apple-contract-adopts-the-session-location-facts-derivation-29/decision:
+  en: 4da577273163d3ca
+  zh: 3b854411ca03a232
+/agent-note-apple-contract-adopts-the-session-location-facts-derivation-29/alternatives-considered:
+  en: d0ce69246b6890b0
+  zh: c9dbfd0700617415
+/agent-note-apple-contract-adopts-the-session-location-facts-derivation-29/consequences:
+  en: f40e85facdd753f6
+  zh: e261798ed48a6732
+/agent-note-apple-contract-adopts-the-session-location-facts-derivation-29/open-work:
+  en: 299b791124328515
+  zh: 13c0cd8705dece41

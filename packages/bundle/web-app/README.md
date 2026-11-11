@@ -13,7 +13,6 @@ Desktop analytics schedules partial batches every 30 seconds, with a 15-second e
 
 ## Summary
 
-Run `dsh --profile web` to open an interactive browser GUI with chat, model and settings management, and session history. It uses the same model access, tools, and safety defaults as other dsh surfaces. Startup prints an authenticated URL and normally opens it in the default browser; SSH sessions and `--no-open` leave the URL for manual opening. You can change the port and allow extra hosts. Choose this package for interactive browser work; use `dsh-headless` for one-shot command-line tasks.
 Run `dsh --profile web` for browser chat, model and settings management, and session history, with the same model access, tools, and safety defaults as other dsh surfaces. Startup prints a tokenized URL and normally opens the default browser; SSH sessions and `--no-open` require manual opening. You can change the port, allow extra authorities, bind one concrete local IP, and serve HTTPS from a certificate you supply; wildcard addresses are rejected. Remote access uses an advertised HTTP(S) URL behind a prefix-stripping proxy, listener TLS, or plain HTTP on a non-loopback bind. Use the headless profile for one-shot command-line tasks.
 
 ## Table of Contents

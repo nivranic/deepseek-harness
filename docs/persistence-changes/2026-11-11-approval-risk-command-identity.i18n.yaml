@@ -1,0 +1,28 @@
+# Bilingual-pair consistency record for 2026-11-11-approval-risk-command-identity.md (docs/i18n/README.md): per heading
+# section, a hash of its English and Chinese blocks outside code blocks and generated regions.
+# After editing either side, bring the other along and re-record with:
+#   pnpm run verify-translation-pairing --write docs/persistence-changes/2026-11-11-approval-risk-command-identity.md
+/:
+  en: 3d5a424ae7d7e46b
+  zh: c22a8e4a62d8cc1a
+/2026-11-11-approval-risk-command-identity:
+  en: f214101bd2a3ca3b
+  zh: f4ba1dc40550a727
+/2026-11-11-approval-risk-command-identity/summary:
+  en: 45479f53976ac753
+  zh: 0c860de41e5ec1c5
+/2026-11-11-approval-risk-command-identity/table-of-contents:
+  en: 6cf314a069ceb451
+  zh: 9adff678e9ecab3b
+/2026-11-11-approval-risk-command-identity/declaration:
+  en: 6907136f28e48c90
+  zh: 02f8298485f3d8e7
+/2026-11-11-approval-risk-command-identity/compatibility:
+  en: 8a3d7cdfbba6adba
+  zh: 04345135618cb86e
+/2026-11-11-approval-risk-command-identity/verification:
+  en: 563d4cd591bb05d3
+  zh: 9fe22f7c21583127
+/2026-11-11-approval-risk-command-identity/dev-note:
+  en: b75c8458928b72b9
+  zh: 003ba4e17b4b5269

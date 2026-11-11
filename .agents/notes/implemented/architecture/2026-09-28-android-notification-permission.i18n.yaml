@@ -1,6 +1,22 @@
-# Bilingual-pair consistency record (docs/i18n/README.md): the git blob hash of each
-# side as of the last confirmed-consistent state. Both languages carry equal authority;
-# after editing either side, bring the other along and re-record with:
+# Bilingual-pair consistency record for 2026-09-28-android-notification-permission.md (docs/i18n/README.md): per heading
+# section, a hash of its English and Chinese blocks outside code blocks and generated regions.
+# After editing either side, bring the other along and re-record with:
 #   pnpm run verify-translation-pairing --write .agents/notes/implemented/architecture/2026-09-28-android-notification-permission.md
-2026-09-28-android-notification-permission.md: f26d2eed5443ac3425e32caec512523717144b91
-2026-09-28-android-notification-permission.zh.md: 1efb5da1cf64c6c291ac20b7e4eec629c8faa967
+/agent-note-android-notification-permission-belongs-to-the-application-process:
+  en: a667a141d25fb699
+  zh: 004e68e47730b48a
+/agent-note-android-notification-permission-belongs-to-the-application-process/problem:
+  en: 8214f4e32d317b2a
+  zh: c49fc402fefe6149
+/agent-note-android-notification-permission-belongs-to-the-application-process/decision:
+  en: ad95fa9a619e53ff
+  zh: 105867cac15473cb
+/agent-note-android-notification-permission-belongs-to-the-application-process/lifecycle-and-settings-entry:
+  en: 074c84d715d2aede
+  zh: e51fe8a9a62910a2
+/agent-note-android-notification-permission-belongs-to-the-application-process/alternatives-considered:
+  en: b476e03f4ae1cdfb
+  zh: 5a088422f56a998e
+/agent-note-android-notification-permission-belongs-to-the-application-process/consequences:
+  en: 3b511ad0af0c3788
+  zh: b217b7778e02939f

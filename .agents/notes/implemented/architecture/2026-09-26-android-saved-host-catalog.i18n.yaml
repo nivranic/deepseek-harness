@@ -1,6 +1,19 @@
-# Bilingual-pair consistency record (docs/i18n/README.md): the git blob hash of each
-# side as of the last confirmed-consistent state. Both languages carry equal authority;
-# after editing either side, bring the other along and re-record with:
+# Bilingual-pair consistency record for 2026-09-26-android-saved-host-catalog.md (docs/i18n/README.md): per heading
+# section, a hash of its English and Chinese blocks outside code blocks and generated regions.
+# After editing either side, bring the other along and re-record with:
 #   pnpm run verify-translation-pairing --write .agents/notes/implemented/architecture/2026-09-26-android-saved-host-catalog.md
-2026-09-26-android-saved-host-catalog.md: 7a588ab4bec10a1c388cdc7d73fe94997b6d911e
-2026-09-26-android-saved-host-catalog.zh.md: 69cb282d9eb7a3fd330e2c04299f7b507e6e8dce
+/agent-note-android-commits-saved-host-selection-with-its-credentials:
+  en: 42825719410b6a7f
+  zh: a5d2a5fb61961e76
+/agent-note-android-commits-saved-host-selection-with-its-credentials/problem:
+  en: dff110918fd4676b
+  zh: c97c8b53eeaf27ba
+/agent-note-android-commits-saved-host-selection-with-its-credentials/decision:
+  en: 5c83c3d3b4e732d9
+  zh: fa4739b754e8e932
+/agent-note-android-commits-saved-host-selection-with-its-credentials/alternatives-considered:
+  en: 1155d19838282c33
+  zh: 5ebfbc3b5c8c9cf2
+/agent-note-android-commits-saved-host-selection-with-its-credentials/consequences:
+  en: 6fa345bfb7c6d733
+  zh: 1173ac7248895fe2

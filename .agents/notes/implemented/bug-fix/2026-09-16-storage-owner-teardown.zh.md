@@ -26,6 +26,6 @@ JSON 与 SQLite 使用共享的 [`closeOwnedKvUnits`](../../../../packages/stora
 
 ## 影响
 
-[检查点顺序决策](2026-09-16-checkpoint-write-order.zh.md)继续有效：每个检查点必须先保留领域队列位置，再等待日志持久化。后端清理将该排空责任延伸到介质释放。[缓存兼容性决策](../architecture/2026-09-02-projcache-cross-version-read-compat.zh.md)仍拥有记录版本与血缘语义；两项决策均未被替代，本次改动不新增 Session 事件或存储代际。
+[检查点顺序决策](2026-09-16-checkpoint-write-order.zh.md)继续有效：每个检查点必须先保留领域队列位置，再等待日志持久化。后端清理将该排空责任延伸到介质释放。[缓存兼容性决策](../../archived/architecture/2026-09-02-projcache-cross-version-read-compat.md)仍拥有记录版本与血缘语义；两项决策均未被替代，本次改动不新增 Session 事件或存储代际。
 
 JSON/SQLite 共享一致性测试检查 owner 工作持久化、回调撤销、重复关闭和多项清理失败。领域测试检查初始化竞争与全部 owner 的排空。手工编写的 [Web Session 记录](../../../../snapshots/web/checkpoint-order/session.v3.jsonl)通过 Web Loader 在检查点等待期间关闭后端，并核对持久化缓存与 Session 日志。这些检查不构成已安装 Desktop 产物、真实模型 provider 或其他平台的验收。

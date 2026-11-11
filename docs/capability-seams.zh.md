@@ -124,13 +124,6 @@ flowchart LR
   svc_typert["ctx.typert<br/>Runtime type registry"]
   pkg_typert_loader["typert-loader"]
   svc_typertGateway["ctx.typertGateway<br/>Typert Host invocation gateway"]
-  pkg_api_native_remote["api-native-remote"]
-  svc_nativeRemote["ctx.nativeRemote<br/>Native TLS Connection source"]
-  pkg_api_host_description["api-host-description"]
-  svc_hostDescription["ctx.hostDescription<br/>Host discovery"]
-  pkg_api_remotes["api-remotes"]
-  pkg_client_ui_deliverables["client-ui-deliverables"]
-  svc_presentedFiles["ctx.presentedFiles<br/>Native delivery actions"]
   pkg_api_remote_access["api-remote-access"]
   svc_remoteAccess["ctx.remoteAccess<br/>Remote method access control"]
   svc_sessionPersistence["ctx.sessionPersistence<br/>Durable session persistence seam"]
@@ -282,6 +275,9 @@ flowchart LR
   svc_claudeCodeMods["ctx.claudeCodeMods<br/>Claude Code mods bridge"]
   pkg_inspector["inspector"]
   svc_inspector["ctx.inspector<br/>Cross-realm runtime inspection"]
+  pkg_api_host_description["api-host-description"]
+  svc_hostDescription["ctx.hostDescription<br/>Host discovery"]
+  pkg_api_remotes["api-remotes"]
   pkg_api_device_trust["api-device-trust"]
   svc_deviceTrust["ctx.deviceTrust<br/>Device trust seam"]
   pkg_web_app["web-app"]
@@ -310,7 +306,6 @@ flowchart LR
   svc_webServer["ctx.webServer<br/>HTTP route registration"]
   pkg_client_modules["client-modules"]
   pkg_client_hmr["client-hmr"]
-  pkg_web_app["web-app"]
   svc_webApp["ctx.webApp<br/>Served Web GUI"]
   pkg_harness_dev_context["harness-dev-context"]
   svc_clientModules["ctx.clientModules<br/>Client plugin graph host"]
@@ -332,14 +327,11 @@ flowchart LR
   pkg_agent --> svc_agents
   pkg_agent_default_model --> svc_agentDefaultModel
   pkg_agent_loop --> svc_agentLoop
-  pkg_agent_presets --> svc_agentPresets
+  pkg_agent_preset_registry --> svc_agentPresets
   pkg_api_device_trust --> svc_deviceTrust
   pkg_api_gateway --> svc_typertGateway
   pkg_api_host_description --> svc_hostDescription
   pkg_api_host_diagnostics --> svc_hostDiagnostics
-  pkg_api_native_remote --> svc_nativeRemote
-  pkg_agent_preset_registry --> svc_agentPresets
-  pkg_api_gateway --> svc_typertGateway
   pkg_api_job_controller --> svc_jobController
   pkg_api_remote_access --> svc_remoteAccess
   pkg_api_session_controller --> svc_sessionController
@@ -361,9 +353,6 @@ flowchart LR
   pkg_client_connection --> svc_connection
   pkg_client_file_upload --> svc_fileUploads
   pkg_client_modules --> svc_clientModules
-  pkg_client_ui_deliverables --> svc_presentedFiles
-  pkg_code_runtime --> svc_codeRuntime
-  pkg_code_runtime_worker_thread --> svc_codeRuntime
   pkg_client_product_analytics --> svc_productAnalytics
   pkg_client_ui_plugin_manager --> svc_pluginRegistryProbe
   pkg_command_feedback --> svc_sessionFeedback
@@ -549,14 +538,10 @@ flowchart LR
   svc_forge --> pkg_experimental_forge_session
   svc_forgeSession --> pkg_experimental_client_ui_forge
   svc_fs --> pkg_tool_fs
-  svc_hostDescription --> pkg_api_remotes
-  svc_hostDiagnostics --> pkg_web_app
-  svc_invariants --> pkg_agent
-  svc_invariants --> pkg_agent_loop
-  svc_invariants --> pkg_scope
-  svc_invariants --> pkg_session
   svc_headlessStartup --> pkg_headless
   svc_hmr --> pkg_app_boot
+  svc_hostDescription --> pkg_api_remotes
+  svc_hostDiagnostics --> pkg_web_app
   svc_jobs --> pkg_api_job_controller
   svc_jobs --> pkg_tool_bash
   svc_jobs --> pkg_tool_jobs
@@ -565,7 +550,6 @@ flowchart LR
   svc_llm --> pkg_agent_loop
   svc_llm --> pkg_compaction_basic
   svc_lsp --> pkg_tool_lsp
-  svc_presentedFiles --> pkg_api_remotes
   svc_mcpResources --> pkg_mcp_resources
   svc_officeToPdf --> pkg_client_ui_sidebar_documentpreview
   svc_otel --> pkg_host_product_telemetry_otel
@@ -721,15 +705,10 @@ flowchart LR
 | `ctx.directoryPickerController` | `core` | [`api-workspace-controller`](../packages/api/workspace-controller) | - | - | - | 把选目录 seam 送上线：能力门禁、取消传播，以及浏览器目录流程用于分支判断的 seam 错误码。 |
 | `ctx.typert` | `core` | [`typert-registry`](../packages/typert/registry) | - | [`typert-loader`](../packages/typert/loader), [`api-gateway`](../packages/api/gateway) | - | 插件直接或通过 dsh-typert-loader 注册实时 zod 贡献；API 网关消费调用描述符和提供方，其他运行时消费方则在各自边界查询 schema 与反射元数据。 |
 | `ctx.typertGateway` | `core` | [`api-gateway`](../packages/api/gateway) | - | - | - | 将生成的 Remote 描述符与实时 Cordis 服务关联，解析已注册的身份，并通过共享的 Connection RPC 载体提供一元调用。 |
-| `ctx.nativeRemote` | `core` | [`api-native-remote`](../packages/api/native-remote) | - | - | - | 按需启用的加密监听器，使用持久 Host 指纹和 Gateway 设备准入；本地 Web 认证保持独立。 |
-| `ctx.hostDescription` | `core` | [`api-host-description`](../packages/api/host-description) | - | [`api-remotes`](../packages/api/remotes) | - | 通过现有的认证 API 返回持久化 Host 身份、独立版本字段，以及实时 Remote 绑定中显式声明的能力。 |
-| `ctx.presentedFiles` | `core` | [`client-ui-deliverables`](../packages/client/ui-deliverables) | - | [`api-remotes`](../packages/api/remotes) | - | 提供持久交付声明的桌面元数据与原生操作，保留 Session 文件系统验证和已配置的原生策略。 |
-| `ctx.sessionPersistence` | `seam` | [`session-persistence`](../packages/session/session-persistence) | [`session-persistence-jsonl`](../packages/session/session-persistence-jsonl) | [`agent-loop`](../packages/core/agent-loop), [`tool-bash`](../packages/shell/tool-bash), [`hooks-claude-code`](../packages/hooks/hooks-claude-code), [`hooks-codex`](../packages/hooks/hooks-codex), [`session-query`](../packages/session-query/session-query), [`session-query-sqlite`](../packages/session-query/session-query-sqlite), [`message-feedback`](../packages/feedback/message-feedback) | - | JSONL backend 把 SessionEvent 词汇持久化为每个 Session 一份产物。 |
-| `ctx.settings` | `seam` | [`settings`](../packages/settings/settings) | [`settings-file`](../packages/settings/settings-file) | [`api-settings-controller`](../packages/api/settings-controller), [`llm-deepseek`](../packages/llm/llm-deepseek), [`llm-pi-ai`](../packages/llm/llm-pi-ai) | - | 插件注册命名空间 schema 并解析分层值；提供方存储原始文档。LLM（大语言模型）适配器在用户分区下将其入口配置注册为组合基础；settings controller 提供经过脱敏的分层描述符，并写入用户层。 |
 | `ctx.remoteAccess` | `core` | [`api-remote-access`](../packages/api/remote-access) | - | [`api-gateway`](../packages/api/gateway), [`api-session-controller`](../packages/api/session-controller), [`api-workspace-controller`](../packages/api/workspace-controller) | - | 通过业务方注册的基于 role 的 policy 判定非 owner Peer 可调用哪些 Remote 方法，过滤列表结果，并为每个 Peer 推送访问快照。 |
 | `ctx.sessionPersistence` | `seam` | [`session-persistence`](../packages/session/session-persistence) | [`session-persistence-jsonl`](../packages/session/session-persistence-jsonl) | [`agent-loop`](../packages/core/agent-loop), [`tool-bash`](../packages/shell/tool-bash), [`hooks-claude-code`](../packages/experimental/hooks-claude-code), [`hooks-codex`](../packages/experimental/hooks-codex), [`session-query`](../packages/session-query/session-query), [`session-query-sqlite`](../packages/session-query/session-query-sqlite), [`message-feedback`](../packages/feedback/message-feedback) | - | JSONL backend 把 SessionEvent 词汇持久化为每个 Session 一份产物。 |
 | `ctx.configEditor` | `core` | [`config-editor`](../packages/boot/config-editor) | - | [`settings`](../packages/settings/settings), [`agent-default-model`](../packages/core/agent-default-model) | - | Persists profile config patches under the application file lock and HMR queue, then reconciles Loader entries. |
-| `ctx.settings` | `core` | [`settings`](../packages/settings/settings) | - | [`api-settings-controller`](../packages/api/settings-controller) | - | Forms project volatile Config fields from active profile entries and delegate validated edits to config-editor. Plugins consume their own Config references. |
+| `ctx.settings` | `core` | [`settings`](../packages/settings/settings) | - | [`api-settings-controller`](../packages/api/settings-controller) | - | 从活跃 profile 条目构造项目易变 Config 字段，并把经过校验的编辑委托给 config-editor。插件消费各自的 Config 引用。 |
 | `ctx.subagentModelSelection` | `core` | [`tool-subagent`](../packages/subagent/tool-subagent) | - | [`tool-subagent`](../packages/subagent/tool-subagent) | - | 拥有默认关闭的设置命名空间；Agent 作用域的委派工具会在组合新顶层 Session 时读取它。 |
 | `ctx.credentials` | `seam` | [`credentials`](../packages/credentials/credentials) | [`credentials-local`](../packages/credentials/credentials-local) | [`api-settings-controller`](../packages/api/settings-controller), [`llm-deepseek`](../packages/llm/llm-deepseek), [`llm-pi-ai`](../packages/llm/llm-pi-ai) | - | 配置携带对机密信息的引用；提供方拥有实际值。消费方按操作解析，因此轮换后的凭据会在紧接着的下一次请求中生效；settings controller 提供不含实际值的视图和只写存储。 |
 | `ctx.deepseekAccount` | `seam` | [`deepseek-account`](../packages/credentials/deepseek-account) | [`deepseek-account-platform`](../packages/credentials/deepseek-account-platform) | [`api-account-controller`](../packages/api/account-controller), [`llm-deepseek`](../packages/llm/llm-deepseek) | - | Host 负责浏览器授权和本地凭证；UI 使用方只接收不含 token 的状态。 |
@@ -778,10 +757,9 @@ flowchart LR
 | `ctx.agentTeams` | `core` | [`experimental-agent-team`](../packages/experimental/agent-team) | - | [`experimental-tool-agent-team`](../packages/experimental/tool-agent-team) | - | 负责隐式 Root roster、直接 peer inbox 投递、共享任务 DAG 与 continuable child 生命周期；tool-agent-team 提供模型控制工具。 |
 | `ctx.claudeCodeMods` | `core` | [`experimental-claude-code-mods`](../packages/experimental/claude-code-mods) | - | - | - | 加载 defineMod 插件添加的模组，从 harness 扩展点触发其钩子链，并通过其 Remote 绘制提示框上方的横幅。 |
 | `ctx.inspector` | `core` | `inspector` | - | - | - | 负责 Worker 托管的 CDP target，以及独立于传输的 Host 和 Client observation 与 Cordis tree query API。 |
+| `ctx.hostDescription` | `core` | [`api-host-description`](../packages/api/host-description) | - | [`api-remotes`](../packages/api/remotes) | - | 通过现有的认证 API 返回持久化 Host 身份、独立版本字段，以及实时 Remote 绑定中显式声明的能力。 |
 | `ctx.deviceTrust` | `seam` | [`api-device-trust`](../packages/api/device-trust) | - | [`web-app`](../packages/bundle/web-app) | - | 网关所有的设备侧接入接缝：经 Typert Remote 的一次性配对签发、设备授权与撤销；权限执行仍归交互回复接缝。 |
 | `ctx.hostDiagnostics` | `seam` | [`api-host-diagnostics`](../packages/api/host-diagnostics) | - | [`web-app`](../packages/bundle/web-app) | - | 第 41 节 health/readiness 快照与第 42 节经构造脱敏的跨平台诊断载荷走 Typert Remote；基于存在性的探测逐组件指名已组合的 owner。 |
-| `ctx.jobs` | `seam` | [`jobs`](../packages/jobs/jobs) | [`jobs-local`](../packages/jobs/jobs-local) | [`tool-bash`](../packages/shell/tool-bash), [`tool-terminal`](../packages/terminal/tool-terminal), [`tool-subagent`](../packages/subagent/tool-subagent), [`tool-jobs`](../packages/jobs/tool-jobs) | - | 生产方（后台 bash、PTY 发送和 subagent 委派）登记正在运行的工作；tool-jobs 是面向模型的控制器，用于读取、列出和终止这些工作；jobs-local 是进程本地注册表。 |
-| `ctx.web` | `seam` | [`web`](../packages/web/web) | [`web-search-exa`](../packages/web/web-search-exa), [`web-search-perplexity`](../packages/web/web-search-perplexity), [`web-search-deepseek`](../packages/web/web-search-deepseek), [`web-fetch-http`](../packages/web/web-fetch-http) | [`tool-web`](../packages/web/tool-web) | - | 搜索和抓取提供方注册到同一个 ctx.web seam；tool-web 负责稳定的面向模型名称。 |
 | `ctx.jobs` | `seam` | [`jobs`](../packages/jobs/jobs) | [`jobs-local`](../packages/jobs/jobs-local) | [`tool-bash`](../packages/shell/tool-bash), [`tool-pwsh`](../packages/shell/tool-pwsh), [`tool-terminal`](../packages/experimental/tool-terminal), [`tool-jobs`](../packages/jobs/tool-jobs), [`api-job-controller`](../packages/api/job-controller) | - | 生产方（后台 bash/pwsh 与 PTY 发送）登记正在运行的工作；声明 record 的 job 还为非消费观察者流式提供原始输出；tool-jobs 是面向模型的控制器，用于读取、列出和终止这些工作；jobs-local 是进程本地注册表。 |
 | `ctx.web` | `seam` | [`web`](../packages/web/web) | [`web-search-exa`](../packages/web/web-search-exa), [`web-search-perplexity`](../packages/web/web-search-perplexity), [`web-search-deepseek`](../packages/web/web-search-deepseek), [`web-deepseek-api`](../packages/web/web-deepseek-api), [`web-fetch-http`](../packages/web/web-fetch-http) | [`tool-web`](../packages/web/tool-web) | - | 搜索和抓取提供方注册到同一个 ctx.web seam；tool-web 负责稳定的面向模型名称。 |
 | `ctx.spillStore` | `seam` | [`spill`](../packages/spill/spill) | [`spill-local`](../packages/spill/spill-local) | [`spill-policy`](../packages/spill/spill-policy) | - | 后端保存过大的工具文本，并返回面向模型的定位信息和取回提示；spill-policy 是 tools/post-execute 消费方，负责决定何时 spill。 |

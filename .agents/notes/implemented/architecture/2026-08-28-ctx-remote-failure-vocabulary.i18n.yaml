@@ -2,8 +2,6 @@
 # section, a hash of its English and Chinese blocks outside code blocks and generated regions.
 # After editing either side, bring the other along and re-record with:
 #   pnpm run verify-translation-pairing --write .agents/notes/implemented/architecture/2026-08-28-ctx-remote-failure-vocabulary.md
-2026-08-28-ctx-remote-failure-vocabulary.md: f369c8bbc6fa92e17e03850eaeaa5cf17dd0887e
-2026-08-28-ctx-remote-failure-vocabulary.zh.md: b4d4453ff7d1e97484c330c42d6cd4d543532629
 /agent-note-one-remote-failure-vocabulary-for-ctx-remote:
   en: 3aca057ba2c3ae29
   zh: 3d54024d40265a2a
@@ -11,14 +9,17 @@
   en: 990d46f713fb6303
   zh: 592cd6128a9640b1
 /agent-note-one-remote-failure-vocabulary-for-ctx-remote/decision:
-  en: 120e2fb97ac765d8
-  zh: 5d5f110db4a9b717
+  en: cb8c8ddc8f32fc6f
+  zh: dac3527c43bb4978
 /agent-note-one-remote-failure-vocabulary-for-ctx-remote/code-ownership:
   en: cc1d8b88f7349b77
   zh: 70f010e3310e2667
+/agent-note-one-remote-failure-vocabulary-for-ctx-remote/published-known-code-vocabulary:
+  en: 3fbaf70a337f643e
+  zh: 40afe17151ba79a2
 /agent-note-one-remote-failure-vocabulary-for-ctx-remote/discrimination-by-code:
-  en: 8ca8ea2f3236569f
-  zh: ffca80a5157af245
+  en: f5ac88a9090219d4
+  zh: 030932671bc96654
 /agent-note-one-remote-failure-vocabulary-for-ctx-remote/fixed-host-facts:
   en: 0dfb0ca5cf67b296
   zh: baaa890425996fb3

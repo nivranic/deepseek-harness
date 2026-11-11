@@ -1,6 +1,19 @@
-# Bilingual-pair consistency record (docs/i18n/README.md): the git blob hash of each
-# side as of the last confirmed-consistent state. Both languages carry equal authority;
-# after editing either side, bring the other along and re-record with:
+# Bilingual-pair consistency record for 2026-09-26-http-disconnect-response-retirement.md (docs/i18n/README.md): per heading
+# section, a hash of its English and Chinese blocks outside code blocks and generated regions.
+# After editing either side, bring the other along and re-record with:
 #   pnpm run verify-translation-pairing --write .agents/notes/implemented/bug-fix/2026-09-26-http-disconnect-response-retirement.md
-2026-09-26-http-disconnect-response-retirement.md: edde5c8ead5048784f77a1a1c1988d16d8a599f7
-2026-09-26-http-disconnect-response-retirement.zh.md: 3b450301afe36453706908bc3508b4d3a5f9f7b8
+/agent-note-http-response-retirement-observes-an-already-closed-client:
+  en: 2d78127da526724a
+  zh: 4a64ad61d72374ee
+/agent-note-http-response-retirement-observes-an-already-closed-client/problem:
+  en: c2b69a887fc32d0f
+  zh: a5ca25e485d98580
+/agent-note-http-response-retirement-observes-an-already-closed-client/decision:
+  en: c937238bb53de105
+  zh: 22809416c8182354
+/agent-note-http-response-retirement-observes-an-already-closed-client/alternatives-considered:
+  en: 6f57dfe8f7975730
+  zh: 532657926a5e7a85
+/agent-note-http-response-retirement-observes-an-already-closed-client/consequences:
+  en: 410cb518cbcb7b44
+  zh: 78a12489fec25c73

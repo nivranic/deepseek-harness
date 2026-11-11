@@ -2,8 +2,6 @@
 # section, a hash of its English and Chinese blocks outside code blocks and generated regions.
 # After editing either side, bring the other along and re-record with:
 #   pnpm run verify-translation-pairing --write docs/subsystems/jobs.md
-jobs.md: a0e2f0c376fde961972eca43f5d7714f8d5d043e
-jobs.zh.md: 400c0aba6682a5f015ffc05bbe58acc282750d0d
 /background-job-runtime:
   en: dd515d8548864a91
   zh: 16a117d39989a373

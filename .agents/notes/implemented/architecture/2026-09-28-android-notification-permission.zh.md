@@ -44,6 +44,6 @@ Status: implemented
 
 场景在零业务调用区间前，准备一次显式拒绝的 prompt 和不同的新草稿。Host 通知 A 在 Settings 位于前台、应用位于后台且权限被拒绝时到达，消费后没有系统通知。授予权限、经 Back 返回及旋转均不重放 A。新的 B 产生真实系统通知，点击后返回应用。当前 Host/Session/模型所有者、完整新草稿与不同的待确认意图、健康订阅计数和设备授权均保持不变。测试代码取消并等待两次 Host 审批请求结束，Android 不会自动回答或取消它们。六张完整屏幕截图记录首次权限弹窗、旋转后的拒绝状态、关闭及开启的系统设置、新 Host 通知，以及返回后的 Session。
 
-默认预授模式的回归通过四文件、五用例：[Push 前台](../../../../apps/web/tests/android-push-foreground.e2e.ts)、[VIEW 深链接](../../../../apps/web/tests/android-view-deep-links.e2e.ts)、[游标续传](../../../../apps/web/tests/android-cursor-resume.e2e.ts)及[输入持久化](../../../../apps/web/tests/android-input-persistence.e2e.ts)。它们与最终权限用例分开，也不关闭另行保留的间歇 cursor 调查。
+默认预授模式的回归通过四文件、五用例：[Push 前台](../../../../apps/web/tests/android-push-foreground.e2e.ts)、`../../../../apps/web/tests/android-view-deep-links.e2e.ts`、[游标续传](../../../../apps/web/tests/android-cursor-resume.e2e.ts)及[输入持久化](../../../../apps/web/tests/android-input-persistence.e2e.ts)。它们与最终权限用例分开，也不关闭另行保留的间歇 cursor 调查。
 
 通知设置变化可能终止应用。进程或 driver 丢失是独立结果，不能通过启动 MAIN 或另一 instrumentation 会话后宣称设置返回成功。新进程不保留控制器身份、拒绝历史或 Push 模型的消费游标。频道级禁用、撤权杀进程恢复、真机、FCM/APNs，以及进程死亡后的权限或通知投递仍保持开放。本决定覆盖原规格第 50 和 64 节的通知及权限状态事项，不构成 Mobile Release 或任一整节完成。

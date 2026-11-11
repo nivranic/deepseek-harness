@@ -1,6 +1,25 @@
-# Bilingual-pair consistency record (docs/i18n/README.md): the git blob hash of each
-# side as of the last confirmed-consistent state. Both languages carry equal authority;
-# after editing either side, bring the other along and re-record with:
+# Bilingual-pair consistency record for 2026-09-14-upstream-first-convergence.md (docs/i18n/README.md): per heading
+# section, a hash of its English and Chinese blocks outside code blocks and generated regions.
+# After editing either side, bring the other along and re-record with:
 #   pnpm run verify-translation-pairing --write .agents/notes/proposed/architecture/2026-09-14-upstream-first-convergence.md
-2026-09-14-upstream-first-convergence.md: 55f069df251a5fc95a55abda34eacaba21888442
-2026-09-14-upstream-first-convergence.zh.md: 02429fd182e999e77ba3570434143a1539077f9c
+/agent-note-converge-downstream-platform-capabilities-onto-official-upstream:
+  en: 75e4b90d7b12272c
+  zh: 8573b9224b41ccf2
+/agent-note-converge-downstream-platform-capabilities-onto-official-upstream/problem:
+  en: 57750cb29dcdf53b
+  zh: db7f165b91abb8b8
+/agent-note-converge-downstream-platform-capabilities-onto-official-upstream/proposal:
+  en: 7d8887a8bc5e5f12
+  zh: 88f71845f3cc3e49
+/agent-note-converge-downstream-platform-capabilities-onto-official-upstream/persistence-and-compatibility:
+  en: b5d14b082bea2c3e
+  zh: 79d1f0a9a36cf0e4
+/agent-note-converge-downstream-platform-capabilities-onto-official-upstream/alternatives-considered:
+  en: 24b9e506a0fc9566
+  zh: 4eb8e43c4f5b2929
+/agent-note-converge-downstream-platform-capabilities-onto-official-upstream/acceptance-criteria:
+  en: 179ab501bf99e656
+  zh: 8c7591264490b70c
+/agent-note-converge-downstream-platform-capabilities-onto-official-upstream/risks:
+  en: 9f32bea9ecc21e75
+  zh: 3cd26246fbd757da

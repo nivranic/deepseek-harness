@@ -184,13 +184,11 @@ get(session: Session): SessionTitleSnapshot | undefined
  * {@link SessionTitleService.refresh} remains the deliberate unpin).
  * @param session - exact live session to rename.
  * @param title - raw user input; normalized before acceptance.
- * @param expectedRevision - captured title event seq, or null before any title; omitted for unconditional acceptance.
- * @returns the accepted snapshot; an identical user-pinned conditional rename returns the existing event without appending.
+ * @returns the accepted title snapshot.
  * @throws {SessionTitleInvalidError} when the title normalizes to empty.
- * @throws {SessionTitleRevisionConflictError} when a conditional rename would replace a changed title.
  * @throws {Error} when the session is not live or the service is disposed.
  */
-rename(session: Session, title: string, expectedRevision?: SessionSeq | null): SessionTitleSnapshot
+rename(session: Session, title: string): SessionTitleSnapshot
 
 /**
  * Explicitly retry the registered provider, or materialize the built-in
@@ -211,7 +209,7 @@ async refresh(session: Session, signal?: AbortSignal): Promise<SessionTitleSnaps
 register(provider: SessionTitleProvider): () => Promise<void>
 ```
 
-Types: [Session](session.md) · [SessionSeq](session.md)
+Types: [Session](session.md)
 
 Source: [`packages/session/session-title/src/index.ts`](../../packages/session/session-title/src/index.ts)
 <!-- END GENERATED cordis-surface -->

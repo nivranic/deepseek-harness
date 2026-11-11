@@ -1,6 +1,22 @@
-# Bilingual-pair consistency record (docs/i18n/README.md): the git blob hash of each
-# side as of the last confirmed-consistent state. Both languages carry equal authority;
-# after editing either side, bring the other along and re-record with:
+# Bilingual-pair consistency record for 2026-10-04-failure-copy.md (docs/i18n/README.md): per heading
+# section, a hash of its English and Chinese blocks outside code blocks and generated regions.
+# After editing either side, bring the other along and re-record with:
 #   pnpm run verify-translation-pairing --write .agents/notes/implemented/architecture/2026-10-04-failure-copy.md
-2026-10-04-failure-copy.md: adfeb93ec36815d9118241e235cb7bc34f2e6e7f
-2026-10-04-failure-copy.zh.md: b78ed707f4cf4d2a0b73d2e3f5fc47c18334da71
+/agent-note-section-45-shared-remote-failure-copy-across-client-surfaces:
+  en: 2b405a7395503e17
+  zh: ad9f95b01b190418
+/agent-note-section-45-shared-remote-failure-copy-across-client-surfaces/problem:
+  en: 0f641f5322c7c7c6
+  zh: 10a18bb8470b0b22
+/agent-note-section-45-shared-remote-failure-copy-across-client-surfaces/decision:
+  en: 683c467359bbbe8b
+  zh: 21d8322cfa8c0e5e
+/agent-note-section-45-shared-remote-failure-copy-across-client-surfaces/alternatives-considered:
+  en: c600f440c9060e3b
+  zh: 8892f5b52bb0f0b7
+/agent-note-section-45-shared-remote-failure-copy-across-client-surfaces/consequences:
+  en: 3411ec96ebea9074
+  zh: 3bad538f198de817
+/agent-note-section-45-shared-remote-failure-copy-across-client-surfaces/open-work:
+  en: b101598ec35da28f
+  zh: 4b47d8a24e322828

@@ -1,6 +1,22 @@
-# Bilingual-pair consistency record (docs/i18n/README.md): the git blob hash of each
-# side as of the last confirmed-consistent state. Both languages carry equal authority;
-# after editing either side, bring the other along and re-record with:
+# Bilingual-pair consistency record for 2026-10-22-lite-attachment-readers.md (docs/i18n/README.md): per heading
+# section, a hash of its English and Chinese blocks outside code blocks and generated regions.
+# After editing either side, bring the other along and re-record with:
 #   pnpm run verify-translation-pairing --write .agents/notes/implemented/architecture/2026-10-22-lite-attachment-readers.md
-2026-10-22-lite-attachment-readers.md: 5274fd891ba38d669466a1a39c3ef5ae32e13f69
-2026-10-22-lite-attachment-readers.zh.md: 6670d419a694c9ce1ce82d1df8dc59708589331c
+/agent-note-attachment-read-and-image-inspect-land-as-the-paired-lite-attachment-readers:
+  en: ee4394314b945acd
+  zh: 4c3fee0f1d4d2145
+/agent-note-attachment-read-and-image-inspect-land-as-the-paired-lite-attachment-readers/problem:
+  en: 58121307ef4390d3
+  zh: b6dcd0035cf5eade
+/agent-note-attachment-read-and-image-inspect-land-as-the-paired-lite-attachment-readers/decision:
+  en: 218001a5a571674f
+  zh: 10a6bf97094a56c6
+/agent-note-attachment-read-and-image-inspect-land-as-the-paired-lite-attachment-readers/alternatives-considered:
+  en: 4ce0dd4b466b24e2
+  zh: 907899c11b8681a0
+/agent-note-attachment-read-and-image-inspect-land-as-the-paired-lite-attachment-readers/consequences:
+  en: b0974cb1a94202c6
+  zh: ec9bec4b24369245
+/agent-note-attachment-read-and-image-inspect-land-as-the-paired-lite-attachment-readers/open-follow-ups:
+  en: c3e259978c81077f
+  zh: 6eeb784fc5e59c14

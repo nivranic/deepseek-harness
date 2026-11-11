@@ -1,6 +1,19 @@
-# Bilingual-pair consistency record (docs/i18n/README.md): the git blob hash of each
-# side as of the last confirmed-consistent state. Both languages carry equal authority;
-# after editing either side, bring the other along and re-record with:
+# Bilingual-pair consistency record for 2026-09-20-device-role-admission.md (docs/i18n/README.md): per heading
+# section, a hash of its English and Chinese blocks outside code blocks and generated regions.
+# After editing either side, bring the other along and re-record with:
 #   pnpm run verify-translation-pairing --write .agents/notes/implemented/feature/2026-09-20-device-role-admission.md
-2026-09-20-device-role-admission.md: c477a31d5c18085db49f24860e915b3e4cdbbee2
-2026-09-20-device-role-admission.zh.md: c82fc7ec6aa05c9d3504bb6e495a57eaad178312
+/agent-note-device-roles-map-onto-the-section-15-seam-through-signed-admission:
+  en: 3a63225fc676e24c
+  zh: e3d6cc01a8fb81a4
+/agent-note-device-roles-map-onto-the-section-15-seam-through-signed-admission/problem:
+  en: c1f7aa9b7b39278b
+  zh: 761f84d208b90f0b
+/agent-note-device-roles-map-onto-the-section-15-seam-through-signed-admission/decision:
+  en: cf12681ffd634c74
+  zh: 28b85e2a24b3ef70
+/agent-note-device-roles-map-onto-the-section-15-seam-through-signed-admission/alternatives-considered:
+  en: 8b589711d9315e3f
+  zh: d6397fb68ccb12ad
+/agent-note-device-roles-map-onto-the-section-15-seam-through-signed-admission/consequences:
+  en: 097bb2dad4319732
+  zh: fbb1f4c31467e082

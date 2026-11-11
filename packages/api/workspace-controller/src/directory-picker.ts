@@ -13,7 +13,8 @@ import type {
 // site to name that package rather than this package's re-export of it.
 import type { DirectoryListing } from '@deepseek-ai/dsh-host-directory-picker/types'
 import { Remote, RemoteError, remoteValidationIssues, TypertRemoteService } from '@deepseek-ai/dsh-typert-protocol'
-import type { RemoteErrorCode } from '@deepseek-ai/dsh-typert-protocol'
+import type { RemoteErrorCode, TypertRemoteCapability } from '@deepseek-ai/dsh-typert-protocol'
+import { DIRECTORY_PICKER_REMOTE_CAPABILITIES } from './capabilities.ts'
 
 const createDirectoryRequestSchema = z.object({
   path: z.string(),
@@ -43,7 +44,9 @@ export class DirectoryPickerController extends TypertRemoteService {
 
   /** @param ctx - Host context carrying the composed directory-picking backend. */
   constructor(ctx: Context) {
-    super(ctx, 'directoryPickerController', { namespace: 'directoryPicker' })
+    super(ctx, 'directoryPickerController', {
+      namespace: 'directoryPicker', capabilities: pickerCapabilities(ctx.directoryPicker.capability().kind),
+    })
   }
 
   /**
@@ -116,6 +119,18 @@ export class DirectoryPickerController extends TypertRemoteService {
       )
     }
     return capability as DirectoryPickerCapabilities[Kind]
+  }
+}
+
+function pickerCapabilities(kind: keyof DirectoryPickerCapabilities): readonly TypertRemoteCapability[] {
+  switch (kind) {
+    case 'native':
+      return DIRECTORY_PICKER_REMOTE_CAPABILITIES.filter(capability => capability.id === 'directory-picker.native.v1')
+    case 'browse':
+      return DIRECTORY_PICKER_REMOTE_CAPABILITIES.filter(capability => capability.id !== 'directory-picker.native.v1')
+    // Merge-extensible kinds without a wire implementation advertise no operation here.
+    default:
+      return []
   }
 }
 

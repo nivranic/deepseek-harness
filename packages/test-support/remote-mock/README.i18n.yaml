@@ -2,8 +2,6 @@
 # section, a hash of its English and Chinese blocks outside code blocks and generated regions.
 # After editing either side, bring the other along and re-record with:
 #   pnpm run verify-translation-pairing --write packages/test-support/remote-mock/README.md
-README.md: 105735aa2f13cf4eea74e216cc373f0f648f5317
-README.zh.md: 27b54212708bbb007c3a84592c29e46ad7e40247
 /:
   en: 5807aeb1022af801
   zh: 1b8715d41b159629
@@ -32,8 +30,8 @@ README.zh.md: 27b54212708bbb007c3a84592c29e46ad7e40247
   en: 0a466b4351c5ad4c
   zh: 602d87000880166f
 /deepseek-ai-dsh-remote-mock/use-this-package/connect-a-client:
-  en: 302d3015e5d82fd8
-  zh: 2e83a236952ba390
+  en: 60f13621b67be9b5
+  zh: eca2c72492645a76
 /deepseek-ai-dsh-remote-mock/use-this-package/observe-and-assert:
   en: 56fcb7912f6365ec
   zh: 299299e8afad0512

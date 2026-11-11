@@ -1,6 +1,19 @@
-# Bilingual-pair consistency record (docs/i18n/README.md): the git blob hash of each
-# side as of the last confirmed-consistent state. Both languages carry equal authority;
-# after editing either side, bring the other along and re-record with:
+# Bilingual-pair consistency record for 2026-09-16-checkpoint-write-order.md (docs/i18n/README.md): per heading
+# section, a hash of its English and Chinese blocks outside code blocks and generated regions.
+# After editing either side, bring the other along and re-record with:
 #   pnpm run verify-translation-pairing --write .agents/notes/implemented/bug-fix/2026-09-16-checkpoint-write-order.md
-2026-09-16-checkpoint-write-order.md: 709886ded54e4b602e31b903071b27101a9233a9
-2026-09-16-checkpoint-write-order.zh.md: 17de33c4c052cbc2fc6e029dfb3e8b3979a71f31
+/agent-note-checkpoint-capture-order-includes-log-durability:
+  en: fd02c36711f19e39
+  zh: b7680cfcba50dfb0
+/agent-note-checkpoint-capture-order-includes-log-durability/problem:
+  en: 8ff3db611db27c2e
+  zh: 82f1380c90334248
+/agent-note-checkpoint-capture-order-includes-log-durability/decision:
+  en: 57fcdb51feddb9bf
+  zh: d59e2f394f184ef4
+/agent-note-checkpoint-capture-order-includes-log-durability/alternatives-considered:
+  en: c8f3e6c3d796018f
+  zh: 903ede260f3739ef
+/agent-note-checkpoint-capture-order-includes-log-durability/consequences:
+  en: 52f5b6ffcb0e0c58
+  zh: 45aac92ac15b3277

@@ -1,6 +1,22 @@
-# Bilingual-pair consistency record (docs/i18n/README.md): the git blob hash of each
-# side as of the last confirmed-consistent state. Both languages carry equal authority;
-# after editing either side, bring the other along and re-record with:
+# Bilingual-pair consistency record for 2026-10-06-crash-diagnostics-outlet.md (docs/i18n/README.md): per heading
+# section, a hash of its English and Chinese blocks outside code blocks and generated regions.
+# After editing either side, bring the other along and re-record with:
 #   pnpm run verify-translation-pairing --write .agents/notes/implemented/architecture/2026-10-06-crash-diagnostics-outlet.md
-2026-10-06-crash-diagnostics-outlet.md: 317b519542825d586a34fcac0d4561c09ae810bd
-2026-10-06-crash-diagnostics-outlet.zh.md: 1789ab381187f3461ac539c270e8d64fb26be9c7
+/agent-note-crash-diagnostics-leave-through-the-ops-telemetry-outlet-under-their-own-consent-kind:
+  en: 4355848b3fb8eb98
+  zh: 23ee126797b842f1
+/agent-note-crash-diagnostics-leave-through-the-ops-telemetry-outlet-under-their-own-consent-kind/problem:
+  en: f33c706465401fef
+  zh: 95d5296c14fe8ab5
+/agent-note-crash-diagnostics-leave-through-the-ops-telemetry-outlet-under-their-own-consent-kind/decision:
+  en: ff939c4dedd8f7cd
+  zh: 27221a1738339ce3
+/agent-note-crash-diagnostics-leave-through-the-ops-telemetry-outlet-under-their-own-consent-kind/alternatives-considered:
+  en: 21da849e8f9f65ba
+  zh: 12471ec3a8f3ab78
+/agent-note-crash-diagnostics-leave-through-the-ops-telemetry-outlet-under-their-own-consent-kind/consequences:
+  en: 51c42c5f4ceb1e58
+  zh: 9b96e97afe3a20ef
+/agent-note-crash-diagnostics-leave-through-the-ops-telemetry-outlet-under-their-own-consent-kind/open-follow-ups:
+  en: f4f822f558805ce0
+  zh: b3627fae9cf547f9

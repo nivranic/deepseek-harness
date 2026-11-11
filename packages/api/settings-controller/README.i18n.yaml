@@ -2,8 +2,6 @@
 # section, a hash of its English and Chinese blocks outside code blocks and generated regions.
 # After editing either side, bring the other along and re-record with:
 #   pnpm run verify-translation-pairing --write packages/api/settings-controller/README.md
-README.md: efc392e852717d49186c23cdaecb922ff70105ab
-README.zh.md: b69fdd9f75730655707beb27e1bbcb2b5d3101c0
 /:
   en: a3cc85cfbefc88fe
   zh: 67550210b403fe0d
@@ -17,8 +15,8 @@ README.zh.md: b69fdd9f75730655707beb27e1bbcb2b5d3101c0
   en: 3a654e12f423946b
   zh: 4e3a19aaee58f8a7
 /settings-controller/use-this-package:
-  en: cf2f4de5bee8be55
-  zh: b2630dcba4be5ae8
+  en: 8fabfaff9eedff9a
+  zh: 30022484afba590d
 /settings-controller/configuration:
   en: e0297f144b649af7
   zh: e70ed56edffd97f0
@@ -32,5 +30,5 @@ README.zh.md: b69fdd9f75730655707beb27e1bbcb2b5d3101c0
   en: a7475fd8aedf0830
   zh: add1adce9d320baa
 /settings-controller/known-limitations-and-deferred-work/dev-note:
-  en: e67f633dc6fe7773
-  zh: e88aeb617ffb74ea
+  en: ddaf8d52ab36faa8
+  zh: 7714827cd018352b

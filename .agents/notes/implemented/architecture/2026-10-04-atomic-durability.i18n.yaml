@@ -1,6 +1,22 @@
-# Bilingual-pair consistency record (docs/i18n/README.md): the git blob hash of each
-# side as of the last confirmed-consistent state. Both languages carry equal authority;
-# after editing either side, bring the other along and re-record with:
+# Bilingual-pair consistency record for 2026-10-04-atomic-durability.md (docs/i18n/README.md): per heading
+# section, a hash of its English and Chinese blocks outside code blocks and generated regions.
+# After editing either side, bring the other along and re-record with:
 #   pnpm run verify-translation-pairing --write .agents/notes/implemented/architecture/2026-10-04-atomic-durability.md
-2026-10-04-atomic-durability.md: 3ffbe432a306b5d978acf8950c6c95fa8a5e3425
-2026-10-04-atomic-durability.zh.md: 0c8828e03110b22c3d81826bbd7bca1875d46a7c
+/agent-note-crash-durable-atomic-writes-and-a-retained-flat-migration-generation:
+  en: 8bc0040fdc28a8ff
+  zh: 2ccd5332d5741b2c
+/agent-note-crash-durable-atomic-writes-and-a-retained-flat-migration-generation/problem:
+  en: cf44bf0c24a77f25
+  zh: 9aba8d07b644eef2
+/agent-note-crash-durable-atomic-writes-and-a-retained-flat-migration-generation/decision:
+  en: 9d4d867a3037547c
+  zh: e43caecbd64c2e3a
+/agent-note-crash-durable-atomic-writes-and-a-retained-flat-migration-generation/alternatives-considered:
+  en: 2066198cb4456797
+  zh: 4a57195efa4786af
+/agent-note-crash-durable-atomic-writes-and-a-retained-flat-migration-generation/consequences:
+  en: 071581d4a76accf1
+  zh: 0c9f4663d8d64c49
+/agent-note-crash-durable-atomic-writes-and-a-retained-flat-migration-generation/open-follow-ups:
+  en: 144a163a70ef0f55
+  zh: c45c05b43bf04bdf

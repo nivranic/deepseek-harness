@@ -2,8 +2,6 @@
 # section, a hash of its English and Chinese blocks outside code blocks and generated regions.
 # After editing either side, bring the other along and re-record with:
 #   pnpm run verify-translation-pairing --write packages/core/tools/README.md
-README.md: 95f4f5c47dbff680f2af9ba45ebda013324eb8ad
-README.zh.md: 716b880fa31bd22bde622a67ddfa2711a33a7369
 /:
   en: 3b12a77945c0d1e9
   zh: e9af32047e4f658b
@@ -20,8 +18,14 @@ README.zh.md: 716b880fa31bd22bde622a67ddfa2711a33a7369
   en: d382227271bf92ae
   zh: 1f66b181418c91b9
 /deepseek-ai-dsh-tools/use-this-package/register-a-tool:
-  en: 1808e2a95ee21584
-  zh: 40c40da7d1418407
+  en: cd532f50f2606480
+  zh: 443b776b8b530a37
+/deepseek-ai-dsh-tools/use-this-package/lite-tool-schemas-projection:
+  en: cc4c206f07989a49
+  zh: 49db6b593850dd30
+/deepseek-ai-dsh-tools/use-this-package/configure-the-presentation-mode:
+  en: 9997fe7cdb1d7ace
+  zh: f0e5273243f1f7b1
 /deepseek-ai-dsh-tools/use-this-package/conditional-tools:
   en: eb80334754c2493a
   zh: b431635ec1f4664f
@@ -41,11 +45,11 @@ README.zh.md: 716b880fa31bd22bde622a67ddfa2711a33a7369
   en: ce7e776e9d516bdb
   zh: 59d2751743db7795
 /deepseek-ai-dsh-tools/understand-the-implementation/design-concept:
-  en: 516a6195a21e742b
-  zh: 33c7b99b42c5acac
+  en: 60b72dc25e16f328
+  zh: 2498ed8d400232e4
 /deepseek-ai-dsh-tools/understand-the-implementation/source-map:
-  en: 2dee0a37e0c1fa38
-  zh: 0963cba32685612e
+  en: dae8228cff194ef7
+  zh: fb4cc90bb7ca8e3b
 /deepseek-ai-dsh-tools/understand-the-implementation/execution-and-cancellation:
   en: dc44a88997777988
   zh: 56454aeace1c8b77

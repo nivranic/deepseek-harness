@@ -1,6 +1,19 @@
-# Bilingual-pair consistency record (docs/i18n/README.md): the git blob hash of each
-# side as of the last confirmed-consistent state. Both languages carry equal authority;
-# after editing either side, bring the other along and re-record with:
+# Bilingual-pair consistency record for 2026-09-16-shipped-profile-composition-check.md (docs/i18n/README.md): per heading
+# section, a hash of its English and Chinese blocks outside code blocks and generated regions.
+# After editing either side, bring the other along and re-record with:
 #   pnpm run verify-translation-pairing --write .agents/notes/implemented/testing/2026-09-16-shipped-profile-composition-check.md
-2026-09-16-shipped-profile-composition-check.md: 5c2c72a18ac46804872015f69606347c3b7b4c3d
-2026-09-16-shipped-profile-composition-check.zh.md: 1b6b9629247235000c5bdf6adda33d75e2657fd4
+/agent-note-check-the-composed-profile-before-application-boot:
+  en: 6639932b5a279c6a
+  zh: 47e7708378a6a31c
+/agent-note-check-the-composed-profile-before-application-boot/problem:
+  en: f4852f4f037c6fd3
+  zh: df5c54f02ca032f0
+/agent-note-check-the-composed-profile-before-application-boot/decision:
+  en: 1a29924a700c9aeb
+  zh: 813ba959c5b2ef9c
+/agent-note-check-the-composed-profile-before-application-boot/alternatives-considered:
+  en: dcae1004003e8ee7
+  zh: f5f8345163068094
+/agent-note-check-the-composed-profile-before-application-boot/consequences:
+  en: 18e7be66e9a240d6
+  zh: eb127a81e272ec9a

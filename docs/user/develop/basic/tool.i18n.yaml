@@ -2,8 +2,6 @@
 # section, a hash of its English and Chinese blocks outside code blocks and generated regions.
 # After editing either side, bring the other along and re-record with:
 #   pnpm run verify-translation-pairing --write docs/user/develop/basic/tool.md
-tool.md: b5fcc95e1ff3392b55a1ca7b3386644797743530
-tool.zh.md: 58d1893d51180f3e18f540a3f6a9bd0714b46ec4
 /build-a-tool:
   en: 7cc993f14da8bb11
   zh: 32cc4de7310ace97

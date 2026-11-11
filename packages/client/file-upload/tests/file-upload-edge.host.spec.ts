@@ -5,6 +5,7 @@ import { join } from 'node:path'
 import { Context } from '@deepseek-ai/cordis'
 import AgentRegistry from '@deepseek-ai/dsh-agent'
 import type { Agent } from '@deepseek-ai/dsh-agent'
+import SessionProjectionRegistry from '@deepseek-ai/dsh-session-projection'
 import type AttachmentStore from '@deepseek-ai/dsh-attachment'
 import type { FileAttachmentRef } from '@deepseek-ai/dsh-attachment'
 import LocalAttachmentStore from '@deepseek-ai/dsh-attachment-local'
@@ -62,6 +63,7 @@ async function storeHarness(input: {
   const dshHome = input.dshHome ?? await mkdtemp(join(tmpdir(), 'dsh-upload-edge-'))
   if (input.dshHome === undefined) homes.push(dshHome)
   await ctx.plugin(SessionStore)
+  await ctx.plugin(SessionProjectionRegistry)
   await ctx.plugin(AgentRegistry)
   await ctx.plugin(CommandRuntime)
   await ctx.plugin(LocalAttachmentStore, { dshHome })
@@ -122,7 +124,7 @@ describe('streamed file upload edges over the real local attachment store', () =
     expect(value.file).toEqual({
       attachmentId: `sha256:${hex}`, name: 'blob.bin', bytes: bytes.byteLength,
     })
-    expect(uploads.resolve(agent, value.receiptId as FileUploadReceiptId)).toEqual(value.file)
+    expect(uploads.resolve(agent, value.receiptId as FileUploadReceiptId)).toEqual({ type: 'file', attachment: value.file })
     const alias = hostPath(ctx.attachments, value.file)
     expect(alias).toBe(join(root, 'files', hex.slice(0, 2), hex, 'blob.bin'))
     expect(new Uint8Array(await readFile(alias))).toEqual(bytes)

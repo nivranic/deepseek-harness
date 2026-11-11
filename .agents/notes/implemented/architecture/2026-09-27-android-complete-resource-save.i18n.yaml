@@ -1,6 +1,19 @@
-# Bilingual-pair consistency record (docs/i18n/README.md): the git blob hash of each
-# side as of the last confirmed-consistent state. Both languages carry equal authority;
-# after editing either side, bring the other along and re-record with:
+# Bilingual-pair consistency record for 2026-09-27-android-complete-resource-save.md (docs/i18n/README.md): per heading
+# section, a hash of its English and Chinese blocks outside code blocks and generated regions.
+# After editing either side, bring the other along and re-record with:
 #   pnpm run verify-translation-pairing --write .agents/notes/implemented/architecture/2026-09-27-android-complete-resource-save.md
-2026-09-27-android-complete-resource-save.md: 895bdd12a7ed2efa29dda2626ada0d4ac7e24062
-2026-09-27-android-complete-resource-save.zh.md: 55968960e4b8d6c714270775654c1bb9c2bf2af4
+/agent-note-android-saves-complete-resource-snapshots-through-a-user-selected-document:
+  en: a558d8e043038f63
+  zh: 300d18b12f92e61d
+/agent-note-android-saves-complete-resource-snapshots-through-a-user-selected-document/problem:
+  en: 8714e381d0594901
+  zh: 54c8511be51b5ecc
+/agent-note-android-saves-complete-resource-snapshots-through-a-user-selected-document/decision:
+  en: 3c33e8b1e7253fc6
+  zh: b7b3ba95fd6dd824
+/agent-note-android-saves-complete-resource-snapshots-through-a-user-selected-document/alternatives-considered:
+  en: a426f84807765c7d
+  zh: f48a7f348839c66f
+/agent-note-android-saves-complete-resource-snapshots-through-a-user-selected-document/consequences:
+  en: 2c8a21f50cb31eda
+  zh: 541a5754993d1ade

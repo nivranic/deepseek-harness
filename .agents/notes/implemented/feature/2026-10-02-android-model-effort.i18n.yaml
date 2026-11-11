@@ -1,6 +1,22 @@
-# Bilingual-pair consistency record (docs/i18n/README.md): the git blob hash of each
-# side as of the last confirmed-consistent state. Both languages carry equal authority;
-# after editing either side, bring the other along and re-record with:
+# Bilingual-pair consistency record for 2026-10-02-android-model-effort.md (docs/i18n/README.md): per heading
+# section, a hash of its English and Chinese blocks outside code blocks and generated regions.
+# After editing either side, bring the other along and re-record with:
 #   pnpm run verify-translation-pairing --write .agents/notes/implemented/feature/2026-10-02-android-model-effort.md
-2026-10-02-android-model-effort.md: cafb6db40b8f8e3f35f115126e1f737b24edc43c
-2026-10-02-android-model-effort.zh.md: dd65b6f84ece69580a224773e75064a70fbf4dfb
+/agent-note-android-selects-reasoning-efforts-with-the-model-30:
+  en: 670daf9e1aefba5b
+  zh: 523a99d9993e22d2
+/agent-note-android-selects-reasoning-efforts-with-the-model-30/problem:
+  en: f78cba907266d9db
+  zh: 3b147619d8232160
+/agent-note-android-selects-reasoning-efforts-with-the-model-30/decision:
+  en: 00fad10145665c28
+  zh: 9c3765420cf5051c
+/agent-note-android-selects-reasoning-efforts-with-the-model-30/alternatives-considered:
+  en: f275e113dbd8422b
+  zh: 4e4795cdcbf8370e
+/agent-note-android-selects-reasoning-efforts-with-the-model-30/consequences:
+  en: d033add9106537b3
+  zh: fbaee052db6c96f6
+/agent-note-android-selects-reasoning-efforts-with-the-model-30/open-work:
+  en: 3dea5a7514db47ea
+  zh: f2bf84313d0b734c

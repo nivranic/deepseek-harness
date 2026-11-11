@@ -2,8 +2,6 @@
 # section, a hash of its English and Chinese blocks outside code blocks and generated regions.
 # After editing either side, bring the other along and re-record with:
 #   pnpm run verify-translation-pairing --write packages/interaction/commands/README.md
-README.md: 69a0b3a8fbdc6401712af4f334bb80e5e171573d
-README.zh.md: 0c2d8a1c4ed6da7c7f23d44d9a7d75e6669dab34
 /:
   en: d331b9706513154d
   zh: 20e08461c498d058
@@ -20,8 +18,8 @@ README.zh.md: 0c2d8a1c4ed6da7c7f23d44d9a7d75e6669dab34
   en: 6eee80c31dad122b
   zh: 8f261f844a22ddad
 /deepseek-ai-dsh-commands/use-this-package/registering-a-command:
-  en: 81cefbf12580c26a
-  zh: 01c49d94aca89a07
+  en: 1bb11b7b0021eeee
+  zh: 8a90505857e2c1bf
 /deepseek-ai-dsh-commands/use-this-package/command-syntax:
   en: f9160436da4939e7
   zh: 90af200afaf3bb4c
@@ -32,8 +30,8 @@ README.zh.md: 0c2d8a1c4ed6da7c7f23d44d9a7d75e6669dab34
   en: 5239ef9c245c3a6b
   zh: 34e2f89e4e7f5554
 /deepseek-ai-dsh-commands/use-this-package/dispatching-from-an-adapter:
-  en: a5c6aecf74468137
-  zh: 5548d846d600d29a
+  en: c2d3ea1396b1d749
+  zh: c99d68e654c9ecff
 /deepseek-ai-dsh-commands/use-this-package/cancellation:
   en: ee26e9855ce39626
   zh: 7c092436d03b84a9
@@ -41,8 +39,8 @@ README.zh.md: 0c2d8a1c4ed6da7c7f23d44d9a7d75e6669dab34
   en: 063b49f26f48d628
   zh: 2ec899aa6f01359f
 /deepseek-ai-dsh-commands/understand-the-implementation/source-map:
-  en: 1617729234228bb0
-  zh: 3bee55cd286212e3
+  en: 246b6cfc2868a756
+  zh: 1e4f6f20880f7abf
 /deepseek-ai-dsh-commands/understand-the-implementation/lifecycle-events:
   en: c9fcc06089f8035d
   zh: 74072476994a2093

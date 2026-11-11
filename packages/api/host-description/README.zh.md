@@ -44,7 +44,7 @@ Web bundle 挂载此插件；Desktop 使用同一组合并配置其管道载体�
 | `transports` | 必填 | 非空载体列表：`http`、`websocket` 或 `desktop-pipe` |
 | `identityLockWaitMs` | `2000` | 等待并发身份写入者的最长时间，单位为毫秒 |
 
-[配置目录](../../../docs/config-catalog.zh.md#deepseek-aidsh-api-host-description)拥有接受的配置字段。Desktop 只配置 `desktop-pipe`；应用必须声明实际挂载的载体。
+[配置目录](../../../docs/config-catalog.zh.md)拥有接受的配置字段。Desktop 只配置 `desktop-pipe`；应用必须声明实际挂载的载体。
 
 `host.describe` 返回协议 1 的发现表示，并公布 `supportedApiProtocolVersions`。`host.negotiate` 从互不重复的正整数版本提议中选择最高共同版本，返回包含已选 `apiProtocolVersion` 的描述。空列表、重复或格式错误的提议会失败；无共同版本返回 `gateway/protocol-unsupported`。Client 必须确认两次响应的 `hostId` 相同。协商不改变 Host 状态，也不将权限绑定到协议编号。
 

@@ -10,7 +10,7 @@ Status: implemented
 
 ## Decision
 
-复用通道是生成投影，而非 Kotlin 侧组装。`scripts/gen-lite-preset-catalog.ts` 对每个 shipped preset 真正引导 roster、组装其 standing scope，把官方 `ctx.systemPrompt.assemble()` 的输出连同该 preset 声明的 persona 行记出入库的 `packages/preset/agent-presets/lite-preset-descriptors.json`（包内 `src/types.ts` 的 `LitePresetProjection`）；`verify-lite-preset-catalog` 随 `doc-sync` 运行，`--check` 报告首个差异行。组装结果仍引用运行时变量的 preset——shipped `standard` 与 `ptc` 在 `{{model}}`、`{{cwd}}` 上的模板——连同变量名记入文件的 `excluded` 清单，而不是伪造为静态行；声明延迟（`!!js`）布尔的 persona 行让收割失败：静态投影只渲染字面值。官方组装面本身零改动——不动段落顺序、不动 persona 插件。
+复用通道是生成投影，而非 Kotlin 侧组装。`scripts/gen-lite-preset-catalog.ts` 对每个 shipped preset 真正引导 roster、组装其 standing scope，把官方 `ctx.systemPrompt.assemble()` 的输出连同该 preset 声明的 persona 行记出入库的 `lite-preset-descriptors.json`——位于已随官方 preset-registry 采纳而下线的 lane `agent-presets` 包（其 `src/types.ts` 内 `LitePresetProjection`）；`verify-lite-preset-catalog` 随 `doc-sync` 运行，`--check` 报告首个差异行。组装结果仍引用运行时变量的 preset——shipped `standard` 与 `ptc` 在 `{{model}}`、`{{cwd}}` 上的模板——连同变量名记入文件的 `excluded` 清单，而不是伪造为静态行；声明延迟（`!!js`）布尔的 persona 行让收割失败：静态投影只渲染字面值。官方组装面本身零改动——不动段落顺序、不动 persona 插件。
 
 Android 侧消费投影而不持有任何 prompt 文本。`:contract` 以手写 `JsonElement` 解析镜像 `LitePresetDescriptor`（缺字段、类型错、重复 id、空 assembled prompt 一律抛错；未知未来字段容忍），经 `copyLitePresets` 任务拷入测试资源。`:core` 的 `LitePresetCatalog` 与工具目录同构双源：投影解析成功即 `HOST_PROJECTED`，离线或缺失即 `BARE`，`BARE` 得 null system prompt。`LiteProviding.stream(prompt, system = null)` 以接口默认参数扩展接缝，只有 provider 实现类变化；`LiteHTTPProvider` 在 system 非空时于 `messages` 头部插入一条 `{role: "system"}`，否则产出与之前逐字节一致的请求体。`LiteChatViewModel` 以投影中 `order` 最小的 preset 为默认并提交其组装提示。fold 与 journal 零改动：system prompt 是请求面上下文，不是会话事件。
 

@@ -1,6 +1,19 @@
-# Bilingual-pair consistency record (docs/i18n/README.md): the git blob hash of each
-# side as of the last confirmed-consistent state. Both languages carry equal authority;
-# after editing either side, bring the other along and re-record with:
+# Bilingual-pair consistency record for 2026-10-26-file-upload-edge-matrix.md (docs/i18n/README.md): per heading
+# section, a hash of its English and Chinese blocks outside code blocks and generated regions.
+# After editing either side, bring the other along and re-record with:
 #   pnpm run verify-translation-pairing --write .agents/notes/implemented/testing/2026-10-26-file-upload-edge-matrix.md
-2026-10-26-file-upload-edge-matrix.md: 7e46cd7e079c6f9db7a97a62d9a767f4154b618b
-2026-10-26-file-upload-edge-matrix.zh.md: c1f3b722e633a842eb33dabe26d71ae69b4275cd
+/agent-note-the-file-upload-edge-matrix-runs-against-the-real-local-attachment-store:
+  en: be065c9f9ae7a845
+  zh: 64ff07ebacb02188
+/agent-note-the-file-upload-edge-matrix-runs-against-the-real-local-attachment-store/problem:
+  en: 1b2af6e0900714da
+  zh: af41872d6cfdd8dc
+/agent-note-the-file-upload-edge-matrix-runs-against-the-real-local-attachment-store/decision:
+  en: 38eafc53b9d6f7c3
+  zh: 900595c65686e164
+/agent-note-the-file-upload-edge-matrix-runs-against-the-real-local-attachment-store/alternatives-considered:
+  en: 97dcbd23df97e15b
+  zh: 57d965d58a6ca3c0
+/agent-note-the-file-upload-edge-matrix-runs-against-the-real-local-attachment-store/consequences:
+  en: 9f25be5fe40a3a7c
+  zh: 38c18eb2cc1b3bf6

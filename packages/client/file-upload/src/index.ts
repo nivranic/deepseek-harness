@@ -7,6 +7,7 @@ import type { ImageAttachmentRef } from '@deepseek-ai/dsh-attachment'
 import type {} from '@deepseek-ai/dsh-client-connection'
 import type { CommandFileReceiptResolver } from '@deepseek-ai/dsh-commands'
 import type { Session, SessionEvent, SessionId } from '@deepseek-ai/dsh-session'
+import { FILE_UPLOAD_REMOTE_CAPABILITIES } from './capabilities.ts'
 import { Remote, RemoteError, remoteErrorOf, TypertRemoteService } from '@deepseek-ai/dsh-typert-protocol'
 import { handleFileUploadHttp } from './http-route.ts'
 import { FILE_UPLOAD_PATH } from './protocol.ts'
@@ -66,7 +67,7 @@ export class FileUploads extends TypertRemoteService {
 
   /** @param ctx - Host context carrying Agent, attachment, command, and Connection services. */
   constructor(ctx: Context) {
-    super(ctx, 'fileUploads')
+    super(ctx, 'fileUploads', { capabilities: FILE_UPLOAD_REMOTE_CAPABILITIES })
     // Commands accept staged files only; an image receipt is unknown to them.
     const resolve: CommandFileReceiptResolver = (agent, receiptId) => {
       const staged = this.resolve(agent, receiptId as FileUploadReceiptId)

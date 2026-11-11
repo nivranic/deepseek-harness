@@ -1,6 +1,22 @@
-# Bilingual-pair consistency record (docs/i18n/README.md): the git blob hash of each
-# side as of the last confirmed-consistent state. Both languages carry equal authority;
-# after editing either side, bring the other along and re-record with:
+# Bilingual-pair consistency record for 2026-10-02-apple-follow-resume.md (docs/i18n/README.md): per heading
+# section, a hash of its English and Chinese blocks outside code blocks and generated regions.
+# After editing either side, bring the other along and re-record with:
 #   pnpm run verify-translation-pairing --write .agents/notes/implemented/architecture/2026-10-02-apple-follow-resume.md
-2026-10-02-apple-follow-resume.md: d44836ed6f9e83542ffce47daaa69c4e69f718d4
-2026-10-02-apple-follow-resume.zh.md: c0c720b073c9b46ea5dd1be0be2d2a1b8e5f853b
+/agent-note-apple-contract-adopts-the-follow-resume-request-vocabulary-25:
+  en: 6ffc14e4411b9f7c
+  zh: 5bd2278e79a3bb57
+/agent-note-apple-contract-adopts-the-follow-resume-request-vocabulary-25/problem:
+  en: b6fe1a454420d6b7
+  zh: c4b7258ccce101db
+/agent-note-apple-contract-adopts-the-follow-resume-request-vocabulary-25/decision:
+  en: ddddb56c6515c091
+  zh: cfe1a9869f2c361e
+/agent-note-apple-contract-adopts-the-follow-resume-request-vocabulary-25/alternatives-considered:
+  en: ab35f5ce2e2a9486
+  zh: c85d510732bc03f6
+/agent-note-apple-contract-adopts-the-follow-resume-request-vocabulary-25/consequences:
+  en: 7e54daa409970660
+  zh: d5c2c20865da802d
+/agent-note-apple-contract-adopts-the-follow-resume-request-vocabulary-25/open-work:
+  en: 9bd1a01063ee722f
+  zh: d78daf7d145f7371

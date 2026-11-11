@@ -56,7 +56,7 @@ manifest 通过 `DEFAULT` 和 `BROWSABLE` 声明该 scheme；获准处理的 VIE
 
 应用与 instrumentation APK 构建通过，两个 APK 均成功安装。[Intent/入口所有权](../../../../apps/android/app/src/androidTest/kotlin/ai/deepseek/dsh/companion/NativeViewLinkIntakeTest.kt)、[Activity 投递](../../../../apps/android/app/src/androidTest/kotlin/ai/deepseek/dsh/companion/NativeViewLinkActivityTest.kt)及 [observer 回归](../../../../apps/android/app/src/androidTest/kotlin/ai/deepseek/dsh/companion/HostDescriptionViewLinkNativeTest.kt)的 17 个安装态用例全部通过，覆盖直接导航、所有者替换、恢复标记、新查询准入及迟到或取消的查询结果。
 
-[真实 Host 深链接场景](../../../../apps/web/tests/android-view-deep-links.e2e.ts)的单个用例通过，已安装 APK 哈希匹配当前产物。公开 VIEW/BROWSABLE 投递允许 viewer 通过当前所选可信 Host 直接打开位置。错误 Host 和格式错误的链接不增加 Session follow 或历史请求，并保留双方草稿。场景覆盖分享/链接互斥、分页被拒后的显式重试、88 轮 Session 的较早锚点、URI 复制及相同 URI 的再次新投递；导航不提交 prompt、上传、新建 Session、转移运行时或追加配对。
+`../../../../apps/web/tests/android-view-deep-links.e2e.ts`的单个用例通过，已安装 APK 哈希匹配当前产物。公开 VIEW/BROWSABLE 投递允许 viewer 通过当前所选可信 Host 直接打开位置。错误 Host 和格式错误的链接不增加 Session follow 或历史请求，并保留双方草稿。场景覆盖分享/链接互斥、分页被拒后的显式重试、88 轮 Session 的较早锚点、URI 复制及相同 URI 的再次新投递；导航不提交 prompt、上传、新建 Session、转移运行时或追加配对。
 
 进程恢复证据使用 force-stop 后以 MAIN 启动：恢复草稿，但不重复已中断的锚点请求。之后真正新的冷启动 VIEW 等待恢复，再打开请求锚点一次。安装态测试覆盖 history flag 拒绝；真实 Android Recents 重入仍未验证。错误 Host 拒绝、较早锚点、不重放的恢复及冷启动 VIEW 导航四张整屏截图均已审阅，所测模拟器上未观察到布局阻断。
 

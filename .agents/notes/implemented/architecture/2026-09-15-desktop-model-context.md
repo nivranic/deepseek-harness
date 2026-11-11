@@ -24,6 +24,6 @@ The registration uses the existing application-orientation position after reusab
 
 ## Consequences
 
-Desktop requests gain a late prompt section while their reusable instruction prefix remains stable. The registration affects local Desktop Sessions only; the [environment suffix decision](../bug-fix/2026-09-06-environment-prompt-suffix.md) retains prompt ordering and the [Desktop packaging decision](2026-08-25-electron-desktop-packaging-and-updates.md) retains runtime and transport ownership. Neither decision is superseded.
+Desktop requests gain a late prompt section while their reusable instruction prefix remains stable. The registration affects local Desktop Sessions only; the [environment suffix decision](../../archived/bug-fix/2026-09-06-environment-prompt-suffix.md) retains prompt ordering and the [Desktop packaging decision](2026-08-25-electron-desktop-packaging-and-updates.md) retains runtime and transport ownership. Neither decision is superseded.
 
 Required evidence includes registration disposal, service reload, complete-persona suppression, a keyless recorded Session with the exact prompt, and an actual Desktop model request containing the same section. The recorded-session fixture supplies the private registration through the shipped headless profile and disables platform-specific shell tools; it proves logged prompt content, while the Desktop run proves application wiring.

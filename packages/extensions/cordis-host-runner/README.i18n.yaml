@@ -2,8 +2,6 @@
 # section, a hash of its English and Chinese blocks outside code blocks and generated regions.
 # After editing either side, bring the other along and re-record with:
 #   pnpm run verify-translation-pairing --write packages/extensions/cordis-host-runner/README.md
-README.md: 1520dbc5fc08194b488d4ef675a1251bc3fa09c6
-README.zh.md: 2aad94d625d989e0575432dee73da809fbf7d35e
 /:
   en: ac7eacf5f9b1e727
   zh: 61461cb68f91fcce
@@ -17,8 +15,8 @@ README.zh.md: 2aad94d625d989e0575432dee73da809fbf7d35e
   en: d152484eb41ac6b4
   zh: 09388d293f9be9cb
 /deepseek-ai-dsh-cordis-host-runner/use-this-package:
-  en: bdaba8036acf80c9
-  zh: 2dd8f972c3023a8a
+  en: dc9bcc6c8ef72710
+  zh: f41c3c418e538aaa
 /deepseek-ai-dsh-cordis-host-runner/use-this-package/minimal-configuration:
   en: ca844fa88b307274
   zh: da2032bfe3c1b792

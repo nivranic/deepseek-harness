@@ -2,17 +2,18 @@
 # section, a hash of its English and Chinese blocks outside code blocks and generated regions.
 # After editing either side, bring the other along and re-record with:
 #   pnpm run verify-translation-pairing --write apps/web/tests/README.md
-README.md: 831e2fbbb3cbc7ef3cf0f9e5b2d7a540e1266856
-README.zh.md: 26a484a0633deea29318aff77dd567be053dd131
 /apps-web-browser-e2e:
-  en: 2deef0df72a6465c
-  zh: b24989ffb2d8586a
+  en: 6d616834370688a9
+  zh: c8a91166b2813097
 /apps-web-browser-e2e/completion-observations:
+  en: 5b3c3802190b30a1
+  zh: 1e4162979130802e
+/apps-web-browser-e2e/completion-observations~2:
   en: 8c139966983959cc
   zh: 54f09f9b7ac84cda
 /apps-web-browser-e2e/these-are-host-face-tests:
   en: 101d687b1d98c5b7
   zh: f8c31115e8a15be7
 /apps-web-browser-e2e/do-not-import-deepseek-ai-dsh-client-here:
-  en: 7cc75a6413647142
-  zh: a8c541f9b93e9f7f
+  en: 595fdfc457f051f4
+  zh: f03a7127aab76c54

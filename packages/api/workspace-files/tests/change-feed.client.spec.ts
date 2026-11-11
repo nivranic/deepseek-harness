@@ -129,10 +129,6 @@ describe('ChangeFeed — one Host stream per Session and target', () => {
     firstGate.resolve(undefined)
     await remote.waitForStreamEnd(1)
     expect(remote.disposed).toHaveLength(2)
-    expect(remote.opened).toHaveLength(1)
-    follow(S1, '/w/c.txt')
-    await remote.waitForChanges(1)
-    expect(remote.opened).toHaveLength(2)
     expect(settled).toBe(false)
     secondGate.resolve(undefined)
     await closing

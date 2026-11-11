@@ -2,8 +2,6 @@
 # section, a hash of its English and Chinese blocks outside code blocks and generated regions.
 # After editing either side, bring the other along and re-record with:
 #   pnpm run verify-translation-pairing --write packages/context/session-reference/README.md
-README.md: a6d3db5ec5c01ca2b821754549d8aa9dc75fdf12
-README.zh.md: 842f1238c8e543f069b81da7e4f0de695a4d0ac4
 /:
   en: 5609ff124a8402a2
   zh: dbe8216d8a5cad0a
@@ -14,8 +12,8 @@ README.zh.md: 842f1238c8e543f069b81da7e4f0de695a4d0ac4
   en: 3f295289f31296b6
   zh: 8246ede26b9699fc
 /deepseek-ai-dsh-session-reference/table-of-contents:
-  en: d152484eb41ac6b4
-  zh: 09388d293f9be9cb
+  en: 21f7f69c61c2ed1f
+  zh: ffc7fe12d9b20f86
 /deepseek-ai-dsh-session-reference/use-this-package:
   en: 5204d64418ff8969
   zh: d7cabc99294e480e

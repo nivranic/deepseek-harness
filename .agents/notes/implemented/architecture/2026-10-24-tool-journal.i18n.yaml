@@ -1,6 +1,19 @@
-# Bilingual-pair consistency record (docs/i18n/README.md): the git blob hash of each
-# side as of the last confirmed-consistent state. Both languages carry equal authority;
-# after editing either side, bring the other along and re-record with:
+# Bilingual-pair consistency record for 2026-10-24-tool-journal.md (docs/i18n/README.md): per heading
+# section, a hash of its English and Chinese blocks outside code blocks and generated regions.
+# After editing either side, bring the other along and re-record with:
 #   pnpm run verify-translation-pairing --write .agents/notes/implemented/architecture/2026-10-24-tool-journal.md
-2026-10-24-tool-journal.md: 0af5b6457296ffed7062f48fc30466a7ec19ac01
-2026-10-24-tool-journal.zh.md: 90a3ba4bc3cdb286b0fb64e580cc00ab5258ebca
+/agent-note-the-turn-s-tool-rows-ride-the-journal-chapter-64-re-adjudicated-on-its-write-face:
+  en: 146599361bf5dd91
+  zh: 4fc8d44a11cba0c2
+/agent-note-the-turn-s-tool-rows-ride-the-journal-chapter-64-re-adjudicated-on-its-write-face/problem:
+  en: 0434ee20f200d098
+  zh: 2617ce9d17521a70
+/agent-note-the-turn-s-tool-rows-ride-the-journal-chapter-64-re-adjudicated-on-its-write-face/decision:
+  en: 0fa5626c99addc63
+  zh: 93fc8fcde142cd1f
+/agent-note-the-turn-s-tool-rows-ride-the-journal-chapter-64-re-adjudicated-on-its-write-face/alternatives-considered:
+  en: 0320c3a95e270e7e
+  zh: 0427e4d757ed2dc8
+/agent-note-the-turn-s-tool-rows-ride-the-journal-chapter-64-re-adjudicated-on-its-write-face/consequences:
+  en: 4521b47e2e59d232
+  zh: 248e975eb94130bc

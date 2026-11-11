@@ -52,7 +52,8 @@ Approval 和 Question 录制驱动还会在首次回答 HTTP 请求被暂停时�
 
 [交互取消用例](interaction-cancel.e2e.ts)使用官方 Web profile 与本地模型 fixture。它们在首次投递前、自动重试后或真实 HTTP401 后暂停 Approval 或 Question 回答。第二个 Client 通过公开取消 RPC 取消已记录的回合；认证失效时，该 Client 使用独立 Cookie context。持久化错误、终结记录和审批标记文件未生成共同证明取消结果。重新认证不重发已取消的回答；后续回合拒绝迟到回答及重复的旧取消请求，不影响新交互。这些是真实进程下的定向持久化事件断言，不是完整录制 Session 比较或真实模型服务测试。
 
-依赖状态的用例使用 Workspace、接纳、附件和模型流屏障，区分可见中间状态与已完成操作。详情关闭等待框架过渡结束；归档验证为 seed Session 设置显式标题，并跨重载跟踪该身份。参见 [CI fixture 同步决策](../../../.agents/notes/implemented/testing/2026-09-08-ci-completion-observations.zh.md)。
+依赖状态的用例使用 Workspace、接纳、附件和模型流屏障，区分可见中间状态与已完成操作。详情关闭等待框架过渡结束；归档验证为 seed Session 设置显式标题，并跨重载跟踪该身份。参见 [CI fixture 同步决策](../../../.agents/notes/archived/testing/2026-09-08-ci-completion-observations.md)。
+
 这些测试在进程内启动真实的 web 组合，并用真实浏览器通过真实 HTTP 驱动它。Chromium 运行整个 lane；[模型与推理强度选择场景](declared-reasoning.e2e.ts) 还在 WebKit 中运行，以覆盖原生鼠标焦点行为。[会话回放恢复](session-replay-reload.e2e.ts)还在 WebKit 中运行，共用 `fresh-round-trip` 的录制和预期输出，不改写这些文件。该用例覆盖输出中刷新、完成后刷新和重新打开 Session。该 lane 的运行机制——模式、fixture（测试前置数据）、golden，以及与 `dsh web` 之间刻意保留的组合差异——记录在 [`scaffold.ts`](scaffold.ts) 和 [浏览器 e2e Agent Note](../../../.agents/notes/implemented/testing/2026-07-24-web-gui-browser-e2e-lane.zh.md) 中。
 
 安装工作区依赖后，在仓库根目录安装浏览器及其系统依赖：

@@ -1,6 +1,19 @@
-# Bilingual-pair consistency record (docs/i18n/README.md): the git blob hash of each
-# side as of the last confirmed-consistent state. Both languages carry equal authority;
-# after editing either side, bring the other along and re-record with:
+# Bilingual-pair consistency record for 2026-09-21-workspace-capability-permissions.md (docs/i18n/README.md): per heading
+# section, a hash of its English and Chinese blocks outside code blocks and generated regions.
+# After editing either side, bring the other along and re-record with:
 #   pnpm run verify-translation-pairing --write .agents/notes/implemented/feature/2026-09-21-workspace-capability-permissions.md
-2026-09-21-workspace-capability-permissions.md: 1bf50f6ab043f9e8f4758eb96d64632669105205
-2026-09-21-workspace-capability-permissions.zh.md: f0333d70a1bf1fd5c45e6cdc9f6c2c60d774f32c
+/agent-note-workspace-capabilities-declare-their-device-permissions:
+  en: 7276db72c27a4a86
+  zh: 65f6bcee02c329be
+/agent-note-workspace-capabilities-declare-their-device-permissions/problem:
+  en: c022010c69f5dedf
+  zh: 8bcfd88f9c99be0c
+/agent-note-workspace-capabilities-declare-their-device-permissions/decision:
+  en: 49dac683d0214413
+  zh: ba36cdcdc70e9454
+/agent-note-workspace-capabilities-declare-their-device-permissions/alternatives-considered:
+  en: 654d2de395dec8f8
+  zh: ff45ee8f95334607
+/agent-note-workspace-capabilities-declare-their-device-permissions/consequences:
+  en: d3b55ed0b9a2a18c
+  zh: 03272d503acc0f69

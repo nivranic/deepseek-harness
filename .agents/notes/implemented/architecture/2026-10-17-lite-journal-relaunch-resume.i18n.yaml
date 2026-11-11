@@ -1,6 +1,22 @@
-# Bilingual-pair consistency record (docs/i18n/README.md): the git blob hash of each
-# side as of the last confirmed-consistent state. Both languages carry equal authority;
-# after editing either side, bring the other along and re-record with:
+# Bilingual-pair consistency record for 2026-10-17-lite-journal-relaunch-resume.md (docs/i18n/README.md): per heading
+# section, a hash of its English and Chinese blocks outside code blocks and generated regions.
+# After editing either side, bring the other along and re-record with:
 #   pnpm run verify-translation-pairing --write .agents/notes/implemented/architecture/2026-10-17-lite-journal-relaunch-resume.md
-2026-10-17-lite-journal-relaunch-resume.md: 2e32a22e1bbe18339efe6b6b00eb9c5acd4ffa9f
-2026-10-17-lite-journal-relaunch-resume.zh.md: ae044f1d656156df0c98071eed6ab1a050728151
+/agent-note-lite-sessions-resume-their-journal-across-relaunches:
+  en: 193ae4296d2a2864
+  zh: 3a805140f9473191
+/agent-note-lite-sessions-resume-their-journal-across-relaunches/problem:
+  en: 141f70af246e26e5
+  zh: e9c536bb07a1a870
+/agent-note-lite-sessions-resume-their-journal-across-relaunches/decision:
+  en: a446557b37ee7d1c
+  zh: 8b05db66eef96bec
+/agent-note-lite-sessions-resume-their-journal-across-relaunches/alternatives-considered:
+  en: ba0d745191038ec5
+  zh: f71e7cb2274fad5f
+/agent-note-lite-sessions-resume-their-journal-across-relaunches/consequences:
+  en: 4c2921b1b2c14c64
+  zh: b8ed33ea421e406a
+/agent-note-lite-sessions-resume-their-journal-across-relaunches/open-follow-ups:
+  en: 000c5789a752cb6f
+  zh: f005fb3a8bdab829

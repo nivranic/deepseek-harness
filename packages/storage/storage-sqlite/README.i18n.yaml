@@ -2,8 +2,6 @@
 # section, a hash of its English and Chinese blocks outside code blocks and generated regions.
 # After editing either side, bring the other along and re-record with:
 #   pnpm run verify-translation-pairing --write packages/storage/storage-sqlite/README.md
-README.md: 52233885532326fa665c59cd083c3a187883b5cc
-README.zh.md: f5fec51b3368c4e1065e4ff925bde0279fcbd6bd
 /:
   en: 07adf973ef2924fb
   zh: dbc6a9255d76b7e4
@@ -26,8 +24,8 @@ README.zh.md: f5fec51b3368c4e1065e4ff925bde0279fcbd6bd
   en: e21da50c3c40bcb8
   zh: 0ed58b20e4a32ce9
 /deepseek-ai-dsh-storage-sqlite/use-this-package/observable-behavior:
-  en: b0df4ed07bf7ce0a
-  zh: 18da8edf449cfd92
+  en: 80a3ec6ddc30dd48
+  zh: 8146e5fdd66bcded
 /deepseek-ai-dsh-storage-sqlite/understand-the-implementation:
   en: 8f003bbcea33bf50
   zh: c79bf8f71d345070

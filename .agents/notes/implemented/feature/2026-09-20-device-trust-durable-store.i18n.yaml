@@ -1,6 +1,19 @@
-# Bilingual-pair consistency record (docs/i18n/README.md): the git blob hash of each
-# side as of the last confirmed-consistent state. Both languages carry equal authority;
-# after editing either side, bring the other along and re-record with:
+# Bilingual-pair consistency record for 2026-09-20-device-trust-durable-store.md (docs/i18n/README.md): per heading
+# section, a hash of its English and Chinese blocks outside code blocks and generated regions.
+# After editing either side, bring the other along and re-record with:
 #   pnpm run verify-translation-pairing --write .agents/notes/implemented/feature/2026-09-20-device-trust-durable-store.md
-2026-09-20-device-trust-durable-store.md: 958a9541d552574f6f7fa7c3f92ebe673c82dc56
-2026-09-20-device-trust-durable-store.zh.md: f3fcd3513d2e097494b7b6255d13f8f4dca07b91
+/agent-note-device-grants-live-in-the-durable-device-trust-storage-domain:
+  en: 74d4b05da3000186
+  zh: 1e373ff9c541e446
+/agent-note-device-grants-live-in-the-durable-device-trust-storage-domain/problem:
+  en: cc1880536ebaef44
+  zh: 46c77b6a325e6067
+/agent-note-device-grants-live-in-the-durable-device-trust-storage-domain/decision:
+  en: 6311bfa2fee5e665
+  zh: 9d7fa980ddd04a99
+/agent-note-device-grants-live-in-the-durable-device-trust-storage-domain/alternatives-considered:
+  en: c9b3096c9669a9ce
+  zh: 1c7fe169851c18ab
+/agent-note-device-grants-live-in-the-durable-device-trust-storage-domain/consequences:
+  en: 41cd5233538aad10
+  zh: 6e63720e7eb111ca

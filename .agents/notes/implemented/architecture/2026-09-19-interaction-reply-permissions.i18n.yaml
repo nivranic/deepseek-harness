@@ -1,6 +1,46 @@
-# Bilingual-pair consistency record (docs/i18n/README.md): the git blob hash of each
-# side as of the last confirmed-consistent state. Both languages carry equal authority;
-# after editing either side, bring the other along and re-record with:
+# Bilingual-pair consistency record for 2026-09-19-interaction-reply-permissions.md (docs/i18n/README.md): per heading
+# section, a hash of its English and Chinese blocks outside code blocks and generated regions.
+# After editing either side, bring the other along and re-record with:
 #   pnpm run verify-translation-pairing --write .agents/notes/implemented/architecture/2026-09-19-interaction-reply-permissions.md
-2026-09-19-interaction-reply-permissions.md: 6dfef5c70e1b6a4a49c86c1bba08083f3d31abcb
-2026-09-19-interaction-reply-permissions.zh.md: 7e671af2126de30873bcb71af374a489d5d5294c
+/agent-note-host-side-enforcement-of-interaction-reply-permissions:
+  en: 810a5b0dd104483d
+  zh: 0e6791a0cbb83871
+/agent-note-host-side-enforcement-of-interaction-reply-permissions/problem:
+  en: 426c63422109e2b5
+  zh: b73e05da223c56af
+/agent-note-host-side-enforcement-of-interaction-reply-permissions/current-upstream-boundary:
+  en: 00196831bd4b8745
+  zh: 7abc64e92c4aa218
+/agent-note-host-side-enforcement-of-interaction-reply-permissions/decision:
+  en: 76fd4f6cac6f4699
+  zh: d0ea4afd677d0fd5
+/agent-note-host-side-enforcement-of-interaction-reply-permissions/alternatives-considered:
+  en: 2d2c90243e85e097
+  zh: e2d083c6339afe0d
+/agent-note-host-side-enforcement-of-interaction-reply-permissions/contract:
+  en: cc529d2e9f2d3a29
+  zh: aea54a1b7c91904e
+/agent-note-host-side-enforcement-of-interaction-reply-permissions/persistence:
+  en: 8d7f28ce5a7ef3ff
+  zh: 1c43719e6a4b475d
+/agent-note-host-side-enforcement-of-interaction-reply-permissions/security:
+  en: f5621f23301ab61d
+  zh: dc03120afbf940a6
+/agent-note-host-side-enforcement-of-interaction-reply-permissions/compatibility:
+  en: 50a030c942a8adba
+  zh: cef68b8a81764bbc
+/agent-note-host-side-enforcement-of-interaction-reply-permissions/failure-handling:
+  en: 8327321811c0e65e
+  zh: 091951d552316580
+/agent-note-host-side-enforcement-of-interaction-reply-permissions/testing:
+  en: 8e8990a7f3dbf60a
+  zh: 13ebfe5110064ddc
+/agent-note-host-side-enforcement-of-interaction-reply-permissions/rollout:
+  en: e8bd6a56c7616661
+  zh: 5ab4681f065433dd
+/agent-note-host-side-enforcement-of-interaction-reply-permissions/rollback:
+  en: add0b3740e290bc0
+  zh: 82f7fd3bf4dd76a4
+/agent-note-host-side-enforcement-of-interaction-reply-permissions/consequences:
+  en: 1f4f65bebe5709d2
+  zh: d6c1ed579ae68779

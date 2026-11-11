@@ -2,8 +2,6 @@
 # section, a hash of its English and Chinese blocks outside code blocks and generated regions.
 # After editing either side, bring the other along and re-record with:
 #   pnpm run verify-translation-pairing --write docs/subsystems/session.md
-session.md: 9a9f693513cc5248146898b3aa6cb4a87c4dbc97
-session.zh.md: 6bae153425cd80de45ef238a7a170ffbe359767d
 /sessions:
   en: 28fb7eb8f758fdf0
   zh: a36d6f03e331ad86
@@ -68,5 +66,5 @@ session.zh.md: 6bae153425cd80de45ef238a7a170ffbe359767d
   en: 62e3e4fbcba292a3
   zh: cb6dcaf531621e85
 /sessions/remote-catalog-and-workspace-opening:
-  en: dd27307e0d7c893c
-  zh: b77d2a749b7b641c
+  en: 0692cd46cf287bc4
+  zh: 6b961e5cf99e8f00

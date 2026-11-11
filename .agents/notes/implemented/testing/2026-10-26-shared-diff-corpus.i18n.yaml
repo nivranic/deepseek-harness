@@ -1,6 +1,19 @@
-# Bilingual-pair consistency record (docs/i18n/README.md): the git blob hash of each
-# side as of the last confirmed-consistent state. Both languages carry equal authority;
-# after editing either side, bring the other along and re-record with:
+# Bilingual-pair consistency record for 2026-10-26-shared-diff-corpus.md (docs/i18n/README.md): per heading
+# section, a hash of its English and Chinese blocks outside code blocks and generated regions.
+# After editing either side, bring the other along and re-record with:
 #   pnpm run verify-translation-pairing --write .agents/notes/implemented/testing/2026-10-26-shared-diff-corpus.md
-2026-10-26-shared-diff-corpus.md: 49841d2d8d4e8b6272e2350b9a406b2c8979edd9
-2026-10-26-shared-diff-corpus.zh.md: 7f84633b0dcc05fc047b06695ab05378f4ed2f5e
+/agent-note-one-pinned-diff-corpus-feeds-all-three-diff-renderers-tests:
+  en: 063d3a46f7cbae45
+  zh: 5579e0ad692e189e
+/agent-note-one-pinned-diff-corpus-feeds-all-three-diff-renderers-tests/problem:
+  en: 86a6de9d046eb241
+  zh: 22ff1d3946d919c5
+/agent-note-one-pinned-diff-corpus-feeds-all-three-diff-renderers-tests/decision:
+  en: 40d7f7af447dc518
+  zh: 4ae1894ca1dc9d4f
+/agent-note-one-pinned-diff-corpus-feeds-all-three-diff-renderers-tests/alternatives-considered:
+  en: f70639f8b12db476
+  zh: 0bdd779293a3d2d5
+/agent-note-one-pinned-diff-corpus-feeds-all-three-diff-renderers-tests/consequences:
+  en: ecae29480b848573
+  zh: 697cd4f84dacba3c

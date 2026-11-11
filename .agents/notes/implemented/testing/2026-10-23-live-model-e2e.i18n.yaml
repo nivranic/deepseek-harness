@@ -1,6 +1,19 @@
-# Bilingual-pair consistency record (docs/i18n/README.md): the git blob hash of each
-# side as of the last confirmed-consistent state. Both languages carry equal authority;
-# after editing either side, bring the other along and re-record with:
+# Bilingual-pair consistency record for 2026-10-23-live-model-e2e.md (docs/i18n/README.md): per heading
+# section, a hash of its English and Chinese blocks outside code blocks and generated regions.
+# After editing either side, bring the other along and re-record with:
 #   pnpm run verify-translation-pairing --write .agents/notes/implemented/testing/2026-10-23-live-model-e2e.md
-2026-10-23-live-model-e2e.md: 8e8c30ef295be4a2044b57eee3e933758f6e9074
-2026-10-23-live-model-e2e.zh.md: 2d781eebb0ec4f923b9d6d75105e9d77d2891c44
+/agent-note-the-lite-multi-round-request-shape-has-a-live-api-e2e-lane:
+  en: fa80adf7e714c9ec
+  zh: 7ae7db6c70b05437
+/agent-note-the-lite-multi-round-request-shape-has-a-live-api-e2e-lane/problem:
+  en: 2d31344d8731e46a
+  zh: 84442bcdf86155ca
+/agent-note-the-lite-multi-round-request-shape-has-a-live-api-e2e-lane/decision:
+  en: 27850bbb6e2afee1
+  zh: 3a7a4f5995049e70
+/agent-note-the-lite-multi-round-request-shape-has-a-live-api-e2e-lane/alternatives-considered:
+  en: 10acea72124dac73
+  zh: 00c8c274fcd0d197
+/agent-note-the-lite-multi-round-request-shape-has-a-live-api-e2e-lane/consequences:
+  en: 93b729b52ce7d74a
+  zh: fce839a27fa65441

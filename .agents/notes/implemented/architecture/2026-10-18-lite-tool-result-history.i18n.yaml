@@ -1,6 +1,22 @@
-# Bilingual-pair consistency record (docs/i18n/README.md): the git blob hash of each
-# side as of the last confirmed-consistent state. Both languages carry equal authority;
-# after editing either side, bring the other along and re-record with:
+# Bilingual-pair consistency record for 2026-10-18-lite-tool-result-history.md (docs/i18n/README.md): per heading
+# section, a hash of its English and Chinese blocks outside code blocks and generated regions.
+# After editing either side, bring the other along and re-record with:
 #   pnpm run verify-translation-pairing --write .agents/notes/implemented/architecture/2026-10-18-lite-tool-result-history.md
-2026-10-18-lite-tool-result-history.md: bdce224bb96b0008166c7358e1293b1327013dbc
-2026-10-18-lite-tool-result-history.zh.md: cae718b0a8bd1bf3dd1148f78e73a4f310461cba
+/agent-note-lite-tool-results-ride-the-next-model-request:
+  en: 3db1a9f516deec94
+  zh: 6f4e323b05fbd15b
+/agent-note-lite-tool-results-ride-the-next-model-request/problem:
+  en: a509cb71b7b8491f
+  zh: 67632ac7de961feb
+/agent-note-lite-tool-results-ride-the-next-model-request/decision:
+  en: 8083ebbe8594d388
+  zh: 9c04e7979689bf0c
+/agent-note-lite-tool-results-ride-the-next-model-request/alternatives-considered:
+  en: 3485df22753e09a8
+  zh: 0858a973cb95d2cf
+/agent-note-lite-tool-results-ride-the-next-model-request/consequences:
+  en: d868359bce66deed
+  zh: b8c0287f9c000bda
+/agent-note-lite-tool-results-ride-the-next-model-request/open-follow-ups:
+  en: 7455b8d3d57b7b71
+  zh: b5ed4d14be4c1626

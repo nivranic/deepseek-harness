@@ -18,6 +18,7 @@ import type {
 import { Remote, RemoteError, remoteValidationIssues, TypertRemoteService } from '@deepseek-ai/dsh-typert-protocol'
 import type { JsonValue } from '@deepseek-ai/dsh-util-values'
 import { z } from 'zod'
+import { SETTINGS_REMOTE_CAPABILITIES } from './capabilities.ts'
 import { CredentialsController } from './credentials.ts'
 import type { SettingsDocumentOpenValue } from './types.ts'
 
@@ -83,7 +84,7 @@ export class SettingsController extends TypertRemoteService {
    * @param ctx - Host context where settings and credential providers may be mounted.
    */
   constructor(ctx: Context, internals: SettingsControllerInternals = {}) {
-    super(ctx, 'settingsController', { namespace: 'settings' })
+    super(ctx, 'settingsController', { namespace: 'settings', capabilities: SETTINGS_REMOTE_CAPABILITIES })
     this.openTextFile = internals.openTextFile ?? openNativeTextFile
     ctx.plugin(CredentialsController)
   }

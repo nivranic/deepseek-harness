@@ -522,6 +522,12 @@ export const SERVICE_API: readonly ServiceApiEntry[] = [
         throws: ['an AttachmentError when the durable reference is invalid.'],
       },
       {
+        signature: 'ensureFileByDigest(digest: string, name?: string): Promise<FileAttachmentRef | undefined>',
+        description: 'Resolve one already-stored file object by digest and publish the alias for the caller\'s display name. The digest only locates the object: the stored bytes are re-verified before any reference is returned. Backends without object lookup keep this default miss so callers fall back to a full upload.',
+        parameters: [{ name: 'digest', description: 'lowercase hex SHA-256 of the exact file bytes.' }, { name: 'name', description: 'optional display name sanitized into the stored leaf name.' }],
+        returns: 'the durable reference for the verified object, or undefined when no intact stored object matches.',
+      },
+      {
         signature: 'saveFile(input: SaveFileAttachment): Promise<FileAttachmentRef>',
         description: 'Durably commit one file byte-for-byte before its owning session event is appended. Files carry no admission limits: any byte content and length is accepted, and the stored object is the exact submitted bytes. Backends without verbatim file storage keep this default rejection.',
         parameters: [{ name: 'input', description: 'exact bytes and optional display name.' }],
@@ -1120,6 +1126,59 @@ export const SERVICE_API: readonly ServiceApiEntry[] = [
     ],
   },
   {
+    key: 'deviceTrust',
+    summary: 'Device-trust service (`ctx.deviceTrust`) over the durable device_trust domain.',
+    description: 'Device-trust service (`ctx.deviceTrust`) over the durable device_trust domain.',
+    methods: [
+      {
+        signature: '@Remote(\'issuePairing\') issuePairing(role?: DeviceRole): PairingIssuance',
+        description: 'Issue one one-time pairing code. The code is a single-use secret: a second redemption fails with `device/pairing-invalid`, and redemption after the expiry fails with `device/pairing-expired`.',
+        parameters: [{ name: 'role', description: 'role assigned to the redeeming device; omission uses the deployment default.' }],
+        returns: 'the issuance the operator shows the device (for example as QR content).',
+      },
+      {
+        signature: '@Remote(\'redeemPairing\') async redeemPairing(request: RedeemPairingRequest): Promise<RedeemPairingResult>',
+        description: 'Redeem one pairing code with the device\'s freshly generated Ed25519 key. A code admits one redemption at a time. The claim becomes permanent after durability; a failed store write releases it for a later retry.',
+        parameters: [{ name: 'request', description: 'the single-use code, a device name, and the base64 SPKI DER public key.' }],
+        returns: 'the created grant identity.',
+        throws: ['RemoteError `device/pairing-invalid`, `device/pairing-expired`, `device/key-invalid`, or `gateway/bad-request`.'],
+      },
+      {
+        signature: '@Remote(\'listDevices\') listDevices(): readonly DeviceView[]',
+        description: 'List every grant, active and revoked; key material stays in the store. Reads come from the domain\'s in-memory state — the same state every write mutated only after durability — so a read can never go around the write chain to the medium.',
+        parameters: [],
+        returns: 'fresh views in iteration order.',
+      },
+      {
+        signature: '@Remote(\'revokeDevice\') async revokeDevice(request: RevokeDeviceRequest): Promise<RevokeDeviceResult>',
+        description: 'Revoke one grant. A revoked grant stays listed with its revocation time; a later role-mapped admission must treat it as refused. A completed revocation also leaves as one §44 `deviceTrustMetadata` ops record when the optional session-telemetry owner is composed and consenting.',
+        parameters: [{ name: 'request', description: 'the addressed grant.' }],
+        returns: 'the revoke acknowledgement.',
+        throws: ['RemoteError `device/not-found` or `device/already-revoked`.'],
+      },
+      {
+        signature: '@Remote(\'revokeAllDevices\') async revokeAllDevices(): Promise<RevokeAllDevicesResult>',
+        description: 'Revoke every still-active grant — the lost-device panic path. Already revoked grants keep their original revocation time; the event carries exactly the identities this call revoked. A call that revoked at least one grant also leaves one §44 `deviceTrustMetadata` ops record through the optional session-telemetry owner; a no-op revoke-all records nothing, mirroring the event condition.',
+        parameters: [],
+        returns: 'the shared revocation time and how many grants it revoked.',
+      },
+      {
+        signature: '@Remote(\'renameDevice\') async renameDevice(request: RenameDeviceRequest): Promise<DeviceView>',
+        description: 'Rename one grant\'s display name; the identity, key, and role are untouched, so an operator reconciling a re-paired device can relabel the stale and current identities without touching access.',
+        parameters: [{ name: 'request', description: 'the addressed grant and its replacement name.' }],
+        returns: 'the renamed grant\'s fresh view.',
+        throws: ['RemoteError `device/not-found` or `gateway/bad-request`.'],
+      },
+      {
+        signature: '@Remote(\'admitDevice\') async admitDevice(request: AdmitDeviceRequest): Promise<DeviceAdmission>',
+        description: 'Verify one signed admission and return the device\'s identity with its section 21 permission set. Checks run cheapest-first: the grant must exist and be active, the signed timestamp must sit inside the admission window, and the Ed25519 signature over `deviceId + "\\n" + timestamp + "\\n" + nonce` (UTF-8) must verify against the paired key. An admission with a consumed nonce or a timestamp below the durable replay floor is refused. Fresh proofs may arrive out of timestamp order. The storage update rechecks revocation, expiry, nonce consumption, and capacity against earlier queued writes before recording the nonce hash. The Gateway resolves one admission per Remote event stream open and derives the client\'s reply permissions from the returned set.',
+        parameters: [{ name: 'request', description: 'the device\'s signed admission message.' }],
+        returns: 'the admitted identity, role, and permissions.',
+        throws: ['RemoteError `device/not-found`, `device/already-revoked`, `device/admission-expired`, `device/key-invalid`, `device/replay-detected`, `device/admission-capacity`, or `gateway/bad-request`.'],
+      },
+    ],
+  },
+  {
     key: 'directoryPicker',
     summary: 'Abstract directory-picking service.',
     description: 'Abstract directory-picking service. Subclass, implement `capability()`, and load the subclass as a plugin — it registers as `ctx.directoryPicker` (one implementation per context; loading a second throws, cordis\' standard duplicate-service behavior). The capability object must be stable for the service lifetime: consumers may capture it across calls.',
@@ -1186,6 +1245,12 @@ export const SERVICE_API: readonly ServiceApiEntry[] = [
         description: 'Persist one encoded upload and stage it under the Agent receiver selected by Typert.',
         parameters: [{ name: 'agent', description: 'receiving Agent resolved from the Remote Agent scope.' }, { name: 'request', description: 'canonical base64 bytes and optional display name.' }, { name: 'signal', description: 'caller cancellation before storage begins.' }],
         returns: 'the staged receipt and durable file reference.',
+      },
+      {
+        signature: '@Remote(\'uploadDedupe\') async uploadDedupe(agent: Agent, request: EncodedFileDedupeRequest, signal: AbortSignal): Promise<FileUploadValue>',
+        description: 'Stage one already-stored file by digest without re-receiving its bytes. The digest only locates the object: the Host re-verifies the stored bytes before issuing a receipt. A missing or corrupt object refuses with `FILE_DIGEST_NOT_KNOWN` so the caller falls back to a full upload.',
+        parameters: [{ name: 'agent', description: 'receiving Agent resolved from the Remote Agent scope.' }, { name: 'request', description: 'lowercase hex digest of the exact bytes and optional display name.' }, { name: 'signal', description: 'caller cancellation before the receipt is staged.' }],
+        returns: 'the staged receipt and the durable file reference.',
       },
       {
         signature: 'async uploadStream(request: { readonly sessionId: SessionId readonly data: AsyncIterable<Uint8Array> readonly signal?: AbortSignal readonly name?: string }): Promise<FileUploadValue>',
@@ -1715,6 +1780,50 @@ export const SERVICE_API: readonly ServiceApiEntry[] = [
         parameters: [{ name: 'requiredIds', description: 'Entry ids whose inactive state is reported as a failure even when it predates this call.' }],
         returns: 'Inactive-entry diagnostics, the changed modules that load after a restart, and a profile-wide restart reason.',
         throws: ['The patch read, publication, preparation, apply, or activation failure of the recomposition, including a replacement plugin that fails to load or start, whose previous code no longer runs.'],
+      },
+    ],
+  },
+  {
+    key: 'hostDescription',
+    summary: 'Read-only Remote namespace for Host facts and explicitly declared capabilities.',
+    description: 'Read-only Remote namespace for Host facts and explicitly declared capabilities.',
+    methods: [
+      {
+        signature: '@Remote(\'describe\') describe(): HostDescriptor',
+        description: 'Read current Host facts without changing Session or Workspace state. Capability presence does not grant permission to invoke its operations.',
+        parameters: [],
+        returns: 'installed versions, stable identity, and current operation availability.',
+      },
+      {
+        signature: '@Remote(\'negotiate\') negotiate(supportedApiProtocolVersions: readonly number[]): HostDescriptor',
+        description: 'Select the highest shared request codec without changing identity or granting permissions.',
+        parameters: [{ name: 'supportedApiProtocolVersions', description: 'nonempty, distinct positive integer Client offers.' }],
+        returns: 'Host facts expressed in the selected API generation.',
+      },
+    ],
+  },
+  {
+    key: 'hostDiagnostics',
+    summary: 'Host-diagnostics service (`ctx.hostDiagnostics`) composing §41/§42 facts.',
+    description: 'Host-diagnostics service (`ctx.hostDiagnostics`) composing §41/§42 facts.',
+    methods: [
+      {
+        signature: '@Remote(\'health\') async health(signal?: AbortSignal): Promise<HealthSnapshot>',
+        description: 'Evaluate the six §41 health components. Answering IS the process and runtime proof; the remaining components probe their owning services, so a `down` names the missing owner instead of guessing a cause. Composed owners are probed deeper: a loader with failed plugin fibers reports `degraded` without dropping readiness, an LLM owner with no registered provider reports `degraded` and drops readiness (no Agent request can run), and an inventory read that itself throws reports `degraded` naming the error class.',
+        parameters: [{ name: 'signal', description: 'optional request cancellation for the inventory probe.' }],
+        returns: 'the health snapshot with the derived readiness verdict.',
+      },
+      {
+        signature: '@Remote(\'describe\') async describe(signal?: AbortSignal): Promise<DiagnosticsSnapshot>',
+        description: 'Compose the §42 diagnostics payload: the Host descriptor facts, the Loader inventory, the released migration chain, the recorder\'s crash and last-error facts, and the health snapshot.',
+        parameters: [{ name: 'signal', description: 'optional request cancellation; a cancelled inventory read aborts the composition.' }],
+        returns: 'the sanitized diagnostics snapshot.',
+      },
+      {
+        signature: '@Remote(\'supportBundle\') async supportBundle(signal?: AbortSignal): Promise<SupportBundle>',
+        description: 'Produce one §43 support bundle: the just-composed §42 diagnostics entry, the session-headers entry when a session store is composed and holds at least one session, and the settings-export entry when the settings seam is composed and registers at least one namespace; the collector validates the same artifact.',
+        parameters: [{ name: 'signal', description: 'optional request cancellation passed to the composition.' }],
+        returns: 'the sealed, self-checksummed bundle.',
       },
     ],
   },
@@ -2845,7 +2954,7 @@ export const SERVICE_API: readonly ServiceApiEntry[] = [
       },
       {
         signature: 'async write(session: Session): Promise<void>',
-        description: 'Durably checkpoint one live session NOW (all mandatory points call this; tests and carriers may too). The registry cut is snapshotted at this boundary (states are live references), then the session\'s record is replaced on the domain\'s write chain. NOT fail-soft — callers on the fail-soft paths contain it.',
+        description: 'Durably checkpoint one live session NOW (all mandatory points call this; tests and carriers may too). The registry supplies detached values; the complete lifecycle identity is captured before the record enters the domain\'s write chain. Its log durability wait holds the same queue slot. NOT fail-soft — callers on the fail-soft paths contain it.',
         parameters: [{ name: 'session', description: 'the live session to checkpoint.' }],
         returns: 'resolution after durability and event emission.',
       },
@@ -3144,6 +3253,11 @@ export const SERVICE_API: readonly ServiceApiEntry[] = [
       {
         signature: 'abstract readonly sharing: SessionTelemetrySharingStatus',
         description: 'Deployment-selected sharing mode, independent of SDK delivery.',
+        parameters: [],
+      },
+      {
+        signature: 'abstract readonly consent: TelemetryConsent',
+        description: 'Section 44 per-kind consent, resolved from deployment config; every kind defaults off and no master switch may hide the kinds.',
         parameters: [],
       },
       {
@@ -4142,6 +4256,13 @@ export const SERVICE_API: readonly ServiceApiEntry[] = [
         returns: 'disposer removing this source and cancelling its active streams.',
       },
       {
+        signature: 'capabilities(): readonly string[]',
+        description: 'Read the explicit operation sets of live Remote owners without invoking them.',
+        parameters: [],
+        returns: 'sorted capability ids whose required method definitions are available.',
+        throws: ['for duplicate ids, invalid method declarations, or inconsistent bindings.'],
+      },
+      {
         signature: 'async invoke(request: InvokeRemoteRequest): Promise<unknown>',
         description: 'Invoke one live Remote method through strict generated reflection or SRC markers.',
         parameters: [{ name: 'request', description: 'decoded endpoint and exact named wire arguments.' }],
@@ -4880,6 +5001,14 @@ export const EVENT_API: readonly EventApiEntry[] = [
     parameters: [],
   },
   {
+    name: 'deviceTrust/grantsRevoked',
+    mode: 'emit',
+    signature: '\'deviceTrust/grantsRevoked\'(revocation: { readonly revokedAt: number; readonly deviceIds: readonly DeviceId[] }): void',
+    summary: 'Grants became revoked — by one revocation or revoke-all — so holders of still-open admitted streams must terminate them immediately.',
+    description: 'Grants became revoked — by one revocation or revoke-all — so holders of still-open admitted streams must terminate them immediately.',
+    parameters: [{ name: 'revocation', description: 'the shared revocation time and the revoked identities.' }],
+  },
+  {
     name: 'domain/changed',
     mode: 'emit',
     signature: '\'domain/changed\'(change: DomainChanged): void',
@@ -5368,6 +5497,10 @@ export const TYPE_API: readonly TypeApiEntry[] = [
     declaration: 'export interface AdapterRegistrationHandle {\n    (): void;\n    replace(providers: string[]): void;\n}',
   },
   {
+    name: 'AdmitDeviceRequest',
+    declaration: 'export interface AdmitDeviceRequest {\n    readonly deviceId: DeviceId;\n    readonly timestamp: number;\n    readonly nonce: string;\n    readonly signature: string;\n}',
+  },
+  {
     name: 'AdmittedPromptContentPart',
     declaration: 'export type AdmittedPromptContentPart = {\n    readonly type: \'text\';\n    readonly text: string;\n} | {\n    readonly type: \'image\';\n    readonly attachment: ImageAttachmentRef;\n} | {\n    readonly type: \'file\';\n    readonly attachment: FileAttachmentRef;\n};',
   },
@@ -5464,6 +5597,10 @@ export const TYPE_API: readonly TypeApiEntry[] = [
     declaration: 'export type ApiSessionAgentResult = {\n    readonly agent: Agent;\n} | {\n    readonly error: ApiSessionAgentError;\n};',
   },
   {
+    name: 'ApprovalEscalationFact',
+    declaration: 'export interface ApprovalEscalationFact {\n    readonly requestedMode: ApprovalSandboxMode;\n    readonly effectiveMode: ApprovalSandboxMode;\n}',
+  },
+  {
     name: 'ApprovalOutcome',
     declaration: 'export type ApprovalOutcome = \'allowed-once\' | \'rejected\' | \'cancelled\' | \'unavailable\';',
   },
@@ -5477,7 +5614,15 @@ export const TYPE_API: readonly TypeApiEntry[] = [
   },
   {
     name: 'ApprovalRequestEvent',
-    declaration: 'export interface ApprovalRequestEvent {\n    readonly agent: Agent;\n    readonly toolName: string;\n    readonly callId?: ToolCallId;\n    readonly reason?: string;\n    readonly displayReason?: {\n        readonly en: string;\n        readonly [locale: string]: string;\n    };\n    readonly signal?: AbortSignal;\n}',
+    declaration: 'export interface ApprovalRequestEvent {\n    readonly agent: Agent;\n    readonly toolName: string;\n    readonly callId?: ToolCallId;\n    readonly reason?: string;\n    readonly risk?: ApprovalRisk;\n    readonly escalation?: ApprovalEscalationFact;\n    readonly displayReason?: {\n        readonly en: string;\n        readonly [locale: string]: string;\n    };\n    readonly signal?: AbortSignal;\n}',
+  },
+  {
+    name: 'ApprovalRisk',
+    declaration: 'export type ApprovalRisk = \'low\' | \'moderate\' | \'high\' | \'critical\';',
+  },
+  {
+    name: 'ApprovalSandboxMode',
+    declaration: 'export type ApprovalSandboxMode = \'read-only\' | \'workspace-write\' | \'danger-full-access\';',
   },
   {
     name: 'ArchiveSessionOptions',
@@ -5721,7 +5866,7 @@ export const TYPE_API: readonly TypeApiEntry[] = [
   },
   {
     name: 'CommandDefinition',
-    declaration: 'export interface CommandDefinition {\n    readonly definitionId?: CommandDefinitionId;\n    readonly name: string;\n    readonly description: string;\n    readonly input?: CommandInputDescriptor;\n    readonly recordInput?: boolean;\n    readonly handler: (invocation: CommandInvocation) => CommandResult | Promise<CommandResult>;\n}',
+    declaration: 'export interface CommandDefinition {\n    readonly definitionId?: CommandDefinitionId;\n    readonly name: string;\n    readonly description: string;\n    readonly risk?: CommandRisk;\n    readonly input?: CommandInputDescriptor;\n    readonly recordInput?: boolean;\n    readonly handler: (invocation: CommandInvocation) => CommandResult | Promise<CommandResult>;\n}',
   },
   {
     name: 'CommandDefinitionId',
@@ -5729,7 +5874,7 @@ export const TYPE_API: readonly TypeApiEntry[] = [
   },
   {
     name: 'CommandDescriptor',
-    declaration: 'export interface CommandDescriptor {\n    readonly definitionId?: CommandDefinitionId;\n    readonly name: string;\n    readonly description: string;\n    readonly input?: CommandInputDescriptor;\n}',
+    declaration: 'export interface CommandDescriptor {\n    readonly definitionId?: CommandDefinitionId;\n    readonly name: string;\n    readonly description: string;\n    readonly risk?: CommandRisk;\n    readonly input?: CommandInputDescriptor;\n}',
   },
   {
     name: 'CommandExecution',
@@ -5758,6 +5903,10 @@ export const TYPE_API: readonly TypeApiEntry[] = [
   {
     name: 'CommandResult',
     declaration: 'export type CommandResult = {\n    readonly kind: \'success\';\n    readonly text?: string;\n    readonly sourceEventSeq?: SessionSeq;\n} | {\n    readonly kind: \'error\';\n    readonly text: string;\n};',
+  },
+  {
+    name: 'CommandRisk',
+    declaration: 'export type CommandRisk = \'low\' | \'moderate\' | \'high\' | \'critical\';',
   },
   {
     name: 'CommandRunInput',
@@ -5790,6 +5939,10 @@ export const TYPE_API: readonly TypeApiEntry[] = [
   {
     name: 'CompactionTrigger',
     declaration: 'export type CompactionTrigger = \'pressure\' | \'context-overflow\';',
+  },
+  {
+    name: 'ComponentHealth',
+    declaration: 'export type ComponentHealth = \'up\' | \'degraded\' | \'down\';',
   },
   {
     name: 'CompositionRowEnablement',
@@ -6096,6 +6249,46 @@ export const TYPE_API: readonly TypeApiEntry[] = [
     declaration: 'export interface DeveloperMessage extends MessageBase {\n    readonly role: \'developer\';\n}',
   },
   {
+    name: 'DeviceAdmission',
+    declaration: 'export interface DeviceAdmission {\n    readonly deviceId: DeviceId;\n    readonly deviceName: string;\n    readonly role: DeviceRole;\n    readonly permissions: readonly DevicePermission[];\n    readonly admittedAt: number;\n}',
+  },
+  {
+    name: 'DeviceId',
+    declaration: 'export type DeviceId = Branded<\'DeviceId\'>;',
+  },
+  {
+    name: 'DevicePermission',
+    declaration: 'export type DevicePermission = \'view\' | \'prompt.send\' | \'question.respond\' | \'approval.respond\' | \'device.admin\';',
+  },
+  {
+    name: 'DeviceRole',
+    declaration: 'export type DeviceRole = \'viewer\' | \'collaborator\' | \'controller\' | \'owner\';',
+  },
+  {
+    name: 'DeviceView',
+    declaration: 'export interface DeviceView {\n    readonly deviceId: DeviceId;\n    readonly deviceName: string;\n    readonly role: DeviceRole;\n    readonly keyFingerprint: string;\n    readonly pairedAt: number;\n    readonly platform?: string;\n    readonly lastSeenAt?: number;\n    readonly revokedAt?: number;\n}',
+  },
+  {
+    name: 'DiagnosticsCrashFact',
+    declaration: 'export interface DiagnosticsCrashFact {\n    readonly pid: number;\n    readonly runStartedAt: number;\n}',
+  },
+  {
+    name: 'DiagnosticsErrorFact',
+    declaration: 'export interface DiagnosticsErrorFact {\n    readonly time: number;\n    readonly name: string;\n    readonly message: string;\n    readonly agentId: string;\n    readonly turn: number;\n    readonly step: number;\n}',
+  },
+  {
+    name: 'DiagnosticsMigration',
+    declaration: 'export interface DiagnosticsMigration {\n    readonly name: string;\n    readonly fromVersion: number;\n    readonly toVersion: number;\n}',
+  },
+  {
+    name: 'DiagnosticsPlugin',
+    declaration: 'export interface DiagnosticsPlugin {\n    readonly moduleName: string;\n    readonly enabled: boolean;\n    readonly fiberPhase: string;\n}',
+  },
+  {
+    name: 'DiagnosticsSnapshot',
+    declaration: 'export interface DiagnosticsSnapshot {\n    readonly productVersion: string;\n    readonly sourceRevision: string;\n    readonly apiProtocolVersion: number;\n    readonly sessionFormatVersion: number;\n    readonly hostId: HostId;\n    readonly platform: string;\n    readonly arch: string;\n    readonly runtimeMode: string;\n    readonly nodeVersion: string;\n    readonly transports: readonly string[];\n    readonly capabilities: readonly string[];\n    readonly plugins: readonly DiagnosticsPlugin[];\n    readonly migrations: readonly DiagnosticsMigration[];\n    readonly crash: readonly DiagnosticsCrashFact[];\n    readonly lastErrors: readonly DiagnosticsErrorFact[];\n    readonly health: HealthSnapshot;\n}',
+  },
+  {
     name: 'DiffCallView',
     declaration: 'export interface DiffCallView {\n    card: \'diff\';\n    title: string;\n    diffs: FileDiff[];\n    locations?: FileLocation[];\n}',
   },
@@ -6206,6 +6399,10 @@ export const TYPE_API: readonly TypeApiEntry[] = [
   {
     name: 'EncodedFileAttachment',
     declaration: 'export interface EncodedFileAttachment {\n    data: string;\n    name?: string;\n}',
+  },
+  {
+    name: 'EncodedFileDedupeRequest',
+    declaration: 'export interface EncodedFileDedupeRequest {\n    readonly digest: string;\n    readonly name?: string;\n}',
   },
   {
     name: 'EncodedFileUploadRequest',
@@ -6496,6 +6693,14 @@ export const TYPE_API: readonly TypeApiEntry[] = [
     declaration: 'export interface GrantRecord {\n    readonly kind: \'grant\';\n    readonly payload: unknown;\n}',
   },
   {
+    name: 'HealthComponent',
+    declaration: 'export interface HealthComponent {\n    readonly state: ComponentHealth;\n    readonly detail: string;\n}',
+  },
+  {
+    name: 'HealthSnapshot',
+    declaration: 'export interface HealthSnapshot {\n    readonly process: HealthComponent;\n    readonly runtime: HealthComponent;\n    readonly sessionStore: HealthComponent;\n    readonly pluginState: HealthComponent;\n    readonly connection: HealthComponent;\n    readonly modelProvider: HealthComponent;\n    readonly ready: boolean;\n}',
+  },
+  {
     name: 'HookBudget',
     declaration: 'export interface HookBudget {\n    readonly ms: number;\n    readonly remainingMs: number;\n}',
   },
@@ -6526,6 +6731,18 @@ export const TYPE_API: readonly TypeApiEntry[] = [
   {
     name: 'HostConnectionRpc',
     declaration: 'export interface HostConnectionRpc {\n    handle(channel: string, handler: ConnectionRpcHandler): () => Promise<void>;\n    intercept(channel: \'/api\', matches: ConnectionRpcEndpointMatcher, handler: ConnectionRpcHandler): () => Promise<void>;\n}',
+  },
+  {
+    name: 'HostDescriptor',
+    declaration: 'export interface HostDescriptor {\n    readonly hostId: HostId;\n    readonly displayName: string;\n    readonly productVersion: string;\n    readonly apiProtocolVersion: number;\n    readonly supportedApiProtocolVersions?: readonly number[];\n    readonly sessionFormatVersion: number;\n    readonly platform: string;\n    readonly arch: string;\n    readonly runtimeMode: \'full\';\n    readonly capabilities: readonly string[];\n    readonly transports: readonly HostTransport[];\n    readonly serverTime: number;\n}',
+  },
+  {
+    name: 'HostId',
+    declaration: 'export type HostId = Branded<\'HostId\'>;',
+  },
+  {
+    name: 'HostTransport',
+    declaration: 'export type HostTransport = \'http\' | \'websocket\' | \'desktop-pipe\';',
   },
   {
     name: 'ImageAttachmentLimits',
@@ -6761,11 +6978,11 @@ export const TYPE_API: readonly TypeApiEntry[] = [
   },
   {
     name: 'KvFacet',
-    declaration: 'export interface KvFacet {\n    open(descriptor: KvUnitDescriptor): Promise<KvUnit>;\n}',
+    declaration: 'export interface KvFacet {\n    open(descriptor: KvUnitDescriptor, onBackendClose?: () => Promise<void>): Promise<KvUnit>;\n}',
   },
   {
     name: 'KvTable',
-    declaration: 'export interface KvTable<K extends string, V> {\n    get(key: K): V | undefined;\n    entries(): IterableIterator<[\n        K,\n        V\n    ]>;\n    keys(): IterableIterator<K>;\n    readonly size: number;\n    put(key: K, value: V): Promise<void>;\n    delete(key: K): Promise<boolean>;\n    deleteMany(keys: readonly K[]): Promise<number>;\n    update(key: K, fn: (current: V) => V): Promise<V>;\n}',
+    declaration: 'export interface KvTable<K extends string, V> {\n    get(key: K): V | undefined;\n    entries(): IterableIterator<[\n        K,\n        V\n    ]>;\n    keys(): IterableIterator<K>;\n    readonly size: number;\n    put(key: K, value: V, beforeWrite?: () => Promise<void>): Promise<void>;\n    delete(key: K): Promise<boolean>;\n    deleteMany(keys: readonly K[]): Promise<number>;\n    update(key: K, fn: (current: V) => V): Promise<V>;\n}',
   },
   {
     name: 'KvUnit',
@@ -7280,6 +7497,14 @@ export const TYPE_API: readonly TypeApiEntry[] = [
     declaration: 'export interface PaidTranslationSpec extends TranslationSpecFields {\n    readonly provider: PaidTranslationProvider;\n    readonly sessionId: SessionId;\n}',
   },
   {
+    name: 'PairingCodeId',
+    declaration: 'export type PairingCodeId = Branded<\'PairingCodeId\'>;',
+  },
+  {
+    name: 'PairingIssuance',
+    declaration: 'export interface PairingIssuance {\n    readonly pairingId: PairingCodeId;\n    readonly code: string;\n    readonly role: DeviceRole;\n    readonly expiresAt: number;\n}',
+  },
+  {
     name: 'PaneOpenArgs',
     declaration: 'export interface PaneOpenArgs {\n    id: string;\n    title?: string;\n    focus?: true;\n    closeOnEscape?: true;\n    holdToasts?: true;\n    rows?: number;\n    columns?: number;\n}',
   },
@@ -7656,6 +7881,14 @@ export const TYPE_API: readonly TypeApiEntry[] = [
     declaration: 'export interface RedactedSecret {\n    path: string[];\n    set: boolean;\n}',
   },
   {
+    name: 'RedeemPairingRequest',
+    declaration: 'export interface RedeemPairingRequest {\n    readonly code: string;\n    readonly deviceName: string;\n    readonly devicePublicKey: string;\n    readonly platform?: string;\n}',
+  },
+  {
+    name: 'RedeemPairingResult',
+    declaration: 'export interface RedeemPairingResult {\n    readonly deviceId: DeviceId;\n    readonly role: DeviceRole;\n    readonly keyFingerprint: string;\n    readonly pairedAt: number;\n}',
+  },
+  {
     name: 'Registry',
     declaration: 'export type Registry = string | null;',
   },
@@ -7732,6 +7965,10 @@ export const TYPE_API: readonly TypeApiEntry[] = [
     declaration: 'export interface RemoteAccessRole<K extends RemoteAccessResourceKind> {\n    readonly name: string;\n    readonly resource: K;\n    readonly actions: readonly RemoteAccessAction[];\n}',
   },
   {
+    name: 'RemoteCapabilityPermission',
+    declaration: 'export type RemoteCapabilityPermission = \'view\' | \'prompt.send\' | \'question.respond\' | \'approval.respond\' | \'device.admin\';',
+  },
+  {
     name: 'RemoteError',
     declaration: 'export class RemoteError<Code extends RemoteErrorCode = RemoteErrorCode> extends Error {\n    readonly isDSHRemoteError: true;\n    constructor(readonly code: Code, message: string, readonly details: RemoteErrorDetailsMap[Code], options?: ErrorOptions);\n}',
   },
@@ -7741,7 +7978,7 @@ export const TYPE_API: readonly TypeApiEntry[] = [
   },
   {
     name: 'RemoteErrorDetailsMap',
-    declaration: 'export interface RemoteErrorDetailsMap {\n    \'gateway/bad-request\': {\n        readonly issues?: readonly object[];\n    };\n    \'gateway/cancelled\': {};\n    \'gateway/internal\': {};\n}',
+    declaration: 'export interface RemoteErrorDetailsMap {\n    \'gateway/bad-request\': {\n        readonly issues?: readonly RemoteValidationIssue[];\n    };\n    \'gateway/cancelled\': {};\n    \'gateway/internal\': {};\n}',
   },
   {
     name: 'RemoteEventAgentId',
@@ -7749,7 +7986,7 @@ export const TYPE_API: readonly TypeApiEntry[] = [
   },
   {
     name: 'RemoteEventHostInfo',
-    declaration: 'export interface RemoteEventHostInfo {\n    readonly home: string;\n}',
+    declaration: 'export interface RemoteEventHostInfo {\n    readonly home: string;\n    readonly platform?: string;\n}',
   },
   {
     name: 'RemoteStream',
@@ -7758,6 +7995,14 @@ export const TYPE_API: readonly TypeApiEntry[] = [
   {
     name: 'RemoteUplinkWindow',
     declaration: 'export interface RemoteUplinkWindow {\n    readonly maxBytes: number;\n    readonly frameOverheadBytes: number;\n}',
+  },
+  {
+    name: 'RemoteValidationIssue',
+    declaration: 'export interface RemoteValidationIssue {\n    readonly code: string;\n    readonly message: string;\n    readonly path: readonly (string | number)[];\n}',
+  },
+  {
+    name: 'RenameDeviceRequest',
+    declaration: 'export interface RenameDeviceRequest {\n    readonly deviceId: DeviceId;\n    readonly deviceName: string;\n}',
   },
   {
     name: 'RenderedDocumentBytes',
@@ -7846,6 +8091,18 @@ export const TYPE_API: readonly TypeApiEntry[] = [
   {
     name: 'ReviewDecision',
     declaration: 'export type ReviewDecision = \'approved\' | \'changes-requested\' | \'review-required\' | \'none\';',
+  },
+  {
+    name: 'RevokeAllDevicesResult',
+    declaration: 'export interface RevokeAllDevicesResult {\n    readonly revokedAt: number;\n    readonly count: number;\n}',
+  },
+  {
+    name: 'RevokeDeviceRequest',
+    declaration: 'export interface RevokeDeviceRequest {\n    readonly deviceId: DeviceId;\n}',
+  },
+  {
+    name: 'RevokeDeviceResult',
+    declaration: 'export interface RevokeDeviceResult {\n    readonly deviceId: DeviceId;\n    readonly revokedAt: number;\n}',
   },
   {
     name: 'RpcId',
@@ -8989,7 +9246,7 @@ export const TYPE_API: readonly TypeApiEntry[] = [
   },
   {
     name: 'SubagentInterruptAuthority',
-    declaration: 'export type SubagentInterruptAuthority = {\n    readonly kind: \'user\';\n    readonly parentSessionId: SessionId;\n} | {\n    readonly kind: \'ancestor\';\n    readonly agent: Agent;\n};',
+    declaration: 'export type SubagentInterruptAuthority = {\n    readonly kind: \'user\';\n    readonly parentSessionId: SessionId;\n    readonly turnStartSeq?: number | null;\n} | {\n    readonly kind: \'ancestor\';\n    readonly agent: Agent;\n};',
   },
   {
     name: 'SubagentInterruptReceipt',
@@ -9124,6 +9381,22 @@ export const TYPE_API: readonly TypeApiEntry[] = [
     declaration: 'export interface SubprocessTerminalSpawnSpec {\n    argv: readonly string[];\n    cwd: string;\n    env?: Record<string, string> | undefined;\n    rows: number;\n    cols: number;\n    terminalType: string;\n    shellActivity?: boolean | undefined;\n    graceMs: number;\n    signal?: AbortSignal | undefined;\n}',
   },
   {
+    name: 'SupportBundle',
+    declaration: 'export interface SupportBundle {\n    readonly manifest: readonly SupportBundleManifestEntry[];\n    readonly checksum: string;\n    readonly entries: readonly SupportBundleEntry[];\n}',
+  },
+  {
+    name: 'SupportBundleEntry',
+    declaration: 'export interface SupportBundleEntry {\n    readonly kind: SupportBundleEntryKind;\n    readonly path: string;\n    readonly content: JsonValue;\n}',
+  },
+  {
+    name: 'SupportBundleEntryKind',
+    declaration: 'export type SupportBundleEntryKind = \'diagnostics\' | \'session-headers\' | \'settings-export\';',
+  },
+  {
+    name: 'SupportBundleManifestEntry',
+    declaration: 'export interface SupportBundleManifestEntry {\n    readonly path: string;\n    readonly sha256: string;\n}',
+  },
+  {
     name: 'SurfaceEvent',
     declaration: 'export type SurfaceEvent = SessionEvent<SurfaceEventType>;',
   },
@@ -9198,6 +9471,10 @@ export const TYPE_API: readonly TypeApiEntry[] = [
   {
     name: 'TeamWaitResult',
     declaration: 'export interface TeamWaitResult {\n    readonly timedOut: boolean;\n}',
+  },
+  {
+    name: 'TelemetryConsent',
+    declaration: 'export interface TelemetryConsent {\n    readonly sessionTelemetry: boolean;\n    readonly providerMetadata: boolean;\n    readonly relayMetadata: boolean;\n    readonly deviceTrustMetadata: boolean;\n    readonly crashDiagnostics: boolean;\n}',
   },
   {
     name: 'TerminalBackend',
@@ -9377,7 +9654,7 @@ export const TYPE_API: readonly TypeApiEntry[] = [
   },
   {
     name: 'ToolDefinition',
-    declaration: 'export interface ToolDefinition extends ToolSchema {\n    readonly output: ToolOutputDefinition;\n    execute(args: unknown, exec: ToolRunContext): Promise<unknown>;\n    projectContent?(exec: Readonly<ToolExecution>, result: Readonly<ToolExecutionResult>): ContentBlock[] | undefined;\n    finalizeContent?(exec: Readonly<ToolExecution>, result: Readonly<ToolExecutionResult>): ContentBlock[] | undefined;\n    timeoutMs?: number;\n    isConcurrencySafe?(args: unknown): boolean;\n    presentCall?(args: unknown): ToolCallView | undefined;\n    presentResult?(args: unknown, result: ToolResult): ToolResultView | undefined;\n}',
+    declaration: 'export interface ToolDefinition extends ToolSchema {\n    readonly output: ToolOutputDefinition;\n    readonly version?: number;\n    readonly risk?: ToolRisk;\n    readonly permissions?: readonly RemoteCapabilityPermission[];\n    readonly supportsLite?: boolean;\n    readonly supportsRemote?: boolean;\n    execute(args: unknown, exec: ToolRunContext): Promise<unknown>;\n    projectContent?(exec: Readonly<ToolExecution>, result: Readonly<ToolExecutionResult>): ContentBlock[] | undefined;\n    finalizeContent?(exec: Readonly<ToolExecution>, result: Readonly<ToolExecutionResult>): ContentBlock[] | undefined;\n    timeoutMs?: number;\n    isConcurrencySafe?(args: unknown): boolean;\n    presentCall?(args: unknown): ToolCallView | undefined;\n    presentResult?(args: unknown, result: ToolResult): ToolResultView | undefined;\n}',
   },
   {
     name: 'ToolDispatchExecution',
@@ -9474,6 +9751,10 @@ export const TYPE_API: readonly TypeApiEntry[] = [
   {
     name: 'ToolResultView',
     declaration: 'export type ToolResultView = GenericResultView | TerminalResultView | DiffResultView | SearchResultView | ReadResultView | WebResultView;',
+  },
+  {
+    name: 'ToolRisk',
+    declaration: 'export type ToolRisk = \'low\' | \'moderate\' | \'high\' | \'critical\';',
   },
   {
     name: 'ToolRunContext',
@@ -9581,7 +9862,7 @@ export const TYPE_API: readonly TypeApiEntry[] = [
   },
   {
     name: 'TypertGatewayBinding',
-    declaration: 'export interface TypertGatewayBinding<Service extends object = object> {\n    readonly service: Service;\n    readonly serviceKey: string;\n    readonly namespace: string;\n}',
+    declaration: 'export interface TypertGatewayBinding<Service extends object = object> {\n    readonly service: Service;\n    readonly serviceKey: string;\n    readonly namespace: string;\n    readonly capabilities?: readonly TypertRemoteCapability[];\n}',
   },
   {
     name: 'TypertGatewayWireStream',
@@ -9606,6 +9887,10 @@ export const TYPE_API: readonly TypeApiEntry[] = [
   {
     name: 'TypertPackageRecord',
     declaration: 'export interface TypertPackageRecord {\n    readonly package: string;\n    readonly face: TypertFace;\n    readonly key: string;\n    readonly model: TypertPackageModel;\n}',
+  },
+  {
+    name: 'TypertRemoteCapability',
+    declaration: 'export interface TypertRemoteCapability {\n    readonly id: string;\n    readonly methods: readonly string[];\n    readonly requiredPermission?: RemoteCapabilityPermission;\n}',
   },
   {
     name: 'TypertRemoteEventContext',

@@ -9,7 +9,6 @@ English | [中文](README.zh.md)
 
 ## Summary
 
-Use `dsh-tools` to expose typed capabilities to models, validate calls, enforce allow/deny/ask policy, and return finalized results without ending a turn on ordinary tool failures. Choose native Function Calling, [PTC mode](#ptc-mode), or both with `mode`; an agent can override the default through `presentAs`. Tool authors use `defineTool` to declare typed parameters and outputs, cooperative timeouts, parallel-safety, optional UI presentation, and the five host-only declaration fields of specification §32 (`version`, `risk`, `permissions`, `supportsLite`, `supportsRemote`) that project onto the Remote tool catalog. Models see each permitted tool's declared name, description, and parameter schema; per-agent restrictions can narrow that visible set.
 Use `dsh-tools` to expose typed capabilities to models, validate calls, enforce allow/deny/ask policy, and return finalized results without ending a turn on ordinary tool failures. Mount a native or PTC executor to choose the model interaction and batch execution behavior. Tool authors use `defineTool` to declare typed parameters and outputs, cooperative timeouts, parallel-safety, and optional UI presentation. Models see each permitted tool's declared name, description, and parameter schema; per-agent restrictions can narrow that visible set.
 
 ## Table of Contents
@@ -124,24 +123,9 @@ The registry holds typed `ToolDefinition`s in scoped layers and projects them on
 
 ### Source map
 
-| File | Role |
-|---|---|
-| [`src/index.ts`](src/index.ts) | Plugin entry: `ToolRuntime` service, config, registry, execution pipeline, §32 descriptor projection |
-| [`src/types.ts`](src/types.ts) | `ToolDefinition`, `ToolExecution`, `ToolExecutionResult`, guard and decision types, `ToolDescriptor`/`ToolRisk` |
-| [`src/capabilities.ts`](src/capabilities.ts) | The `tool.catalog.v1` Remote capability declaration |
-| [`src/schema.ts`](src/schema.ts) | The `defineTool` DSL: `ValueSchemaSpec`, `ParameterSchemaSpec`, `InferValue`, `InferArgs` |
-| [`src/json-schema.ts`](src/json-schema.ts) | The enforced raw JSON Schema subset and validation |
-| [`src/presentation.ts`](src/presentation.ts) | The `card`-tagged UI render intents |
-| [`src/ptc.ts`](src/ptc.ts) | PTC mode: SDK generation, `run_code` dispatch bridge, settlement |
-| [`src/ts-types.ts`](src/ts-types.ts) | TypeScript SDK type rendering |
-| [`src/py-types.ts`](src/py-types.ts) | Python SDK type rendering |
-| [`src/invariant.ts`](src/invariant.ts) | Invariant companion |
-The registry holds typed `ToolDefinition`s in scoped layers and projects them onto the model-facing `ToolSchema` set at request time — `output`, `execute`, `finalizeContent`, `timeoutMs`, and presentation callbacks never leak onto the wire. Built-in executors reuse the shared pipeline: `tools/pre-execute` (extensible allow/deny/ask) → registered monotonic guards → `tools/execute` (around-dispatch wrappers) → `tools/post-execute` (inspect/replace, attach context) → definition-owned `finalizeContent` → the observe-only `tools/result` event. Only the `tools/execute` view may replace the required signal, and the registry re-fuses the caller signal before the body.
-
-### Source map
-
 - [`src/index.ts`](src/index.ts) — Plugin entry and public tool APIs; scoped tool service and executor selection.
 - [`src/contracts.ts`](src/contracts.ts) — Tool definitions, invocation results, guards and decisions.
+- [`src/capabilities.ts`](src/capabilities.ts) — The `tool.catalog.v1` Remote capability declaration.
 - [`src/executor.ts`](src/executor.ts) — Executor descriptions and batch input/output.
 - [`src/pipeline.ts`](src/pipeline.ts) — Shared `prepare`, `dispatch`, and `complete` stages, their result types, and the batch entry point.
 - [`src/batch.ts`](src/batch.ts) — Concurrency, ordered results and optional Session logging.

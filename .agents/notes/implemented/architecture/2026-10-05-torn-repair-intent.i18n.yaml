@@ -1,6 +1,22 @@
-# Bilingual-pair consistency record (docs/i18n/README.md): the git blob hash of each
-# side as of the last confirmed-consistent state. Both languages carry equal authority;
-# after editing either side, bring the other along and re-record with:
+# Bilingual-pair consistency record for 2026-10-05-torn-repair-intent.md (docs/i18n/README.md): per heading
+# section, a hash of its English and Chinese blocks outside code blocks and generated regions.
+# After editing either side, bring the other along and re-record with:
 #   pnpm run verify-translation-pairing --write .agents/notes/implemented/architecture/2026-10-05-torn-repair-intent.md
-2026-10-05-torn-repair-intent.md: 62ac25b11e8c16106a80c5af214f7e36b6d4c1a4
-2026-10-05-torn-repair-intent.zh.md: 8255143b581a4b32eb816a92b7b2386ca919036a
+/agent-note-a-crash-durable-repair-intent-closes-the-torn-tail-rewrite-window:
+  en: 7ca05a90b8d51bf0
+  zh: c28f376a8f98d5a7
+/agent-note-a-crash-durable-repair-intent-closes-the-torn-tail-rewrite-window/problem:
+  en: 83cdb59dd2776c9f
+  zh: b04cf9688298c357
+/agent-note-a-crash-durable-repair-intent-closes-the-torn-tail-rewrite-window/decision:
+  en: 7bba228d139539e5
+  zh: f80d723d13150b4a
+/agent-note-a-crash-durable-repair-intent-closes-the-torn-tail-rewrite-window/alternatives-considered:
+  en: 7564dcd84f5b14ac
+  zh: 1bacbcb57884af5b
+/agent-note-a-crash-durable-repair-intent-closes-the-torn-tail-rewrite-window/consequences:
+  en: 342d88ca18db6067
+  zh: 730c74978aa06556
+/agent-note-a-crash-durable-repair-intent-closes-the-torn-tail-rewrite-window/open-follow-ups:
+  en: 6d2047c7c053ce9a
+  zh: 6546cc8c4bfa27e1

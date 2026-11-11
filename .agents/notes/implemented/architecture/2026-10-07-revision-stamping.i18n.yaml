@@ -1,6 +1,22 @@
-# Bilingual-pair consistency record (docs/i18n/README.md): the git blob hash of each
-# side as of the last confirmed-consistent state. Both languages carry equal authority;
-# after editing either side, bring the other along and re-record with:
+# Bilingual-pair consistency record for 2026-10-07-revision-stamping.md (docs/i18n/README.md): per heading
+# section, a hash of its English and Chinese blocks outside code blocks and generated regions.
+# After editing either side, bring the other along and re-record with:
 #   pnpm run verify-translation-pairing --write .agents/notes/implemented/architecture/2026-10-07-revision-stamping.md
-2026-10-07-revision-stamping.md: 6f3ed4cb34eb85224c8eff5eaa510413e2fc4a5c
-2026-10-07-revision-stamping.zh.md: 0a098ebef43013140feee148aa3e855085167fea
+/agent-note-desktop-packages-stamp-their-build-revision-into-the-inventory-sealed-dsh-tree:
+  en: 4f6ec58dc587c136
+  zh: f87a6d9040827b28
+/agent-note-desktop-packages-stamp-their-build-revision-into-the-inventory-sealed-dsh-tree/problem:
+  en: d41b0cef906c9ee3
+  zh: 0c326b25d7d5c5ff
+/agent-note-desktop-packages-stamp-their-build-revision-into-the-inventory-sealed-dsh-tree/decision:
+  en: a04a0fb929653afa
+  zh: 48ca7aaab1ae3467
+/agent-note-desktop-packages-stamp-their-build-revision-into-the-inventory-sealed-dsh-tree/alternatives-considered:
+  en: 9475dad492dd03e6
+  zh: e3308ffe71bd75e2
+/agent-note-desktop-packages-stamp-their-build-revision-into-the-inventory-sealed-dsh-tree/consequences:
+  en: 3ad7a7406b93e100
+  zh: 38b9f6b6a7c6278e
+/agent-note-desktop-packages-stamp-their-build-revision-into-the-inventory-sealed-dsh-tree/open-follow-ups:
+  en: 39ce32879c5b70d3
+  zh: 888fea3b5f2a9b06

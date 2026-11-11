@@ -34,4 +34,4 @@ Status: implemented
 
 归属目录内的菜单快照和生命周期测试覆盖用户控件、持久化拒绝、写入失败、退出和更新器错误。Windows 开发运行验证了真实托盘、关闭隐藏、第二实例恢复，以及独立 Node Host 下的显式退出。操作系统登录注册、打包应用行为和 macOS 执行仍属于平台验收要求。
 
-[打包决策](2026-08-25-electron-desktop-packaging-and-updates.zh.md)、[内置运行时决策](2026-09-08-desktop-bundled-runtime-and-external-plugins.zh.md)、[即时窗口决策](2026-09-09-desktop-immediate-window-and-direct-start.zh.md)和[原位 profile 决策](2026-09-09-desktop-in-place-profile.zh.md) 保留各自归属。本决策增加 Shell 偏好，不取代这些记录。
+[打包决策](2026-08-25-electron-desktop-packaging-and-updates.zh.md)、[内置运行时决策](2026-09-08-desktop-bundled-runtime-and-external-plugins.zh.md)、[即时窗口决策](../../archived/architecture/2026-09-09-desktop-immediate-window-and-direct-start.md)和[原位 profile 决策](../../archived/architecture/2026-09-09-desktop-in-place-profile.md) 保留各自归属。本决策增加 Shell 偏好，不取代这些记录。

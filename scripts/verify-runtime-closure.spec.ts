@@ -45,7 +45,7 @@ describe('verifyRuntimeClosure', () => {
       const root = fixture({
         'python/sdk-runtime/package.json': manifest,
         'python/sdk-runtime/platforms.json': platforms,
-        'packages/preset/agent-presets/presets/minimal/agent.cordis.yml': '[]\n',
+        'packages/bundle/web-app/presets/minimal.patch.yml': '[]\n',
         [`${directory}/package.json`]: {
           name: '@scope/application', dependencies: { '@scope/provider': 'workspace:^' },
         },

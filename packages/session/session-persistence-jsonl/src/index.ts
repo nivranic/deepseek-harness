@@ -1837,5 +1837,3 @@ export async function apply(ctx: Context, config: Config): Promise<void> {
   }, 'session-persistence-jsonl resources')
   await service.await()
 }
-
-export default JsonlSessionPersistence

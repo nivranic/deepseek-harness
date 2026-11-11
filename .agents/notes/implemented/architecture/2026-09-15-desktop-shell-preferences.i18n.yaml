@@ -1,6 +1,19 @@
-# Bilingual-pair consistency record (docs/i18n/README.md): the git blob hash of each
-# side as of the last confirmed-consistent state. Both languages carry equal authority;
-# after editing either side, bring the other along and re-record with:
+# Bilingual-pair consistency record for 2026-09-15-desktop-shell-preferences.md (docs/i18n/README.md): per heading
+# section, a hash of its English and Chinese blocks outside code blocks and generated regions.
+# After editing either side, bring the other along and re-record with:
 #   pnpm run verify-translation-pairing --write .agents/notes/implemented/architecture/2026-09-15-desktop-shell-preferences.md
-2026-09-15-desktop-shell-preferences.md: df6ae0ebbe10684a3db5b251afaf8e27d4c4b315
-2026-09-15-desktop-shell-preferences.zh.md: 258103d1b88195b93bb755bd6edc476f8d29d671
+/agent-note-keep-tray-preferences-and-login-registration-in-the-desktop-shell:
+  en: eaea13a63d71fb08
+  zh: c0191a26633311db
+/agent-note-keep-tray-preferences-and-login-registration-in-the-desktop-shell/problem:
+  en: cd3f2af3c4b570ac
+  zh: de34a8ab7258cb35
+/agent-note-keep-tray-preferences-and-login-registration-in-the-desktop-shell/decision:
+  en: 457e6001d90c4982
+  zh: 43d443a10f6f65be
+/agent-note-keep-tray-preferences-and-login-registration-in-the-desktop-shell/alternatives-considered:
+  en: ad0d8eed180030f0
+  zh: 2511cbe3d23a54f1
+/agent-note-keep-tray-preferences-and-login-registration-in-the-desktop-shell/consequences:
+  en: 4d2c4dffe7b3b2c9
+  zh: 5e85c9bf2bf0f346

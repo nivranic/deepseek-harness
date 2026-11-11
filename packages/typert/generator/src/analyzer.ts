@@ -191,6 +191,15 @@ interface GatewayBinding {
   readonly service: string
   readonly namespace: string
   readonly site: ts.Node
+  /** Statically declared Remote capabilities; the runtime binding stays authoritative. */
+  readonly capabilities?: readonly GatewayCapabilityDeclaration[]
+}
+
+/** One statically validated Remote capability declaration from a binding option. */
+interface GatewayCapabilityDeclaration {
+  readonly id: string
+  readonly methods: readonly string[]
+  readonly requiredPermission?: string
 }
 
 type ReferenceSite = ts.TypeReferenceNode | ts.ExpressionWithTypeArguments | ts.ImportTypeNode
@@ -1362,24 +1371,121 @@ class FaceAnalyzer {
     const service = stringLiteralValue(serviceArgument)
     if (service === undefined) this.fail(serviceArgument, 'Gateway service key must be a string literal')
     let namespace = service
+    let capabilities: readonly GatewayCapabilityDeclaration[] | undefined
     const options = call.arguments[2]
     if (options !== undefined) {
       if (!ts.isObjectLiteralExpression(options)) {
         this.fail(options, 'bindTypertRemote() options must be an object literal')
       }
       for (const propertyOption of options.properties) {
-        if (!ts.isPropertyAssignment(propertyOption)
-          || memberName(propertyOption.name) !== 'namespace') {
+        if (!ts.isPropertyAssignment(propertyOption)) {
           this.fail(propertyOption, 'bindTypertRemote() only supports a namespace option')
         }
-        const value = stringLiteralValue(propertyOption.initializer)
-        if (value === undefined) this.fail(propertyOption.initializer, 'Gateway namespace must be a string literal')
-        namespace = value
+        const name = memberName(propertyOption.name)
+        if (name === 'namespace') {
+          const value = stringLiteralValue(propertyOption.initializer)
+          if (value === undefined) this.fail(propertyOption.initializer, 'Gateway namespace must be a string literal')
+          namespace = value
+        } else if (name === 'capabilities') {
+          capabilities = this.gatewayCapabilityDeclarations(propertyOption.initializer)
+        } else {
+          this.fail(propertyOption, 'bindTypertRemote() only supports a namespace option')
+        }
       }
     }
     if (!isRemoteSegment(service)) this.fail(serviceArgument, 'Gateway service key must contain only RPC endpoint segment characters')
     if (!isRemoteSegment(namespace)) this.fail(options ?? call, 'Gateway namespace must contain only RPC endpoint segment characters')
-    return { service, namespace, site }
+    return capabilities === undefined ? { service, namespace, site } : { service, namespace, site, capabilities }
+  }
+
+  /**
+   * Validate one static Remote capability declaration list: an array literal of
+   * object literals, or an identifier whose const declaration carries one. The
+   * runtime {@link bindTypertRemote} validation stays authoritative; this only
+   * keeps declarations analyzable in the same shape. A dynamic expression
+   * (a call or conditional selecting capabilities at mount time) has no static
+   * list to record and returns `undefined` for the runtime binding to own.
+   * @param expression - initializer of a `capabilities` binding option.
+   * @returns the statically validated declarations, or undefined for a dynamic expression.
+   */
+  private gatewayCapabilityDeclarations(expression: ts.Expression): readonly GatewayCapabilityDeclaration[] | undefined {
+    const array = this.capabilityArrayExpression(expression)
+    if (array === undefined) {
+      if (ts.isIdentifier(expression) || ts.isPropertyAccessExpression(expression)) {
+        this.fail(expression, 'bindTypertRemote() capabilities must be an array literal or a const declaring one')
+      }
+      return undefined
+    }
+    const declarations: GatewayCapabilityDeclaration[] = []
+    for (const element of array.elements) {
+      if (!ts.isObjectLiteralExpression(element)) {
+        this.fail(element, 'bindTypertRemote() capability declarations must be object literals')
+      }
+      let id: string | undefined
+      let methods: readonly string[] | undefined
+      let requiredPermission: string | undefined
+      for (const property of element.properties) {
+        if (!ts.isPropertyAssignment(property)) {
+          this.fail(property, 'bindTypertRemote() capability declarations support id, methods, and requiredPermission')
+        }
+        const name = memberName(property.name)
+        if (name === 'id') {
+          const value = stringLiteralValue(property.initializer)
+          if (value === undefined) this.fail(property.initializer, 'bindTypertRemote() capability id must be a string literal')
+          if (!/^[a-z][a-zA-Z0-9.-]*\.v[1-9]\d*$/u.test(value)) {
+            this.fail(property.initializer, 'bindTypertRemote() capability id must be a lowercase dotted versioned identifier')
+          }
+          id = value
+        } else if (name === 'methods') {
+          if (!ts.isArrayLiteralExpression(property.initializer)) {
+            this.fail(property.initializer, 'bindTypertRemote() capability methods must be an array literal')
+          }
+          const names: string[] = []
+          for (const method of property.initializer.elements) {
+            const value = stringLiteralValue(method)
+            if (value === undefined) this.fail(method, 'bindTypertRemote() capability methods must be string literals')
+            if (!isRemoteSegment(value)) this.fail(method, 'bindTypertRemote() capability methods must contain only RPC endpoint segment characters')
+            names.push(value)
+          }
+          if (names.length === 0) this.fail(property.initializer, 'bindTypertRemote() capability methods must not be empty')
+          methods = names
+        } else if (name === 'requiredPermission') {
+          const value = stringLiteralValue(property.initializer)
+          if (value === undefined) this.fail(property.initializer, 'bindTypertRemote() capability requiredPermission must be a string literal')
+          requiredPermission = value
+        } else {
+          this.fail(property, 'bindTypertRemote() capability declarations support id, methods, and requiredPermission')
+        }
+      }
+      if (id === undefined) this.fail(element, 'bindTypertRemote() capability declarations require an id')
+      if (methods === undefined) this.fail(element, 'bindTypertRemote() capability declarations require methods')
+      declarations.push(requiredPermission === undefined ? { id, methods } : { id, methods, requiredPermission })
+    }
+    return declarations
+  }
+
+  /** Resolve a capabilities expression to its array literal, unwrapping assertion tails. */
+  private capabilityArrayExpression(expression: ts.Expression): ts.ArrayLiteralExpression | undefined {
+    let current = expression
+    while (ts.isAsExpression(current) || ts.isSatisfiesExpression(current)) {
+      current = current.expression
+    }
+    if (ts.isArrayLiteralExpression(current)) return current
+    if (ts.isIdentifier(current) || ts.isPropertyAccessExpression(current)) {
+      let symbol = this.checker.getSymbolAtLocation(current)
+      for (let hop = 0; hop < 4 && symbol !== undefined; hop += 1) {
+        const declaration = symbol.declarations?.[0]
+        if (declaration !== undefined && ts.isVariableDeclaration(declaration) && declaration.initializer !== undefined) {
+          return this.capabilityArrayExpression(declaration.initializer)
+        }
+        if (declaration !== undefined && ts.isImportSpecifier(declaration)) {
+          const aliased = this.checker.getAliasedSymbol(symbol)
+          if (aliased === symbol) break
+          symbol = aliased
+        } else break
+      }
+    }
+    return undefined
   }
 
   private remoteMarker(

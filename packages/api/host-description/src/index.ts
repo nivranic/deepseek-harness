@@ -54,7 +54,13 @@ export class HostDescriptionGateway extends TypertRemoteService {
    * @param facts - validated application facts after persistent identity is ready.
    */
   constructor(ctx: Context, private readonly facts: HostFacts) {
-    super(ctx, 'hostDescription', { namespace: 'host' })
+    super(ctx, 'hostDescription', {
+      namespace: 'host',
+      capabilities: [
+        { id: 'host.describe.v1', methods: ['describe'], requiredPermission: 'view' },
+        { id: 'host.negotiate.v1', methods: ['negotiate'], requiredPermission: 'view' },
+      ],
+    })
   }
 
   /**

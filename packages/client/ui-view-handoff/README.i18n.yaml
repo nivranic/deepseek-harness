@@ -1,6 +1,40 @@
-# Bilingual-pair consistency record (docs/i18n/README.md): the git blob hash of each
-# side as of the last confirmed-consistent state. Both languages carry equal authority;
-# after editing either side, bring the other along and re-record with:
+# Bilingual-pair consistency record for README.md (docs/i18n/README.md): per heading
+# section, a hash of its English and Chinese blocks outside code blocks and generated regions.
+# After editing either side, bring the other along and re-record with:
 #   pnpm run verify-translation-pairing --write packages/client/ui-view-handoff/README.md
-README.md: 2f34e2d8ce14cc879c0e0fe539f37c6dbd677a09
-README.zh.md: bc9ee5fdf98a8d2f236df2decaf915b1d0aefe80
+/:
+  en: 0d3ef4c87d304a00
+  zh: 020f8d0c2e39cc49
+/deepseek-ai-dsh-client-ui-view-handoff:
+  en: fbb3845acb791bde
+  zh: 92661478827f7ae8
+/deepseek-ai-dsh-client-ui-view-handoff/summary:
+  en: a9d64168fc079128
+  zh: 94ca0c6d2873bfc0
+/deepseek-ai-dsh-client-ui-view-handoff/table-of-contents:
+  en: d152484eb41ac6b4
+  zh: 725b47765ee8f30b
+/deepseek-ai-dsh-client-ui-view-handoff/use-this-package:
+  en: aabc220dd5e1ae04
+  zh: 04db2141b85a2ab5
+/deepseek-ai-dsh-client-ui-view-handoff/use-this-package/what-to-expect:
+  en: 7ea9464b1af7ab85
+  zh: 25904baa4a793c26
+/deepseek-ai-dsh-client-ui-view-handoff/understand-the-implementation:
+  en: 8a9c34732789d826
+  zh: 610863a95c4c2a11
+/deepseek-ai-dsh-client-ui-view-handoff/further-exploration:
+  en: 79e1bee20860338b
+  zh: d9d81c8de911ef5c
+/deepseek-ai-dsh-client-ui-view-handoff/model-experience:
+  en: 7681b7b7a0d38f41
+  zh: b4994f1b94c5474e
+/deepseek-ai-dsh-client-ui-view-handoff/model-experience/kv-cache-effect:
+  en: ca75c51c89c2c9b0
+  zh: 2064958b0754647e
+/deepseek-ai-dsh-client-ui-view-handoff/known-limitations-and-deferred-work:
+  en: ee2fe97a06e552d8
+  zh: 54984aa1366dea5c
+/deepseek-ai-dsh-client-ui-view-handoff/known-limitations-and-deferred-work/dev-note:
+  en: 1363090296207d6e
+  zh: 3f8292f123c28d7c

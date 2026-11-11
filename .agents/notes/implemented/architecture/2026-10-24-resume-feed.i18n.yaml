@@ -1,6 +1,19 @@
-# Bilingual-pair consistency record (docs/i18n/README.md): the git blob hash of each
-# side as of the last confirmed-consistent state. Both languages carry equal authority;
-# after editing either side, bring the other along and re-record with:
+# Bilingual-pair consistency record for 2026-10-24-resume-feed.md (docs/i18n/README.md): per heading
+# section, a hash of its English and Chinese blocks outside code blocks and generated regions.
+# After editing either side, bring the other along and re-record with:
 #   pnpm run verify-translation-pairing --write .agents/notes/implemented/architecture/2026-10-24-resume-feed.md
-2026-10-24-resume-feed.md: ca641c76aa61c622307ad1db6c6d1496b89365fb
-2026-10-24-resume-feed.zh.md: 308d6a8492aa4e8c6d0ecf7781f888d3001eb73c
+/agent-note-a-relaunched-session-feeds-its-replayed-tool-rows-into-the-next-request-chapter-64-s-read-face:
+  en: 862470a080be1986
+  zh: df4d654cfd790cae
+/agent-note-a-relaunched-session-feeds-its-replayed-tool-rows-into-the-next-request-chapter-64-s-read-face/problem:
+  en: 3bdc3392947c747d
+  zh: d3d5cb1a2bdc48a5
+/agent-note-a-relaunched-session-feeds-its-replayed-tool-rows-into-the-next-request-chapter-64-s-read-face/decision:
+  en: 2cebf8d600609056
+  zh: 2ed320ea4a4c7228
+/agent-note-a-relaunched-session-feeds-its-replayed-tool-rows-into-the-next-request-chapter-64-s-read-face/alternatives-considered:
+  en: dda7e4fadf3432b6
+  zh: 74cb4c9c91af69e7
+/agent-note-a-relaunched-session-feeds-its-replayed-tool-rows-into-the-next-request-chapter-64-s-read-face/consequences:
+  en: 53e079c235e85030
+  zh: e66084fcd3ab9043

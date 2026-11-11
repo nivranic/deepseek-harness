@@ -1,6 +1,31 @@
-# Bilingual-pair consistency record (docs/i18n/README.md): the git blob hash of each
-# side as of the last confirmed-consistent state. Both languages carry equal authority;
-# after editing either side, bring the other along and re-record with:
+# Bilingual-pair consistency record for README.md (docs/i18n/README.md): per heading
+# section, a hash of its English and Chinese blocks outside code blocks and generated regions.
+# After editing either side, bring the other along and re-record with:
 #   pnpm run verify-translation-pairing --write packages/api/device-trust/README.md
-README.md: 5807224d9350d20c368216bfe5a541fa9551d461
-README.zh.md: 065886bc9f630686e329fce738efe00748a54d65
+/:
+  en: 381f2299e4575ec8
+  zh: c638b761f145ed09
+/device-trust:
+  en: 455b25dc90102083
+  zh: 96d63708ab4160d8
+/device-trust/summary:
+  en: d0bfe7e5cccbf89c
+  zh: 4fb806772db321ff
+/device-trust/table-of-contents:
+  en: 4e53164159b5ce41
+  zh: 89582dc0294d0776
+/device-trust/use-this-package:
+  en: c949e43f3308a9f3
+  zh: e88c08b337316c46
+/device-trust/model-experience:
+  en: 83f7a684e0f570d3
+  zh: b44014a6591fd4e3
+/device-trust/model-experience/kv-cache-effect:
+  en: a0dd3092dcaff959
+  zh: 501b78ae4dddc492
+/device-trust/known-limitations-and-deferred-work:
+  en: 12d22c6afe4ebde4
+  zh: a2b925a07c4f2ce7
+/device-trust/known-limitations-and-deferred-work/dev-note:
+  en: 675b95431e4e1c7d
+  zh: 7d8d22d0f1aa0085

@@ -6,7 +6,7 @@ Status: implemented
 
 ## 问题
 
-gen-56（[OkHttp 迁移 note](2026-10-16-lite-http-okhttp-config-face.zh.md)）裁定「归因头（`x-deepseek-harness-*`）保持不加：它们标识的是宿主 harness 自身，与 companion 是不同产品面；最小对齐就是 Bearer、content type 与 accept」，§31 台账以更宽的形态把它留作开放项（归因头决策）。两个事实对该裁定构成压力。其一，宿主强制归因规则（[2026-06-21-mandatory-app-attribution-headers](2026-06-21-mandatory-app-attribution-headers.zh.md)）要求每个产品级 LLM 适配器在每个 provider HTTP 请求上发送静态、非秘密的应用身份，并以 mock 服务器在线上证明——`LiteHTTPProvider` 正是这样的产品级 LLM 适配器（用户自配端点的请求面），规则的措辞没有给 companion 体量的适配器留豁免。其二，「不同产品面」的理由对流量识别不成立：它区分的是两个产品彼此，而不是收到请求的端点运营方眼中的来源——运营方无法区分流量来源时，`User-Agent` 是唯一诚实通道；自配端点同样受益（支持、滥用调查、兼容性调试——宿主规则自列的用途清单）。
+gen-56（[OkHttp 迁移 note](2026-10-16-lite-http-okhttp-config-face.zh.md)）裁定「归因头（`x-deepseek-harness-*`）保持不加：它们标识的是宿主 harness 自身，与 companion 是不同产品面；最小对齐就是 Bearer、content type 与 accept」，§31 台账以更宽的形态把它留作开放项（归因头决策）。两个事实对该裁定构成压力。其一，宿主强制归因规则（[2026-06-21-mandatory-app-attribution-headers](../../archived/architecture/2026-06-21-mandatory-app-attribution-headers.md)）要求每个产品级 LLM 适配器在每个 provider HTTP 请求上发送静态、非秘密的应用身份，并以 mock 服务器在线上证明——`LiteHTTPProvider` 正是这样的产品级 LLM 适配器（用户自配端点的请求面），规则的措辞没有给 companion 体量的适配器留豁免。其二，「不同产品面」的理由对流量识别不成立：它区分的是两个产品彼此，而不是收到请求的端点运营方眼中的来源——运营方无法区分流量来源时，`User-Agent` 是唯一诚实通道；自配端点同样受益（支持、滥用调查、兼容性调试——宿主规则自列的用途清单）。
 
 ## 决策
 

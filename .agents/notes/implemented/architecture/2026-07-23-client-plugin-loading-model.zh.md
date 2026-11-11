@@ -28,8 +28,7 @@ host 侧，cordis 插件装载站在 Node 的模块机制之上——require cac
 
 活动 Loader 解析出的宿主模块标识其资源所属包。受管理的打包可执行文件代理为每个导出子路径记录原始模块 URL；Client Modules 沿该精确 export 找到原始 manifest，不把 `dsh.client` 和相对资源路径复制到代理中。映射错误、匹配不唯一、缺少所属包或循环都会使组合失败。[profile 决策](2026-08-05-profile-plugin-bundles.zh.md) 负责代理创建和安装查找。
 
-[Client 外壳分层 Note](2026-08-15-client-shells-and-dynamic-packages.zh.md)定义当前的静态、动态包集合及其 import 规则。装载机件把每个 `dsh.client` 包视为一个 host graph row，且每个包只有一个普通 `lib/client.js` factory bundle。包声明携带 Cordis `inject` 边、同步模块表 `external` 请求，以及可选的 `immediately` 预取标记；负责组合的 app 只拥有挂载名册。
-[Client 外壳分层 Note](2026-08-15-client-shells-and-dynamic-packages.zh.md)定义当前的静态、动态包集合及其 import 规则。装载机件把每个 `dsh.client` 包视为一个 host graph row；每个包都有一个普通 `lib/client.js` factory bundle，还可有编译器生成的 `lib/client.<name>.js` chunk。包声明携带 Cordis `inject` 边、同步模块表 `external` 请求，以及可选的 `immediately` 预取标记；负责组合的 app 只拥有挂载名册。
+[Client 外壳分层 Note](2026-08-15-client-shells-and-dynamic-packages.zh.md)定义当前的静态、动态包集合及其 import 规则。装载机件把每个 `dsh.client` 包视为一个 host graph row，且每个包只有一个普通 `lib/client.js` factory bundle。包声明携带 Cordis `inject` 边、同步模块表 `external` 请求，以及可选的 `immediately` 预取标记；负责组合的 app 只拥有挂载名册。 [Client 外壳分层 Note](2026-08-15-client-shells-and-dynamic-packages.zh.md)定义当前的静态、动态包集合及其 import 规则。装载机件把每个 `dsh.client` 包视为一个 host graph row；每个包都有一个普通 `lib/client.js` factory bundle，还可有编译器生成的 `lib/client.<name>.js` chunk。包声明携带 Cordis `inject` 边、同步模块表 `external` 请求，以及可选的 `immediately` 预取标记；负责组合的 app 只拥有挂载名册。
 
 Web 内核保持不依赖框架，也不 import 任何动态包实体。Modules 本身是动态图 row，但 host parser 会在 Vite 主模块前送达其 factory。内核调用 `create()` 时，由 HTML 安装的 `__ModuleLoader__` facade 使用该 factory 构造模块系统。其他每个动态图 row 都归属一个 application combo 脚本；React、Cordis 与静态 UI 库的身份由外壳 seed 提供。
 

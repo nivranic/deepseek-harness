@@ -1,6 +1,22 @@
-# Bilingual-pair consistency record (docs/i18n/README.md): the git blob hash of each
-# side as of the last confirmed-consistent state. Both languages carry equal authority;
-# after editing either side, bring the other along and re-record with:
+# Bilingual-pair consistency record for 2026-10-17-relay-client-retirement.md (docs/i18n/README.md): per heading
+# section, a hash of its English and Chinese blocks outside code blocks and generated regions.
+# After editing either side, bring the other along and re-record with:
 #   pnpm run verify-translation-pairing --write .agents/notes/implemented/simplification/2026-10-17-relay-client-retirement.md
-2026-10-17-relay-client-retirement.md: 4eb8b8ad860282978a794fe31e45365d1b7ec830
-2026-10-17-relay-client-retirement.zh.md: dcd3d847f28ebaae6fb838c6f61e495e4dee82e6
+/agent-note-the-dormant-relayclient-retires-the-noise-vectors-stay:
+  en: 67246898a7afc4ef
+  zh: 93cfc2e2d92edde0
+/agent-note-the-dormant-relayclient-retires-the-noise-vectors-stay/problem:
+  en: 84350897511baaa3
+  zh: 3a50a81acc294211
+/agent-note-the-dormant-relayclient-retires-the-noise-vectors-stay/decision:
+  en: 57a66e4c2fa4c31d
+  zh: a4adbeef5f713584
+/agent-note-the-dormant-relayclient-retires-the-noise-vectors-stay/alternatives-considered:
+  en: a125d999ffcc99c0
+  zh: 6c4cd5163170088b
+/agent-note-the-dormant-relayclient-retires-the-noise-vectors-stay/consequences:
+  en: 694de3ac21e17b68
+  zh: 4cc4d8bbb409fbed
+/agent-note-the-dormant-relayclient-retires-the-noise-vectors-stay/open-follow-ups:
+  en: ab1ee62089b159d6
+  zh: 48fde9c1ce5debbb

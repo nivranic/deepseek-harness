@@ -1,6 +1,22 @@
-# Bilingual-pair consistency record (docs/i18n/README.md): the git blob hash of each
-# side as of the last confirmed-consistent state. Both languages carry equal authority;
-# after editing either side, bring the other along and re-record with:
+# Bilingual-pair consistency record for 2026-10-03-view-handoff.md (docs/i18n/README.md): per heading
+# section, a hash of its English and Chinese blocks outside code blocks and generated regions.
+# After editing either side, bring the other along and re-record with:
 #   pnpm run verify-translation-pairing --write .agents/notes/implemented/architecture/2026-10-03-view-handoff.md
-2026-10-03-view-handoff.md: 6317510b2882b112adb232cc9382953f2ce21045
-2026-10-03-view-handoff.zh.md: 3067130b0b3828a841b909657ad86246f3df01d7
+/agent-note-section-26-web-view-handoff-generation-and-receive-side:
+  en: 439514331f696e48
+  zh: 4014ad253b56d4aa
+/agent-note-section-26-web-view-handoff-generation-and-receive-side/problem:
+  en: 52f792e4f1ee675a
+  zh: fa7dbae82dce26a3
+/agent-note-section-26-web-view-handoff-generation-and-receive-side/decision:
+  en: 5d19472547e312b3
+  zh: e3f8702b420e07ba
+/agent-note-section-26-web-view-handoff-generation-and-receive-side/alternatives-considered:
+  en: c99877983bf4e086
+  zh: fbb97d056954b839
+/agent-note-section-26-web-view-handoff-generation-and-receive-side/consequences:
+  en: 91f89b35bfe07d40
+  zh: 82fe55885c7077b4
+/agent-note-section-26-web-view-handoff-generation-and-receive-side/open-work:
+  en: 9b497f63b388b79a
+  zh: bf83624ccbab7dcd

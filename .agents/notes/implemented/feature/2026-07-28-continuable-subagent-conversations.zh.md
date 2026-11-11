@@ -52,7 +52,7 @@ inbox 接受消息前发生任何失败，操作都会在不返回任何 id 的�
 
 浏览器 Prompt 重试使用已记录在子级接收消息中的请求身份。仅属于 Host 的 `subagentPromptReceipts` 投影在 inbox 消费或移除后保留原消息 id；它排除 fork 继承历史，也不在 Client 快照中发布这些身份。每个子级的投递串行化使身份查询与首次准入互斥。冷状态确认在物化激活前折叠持久化观察，因此重复请求不会重启已完成的工作或遗留临时父级持有关系。权限与取消检查先于确认。这保留唯一的 Agent inbox，不增加请求队列、通用变更存储或 Session 事件。
 
-[按目标中断决策](2026-08-06-continuable-subagent-interrupt.zh.md)拥有已观察轮次的重试安全、timing checkpoint 重建及旧的当前轮次行为。
+[按目标中断决策](../../archived/feature/2026-08-06-continuable-subagent-interrupt.md)拥有已观察轮次的重试安全、timing checkpoint 重建及旧的当前轮次行为。
 
 ### 持久化会话与在线激活
 

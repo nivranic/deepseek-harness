@@ -29,6 +29,7 @@
  */
 import type { Volatile } from '@deepseek-ai/cordis'
 
+import { SUBAGENT_REMOTE_CAPABILITIES } from './capabilities.ts'
 import { Context, Service } from '@deepseek-ai/cordis'
 import z from '@deepseek-ai/schemastery'
 import type {} from '@deepseek-ai/dsh-working-directory'
@@ -207,7 +208,7 @@ export class SubagentRuntime extends TypertRemoteService {
   private readonly emitLifecycle: LifecycleEmitter
 
   constructor(ctx: Context, private config: Config) {
-    super(ctx, 'subagents')
+    super(ctx, 'subagents', { capabilities: SUBAGENT_REMOTE_CAPABILITIES })
     this.emitLifecycle = createLifecycleEmitter(this.ctx, parent => scopeTarget(this, parent))
     ctx.inject(['agents'], (childCtx: Context) => {
       const manager = new SubagentManager(childCtx, {

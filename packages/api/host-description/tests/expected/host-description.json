@@ -7,7 +7,7 @@
     "websocket"
   ],
   "apiProtocolVersion": 1,
-  "sessionFormatVersion": 3,
+  "sessionFormatVersion": 4,
   "platform": "<Platform>",
   "arch": "<Arch>",
   "runtimeMode": "full",

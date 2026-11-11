@@ -1,6 +1,22 @@
-# Bilingual-pair consistency record (docs/i18n/README.md): the git blob hash of each
-# side as of the last confirmed-consistent state. Both languages carry equal authority;
-# after editing either side, bring the other along and re-record with:
+# Bilingual-pair consistency record for 2026-10-22-preset-stale.md (docs/i18n/README.md): per heading
+# section, a hash of its English and Chinese blocks outside code blocks and generated regions.
+# After editing either side, bring the other along and re-record with:
 #   pnpm run verify-translation-pairing --write .agents/notes/implemented/architecture/2026-10-22-preset-stale.md
-2026-10-22-preset-stale.md: 608c4ca72ed5a5263365d5ccbe58dac8ef14c8e0
-2026-10-22-preset-stale.zh.md: e3e34e04c662673e1f9d10b02a19daf906b74e19
+/agent-note-a-stale-stored-preset-id-renders-an-assembly-failure-line-not-a-crash:
+  en: 8001ed20a7e48b37
+  zh: b9ca7a6a35121e2b
+/agent-note-a-stale-stored-preset-id-renders-an-assembly-failure-line-not-a-crash/problem:
+  en: 9c729189c74149ac
+  zh: 72a99e2f66edcab9
+/agent-note-a-stale-stored-preset-id-renders-an-assembly-failure-line-not-a-crash/decision:
+  en: 49d6ac3fb265c274
+  zh: ea4a14c58a528676
+/agent-note-a-stale-stored-preset-id-renders-an-assembly-failure-line-not-a-crash/alternatives-considered:
+  en: 7ebec75c0407164f
+  zh: 28a7595b0ab99bdf
+/agent-note-a-stale-stored-preset-id-renders-an-assembly-failure-line-not-a-crash/consequences:
+  en: 4331587beb186d1f
+  zh: d1ed8f28507f5bcd
+/agent-note-a-stale-stored-preset-id-renders-an-assembly-failure-line-not-a-crash/open-follow-ups:
+  en: 2a0a85efda6892d7
+  zh: 56456b5a6d96841e

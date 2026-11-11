@@ -1,6 +1,55 @@
-# Bilingual-pair consistency record (docs/i18n/README.md): the git blob hash of each
-# side as of the last confirmed-consistent state. Both languages carry equal authority;
-# after editing either side, bring the other along and re-record with:
+# Bilingual-pair consistency record for README.md (docs/i18n/README.md): per heading
+# section, a hash of its English and Chinese blocks outside code blocks and generated regions.
+# After editing either side, bring the other along and re-record with:
 #   pnpm run verify-translation-pairing --write packages/client/ui-settings-telemetry/README.md
-README.md: 9203d14d4e7128f60e05e4baf04e13c52312c7fd
-README.zh.md: 2047dc6cf6ee84f5d9490aa2d699fe27fa0a29f9
+/:
+  en: 8b734c2217a1f090
+  zh: 0af26ac6e1c16b16
+/deepseek-ai-dsh-client-ui-settings-telemetry:
+  en: a3dc8c7cbf25abde
+  zh: 538ec2725528625b
+/deepseek-ai-dsh-client-ui-settings-telemetry/summary:
+  en: a26009faf94dd777
+  zh: 2edfd24bf10a33da
+/deepseek-ai-dsh-client-ui-settings-telemetry/table-of-contents:
+  en: d152484eb41ac6b4
+  zh: 09388d293f9be9cb
+/deepseek-ai-dsh-client-ui-settings-telemetry/use-this-package:
+  en: 084c2924cf27a373
+  zh: e686575ab2408482
+/deepseek-ai-dsh-client-ui-settings-telemetry/use-this-package/what-each-category-covers:
+  en: 5774909d54e19165
+  zh: 14e3ad602f0e0d89
+/deepseek-ai-dsh-client-ui-settings-telemetry/use-this-package/when-changes-take-effect:
+  en: 7075943de67d986c
+  zh: 74d06a0bc6dbfd55
+/deepseek-ai-dsh-client-ui-settings-telemetry/use-this-package/read-only-documents:
+  en: ca689025fc7e6a8c
+  zh: 4a1404df59305dc4
+/deepseek-ai-dsh-client-ui-settings-telemetry/understand-the-implementation:
+  en: 45fe52cb00ab3006
+  zh: 17e4a3a92bbe778b
+/deepseek-ai-dsh-client-ui-settings-telemetry/understand-the-implementation/registration:
+  en: 81bf3197c7234b17
+  zh: c70020cb70786c31
+/deepseek-ai-dsh-client-ui-settings-telemetry/understand-the-implementation/reads-and-writes:
+  en: da3591b5d3181269
+  zh: 5c9341aeec4171de
+/deepseek-ai-dsh-client-ui-settings-telemetry/understand-the-implementation/rendering:
+  en: 545b81a07191cace
+  zh: 027151d8671c89fa
+/deepseek-ai-dsh-client-ui-settings-telemetry/further-exploration:
+  en: 90e4a971272c7102
+  zh: 7accb4f3805747be
+/deepseek-ai-dsh-client-ui-settings-telemetry/model-experience:
+  en: 3061726b5a98023e
+  zh: 6023a0f7d676e7cc
+/deepseek-ai-dsh-client-ui-settings-telemetry/model-experience/kv-cache-effect:
+  en: ca75c51c89c2c9b0
+  zh: c4a69d4d8b0599c2
+/deepseek-ai-dsh-client-ui-settings-telemetry/known-limitations-and-deferred-work:
+  en: 6ad660b6015c38eb
+  zh: 60208986eaa81131
+/deepseek-ai-dsh-client-ui-settings-telemetry/known-limitations-and-deferred-work/dev-note:
+  en: 943070c8b6938a35
+  zh: 423ecfbd82764b99

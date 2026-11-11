@@ -2,8 +2,6 @@
 # section, a hash of its English and Chinese blocks outside code blocks and generated regions.
 # After editing either side, bring the other along and re-record with:
 #   pnpm run verify-translation-pairing --write .agents/notes/implemented/architecture/2026-07-10-single-file-executable-sdk-runtime-distribution.md
-2026-07-10-single-file-executable-sdk-runtime-distribution.md: 0984d121b83da2dbba96129d55996ca3a5fd6807
-2026-07-10-single-file-executable-sdk-runtime-distribution.zh.md: 4b7ff1514cc2013d7dc59481bf76db2bd0f5353b
 /agent-note-single-file-executable-sdk-runtime-distribution-single-exe:
   en: 00b5d91d3e44a9f8
   zh: eabd3c4b338249b3
@@ -20,14 +18,14 @@
   en: 5fdde26e9e8c6108
   zh: 629559d733c1f0c5
 /agent-note-single-file-executable-sdk-runtime-distribution-single-exe/decision/plugin-resolution-the-vfs-holds-a-real-package-tree-the-closure-manifest-is-the-deploy-root:
-  en: 985e0eb63f3d1fd6
-  zh: 337cc44fadc6227e
+  en: ea25375d0ed482ba
+  zh: c768669a9ab9ab28
 /agent-note-single-file-executable-sdk-runtime-distribution-single-exe/decision/build-pipeline-and-artifacts:
-  en: 9a4ba22142a7be24
-  zh: 8553b02a923641a3
+  en: 41e561a555b8c63b
+  zh: b992c9578dc78e71
 /agent-note-single-file-executable-sdk-runtime-distribution-single-exe/decision/python-sdk-distribution-two-carriers-exe-for-production-node-for-development:
-  en: b2a740a1ab7a5002
-  zh: a48be6ca6fc65912
+  en: 151d98aa605a2eff
+  zh: 06caac3f95bae5f1
 /agent-note-single-file-executable-sdk-runtime-distribution-single-exe/decision/naming-lineage:
   en: 31a5aecb8bf828bb
   zh: 2dffb6fd2e0f8194

@@ -182,13 +182,6 @@ interface JobOutcome {
    */
   detail?: string
   /**
-   * Shared classification of the Remote failure that broke the job, supplied
-   * by producers whose failure cause was a Remote error the shared vocabulary
-   * classifies. Absent for non-Remote failures and every non-`failed` outcome.
-   */
-  failureClass?: RemoteFailureClass
-  /** Final output for jobs without `readOutput`; stream jobs leave it unset. */
-  output?: string
    * Return value for jobs whose result is a value rather than a stream (a
    * workflow's rendered result, a subagent's report). The output ring carries
    * the stream; this is handed out once by the model's next {@link JobRegistry.read}.
@@ -297,11 +290,6 @@ interface JobView {
   /** Producer-owned cap for complete model-facing notices and reads, in UTF-8 bytes. */
   readonly outputLimitBytes?: number
   /** Current lifecycle state. */
-  status: JobStatus
-  /** Kind-specific status detail, present once the producer supplied one (usually terminal). */
-  detail?: string
-  /** Shared classification of the Remote failure that broke the job; absent for non-Remote failures. */
-  failureClass?: RemoteFailureClass
   readonly status: JobStatus
   /** The producer's live progress line (`3/10`, the current phase); cleared at settlement. */
   readonly progress?: string

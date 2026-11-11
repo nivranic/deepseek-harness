@@ -2,8 +2,6 @@
 # section, a hash of its English and Chinese blocks outside code blocks and generated regions.
 # After editing either side, bring the other along and re-record with:
 #   pnpm run verify-translation-pairing --write packages/host/directory-picker-native/README.md
-README.md: 762eda4ed455336fbdfb2aaf5eb8e3fa6b474c40
-README.zh.md: bb58c6da47ff214c5264cc38d86245c5f1b9d4dd
 /:
   en: caa1e08492610d5a
   zh: ea5b4fca758305d4
@@ -35,8 +33,8 @@ README.zh.md: bb58c6da47ff214c5264cc38d86245c5f1b9d4dd
   en: 98afddc74b2d7010
   zh: 39ed0d1a2508f78e
 /deepseek-ai-dsh-host-directory-picker-native/understand-the-implementation/platform-mechanics:
-  en: 7c637e3e9d30a1bd
-  zh: 488841dc6e737b43
+  en: fc22c1c37b1b25ca
+  zh: e34fab0d6e4df42a
 /deepseek-ai-dsh-host-directory-picker-native/understand-the-implementation/source-map:
   en: 22ecabd6b74d6ecb
   zh: af59381cf2957b68

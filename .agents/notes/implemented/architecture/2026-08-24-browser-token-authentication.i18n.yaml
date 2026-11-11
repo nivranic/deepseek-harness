@@ -2,8 +2,6 @@
 # section, a hash of its English and Chinese blocks outside code blocks and generated regions.
 # After editing either side, bring the other along and re-record with:
 #   pnpm run verify-translation-pairing --write .agents/notes/implemented/architecture/2026-08-24-browser-token-authentication.md
-2026-08-24-browser-token-authentication.md: e9ac002ba408a53f689ec9935055e189ac5a8d7d
-2026-08-24-browser-token-authentication.zh.md: 688acc7dd954b287c715fd73d6d5e553a40759a9
 /agent-note-browser-launch-token-authentication:
   en: 7ab4daa548c2b5a7
   zh: 33a76129efc2079a
@@ -11,11 +9,11 @@
   en: 01293500639c9d79
   zh: 6d19e4843955c811
 /agent-note-browser-launch-token-authentication/decision:
-  en: 51885594bdeb6f0c
-  zh: 9c2e41ad79ccdd08
+  en: eda306964e26e34a
+  zh: 17094539ae0b7941
 /agent-note-browser-launch-token-authentication/verification:
-  en: 189b36d0fc5f3a17
-  zh: 08993cb585204fc0
+  en: a58f544c13be15ba
+  zh: 1c10094764a86335
 /agent-note-browser-launch-token-authentication/alternatives-considered:
   en: 5275c87f19fe6eee
   zh: ccb922367c4bb3e2

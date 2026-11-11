@@ -2,8 +2,6 @@
 # section, a hash of its English and Chinese blocks outside code blocks and generated regions.
 # After editing either side, bring the other along and re-record with:
 #   pnpm run verify-translation-pairing --write docs/subsystems/session-projection.md
-session-projection.md: bac02bd388e117480d0a0a617bf2a78a3eb7c011
-session-projection.zh.md: 41b20de58b0d2f9d06f8b7135bf36560cca2e0b6
 /session-projections:
   en: b2789f5257a935c5
   zh: 12d430a9cd454592

@@ -2,14 +2,12 @@
 # section, a hash of its English and Chinese blocks outside code blocks and generated regions.
 # After editing either side, bring the other along and re-record with:
 #   pnpm run verify-translation-pairing --write python/development.md
-development.md: c2407f16a4efbfe7543c1cacbdc0713f5a57a0ab
-development.zh.md: 8b414cde60dce0383f027f6585dadc688d37f8f4
 /python-contributor-workflows:
   en: e14647f4d39e03f6
   zh: 354bd37e6aea1e86
 /python-contributor-workflows/build-runtime-artifacts:
-  en: 8e99640e4936332d
-  zh: 729d5de1e0ad2869
+  en: c199c45c47cd7908
+  zh: af353dbb2672d46a
 /python-contributor-workflows/validate-the-sdk:
   en: ad4d61dccf2756a4
   zh: 9365affc91287738

@@ -72,11 +72,9 @@ function emptyIdFailure(method: string, field: string) {
     code: 'gateway/bad-request',
     message: `invalid payload for ${method}`,
     details: {
+      // The Gateway serializes each zod issue compactly: code, path, message.
       issues: [{
-        origin: 'string',
         code: 'too_small',
-        minimum: 1,
-        inclusive: true,
         path: [field],
         message: 'Too small: expected string to have >=1 characters',
       }],

@@ -2,8 +2,6 @@
 # section, a hash of its English and Chinese blocks outside code blocks and generated regions.
 # After editing either side, bring the other along and re-record with:
 #   pnpm run verify-translation-pairing --write packages/host/plugin-inventory/README.md
-README.md: f509bc6d69661f31017f07f83bcabe8f8d825e96
-README.zh.md: 5dd3fdcce87020bc2f0dbf67a41fca977f0c38bf
 /:
   en: 94ee43dddb605a56
   zh: 1928b76cbc58ca5a
@@ -17,8 +15,8 @@ README.zh.md: 5dd3fdcce87020bc2f0dbf67a41fca977f0c38bf
   en: d152484eb41ac6b4
   zh: 09388d293f9be9cb
 /deepseek-ai-dsh-host-plugin-inventory/use-this-package:
-  en: 10bbb42c37ba25d2
-  zh: d628b1c9db7847e4
+  en: 89463aa6e1c99506
+  zh: 61cdf11b0f592e96
 /deepseek-ai-dsh-host-plugin-inventory/use-this-package/what-a-snapshot-contains:
   en: c8afdb1aec1c97bd
   zh: 0a8a765e02caab91

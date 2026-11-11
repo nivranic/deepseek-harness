@@ -1,6 +1,25 @@
-# Bilingual-pair consistency record (docs/i18n/README.md): the git blob hash of each
-# side as of the last confirmed-consistent state. Both languages carry equal authority;
-# after editing either side, bring the other along and re-record with:
+# Bilingual-pair consistency record for 2026-09-28-android-share-intake.md (docs/i18n/README.md): per heading
+# section, a hash of its English and Chinese blocks outside code blocks and generated regions.
+# After editing either side, bring the other along and re-record with:
 #   pnpm run verify-translation-pairing --write .agents/notes/implemented/architecture/2026-09-28-android-share-intake.md
-2026-09-28-android-share-intake.md: 8642d1dffc0c0a93c1eebd7346f0a0b10df33334
-2026-09-28-android-share-intake.zh.md: 96e364bbbe308a88d44e8939e142c9c38f564bb3
+/agent-note-android-share-intake-confirms-one-target-and-adopts-complete-batches-atomically:
+  en: 63c2f14189f52163
+  zh: 1c2e1d8b1d6331fa
+/agent-note-android-share-intake-confirms-one-target-and-adopts-complete-batches-atomically/problem:
+  en: 3c44b42a159b3f6c
+  zh: bee1c840d9ee2fd5
+/agent-note-android-share-intake-confirms-one-target-and-adopts-complete-batches-atomically/decision:
+  en: 9b3d782bf63e4f09
+  zh: bfe58bceffae5973
+/agent-note-android-share-intake-confirms-one-target-and-adopts-complete-batches-atomically/atomic-draft-adoption:
+  en: 35d850d33b2ec2ef
+  zh: f9f0f593dbf41c5f
+/agent-note-android-share-intake-confirms-one-target-and-adopts-complete-batches-atomically/restoration-and-ownership:
+  en: 4f8e62ffc24f0850
+  zh: a39182e7ca093856
+/agent-note-android-share-intake-confirms-one-target-and-adopts-complete-batches-atomically/alternatives-considered:
+  en: fe68b4c4273bb8e5
+  zh: 8dd37b01b2a5deb2
+/agent-note-android-share-intake-confirms-one-target-and-adopts-complete-batches-atomically/consequences:
+  en: 81a3e3dac125c494
+  zh: 9bb52839a5942ae6

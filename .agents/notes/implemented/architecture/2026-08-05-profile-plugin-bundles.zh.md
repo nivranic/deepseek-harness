@@ -22,8 +22,7 @@ Status: implemented
 
 组合包名称先从 dsh 安装目录解析，再从 profile 目录解析，因此内置组合包使用正在运行的安装。裸插件名称通过 profile 目录解析到 `$DSH_HOME/profiles/node_modules`。普通 Node 在该目录修复符号链接，打包可执行文件则写入指向虚拟模块 URL 的 ESM 代理。打包依赖查找限定在已部署安装内，因为 pkg 中可能存在构建机父目录记录，却没有可部署的模块内容。普通 Node 保留父目录解析行为。
 
-Windows 会先创建 junction 目录，再附加 reparse point，因此创建中断后可能在 dsh 自有 fallback 位置留下空目录。修复过程只用非递归的 `rmdirSync` 移除该空目录，再重试创建链接。外来文件与非空的非托管目录仍会使启动失败；pnpm 管理的 profile 条目不在该恢复范围内。递归删除整个路径会失去这项内容保护。
-解析在构造上就是双锚点的：`dsh.profile.bundles` 中的名称先从 dsh 安装目录解析，再从 profile 目录解析，因此内置组合包始终来自与运行中 `dsh` 相同的安装，pnpm 从不管理它们。patch 行中的裸插件名称使用[不可变 runtime resolution](2026-09-09-profile-resolution-generations.zh.md)，在内存中应用安装优先与有序 bundle 规则，并从包的真实目录展开依赖。
+Windows 会先创建 junction 目录，再附加 reparse point，因此创建中断后可能在 dsh 自有 fallback 位置留下空目录。修复过程只用非递归的 `rmdirSync` 移除该空目录，再重试创建链接。外来文件与非空的非托管目录仍会使启动失败；pnpm 管理的 profile 条目不在该恢复范围内。递归删除整个路径会失去这项内容保护。 解析在构造上就是双锚点的：`dsh.profile.bundles` 中的名称先从 dsh 安装目录解析，再从 profile 目录解析，因此内置组合包始终来自与运行中 `dsh` 相同的安装，pnpm 从不管理它们。patch 行中的裸插件名称使用[不可变 runtime resolution](2026-09-09-profile-resolution-generations.zh.md)，在内存中应用安装优先与有序 bundle 规则，并从包的真实目录展开依赖。
 
 两项配套重构：webserver 内置的静态 dist 服务改为单一所有者的**回退席位**（`registerFallback`／`applyIndexTaps`），SPA 服务器提取到 `@deepseek-ai/dsh-host-frontend-static`，使 web 组合包以组合的方式持有自己的 dist，而不是靠启动器代码；[dsh CLI 个人配置决策](../../archived/feature/2026-07-20-dsh-cli-personal-config.md)的个人 overlay 机制（`loadPersonalPatches`、`$DSH_HOME/config.yaml`）改为面向逐 profile 与 home 级的 `cordis.patch.yml` 层（`loadOptionalPatches`、接受文件名的 `watchUserPatches`），取代该笔记的各入口模式与文件位置，同时保留其 Harness home 根目录、patch 语义与响亮失败的解析。
 

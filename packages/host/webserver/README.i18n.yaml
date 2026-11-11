@@ -2,8 +2,6 @@
 # section, a hash of its English and Chinese blocks outside code blocks and generated regions.
 # After editing either side, bring the other along and re-record with:
 #   pnpm run verify-translation-pairing --write packages/host/webserver/README.md
-README.md: 1cca8add9e0312b3fc5d88bff00da94bd3a1858b
-README.zh.md: d7f766080568fa21e46d9b0356431c0773362e09
 /:
   en: 7b0123143b731803
   zh: 0ef8ad760107d8f6
@@ -29,8 +27,8 @@ README.zh.md: d7f766080568fa21e46d9b0356431c0773362e09
   en: 55b5f5751c46e0ee
   zh: 6c609104f0798e01
 /deepseek-ai-dsh-host-webserver/use-this-package/the-fallback-seat:
-  en: 20e5a88f42ba38aa
-  zh: f20d2f4b3eba267a
+  en: 7e0ab1d1e256fc33
+  zh: d30a3f395ef63ba8
 /deepseek-ai-dsh-host-webserver/use-this-package/behavior-under-failure:
   en: 1bfff905b600f694
   zh: 73f3b7704af686dc

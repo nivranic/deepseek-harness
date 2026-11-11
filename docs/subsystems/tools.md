@@ -8,8 +8,7 @@ Source: [`packages/core/tools/src/index.ts`](../../packages/core/tools/src/index
 
 ## `ToolDefinition` — a registered tool
 
-A `ToolSchema` (the model-facing fields) plus a mandatory canonical output declaration, the `execute` function, host-only scheduler metadata, an optional final-content callback, optional UI presenters, and five host-only declaration fields (specification §32): `version`, `risk`, `permissions`, `supportsLite`, and `supportsRemote`. The registry holds these; the loop dispatches calls through them. The registry's `schemas()` builds the model-facing `ToolSchema[]` by an explicit allowlist — `output`/`execute`/`finalizeContent`/`timeoutMs`/`isConcurrencySafe`/`presentCall`/`presentResult` and the five declaration fields must never leak into a model request; the declaration fields project onto `ToolDescriptor` for Remote catalog clients instead.
-A `ToolSchema` (the model-facing fields) plus a mandatory canonical output declaration, the `execute` function, host-only scheduler metadata, an optional final-content callback, and optional UI presenters. The registry holds these; the loop dispatches calls through them. The registry's `schemas()` builds the model-facing `ToolSchema[]` by an explicit allowlist — `output`/`execute`/`projectContent`/`finalizeContent`/`timeoutMs`/`isConcurrencySafe`/`presentCall`/`presentResult` must never leak into a model request.
+A `ToolSchema` (the model-facing fields) plus a mandatory canonical output declaration, the `execute` function, host-only scheduler metadata, an optional final-content callback, optional UI presenters, and five host-only declaration fields (specification §32): `version`, `risk`, `permissions`, `supportsLite`, and `supportsRemote`. The registry holds these; the loop dispatches calls through them. The registry's `schemas()` builds the model-facing `ToolSchema[]` by an explicit allowlist — `output`/`execute`/`finalizeContent`/`timeoutMs`/`isConcurrencySafe`/`presentCall`/`presentResult` and the five declaration fields must never leak into a model request; the declaration fields project onto `ToolDescriptor` for Remote catalog clients instead. A `ToolSchema` (the model-facing fields) plus a mandatory canonical output declaration, the `execute` function, host-only scheduler metadata, an optional final-content callback, and optional UI presenters. The registry holds these; the loop dispatches calls through them. The registry's `schemas()` builds the model-facing `ToolSchema[]` by an explicit allowlist — `output`/`execute`/`projectContent`/`finalizeContent`/`timeoutMs`/`isConcurrencySafe`/`presentCall`/`presentResult` must never leak into a model request.
 
 ```ts type-equiv
 /** Tool-owned canonical output contract used after the body returns a JSON value. */
@@ -24,13 +23,7 @@ interface ToolOutputDefinition {
 ```
 
 ```ts type-equiv
-/**
- * A registered tool: its schema plus the execution function. The five
- * host-only declaration fields (`version`, `risk`, `permissions`,
- * `supportsLite`, `supportsRemote`) never reach the model wire — `schemas()`
- * allowlists only name/description/parameters — and never enter the session
- * log; they project onto {@link ToolDescriptor} for Remote catalog clients.
- */
+/** A registered tool: its schema plus the execution function. */
 interface ToolDefinition extends ToolSchema {
   /** Mandatory canonical output declaration. */
   readonly output: ToolOutputDefinition
@@ -38,25 +31,27 @@ interface ToolDefinition extends ToolSchema {
    * Descriptor schema version of this tool's host-only declaration
    * (specification §32), a positive integer starting at 1; it advances only
    * when the declaration semantics change, never for tool-behavior fixes.
+   * Optional in the merged surface: official-authored tools omit it until the
+   * Lite catalog consumers return to enforce it.
    */
-  readonly version: number
-  /** Host-assessed risk tier (specification §32) from the tool's side-effect surface; clients display it, never re-derive it. */
-  readonly risk: ToolRisk
+  readonly version?: number
+  /** Host-assessed risk tier (specification §32); see {@link ToolRisk}. */
+  readonly risk?: ToolRisk
   /**
    * Extra Remote permissions a device-identified caller needs to COMPLETE one
    * call of this tool (specification §32), drawn from the Remote capability
    * permission vocabulary; empty means the call claims nothing beyond the
    * permission that dispatched the driving prompt.
    */
-  readonly permissions: readonly RemoteCapabilityPermission[]
+  readonly permissions?: readonly RemoteCapabilityPermission[]
   /**
    * Whether a Lite companion may execute this tool locally instead of handing
    * back to the full runtime (specification §32): the Host declares it, a
    * client never guesses. False keeps the handoff path.
    */
-  readonly supportsLite: boolean
+  readonly supportsLite?: boolean
   /** Whether this tool is reachable and Host-executed when a session runs on the Remote face. */
-  readonly supportsRemote: boolean
+  readonly supportsRemote?: boolean
   /**
    * Run one accepted call and return only its canonical lossless-JSON value.
    * Async work must observe or forward `exec.signal` and settle only after its
@@ -568,17 +563,6 @@ Each interception waterfall returns a typed **Decision** (the idiom shared with 
 
 ```ts type-equiv
 /**
- * Pre-dispatch decision. `allow` runs the call; `deny` materializes an error;
- * `ask` runs only after an approval service returns `allowed-once` and otherwise
- * denies. Input rewriting is excluded because arguments are already logged and
- * presented. An `ask` may carry the asker's §37 risk tier; `serviceAsk` forwards
- * it to the approval seam, whose durable event and panel render it — the Host
- * layer classifies, the Client only displays.
- */
-type PreToolDecision =
-  | { kind: 'allow' }
-  | { kind: 'deny'; reason: string }
-  | { kind: 'ask'; reason?: string; risk?: ToolAskRisk }
  * Pre-dispatch decision. `allow` runs the call; `deny` materializes its
  * model-facing reason and optional structured error identity; `cancel` selects
  * the canonical cancellation result without presenting a policy denial; `ask`
@@ -755,34 +739,6 @@ definitions(scope?: ScopeKey, toolSet?: ResolvedToolSet): readonly ToolDefinitio
 schemas(scope?: ScopeKey, toolSet?: ResolvedToolSet): ToolSchema[]
 
 /**
- * Project visible definitions onto their host-only descriptor fields
- * (specification §32): identity, declaration version, risk tier, claimed
- * permissions, and the two runtime-support flags. Dynamically registered
- * tools (MCP bridge, sandbox packages) appear with the values their
- * producers registered — there is no separate descriptor source. Like
- * `schemas()`, this never exposes model-face projections or execution
- * callbacks, and it adds none of the model wire's fields.
- * @param scope - the viewing scope (the agent); omitted = the global view.
- * @returns id-sorted frozen descriptors of every tool visible to that scope.
- */
-descriptors(scope?: ScopeKey): readonly ToolDescriptor[]
-
-/**
- * Live Remote tool catalog (specification §32): the globally visible
- * descriptors as one document schema-identical to the generated
- * `packages/core/tools/tool-descriptors.json` projection. Catalog
- * visibility authorizes nothing — tool execution still rides the driving
- * prompt's permission and the full guarded pipeline.
- * @returns the descriptor document for the global view.
- */
-@Remote list(): ToolDescriptorList
-
-/**
- * Classify a pending call through the caller's visible tool definition. Only
- * an exact `true` is parallel; unknown, hidden, undeclared, invalid, or
- * throwing classifiers are exclusive.
- * @param exec - call name, parsed arguments, and optional agent scope.
- * @returns the fail-closed scheduling mode.
  * Provide the executor for the calling scope; an unscoped contribution is the deployment default.
  * Rendering any executor-owned section requires the viewing scope's selection to remain available.
  * @param executor - initialized provider owned by the contributing plugin.

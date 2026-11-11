@@ -12,7 +12,7 @@ Retrying unsupported protocols or invalid discovery indefinitely presents an app
 
 The [Gateway Client](../../../../packages/api/gateway/src/client/index.ts) classifies generation failures: unsupported Host/Gateway protocols and missing required discovery capabilities become `incompatible`; invalid discovery and a withdrawn preparation owner become `fatal`. Classification applies to establishing the shared generation, not ordinary failed business calls.
 
-The [Connection controller](../../../../packages/client/connection/src/client/connection.ts) invokes classification after source settlement and pauses using its existing retry wait. Explicit reconnect or browser network change releases that wait. Cancellation cannot replace a requested reconnect or offline state with a late failure. Unclassified failures retain [continuous recovery](2026-09-05-continuous-client-recovery.md); this decision narrows that note's retry policy without replacing its deadlines, cleanup requirements or single scheduler.
+The [Connection controller](../../../../packages/client/connection/src/client/connection.ts) invokes classification after source settlement and pauses using its existing retry wait. Explicit reconnect or browser network change releases that wait. Cancellation cannot replace a requested reconnect or offline state with a late failure. Unclassified failures retain [continuous recovery](../../archived/bug-fix/2026-09-05-continuous-client-recovery.md); this decision narrows that note's retry policy without replacing its deadlines, cleanup requirements or single scheduler.
 
 Settings displays localized remediation and manual reconnect, including in the collapsed rail. Gateway refuses business admission until discovery and event readiness succeed again. This adds no Session events, durable mutation queue, new transport or authorization.
 
@@ -24,7 +24,7 @@ Settings displays localized remediation and manual reconnect, including in the c
 
 ## Consequences
 
-Manual retry repeats discovery and never bypasses admission. A network transition may recheck the same failure. HTTP authentication rejection follows the [browser-authentication decision](../architecture/2026-08-24-browser-token-authentication.md). Delayed Host readiness follows the [continuous recovery decision](2026-09-05-continuous-client-recovery.md). Device revocation remains separate work; these two states do not claim complete Connection UX or device enforcement.
+Manual retry repeats discovery and never bypasses admission. A network transition may recheck the same failure. HTTP authentication rejection follows the [browser-authentication decision](../architecture/2026-08-24-browser-token-authentication.md). Delayed Host readiness follows the [continuous recovery decision](../../archived/bug-fix/2026-09-05-continuous-client-recovery.md). Device revocation remains separate work; these two states do not claim complete Connection UX or device enforcement.
 
 ## Testing
 

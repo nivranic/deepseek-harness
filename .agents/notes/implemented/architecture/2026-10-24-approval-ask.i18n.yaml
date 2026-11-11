@@ -1,6 +1,19 @@
-# Bilingual-pair consistency record (docs/i18n/README.md): the git blob hash of each
-# side as of the last confirmed-consistent state. Both languages carry equal authority;
-# after editing either side, bring the other along and re-record with:
+# Bilingual-pair consistency record for 2026-10-24-approval-ask.md (docs/i18n/README.md): per heading
+# section, a hash of its English and Chinese blocks outside code blocks and generated regions.
+# After editing either side, bring the other along and re-record with:
 #   pnpm run verify-translation-pairing --write .agents/notes/implemented/architecture/2026-10-24-approval-ask.md
-2026-10-24-approval-ask.md: bf89415ec4f1c08ce9de7d6b8cd1810c64f63885
-2026-10-24-approval-ask.zh.md: 3472d67bf8b2dfae786a1cdd5423b08030fd6a63
+/agent-note-the-lite-permission-ladder-gains-an-approval-tier-with-38-s-dialog:
+  en: 6279657d42bd619d
+  zh: 8d38c625cb90268f
+/agent-note-the-lite-permission-ladder-gains-an-approval-tier-with-38-s-dialog/problem:
+  en: 5d34f98b47c87c71
+  zh: e1386fde59a5d1c8
+/agent-note-the-lite-permission-ladder-gains-an-approval-tier-with-38-s-dialog/decision:
+  en: 8fd5534cb33d5261
+  zh: b6c5c6b88dd4c5fc
+/agent-note-the-lite-permission-ladder-gains-an-approval-tier-with-38-s-dialog/alternatives-considered:
+  en: f7d8861cd5ffbd35
+  zh: 09f890019a7d14e3
+/agent-note-the-lite-permission-ladder-gains-an-approval-tier-with-38-s-dialog/consequences:
+  en: f2c1ba04009daba4
+  zh: 3222550a4503e105

@@ -1,6 +1,19 @@
-# Bilingual-pair consistency record (docs/i18n/README.md): the git blob hash of each
-# side as of the last confirmed-consistent state. Both languages carry equal authority;
-# after editing either side, bring the other along and re-record with:
+# Bilingual-pair consistency record for 2026-09-16-lsp-request-observation.md (docs/i18n/README.md): per heading
+# section, a hash of its English and Chinese blocks outside code blocks and generated regions.
+# After editing either side, bring the other along and re-record with:
 #   pnpm run verify-translation-pairing --write .agents/notes/implemented/testing/2026-09-16-lsp-request-observation.md
-2026-09-16-lsp-request-observation.md: f5c1fe8e5409806039b221c448aabf10885bef8f
-2026-09-16-lsp-request-observation.zh.md: 4ca314b2808dadc09541725559e2f7da44c84a10
+/agent-note-lsp-cancellation-observes-request-receipt:
+  en: 2899d2e4ecc0be6f
+  zh: 93ca70a5fbee1263
+/agent-note-lsp-cancellation-observes-request-receipt/problem:
+  en: 94e32ee3fb2386ce
+  zh: f60bb5581cb1bb5c
+/agent-note-lsp-cancellation-observes-request-receipt/decision:
+  en: 51b754534d7be3f5
+  zh: f2cf08ba81466ed7
+/agent-note-lsp-cancellation-observes-request-receipt/alternatives-considered:
+  en: 55cc31582a1af014
+  zh: 730bb4734e939ad8
+/agent-note-lsp-cancellation-observes-request-receipt/consequences:
+  en: 841ba30f461daf98
+  zh: 4cf0e1dec9c9f754

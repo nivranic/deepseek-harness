@@ -1,6 +1,22 @@
-# Bilingual-pair consistency record (docs/i18n/README.md): the git blob hash of each
-# side as of the last confirmed-consistent state. Both languages carry equal authority;
-# after editing either side, bring the other along and re-record with:
+# Bilingual-pair consistency record for 2026-09-30-native-digest-memory.md (docs/i18n/README.md): per heading
+# section, a hash of its English and Chinese blocks outside code blocks and generated regions.
+# After editing either side, bring the other along and re-record with:
 #   pnpm run verify-translation-pairing --write .agents/notes/implemented/architecture/2026-09-30-native-digest-memory.md
-2026-09-30-native-digest-memory.md: e9dfc3890301c1e88e211105c6fd7e8a32bc3a36
-2026-09-30-native-digest-memory.zh.md: d1204f5d271f0dc2c77271d8b13aab586b52138b
+/agent-note-the-companion-persists-uploaded-file-digests-across-its-own-process-restarts:
+  en: 2a5c7029c7e9619e
+  zh: bb536b3988fc918f
+/agent-note-the-companion-persists-uploaded-file-digests-across-its-own-process-restarts/problem:
+  en: 448975faac8bbc20
+  zh: 7f09644df4839c8d
+/agent-note-the-companion-persists-uploaded-file-digests-across-its-own-process-restarts/decision:
+  en: 2bc52401b71977fe
+  zh: eb2e4ac32879b6b3
+/agent-note-the-companion-persists-uploaded-file-digests-across-its-own-process-restarts/alternatives-considered:
+  en: a5bef5c4ff3dff89
+  zh: 369dbae84a7bf413
+/agent-note-the-companion-persists-uploaded-file-digests-across-its-own-process-restarts/consequences:
+  en: 5f910baa96a48014
+  zh: 17b836c86ff8d177
+/agent-note-the-companion-persists-uploaded-file-digests-across-its-own-process-restarts/open-work:
+  en: 13ae01ec243b2b05
+  zh: a102d50429b39c3c

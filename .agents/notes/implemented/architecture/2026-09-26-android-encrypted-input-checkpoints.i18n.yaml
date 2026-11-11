@@ -1,6 +1,19 @@
-# Bilingual-pair consistency record (docs/i18n/README.md): the git blob hash of each
-# side as of the last confirmed-consistent state. Both languages carry equal authority;
-# after editing either side, bring the other along and re-record with:
+# Bilingual-pair consistency record for 2026-09-26-android-encrypted-input-checkpoints.md (docs/i18n/README.md): per heading
+# section, a hash of its English and Chinese blocks outside code blocks and generated regions.
+# After editing either side, bring the other along and re-record with:
 #   pnpm run verify-translation-pairing --write .agents/notes/implemented/architecture/2026-09-26-android-encrypted-input-checkpoints.md
-2026-09-26-android-encrypted-input-checkpoints.md: 3e2abe1d1e02cfa3c8f1de183468d0e2ccf50a15
-2026-09-26-android-encrypted-input-checkpoints.zh.md: b362a0b137c2bcf885a72984914300d8ab7ecb24
+/agent-note-android-saves-principal-scoped-input-before-explicit-submission:
+  en: 6b16211a4b9df0ac
+  zh: 734108b4f28ba461
+/agent-note-android-saves-principal-scoped-input-before-explicit-submission/problem:
+  en: 03e271701f68dbbd
+  zh: 208907c6eb047b27
+/agent-note-android-saves-principal-scoped-input-before-explicit-submission/decision:
+  en: 357686a99aa21b06
+  zh: cf2471dcc8727995
+/agent-note-android-saves-principal-scoped-input-before-explicit-submission/alternatives-considered:
+  en: e87e567e942be9bf
+  zh: 422c977fd1f91c25
+/agent-note-android-saves-principal-scoped-input-before-explicit-submission/consequences:
+  en: a1692e3f9a725b92
+  zh: 40190622df66b3ec

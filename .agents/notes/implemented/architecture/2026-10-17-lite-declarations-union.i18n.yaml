@@ -1,6 +1,22 @@
-# Bilingual-pair consistency record (docs/i18n/README.md): the git blob hash of each
-# side as of the last confirmed-consistent state. Both languages carry equal authority;
-# after editing either side, bring the other along and re-record with:
+# Bilingual-pair consistency record for 2026-10-17-lite-declarations-union.md (docs/i18n/README.md): per heading
+# section, a hash of its English and Chinese blocks outside code blocks and generated regions.
+# After editing either side, bring the other along and re-record with:
 #   pnpm run verify-translation-pairing --write .agents/notes/implemented/architecture/2026-10-17-lite-declarations-union.md
-2026-10-17-lite-declarations-union.md: bb3d4cb46849fbb3c0d7c46cc0da076e93cfa047
-2026-10-17-lite-declarations-union.zh.md: 8e4475b952565c1f1c9ef40866943be3afe277f4
+/agent-note-lite-tool-declarations-ship-as-an-apk-frozen-union-catalog:
+  en: 840172ec6c7f42be
+  zh: bd7ac7ba4ea83051
+/agent-note-lite-tool-declarations-ship-as-an-apk-frozen-union-catalog/problem:
+  en: 44766ef986cfaa97
+  zh: d0eab643254ff161
+/agent-note-lite-tool-declarations-ship-as-an-apk-frozen-union-catalog/decision:
+  en: 7f4b0839c4e3b2c0
+  zh: 5e4fa4662fe30149
+/agent-note-lite-tool-declarations-ship-as-an-apk-frozen-union-catalog/alternatives-considered:
+  en: ebf761e491e13d69
+  zh: 8a0b6ce06c01acf5
+/agent-note-lite-tool-declarations-ship-as-an-apk-frozen-union-catalog/consequences:
+  en: dd52e98fa193d05d
+  zh: b1297c9206405fa6
+/agent-note-lite-tool-declarations-ship-as-an-apk-frozen-union-catalog/open-follow-ups:
+  en: 3964e5f41d6cf2c0
+  zh: 4eed0a7db8966af7

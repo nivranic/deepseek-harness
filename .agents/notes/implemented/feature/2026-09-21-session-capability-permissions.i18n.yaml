@@ -1,6 +1,19 @@
-# Bilingual-pair consistency record (docs/i18n/README.md): the git blob hash of each
-# side as of the last confirmed-consistent state. Both languages carry equal authority;
-# after editing either side, bring the other along and re-record with:
+# Bilingual-pair consistency record for 2026-09-21-session-capability-permissions.md (docs/i18n/README.md): per heading
+# section, a hash of its English and Chinese blocks outside code blocks and generated regions.
+# After editing either side, bring the other along and re-record with:
 #   pnpm run verify-translation-pairing --write .agents/notes/implemented/feature/2026-09-21-session-capability-permissions.md
-2026-09-21-session-capability-permissions.md: 48db07d22fc37ea1ccc8bc0e639f613f91707a7e
-2026-09-21-session-capability-permissions.zh.md: 06a423f050191a45dad55928f948da29a41b72dc
+/agent-note-session-capabilities-declare-their-device-permissions-with-read-write-splits:
+  en: ca3529e0981c7b53
+  zh: 8bfaaa5f08a9564f
+/agent-note-session-capabilities-declare-their-device-permissions-with-read-write-splits/problem:
+  en: 5b95e1726717fbc0
+  zh: 366673685f06a788
+/agent-note-session-capabilities-declare-their-device-permissions-with-read-write-splits/decision:
+  en: 4f52ed7b8d60730e
+  zh: 518cf947bb4adbd9
+/agent-note-session-capabilities-declare-their-device-permissions-with-read-write-splits/alternatives-considered:
+  en: db0cf20fad711a7a
+  zh: 710fb180564e8366
+/agent-note-session-capabilities-declare-their-device-permissions-with-read-write-splits/consequences:
+  en: 124ac530bdfed519
+  zh: 0c987cd1c373cbb4

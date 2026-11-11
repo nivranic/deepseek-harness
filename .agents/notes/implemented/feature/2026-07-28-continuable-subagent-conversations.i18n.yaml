@@ -2,8 +2,6 @@
 # section, a hash of its English and Chinese blocks outside code blocks and generated regions.
 # After editing either side, bring the other along and re-record with:
 #   pnpm run verify-translation-pairing --write .agents/notes/implemented/feature/2026-07-28-continuable-subagent-conversations.md
-2026-07-28-continuable-subagent-conversations.md: faba81fe678ce296dda114559907e7efdea0a10f
-2026-07-28-continuable-subagent-conversations.zh.md: 3ed61258d0050e1c81318f002c09896f837ed182
 /agent-note-continuable-subagents:
   en: 110c0660aacfa3e4
   zh: cf405fad1c5834f7
@@ -14,8 +12,8 @@
   en: 3420195435e02a8f
   zh: 6156eedb3c23d360
 /agent-note-continuable-subagents/decision/materialization-and-public-operations:
-  en: c3a83ff748a02143
-  zh: 468bf62c8ddabf70
+  en: 1a5c5fddfd7f6139
+  zh: 645aeb58b961a8ca
 /agent-note-continuable-subagents/decision/durable-session-and-live-activation:
   en: 5c96c0343564c64a
   zh: 85686e022d870cc7

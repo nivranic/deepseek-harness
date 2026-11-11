@@ -22,6 +22,6 @@ Status: implemented
 
 ## 影响
 
-畸形前缀不会导致反复扫描其后缀。渲染器保留宽松的片段行为，包括浏览器解析器会作不同解释的匹配。[Web 传输归属](../architecture/2026-07-24-web-config-tree-boot-and-transport-layering.zh.md)和[客户端加载](../architecture/2026-07-23-client-plugin-loading-model.zh.md)决策仍各自有效；此查找不改变其归属或启动协议。
+畸形前缀不会导致反复扫描其后缀。渲染器保留宽松的片段行为，包括浏览器解析器会作不同解释的匹配。[Web 传输归属](../../archived/architecture/2026-07-24-web-config-tree-boot-and-transport-layering.md)和[客户端加载](../architecture/2026-07-23-client-plugin-loading-model.zh.md)决策仍各自有效；此查找不改变其归属或启动协议。
 
 必要验证包括两种放置位置的逐字节插入与回退用例、通过 Loader 组合的渲染器的行及 tap 顺序，以及在带超时的子进程中处理重复且未闭合的前缀，以便中断同步回归。不改变 Session 事件、模型可见输入或产品展示文案。

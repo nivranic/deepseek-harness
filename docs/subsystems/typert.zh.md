@@ -387,8 +387,7 @@ interface TypertRemoteNamespaceMap {}
 
 内部协议 2 的 ready 帧通过可选字段 `pendingInteractionIds` 列出为该 Client 连接代次排队的待处理交互。[Gateway 回答保留](../../packages/api/gateway/README.zh.md#client-service-clientremote-ctx-key-remote)要求同时具备此快照与应用准备回调提供的品牌类型 `RemoteInteractionReplyScope`，将重试限制在同一已发现 Host 的待处理工作内。缺少 scope 时禁用保留；scope 仅属于 Client，不是 wire 字段或授权决定。
 
-Connection 会先解码 carrier envelope，再调用 `ctx.typertGateway`。请求将精确的具名 wire 字段与 carrier 的取消 signal 分开携带；基础设施与边界失败由 `TypertGatewayError` 承载，其 `gateway/*` 码就是普通的 `RemoteError` 码，因此 RPC 适配器会把每个经结构识别的 `RemoteError` 连同其 code 与 details 原样放行，只把无法识别的异常归并为 `gateway/internal`。
-Connection 会先解码 carrier envelope，再调用 `ctx.typertGateway`。请求将精确的具名 wire 字段、carrier 的取消 signal 与本次调用代表的 Peer 分开携带；每个载体与进程内调用方都显式给出该 Peer，Gateway 以 `gateway/peer-disposed` 拒绝已 dispose 的 Peer。对非 owner 调用，Gateway 在参数校验之后、任何 lookup 或 Context 解析之前解析其资源并询问 `ctx.remoteAccess.decide()`；基础设施与边界失败由 `TypertGatewayError` 承载，其 `gateway/*` 码就是普通的 `RemoteError` 码，因此 RPC 适配器会把每个经结构识别的 `RemoteError` 连同其 code 与 details 原样放行，只把无法识别的异常归并为 `gateway/internal`。
+Connection 会先解码 carrier envelope，再调用 `ctx.typertGateway`。请求将精确的具名 wire 字段与 carrier 的取消 signal 分开携带；基础设施与边界失败由 `TypertGatewayError` 承载，其 `gateway/*` 码就是普通的 `RemoteError` 码，因此 RPC 适配器会把每个经结构识别的 `RemoteError` 连同其 code 与 details 原样放行，只把无法识别的异常归并为 `gateway/internal`。 Connection 会先解码 carrier envelope，再调用 `ctx.typertGateway`。请求将精确的具名 wire 字段、carrier 的取消 signal 与本次调用代表的 Peer 分开携带；每个载体与进程内调用方都显式给出该 Peer，Gateway 以 `gateway/peer-disposed` 拒绝已 dispose 的 Peer。对非 owner 调用，Gateway 在参数校验之后、任何 lookup 或 Context 解析之前解析其资源并询问 `ctx.remoteAccess.decide()`；基础设施与边界失败由 `TypertGatewayError` 承载，其 `gateway/*` 码就是普通的 `RemoteError` 码，因此 RPC 适配器会把每个经结构识别的 `RemoteError` 连同其 code 与 details 原样放行，只把无法识别的异常归并为 `gateway/internal`。
 
 ```ts type-equiv
 /** One Remote method request after a carrier has decoded its envelope. */
@@ -440,46 +439,10 @@ type TypertGatewayErrorCode =
 ```
 
 ```ts type-equiv
-/** Device-authenticated RPC and streams bound to the factory caller's Cordis context. */
-interface TypertGatewayDeviceConnection {
-  /** Decode and authorize one device RPC; unsigned pairing redemption is the sole exception. */
-  readonly rpc: ConnectionRpcHandler
-  /** Open device-owned streams; device grants remain revocable throughout iteration. */
-  readonly stream: TypertGatewayWireStream
-}
-```
-
-```ts type-equiv
 /** Host dispatcher consumed by Connection adapters. */
 interface TypertGateway {
   /** Carrier adapter shared by WebSocket and in-process transports. */
   readonly wireStream: TypertGatewayWireStream
-
-  /**
-   * Capture the caller's Cordis context for a native carrier. Direct methods
-   * resolve services in that context on every call. Device identity is required
-   * except for one-time pairing redemption; browser cookies cannot authorize it.
-   * @returns RPC and stream callbacks retaining the caller's service scope.
-   */
-  createDeviceConnection(): TypertGatewayDeviceConnection
-
-  /**
-   * Terminate every physical Remote stream connection a device currently
-   * holds. Carriers are destroyed without a close handshake, so each logical
-   * stream ends as carrier loss; the device's admission and grants survive.
-   * @param request - device identity whose live connections end now.
-   * @returns how many physical connections were destroyed; zero when none.
-   */
-  terminateDeviceConnections(request: { deviceId: DeviceId }): { terminated: number }
-
-  /**
-   * Read explicit capability ids from active Remote bindings whose required
-   * methods are available. Withdrawn strict definitions are not advertised.
-   * This describes operations, not a caller's authorization to invoke them.
-   * @returns unique capability ids in lexical order.
-   * @throws for duplicate ids, invalid method declarations, or inconsistent bindings.
-   */
-  capabilities(): readonly string[]
   /**
    * Check for an active owner Client event stream, the only kind that can answer forwarded waterfalls.
    * @returns whether an owner stream is open and has not been cancelled.
@@ -487,6 +450,12 @@ interface TypertGateway {
   hasLiveClient(): boolean
   /** @returns detached metadata for all unsettled forwarded events in arrival order. */
   getPendingRemoteEvents(): readonly PendingRemoteEventInfo[]
+  /**
+   * Read the explicit operation sets of live Remote owners without invoking them.
+   * @returns sorted capability ids whose required method definitions are available.
+   * @throws for duplicate ids, invalid method declarations, or inconsistent bindings.
+   */
+  capabilities(): readonly string[]
   /**
    * Register the application-selected forwarded-event source.
    * @param source - stream factory installed by the Remote assembly.
@@ -708,29 +677,6 @@ Read-only Remote namespace for Host facts and explicitly declared capabilities.
 
 Source: [`packages/api/host-description/src/index.ts`](../../packages/api/host-description/src/index.ts)
 
-<a id="ctxnativeremote--nativeremoteservice"></a>
-
-### `ctx.nativeRemote` — `NativeRemoteService`
-
-A separately configured HTTPS listener with no browser assets, cookies, or local exact Fetch routes.
-
-```ts cordis-catalog
-/**
- * Read the bound port and certificate pin for the local operator.
- * @returns public identity facts, without certificate or private-key material.
- * @throws while the listener is not ready or has been disposed.
- */
-@Remote('describe') describe(): NativeRemoteInfo
-
-/**
- * Read this listener's buffered HTTP body limit without granting upload permission.
- * @returns the inclusive byte limit used by this listener's HTTP bridge.
- * @throws while the listener is not ready or has been disposed.
- */
-@Remote('httpRequestBudget') httpRequestBudget(): NativeHttpRequestBudget
-```
-
-Source: [`packages/api/native-remote/src/index.ts`](../../packages/api/native-remote/src/index.ts)
 <a id="ctxremoteaccess--remoteaccessservice"></a>
 
 ### `ctx.remoteAccess` — `RemoteAccessService`
@@ -884,22 +830,6 @@ Resolve strict generated definitions or conservative SRC markers against current
 
 ```ts cordis-catalog
 /**
- * Capture the caller's Cordis context for a native carrier. Direct methods
- * resolve services in that context on every call. Device identity is required
- * except for one-time pairing redemption; browser cookies cannot authorize it.
- * @returns RPC and stream callbacks retaining the caller's service scope.
- */
-createDeviceConnection(): TypertGatewayDeviceConnection
-
-/**
- * Terminate every physical Remote stream connection a device currently holds.
- * The carrier sockets are destroyed without a close handshake, so every
- * logical stream on them ends as carrier loss and clients follow their
- * reconnect policy; the device's admission itself is untouched.
- * @param request - device identity whose live connections end now.
- * @returns how many physical connections were destroyed; zero when the device holds none.
- */
-terminateDeviceConnections(request: { deviceId: DeviceId }): { terminated: number }
  * Check for an active owner Client event stream, the only kind that can answer forwarded waterfalls.
  * @returns whether an owner stream is open and has not been cancelled.
  */
@@ -941,8 +871,6 @@ async invoke(request: InvokeRemoteRequest): Promise<unknown>
  */
 async stream(request: InvokeRemoteRequest): Promise<AsyncIterable<unknown>>
 ```
-
-Types: [DeviceId](device-trust.zh.md)
 
 Source: [`packages/api/gateway/src/index.ts`](../../packages/api/gateway/src/index.ts)
 <!-- END GENERATED cordis-surface -->

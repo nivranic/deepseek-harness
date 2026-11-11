@@ -1,6 +1,22 @@
-# Bilingual-pair consistency record (docs/i18n/README.md): the git blob hash of each
-# side as of the last confirmed-consistent state. Both languages carry equal authority;
-# after editing either side, bring the other along and re-record with:
+# Bilingual-pair consistency record for 2026-10-15-lite-tool-permission-policy.md (docs/i18n/README.md): per heading
+# section, a hash of its English and Chinese blocks outside code blocks and generated regions.
+# After editing either side, bring the other along and re-record with:
 #   pnpm run verify-translation-pairing --write .agents/notes/implemented/architecture/2026-10-15-lite-tool-permission-policy.md
-2026-10-15-lite-tool-permission-policy.md: 540611db95eb0fc508fbd53530bfbcd6095fae6f
-2026-10-15-lite-tool-permission-policy.zh.md: 4457a9f71b908bfc269243506eb17c462b033c2f
+/agent-note-lite-tool-calls-pass-a-declaration-fact-permission-gate-before-dispatch:
+  en: b258de9a3e72098a
+  zh: c54283dcb0571867
+/agent-note-lite-tool-calls-pass-a-declaration-fact-permission-gate-before-dispatch/problem:
+  en: 2893c5fd7588b6b1
+  zh: ba71edfab089c1a6
+/agent-note-lite-tool-calls-pass-a-declaration-fact-permission-gate-before-dispatch/decision:
+  en: d943bd7da49bcb02
+  zh: 782bcb6da0b08c9e
+/agent-note-lite-tool-calls-pass-a-declaration-fact-permission-gate-before-dispatch/alternatives-considered:
+  en: 134589c01c092042
+  zh: bc19c7f2906877b9
+/agent-note-lite-tool-calls-pass-a-declaration-fact-permission-gate-before-dispatch/consequences:
+  en: 5f5acf025d53b91c
+  zh: 262194ca73481948
+/agent-note-lite-tool-calls-pass-a-declaration-fact-permission-gate-before-dispatch/open-follow-ups:
+  en: 096546c2e98d1b3e
+  zh: a0872921e3928f06

@@ -1,6 +1,19 @@
-# Bilingual-pair consistency record (docs/i18n/README.md): the git blob hash of each
-# side as of the last confirmed-consistent state. Both languages carry equal authority;
-# after editing either side, bring the other along and re-record with:
+# Bilingual-pair consistency record for device-trust.md (docs/i18n/README.md): per heading
+# section, a hash of its English and Chinese blocks outside code blocks and generated regions.
+# After editing either side, bring the other along and re-record with:
 #   pnpm run verify-translation-pairing --write docs/subsystems/device-trust.md
-device-trust.md: 9868944070853341bebf2f812626416f37112a2f
-device-trust.zh.md: b12705e23c7c513f472a0be81c1191f84578e377
+/device-trust:
+  en: 1176151ddc8997b4
+  zh: 28033b3a46fe0239
+/device-trust/ids-and-roles:
+  en: d0c5276274b9c811
+  zh: 80a15aff26737f7a
+/device-trust/pairing-ceremony:
+  en: 22d332279ea39371
+  zh: f0da6ef138507cff
+/device-trust/grants-and-revocation:
+  en: e7134fa7e845d8dd
+  zh: 5b963d9763b895d4
+/device-trust/signed-admission:
+  en: 8a26af63740df385
+  zh: 6f4146b628610d34

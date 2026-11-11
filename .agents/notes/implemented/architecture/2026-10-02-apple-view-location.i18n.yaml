@@ -1,6 +1,22 @@
-# Bilingual-pair consistency record (docs/i18n/README.md): the git blob hash of each
-# side as of the last confirmed-consistent state. Both languages carry equal authority;
-# after editing either side, bring the other along and re-record with:
+# Bilingual-pair consistency record for 2026-10-02-apple-view-location.md (docs/i18n/README.md): per heading
+# section, a hash of its English and Chinese blocks outside code blocks and generated regions.
+# After editing either side, bring the other along and re-record with:
 #   pnpm run verify-translation-pairing --write .agents/notes/implemented/architecture/2026-10-02-apple-view-location.md
-2026-10-02-apple-view-location.md: 0a8396c17adc44f16944814f672c8195f1872172
-2026-10-02-apple-view-location.zh.md: d0b925d67215f81880e9e76df5855ae1ff56f935
+/agent-note-apple-contract-adopts-the-view-location-handoff-vocabulary-26:
+  en: 84661a21487b824d
+  zh: 10c6ace6f6cfbf4b
+/agent-note-apple-contract-adopts-the-view-location-handoff-vocabulary-26/problem:
+  en: 5803e248e1b11755
+  zh: 65bf325204f24d7d
+/agent-note-apple-contract-adopts-the-view-location-handoff-vocabulary-26/decision:
+  en: 52d370e3e95ccda8
+  zh: 73196c3dd8d2c707
+/agent-note-apple-contract-adopts-the-view-location-handoff-vocabulary-26/alternatives-considered:
+  en: 3308956267204608
+  zh: ef77480a79be6987
+/agent-note-apple-contract-adopts-the-view-location-handoff-vocabulary-26/consequences:
+  en: 71b94fdec7c6da8e
+  zh: 496bc08523ee6d86
+/agent-note-apple-contract-adopts-the-view-location-handoff-vocabulary-26/open-work:
+  en: 055771a8207a3c9b
+  zh: 1dfda9462e32b691

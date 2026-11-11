@@ -1,6 +1,22 @@
-# Bilingual-pair consistency record (docs/i18n/README.md): the git blob hash of each
-# side as of the last confirmed-consistent state. Both languages carry equal authority;
-# after editing either side, bring the other along and re-record with:
+# Bilingual-pair consistency record for 2026-10-01-android-session-location-facts.md (docs/i18n/README.md): per heading
+# section, a hash of its English and Chinese blocks outside code blocks and generated regions.
+# After editing either side, bring the other along and re-record with:
 #   pnpm run verify-translation-pairing --write .agents/notes/implemented/feature/2026-10-01-android-session-location-facts.md
-2026-10-01-android-session-location-facts.md: 2c0485ff669aeaa3991d2dae1c94771e09a44897
-2026-10-01-android-session-location-facts.zh.md: f36cf9ea0524cccbc772a773c46f963be9703f52
+/agent-note-android-publishes-the-session-location-facts-29:
+  en: 91ef90fadd178dff
+  zh: 776761a81addfdf7
+/agent-note-android-publishes-the-session-location-facts-29/problem:
+  en: 114c472cf7d99da0
+  zh: b2979a3c59c17c57
+/agent-note-android-publishes-the-session-location-facts-29/decision:
+  en: 2c0bdd1547c84fa2
+  zh: bc18349e192018e2
+/agent-note-android-publishes-the-session-location-facts-29/alternatives-considered:
+  en: 052d98e6c6298073
+  zh: e3e21ddfbdd4620d
+/agent-note-android-publishes-the-session-location-facts-29/consequences:
+  en: 1f06be187c7d4f1d
+  zh: 81cbb18c90e8f477
+/agent-note-android-publishes-the-session-location-facts-29/open-work:
+  en: deaeeacca900ca28
+  zh: e72e970ffeec6aeb

@@ -1,6 +1,19 @@
-# Bilingual-pair consistency record (docs/i18n/README.md): the git blob hash of each
-# side as of the last confirmed-consistent state. Both languages carry equal authority;
-# after editing either side, bring the other along and re-record with:
+# Bilingual-pair consistency record for 2026-09-25-native-remote-connection-source.md (docs/i18n/README.md): per heading
+# section, a hash of its English and Chinese blocks outside code blocks and generated regions.
+# After editing either side, bring the other along and re-record with:
 #   pnpm run verify-translation-pairing --write .agents/notes/implemented/architecture/2026-09-25-native-remote-connection-source.md
-2026-09-25-native-remote-connection-source.md: 49a65bfdc05d5be40f777b01e63b7b0f6fd77b11
-2026-09-25-native-remote-connection-source.zh.md: 301dc64ce7e7668b5b4f4e5af3c96718610aa7c2
+/agent-note-native-devices-use-a-separate-tls-source-on-the-existing-gateway:
+  en: f24bc5a35e70f254
+  zh: 31a6c49cc9a9bb66
+/agent-note-native-devices-use-a-separate-tls-source-on-the-existing-gateway/problem:
+  en: a1cfc3373d14af7b
+  zh: 2c1ee57167b5a3f1
+/agent-note-native-devices-use-a-separate-tls-source-on-the-existing-gateway/decision:
+  en: 94e03bf174de926b
+  zh: e41c9ba099fb681f
+/agent-note-native-devices-use-a-separate-tls-source-on-the-existing-gateway/alternatives-considered:
+  en: 8f77d8eec87412c8
+  zh: bf23f8d4fa5ac275
+/agent-note-native-devices-use-a-separate-tls-source-on-the-existing-gateway/consequences:
+  en: 47b727b4a555cdb2
+  zh: 45c74e79b0fbb57b

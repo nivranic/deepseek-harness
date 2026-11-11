@@ -1,6 +1,22 @@
-# Bilingual-pair consistency record (docs/i18n/README.md): the git blob hash of each
-# side as of the last confirmed-consistent state. Both languages carry equal authority;
-# after editing either side, bring the other along and re-record with:
+# Bilingual-pair consistency record for 2026-10-17-lite-preset-selection-face.md (docs/i18n/README.md): per heading
+# section, a hash of its English and Chinese blocks outside code blocks and generated regions.
+# After editing either side, bring the other along and re-record with:
 #   pnpm run verify-translation-pairing --write .agents/notes/implemented/architecture/2026-10-17-lite-preset-selection-face.md
-2026-10-17-lite-preset-selection-face.md: a75fa0b2ba4b7b48993e5ba47c83ff1c5f038722
-2026-10-17-lite-preset-selection-face.zh.md: 461e1f222a03d2abbf753147139a342e474a32f3
+/agent-note-lite-sessions-select-their-preset-from-the-bundled-projection:
+  en: cfa7a16c1cef791d
+  zh: b48541623ab814cf
+/agent-note-lite-sessions-select-their-preset-from-the-bundled-projection/problem:
+  en: 181388288b3e838e
+  zh: 797923e43f943fd6
+/agent-note-lite-sessions-select-their-preset-from-the-bundled-projection/decision:
+  en: 4a43f1e50121a94c
+  zh: 8883debc54e77ce2
+/agent-note-lite-sessions-select-their-preset-from-the-bundled-projection/alternatives-considered:
+  en: 47c20794f52f127c
+  zh: ee82dbab746d47f1
+/agent-note-lite-sessions-select-their-preset-from-the-bundled-projection/consequences:
+  en: 39ab64a1eb78b15a
+  zh: 54f376934a4b13a0
+/agent-note-lite-sessions-select-their-preset-from-the-bundled-projection/open-follow-ups:
+  en: 362dcc0ee11ba985
+  zh: bd5e4b7563e71679

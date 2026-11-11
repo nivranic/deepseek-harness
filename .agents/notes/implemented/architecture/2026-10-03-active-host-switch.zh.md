@@ -10,8 +10,8 @@ Status: implemented
 
 ## 决策
 
-- 两条证据车道，按依赖合法的层各一条。`packages/client/connection/tests/host-switch.client.spec.ts` 在真实 Connection 插件上挂一个门控、按 origin 读取的 generation source（Host A 立即准入；Host B 停在门上），走完整周期：A 就绪→`retarget` 到 B→退休→放门并在 B 上重建。订阅全部三个观察源（`target`、`generation`、`state`）的记录器在每次 flush 采样，断言两个被禁止的配对从不出现：新 target 与 A 的 generation 事实同框，或 B 的 generation 在路由仍指他处时出现。车道同时钉住接缝的同步性（`retarget` 调用内部 A 代已清）、切换开始后不再有任何面向 A 的连接尝试，以及 B 建立后名册当前行与所选 origin 一致。
-- `packages/client/ui-conversation/tests/host-switch.client.spec.ts` 用真实 `createComposerControlSource` 走 api-gateway `$host` getter 在一次切换中产出的确切 Host 事实序列：A 的事实（从 ready 代展开的 descriptor 与 capabilities）、无代期间的稳定无能力壳、然后 B 的事实。`prompt` 走 true → false → true，每个能力面（interrupt、文件上传）只跟随当前代的事实，A 的留存快照在代迁移那一刻起不再 `current()`。InputBar 公式面（`controlAvailable: false` 即禁用）沿用 `input-bar.client.spec.tsx` 的既有覆盖。
+- 两条证据车道，按依赖合法的层各一条。连接层车道 `tests/host-switch.client.spec.ts`（已随官方 connection 合并移除；绑定证据在 `artifacts/upstream-first/active-host-switch-binding.json`）在真实 Connection 插件上挂一个门控、按 origin 读取的 generation source（Host A 立即准入；Host B 停在门上），走完整周期：A 就绪→`retarget` 到 B→退休→放门并在 B 上重建。订阅全部三个观察源（`target`、`generation`、`state`）的记录器在每次 flush 采样，断言两个被禁止的配对从不出现：新 target 与 A 的 generation 事实同框，或 B 的 generation 在路由仍指他处时出现。车道同时钉住接缝的同步性（`retarget` 调用内部 A 代已清）、切换开始后不再有任何面向 A 的连接尝试，以及 B 建立后名册当前行与所选 origin 一致。
+- ui-conversation 下的 composer 层车道 `tests/host-switch.client.spec.ts`（同样已随官方合并移除）用真实 `createComposerControlSource` 走 api-gateway `$host` getter 在一次切换中产出的确切 Host 事实序列：A 的事实（从 ready 代展开的 descriptor 与 capabilities）、无代期间的稳定无能力壳、然后 B 的事实。`prompt` 走 true → false → true，每个能力面（interrupt、文件上传）只跟随当前代的事实，A 的留存快照在代迁移那一刻起不再 `current()`。InputBar 公式面（`controlAvailable: false` 即禁用）沿用 `input-bar.client.spec.tsx` 的既有覆盖。
 - 保真说明：中途壳按 gateway getter 实际产出的成员书写（`home`/`platform` 为 undefined、无 `capabilities` 键），车道以与真实装配相同的结构性理由判 false。
 
 ## 备选方案

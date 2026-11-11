@@ -1,6 +1,43 @@
-# Bilingual-pair consistency record (docs/i18n/README.md): the git blob hash of each
-# side as of the last confirmed-consistent state. Both languages carry equal authority;
-# after editing either side, bring the other along and re-record with:
+# Bilingual-pair consistency record for README.md (docs/i18n/README.md): per heading
+# section, a hash of its English and Chinese blocks outside code blocks and generated regions.
+# After editing either side, bring the other along and re-record with:
 #   pnpm run verify-translation-pairing --write packages/api/host-description/README.md
-README.md: e7eda7cb72a3a37ac0086bdccc1a1d859596d659
-README.zh.md: 45f4acf97733e05682731a309a666bb8e41aa046
+/:
+  en: 57402d621a8abde1
+  zh: 0979e9662e4532f4
+/deepseek-ai-dsh-api-host-description:
+  en: fb6d46b33e93bd3c
+  zh: e7a6877806d88e04
+/deepseek-ai-dsh-api-host-description/summary:
+  en: 8130c6f1b9040678
+  zh: 88a64da58f3a78f6
+/deepseek-ai-dsh-api-host-description/table-of-contents:
+  en: d152484eb41ac6b4
+  zh: 09388d293f9be9cb
+/deepseek-ai-dsh-api-host-description/use-this-package:
+  en: c284f9f491e1f47a
+  zh: 6d3ef6da2cc5b43c
+/deepseek-ai-dsh-api-host-description/use-this-package/configuration:
+  en: 7454ad7fcb9fddee
+  zh: 7712dec60ee90117
+/deepseek-ai-dsh-api-host-description/use-this-package/identity-and-failures:
+  en: 5fbe6b377c50a474
+  zh: 85b05a5d79dbfaf3
+/deepseek-ai-dsh-api-host-description/understand-the-implementation:
+  en: 30f1b9ca609f456f
+  zh: 189019533b92b2c7
+/deepseek-ai-dsh-api-host-description/further-exploration:
+  en: b54bfc4833ddd85b
+  zh: 0f381c926d5f60f3
+/deepseek-ai-dsh-api-host-description/model-experience:
+  en: c8d57bf2f18e8789
+  zh: d651cf5d929b5a59
+/deepseek-ai-dsh-api-host-description/model-experience/kv-cache-effect:
+  en: 38cddb6e4bee52ed
+  zh: bc12bc70c50b63c3
+/deepseek-ai-dsh-api-host-description/known-limitations-and-deferred-work:
+  en: c795d5037871e942
+  zh: 407aba381cc939c4
+/deepseek-ai-dsh-api-host-description/known-limitations-and-deferred-work/dev-note:
+  en: e67f633dc6fe7773
+  zh: 8ec3e73528ddb1a6

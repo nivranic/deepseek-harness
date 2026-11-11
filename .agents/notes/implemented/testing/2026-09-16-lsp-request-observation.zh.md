@@ -12,7 +12,7 @@ Status: implemented
 
 [脚本服务器](../../../../packages/lsp/lsp-stdio/tests/fixture-server.ts)可以在回复或挂起前，将查询到达记录写入私有工作区 marker。[实例测试](../../../../packages/lsp/lsp-stdio/tests/instance.spec.ts)使用当前测试预算和 signal 等待该 marker，再取消实际进行中的查询。等待 marker 前就观察查询拒绝，避免启动失败或清理留下未观察的 Promise 拒绝。
 
-确认取消的服务器在回复前，分别记录 definition 请求 id 与匹配的 `$/cancelRequest` id。立即初始化和延迟初始化使用同一个到达条件。测试核对 id 一致，且同一实例的后续查询成功；不确认取消的用例在接受查询拒绝前，观察真实子进程的结束结果。[既有完成决策](2026-09-08-ci-readiness-and-completion.zh.md)继续拥有 lane 预算和就绪规则，[背压观察](2026-09-08-ci-completion-observations.zh.md)则单独覆盖待完成的原生写入及其清理。
+确认取消的服务器在回复前，分别记录 definition 请求 id 与匹配的 `$/cancelRequest` id。立即初始化和延迟初始化使用同一个到达条件。测试核对 id 一致，且同一实例的后续查询成功；不确认取消的用例在接受查询拒绝前，观察真实子进程的结束结果。[既有完成决策](../../archived/testing/2026-09-08-ci-readiness-and-completion.md)继续拥有 lane 预算和就绪规则，[背压观察](../../archived/testing/2026-09-08-ci-completion-observations.md)则单独覆盖待完成的原生写入及其清理。
 
 [连接测试](../../../../packages/lsp/lsp-stdio/tests/connection.spec.ts)在子进程仍存活时，通过真实 stdin 流发出错误。两个待处理请求和一个后续请求都在 `closed` 完成前，以同一保留的传输错误拒绝。清理终止子进程，同时等待关闭和受管进程范围退出。写入回调失败保留独立用例。
 

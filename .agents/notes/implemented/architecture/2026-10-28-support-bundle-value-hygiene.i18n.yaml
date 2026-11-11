@@ -1,6 +1,19 @@
-# Bilingual-pair consistency record (docs/i18n/README.md): the git blob hash of each
-# side as of the last confirmed-consistent state. Both languages carry equal authority;
-# after editing either side, bring the other along and re-record with:
+# Bilingual-pair consistency record for 2026-10-28-support-bundle-value-hygiene.md (docs/i18n/README.md): per heading
+# section, a hash of its English and Chinese blocks outside code blocks and generated regions.
+# After editing either side, bring the other along and re-record with:
 #   pnpm run verify-translation-pairing --write .agents/notes/implemented/architecture/2026-10-28-support-bundle-value-hygiene.md
-2026-10-28-support-bundle-value-hygiene.md: 37404dd7df2d519f1c3bddeb0e9a25e90680d036
-2026-10-28-support-bundle-value-hygiene.zh.md: 2c86eb90cf9767a59ecc011b09a726e6f8e5c7ef
+/agent-note-support-bundle-value-hygiene-and-the-two-platform-same-candidate-proof:
+  en: 6bd2a6c95bfe21e6
+  zh: ed82cf9c1beed806
+/agent-note-support-bundle-value-hygiene-and-the-two-platform-same-candidate-proof/problem:
+  en: 3a36dc20648f8744
+  zh: 2b9be7bc48952546
+/agent-note-support-bundle-value-hygiene-and-the-two-platform-same-candidate-proof/decision:
+  en: 0c4b1378b08ad7bb
+  zh: 8b56f6e2a92fb1d4
+/agent-note-support-bundle-value-hygiene-and-the-two-platform-same-candidate-proof/alternatives-considered:
+  en: 668d2547d9d52d99
+  zh: f255dfca7b445a18
+/agent-note-support-bundle-value-hygiene-and-the-two-platform-same-candidate-proof/consequences:
+  en: ed440b1801098eba
+  zh: ef91d7842ad1dce7

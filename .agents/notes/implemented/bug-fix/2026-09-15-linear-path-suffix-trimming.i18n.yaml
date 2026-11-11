@@ -1,6 +1,19 @@
-# Bilingual-pair consistency record (docs/i18n/README.md): the git blob hash of each
-# side as of the last confirmed-consistent state. Both languages carry equal authority;
-# after editing either side, bring the other along and re-record with:
+# Bilingual-pair consistency record for 2026-09-15-linear-path-suffix-trimming.md (docs/i18n/README.md): per heading
+# section, a hash of its English and Chinese blocks outside code blocks and generated regions.
+# After editing either side, bring the other along and re-record with:
 #   pnpm run verify-translation-pairing --write .agents/notes/implemented/bug-fix/2026-09-15-linear-path-suffix-trimming.md
-2026-09-15-linear-path-suffix-trimming.md: a3936e3d9730bb512980c5aec2ba900f40d9b66c
-2026-09-15-linear-path-suffix-trimming.zh.md: 72d721d7194316aa69b26e4662ec596e57ab2a39
+/agent-note-linear-path-suffix-trimming:
+  en: 2f45432c2258de87
+  zh: f1221356e057411c
+/agent-note-linear-path-suffix-trimming/problem:
+  en: 56d7ea7f430a25ad
+  zh: 1c553ba6ac9a0711
+/agent-note-linear-path-suffix-trimming/decision:
+  en: 410c618ba3550e81
+  zh: 2093000204638a13
+/agent-note-linear-path-suffix-trimming/alternatives-considered:
+  en: a1483784a85745e0
+  zh: 6e79a08b701dc837
+/agent-note-linear-path-suffix-trimming/consequences:
+  en: 971d69254a985c89
+  zh: e303e66540db94d9

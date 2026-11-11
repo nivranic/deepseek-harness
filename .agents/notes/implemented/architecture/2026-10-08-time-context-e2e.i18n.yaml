@@ -1,6 +1,22 @@
-# Bilingual-pair consistency record (docs/i18n/README.md): the git blob hash of each
-# side as of the last confirmed-consistent state. Both languages carry equal authority;
-# after editing either side, bring the other along and re-record with:
+# Bilingual-pair consistency record for 2026-10-08-time-context-e2e.md (docs/i18n/README.md): per heading
+# section, a hash of its English and Chinese blocks outside code blocks and generated regions.
+# After editing either side, bring the other along and re-record with:
 #   pnpm run verify-translation-pairing --write .agents/notes/implemented/architecture/2026-10-08-time-context-e2e.md
-2026-10-08-time-context-e2e.md: 6410eb641e4b5c6d81d77bbc5e47e9be00662b08
-2026-10-08-time-context-e2e.zh.md: 88ca734680dc1d1eba0270bdbba489ed97da1a0e
+/agent-note-time-context-e2e-gets-the-same-activation-order-pin:
+  en: 18dc11476719c9db
+  zh: dc0aedcd2ba6fd23
+/agent-note-time-context-e2e-gets-the-same-activation-order-pin/problem:
+  en: ad29cbf3662bcba8
+  zh: 27efbd0267acd7b6
+/agent-note-time-context-e2e-gets-the-same-activation-order-pin/decision:
+  en: 704fdca1eeb39aa7
+  zh: eb54988b2695a038
+/agent-note-time-context-e2e-gets-the-same-activation-order-pin/alternatives-considered:
+  en: a2a1aceba66f2738
+  zh: 613754fb26b57e0f
+/agent-note-time-context-e2e-gets-the-same-activation-order-pin/consequences:
+  en: f03281fa61c7998f
+  zh: 0da944e52fc65f27
+/agent-note-time-context-e2e-gets-the-same-activation-order-pin/open-follow-ups:
+  en: 2805289f48ae6ea8
+  zh: 09232180c6f77715

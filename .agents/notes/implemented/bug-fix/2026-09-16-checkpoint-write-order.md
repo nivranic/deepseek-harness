@@ -14,7 +14,7 @@ Two checkpoints of one Session can finish their log flushes in a different order
 
 [`SessionProjectionCache.write`](../../../../packages/session/session-projection-cache/src/index.ts) captures the projection and its complete lifecycle identity before queuing the log flush with the replacement. The Session store remains the sole flush dispatcher. Detached Sessions use the existing persistence retirement drain and cold-read watermark checks. The projection registry already returns detached values; its cloning behavior remains unchanged.
 
-The [cache compatibility decision](../architecture/2026-09-02-projcache-cross-version-read-compat.md) continues to own format and lineage checks, including `inheritedEventCount`. The [Session observation decision](../architecture/2026-08-25-session-observations-and-projection-owned-client-state.md) continues to own exact reads and Client projection ownership. Neither decision is superseded, and this change adds no Session event or storage generation.
+The [cache compatibility decision](../../archived/architecture/2026-09-02-projcache-cross-version-read-compat.md) continues to own format and lineage checks, including `inheritedEventCount`. The [Session observation decision](../architecture/2026-08-25-session-observations-and-projection-owned-client-state.md) continues to own exact reads and Client projection ownership. Neither decision is superseded, and this change adds no Session event or storage generation.
 
 ## Alternatives considered
 

@@ -1,6 +1,19 @@
-# Bilingual-pair consistency record (docs/i18n/README.md): the git blob hash of each
-# side as of the last confirmed-consistent state. Both languages carry equal authority;
-# after editing either side, bring the other along and re-record with:
+# Bilingual-pair consistency record for 2026-09-27-android-native-gateway-diagnostics.md (docs/i18n/README.md): per heading
+# section, a hash of its English and Chinese blocks outside code blocks and generated regions.
+# After editing either side, bring the other along and re-record with:
 #   pnpm run verify-translation-pairing --write .agents/notes/implemented/architecture/2026-09-27-android-native-gateway-diagnostics.md
-2026-09-27-android-native-gateway-diagnostics.md: b91e1635240f04f1bc4cbb538a48ab183120b250
-2026-09-27-android-native-gateway-diagnostics.zh.md: fc6151f3d6f534e577a2f26371ea9aeddfc1724c
+/agent-note-android-support-exports-distinguish-native-gateway-and-legacy-link-observations:
+  en: 18fc3370a1604dbf
+  zh: 05eb65f36968995d
+/agent-note-android-support-exports-distinguish-native-gateway-and-legacy-link-observations/problem:
+  en: 48160685678fd597
+  zh: 92566618de17bbc2
+/agent-note-android-support-exports-distinguish-native-gateway-and-legacy-link-observations/decision:
+  en: 600d2544a8a6e3f9
+  zh: 795397a6f40bf661
+/agent-note-android-support-exports-distinguish-native-gateway-and-legacy-link-observations/alternatives-considered:
+  en: a7a1a17077dca001
+  zh: 63b350e835e0146c
+/agent-note-android-support-exports-distinguish-native-gateway-and-legacy-link-observations/consequences:
+  en: 0a77faef448b889c
+  zh: fe98e81c3b4b449b

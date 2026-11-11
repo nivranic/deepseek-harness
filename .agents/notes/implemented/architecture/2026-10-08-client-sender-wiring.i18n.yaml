@@ -1,6 +1,22 @@
-# Bilingual-pair consistency record (docs/i18n/README.md): the git blob hash of each
-# side as of the last confirmed-consistent state. Both languages carry equal authority;
-# after editing either side, bring the other along and re-record with:
+# Bilingual-pair consistency record for 2026-10-08-client-sender-wiring.md (docs/i18n/README.md): per heading
+# section, a hash of its English and Chinese blocks outside code blocks and generated regions.
+# After editing either side, bring the other along and re-record with:
 #   pnpm run verify-translation-pairing --write .agents/notes/implemented/architecture/2026-10-08-client-sender-wiring.md
-2026-10-08-client-sender-wiring.md: da745a15c94ff3409600f8767195b0d2348ec7ce
-2026-10-08-client-sender-wiring.zh.md: ba026a58e69835c0544990db6b9541e76d98b2cc
+/agent-note-fork-and-command-execute-senders-mint-clientmutationid-per-intent:
+  en: eddac97d43d41431
+  zh: 9f86eab39bd253d5
+/agent-note-fork-and-command-execute-senders-mint-clientmutationid-per-intent/problem:
+  en: 1b0f038bfbebe2d4
+  zh: dfc1df83693ede01
+/agent-note-fork-and-command-execute-senders-mint-clientmutationid-per-intent/decision:
+  en: 9bf71dbc58207b30
+  zh: 021bec8ccd2f513c
+/agent-note-fork-and-command-execute-senders-mint-clientmutationid-per-intent/alternatives-considered:
+  en: a8bd49e47b2b4e79
+  zh: 3e6045ddb3d5a553
+/agent-note-fork-and-command-execute-senders-mint-clientmutationid-per-intent/consequences:
+  en: 35589fb2ed7a122c
+  zh: f4bf7006feaa5710
+/agent-note-fork-and-command-execute-senders-mint-clientmutationid-per-intent/open-follow-ups:
+  en: c14276413b0159fa
+  zh: 30fdbfc96173dba1

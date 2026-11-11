@@ -9,7 +9,7 @@ import { chromium, type Browser, type Page, type WebSocketRoute } from 'playwrig
 import { expect, it } from 'vitest'
 import { Context } from '@deepseek-ai/cordis'
 import { SessionId, type SessionEvent } from '@deepseek-ai/dsh-session'
-import JsonlSessionPersistence from '@deepseek-ai/dsh-session-persistence-jsonl'
+import * as JsonlSessionPersistence from '@deepseek-ai/dsh-session-persistence-jsonl'
 import { captureWorkspaceSnapshot, normalizeSessionSnapshots } from '@deepseek-ai/dsh-session-snapshot'
 import { fixtureUserPrompts, normalizeWebSessionVolatiles, selectedSessionFixture } from './scaffold.ts'
 import { connectFreshWorkspace, REPO_ROOT, writeComposerDraft } from './support.ts'

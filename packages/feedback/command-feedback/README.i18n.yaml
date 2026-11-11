@@ -2,8 +2,6 @@
 # section, a hash of its English and Chinese blocks outside code blocks and generated regions.
 # After editing either side, bring the other along and re-record with:
 #   pnpm run verify-translation-pairing --write packages/feedback/command-feedback/README.md
-README.md: 21b506c4d76cfad9556d83dd48e6119251aec4ff
-README.zh.md: 4e9816d46cb34106549ff5c153ce483dc327fc64
 /:
   en: 6fde8a2c01a13756
   zh: 63b06f1e5373a1f0
@@ -20,8 +18,8 @@ README.zh.md: 4e9816d46cb34106549ff5c153ce483dc327fc64
   en: 2e9c7334f5ed57b3
   zh: 8c25b5a898fb5895
 /deepseek-ai-dsh-command-feedback/use-this-package/the-feedback-command:
-  en: 645ee72ee1af491d
-  zh: 32b86c39307093e3
+  en: 2cd0c944ce7b7d34
+  zh: 40068d3002610e2b
 /deepseek-ai-dsh-command-feedback/use-this-package/the-web-feedback-dialog:
   en: 21fae542942446d2
   zh: 34d83535891dabee

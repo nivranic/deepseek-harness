@@ -2,8 +2,6 @@
 # section, a hash of its English and Chinese blocks outside code blocks and generated regions.
 # After editing either side, bring the other along and re-record with:
 #   pnpm run verify-translation-pairing --write .agents/notes/implemented/architecture/2026-08-09-client-conversation-node-assembly.md
-2026-08-09-client-conversation-node-assembly.md: 2a84e66b941b96009694f6d12c2f85e40a36a5c1
-2026-08-09-client-conversation-node-assembly.zh.md: 0b1869ddc180a8512bf2e8e94413ebfe597869b8
 /agent-note-client-conversation-business-node-assembly-and-keyed-chat-snapshots:
   en: 32abbd757c29e1ee
   zh: ea0b9de97fd04196
@@ -20,8 +18,8 @@
   en: 74f17ca7ae05af83
   zh: 591fbc6c98f90262
 /agent-note-client-conversation-business-node-assembly-and-keyed-chat-snapshots/decision/overall-conversationnodedefinition-contract/kind-business-id-and-context-key:
-  en: 3081736d55350c67
-  zh: bfa89f127c16c59f
+  en: 7d59354a56f9b0fe
+  zh: 60950cc50c3f4a48
 /agent-note-client-conversation-business-node-assembly-and-keyed-chat-snapshots/decision/overall-conversationnodedefinition-contract/match-event:
   en: 5c97a2a4e91325a7
   zh: d29e52647b699810
@@ -86,8 +84,8 @@
   en: 114ca8db361d22e5
   zh: 37b6d474e855c187
 /agent-note-client-conversation-business-node-assembly-and-keyed-chat-snapshots/verification:
-  en: cf36507c86d1139c
-  zh: 1fcdd4e2c2cc106b
+  en: 7c42119eaf37feb6
+  zh: 36ccd5320c5f24f5
 /agent-note-client-conversation-business-node-assembly-and-keyed-chat-snapshots/alternatives-considered:
   en: e150870d4e2525ed
   zh: 34eafb435036af9a

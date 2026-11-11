@@ -7,6 +7,7 @@ import { Peer } from '@deepseek-ai/dsh-client-connection'
 import { Remote, TypertRemoteService } from '@deepseek-ai/dsh-typert-protocol'
 import TypertRegistry from '@deepseek-ai/dsh-typert-registry'
 import TypertGateway from '@deepseek-ai/dsh-api-gateway'
+import RemoteAccessService from '@deepseek-ai/dsh-api-remote-access'
 import { SESSION_FORMAT_VERSION } from '@deepseek-ai/dsh-session/types'
 import * as HostDescription from '../src/index.ts'
 
@@ -21,6 +22,7 @@ async function harness(transports: HostDescription.HostTransport[] = ['http', 'w
   const ctx = new Context()
   resources.push(async () => { await ctx.fiber.dispose() })
   await ctx.plugin(TypertRegistry)
+  await ctx.plugin(RemoteAccessService)
   await ctx.plugin(TypertGateway)
   const owner = ctx.plugin(HostDescription, { identityFile: join(directory, '.host-id'), transports })
   await owner

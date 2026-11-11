@@ -1,6 +1,22 @@
-# Bilingual-pair consistency record (docs/i18n/README.md): the git blob hash of each
-# side as of the last confirmed-consistent state. Both languages carry equal authority;
-# after editing either side, bring the other along and re-record with:
+# Bilingual-pair consistency record for 2026-10-01-session-location-chip.md (docs/i18n/README.md): per heading
+# section, a hash of its English and Chinese blocks outside code blocks and generated regions.
+# After editing either side, bring the other along and re-record with:
 #   pnpm run verify-translation-pairing --write .agents/notes/implemented/architecture/2026-10-01-session-location-chip.md
-2026-10-01-session-location-chip.md: 7766996bf1290e2128e4e8a22b4278f6e987b84b
-2026-10-01-session-location-chip.zh.md: 1860493c8c71c94e24f0357d454b0421b8dbaf44
+/agent-note-the-session-header-chip-publishes-every-section-29-location-fact:
+  en: ad6ddae8d8214df7
+  zh: eeddbf252fa32c9a
+/agent-note-the-session-header-chip-publishes-every-section-29-location-fact/problem:
+  en: 60813dbcabac68d2
+  zh: 6ade36a45fc6d122
+/agent-note-the-session-header-chip-publishes-every-section-29-location-fact/decision:
+  en: 26563f73cabff5ee
+  zh: 076aa0b2698c93d9
+/agent-note-the-session-header-chip-publishes-every-section-29-location-fact/alternatives-considered:
+  en: 9349dcf4a7e869c4
+  zh: 72fad1a7754e16ba
+/agent-note-the-session-header-chip-publishes-every-section-29-location-fact/consequences:
+  en: f6a0b3e92d068f7b
+  zh: d98722829c7625fb
+/agent-note-the-session-header-chip-publishes-every-section-29-location-fact/open-work:
+  en: 7464b952f196de26
+  zh: 3996afe65e3063fc

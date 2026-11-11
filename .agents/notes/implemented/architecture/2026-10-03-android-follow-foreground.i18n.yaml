@@ -1,6 +1,22 @@
-# Bilingual-pair consistency record (docs/i18n/README.md): the git blob hash of each
-# side as of the last confirmed-consistent state. Both languages carry equal authority;
-# after editing either side, bring the other along and re-record with:
+# Bilingual-pair consistency record for 2026-10-03-android-follow-foreground.md (docs/i18n/README.md): per heading
+# section, a hash of its English and Chinese blocks outside code blocks and generated regions.
+# After editing either side, bring the other along and re-record with:
 #   pnpm run verify-translation-pairing --write .agents/notes/implemented/architecture/2026-10-03-android-follow-foreground.md
-2026-10-03-android-follow-foreground.md: c7630f37ffe26075932511975597db941b7d0e57
-2026-10-03-android-follow-foreground.zh.md: 2b30354a46c356b0cc0f7aae2bb548d571a6aeac
+/agent-note-backgrounded-carrier-loss-and-foreground-return-for-the-persisted-follow-window-25:
+  en: 387e1d1d95f33315
+  zh: 895daa4605a63f18
+/agent-note-backgrounded-carrier-loss-and-foreground-return-for-the-persisted-follow-window-25/problem:
+  en: 187c4da60a4a619c
+  zh: 5757991e776f3232
+/agent-note-backgrounded-carrier-loss-and-foreground-return-for-the-persisted-follow-window-25/decision:
+  en: 25ee2f86f901d385
+  zh: 3ae4b000a01a542b
+/agent-note-backgrounded-carrier-loss-and-foreground-return-for-the-persisted-follow-window-25/alternatives-considered:
+  en: 5faa336733fe1bf0
+  zh: 90a66ecce3f953a5
+/agent-note-backgrounded-carrier-loss-and-foreground-return-for-the-persisted-follow-window-25/consequences:
+  en: 8711744bd91e13d0
+  zh: 5e9f0177faaeebd2
+/agent-note-backgrounded-carrier-loss-and-foreground-return-for-the-persisted-follow-window-25/open-work:
+  en: 2eb8c87513560e20
+  zh: 442e7372a1df7c1f

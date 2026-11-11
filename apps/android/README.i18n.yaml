@@ -1,6 +1,22 @@
-# Bilingual-pair consistency record (docs/i18n/README.md): the git blob hash of each
-# side as of the last confirmed-consistent state. Both languages carry equal authority;
-# after editing either side, bring the other along and re-record with:
+# Bilingual-pair consistency record for README.md (docs/i18n/README.md): per heading
+# section, a hash of its English and Chinese blocks outside code blocks and generated regions.
+# After editing either side, bring the other along and re-record with:
 #   pnpm run verify-translation-pairing --write apps/android/README.md
-README.md: 2b57ea62fb9facd79602b09376ed8de10b02dbf4
-README.zh.md: b6b6c34780df09f8e89f562deca264974062a357
+/deepseek-ai-dsh-android:
+  en: 64544ce5a03430f7
+  zh: 28a00fd9c33e13b5
+/deepseek-ai-dsh-android/use-this-project:
+  en: 41c77233529e149a
+  zh: 4958cc6272d586e8
+/deepseek-ai-dsh-android/understand-the-implementation:
+  en: 2f50d769e0d49f24
+  zh: 05a4ac5b5b27ad2a
+/deepseek-ai-dsh-android/local-support-export:
+  en: e4e7f8ba19f6caed
+  zh: 59dbd152ba8554b7
+/deepseek-ai-dsh-android/model-experience:
+  en: a17d495e274b53cd
+  zh: ee43bb9c9d0d1c12
+/deepseek-ai-dsh-android/known-limitations-and-deferred-work:
+  en: ee5a5b3995829daa
+  zh: 2061a381248b0351

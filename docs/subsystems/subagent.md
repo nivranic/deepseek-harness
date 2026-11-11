@@ -14,8 +14,7 @@ The `subagentCatalog` projection exposes `SubagentCatalogEntry[]` in parent even
 
 ## Two kinds of capability, discovered two ways
 
-A provider advertises its **start-time** features on a static descriptor the service checks BEFORE a one-shot run exists; a request that needs one the provider lacks is rejected loud (`SubagentError('UNSUPPORTED_CAPABILITY')`), never accepted-then-ignored. Those flags describe only the one-shot [`start()`](#the-provider-contract-subagentprovider) path, where the provider composes the child. **Continuable** children are composed by the continuation manager itself, so they are gated by one optional method whose presence IS the capability, with TS narrowing as the discovery mechanism: [`SubagentProvider.prepareContinuable`](#the-provider-contract-subagentprovider).
-Optional `request.cwd` selects the child's initial directory; relative paths resolve against the parent's current effective directory. Omitting it captures that directory at admission. Local child Sessions retain the parent's original project, and cold resume retains their logged directory state.
+A provider advertises its **start-time** features on a static descriptor the service checks BEFORE a one-shot run exists; a request that needs one the provider lacks is rejected loud (`SubagentError('UNSUPPORTED_CAPABILITY')`), never accepted-then-ignored. Those flags describe only the one-shot [`start()`](#the-provider-contract-subagentprovider) path, where the provider composes the child. **Continuable** children are composed by the continuation manager itself, so they are gated by one optional method whose presence IS the capability, with TS narrowing as the discovery mechanism: [`SubagentProvider.prepareContinuable`](#the-provider-contract-subagentprovider). Optional `request.cwd` selects the child's initial directory; relative paths resolve against the parent's current effective directory. Omitting it captures that directory at admission. Local child Sessions retain the parent's original project, and cold resume retains their logged directory state.
 
 ```ts type-equiv
 /**
@@ -138,7 +137,7 @@ Spawn alone supports an independent `agentPreset`; omission and fork inherit the
 
 `SubagentRuntime.interrupt(targetSessionId, authority)` is the one public stop: it authorizes synchronously, issues `Agent.cancel(cause, { keepInbox: true })` on the live target, and returns without awaiting quiescence. The Activation, its unclaimed pending inbox work, and published descendants are untouched; work already claimed into the interrupted turn is not requeued. Once the interrupted driver is idle, a waking send resumes the parked FIFO queue. An absent target — unknown, one-shot, or already settled — and a manager-less composition are accepted no-ops. For a live target, a mismatched parent address or caller outside its live ancestry rejects with `UNAUTHORIZED`; stale ancestor objects and self-targeting ancestor requests reject before target lookup.
 
-`SubagentInterruptTurnRequest` carries `parentSessionId`, `childSessionId`, `mode: 'continuable'` and the observed `turnStartSeq` or null. `subagents.interruptTurnByParent` checks that target against `subagentTiming.active.startSeq`; missing active sequence data cannot authorize a Client fallback on a Host advertising `subagent.interrupt-turn.v1`. The [interrupt decision](../../.agents/notes/implemented/feature/2026-08-06-continuable-subagent-interrupt.md) owns authorization, no-op outcomes and legacy behavior.
+`SubagentInterruptTurnRequest` carries `parentSessionId`, `childSessionId`, `mode: 'continuable'` and the observed `turnStartSeq` or null. `subagents.interruptTurnByParent` checks that target against `subagentTiming.active.startSeq`; missing active sequence data cannot authorize a Client fallback on a Host advertising `subagent.interrupt-turn.v1`. The [interrupt decision](../../.agents/notes/archived/feature/2026-08-06-continuable-subagent-interrupt.md) owns authorization, no-op outcomes and legacy behavior.
 
 ```ts type-equiv
 /**
@@ -161,7 +160,7 @@ Every Activation owns its `AgentHandle` and an `ownedChildren: Set<SessionId>`; 
 Final settlement awaits `ctx.sessions.flush(session)` but ignores its participation boolean because an arbitrary listener cannot prove that a persistence backend stored the state. Rejection is logged without failing the Activation, and the manager still disposes the handle and releases ownership; the persisted child state may then be missing or stale on a later resume. Manager unload invokes an internal manager-wide drain that closes admission and disposes every live forest; `drainContinuableDescendants(parents)` closes admission only below exact live host-owned Agents and disposes their continuable descendants while unrelated forests remain live. Both await already-admitted materializations in their scope, propagate cancellation top-down, release handles child-first, and await every selected branch despite individual failures. Durable child Sessions survive that process-local teardown.
 
 ```ts type-equiv
-/** Durable attribution for one model-authored message between adjacent Agents. */
+/** Durable attribution for one model-authored message between Agents. */
 interface AgentMessageSource {
   readonly kind: 'agent-message'
   /** A message another agent addressed to this one (`relay` context form). */
@@ -179,17 +178,7 @@ interface SubagentSendMessageOptions {
 }
 ```
 
-```ts type-equiv
-/** Identities returned once a continuable child accepted its initial prompt. */
-interface ContinuableStart {
-  /** The durable child session id, stable across activations. */
-  readonly childId: SessionId
-  /** The accepted initial prompt's inbox message id. */
-  readonly messageId: MessageId
-}
-```
-
-When a resident Activation settles, the manager delivers one notice to the child's durable direct parent describing how that epoch ended and carrying its final assistant content. That delivery is unconditional for every child whose id a caller received, happens before the ownership release that would let the parent be judged settled, and reaches a resident parent through the same waking Agent delivery as an Agent message. A parent whose own lineage is already tearing down receives it without a wake, because waking an idle Agent starts a turn rather than queueing work. Its provenance is a distinct kind so a transcript never presents a runtime account as something the child wrote.
+When a resident Activation settles, the manager delivers one notice to the child's durable direct parent describing how that epoch ended and carrying its final assistant content. That delivery is unconditional for every child whose id a caller received, happens before the ownership release that would let the parent be judged settled, and reaches a resident parent through the same waking Agent delivery as an Agent message. A parent whose own lineage is already tearing down receives it without a wake, because waking an idle Agent starts a turn rather than queueing work. Its origin is a distinct kind so a transcript never presents a runtime account as something the child wrote.
 
 ```ts type-equiv
 /**
@@ -211,6 +200,7 @@ interface SubagentSettledMessageSource {
 ```
 
 The provider participates only in preparing the initial creation spec, where `spawn` and `fork` differ. Its returned spec carries only detached provider-specific creation inputs — the optional parent-history seed — and no Agent, `AgentHandle`, prompt delivery, result, disposal, or resume operation. Cold resume does not dispatch through a provider at all: the manager folds the generic descriptor, calls `ctx.agents.resume()` through the same activation-owner scope, and submits the waiting turn.
+
 A local child has a durable Session and at most one live activation. The manager reserves identity and capacity, prepares the child through its backend, and owns input admission, cold resume, and child-first disposal. The activation result settles after resource release and completion notification. Disposal reports cleanup failure separately without replacing a captured result. Structured capture closes input for that activation; a later cold resume does not inherit the output schema.
 
 ```ts type-equiv
@@ -256,55 +246,6 @@ interface ContinuableCreateSpec {
 ## Messages and interruption
 
 sendMessage authorizes the exact live sender and permits only adjacent local agents. Running children receive steering input; absent continuable children resume from persistence. External executions reject follow-ups. Both local and external executions automatically report their final text, structured result, diagnostic, and status in the parent settlement notice. Local children can also send messages through send_message. caller delivery suppresses settlement notices. drainDescendants and drainChildren await owned work teardown for local and external activations.
-
-```ts type-equiv
-/** Durable attribution for one model-authored message between Agents. */
-interface AgentMessageSource {
-  readonly kind: 'agent-message'
-  /** A message another agent addressed to this one (`relay` context form). */
-  readonly form: 'relay'
-  /** Session id of the Agent whose tool call produced the message. */
-  readonly senderSessionId: SessionId
-}
-```
-
-```ts type-equiv
-/**
- * Durable attribution for the runtime's own account of a continuable child
- * settling. Deliberately a different kind from
- * {@link AgentMessageSource}: an Agent message is content the sender chose,
- * while this message is the manager stating what became of the child, and a
- * transcript that merged them would credit the child with words it never wrote.
- */
-interface SubagentSettledMessageSource {
-  readonly kind: 'subagent-settled'
-  /** A runtime account shown without expanding the row (`notice` context form). */
-  readonly form: 'notice'
-  /** One-line account of how the child ended. */
-  readonly summary: string
-  /** Session id of the child that settled. */
-  readonly senderSessionId: SessionId
-}
-```
-
-```ts type-equiv
-/** Options for one model-authored message between adjacent Agents. */
-interface SubagentSendMessageOptions {
-  /** Caller cancellation, owning the operation only until inbox acceptance. */
-  readonly signal: AbortSignal
-}
-```
-
-```ts type-equiv
-/**
- * Authority under which one interrupt request is admitted. `user` carries the
- * durable direct-parent address a human client presented; `ancestor` carries
- * the exact live Agent object whose recorded lineage must contain the caller.
- */
-type SubagentInterruptAuthority =
-  | { readonly kind: 'user'; readonly parentSessionId: SessionId }
-  | { readonly kind: 'ancestor'; readonly agent: Agent }
-```
 
 ## Durable enumeration
 
@@ -472,8 +413,6 @@ type SubagentDescendantListEntry = SubagentListEntry & {
 }
 ```
 
-
-
 <!-- BEGIN GENERATED cordis-surface (gen-cordis-catalog.ts) — do not edit between markers -->
 
 <a id="cordis-surface"></a>
@@ -624,7 +563,7 @@ listDescendants(rootSessionId: SessionId, signal?: AbortSignal): Promise<Subagen
  * Cold resume at capacity rejects with `subagent/delivery-unavailable`.
  * @param request - durable address, delivery, minted identity, content, and optional browser zone.
  * @param signal - carrier cancellation, owning the call until inbox acceptance.
- * @returns the original accepted message's inbox identity for this child's requestId, including retries.
+ * @returns the accepted message's inbox identity.
  * @throws {RemoteError} `gateway/bad-request`, `subagent/attachment-invalid`,
  *   `subagent/invalid-time-zone`, `subagent/parent-unavailable`,
  *   `subagent/not-resumable`, `subagent/unauthorized`,
@@ -647,14 +586,6 @@ listDescendants(rootSessionId: SessionId, signal?: AbortSignal): Promise<Subagen
  *   otherwise `gateway/internal`.
  */
 @Remote('interruptByParent') interruptByParent( childSessionId: SessionId, parentSessionId: SessionId, mode: 'continuable', ): SubagentInterruptReceipt
-
-/**
- * Stop an observed child turn under durable parent-address authority, including while the parent is offline.
- * @param request - child address and the observed turn/start sequence, or null for an idle child.
- * @returns acceptance; a stale, idle, absent or completed target is a no-op, not a quiescence receipt.
- * @throws {RemoteError} invalid input, foreign live-child authority or unavailable turn projection.
- */
-@Remote('interruptTurnByParent') interruptTurnByParent(request: SubagentInterruptTurnRequest): SubagentInterruptReceipt
 
 /**
  * Register a provider under its name. Registration is effect-scoped and HMR

@@ -9,7 +9,6 @@ English | [中文](README.zh.md)
 
 ## Summary
 
-Use this package to stream DeepSeek models through the `deepseek-official` route, including configurable thinking and reasoning effort, image input for vision models, and an advisory model catalog. Endpoint, credentials, catalog, and thinking policy resolve for each request, so valid user-settings changes apply to the next request without restarting the process. Choose it for DeepSeek's official API or an OpenAI-compatible gateway; it can run beside the pi-ai package because they use different route names. Every completed provider call also leaves as one ops record — routing and outcome facts only — through the optional telemetry owner under `providerMetadata` consent.
 Provide the shared DeepSeek Messages transport, request configuration, and model capabilities. Compose [API-key](../llm-deepseek-api-key/README.md) or [account](../llm-deepseek-account/README.md) plugins for authentication, model discovery, and provider registration. Valid settings changes affect subsequent calls while in-flight calls retain their configuration. This package can run beside the [pi-ai adapter](../llm-pi-ai/README.md).
 
 `resolveAuth(connection)` returns the provider-owned authentication headers and an optional failure callback bound to that request’s credential. Messages and Files send those headers without selecting a credential mode. Upload reuse is isolated by endpoint and a hash of the authentication headers; raw credentials are not persisted.

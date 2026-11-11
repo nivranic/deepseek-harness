@@ -10,7 +10,7 @@ gen-71 的陈旧 preset 收口用直写 store 的方式验收 connected 用例�
 
 ## 决策
 
-以两相位车道在夹具 APK 对上验收真实路径。冻结的 lite preset 投影（`packages/preset/agent-presets/lite-preset-descriptors.json`）只携带一个出厂 preset（`minimal`），历史上没有可重放的删项，因此旧 APK 是同一棵树的夹具构建：投影中加入一个探针条目（`vanished-preset`，即 gen-71 注入用的 id）——其余输入完全一致。`LiteUpgradeSeedNativeTest`（`dshUpgradeLane=seed`）不安装也不注入任何东西：打开真实配置面，经 preset 选择器做出显式探针选择——绝不落在空选择解析出的默认值上——保存，留下以 Keystore 密封、名字为探针 id 的 store，随后回读 store 钉住这一持久事实。车道随后替换安装当前 APK（`adb install -r`——数据与 Keystore 条目保留；投影文件先还原为已提交字节，因此升级后 APK 的目录确实删掉了探针）。`LiteUpgradeVerifyNativeTest`（`dshUpgradeLane=verify`）把幸存残留钉在已删 preset 契约上：前置条件是经真实 store 回读到的 seed 相位已存配置——不是本进程写入的——然后陈旧行渲染并点名已存 id 与仍携带的 `minimal`，失败身份上不组装任何会话面，面内重新配置经重选现存 preset 恢复，store 愈合为 `minimal` 并重新组装。两个类在车道参数缺席时干净跳过，常规 connected 车道永不运行它们。
+以两相位车道在夹具 APK 对上验收真实路径。冻结的 lite preset 投影（已下线的 lane `agent-presets` 包内的 `lite-preset-descriptors.json`）只携带一个出厂 preset（`minimal`），历史上没有可重放的删项，因此旧 APK 是同一棵树的夹具构建：投影中加入一个探针条目（`vanished-preset`，即 gen-71 注入用的 id）——其余输入完全一致。`LiteUpgradeSeedNativeTest`（`dshUpgradeLane=seed`）不安装也不注入任何东西：打开真实配置面，经 preset 选择器做出显式探针选择——绝不落在空选择解析出的默认值上——保存，留下以 Keystore 密封、名字为探针 id 的 store，随后回读 store 钉住这一持久事实。车道随后替换安装当前 APK（`adb install -r`——数据与 Keystore 条目保留；投影文件先还原为已提交字节，因此升级后 APK 的目录确实删掉了探针）。`LiteUpgradeVerifyNativeTest`（`dshUpgradeLane=verify`）把幸存残留钉在已删 preset 契约上：前置条件是经真实 store 回读到的 seed 相位已存配置——不是本进程写入的——然后陈旧行渲染并点名已存 id 与仍携带的 `minimal`，失败身份上不组装任何会话面，面内重新配置经重选现存 preset 恢复，store 愈合为 `minimal` 并重新组装。两个类在车道参数缺席时干净跳过，常规 connected 车道永不运行它们。
 
 ## 备选方案（已否决）
 

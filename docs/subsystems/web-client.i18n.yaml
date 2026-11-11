@@ -2,8 +2,6 @@
 # section, a hash of its English and Chinese blocks outside code blocks and generated regions.
 # After editing either side, bring the other along and re-record with:
 #   pnpm run verify-translation-pairing --write docs/subsystems/web-client.md
-web-client.md: dcdbfa9da46c451bc4bbe56f4897aaba3d7ccd3b
-web-client.zh.md: a814413bf2b4f82e8dc0c534105fcdb55d059169
 /web-client-architecture:
   en: 4936655bc5d3ba5b
   zh: 062419330dea65b3
@@ -32,8 +30,11 @@ web-client.zh.md: a814413bf2b4f82e8dc0c534105fcdb55d059169
   en: a254278432416473
   zh: 567c2d3c6a20b304
 /web-client-architecture/reconnection:
-  en: 478f461e261b1ca5
-  zh: 626791d04656faee
+  en: 7fd2f7eba28ca149
+  zh: 5b29545c9680ff72
 /web-client-architecture/package-boundaries:
   en: 3e64e8c28f0c4cb1
   zh: 47aa81c2ace5ba89
+/web-client-architecture/native-delivery-actions:
+  en: e8a1f40360ea354b
+  zh: f2e68e95d2484606

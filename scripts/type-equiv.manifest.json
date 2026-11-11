@@ -8,11 +8,6 @@
     },
     {
       "doc": "docs/subsystems/llm-streaming.md",
-      "symbol": "AssistantProvenance",
-      "source": "packages/llm/llm/src/message.ts"
-    },
-    {
-      "doc": "docs/subsystems/llm-streaming.md",
       "symbol": "Message",
       "source": "packages/llm/llm/src/message.ts"
     },
@@ -688,11 +683,6 @@
     },
     {
       "doc": "docs/subsystems/session-title.md",
-      "symbol": "SessionTitleModelProvenance",
-      "source": "packages/session/session-title/src/types.ts"
-    },
-    {
-      "doc": "docs/subsystems/session-title.md",
       "symbol": "SessionTitleSource",
       "source": "packages/session/session-title/src/types.ts"
     },
@@ -773,16 +763,6 @@
     },
     {
       "doc": "docs/subsystems/tools.md",
-      "symbol": "ToolOutputDefinition",
-      "source": "packages/core/tools/src/index.ts"
-    },
-    {
-      "doc": "docs/subsystems/tools.md",
-      "symbol": "ToolDefinition",
-      "source": "packages/core/tools/src/index.ts"
-    },
-    {
-      "doc": "docs/subsystems/tools.md",
       "symbol": "ValueSchemaSpec",
       "source": "packages/core/tools/src/schema.ts"
     },
@@ -809,77 +789,72 @@
     {
       "doc": "docs/subsystems/tools.md",
       "symbol": "ToolExecutionToken",
-      "source": "packages/core/tools/src/index.ts"
+      "source": "packages/core/tools/src/contracts.ts"
     },
     {
       "doc": "docs/subsystems/tools.md",
       "symbol": "ToolExecutionInput",
-      "source": "packages/core/tools/src/index.ts"
+      "source": "packages/core/tools/src/contracts.ts"
     },
     {
       "doc": "docs/subsystems/tools.md",
       "symbol": "ToolExecution",
-      "source": "packages/core/tools/src/index.ts"
+      "source": "packages/core/tools/src/contracts.ts"
     },
     {
       "doc": "docs/subsystems/tools.md",
       "symbol": "ToolDispatchExecution",
-      "source": "packages/core/tools/src/index.ts"
+      "source": "packages/core/tools/src/contracts.ts"
     },
     {
       "doc": "docs/subsystems/tools.md",
       "symbol": "ToolExecutionMode",
-      "source": "packages/core/tools/src/index.ts"
-    },
-    {
-      "doc": "docs/subsystems/tools.md",
-      "symbol": "PtcDispatchLog",
-      "source": "packages/core/tools/src/index.ts"
+      "source": "packages/core/tools/src/contracts.ts"
     },
     {
       "doc": "docs/subsystems/tools.md",
       "symbol": "ToolRunContext",
-      "source": "packages/core/tools/src/index.ts"
+      "source": "packages/core/tools/src/contracts.ts"
     },
     {
       "doc": "docs/subsystems/tools.md",
       "symbol": "ToolGuard",
-      "source": "packages/core/tools/src/index.ts"
+      "source": "packages/core/tools/src/contracts.ts"
     },
     {
       "doc": "docs/subsystems/tools.md",
       "symbol": "ToolRestriction",
-      "source": "packages/core/tools/src/index.ts"
+      "source": "packages/core/tools/src/contracts.ts"
     },
     {
       "doc": "docs/subsystems/tools.md",
       "symbol": "ToolFailure",
-      "source": "packages/core/tools/src/index.ts"
+      "source": "packages/core/tools/src/contracts.ts"
     },
     {
       "doc": "docs/subsystems/tools.md",
       "symbol": "ToolExecutionSuccess",
-      "source": "packages/core/tools/src/index.ts"
+      "source": "packages/core/tools/src/contracts.ts"
     },
     {
       "doc": "docs/subsystems/tools.md",
       "symbol": "ToolExecutionFailure",
-      "source": "packages/core/tools/src/index.ts"
+      "source": "packages/core/tools/src/contracts.ts"
     },
     {
       "doc": "docs/subsystems/tools.md",
       "symbol": "ToolExecutionResult",
-      "source": "packages/core/tools/src/index.ts"
+      "source": "packages/core/tools/src/contracts.ts"
     },
     {
       "doc": "docs/subsystems/tools.md",
       "symbol": "PreToolDecision",
-      "source": "packages/core/tools/src/index.ts"
+      "source": "packages/core/tools/src/contracts.ts"
     },
     {
       "doc": "docs/subsystems/tools.md",
       "symbol": "PostToolDecision",
-      "source": "packages/core/tools/src/index.ts"
+      "source": "packages/core/tools/src/contracts.ts"
     },
     {
       "doc": "docs/subsystems/tools.md",
@@ -1003,11 +978,6 @@
     },
     {
       "doc": "docs/subsystems/attachment.md",
-      "symbol": "ImageRequestPolicy",
-      "source": "packages/attachment/attachment/src/types.ts"
-    },
-    {
-      "doc": "docs/subsystems/attachment.md",
       "symbol": "RequestImageAttachment",
       "source": "packages/attachment/attachment/src/types.ts"
     },
@@ -1044,12 +1014,7 @@
     {
       "doc": "docs/subsystems/jobs.md",
       "symbol": "JobKindMap",
-      "source": "packages/jobs/jobs/src/types.ts"
-    },
-    {
-      "doc": "docs/subsystems/jobs.md",
-      "symbol": "JobStart",
-      "source": "packages/jobs/jobs/src/types.ts"
+      "source": "packages/jobs/jobs/src/view.ts"
     },
     {
       "doc": "docs/subsystems/jobs.md",
@@ -1059,11 +1024,6 @@
     {
       "doc": "docs/subsystems/jobs.md",
       "symbol": "JobOutcome",
-      "source": "packages/jobs/jobs/src/types.ts"
-    },
-    {
-      "doc": "docs/subsystems/jobs.md",
-      "symbol": "JobSnapshot",
       "source": "packages/jobs/jobs/src/types.ts"
     },
     {
@@ -1140,41 +1100,6 @@
       "doc": "docs/subsystems/sandbox.md",
       "symbol": "ConfinedArgv",
       "source": "packages/sandbox/sandbox/src/index.ts"
-    },
-    {
-      "doc": "docs/subsystems/code-runtime.md",
-      "symbol": "CodeJsonValue",
-      "source": "packages/code-runtime/code-runtime/src/types.ts"
-    },
-    {
-      "doc": "docs/subsystems/code-runtime.md",
-      "symbol": "CodeRunRequest",
-      "source": "packages/code-runtime/code-runtime/src/types.ts"
-    },
-    {
-      "doc": "docs/subsystems/code-runtime.md",
-      "symbol": "CodeRunResult",
-      "source": "packages/code-runtime/code-runtime/src/types.ts"
-    },
-    {
-      "doc": "docs/subsystems/code-runtime.md",
-      "symbol": "CodeBindingNamespace",
-      "source": "packages/code-runtime/code-runtime/src/types.ts"
-    },
-    {
-      "doc": "docs/subsystems/code-runtime.md",
-      "symbol": "CodeBindingErrorClass",
-      "source": "packages/code-runtime/code-runtime/src/types.ts"
-    },
-    {
-      "doc": "docs/subsystems/code-runtime.md",
-      "symbol": "CodeBindingFunction",
-      "source": "packages/code-runtime/code-runtime/src/types.ts"
-    },
-    {
-      "doc": "docs/subsystems/code-runtime.md",
-      "symbol": "CodeRunFailure",
-      "source": "packages/code-runtime/code-runtime/src/types.ts"
     },
     {
       "doc": "docs/subsystems/filesystem.md",
@@ -1380,11 +1305,6 @@
       "doc": "docs/subsystems/subagent.md",
       "symbol": "SubagentDescendantListEntry",
       "source": "packages/subagent/subagent/src/list-children.ts"
-    },
-    {
-      "doc": "docs/subsystems/subagent.md",
-      "symbol": "ContinuableStart",
-      "source": "packages/subagent/subagent/src/types.ts"
     },
     {
       "doc": "docs/subsystems/subagent.md",
@@ -1667,36 +1587,6 @@
       "source": "packages/subprocess/subprocess/src/types.ts"
     },
     {
-      "doc": "docs/subsystems/settings.md",
-      "symbol": "SettingsNamespace",
-      "source": "packages/settings/settings/src/types.ts"
-    },
-    {
-      "doc": "docs/subsystems/settings.md",
-      "symbol": "SettingsRegisterOptions",
-      "source": "packages/settings/settings/src/index.ts"
-    },
-    {
-      "doc": "docs/subsystems/settings.md",
-      "symbol": "SettingsApplies",
-      "source": "packages/settings/settings/src/index.ts"
-    },
-    {
-      "doc": "docs/subsystems/settings.md",
-      "symbol": "SettingsScope",
-      "source": "packages/settings/settings/src/index.ts"
-    },
-    {
-      "doc": "docs/subsystems/settings.md",
-      "symbol": "SettingsDescriptor",
-      "source": "packages/settings/settings/src/index.ts"
-    },
-    {
-      "doc": "docs/subsystems/settings.md",
-      "symbol": "SettingsUpdateSource",
-      "source": "packages/settings/settings/src/types.ts"
-    },
-    {
       "doc": "docs/subsystems/credentials.md",
       "symbol": "ResolvedCredential",
       "source": "packages/credentials/credentials/src/index.ts"
@@ -1707,19 +1597,9 @@
       "source": "packages/credentials/credentials/src/types.ts"
     },
     {
-      "doc": "docs/subsystems/settings.md",
-      "symbol": "SettingsDescribeOptions",
-      "source": "packages/settings/settings/src/index.ts"
-    },
-    {
       "doc": "docs/subsystems/llm-streaming.md",
       "symbol": "LlmConfigurableProvider",
       "source": "packages/llm/llm/src/types.ts"
-    },
-    {
-      "doc": "docs/subsystems/settings.md",
-      "symbol": "SettingsPathOp",
-      "source": "packages/settings/settings/src/index.ts"
     },
     {
       "doc": "docs/subsystems/permission-presets.md",
@@ -1735,21 +1615,6 @@
       "doc": "docs/subsystems/plan.md",
       "symbol": "PlanModeConfig",
       "source": "packages/plan/plan-mode/src/index.ts"
-    },
-    {
-      "doc": "docs/subsystems/invariants.md",
-      "symbol": "Config",
-      "source": "packages/runtime-diagnostics/invariants/src/index.ts"
-    },
-    {
-      "doc": "docs/subsystems/invariants.md",
-      "symbol": "InvariantFailure",
-      "source": "packages/runtime-diagnostics/invariants/src/index.ts"
-    },
-    {
-      "doc": "docs/subsystems/invariants.md",
-      "symbol": "InvariantInstaller",
-      "source": "packages/runtime-diagnostics/invariants/src/index.ts"
     },
     {
       "doc": "docs/subsystems/web-server.md",
@@ -1909,11 +1774,6 @@
     {
       "doc": "docs/subsystems/typert.md",
       "symbol": "TypertGatewayErrorCode",
-      "source": "packages/api/gateway/src/types.ts"
-    },
-    {
-      "doc": "docs/subsystems/typert.md",
-      "symbol": "TypertGatewayDeviceConnection",
       "source": "packages/api/gateway/src/types.ts"
     },
     {
@@ -2413,52 +2273,12 @@
     },
     {
       "doc": "docs/subsystems/tools.md",
-      "symbol": "ToolExecutionToken",
-      "source": "packages/core/tools/src/contracts.ts"
-    },
-    {
-      "doc": "docs/subsystems/tools.md",
-      "symbol": "ToolExecutionInput",
-      "source": "packages/core/tools/src/contracts.ts"
-    },
-    {
-      "doc": "docs/subsystems/tools.md",
-      "symbol": "ToolExecution",
-      "source": "packages/core/tools/src/contracts.ts"
-    },
-    {
-      "doc": "docs/subsystems/tools.md",
-      "symbol": "ToolDispatchExecution",
-      "source": "packages/core/tools/src/contracts.ts"
-    },
-    {
-      "doc": "docs/subsystems/tools.md",
-      "symbol": "ToolExecutionMode",
-      "source": "packages/core/tools/src/contracts.ts"
-    },
-    {
-      "doc": "docs/subsystems/tools.md",
       "symbol": "PtcDispatchLog",
       "source": "packages/core/tool-executor-ptc/src/runtime-types.ts"
     },
     {
       "doc": "docs/subsystems/tools.md",
-      "symbol": "ToolRunContext",
-      "source": "packages/core/tools/src/contracts.ts"
-    },
-    {
-      "doc": "docs/subsystems/tools.md",
-      "symbol": "ToolGuard",
-      "source": "packages/core/tools/src/contracts.ts"
-    },
-    {
-      "doc": "docs/subsystems/tools.md",
       "symbol": "ToolErrorInfo",
-      "source": "packages/core/tools/src/contracts.ts"
-    },
-    {
-      "doc": "docs/subsystems/tools.md",
-      "symbol": "ToolRestriction",
       "source": "packages/core/tools/src/contracts.ts"
     },
     {
@@ -2474,36 +2294,6 @@
     {
       "doc": "docs/subsystems/tools.md",
       "symbol": "ResolvedToolSet",
-      "source": "packages/core/tools/src/contracts.ts"
-    },
-    {
-      "doc": "docs/subsystems/tools.md",
-      "symbol": "ToolFailure",
-      "source": "packages/core/tools/src/contracts.ts"
-    },
-    {
-      "doc": "docs/subsystems/tools.md",
-      "symbol": "ToolExecutionSuccess",
-      "source": "packages/core/tools/src/contracts.ts"
-    },
-    {
-      "doc": "docs/subsystems/tools.md",
-      "symbol": "ToolExecutionFailure",
-      "source": "packages/core/tools/src/contracts.ts"
-    },
-    {
-      "doc": "docs/subsystems/tools.md",
-      "symbol": "ToolExecutionResult",
-      "source": "packages/core/tools/src/contracts.ts"
-    },
-    {
-      "doc": "docs/subsystems/tools.md",
-      "symbol": "PreToolDecision",
-      "source": "packages/core/tools/src/contracts.ts"
-    },
-    {
-      "doc": "docs/subsystems/tools.md",
-      "symbol": "PostToolDecision",
       "source": "packages/core/tools/src/contracts.ts"
     },
     {
@@ -2545,11 +2335,6 @@
       "doc": "docs/subsystems/attachment.md",
       "symbol": "ProjectedDimensions",
       "source": "packages/attachment/attachment/src/request-projection.ts"
-    },
-    {
-      "doc": "docs/subsystems/jobs.md",
-      "symbol": "JobKindMap",
-      "source": "packages/jobs/jobs/src/view.ts"
     },
     {
       "doc": "docs/subsystems/jobs.md",

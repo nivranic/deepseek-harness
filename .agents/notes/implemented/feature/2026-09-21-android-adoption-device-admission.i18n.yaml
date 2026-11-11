@@ -1,6 +1,22 @@
-# Bilingual-pair consistency record (docs/i18n/README.md): the git blob hash of each
-# side as of the last confirmed-consistent state. Both languages carry equal authority;
-# after editing either side, bring the other along and re-record with:
+# Bilingual-pair consistency record for 2026-09-21-android-adoption-device-admission.md (docs/i18n/README.md): per heading
+# section, a hash of its English and Chinese blocks outside code blocks and generated regions.
+# After editing either side, bring the other along and re-record with:
 #   pnpm run verify-translation-pairing --write .agents/notes/implemented/feature/2026-09-21-android-adoption-device-admission.md
-2026-09-21-android-adoption-device-admission.md: a1dcd5201031389cc0176a4620d4e1c6f317a2ef
-2026-09-21-android-adoption-device-admission.zh.md: 5f7563f3c3594185bbc202ae655161bc2b42a2bc
+/agent-note-the-android-client-signs-every-business-call-with-a-device-admission:
+  en: b01bee9a5467b546
+  zh: 682c6fbee219349b
+/agent-note-the-android-client-signs-every-business-call-with-a-device-admission/problem:
+  en: 0539967e527d9fb8
+  zh: f41e4ceffa003ce6
+/agent-note-the-android-client-signs-every-business-call-with-a-device-admission/decision:
+  en: 35f4cb5ecc51b78a
+  zh: 000209ad38e2b5b3
+/agent-note-the-android-client-signs-every-business-call-with-a-device-admission/evidence:
+  en: dbd9b6a786319545
+  zh: 79bb41b08ae140c6
+/agent-note-the-android-client-signs-every-business-call-with-a-device-admission/alternatives-considered:
+  en: 45dcb4f779d0970f
+  zh: 30269d77a16ae1fe
+/agent-note-the-android-client-signs-every-business-call-with-a-device-admission/consequences:
+  en: 2a6534232447213c
+  zh: 1835a2e580c36637

@@ -2,11 +2,9 @@
 # section, a hash of its English and Chinese blocks outside code blocks and generated regions.
 # After editing either side, bring the other along and re-record with:
 #   pnpm run verify-translation-pairing --write docs/subsystems/typert.md
-typert.md: 3b74f9c6a9da50b0929398bec482feb110ea5878
-typert.zh.md: 6906302ec06e30f0ab2dbec765f3d56320f69ae4
 /typert-remote-calls:
-  en: ccc2694e359c2333
-  zh: cd68bf5e74e2d685
+  en: d0f0910c555ac42d
+  zh: a94c9a1e9dc3724c
 /typert-remote-calls/lookup-and-context-declarations:
   en: 8725fa62f36364d7
   zh: 0f2ff4bdf13ff55b
@@ -20,8 +18,23 @@ typert.zh.md: 6906302ec06e30f0ab2dbec765f3d56320f69ae4
   en: d891e9390cf890da
   zh: f45a31cc2ce2021e
 /typert-remote-calls/host-gateway:
-  en: 58b923de12e48f18
-  zh: d3c2372d8becf65e
+  en: f0285f53b69d3ae1
+  zh: ad29f66323844a2a
+/typert-remote-calls/native-tls-source:
+  en: a2d6511ee1a6e94e
+  zh: a0baf749a9490912
+/typert-remote-calls/native-tls-source/nativehttprequestbudget:
+  en: 54ba2317bdf0e90b
+  zh: 54ba2317bdf0e90b
+/typert-remote-calls/native-tls-source/nativeremoteinfo:
+  en: 9c54a67fd8b5eeec
+  zh: 9c54a67fd8b5eeec
+/typert-remote-calls/native-tls-source/nativepairingpayload:
+  en: 60cfd1589d280a09
+  zh: 60cfd1589d280a09
+/typert-remote-calls/host-discovery:
+  en: 001b1c200f67023f
+  zh: 3f2d5231f39048f1
 /typert-remote-calls/consumer-remote:
   en: 324386c600a5fdf5
   zh: 7963501eb663e228

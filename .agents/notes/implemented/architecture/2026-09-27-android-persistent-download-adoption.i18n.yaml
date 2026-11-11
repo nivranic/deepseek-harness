@@ -1,6 +1,22 @@
-# Bilingual-pair consistency record (docs/i18n/README.md): the git blob hash of each
-# side as of the last confirmed-consistent state. Both languages carry equal authority;
-# after editing either side, bring the other along and re-record with:
+# Bilingual-pair consistency record for 2026-09-27-android-persistent-download-adoption.md (docs/i18n/README.md): per heading
+# section, a hash of its English and Chinese blocks outside code blocks and generated regions.
+# After editing either side, bring the other along and re-record with:
 #   pnpm run verify-translation-pairing --write .agents/notes/implemented/architecture/2026-09-27-android-persistent-download-adoption.md
-2026-09-27-android-persistent-download-adoption.md: 686c401440563bad2cf7d8f2b0781f1dffc62ba3
-2026-09-27-android-persistent-download-adoption.zh.md: b86e818b3cfeed268880cae3b1f852daef7e3c0b
+/agent-note-android-adopts-persistent-downloads-within-the-selected-host-model:
+  en: 2d321cff7e6e007b
+  zh: 57e964d973bbea4d
+/agent-note-android-adopts-persistent-downloads-within-the-selected-host-model/problem:
+  en: 3cecf9174c61680e
+  zh: ba7cfb362b83f63c
+/agent-note-android-adopts-persistent-downloads-within-the-selected-host-model/decision:
+  en: 637d682fa33025b5
+  zh: be822a030060d692
+/agent-note-android-adopts-persistent-downloads-within-the-selected-host-model/complete-file-export:
+  en: e25c88e8e637ab34
+  zh: 9bede711366cb055
+/agent-note-android-adopts-persistent-downloads-within-the-selected-host-model/alternatives-considered:
+  en: 0d8c6e17196ba528
+  zh: d99f336a810aab7e
+/agent-note-android-adopts-persistent-downloads-within-the-selected-host-model/consequences:
+  en: 15bc63a1efe087cc
+  zh: abb3b2b5b1316237

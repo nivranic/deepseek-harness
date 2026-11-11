@@ -1,6 +1,22 @@
-# Bilingual-pair consistency record (docs/i18n/README.md): the git blob hash of each
-# side as of the last confirmed-consistent state. Both languages carry equal authority;
-# after editing either side, bring the other along and re-record with:
+# Bilingual-pair consistency record for 2026-09-30-android-host-question-isolation.md (docs/i18n/README.md): per heading
+# section, a hash of its English and Chinese blocks outside code blocks and generated regions.
+# After editing either side, bring the other along and re-record with:
 #   pnpm run verify-translation-pairing --write .agents/notes/implemented/architecture/2026-09-30-android-host-question-isolation.md
-2026-09-30-android-host-question-isolation.md: 0fdef778487b6692e26db856672bb0f0446dc116
-2026-09-30-android-host-question-isolation.zh.md: cac40acf7ec95f80779e983ec4897e634bc5c9ed
+/agent-note-a-pending-host-question-stays-scoped-to-its-own-saved-host-on-the-physical-android-lane:
+  en: ce1299d55ad4e20a
+  zh: d207f0595dcea31f
+/agent-note-a-pending-host-question-stays-scoped-to-its-own-saved-host-on-the-physical-android-lane/problem:
+  en: e98b5a4f4c0934c0
+  zh: 220fa886ce1ae311
+/agent-note-a-pending-host-question-stays-scoped-to-its-own-saved-host-on-the-physical-android-lane/decision:
+  en: 1184fb13bec97be8
+  zh: 6b148b97960fadb2
+/agent-note-a-pending-host-question-stays-scoped-to-its-own-saved-host-on-the-physical-android-lane/alternatives-considered:
+  en: a972ca4403bf2053
+  zh: 10d5245e2531dcd0
+/agent-note-a-pending-host-question-stays-scoped-to-its-own-saved-host-on-the-physical-android-lane/consequences:
+  en: 873c9da7c84c992b
+  zh: 2a1e1e3fdb3bfd36
+/agent-note-a-pending-host-question-stays-scoped-to-its-own-saved-host-on-the-physical-android-lane/open-work:
+  en: abd828e4c7a1c4dd
+  zh: 0c58e24bde449658

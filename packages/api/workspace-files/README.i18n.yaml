@@ -2,8 +2,6 @@
 # section, a hash of its English and Chinese blocks outside code blocks and generated regions.
 # After editing either side, bring the other along and re-record with:
 #   pnpm run verify-translation-pairing --write packages/api/workspace-files/README.md
-README.md: 3af5184daea73ba6aefc80c42e5f4318a65d6197
-README.zh.md: 12b23bc0c253e382da0a5aeeed8813b758cab4fa
 /:
   en: f83c75aa73ae21dd
   zh: e8873aafd23a8038
@@ -17,8 +15,8 @@ README.zh.md: 12b23bc0c253e382da0a5aeeed8813b758cab4fa
   en: d152484eb41ac6b4
   zh: 09388d293f9be9cb
 /deepseek-ai-dsh-api-workspace-files/use-this-package:
-  en: 874054ed5e950973
-  zh: e8b55d62939c4c2f
+  en: 34a891a6b8e8ea01
+  zh: 0aa3a54e12f8a36f
 /deepseek-ai-dsh-api-workspace-files/use-this-package/addressing-and-paths:
   en: b9565cfa7a1da451
   zh: fc4078a58322fc7f
@@ -41,8 +39,8 @@ README.zh.md: 12b23bc0c253e382da0a5aeeed8813b758cab4fa
   en: c53d597c8f255e69
   zh: 1e00318f9a34f3bb
 /deepseek-ai-dsh-api-workspace-files/use-this-package/client-file-resources:
-  en: 9b4bf7a30016f856
-  zh: 30127a6ada65e715
+  en: 183cb92e0512899f
+  zh: 26e4cb00d34c8e31
 /deepseek-ai-dsh-api-workspace-files/understand-the-implementation:
   en: 42b15ac6321706aa
   zh: ce1d25bffb6948cd

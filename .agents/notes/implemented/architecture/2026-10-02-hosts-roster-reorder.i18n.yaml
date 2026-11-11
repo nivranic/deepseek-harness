@@ -1,6 +1,22 @@
-# Bilingual-pair consistency record (docs/i18n/README.md): the git blob hash of each
-# side as of the last confirmed-consistent state. Both languages carry equal authority;
-# after editing either side, bring the other along and re-record with:
+# Bilingual-pair consistency record for 2026-10-02-hosts-roster-reorder.md (docs/i18n/README.md): per heading
+# section, a hash of its English and Chinese blocks outside code blocks and generated regions.
+# After editing either side, bring the other along and re-record with:
 #   pnpm run verify-translation-pairing --write .agents/notes/implemented/architecture/2026-10-02-hosts-roster-reorder.md
-2026-10-02-hosts-roster-reorder.md: c15c34ea2429df63b29918ae7336139ca835def0
-2026-10-02-hosts-roster-reorder.zh.md: cdd3f75ab461d7e4a26cfd63e2455ae83cfba16c
+/agent-note-manual-saved-host-reordering-on-the-section-28-roster:
+  en: 59d98f5aad0d3077
+  zh: 72a97ebd9e54a1c3
+/agent-note-manual-saved-host-reordering-on-the-section-28-roster/problem:
+  en: 6d7246c9ff0d8f4a
+  zh: ca0434fda7d7e629
+/agent-note-manual-saved-host-reordering-on-the-section-28-roster/decision:
+  en: 6cacfe41026e65e5
+  zh: c44489b1c5806568
+/agent-note-manual-saved-host-reordering-on-the-section-28-roster/alternatives-considered:
+  en: 2410553ba975db33
+  zh: 1e280d1d8a9908a1
+/agent-note-manual-saved-host-reordering-on-the-section-28-roster/consequences:
+  en: f47f5f2c565e6013
+  zh: 0aa00da533165a3a
+/agent-note-manual-saved-host-reordering-on-the-section-28-roster/open-work:
+  en: 4b2c674cba08e941
+  zh: f6bd2e05d19545e8

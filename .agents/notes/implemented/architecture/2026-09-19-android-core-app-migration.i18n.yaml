@@ -1,6 +1,46 @@
-# Bilingual-pair consistency record (docs/i18n/README.md): the git blob hash of each
-# side as of the last confirmed-consistent state. Both languages carry equal authority;
-# after editing either side, bring the other along and re-record with:
+# Bilingual-pair consistency record for 2026-09-19-android-core-app-migration.md (docs/i18n/README.md): per heading
+# section, a hash of its English and Chinese blocks outside code blocks and generated regions.
+# After editing either side, bring the other along and re-record with:
 #   pnpm run verify-translation-pairing --write .agents/notes/implemented/architecture/2026-09-19-android-core-app-migration.md
-2026-09-19-android-core-app-migration.md: d62d395ae10b1b69651c6129422316ab0699c43c
-2026-09-19-android-core-app-migration.zh.md: 34cbbfffb3a9c6eb72bd6d1b233d973680cee9e3
+/agent-note-android-core-and-app-modules-migrate-onto-the-contract-build:
+  en: 9b5f1b842a31d4ec
+  zh: 29a436e024e67e81
+/agent-note-android-core-and-app-modules-migrate-onto-the-contract-build/problem:
+  en: 61ba320a81ae9721
+  zh: 500958910e6a9873
+/agent-note-android-core-and-app-modules-migrate-onto-the-contract-build/current-upstream-boundary:
+  en: 13edda9e7224e919
+  zh: db87dea6ed015208
+/agent-note-android-core-and-app-modules-migrate-onto-the-contract-build/decision:
+  en: 1269e806073dc0ba
+  zh: b07965273b73fb9e
+/agent-note-android-core-and-app-modules-migrate-onto-the-contract-build/alternatives-considered:
+  en: df66abf0ae4fef58
+  zh: 0e56286596348646
+/agent-note-android-core-and-app-modules-migrate-onto-the-contract-build/contract:
+  en: 384fe0402fa80295
+  zh: 11bc8caf25772f5f
+/agent-note-android-core-and-app-modules-migrate-onto-the-contract-build/persistence:
+  en: cefea791de134049
+  zh: 52dec4c09f50e438
+/agent-note-android-core-and-app-modules-migrate-onto-the-contract-build/security:
+  en: 8871727176cdbb2f
+  zh: 2fe781fd03a1c8c6
+/agent-note-android-core-and-app-modules-migrate-onto-the-contract-build/compatibility:
+  en: f0e45411ffe8867f
+  zh: 697c316bfbab7dbc
+/agent-note-android-core-and-app-modules-migrate-onto-the-contract-build/failure-handling:
+  en: 0c0b1ed99b07ffd1
+  zh: 666667183a7a2995
+/agent-note-android-core-and-app-modules-migrate-onto-the-contract-build/testing:
+  en: b65d0fade98ce9c4
+  zh: 3b3071bebdca3ab3
+/agent-note-android-core-and-app-modules-migrate-onto-the-contract-build/rollout:
+  en: 697961371488f0a8
+  zh: 546c90c40fbd6824
+/agent-note-android-core-and-app-modules-migrate-onto-the-contract-build/rollback:
+  en: 900c3e15ef85a6ed
+  zh: 49d46c30eab08415
+/agent-note-android-core-and-app-modules-migrate-onto-the-contract-build/consequences:
+  en: 2a08ebbcd7f8e4cf
+  zh: 1af9fdc01af82a5a

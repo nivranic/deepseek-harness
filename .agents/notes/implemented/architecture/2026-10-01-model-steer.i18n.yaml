@@ -1,6 +1,22 @@
-# Bilingual-pair consistency record (docs/i18n/README.md): the git blob hash of each
-# side as of the last confirmed-consistent state. Both languages carry equal authority;
-# after editing either side, bring the other along and re-record with:
+# Bilingual-pair consistency record for 2026-10-01-model-steer.md (docs/i18n/README.md): per heading
+# section, a hash of its English and Chinese blocks outside code blocks and generated regions.
+# After editing either side, bring the other along and re-record with:
 #   pnpm run verify-translation-pairing --write .agents/notes/implemented/architecture/2026-10-01-model-steer.md
-2026-10-01-model-steer.md: b782eead5476774081213ad8a0c22c377c33bc3e
-2026-10-01-model-steer.zh.md: 9f6d6548205c6c5a83318dbc56b995d639b53262
+/agent-note-steer-submissions-join-the-shared-capability-contract-30:
+  en: 0b2271b337ff2f30
+  zh: bc5fcf00bacb5aaf
+/agent-note-steer-submissions-join-the-shared-capability-contract-30/problem:
+  en: 1ff64db8b80e0ebf
+  zh: fde1a03f3e56d214
+/agent-note-steer-submissions-join-the-shared-capability-contract-30/decision:
+  en: 3bf213e01347b1ee
+  zh: 816a65503f195f70
+/agent-note-steer-submissions-join-the-shared-capability-contract-30/alternatives-considered:
+  en: d3aa587bb1289e65
+  zh: feee844ed4907deb
+/agent-note-steer-submissions-join-the-shared-capability-contract-30/consequences:
+  en: ecb68df08cc4d22f
+  zh: c82793406601bebf
+/agent-note-steer-submissions-join-the-shared-capability-contract-30/open-work:
+  en: 02391cfa9694530d
+  zh: 2142be0790953803

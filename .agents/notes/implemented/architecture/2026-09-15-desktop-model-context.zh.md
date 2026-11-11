@@ -24,6 +24,6 @@ Desktop 组合禁用浏览器运行时，而 Web 应用的模型可见场景说�
 
 ## 影响
 
-Desktop 请求增加一个靠后的提示词节，可复用指令前缀保持稳定。注册仅影响本地 Desktop Session；[环境后缀决策](../bug-fix/2026-09-06-environment-prompt-suffix.zh.md)仍负责提示词排序，[Desktop 打包决策](2026-08-25-electron-desktop-packaging-and-updates.zh.md)仍负责运行时和传输归属。两项决策均未被替代。
+Desktop 请求增加一个靠后的提示词节，可复用指令前缀保持稳定。注册仅影响本地 Desktop Session；[环境后缀决策](../../archived/bug-fix/2026-09-06-environment-prompt-suffix.md)仍负责提示词排序，[Desktop 打包决策](2026-08-25-electron-desktop-packaging-and-updates.zh.md)仍负责运行时和传输归属。两项决策均未被替代。
 
 必要证据包括注册清理、服务重载、完整 persona 抑制、包含精确提示词的无密钥记录 Session，以及包含同一节的实际 Desktop 模型请求。记录会话 fixture（测试前置数据）通过随附的 headless profile 提供私有注册，并禁用平台特定的 shell 工具；它证明日志中的提示词内容，Desktop 运行则证明应用接线。

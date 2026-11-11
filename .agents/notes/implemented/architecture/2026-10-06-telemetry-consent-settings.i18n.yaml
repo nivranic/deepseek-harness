@@ -1,6 +1,22 @@
-# Bilingual-pair consistency record (docs/i18n/README.md): the git blob hash of each
-# side as of the last confirmed-consistent state. Both languages carry equal authority;
-# after editing either side, bring the other along and re-record with:
+# Bilingual-pair consistency record for 2026-10-06-telemetry-consent-settings.md (docs/i18n/README.md): per heading
+# section, a hash of its English and Chinese blocks outside code blocks and generated regions.
+# After editing either side, bring the other along and re-record with:
 #   pnpm run verify-translation-pairing --write .agents/notes/implemented/architecture/2026-10-06-telemetry-consent-settings.md
-2026-10-06-telemetry-consent-settings.md: ada15f438cbffaee5c37ca7174458e013c4d9d2c
-2026-10-06-telemetry-consent-settings.zh.md: 7cfea5d674193e72baa457e4c7e77fbed5038203
+/agent-note-per-kind-telemetry-consent-joins-the-settings-layer-with-five-independent-switches:
+  en: d71205ad7fa9715d
+  zh: 7c717190328256d2
+/agent-note-per-kind-telemetry-consent-joins-the-settings-layer-with-five-independent-switches/problem:
+  en: c4d2184ba92f2e6e
+  zh: d16e2d1173282599
+/agent-note-per-kind-telemetry-consent-joins-the-settings-layer-with-five-independent-switches/decision:
+  en: b6a8a5be3525e42a
+  zh: b634c48f2a7279c1
+/agent-note-per-kind-telemetry-consent-joins-the-settings-layer-with-five-independent-switches/alternatives-considered:
+  en: 6b8ecdf0888a100e
+  zh: 759655d3b73dce89
+/agent-note-per-kind-telemetry-consent-joins-the-settings-layer-with-five-independent-switches/consequences:
+  en: ec9ec9e2eb056751
+  zh: ca143fa17955fafc
+/agent-note-per-kind-telemetry-consent-joins-the-settings-layer-with-five-independent-switches/open-follow-ups:
+  en: 1359891833783bb5
+  zh: b832269ffb7fdce0

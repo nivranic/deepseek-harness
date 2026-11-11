@@ -45,8 +45,7 @@ After the build, `lib/typert.host.js` and `lib/typert.host.d.ts` exist and the [
 
 Binding options accept `namespace` and runtime-owned `capabilities`. Capability declarations do not alter generated invocation codecs or Client method signatures; unknown option names still reject analysis. See [Host discovery](../../api/host-description/README.md).
 
-<a id="analyzing-a-workspace-statically"></a>
-<a id="ordinary-remote-metadata"></a>
+<a id="analyzing-a-workspace-statically"></a> <a id="ordinary-remote-metadata"></a>
 ### Ordinary Remote metadata
 
 The emitter writes one static `TypertRemoteMethodSpec` per endpoint and calls the pure `createTypertRemoteInfo` factory with the spec and the artifact's own imported Zod runtime. Ordinary consumer `./remote` artifacts retain their default export and `TYPERT_REMOTE`, typed as `TypertRemoteInfo` with precise `TypertRemoteMethod<Input, Output, Mode, Uplink, DecodedOutput>` entries in `TYPERT_REMOTE.methods`. Each entry is the same object as its direct descriptor in `TYPERT_REMOTE.descriptors`; Context-only receivers remain in descriptors and scoped declarations. There is no separate `REMOTE_METHODS` export, nested `metadata`, or second `output` codec. The [protocol](<../protocol/README.md>) owns the factory and method API.

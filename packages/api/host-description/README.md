@@ -44,7 +44,7 @@ The Web bundle mounts this plugin; Desktop uses the same composition with its pi
 | `transports` | required | Nonempty carrier list: `http`, `websocket`, or `desktop-pipe` |
 | `identityLockWaitMs` | `2000` | Maximum wait for a concurrent identity writer, in milliseconds |
 
-The [configuration catalog](../../../docs/config-catalog.md#deepseek-aidsh-api-host-description) owns accepted configuration fields. Desktop configures only `desktop-pipe`; the application must declare the carriers it actually mounts.
+The [configuration catalog](../../../docs/config-catalog.md) owns accepted configuration fields. Desktop configures only `desktop-pipe`; the application must declare the carriers it actually mounts.
 
 `host.describe` returns the protocol-1 discovery representation and advertises `supportedApiProtocolVersions`. `host.negotiate` selects the highest shared version from distinct positive integer offers and returns a descriptor with that selected `apiProtocolVersion`. An empty, duplicate, or malformed offer fails; no shared version returns `gateway/protocol-unsupported`. The Client must retain the same `hostId` across both responses. Negotiation does not change Host state or bind authorization to a protocol number.
 

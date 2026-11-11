@@ -122,7 +122,7 @@ Before pushing, follow [dsh-pre-push-checks](.agents/skills/dsh-pre-push-checks/
 
 ## COHS quality standard
 
-Runs under COHS v1.0; trigger rules and principles live in the user-level entry (`~/.zcode/AGENTS.md`, authoritative text `~/.agents/standards/COHS.md`). Verification stays on the [Commands](#commands) gates; findings and remediations go through [Agent Notes](.agents/notes/README.md) and [post-mortems](docs/postmortem/README.md), not a separate `/assurance` tree.
+Runs under COHS v1.0; triggers and principles live in the user-level entry (`~/.agents/standards/COHS.md`). Verification stays on the [Commands](#commands) gates; findings go through [Agent Notes](.agents/notes/README.md) and [post-mortems](docs/postmortem/README.md).
 
 ## Secrets / .env
 

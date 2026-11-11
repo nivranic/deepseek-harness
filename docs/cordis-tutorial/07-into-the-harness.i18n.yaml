@@ -2,8 +2,6 @@
 # section, a hash of its English and Chinese blocks outside code blocks and generated regions.
 # After editing either side, bring the other along and re-record with:
 #   pnpm run verify-translation-pairing --write docs/cordis-tutorial/07-into-the-harness.md
-07-into-the-harness.md: e3e650530203f57fb6c51079818ae80663e7ebff
-07-into-the-harness.zh.md: 5b3e997430edb4de84965030fe0192cecd0afd90
 /7-into-the-harness:
   en: 470ff1f9eadc2663
   zh: d92a95cc0058ed3b

@@ -1,6 +1,19 @@
-# Bilingual-pair consistency record (docs/i18n/README.md): the git blob hash of each
-# side as of the last confirmed-consistent state. Both languages carry equal authority;
-# after editing either side, bring the other along and re-record with:
+# Bilingual-pair consistency record for 2026-09-29-native-image-upload-budget.md (docs/i18n/README.md): per heading
+# section, a hash of its English and Chinese blocks outside code blocks and generated regions.
+# After editing either side, bring the other along and re-record with:
 #   pnpm run verify-translation-pairing --write .agents/notes/implemented/architecture/2026-09-29-native-image-upload-budget.md
-2026-09-29-native-image-upload-budget.md: 4def5cab5db51de382c900cbc36d64388fbcd58a
-2026-09-29-native-image-upload-budget.zh.md: 473fadb8d68e767ce9162e30943c9ae7d896f4e2
+/agent-note-native-image-uploads-use-the-same-complete-body-budget-admission:
+  en: 9d33e9aebc55c038
+  zh: d82bc136b005789c
+/agent-note-native-image-uploads-use-the-same-complete-body-budget-admission/problem:
+  en: 156c4befb6b1818d
+  zh: 15ec61c16ff6896a
+/agent-note-native-image-uploads-use-the-same-complete-body-budget-admission/decision:
+  en: 65c07920a03af57d
+  zh: b6d4130c743840cc
+/agent-note-native-image-uploads-use-the-same-complete-body-budget-admission/alternatives-considered:
+  en: 78715aa410036f6a
+  zh: 5814452caba48aff
+/agent-note-native-image-uploads-use-the-same-complete-body-budget-admission/consequences:
+  en: 2e30b3efc1ad4959
+  zh: 39b96dd7dd976710

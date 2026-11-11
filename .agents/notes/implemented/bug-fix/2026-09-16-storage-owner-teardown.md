@@ -26,6 +26,6 @@ JSON and SQLite use the shared [`closeOwnedKvUnits`](../../../../packages/storag
 
 ## Consequences
 
-The [checkpoint ordering decision](2026-09-16-checkpoint-write-order.md) remains active: each checkpoint must reserve its domain queue position before waiting for log durability. Backend teardown extends that drainage to medium disposal. The [cache compatibility decision](../architecture/2026-09-02-projcache-cross-version-read-compat.md) still owns record versions and lineage; neither decision is superseded, and this change adds no Session event or storage generation.
+The [checkpoint ordering decision](2026-09-16-checkpoint-write-order.md) remains active: each checkpoint must reserve its domain queue position before waiting for log durability. Backend teardown extends that drainage to medium disposal. The [cache compatibility decision](../../archived/architecture/2026-09-02-projcache-cross-version-read-compat.md) still owns record versions and lineage; neither decision is superseded, and this change adds no Session event or storage generation.
 
 Shared JSON/SQLite conformance tests check durable owner work, callback withdrawal, repeated close, and multiple cleanup failures. Domain tests check initialization races and all-owner drainage. The authored [Web Session recording](../../../../snapshots/web/checkpoint-order/session.v3.jsonl) runs through the Web Loader with backend close during a pending checkpoint and verifies the durable cache and Session log. These checks do not qualify installed Desktop artifacts, real model providers, or other platforms.

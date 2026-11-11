@@ -2,8 +2,6 @@
 # section, a hash of its English and Chinese blocks outside code blocks and generated regions.
 # After editing either side, bring the other along and re-record with:
 #   pnpm run verify-translation-pairing --write packages/util/workspace-path/README.md
-README.md: 447a7632b7d9bf52d70ec15bf38d5f4827bf2ae1
-README.zh.md: fa4b2212fbc4d408ceae412d8e52ac0de41822af
 /:
   en: e8d97ffa99a57ab7
   zh: 2d7247c47412c30a
@@ -20,8 +18,8 @@ README.zh.md: fa4b2212fbc4d408ceae412d8e52ac0de41822af
   en: fa695bca8bd534e0
   zh: d8feffb4794adfcd
 /dsh-util-workspace-path/known-limitations-and-deferred-work:
-  en: 1e6d448f4f0030c4
-  zh: c050dd5e470fe47b
+  en: 1a54539e57865dea
+  zh: e4f3bd4c9e4bc801
 /dsh-util-workspace-path/known-limitations-and-deferred-work/dev-note:
   en: e67f633dc6fe7773
   zh: e88aeb617ffb74ea

@@ -15,6 +15,7 @@ declare module '@deepseek-ai/dsh-llm' {
   }
 }
 
+import { DYNAMIC_CORDIS_REMOTE_CAPABILITIES } from './capabilities.ts'
 import { TypertRemoteService, Remote } from '@deepseek-ai/dsh-typert-protocol'
 import type { JsonValue } from '@deepseek-ai/dsh-util-values'
 import { isPlugin, normalizeHandler } from './guard.ts'
@@ -155,7 +156,7 @@ export class DynamicCordisRunnerService extends TypertRemoteService {
 
   /** Create the service under the Host composition. */
   constructor(ctx: Context, config: Config) {
-    super(ctx, 'dynamicCordisRunner')
+    super(ctx, 'dynamicCordisRunner', { capabilities: DYNAMIC_CORDIS_REMOTE_CAPABILITIES })
     this.rootCtx = ctx
     this.resolved = config as ResolvedConfig
     this.inspectRegistry = new CordisInspectRegistryService(ctx, this.resolved.clientInspectTimeoutMs)

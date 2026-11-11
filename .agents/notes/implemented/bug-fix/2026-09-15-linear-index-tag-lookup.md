@@ -22,6 +22,6 @@ Matching remains textual: quoted `>` and tag-like text inside comments retain th
 
 ## Consequences
 
-Malformed prefixes cannot cause repeated scans of their suffixes. The renderer retains its permissive fragment behavior, including matches a browser parser would interpret differently. The [Web transport ownership](../architecture/2026-07-24-web-config-tree-boot-and-transport-layering.md) and [client loading](../architecture/2026-07-23-client-plugin-loading-model.md) decisions remain independently active; this lookup does not change their ownership or startup protocol.
+Malformed prefixes cannot cause repeated scans of their suffixes. The renderer retains its permissive fragment behavior, including matches a browser parser would interpret differently. The [Web transport ownership](../../archived/architecture/2026-07-24-web-config-tree-boot-and-transport-layering.md) and [client loading](../architecture/2026-07-23-client-plugin-loading-model.md) decisions remain independently active; this lookup does not change their ownership or startup protocol.
 
 Required verification includes byte-exact insertion and fallback cases for both placements, the Loader-composed renderer's row and tap ordering, and repeated unclosed prefixes in a child process with a timeout so a synchronous regression can be interrupted. No Session event, model-visible input, or rendered product copy changes.

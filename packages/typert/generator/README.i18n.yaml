@@ -2,8 +2,6 @@
 # section, a hash of its English and Chinese blocks outside code blocks and generated regions.
 # After editing either side, bring the other along and re-record with:
 #   pnpm run verify-translation-pairing --write packages/typert/generator/README.md
-README.md: 3c18ccf9a308c99f0f41764b8d5d25cdac7f1004
-README.zh.md: fef940bc9354cde05848acba8878797f208bddf2
 /:
   en: 3fe330c4d51197ec
   zh: 5874f3bcd419dbbc
@@ -20,14 +18,14 @@ README.zh.md: fef940bc9354cde05848acba8878797f208bddf2
   en: 949dec3bb987644a
   zh: 0ed333a6067465dc
 /deepseek-ai-dsh-typert-generator/use-this-package/publishing-typert-artifacts-from-a-package:
-  en: c7078becc8f12609
-  zh: 4b8838b559ecb677
+  en: 6a682e86c32fe4f3
+  zh: b25007377ac6b90f
 /deepseek-ai-dsh-typert-generator/use-this-package/ordinary-remote-metadata:
   en: 6bb456bb03fc6617
   zh: 029407c373b8e6a6
 /deepseek-ai-dsh-typert-generator/use-this-package/analyzing-a-workspace-statically:
-  en: 0a4f5896df9f2fab
-  zh: e7d0d6cddd7a59e7
+  en: 8098b44b28477aed
+  zh: 4dfbd7ae4ad4748b
 /deepseek-ai-dsh-typert-generator/use-this-package/running-generation-inside-a-tsdown-build:
   en: 15ecce4f32b7a8c0
   zh: c7d6b449d7b20338
@@ -47,8 +45,8 @@ README.zh.md: fef940bc9354cde05848acba8878797f208bddf2
   en: a844aafcafbc27b6
   zh: 8efe7d472361bbc2
 /deepseek-ai-dsh-typert-generator/understand-the-implementation/emission-and-publication-contract:
-  en: 2f6f72eecffc33c2
-  zh: ded33dbc1d9a4ea5
+  en: 0cc96531313a8b83
+  zh: cf8fde8e3099a21f
 /deepseek-ai-dsh-typert-generator/understand-the-implementation/catalog-projection:
   en: e85b521a1e01ab2c
   zh: 4416dca569de0f61

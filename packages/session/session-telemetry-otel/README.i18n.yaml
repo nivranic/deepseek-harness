@@ -2,8 +2,6 @@
 # section, a hash of its English and Chinese blocks outside code blocks and generated regions.
 # After editing either side, bring the other along and re-record with:
 #   pnpm run verify-translation-pairing --write packages/session/session-telemetry-otel/README.md
-README.md: 705f924185c00115561a6b185a5f57f926e1d953
-README.zh.md: 665f55a0945885d18b3c0c5c3254275faf29e5c9
 /:
   en: 356614b4af1ad375
   zh: f76a068b5f056574
@@ -12,7 +10,7 @@ README.zh.md: 665f55a0945885d18b3c0c5c3254275faf29e5c9
   zh: bc076172ce22ba9b
 /deepseek-ai-dsh-session-telemetry-otel/summary:
   en: 828903209ef34983
-  zh: 8eac63f1e8df15d8
+  zh: 1275f398914fa0a3
 /deepseek-ai-dsh-session-telemetry-otel/table-of-contents:
   en: d152484eb41ac6b4
   zh: 09388d293f9be9cb
@@ -23,11 +21,11 @@ README.zh.md: 665f55a0945885d18b3c0c5c3254275faf29e5c9
   en: bc7e598148a7f8c3
   zh: 0209c6aa258ec134
 /deepseek-ai-dsh-session-telemetry-otel/use-this-package/minimal-configuration:
-  en: 11845fd50dc0a494
-  zh: ee990bfca3621bd3
+  en: b5ad76c5edcaaa38
+  zh: 2534dcbb5ddd3baf
 /deepseek-ai-dsh-session-telemetry-otel/use-this-package/what-leaves-the-machine:
-  en: 2a5ddd227e400455
-  zh: 74b7bd9b9161b054
+  en: 5474c3203edf088f
+  zh: 27ad4c556399f8fd
 /deepseek-ai-dsh-session-telemetry-otel/use-this-package/failures-and-shutdown:
   en: a66831cb9de57e04
   zh: 3ada28bb868e0932
@@ -35,14 +33,14 @@ README.zh.md: 665f55a0945885d18b3c0c5c3254275faf29e5c9
   en: ee672a6a6f0fa02d
   zh: c3bab8e6b60e768c
 /deepseek-ai-dsh-session-telemetry-otel/understand-the-implementation/design-concept:
-  en: 34f8a88224a1f6cf
-  zh: 40839dabaea39602
+  en: 815461fc4090cffc
+  zh: 755c86bd5d299868
 /deepseek-ai-dsh-session-telemetry-otel/understand-the-implementation/source-map:
   en: 0b99d2e5c27213cd
   zh: 3cbdaa7f6a45d81a
 /deepseek-ai-dsh-session-telemetry-otel/understand-the-implementation/capture-wiring:
-  en: 5c85eb0992eb5b2b
-  zh: a19cdd5814c0e2b9
+  en: b88d95ccb7676d45
+  zh: e34e67eadcadd867
 /deepseek-ai-dsh-session-telemetry-otel/understand-the-implementation/field-mapping:
   en: a42e9e081fb93bee
   zh: b8e817c2455278b9

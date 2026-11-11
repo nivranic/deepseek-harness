@@ -5,6 +5,7 @@ import type {} from '@deepseek-ai/cordis-plugin-loader'
 // Type-only: the optional agent-preset roster resolved through `ctx.get`.
 import type {} from '@deepseek-ai/dsh-agent-preset-registry'
 import type {} from '@deepseek-ai/dsh-app-boot'
+import { PLUGIN_INVENTORY_REMOTE_CAPABILITIES } from './capabilities.ts'
 import { TypertRemoteService, Remote } from '@deepseek-ai/dsh-typert-protocol'
 // Typert-generated ./typert and ./remote artifacts import Zod at runtime.
 import type {} from 'zod'
@@ -52,7 +53,7 @@ export class PluginInventoryGateway extends TypertRemoteService {
   static inject = ['loader']
 
   constructor(ctx: Context) {
-    super(ctx, 'pluginInventory')
+    super(ctx, 'pluginInventory', { capabilities: PLUGIN_INVENTORY_REMOTE_CAPABILITIES })
   }
 
   /**
