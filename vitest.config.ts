@@ -82,7 +82,7 @@ const platformUnsupportedTests = [...windowsUnsupportedTests, ...nonLinuxWebWork
 // the client capability-admission layer, the lane transport-failure
 // classification, analyzeRemoteErrors, the native-remote peer port, the
 // settings-hosts retarget/observation accessors, HandoffAction's removed
-// component, app-boot's concurrent-owner preservation, and the Lite catalog
+// component, and the Lite catalog
 // cluster whose dsh-agent-presets package no longer exists). Each file stays on
 // disk awaiting its re-port; the lint plane parks the same cluster in
 // .oxlintrc.json, and the inventory and re-port checklist live in
@@ -100,7 +100,6 @@ const parkedLaneTests = [
   'packages/client/ui-settings-hosts/tests/browser-plugin.client.spec.tsx',
   'packages/client/ui-settings-hosts/tests/observation.client.spec.tsx',
   'packages/client/ui-view-handoff/tests/handoff.client.spec.tsx',
-  'packages/boot/app-boot/tests/profile-init.spec.ts',
   'packages/preset/agent-preset-registry/tests/lite-preset-projection.spec.ts',
   'scripts/gen-lite-preset-catalog.spec.ts',
   'scripts/gen-tool-catalog.spec.ts',
