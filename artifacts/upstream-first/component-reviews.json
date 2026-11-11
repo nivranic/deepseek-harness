@@ -1938,7 +1938,10 @@
       "sha256": "153744e475ef829bc771c6074db3020cd2b0c8bc0da46b8e8fa5c87d4d96eb0d",
       "classification": "Keep",
       "reviewStatus": "PASS",
-      "disposition": "历史审计记录仅原地保留；不复制入候选，不用于新 Gate 验收。"
+      "disposition": "历史审计记录仅原地保留；不复制入候选，不用于新 Gate 验收。",
+      "missing": true,
+      "missingNotedAt": "2026-11-11T00:00:00+08:00",
+      "missingReason": "evidence worktree removed in the 2026-10-30 cleanup; summaries and original sha pins retained"
     },
     {
       "worktree": "E:/Mix/project/deepseek-harness",
@@ -1948,7 +1951,10 @@
       "sha256": "b39cbef80dea4381615d88db2f5d7bf76a0bdf33e010b5aba06fb652478a4d6c",
       "classification": "Keep",
       "reviewStatus": "PASS",
-      "disposition": "历史审计记录仅原地保留；不复制入候选，不用于新 Gate 验收。"
+      "disposition": "历史审计记录仅原地保留；不复制入候选，不用于新 Gate 验收。",
+      "missing": true,
+      "missingNotedAt": "2026-11-11T00:00:00+08:00",
+      "missingReason": "evidence worktree removed in the 2026-10-30 cleanup; summaries and original sha pins retained"
     },
     {
       "worktree": "E:/Mix/project/deepseek-harness/.worktrees/goal-mode-full-implementation",
@@ -1958,7 +1964,10 @@
       "sha256": "635159d74ea38f5fb4ca1e5caa60ff215d84e475731b956758236d0d28cd7e96",
       "classification": "Keep",
       "reviewStatus": "PASS",
-      "disposition": "历史审计记录仅原地保留；不复制入候选，不用于新 Gate 验收。"
+      "disposition": "历史审计记录仅原地保留；不复制入候选，不用于新 Gate 验收。",
+      "missing": true,
+      "missingNotedAt": "2026-11-11T00:00:00+08:00",
+      "missingReason": "evidence worktree removed in the 2026-10-30 cleanup; summaries and original sha pins retained"
     },
     {
       "worktree": "E:/Mix/project/deepseek-harness/.worktrees/goal-mode-full-implementation",
@@ -1968,7 +1977,10 @@
       "sha256": "73c25ead2a5e80a26b710105dadd2093ccc6c050a099a9e8ed90690430072e47",
       "classification": "Keep",
       "reviewStatus": "PASS",
-      "disposition": "历史审计记录仅原地保留；不复制入候选，不用于新 Gate 验收。"
+      "disposition": "历史审计记录仅原地保留；不复制入候选，不用于新 Gate 验收。",
+      "missing": true,
+      "missingNotedAt": "2026-11-11T00:00:00+08:00",
+      "missingReason": "evidence worktree removed in the 2026-10-30 cleanup; summaries and original sha pins retained"
     },
     {
       "worktree": "E:/Mix/project/deepseek-harness/.worktrees/goal-mode-full-implementation",
@@ -1978,7 +1990,10 @@
       "sha256": "97c7cd99a6f903af1dbf0f47c64dfe366b43bf9b73243723b26b5fbc2e1fbeea",
       "classification": "Keep",
       "reviewStatus": "PASS",
-      "disposition": "历史审计记录仅原地保留；不复制入候选，不用于新 Gate 验收。"
+      "disposition": "历史审计记录仅原地保留；不复制入候选，不用于新 Gate 验收。",
+      "missing": true,
+      "missingNotedAt": "2026-11-11T00:00:00+08:00",
+      "missingReason": "evidence worktree removed in the 2026-10-30 cleanup; summaries and original sha pins retained"
     },
     {
       "worktree": "E:/Mix/project/deepseek-harness/.worktrees/goal-mode-full-implementation",
@@ -1988,7 +2003,10 @@
       "sha256": "837154eda5486c008d8884e4e4f3d890f402e11df1b6d1cc24166f828484b724",
       "classification": "Keep",
       "reviewStatus": "PASS",
-      "disposition": "历史审计记录仅原地保留；不复制入候选，不用于新 Gate 验收。"
+      "disposition": "历史审计记录仅原地保留；不复制入候选，不用于新 Gate 验收。",
+      "missing": true,
+      "missingNotedAt": "2026-11-11T00:00:00+08:00",
+      "missingReason": "evidence worktree removed in the 2026-10-30 cleanup; summaries and original sha pins retained"
     },
     {
       "worktree": "E:/Mix/project/deepseek-harness/.worktrees/goal-mode-full-implementation",
@@ -1998,7 +2016,10 @@
       "sha256": "84a3c3f89444c563caaf253d1a7d63f9e35a055972641e1de0809d788b9ef8b8",
       "classification": "Keep",
       "reviewStatus": "PASS",
-      "disposition": "历史审计记录仅原地保留；不复制入候选，不用于新 Gate 验收。"
+      "disposition": "历史审计记录仅原地保留；不复制入候选，不用于新 Gate 验收。",
+      "missing": true,
+      "missingNotedAt": "2026-11-11T00:00:00+08:00",
+      "missingReason": "evidence worktree removed in the 2026-10-30 cleanup; summaries and original sha pins retained"
     },
     {
       "worktree": "E:/Mix/project/deepseek-harness/.worktrees/goal-mode-full-implementation",
@@ -2008,7 +2029,10 @@
       "sha256": "920e5e11cf96e59416045a76a1c8dff5d04194e5505d7fc753eb5d47b101e77d",
       "classification": "Keep",
       "reviewStatus": "PASS",
-      "disposition": "历史审计记录仅原地保留；不复制入候选，不用于新 Gate 验收。"
+      "disposition": "历史审计记录仅原地保留；不复制入候选，不用于新 Gate 验收。",
+      "missing": true,
+      "missingNotedAt": "2026-11-11T00:00:00+08:00",
+      "missingReason": "evidence worktree removed in the 2026-10-30 cleanup; summaries and original sha pins retained"
     },
     {
       "worktree": "E:/Mix/project/deepseek-harness/.worktrees/goal-mode-full-implementation",
@@ -2018,7 +2042,10 @@
       "sha256": "e073a71c80ed5eac739d89d494a45dc7e1d738597e96100444ab4a5097a347a0",
       "classification": "Keep",
       "reviewStatus": "PASS",
-      "disposition": "历史审计记录仅原地保留；不复制入候选，不用于新 Gate 验收。"
+      "disposition": "历史审计记录仅原地保留；不复制入候选，不用于新 Gate 验收。",
+      "missing": true,
+      "missingNotedAt": "2026-11-11T00:00:00+08:00",
+      "missingReason": "evidence worktree removed in the 2026-10-30 cleanup; summaries and original sha pins retained"
     },
     {
       "worktree": "E:/Mix/project/deepseek-harness/.worktrees/goal-mode-full-implementation",
@@ -2028,7 +2055,10 @@
       "sha256": "3e400bdc47971c7879a66dc7d152c22cb4e58d4e10c188d8ce6583dd3e418c96",
       "classification": "Keep",
       "reviewStatus": "PASS",
-      "disposition": "历史审计记录仅原地保留；不复制入候选，不用于新 Gate 验收。"
+      "disposition": "历史审计记录仅原地保留；不复制入候选，不用于新 Gate 验收。",
+      "missing": true,
+      "missingNotedAt": "2026-11-11T00:00:00+08:00",
+      "missingReason": "evidence worktree removed in the 2026-10-30 cleanup; summaries and original sha pins retained"
     },
     {
       "worktree": "E:/Mix/project/deepseek-harness/.worktrees/goal-mode-full-implementation",
@@ -2038,7 +2068,10 @@
       "sha256": "1da134abc1cd69099127b773ad133d09f223e90b49a7cb802ed1732f8bde4d64",
       "classification": "Keep",
       "reviewStatus": "PASS",
-      "disposition": "历史审计记录仅原地保留；不复制入候选，不用于新 Gate 验收。"
+      "disposition": "历史审计记录仅原地保留；不复制入候选，不用于新 Gate 验收。",
+      "missing": true,
+      "missingNotedAt": "2026-11-11T00:00:00+08:00",
+      "missingReason": "evidence worktree removed in the 2026-10-30 cleanup; summaries and original sha pins retained"
     },
     {
       "worktree": "E:/Mix/project/deepseek-harness/.worktrees/goal-mode-full-implementation",
@@ -2048,7 +2081,10 @@
       "sha256": "a99eefa367f577a961d6ef1efdd0d46e56ed7f9b799afe2c92e7c793c1a98667",
       "classification": "Keep",
       "reviewStatus": "PASS",
-      "disposition": "历史审计记录仅原地保留；不复制入候选，不用于新 Gate 验收。"
+      "disposition": "历史审计记录仅原地保留；不复制入候选，不用于新 Gate 验收。",
+      "missing": true,
+      "missingNotedAt": "2026-11-11T00:00:00+08:00",
+      "missingReason": "evidence worktree removed in the 2026-10-30 cleanup; summaries and original sha pins retained"
     },
     {
       "worktree": "E:/Mix/project/deepseek-harness/.worktrees/goal-mode-full-implementation",
@@ -2058,7 +2094,10 @@
       "sha256": "1bbdf5d0e17ec99a76250567c72299e0c182fdb57df6ef578507666dd5aefa0d",
       "classification": "Keep",
       "reviewStatus": "PASS",
-      "disposition": "历史审计记录仅原地保留；不复制入候选，不用于新 Gate 验收。"
+      "disposition": "历史审计记录仅原地保留；不复制入候选，不用于新 Gate 验收。",
+      "missing": true,
+      "missingNotedAt": "2026-11-11T00:00:00+08:00",
+      "missingReason": "evidence worktree removed in the 2026-10-30 cleanup; summaries and original sha pins retained"
     },
     {
       "worktree": "E:/Mix/project/deepseek-harness/.worktrees/goal-mode-full-implementation",
@@ -2068,7 +2107,10 @@
       "sha256": "e3a95fb503daf3815077c1e88c3e302ff390b1529a4c150e2106cc8b96a3ffcf",
       "classification": "Keep",
       "reviewStatus": "PASS",
-      "disposition": "历史审计记录仅原地保留；不复制入候选，不用于新 Gate 验收。"
+      "disposition": "历史审计记录仅原地保留；不复制入候选，不用于新 Gate 验收。",
+      "missing": true,
+      "missingNotedAt": "2026-11-11T00:00:00+08:00",
+      "missingReason": "evidence worktree removed in the 2026-10-30 cleanup; summaries and original sha pins retained"
     },
     {
       "worktree": "E:/Mix/project/deepseek-harness/.worktrees/goal-mode-full-implementation",
@@ -2078,7 +2120,10 @@
       "sha256": "9c3ccbabec07af3f605625a73154b9830216612d3d7f35baecfa51025b00d116",
       "classification": "Keep",
       "reviewStatus": "PASS",
-      "disposition": "历史审计记录仅原地保留；不复制入候选，不用于新 Gate 验收。"
+      "disposition": "历史审计记录仅原地保留；不复制入候选，不用于新 Gate 验收。",
+      "missing": true,
+      "missingNotedAt": "2026-11-11T00:00:00+08:00",
+      "missingReason": "evidence worktree removed in the 2026-10-30 cleanup; summaries and original sha pins retained"
     },
     {
       "worktree": "E:/Mix/project/deepseek-harness/.worktrees/goal-mode-full-implementation",
@@ -2088,7 +2133,10 @@
       "sha256": "c27cb7216479a49d81463c151db1d23dd7bf46ecaf370e5acb085f5fb9439ff3",
       "classification": "Keep",
       "reviewStatus": "PASS",
-      "disposition": "历史审计记录仅原地保留；不复制入候选，不用于新 Gate 验收。"
+      "disposition": "历史审计记录仅原地保留；不复制入候选，不用于新 Gate 验收。",
+      "missing": true,
+      "missingNotedAt": "2026-11-11T00:00:00+08:00",
+      "missingReason": "evidence worktree removed in the 2026-10-30 cleanup; summaries and original sha pins retained"
     },
     {
       "worktree": "E:/Mix/project/deepseek-harness/.worktrees/goal-mode-full-implementation",
@@ -2098,7 +2146,10 @@
       "sha256": "688ae9a4bcabcea996990a1328fe215119995a10d2bf8dce654a830af34cb31d",
       "classification": "Keep",
       "reviewStatus": "PASS",
-      "disposition": "历史审计记录仅原地保留；不复制入候选，不用于新 Gate 验收。"
+      "disposition": "历史审计记录仅原地保留；不复制入候选，不用于新 Gate 验收。",
+      "missing": true,
+      "missingNotedAt": "2026-11-11T00:00:00+08:00",
+      "missingReason": "evidence worktree removed in the 2026-10-30 cleanup; summaries and original sha pins retained"
     },
     {
       "worktree": "E:/Mix/project/deepseek-harness/.worktrees/goal-mode-full-implementation",
@@ -2108,7 +2159,10 @@
       "sha256": "054d32fa37aeab620657c40a4aa4890492df3582a64ee2b3988c6d19bf443dfc",
       "classification": "Keep",
       "reviewStatus": "PASS",
-      "disposition": "历史审计记录仅原地保留；不复制入候选，不用于新 Gate 验收。"
+      "disposition": "历史审计记录仅原地保留；不复制入候选，不用于新 Gate 验收。",
+      "missing": true,
+      "missingNotedAt": "2026-11-11T00:00:00+08:00",
+      "missingReason": "evidence worktree removed in the 2026-10-30 cleanup; summaries and original sha pins retained"
     },
     {
       "worktree": "E:/Mix/project/deepseek-harness/.worktrees/goal-mode-full-implementation",
@@ -2118,7 +2172,10 @@
       "sha256": "2966190c626dcf7bcd0dd797b6b1640c689cb497e4e4b0d0a94c2073ab30a8cd",
       "classification": "Keep",
       "reviewStatus": "PASS",
-      "disposition": "历史审计记录仅原地保留；不复制入候选，不用于新 Gate 验收。"
+      "disposition": "历史审计记录仅原地保留；不复制入候选，不用于新 Gate 验收。",
+      "missing": true,
+      "missingNotedAt": "2026-11-11T00:00:00+08:00",
+      "missingReason": "evidence worktree removed in the 2026-10-30 cleanup; summaries and original sha pins retained"
     },
     {
       "worktree": "E:/Mix/project/deepseek-harness/.worktrees/goal-mode-full-implementation",
@@ -2128,7 +2185,10 @@
       "sha256": "14a06eae97192ede22c919a0599b403e3ef8506b0ff970f77c7f6ad2836ab89f",
       "classification": "Keep",
       "reviewStatus": "PASS",
-      "disposition": "历史审计记录仅原地保留；不复制入候选，不用于新 Gate 验收。"
+      "disposition": "历史审计记录仅原地保留；不复制入候选，不用于新 Gate 验收。",
+      "missing": true,
+      "missingNotedAt": "2026-11-11T00:00:00+08:00",
+      "missingReason": "evidence worktree removed in the 2026-10-30 cleanup; summaries and original sha pins retained"
     },
     {
       "worktree": "E:/Mix/project/deepseek-harness/.worktrees/goal-mode-full-implementation",
@@ -2138,7 +2198,10 @@
       "sha256": "3fac79fc7d4d3ae43d98a455b618bea07b1af797491ea8ec56c87b87df3d4397",
       "classification": "Keep",
       "reviewStatus": "PASS",
-      "disposition": "历史审计记录仅原地保留；不复制入候选，不用于新 Gate 验收。"
+      "disposition": "历史审计记录仅原地保留；不复制入候选，不用于新 Gate 验收。",
+      "missing": true,
+      "missingNotedAt": "2026-11-11T00:00:00+08:00",
+      "missingReason": "evidence worktree removed in the 2026-10-30 cleanup; summaries and original sha pins retained"
     },
     {
       "worktree": "E:/Mix/project/deepseek-harness/.worktrees/goal-mode-full-implementation",
@@ -2148,7 +2211,10 @@
       "sha256": "f5b95a2b223f4507df93969a18996a6cc3ebe75c775efd9060eb7994c9d53345",
       "classification": "Keep",
       "reviewStatus": "PASS",
-      "disposition": "历史审计记录仅原地保留；不复制入候选，不用于新 Gate 验收。"
+      "disposition": "历史审计记录仅原地保留；不复制入候选，不用于新 Gate 验收。",
+      "missing": true,
+      "missingNotedAt": "2026-11-11T00:00:00+08:00",
+      "missingReason": "evidence worktree removed in the 2026-10-30 cleanup; summaries and original sha pins retained"
     }
   ],
   "uncommittedReviewedAt": "2026-09-14T17:07:51.374849+00:00"

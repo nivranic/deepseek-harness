@@ -3,7 +3,7 @@ import assert from 'node:assert/strict';
 import { validateTraceability, validateReportStatuses } from './specification-traceability.mjs';
 import { execFileSync } from 'node:child_process';
 import { createHash } from 'node:crypto';
-import { readFileSync } from 'node:fs';
+import { existsSync, readFileSync } from 'node:fs';
 import { resolve } from 'node:path';
 import { fileURLToPath } from 'node:url';
 
@@ -118,7 +118,15 @@ if (process.argv[1] && resolve(process.argv[1]) === fileURLToPath(import.meta.ur
   }
   const reviews = read('artifacts/upstream-first/component-reviews.json');
   for (const row of reviews.uncommittedReviews) {
-    assert.equal(createHash('sha256').update(readFileSync(resolve(row.worktree, row.path))).digest('hex'), row.sha256,
+    const target = resolve(row.worktree, row.path);
+    if (row.missing === true) {
+      // Rows whose evidence was removed in a documented worktree cleanup keep
+      // their history but must stay absent; a reappearing file means the flag
+      // is stale and the hash check below must be restored.
+      assert.equal(existsSync(target), false, 'row flagged missing but its file exists; clear missing and re-pin the hash');
+      continue;
+    }
+    assert.equal(createHash('sha256').update(readFileSync(target)).digest('hex'), row.sha256,
       'historical uncommitted source changed after review');
   }
   for (const group of reviews.groups) {

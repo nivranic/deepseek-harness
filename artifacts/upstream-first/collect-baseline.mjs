@@ -5,8 +5,13 @@ import { readFileSync, writeFileSync } from 'node:fs';
 import { resolve } from 'node:path';
 
 const root = resolve(import.meta.dirname, '../..');
-const upstream = 'c291e7961a515f6d7af9304e7fd1d257929aef26';
-const spec = 'E:/11585/DeepSeek Harness 下一版 Agent 总实施规格（Upstream-First）.md';
+// Anchored at the official tip adopted by merge 247a13f9543; each future
+// official sync moves this anchor in the same change that adopts the sync.
+const upstream = 'f3803c96974ad4a94195fb97e5c637e9c2a3afe3';
+// The external specification path is gone; the byte-identical recovery copy
+// (sha 4f313ad5…, verified by original-specification-recovery.json) is the
+// hash source, so specification.sha256 stays comparable across baselines.
+const spec = resolve(root, 'artifacts/upstream-first/original-specification.md');
 const git = (args, cwd = root) => execFileSync('git', ['-c', 'core.quotepath=false', ...args], {
   cwd, encoding: 'utf8', maxBuffer: 64 * 1024 * 1024, stdio: ['ignore', 'pipe', 'pipe'],
 });
@@ -22,7 +27,14 @@ const component = path => {
   if (['apps', 'native', 'python', '.github'].includes(parts[0])) return parts.slice(0, 2).join('/');
   return parts[0];
 };
-const initialReports = ['GOAL_PROGRESS_SUMMARY_2026-09-14.md', 'IMPLEMENTATION_VERIFICATION_V2.md'];
+// The original goal-start root reports (GOAL_PROGRESS_SUMMARY_2026-09-14.md,
+// IMPLEMENTATION_VERIFICATION_V2.md) were untracked and no longer exist; the
+// surviving goal-start evidence is the recovered specification pair, which is
+// frozen and never rewritten by the increment machinery.
+const initialReports = [
+  'artifacts/upstream-first/original-specification.md',
+  'artifacts/upstream-first/original-specification-recovery.json',
+];
 const blocks = git(['worktree', 'list', '--porcelain']).trim().split(/\r?\n\r?\n/u);
 const worktrees = blocks.map(block => {
   const fields = Object.fromEntries(lines(block).map(line => {
@@ -53,14 +65,18 @@ const worktrees = blocks.map(block => {
     overlappingPaths, components: groups,
   };
 });
-const main = worktrees.find(entry => entry.branch === 'refs/heads/dev');
 const output = {
   schemaVersion: 1, status: 'IN_PROGRESS', collectedAt: new Date().toISOString(),
   upstream: { repository: 'https://github.com/deepseek-ai/deepseek-harness.git', ref: 'master', sha: upstream,
     commit: git(['show', '-s', '--format=%cI %s', upstream]).trim() },
   specification: { path: spec, sha256: sha256(spec) },
-  candidate: { path: root, branch: git(['branch', '--show-current']).trim(), sha: git(['rev-parse', 'HEAD']).trim() },
-  preservedReports: initialReports.map(path => ({ path: `${main.path}/${path}`, sha256: sha256(`${main.path}/${path}`) })),
+  // candidate.mergeBase must equal upstream.sha once the official tip is fully
+  // merged in; verify-audit admits a candidate only through that equality.
+  candidate: {
+    path: root, branch: git(['branch', '--show-current']).trim(), sha: git(['rev-parse', 'HEAD']).trim(),
+    mergeBase: git(['merge-base', 'HEAD', upstream]).trim(),
+  },
+  preservedReports: initialReports.map(path => ({ path: resolve(root, path), sha256: sha256(resolve(root, path)) })),
   worktrees,
 };
 writeFileSync(resolve(root, 'UPSTREAM_DELTA.json'), JSON.stringify(output, null, 2) + '\n');
