@@ -210,7 +210,9 @@ describe('Remote event Host source', () => {
     const abort = new AbortController()
     const iterator = sourceOf(gateway)(abort.signal)[Symbol.asyncIterator]()
     const agentCtx = ctx.extend()
-    const agent = { id: 'agent-1', ctx: agentCtx }
+    // The runtime Agent carries its live Session; the interaction origin the
+    // question policy forwards reads the session id from it.
+    const agent = { id: 'agent-1', ctx: agentCtx, session: { id: 'agent-1' } }
     const target = scopeTarget(ctx, agent)
     const request = { questions: [], agent }
 
@@ -234,6 +236,11 @@ describe('Remote event Host source', () => {
       event: 'user-questions/request',
       request,
       context: { value: agentCtx, subject: agent, agentId: 'agent-1' },
+    })
+    // The question event's allowlist entry declares an interaction origin; the
+    // dispatch carries it with the Agent's session id.
+    expect(claimedDispatch.interaction).toEqual({
+      type: 'question', requiredPermission: 'question.respond', sessionId: 'agent-1',
     })
     claimedDispatch.resolve({ kind: 'result', value: 'client answer' })
     await expect(claimed).resolves.toBe('client answer')
@@ -275,7 +282,7 @@ describe('Remote event Host source', () => {
     const abort = new AbortController()
     const iterator = sourceOf(gateway)(abort.signal)[Symbol.asyncIterator]()
     const delivery = iterator.next()
-    const agent = { id: 'agent-1', ctx: ctx.extend() }
+    const agent = { id: 'agent-1', ctx: ctx.extend(), session: { id: 'agent-1' } }
     const reason = new Error('forwarded event source removed')
     const pending = waterfallRaw(
       ctx,

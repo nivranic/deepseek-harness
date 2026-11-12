@@ -107,6 +107,12 @@ export class FakeRemote implements WorkspaceFilesRemote {
   autoReady = true
   /** When set, every stream dispose waits for it before settling. */
   disposeGate: Promise<void> | undefined
+  /** Capability ids the fake `host.describe` answer advertises; none by default. */
+  admission: readonly string[] = []
+  readonly host = {
+    describe: (): Promise<{ ok: true; value: { capabilities: readonly string[] } }> =>
+      Promise.resolve({ ok: true as const, value: { capabilities: this.admission } }),
+  }
 
   /** Hold subsequent stream disposals until the spec releases or rejects this gate. */
   holdDisposal(): PromiseWithResolvers<undefined> {

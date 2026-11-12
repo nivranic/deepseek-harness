@@ -3,6 +3,8 @@
 import type { Context } from '@deepseek-ai/cordis'
 import productAnalyticsRemote from '@deepseek-ai/dsh-client-product-analytics/remote'
 export type {} from '@deepseek-ai/dsh-client-product-analytics/remote'
+import hostDescriptionRemote from '@deepseek-ai/dsh-api-host-description/remote'
+export type {} from '@deepseek-ai/dsh-api-host-description/remote'
 import agentPresetsRemote from '@deepseek-ai/dsh-agent-preset-registry/remote'
 import userQuestionsRemote from '@deepseek-ai/dsh-user-questions/remote'
 import commandsRemote from '@deepseek-ai/dsh-commands/remote'
@@ -189,6 +191,8 @@ export async function apply(ctx: Context): Promise<() => Promise<void>> {
   const disposers: Array<() => Promise<void>> = []
   try {
     for (const contribution of [
+      // Host facts mount first: admission layers describe() them on every reset.
+      hostDescriptionRemote,
       productAnalyticsRemote, agentPresetsRemote, commandsRemote, settingsControllerRemote, accountRemote,
       goalsRemote, llmRemote, dynamicRemote, scheduleRemote,
       pluginInventoryRemote, pluginManagerRemote, pluginMarketRemote, pluginRegistryProbeRemote, toolResultsRemote,

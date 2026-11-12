@@ -7989,6 +7989,18 @@ export const TYPE_API: readonly TypeApiEntry[] = [
     declaration: 'export interface RemoteEventHostInfo {\n    readonly home: string;\n    readonly platform?: string;\n}',
   },
   {
+    name: 'RemoteInteractionOrigin',
+    declaration: 'export type RemoteInteractionOrigin = {\n    readonly sessionId: RemoteInteractionSessionId;\n} & RemoteInteractionPolicy;',
+  },
+  {
+    name: 'RemoteInteractionPolicy',
+    declaration: 'export type RemoteInteractionPolicy = ({\n    readonly type: \'approval\';\n    readonly requiredPermission: \'approval.respond\';\n} | {\n    readonly type: \'question\';\n    readonly requiredPermission: \'question.respond\';\n});',
+  },
+  {
+    name: 'RemoteInteractionSessionId',
+    declaration: 'export type RemoteInteractionSessionId = Branded<\'RemoteInteractionSessionId\'>;',
+  },
+  {
     name: 'RemoteStream',
     declaration: 'export type RemoteStream<Out, In = never> = AsyncIterable<Out> & {\n    readonly [STREAM_UPLINK]?: In;\n};',
   },
@@ -9906,7 +9918,7 @@ export const TYPE_API: readonly TypeApiEntry[] = [
   },
   {
     name: 'TypertRemoteEventInvocation',
-    declaration: 'export interface TypertRemoteEventInvocation {\n    readonly event: string;\n    readonly request: object;\n    readonly context: TypertRemoteEventContext;\n    readonly resolve: (outcome: TypertRemoteEventOutcome) => void;\n    readonly reject: (reason: unknown) => void;\n}',
+    declaration: 'export interface TypertRemoteEventInvocation {\n    readonly event: string;\n    readonly request: object;\n    readonly context: TypertRemoteEventContext;\n    readonly interaction?: RemoteInteractionOrigin;\n    readonly resolve: (outcome: TypertRemoteEventOutcome) => void;\n    readonly reject: (reason: unknown) => void;\n}',
   },
   {
     name: 'TypertRemoteEventOutcome',

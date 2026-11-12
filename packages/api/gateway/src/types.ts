@@ -6,6 +6,7 @@
 import type { Context } from '@deepseek-ai/cordis'
 import type { PeerScope, RemoteUplinkWindow, TypertResourceReader } from '@deepseek-ai/dsh-typert-protocol'
 import type { RemoteEventAgentId, RemoteEventHostInfo } from './stream-protocol.ts'
+import type { RemoteInteractionOrigin } from './protocol.ts'
 
 /** One Remote method request after a carrier has decoded its envelope. */
 export interface InvokeRemoteRequest {
@@ -68,6 +69,8 @@ export interface TypertRemoteEventInvocation {
   /** Sole request argument before the waterfall's `next()` callback. */
   readonly request: object
   readonly context: TypertRemoteEventContext
+  /** Application-declared interaction identity; the Gateway owns its lifecycle record. */
+  readonly interaction?: RemoteInteractionOrigin
   /** Resume the source's Cordis listener with a Client result or `next()`. */
   readonly resolve: (outcome: TypertRemoteEventOutcome) => void
   /** Reject the source's Cordis listener after cancellation, transport failure, or Client rejection. */

@@ -77,6 +77,8 @@ export const VIEWER_ENDPOINT_CLASSES = {
   'session/rename': 'reader-child-rename', // the reader renames only its own visible child, never the source
 
   // ── always-allowed ───────────────────────────────────────────────────────────
+  'host/describe': 'always-allowed', // connection-level Host facts every Client reads before any policy
+  'host/negotiate': 'always-allowed', // protocol admission precedes every share-specific authorization
   'remoteAccess/follow': 'always-allowed', // every Peer reads its own access snapshot before any policy
 
   // ── owner-only ───────────────────────────────────────────────────────────────

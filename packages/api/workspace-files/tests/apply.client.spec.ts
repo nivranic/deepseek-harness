@@ -1,19 +1,21 @@
 /**
- * The plugin body: one `file` provider registered into `ctx.resources` for the
- * fiber's lifetime, reading through `ctx.remote` in the Session each address names.
+ * The plugin body: one `file` provider registered into `ctx.resources` while
+ * the admitted Host advertises stat support, reading through `ctx.remote` in
+ * the Session each address names.
  */
 import { Context } from '@deepseek-ai/cordis'
 import type { ResourceProvider } from '@deepseek-ai/dsh-client-resources/client'
 import { sessionFileAddress } from '@deepseek-ai/dsh-util-workspace-path'
 import { describe, expect, it, onTestFinished } from 'vitest'
 import { apply, inject } from '../src/client/index.ts'
-import { FakeRemote } from './fake-remote.client.ts'
+import { FakeRemote, settle } from './fake-remote.client.ts'
 
 describe('workspace-files client apply', () => {
   it('registers the file provider over ctx.remote, and unregisters it with the fiber', async () => {
     const ctx = new Context()
     const remote = new FakeRemote()
     remote.autoReady = false
+    remote.admission = ['workspace-files.stat.v1', 'workspace-files.changes.v1']
     const controller = new AbortController()
     const pulls: Array<Promise<unknown>> = []
     ctx.provide('remote', remote as never)
@@ -39,6 +41,8 @@ describe('workspace-files client apply', () => {
       await Promise.all(pulls)
     })
     await fiber.await()
+    // The admission describe round-trip settles on microtasks.
+    await settle()
 
     expect(registered.map(provider => provider.protocol)).toEqual(['file'])
     const signal = controller.signal

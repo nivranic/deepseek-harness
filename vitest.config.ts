@@ -79,8 +79,8 @@ const platformUnsupportedTests = [...windowsUnsupportedTests, ...nonLinuxWebWork
 // production code they exercise is now official-shaped, so they fail against
 // APIs that no longer exist (session.prepareRename, manager.refreshSubagents,
 // the activeTurn cancel-target projection, remote $prepare/$mount admission,
-// the client capability-admission layer, the lane transport-failure
-// classification, analyzeRemoteErrors, the native-remote peer port, the
+// the lane transport-failure classification, analyzeRemoteErrors, the
+// native-remote peer port, the
 // settings-hosts retarget/observation accessors, HandoffAction's removed
 // component, and the Lite catalog
 // cluster whose dsh-agent-presets package no longer exists). Each file stays on
@@ -91,9 +91,9 @@ const parkedLaneTests = [
   'packages/api/session-controller/tests/cancel-target.client.spec.ts',
   'packages/api/session-controller/tests/rename-revision.client.spec.ts',
   'packages/api/session-controller/tests/subagent-generation.client.spec.ts',
-  'packages/api/workspace-files/tests/capabilities.client.spec.ts',
   'packages/api/gateway/tests/preparation.client.spec.ts',
   'packages/api/gateway/tests/transport-failure.client.spec.ts',
+  'packages/api/remotes/tests/host-preparation.client.spec.ts',
   'packages/api/native-remote/tests/tls-identity.host.spec.ts',
   'packages/api/native-remote/tests/transport.host.spec.ts',
   'packages/typert/generator/tests/remote-errors.spec.ts',
