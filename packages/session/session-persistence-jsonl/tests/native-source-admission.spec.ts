@@ -67,6 +67,21 @@ describe.each(modes)('native message-source admission ($compression, $access)', 
     expect(await readFile(path)).toEqual(bytes)
   })
 
+  it.each([
+    { kind: 'device', deviceId: 'paired-fixture' },
+    { kind: 'device-pairing' },
+    { kind: 'future-principal', identity: 'opaque' },
+  ])('preserves $kind principal attribution without promoting it to local owner', async (principal) => {
+    const { ctx, path, bytes, event } = await stored({ kind: 'user', principal })
+    const handle = await ctx.sessionPersistence.open(id, access)
+    try {
+      expect((await handle.read()).events[0]).toEqual(event)
+    } finally {
+      await handle.close()
+    }
+    expect(await readFile(path)).toEqual(bytes)
+  })
+
   it('leaves unknown ignorable queued payloads opaque', async () => {
     const { ctx, path, bytes, event } = await stored(null, 'external/inbox', true)
     const handle = await ctx.sessionPersistence.open(id, access)

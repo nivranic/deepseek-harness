@@ -13,6 +13,8 @@ import type {
 } from '@deepseek-ai/dsh-client-connection'
 import type { RemoteAccessDecision } from '@deepseek-ai/dsh-api-remote-access'
 import { callResources, eventResources } from './access.ts'
+import { createDeviceConnection, DeviceConnections, deviceHasPermission, installDevicePolicy } from './device-connection.ts'
+import type { DeviceId } from '@deepseek-ai/dsh-api-device-trust/types'
 import { Deque } from '@deepseek-ai/dsh-deque'
 import type { WebUpgradeRoute } from '@deepseek-ai/dsh-host-webserver'
 import { MAX_TIMER_DELAY_MS } from '@deepseek-ai/dsh-timeout'
@@ -38,6 +40,7 @@ import type {
   InvokeRemoteRequest,
   PendingRemoteEventInfo,
   TypertGateway,
+  TypertGatewayDeviceConnection,
   TypertGatewayErrorCode,
   TypertGatewayWireStream,
   TypertRemoteEventDispatch,
@@ -73,6 +76,7 @@ export type {
   InvokeRemoteRequest,
   PendingRemoteEventInfo,
   TypertGateway,
+  TypertGatewayDeviceConnection,
   TypertGatewayErrorCode,
   TypertGatewayWireStream,
   TypertRemoteEventContext,
@@ -136,9 +140,9 @@ interface RemoteEventClient {
   readonly queue: RemoteEventQueue
   readonly signal: AbortSignal
   readonly deliveries: Map<RemoteEventId, PendingRemoteEvent>
-  /** The stream's Peer principal: only the owner answers scoped waterfalls and receives every broadcast. */
+  /** The stream's admitted identity; device roles are checked against live grants. */
   readonly principal: Principal
-  /** Only owner streams receive scoped waterfalls they could answer; other Peers receive admitted broadcasts only. */
+  /** Whether this stream may receive scoped waterfalls, subject to per-interaction permission checks. */
   readonly answers: boolean
 }
 
@@ -235,7 +239,32 @@ export class TypertGatewayService extends Service implements TypertGateway {
     failure: error => rpcError(error),
   }
 
+  /**
+   * Create a native carrier adapter requiring signed device admission.
+   * @returns callbacks owned by the caller's service scope.
+   */
+  createDeviceConnection(): TypertGatewayDeviceConnection {
+    return createDeviceConnection(
+      this.ctx,
+      (endpoint, payload, signal, peer) => this.dispatchRpc(endpoint, payload, signal, peer),
+      (endpoint, payload, uplink, peer, control, window) =>
+        this.openWireStream(endpoint, payload, uplink, peer, control.signal, control, window),
+      this.wireStream.failure,
+      this.deviceConnections,
+    )
+  }
+
+  /**
+   * Destroy a device's active stream transports without revoking its grant.
+   * @param request - device whose carriers end now.
+   * @returns number of distinct carriers destroyed.
+   */
+  terminateDeviceConnections(request: { readonly deviceId: DeviceId }): { readonly terminated: number } {
+    return { terminated: this.deviceConnections.terminate(request.deviceId) }
+  }
+
   private srcClaims: ReadonlySet<string> | undefined
+  private readonly deviceConnections = new DeviceConnections()
   private remoteEvents: RegisteredRemoteEventSource | undefined
   private readonly remoteEventClients = new Map<RemoteEventClientId, RemoteEventClient>()
   private readonly pendingRemoteEvents = new Map<RemoteEventId, PendingRemoteEvent>()
@@ -249,6 +278,7 @@ export class TypertGatewayService extends Service implements TypertGateway {
    */
   constructor(ctx: Context, config: Config) {
     super(ctx, 'typertGateway')
+    installDevicePolicy(ctx)
     const resolved = config as ResolvedConfig
     ctx.on('internal/service', () => {
       this.srcClaims = undefined
@@ -333,8 +363,8 @@ export class TypertGatewayService extends Service implements TypertGateway {
   }
 
   /**
-   * Check for an active owner Client event stream, the only kind that can answer forwarded waterfalls.
-   * @returns whether an owner stream is open and has not been cancelled.
+   * Check for an active Client event stream permitted to answer forwarded waterfalls.
+   * @returns whether an answering stream is open and has not been cancelled.
    */
   hasLiveClient(): boolean {
     for (const client of this.remoteEventClients.values()) {
@@ -558,8 +588,7 @@ export class TypertGatewayService extends Service implements TypertGateway {
       try {
         assertPeerLive(peer, endpoint)
         requireInteractions(peer, endpoint)
-        // oxlint-disable-next-line typescript/no-unnecessary-condition -- other packages merge non-owner kinds into PrincipalMap.
-        if (peer.principal.kind !== 'owner') {
+        if (peer.principal.kind !== 'owner' && peer.principal.kind !== 'device') {
           throw new TypertGatewayError('gateway/invocation-unavailable', endpoint, 'only owner Peers answer forwarded Remote events')
         }
         const result = parseRemoteEventResultPayload(payload)
@@ -567,11 +596,17 @@ export class TypertGatewayService extends Service implements TypertGateway {
         if (client === undefined) {
           throw new Error('typert gateway: Remote event result identifies no active event stream')
         }
-        if (client.peer !== peer) {
+        const sameDevice = peer.principal.kind === 'device' && client.principal.kind === 'device'
+          && peer.principal.deviceId === client.principal.deviceId
+        if (client.peer !== peer && !sameDevice) {
           throw new TypertGatewayError(
             'gateway/interactions-forbidden', endpoint,
             'Remote event result belongs to another Peer',
           )
+        }
+        const pending = this.pendingRemoteEvents.get(result.eventId)
+        if (sameDevice && pending !== undefined && !this.canAnswerEvent(pending, client)) {
+          throw new TypertGatewayError('gateway/interactions-forbidden', endpoint, 'Device role cannot answer this interaction')
         }
         this.receiveRemoteEventResult(client, result)
         return { ok: true, value: undefined }
@@ -640,8 +675,9 @@ export class TypertGatewayService extends Service implements TypertGateway {
       signal: lifetime,
       deliveries: new Map(),
       principal: peer.principal,
-      // oxlint-disable-next-line typescript/no-unnecessary-condition -- other packages merge non-owner kinds into PrincipalMap.
-      answers: peer.principal.kind === 'owner',
+      answers: peer.principal.kind === 'owner'
+        || deviceHasPermission(this.ctx, peer.principal, 'question.respond')
+        || deviceHasPermission(this.ctx, peer.principal, 'approval.respond'),
     }
     this.remoteEventClients.set(clientId, client)
     if (client.answers) {
@@ -682,7 +718,7 @@ export class TypertGatewayService extends Service implements TypertGateway {
     let resolved = false
     let resources: readonly RemoteAccessResource[] | undefined
     for (const client of this.remoteEventClients.values()) {
-      if (!client.answers) {
+      if (client.principal.kind !== 'owner') {
         // A non-owner receives the whole notification or nothing: its resources decide, payloads are never trimmed,
         // and a notification with invalid resources reaches no non-owner.
         if (!resolved) {
@@ -760,9 +796,16 @@ export class TypertGatewayService extends Service implements TypertGateway {
   }
 
   private deliverRemoteEvent(pending: PendingRemoteEvent, client: RemoteEventClient): void {
+    if (!this.canAnswerEvent(pending, client)) return
     pending.deliveries.add(client)
     client.deliveries.set(pending.id, pending)
     client.queue.push(pending.frame)
+  }
+
+  private canAnswerEvent(pending: PendingRemoteEvent, client: RemoteEventClient): boolean {
+    if (client.principal.kind === 'owner') return true
+    const interaction = pending.source.interaction
+    return interaction !== undefined && deviceHasPermission(this.ctx, client.principal, interaction.requiredPermission)
   }
 
   private receiveRemoteEventResult(
@@ -860,7 +903,6 @@ export class TypertGatewayService extends Service implements TypertGateway {
     assertExactArguments(request.args, descriptor, endpoint)
     const validated = validateArguments(descriptor, request.args, endpoint)
     // Access precedes lookup resolution, so a refused call activates nothing.
-    // oxlint-disable-next-line typescript/no-unnecessary-condition -- other packages merge non-owner kinds into PrincipalMap.
     if (request.peer.principal.kind !== 'owner') {
       const resources = callResources(
         this.ctx.typert,

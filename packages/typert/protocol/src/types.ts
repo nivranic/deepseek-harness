@@ -52,7 +52,7 @@ export type TypertResourceId<Resource> = Resource extends TypertResource<infer I
  * Merge-extensible resource kinds whose identities a Remote call or forwarded
  * event may carry. The package that owns an identity type declares its kind;
  * the value is that kind's identity type, a string type such as a branded id.
- * `global` names the built-in identity-less resource and is never a kind here.
+ * `global` and `host` name built-in identity-less resources and are never kinds here.
  */
 export interface TypertResourceMap {}
 
@@ -926,7 +926,7 @@ export interface TypertResourceRegistry {
    * @param kind - merge-declared resource kind.
    * @param declaration - either a default wire field or a resolver, never both.
    * @returns disposer withdrawing the exact registration.
-   * @throws Error when the kind is already registered or is `global`, the built-in resource kind.
+   * @throws Error when the kind is already registered or is a built-in kind (`global` or `host`).
    */
   register(kind: TypertResourceKind, declaration: TypertResourceDeclaration): TypertDisposer
   /**

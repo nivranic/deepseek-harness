@@ -149,7 +149,7 @@ it.skipIf(MODE === 'record')('answers a recorded Question through the pinned TLS
         const invalid = { ...ownAdmission(), signature: otherAdmission().signature }
         for (const [label, device, code] of [
           ['missing', undefined, 'gateway/permission-denied'],
-          ['other-device', otherAdmission(), 'gateway/permission-denied'],
+          ['other-device', otherAdmission(), 'gateway/interactions-forbidden'],
           ['wrong-signature', invalid, 'device/key-invalid'],
         ] as const) {
           const response = await native.post('/api/$events/result', JSON.stringify({

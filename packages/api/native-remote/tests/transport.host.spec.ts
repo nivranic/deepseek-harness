@@ -13,7 +13,9 @@ import * as JsonStorage from '@deepseek-ai/dsh-storage-json'
 import * as StorageDomain from '@deepseek-ai/dsh-storage-domain'
 import { LocalCredentialProvider } from '@deepseek-ai/dsh-credentials-local'
 import DeviceTrust, { DeviceId, type DeviceRole } from '@deepseek-ai/dsh-api-device-trust'
-import Gateway from '@deepseek-ai/dsh-api-gateway'
+import Gateway, { type TypertRemoteEventInvocation } from '@deepseek-ai/dsh-api-gateway'
+import type { RemoteEventDownlinkFrame } from '@deepseek-ai/dsh-api-gateway/stream-protocol'
+import RemoteAccess from '@deepseek-ai/dsh-api-remote-access'
 import Typert from '@deepseek-ai/dsh-typert-registry'
 import { bindTypertRemote, Remote } from '@deepseek-ai/dsh-typert-protocol'
 import NativeRemote, { type Config, type NativeRemoteInfo } from '../src/index.ts'
@@ -29,7 +31,7 @@ const config: Config = {
 class FixtureService extends Service {
   readonly typertRemote = bindTypertRemote(this, 'nativeFixture', {
     namespace: 'fixture', capabilities: [
-      { id: 'fixture.read.v1', methods: ['read', 'follow'], requiredPermission: 'view' },
+      { id: 'fixture.read.v1', methods: ['read', 'follow', 'identity'], requiredPermission: 'view' },
       { id: 'fixture.admin.v1', methods: ['admin'], requiredPermission: 'device.admin' },
     ],
   })
@@ -40,6 +42,9 @@ class FixtureService extends Service {
 
   @Remote
   read(): string { return this.owner }
+
+  @Remote
+  identity() { return this.ctx.invocation?.peer.principal }
 
   @Remote({ mode: 'stream' })
   async *follow(signal: AbortSignal): AsyncIterable<string> {
@@ -73,6 +78,7 @@ async function bootContext() {
   await ctx.plugin(StorageDomain, { backend: 'json' })
   await ctx.plugin(DeviceTrust)
   await ctx.plugin(Typert)
+  await ctx.plugin(RemoteAccess)
   await ctx.plugin(Gateway)
   await ctx.plugin(FixtureService)
   return ctx
@@ -144,12 +150,123 @@ async function paired(ctx: Context, info: NativeRemoteInfo, role: DeviceRole = '
 }
 
 describe('native encrypted Connection source', () => {
+  it.each(['viewer', 'collaborator', 'controller', 'owner'] as const)('keeps %s devices distinct from the local owner and limits interaction replies', async (role) => {
+    const { ctx, info } = await bootNative()
+    const device = await paired(ctx, info, role)
+    const other = await paired(ctx, info, 'owner')
+    expect(JSON.parse((await post(info, 'fixture/identity', { apiProtocolVersion: 2, args: {}, device: device.admission() })).body))
+      .toMatchObject({ result: { ok: true, value: { kind: 'device', deviceId: device.deviceId } } })
+    const publish = Promise.withResolvers<undefined>()
+    cleanup.push(async () => { publish.resolve(undefined) })
+    const agent = { ctx }
+    const question = vi.fn()
+    const approval = vi.fn()
+    const rejected = vi.fn()
+    const invocation = (kind: 'question' | 'approval'): TypertRemoteEventInvocation => ({
+      event: `fixture/${kind}`, request: { agent, prompt: kind },
+      context: { value: ctx, subject: agent, agentId: 'fixture-agent' },
+      interaction: { ...(kind === 'question'
+        ? { type: 'question' as const, requiredPermission: 'question.respond' as const }
+        : { type: 'approval' as const, requiredPermission: 'approval.respond' as const }),
+      sessionId: 'fixture-session' as NonNullable<TypertRemoteEventInvocation['interaction']>['sessionId'] },
+      resolve: kind === 'question' ? question : approval, reject: rejected,
+    })
+    ctx.effect(() => ctx.typertGateway.registerRemoteEvents(async function* (signal) {
+      await publish.promise
+      yield invocation('question')
+      yield invocation('approval')
+      yield { event: 'fixture/marker', args: [] }
+      await new Promise<void>((resolve) => {
+        if (signal.aborted) resolve()
+        else signal.addEventListener('abort', () => { resolve() }, { once: true })
+      })
+    }, { home: '/fixture' }))
+    const socket = await pinnedSocket(info)
+    const ws = new WebSocket(`wss://127.0.0.1:${info.port}/api/remote.mux`, { createConnection: () => socket })
+    cleanup.push(async () => { ws.terminate(); if (ws.readyState !== WebSocket.CLOSED) await once(ws, 'close') })
+    const frames: RemoteEventDownlinkFrame[] = []
+    ws.on('message', (data) => {
+      const bytes = Array.isArray(data) ? Buffer.concat(data) : data instanceof ArrayBuffer ? Buffer.from(data) : data
+      const frame = JSON.parse(bytes.toString()) as { type: string; value: RemoteEventDownlinkFrame }
+      if (frame.type === 'item') frames.push(frame.value)
+    })
+    await once(ws, 'open')
+    ws.send(JSON.stringify({ type: 'open', streamId: 'events', endpoint: '$events',
+      payload: { apiProtocolVersion: 2, args: { device: device.admission() } } }))
+    await vi.waitFor(() => { expect(frames.some(frame => frame.type === 'ready')).toBe(true) })
+    publish.resolve(undefined)
+    await vi.waitFor(() => { expect(frames.some(frame => frame.type === 'emit' && frame.event === 'fixture/marker')).toBe(true) })
+    const ready = frames.find(frame => frame.type === 'ready')!
+    const deliveries = frames.filter(frame => frame.type === 'waterfall')
+    expect(deliveries.map(frame => frame.event)).toEqual(role === 'viewer' ? []
+      : role === 'collaborator' ? ['fixture/question'] : ['fixture/question', 'fixture/approval'])
+    for (const frame of deliveries) {
+      const args = { clientId: ready.clientId, eventId: frame.eventId, outcome: { kind: 'result', value: 'accepted' } }
+      const wrong = await post(info, '$events/result', { apiProtocolVersion: 2, args, device: other.admission() })
+      expect(JSON.parse(wrong.body)).toMatchObject({ result: { ok: false, error: { code: 'gateway/interactions-forbidden' } } })
+      const response = await post(info, '$events/result', { apiProtocolVersion: 2, args, device: device.admission() })
+      expect(JSON.parse(response.body)).toMatchObject({ result: { ok: true } })
+    }
+    expect(question).toHaveBeenCalledTimes(role === 'viewer' ? 0 : 1)
+    expect(approval).toHaveBeenCalledTimes(role === 'owner' || role === 'controller' ? 1 : 0)
+    expect(rejected).not.toHaveBeenCalled()
+  })
+
   it('rejects two listeners in the same service scope without replacing the first', async () => {
     const { ctx, info } = await bootNative()
     await expect(ctx.plugin(NativeRemote, config)).rejects.toThrow('service "nativeRemote" has been registered')
     const owner = await paired(ctx, info, 'owner')
     expect(JSON.parse((await post(info, 'nativeRemote/describe', { apiProtocolVersion: 2, args: {}, device: owner.admission() })).body))
       .toMatchObject({ result: { ok: true, value: info } })
+  })
+
+  it('terminates each admitted physical carrier once without revoking its device grant', async () => {
+    const { ctx, info } = await bootNative()
+    const device = await paired(ctx, info)
+    const socket = await pinnedSocket(info)
+    const ws = new WebSocket(`wss://127.0.0.1:${info.port}/api/remote.mux`, { createConnection: () => socket })
+    cleanup.push(async () => { ws.terminate(); if (ws.readyState !== WebSocket.CLOSED) await once(ws, 'close') })
+    await once(ws, 'open')
+    for (const streamId of ['one', 'two']) {
+      const opened = once(ws, 'message')
+      ws.send(JSON.stringify({ type: 'open', streamId, endpoint: 'fixture/follow',
+        payload: { apiProtocolVersion: 2, args: {}, device: device.admission() } }))
+      expect(JSON.parse(String((await opened)[0]))).toMatchObject({ type: 'item', streamId, value: 'native-read' })
+    }
+    const closed = once(ws, 'close')
+    expect(ctx.typertGateway.terminateDeviceConnections({ deviceId: device.deviceId })).toEqual({ terminated: 1 })
+    expect((await closed)[0]).toBe(1006)
+    expect(ctx.typertGateway.terminateDeviceConnections({ deviceId: device.deviceId })).toEqual({ terminated: 0 })
+    expect(ctx.deviceTrust.listDevices().find(value => value.deviceId === device.deviceId)?.revokedAt).toBeUndefined()
+    expect(JSON.parse((await post(info, 'fixture/read', { apiProtocolVersion: 2, args: {}, device: device.admission() })).body))
+      .toMatchObject({ result: { ok: true, value: 'native-read' } })
+  })
+
+  it('refuses a stream revoked while signed admission is still completing', async () => {
+    const { ctx, info } = await bootNative()
+    const device = await paired(ctx, info)
+    const admitted = Promise.withResolvers<undefined>()
+    const release = Promise.withResolvers<undefined>()
+    const original = ctx.deviceTrust.admitDevice.bind(ctx.deviceTrust)
+    const spy = vi.spyOn(ctx.deviceTrust, 'admitDevice').mockImplementationOnce(async (request) => {
+      const result = await original(request)
+      admitted.resolve(undefined)
+      await release.promise
+      return result
+    })
+    cleanup.push(async () => { release.resolve(undefined); spy.mockRestore() })
+    const socket = await pinnedSocket(info)
+    const ws = new WebSocket(`wss://127.0.0.1:${info.port}/api/remote.mux`, { createConnection: () => socket })
+    cleanup.push(async () => { release.resolve(undefined); ws.terminate(); if (ws.readyState !== WebSocket.CLOSED) await once(ws, 'close') })
+    await once(ws, 'open')
+    const response = once(ws, 'message')
+    ws.send(JSON.stringify({ type: 'open', streamId: 'racing', endpoint: 'fixture/follow',
+      payload: { apiProtocolVersion: 2, args: {}, device: device.admission() } }))
+    await admitted.promise
+    await ctx.deviceTrust.revokeDevice({ deviceId: device.deviceId })
+    release.resolve(undefined)
+    expect(JSON.parse(String((await response)[0])))
+      .toMatchObject({ type: 'error', streamId: 'racing', error: { code: 'device/already-revoked' } })
   })
 
   it.each([true, false])('routes signed TLS requests through the listener scope with root listener = %s', async (withRoot) => {
@@ -173,9 +290,9 @@ describe('native encrypted Connection source', () => {
     expect(JSON.parse((await post(info, 'fixture/read', { apiProtocolVersion: 2, args: {}, device: owner.admission() })).body))
       .toMatchObject({ result: { ok: true, value: 'isolated-read' } })
     await fiber.dispose()
-    await expect(adapter.rpc('nativeRemote/describe', { apiProtocolVersion: 2, args: {}, device: owner.admission() }, new AbortController().signal))
+    await expect(adapter.rpc('nativeRemote/describe', { apiProtocolVersion: 2, args: {}, device: owner.admission() }, new AbortController().signal, adapter.peer))
       .resolves.toMatchObject({ ok: false })
-    await expect(adapter.rpc('nativeRemote/httpRequestBudget', { apiProtocolVersion: 2, args: {}, device: owner.admission() }, new AbortController().signal))
+    await expect(adapter.rpc('nativeRemote/httpRequestBudget', { apiProtocolVersion: 2, args: {}, device: owner.admission() }, new AbortController().signal, adapter.peer))
       .resolves.toMatchObject({ ok: false })
     expect(child.typertGateway.capabilities()).not.toContain('native-remote.http-request-budget.v1')
     await expect(pinnedSocket(info)).rejects.toMatchObject({ code: 'ECONNREFUSED' })
@@ -227,7 +344,7 @@ describe('native encrypted Connection source', () => {
       const response = await post(info, 'nativeRemote/describe', { apiProtocolVersion: 2, args: {}, device: device.admission() })
       const result = JSON.parse(response.body) as { result: unknown }
       if (role === 'owner') expect(result.result).toEqual({ ok: true, value: info })
-      else expect(result.result).toMatchObject({ ok: false, error: { code: 'gateway/permission-denied' } })
+      else expect(result.result).toMatchObject({ ok: false, error: { code: 'remote-access/denied' } })
     }
     await fiber.dispose()
     expect(ctx.typertGateway.capabilities()).not.toContain('native-remote.info.v1')
@@ -243,7 +360,7 @@ describe('native encrypted Connection source', () => {
       expect(JSON.parse((await post(info, 'nativeRemote/httpRequestBudget', payload())).body))
         .toMatchObject({ result: { ok: true, value: { maxRequestBodyBytes: 4096 } } })
       if (role !== 'owner') expect(JSON.parse((await post(info, 'nativeRemote/describe', payload())).body))
-        .toMatchObject({ result: { ok: false, error: { code: 'gateway/permission-denied' } } })
+        .toMatchObject({ result: { ok: false, error: { code: 'remote-access/denied' } } })
       await ctx.deviceTrust.revokeDevice({ deviceId: device.deviceId })
       expect(JSON.parse((await post(info, 'nativeRemote/httpRequestBudget', payload())).body))
         .toMatchObject({ result: { ok: false, error: { code: 'device/already-revoked' } } })
@@ -284,7 +401,7 @@ describe('native encrypted Connection source', () => {
     expect(JSON.parse((await post(info, 'fixture/read', payload)).body)).toMatchObject({ result: { ok: true, value: 'native-read' } })
     expect(JSON.parse((await post(info, 'fixture/read', payload)).body)).toMatchObject({ result: { ok: false, error: { code: 'device/replay-detected' } } })
     expect(JSON.parse((await post(info, 'fixture/admin', { ...payload, device: device.admission() })).body))
-      .toMatchObject({ result: { ok: false, error: { code: 'gateway/permission-denied' } } })
+      .toMatchObject({ result: { ok: false, error: { code: 'remote-access/denied' } } })
     await ctx.deviceTrust.revokeDevice({ deviceId: device.deviceId })
     expect(JSON.parse((await post(info, 'fixture/read', { ...payload, device: device.admission() })).body))
       .toMatchObject({ result: { ok: false, error: { code: 'device/already-revoked' } } })

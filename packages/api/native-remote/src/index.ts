@@ -110,8 +110,12 @@ export class NativeRemoteService extends TypertRemoteService {
     const identity = await loadTlsIdentity(this.ctx.credentials, this.config)
     const adapter = this.ctx.typertGateway.createDeviceConnection()
     const handler = createRpcFetchHandler('/api', adapter.rpc)
-    const mux = new RemoteStreamMuxServer(adapter.stream.open, adapter.stream.failure, this.config.websocketHeartbeatIntervalMs, {
-      maxPayloadBytes: this.config.maxWebSocketMessageBytes, maxStreamsPerConnection: this.config.maxStreamsPerConnection,
+    const mux = new RemoteStreamMuxServer(adapter.stream.open, adapter.stream.failure, {
+      heartbeatIntervalMs: this.config.websocketHeartbeatIntervalMs,
+      streamInboxBytes: this.config.maxWebSocketMessageBytes,
+      compression: false,
+      maxPayloadBytes: this.config.maxWebSocketMessageBytes,
+      maxStreamsPerConnection: this.config.maxStreamsPerConnection,
     })
     const sockets = new Set<Duplex>()
     const pending = new Set<Promise<void>>()
@@ -126,7 +130,7 @@ export class NativeRemoteService extends TypertRemoteService {
         response.end('forbidden')
         return
       }
-      const done = bridgeConnectionHttp(request, response, handler, this.config.maxRequestBodyBytes).catch(() => {
+      const done = bridgeConnectionHttp(request, response, handler, adapter.peer, this.config.maxRequestBodyBytes).catch(() => {
         // Gateway failures already have RPC envelopes; a broken HTTP transfer ends this response.
         response.destroy()
       })
@@ -143,7 +147,7 @@ export class NativeRemoteService extends TypertRemoteService {
         socket.end('HTTP/1.1 403 Forbidden\r\nConnection: close\r\nContent-Length: 0\r\n\r\n')
         return
       }
-      mux.handleUpgrade(request, socket, head)
+      mux.handleUpgrade(request, socket, head, adapter.peer)
     })
     this.ctx.effect(() => async () => {
       this.info = undefined

@@ -41,6 +41,8 @@ RPC 在 `/api/<endpoint>` 使用 Connection 的 `client-request` envelope。`dev
 <a id="understand-the-implementation"></a>
 ## 理解实现
 
+签名准入创建 `{ kind: 'device', deviceId }` Peer。设备角色通过 [Remote Access](../remote-access/README.zh.md) 的显式 `host` binding 保留 Host 级访问，`global` 与单资源 binding 仍相互独立。名为 `owner` 的设备角色仍是 device principal。未获授权的端点返回 `remote-access/denied`，缺少签名身份返回 `gateway/permission-denied`。Viewer 接收通知，Collaborator 可回答问题，Controller 与设备 Owner 还可回答审批。每次回复均需目标流所属设备的新签名。[设备 Peer 决策](../../../.agents/notes/implemented/architecture/2026-11-13-device-peer-host-bindings.zh.md)负责此授权模型。
+
 <details>
 <summary>实现细节——点击展开</summary>
 

@@ -48,7 +48,9 @@ export function renderRemoteErrorEnvelopeSchema(
       if (!declarations.has(code)) throw new Error(`${face.face}: undeclared Remote error schema ${code}`)
       const json = inputSchema(schema)
       const prior = resolved.get(code)
-      if (prior !== undefined && !isDeepStrictEqual(prior.json, json)) throw new Error(`Remote error details differ across faces: ${code}`)
+      if (prior !== undefined && !isDeepStrictEqual(comparableSchema(prior.json), comparableSchema(json))) {
+        throw new Error(`Remote error details differ across faces: ${code}`)
+      }
       resolved.set(code, { schema, json })
     }
   }
@@ -77,6 +79,19 @@ export function renderRemoteErrorEnvelopeSchema(
     title: 'DeepSeek Harness Remote failure envelope',
     description: 'Validates known code details and preserves unknown codes as opaque diagnostics. Acceptance does not imply capability, permission, recovery policy or protocol compatibility. Additional fields are accepted; validators must not discard the original diagnostic.',
   }, null, 2) + '\n'
+}
+
+/** Union branch order depends on compiler import order and has no JSON Schema meaning. */
+function comparableSchema(value: unknown, keyword?: string): unknown {
+  // Literal JSON values are data, including any nested property named `anyOf`.
+  if (keyword === 'const' || keyword === 'enum' || keyword === 'default' || keyword === 'examples') return value
+  if (Array.isArray(value)) {
+    const items: unknown[] = value.map(item => comparableSchema(item))
+    return keyword === 'anyOf' ? items.sort((a, b) => JSON.stringify(a).localeCompare(JSON.stringify(b))) : items
+  }
+  if (typeof value !== 'object' || value === null) return value
+  return Object.fromEntries(Object.entries(value).sort(([a], [b]) => a.localeCompare(b))
+    .map(([key, entry]) => [key, comparableSchema(entry, key)]))
 }
 
 runGeneratorCli({ url: import.meta.url, usage: 'gen-remote-error-envelope.ts [--check]' }, async (check) => {

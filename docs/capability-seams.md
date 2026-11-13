@@ -279,6 +279,8 @@ flowchart LR
   pkg_api_device_trust["api-device-trust"]
   svc_deviceTrust["ctx.deviceTrust<br/>Device trust seam"]
   pkg_web_app["web-app"]
+  pkg_api_native_remote["api-native-remote"]
+  svc_nativeRemote["ctx.nativeRemote<br/>Native TLS access"]
   pkg_api_host_diagnostics["api-host-diagnostics"]
   svc_hostDiagnostics["ctx.hostDiagnostics<br/>Host diagnostics seam"]
   pkg_jobs["jobs"]
@@ -331,6 +333,7 @@ flowchart LR
   pkg_api_host_description --> svc_hostDescription
   pkg_api_host_diagnostics --> svc_hostDiagnostics
   pkg_api_job_controller --> svc_jobController
+  pkg_api_native_remote --> svc_nativeRemote
   pkg_api_remote_access --> svc_remoteAccess
   pkg_api_session_controller --> svc_sessionController
   pkg_api_session_controller --> svc_sessionFileReferences
@@ -757,6 +760,7 @@ flowchart LR
 | `ctx.inspector` | `core` | `inspector` | - | - | - | Owns the Worker-hosted CDP target and the transport-independent Host and Client observation and Cordis-tree query API. |
 | `ctx.hostDescription` | `core` | [`api-host-description`](../packages/api/host-description) | - | [`api-remotes`](../packages/api/remotes) | - | Reports persistent Host identity, independent version fields, and explicit capabilities from live Remote bindings through the existing authenticated API. |
 | `ctx.deviceTrust` | `seam` | [`api-device-trust`](../packages/api/device-trust) | - | [`web-app`](../packages/bundle/web-app) | - | The gateway-owned device-facing access seam: one-time pairing issuance, device grants, and revocation over Typert Remote; permission execution stays with the interaction-reply seam. |
+| `ctx.nativeRemote` | `core` | [`api-native-remote`](../packages/api/native-remote) | - | - | - | Owns the opt-in TLS listener, pinned Host identity, and bounded carriers for signed device Peers. |
 | `ctx.hostDiagnostics` | `seam` | [`api-host-diagnostics`](../packages/api/host-diagnostics) | - | [`web-app`](../packages/bundle/web-app) | - | The section 41 health/readiness snapshot and the section 42 sanitized cross-platform diagnostics payload over Typert Remote; presence-based probes name the composed owner per component. |
 | `ctx.jobs` | `seam` | [`jobs`](../packages/jobs/jobs) | [`jobs-local`](../packages/jobs/jobs-local) | [`tool-bash`](../packages/shell/tool-bash), [`tool-pwsh`](../packages/shell/tool-pwsh), [`tool-terminal`](../packages/experimental/tool-terminal), [`tool-jobs`](../packages/jobs/tool-jobs), [`api-job-controller`](../packages/api/job-controller) | - | Producers (background bash/pwsh and PTY sends) register running work; record-declaring jobs additionally stream raw output for non-consuming observers; tool-jobs is the model-facing controller that reads, lists, and kills it; jobs-local is the process-local registry. |
 | `ctx.web` | `seam` | [`web`](../packages/web/web) | [`web-search-exa`](../packages/web/web-search-exa), [`web-search-perplexity`](../packages/web/web-search-perplexity), [`web-search-deepseek`](../packages/web/web-search-deepseek), [`web-deepseek-api`](../packages/web/web-deepseek-api), [`web-fetch-http`](../packages/web/web-fetch-http) | [`tool-web`](../packages/web/tool-web) | - | Search and fetch providers register into one ctx.web seam; tool-web owns the stable model-facing names. |

@@ -23,6 +23,7 @@ tasks.test {
 // Kotlin column always validates the current candidate bytes, never a fork.
 val copyContractSchema by tasks.registering(Copy::class) {
     from(rootProject.projectDir.parentFile.parentFile.resolve("packages/typert/protocol/remote-errors.schema.json"))
+    from(rootProject.projectDir.parentFile.parentFile.resolve("packages/typert/protocol/remote-error-codes.schema.json"))
     into(layout.buildDirectory.dir("contract-schema"))
 }
 

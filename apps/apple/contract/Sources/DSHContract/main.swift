@@ -33,12 +33,15 @@ print("PASS mirror equals the generated projection (\(mirror.count) codes)")
 
 let schema = try JSONSerialization.jsonObject(with: readFixture("remote-errors.schema.json")) as! [String: Any]
 let branches = schema["anyOf"] as! [[String: Any]]
-guard branches.count == 93 else {
-    checkFailure("expected 92 known branches plus the opaque unknown branch, found \(branches.count)")
+let inventory = try JSONSerialization.jsonObject(with: readFixture("remote-error-codes.schema.json")) as! [String: Any]
+let declared = Set((inventory["oneOf"] as! [[String: Any]]).map { $0["const"] as! String })
+guard !declared.isEmpty, branches.count == declared.count + 1 else {
+    checkFailure("expected every declared code plus one opaque unknown branch, found \(branches.count)")
 }
 let known = branches.dropLast().map {
     (($0["properties"] as! [String: Any])["code"] as! [String: Any])["const"] as! String
 }
+guard Set(known) == declared else { checkFailure("envelope codes differ from the declared inventory") }
 for code in RemoteFailureClasses.byCode.keys where !known.contains(code) {
     checkFailure("classified code \(code) is not declared by the schema")
 }
@@ -52,10 +55,10 @@ print("PASS unclassified codes resolve to unknown")
 
 let unknownBranch = branches.last!
 let excluded = (((unknownBranch["properties"] as! [String: Any])["code"] as! [String: Any])["not"] as! [String: Any])["enum"] as! [String]
-guard excluded.count == 92 else {
+guard Set(excluded) == declared else {
     checkFailure("the opaque unknown branch must exclude every known code, found \(excluded.count)")
 }
-print("PASS opaque unknown branch excludes all 92 known codes")
+print("PASS opaque unknown branch excludes all \(declared.count) known codes")
 
 // Native Host roster adoption: the Swift mirror accepts the Android core's
 // canonical roster document and rejects every documented violation of its

@@ -60,32 +60,54 @@ declare module '@deepseek-ai/dsh-typert-protocol' {
       readonly expectedRevision: number
       readonly receivedRevision: number
     }
+    /** More than one live provider claims the requested endpoint. */
     'gateway/ambiguous-endpoint': TypertGatewayFaultDetails
+    /** Named arguments do not match the endpoint's declared parameters. */
     'gateway/arguments-invalid': TypertGatewayFaultDetails
+    /** The service's Remote binding is malformed or disagrees with its registration. */
     'gateway/binding-invalid': TypertGatewayFaultDetails
+    /** The Host Context adapter failed while resolving the requested receiver. */
     'gateway/context-failed': TypertGatewayFaultDetails
+    /** The Host Context adapter found no receiver for the supplied identity. */
     'gateway/context-not-found': TypertGatewayFaultDetails
+    /** The Host Context adapter required by this endpoint is not registered. */
     'gateway/context-unavailable': TypertGatewayFaultDetails
+    /** No live generated definition or source declaration exposes this endpoint. */
     'gateway/definition-unavailable': TypertGatewayFaultDetails
+    /** A wire argument or uplink item fails the endpoint's input codec. */
     'gateway/input-invalid': TypertGatewayFaultDetails
+    /** The Peer cannot participate in interactions or the reply belongs to another Peer. */
     'gateway/interactions-forbidden': TypertGatewayFaultDetails
+    /** The requested forwarded invocation cannot be answered through this caller. */
     'gateway/invocation-unavailable': TypertGatewayFaultDetails
+    /** A lookup provider failed while resolving a wire identity. */
     'gateway/lookup-failed': TypertGatewayFaultDetails
+    /** A lookup provider found no object for the supplied identity. */
     'gateway/lookup-not-found': TypertGatewayFaultDetails
+    /** The lookup provider required by a parameter is not registered. */
     'gateway/lookup-unavailable': TypertGatewayFaultDetails
+    /** The declared method has no callable implementation on its live receiver. */
     'gateway/method-unavailable': TypertGatewayFaultDetails
+    /** The calling Peer was disposed before the operation could be admitted. */
     'gateway/peer-disposed': TypertGatewayFaultDetails
+    /** The Host cannot complete the requested preparation operation. */
     'gateway/preparation-unavailable': TypertGatewayFaultDetails
+    /** A carrier frame violates the Remote protocol. */
     'gateway/protocol': TypertGatewayFaultDetails
     /** The supplied or negotiated API protocol is unsupported; update the application before reconnecting. */
     'gateway/protocol-unsupported': {
       readonly endpoint: string
       readonly supportedApiProtocolVersions: readonly number[]
     }
+    /** The live provider disagrees with the endpoint's declared service or namespace. */
     'gateway/provider-mismatch': TypertGatewayFaultDetails
+    /** A method result fails its declared output codec or stream mode. */
     'gateway/result-invalid': TypertGatewayFaultDetails
+    /** The endpoint's service or forwarded event source is unavailable. */
     'gateway/service-unavailable': TypertGatewayFaultDetails
+    /** A source method's signature cannot be dispatched as a Remote method. */
     'gateway/signature-invalid': TypertGatewayFaultDetails
+    /** Buffered Client uplink data exceeded the logical stream's byte limit. */
     'gateway/uplink-overflow': TypertGatewayFaultDetails
   }
 }

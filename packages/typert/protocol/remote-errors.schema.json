@@ -16,18 +16,9 @@
           "properties": {
             "sessionId": {
               "readOnly": true,
-              "allOf": [
-                {
-                  "type": "string"
-                },
-                {}
-              ]
-            },
-            "requestedPreset": {
-              "readOnly": true,
               "type": "string"
             },
-            "existingPreset": {
+            "requestedPreset": {
               "readOnly": true,
               "type": "string"
             }
@@ -44,7 +35,7 @@
         "details"
       ],
       "additionalProperties": {},
-      "description": "The requested preset conflicts with the Session preset."
+      "description": "The requested preset conflicts with the existing Session's preset."
     },
     {
       "type": "object",
@@ -97,12 +88,7 @@
           "properties": {
             "sessionId": {
               "readOnly": true,
-              "allOf": [
-                {
-                  "type": "string"
-                },
-                {}
-              ]
+              "type": "string"
             },
             "agentPreset": {
               "readOnly": true,
@@ -160,34 +146,26 @@
         "details"
       ],
       "additionalProperties": {},
-      "description": "No configured root supplies the requested id."
+      "description": "No declaration supplies the requested identity."
     },
     {
       "type": "object",
       "properties": {
         "code": {
           "type": "string",
-          "const": "agent-preset/read-only"
+          "const": "cotTranslation/failed"
         },
         "message": {
           "type": "string"
         },
         "details": {
           "type": "object",
-          "properties": {
-            "agentPreset": {
-              "readOnly": true,
-              "type": "string"
-            },
-            "reason": {
-              "readOnly": true,
-              "type": "string"
-            }
+          "propertyNames": {
+            "type": "string"
           },
-          "required": [
-            "agentPreset",
-            "reason"
-          ]
+          "additionalProperties": {
+            "not": {}
+          }
         }
       },
       "required": [
@@ -196,7 +174,7 @@
         "details"
       ],
       "additionalProperties": {},
-      "description": "The preset ships with the deployment and is not the user's to change."
+      "description": "Provider or input failure, without original text or response details."
     },
     {
       "type": "object",
@@ -227,7 +205,7 @@
         "details"
       ],
       "additionalProperties": {},
-      "description": "The provider refused a valid credential write, for example because a read-only source shadows the reference. The details name only the reference, never the value."
+      "description": "The provider refused a valid credential write, for example because the stored document no longer parses. The details name only the reference, never the value."
     },
     {
       "type": "object",
@@ -650,6 +628,498 @@
       "properties": {
         "code": {
           "type": "string",
+          "const": "document-render/failed"
+        },
+        "message": {
+          "type": "string"
+        },
+        "details": {
+          "type": "object",
+          "properties": {
+            "reason": {
+              "readOnly": true,
+              "anyOf": [
+                {
+                  "type": "string",
+                  "const": "unavailable"
+                },
+                {
+                  "type": "string",
+                  "const": "input-too-large"
+                },
+                {
+                  "type": "string",
+                  "const": "output-too-large"
+                },
+                {
+                  "type": "string",
+                  "const": "invalid-document"
+                },
+                {
+                  "type": "string",
+                  "const": "unsupported-format"
+                },
+                {
+                  "type": "string",
+                  "const": "invalid-output"
+                },
+                {
+                  "type": "string",
+                  "const": "timeout"
+                },
+                {
+                  "type": "string",
+                  "const": "failed"
+                },
+                {
+                  "type": "string",
+                  "const": "busy"
+                },
+                {
+                  "type": "string",
+                  "const": "source-changed"
+                }
+              ]
+            }
+          },
+          "required": [
+            "reason"
+          ]
+        }
+      },
+      "required": [
+        "code",
+        "message",
+        "details"
+      ],
+      "additionalProperties": {},
+      "description": "The source was authorized, but its conversion failed."
+    },
+    {
+      "type": "object",
+      "properties": {
+        "code": {
+          "type": "string",
+          "const": "forgePanel/action-failed"
+        },
+        "message": {
+          "type": "string"
+        },
+        "details": {
+          "type": "object",
+          "propertyNames": {
+            "type": "string"
+          },
+          "additionalProperties": {
+            "not": {}
+          }
+        }
+      },
+      "required": [
+        "code",
+        "message",
+        "details"
+      ],
+      "additionalProperties": {},
+      "description": "The code host refused the change or could not be reached; the message gives the host's reason."
+    },
+    {
+      "type": "object",
+      "properties": {
+        "code": {
+          "type": "string",
+          "const": "forgePanel/diff-failed"
+        },
+        "message": {
+          "type": "string"
+        },
+        "details": {
+          "type": "object",
+          "propertyNames": {
+            "type": "string"
+          },
+          "additionalProperties": {
+            "not": {}
+          }
+        }
+      },
+      "required": [
+        "code",
+        "message",
+        "details"
+      ],
+      "additionalProperties": {},
+      "description": "The code host did not provide the change request's diff or file, or its status has not been read yet; the message says why."
+    },
+    {
+      "type": "object",
+      "properties": {
+        "code": {
+          "type": "string",
+          "const": "forgePanel/diff-too-large"
+        },
+        "message": {
+          "type": "string"
+        },
+        "details": {
+          "type": "object",
+          "propertyNames": {
+            "type": "string"
+          },
+          "additionalProperties": {
+            "not": {}
+          }
+        }
+      },
+      "required": [
+        "code",
+        "message",
+        "details"
+      ],
+      "additionalProperties": {},
+      "description": "The patch, the untracked file list, or the file exceeds `maxDiffBytes`, or the code host or its provider refuses a change request's diff or file over a size limit."
+    },
+    {
+      "type": "object",
+      "properties": {
+        "code": {
+          "type": "string",
+          "const": "forgePanel/invalid-branch"
+        },
+        "message": {
+          "type": "string"
+        },
+        "details": {
+          "type": "object",
+          "propertyNames": {
+            "type": "string"
+          },
+          "additionalProperties": {
+            "not": {}
+          }
+        }
+      },
+      "required": [
+        "code",
+        "message",
+        "details"
+      ],
+      "additionalProperties": {},
+      "description": "The requested base branch name is empty."
+    },
+    {
+      "type": "object",
+      "properties": {
+        "code": {
+          "type": "string",
+          "const": "forgePanel/no-fork-point"
+        },
+        "message": {
+          "type": "string"
+        },
+        "details": {
+          "type": "object",
+          "propertyNames": {
+            "type": "string"
+          },
+          "additionalProperties": {
+            "not": {}
+          }
+        }
+      },
+      "required": [
+        "code",
+        "message",
+        "details"
+      ],
+      "additionalProperties": {},
+      "description": "No remote names a default branch that HEAD shares history with, and the checkout is not a worktree the Session created."
+    },
+    {
+      "type": "object",
+      "properties": {
+        "code": {
+          "type": "string",
+          "const": "forgePanel/no-worktree"
+        },
+        "message": {
+          "type": "string"
+        },
+        "details": {
+          "type": "object",
+          "propertyNames": {
+            "type": "string"
+          },
+          "additionalProperties": {
+            "not": {}
+          }
+        }
+      },
+      "required": [
+        "code",
+        "message",
+        "details"
+      ],
+      "additionalProperties": {},
+      "description": "The Session has no created worktree to restore or leave."
+    },
+    {
+      "type": "object",
+      "properties": {
+        "code": {
+          "type": "string",
+          "const": "forgePanel/not-a-checkout"
+        },
+        "message": {
+          "type": "string"
+        },
+        "details": {
+          "type": "object",
+          "propertyNames": {
+            "type": "string"
+          },
+          "additionalProperties": {
+            "not": {}
+          }
+        }
+      },
+      "required": [
+        "code",
+        "message",
+        "details"
+      ],
+      "additionalProperties": {},
+      "description": "The Session's directory is not inside a Git checkout, so it has no local changes."
+    },
+    {
+      "type": "object",
+      "properties": {
+        "code": {
+          "type": "string",
+          "const": "forgePanel/not-bound"
+        },
+        "message": {
+          "type": "string"
+        },
+        "details": {
+          "type": "object",
+          "propertyNames": {
+            "type": "string"
+          },
+          "additionalProperties": {
+            "not": {}
+          }
+        }
+      },
+      "required": [
+        "code",
+        "message",
+        "details"
+      ],
+      "additionalProperties": {},
+      "description": "The URL is not a visible binding of the Session that a provider serves, so the panel does not act on it."
+    },
+    {
+      "type": "object",
+      "properties": {
+        "code": {
+          "type": "string",
+          "const": "forgePanel/not-waiting"
+        },
+        "message": {
+          "type": "string"
+        },
+        "details": {
+          "type": "object",
+          "propertyNames": {
+            "type": "string"
+          },
+          "additionalProperties": {
+            "not": {}
+          }
+        }
+      },
+      "required": [
+        "code",
+        "message",
+        "details"
+      ],
+      "additionalProperties": {},
+      "description": "No message of the Session waits after a failed or stopped attempt to create its worktree."
+    },
+    {
+      "type": "object",
+      "properties": {
+        "code": {
+          "type": "string",
+          "const": "forgePanel/restore-failed"
+        },
+        "message": {
+          "type": "string"
+        },
+        "details": {
+          "type": "object",
+          "propertyNames": {
+            "type": "string"
+          },
+          "additionalProperties": {
+            "not": {}
+          }
+        }
+      },
+      "required": [
+        "code",
+        "message",
+        "details"
+      ],
+      "additionalProperties": {},
+      "description": "The removed worktree could not be checked out again; the message gives the reason."
+    },
+    {
+      "type": "object",
+      "properties": {
+        "code": {
+          "type": "string",
+          "const": "forgePanel/session-busy"
+        },
+        "message": {
+          "type": "string"
+        },
+        "details": {
+          "type": "object",
+          "propertyNames": {
+            "type": "string"
+          },
+          "additionalProperties": {
+            "not": {}
+          }
+        }
+      },
+      "required": [
+        "code",
+        "message",
+        "details"
+      ],
+      "additionalProperties": {},
+      "description": "The Session's Agent is not loaded or has other work, so its checkout cannot change now."
+    },
+    {
+      "type": "object",
+      "properties": {
+        "code": {
+          "type": "string",
+          "const": "forgePanel/session-started"
+        },
+        "message": {
+          "type": "string"
+        },
+        "details": {
+          "type": "object",
+          "propertyNames": {
+            "type": "string"
+          },
+          "additionalProperties": {
+            "not": {}
+          }
+        }
+      },
+      "required": [
+        "code",
+        "message",
+        "details"
+      ],
+      "additionalProperties": {},
+      "description": "A turn of the Session has started, or its worktree was created, so its worktree request can no longer change."
+    },
+    {
+      "type": "object",
+      "properties": {
+        "code": {
+          "type": "string",
+          "const": "forgePanel/stale-head"
+        },
+        "message": {
+          "type": "string"
+        },
+        "details": {
+          "type": "object",
+          "propertyNames": {
+            "type": "string"
+          },
+          "additionalProperties": {
+            "not": {}
+          }
+        }
+      },
+      "required": [
+        "code",
+        "message",
+        "details"
+      ],
+      "additionalProperties": {},
+      "description": "The change request has new commits since the head the user confirmed, so it was not merged."
+    },
+    {
+      "type": "object",
+      "properties": {
+        "code": {
+          "type": "string",
+          "const": "forgePanel/unrecognized-url"
+        },
+        "message": {
+          "type": "string"
+        },
+        "details": {
+          "type": "object",
+          "propertyNames": {
+            "type": "string"
+          },
+          "additionalProperties": {
+            "not": {}
+          }
+        }
+      },
+      "required": [
+        "code",
+        "message",
+        "details"
+      ],
+      "additionalProperties": {},
+      "description": "No registered provider serves the change request URL."
+    },
+    {
+      "type": "object",
+      "properties": {
+        "code": {
+          "type": "string",
+          "const": "forgePanel/worktrees-unavailable"
+        },
+        "message": {
+          "type": "string"
+        },
+        "details": {
+          "type": "object",
+          "propertyNames": {
+            "type": "string"
+          },
+          "additionalProperties": {
+            "not": {}
+          }
+        }
+      },
+      "required": [
+        "code",
+        "message",
+        "details"
+      ],
+      "additionalProperties": {},
+      "description": "No worktree service is mounted."
+    },
+    {
+      "type": "object",
+      "properties": {
+        "code": {
+          "type": "string",
           "const": "gateway/ambiguous-endpoint"
         },
         "message": {
@@ -660,9 +1130,11 @@
           "properties": {
             "endpoint": {
               "readOnly": true,
+              "description": "Canonical `<namespace>/<method>` endpoint.",
               "type": "string"
             },
             "field": {
+              "description": "Affected wire field when the failure is field-specific.",
               "readOnly": true,
               "type": "string"
             }
@@ -678,7 +1150,7 @@
         "details"
       ],
       "additionalProperties": {},
-      "description": "More than one active Remote declaration owns the requested endpoint."
+      "description": "More than one live provider claims the requested endpoint."
     },
     {
       "type": "object",
@@ -695,9 +1167,11 @@
           "properties": {
             "endpoint": {
               "readOnly": true,
+              "description": "Canonical `<namespace>/<method>` endpoint.",
               "type": "string"
             },
             "field": {
+              "description": "Affected wire field when the failure is field-specific.",
               "readOnly": true,
               "type": "string"
             }
@@ -713,7 +1187,7 @@
         "details"
       ],
       "additionalProperties": {},
-      "description": "Named request arguments do not match the endpoint descriptor."
+      "description": "Named arguments do not match the endpoint's declared parameters."
     },
     {
       "type": "object",
@@ -730,10 +1204,12 @@
           "properties": {
             "endpoint": {
               "readOnly": true,
+              "description": "Canonical `<namespace>/<method>` endpoint.",
               "type": "string"
             },
             "httpStatus": {
               "readOnly": true,
+              "description": "Actual response status, independent of the normalized failure code.",
               "type": "number"
             }
           },
@@ -772,14 +1248,17 @@
                 "properties": {
                   "code": {
                     "readOnly": true,
+                    "description": "Validator diagnostic code; this is distinct from the Remote failure code.",
                     "type": "string"
                   },
                   "message": {
                     "readOnly": true,
+                    "description": "Human-readable diagnostic supplied by the validating owner.",
                     "type": "string"
                   },
                   "path": {
                     "readOnly": true,
+                    "description": "Object keys and array indices; symbol keys use their diagnostic string.",
                     "type": "array",
                     "items": {
                       "anyOf": [
@@ -826,9 +1305,11 @@
           "properties": {
             "endpoint": {
               "readOnly": true,
+              "description": "Canonical `<namespace>/<method>` endpoint.",
               "type": "string"
             },
             "field": {
+              "description": "Affected wire field when the failure is field-specific.",
               "readOnly": true,
               "type": "string"
             }
@@ -844,7 +1325,7 @@
         "details"
       ],
       "additionalProperties": {},
-      "description": "The service has no valid Remote binding for the selected endpoint."
+      "description": "The service's Remote binding is malformed or disagrees with its registration."
     },
     {
       "type": "object",
@@ -884,9 +1365,11 @@
           "properties": {
             "endpoint": {
               "readOnly": true,
+              "description": "Canonical `<namespace>/<method>` endpoint.",
               "type": "string"
             },
             "field": {
+              "description": "Affected wire field when the failure is field-specific.",
               "readOnly": true,
               "type": "string"
             }
@@ -919,9 +1402,11 @@
           "properties": {
             "endpoint": {
               "readOnly": true,
+              "description": "Canonical `<namespace>/<method>` endpoint.",
               "type": "string"
             },
             "field": {
+              "description": "Affected wire field when the failure is field-specific.",
               "readOnly": true,
               "type": "string"
             }
@@ -937,7 +1422,7 @@
         "details"
       ],
       "additionalProperties": {},
-      "description": "A Context resolver threw an unclassified failure before business invocation."
+      "description": "The Host Context adapter failed while resolving the requested receiver."
     },
     {
       "type": "object",
@@ -954,9 +1439,11 @@
           "properties": {
             "endpoint": {
               "readOnly": true,
+              "description": "Canonical `<namespace>/<method>` endpoint.",
               "type": "string"
             },
             "field": {
+              "description": "Affected wire field when the failure is field-specific.",
               "readOnly": true,
               "type": "string"
             }
@@ -972,7 +1459,7 @@
         "details"
       ],
       "additionalProperties": {},
-      "description": "The Context resolver found no receiver for the requested identity."
+      "description": "The Host Context adapter found no receiver for the supplied identity."
     },
     {
       "type": "object",
@@ -989,9 +1476,11 @@
           "properties": {
             "endpoint": {
               "readOnly": true,
+              "description": "Canonical `<namespace>/<method>` endpoint.",
               "type": "string"
             },
             "field": {
+              "description": "Affected wire field when the failure is field-specific.",
               "readOnly": true,
               "type": "string"
             }
@@ -1007,7 +1496,7 @@
         "details"
       ],
       "additionalProperties": {},
-      "description": "The required scoped Context provider is not available."
+      "description": "The Host Context adapter required by this endpoint is not registered."
     },
     {
       "type": "object",
@@ -1024,9 +1513,11 @@
           "properties": {
             "endpoint": {
               "readOnly": true,
+              "description": "Canonical `<namespace>/<method>` endpoint.",
               "type": "string"
             },
             "field": {
+              "description": "Affected wire field when the failure is field-specific.",
               "readOnly": true,
               "type": "string"
             }
@@ -1042,7 +1533,7 @@
         "details"
       ],
       "additionalProperties": {},
-      "description": "The selected Remote method has no available reflection definition."
+      "description": "No live generated definition or source declaration exposes this endpoint."
     },
     {
       "type": "object",
@@ -1059,10 +1550,12 @@
           "properties": {
             "endpoint": {
               "readOnly": true,
+              "description": "Canonical `<namespace>/<method>` endpoint.",
               "type": "string"
             },
             "httpStatus": {
               "readOnly": true,
+              "description": "Actual response status, independent of the normalized failure code.",
               "type": "number"
             }
           },
@@ -1095,9 +1588,11 @@
           "properties": {
             "endpoint": {
               "readOnly": true,
+              "description": "Canonical `<namespace>/<method>` endpoint.",
               "type": "string"
             },
             "field": {
+              "description": "Affected wire field when the failure is field-specific.",
               "readOnly": true,
               "type": "string"
             }
@@ -1113,7 +1608,44 @@
         "details"
       ],
       "additionalProperties": {},
-      "description": "A supplied wire value fails its codec or interaction delivery metadata requirements."
+      "description": "A wire argument or uplink item fails the endpoint's input codec."
+    },
+    {
+      "type": "object",
+      "properties": {
+        "code": {
+          "type": "string",
+          "const": "gateway/interactions-forbidden"
+        },
+        "message": {
+          "type": "string"
+        },
+        "details": {
+          "type": "object",
+          "properties": {
+            "endpoint": {
+              "readOnly": true,
+              "description": "Canonical `<namespace>/<method>` endpoint.",
+              "type": "string"
+            },
+            "field": {
+              "description": "Affected wire field when the failure is field-specific.",
+              "readOnly": true,
+              "type": "string"
+            }
+          },
+          "required": [
+            "endpoint"
+          ]
+        }
+      },
+      "required": [
+        "code",
+        "message",
+        "details"
+      ],
+      "additionalProperties": {},
+      "description": "The Peer cannot participate in interactions or the reply belongs to another Peer."
     },
     {
       "type": "object",
@@ -1153,9 +1685,11 @@
           "properties": {
             "endpoint": {
               "readOnly": true,
+              "description": "Canonical `<namespace>/<method>` endpoint.",
               "type": "string"
             },
             "field": {
+              "description": "Affected wire field when the failure is field-specific.",
               "readOnly": true,
               "type": "string"
             }
@@ -1171,7 +1705,7 @@
         "details"
       ],
       "additionalProperties": {},
-      "description": "No active Remote method exports the requested endpoint."
+      "description": "The requested forwarded invocation cannot be answered through this caller."
     },
     {
       "type": "object",
@@ -1188,9 +1722,11 @@
           "properties": {
             "endpoint": {
               "readOnly": true,
+              "description": "Canonical `<namespace>/<method>` endpoint.",
               "type": "string"
             },
             "field": {
+              "description": "Affected wire field when the failure is field-specific.",
               "readOnly": true,
               "type": "string"
             }
@@ -1206,7 +1742,7 @@
         "details"
       ],
       "additionalProperties": {},
-      "description": "An object lookup provider threw an unclassified failure before business invocation."
+      "description": "A lookup provider failed while resolving a wire identity."
     },
     {
       "type": "object",
@@ -1223,9 +1759,11 @@
           "properties": {
             "endpoint": {
               "readOnly": true,
+              "description": "Canonical `<namespace>/<method>` endpoint.",
               "type": "string"
             },
             "field": {
+              "description": "Affected wire field when the failure is field-specific.",
               "readOnly": true,
               "type": "string"
             }
@@ -1241,7 +1779,7 @@
         "details"
       ],
       "additionalProperties": {},
-      "description": "The object lookup provider found no value for the requested identity."
+      "description": "A lookup provider found no object for the supplied identity."
     },
     {
       "type": "object",
@@ -1258,9 +1796,11 @@
           "properties": {
             "endpoint": {
               "readOnly": true,
+              "description": "Canonical `<namespace>/<method>` endpoint.",
               "type": "string"
             },
             "field": {
+              "description": "Affected wire field when the failure is field-specific.",
               "readOnly": true,
               "type": "string"
             }
@@ -1276,7 +1816,7 @@
         "details"
       ],
       "additionalProperties": {},
-      "description": "A required object lookup provider or provider key is unavailable."
+      "description": "The lookup provider required by a parameter is not registered."
     },
     {
       "type": "object",
@@ -1293,9 +1833,11 @@
           "properties": {
             "endpoint": {
               "readOnly": true,
+              "description": "Canonical `<namespace>/<method>` endpoint.",
               "type": "string"
             },
             "field": {
+              "description": "Affected wire field when the failure is field-specific.",
               "readOnly": true,
               "type": "string"
             }
@@ -1311,7 +1853,44 @@
         "details"
       ],
       "additionalProperties": {},
-      "description": "The selected provider has no callable implementation of the requested Remote method."
+      "description": "The declared method has no callable implementation on its live receiver."
+    },
+    {
+      "type": "object",
+      "properties": {
+        "code": {
+          "type": "string",
+          "const": "gateway/peer-disposed"
+        },
+        "message": {
+          "type": "string"
+        },
+        "details": {
+          "type": "object",
+          "properties": {
+            "endpoint": {
+              "readOnly": true,
+              "description": "Canonical `<namespace>/<method>` endpoint.",
+              "type": "string"
+            },
+            "field": {
+              "description": "Affected wire field when the failure is field-specific.",
+              "readOnly": true,
+              "type": "string"
+            }
+          },
+          "required": [
+            "endpoint"
+          ]
+        }
+      },
+      "required": [
+        "code",
+        "message",
+        "details"
+      ],
+      "additionalProperties": {},
+      "description": "The calling Peer was disposed before the operation could be admitted."
     },
     {
       "type": "object",
@@ -1330,10 +1909,12 @@
               "properties": {
                 "endpoint": {
                   "readOnly": true,
+                  "description": "Canonical `<namespace>/<method>` endpoint.",
                   "type": "string"
                 },
                 "httpStatus": {
                   "readOnly": true,
+                  "description": "Actual response status, independent of the normalized failure code.",
                   "type": "number"
                 }
               },
@@ -1431,9 +2012,11 @@
           "properties": {
             "endpoint": {
               "readOnly": true,
+              "description": "Canonical `<namespace>/<method>` endpoint.",
               "type": "string"
             },
             "field": {
+              "description": "Affected wire field when the failure is field-specific.",
               "readOnly": true,
               "type": "string"
             }
@@ -1449,7 +2032,44 @@
         "details"
       ],
       "additionalProperties": {},
-      "description": "Required application preparation was withdrawn and has no replacement owner."
+      "description": "The Host cannot complete the requested preparation operation."
+    },
+    {
+      "type": "object",
+      "properties": {
+        "code": {
+          "type": "string",
+          "const": "gateway/protocol"
+        },
+        "message": {
+          "type": "string"
+        },
+        "details": {
+          "type": "object",
+          "properties": {
+            "endpoint": {
+              "readOnly": true,
+              "description": "Canonical `<namespace>/<method>` endpoint.",
+              "type": "string"
+            },
+            "field": {
+              "description": "Affected wire field when the failure is field-specific.",
+              "readOnly": true,
+              "type": "string"
+            }
+          },
+          "required": [
+            "endpoint"
+          ]
+        }
+      },
+      "required": [
+        "code",
+        "message",
+        "details"
+      ],
+      "additionalProperties": {},
+      "description": "A carrier frame violates the Remote protocol."
     },
     {
       "type": "object",
@@ -1505,9 +2125,11 @@
           "properties": {
             "endpoint": {
               "readOnly": true,
+              "description": "Canonical `<namespace>/<method>` endpoint.",
               "type": "string"
             },
             "field": {
+              "description": "Affected wire field when the failure is field-specific.",
               "readOnly": true,
               "type": "string"
             }
@@ -1523,7 +2145,7 @@
         "details"
       ],
       "additionalProperties": {},
-      "description": "A live provider does not match the declared owner, wire field or strict type identity."
+      "description": "The live provider disagrees with the endpoint's declared service or namespace."
     },
     {
       "type": "object",
@@ -1540,9 +2162,11 @@
           "properties": {
             "endpoint": {
               "readOnly": true,
+              "description": "Canonical `<namespace>/<method>` endpoint.",
               "type": "string"
             },
             "field": {
+              "description": "Affected wire field when the failure is field-specific.",
               "readOnly": true,
               "type": "string"
             }
@@ -1558,7 +2182,7 @@
         "details"
       ],
       "additionalProperties": {},
-      "description": "A stream Remote method returned neither Iterable nor AsyncIterable."
+      "description": "A method result fails its declared output codec or stream mode."
     },
     {
       "type": "object",
@@ -1575,9 +2199,11 @@
           "properties": {
             "endpoint": {
               "readOnly": true,
+              "description": "Canonical `<namespace>/<method>` endpoint.",
               "type": "string"
             },
             "field": {
+              "description": "Affected wire field when the failure is field-specific.",
               "readOnly": true,
               "type": "string"
             }
@@ -1593,7 +2219,7 @@
         "details"
       ],
       "additionalProperties": {},
-      "description": "The service required by the Remote endpoint is unavailable."
+      "description": "The endpoint's service or forwarded event source is unavailable."
     },
     {
       "type": "object",
@@ -1610,9 +2236,11 @@
           "properties": {
             "endpoint": {
               "readOnly": true,
+              "description": "Canonical `<namespace>/<method>` endpoint.",
               "type": "string"
             },
             "field": {
+              "description": "Affected wire field when the failure is field-specific.",
               "readOnly": true,
               "type": "string"
             }
@@ -1628,7 +2256,7 @@
         "details"
       ],
       "additionalProperties": {},
-      "description": "The Remote signature or invocation mode is incompatible with the selected dispatch path."
+      "description": "A source method's signature cannot be dispatched as a Remote method."
     },
     {
       "type": "object",
@@ -1717,6 +2345,43 @@
       "properties": {
         "code": {
           "type": "string",
+          "const": "gateway/uplink-overflow"
+        },
+        "message": {
+          "type": "string"
+        },
+        "details": {
+          "type": "object",
+          "properties": {
+            "endpoint": {
+              "readOnly": true,
+              "description": "Canonical `<namespace>/<method>` endpoint.",
+              "type": "string"
+            },
+            "field": {
+              "description": "Affected wire field when the failure is field-specific.",
+              "readOnly": true,
+              "type": "string"
+            }
+          },
+          "required": [
+            "endpoint"
+          ]
+        }
+      },
+      "required": [
+        "code",
+        "message",
+        "details"
+      ],
+      "additionalProperties": {},
+      "description": "Buffered Client uplink data exceeded the logical stream's byte limit."
+    },
+    {
+      "type": "object",
+      "properties": {
+        "code": {
+          "type": "string",
           "const": "host/capability-unavailable"
         },
         "message": {
@@ -1748,70 +2413,6 @@
       "properties": {
         "code": {
           "type": "string",
-          "const": "host/description-invalid"
-        },
-        "message": {
-          "type": "string"
-        },
-        "details": {
-          "type": "object",
-          "propertyNames": {
-            "type": "string"
-          },
-          "additionalProperties": {
-            "not": {}
-          }
-        }
-      },
-      "required": [
-        "code",
-        "message",
-        "details"
-      ],
-      "additionalProperties": {},
-      "description": "Host discovery or negotiation data is invalid or inconsistent, so admission is suspended."
-    },
-    {
-      "type": "object",
-      "properties": {
-        "code": {
-          "type": "string",
-          "const": "host/protocol-unsupported"
-        },
-        "message": {
-          "type": "string"
-        },
-        "details": {
-          "type": "object",
-          "properties": {
-            "clientProtocolVersion": {
-              "readOnly": true,
-              "type": "number"
-            },
-            "hostProtocolVersion": {
-              "readOnly": true,
-              "type": "number"
-            }
-          },
-          "required": [
-            "clientProtocolVersion",
-            "hostProtocolVersion"
-          ]
-        }
-      },
-      "required": [
-        "code",
-        "message",
-        "details"
-      ],
-      "additionalProperties": {},
-      "description": "The Host discovery protocol is unsupported by this Client."
-    },
-    {
-      "type": "object",
-      "properties": {
-        "code": {
-          "type": "string",
           "const": "interaction-closed"
         },
         "message": {
@@ -1822,12 +2423,7 @@
           "properties": {
             "eventId": {
               "readOnly": true,
-              "allOf": [
-                {
-                  "type": "string"
-                },
-                {}
-              ]
+              "type": "string"
             }
           },
           "required": [
@@ -1858,12 +2454,7 @@
           "properties": {
             "eventId": {
               "readOnly": true,
-              "allOf": [
-                {
-                  "type": "string"
-                },
-                {}
-              ]
+              "type": "string"
             }
           },
           "required": [
@@ -1878,6 +2469,789 @@
       ],
       "additionalProperties": {},
       "description": "The Host deadline elapsed before the pending interaction was settled."
+    },
+    {
+      "type": "object",
+      "properties": {
+        "code": {
+          "type": "string",
+          "const": "job/not-found"
+        },
+        "message": {
+          "type": "string"
+        },
+        "details": {
+          "type": "object",
+          "properties": {
+            "sessionId": {
+              "readOnly": true,
+              "type": "string"
+            },
+            "jobId": {
+              "readOnly": true,
+              "type": "string"
+            }
+          },
+          "required": [
+            "sessionId",
+            "jobId"
+          ]
+        }
+      },
+      "required": [
+        "code",
+        "message",
+        "details"
+      ],
+      "additionalProperties": {},
+      "description": "The session's job list no longer carries a killable row under that id."
+    },
+    {
+      "type": "object",
+      "properties": {
+        "code": {
+          "type": "string",
+          "const": "liveshareShares/audit-unavailable"
+        },
+        "message": {
+          "type": "string"
+        },
+        "details": {
+          "type": "object",
+          "properties": {
+            "relay": {
+              "readOnly": true,
+              "type": "string"
+            },
+            "status": {
+              "readOnly": true,
+              "type": "number"
+            },
+            "contentType": {
+              "readOnly": true,
+              "type": "string"
+            },
+            "body": {
+              "readOnly": true,
+              "type": "string"
+            }
+          },
+          "required": [
+            "relay"
+          ]
+        }
+      },
+      "required": [
+        "code",
+        "message",
+        "details"
+      ],
+      "additionalProperties": {},
+      "description": "The Relay's audit trail could not be read; `body` carries a relay answer unchanged."
+    },
+    {
+      "type": "object",
+      "properties": {
+        "code": {
+          "type": "string",
+          "const": "liveshareShares/endpoint-not-offered"
+        },
+        "message": {
+          "type": "string"
+        },
+        "details": {
+          "type": "object",
+          "properties": {
+            "plugin": {
+              "readOnly": true,
+              "type": "string"
+            },
+            "kind": {
+              "readOnly": true,
+              "anyOf": [
+                {
+                  "type": "string",
+                  "const": "readable"
+                },
+                {
+                  "type": "string",
+                  "const": "writable"
+                }
+              ]
+            },
+            "endpoint": {
+              "readOnly": true,
+              "type": "string"
+            }
+          },
+          "required": [
+            "plugin",
+            "kind",
+            "endpoint"
+          ]
+        }
+      },
+      "required": [
+        "code",
+        "message",
+        "details"
+      ],
+      "additionalProperties": {},
+      "description": "A submitted capability names an endpoint the plugin does not offer under that kind."
+    },
+    {
+      "type": "object",
+      "properties": {
+        "code": {
+          "type": "string",
+          "const": "liveshareShares/invalid-access-mode"
+        },
+        "message": {
+          "type": "string"
+        },
+        "details": {
+          "type": "object",
+          "propertyNames": {
+            "type": "string"
+          },
+          "additionalProperties": {
+            "not": {}
+          }
+        }
+      },
+      "required": [
+        "code",
+        "message",
+        "details"
+      ],
+      "additionalProperties": {},
+      "description": "The requested access mode is not one this build stores."
+    },
+    {
+      "type": "object",
+      "properties": {
+        "code": {
+          "type": "string",
+          "const": "liveshareShares/invalid-allows-fork"
+        },
+        "message": {
+          "type": "string"
+        },
+        "details": {
+          "type": "object",
+          "propertyNames": {
+            "type": "string"
+          },
+          "additionalProperties": {
+            "not": {}
+          }
+        }
+      },
+      "required": [
+        "code",
+        "message",
+        "details"
+      ],
+      "additionalProperties": {},
+      "description": "The requested fork switch is not a boolean."
+    },
+    {
+      "type": "object",
+      "properties": {
+        "code": {
+          "type": "string",
+          "const": "liveshareShares/invalid-capabilities"
+        },
+        "message": {
+          "type": "string"
+        },
+        "details": {
+          "type": "object",
+          "propertyNames": {
+            "type": "string"
+          },
+          "additionalProperties": {
+            "not": {}
+          }
+        }
+      },
+      "required": [
+        "code",
+        "message",
+        "details"
+      ],
+      "additionalProperties": {},
+      "description": "The submitted capability selection is not a list of plugin groups."
+    },
+    {
+      "type": "object",
+      "properties": {
+        "code": {
+          "type": "string",
+          "const": "liveshareShares/invalid-relay"
+        },
+        "message": {
+          "type": "string"
+        },
+        "details": {
+          "type": "object",
+          "properties": {
+            "relay": {
+              "readOnly": true,
+              "type": "string"
+            }
+          },
+          "required": [
+            "relay"
+          ]
+        }
+      },
+      "required": [
+        "code",
+        "message",
+        "details"
+      ],
+      "additionalProperties": {},
+      "description": "The requested Relay address is not a usable base URL."
+    },
+    {
+      "type": "object",
+      "properties": {
+        "code": {
+          "type": "string",
+          "const": "liveshareShares/invalid-relay-url"
+        },
+        "message": {
+          "type": "string"
+        },
+        "details": {
+          "type": "object",
+          "propertyNames": {
+            "type": "string"
+          },
+          "additionalProperties": {
+            "not": {}
+          }
+        }
+      },
+      "required": [
+        "code",
+        "message",
+        "details"
+      ],
+      "additionalProperties": {},
+      "description": "The posted Relay address is neither null nor a string, or does not normalize."
+    },
+    {
+      "type": "object",
+      "properties": {
+        "code": {
+          "type": "string",
+          "const": "liveshareShares/invalid-session-mode"
+        },
+        "message": {
+          "type": "string"
+        },
+        "details": {
+          "type": "object",
+          "propertyNames": {
+            "type": "string"
+          },
+          "additionalProperties": {
+            "not": {}
+          }
+        }
+      },
+      "required": [
+        "code",
+        "message",
+        "details"
+      ],
+      "additionalProperties": {},
+      "description": "The requested tier is not one this build drives."
+    },
+    {
+      "type": "object",
+      "properties": {
+        "code": {
+          "type": "string",
+          "const": "liveshareShares/invalid-ttl"
+        },
+        "message": {
+          "type": "string"
+        },
+        "details": {
+          "type": "object",
+          "propertyNames": {
+            "type": "string"
+          },
+          "additionalProperties": {
+            "not": {}
+          }
+        }
+      },
+      "required": [
+        "code",
+        "message",
+        "details"
+      ],
+      "additionalProperties": {},
+      "description": "The requested lifetime is not a positive safe-integer count of minutes within the ceiling."
+    },
+    {
+      "type": "object",
+      "properties": {
+        "code": {
+          "type": "string",
+          "const": "liveshareShares/missing-permission"
+        },
+        "message": {
+          "type": "string"
+        },
+        "details": {
+          "type": "object",
+          "propertyNames": {
+            "type": "string"
+          },
+          "additionalProperties": {
+            "not": {}
+          }
+        }
+      },
+      "required": [
+        "code",
+        "message",
+        "details"
+      ],
+      "additionalProperties": {},
+      "description": "A permission update named neither the tier nor the fork switch."
+    },
+    {
+      "type": "object",
+      "properties": {
+        "code": {
+          "type": "string",
+          "const": "liveshareShares/missing-session-id"
+        },
+        "message": {
+          "type": "string"
+        },
+        "details": {
+          "type": "object",
+          "propertyNames": {
+            "type": "string"
+          },
+          "additionalProperties": {
+            "not": {}
+          }
+        }
+      },
+      "required": [
+        "code",
+        "message",
+        "details"
+      ],
+      "additionalProperties": {},
+      "description": "A creation or publish check named no Session."
+    },
+    {
+      "type": "object",
+      "properties": {
+        "code": {
+          "type": "string",
+          "const": "liveshareShares/missing-share-id"
+        },
+        "message": {
+          "type": "string"
+        },
+        "details": {
+          "type": "object",
+          "propertyNames": {
+            "type": "string"
+          },
+          "additionalProperties": {
+            "not": {}
+          }
+        }
+      },
+      "required": [
+        "code",
+        "message",
+        "details"
+      ],
+      "additionalProperties": {},
+      "description": "A share-writing request named no share."
+    },
+    {
+      "type": "object",
+      "properties": {
+        "code": {
+          "type": "string",
+          "const": "liveshareShares/owner-login-required"
+        },
+        "message": {
+          "type": "string"
+        },
+        "details": {
+          "type": "object",
+          "properties": {
+            "identity": {
+              "readOnly": true,
+              "type": "object",
+              "properties": {
+                "state": {
+                  "readOnly": true,
+                  "anyOf": [
+                    {
+                      "type": "string",
+                      "const": "verified"
+                    },
+                    {
+                      "type": "string",
+                      "const": "expired"
+                    },
+                    {
+                      "type": "string",
+                      "const": "unverified"
+                    },
+                    {
+                      "type": "string",
+                      "const": "relay-unsupported"
+                    }
+                  ]
+                },
+                "relay": {
+                  "readOnly": true,
+                  "description": "Relay base URL the credential is bound to. A host keeps one credential per Relay address and never presents it to another, so a viewer of this field compares it with the active address.",
+                  "type": "string"
+                },
+                "displayName": {
+                  "description": "Provider display name, when the credential carries one.",
+                  "readOnly": true,
+                  "type": "string"
+                },
+                "subjectId": {
+                  "description": "Verified subject id, which a client may show as the identity label.",
+                  "readOnly": true,
+                  "type": "string"
+                },
+                "avatarUrl": {
+                  "description": "Provider-issued avatar URL the credential carried, when it carried one.",
+                  "readOnly": true,
+                  "type": "string"
+                },
+                "expiresAt": {
+                  "description": "ISO expiry of the credential currently held.",
+                  "readOnly": true,
+                  "type": "string"
+                },
+                "renewed": {
+                  "description": "True when this report followed a renewal that pushed the expiry out.",
+                  "readOnly": true,
+                  "type": "boolean"
+                },
+                "claim": {
+                  "description": "Automatic claim result, present once this host has run a claim pass.",
+                  "readOnly": true,
+                  "type": "object",
+                  "properties": {
+                    "claimed": {
+                      "readOnly": true,
+                      "description": "Shares the Relay bound to this identity.",
+                      "type": "number"
+                    },
+                    "skipped": {
+                      "readOnly": true,
+                      "description": "Shares already bound to this identity, so the Relay left them untouched.",
+                      "type": "number"
+                    }
+                  },
+                  "required": [
+                    "claimed",
+                    "skipped"
+                  ]
+                }
+              },
+              "required": [
+                "state",
+                "relay"
+              ]
+            }
+          },
+          "required": [
+            "identity"
+          ]
+        }
+      },
+      "required": [
+        "code",
+        "message",
+        "details"
+      ],
+      "additionalProperties": {},
+      "description": "Creating a share requires a verified owner credential at the effective Relay."
+    },
+    {
+      "type": "object",
+      "properties": {
+        "code": {
+          "type": "string",
+          "const": "liveshareShares/owner-state-unavailable"
+        },
+        "message": {
+          "type": "string"
+        },
+        "details": {
+          "type": "object",
+          "propertyNames": {
+            "type": "string"
+          },
+          "additionalProperties": {
+            "not": {}
+          }
+        }
+      },
+      "required": [
+        "code",
+        "message",
+        "details"
+      ],
+      "additionalProperties": {},
+      "description": "The owner state file could not be written; the previous record is still in force."
+    },
+    {
+      "type": "object",
+      "properties": {
+        "code": {
+          "type": "string",
+          "const": "liveshareShares/relay-unavailable"
+        },
+        "message": {
+          "type": "string"
+        },
+        "details": {
+          "type": "object",
+          "properties": {
+            "relay": {
+              "readOnly": true,
+              "type": "string"
+            },
+            "reason": {
+              "readOnly": true,
+              "type": "string"
+            }
+          },
+          "required": [
+            "relay"
+          ]
+        }
+      },
+      "required": [
+        "code",
+        "message",
+        "details"
+      ],
+      "additionalProperties": {},
+      "description": "The Relay did not accept the registration this host attempted."
+    },
+    {
+      "type": "object",
+      "properties": {
+        "code": {
+          "type": "string",
+          "const": "liveshareShares/relay-upgrade-required"
+        },
+        "message": {
+          "type": "string"
+        },
+        "details": {
+          "type": "object",
+          "properties": {
+            "identity": {
+              "readOnly": true,
+              "type": "object",
+              "properties": {
+                "state": {
+                  "readOnly": true,
+                  "anyOf": [
+                    {
+                      "type": "string",
+                      "const": "verified"
+                    },
+                    {
+                      "type": "string",
+                      "const": "expired"
+                    },
+                    {
+                      "type": "string",
+                      "const": "unverified"
+                    },
+                    {
+                      "type": "string",
+                      "const": "relay-unsupported"
+                    }
+                  ]
+                },
+                "relay": {
+                  "readOnly": true,
+                  "description": "Relay base URL the credential is bound to. A host keeps one credential per Relay address and never presents it to another, so a viewer of this field compares it with the active address.",
+                  "type": "string"
+                },
+                "displayName": {
+                  "description": "Provider display name, when the credential carries one.",
+                  "readOnly": true,
+                  "type": "string"
+                },
+                "subjectId": {
+                  "description": "Verified subject id, which a client may show as the identity label.",
+                  "readOnly": true,
+                  "type": "string"
+                },
+                "avatarUrl": {
+                  "description": "Provider-issued avatar URL the credential carried, when it carried one.",
+                  "readOnly": true,
+                  "type": "string"
+                },
+                "expiresAt": {
+                  "description": "ISO expiry of the credential currently held.",
+                  "readOnly": true,
+                  "type": "string"
+                },
+                "renewed": {
+                  "description": "True when this report followed a renewal that pushed the expiry out.",
+                  "readOnly": true,
+                  "type": "boolean"
+                },
+                "claim": {
+                  "description": "Automatic claim result, present once this host has run a claim pass.",
+                  "readOnly": true,
+                  "type": "object",
+                  "properties": {
+                    "claimed": {
+                      "readOnly": true,
+                      "description": "Shares the Relay bound to this identity.",
+                      "type": "number"
+                    },
+                    "skipped": {
+                      "readOnly": true,
+                      "description": "Shares already bound to this identity, so the Relay left them untouched.",
+                      "type": "number"
+                    }
+                  },
+                  "required": [
+                    "claimed",
+                    "skipped"
+                  ]
+                }
+              },
+              "required": [
+                "state",
+                "relay"
+              ]
+            }
+          },
+          "required": [
+            "identity"
+          ]
+        }
+      },
+      "required": [
+        "code",
+        "message",
+        "details"
+      ],
+      "additionalProperties": {},
+      "description": "The effective Relay predates owner identity binding, so a verified credential cannot help."
+    },
+    {
+      "type": "object",
+      "properties": {
+        "code": {
+          "type": "string",
+          "const": "liveshareShares/relay-url-required"
+        },
+        "message": {
+          "type": "string"
+        },
+        "details": {
+          "type": "object",
+          "propertyNames": {
+            "type": "string"
+          },
+          "additionalProperties": {
+            "not": {}
+          }
+        }
+      },
+      "required": [
+        "code",
+        "message",
+        "details"
+      ],
+      "additionalProperties": {},
+      "description": "No Liveshare server address is saved, so the request has nowhere to publish or probe."
+    },
+    {
+      "type": "object",
+      "properties": {
+        "code": {
+          "type": "string",
+          "const": "liveshareShares/share-not-found"
+        },
+        "message": {
+          "type": "string"
+        },
+        "details": {
+          "type": "object",
+          "properties": {
+            "shareId": {
+              "readOnly": true,
+              "type": "string"
+            }
+          },
+          "required": [
+            "shareId"
+          ]
+        }
+      },
+      "required": [
+        "code",
+        "message",
+        "details"
+      ],
+      "additionalProperties": {},
+      "description": "No share this host publishes carries the requested id."
+    },
+    {
+      "type": "object",
+      "properties": {
+        "code": {
+          "type": "string",
+          "const": "liveshareShares/unknown-plugin"
+        },
+        "message": {
+          "type": "string"
+        },
+        "details": {
+          "type": "object",
+          "properties": {
+            "plugin": {
+              "readOnly": true,
+              "type": "string"
+            }
+          },
+          "required": [
+            "plugin"
+          ]
+        }
+      },
+      "required": [
+        "code",
+        "message",
+        "details"
+      ],
+      "additionalProperties": {},
+      "description": "A submitted capability names a plugin that offers no viewer endpoints."
     },
     {
       "type": "object",
@@ -1919,7 +3293,7 @@
       "properties": {
         "code": {
           "type": "string",
-          "const": "presented-file/action-failed"
+          "const": "plan/invalid-address"
         },
         "message": {
           "type": "string"
@@ -1940,14 +3314,14 @@
         "details"
       ],
       "additionalProperties": {},
-      "description": "The presented file could not be resolved or the native action failed."
+      "description": "The resource URL does not identify a plan invocation."
     },
     {
       "type": "object",
       "properties": {
         "code": {
           "type": "string",
-          "const": "presented-file/native-unavailable"
+          "const": "plan/not-found"
         },
         "message": {
           "type": "string"
@@ -1968,14 +3342,14 @@
         "details"
       ],
       "additionalProperties": {},
-      "description": "The Host does not provide the requested native file action."
+      "description": "The Session has no readable plan for this invocation."
     },
     {
       "type": "object",
       "properties": {
         "code": {
           "type": "string",
-          "const": "presented-file/not-found"
+          "const": "plan/read-failed"
         },
         "message": {
           "type": "string"
@@ -1996,14 +3370,329 @@
         "details"
       ],
       "additionalProperties": {},
-      "description": "No presented file matches the requested Session event and file index."
+      "description": "The Session history read failed."
     },
     {
       "type": "object",
       "properties": {
         "code": {
           "type": "string",
-          "const": "presented-file/path-unavailable"
+          "const": "plugin-manager/detail-unavailable"
+        },
+        "message": {
+          "type": "string"
+        },
+        "details": {
+          "type": "object",
+          "properties": {
+            "reason": {
+              "readOnly": true,
+              "anyOf": [
+                {
+                  "type": "string",
+                  "const": "too-large"
+                },
+                {
+                  "type": "string",
+                  "const": "network"
+                },
+                {
+                  "type": "string",
+                  "const": "denied"
+                },
+                {
+                  "type": "string",
+                  "const": "git-unavailable"
+                },
+                {
+                  "type": "string",
+                  "const": "invalid"
+                }
+              ]
+            }
+          },
+          "required": [
+            "reason"
+          ]
+        }
+      },
+      "required": [
+        "code",
+        "message",
+        "details"
+      ],
+      "additionalProperties": {},
+      "description": "A bundle's detail document or image exists but cannot be read: `too-large` beyond a size limit, `network` when the npm file CDNs cannot be reached, `invalid` for a malformed locale file or `meta.detail`, or a named file that does not exist. Bundle files come from local directories and public CDNs, which never answer `denied`."
+    },
+    {
+      "type": "object",
+      "properties": {
+        "code": {
+          "type": "string",
+          "const": "plugin-manager/invalid-language"
+        },
+        "message": {
+          "type": "string"
+        },
+        "details": {
+          "type": "object",
+          "properties": {
+            "language": {
+              "readOnly": true,
+              "type": "string"
+            }
+          },
+          "required": [
+            "language"
+          ]
+        }
+      },
+      "required": [
+        "code",
+        "message",
+        "details"
+      ],
+      "additionalProperties": {},
+      "description": "The display language is not a BCP 47 language id."
+    },
+    {
+      "type": "object",
+      "properties": {
+        "code": {
+          "type": "string",
+          "const": "plugin-manager/unknown-bundle"
+        },
+        "message": {
+          "type": "string"
+        },
+        "details": {
+          "type": "object",
+          "properties": {
+            "name": {
+              "readOnly": true,
+              "type": "string"
+            }
+          },
+          "required": [
+            "name"
+          ]
+        }
+      },
+      "required": [
+        "code",
+        "message",
+        "details"
+      ],
+      "additionalProperties": {},
+      "description": "The profile lists no such bundle, or its directory cannot be resolved."
+    },
+    {
+      "type": "object",
+      "properties": {
+        "code": {
+          "type": "string",
+          "const": "plugin-market/detail-unavailable"
+        },
+        "message": {
+          "type": "string"
+        },
+        "details": {
+          "type": "object",
+          "properties": {
+            "reason": {
+              "readOnly": true,
+              "anyOf": [
+                {
+                  "type": "string",
+                  "const": "too-large"
+                },
+                {
+                  "type": "string",
+                  "const": "network"
+                },
+                {
+                  "type": "string",
+                  "const": "denied"
+                },
+                {
+                  "type": "string",
+                  "const": "git-unavailable"
+                },
+                {
+                  "type": "string",
+                  "const": "invalid"
+                }
+              ]
+            }
+          },
+          "required": [
+            "reason"
+          ]
+        }
+      },
+      "required": [
+        "code",
+        "message",
+        "details"
+      ],
+      "additionalProperties": {},
+      "description": "A detail document exists but cannot be read: `too-large` beyond a size limit, `network` when a source cannot be reached, `denied` when Git refuses the repository with the user's credentials, `git-unavailable` when the repository must be cloned and Git cannot run, `invalid` for a malformed locale file or `meta.detail`, or a named file that does not exist."
+    },
+    {
+      "type": "object",
+      "properties": {
+        "code": {
+          "type": "string",
+          "const": "plugin-market/fetch-failed"
+        },
+        "message": {
+          "type": "string"
+        },
+        "details": {
+          "type": "object",
+          "properties": {
+            "url": {
+              "readOnly": true,
+              "type": "string"
+            },
+            "reason": {
+              "readOnly": true,
+              "type": "string"
+            }
+          },
+          "required": [
+            "url",
+            "reason"
+          ]
+        }
+      },
+      "required": [
+        "code",
+        "message",
+        "details"
+      ],
+      "additionalProperties": {},
+      "description": "The index could not be fetched: network failure, timeout, redirect, non-2xx status, or a body over the size limit."
+    },
+    {
+      "type": "object",
+      "properties": {
+        "code": {
+          "type": "string",
+          "const": "plugin-market/invalid-index"
+        },
+        "message": {
+          "type": "string"
+        },
+        "details": {
+          "type": "object",
+          "properties": {
+            "url": {
+              "readOnly": true,
+              "type": "string"
+            },
+            "path": {
+              "readOnly": true,
+              "type": "string"
+            },
+            "reason": {
+              "readOnly": true,
+              "type": "string"
+            }
+          },
+          "required": [
+            "url",
+            "path",
+            "reason"
+          ]
+        }
+      },
+      "required": [
+        "code",
+        "message",
+        "details"
+      ],
+      "additionalProperties": {},
+      "description": "The fetched document is not valid format-1 JSON; `path` names the offending JSON value."
+    },
+    {
+      "type": "object",
+      "properties": {
+        "code": {
+          "type": "string",
+          "const": "plugin-market/invalid-index-url"
+        },
+        "message": {
+          "type": "string"
+        },
+        "details": {
+          "type": "object",
+          "properties": {
+            "url": {
+              "readOnly": true,
+              "type": "string"
+            },
+            "reason": {
+              "readOnly": true,
+              "type": "string"
+            }
+          },
+          "required": [
+            "url",
+            "reason"
+          ]
+        }
+      },
+      "required": [
+        "code",
+        "message",
+        "details"
+      ],
+      "additionalProperties": {},
+      "description": "An index URL is not http(s), or carries credentials or a fragment."
+    },
+    {
+      "type": "object",
+      "properties": {
+        "code": {
+          "type": "string",
+          "const": "plugin-market/invalid-query"
+        },
+        "message": {
+          "type": "string"
+        },
+        "details": {
+          "type": "object",
+          "properties": {
+            "field": {
+              "readOnly": true,
+              "type": "string"
+            },
+            "reason": {
+              "readOnly": true,
+              "type": "string"
+            }
+          },
+          "required": [
+            "field",
+            "reason"
+          ]
+        }
+      },
+      "required": [
+        "code",
+        "message",
+        "details"
+      ],
+      "additionalProperties": {},
+      "description": "A search page request is out of range; `field` names the offending query field."
+    },
+    {
+      "type": "object",
+      "properties": {
+        "code": {
+          "type": "string",
+          "const": "plugin-market/settings-unavailable"
         },
         "message": {
           "type": "string"
@@ -2024,7 +3713,112 @@
         "details"
       ],
       "additionalProperties": {},
-      "description": "The presented file has no verified Host path for the requested action."
+      "description": "Index sources cannot be saved without the settings service and this service's profile entry."
+    },
+    {
+      "type": "object",
+      "properties": {
+        "code": {
+          "type": "string",
+          "const": "plugin-market/unknown-index"
+        },
+        "message": {
+          "type": "string"
+        },
+        "details": {
+          "type": "object",
+          "properties": {
+            "url": {
+              "readOnly": true,
+              "type": "string"
+            }
+          },
+          "required": [
+            "url"
+          ]
+        }
+      },
+      "required": [
+        "code",
+        "message",
+        "details"
+      ],
+      "additionalProperties": {},
+      "description": "The URL is not one of the configured index sources."
+    },
+    {
+      "type": "object",
+      "properties": {
+        "code": {
+          "type": "string",
+          "const": "plugin-market/unknown-plugin"
+        },
+        "message": {
+          "type": "string"
+        },
+        "details": {
+          "type": "object",
+          "properties": {
+            "name": {
+              "readOnly": true,
+              "type": "string"
+            },
+            "version": {
+              "readOnly": true,
+              "type": "string"
+            }
+          },
+          "required": [
+            "name",
+            "version"
+          ]
+        }
+      },
+      "required": [
+        "code",
+        "message",
+        "details"
+      ],
+      "additionalProperties": {},
+      "description": "The index lists no such plugin or version."
+    },
+    {
+      "type": "object",
+      "properties": {
+        "code": {
+          "type": "string",
+          "const": "remote-access/denied"
+        },
+        "message": {
+          "type": "string"
+        },
+        "details": {
+          "type": "object",
+          "properties": {
+            "action": {
+              "readOnly": true,
+              "description": "Canonical `<namespace>/<method>` endpoint of the refused call.",
+              "type": "string"
+            },
+            "reason": {
+              "readOnly": true,
+              "description": "A condition's or `explain()`'s reason, `no-allow`, or `policy-failed`; the Gateway refuses a call whose resources are invalid with `resource-invalid` before `decide()` is asked.",
+              "type": "string"
+            }
+          },
+          "required": [
+            "action",
+            "reason"
+          ]
+        }
+      },
+      "required": [
+        "code",
+        "message",
+        "details"
+      ],
+      "additionalProperties": {},
+      "description": "The non-owner principal lacks access, the resources are invalid, or its policy failed."
     },
     {
       "type": "object",
@@ -2041,12 +3835,7 @@
           "properties": {
             "eventId": {
               "readOnly": true,
-              "allOf": [
-                {
-                  "type": "string"
-                },
-                {}
-              ]
+              "type": "string"
             },
             "expectedRevision": {
               "readOnly": true,
@@ -2101,7 +3890,7 @@
         "details"
       ],
       "additionalProperties": {},
-      "description": "The Agent rejected Prompt admission; reason retains the refusal diagnostic."
+      "description": "The Agent cannot accept this operation in its current state or at this address."
     },
     {
       "type": "object",
@@ -2132,7 +3921,7 @@
         "details"
       ],
       "additionalProperties": {},
-      "description": "A Prompt attachment or model image capability failed admission."
+      "description": "A prompt attachment is invalid or unavailable for this Session."
     },
     {
       "type": "object",
@@ -2149,12 +3938,7 @@
           "properties": {
             "sessionId": {
               "readOnly": true,
-              "allOf": [
-                {
-                  "type": "string"
-                },
-                {}
-              ]
+              "type": "string"
             },
             "requestedCwd": {
               "readOnly": true,
@@ -2177,7 +3961,7 @@
         "details"
       ],
       "additionalProperties": {},
-      "description": "The requested working directory conflicts with the existing Session directory."
+      "description": "The requested working directory conflicts with the existing Session."
     },
     {
       "type": "object",
@@ -2194,12 +3978,7 @@
           "properties": {
             "sessionId": {
               "readOnly": true,
-              "allOf": [
-                {
-                  "type": "string"
-                },
-                {}
-              ]
+              "type": "string"
             }
           },
           "required": [
@@ -2213,7 +3992,7 @@
         "details"
       ],
       "additionalProperties": {},
-      "description": "The requested Session range has no completed turn from which to fork."
+      "description": "The addressed Session cannot be forked in its current state."
     },
     {
       "type": "object",
@@ -2244,7 +4023,38 @@
         "details"
       ],
       "additionalProperties": {},
-      "description": "The supplied client time zone is not a supported UTC or IANA zone."
+      "description": "The supplied time zone is not a supported IANA time zone."
+    },
+    {
+      "type": "object",
+      "properties": {
+        "code": {
+          "type": "string",
+          "const": "session/migration-required"
+        },
+        "message": {
+          "type": "string"
+        },
+        "details": {
+          "type": "object",
+          "properties": {
+            "sessionId": {
+              "readOnly": true,
+              "type": "string"
+            }
+          },
+          "required": [
+            "sessionId"
+          ]
+        }
+      },
+      "required": [
+        "code",
+        "message",
+        "details"
+      ],
+      "additionalProperties": {},
+      "description": "The source Session must be opened and migrated before it can be forked."
     },
     {
       "type": "object",
@@ -2280,7 +4090,7 @@
         "details"
       ],
       "additionalProperties": {},
-      "description": "The requested provider or model cannot be selected for the Session."
+      "description": "The requested provider and model are unavailable; select an available model."
     },
     {
       "type": "object",
@@ -2297,12 +4107,7 @@
           "properties": {
             "sessionId": {
               "readOnly": true,
-              "allOf": [
-                {
-                  "type": "string"
-                },
-                {}
-              ]
+              "type": "string"
             }
           },
           "required": [
@@ -2323,6 +4128,121 @@
       "properties": {
         "code": {
           "type": "string",
+          "const": "session/observation-ended"
+        },
+        "message": {
+          "type": "string"
+        },
+        "details": {
+          "type": "object",
+          "propertyNames": {
+            "type": "string"
+          },
+          "additionalProperties": {
+            "not": {}
+          }
+        }
+      },
+      "required": [
+        "code",
+        "message",
+        "details"
+      ],
+      "additionalProperties": {},
+      "description": "A wait observation ended before a stopping state; the caller should reread."
+    },
+    {
+      "type": "object",
+      "properties": {
+        "code": {
+          "type": "string",
+          "const": "session/projections-unavailable"
+        },
+        "message": {
+          "type": "string"
+        },
+        "details": {
+          "type": "object",
+          "propertyNames": {
+            "type": "string"
+          },
+          "additionalProperties": {
+            "not": {}
+          }
+        }
+      },
+      "required": [
+        "code",
+        "message",
+        "details"
+      ],
+      "additionalProperties": {},
+      "description": "The Session projection snapshot is unavailable."
+    },
+    {
+      "type": "object",
+      "properties": {
+        "code": {
+          "type": "string",
+          "const": "session/provider-credentials-unavailable"
+        },
+        "message": {
+          "type": "string"
+        },
+        "details": {
+          "type": "object",
+          "propertyNames": {
+            "type": "string"
+          },
+          "additionalProperties": {
+            "not": {}
+          }
+        }
+      },
+      "required": [
+        "code",
+        "message",
+        "details"
+      ],
+      "additionalProperties": {},
+      "description": "Provider credentials are unavailable for the requested Session operation."
+    },
+    {
+      "type": "object",
+      "properties": {
+        "code": {
+          "type": "string",
+          "const": "session/provider-models-unavailable"
+        },
+        "message": {
+          "type": "string"
+        },
+        "details": {
+          "type": "object",
+          "properties": {
+            "provider": {
+              "readOnly": true,
+              "type": "string"
+            }
+          },
+          "required": [
+            "provider"
+          ]
+        }
+      },
+      "required": [
+        "code",
+        "message",
+        "details"
+      ],
+      "additionalProperties": {},
+      "description": "The selected provider exposes no usable model catalog."
+    },
+    {
+      "type": "object",
+      "properties": {
+        "code": {
+          "type": "string",
           "const": "session/queue-item-not-found"
         },
         "message": {
@@ -2333,12 +4253,7 @@
           "properties": {
             "itemId": {
               "readOnly": true,
-              "allOf": [
-                {
-                  "type": "string"
-                },
-                {}
-              ]
+              "type": "string"
             }
           },
           "required": [
@@ -2352,7 +4267,7 @@
         "details"
       ],
       "additionalProperties": {},
-      "description": "The addressed Prompt is no longer present in the pending queue."
+      "description": "The addressed inbox item is no longer pending."
     },
     {
       "type": "object",
@@ -2369,12 +4284,7 @@
           "properties": {
             "sessionId": {
               "readOnly": true,
-              "allOf": [
-                {
-                  "type": "string"
-                },
-                {}
-              ]
+              "type": "string"
             }
           },
           "required": [
@@ -2388,7 +4298,7 @@
         "details"
       ],
       "additionalProperties": {},
-      "description": "The observed Session title revision is stale; the requested rename is not applied."
+      "description": "A changed Session title revision rejects the requested rename."
     },
     {
       "type": "object",
@@ -2405,12 +4315,7 @@
           "properties": {
             "itemId": {
               "readOnly": true,
-              "allOf": [
-                {
-                  "type": "string"
-                },
-                {}
-              ]
+              "type": "string"
             }
           },
           "required": [
@@ -2424,7 +4329,7 @@
         "details"
       ],
       "additionalProperties": {},
-      "description": "The current turn can no longer accept steering from the addressed Prompt."
+      "description": "The current turn no longer accepts the queued item as steering."
     },
     {
       "type": "object",
@@ -2441,12 +4346,7 @@
           "properties": {
             "sessionId": {
               "readOnly": true,
-              "allOf": [
-                {
-                  "type": "string"
-                },
-                {}
-              ]
+              "type": "string"
             }
           },
           "required": [
@@ -2460,7 +4360,35 @@
         "details"
       ],
       "additionalProperties": {},
-      "description": "The requested title fails Session title validation."
+      "description": "The requested Session title fails title validation."
+    },
+    {
+      "type": "object",
+      "properties": {
+        "code": {
+          "type": "string",
+          "const": "session/wait-timeout"
+        },
+        "message": {
+          "type": "string"
+        },
+        "details": {
+          "type": "object",
+          "propertyNames": {
+            "type": "string"
+          },
+          "additionalProperties": {
+            "not": {}
+          }
+        }
+      },
+      "required": [
+        "code",
+        "message",
+        "details"
+      ],
+      "additionalProperties": {},
+      "description": "No state arrived before the deadline; a timeout after a state returns its value instead."
     },
     {
       "type": "object",
@@ -2477,12 +4405,7 @@
           "properties": {
             "sessionId": {
               "readOnly": true,
-              "allOf": [
-                {
-                  "type": "string"
-                },
-                {}
-              ]
+              "type": "string"
             },
             "workspaceId": {
               "readOnly": true,
@@ -2501,7 +4424,38 @@
         "details"
       ],
       "additionalProperties": {},
-      "description": "The Session exists but could not be attached to the requested Workspace."
+      "description": "The Session could not be attached to the requested Workspace."
+    },
+    {
+      "type": "object",
+      "properties": {
+        "code": {
+          "type": "string",
+          "const": "session/writer-held"
+        },
+        "message": {
+          "type": "string"
+        },
+        "details": {
+          "type": "object",
+          "properties": {
+            "sessionId": {
+              "readOnly": true,
+              "type": "string"
+            }
+          },
+          "required": [
+            "sessionId"
+          ]
+        }
+      },
+      "required": [
+        "code",
+        "message",
+        "details"
+      ],
+      "additionalProperties": {},
+      "description": "Another writer holds the Session, preventing this operation from acquiring it."
     },
     {
       "type": "object",
@@ -2580,6 +4534,68 @@
       "properties": {
         "code": {
           "type": "string",
+          "const": "speech/invalid-audio"
+        },
+        "message": {
+          "type": "string"
+        },
+        "details": {
+          "type": "object",
+          "properties": {
+            "reason": {
+              "readOnly": true,
+              "type": "string"
+            }
+          },
+          "required": [
+            "reason"
+          ]
+        }
+      },
+      "required": [
+        "code",
+        "message",
+        "details"
+      ],
+      "additionalProperties": {},
+      "description": "Audio encoding or intake limits prevented transcription."
+    },
+    {
+      "type": "object",
+      "properties": {
+        "code": {
+          "type": "string",
+          "const": "speech/transcription-failed"
+        },
+        "message": {
+          "type": "string"
+        },
+        "details": {
+          "type": "object",
+          "properties": {
+            "reason": {
+              "readOnly": true,
+              "type": "string"
+            }
+          },
+          "required": [
+            "reason"
+          ]
+        }
+      },
+      "required": [
+        "code",
+        "message",
+        "details"
+      ],
+      "additionalProperties": {},
+      "description": "The selected provider rejected transcription."
+    },
+    {
+      "type": "object",
+      "properties": {
+        "code": {
+          "type": "string",
           "const": "subagent/attachment-invalid"
         },
         "message": {
@@ -2621,21 +4637,11 @@
           "properties": {
             "parentSessionId": {
               "readOnly": true,
-              "allOf": [
-                {
-                  "type": "string"
-                },
-                {}
-              ]
+              "type": "string"
             },
             "childSessionId": {
               "readOnly": true,
-              "allOf": [
-                {
-                  "type": "string"
-                },
-                {}
-              ]
+              "type": "string"
             },
             "reason": {
               "readOnly": true,
@@ -2668,7 +4674,7 @@
         "details"
       ],
       "additionalProperties": {},
-      "description": "The child catalog entry cannot be read because it is corrupt, unsupported or unavailable."
+      "description": "The addressed subagent descriptor cannot be read from the durable catalog."
     },
     {
       "type": "object",
@@ -2685,12 +4691,7 @@
           "properties": {
             "childSessionId": {
               "readOnly": true,
-              "allOf": [
-                {
-                  "type": "string"
-                },
-                {}
-              ]
+              "type": "string"
             }
           },
           "required": [
@@ -2752,21 +4753,11 @@
           "properties": {
             "parentSessionId": {
               "readOnly": true,
-              "allOf": [
-                {
-                  "type": "string"
-                },
-                {}
-              ]
+              "type": "string"
             },
             "childSessionId": {
               "readOnly": true,
-              "allOf": [
-                {
-                  "type": "string"
-                },
-                {}
-              ]
+              "type": "string"
             }
           },
           "required": [
@@ -2781,7 +4772,7 @@
         "details"
       ],
       "additionalProperties": {},
-      "description": "The requested child is unavailable under the addressed parent Session."
+      "description": "No subagent is available at the supplied parent and child address."
     },
     {
       "type": "object",
@@ -2798,12 +4789,7 @@
           "properties": {
             "childSessionId": {
               "readOnly": true,
-              "allOf": [
-                {
-                  "type": "string"
-                },
-                {}
-              ]
+              "type": "string"
             }
           },
           "required": [
@@ -2834,12 +4820,7 @@
           "properties": {
             "parentSessionId": {
               "readOnly": true,
-              "allOf": [
-                {
-                  "type": "string"
-                },
-                {}
-              ]
+              "type": "string"
             }
           },
           "required": [
@@ -2860,29 +4841,6 @@
       "properties": {
         "code": {
           "type": "string",
-          "const": "subagent/projections-unavailable"
-        },
-        "message": {
-          "type": "string"
-        },
-        "details": {
-          "type": "object",
-          "properties": {}
-        }
-      },
-      "required": [
-        "code",
-        "message",
-        "details"
-      ],
-      "additionalProperties": {},
-      "description": "The deployment mounts no session-projection registry."
-    },
-    {
-      "type": "object",
-      "properties": {
-        "code": {
-          "type": "string",
           "const": "subagent/unauthorized"
         },
         "message": {
@@ -2893,12 +4851,7 @@
           "properties": {
             "childSessionId": {
               "readOnly": true,
-              "allOf": [
-                {
-                  "type": "string"
-                },
-                {}
-              ]
+              "type": "string"
             }
           },
           "required": [
@@ -2913,6 +4866,157 @@
       ],
       "additionalProperties": {},
       "description": "The claimed parent does not own the addressed child."
+    },
+    {
+      "type": "object",
+      "properties": {
+        "code": {
+          "type": "string",
+          "const": "terminal/control-unavailable"
+        },
+        "message": {
+          "type": "string"
+        },
+        "details": {
+          "type": "object",
+          "properties": {
+            "reason": {
+              "readOnly": true,
+              "anyOf": [
+                {
+                  "type": "string",
+                  "const": "read-only"
+                },
+                {
+                  "type": "string",
+                  "const": "not-running"
+                }
+              ]
+            }
+          },
+          "required": [
+            "reason"
+          ]
+        }
+      },
+      "required": [
+        "code",
+        "message",
+        "details"
+      ],
+      "additionalProperties": {},
+      "description": "Input or resize was refused without invalidating the output attachment."
+    },
+    {
+      "type": "object",
+      "properties": {
+        "code": {
+          "type": "string",
+          "const": "terminal/limit-reached"
+        },
+        "message": {
+          "type": "string"
+        },
+        "details": {
+          "type": "object",
+          "properties": {
+            "limit": {
+              "readOnly": true,
+              "type": "number"
+            }
+          },
+          "required": [
+            "limit"
+          ]
+        }
+      },
+      "required": [
+        "code",
+        "message",
+        "details"
+      ],
+      "additionalProperties": {},
+      "description": "Retained screens and pending allocations consume the Session's terminal quota."
+    },
+    {
+      "type": "object",
+      "properties": {
+        "code": {
+          "type": "string",
+          "const": "terminal/unavailable"
+        },
+        "message": {
+          "type": "string"
+        },
+        "details": {
+          "type": "object",
+          "propertyNames": {
+            "type": "string"
+          },
+          "additionalProperties": {
+            "not": {}
+          }
+        }
+      },
+      "required": [
+        "code",
+        "message",
+        "details"
+      ],
+      "additionalProperties": {},
+      "description": "The terminal identity is missing or has begun process cleanup."
+    },
+    {
+      "type": "object",
+      "properties": {
+        "code": {
+          "type": "string",
+          "const": "terminal/view"
+        },
+        "message": {
+          "type": "string"
+        },
+        "details": {
+          "type": "object",
+          "properties": {
+            "issue": {
+              "readOnly": true,
+              "anyOf": [
+                {
+                  "type": "string",
+                  "const": "missingTerminal"
+                },
+                {
+                  "type": "string",
+                  "const": "inputFull"
+                },
+                {
+                  "type": "string",
+                  "const": "attachmentEnded"
+                },
+                {
+                  "type": "string",
+                  "const": "invalidOutput"
+                },
+                {
+                  "type": "string",
+                  "const": "terminalLimit"
+                }
+              ]
+            }
+          },
+          "required": [
+            "issue"
+          ]
+        }
+      },
+      "required": [
+        "code",
+        "message",
+        "details"
+      ],
+      "additionalProperties": {},
+      "description": "Client terminal failure preserved through the Remote stream supervisor."
     },
     {
       "type": "object",
@@ -3103,7 +5207,7 @@
         "details"
       ],
       "additionalProperties": {},
-      "description": "The directory listing path resolves outside the session's workspace root."
+      "description": "The directory listing or watch path resolves outside the Session's workspace root."
     },
     {
       "type": "object",
@@ -3208,6 +5312,37 @@
       "properties": {
         "code": {
           "type": "string",
+          "const": "workspace-file/watch-unsupported"
+        },
+        "message": {
+          "type": "string"
+        },
+        "details": {
+          "type": "object",
+          "properties": {
+            "path": {
+              "readOnly": true,
+              "type": "string"
+            }
+          },
+          "required": [
+            "path"
+          ]
+        }
+      },
+      "required": [
+        "code",
+        "message",
+        "details"
+      ],
+      "additionalProperties": {},
+      "description": "The filesystem provider cannot initialize a watch for this target."
+    },
+    {
+      "type": "object",
+      "properties": {
+        "code": {
+          "type": "string",
           "const": "workspace/invalid-path"
         },
         "message": {
@@ -3249,30 +5384,15 @@
           "properties": {
             "workspaceId": {
               "readOnly": true,
-              "allOf": [
-                {
-                  "type": "string"
-                },
-                {}
-              ]
+              "type": "string"
             },
             "sessionId": {
               "readOnly": true,
-              "allOf": [
-                {
-                  "type": "string"
-                },
-                {}
-              ]
+              "type": "string"
             },
             "beforeSessionId": {
               "readOnly": true,
-              "allOf": [
-                {
-                  "type": "string"
-                },
-                {}
-              ]
+              "type": "string"
             }
           },
           "required": [
@@ -3335,12 +5455,7 @@
           "properties": {
             "workspaceId": {
               "readOnly": true,
-              "allOf": [
-                {
-                  "type": "string"
-                },
-                {}
-              ]
+              "type": "string"
             }
           },
           "required": [
@@ -3355,6 +5470,94 @@
       ],
       "additionalProperties": {},
       "description": "No registration carries that Workspace identity."
+    },
+    {
+      "type": "object",
+      "properties": {
+        "code": {
+          "type": "string",
+          "const": "workspace/session-active"
+        },
+        "message": {
+          "type": "string"
+        },
+        "details": {
+          "type": "object",
+          "properties": {
+            "sessionId": {
+              "readOnly": true,
+              "type": "string"
+            },
+            "activity": {
+              "readOnly": true,
+              "type": "array",
+              "items": {
+                "type": "object",
+                "properties": {
+                  "kind": {
+                    "readOnly": true,
+                    "anyOf": [
+                      {
+                        "type": "string",
+                        "const": "turn"
+                      },
+                      {
+                        "type": "string",
+                        "const": "subagent"
+                      },
+                      {
+                        "type": "string",
+                        "const": "schedule"
+                      },
+                      {
+                        "type": "string",
+                        "const": "job"
+                      }
+                    ]
+                  },
+                  "items": {
+                    "description": "Active items of the family; absent for a family without per-item identity (`turn`).",
+                    "readOnly": true,
+                    "type": "array",
+                    "items": {
+                      "type": "object",
+                      "properties": {
+                        "id": {
+                          "readOnly": true,
+                          "description": "Family-specific identity: a session id, a job id, or a schedule id.",
+                          "type": "string"
+                        },
+                        "label": {
+                          "description": "Display label when the family carries one (a job label, a subagent label).",
+                          "readOnly": true,
+                          "type": "string"
+                        }
+                      },
+                      "required": [
+                        "id"
+                      ]
+                    }
+                  }
+                },
+                "required": [
+                  "kind"
+                ]
+              }
+            }
+          },
+          "required": [
+            "sessionId",
+            "activity"
+          ]
+        }
+      },
+      "required": [
+        "code",
+        "message",
+        "details"
+      ],
+      "additionalProperties": {},
+      "description": "The Session still has running work — its own turn, a subagent, a background job, or an active schedule — so archiving was refused without a write; `activity` names what must stop first."
     },
     {
       "title": "Opaque unknown Remote failure",
@@ -3373,7 +5576,7 @@
               "agent-preset/invalid",
               "agent-preset/locked",
               "agent-preset/not-found",
-              "agent-preset/read-only",
+              "cotTranslation/failed",
               "credential/rejected",
               "device/admission-capacity",
               "device/admission-expired",
@@ -3387,6 +5590,22 @@
               "directory-picker/exists",
               "directory-picker/unavailable",
               "directory-picker/unreadable",
+              "document-render/failed",
+              "forgePanel/action-failed",
+              "forgePanel/diff-failed",
+              "forgePanel/diff-too-large",
+              "forgePanel/invalid-branch",
+              "forgePanel/no-fork-point",
+              "forgePanel/no-worktree",
+              "forgePanel/not-a-checkout",
+              "forgePanel/not-bound",
+              "forgePanel/not-waiting",
+              "forgePanel/restore-failed",
+              "forgePanel/session-busy",
+              "forgePanel/session-started",
+              "forgePanel/stale-head",
+              "forgePanel/unrecognized-url",
+              "forgePanel/worktrees-unavailable",
               "gateway/ambiguous-endpoint",
               "gateway/arguments-invalid",
               "gateway/authentication-required",
@@ -3400,14 +5619,17 @@
               "gateway/definition-unavailable",
               "gateway/host-not-ready",
               "gateway/input-invalid",
+              "gateway/interactions-forbidden",
               "gateway/internal",
               "gateway/invocation-unavailable",
               "gateway/lookup-failed",
               "gateway/lookup-not-found",
               "gateway/lookup-unavailable",
               "gateway/method-unavailable",
+              "gateway/peer-disposed",
               "gateway/permission-denied",
               "gateway/preparation-unavailable",
+              "gateway/protocol",
               "gateway/protocol-unsupported",
               "gateway/provider-mismatch",
               "gateway/result-invalid",
@@ -3415,31 +5637,70 @@
               "gateway/signature-invalid",
               "gateway/stream-invalid",
               "gateway/transport-interrupted",
+              "gateway/uplink-overflow",
               "host/capability-unavailable",
-              "host/description-invalid",
-              "host/protocol-unsupported",
               "interaction-closed",
               "interaction-expired",
+              "job/not-found",
+              "liveshareShares/audit-unavailable",
+              "liveshareShares/endpoint-not-offered",
+              "liveshareShares/invalid-access-mode",
+              "liveshareShares/invalid-allows-fork",
+              "liveshareShares/invalid-capabilities",
+              "liveshareShares/invalid-relay",
+              "liveshareShares/invalid-relay-url",
+              "liveshareShares/invalid-session-mode",
+              "liveshareShares/invalid-ttl",
+              "liveshareShares/missing-permission",
+              "liveshareShares/missing-session-id",
+              "liveshareShares/missing-share-id",
+              "liveshareShares/owner-login-required",
+              "liveshareShares/owner-state-unavailable",
+              "liveshareShares/relay-unavailable",
+              "liveshareShares/relay-upgrade-required",
+              "liveshareShares/relay-url-required",
+              "liveshareShares/share-not-found",
+              "liveshareShares/unknown-plugin",
               "llm/model-discovery-rejected",
-              "presented-file/action-failed",
-              "presented-file/native-unavailable",
-              "presented-file/not-found",
-              "presented-file/path-unavailable",
+              "plan/invalid-address",
+              "plan/not-found",
+              "plan/read-failed",
+              "plugin-manager/detail-unavailable",
+              "plugin-manager/invalid-language",
+              "plugin-manager/unknown-bundle",
+              "plugin-market/detail-unavailable",
+              "plugin-market/fetch-failed",
+              "plugin-market/invalid-index",
+              "plugin-market/invalid-index-url",
+              "plugin-market/invalid-query",
+              "plugin-market/settings-unavailable",
+              "plugin-market/unknown-index",
+              "plugin-market/unknown-plugin",
+              "remote-access/denied",
               "revision-conflict",
               "session/agent-busy",
               "session/attachment-invalid",
               "session/conflict",
               "session/fork-unavailable",
               "session/invalid-time-zone",
+              "session/migration-required",
               "session/model-unavailable",
               "session/not-found",
+              "session/observation-ended",
+              "session/projections-unavailable",
+              "session/provider-credentials-unavailable",
+              "session/provider-models-unavailable",
               "session/queue-item-not-found",
               "session/revision-conflict",
               "session/steer-unavailable",
               "session/title-invalid",
+              "session/wait-timeout",
               "session/workspace-attach-failed",
+              "session/writer-held",
               "settings/conflict",
               "settings/rejected",
+              "speech/invalid-audio",
+              "speech/transcription-failed",
               "subagent/attachment-invalid",
               "subagent/catalog-diagnostic",
               "subagent/delivery-unavailable",
@@ -3447,8 +5708,11 @@
               "subagent/not-found",
               "subagent/not-resumable",
               "subagent/parent-unavailable",
-              "subagent/projections-unavailable",
               "subagent/unauthorized",
+              "terminal/control-unavailable",
+              "terminal/limit-reached",
+              "terminal/unavailable",
+              "terminal/view",
               "workspace-file/not-directory",
               "workspace-file/not-found",
               "workspace-file/not-regular-file",
@@ -3457,10 +5721,12 @@
               "workspace-file/too-large",
               "workspace-file/unknown-workspace",
               "workspace-file/unsupported-address",
+              "workspace-file/watch-unsupported",
               "workspace/invalid-path",
               "workspace/move-invalid",
               "workspace/name-conflict",
-              "workspace/not-found"
+              "workspace/not-found",
+              "workspace/session-active"
             ]
           }
         },

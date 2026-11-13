@@ -41,6 +41,8 @@ The budget is a configuration observation, not upload permission, a reservation 
 <a id="understand-the-implementation"></a>
 ## Understand the implementation
 
+Signed admission creates a `{ kind: 'device', deviceId }` Peer. Device roles retain Host-wide access through explicit `host` bindings in [Remote Access](../remote-access/README.md), while `global` and single-resource bindings remain independent. The device role named `owner` is still a device principal. Unauthorized endpoints return `remote-access/denied`; missing signed identity returns `gateway/permission-denied`. Viewer receives notifications, Collaborator may answer questions, and Controller and device Owner may also answer approvals. Every reply needs a fresh signature from the stream's device. The [device Peer decision](../../../.agents/notes/implemented/architecture/2026-11-13-device-peer-host-bindings.md) owns this authorization model.
+
 <details>
 <summary>Implementation internals — click to expand</summary>
 

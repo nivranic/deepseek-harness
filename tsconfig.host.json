@@ -8,6 +8,13 @@
     "rewriteRelativeImportExtensions": false
   },
   "include": [
+    "apps/web/tests/android-*.e2e.ts",
+    "apps/web/tests/android-gateway-driver.ts",
+    "apps/web/tests/android-companion-ui-driver.ts",
+    "apps/web/tests/android-host-restart.fixture.ts",
+    "apps/web/tests/native-remote-question.e2e.ts",
+    "apps/web/tests/native-remote-isolation.e2e.ts",
+    "apps/web/tests/native-remote-support.ts",
     "apps/web/tests/creation-recommendations.e2e.ts",
     "apps/web/tests/plugin-recommendations.e2e.ts",
     "apps/web/tests/japanese-plugin-metadata.e2e.ts",
@@ -279,6 +286,15 @@
   // suffixes are mutually exclusive, so each aggregate excludes the other's
   // and the package test glob above needs no per-file entry.
   "exclude": [
+    // Android clients still require the preset/tool catalog and Session journal migrations.
+    "apps/web/tests/android-attachment-receipt-recovery.e2e.ts",
+    "apps/web/tests/android-tool-catalog.e2e.ts",
+    "apps/web/tests/android-cursor-resume.e2e.ts",
+    "apps/web/tests/android-follow-window-foreground.e2e.ts",
+    "apps/web/tests/android-follow-window-outage.e2e.ts",
+    "apps/web/tests/android-follow-window-persistence.e2e.ts",
+    "apps/web/tests/android-file-attachments.e2e.ts",
+    "apps/web/tests/android-photo-attachments.e2e.ts",
     "apps/desktop/tests/keyboard.spec.ts",
     "packages/client/*/src/**",
     "benchmarks/**/*.client.ts",
@@ -295,13 +311,7 @@
     "scripts/gen-lite-preset-catalog.ts",
     "scripts/gen-lite-preset-catalog.spec.ts",
     "packages/preset/agent-preset-registry/tests/lite-preset-projection.spec.ts",
-    "packages/api/native-remote/**",
     "scripts/gen-tool-catalog.spec.ts",
-    "packages/typert/generator/tests/remote-errors.spec.ts",
-    "scripts/verify-remote-error-model.ts",
-    "scripts/verify-remote-error-model.spec.ts",
-    "scripts/gen-remote-error-envelope.ts",
-    "scripts/gen-remote-error-envelope.spec.ts",
     "apps/web/tests/dynamic-cordis-capabilities.e2e.ts",
     "apps/web/tests/file-capabilities.e2e.ts",
     "apps/web/tests/preset-capabilities.e2e.ts",
@@ -629,6 +639,7 @@
     { "path": "./apps/desktop-host" },
     { "path": "./apps/desktop/tsconfig.host.json" },
     { "path": "./packages/api/host-description" },
+    { "path": "./packages/api/native-remote" },
     { "path": "./packages/api/device-trust/tsconfig.host.json" },
     { "path": "./packages/api/host-diagnostics/tsconfig.host.json" }
   ]

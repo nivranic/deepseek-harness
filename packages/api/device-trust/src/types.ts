@@ -156,6 +156,13 @@ export interface DeviceAdmission {
  * mutations share this vocabulary with the Client Remote result.
  */
 declare module '@deepseek-ai/dsh-typert-protocol' {
+  interface PrincipalMap {
+    /** A device whose signed admission the Host verified; its role is never the local owner identity. */
+    device: { readonly kind: 'device'; readonly deviceId: DeviceId }
+    /** An unauthenticated native carrier; only one-time pairing redemption is allowed. */
+    'device-pairing': { readonly kind: 'device-pairing' }
+  }
+
   interface RemoteErrorDetailsMap {
     /** The presented code is unknown or was already redeemed. */
     'device/pairing-invalid': { readonly code: string }

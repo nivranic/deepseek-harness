@@ -29,28 +29,23 @@
     "**/*.mjs",
     "**/*.config.ts", // Tool and app configs are outside the repository TypeScript programs.
     "packages/client/tsdown.client.ts", // Shared client build preset, also outside a TypeScript program.
-    "packages/api/native-remote/**", // Parked upstream-merge subsystems: excluded from both face aggregates until replant; see .merge-helpers/port-notes/2026-11-10-native-remote-peer-port-parked.md.
     "packages/client/ui-settings-devices/**", // Parked lane UI packages (settings host surfaces depend on the parked device-connection model).
     "packages/client/ui-settings-hosts/**",
     "packages/client/ui-settings-host-status/**",
     "packages/client/ui-settings-telemetry/**",
     "packages/client/ui-view-handoff/**",
     "packages/preset/agent-preset-registry/tests/lite-preset-projection.spec.ts", // Parked Lite catalog cluster (official registry is Loader-based).
-    "packages/typert/generator/tests/remote-errors.spec.ts", // Parked remote-error-model analyzer subsystem.
     "scripts/gen-lite-preset-catalog.ts", // Parked scripts bound to the retired preset-roster API.
     "scripts/gen-lite-preset-catalog.spec.ts",
-    "scripts/verify-remote-error-model.ts",
-    "scripts/verify-remote-error-model.spec.ts",
-    "scripts/gen-remote-error-envelope.ts",
-    "scripts/gen-remote-error-envelope.spec.ts",
     "scripts/gen-tool-catalog.spec.ts",
-    "apps/web/tests/android-*.e2e.ts", // Parked android/native-remote e2e family (imports the parked native-remote package).
-    "apps/web/tests/android-gateway-driver.ts",
-    "apps/web/tests/android-companion-ui-driver.ts",
-    "apps/web/tests/android-host-restart.fixture.ts",
-    "apps/web/tests/native-remote-question.e2e.ts",
-    "apps/web/tests/native-remote-isolation.e2e.ts",
-    "apps/web/tests/native-remote-support.ts",
+    "apps/web/tests/android-attachment-receipt-recovery.e2e.ts", // Pending preset/tool catalog and Session journal migrations.
+    "apps/web/tests/android-tool-catalog.e2e.ts",
+    "apps/web/tests/android-cursor-resume.e2e.ts",
+    "apps/web/tests/android-follow-window-foreground.e2e.ts",
+    "apps/web/tests/android-follow-window-outage.e2e.ts",
+    "apps/web/tests/android-follow-window-persistence.e2e.ts",
+    "apps/web/tests/android-file-attachments.e2e.ts",
+    "apps/web/tests/android-photo-attachments.e2e.ts",
     "apps/web/tests/validation-details.e2e.ts", // Parked host-plane lane e2e family: excluded from the apps/web client project, restored with the upstream merge.
     "apps/web/tests/checkpoint-order.snapshot.ts",
     "apps/web/tests/host-description.e2e.ts",

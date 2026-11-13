@@ -36,13 +36,15 @@ class EnvelopeSchemaTest {
     }
 
     @Test
-    fun schemaDeclaresNinetyOneKnownBranchesPlusOneOpaqueUnknownBranch() {
+    fun schemaPartitionsDeclaredCodesAndOpaqueUnknownCodes() {
         val branches = schema.schemaNode["anyOf"]
-        assertEquals(93, branches.size(), "expected 92 known branches plus the opaque unknown branch")
+        val inventory = mapper.readTree(resource("remote-error-codes.schema.json"))["oneOf"].map { it["const"].asText() }.toSet()
+        assertTrue(inventory.isNotEmpty())
+        assertEquals(inventory.size + 1, branches.size())
         val knownCodes = (0 until branches.size() - 1).map { branches[it]["properties"]["code"]["const"].asText() }
-        assertEquals(92, knownCodes.toSet().size)
+        assertEquals(inventory, knownCodes.toSet())
         val unknown = branches[branches.size() - 1]
-        assertEquals(92, unknown["properties"]["code"]["not"]["enum"].size())
+        assertEquals(inventory, unknown["properties"]["code"]["not"]["enum"].map { it.asText() }.toSet())
     }
 
     @Test

@@ -84,6 +84,7 @@ export const SERVICE_PAGE: Record<string, string> = {
   cuaAccess: 'computer-use.md',
   commands: 'commands.md',
   deviceTrust: 'device-trust.md',
+  nativeRemote: 'typert.md',
   hostDescription: 'typert.md',
   hostDiagnostics: 'host-diagnostics.md',
   compaction: 'compaction.md',
@@ -181,7 +182,6 @@ export const SERVICE_PAGE: Record<string, string> = {
  * to a model as `cordis_runtime_inspect what:"client"`).
  */
 export const SERVICE_WALK_EXEMPTIONS: Record<string, string> = {
-  nativeRemote: 'parked lane surface outside the Host aggregate until its device-peer port lands — packages/api/native-remote/README.md owns the design',
   invocation: 'not a service: per-call accessor (RemoteInvocation | undefined) the Gateway derives for each Remote call — packages/api/gateway/README.md owns the contract',
   webTerminals: 'client-side terminal view models — packages/api/terminal-controller/README.md owns the API',
   appReady: 'not a service: launcher-provided successful-startup signal — packages/boot/cmdline/README.md owns the launcher contract',
@@ -303,6 +303,8 @@ export const LINK_MAP: Readonly<Record<string, string>> = {
   Principal: 'typert.md',
   PrincipalMap: 'typert.md',
   RemoteAccessResource: 'typert.md',
+  NativeRemoteInfo: 'typert.md',
+  NativeHttpRequestBudget: 'typert.md',
   RemoteAccessResourceKind: 'typert.md',
   RemoteStream: 'typert.md',
   RemoteUplinkWindow: 'typert.md',
@@ -985,6 +987,7 @@ export const TYPE_LINK_EXEMPTIONS: Readonly<Record<string, string>> = {
   ConnectionAdmission: 'physical socket admission and release are owned by packages/client/connection/src/rpc.ts',
   PeerScope: 'Peer scope contract is owned by packages/typert/protocol/src/types.ts',
   RemoteAccessPolicy: 'access policy contract is owned by packages/api/remote-access/README.md',
+  TypertGatewayDeviceConnection: 'signed native callbacks and their lifetime are owned by packages/api/gateway/README.md',
   RemoteAccessRequest: 'Gateway decision requests are owned by packages/api/remote-access/README.md',
   RemoteAccessDecision: 'Gateway decisions are owned by packages/api/remote-access/README.md',
   RemoteAccessFrame: 'access snapshot frames are owned by packages/api/remote-access/README.md',

@@ -115,7 +115,7 @@ it.each([true, false])('keeps normal-profile native RPC and streams in the accep
         expect(await describe(rootClient)).toMatchObject({ result: { ok: true, value: infoA } })
       } else expect(root.get('nativeRemote')).toBeUndefined()
     }
-    expect(await describe(client, viewer)).toMatchObject({ result: { ok: false, error: { code: 'gateway/permission-denied' } } })
+    expect(await describe(client, viewer)).toMatchObject({ result: { ok: false, error: { code: 'remote-access/denied' } } })
     expect(await rpc(client, 'nativeRemote/describe', { apiProtocolVersion: 2, args: {} }))
       .toMatchObject({ result: { ok: false, error: { code: 'gateway/permission-denied' } } })
 
@@ -217,7 +217,10 @@ it('enforces the advertised complete HTTP body budget around real staged uploads
         expect(await readFile(root.attachments.fileHostPath(ref)!)).toEqual(bytes)
         // Host service, not resolved.agent.ctx: the Agent scope does not inject
         // fileUploads, and resolve() itself asserts the receiving Agent's scope.
-        expect(root.fileUploads.resolve(resolved.agent, result.result.value.receiptId)).toEqual(ref)
+        expect(root.fileUploads.resolve(resolved.agent, result.result.value.receiptId)).toEqual({
+          type: 'file',
+          attachment: ref,
+        })
         expect(uploads.mock.calls).toHaveLength(beforeUploads + 1)
         expect(storage.mock.calls).toHaveLength(beforeStorage + 1)
       }
@@ -226,7 +229,7 @@ it('enforces the advertised complete HTTP body budget around real staged uploads
     expect(Buffer.byteLength(viewerRequest)).toBeLessThan(budget)
     const viewerResponse = await client.post('/api/fileUploads/upload', viewerRequest)
     expect(viewerResponse.status).toBe(200)
-    expect(await viewerResponse.json()).toMatchObject({ result: { ok: false, error: { code: 'gateway/permission-denied', details: { required: 'prompt.send' } } } })
+    expect(await viewerResponse.json()).toMatchObject({ result: { ok: false, error: { code: 'remote-access/denied', details: { action: 'fileUploads/upload', reason: 'no-allow' } } } })
     expect(await readBudget(collaborator)).toMatchObject({ result: { ok: true } })
     await root.deviceTrust.revokeDevice({ deviceId: collaborator.deviceId })
     const revokedRequest = JSON.stringify(body(collaborator, Buffer.from('revoked'), 'revoked.txt'))

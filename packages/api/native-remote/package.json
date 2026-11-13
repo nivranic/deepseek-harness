@@ -63,6 +63,7 @@
     "@deepseek-ai/dsh-api-host-description": "workspace:^"
   },
   "devDependencies": {
+    "@deepseek-ai/dsh-api-remote-access": "workspace:*",
     "@deepseek-ai/cordis": "workspace:^",
     "@deepseek-ai/dsh-api-device-trust": "workspace:^",
     "@deepseek-ai/dsh-api-gateway": "workspace:^",

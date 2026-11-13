@@ -564,7 +564,7 @@ export function emitRemoteErrorSchemas(face: RemoteErrorFaceModel): string {
     'import { z } from \'zod\'',
     ...schemas.definitions,
     'export const REMOTE_ERROR_DETAILS = new Map([',
-    ...face.errors.map(error => `  [${quote(error.code)}, ${schemas.boundary(error.code)}],`),
+    ...face.errors.map(error => `  [${quote(error.code)}, ${schemas.boundary(error.code)}()],`),
     '])',
     '',
   ].join('\n')

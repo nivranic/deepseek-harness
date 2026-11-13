@@ -60,7 +60,7 @@ it.skipIf(!process.env.DSH_ANDROID_ADB || MODE === 'record')('Android reads sele
         isSeeded: false, cwd: scaffold.workspaceCwd, parentSession: parent, origin: 'subagent', delegationDepth: 1,
       }
       const events: SessionEvent[] = [
-        { type: 'subagent/descriptor', seq: SessionSeq(0), time: header.createdAt, data: snapshotSubagentDescriptor({ mode: 'one-shot', provider: 'spawn', label: id }) },
+        { type: 'subagent/descriptor', seq: SessionSeq(0), time: header.createdAt, data: snapshotSubagentDescriptor({ mode: 'continuable', provider: 'spawn', label: id }) },
         { type: 'turn/start', seq: SessionSeq(1), time: header.createdAt + 1, data: { turn: 1 } },
       ]
       for (let index = 0; index < messages; index++) events.push({
@@ -71,7 +71,7 @@ it.skipIf(!process.env.DSH_ANDROID_ADB || MODE === 'record')('Android reads sele
       const handle = await scaffold.ctx.sessionPersistence.create(header)
       try { await handle.append(events) } finally { await handle.close() }
       scaffold.ctx.sessionProjectionCache.coldSnapshot(header, SessionLogOffset(0), events)
-      await expect.poll(() => scaffold.ctx.sessionProjectionCache.cachedSnapshot(header, SessionLogOffset(0)), {
+      await expect.poll(() => scaffold.ctx.sessionProjectionCache.cachedSnapshot(header), {
         timeout: 10_000,
       }).toBeDefined()
       return header.id

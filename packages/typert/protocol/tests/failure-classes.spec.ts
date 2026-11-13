@@ -5,12 +5,12 @@ describe('classifyRemoteFailureCode', () => {
   it('classifies codes with agreed cross-Client semantics', () => {
     expect(classifyRemoteFailureCode('gateway/authentication-required')).toBe('authentication')
     expect(classifyRemoteFailureCode('gateway/permission-denied')).toBe('permission')
+    expect(classifyRemoteFailureCode('remote-access/denied')).toBe('permission')
+    expect(classifyRemoteFailureCode('gateway/interactions-forbidden')).toBe('permission')
     expect(classifyRemoteFailureCode('subagent/unauthorized')).toBe('permission')
     expect(classifyRemoteFailureCode('gateway/host-not-ready')).toBe('host-state')
     expect(classifyRemoteFailureCode('gateway/protocol-unsupported')).toBe('compatibility')
-    expect(classifyRemoteFailureCode('host/protocol-unsupported')).toBe('compatibility')
     expect(classifyRemoteFailureCode('host/capability-unavailable')).toBe('compatibility')
-    expect(classifyRemoteFailureCode('host/description-invalid')).toBe('carrier-invalid')
     expect(classifyRemoteFailureCode('gateway/preparation-unavailable')).toBe('carrier-invalid')
     expect(classifyRemoteFailureCode('gateway/stream-invalid')).toBe('carrier-invalid')
     expect(classifyRemoteFailureCode('gateway/transport-interrupted')).toBe('transport')
@@ -19,7 +19,6 @@ describe('classifyRemoteFailureCode', () => {
     expect(classifyRemoteFailureCode('session/revision-conflict')).toBe('conflict')
     expect(classifyRemoteFailureCode('session/not-found')).toBe('unavailable')
     expect(classifyRemoteFailureCode('workspace-file/not-found')).toBe('unavailable')
-    expect(classifyRemoteFailureCode('presented-file/not-found')).toBe('unavailable')
     expect(classifyRemoteFailureCode('workspace-file/not-regular-file')).toBe('unavailable')
     expect(classifyRemoteFailureCode('session/queue-item-not-found')).toBe('unavailable')
     expect(classifyRemoteFailureCode('session/attachment-invalid')).toBe('invalid-input')
@@ -28,6 +27,9 @@ describe('classifyRemoteFailureCode', () => {
   })
 
   it('keeps merge-extensible vocabulary codes opaque instead of guessing', () => {
+    for (const retired of ['host/protocol-unsupported', 'host/description-invalid', 'presented-file/not-found']) {
+      expect(classifyRemoteFailureCode(retired)).toBe('unknown')
+    }
     // Codes exist in the declared vocabulary but carry owner-specific semantics
     // until every Client can honor one meaning.
     expect(classifyRemoteFailureCode('gateway/service-unavailable')).toBe('unknown')

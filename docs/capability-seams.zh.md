@@ -281,6 +281,8 @@ flowchart LR
   pkg_api_device_trust["api-device-trust"]
   svc_deviceTrust["ctx.deviceTrust<br/>Device trust seam"]
   pkg_web_app["web-app"]
+  pkg_api_native_remote["api-native-remote"]
+  svc_nativeRemote["ctx.nativeRemote<br/>Native TLS access"]
   pkg_api_host_diagnostics["api-host-diagnostics"]
   svc_hostDiagnostics["ctx.hostDiagnostics<br/>Host diagnostics seam"]
   pkg_jobs["jobs"]
@@ -333,6 +335,7 @@ flowchart LR
   pkg_api_host_description --> svc_hostDescription
   pkg_api_host_diagnostics --> svc_hostDiagnostics
   pkg_api_job_controller --> svc_jobController
+  pkg_api_native_remote --> svc_nativeRemote
   pkg_api_remote_access --> svc_remoteAccess
   pkg_api_session_controller --> svc_sessionController
   pkg_api_session_controller --> svc_sessionFileReferences
@@ -759,6 +762,7 @@ flowchart LR
 | `ctx.inspector` | `core` | `inspector` | - | - | - | 负责 Worker 托管的 CDP target，以及独立于传输的 Host 和 Client observation 与 Cordis tree query API。 |
 | `ctx.hostDescription` | `core` | [`api-host-description`](../packages/api/host-description) | - | [`api-remotes`](../packages/api/remotes) | - | 通过现有的认证 API 返回持久化 Host 身份、独立版本字段，以及实时 Remote 绑定中显式声明的能力。 |
 | `ctx.deviceTrust` | `seam` | [`api-device-trust`](../packages/api/device-trust) | - | [`web-app`](../packages/bundle/web-app) | - | 网关所有的设备侧接入接缝：经 Typert Remote 的一次性配对签发、设备授权与撤销；权限执行仍归交互回复接缝。 |
+| `ctx.nativeRemote` | `core` | [`api-native-remote`](../packages/api/native-remote) | - | - | - | 拥有按需启用的 TLS listener、固定的 Host 身份，以及供签名设备 Peer 使用的有界载体。 |
 | `ctx.hostDiagnostics` | `seam` | [`api-host-diagnostics`](../packages/api/host-diagnostics) | - | [`web-app`](../packages/bundle/web-app) | - | 第 41 节 health/readiness 快照与第 42 节经构造脱敏的跨平台诊断载荷走 Typert Remote；基于存在性的探测逐组件指名已组合的 owner。 |
 | `ctx.jobs` | `seam` | [`jobs`](../packages/jobs/jobs) | [`jobs-local`](../packages/jobs/jobs-local) | [`tool-bash`](../packages/shell/tool-bash), [`tool-pwsh`](../packages/shell/tool-pwsh), [`tool-terminal`](../packages/experimental/tool-terminal), [`tool-jobs`](../packages/jobs/tool-jobs), [`api-job-controller`](../packages/api/job-controller) | - | 生产方（后台 bash/pwsh 与 PTY 发送）登记正在运行的工作；声明 record 的 job 还为非消费观察者流式提供原始输出；tool-jobs 是面向模型的控制器，用于读取、列出和终止这些工作；jobs-local 是进程本地注册表。 |
 | `ctx.web` | `seam` | [`web`](../packages/web/web) | [`web-search-exa`](../packages/web/web-search-exa), [`web-search-perplexity`](../packages/web/web-search-perplexity), [`web-search-deepseek`](../packages/web/web-search-deepseek), [`web-deepseek-api`](../packages/web/web-deepseek-api), [`web-fetch-http`](../packages/web/web-fetch-http) | [`tool-web`](../packages/web/tool-web) | - | 搜索和抓取提供方注册到同一个 ctx.web seam；tool-web 负责稳定的面向模型名称。 |

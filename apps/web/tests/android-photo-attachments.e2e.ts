@@ -194,7 +194,7 @@ it.skipIf(!process.env.DSH_ANDROID_ADB || MODE === 'record')('Android restores o
     })
     expect(messages.filter(event => event.data.source.kind !== 'user').map(event => contextMetadata(event.data.source)))
       .toEqual(fixtureContexts)
-    const read = await scaffold.ctx.sessionController.attachment({ sessionId, attachmentId: images[0]!.image.attachmentId })
+    const read = await scaffold.ctx.sessionController.attachment({ sessionId, attachment: images[0]!.image })
     expect(digest(Buffer.from(read.data, 'base64'))).toBe(digest(original))
     await command({ op: 'assertAttachmentMessage', seq: message.seq, names: [files[0]!.file.name, images[0]!.image.name!] })
     await capture('sent-images-and-file.png')

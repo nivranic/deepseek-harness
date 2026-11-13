@@ -256,7 +256,7 @@ export class HostConnectionService extends Service implements HostConnectionHand
     handler: ConnectionRpcHandler,
   ): () => Promise<void> {
     assertChannel(channel)
-    const fetchHandler = rpcFetchHandler(channel, handler)
+    const fetchHandler = createRpcFetchHandler(channel, handler)
     const route: WebRoute = {
       kind: 'prefix',
       path: channel,
@@ -287,7 +287,7 @@ export class HostConnectionService extends Service implements HostConnectionHand
     }
     const interceptor: ConnectionRpcInterceptor = {
       matches,
-      fetchHandler: rpcFetchHandler(channel, handler),
+      fetchHandler: createRpcFetchHandler(channel, handler),
     }
     return owner.effect(() => {
       if (this.interceptors.has(channel)) {
@@ -301,10 +301,17 @@ export class HostConnectionService extends Service implements HostConnectionHand
   }
 }
 
-function rpcFetchHandler(
+/**
+ * Decode unary RPC envelopes for a carrier that supplies its admitted Peer.
+ * @param channel - absolute single-segment channel path, such as `/api`.
+ * @param handler - dispatcher receiving the carrier's Peer and cancellation signal.
+ * @returns buffered Fetch handler; the carrier owns authentication and body-size limits.
+ */
+export function createRpcFetchHandler(
   channel: string,
   handler: ConnectionRpcHandler,
 ): ConnectionFetchHandler {
+  if (!CHANNEL_PATTERN.test(channel)) throw new Error(`connection: invalid RPC channel ${JSON.stringify(channel)}`)
   return {
     requestBodyMode: () => 'buffered',
     async fetch(request: Request, peer: PeerScope): Promise<Response> {

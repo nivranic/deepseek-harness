@@ -10,13 +10,15 @@ Status: implemented
 
 ## 决策
 
+[设备 Peer 决策](2026-11-13-device-peer-host-bindings.zh.md)规定独立设备 principal，以及共享 Remote Access policy 上显式的 Host 级角色 binding。
+
 [原生 Remote](../../../../packages/api/native-remote/README.zh.md) 是按需启用的 Host 插件，要求显式配置接口及资源限制。它只通过 TLS 1.2 或更新版本提供 Connection RPC envelope 与 Gateway mux。入口拒绝浏览器 Origin 和 Fetch Metadata 头，不提供浏览器资源、Cookie 权限、CORS 或本地精确 Fetch 路由。既有本地 Web 认证继续由 Connection 负责。
 
 Gateway 负责设备适配器。除现有的一次性配对兑换外，每次一元操作及逻辑流都要求新的设备证明。能力权限与设备回复归属检查保留在分派器中。物理 mux 连接不授予业务权限。设备业务流在等待准入前订阅撤销，并保留到迭代器关闭，避免迟到的准入注册已撤销流，也防止授权失效后继续投递缓冲值。
 
 凭据 provider 负责 `api-native-remote/tls-identity` grant。入口以维护中的 `@peculiar/x509` 库生成自签名 P-256 证书，在开始监听前持久化，并在启动时使用同一私钥续期。原生客户端在发送 HTTP 字节前，通过带外分发的小写 SHA-256 SPKI 指纹确认 Host。这样身份不依赖变化的 IP 地址或证书续期。存储材料无效或不匹配时启动拒绝，不静默替换已配对身份。
 
-库的解析器与 ASN.1 声明必须解析到同一 schema registry。限定版本的 pnpm override 使 `@peculiar/x509@2.1.0` 使用与声明一致的 `@peculiar/asn1-schema@2.9.5`；复用已有 2.9.4 解析器会丢失 `SubjectPublicKeyInfo` 元数据。升级库时需重新评估该覆盖。编译后的依赖在普通 Node 和仓库仅启用 ESM 的 TypeScript 启动方式下可用，不需要启用 CommonJS 转换 hook。
+库的解析器与 ASN.1 声明必须解析到同一 schema registry。限定版本的 pnpm override 使 `@peculiar/x509@2.1.0` 使用与当前解析出的声明包一致的 `@peculiar/asn1-schema@2.11.1`。不同的解析器实例会丢失 `SubjectPublicKeyInfo` 元数据。库或其声明包变化时需重新评估该覆盖。编译后的依赖在普通 Node 和仓库仅启用 ESM 的 TypeScript 启动方式下可用，不需要启用 CommonJS 转换 hook。
 
 设置页的配对 Consumer 读取已认证监听元数据并调用现有 Device Trust 签发器。签发前按实际监听端口校验操作者输入的 HTTPS origin，将所选角色固定到授权。版本化二维码载荷只含公开 Host 身份和短期一次性码，不含私钥或持久 bearer token。组件生命周期与连接代际检查阻止关闭或切换 Host 后的迟到签发重新出现；过期和输入编辑清除展示。浏览器存储和诊断不持有码。原生元数据要求 device.admin，能力声明本身不授予权限。
 

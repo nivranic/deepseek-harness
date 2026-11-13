@@ -16,6 +16,7 @@ type AccessSnapshot =
   | { readonly kind: 'owner' }
   | {
     readonly kind: 'granted'
+    readonly host: ReadonlySet<string>
     readonly global: ReadonlySet<string>
     readonly resources: ReadonlyMap<string, KindGrants>
   }
@@ -54,7 +55,7 @@ function isGrant(value: unknown): value is RemoteAccessGrant {
 
 function isResource(value: unknown): value is RemoteAccessResource {
   if (!isRecord(value) || typeof value['kind'] !== 'string') return false
-  return value['kind'] === 'global' || typeof value['id'] === 'string'
+  return value['kind'] === 'global' || value['kind'] === 'host' || typeof value['id'] === 'string'
 }
 
 function isRecord(value: unknown): value is Readonly<Record<string, unknown>> {
@@ -105,10 +106,15 @@ export class ClientAccessState {
       this.publish(OWNER_SNAPSHOT)
       return
     }
+    let host: ReadonlySet<string> = new Set()
     let global: ReadonlySet<string> = new Set()
     const resources = new Map<string, Map<string, ReadonlySet<string>>>()
     // The baseline is unpublished, so its maps are filled in place.
     for (const { resource, actions } of frame.grants) {
+      if (resource.kind === 'host') {
+        host = new Set(actions)
+        continue
+      }
       if (resource.kind === 'global') {
         global = new Set(actions)
         continue
@@ -120,7 +126,7 @@ export class ClientAccessState {
       }
       grants.set(resource.id, new Set(actions))
     }
-    this.publish({ kind: 'granted', global, resources })
+    this.publish({ kind: 'granted', host, global, resources })
   }
 
   /**
@@ -182,6 +188,7 @@ function answer(snapshot: AccessSnapshot, kind: string, id: string, action: stri
     case 'owner':
       return true
     case 'granted': {
+      if (snapshot.host.has(action)) return true
       const allowed = kind === GLOBAL_KEY ? snapshot.global : snapshot.resources.get(kind)?.get(id)
       return allowed?.has(action) ?? false
     }
@@ -193,6 +200,7 @@ function answer(snapshot: AccessSnapshot, kind: string, id: string, action: stri
 
 function withGrant(snapshot: GrantedSnapshot, grant: RemoteAccessGrant, remove = false): GrantedSnapshot {
   const resource = grant.resource
+  if (resource.kind === 'host') return { ...snapshot, host: new Set(grant.actions) }
   if (resource.kind === 'global') return { ...snapshot, global: new Set(grant.actions) }
   const resources = new Map(snapshot.resources)
   const grants = new Map(resources.get(resource.kind))

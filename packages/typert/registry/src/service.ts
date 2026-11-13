@@ -448,6 +448,7 @@ interface HostContextResolverEntry {
 
 /** The built-in identity-less resource kind; no declared resource kind may take its name. */
 const GLOBAL_RESOURCE_KIND = 'global' satisfies RemoteAccessResourceKind
+const HOST_RESOURCE_KIND = 'host' satisfies RemoteAccessResourceKind
 
 class ResourceStore {
   private readonly declarations = new Map<string, ProviderEntry<TypertResourceDeclaration>>()
@@ -470,6 +471,9 @@ class ResourceStore {
     validateSegment('resource kind', kind)
     if (kind === GLOBAL_RESOURCE_KIND) {
       throw new Error(`typert: resource kind "${GLOBAL_RESOURCE_KIND}" is reserved for the built-in global resource`)
+    }
+    if (kind === HOST_RESOURCE_KIND) {
+      throw new Error(`typert: resource kind "${HOST_RESOURCE_KIND}" is reserved for Host-wide bindings`)
     }
     if (this.declarations.has(kind)) throw new Error(`typert: resource kind "${kind}" is already registered`)
     // Copy by branch so a prototype method cannot vanish in a spread; an opaque declaration fails here

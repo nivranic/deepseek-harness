@@ -288,6 +288,8 @@ interface RemoteInvocation {
 
 ## Remote 访问资源
 
+显式 `host` binding 在所有合法资源上授予其列出的 action，保留适用于整个 Host 的设备角色，而不改变 `global` 或单资源 grant。`host` 与 `global` 均为保留种类，不能登记为领域资源种类。[设备 Peer 决策](../../.agents/notes/implemented/architecture/2026-11-13-device-peer-host-bindings.zh.md)负责此扩展。
+
 每个 Remote 方法都受 [`dsh-api-remote-access`](../../packages/api/remote-access/README.zh.md) 的访问控制：只有当该 principal 种类的 policy 在调用访问的每个资源上都绑定了列出该端点 action 的 role 时，非 owner 调用才被放行。拥有某个身份类型的包把其资源种类声明合并进 `TypertResourceMap`；内置的无身份资源 `global` 从不是其中的种类。Gateway 从 `@Remote({ resources })` 或 `@RemoteScope(key, { resources })` 的 `resources` 读取函数读取某个种类的身份，其次是把该种类声明为 `resource` 的 lookup 参数或作用域 Context，再次是在 `typert.resources` 中登记的默认字段或 resolver；不指向任何资源的调用访问 `global`。决策由 [Peer 身份属性 Agent Note](../../.agents/notes/implemented/architecture/2026-10-12-peer-principal-and-remote-access.zh.md) 负责。
 
 ```ts type-equiv
@@ -295,24 +297,25 @@ interface RemoteInvocation {
  * Merge-extensible resource kinds whose identities a Remote call or forwarded
  * event may carry. The package that owns an identity type declares its kind;
  * the value is that kind's identity type, a string type such as a branded id.
- * `global` names the built-in identity-less resource and is never a kind here.
+ * `global` and `host` name built-in identity-less resources and are never kinds here.
  */
 interface TypertResourceMap {}
 ```
 
 ```ts type-equiv
-/** One resource kind: the built-in `global` kind or a declared kind. */
-type RemoteAccessResourceKind = 'global' | TypertResourceKind
+/** One resource kind: a built-in kind or a declared kind. */
+type RemoteAccessResourceKind = 'global' | 'host' | TypertResourceKind
 ```
 
 ```ts type-equiv
 /**
- * One resource a call or forwarded event touches: `global`, or one identity
- * of a declared kind. Identities are wire values, read before any lookup
- * resolves or validates them.
+ * A binding target or a resource touched by a call or forwarded event.
+ * `host` is an explicit Host-wide binding target; `global` names operations
+ * without a domain resource. Domain identities are wire values read before lookup.
  */
 type RemoteAccessResource =
   | { readonly kind: 'global' }
+  | { readonly kind: 'host' }
   | {
     [Kind in TypertResourceKind]: { readonly kind: Kind; readonly id: TypertResourceId<TypertResourceMap[Kind]> }
   }[TypertResourceKind]
@@ -444,8 +447,19 @@ interface TypertGateway {
   /** Carrier adapter shared by WebSocket and in-process transports. */
   readonly wireStream: TypertGatewayWireStream
   /**
-   * Check for an active owner Client event stream, the only kind that can answer forwarded waterfalls.
-   * @returns whether an owner stream is open and has not been cancelled.
+   * Create a native carrier adapter requiring signed device admission.
+   * @returns callbacks retaining the caller's service scope.
+   */
+  createDeviceConnection(): TypertGatewayDeviceConnection
+  /**
+   * Destroy every active stream carrier for one device without revoking its grant.
+   * @param request - verified device identity whose transports end.
+   * @returns number of distinct physical carriers destroyed.
+   */
+  terminateDeviceConnections(request: { readonly deviceId: DeviceId }): { readonly terminated: number }
+  /**
+   * Check for an active Client event stream permitted to answer forwarded waterfalls.
+   * @returns whether an answering stream is open and has not been cancelled.
    */
   hasLiveClient(): boolean
   /** @returns detached metadata for all unsettled forwarded events in arrival order. */
@@ -677,6 +691,30 @@ Read-only Remote namespace for Host facts and explicitly declared capabilities.
 
 Source: [`packages/api/host-description/src/index.ts`](../../packages/api/host-description/src/index.ts)
 
+<a id="ctxnativeremote--nativeremoteservice"></a>
+
+### `ctx.nativeRemote` — `NativeRemoteService`
+
+A separately configured HTTPS listener with no browser assets, cookies, or local exact Fetch routes.
+
+```ts cordis-catalog
+/**
+ * Read the bound port and certificate pin for the local operator.
+ * @returns public identity facts, without certificate or private-key material.
+ * @throws while the listener is not ready or has been disposed.
+ */
+@Remote('describe') describe(): NativeRemoteInfo
+
+/**
+ * Read this listener's buffered HTTP body limit without granting upload permission.
+ * @returns the inclusive byte limit used by this listener's HTTP bridge.
+ * @throws while the listener is not ready or has been disposed.
+ */
+@Remote('httpRequestBudget') httpRequestBudget(): NativeHttpRequestBudget
+```
+
+Source: [`packages/api/native-remote/src/index.ts`](../../packages/api/native-remote/src/index.ts)
+
 <a id="ctxremoteaccess--remoteaccessservice"></a>
 
 ### `ctx.remoteAccess` — `RemoteAccessService`
@@ -708,7 +746,7 @@ invalidate(principal?: Principal): void
  * The owner is allowed, and so is `remoteAccess/follow`: every Peer reads
  * its own snapshot. Otherwise the action is allowed only when, on every
  * listed resource, some binding of the principal's policy names that
- * resource, has a role listing the action, and has no condition or a
+ * resource or `host`, has a role listing the action, and has no condition or a
  * condition that allows. `bindings()` is called once per decision.
  * @param request - the caller or recipient, the action, the resources it
  *   touches, and a call's arguments.
@@ -830,8 +868,21 @@ Resolve strict generated definitions or conservative SRC markers against current
 
 ```ts cordis-catalog
 /**
- * Check for an active owner Client event stream, the only kind that can answer forwarded waterfalls.
- * @returns whether an owner stream is open and has not been cancelled.
+ * Create a native carrier adapter requiring signed device admission.
+ * @returns callbacks owned by the caller's service scope.
+ */
+createDeviceConnection(): TypertGatewayDeviceConnection
+
+/**
+ * Destroy a device's active stream transports without revoking its grant.
+ * @param request - device whose carriers end now.
+ * @returns number of distinct carriers destroyed.
+ */
+terminateDeviceConnections(request: { readonly deviceId: DeviceId }): { readonly terminated: number }
+
+/**
+ * Check for an active Client event stream permitted to answer forwarded waterfalls.
+ * @returns whether an answering stream is open and has not been cancelled.
  */
 hasLiveClient(): boolean
 

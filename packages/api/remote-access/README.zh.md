@@ -35,9 +35,9 @@ kind: "package-reference"
 | `snapshotFor(principal)` | 页面打开时的 baseline：owner 为 `{ type: 'baseline', owner: true }`，否则为该 principal 当前的 grant。 |
 | `follow(signal)` | Remote stream `remoteAccess/follow`：一个 `baseline`，之后是 `upsert` 与 `remove` 帧。owner 只收到 `{ type: 'baseline', owner: true }`。`signal` abort 或服务卸载时流结束，因此重载后的服务从新的 baseline 回答每个读者。 |
 
-role `{ name, resource, actions }` 是普通值，表示限定一种资源种类（`global` 或在 `TypertResourceMap` 中声明的种类）的 action 集合。binding `{ role, resource, condition? }` 在该 role 种类的一个资源上授予该 role。policy 根据预先载入内存的状态同步回答 `bindings(principal)` 与可选的 `explain(request)`。只有在每个已解析资源上都有某个 binding 指向该资源、其 role 列出该 action、且没有 condition 或 condition 放行时，请求才被放行。资源之间相互独立：`global` 上的授权不蕴含任何其他资源上的授权，任何资源也不蕴含另一个资源。condition 收到 `{ action, resource, args? }`，只对资源与 role 都匹配的 binding 调用；事件、快照与列表过滤时没有 `args`。`bindings()` 在每次 `decide()`、每次 `allows()` 判定与每次快照计算中各调用一次，不跨判定缓存，因此依赖时间的状态对下一次调用即时生效。
+role `{ name, resource, actions }` 是普通值，表示限定一种资源种类（`host`、`global` 或在 `TypertResourceMap` 中声明的种类）的 action 集合。binding `{ role, resource, condition? }` 在该 role 种类的一个资源上授予该 role。policy 根据预先载入内存的状态同步回答 `bindings(principal, context, action?)` 与可选的 `explain(request)`。服务访问 Context 保留隔离 provider；快照计算不传 action。端点 grant 必须与快照一致；事件 action 可取决于当前请求的通知。只有在每个已解析资源上都有某个 binding 指向该资源或显式绑定 `host`、其 role 列出该 action、且没有 condition 或 condition 放行时，请求才被放行。`host` binding 显式允许在所有合法资源（含 `global`）上执行其列出的 action。其他 binding 仍相互独立：`global` 上的授权不蕴含其他资源上的授权。condition 收到 `{ action, resource, args? }`，只对资源与 role 都匹配的 binding 调用；事件、快照与列表过滤时没有 `args`。`bindings()` 在每次 `decide()`、每次 `allows()` 判定与每次快照计算中各调用一次，不跨判定缓存，因此依赖时间的状态对下一次调用即时生效。
 
-Gateway 依次从 `@Remote` 与 `@RemoteScope` 的 `resources` 读取函数、lookup 与 Host Context adapter 的 `resource` 声明、`typert.resources` 中的默认字段或 resolver 声明解析资源，解析顺序由 [API Gateway](../gateway/README.zh.md) 负责；本包不读取任何参数字段。不指明任何资源的调用只访问 `global` 资源，因此只有 `global` 级 role 能放行；把某个 action 放进 `global` 级 role，等于允许该 principal 在调用未指明的任何资源上调用它。资源非法的调用由 Gateway 以 `resource-invalid` 拒绝，不询问 `decide()`。
+Gateway 依次从 `@Remote` 与 `@RemoteScope` 的 `resources` 读取函数、lookup 与 Host Context adapter 的 `resource` 声明、`typert.resources` 中的默认字段或 resolver 声明解析资源，解析顺序由 [API Gateway](../gateway/README.zh.md) 负责；本包不读取任何参数字段。不指明任何资源的调用只访问 `global` 资源，因此 `global` 或 `host` binding 可以放行；把某个 action 放进 `global` 级 role，等于允许该 principal 在调用未指明的任何资源上调用它。资源非法的调用由 Gateway 以 `resource-invalid` 拒绝，不询问 `decide()`。
 
 policy 作者必须把 `session/attachment` 视为整个附件存储的读取权限：在任意一条 Session 资源上授予该 action，就允许调用方使用这个 `sessionId` 读取其他 Session 引用或未被任何 Session 引用的图片。Gateway 仍检查该 Session 资源，但处理函数既不检查 Session 是否存在，也不检查图片关联。需要让不同读者使用不同图片存储时，须使用独立 Host 实例及各自的 `DSH_HOME` 目录；见[图片访问规则](../../../.agents/notes/implemented/architecture/2026-10-23-store-scoped-image-reads.zh.md)。
 
@@ -65,7 +65,7 @@ Client 入口同步读取 index 注入在 `REMOTE_ACCESS_SNAPSHOT_KEY` 下的 ba
 - `ctx.remoteAccess.whenAccess(action, callback)`，在 `global` 资源允许 `action` 期间保持回调的效果：答案变为 true 时执行回调，变为 false 时逆序撤销其效果，下一次变为 true 时再次执行。回调返回一个 disposer 或一组 disposer，与 `ctx.slots.inject` 相同；答案已为 true 时（owner 恒为 true）回调同步执行；控制器属于调用方 fiber。允许期间的安装失败立即抛出；之后的安装失败使控制器停止，并在微任务中重新抛出。`whenResourceAccess(kind, id, action, callback)` 对已声明种类的某个资源做同样的事；
 - 标准 Hook `useRemoteAccess(action)`，回答 `global` 资源上的访问。
 
-领域 UI 包在 `source()` 之上发布各自资源的 Hook，在 `whenResourceAccess()` 之上发布各自的 `whenAccess`：[ui-session](../../client/ui-session/README.zh.md) 提供 Session 资源上的 `useSessionAccess(sessionId, action)`、会话作用域的 `useAccess(action)` 与 `ctx.uiSession.whenAccess(sessionId, action, callback)`（与 `global` 资源上的 `useRemoteAccess` 不同名），[ui-workspace](../../client/ui-workspace/README.zh.md) 提供 Workspace 资源上的 `useWorkspaceAccess(workspaceId, action)` 与 `ctx.uiWorkspace.whenAccess(workspaceId, action, callback)`。只有拥有某个资源种类的包才调用 `source()` 与 `whenResourceAccess()`；其他插件经访问 Hook 与各 `whenAccess` 读取访问。Hook 的 `action` 类型为 `RemoteEndpoint`，即某个 Client Remote namespace 声明的端点。非 owner 的答案是该资源的 grant 是否列出该 action，不回退 `global` 答案，因此没有 grant 或 grant 未列出任何 action 的资源回答 false。owner 的所有答案为 true；没有注入 baseline 的非 owner 页面、快照流终止失败的非 owner 页面，所有答案为 false；终止失败会连同错误一并报告，非 owner 附“刷新页面重连”的提示，owner 附“答案不受影响”的说明；重连期间保留上次快照。注入的 baseline 格式错误时挂载失败。Hook 从不发请求，Host 仍检查每次调用。[`dsh-client-test-runtime`](../../test-support/client-runtime/README.zh.md) 在 Client spec 中以固定答案（默认全允许）的访问替换本行。
+领域 UI 包在 `source()` 之上发布各自资源的 Hook，在 `whenResourceAccess()` 之上发布各自的 `whenAccess`：[ui-session](../../client/ui-session/README.zh.md) 提供 Session 资源上的 `useSessionAccess(sessionId, action)`、会话作用域的 `useAccess(action)` 与 `ctx.uiSession.whenAccess(sessionId, action, callback)`（与 `global` 资源上的 `useRemoteAccess` 不同名），[ui-workspace](../../client/ui-workspace/README.zh.md) 提供 Workspace 资源上的 `useWorkspaceAccess(workspaceId, action)` 与 `ctx.uiWorkspace.whenAccess(workspaceId, action, callback)`。只有拥有某个资源种类的包才调用 `source()` 与 `whenResourceAccess()`；其他插件经访问 Hook 与各 `whenAccess` 读取访问。Hook 的 `action` 类型为 `RemoteEndpoint`，即某个 Client Remote namespace 声明的端点。非 owner 的答案是显式 `host` grant 或该资源的 grant 是否列出该 action，不回退其他资源的 `global` grant。撤回 `host` grant 保留独立的资源 grant。owner 的所有答案为 true；没有注入 baseline 的非 owner 页面、快照流终止失败的非 owner 页面，所有答案为 false；终止失败会连同错误一并报告，非 owner 附“刷新页面重连”的提示，owner 附“答案不受影响”的说明；重连期间保留上次快照。注入的 baseline 格式错误时挂载失败。Hook 从不发请求，Host 仍检查每次调用。[`dsh-client-test-runtime`](../../test-support/client-runtime/README.zh.md) 在 Client spec 中以固定答案（默认全允许）的访问替换本行。
 
 <a id="model-experience"></a>
 ## 模型体验
@@ -80,11 +80,12 @@ Client 入口同步读取 index 注入在 `REMOTE_ACCESS_SNAPSHOT_KEY` 下的 ba
 
 <a id="known-limitations-and-deferred-work"></a>
 
+- Host binding 的 condition 在调用与列表过滤时收到实际请求的资源，在快照计算时收到 `{ kind: 'host' }`。只有允许该 action 访问所有资源时，condition 才可放行此快照资源。
 - 快照与列表过滤的判定不带调用参数，因此按 `args` 细化结论的 condition 可能拒绝快照显示为允许的调用。
 - 资源读取函数与自动解析必须覆盖方法访问的全部资源；调用未指明的资源不受检查，持有已指明资源授权的 principal 可以访问它。
 - 默认资源解析按 wire 字段名匹配；给方法新增与已登记种类同名的字段，会让调用多访问该种类的资源。
 - exact Connection Fetch route 不经过 Gateway；在各路由声明自己的访问规则之前，共享 Fetch handler 对所有非 owner Peer 返回 403。
-- 交互参与（回答转发的 waterfall）仅限 owner：非 owner 的 `$events` 流只收到 policy 在事件资源上放行其 `event:<name>` action 的广播帧。
+- 转发交互的回复由 Gateway 负责：本地 owner Peer 与持有应用所需答复权限的设备可以回答。其他非 owner Peer 只接收其事件 binding 放行的广播。
 - `api-session/added` 携带完整的 `SessionSummary`，因此被允许接收它的非 owner 也会得知其 `parentSessionId`。
 - 被授权 Session 的 cwd 与工具路径本就包含 owner 的绝对路径，因此 `$events` ready 帧向非 owner 提供完整的 `host`（含 `home`）；Gateway 不单独隐藏 `home`。
 - policy 撤销某个 Workspace 的可见性后，`workspace/follow` 只在该 Workspace 或 Workspace 顺序下一次变化时察觉并重推非 owner 的 baseline；仅访问变化不会发送帧。

@@ -875,6 +875,13 @@ const SERVICE_ROLES: ServiceRole[] = [
     note: 'The gateway-owned device-facing access seam: one-time pairing issuance, device grants, and revocation over Typert Remote; permission execution stays with the interaction-reply seam.',
   },
   {
+    key: 'nativeRemote',
+    pkg: 'api-native-remote',
+    title: 'Native TLS access',
+    mode: 'core',
+    note: 'Owns the opt-in TLS listener, pinned Host identity, and bounded carriers for signed device Peers.',
+  },
+  {
     key: 'hostDiagnostics',
     pkg: 'api-host-diagnostics',
     title: 'Host diagnostics seam',

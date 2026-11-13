@@ -8,6 +8,7 @@ import {
   RemoteStreamMuxServer,
   type RemoteStreamFailureMapper,
   type RemoteStreamOpener,
+  type RemoteStreamMuxServerOptions,
 } from '../src/stream-server.ts'
 
 interface RunningMux {
@@ -27,6 +28,47 @@ afterEach(async () => {
 })
 
 describe('Remote stream mux server carrier lifecycle', () => {
+  it.each([false, true])('bounds complete messages before dispatch with compression %s', async (compression) => {
+    const frame = openFrame('bounded'.repeat(400))
+    const opened = Promise.withResolvers<undefined>()
+    const open = vi.fn<RemoteStreamOpener>(async (_endpoint, _payload, _uplink, _peer, control) => {
+      opened.resolve(undefined)
+      return waitForAbort(control.signal)
+    })
+    const entry = await startMux(open, 2_000, 262_144, compression, undefined, {
+      maxPayloadBytes: Buffer.byteLength(frame),
+    })
+    const exact = await connect(entry.url)
+    exact.send(frame)
+    await opened.promise
+    expect(open).toHaveBeenCalledOnce()
+    const exactClosed = once(exact, 'close')
+    exact.close()
+    await exactClosed
+    const oversized = await connect(entry.url)
+    const oversizedClosed = once(oversized, 'close')
+    oversized.send(frame + ' ')
+    await oversizedClosed
+    expect(open).toHaveBeenCalledOnce()
+  })
+
+  it('refuses an extra logical stream before opening it and cancels the active stream', async () => {
+    const opened = Promise.withResolvers<AbortSignal>()
+    const open = vi.fn<RemoteStreamOpener>(async (_endpoint, _payload, _uplink, _peer, control) => {
+      opened.resolve(control.signal)
+      return waitForAbort(control.signal)
+    })
+    const entry = await startMux(open, 2_000, 262_144, false, undefined, { maxStreamsPerConnection: 1 })
+    const client = await connect(entry.url)
+    client.send(openFrame('first'))
+    const signal = await opened.promise
+    const closed = once(client, 'close')
+    client.send(openFrame('second'))
+    expect((await closed)[0]).toBe(1008)
+    expect(open).toHaveBeenCalledOnce()
+    await expect.poll(() => signal.aborted).toBe(true)
+  })
+
   it('sends WebSocket Ping control frames without application messages', async () => {
     const entry = await startMux(async (_endpoint, _payload, _uplink, _peer, control) => waitForAbort(control.signal), 20)
     const client = await connect(entry.url)
@@ -667,12 +709,14 @@ async function startMux(
   streamInboxBytes = 262_144,
   compression = true,
   peer?: PeerScope,
+  limits: Pick<RemoteStreamMuxServerOptions, 'maxPayloadBytes' | 'maxStreamsPerConnection'> = {},
 ): Promise<RunningMux> {
   const admitted = peer ?? await fixturePeer()
   const mux = new RemoteStreamMuxServer(open, mapFailure, {
     heartbeatIntervalMs,
     streamInboxBytes,
     compression,
+    ...limits,
   })
   const http = createServer()
   http.on('upgrade', (request, socket, head) => { mux.handleUpgrade(request, socket, head, admitted) })

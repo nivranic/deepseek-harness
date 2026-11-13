@@ -2175,6 +2175,27 @@ export const SERVICE_API: readonly ServiceApiEntry[] = [
     ],
   },
   {
+    key: 'nativeRemote',
+    summary: 'A separately configured HTTPS listener with no browser assets, cookies, or local exact Fetch routes.',
+    description: 'A separately configured HTTPS listener with no browser assets, cookies, or local exact Fetch routes.',
+    methods: [
+      {
+        signature: '@Remote(\'describe\') describe(): NativeRemoteInfo',
+        description: 'Read the bound port and certificate pin for the local operator.',
+        parameters: [],
+        returns: 'public identity facts, without certificate or private-key material.',
+        throws: ['while the listener is not ready or has been disposed.'],
+      },
+      {
+        signature: '@Remote(\'httpRequestBudget\') httpRequestBudget(): NativeHttpRequestBudget',
+        description: 'Read this listener\'s buffered HTTP body limit without granting upload permission.',
+        parameters: [],
+        returns: 'the inclusive byte limit used by this listener\'s HTTP bridge.',
+        throws: ['while the listener is not ready or has been disposed.'],
+      },
+    ],
+  },
+  {
     key: 'officeToPdf',
     summary: 'A provider lifetime owns all converters, queued calls, and temporary files.',
     description: 'A provider lifetime owns all converters, queued calls, and temporary files.',
@@ -2572,7 +2593,7 @@ export const SERVICE_API: readonly ServiceApiEntry[] = [
       },
       {
         signature: 'decide(request: RemoteAccessRequest<Principal>): RemoteAccessDecision',
-        description: 'Gateway-only: decide one request whose resources the Gateway resolved. The owner is allowed, and so is `remoteAccess/follow`: every Peer reads its own snapshot. Otherwise the action is allowed only when, on every listed resource, some binding of the principal\'s policy names that resource, has a role listing the action, and has no condition or a condition that allows. `bindings()` is called once per decision.',
+        description: 'Gateway-only: decide one request whose resources the Gateway resolved. The owner is allowed, and so is `remoteAccess/follow`: every Peer reads its own snapshot. Otherwise the action is allowed only when, on every listed resource, some binding of the principal\'s policy names that resource or `host`, has a role listing the action, and has no condition or a condition that allows. `bindings()` is called once per decision.',
         parameters: [{ name: 'request', description: 'the caller or recipient, the action, the resources it touches, and a call\'s arguments.' }],
         returns: '`allow`; or `deny` with `no-allow` when the principal kind has no policy, the first refusing condition\'s reason on the first resource no binding allows, else `explain()`\'s reason, else `no-allow`; `policy-failed` when `bindings()`, a condition, or `explain()` throws, logged once per policy until the next `invalidate()`. The Gateway throws `remote-access/denied` for a denied call and drops a denied event.',
       },
@@ -4257,10 +4278,22 @@ export const SERVICE_API: readonly ServiceApiEntry[] = [
         parameters: [],
       },
       {
-        signature: 'hasLiveClient(): boolean',
-        description: 'Check for an active owner Client event stream, the only kind that can answer forwarded waterfalls.',
+        signature: 'createDeviceConnection(): TypertGatewayDeviceConnection',
+        description: 'Create a native carrier adapter requiring signed device admission.',
         parameters: [],
-        returns: 'whether an owner stream is open and has not been cancelled.',
+        returns: 'callbacks owned by the caller\'s service scope.',
+      },
+      {
+        signature: 'terminateDeviceConnections(request: { readonly deviceId: DeviceId }): { readonly terminated: number }',
+        description: 'Destroy a device\'s active stream transports without revoking its grant.',
+        parameters: [{ name: 'request', description: 'device whose carriers end now.' }],
+        returns: 'number of distinct carriers destroyed.',
+      },
+      {
+        signature: 'hasLiveClient(): boolean',
+        description: 'Check for an active Client event stream permitted to answer forwarded waterfalls.',
+        parameters: [],
+        returns: 'whether an answering stream is open and has not been cancelled.',
       },
       {
         signature: 'getPendingRemoteEvents(): readonly PendingRemoteEventInfo[]',
@@ -7420,6 +7453,14 @@ export const TYPE_API: readonly TypeApiEntry[] = [
     declaration: 'export interface NativeFileApplication {\n    readonly id: string;\n    readonly name: string;\n    readonly default: boolean;\n    readonly icon: string | null;\n}',
   },
   {
+    name: 'NativeHttpRequestBudget',
+    declaration: 'export interface NativeHttpRequestBudget {\n    readonly maxRequestBodyBytes: number;\n}',
+  },
+  {
+    name: 'NativeRemoteInfo',
+    declaration: 'export interface NativeRemoteInfo {\n    readonly bindHost: \'127.0.0.1\' | \'0.0.0.0\' | \'::1\' | \'::\';\n    readonly port: number;\n    readonly spkiFingerprint: string;\n}',
+  },
+  {
     name: 'NotFutureError',
     declaration: 'export interface NotFutureError {\n    readonly code: \'not_future\';\n    readonly message: string;\n}',
   },
@@ -7941,7 +7982,7 @@ export const TYPE_API: readonly TypeApiEntry[] = [
   },
   {
     name: 'RemoteAccessCondition',
-    declaration: 'export type RemoteAccessCondition<K extends RemoteAccessResourceKind> = (request: {\n    readonly action: RemoteAccessAction;\n    readonly resource: RemoteAccessResourceOf<K>;\n    readonly args?: Readonly<Record<string, unknown>>;\n}) => RemoteAccessDecision;',
+    declaration: 'export type RemoteAccessCondition<K extends RemoteAccessResourceKind> = (request: {\n    readonly action: RemoteAccessAction;\n    readonly resource: K extends \'host\' ? RemoteAccessResource : RemoteAccessResourceOf<K>;\n    readonly args?: Readonly<Record<string, unknown>>;\n}) => RemoteAccessDecision;',
   },
   {
     name: 'RemoteAccessDecision',
@@ -7961,7 +8002,7 @@ export const TYPE_API: readonly TypeApiEntry[] = [
   },
   {
     name: 'RemoteAccessPolicy',
-    declaration: 'export interface RemoteAccessPolicy<P extends Principal> {\n    bindings(principal: P): readonly RemoteAccessBinding[];\n    explain?(request: RemoteAccessRequest<P>): string | undefined;\n}',
+    declaration: 'export interface RemoteAccessPolicy<P extends Principal> {\n    bindings(principal: P, context: Context, action?: RemoteAccessAction): readonly RemoteAccessBinding[];\n    explain?(request: RemoteAccessRequest<P>): string | undefined;\n}',
   },
   {
     name: 'RemoteAccessRequest',
@@ -7969,11 +8010,11 @@ export const TYPE_API: readonly TypeApiEntry[] = [
   },
   {
     name: 'RemoteAccessResource',
-    declaration: 'export type RemoteAccessResource = {\n    readonly kind: \'global\';\n} | {\n    [Kind in TypertResourceKind]: {\n        readonly kind: Kind;\n        readonly id: TypertResourceId<TypertResourceMap[Kind]>;\n    };\n}[TypertResourceKind];',
+    declaration: 'export type RemoteAccessResource = {\n    readonly kind: \'global\';\n} | {\n    readonly kind: \'host\';\n} | {\n    [Kind in TypertResourceKind]: {\n        readonly kind: Kind;\n        readonly id: TypertResourceId<TypertResourceMap[Kind]>;\n    };\n}[TypertResourceKind];',
   },
   {
     name: 'RemoteAccessResourceKind',
-    declaration: 'export type RemoteAccessResourceKind = \'global\' | TypertResourceKind;',
+    declaration: 'export type RemoteAccessResourceKind = \'global\' | \'host\' | TypertResourceKind;',
   },
   {
     name: 'RemoteAccessResourceOf',
@@ -8022,6 +8063,14 @@ export const TYPE_API: readonly TypeApiEntry[] = [
   {
     name: 'RemoteStream',
     declaration: 'export type RemoteStream<Out, In = never> = AsyncIterable<Out> & {\n    readonly [STREAM_UPLINK]?: In;\n};',
+  },
+  {
+    name: 'RemoteStreamConnectionHandle',
+    declaration: 'export interface RemoteStreamConnectionHandle {\n    terminate(): void;\n}',
+  },
+  {
+    name: 'RemoteStreamOpener',
+    declaration: 'export type RemoteStreamOpener = (endpoint: string, payload: unknown, uplink: AsyncIterable<unknown>, peer: PeerScope, control: AbortController, window: RemoteUplinkWindow, connection?: RemoteStreamConnectionHandle) => Promise<AsyncIterable<unknown>>;',
   },
   {
     name: 'RemoteUplinkWindow',
@@ -9906,6 +9955,10 @@ export const TYPE_API: readonly TypeApiEntry[] = [
   {
     name: 'TypertGatewayBinding',
     declaration: 'export interface TypertGatewayBinding<Service extends object = object> {\n    readonly service: Service;\n    readonly serviceKey: string;\n    readonly namespace: string;\n    readonly capabilities?: readonly TypertRemoteCapability[];\n}',
+  },
+  {
+    name: 'TypertGatewayDeviceConnection',
+    declaration: 'export interface TypertGatewayDeviceConnection {\n    readonly peer: PeerScope;\n    readonly rpc: ConnectionRpcHandler;\n    readonly stream: {\n        readonly open: RemoteStreamOpener;\n        readonly failure: TypertGatewayWireStream[\'failure\'];\n    };\n}',
   },
   {
     name: 'TypertGatewayWireStream',

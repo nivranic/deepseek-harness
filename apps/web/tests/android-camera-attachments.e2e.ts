@@ -173,7 +173,7 @@ it.skipIf(!process.env.DSH_ANDROID_ADB || MODE === 'record')('Android stages ful
     expect(messages[0]!.data).toMatchObject({ source: { kind: 'user', rpcId: beforeDeath.requestId } })
     expect(messages[0]!.data.content).toEqual([{ type: 'text', text }, { type: 'image', attachment: image }])
     expect(calls).toEqual(['fileUploads/uploadImage', 'session/prompt'])
-    const read = await scaffold.ctx.sessionController.attachment({ sessionId, attachmentId: image.attachmentId })
+    const read = await scaffold.ctx.sessionController.attachment({ sessionId, attachment: image })
     expect(digest(Buffer.from(read.data, 'base64'))).toBe(digest(stored))
     await command({ op: 'assertAttachmentMessage', seq: messages[0]!.seq, names: [image.name!] })
     await capture('camera-sent.png')

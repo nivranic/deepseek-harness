@@ -4,6 +4,9 @@
  */
 
 import type { Context } from '@deepseek-ai/cordis'
+import type { ConnectionRpcHandler } from '@deepseek-ai/dsh-client-connection'
+import type { DeviceId } from '@deepseek-ai/dsh-api-device-trust/types'
+import type { RemoteStreamOpener } from './stream-server.ts'
 import type { PeerScope, RemoteUplinkWindow, TypertResourceReader } from '@deepseek-ai/dsh-typert-protocol'
 import type { RemoteEventAgentId, RemoteEventHostInfo } from './stream-protocol.ts'
 import type { RemoteInteractionOrigin } from './protocol.ts'
@@ -153,14 +156,40 @@ export interface PendingRemoteEventInfo {
   readonly agentId: RemoteEventAgentId
 }
 
+/** Signed native transport callbacks retaining the calling service scope. */
+export interface TypertGatewayDeviceConnection {
+  /** Unauthenticated carrier lifetime; signed calls create separate device Peers. */
+  readonly peer: PeerScope
+  /** Unary admission followed by shared Gateway dispatch. */
+  readonly rpc: ConnectionRpcHandler
+  /** Logical-stream admission, revocation, and shared Gateway dispatch. */
+  readonly stream: {
+    readonly open: RemoteStreamOpener
+    readonly failure: TypertGatewayWireStream['failure']
+  }
+}
+
 /** Host dispatcher consumed by Connection adapters. */
 export interface TypertGateway {
   /** Carrier adapter shared by WebSocket and in-process transports. */
   readonly wireStream: TypertGatewayWireStream
 
   /**
-   * Check for an active owner Client event stream, the only kind that can answer forwarded waterfalls.
-   * @returns whether an owner stream is open and has not been cancelled.
+   * Create a native carrier adapter requiring signed device admission.
+   * @returns callbacks retaining the caller's service scope.
+   */
+  createDeviceConnection(): TypertGatewayDeviceConnection
+
+  /**
+   * Destroy every active stream carrier for one device without revoking its grant.
+   * @param request - verified device identity whose transports end.
+   * @returns number of distinct physical carriers destroyed.
+   */
+  terminateDeviceConnections(request: { readonly deviceId: DeviceId }): { readonly terminated: number }
+
+  /**
+   * Check for an active Client event stream permitted to answer forwarded waterfalls.
+   * @returns whether an answering stream is open and has not been cancelled.
    */
   hasLiveClient(): boolean
 

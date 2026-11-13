@@ -48,44 +48,21 @@ Connection 可用时，Host 入口会在 Connection 共享的 `/api` FetchHandle
 
 每条流还在同一条逻辑流上携带从 Client 到 Host 的上行。方法把上行项类型声明为返回类型的第二个类型参数——来自 [`dsh-typert-protocol`](../../typert/protocol/README.zh.md) 的 `RemoteStream<Out, In>`；`In` 缺省为 `never`，返回 `Iterable`、`AsyncIterable` 或 `RemoteStream<Out>` 的方法即声明自己不读上行。运行中的方法通过 `this.ctx.invocation` 读取本次调用：Gateway 从携带该 `RemoteInvocation`（`request`、`service`、`peer`、`signal` 与 `uplink()`）的 Context 派生接收者，因此没有任何东西进入参数列表，而非 Remote 调用派生的 Context 上 `ctx.invocation` 为 `undefined`。`uplink()` 每次调用只能取一次。描述符带 codec 时它在交付前逐项解码；不带时——SRC 方法，或 `In` 为 `never` 的方法——它交付经 JSON 安全校验的 `unknown` 值。Client 在已打开的逻辑流上把每一项作为 `item` 帧发送（顶层 `undefined` 项是不带 `value` 的 `item` 帧），以 `end` 帧表示半关闭；方法通过 `uplink()` 迭代结束感知半关闭，通过 `signal` 感知取消。被拒绝的项使整条流以 `gateway/input-invalid`（字段 `uplink`）失败。上行项在 Host 逐项校验，因为它们来自浏览器；下行项是 Host 方法产出的值，不经校验原样透传。方法结束下行时 Gateway 调用 uplink 迭代器的 return 并丢弃未读的项；发给从未取用 uplink 的方法的项在 inbox 里等到那时为止。每条逻辑流最多缓冲 `streamInboxBytes`（默认 262144）字节的上行帧；超限使流以 `gateway/uplink-overflow` 失败，`end` 之后的项使流以 `gateway/protocol` 失败，两种情况都不关闭 socket。发给 Host 已结束的流 id 的 `item`、`end` 与 `cancel` 帧被丢弃；只有重复的 `open` 会关闭 socket。`$events` 这类 Gateway 自有的流在打开时立即 return 其 uplink，因此它们的 `item` 帧被丢弃而不缓冲。一元方法也可以调用 `uplink()`；其项只在方法运行期间可读。每条流都代表一个显式指明的 Peer：WebSocket 上的流代表 Connection 在升级时接纳的 Peer，该 scope 释放时 socket 关闭；进程内载体的流代表其调用方传入的 Peer。该 Peer 释放时，流方法的 `signal` 也随之中止，流以 `gateway/cancelled` 结束，`$events` 流也随其 Peer 结束；已在运行的一元调用不会被取消。
 
-Host 组合可通过 `registerRemoteEvents()` 注册唯一的应用事件 source。Gateway 为它保留内部 `$events` logical endpoint，只接受空 `args`，并在 source 撤回时中止该注册打开的流。事件名单、参数校验、每个 Client 的队列及 opening `{ type: 'ready', clientId, host: { home, platform } }` frame 中的 Host home 与 platform 由 API Remotes 拥有。source factory 在返回 iterable 前同步挂好增量 listener，因此 Client 只在增量投递就绪后发布 generation 并开始 baseline 读取。
+Host 组合通过 `registerRemoteEvents()` 注册唯一的应用事件 source。Gateway 为其保留 `$events`，载体完成准入后只接受空 `args`。API Remotes 拥有事件选择、参数校验、每个 Client 的队列，以及 `{ type: 'ready', clientId, host: { home, platform } }` 中的 Host 事实。source 在发布就绪前同步安装增量 listener；撤回 source 会中止其流。
 
-Gateway 接受协议 1 的 `{ args }` 请求，也接受与 `args` 并列的显式 `apiProtocolVersion` 1 或 2。共享 `/protocol` 入口按已选版本编码；版本 1 省略元数据以支持旧 Host。未知或格式错误的显式版本在业务调用、流打开或事件结果结算前返回 `gateway/protocol-unsupported`。端点参数仍严格校验。请求元数据不授予权限。Client 使用协议 1 的 `{ args }` 编码，与事件连接的就绪状态无关。
+每条非 owner 广播都以 `event:<name>` 交给 `remoteAccess.decide()`，资源来自声明的读取函数；没有读取函数时使用 `global`。Gateway 对每帧只解析一次资源，并为相应接收方丢弃非法或未获授权的帧。payload 不作裁剪。具有 `view` 的设备角色显式获准在整个 Host 上接收这些由 Host 选择的通知。
 
-显式 `apiProtocolVersion` 0 声明落后两代的诊断层级：请求沿用冻结的协议 1 编解码，且只对只读 Host 发现端点（`host/describe`、`host/negotiate`）准入。其余所有端点——业务 RPC、流与事件结果结算——以携带相同兼容性详情的 `gateway/protocol-unsupported` 拒绝，Client 因此呈现常规升级指引。该层级是固定协议不变量而非配置项；`host/negotiate` 仍要求正整数报价，诊断层 Client 无法把自己协商进完整编解码器。
+待处理的作用域 waterfall 属于 Host 调用方，Client 断开不会删除它。首个获准结果只结算一次；对已结算或被替代投递的后续回复按幂等 no-op 处理。source 或调用方取消会结束待处理调用。进程重启丢弃待处理调用，重连不授权重放工具效果。Session 恢复由 [Session owner](../../core/session/README.zh.md)负责。
 
-按声明版本划分的准入端点面，由 `tests/gateway.host.spec.ts` 的 `pins the protocol-version by endpoint-class interop matrix` 作为一张互通矩阵固定（流打开的准入版本行在流套件中）：
+`$events` 与 `$events/result` 都要求存活的 Peer 且 `interactions: 'answer'`，否则 Gateway 返回 `gateway/interactions-forbidden`。本地 owner 流接收所有作用域 waterfall。设备只接收当前角色持有应用声明的 `requiredPermission` 的交互：Collaborator 可回答问题，Controller 与设备 Owner 还可回答审批，Viewer 不能回答。其他非 owner principal 只接收获准的广播。`hasLiveClient()` 统计尚未取消的回答型流；裸 socket 与 Viewer 流不计入，该观测也不保证 Client provider 已就绪。
 
-| 声明版本 | 发现端点（`host/describe`、`host/negotiate`） | 业务 RPC | Remote 事件流打开 | 事件结果结算 |
-| --- | --- | --- | --- | --- |
-| 0（仅诊断） | 准入，只读 | 拒绝：诊断消息 | 拒绝：诊断消息 | 拒绝：诊断消息 |
-| 1（遗留） | 准入 | 准入 | 准入 | 准入 |
-| 2（当前） | 准入 | 准入 | 准入 | 准入 |
-| 未知或畸形 | 拒绝：`gateway/protocol-unsupported` | 拒绝：`gateway/protocol-unsupported` | 拒绝：`gateway/protocol-unsupported` | 拒绝：`gateway/protocol-unsupported` |
+每次设备回复都要提供新的签名准入，DeviceId 必须与目标事件流相同。其他设备冒答或设备借 owner 流回复返回 `gateway/interactions-forbidden`；native 载体缺少身份则返回 `gateway/permission-denied`。无效、过期与重放签名保留 Device Trust 错误。拒绝不会移除投递；Gateway 在结算前重新检查待处理交互的答复权限。
 
-待处理的作用域 waterfall 由 Host 调用方持有，不随 Client 断线结束。第一个被接受的结果只结算一次请求。迟到回答、已关闭 Client 连接代次的回答，以及该 Client 已通过 `next()` 委托后的回答，均返回携带 `eventId` 的 `interaction-closed`，不改变任何待处理请求。Client 投递将此结果视为已完成的交互，而非 Connection 故障；其他错误保留原有失败行为。此结果不提供持久化变更回执或设备授权。
+每个 native TLS listener 通过自己的 Cordis Context 调用 `createDeviceConnection()`。返回的回调保留隔离服务 receiver；除一次性 `deviceTrust/redeemPairing` 外，每次 RPC 与逻辑流都需要签名准入。载体 Peer 不具有设备权限；准入成功后创建独立的 `{ kind: 'device', deviceId }` Peer。Remote Access 将角色声明的端点 action 显式绑定到 `host`，保留原有 Host 级角色对合法 Session 和 Workspace 资源的访问。未声明或未获授权的端点返回 `remote-access/denied`；名为 `owner` 的设备角色从不成为本地 owner principal。撤销会移除授权并取消已打开的流，阻止后续值送达。
 
-对于应用声明的交互，协议 2 在 waterfall 及其终结取消帧中附带 Host 持有的记录。`requestId` 等于 `eventId`；Session 身份和所需回答权限来自事件源，Gateway 分配创建时间、状态和 revision。重连重放同一份 revision 为 1 的待处理记录。其余投递以 revision 2 和 `resolved`、`delegated`、`cancelled` 或配置到期产生的 `expired` 状态关闭；回答方已持有自身结果。协议 1 保持原有事件字段，不附带该记录。记录仅存活于待处理的 Host 调用期间；权限元数据不授予权限。
+Native 信封携带 `{ apiProtocolVersion: 2, args, device }`，仍接受 `$events` 的冻结形式——签名放在 `args.device` 中。不支持的版本返回 `gateway/protocol-unsupported`；版本 0 只准入 Host 发现端点。普通浏览器载体保留 Connection 拥有的准入与官方 `{ args }` payload。
 
-协议 2 的交互结果、委托和拒绝均回传 `interactionRevision`。Gateway 在移除投递或结算调用方前与待处理记录比较。缺少版本返回 `gateway/input-invalid`；不匹配返回携带预期版本和收到版本的 `revision-conflict`。回答协议必须与活动投递连接代次一致，防止协议 2 回答通过旧格式省略版本检查。协议 1 和没有交互记录的 waterfall 拒绝版本字段。无效回答保留待处理投递；已关闭投递仍返回 `interaction-closed`。Client 版本失败沿用原有连接代次恢复流程，由 Host 重放待处理记录，不向业务监听器注入元数据。
-
-`interactionReplyPermissions.approval` 与 `.question`（默认 `true`）在 Host 侧对每条转发交互应答强制执行：不具备待决交互 `requiredPermission` 的 client 收到 `gateway/permission-denied`，其应答既不结算调用也不消费投递，底层工具副作用不会发生，其他有资格的应答者仍可作答。该开关是匿名 client 的默认值：Remote 事件流打开时 `args` 携带签名设备准入（`{deviceId, timestamp, nonce, signature}`，组合了 device-trust 时经 `ctx.deviceTrust` 验证）的 client 改为获得其设备角色第 21 节权限集。
-
-设备流的每条 `$events/result` 必须携带原设备的新签名准入。缺失签名、设备不匹配或将设备身份用于匿名浏览器流，均以 `gateway/permission-denied` 与 `reason: device-identity` 拒绝；签名无效、过期或重放保留 Device Trust 的拒绝码。拒绝不消费投递，校验期间取消或撤销也不能结算交互。设备撤销观察在准入等待前建立，直到流结束；撤销阻止迟到的 ready 并丢弃排队帧。
-
-每个原生 TLS 入口通过自己的 Cordis context 调用 `createDeviceConnection()`。返回的 RPC 与 stream 回调保留该调用 context，每次操作都在其中解析直接方法的 receiver，并共享 Gateway 的既有状态。这个普通 service factory 不是 Remote 方法。除一次性 `deviceTrust/redeemPairing` 外，其回调要求每次 RPC 与逻辑流携带签名设备身份。本地 `wireStream` 与 Connection 注册继续由浏览器信任机制控制。签名业务流在首次迭代时验证准入，在等待准入前订阅撤销，并持续到迭代器关闭；撤销取消待定读取并阻止后续值。物理 mux 建连不授予业务权限。TLS 身份和监听限制见[原生 Remote Connection](../native-remote/README.zh.md)。
-
-`terminateDeviceConnections({deviceId})` 是 Host 平面的连接卫生面：无关闭握手地销毁该设备当前持有的全部物理流载体，其上的每条逻辑流都以载体丢失终结，客户端按自身的重连策略处理。设备的准入与授权不受影响——这不是撤销。网关在某设备的已准入流于一条物理连接上打开时把该连接绑定到该设备，并在其已准入流全部结束后解绑；不持有活连接的设备终止数为零。
-
-版本化请求信封也可在 `args` 旁携带签名设备准入（`{apiProtocolVersion, args, device: {deviceId, timestamp, nonce, signature}}`；版本 1 永不携带）。网关经同一准入阶梯验证，并按所属能力声明的 `requiredPermission` 门控端点：不持有该权限的设备角色——以及调用未声明能力的设备标识请求——在派发前以 `gateway/permission-denied` 拒绝；匿名请求从不走此路径。
-
-`interactionTimeoutMs.approval` 和 `.question` 可分别限制被转发交互的存活时间，单位为毫秒，范围为 1 至 2,147,483,647。未配置的类型没有 Gateway 期限。期限从 Gateway 创建待处理记录时起算；`expiresAt` 使用 Host 时间，重连时保持不变。经过时长的定时器，或重放、接受回答前对 Host 截止时间的检查，会使请求过期，因此时钟回拨不会延长已启动的计时，回调延迟也不会放行到期后的回答。结算、调用方取消或事件源取消均清理定时器。过期以 `interaction-expired` 拒绝 Host 调用，并向协议 2 消费者发送 `expired` 终结记录；协议 1 接收原有取消字段。迟到回答返回 `interaction-closed`。Approval 将回答方拒绝映射为既有的失败关闭结果 `unavailable`，Question 则传播过期错误。此转发调用之外的本地回答方不受影响；过期记录不跨 Host 重启保存。
-
-Host 进程重启会丢弃待处理调用。Client 重连时移除旧投递；向旧事件 id 回答会返回 `interaction-closed`。Session 恢复由 [Session owner](../../core/session/README.zh.md)负责，不归 Gateway 所有：中断工具可能具有未知结果，因此重连本身不授权重放其副作用。 Host 下行、Host 上行和 Client 上行泵的取消与停止状态归属单次读取，不保留已交付项的历史。下行结束也会唤醒尚未完成的上行读取。
-
-Host 组合可通过 `registerRemoteEvents()` 注册唯一的应用事件 source。Gateway 为它保留内部 `$events` logical endpoint，只接受空 `args`，并在 source 撤回时中止该注册打开的流。事件名单、参数校验、每个 Client 的队列及 opening `{ type: 'ready', clientId, host: { home } }` frame 中的 Host home 由 API Remotes 拥有。source factory 在返回 iterable 前同步挂好增量 listener，因此 Client 只在增量投递就绪后发布 generation 并开始 baseline 读取。Peer 的 principal 不是 owner 的 `$events` 流从不收到它可以作答的 scoped waterfall（瀑布式事件）；只有当 `ctx.remoteAccess.decide({ principal, action: 'event:<name>', resources })` 在该帧读取函数指明的资源上（帧没有读取函数时为 `global`）允许时，才整条、不裁剪地收到广播 emit 帧；每帧只解析一次资源，资源非法的帧不经判定即不送达任何非 owner 流，被拒的帧只对该流丢弃。这类 Peer 的 `$events/result` 回复以 `gateway/invocation-unavailable` 失败。
-
-已释放的 Peer 在事件流参与检查之前被拒绝。无论 principal 是否为 owner，`$events` 与 `$events/result` 都要求 `peer.interactions === 'answer'`；否则返回 `gateway/interactions-forbidden`。只有 owner Peer 接收并回答转发的 waterfall，回复必须来自持有该事件流的同一 Peer。`hasLiveClient()` 只计算未取消的 owner 回答流；非 owner 广播流、单独的 WebSocket 与已取消但尚未完成 iterator 清理的流均不计入。这一同步观察不保证后续投递成功或 Client Provider 已就绪。
+`terminateDeviceConnections({ deviceId })` 不经 WebSocket 关闭握手地销毁设备持有的每条不同物理流载体。这些载体上的流都观察到传输丢失，授权保持不变。流清理时释放其载体引用；没有活跃载体的设备返回零。`RemoteStreamMuxServer` 为 native listener 接受显式 `maxPayloadBytes` 与 `maxStreamsPerConnection` 限制。TLS 身份与部署限制见 [Native Remote Connection](../native-remote/README.zh.md)。
 
 <a id="client-service-clientremote-ctx-key-remote"></a>
 ## Client 服务：`ClientRemote`（ctx key：`remote`）

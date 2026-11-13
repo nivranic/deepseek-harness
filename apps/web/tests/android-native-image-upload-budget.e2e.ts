@@ -233,7 +233,7 @@ it.skipIf(!process.env.DSH_ANDROID_ADB || MODE === 'record')('Android checks the
     expect(userMessages).toHaveLength(1)
     expect(userMessages[0]!.data.source).toMatchObject({ kind: 'user', rpcId: ready.requestId })
     expect(userMessages[0]!.data.content).toEqual([{ type: 'text', text }, { type: 'image', attachment: images[0]!.image }])
-    const read = await scaffold.ctx.sessionController.attachment({ sessionId, attachmentId: images[0]!.image.attachmentId })
+    const read = await scaffold.ctx.sessionController.attachment({ sessionId, attachment: images[0]!.image })
     expect(digest(Buffer.from(read.data, 'base64'))).toBe(digest(original))
     const final = await snapshot()
     for (const key of ['pid', 'hostId', 'hostKey', 'generation', 'sessionOwner'] as const) expect(final[key]).toBe(initial[key])

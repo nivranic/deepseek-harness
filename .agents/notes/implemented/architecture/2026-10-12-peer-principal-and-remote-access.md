@@ -19,6 +19,8 @@ One general mechanism is needed:
 
 ## Decision
 
+The [device Peer decision](2026-11-13-device-peer-host-bindings.md) adds an explicit Host-wide binding for device roles; `global` and domain resource bindings retain their independent meanings.
+
 ### Scope
 
 | Part | Content |
