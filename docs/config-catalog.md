@@ -3273,7 +3273,7 @@ export interface Config {
 ## `@deepseek-ai/dsh-session-telemetry-otel`
 
 - `inject`: `sessions` · `otel`
-- `refs`: [`LogExporterOptions`](../packages/telemetry/otel/src/index.ts) · [`SessionLogProcessorOptions`](../packages/telemetry/otel/src/index.ts) · [`TelemetryConsent`](../packages/session/session-telemetry/src/index.ts)
+- `refs`: [`LogExporterOptions`](../packages/telemetry/otel/src/index.ts) · [`SessionLogProcessorOptions`](../packages/telemetry/otel/src/index.ts) · [`TelemetryConsent`](../packages/session/session-telemetry/src/index.ts) · `Volatile` (`@deepseek-ai/cordis`)
 - `source`: [`packages/session/session-telemetry-otel/src/index.ts:92`](../packages/session/session-telemetry-otel/src/index.ts)
 
 ```ts config-catalog
@@ -3288,12 +3288,12 @@ export interface Config {
   /**
    * Section 44 per-kind telemetry consent: one boolean per data kind, every
    * kind defaulting to off, no master switch. The `sessionTelemetry` kind
-   * gates the feedback pipeline — withheld consent keeps every upload local
-   * exactly like `DISABLED`; `mode` remains the upload policy. The other
+   * gates new feedback captures; already authorized batches may finish after
+   * consent is withdrawn. `mode` remains the upload policy. The other
    * kinds reserve the section 44 vocabulary for their exits; this backend
    * has no channel for them yet, so opting in changes nothing here.
    */
-  consent?: Partial<TelemetryConsent>
+  consent?: Volatile<Partial<TelemetryConsent>>
   /**
    * Explicit SDK HTTP transport settings, including optional routing headers.
    * Ambient credentials are not inherited. URL is required while uploading.

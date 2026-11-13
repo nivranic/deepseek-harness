@@ -1247,6 +1247,12 @@ export const SERVICE_API: readonly ServiceApiEntry[] = [
         returns: 'the staged receipt and durable file reference.',
       },
       {
+        signature: '@Remote(\'uploadImage\') async uploadImage(agent: Agent, request: EncodedImageUploadRequest, signal: AbortSignal): Promise<ImageUploadValue>',
+        description: 'Normalize one encoded image and stage its reference for the receiving Session. Cancellation prevents a receipt; bytes already stored remain content-addressed.',
+        parameters: [{ name: 'agent', description: 'receiving Agent resolved from the Remote Agent scope.' }, { name: 'request', description: 'canonical base64 image, declared media type, and optional display name.' }, { name: 'signal', description: 'cancellation checked before storage and receipt publication.' }],
+        returns: 'the Session-owned receipt and normalized image reference.',
+      },
+      {
         signature: '@Remote(\'uploadDedupe\') async uploadDedupe(agent: Agent, request: EncodedFileDedupeRequest, signal: AbortSignal): Promise<FileUploadValue>',
         description: 'Stage one already-stored file by digest without re-receiving its bytes. The digest only locates the object: the Host re-verifies the stored bytes before issuing a receipt. A missing or corrupt object refuses with `FILE_DIGEST_NOT_KNOWN` so the caller falls back to a full upload.',
         parameters: [{ name: 'agent', description: 'receiving Agent resolved from the Remote Agent scope.' }, { name: 'request', description: 'lowercase hex digest of the exact bytes and optional display name.' }, { name: 'signal', description: 'caller cancellation before the receipt is staged.' }],
@@ -6463,6 +6469,10 @@ export const TYPE_API: readonly TypeApiEntry[] = [
   {
     name: 'EncodedImageAttachment',
     declaration: 'export interface EncodedImageAttachment {\n    mediaType: ImageMediaType;\n    data: string;\n    name?: string;\n}',
+  },
+  {
+    name: 'EncodedImageUploadRequest',
+    declaration: 'export type EncodedImageUploadRequest = EncodedImageAttachment;',
   },
   {
     name: 'EpochHeader',

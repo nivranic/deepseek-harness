@@ -35,7 +35,7 @@ fork 的子会话标题更新失败时，原样拒绝 rename 的 `RemoteError`�
 
 独立的 `session.search.v1` 和 `session.attachment.v1` 能力分别准入内容搜索和持久化图片读取。API Gateway 在传输前拒绝未公布的操作，并随所属 Connection 代际取消待完成读取。附件授权仍要求被寻址 Session 日志中存在对应引用。
 
-Client 子级目录要求 `subagent.catalog.v1`。Connection 代际撤销清除目录内容、打开菜单、待完成刷新归属和父级可用提示，同时保留持久地址及已选择的驻留 Session。迟到目录回执不能发布数据或移除替换请求。子级寻址 prompt 与 interrupt 回执也保留起始 Host 归属，替换后不能发布旧错误或确认状态。
+Client 子级目录读取父 Session 的 `subagentCatalog` 投影。发现使用 Session 投影传输，不要求独立的子级列表 Remote 或能力。
 
 `session.rename-at.v1` 暴露 `renameAt(SessionRenameAtRequest)`，字段为 `sessionId`、原始 `title` 和 `expectedRevision`（标题事件序号或 null）。标题服务以 `session/revision-conflict` 拒绝已变化的编辑基线；若规范化后的标题与当前用户固定标题相同，则返回原有接受结果。`ISession.prepareRename()` 在编辑前捕获版本，并在重试时保留；缺少投影数据时不发送请求，直接失败。不支持此能力的 Host 和直接 `rename()` 调用保留无条件重命名语义。这提供条件变更安全性，不是持久化的变更 ID 回执账本。
 

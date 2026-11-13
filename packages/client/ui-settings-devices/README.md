@@ -25,7 +25,7 @@ The **Devices** section lets Web users manage the devices paired with the Host. 
 <a id="use-this-package"></a>
 ## Use this package
 
-The section is registered only while the current connection advertises `device.list.v1`. Connection replacement withdraws the section, aborts its reads and discards row state (rename drafts, open confirmations); restoration mounts a fresh page that reads the current Host lazily, and a late response or retained callback from the previous page cannot update or reach the replacement Host.
+The section appears after `host.describe()` confirms `device.list.v1`. Connection replacement withdraws it, invalidates pending reads and discards row state (rename drafts, open confirmations). Only the newest successful description may restore it; failed discovery leaves it unavailable. A retained callback cannot start another operation, and a late reply cannot update the replacement page.
 
 Every Remote callback preserves the original `RemoteError`, including codes unknown to this Client. Row and page failures render localized copy selected by [`classifyRemoteFailure`](../../typert/protocol/README.md) — for example `device/admission-expired` reads as an authentication failure while `device/not-found` reads as the addressed grant being gone — and an unclassified code falls back to the raw diagnostic text.
 
@@ -49,11 +49,11 @@ Open the **Devices** section in Settings. Each row names the device, tags its ro
 <details>
 <summary>Implementation internals — click to expand</summary>
 
-The section is a projection over the device-trust Remote namespace; it owns no device state and performs no Remote read during plugin activation.
+The section is a projection over the device-trust Remote namespace; it owns no device state. Activation reads Host capabilities; the device roster is read only when the page opens.
 
 ### Registration
 
-The browser plugin registers one localized `settings.section` contribution with id `devices` (nav order 10, between General and Plugins). Registration uses `ctx.slots.inject()`, so it follows late section declaration, redeclaration, locale changes, and teardown without importing the settings shell. The registration re-registers on `connection.generation` changes, gating on the `device.list.v1` capability and swapping to a fresh component identity so React discards the previous Host's row state.
+The browser plugin registers one localized `settings.section` contribution with id `devices` (nav order 10, between General and Plugins). Registration uses `ctx.slots.inject()`, so it follows late section declaration, redeclaration, locale changes, and teardown without importing the settings shell. The registration re-registers on `connection.generation` changes, refreshing `host.describe()` and requiring its `device.list.v1` capability and swapping to a fresh component identity so React discards the previous Host's row state.
 
 ### Remote calls
 

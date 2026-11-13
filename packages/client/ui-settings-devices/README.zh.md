@@ -25,7 +25,7 @@ kind: "package-reference"
 <a id="use-this-package"></a>
 ## 使用本包
 
-仅当当前连接声明 `device.list.v1` 能力时才会注册该分区。连接替换会撤下分区、中止其读取并丢弃行状态（重命名草稿、打开的确认）；恢复时挂载新页面并懒读取当前宿主，前一页面的迟到响应或被保留的回调无法更新或触达替换后的宿主。
+`host.describe()` 确认 `device.list.v1` 后才显示该分区。连接替换会撤下分区，使在途读取失效并丢弃行状态（重命名草稿、打开的确认）。只有最新的成功描述可以恢复分区；发现失败时保持不可用。被保留的回调无法启动新的操作，迟到响应也无法更新替换后的页面。
 
 每个 Remote 回调都保留原始 `RemoteError`，包括此 Client 未知的错误码。行内与页面失败按 [`classifyRemoteFailure`](../../typert/protocol/README.zh.md) 选择的本地化文案呈现——例如 `device/admission-expired` 读作身份验证失败，`device/not-found` 读作目标授权已不存在——未分类的错误码回退为原始诊断文本。
 
@@ -49,11 +49,11 @@ kind: "package-reference"
 <details>
 <summary>实现 internals — 点击展开</summary>
 
-该分区是 device-trust Remote 命名空间上的投影；它不持有设备状态，插件激活期间也不读取 Remote。
+该分区是 device-trust Remote 命名空间上的投影；它不持有设备状态。激活时读取宿主能力；设备列表仅在打开页面时读取。
 
 ### 注册
 
-浏览器插件注册一个 id 为 `devices` 的本地化 `settings.section` 贡献（导航顺序 10，位于通用与插件之间）。注册使用 `ctx.slots.inject()`，因此跟随分区的延迟声明、重新声明、语言切换与卸载，而无需导入设置外壳。注册在 `connection.generation` 变化时重新注册，以 `device.list.v1` 能力为门，并换成新的组件标识，让 React 丢弃前一宿主的行状态。
+浏览器插件注册一个 id 为 `devices` 的本地化 `settings.section` 贡献（导航顺序 10，位于通用与插件之间）。注册使用 `ctx.slots.inject()`，因此跟随分区的延迟声明、重新声明、语言切换与卸载，而无需导入设置外壳。注册在 `connection.generation` 变化时重新注册，刷新 `host.describe()` 并要求其声明 `device.list.v1` 能力，并换成新的组件标识，让 React 丢弃前一宿主的行状态。
 
 ### Remote 调用
 

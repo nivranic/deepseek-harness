@@ -1,5 +1,5 @@
 ---
-description: "Saved-Host roster section in Web Settings for the dsh web client: local roster rows with a switch action into the section 28 seam, current selection marking, page-Host return, local renaming, and cross-session selection persistence."
+description: "Browser-local Host bookmarks with confirmed current identity, local names, and manual ordering."
 kind: "package-reference"
 ---
 
@@ -9,7 +9,7 @@ English | [中文](README.zh.md)
 
 ## Summary
 
-The **Hosts** section shows the page’s saved Hosts: presented name (the client’s choice, else the descriptor’s), platform, origin and last-connected time. Same-origin bookmarks support persisted in-page selection; other origins open in their own Host pages and offer no in-page switch. In-page sessions have no routable origin.
+The **Hosts** section keeps bookmarks for Hosts described to this browser origin. It preserves local names and manual order, marks the current Host only after successful discovery, and opens other Hosts in their own pages. Bookmarks grant no access.
 
 ## Table of Contents
 
@@ -25,57 +25,54 @@ The **Hosts** section shows the page’s saved Hosts: presented name (the client
 <a id="use-this-package"></a>
 ## Use this package
 
-The section is always available: the roster is local page state, so it registers without any Host capability and survives connection replacement with its rows intact.
+Open **Hosts** in Settings. **Rename** saves a trimmed, non-empty local name; **Reset name** restores the Host's display name. **Move up** and **Move down** persist the displayed order. **Forget** removes a bookmark without disconnecting the current Host.
 
-### Switching Hosts
+Other HTTP origins offer **Open Host page**, which opens a separate tab. If authorization is required, use that Host's current launch link. This page always uses its own Host connection; there is no in-page transport switch.
 
-Open **Hosts** in Settings. **Switch** on a same-origin row calls `connection.selectSavedHost`; the selected row is marked, and **Back to the page Host** clears the selection and persisted id. **Rename** edits the row’s local name — an empty draft is rejected, saving trims; **Reset name** returns the row to its descriptor facts once a custom name exists. **Forget** removes a bookmark and its persisted selection without disconnecting the active Host. Cross-origin rows offer a separate page link only; use that Host’s current launch link if its page requires authorization. Authorization does not grant the current page cross-origin API access.
+Discovery refreshes on each connection generation. A failed or superseded response cannot mark a Host current, and existing bookmarks remain available. Forgetting the current bookmark hides its row until a later successful discovery records it again.
 
 -----
 
 <a id="understand-the-implementation"></a>
 ## Understand the implementation
 
-One React section plus its registration; all data is local. The feature imports Connection types only and invokes the injected service for selection, page-Host return, renaming and forgetting; Connection owns selection persistence.
+<details>
+<summary>Implementation internals — click to expand</summary>
 
-- **The face** — framework selector hooks observe the saved roster and `connection.target`. External selections, renames and removals update the section immediately. Switching uses [`connection.selectSavedHost`](../connection/README.md); an unknown id leaves the connection and persistence unchanged.
-- **Persistence** — Connection restores same-origin selections before the carrier starts, clearing unusable persisted selections while retaining bookmarks; the [Connection README](../connection/README.md) owns storage rules.
+The package owns its bookmark store and exposes observations through Slot-bound hooks. Connection supplies generation notifications; generated `host.describe()` supplies identity facts. The newest discovery response may update the store; unloading invalidates pending replies.
+
+The store retains the existing `dsh-saved-hosts.v1` browser-storage format. It preserves custom names and explicit order when refreshing identity facts, validates persisted rows, and drops invalid origins. The obsolete selected-Host key is not read or changed.
+
+</details>
 
 -----
 
 <a id="further-exploration"></a>
 ## Further Exploration
 
-- [`dsh-client-connection`](../connection/README.md) owns the roster, the retarget seam, and the boot application of the persisted selection.
-- The [Gateway stream carrier](../../api/gateway/README.md) builds every physical WebSocket URL from the same selection.
+- [Connection](../connection/README.md) — the page's transport and connection generations.
+- [Host description](../../api/host-description/README.md) — identity and supported operations.
 
 -----
 
 <a id="model-experience"></a>
 ## Model Experience
 
-None, as the package is a browser-side Host-roster projection that registers nothing model-facing.
+None, as the package manages browser-local bookmarks without registering model-facing behavior.
 
 #### KV Cache effect
 
-None; this package neither assembles nor sends a provider request.
+None; this package neither assembles nor sends a model request.
 
 ## Known Limitations and Deferred Work
 
 <a id="known-limitations-and-deferred-work"></a>
 
-- Browser storage can be unavailable or full; the live selection remains usable, but a reload may lose the change.
-- The local Web carrier does not support in-page cross-origin connections. Native Remote access requires a separate Connection Source with Device Trust.
-- Manual reordering moves one row at a time through Move up/Move down; the manual arrangement is per-profile in browser storage and is not synced across devices. Renames never move a row.
-
-No runtime invariant companion is published: this section renders Connection-owned roster and selection state without maintaining an independent Host projection.
+- The roster retains eight bookmarks, ordered by explicit position before connection recency.
+- Browser storage is local to an origin and may be unavailable or full; in that case changes remain in memory and may be lost on reload.
+- Discovery does not probe bookmarked Hosts. Opening another Host requires its own authorization.
 
 <a id="dev-note"></a>
 ### Dev Note
 
-<details>
-<summary>Working context for maintainers — click to expand</summary>
-
-The section is the section 28 switching surface; the seam and carrier adoption live in `dsh-client-connection` and `dsh-api-gateway` and carry their own records.
-
-</details>
+None.

@@ -35,7 +35,7 @@ A fork carrying a `clientMutationId` records one durable `session/forked` receip
 
 The independent `session.search.v1` and `session.attachment.v1` capabilities admit content search and durable image reads. API Gateway rejects an unadvertised operation before carrier dispatch and cancels pending reads with their Connection generation. Attachment authorization still requires a reference in the addressed Session log.
 
-Client child catalogs require `subagent.catalog.v1`. Connection generation withdrawal clears catalog contents, open menus, pending refresh ownership and parent-availability hints while retaining durable addresses and resident selected Sessions. Late catalog replies cannot publish data or remove replacement requests. Addressed child prompt and interrupt replies also retain their originating Host and cannot publish stale errors or acknowledgement state after replacement.
+Client child directories read the parent Session's `subagentCatalog` projection. Discovery uses Session projection transport and does not require a separate subagent listing Remote or capability.
 
 `session.rename-at.v1` exposes `renameAt(SessionRenameAtRequest)` with `sessionId`, raw `title`, and `expectedRevision` (title event seq or null). The title owner rejects a changed baseline with `session/revision-conflict`, except that an identical normalized user-pinned title returns its original acceptance. `ISession.prepareRename()` captures that revision before editing and retains it on retries; missing projection data fails without sending. Hosts without the capability and direct `rename()` calls retain unconditional rename semantics. This is conditional mutation safety, not a durable mutation-id receipt ledger.
 

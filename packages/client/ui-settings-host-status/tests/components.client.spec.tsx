@@ -1,4 +1,5 @@
 // @vitest-environment jsdom
+import type { GlobalStandardProps } from '@deepseek-ai/dsh-client-ui-slots'
 import { cleanup, fireEvent, render, screen, waitFor, within } from '@testing-library/react'
 import { afterEach, describe, expect, it } from 'vitest'
 import type { HealthComponent, HealthSnapshot } from '@deepseek-ai/dsh-api-host-diagnostics/client'
@@ -24,7 +25,7 @@ const greenComponents: Record<HostStatusComponentName, HealthComponent> = {
 }
 
 function sectionProps(health: () => Promise<HealthSnapshot>): HostStatusSectionProps {
-  return { close: () => {}, t, health } as unknown as HostStatusSectionProps
+  return { ...({} as GlobalStandardProps), close: () => {}, t, health }
 }
 
 /** An all-green snapshot with `ready` true. */

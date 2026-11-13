@@ -47,6 +47,7 @@ export const VIEWER_ENDPOINT_CLASSES = {
   'commands/list': 'reader-session-read', // the page lists slash commands for a visible Session (also granted globally)
   'fileUploads/upload': 'reader-session-read', // the reader attaches a file to a Session it can see; visibility alone decides
   'fileUploads/uploadDedupe': 'reader-session-read', // the reader checks whether an encoded digest already exists before re-uploading; same visibility decides
+  'fileUploads/uploadImage': 'reader-session-read', // staging an image uses the same Session visibility as staging a file
   'session/control': 'reader-session-read', // the page follows a visible Session control stream (also granted globally)
   'session/list': 'reader-session-read', // the page lists Sessions (also granted globally)
   'goals/get': 'reader-session-read', // the page reads the goal of a visible Session
@@ -113,6 +114,19 @@ export const VIEWER_ENDPOINT_CLASSES = {
   'credentials/set': 'owner-only', // owner credentials; secrets never reach a reader
   'credentials/unset': 'owner-only', // owner credentials; secrets never reach a reader
   'settings/describe': 'owner-only', // owner settings
+  // Device administration and Host diagnostics are not delegated by a Session share.
+  'deviceTrust/admitDevice': 'owner-only',
+  'deviceTrust/issuePairing': 'owner-only',
+  'deviceTrust/listDevices': 'owner-only',
+  'deviceTrust/redeemPairing': 'owner-only',
+  'deviceTrust/renameDevice': 'owner-only',
+  'deviceTrust/revokeDevice': 'owner-only',
+  'deviceTrust/revokeAllDevices': 'owner-only',
+  'hostDiagnostics/health': 'owner-only',
+  'hostDiagnostics/describe': 'owner-only',
+  'hostDiagnostics/supportBundle': 'owner-only',
+  'nativeRemote/describe': 'owner-only',
+  'nativeRemote/httpRequestBudget': 'owner-only',
   'settings/mutate': 'owner-only', // owner settings
   'settings/openSettingsDocument': 'owner-only', // owner settings
   'settings/replace': 'owner-only', // owner settings

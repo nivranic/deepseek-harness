@@ -29,10 +29,10 @@ declare module '@deepseek-ai/dsh-client-ui-slots' {
 }
 
 /** Dictionary namespace owned by this plugin. */
-export const NS = 'settings.hostStatus'
+const NS = 'settings.hostStatus'
 
 /** Services required by the Settings registration and the Remote face. */
-export const inject = ['slots', 'locale', 'remote']
+export const inject = ['slots', 'locale', 'remote', 'remote.hostDiagnostics']
 
 /**
  * Contribute the Host status section. The registration is unconditional:
@@ -60,7 +60,7 @@ export function apply(ctx: ClientContext): void {
     return ctx.slots.register({
       name: 'settings.section',
       id: 'host-status',
-      order: 16,
+      order: 17,
       label: () => t('nav'),
       locale: NS,
       inject: () => injectFace,

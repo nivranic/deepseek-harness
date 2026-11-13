@@ -5,6 +5,14 @@ import productAnalyticsRemote from '@deepseek-ai/dsh-client-product-analytics/re
 export type {} from '@deepseek-ai/dsh-client-product-analytics/remote'
 import hostDescriptionRemote from '@deepseek-ai/dsh-api-host-description/remote'
 export type {} from '@deepseek-ai/dsh-api-host-description/remote'
+import deviceTrustRemote from '@deepseek-ai/dsh-api-device-trust/remote'
+export type {} from '@deepseek-ai/dsh-api-device-trust/remote'
+import nativeRemote from '@deepseek-ai/dsh-api-native-remote/remote'
+export type {} from '@deepseek-ai/dsh-api-native-remote/remote'
+import hostDiagnosticsRemote from '@deepseek-ai/dsh-api-host-diagnostics/remote'
+export type {} from '@deepseek-ai/dsh-api-host-diagnostics/remote'
+export type { DeviceId, DeviceView, DeviceRole, PairingIssuance } from '@deepseek-ai/dsh-api-device-trust/types'
+export type { NativeRemoteInfo, NativePairingPayload } from '@deepseek-ai/dsh-api-native-remote/types'
 import agentPresetsRemote from '@deepseek-ai/dsh-agent-preset-registry/remote'
 import userQuestionsRemote from '@deepseek-ai/dsh-user-questions/remote'
 import commandsRemote from '@deepseek-ai/dsh-commands/remote'
@@ -194,6 +202,7 @@ export async function apply(ctx: Context): Promise<() => Promise<void>> {
     for (const contribution of [
       // Host facts mount first: admission layers describe() them on every reset.
       hostDescriptionRemote,
+      deviceTrustRemote, nativeRemote, hostDiagnosticsRemote,
       productAnalyticsRemote, agentPresetsRemote, commandsRemote, settingsControllerRemote, accountRemote,
       goalsRemote, llmRemote, dynamicRemote, scheduleRemote,
       pluginInventoryRemote, pluginManagerRemote, pluginMarketRemote, pluginRegistryProbeRemote, toolResultsRemote,

@@ -3,53 +3,41 @@
 # After editing either side, bring the other along and re-record with:
 #   pnpm run verify-translation-pairing --write packages/client/ui-settings-telemetry/README.md
 /:
-  en: 8b734c2217a1f090
-  zh: 0af26ac6e1c16b16
+  en: 9baea26a006448ce
+  zh: a1aff63e9495d61e
 /deepseek-ai-dsh-client-ui-settings-telemetry:
   en: a3dc8c7cbf25abde
   zh: 538ec2725528625b
 /deepseek-ai-dsh-client-ui-settings-telemetry/summary:
-  en: a26009faf94dd777
-  zh: 2edfd24bf10a33da
+  en: 337a649179b84ea8
+  zh: d42a54c068842466
 /deepseek-ai-dsh-client-ui-settings-telemetry/table-of-contents:
   en: d152484eb41ac6b4
   zh: 09388d293f9be9cb
 /deepseek-ai-dsh-client-ui-settings-telemetry/use-this-package:
-  en: 084c2924cf27a373
-  zh: e686575ab2408482
-/deepseek-ai-dsh-client-ui-settings-telemetry/use-this-package/what-each-category-covers:
-  en: 5774909d54e19165
-  zh: 14e3ad602f0e0d89
-/deepseek-ai-dsh-client-ui-settings-telemetry/use-this-package/when-changes-take-effect:
-  en: 7075943de67d986c
-  zh: 74d06a0bc6dbfd55
-/deepseek-ai-dsh-client-ui-settings-telemetry/use-this-package/read-only-documents:
-  en: ca689025fc7e6a8c
-  zh: 4a1404df59305dc4
+  en: 1c036ce78c75fc2d
+  zh: b67caab086b5b778
+/deepseek-ai-dsh-client-ui-settings-telemetry/use-this-package/data-categories:
+  en: 516a471ceb0609e1
+  zh: 2a3c533110884b60
+/deepseek-ai-dsh-client-ui-settings-telemetry/use-this-package/applying-changes:
+  en: df470da06353c02e
+  zh: 61a7793870f2be42
 /deepseek-ai-dsh-client-ui-settings-telemetry/understand-the-implementation:
-  en: 45fe52cb00ab3006
-  zh: 17e4a3a92bbe778b
-/deepseek-ai-dsh-client-ui-settings-telemetry/understand-the-implementation/registration:
-  en: 81bf3197c7234b17
-  zh: c70020cb70786c31
-/deepseek-ai-dsh-client-ui-settings-telemetry/understand-the-implementation/reads-and-writes:
-  en: da3591b5d3181269
-  zh: 5c9341aeec4171de
-/deepseek-ai-dsh-client-ui-settings-telemetry/understand-the-implementation/rendering:
-  en: 545b81a07191cace
-  zh: 027151d8671c89fa
+  en: e231b072273a15b7
+  zh: 800d1edbc1c952e9
 /deepseek-ai-dsh-client-ui-settings-telemetry/further-exploration:
-  en: 90e4a971272c7102
-  zh: 7accb4f3805747be
+  en: 5fda77f67fff19b5
+  zh: f921b359409cf33f
 /deepseek-ai-dsh-client-ui-settings-telemetry/model-experience:
-  en: 3061726b5a98023e
-  zh: 6023a0f7d676e7cc
+  en: ec846656b350fa62
+  zh: f939b127367208f5
 /deepseek-ai-dsh-client-ui-settings-telemetry/model-experience/kv-cache-effect:
-  en: ca75c51c89c2c9b0
-  zh: c4a69d4d8b0599c2
+  en: 4ddf239cb383bcdf
+  zh: 9ddc299362df3aba
 /deepseek-ai-dsh-client-ui-settings-telemetry/known-limitations-and-deferred-work:
-  en: 6ad660b6015c38eb
-  zh: 60208986eaa81131
+  en: 6472b2cb0e6859fe
+  zh: fdb51b77834fbc7c
 /deepseek-ai-dsh-client-ui-settings-telemetry/known-limitations-and-deferred-work/dev-note:
-  en: 943070c8b6938a35
-  zh: 423ecfbd82764b99
+  en: 0a1253c6f7b5e8b9
+  zh: 9f56528562c7c914

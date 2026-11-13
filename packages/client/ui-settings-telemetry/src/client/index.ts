@@ -1,14 +1,10 @@
 /** Five-switch telemetry consent section registered into Web Settings. */
 
 import type {} from '@deepseek-ai/dsh-client-locale/client'
-import { createElement } from 'react'
 import type { Context as ClientContext } from '@deepseek-ai/cordis'
-import type { SettingsNamespaceView } from '@deepseek-ai/dsh-api-remotes/client'
-import type { TelemetryConsent } from '@deepseek-ai/dsh-session-telemetry'
-import type { SettingsScope } from '@deepseek-ai/dsh-client-ui-settings/client'
 import type {} from '@deepseek-ai/dsh-client-ui-settings/client'
 import type {} from '@deepseek-ai/dsh-client-ui-renderer/client'
-import { TelemetrySettingsSection, type TelemetrySettingsSectionInjected, type TelemetrySettingsSectionProps } from './TelemetrySettingsSection.tsx'
+import { TelemetrySettingsSection, type TelemetrySettingsSectionInjected, type TelemetrySettingsValue } from './TelemetrySettingsSection.tsx'
 import { en, zh, type TelemetrySettingsLocaleKey } from './locales.ts'
 
 export type { TelemetrySettingsSectionInjected, TelemetrySettingsSectionProps } from './TelemetrySettingsSection.tsx'
@@ -22,63 +18,38 @@ declare module '@deepseek-ai/dsh-client-ui-slots' {
 }
 
 /** Dictionary namespace owned by this plugin. */
-export const NS = 'settings.telemetry'
+const NS = 'settings.telemetry'
 
 /**
- * Settings namespace the Host telemetry backend registers; absent when no
- * backend is composed, which keeps the section unregistered.
+ * Loader entry owned by the telemetry backend in the shipped profiles.
  */
-const TELEMETRY_CONSENT_NAMESPACE = 'telemetry-consent'
+const TELEMETRY_ENTRY = 'session-telemetry-otel'
 
-/** When the Host owner applies committed consent changes, as the settings seam reports it. */
-type SettingsNamespaceApplies = SettingsNamespaceView['applies']
-
-/** Services required by the Settings registration and the settings scope service. */
-export const inject = ['slots', 'locale', 'settingsScope']
+/** Services required by the Settings registration and shared configuration forms. */
+export const inject = ['slots', 'locale', 'configForms']
 
 /**
  * Contribute the telemetry consent section. The contribution follows the
- * namespace in the settings describe mirror: registered only while a live Host
- * reports it, re-registered when its applies mode changes, withdrawn when it
- * disappears.
+ * backend entry in the shared settings mirror and disappears when that entry
+ * is no longer exposed.
  * @param ctx - client root context.
  */
 export function apply(ctx: ClientContext): void {
   ctx.effect(() => ctx.locale.register(NS, { zh, en }), 'ui-settings-telemetry: dictionaries')
 
   const t = ctx.locale.bind(NS)
-  const describe = ctx.settingsScope.describe()
-  const scope: SettingsScope<TelemetryConsent> = ctx.settingsScope.bind({ namespace: TELEMETRY_CONSENT_NAMESPACE })
-
-  ctx.slots.inject('settings.section', () => {
-    let remove: (() => void) | undefined
-    let registered: 'absent' | SettingsNamespaceApplies = 'absent'
-    const refresh = (): void => {
-      const view = describe.getSnapshot().view?.namespaces.find(row => row.ns === TELEMETRY_CONSENT_NAMESPACE)
-      const state: 'absent' | SettingsNamespaceApplies = view === undefined ? 'absent' : view.applies
-      if (state === registered) return
-      registered = state
-      remove?.()
-      remove = undefined
-      if (view === undefined) return
-      const injectFace: TelemetrySettingsSectionInjected = {
-        applies: view.applies,
-        hooks: { consent: scope },
-        set: (kind, value) => scope.set(kind, value),
-      }
-      // A new component identity discards the previous document's gesture state.
-      const TelemetryForDocument = (props: TelemetrySettingsSectionProps) => createElement(TelemetrySettingsSection, props)
-      remove = ctx.slots.register({
-        name: 'settings.section',
-        id: 'telemetry',
-        order: 20,
-        label: () => t('nav'),
-        locale: NS,
-        inject: () => injectFace,
-      }, TelemetryForDocument)
-    }
-    refresh()
-    const stop = describe.subscribe(refresh)
-    return () => { stop(); remove?.() }
-  })
+  const form = ctx.configForms.get<TelemetrySettingsValue>(TELEMETRY_ENTRY)
+  const face: TelemetrySettingsSectionInjected = {
+    hooks: { consent: form },
+    set: (kind, value) => form.mutate([{ op: 'set', path: ['consent', kind], value }]),
+  }
+  ctx.effect(() => ctx.configForms.whileServed([TELEMETRY_ENTRY], () => ctx.slots.inject('settings.section', () =>
+    ctx.slots.register({
+      name: 'settings.section',
+      id: 'telemetry',
+      order: 21,
+      label: () => t('nav'),
+      locale: NS,
+      inject: () => face,
+    }, TelemetrySettingsSection))), 'ui-settings-telemetry: section')
 }

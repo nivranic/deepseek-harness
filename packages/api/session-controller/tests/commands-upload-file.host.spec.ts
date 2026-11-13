@@ -264,6 +264,47 @@ describe('Session file uploads', () => {
     expect(saveImages).toHaveBeenCalledTimes(1)
   })
 
+  it('stages a canonical encoded image for an ordinary prompt', async () => {
+    const { uploads, agent, controller, saveImages, followup } = await uploadHarness()
+    saveImages.mockResolvedValueOnce([STAGED_IMAGE])
+    const receipt = await uploads.uploadImage(agent, {
+      data: 'AQIDBA==', mediaType: 'image/png', name: 'shot.png',
+    }, new AbortController().signal)
+    expect(saveImages).toHaveBeenCalledWith([{ data: Uint8Array.of(1, 2, 3, 4), mediaType: 'image/png', name: 'shot.png' }])
+    expect(uploads.resolve(agent, receipt.receiptId)).toEqual({ type: 'image', attachment: STAGED_IMAGE, encodedBytes: 4 })
+    await controller.prompt(promptRequest([{ type: 'file', receiptId: receipt.receiptId }]), USER_SOURCE)
+    expect((followup.mock.calls[0]?.[0] as UserMessage).content).toEqual([{ type: 'image', attachment: STAGED_IMAGE }])
+  })
+
+  it('rejects non-canonical encoded images and subagent uploads before storage', async () => {
+    const ordinary = await uploadHarness()
+    await expect(ordinary.uploads.uploadImage(ordinary.agent, {
+      data: 'AQIDBA', mediaType: 'image/png',
+    }, new AbortController().signal)).rejects.toMatchObject({ code: 'session/attachment-invalid' })
+    expect(ordinary.saveImages).not.toHaveBeenCalled()
+    const child = await uploadHarness('subagent')
+    await expect(child.uploads.uploadImage(child.agent, {
+      data: 'AQIDBA==', mediaType: 'image/png',
+    }, new AbortController().signal)).rejects.toMatchObject({ code: 'subagent/attachment-invalid' })
+    expect(child.saveImages).not.toHaveBeenCalled()
+  })
+
+  it('withholds an encoded image receipt after cancellation before or during storage', async () => {
+    const { uploads, agent, saveImages } = await uploadHarness()
+    const abort = new AbortController()
+    abort.abort()
+    await expect(uploads.uploadImage(agent, { data: 'AQIDBA==', mediaType: 'image/png' }, abort.signal)).rejects.toThrow()
+    expect(saveImages).not.toHaveBeenCalled()
+    const duringStorage = new AbortController()
+    const stored = Promise.withResolvers<readonly ImageAttachmentRef[]>()
+    saveImages.mockReturnValueOnce(stored.promise)
+    const uploading = uploads.uploadImage(agent, { data: 'AQIDBA==', mediaType: 'image/png' }, duringStorage.signal)
+    await vi.waitFor(() => { expect(saveImages).toHaveBeenCalledOnce() })
+    duringStorage.abort()
+    stored.resolve([STAGED_IMAGE])
+    await expect(uploading).rejects.toBe(duringStorage.signal.reason)
+  })
+
   it('refuses an uploaded image for a model without image input', async () => {
     const { controller, uploads, followup, saveImages, resolveModelInfo } = await uploadHarness()
     saveImages.mockResolvedValueOnce([STAGED_IMAGE])

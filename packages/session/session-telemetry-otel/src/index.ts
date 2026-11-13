@@ -10,7 +10,7 @@
 
 import { createRequire } from 'node:module'
 import z from '@deepseek-ai/schemastery'
-import type { Context } from '@deepseek-ai/cordis'
+import type { Context, Volatile } from '@deepseek-ai/cordis'
 import type {} from '@deepseek-ai/dsh-command-feedback'
 import type {} from '@deepseek-ai/dsh-message-feedback'
 import { Session, type SessionEvent } from '@deepseek-ai/dsh-session'
@@ -95,12 +95,12 @@ export interface Config {
   /**
    * Section 44 per-kind telemetry consent: one boolean per data kind, every
    * kind defaulting to off, no master switch. The `sessionTelemetry` kind
-   * gates the feedback pipeline — withheld consent keeps every upload local
-   * exactly like `DISABLED`; `mode` remains the upload policy. The other
+   * gates new feedback captures; already authorized batches may finish after
+   * consent is withdrawn. `mode` remains the upload policy. The other
    * kinds reserve the section 44 vocabulary for their exits; this backend
    * has no channel for them yet, so opting in changes nothing here.
    */
-  consent?: Partial<TelemetryConsent>
+  consent?: Volatile<Partial<TelemetryConsent>>
   /**
    * Explicit SDK HTTP transport settings, including optional routing headers.
    * Ambient credentials are not inherited. URL is required while uploading.
@@ -129,9 +129,9 @@ export interface Config {
  * processor settings use the reporter's accepted option types, which exclude
  * self-observability metering.
  */
-export const Config: z<Config> = z.object({
+export const Config: z<Omit<Config, 'consent'> & { consent?: Partial<TelemetryConsent> }, Config> = z.object({
   mode: z.union(Object.values(SessionTelemetryMode)).default(DEFAULT_TELEMETRY_MODE),
-  consent: buildTelemetryConsentSchema().default(TELEMETRY_CONSENT_OFF),
+  consent: buildTelemetryConsentSchema().default(TELEMETRY_CONSENT_OFF).volatile(),
   exporter: z.any(),
   processor: z.any(),
   shutdownTimeoutMillis: z.number(),
@@ -177,16 +177,20 @@ export class OpenTelemetrySessionBackend extends SessionTelemetryBackend {
   static inject = ['sessions', 'otel']
   static Config = Config
 
-  private readonly provider: SessionLogReporter | undefined
+  private provider: SessionLogReporter | undefined
   private readonly shutdownTimeoutMillis: number
   override readonly sharing: SessionTelemetrySharingStatus
-  override readonly consent: TelemetryConsent
+  private readonly consentRef: Config['consent']
+
+  override get consent(): TelemetryConsent {
+    return resolveTelemetryConsent(this.consentRef?.get())
+  }
 
   constructor(ctx: Context, config: Config) {
     const mode = resolveMode(config.mode)
     super(ctx)
     this.sharing = sharingStatusFor(mode)
-    this.consent = resolveTelemetryConsent(config.consent)
+    this.consentRef = config.consent
     if (mode === SessionTelemetryMode.DISABLED) {
       this.provider = undefined
       this.shutdownTimeoutMillis = DEFAULT_SHUTDOWN_TIMEOUT_MILLIS
@@ -195,17 +199,6 @@ export class OpenTelemetrySessionBackend extends SessionTelemetryBackend {
       })
       return
     }
-    if (!telemetryKindAllowed(this.consent, 'sessionTelemetry')) {
-      // §44 default off: withheld sessionTelemetry consent keeps every upload
-      // local with the same containment as `DISABLED`; sharing keeps naming the mode.
-      this.provider = undefined
-      this.shutdownTimeoutMillis = DEFAULT_SHUTDOWN_TIMEOUT_MILLIS
-      ctx.on('session/event', (session, event) => {
-        if (isFeedback(session, event)) ctx.logger.warn(CONSENT_WITHHELD_WARNING)
-      })
-      return
-    }
-
     const url = config.exporter?.url
     if (url === undefined || url.length === 0) {
       throw new Error('session-telemetry-otel: exporter.url is required (the full OTLP logs endpoint)')
@@ -230,51 +223,62 @@ export class OpenTelemetrySessionBackend extends SessionTelemetryBackend {
       throw new Error(`session-telemetry-otel: shutdownTimeoutMillis must be a positive finite number no greater than ${MAX_TIMER_DELAY_MILLIS}, got ${String(shutdownTimeoutMillis)}`)
     }
     this.shutdownTimeoutMillis = shutdownTimeoutMillis
-    const { version } = createRequire(import.meta.url)('../package.json') as { version: string }
-    const reporter = ctx.otel.createSessionLogReporter({
-      scope: { name: '@deepseek-ai/dsh-session-telemetry-otel', version },
-      exporter: { ...config.exporter, url },
-      ...(config.processor === undefined ? {} : { processor: config.processor }),
-      ...(config.maxRequestBytes === undefined ? {} : { maxRequestBytes: config.maxRequestBytes }),
-      resourceAttributes: {
-        'service.name': APP_IDENTITY.product,
-        'service.version': APP_IDENTITY.version,
-        'user.id': getOrCreateAnonymousUserId(),
-      },
-      onFailure: (message, error) => { ctx.logger.warn(message, error) },
-    })
-    this.provider = reporter
-    const enqueue: SessionTelemetrySink['emit'] = (record) => {
-      if (record.sourceEvent === undefined) {
-        ctx.logger.warn('Session log record withheld: redaction removed sourceEvent')
-        return
-      }
-      reporter.reportSessionLog({
-        sessionId: record.sourceEvent.sessionId,
-        event: { ...record.sourceEvent.envelope, data: record.body },
-        severityNumber: SEVERITY[record.severity],
-        attributes: record.attributes,
+    let coordinator: SessionTelemetryCoordinator | undefined
+    const captureCoordinator = (): SessionTelemetryCoordinator => {
+      if (coordinator !== undefined) return coordinator
+      const { version } = createRequire(import.meta.url)('../package.json') as { version: string }
+      const reporter = ctx.otel.createSessionLogReporter({
+        scope: { name: '@deepseek-ai/dsh-session-telemetry-otel', version },
+        exporter: { ...config.exporter, url },
+        ...(config.processor === undefined ? {} : { processor: config.processor }),
+        ...(config.maxRequestBytes === undefined ? {} : { maxRequestBytes: config.maxRequestBytes }),
+        resourceAttributes: {
+          'service.name': APP_IDENTITY.product,
+          'service.version': APP_IDENTITY.version,
+          'user.id': getOrCreateAnonymousUserId(),
+        },
+        onFailure: (message, error) => { ctx.logger.warn(message, error) },
       })
+      this.provider = reporter
+      const enqueue: SessionTelemetrySink['emit'] = (record) => {
+        if (record.sourceEvent === undefined) {
+          ctx.logger.warn('Session log record withheld: redaction removed sourceEvent')
+          return
+        }
+        reporter.reportSessionLog({
+          sessionId: record.sourceEvent.sessionId,
+          event: { ...record.sourceEvent.envelope, data: record.body },
+          severityNumber: SEVERITY[record.severity],
+          attributes: record.attributes,
+        })
+      }
+      const backend: SessionTelemetrySink = {
+        emit: enqueue,
+        shutdown: () => this.shutdown(),
+      }
+      coordinator = new SessionTelemetryCoordinator(ctx, backend, {
+        capture: 'on-demand',
+        includeHistory: true,
+      })
+      return coordinator
     }
-    const backend: SessionTelemetrySink = {
-      emit: enqueue,
-      shutdown: () => this.shutdown(),
-    }
-    const coordinator = new SessionTelemetryCoordinator(ctx, backend, {
-      capture: 'on-demand',
-      includeHistory: true,
-    })
+    if (telemetryKindAllowed(this.consent, 'sessionTelemetry')) captureCoordinator()
     ctx.on('session/event', (session, event) => {
       if (!isFeedback(session, event)) return
+      if (!telemetryKindAllowed(this.consent, 'sessionTelemetry')) {
+        ctx.logger.warn(CONSENT_WITHHELD_WARNING)
+        return
+      }
       // Only the canonical appended event authorizes this exact prefix.
       // oxlint-disable-next-line typescript/no-deprecated -- Existing Session history read; migration deferred.
       if (session.eventAt(event.seq) !== event) {
         ctx.logger.warn(NON_CANONICAL_EVENT_WARNING)
         return
       }
-      coordinator.captureSession(session, event.seq)
+      captureCoordinator().captureSession(session, event.seq)
     })
     ctx.on('feedback/committed', (inspection) => {
+      if (!telemetryKindAllowed(this.consent, 'sessionTelemetry')) return
       const snapshot = structuredClone(inspection)
       const committed = snapshot.events.at(-1)
       if (committed === undefined) return
@@ -283,7 +287,7 @@ export class OpenTelemetrySessionBackend extends SessionTelemetryBackend {
         'detached', ctx.sessions.messageProjections,
       )
       // fromRestore appends a lifecycle marker that this submission did not commit.
-      if (isFeedback(session, committed)) coordinator.captureSession(session, committed.seq)
+      if (isFeedback(session, committed)) captureCoordinator().captureSession(session, committed.seq)
     })
   }
 

@@ -344,6 +344,16 @@ registerAgentResolver(resolve: AgentResolver): () => void
 @Remote('upload') async upload(agent: Agent, request: EncodedFileUploadRequest, signal: AbortSignal): Promise<FileUploadValue>
 
 /**
+ * Normalize one encoded image and stage its reference for the receiving Session.
+ * Cancellation prevents a receipt; bytes already stored remain content-addressed.
+ * @param agent - receiving Agent resolved from the Remote Agent scope.
+ * @param request - canonical base64 image, declared media type, and optional display name.
+ * @param signal - cancellation checked before storage and receipt publication.
+ * @returns the Session-owned receipt and normalized image reference.
+ */
+@Remote('uploadImage') async uploadImage(agent: Agent, request: EncodedImageUploadRequest, signal: AbortSignal): Promise<ImageUploadValue>
+
+/**
  * Stage one already-stored file by digest without re-receiving its bytes.
  * The digest only locates the object: the Host re-verifies the stored bytes
  * before issuing a receipt. A missing or corrupt object refuses with

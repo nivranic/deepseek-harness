@@ -1,15 +1,17 @@
 // @vitest-environment jsdom
 import { Context, Service } from '@deepseek-ai/cordis'
-import { afterEach, describe, expect, it, vi } from 'vitest'
+import { afterEach, describe, expect, it, onTestFinished, vi } from 'vitest'
 import { cleanup } from '@testing-library/react'
 import { LocaleRuntime } from '@deepseek-ai/dsh-client-locale/client'
 import { SlotRegistry } from '@deepseek-ai/dsh-client-ui-renderer/client'
 import { resolveSlotLabel } from '@deepseek-ai/dsh-client-ui-slots'
 import { RemoteError, usePinnedBrowserLanguages } from '@deepseek-ai/dsh-client-test-runtime'
-import { apply, inject, NS } from '../src/client/index.ts'
+import { apply, inject } from '../src/client/index.ts'
 import type { DevicesSettingsSectionInjected } from '../src/client/DevicesSettingsSection.tsx'
 import { apply as hostApply } from '../src/index.ts'
-import type { NativeRemoteInfo, DeviceRole } from '@deepseek-ai/dsh-api-remotes/client'
+import type { NativeRemoteInfo, DeviceRole, HostDescriptor, HostId, RemoteResult } from '@deepseek-ai/dsh-api-remotes/client'
+
+const NS = 'settings.devices'
 
 usePinnedBrowserLanguages('zh-CN')
 afterEach(cleanup)
@@ -22,6 +24,7 @@ type MutationResult = { readonly ok: true; readonly value: unknown } | { readonl
 
 async function bench(capabilities: string[] = ['device.list.v1']) {
   const ctx = new Context()
+  onTestFinished(async () => { await ctx.fiber.dispose() })
   await ctx.plugin(SlotRegistry).await()
   const locale = new LocaleRuntime(ctx)
   ctx.provide('locale', locale)
@@ -31,13 +34,22 @@ async function bench(capabilities: string[] = ['device.list.v1']) {
     return () => { listeners.delete(listener) }
   } } })
   class RemoteService extends Service {
-    $host = { home: undefined, platform: undefined, isLoopback: true, capabilities,
-      descriptor: { hostId: 'host-fixture', displayName: 'Fixture Host' } }
+    $host = { home: undefined, isLoopback: true }
     constructor(serviceCtx: Context) {
       super(serviceCtx, 'remote')
     }
   }
-  const remote = new RemoteService(ctx)
+  new RemoteService(ctx)
+  let admission = capabilities
+  const descriptor: HostDescriptor = {
+    hostId: 'host-fixture' as HostId, displayName: 'Fixture Host', productVersion: 'fixture',
+    apiProtocolVersion: 2, sessionFormatVersion: 4, platform: 'linux', arch: 'x64',
+    runtimeMode: 'full', capabilities, transports: ['http', 'websocket'], serverTime: 0,
+  }
+  const describe = vi.fn<() => Promise<RemoteResult<HostDescriptor>>>().mockImplementation(async () => ({
+    ok: true, value: { ...descriptor, capabilities: admission },
+  }))
+  ctx.provide('remote.host', { describe })
   const list = vi.fn<() => Promise<ListResult>>().mockResolvedValue({ ok: true, value: EMPTY })
   const rename = vi.fn<(request: { deviceId: string; deviceName: string }) => Promise<MutationResult>>()
     .mockResolvedValue({ ok: true, value: undefined })
@@ -60,10 +72,10 @@ async function bench(capabilities: string[] = ['device.list.v1']) {
     issuePairing: issue,
   })
   const replace = (next = capabilities) => {
-    remote.$host = { ...remote.$host, capabilities: next }
+    admission = next
     for (const listener of listeners) listener()
   }
-  return { ctx, slots: ctx.get('slots') as SlotRegistry, locale, list, rename, revoke, revokeAll, replace, listeners, info, issue }
+  return { ctx, slots: ctx.get('slots') as SlotRegistry, locale, list, rename, revoke, revokeAll, replace, listeners, info, issue, describe, descriptor }
 }
 
 function declare(slots: SlotRegistry): () => void {
@@ -79,8 +91,9 @@ describe('ui-settings-devices browser plugin', () => {
     try {
       declare(b.slots)
       await b.ctx.plugin({ inject: [...inject], apply })
+      await vi.waitFor(() => { expect(b.slots.entries('settings.section')).toHaveLength(1) })
       const entry = b.slots.entries('settings.section')[0]!
-      const face = (entry.inject as unknown as () => DevicesSettingsSectionInjected)()
+      const face = entry.inject!() as DevicesSettingsSectionInjected & Record<string, unknown>
       await expect(face.pairing!.create('http://host.test:8443', 'owner')).resolves.toBeUndefined()
       expect(b.issue).not.toHaveBeenCalled()
       await expect(face.pairing!.create('https://host.test:8443/', 'collaborator')).resolves.toEqual({
@@ -99,8 +112,9 @@ describe('ui-settings-devices browser plugin', () => {
     try {
       declare(b.slots)
       await b.ctx.plugin({ inject: [...inject], apply })
+      await vi.waitFor(() => { expect(b.slots.entries('settings.section')).toHaveLength(1) })
       const entry = b.slots.entries('settings.section')[0]!
-      const face = (entry.inject as unknown as () => DevicesSettingsSectionInjected)()
+      const face = entry.inject!() as DevicesSettingsSectionInjected & Record<string, unknown>
       const gate = Promise.withResolvers<{ ok: true; value: NativeRemoteInfo }>()
       b.info.mockReturnValueOnce(gate.promise)
       const pending = face.pairing!.create('https://host.test:8443', 'owner')
@@ -119,7 +133,7 @@ describe('ui-settings-devices browser plugin', () => {
   })
 
   it('declares only the services used by the Settings Remote contribution', () => {
-    expect(inject).toEqual(['slots', 'locale', 'remote', 'remote.deviceTrust', 'remote.nativeRemote', 'connection'])
+    expect(inject).toEqual(['slots', 'locale', 'remote', 'remote.host', 'remote.deviceTrust', 'remote.nativeRemote', 'connection'])
   })
 
   it('registers a localized section without reading the Remote eagerly', async () => {
@@ -127,14 +141,16 @@ describe('ui-settings-devices browser plugin', () => {
     declare(b.slots)
     await b.ctx.plugin({ inject: [...inject], apply }).await()
 
+    await vi.waitFor(() => { expect(b.slots.entries('settings.section')).toHaveLength(1) })
+
     const entry = b.slots.entries('settings.section')[0]!
     expect(entry.component).not.toBeUndefined()
-    expect(entry.options).toMatchObject({ id: 'devices', order: 10 })
+    expect(entry.options).toMatchObject({ id: 'devices', order: 11 })
     expect(entry.locale).toBe(NS)
     expect(resolveSlotLabel(entry.options.label)).toBe('设备')
     expect(b.list).not.toHaveBeenCalled()
 
-    const injected = (entry.inject as unknown as () => DevicesSettingsSectionInjected)()
+    const injected = entry.inject!() as DevicesSettingsSectionInjected & Record<string, unknown>
     expect(injected.pairing).toBeUndefined()
     await expect(injected.list()).resolves.toEqual(EMPTY)
     expect(b.list).toHaveBeenCalledOnce()
@@ -155,8 +171,9 @@ describe('ui-settings-devices browser plugin', () => {
     const b = await bench()
     declare(b.slots)
     await b.ctx.plugin({ inject: [...inject], apply }).await()
+    await vi.waitFor(() => { expect(b.slots.entries('settings.section')).toHaveLength(1) })
     const entry = b.slots.entries('settings.section')[0]!
-    const injected = (entry.inject as unknown as () => DevicesSettingsSectionInjected)()
+    const injected = entry.inject!() as DevicesSettingsSectionInjected & Record<string, unknown>
     expect(injected.formatTime(0)).toBe(new Intl.DateTimeFormat('zh-CN', { dateStyle: 'medium', timeStyle: 'short' }).format(0))
     b.locale.setLocale('en')
     expect(injected.formatTime(0)).toBe(new Intl.DateTimeFormat('en', { dateStyle: 'medium', timeStyle: 'short' }).format(0))
@@ -196,17 +213,19 @@ it('withdraws the section and in-flight read immediately, rejecting retained cal
   expect(b.slots.entries('settings.section')).toHaveLength(0)
   expect(b.list).not.toHaveBeenCalled()
   b.replace(['device.list.v1'])
+  await vi.waitFor(() => { expect(b.slots.entries('settings.section')).toHaveLength(1) })
   const first = b.slots.entries('settings.section')[0]!
-  const injected = (first.inject as unknown as () => DevicesSettingsSectionInjected)()
+  const injected = first.inject!() as DevicesSettingsSectionInjected & Record<string, unknown>
   const gate = Promise.withResolvers<ListResult>()
   b.list.mockReturnValueOnce(gate.promise)
   const pending = injected.list()
   b.replace([])
   expect(b.slots.entries('settings.section')).toHaveLength(0)
   b.replace(['device.list.v1'])
+  await vi.waitFor(() => { expect(b.slots.entries('settings.section')).toHaveLength(1) })
   const second = b.slots.entries('settings.section')[0]!
   expect(second.component).not.toBe(first.component)
-  const next = (second.inject as unknown as () => DevicesSettingsSectionInjected)()
+  const next = second.inject!() as DevicesSettingsSectionInjected & Record<string, unknown>
   await expect(next.list()).resolves.toEqual(EMPTY)
   gate.resolve({ ok: true, value: EMPTY })
   await expect(pending).rejects.toThrow('connection changed')
@@ -224,15 +243,52 @@ it('contains an old read failure after replacement with identical capability sup
   const b = await bench()
   declare(b.slots)
   await b.ctx.plugin({ inject: [...inject], apply })
+  await vi.waitFor(() => { expect(b.slots.entries('settings.section')).toHaveLength(1) })
   const entry = b.slots.entries('settings.section')[0]!
-  const old = (entry.inject as unknown as () => DevicesSettingsSectionInjected)()
+  const old = entry.inject!() as DevicesSettingsSectionInjected & Record<string, unknown>
   const gate = Promise.withResolvers<ListResult>()
   b.list.mockReturnValueOnce(gate.promise)
   const pending = old.list()
   b.replace()
+  await vi.waitFor(() => { expect(b.slots.entries('settings.section')).toHaveLength(1) })
   const replacement = b.slots.entries('settings.section')[0]!
   expect(replacement.component).not.toBe(entry.component)
   gate.reject(new Error('old transport failure'))
   await expect(pending).rejects.toThrow('connection changed')
   await b.ctx.fiber.dispose()
+})
+
+it('ignores an older discovery response and removes admission after discovery failure', async () => {
+  const b = await bench()
+  const discovery = Promise.withResolvers<RemoteResult<HostDescriptor>>()
+  b.describe.mockReturnValueOnce(discovery.promise)
+  declare(b.slots)
+  await b.ctx.plugin({ inject: [...inject], apply }).await()
+  expect(b.slots.entries('settings.section')).toHaveLength(0)
+  b.replace([])
+  await vi.waitFor(() => { expect(b.describe).toHaveBeenCalledTimes(2) })
+  discovery.resolve({ ok: true, value: b.descriptor })
+  await discovery.promise
+  expect(b.slots.entries('settings.section')).toHaveLength(0)
+  b.replace(['device.list.v1'])
+  await vi.waitFor(() => { expect(b.slots.entries('settings.section')).toHaveLength(1) })
+  b.describe.mockResolvedValueOnce({ ok: false, error: new RemoteError('gateway/connection-unavailable', 'offline', { endpoint: 'host/describe' }) })
+  b.replace()
+  await vi.waitFor(() => { expect(b.describe).toHaveBeenCalledTimes(4) })
+  expect(b.slots.entries('settings.section')).toHaveLength(0)
+  expect(b.list).not.toHaveBeenCalled()
+})
+
+it('does not register a late discovery after disposal', async () => {
+  const b = await bench()
+  const discovery = Promise.withResolvers<RemoteResult<HostDescriptor>>()
+  b.describe.mockReturnValueOnce(discovery.promise)
+  declare(b.slots)
+  const fiber = b.ctx.plugin({ inject: [...inject], apply })
+  await fiber.await()
+  await fiber.dispose()
+  discovery.resolve({ ok: true, value: b.descriptor })
+  await discovery.promise
+  expect(b.slots.entries('settings.section')).toHaveLength(0)
+  expect(b.listeners.size).toBe(0)
 })

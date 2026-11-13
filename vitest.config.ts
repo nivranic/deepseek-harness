@@ -86,8 +86,6 @@ const platformUnsupportedTests = [...windowsUnsupportedTests, ...nonLinuxWebWork
 // .oxlintrc.json, and the inventory and re-port checklist live in
 // .merge-helpers/port-notes/2026-11-10-native-remote-peer-port-parked.md (附8).
 const parkedLaneTests = [
-  'packages/client/ui-settings-hosts/tests/browser-plugin.client.spec.tsx',
-  'packages/client/ui-settings-hosts/tests/observation.client.spec.tsx',
   'packages/client/ui-view-handoff/tests/handoff.client.spec.tsx',
   'packages/preset/agent-preset-registry/tests/lite-preset-projection.spec.ts',
   'scripts/gen-lite-preset-catalog.spec.ts',

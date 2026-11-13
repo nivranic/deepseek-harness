@@ -5,14 +5,18 @@ import { afterEach, describe, expect, it, vi } from 'vitest'
 import { useSyncExternalStore } from 'react'
 import { HostsSettingsSection, type HostsSettingsSectionInjected, type HostsSettingsSectionProps } from '../src/client/HostsSettingsSection.tsx'
 import { en, type HostsLocaleKey } from '../src/client/locales.ts'
-import type { SavedHost } from '@deepseek-ai/dsh-client-connection/client'
+import type { SavedHost } from '../src/client/saved-hosts.ts'
+import type { HostId } from '@deepseek-ai/dsh-api-remotes/client'
+import type { GlobalStandardProps } from '@deepseek-ai/dsh-client-ui-slots'
+
+const hostId = (value: string): HostId => value as HostId
 
 afterEach(cleanup)
 const t = ((key: HostsLocaleKey, params?: Record<string, string>): string =>
   Object.entries(params ?? {}).reduce((text, [name, value]) => text.replaceAll(`{${name}}`, value), en[key])) as HostsSettingsSectionProps['t']
 const ROWS: readonly SavedHost[] = [
-  { hostId: 'work', displayName: 'Workstation', platform: 'win32', origin: 'https://work.local', lastConnectedAt: 4000 },
-  { hostId: 'local', displayName: undefined, platform: undefined, origin: 'in-process', lastConnectedAt: 2000 },
+  { hostId: hostId('work'), displayName: 'Workstation', platform: 'win32', origin: 'https://work.local', lastConnectedAt: 4000 },
+  { hostId: hostId('local'), displayName: undefined, platform: undefined, origin: 'in-process', lastConnectedAt: 2000 },
 ]
 
 function source<T>(initial: T) {
@@ -29,18 +33,12 @@ function useSource<T, R>(value: ReturnType<typeof source<T>>, select: (value: T)
   return select(useSyncExternalStore(value.subscribe, value.getSnapshot))
 }
 
-function bench(rows = ROWS, selected?: string) {
+function bench(rows = ROWS, selected?: HostId) {
   const roster = source<readonly SavedHost[]>(rows)
-  const target = source<string | undefined>(selected)
+  const target = source<HostId | undefined>(selected)
   const face: HostsSettingsSectionInjected = {
-    hooks: { savedHosts: roster, selectedOrigin: target },
+    hooks: { savedHosts: roster, currentHostId: target },
     pageOrigin: 'https://page.local',
-    switchTo: vi.fn((hostId: string) => {
-      const row = roster.getSnapshot().find(value => value.hostId === hostId)
-      if (row !== undefined) target.set(row.origin)
-      return row
-    }),
-    useLocalHost: vi.fn(() => { target.set(undefined) }),
     forget: vi.fn((hostId: string) => { roster.set(roster.getSnapshot().filter(row => row.hostId !== hostId)) }),
     rename: vi.fn((hostId: string, customName: string | undefined) => {
       roster.set(roster.getSnapshot().map((row) => {
@@ -64,11 +62,11 @@ function bench(rows = ROWS, selected?: string) {
     }),
     formatTime: time => `T${time}`,
   }
-  const props = {
-    ...face, t, close: () => {},
+  const props: HostsSettingsSectionProps = {
+    ...({} as GlobalStandardProps), ...face, t, close: () => {},
     useSavedHosts: <R,>(select: (value: readonly SavedHost[]) => R) => useSource(roster, select),
-    useSelectedOrigin: <R,>(select: (value: string | undefined) => R) => useSource(target, select),
-  } as unknown as HostsSettingsSectionProps // Unused framework props are outside this presentation harness.
+    useCurrentHostId: <R,>(select: (value: HostId | undefined) => R) => useSource(target, select),
+  }
   return { face, props, roster, target }
 }
 
@@ -80,27 +78,16 @@ describe('HostsSettingsSection', () => {
     expect(screen.getByText('https://work.local')).toBeDefined()
     expect(screen.getByText(en.inProcess)).toBeDefined()
     expect(document.querySelector('[data-host-id="local"] [data-host-switch]')).toBeNull()
-    expect(screen.queryByText(en.useLocal)).toBeNull()
   })
 
   it('updates the selected tag immediately after an external target change', () => {
     const h = bench()
     render(<HostsSettingsSection {...h.props} />)
-    act(() => { h.target.set('https://work.local') })
+    act(() => { h.target.set(hostId('work')) })
     expect(document.querySelector('[data-host-id="work"]')?.hasAttribute('data-host-selected')).toBe(true)
     expect(document.querySelector('[data-host-id="work"] [data-host-switch]')).toBeNull()
     expect(screen.getByText(en.current)).toBeDefined()
     expect(screen.queryByText('Refresh')).toBeNull()
-  })
-
-  it('selects a row, then hides its action notice after an external target change', () => {
-    const h = bench()
-    render(<HostsSettingsSection {...h.props} pageOrigin="https://work.local" />)
-    fireEvent.click(screen.getByRole('button', { name: en.switch }))
-    expect(h.face.switchTo).toHaveBeenCalledExactlyOnceWith('work')
-    expect(screen.getByText(en.switchedTo.replace('{name}', 'Workstation'))).toBeDefined()
-    act(() => { h.target.set('https://other.local') })
-    expect(screen.queryByText(en.switchedTo.replace('{name}', 'Workstation'))).toBeNull()
   })
 
   it('renames a row from its presented name and rejects an empty draft', () => {
@@ -120,12 +107,10 @@ describe('HostsSettingsSection', () => {
     expect(screen.queryByRole('textbox', { name: en.rename })).toBeNull()
   })
 
-  it('presents a custom name in the switch notice and offers reset back to descriptor facts', () => {
+  it('presents a custom name and offers reset back to descriptor facts', () => {
     const h = bench([{ ...ROWS[0]!, customName: 'Desk' }, ROWS[1]!])
     render(<HostsSettingsSection {...h.props} pageOrigin="https://work.local" />)
     expect(screen.getByText('Desk')).toBeDefined()
-    fireEvent.click(screen.getByRole('button', { name: en.switch }))
-    expect(screen.getByText(en.switchedTo.replace('{name}', 'Desk'))).toBeDefined()
     fireEvent.click(document.querySelector<HTMLElement>('[data-host-id="work"] [data-host-rename-reset]')!)
     expect(h.face.rename).toHaveBeenCalledExactlyOnceWith('work', undefined)
   })
@@ -160,29 +145,20 @@ describe('HostsSettingsSection', () => {
     expect(rowIds()).toEqual(['local', 'work'])
   })
 
-  it('returns to the page Host through the action and observable snapshot', () => {
-    const h = bench(ROWS, 'https://work.local')
-    render(<HostsSettingsSection {...h.props} />)
-    fireEvent.click(screen.getByRole('button', { name: en.useLocal }))
-    expect(h.face.useLocalHost).toHaveBeenCalledOnce()
-    expect(screen.getByText(en.currentPage)).toBeDefined()
-    expect(screen.queryByText(en.useLocal)).toBeNull()
-  })
-
   it('presents the empty roster', () => {
     render(<HostsSettingsSection {...bench([]).props} />)
     expect(screen.getByText(en.empty)).toBeDefined()
   })
 
   it('offers a separate page instead of an in-page switch for cross-origin Hosts', () => {
-    const h = bench([...ROWS, { ...ROWS[0]!, hostId: 'page', origin: 'https://page.local' }])
+    const h = bench([...ROWS, { ...ROWS[0]!, hostId: hostId('page'), origin: 'https://page.local' }])
     render(<HostsSettingsSection {...h.props} />)
     const link = screen.getByRole<HTMLAnchorElement>('link', { name: en.openHost })
     expect(link.href).toBe('https://work.local/')
     expect(link.rel).toBe('noopener noreferrer')
     expect(link.target).toBe('_blank')
     expect(document.querySelector('[data-host-id="work"] [data-host-switch]')).toBeNull()
-    expect(document.querySelector('[data-host-id="page"] [data-host-switch]')).not.toBeNull()
+    expect(document.querySelector('[data-host-id="page"] [data-host-switch]')).toBeNull()
     expect(screen.getByText(en.pairingHint)).toBeDefined()
   })
 })

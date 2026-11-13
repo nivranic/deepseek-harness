@@ -1,4 +1,5 @@
 // @vitest-environment jsdom
+import type { GlobalStandardProps } from '@deepseek-ai/dsh-client-ui-slots'
 import { cleanup, fireEvent, render, screen, waitFor, within } from '@testing-library/react'
 import { afterEach, describe, expect, it, vi } from 'vitest'
 import { RemoteError } from '@deepseek-ai/dsh-client-test-runtime'
@@ -8,7 +9,7 @@ import type {
   DevicesSettingsSectionProps,
 } from '../src/client/DevicesSettingsSection.tsx'
 import { en, zh, type DevicesLocaleKey } from '../src/client/locales.ts'
-import type { DeviceView } from '@deepseek-ai/dsh-api-remotes/client'
+import type { DeviceId, DeviceView } from '@deepseek-ai/dsh-api-remotes/client'
 
 afterEach(cleanup)
 
@@ -21,9 +22,9 @@ const t = ((key: DevicesLocaleKey, params?: Record<string, string>): string =>
 const formatTime = (epochMs: number): string => `T${epochMs}`
 
 /** A roster with one active device per shape nuance the rows render. */
-const DEVICES = [
+const DEVICES: readonly DeviceView[] = [
   {
-    deviceId: 'd-observer',
+    deviceId: 'd-observer' as DeviceId,
     deviceName: 'Pixel 9',
     role: 'viewer',
     keyFingerprint: '0123456789abcdef0123456789abcdef',
@@ -32,7 +33,7 @@ const DEVICES = [
     lastSeenAt: 2000,
   },
   {
-    deviceId: 'd-controller',
+    deviceId: 'd-controller' as DeviceId,
     deviceName: 'MacBook',
     role: 'controller',
     keyFingerprint: 'fedcba9876543210fedcba9876543210',
@@ -41,13 +42,13 @@ const DEVICES = [
     revokedAt: 4000,
   },
   {
-    deviceId: 'd-owner',
+    deviceId: 'd-owner' as DeviceId,
     deviceName: '办公室主机',
     role: 'owner',
     keyFingerprint: 'aabbccddeeff00112233aabbccddeeff',
     pairedAt: 5000,
   },
-] as unknown as readonly DeviceView[]
+]
 
 function inject(
   overrides: Partial<DevicesSettingsSectionInjected> = {},
@@ -63,7 +64,7 @@ function inject(
 }
 
 function props(face: DevicesSettingsSectionInjected = inject()): DevicesSettingsSectionProps {
-  return { ...face, t, close: () => {} } as unknown as DevicesSettingsSectionProps
+  return { ...({} as GlobalStandardProps), ...face, t, close: () => {} }
 }
 
 async function renderReady(face: DevicesSettingsSectionInjected = inject()): Promise<ReturnType<typeof render>> {

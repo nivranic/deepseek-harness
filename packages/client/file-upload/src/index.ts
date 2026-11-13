@@ -3,7 +3,7 @@
 import { randomUUID } from 'node:crypto'
 import type { Context } from '@deepseek-ai/cordis'
 import type { Agent } from '@deepseek-ai/dsh-agent'
-import type { ImageAttachmentRef } from '@deepseek-ai/dsh-attachment'
+import { admitEncodedImages, type ImageAttachmentRef } from '@deepseek-ai/dsh-attachment'
 import type {} from '@deepseek-ai/dsh-client-connection'
 import type { CommandFileReceiptResolver } from '@deepseek-ai/dsh-commands'
 import type { Session, SessionEvent, SessionId } from '@deepseek-ai/dsh-session'
@@ -12,7 +12,8 @@ import { Remote, RemoteError, remoteErrorOf, TypertRemoteService } from '@deepse
 import { handleFileUploadHttp } from './http-route.ts'
 import { FILE_UPLOAD_PATH } from './protocol.ts'
 import type {
-  EncodedFileDedupeRequest, EncodedFileUploadRequest, FileUploadReceiptId, FileUploadValue, ImageUploadValue, StagedAttachment,
+  EncodedFileDedupeRequest, EncodedFileUploadRequest, EncodedImageUploadRequest,
+  FileUploadReceiptId, FileUploadValue, ImageUploadValue, StagedAttachment,
 } from './types.ts'
 
 export type * from './types.ts'
@@ -118,6 +119,29 @@ export class FileUploads extends TypertRemoteService {
       ...(request.name === undefined ? {} : { name: request.name }),
     }))
     return { receiptId: this.stage(agent, { type: 'file', attachment: file }), file }
+  }
+
+  /**
+   * Normalize one encoded image and stage its reference for the receiving Session.
+   * Cancellation prevents a receipt; bytes already stored remain content-addressed.
+   * @param agent - receiving Agent resolved from the Remote Agent scope.
+   * @param request - canonical base64 image, declared media type, and optional display name.
+   * @param signal - cancellation checked before storage and receipt publication.
+   * @returns the Session-owned receipt and normalized image reference.
+   */
+  @Remote('uploadImage')
+  async uploadImage(agent: Agent, request: EncodedImageUploadRequest, signal: AbortSignal): Promise<ImageUploadValue> {
+    signal.throwIfAborted()
+    const staged = await this.store(agent, async () => {
+      const refs = await admitEncodedImages(this.ctx.attachments, [request])
+      return {
+        type: 'image' as const,
+        attachment: refs[0] as ImageAttachmentRef,
+        encodedBytes: Buffer.byteLength(request.data, 'base64'),
+      }
+    })
+    signal.throwIfAborted()
+    return { receiptId: this.stage(agent, staged), image: staged.attachment }
   }
 
   /**

@@ -27,7 +27,7 @@ kind: "package-reference"
 
 在注入 `fileUpload` 的消费方之前挂载本包，再调用 `ctx.fileUpload.upload(sessionId, body, name, signal, onProgress)`；prompt 图片则调用 `ctx.fileUpload.uploadImage(sessionId, blob, mediaType, name, signal, onProgress)`。Session 标识同时用于寻址原始路由和生成的 Remote 兜底；调用方不组装这两种请求。
 
-Host 还通过 `image-upload.stage.v1` 接受 `fileUploads/uploadImage({ data, mediaType, name? })`，要求 `prompt.send` 权限。它通过附件服务校验并规范化规范 base64 图片输入，返回 `receiptId` 和规范化后的 `image` 引用，供有序 `staged-image` prompt 部分使用。这一编码 Remote 操作独立于浏览器文件传输。
+Host 还通过 `image-upload.stage.v1` 接受 `fileUploads/uploadImage({ data, mediaType, name? })`，要求 `prompt.send` 权限。它通过附件服务校验并规范化规范 base64 图片输入，返回 `receiptId` 和规范化后的 `image` 引用。prompt 以 `file` 部分提交回执；Host 恢复其存储的图片类型。回执发布前取消会拒绝上传，但已存储的字节可能保留。这一编码 Remote 操作独立于浏览器文件传输。
 
 Host 还通过 `file-upload.dedupe.v1` 接受 `fileUploads/uploadDedupe({ digest, name? })`，要求 `prompt.send` 权限。摘要只负责定位对象：Host 在应答前重新校验存储字节，为净化后的显示名发布别名，并返回全新 `receiptId` 与持久 `file` 引用。对象缺失或损坏以 `FILE_DIGEST_NOT_KNOWN` 拒绝，调用方据此回退完整上传；格式非法的摘要以 `FILE_DIGEST_INVALID` 拒绝。
 

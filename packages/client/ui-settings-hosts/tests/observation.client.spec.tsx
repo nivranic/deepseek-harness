@@ -1,40 +1,32 @@
 // @vitest-environment jsdom
-/** Real Slot subscriptions observe changes made outside the Hosts section. */
-import { act, screen, waitFor } from '@testing-library/react'
+/** Real Slot hooks observe discovery, local edits, and loss of current identity. */
+import { act, fireEvent, screen, waitFor } from '@testing-library/react'
 import { expect, it, onTestFinished } from 'vitest'
 import { SlotTestRuntime, usePinnedBrowserLanguages } from '@deepseek-ai/dsh-client-test-runtime'
-import { LocaleRuntime } from '@deepseek-ai/dsh-client-locale/client'
-import { apply as connectionApply, type ConnectionHandle } from '@deepseek-ai/dsh-client-connection/src/client/index.ts'
 import { apply, inject } from '../src/client/index.ts'
+import { setup } from './fixture.client.ts'
 
 usePinnedBrowserLanguages('en-US')
 
-it('rerenders external target and roster changes through framework-bound hooks', async () => {
+it('renders bookmarks and current identity through framework-bound hooks', async () => {
   const runtime = await SlotTestRuntime.create()
   onTestFinished(async () => { await runtime.dispose() })
-  const locale = new LocaleRuntime(runtime.ctx)
-  runtime.ctx.provide('locale', locale)
-  runtime.slots.installLocale(locale)
+  const fixture = setup(runtime.ctx, runtime.remote)
+  runtime.slots.installLocale(fixture.locale)
   await runtime.declare({ 'settings.section': { kind: 'list', scope: 'root' } })
-  await runtime.mount({ inject: [], apply: connectionApply })
-  const connection = runtime.ctx.get('connection') as ConnectionHandle
-  connection.savedHosts.record({
-    hostId: 'observer-host', displayName: 'Observed Host', platform: 'linux',
-    origin: 'https://observed.local', lastConnectedAt: 1,
-  })
-  await runtime.mount({ inject: [...inject], apply })
+  await runtime.mount({ inject, apply })
   const view = runtime.renderSlot('settings.section', { close: () => {} })
-  await screen.findByText('Observed Host')
-  act(() => { connection.savedHosts.rename('observer-host', 'Renamed Host') })
-  await screen.findByText('Renamed Host')
-  expect(screen.queryByText('Observed Host')).toBeNull()
-  act(() => { connection.retarget('https://observed.local') })
-  await waitFor(() => {
-    expect(view.container.querySelector('[data-host-id="observer-host"]')?.hasAttribute('data-host-selected')).toBe(true)
-  })
-  expect(screen.getByText('Selected', { exact: true })).toBeDefined()
-  act(() => { connection.savedHosts.remove('observer-host') })
-  await waitFor(() => { expect(screen.queryByText('Observed Host')).toBeNull() })
-  act(() => { connection.retarget(undefined) })
-  expect(screen.getByText('Using the page Host')).toBeDefined()
+  await screen.findByText('Fixture Host')
+  expect(screen.getByText('Current Host')).toBeDefined()
+  fireEvent.click(screen.getByRole('button', { name: 'Rename' }))
+  fireEvent.change(screen.getByRole('textbox', { name: 'Rename' }), { target: { value: 'My desk' } })
+  fireEvent.click(screen.getByRole('button', { name: 'Save' }))
+  await screen.findByText('My desk')
+  fixture.describe.mockRejectedValueOnce(new Error('offline'))
+  act(() => { fixture.refresh() })
+  await waitFor(() => { expect(screen.queryByText('Current Host')).toBeNull() })
+  expect(screen.getByText('My desk')).toBeDefined()
+  expect(view.container.querySelector('[data-host-switch]')).toBeNull()
+  fireEvent.click(screen.getByRole('button', { name: 'Forget' }))
+  await screen.findByText('No saved Hosts yet')
 })

@@ -3,7 +3,10 @@
   - navigation:
     - button "General"
     - button "Models"
+    - button "Devices"
     - button "Built-in plugins"
+    - button "Hosts"
+    - button "Host status"
     - button "Agent presets"
   - button "Open configuration file"
   - button "Close"

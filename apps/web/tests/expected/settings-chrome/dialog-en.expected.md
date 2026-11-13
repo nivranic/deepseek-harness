@@ -1,28 +1,12 @@
 - dialog "Settings":
   - text: Settings
   - navigation:
-    - text: Settings
-    - button "General":
-      - img
-      - text: General
-    - button "Devices":
-      - img
-      - text: Devices
-    - button "Models":
-      - img
-      - text: Models
-    - button "Hosts":
-      - img
-      - text: Hosts
-    - button "Plugins":
-      - img
-      - text: Plugins
-    - button "Agent presets":
-      - img
-      - text: Agent presets
     - button "General"
     - button "Models"
+    - button "Devices"
     - button "Built-in plugins"
+    - button "Hosts"
+    - button "Host status"
     - button "Agent presets"
   - button "Open configuration file"
   - button "Close"

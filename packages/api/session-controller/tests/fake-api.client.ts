@@ -192,7 +192,7 @@ export class FakeApiClient {
     payload => Promise.resolve(ok({ archivedSessionIds: [(payload as { sessionId: SessionId }).sessionId] }))
 
   /** Capability ids advertised by the fake Host discovery response. */
-  admission: readonly string[] = ['subagent.catalog.v1', 'subagent.prompt.v1', 'subagent.interrupt.v1']
+  admission: readonly string[] = ['subagent.prompt.v1', 'subagent.interrupt.v1']
 
   /** Remote namespaces bound to this fake's programmable unary slots and stream pumps. */
   sessionRemotes(): RuntimeRemotes {

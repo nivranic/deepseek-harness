@@ -9,7 +9,6 @@
 
 .heading h3,
 .subtitle,
-.restart,
 .status,
 .kindDesc,
 .notice {
@@ -22,15 +21,10 @@
 }
 
 .subtitle,
-.restart,
 .status {
   font-size: 13px;
   line-height: 20px;
   color: var(--dsw-alias-label-tertiary);
-}
-
-.restart {
-  color: var(--dsw-alias-label-secondary);
 }
 
 .kinds {
@@ -48,7 +42,7 @@
   gap: 6px;
   padding: 12px;
   border: 0.5px solid var(--dsw-alias-border-l3);
-  border-radius: 10px;
+  border-radius: var(--dsw-radius-md);
 }
 
 .kindMain {
@@ -60,7 +54,7 @@
 
 .kindName {
   font-size: 14px;
-  font-weight: 600;
+  font-weight: 500;
 }
 
 .kindDesc {

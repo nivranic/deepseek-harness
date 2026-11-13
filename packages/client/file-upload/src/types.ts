@@ -1,6 +1,6 @@
 /** Browser-safe request and receipt types for staged file uploads. */
 
-import type { FileAttachmentRef, ImageAttachmentRef } from '@deepseek-ai/dsh-attachment/types'
+import type { EncodedImageAttachment, FileAttachmentRef, ImageAttachmentRef } from '@deepseek-ai/dsh-attachment/types'
 import type { Branded } from '@deepseek-ai/dsh-brand'
 
 /** Canonical encoded upload accepted by the Remote fallback. */
@@ -10,6 +10,9 @@ export interface EncodedFileUploadRequest {
   /** Optional display name; the Host sanitizes it into the stored leaf name. */
   readonly name?: string
 }
+
+/** Canonical encoded image admitted by the attachment store before staging. */
+export type EncodedImageUploadRequest = EncodedImageAttachment
 
 /** Digest-addressed upload that skips re-receiving bytes the Host already stores. */
 export interface EncodedFileDedupeRequest {

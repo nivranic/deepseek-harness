@@ -41,7 +41,7 @@
   gap: 10px;
   padding: 12px;
   border: 0.5px solid var(--dsw-alias-border-l3);
-  border-radius: 10px;
+  border-radius: var(--dsw-radius-md);
 }
 
 .componentDot {
@@ -51,7 +51,7 @@
 
 .componentName {
   font-size: 14px;
-  font-weight: 600;
+  font-weight: 500;
 }
 
 .componentDetail {
@@ -72,7 +72,7 @@
 
 .failure button {
   border: 0.5px solid var(--dsw-alias-border-l3);
-  border-radius: 6px;
+  border-radius: var(--dsw-radius-sm);
   padding: 4px 10px;
   background: transparent;
   color: var(--dsw-alias-label-primary);

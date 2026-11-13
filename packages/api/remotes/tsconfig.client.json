@@ -84,6 +84,9 @@
       "path": "../host-description"
     },
     {
+      "path": "../native-remote"
+    },
+    {
       "path": "../device-trust/tsconfig.host.json"
     },
     {

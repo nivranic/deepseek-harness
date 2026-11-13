@@ -116,6 +116,7 @@
     "apps/web/tests/icon-skin.e2e.ts",
     "apps/web/tests/draft-initialization.e2e.ts",
     "apps/web/tests/settings-chrome.e2e.ts",
+    "apps/web/tests/settings-telemetry.e2e.ts",
     "apps/web/tests/session-log-upload.e2e.ts",
     "apps/web/tests/caption-overlays.e2e.ts",
     "apps/web/tests/settings-appearance.e2e.ts",

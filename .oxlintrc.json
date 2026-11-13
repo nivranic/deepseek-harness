@@ -29,10 +29,6 @@
     "**/*.mjs",
     "**/*.config.ts", // Tool and app configs are outside the repository TypeScript programs.
     "packages/client/tsdown.client.ts", // Shared client build preset, also outside a TypeScript program.
-    "packages/client/ui-settings-devices/**", // Parked lane UI packages (settings host surfaces depend on the parked device-connection model).
-    "packages/client/ui-settings-hosts/**",
-    "packages/client/ui-settings-host-status/**",
-    "packages/client/ui-settings-telemetry/**",
     "packages/client/ui-view-handoff/**",
     "packages/preset/agent-preset-registry/tests/lite-preset-projection.spec.ts", // Parked Lite catalog cluster (official registry is Loader-based).
     "scripts/gen-lite-preset-catalog.ts", // Parked scripts bound to the retired preset-roster API.
@@ -73,7 +69,6 @@
     "apps/web/tests/rename-revision.e2e.ts",
     "apps/web/tests/fixture-home-paths.ts",
     "apps/web/tests/fixture-home-paths.spec.ts",
-    "apps/web/tests/hosts-settings.e2e.ts",
     "apps/web/tests/device-interaction-reply.e2e.ts",
     "apps/web/tests/diff-preview.e2e.ts",
     "apps/web/tests/remote-welcome.e2e.ts",

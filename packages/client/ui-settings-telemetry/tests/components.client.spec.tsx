@@ -2,10 +2,11 @@
 import { cleanup, fireEvent, render, screen, waitFor, within } from '@testing-library/react'
 import { afterEach, describe, expect, it } from 'vitest'
 import { bindSnapshotSelector } from '@deepseek-ai/dsh-client-test-runtime'
-import type { SettingsScopeSnapshot } from '@deepseek-ai/dsh-client-ui-settings/client'
+import type { ConfigFormSnapshot } from '@deepseek-ai/dsh-client-ui-settings/client'
+import type { GlobalStandardProps } from '@deepseek-ai/dsh-client-ui-slots'
 import type { TelemetryConsent } from '@deepseek-ai/dsh-session-telemetry'
 import { TELEMETRY_CONSENT_KINDS, TelemetrySettingsSection } from '../src/client/TelemetrySettingsSection.tsx'
-import type { TelemetrySettingsSectionProps } from '../src/client/TelemetrySettingsSection.tsx'
+import type { TelemetrySettingsSectionProps, TelemetrySettingsValue } from '../src/client/TelemetrySettingsSection.tsx'
 import { en, zh, type TelemetrySettingsLocaleKey } from '../src/client/locales.ts'
 // Type-only: pulls the 'settings.telemetry' LocaleNamespaceMap merge into the program.
 import type {} from '../src/client/index.ts'
@@ -29,16 +30,16 @@ const OFF: TelemetryConsent = {
 /** Scriptable consent scope: publishes snapshots, records writes, and settles each write on demand. */
 class FakeConsentScope {
   private listeners = new Set<() => void>()
-  private gates: Array<() => void> = []
-  private snapshot: SettingsScopeSnapshot<TelemetryConsent>
+  private gates: Array<(accepted: boolean) => void> = []
+  private snapshot: ConfigFormSnapshot<TelemetrySettingsValue>
   /** Every queued write, in order. */
   readonly writes: Array<readonly [field: string, value: unknown]> = []
 
   constructor(value: TelemetryConsent) {
-    this.snapshot = { status: 'ready', value, base: undefined, user: value, revision: 3, writable: true, mode: 'host' }
+    this.snapshot = { status: 'ready', value: { consent: value }, base: undefined, user: { consent: value }, revision: 3, writable: true }
   }
 
-  getSnapshot = (): SettingsScopeSnapshot<TelemetryConsent> => this.snapshot
+  getSnapshot = (): ConfigFormSnapshot<TelemetrySettingsValue> => this.snapshot
 
   subscribe = (listener: () => void): (() => void) => {
     this.listeners.add(listener)
@@ -47,10 +48,10 @@ class FakeConsentScope {
 
   /** Fold one committed write's answer into the held snapshot. */
   commit(field: string, value: unknown): void {
-    const current = this.snapshot.value ?? OFF
+    const current = this.snapshot.value?.consent ?? OFF
     this.publish({
       ...this.snapshot,
-      value: { ...current, [field]: value },
+      value: { consent: { ...current, [field]: value } },
       revision: (this.snapshot.revision ?? 0) + 1,
     })
   }
@@ -61,33 +62,29 @@ class FakeConsentScope {
   }
 
   /** Resolve every in-flight write settlement (commit or refusal first, as the scenario chose). */
-  settleWrites(): void {
-    for (const gate of this.gates.splice(0)) gate()
+  settleWrites(accepted = true): void {
+    for (const gate of this.gates.splice(0)) gate(accepted)
   }
 
-  publish(snapshot: SettingsScopeSnapshot<TelemetryConsent>): void {
+  publish(snapshot: ConfigFormSnapshot<TelemetrySettingsValue>): void {
     this.snapshot = snapshot
     for (const listener of this.listeners) listener()
   }
 
-  set = (field: string, value: unknown): Promise<void> => new Promise<void>((resolve) => {
+  set = (field: string, value: unknown): Promise<boolean> => new Promise<boolean>((resolve) => {
     this.writes.push([field, value])
-    this.gates.push(() => { resolve() })
+    this.gates.push(resolve)
   })
-
-  mutate = (): Promise<void> => Promise.resolve()
-
-  unset = (): Promise<void> => Promise.resolve()
 }
 
-function sectionProps(scope: FakeConsentScope, applies: 'live' | 'restart' = 'restart'): TelemetrySettingsSectionProps {
+function sectionProps(scope: FakeConsentScope): TelemetrySettingsSectionProps {
   return {
+    ...({} as GlobalStandardProps),
     close: () => {},
     t,
-    applies,
-    set: scope.set as TelemetrySettingsSectionProps['set'],
+    set: scope.set,
     useConsent: bindSnapshotSelector(scope),
-  } as unknown as TelemetrySettingsSectionProps
+  }
 }
 
 const switchState = (name: string): { checked: string; disabled: boolean } => {
@@ -148,7 +145,7 @@ describe('TelemetrySettingsSection', () => {
     fireEvent.click(screen.getByRole('switch', { name: en['kind.sessionTelemetry'] }))
     await waitFor(() => { expect(scope.writes).toEqual([['sessionTelemetry', true]]) })
     scope.refuse()
-    scope.settleWrites()
+    scope.settleWrites(false)
     expect((await screen.findByRole('alert')).textContent).toBe(en.writeNotApplied)
     expect(switchState(en['kind.sessionTelemetry']).checked).toBe('false')
     // One row reports its own gesture; the untouched kinds stay notice-free.
@@ -161,7 +158,7 @@ describe('TelemetrySettingsSection', () => {
     fireEvent.click(screen.getByRole('switch', { name: en['kind.deviceTrustMetadata'] }))
     await waitFor(() => { expect(scope.writes).toHaveLength(1) })
     scope.refuse()
-    scope.settleWrites()
+    scope.settleWrites(false)
     expect(await screen.findByRole('alert')).toBeDefined()
     fireEvent.click(screen.getByRole('switch', { name: en['kind.deviceTrustMetadata'] }))
     await waitFor(() => { expect(screen.queryByRole('alert')).toBeNull() })
@@ -174,7 +171,7 @@ describe('TelemetrySettingsSection', () => {
     const scope = new FakeConsentScope(OFF)
     scope.publish({
       status: 'unavailable', value: undefined, base: undefined, user: undefined,
-      revision: undefined, writable: false, mode: 'host',
+      revision: undefined, writable: false,
     })
     const { container } = render(<TelemetrySettingsSection {...sectionProps(scope)} />)
     expect(container.textContent).toBe('')
@@ -184,19 +181,19 @@ describe('TelemetrySettingsSection', () => {
     const scope = new FakeConsentScope(OFF)
     scope.publish({
       status: 'loading', value: undefined, base: undefined, user: undefined,
-      revision: undefined, writable: false, mode: 'host',
+      revision: undefined, writable: false,
     })
     render(<TelemetrySettingsSection {...sectionProps(scope)} />)
     expect(screen.getByText(en.loading)).toBeDefined()
     expect(screen.queryByRole('switch')).toBeNull()
   })
 
-  it('carries the restart hint only when the namespace applies on restart', () => {
-    render(<TelemetrySettingsSection {...sectionProps(new FakeConsentScope(OFF), 'restart')} />)
-    expect(screen.getByText(en.restartHint)).toBeDefined()
-    cleanup()
-    render(<TelemetrySettingsSection {...sectionProps(new FakeConsentScope(OFF), 'live')} />)
-    expect(screen.queryByText(en.restartHint)).toBeNull()
+  it('keeps the stored values and reports a transport failure', async () => {
+    const props = sectionProps(new FakeConsentScope(OFF))
+    render(<TelemetrySettingsSection {...props} set={() => Promise.reject(new Error('offline'))} />)
+    fireEvent.click(screen.getByRole('switch', { name: en['kind.sessionTelemetry'] }))
+    expect((await screen.findByRole('alert')).textContent).toBe(en.writeNotApplied)
+    expect(switchState(en['kind.sessionTelemetry'])).toEqual({ checked: 'false', disabled: false })
   })
 
   it('disables every switch with the lock copy while the document is read-only', () => {

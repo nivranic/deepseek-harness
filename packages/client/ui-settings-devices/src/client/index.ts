@@ -2,7 +2,7 @@
 
 import type {} from '@deepseek-ai/dsh-client-locale/client'
 import { createElement } from 'react'
-import type { DeviceId, DeviceRole, NativePairingPayload } from '@deepseek-ai/dsh-api-remotes/client'
+import type { DeviceId, DeviceRole, HostDescriptor, NativePairingPayload } from '@deepseek-ai/dsh-api-remotes/client'
 import type { ConnectionHandle } from '@deepseek-ai/dsh-client-connection/client'
 import type { Context as ClientContext } from '@deepseek-ai/cordis'
 import type { RemoteResult } from '@deepseek-ai/dsh-typert-protocol'
@@ -23,10 +23,10 @@ declare module '@deepseek-ai/dsh-client-ui-slots' {
 }
 
 /** Dictionary namespace owned by this plugin. */
-export const NS = 'settings.devices'
+const NS = 'settings.devices'
 
 /** Services required by the Settings registration and generated Remote face. */
-export const inject = ['slots', 'locale', 'remote', 'remote.deviceTrust', 'remote.nativeRemote', 'connection']
+export const inject = ['slots', 'locale', 'remote', 'remote.host', 'remote.deviceTrust', 'remote.nativeRemote', 'connection']
 
 /** Contribute the Devices management section to Settings. */
 export function apply(ctx: ClientContext): void {
@@ -36,14 +36,25 @@ export function apply(ctx: ClientContext): void {
   const connection = ctx.get('connection') as ConnectionHandle
   ctx.slots.inject('settings.section', () => {
     let remove: (() => void) | undefined
-    const refresh = (): void => {
+    let lifetime: AbortController | undefined
+    const refresh = async (): Promise<void> => {
+      lifetime?.abort()
       remove?.()
       remove = undefined
-      const host = ctx.remote.$host
-      const descriptor = host.descriptor
-      if (host.capabilities?.includes('device.list.v1') !== true) return
       const controller = new AbortController()
-      const current = (): boolean => !controller.signal.aborted && ctx.remote.$host === host
+      lifetime = controller
+      const current = (): boolean => !controller.signal.aborted
+      let description: RemoteResult<HostDescriptor>
+      try {
+        description = await ctx.remote.host.describe()
+      } catch (_discoveryUnavailable) {
+        // An unconfirmed Host cannot expose device administration or pairing.
+        return
+      }
+      if (!current() || !description.ok) return
+      const descriptor = description.value
+      const capabilities = descriptor.capabilities
+      if (!capabilities.includes('device.list.v1')) return
       const changed = (): Error => new Error('deviceTrust: connection changed')
       // One Remote call guarded on both ends of the await: a generation
       // change mid-flight (or its transport failure) surfaces as `changed`.
@@ -61,7 +72,7 @@ export function apply(ctx: ClientContext): void {
         return result.value
       }
       const injectFace: DevicesSettingsSectionInjected = {
-        ...descriptor !== undefined && host.capabilities.includes('native-remote.info.v1') && host.capabilities.includes('device-pair.issue.v1') ? {
+        ...capabilities.includes('native-remote.info.v1') && capabilities.includes('device-pair.issue.v1') ? {
           pairing: {
             create: async (input: string, role: DeviceRole): Promise<NativePairingPayload | undefined> => {
               const info = await settle(() => ctx.remote.nativeRemote.describe())
@@ -89,15 +100,16 @@ export function apply(ctx: ClientContext): void {
       const unregister = ctx.slots.register({
         name: 'settings.section',
         id: 'devices',
-        order: 10,
+        order: 11,
         label: () => t('nav'),
         locale: NS,
         inject: (): DevicesSettingsSectionInjected => injectFace,
       }, DevicesForConnection)
-      remove = () => { controller.abort(); unregister() }
+      remove = unregister
     }
-    refresh()
-    const stop = connection.generation.subscribe(refresh)
-    return () => { stop(); remove?.() }
+    const refreshNow = (): void => { void refresh() }
+    refreshNow()
+    const stop = connection.generation.subscribe(refreshNow)
+    return () => { stop(); lifetime?.abort(); remove?.() }
   })
 }

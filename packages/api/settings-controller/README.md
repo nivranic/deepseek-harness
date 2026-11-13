@@ -8,7 +8,7 @@ English | [中文](README.zh.md)
 
 ## Summary
 
-`@deepseek-ai/dsh-api-settings-controller` exposes generated `ctx.remote.settings` and `ctx.remote.credentials` namespaces for browser configuration surfaces. It returns redacted settings and credential metadata, supports settings and credential writes without returning secret values, and opens provider-owned settings or Agent preset locations on the Host desktop. When a provider is absent, the namespace remains registered and returns an actionable configuration error.
+`@deepseek-ai/dsh-api-settings-controller` exposes generated `ctx.remote.settings` and `ctx.remote.credentials` namespaces for browser configuration surfaces. It returns redacted settings and credential metadata, supports settings and credential writes without returning secret values, and opens the provider-owned settings document on the Host desktop. When a provider is absent, the namespace remains registered and returns an actionable configuration error.
 
 ## Table of Contents
 
@@ -23,7 +23,7 @@ English | [中文](README.zh.md)
 <a id="use-this-package"></a>
 ## Use this package
 
-Host discovery advertises four independent operation sets from the live Remote binding: `settings.read.v1` for redacted description, `settings.write.v1` for merge/replace/path writes, `settings.document-open.v1` for the settings document, and `settings.agent-preset-directory.v1` for preset directory resolution and native-opening detection. The shared `./capabilities` declaration is consumed by Client admission before dispatch. Presence promises method support, not a mounted provider, writability, a native desktop, or Device permission. Provider and operation checks remain authoritative. Preset-directory support includes returning a path when native opening is disabled. Device permissions follow the section 21 table: redacted description, the settings document, preset-directory operations, and credential metadata require `view`; settings and credential writes require `prompt.send`. A device role without the declared permission is refused before dispatch; anonymous callers are unaffected.
+Host discovery advertises three independent operation sets from the live Remote binding: `settings.read.v1` for redacted description, `settings.write.v1` for merge/replace/path writes, and `settings.document-open.v1` for the settings document. The shared `./capabilities` declaration is consumed by Client admission before dispatch. Presence promises method support, not a mounted provider, writability, a native desktop, or access permission. Provider and operation checks remain authoritative. Device roles require `view` for redacted description, the settings document, and credential metadata; settings and credential writes require `prompt.send`.
 
 Mount this package as a Loader entry in a profile that serves browser configuration. The entry registers both namespaces independently of their providers so a missing provider produces a named configuration error at invocation. Its generated descriptors enter the strict Typert registry, while the settings and credential Definitions remain plain Cordis Services with no wire obligations of their own.
 

@@ -7,7 +7,6 @@ export type TelemetrySettingsLocaleKey =
   | 'nav'
   | 'title'
   | 'subtitle'
-  | 'restartHint'
   | 'loading'
   | 'readonlyHint'
   | 'writeNotApplied'
@@ -19,10 +18,9 @@ export const zh = {
   'nav': '遥测',
   'title': '遥测共享',
   'subtitle': '选择此宿主可以共享哪些数据类别。每一类都是独立开关，且在你打开之前始终保持关闭。',
-  'restartHint': '更改在应用重启后生效。',
   'loading': '正在读取遥测同意设置',
   'readonlyHint': '此宿主的设置文档不接受更改。',
-  'writeNotApplied': '开关未移动：存储的同意状态已在别处变化，此处显示宿主当前值。',
+  'writeNotApplied': '无法保存更改，当前显示宿主已保存的值',
   'kind.sessionTelemetry': '会话遥测',
   'kind.providerMetadata': '提供商元数据',
   'kind.relayMetadata': '中继元数据',
@@ -40,10 +38,9 @@ export const en: Record<TelemetrySettingsLocaleKey, string> = {
   'nav': 'Telemetry',
   'title': 'Telemetry sharing',
   'subtitle': 'Choose which data categories this Host may share. Each category is a separate switch, and every category stays off until you switch it on.',
-  'restartHint': 'Changes take effect after the application restarts.',
   'loading': 'Reading telemetry consent',
   'readonlyHint': 'The settings document of this Host does not accept changes.',
-  'writeNotApplied': 'The switch did not move: the stored consent changed elsewhere, and the current Host value is shown.',
+  'writeNotApplied': 'Could not save this change. The current Host value is shown.',
   'kind.sessionTelemetry': 'Session telemetry',
   'kind.providerMetadata': 'Provider metadata',
   'kind.relayMetadata': 'Relay metadata',

@@ -8,7 +8,7 @@ kind: "package-reference"
 
 ## 概述
 
-`@deepseek-ai/dsh-api-settings-controller` 为浏览器配置界面提供生成的 `ctx.remote.settings` 与 `ctx.remote.credentials` namespace。它返回脱敏的 settings 与凭据元数据，支持 settings 与凭据写入而不返回机密值，并在 Host 桌面打开由提供方持有的 settings 或 Agent preset 位置。提供方缺失时，namespace 仍会注册，并返回可操作的配置错误。
+`@deepseek-ai/dsh-api-settings-controller` 为浏览器配置界面提供生成的 `ctx.remote.settings` 与 `ctx.remote.credentials` namespace。它返回脱敏的 settings 与凭据元数据，支持 settings 与凭据写入而不返回机密值，并在 Host 桌面打开由提供方持有的 settings 文档。提供方缺失时，namespace 仍会注册，并返回可操作的配置错误。
 
 ## 目录
 
@@ -23,7 +23,7 @@ kind: "package-reference"
 <a id="use-this-package"></a>
 ## 使用本包
 
-Host 发现从当前 Remote 绑定声明四个独立操作集：`settings.read.v1` 对应脱敏描述，`settings.write.v1` 对应合并、替换和路径写入，`settings.document-open.v1` 对应配置文档，`settings.agent-preset-directory.v1` 对应预设目录解析及原生打开检测。Client 准入在派发前使用共享的 `./capabilities` 声明。能力存在只保证方法支持，不保证提供方已挂载、可写、具备原生桌面或拥有设备权限；提供方与具体操作的检查仍是权威。预设目录支持也涵盖原生打开关闭时返回路径。 设备权限遵循第 21 节表格：脱敏描述、配置文档、预设目录操作与凭据元数据要求 `view`；配置写入与凭据写入要求 `prompt.send`。 缺少已声明权限的设备角色在派发前被拒绝；匿名调用不受影响。
+Host 发现从当前 Remote 绑定声明三个独立操作集：`settings.read.v1` 对应脱敏描述，`settings.write.v1` 对应合并、替换和路径写入，`settings.document-open.v1` 对应配置文档。Client 准入在派发前使用共享的 `./capabilities` 声明。能力存在只保证方法支持，不保证提供方已挂载、可写、具备原生桌面或拥有访问权限；提供方与具体操作的检查仍是权威。设备角色读取脱敏描述、配置文档和凭据元数据需要 `view`；配置写入与凭据写入需要 `prompt.send`。
 
 请把本包作为 Loader entry 挂载到提供浏览器配置的 profile 中。本 entry 不依赖提供方是否存在而注册两个 namespace，因此缺少提供方会在调用时产生具名配置错误。它生成的 descriptor 进入严格 Typert 注册表，而 settings 与凭据 Definition 仍是普通 Cordis 服务，自身不承担任何 wire 义务。
 

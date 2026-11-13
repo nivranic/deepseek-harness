@@ -1,10 +1,12 @@
-/** Saved-Host selection and authorization guidance through the shipped Settings section. */
+/** Host bookmarks and authorization guidance through the shipped Settings section. */
 import { mkdir } from 'node:fs/promises'
 import { fileURLToPath } from 'node:url'
 import { chromium, type Browser, type Page } from 'playwright'
 import { afterAll, beforeAll, describe, expect, it, onTestFailed } from 'vitest'
+import { symbols } from '@deepseek-ai/cordis'
+import { remoteMethods, type TypertGatewayBinding } from '@deepseek-ai/dsh-typert-protocol'
 import { compareOrRefreshGolden, launchWebScaffold, watchConsole, webSnapshotMode, type WebScaffold } from './scaffold.ts'
-import { saveFailureShot } from './support.ts'
+import { openSettings, saveFailureShot } from './support.ts'
 
 const MODE = webSnapshotMode()
 const EXPECTED = fileURLToPath(new URL('./expected/hosts-settings.expected.md', import.meta.url))
@@ -15,9 +17,10 @@ describe.skipIf(MODE === 'record')('web e2e: saved-Host settings', () => {
   let browser: Browser
   let page: Page
   let tripwire: ReturnType<typeof watchConsole>
+  let discovery: unknown
 
   beforeAll(async () => {
-    scaffold = await launchWebScaffold({})
+    scaffold = await launchWebScaffold({ extraOverlayPath: fileURLToPath(new URL('./pin-browse-picker.overlay.yml', import.meta.url)) })
     const executablePath = process.env.DSH_PLAYWRIGHT_EXECUTABLE_PATH
     browser = await chromium.launch(executablePath === undefined ? {} : { executablePath })
     const context = await browser.newContext({ viewport: { width: 1680, height: 1000 }, locale: 'en-US', timezoneId: 'Asia/Shanghai' })
@@ -30,7 +33,9 @@ describe.skipIf(MODE === 'record')('web e2e: saved-Host settings', () => {
         origin: 'https://other-host.invalid', lastConnectedAt: 1,
       }]))
     })
+    const described = page.waitForResponse(response => response.url().endsWith('/api/host/describe'))
     await page.goto(scaffold.authenticatedUrl, { waitUntil: 'load' })
+    discovery = await (await described).json()
   })
 
   afterAll(async () => {
@@ -41,12 +46,32 @@ describe.skipIf(MODE === 'record')('web e2e: saved-Host settings', () => {
     }
   })
 
-  it('observes selection, clears the bookmark selection and distinguishes authorization from routing', async () => {
+  it('exports every capability method advertised by the shipped Host composition', () => {
+    const missing: string[] = []
+    for (const [key, definition] of Object.entries(scaffold.ctx.reflect.props)) {
+      if (definition.type !== 'service') continue
+      const receiver: unknown = scaffold.ctx.get(key)
+      if (typeof receiver !== 'object' || receiver === null) continue
+      const original = Reflect.get(receiver, symbols.original) as object | undefined ?? receiver
+      const binding = Reflect.get(original, 'typertRemote') as TypertGatewayBinding | undefined
+      if (binding === undefined) continue
+      const methods = new Set(remoteMethods(original).map(method => method.exportName ?? method.method))
+      for (const capability of binding.capabilities ?? []) {
+        for (const method of capability.methods) {
+          if (!methods.has(method)) missing.push(`${capability.id}: ${binding.namespace}/${method}`)
+        }
+      }
+    }
+    expect(missing).toEqual([])
+  })
+
+  it('manages local bookmarks and marks discovered identity without switching transport', async () => {
+    expect(discovery, JSON.stringify(discovery)).toMatchObject({ result: { ok: true } })
     onTestFailed(async () => {
       await mkdir(SHOTS, { recursive: true })
       await saveFailureShot(page, `screenshots/browser-host-origin/failure-${process.pid}`)
     })
-    await page.getByRole('button', { name: 'Settings', exact: true }).click()
+    await openSettings(page, 'en')
     const dialog = page.getByRole('dialog', { name: 'Settings', exact: true })
     await dialog.getByRole('button', { name: 'Hosts', exact: true }).click()
     const section = dialog.getByRole('region', { name: 'Saved Hosts', exact: true })
@@ -66,13 +91,9 @@ describe.skipIf(MODE === 'record')('web e2e: saved-Host settings', () => {
     expect(await current.getByRole('link').count()).toBe(0)
     expect(await section.getByText('Using the page Host', { exact: true }).isVisible()).toBe(true)
     const hostId = await current.getAttribute('data-host-id')
-    await current.getByRole('button', { name: 'Switch', exact: true }).click()
     await expect.poll(() => current.getAttribute('data-host-selected')).toBe('')
-    expect(await current.getByText('Selected', { exact: true }).isVisible()).toBe(true)
+    expect(await current.getByText('Current Host', { exact: true }).isVisible()).toBe(true)
     expect(await current.getByRole('button', { name: 'Switch', exact: true }).count()).toBe(0)
-    await expect.poll(() => page.evaluate(() => localStorage.getItem('dsh-selected-host.v1'))).toBe(hostId)
-    await section.getByRole('button', { name: 'Back to the page Host', exact: true }).click()
-    await expect.poll(() => current.getAttribute('data-host-selected')).toBeNull()
     expect(await page.evaluate(() => localStorage.getItem('dsh-selected-host.v1'))).toBeNull()
     const rows = section.locator('[data-host-id]')
     const hostIds = async (): Promise<(string | undefined)[]> =>
@@ -106,25 +127,20 @@ describe.skipIf(MODE === 'record')('web e2e: saved-Host settings', () => {
     await mkdir(SHOTS, { recursive: true })
     await page.screenshot({ path: `${SHOTS}/hosts-${MODE}-${process.pid}.png`, fullPage: true })
     expect(tripwire.pageErrors).toEqual([])
-    // Each explicit retarget retires the carrier and emits the controller's reconnect diagnostic.
-    expect(tripwire.warnings).toEqual([
-      '[connection] connection lost, retry #1',
-      '[connection] connection lost, retry #1',
-    ])
+    expect(tripwire.warnings).toEqual([])
     await compareOrRefreshGolden(EXPECTED, [
-      '# Saved Host selection', '',
+      '# Saved Host bookmarks', '',
       `- Cross-origin guidance: ${hint}`,
       '- Page Host: no cross-origin guidance',
-      '- Selection: Selected; switch hidden; id persisted',
-      '- Return: Using the page Host; persisted selection cleared',
+      '- Current identity: discovered Host marked; no in-page switch or persisted selection',
       '- Reorder: Move up puts the external Host first with boundary buttons disabled and explicit order stamps; Move down restores the recency order',
       '- Forget: external bookmark removed; page Host retained',
       '- Rename: empty draft rejected; Desk overrides and persists; Reset name returns the descriptor name',
     ].join('\n'), MODE)
   })
 
-  it('retains a cross-origin bookmark while clearing its unsupported boot selection', async () => {
-    const other = await launchWebScaffold({})
+  it('retains a cross-origin bookmark while ignoring its unsupported boot selection', async () => {
+    const other = await launchWebScaffold({ extraOverlayPath: fileURLToPath(new URL('./pin-browse-picker.overlay.yml', import.meta.url)) })
     const otherPage = await page.context().newPage()
     try {
       await otherPage.goto(other.authenticatedUrl, { waitUntil: 'load' })
@@ -133,7 +149,7 @@ describe.skipIf(MODE === 'record')('web e2e: saved-Host settings', () => {
       const direct = await page.request.post(origin + '/api/host/describe', { data: body })
       expect(direct.status()).toBe(200)
       const decoded = await direct.json() as { result: { ok: boolean } }
-      expect(decoded.result.ok).toBe(true)
+      expect(decoded, JSON.stringify(decoded)).toMatchObject({ result: { ok: true } })
       const cdp = await page.context().newCDPSession(page)
       await cdp.send('Network.enable')
       const preflights: number[] = []
@@ -157,7 +173,7 @@ describe.skipIf(MODE === 'record')('web e2e: saved-Host settings', () => {
         localStorage.setItem('dsh-selected-host.v1', 'other-live')
       }, origin)
       await page.reload({ waitUntil: 'load' })
-      await page.getByRole('button', { name: 'Settings', exact: true }).click()
+      await openSettings(page, 'en')
       const dialog = page.getByRole('dialog', { name: 'Settings', exact: true })
       await dialog.getByRole('button', { name: 'Hosts', exact: true }).click()
       const section = dialog.getByRole('region', { name: 'Saved Hosts', exact: true })
@@ -165,7 +181,7 @@ describe.skipIf(MODE === 'record')('web e2e: saved-Host settings', () => {
       expect(await bookmark.getByRole('link', { name: 'Open Host page', exact: true }).getAttribute('href')).toBe(origin)
       expect(await bookmark.getByRole('button', { name: 'Switch', exact: true }).count()).toBe(0)
       expect(await section.getByText('Using the page Host', { exact: true }).isVisible()).toBe(true)
-      expect(await page.evaluate(() => localStorage.getItem('dsh-selected-host.v1'))).toBeNull()
+      expect(await page.evaluate(() => localStorage.getItem('dsh-selected-host.v1'))).toBe('other-live')
       await expect.poll(() => section.locator('[data-host-id]').count()).toBe(2)
       await page.screenshot({ path: `${SHOTS}/boot-${MODE}-${process.pid}.png`, fullPage: true })
     } finally {
