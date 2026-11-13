@@ -14,10 +14,11 @@ import {
   sessionFormatCatalog,
 } from '@deepseek-ai/dsh-session-format-catalog'
 import { readdirSync, type Dirent } from 'node:fs'
-import { open, mkdir, readdir, realpath, link, rm, stat, truncate } from 'node:fs/promises'
+import { open, mkdir, readdir, realpath, link, rm, stat, truncate, unlink } from 'node:fs/promises'
 import { dirname, join, resolve } from 'node:path'
 import { performance } from 'node:perf_hooks'
 import { scheduler } from 'node:timers/promises'
+import { isDeepStrictEqual } from 'node:util'
 import { createHash, randomBytes } from 'node:crypto'
 import pLimit, { type LimitFunction } from 'p-limit'
 import {
@@ -47,6 +48,7 @@ import {
 import { ensureDurableDirectoryWin32, publishNewFileWin32 } from './win32.ts'
 import { verifyCurrentGenerationInWorker } from './migration-verifier.ts'
 import { prepareCatalogFacts } from './catalog-migration.ts'
+import { parseRepairIntent, repairIntentRevision, type RepairIntent } from './repair-intent.ts'
 import {
   JsonlGenerationSourceChangedError,
   JsonlGenerationUnsupportedMigrationError,
@@ -127,6 +129,8 @@ interface StoredLogBase extends FrozenStoredEvents {
   readonly tornTruncateTo: number | undefined
   /** Complete events recovered from the torn final frame; the write path rewrites them durably. */
   readonly recoveredTail: SessionEvent[]
+  /** A recovery record remains beside the current log until its events are durable. */
+  readonly tornIntentPresent: boolean
   /** Exact fork-inherited prefix length stored in the header line. */
   readonly inheritedEventCount: SessionLogOffsetType
   readonly revision: PersistenceRevision
@@ -440,6 +444,7 @@ class JsonlSessionPersistence extends SessionPersistence {
         materialized: true,
         tornTruncateTo: stored.tornTruncateTo,
         recoveredTail: stored.recoveredTail,
+        tornIntentPresent: stored.tornIntentPresent,
         inheritedEventCount: stored.inheritedEventCount,
         primed: stored,
       }, lease))
@@ -501,8 +506,9 @@ class JsonlSessionPersistence extends SessionPersistence {
       return {
         ...metadata,
         revision: selected.sourceVersion < SESSION_FORMAT_VERSION
-          ? SessionPersistenceRevision(`${fileRevision(identity)}:${await this.historicalCorpusRevision(options?.signal)}`)
-          : fileRevision(identity),
+          ? SessionPersistenceRevision(`${await this.currentRevision(selected.sourcePath, identity)}:${await this.historicalCorpusRevision(options?.signal)}`)
+          : selected.sourceVersion === SESSION_FORMAT_VERSION
+            ? await this.currentRevision(selected.sourcePath, identity) : fileRevision(identity),
         sizeBytes: Number(identity.size),
         location: { kind: 'jsonl', path: selected.sourcePath },
       }
@@ -535,7 +541,10 @@ class JsonlSessionPersistence extends SessionPersistence {
       try {
         const identity = await stat(artifact.path, { bigint: true })
         signal?.throwIfAborted()
-        return { artifact, identity }
+        const revision = artifact.sourceVersion <= SESSION_FORMAT_VERSION
+          ? await this.currentRevision(artifact.path, identity) : fileRevision(identity)
+        signal?.throwIfAborted()
+        return { artifact, identity, revision }
       } catch (error: unknown) {
         signal?.throwIfAborted()
         if (!isENOENT(error)) throw error
@@ -544,14 +553,14 @@ class JsonlSessionPersistence extends SessionPersistence {
     }))
     for (const entry of statted) {
       if (entry === undefined) continue
-      const { artifact, identity } = entry
+      const { artifact, identity, revision } = entry
       listed.add(artifact.header.id)
       snapshots.push({
         header: artifact.header,
         formatStatus: artifact.formatStatus,
         revision: artifact.sourceVersion < SESSION_FORMAT_VERSION
-          ? SessionPersistenceRevision(`${fileRevision(identity)}:${corpusRevision}`)
-          : fileRevision(identity),
+          ? SessionPersistenceRevision(`${revision}:${corpusRevision}`)
+          : revision,
         sizeBytes: Number(identity.size),
         location: { kind: 'jsonl', path: artifact.path },
       })
@@ -570,7 +579,7 @@ class JsonlSessionPersistence extends SessionPersistence {
     const selected = await this.findLog(id, signal)
     if (selected === undefined) throw new SessionPersistenceNotFoundError(id)
     if (selected.sourceVersion < SESSION_FORMAT_VERSION) {
-      const sourceRevision = fileRevision(await stat(selected.sourcePath, { bigint: true }))
+      const sourceRevision = await this.currentRevision(selected.sourcePath)
       signal?.throwIfAborted()
       let preparation = this.migrationPreparations.get(id)
       if (preparation === undefined
@@ -614,21 +623,7 @@ class JsonlSessionPersistence extends SessionPersistence {
         { kind: 'jsonl', path: selected.sourcePath },
       )
     }
-    const probe = fileRevision(await stat(selected.sourcePath, { bigint: true }))
-    const memoized = this.coldLogMemo.get(id)
-    if (memoized?.status === 'current' && memoized.revision === probe) {
-      this.coldLogMemo.delete(id)
-      this.coldLogMemo.set(id, memoized)
-      return memoized
-    }
-    const current = await readStableJsonlFile(selected.sourcePath, signal)
-    return this.decodeStoredLog(
-      selected.sourcePath,
-      id,
-      current.bytes,
-      fileRevision(current.identity),
-      signal,
-    )
+    return this.readStoredLog(selected.sourcePath, id, signal)
   }
 
   /** Probe the memo and otherwise decode one historical generation under backend cancellation. */
@@ -735,8 +730,10 @@ class JsonlSessionPersistence extends SessionPersistence {
       ...freezeStoredEvents(events),
       tornTruncateTo: undefined,
       recoveredTail: [],
+      tornIntentPresent: false,
       inheritedEventCount: SessionLogOffset(prepared.artifact.inheritedEventCount),
-      revision: fileRevision(prepared.sourceIdentity),
+      revision: prepared.sourceRecoveryRevision === undefined ? fileRevision(prepared.sourceIdentity)
+        : SessionPersistenceRevision(`${fileRevision(prepared.sourceIdentity)}:repair:${prepared.sourceRecoveryRevision}`),
       publication: { source: selected, value: prepared },
     }
     this.memoizeStoredLog(id, stored)
@@ -761,6 +758,7 @@ class JsonlSessionPersistence extends SessionPersistence {
       events: stored.events,
       tornTruncateTo: stored.tornTruncateTo,
       recoveredTail: stored.recoveredTail,
+      tornIntentPresent: stored.tornIntentPresent,
       inheritedEventCount: stored.inheritedEventCount,
       revision: fileRevision(identity),
     }
@@ -800,7 +798,8 @@ class JsonlSessionPersistence extends SessionPersistence {
    */
   async readStoredLog(path: string, expectedId: SessionId, signal?: AbortSignal): Promise<CurrentStoredLog> {
     signal?.throwIfAborted()
-    const probe = fileRevision(await stat(path, { bigint: true }))
+    const beforeIdentity = await stat(path, { bigint: true })
+    const probe = await this.currentRevision(path, beforeIdentity)
     const memoized = this.coldLogMemo.get(expectedId)
     if (memoized?.status === 'current' && memoized.revision === probe) {
       this.coldLogMemo.delete(expectedId)
@@ -808,7 +807,16 @@ class JsonlSessionPersistence extends SessionPersistence {
       return memoized
     }
     const { bytes, identity } = await readStableJsonlFile(path, signal)
-    return this.decodeStoredLog(path, expectedId, bytes, fileRevision(identity), signal)
+    if (this.compression !== 'zstd') return this.decodeStoredLog(path, expectedId, bytes, fileRevision(identity), signal)
+    const intent = await this.readRepairIntent(path, expectedId, signal)
+    const afterIdentity = await stat(path, { bigint: true })
+    const after = await this.currentRevision(path, afterIdentity)
+    // Ordinary append-only churn still serves the stable committed prefix.
+    // A repair can shrink bytes, so its primary and recovery files must agree.
+    const repairing = intent !== undefined || probe !== fileRevision(beforeIdentity)
+      || after !== fileRevision(afterIdentity) || identity.size < beforeIdentity.size
+    if (repairing && probe !== after) throw new JsonlGenerationSourceChangedError(path)
+    return this.decodeStoredLog(path, expectedId, bytes, intent === undefined ? fileRevision(identity) : after, signal, intent)
   }
 
   /** Decode and memoize one already-stable current physical snapshot. */
@@ -818,6 +826,7 @@ class JsonlSessionPersistence extends SessionPersistence {
     buffer: Buffer,
     revision: PersistenceRevision,
     signal?: AbortSignal,
+    intent?: RepairIntent,
   ): Promise<CurrentStoredLog> {
     let parsed: {
       meta: SessionHeader
@@ -854,6 +863,35 @@ class JsonlSessionPersistence extends SessionPersistence {
       }
       throw new SessionPersistenceCorruptionError(`session "${expectedId}": stored log is corrupt: ${String(error)} (raw log: ${path})`, { cause: error })
     }
+    if (intent !== undefined) {
+      const durableCount = parsed.events.length - parsed.recoveredTail.length
+      const merged: { readonly seq: number }[] = [...parsed.events]
+      for (const event of intent.events) {
+        if (event.seq < merged.length) {
+          if (!isDeepStrictEqual(merged[event.seq], event)) {
+            throw new SessionPersistenceCorruptionError(`session "${expectedId}": repair intent contradicts stored seq ${event.seq}`,
+              { cause: new Error('overlapping recovery records differ') })
+          }
+        } else if (event.seq === merged.length) {
+          merged.push(event)
+        } else {
+          throw new SessionPersistenceCorruptionError(`session "${expectedId}": repair intent leaves a gap before seq ${event.seq}`,
+            { cause: new Error('recovery records do not continue the stored log') })
+        }
+      }
+      // The current codec, including cross-record admission, validates recovered
+      // records just as it validates the primary log. No intent row is a torn tail.
+      try {
+        const scanner = new SessionLogScanner(Buffer.from(JSON.stringify(toHeaderLine(parsed.meta,
+          parsed.meta.isSeeded ? parsed.inheritedEventCount : undefined)) + '\n'), 'strict')
+        scanner.write(Buffer.from(merged.map(event => JSON.stringify(event)).join('\n') + '\n'))
+        parsed.events = scanner.finish().events
+        parsed.recoveredTail = parsed.events.slice(durableCount)
+      } catch (error) {
+        if (error instanceof SessionFormatUnsupportedError) throw error
+        throw new SessionPersistenceCorruptionError(`session "${expectedId}": repair intent contains invalid records`, { cause: error })
+      }
+    }
     signal?.throwIfAborted()
     await this.assertStoredIdentity(path, SESSION_FORMAT_VERSION, parsed.meta, expectedId, signal)
     signal?.throwIfAborted()
@@ -864,6 +902,7 @@ class JsonlSessionPersistence extends SessionPersistence {
     const stored: CurrentStoredLog = {
       status: 'current',
       ...rest,
+      tornIntentPresent: intent !== undefined,
       ...freezeStoredEvents(events),
       revision,
     }
@@ -937,14 +976,85 @@ class JsonlSessionPersistence extends SessionPersistence {
   }
 
   /**
-   * Truncate a torn physical tail durably before this session's first new append.
+   * Preserve recovered records durably before truncating the torn physical tail.
    * @param header - the session's stored header.
    * @param truncateTo - the byte offset the artifact is truncated to.
+   * @param recovered - complete records that must survive truncation and a failed rewrite.
+   * @returns whether a recovery record remains for removal after the rewrite.
    */
-  async truncateTornTail(header: SessionHeader, truncateTo: number): Promise<void> {
+  async truncateTornTail(header: SessionHeader, truncateTo: number, recovered: readonly SessionEvent[]): Promise<boolean> {
     this.coldLogMemo.delete(header.id)
+    if (recovered.length > 0) {
+      const path = logPath(this.root, header.cwd, header.id, this.compression)
+      const existing = await this.readRepairIntent(path, header.id)
+      if (existing === undefined) {
+        const intent: RepairIntent = { version: 1, id: header.id, truncateTo, events: recovered }
+        const target = `${path}.repair-intent`
+        const temp = await this.writeSyncedTempFile(target, JSON.stringify(intent) + '\n')
+        try {
+          if (process.platform === 'win32') await publishNewFileWin32(temp, target)
+          else {
+            await link(temp, target)
+            await this.syncDirPosix(dirname(target))
+          }
+        } finally {
+          await rm(temp, { force: true })
+        }
+      } else {
+        for (const event of recovered) {
+          if (!isDeepStrictEqual(existing.events.find(row => row.seq === event.seq), event)) {
+            throw new SessionPersistenceCorruptionError(`session "${header.id}": repair intent does not preserve recovered seq ${event.seq}`,
+              { cause: new Error('existing recovery record cannot protect truncation') })
+          }
+        }
+        // Older writers used atomic replacement without fsync. Confirm the
+        // surviving record is durable before allowing another truncation.
+        const handle = await open(`${path}.repair-intent`, 'r+')
+        try { await handle.sync() } finally { await handle.close() }
+        if (process.platform !== 'win32') await this.syncDirPosix(dirname(path))
+      }
+    }
     await this.repair(header, truncateTo)
     this.ctx.logger.warn(`${this.name}: session "${header.id}" recovered from a torn tail; incomplete tail bytes were discarded`)
+    return recovered.length > 0
+  }
+
+  /**
+   * Remove recovery state only after its records are durable in the primary log.
+   * @param header - the session whose completed repair is discarded.
+   */
+  async discardTornTailIntent(header: SessionHeader): Promise<void> {
+    this.coldLogMemo.delete(header.id)
+    const path = logPath(this.root, header.cwd, header.id, this.compression)
+    try { await unlink(`${path}.repair-intent`) }
+    catch (error) {
+      if (!isENOENT(error)) throw error
+    }
+    if (process.platform !== 'win32') await this.syncDirPosix(dirname(path))
+  }
+
+  /** Primary bytes and recovery state together identify the current logical log. */
+  private async currentRevision(path: string, identity?: JsonlPhysicalIdentity): Promise<PersistenceRevision> {
+    const primary = fileRevision(identity ?? await stat(path, { bigint: true }))
+    if (this.compression !== 'zstd') return primary
+    const intent = await repairIntentRevision(path)
+    return intent === undefined ? primary : SessionPersistenceRevision(`${primary}:repair:${intent}`)
+  }
+
+  /** Read recovery records without interpreting malformed input as an absent file. */
+  private async readRepairIntent(path: string, id: SessionId, signal?: AbortSignal): Promise<RepairIntent | undefined> {
+    let bytes: Buffer
+    try { ({ bytes } = await readStableJsonlFile(`${path}.repair-intent`, signal)) }
+    catch (error) {
+      if (isENOENT(error)) return undefined
+      throw error
+    }
+    signal?.throwIfAborted()
+    try {
+      return parseRepairIntent(bytes, id)
+    } catch (error) {
+      throw new SessionPersistenceCorruptionError(`session "${id}": invalid repair intent (${path}.repair-intent)`, { cause: error })
+    }
   }
 
   /**
@@ -1123,7 +1233,7 @@ class JsonlSessionPersistence extends SessionPersistence {
     const entries = settledValues(await settleLimited(this.listLimit, paths, async (path) => {
       signal?.throwIfAborted()
       try {
-        return { path, revision: fileRevision(await stat(path, { bigint: true })) }
+        return { path, revision: await this.currentRevision(path) }
       } catch (error: unknown) {
         if (!isENOENT(error)) throw error
         return { path, revision: 'missing' }

@@ -1,3 +1,16 @@
+# Keep the recorded shell catalog independent of the machine running this text-only scenario.
+- id: bash-sandbox
+  disabled: false
+
+- id: pwsh-sandbox
+  disabled: true
+
+- id: tool-bash
+  disabled: false
+
+- id: tool-pwsh
+  disabled: true
+
 # Switching models on resume requires known capacity for the destination route.
 - id: llm-replay
   config:

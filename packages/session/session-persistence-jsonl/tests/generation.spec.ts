@@ -1109,6 +1109,25 @@ describe('JSONL immutable generation publication', () => {
     }
   })
 
+  it.each(['created', 'changed', 'removed'] as const)('refuses publication when only the recovery record is %s', async (change) => {
+    const root = await tempRoot()
+    const request = options(root, 'zstd', catalogAdapter(), 3)
+    const source = await encodeZstd(3, [event0])
+    await writeFile(request.sourcePath, source)
+    const intentPath = `${request.sourcePath}.repair-intent`
+    const intent = { version: 1, id: 'generation-test', truncateTo: source.length, events: [event1] }
+    if (change !== 'created') await writeFile(intentPath, line(intent))
+    const barrier = async (phase: string) => {
+      if (phase !== 'before-source-check') return
+      if (change === 'removed') await rm(intentPath)
+      else await writeFile(intentPath, line({ ...intent, events: [{ ...event1, time: 10 }] }))
+    }
+    await expect(ensureWithOverrides(request, { barrier })).rejects.toBeInstanceOf(JsonlGenerationSourceChangedError)
+    expect(await readFile(request.sourcePath)).toEqual(source)
+    await expect(readFile(request.currentPath)).rejects.toMatchObject({ code: 'ENOENT' })
+    expect((await readdir(root)).every(name => !name.includes('.tmp'))).toBe(true)
+  })
+
   it('bounds a bracketed physical read and does not rerun migration after a publication race', async () => {
     const root = await tempRoot()
     const request = options(root)
