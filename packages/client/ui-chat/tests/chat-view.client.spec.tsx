@@ -1411,6 +1411,49 @@ describe('ChatView', () => {
     expect(view.getByRole('button', { name: '跳转到第 3 轮' }).getAttribute('aria-current')).toBe('true')
   })
 
+  it('consumes a requested turn focus once and leaves later transcript updates at the reader position', async () => {
+    const h = makeHarness({ nodes: [
+      userInTurn(1, 'first', 1), assistant(2, 'first answer', 1),
+      userInTurn(4, 'second', 2), assistant(5, 'second answer', 2),
+    ] })
+    const complete = vi.fn()
+    const view = render(<h.ChatView {...h.props} completeViewRequest={complete} />)
+    await view.findByRole('button', { name: '跳转到第 1 轮' })
+    const scroller = view.container.querySelector('[data-chat-flow]')!.parentElement as HTMLDivElement
+    installScrollMetrics(scroller, 1_500, 300)
+    const row = view.container.querySelector('[data-chat-anchor-key="fixture:user:1"]') as HTMLElement
+    vi.spyOn(scroller, 'getBoundingClientRect').mockReturnValue(new DOMRect(0, 0, 800, 300))
+    vi.spyOn(row, 'getBoundingClientRect').mockImplementation(() => new DOMRect(0, 100 - scroller.scrollTop, 800, 40))
+    readerScroll(scroller, 500)
+    view.rerender(<h.ChatView {...h.props} completeViewRequest={complete} viewRequest={{ view: 'chat', focus: 'turn:1' }} />)
+    expect(complete).toHaveBeenCalledOnce()
+    expect(scroller.scrollTop).toBe(76)
+    view.rerender(<h.ChatView {...h.props} completeViewRequest={complete} viewRequest={null} />)
+    readerScroll(scroller, 300)
+    act(() => { h.set({ running: true }) })
+    expect(complete).toHaveBeenCalledOnce()
+    expect(scroller.scrollTop).toBe(300)
+  })
+
+  it('waits for requested history and ignores focus addressed to another View', async () => {
+    const h = makeHarness({ nodes: [
+      userInTurn(4, 'second', 2), assistant(5, 'second answer', 2),
+      userInTurn(7, 'third', 3), assistant(8, 'third answer', 3),
+    ] })
+    const complete = vi.fn()
+    const view = render(<h.ChatView {...h.props} completeViewRequest={complete}
+      viewRequest={{ view: 'trajectory', focus: 'turn:1' }} />)
+    await view.findByRole('button', { name: '跳转到第 2 轮' })
+    expect(complete).not.toHaveBeenCalled()
+    view.rerender(<h.ChatView {...h.props} completeViewRequest={complete} viewRequest={{ view: 'chat', focus: 'turn:1' }} />)
+    expect(complete).not.toHaveBeenCalled()
+    act(() => { h.set({ chat: chatSnapshotFixture({ nodes: [
+      userInTurn(1, 'first', 1), assistant(2, 'first answer', 1),
+      userInTurn(4, 'second', 2), assistant(5, 'second answer', 2),
+    ] }) }) })
+    await waitFor(() => { expect(complete).toHaveBeenCalledOnce() })
+  })
+
   it('uses a known turn landing without hit testing or consuming rail scroll as transcript input', async () => {
     const original = Object.getOwnPropertyDescriptor(document, 'elementsFromPoint')
     const hitTest = vi.fn((): Element[] => [])

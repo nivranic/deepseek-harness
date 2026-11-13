@@ -9,7 +9,7 @@ kind: "package-reference"
 
 ## 概述
 
-本包交付 §26 第一阶段 Handoff 的 Web 跨设备通道：一个 Session-header 动作把连接中的 Host、当前 Session 与最后一个 Turn 的持久锚点捕获为带前缀载荷（`ClientSessions.encodeViewLocation`），包装成页面 URL 的 `#dsh-view=…` fragment 并复制整条链接到剪贴板。在另一台设备打开该链接时，页面恰好读取 fragment 一次，并在该页 Host 准入之后校验载荷恰好指向当前连接的 Host，再选中会话并经轮次跳转加载器揭示锚点。只转移查看位置，绝不迁移运行时。
+复制链接或扫描二维码，即可在另一台已认证的设备上继续查看 Session。链接标识 Host、Session 和最后已加载的 Turn 起点。接收页面核验 Host 后在 Chat 中定位该轮。链接不携带凭据、不授予访问权限，也不迁移运行中的 agent。
 
 ## 目录
 
@@ -29,7 +29,7 @@ kind: "package-reference"
 
 ### 预期行为
 
-动作显示分享字形与本地化标签；点击编码载荷、构造 `origin + pathname + #dsh-view=<payload>`、复制链接——按钮以「已复制」状态保持两秒——并在动作下方打开锚定弹层，把这条链接渲染为可扫描的 QR 码（`qrcode.react` SVG，与设备配对面板同一渲染），手机相机由此成为与粘贴并列的投递通道。弹层沿用仓库锚定面板配方：向下锚定带量测过程、外部指针与 Escape 关闭、焦点归还触发器、`aria-haspopup="dialog"`。剪贴板拒绝时链接仍可经按钮 tooltip 与失败提示一同触达。打开收到的链接会立即消费 fragment（一次性：指向错误 Host 的失败不会在刷新时循环），等待 Host 准入后经 sessions 服务打开；指向别的 Host 的载荷在控制台大声失败，页面不发出任何请求。
+点击动作会复制不含查询参数的页面链接，并打开锚定二维码对话框。Escape 关闭对话框并把焦点归还触发器，点击外部也会关闭。剪贴板拒绝时，链接保留在按钮提示中。接收页面只消费一次 fragment，然后等待已认证 Host 发现。无效链接、不同 Host、连接不可用及位置不可访问均显示本地化提示。不同 Host 会在任何 Session 导航前被拒绝。连接代际变化或插件卸载会取消待处理导航。
 
 -----
 
@@ -39,7 +39,7 @@ kind: "package-reference"
 <details>
 <summary>实现内幕——点击展开</summary>
 
-插件在 `conversation.session.header.actions` 注册一个 header 动作并注册双语 `view-handoff` 词典。页面生命期 controller（[`src/client/controller.ts`](src/client/controller.ts)）订阅 connection generation observable：descriptor 存在即 `encodeViewLocation` 自身要求的准入信号，以快照存储发布、动作经 inject `hooks` 通道读取。动作的锚点从标准 `useConversation` 共享派生——Chat 目标 timeline 最后一个 Turn 的 `start` seq，正是 `loadThrough` 揭示的那类 seq。接收端在 apply 时读取一次页面 fragment，并在首个准入 generation 之后解决；链接构造与 fragment 读取都经注入的 location/clipboard 接缝，测试无需浏览器即可驱动。
+[控制器](src/client/controller.ts) 为每个连接代际通过 `host.describe()` 发现身份，并忽略迟到回执。插件拥有 v1 载荷编解码。接收流程在加载历史期间持有 Session，在 Chat timeline 中核验目标 Turn 起点，并在工作区导航接管持有关系前提交一次性 Conversation 焦点请求。Conversation 渲染器创建共享展示 store；挂载前到达的请求等待在对应的精确 Session binding 上。根层浮动提示在目标 Session 无法打开时仍能报告失败。
 
 </details>
 
@@ -48,9 +48,9 @@ kind: "package-reference"
 <a id="further-exploration"></a>
 ## 进一步探索
 
-- [dsh-api-session-controller](../../api/session-controller/README.zh.md) — §26 编解码（`encodeViewLocation` / `openViewLocation`）与轮次跳转加载器。
+- [dsh-api-session-controller](../../api/session-controller/README.zh.md) — 有作用域的 Session 持有与历史加载。
 - [dsh-client-ui-chat](../ui-chat/README.zh.md) — 提供锚点的 Chat 目标。
-- [dsh-api-remotes](../../api/remotes/README.zh.md) — 准入信号派生自的 connection generation。
+- [dsh-api-remotes](../../api/remotes/README.zh.md) — 已认证 Host 发现。
 
 -----
 
@@ -77,8 +77,8 @@ kind: "package-reference"
 <details>
 <summary>维护者工作语境——点击展开</summary>
 
-节层面的各项决定——锚点选择、一次性 fragment 消费、以及把编解码暴露给 feature 包的 `ISessions` 加宽——记录在 [view-handoff Agent Note](../../../.agents/notes/implemented/architecture/2026-10-03-view-handoff.zh.md)。
+[view-handoff Agent Note](../../../.agents/notes/implemented/architecture/2026-10-03-view-handoff.zh.md) 记录原始投递设计。当前编解码与接收生命周期归本插件所有。
 
 </details>
 
-**运行时不变式：** 不发布伴生入口。插件注册一个词典 effect 和一个 header slot 条目；准入信号存储在控制器的快照存储中，不存在可能与之分歧的第二份副本，接收端的一次性守卫使已消费的 fragment 从构造上不可重复。
+**运行时不变式：** 发现和导航随所属连接代际失效。链接内容从不授予 Host 或 Session 访问权限。

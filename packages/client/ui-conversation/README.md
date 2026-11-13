@@ -68,6 +68,8 @@ The existing semantic `DraftSnapshot` retains quote text and clipboard-coordinat
 <a id="shell-and-standard-props"></a>
 ## Shell and standard props
 
+Navigation can call `ctx.uiConversation.openView(binding, view, focus)` for an exact retained Session binding. The registered renderer store shares this one-shot request across the header and body; a request before mount waits on that binding and is discarded when the binding ends. Unknown Views and stale bindings are rejected.
+
 The shared image slot props keep display choices separate from durable references: `thumbnail` requests a contained attachment-list thumbnail, while `compact` requests a cropped gallery tile. An optional per-image `label` supplies the accessible display name; loading and cache identity still use the original attachment reference. `MessageImagesContentInput` adds optional complete `MessageImageLabels` for the root-scoped `conversation.images.content` Factory. Message, tool, and Factory inputs carry the view's authorized `loadImage` callback explicitly; loading and URL caching remain with the resource owner. [ui-attachment](../ui-attachment/README.md) provides this Factory and owns rendering and the lightbox.
 
 The composer uses a minimum 16px draft font on coarse-pointer devices to avoid focus-triggered browser zoom; larger font preferences still apply.

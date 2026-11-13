@@ -8,6 +8,10 @@
     "src"
   ],
   "references": [
+    { "path": "../../api/remotes/tsconfig.client.json" },
+    { "path": "../../typert/protocol" },
+    { "path": "../ui-workspace" },
+    { "path": "../ui-layout" },
     {
       "path": "../../../vendor/cordis"
     },

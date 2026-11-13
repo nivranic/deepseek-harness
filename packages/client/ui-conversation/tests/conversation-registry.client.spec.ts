@@ -143,6 +143,50 @@ async function bootRegistries(): Promise<{
 }
 
 describe('Conversation registries', () => {
+  it('delivers navigation to the shared renderer store before and after its first mount', async () => {
+    const { uiConversation, binding, views } = await bootRegistries()
+    views.register(viewDefinition('chat'))
+    uiConversation.openView(binding, 'chat', 'turn:7')
+    const body = uiConversation.presentationStore.create(SESSION_ID)
+    const header = uiConversation.presentationStore.create(SESSION_ID)
+    expect(header).toBe(body)
+    expect(body.getSnapshot().viewRequest).toEqual({ view: 'chat', focus: 'turn:7' })
+    body.actions.completeViewRequest()
+    expect(header.getSnapshot().viewRequest).toBeNull()
+    uiConversation.openView(binding, 'chat', 'turn:8')
+    expect(header.getSnapshot().viewRequest).toEqual({ view: 'chat', focus: 'turn:8' })
+  })
+
+  it('rejects stale bindings and unregistered targets without changing the active request', () => {
+    const ctx = new Context()
+    onTestFinished(async () => { await ctx.fiber.dispose() })
+    const { sessions, binding } = fakeSessions(ctx)
+    const current = vi.spyOn(sessions, 'binding')
+    const service = new UiConversation(ctx, sessions)
+    service.views.register(viewDefinition('chat'))
+    const presentation = service.presentationStore.create(SESSION_ID)
+    service.openView(binding, 'chat', 'turn:1')
+    expect(() => { service.openView(binding, 'missing', 'turn:2') }).toThrow('unavailable')
+    current.mockReturnValue(undefined)
+    expect(() => { service.openView(binding, 'chat', 'turn:3') }).toThrow('inactive')
+    expect(presentation.getSnapshot().viewRequest).toEqual({ view: 'chat', focus: 'turn:1' })
+  })
+
+  it('drops unmounted navigation requests when the owning Session is released', async () => {
+    const ctx = new Context()
+    onTestFinished(async () => { await ctx.fiber.dispose() })
+    const first = fakeSessions(ctx)
+    const current = vi.spyOn(first.sessions, 'binding')
+    const service = new UiConversation(ctx, first.sessions)
+    service.views.register(viewDefinition('chat'))
+    service.openView(first.binding, 'chat', 'turn:1')
+    await first.binding.ctx.fiber.dispose()
+    const second = fakeSessions(ctx)
+    current.mockReturnValue(second.binding)
+    expect(service.presentationStore.create(SESSION_ID).getSnapshot().viewRequest).toBeNull()
+    expect(() => { service.openView(first.binding, 'chat', 'turn:2') }).toThrow('inactive')
+  })
+
   it('publishes open turns without an active view and detaches when the Session scope ends', async () => {
     const { uiConversation, binding } = await bootRegistries()
     const conversation = uiConversation.binding(binding)

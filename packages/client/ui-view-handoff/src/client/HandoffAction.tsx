@@ -1,24 +1,25 @@
 /** §26 capture side: one Session-header action copying the cross-device view-location link. */
-import { useRef, useState, type CSSProperties, type KeyboardEvent } from 'react'
+import { useLayoutEffect, useRef, useState, type CSSProperties, type KeyboardEvent } from 'react'
 import { createPortal } from 'react-dom'
 import type { InjectFace, PropsLocale, PropsRuntime } from '@deepseek-ai/dsh-client-ui-slots'
 import type {} from '@deepseek-ai/dsh-client-ui-chat/client'
 import type {} from '@deepseek-ai/dsh-client-ui-conversation/client'
-import { IconShareOutline16, useAnchoredPosition, useDismissOnOutsidePointer } from '@deepseek-ai/dsh-client-ui-primitives'
+import { IconShareOutlineRegular, useAnchoredPosition, useDismissOnOutsidePointer } from '@deepseek-ai/dsh-client-ui-primitives'
 import { QRCodeSVG } from 'qrcode.react'
 import type { ObservableSnapshot } from '@deepseek-ai/dsh-client-store'
 import type { SessionId, SessionSeq } from '@deepseek-ai/dsh-session/types'
 import { NS } from './locales.ts'
 import css from './HandoffAction.module.css'
+import type { HandoffAdmission } from './controller.ts'
 
 /** Handoff operations and state injected into the Session Header contribution. */
 export interface HandoffActionInjected {
   hooks: {
     /** Host-admission signal; the action stays hidden until the first admitted generation. */
-    admitted: ObservableSnapshot<boolean>
+    admission: ObservableSnapshot<HandoffAdmission>
   }
   /** Encode the §26 payload for the session and anchor. */
-  encode: (sessionId: SessionId, anchorSeq: SessionSeq) => string
+  encode: (sessionId: SessionId, anchorSeq: SessionSeq) => string | undefined
   /** Build the cross-device link for one payload. */
   buildLink: (payload: string) => string
   /** Copy text; resolves false when the clipboard refused. */
@@ -52,8 +53,8 @@ const MEASURE_STYLE: CSSProperties = { visibility: 'hidden', left: 0, top: 0 }
  * @returns the action button with its QR popover, or null while hidden.
  */
 export function HandoffAction(props: HandoffActionProps): React.JSX.Element | null {
-  const { sessionId, useConversation, useAdmitted, encode, buildLink, copy, t } = props
-  const admitted = useAdmitted(value => value)
+  const { sessionId, useConversation, useAdmission, encode, buildLink, copy, t } = props
+  const admission = useAdmission(value => value)
   // The anchor is the last Turn's turn/start seq — exactly what the receiving
   // side's turn-jump loader reveals through loadThrough.
   const anchorSeq = useConversation((conversation) => {
@@ -67,6 +68,15 @@ export function HandoffAction(props: HandoffActionProps): React.JSX.Element | nu
   const [link, setLink] = useState<string | undefined>(undefined)
   const [open, setOpen] = useState(false)
   const timer = useRef<ReturnType<typeof setTimeout> | undefined>(undefined)
+  const request = useRef(0)
+  useLayoutEffect(() => {
+    request.current++
+    clearTimeout(timer.current)
+    setOpen(false)
+    setLink(undefined)
+    setDress('idle')
+    return () => { request.current++; clearTimeout(timer.current) }
+  }, [admission, sessionId])
   const rootRef = useRef<HTMLDivElement>(null)
   const triggerRef = useRef<HTMLButtonElement>(null)
   const panelRef = useRef<HTMLDivElement>(null)
@@ -81,13 +91,17 @@ export function HandoffAction(props: HandoffActionProps): React.JSX.Element | nu
 
   useDismissOnOutsidePointer(rootRef, open, setOpen, panelRef)
 
-  if (!admitted || anchorSeq === undefined) return null
+  if (admission.status !== 'ready' || anchorSeq === undefined) return null
 
   const share = (): void => {
-    const url = buildLink(encode(sessionId, anchorSeq))
+    const payload = encode(sessionId, anchorSeq)
+    if (payload === undefined) return
+    const url = buildLink(payload)
+    const current = ++request.current
     setLink(url)
     setOpen(true)
     void copy(url).then((ok) => {
+      if (request.current !== current) return
       setDress(ok ? 'copied' : 'failed')
       clearTimeout(timer.current)
       timer.current = setTimeout(() => { setDress('idle') }, DRESS_MS)
@@ -103,7 +117,7 @@ export function HandoffAction(props: HandoffActionProps): React.JSX.Element | nu
 
   const panel = open && link !== undefined
     ? createPortal((
-      <div ref={panelRef} className={css.panel} style={panelPosition ?? MEASURE_STYLE} aria-label={t('scan')}>
+      <div ref={panelRef} role="dialog" className={css.panel} style={panelPosition ?? MEASURE_STYLE} aria-label={t('scan')}>
         <QRCodeSVG value={link} size={QR_SIZE} marginSize={4} title={t('scan')} />
       </div>
     ), document.body)
@@ -120,7 +134,7 @@ export function HandoffAction(props: HandoffActionProps): React.JSX.Element | nu
         aria-expanded={open}
         title={dress === 'idle' ? t('action') : dress === 'copied' ? t('copied') : `${t('copyFailed')}\n${link ?? ''}`}
       >
-        <IconShareOutline16 size={14} />
+        <IconShareOutlineRegular size={14} />
         <span className={css.label}>{dress === 'copied' ? t('copied') : t('action')}</span>
       </button>
       {panel}

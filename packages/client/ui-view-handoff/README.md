@@ -9,7 +9,7 @@ English | [中文](README.zh.md)
 
 ## Summary
 
-This package delivers the §26 first-phase handoff's cross-device channel on the Web: one Session-header action captures the connected Host, the current Session, and the last Turn's durable anchor into a prefixed payload (`ClientSessions.encodeViewLocation`) wrapped as the page URL's `#dsh-view=…` fragment, and copies the whole link to the clipboard. Opening the link on another device reads the fragment exactly once and — only after that page's Host is admitted — verifies the payload targets exactly the connected Host before selecting the session and revealing the anchor through the turn-jump loader. The viewing position moves; the runtime never does.
+Continue viewing a Session on another authenticated device by copying a link or scanning its QR code. The link identifies the Host, Session, and last loaded Turn start. The receiving page verifies the Host and reveals that Turn in Chat. Links carry no credentials, grant no access, and do not move the running agent.
 
 ## Table of Contents
 
@@ -29,7 +29,7 @@ Mount this plugin in the Web composition (the [`dsh-web-app`](../../bundle/web-a
 
 ### What to expect
 
-The action shows a share glyph and the localized label; clicking encodes the payload, builds `origin + pathname + #dsh-view=<payload>`, copies the link — the button dresses as copied for two seconds — and opens a popover anchored under the action rendering that exact link as a scannable QR code (`qrcode.react` SVG, the same rendering as the device-pairing panel), so a phone camera is a delivery channel alongside paste. The popover follows the repo's anchored-panel recipe: bottom-anchored with a measuring pass, outside-pointer and Escape dismissal, focus returned to the trigger, `aria-haspopup="dialog"`. A clipboard refusal keeps the link reachable through the button's tooltip alongside the failure note. Opening a received link consumes the fragment immediately (one-shot: a wrong-Host failure cannot loop on refresh), waits for Host admission, then opens through the sessions service; a payload naming another Host fails loud in the console and no request leaves the page.
+Clicking the action copies the page link without query parameters and opens an anchored QR dialog. Escape closes the dialog and returns focus to the trigger; clicking outside also closes it. A clipboard refusal leaves the link in the button tooltip. The receiving page consumes the fragment once and waits for authenticated Host discovery. Invalid links, a different Host, unavailable connections, and inaccessible positions produce localized notices. A different Host is rejected before any Session navigation. Changing the connection generation or unloading the plugin cancels pending navigation.
 
 -----
 
@@ -39,7 +39,7 @@ The action shows a share glyph and the localized label; clicking encodes the pay
 <details>
 <summary>Implementation internals — click to expand</summary>
 
-The plugin registers one header action on `conversation.session.header.actions` plus the bilingual `view-handoff` dictionaries. A page-lifetime controller ([`src/client/controller.ts`](src/client/controller.ts)) subscribes the connection generation observable: descriptor presence is the admission signal `encodeViewLocation` itself requires, published as a snapshot store the action reads through the inject `hooks` compartment. The action derives its anchor from the standard `useConversation` share — the Chat target's timeline's last Turn `start` seq, the exact seq class `loadThrough` reveals. The receiver reads the page fragment once at apply and resolves after the first admitted generation; both the link builder and the fragment reader go through injected location/clipboard seams, so tests drive them without a browser.
+The [controller](src/client/controller.ts) discovers identity through `host.describe()` for each connection generation and ignores late replies. The plugin owns the v1 payload codec. Receiving retains the Session while loading history, verifies the requested Turn start in the Chat timeline, and submits a one-shot Conversation focus request before workspace navigation takes over retention. The Conversation renderer creates its shared presentation store; requests arriving before mount wait on the exact Session binding. A root overlay reports failures even when the target Session cannot open.
 
 </details>
 
@@ -48,9 +48,9 @@ The plugin registers one header action on `conversation.session.header.actions` 
 <a id="further-exploration"></a>
 ## Further Exploration
 
-- [dsh-api-session-controller](../../api/session-controller/README.md) — the §26 codec (`encodeViewLocation` / `openViewLocation`) and the turn-jump loader.
+- [dsh-api-session-controller](../../api/session-controller/README.md) — scoped Session retention and history loading.
 - [dsh-client-ui-chat](../ui-chat/README.md) — the Chat target whose timeline provides the anchor.
-- [dsh-api-remotes](../../api/remotes/README.md) — the connection generation the admission signal derives from.
+- [dsh-api-remotes](../../api/remotes/README.md) — authenticated Host discovery.
 
 -----
 
@@ -77,8 +77,8 @@ None; this package neither assembles nor sends a provider request.
 <details>
 <summary>Working context for maintainers — click to expand</summary>
 
-The section-level decisions — the anchor choice, the one-shot fragment consumption, and the `ISessions` widening that exposes the codec to feature packages — are recorded in the [view-handoff Agent Note](../../../.agents/notes/implemented/architecture/2026-10-03-view-handoff.md).
+The [view-handoff Agent Note](../../../.agents/notes/implemented/architecture/2026-10-03-view-handoff.md) records the original delivery design. The current codec and receive lifecycle belong to this plugin.
 
 </details>
 
-**Runtime invariant:** No companion is published. The plugin registers one dictionary effect and one header-slot entry; the admission signal lives in the controller's snapshot store with no second copy to diverge, and the receive side's one-shot guard makes a consumed fragment unrepeatable by construction.
+**Runtime invariant:** Discovery and navigation expire with their owning generation. Link contents never authorize access to a Host or Session.

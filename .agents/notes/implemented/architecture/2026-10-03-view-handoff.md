@@ -6,15 +6,15 @@ English | [中文](2026-10-03-view-handoff.zh.md)
 
 ## Problem
 
-Section 26 shipped both codec ends — `ClientSessions.encodeViewLocation` / `openViewLocation` behind the sessions face, consumed by Android and mirrored by the Swift contract — but the Web itself had no capture affordance: a user reading a session on the desktop Web app could not hand the position to another device, and a Web page receiving a handoff link did nothing with it. The traceability ledger held this back as "the real cross-device QR/link channel is shell work".
+A viewing link must identify a durable Session position without carrying credentials or migrating an Agent. The receiving browser must verify its authenticated Host before looking up the target Session.
 
 ## Decision
 
-- New package `@deepseek-ai/dsh-client-ui-view-handoff` (the `ui-open-in-app` recipe: a client bundle mounted by the web-app profile). The capture side occupies the `conversation.session.header.actions` seat (order 20) as one quiet share action; the receive side starts from the plugin's `apply`.
+- `@deepseek-ai/dsh-client-ui-view-handoff` owns the private v1 codec, capture action, QR delivery, and one-shot fragment receiver. Its header action occupies `conversation.session.header.actions`.
 - The anchor is the Chat timeline's last Turn `turn/start` seq — the same target the receiving side's turn-jump loader reveals (`loadThrough`'s contract names "a turn's `turn/start` seq"), so what is copied is exactly what will be revealed.
-- The link is the current page's `origin + pathname + '#dsh-view=' + payload`: URL fragments never travel to a server, which is what makes this the minimal honest channel for "carries a viewing position, not a transport". QR rendering stays shell work.
-- Both ends gate on Host admission through the same signal `encodeViewLocation` requires (the current generation carrying a Host descriptor): the action stays hidden before admission or without a Turn anchor, and the receiver's `waitForAdmission` defers the open so a payload can never reach the wrong Host. A received fragment is consumed on read (cleared immediately) — refresh or retry cannot loop; an open failure reports loud and never retries. A refused clipboard degrades to the action's `title` showing the link.
-- `ISessions` widened with the two verbs — the interface's own doc names this "the explicit act of widening what features may do to the sessions domain", and a feature package consuming `ctx.sessions` is that act. `TestSessions` implements both through the real codec (one fixed test Host), and `FixtureSession.loadThrough`'s fail-loud stub now names the seq it was asked to reach.
+- The link uses the current page's `origin + pathname + '#dsh-view=' + payload`. Query credentials are excluded; the recipient authenticates independently.
+- Both ends use authenticated `host.describe()` discovery for the current connection generation. A different Host is rejected before Session navigation. Replacement or disposal aborts pending opens; late discovery replies cannot restore admission. Receive failures use a localized root notice.
+- Session Controller owns retained history, Conversation owns View selection and focus requests, and Workspace owns the visible Session reference. The handoff plugin composes these services without adding codec methods to `ISessions`.
 
 ## Alternatives considered
 
@@ -24,9 +24,9 @@ Section 26 shipped both codec ends — `ClientSessions.encodeViewLocation` / `op
 
 ## Consequences
 
-- The header actions seat gains its fourth occupant; the four neighborhood suites (skeleton, header-overflow, both host-switch lanes) stay green untouched.
-- The `ISessions` widening ripples compile-time to every implementer — `TestSessions` and the conversation-registry inline fixture now fail loud on the two verbs, keeping the double honest with the face.
+- A received fragment is consumed once. Inaccessible history and missing Turn anchors leave the current conversation visible and report failure.
+- Presentation requests remain on the exact Session binding until the registered renderer creates its store. Releasing that binding discards unconsumed requests.
 
 ## Open work
 
-- QR rendering, real cross-device delivery channels, and physical-device acceptance stay shell/section work; fragment routing under SPA routers that manage `location.hash` themselves is untested.
+- Physical-device acceptance and fragment routing under SPA routers that manage `location.hash` themselves remain unverified.

@@ -279,6 +279,7 @@
     "apps/web/tests/fixture-home-paths.ts",
     "apps/web/tests/fixture-home-paths.spec.ts",
     "apps/web/tests/hosts-settings.e2e.ts",
+    "apps/web/tests/view-handoff.e2e.ts",
     "apps/web/tests/device-interaction-reply.e2e.ts",
     "apps/web/tests/diff-preview.e2e.ts"
   ],

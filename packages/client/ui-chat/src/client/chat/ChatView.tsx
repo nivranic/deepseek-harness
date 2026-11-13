@@ -59,7 +59,7 @@ const MOTION_TAIL_MS = 800
  * ordered business Node crosses the keyed renderer seat.
  */
 export function ChatView({
-  useSession, useChat, useConversation, useSessions, renderSlot,
+  useSession, useChat, useConversation, useSessions, renderSlot, viewRequest, completeViewRequest,
   sessionId, openFile, openExternalLink, loadOlder, loadThrough, loadImage, inspectCall, chatScroll, forkAt, fileMentions,
   usePresentation, useProjection, useInteractionIds, dispatchInteraction, t, fileDrag,
 }: ChatViewSlotProps) {
@@ -197,6 +197,15 @@ export function ChatView({
     transcriptView,
   })
   const interactionSurfaceRef = useRef<HTMLDivElement>(null)
+  useEffect(() => {
+    if (!scroll.initialized || viewRequest?.view !== 'chat') return
+    const match = /^turn:(\d+)$/u.exec(viewRequest.focus)
+    if (match === null) { completeViewRequest(); return }
+    const target = railItems.find(item => item.turn === Number(match[1]))
+    if (target === undefined) return
+    scroll.navigateToTurn(target)
+    completeViewRequest()
+  }, [scroll.initialized, scroll.navigateToTurn, viewRequest, railItems, completeViewRequest])
   const interactionIds = useInteractionIds(ids => ids)
   const textInteraction = useTextInteraction(scroll.columnRef, interactionSurfaceRef, dispatchInteraction, interactionIds)
   const flowContext = useMemo<ChatFlowHookContext>(() => ({ motion: scroll.motion }), [scroll.motion])

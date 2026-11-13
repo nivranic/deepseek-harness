@@ -55,7 +55,6 @@
     "packages/client/*/tests/**/*.host.e2e.ts",
     "packages/client/*/tests/**/*.host.ts",
     "packages/api/native-remote/**",
-    "packages/client/ui-view-handoff/**",
     "scripts/gen-lite-preset-catalog.ts",
     "scripts/gen-lite-preset-catalog.spec.ts"
   ],
@@ -165,6 +164,7 @@
     { "path": "./packages/client/ui-settings-hosts" },
     { "path": "./packages/client/ui-settings-host-status" },
     { "path": "./packages/client/ui-settings-telemetry" },
+    { "path": "./packages/client/ui-view-handoff" },
     { "path": "./packages/client/ui-settings-models" },
     { "path": "./packages/client/ui-plugin-manager/tsconfig.client.json" },
     { "path": "./packages/client/ui-plugin-market" },

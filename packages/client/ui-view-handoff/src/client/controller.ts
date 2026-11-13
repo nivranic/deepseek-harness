@@ -1,105 +1,154 @@
-/** §26 view-location handoff: capture into a cross-device link, open a received one. */
-import { createSnapshotStore, type ObservableSnapshot, type SnapshotStore } from '@deepseek-ai/dsh-client-store'
+/** Discovery-owned admission and one-shot, cancellable view-location delivery. */
+import { createSnapshotStore, type ObservableSnapshot } from '@deepseek-ai/dsh-client-store'
 import type { ConnectionGeneration } from '@deepseek-ai/dsh-client-connection/client'
-import type { ISessions } from '@deepseek-ai/dsh-api-session-controller/client'
+import type { HostDescriptor, HostId } from '@deepseek-ai/dsh-api-remotes/client'
+import type { RemoteResult } from '@deepseek-ai/dsh-typert-protocol'
+import type { SessionId, SessionSeq } from '@deepseek-ai/dsh-session/types'
+import { decodeSessionViewLocation, encodeSessionViewLocation, HandoffFailure } from './view-location.ts'
+import type { HandoffFailureKind, SessionViewLocation } from './view-location.ts'
 
-/** URL fragment carrying one handoff payload: `#dsh-view=<payload>`. */
+/** URL fragment carrying one view-location payload. */
 export const VIEW_HANDOFF_FRAGMENT = 'dsh-view'
 
-/** Prefix a received page fragment must start with to carry a handoff payload. */
-const FRAGMENT_PREFIX = `#${VIEW_HANDOFF_FRAGMENT}=`
+/** Current discovery state; a ready identity expires with its connection generation. */
+export type HandoffAdmission =
+  | { readonly status: 'waiting' | 'failed' }
+  | { readonly status: 'ready'; readonly hostId: HostId }
 
 type LocationLike = { origin: string; pathname: string; hash: string }
 
-/**
- * Owns the host-admission signal, link building, clipboard delivery, and the
- * one-shot received-link open. The viewing position moves; the runtime never does.
- */
+/** Owns discovery, clipboard delivery, and the lifetime of one received link. */
 export class ViewHandoffController {
-  /** True while the current generation's ready frame carried a Host descriptor. */
-  readonly admitted: SnapshotStore<boolean> = createSnapshotStore(false)
-  private readonly listeners = new Set<() => void>()
+  /** Host identity admitted for the current connection generation. */
+  readonly admission = createSnapshotStore<HandoffAdmission>({ status: 'waiting' })
+  /** Latest receive or capture failure, cleared by the notice owner. */
+  readonly failure = createSnapshotStore<HandoffFailureKind | undefined>(undefined)
+  private readonly lifetime = new AbortController()
+  private generation = new AbortController()
+  private readonly unsubscribe: () => void
 
   /**
-   * @param generation - the connection generation observable; descriptor presence is the
-   * same admission signal `ClientSessions.encodeViewLocation` requires.
-   * @param clipboard - async text writer, injectable for tests.
-   * @param location - page location, injectable for tests.
+   * @param generations - transport generations, without lane Host extensions.
+   * @param describe - authenticated Host identity discovery.
+   * @param open - retained Session navigation; cancellation prevents publishing selection.
+   * @param clipboard - browser clipboard writer.
+   * @param location - page address and one-shot fragment.
    */
   constructor(
-    generation: ObservableSnapshot<ConnectionGeneration | undefined>,
+    generations: ObservableSnapshot<ConnectionGeneration | undefined>,
+    private readonly describe: () => Promise<RemoteResult<HostDescriptor>>,
+    private readonly open: (location: SessionViewLocation, signal: AbortSignal) => Promise<void>,
     private readonly clipboard: (text: string) => Promise<void> = text => navigator.clipboard.writeText(text),
     private readonly location: LocationLike = globalThis.location,
   ) {
-    const apply = (): void => { this.admitted.set(generation.getSnapshot()?.host.descriptor !== undefined) }
-    apply()
-    generation.subscribe(() => {
-      apply()
-      for (const listener of [...this.listeners]) listener()
-    })
+    const refresh = (): void => {
+      this.generation.abort()
+      this.admission.set({ status: 'waiting' })
+      if (generations.getSnapshot() === undefined) return
+      const generation = new AbortController()
+      this.generation = generation
+      void this.discover(generation)
+    }
+    this.unsubscribe = generations.subscribe(refresh)
+    refresh()
+  }
+
+  private async discover(generation: AbortController): Promise<void> {
+    let result: Awaited<ReturnType<typeof this.describe>>
+    try {
+      result = await this.describe()
+    } catch (_discoveryFailure) {
+      if (!generation.signal.aborted) this.admission.set({ status: 'failed' })
+      return
+    }
+    if (generation.signal.aborted) return
+    this.admission.set(result.ok
+      ? { status: 'ready', hostId: result.value.hostId }
+      : { status: 'failed' })
   }
 
   /**
-   * Build the cross-device link for one encoded payload.
-   * @param payload - `ClientSessions.encodeViewLocation` output.
-   * @returns page URL with the payload in its fragment, never sent to any server.
+   * Capture the currently admitted Host with a Session's durable turn anchor.
+   * @param sessionId - displayed Session.
+   * @param anchorSeq - durable turn/start sequence.
+   * @returns the v1 payload, or undefined after reporting unavailable admission.
+   */
+  encode(sessionId: SessionId, anchorSeq: SessionSeq): string | undefined {
+    const state = this.admission.getSnapshot()
+    if (state.status !== 'ready' || this.generation.signal.aborted) {
+      this.failure.set('unavailable')
+      return undefined
+    }
+    return encodeSessionViewLocation({ hostId: state.hostId, sessionId, anchorSeq })
+  }
+
+  /**
+   * Address a viewing position without copying authentication query parameters.
+   * @param payload - v1 encoded location.
+   * @returns page link carrying the payload in its fragment.
    */
   buildLink(payload: string): string {
     return `${this.location.origin}${this.location.pathname}#${VIEW_HANDOFF_FRAGMENT}=${payload}`
   }
 
   /**
-   * Copy text to the clipboard.
-   * @param text - the link to place on the clipboard.
-   * @returns whether the clipboard accepted the write.
+   * Copy a viewing link through the browser clipboard permission.
+   * @param text - link to copy.
+   * @returns whether the clipboard accepted it.
    */
   async copy(text: string): Promise<boolean> {
     try {
       await this.clipboard(text)
       return true
-    } catch {
+    } catch (_clipboardDenied) {
       return false
     }
   }
 
-  /**
-   * Resolve once a generation carries a Host descriptor (a received link cannot
-   * open before its Host is admitted; pending forever means nobody connected).
-   * @returns after the first admitted generation.
-   */
-  waitForAdmission(): Promise<void> {
-    if (this.admitted.getSnapshot()) return Promise.resolve()
-    return new Promise((resolve) => {
-      const listener = (): void => {
-        if (!this.admitted.getSnapshot()) return
-        this.listeners.delete(listener)
-        resolve()
+  private waitForAdmission(): Promise<Extract<HandoffAdmission, { status: 'ready' }> & { signal: AbortSignal }> {
+    return new Promise((resolve, reject) => {
+      const signal = this.lifetime.signal
+      let stop: () => void = () => {}
+      const check = (): void => {
+        const state = this.admission.getSnapshot()
+        if (!signal.aborted && state.status === 'waiting') return
+        stop()
+        signal.removeEventListener('abort', check)
+        if (signal.aborted) reject(new HandoffFailure('unavailable'))
+        else if (state.status === 'ready') resolve({ ...state, signal: this.generation.signal })
+        else reject(new HandoffFailure('unavailable'))
       }
-      this.listeners.add(listener)
+      stop = this.admission.subscribe(check)
+      signal.addEventListener('abort', check, { once: true })
+      check()
     })
   }
 
-  /**
-   * Read a received handoff from the page fragment and open it exactly once.
-   * The fragment is consumed on read (one-shot: a wrong-Host failure does not
-   * loop on refresh), and the open happens only after admission so the payload
-   * can never leak to a Host it does not target.
-   * @param sessions - the Client sessions service.
-   * @param onOpened - optional completion observation for tests.
-   */
-  async receive(sessions: ISessions, onOpened?: (outcome: 'opened' | 'failed', error?: unknown) => void): Promise<void> {
-    const hash = this.location.hash
-    if (!hash.startsWith(FRAGMENT_PREFIX)) return
-    const payload = hash.slice(FRAGMENT_PREFIX.length)
+  /** Consume a link once; invalid and wrong-Host payloads never reach Session navigation. */
+  async receive(): Promise<void> {
+    const prefix = `#${VIEW_HANDOFF_FRAGMENT}=`
+    if (!this.location.hash.startsWith(prefix)) return
+    const payload = this.location.hash.slice(prefix.length)
     this.location.hash = ''
-    await this.waitForAdmission()
+    let signal: AbortSignal | undefined
     try {
-      await sessions.openViewLocation(payload)
-      onOpened?.('opened')
+      const location = decodeSessionViewLocation(payload)
+      const admission = await this.waitForAdmission()
+      signal = admission.signal
+      signal.throwIfAborted()
+      if (location.hostId !== admission.hostId) throw new HandoffFailure('wrongHost')
+      await this.open(location, signal)
     } catch (error) {
-      // Wrong Host or unresolvable payload: fail loud in the console, never retry.
-      console.error('[view-handoff] opening the received view location failed:', error)
-      onOpened?.('failed', error)
+      if (this.lifetime.signal.aborted) return
+      this.failure.set(signal?.aborted === true ? 'unavailable' : error instanceof HandoffFailure ? error.kind : 'openFailed')
     }
+  }
+
+  /** Cancel discovery, a pending admission waiter, and in-flight navigation on plugin unload. */
+  dispose(): void {
+    this.unsubscribe()
+    this.generation.abort()
+    this.lifetime.abort()
+    this.admission.set({ status: 'waiting' })
   }
 }
