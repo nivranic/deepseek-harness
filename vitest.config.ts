@@ -77,8 +77,7 @@ const platformUnsupportedTests = [...windowsUnsupportedTests, ...nonLinuxWebWork
 
 // Lane specs whose feature surface the official master merge replaced: the
 // production code they exercise is now official-shaped, so they fail against
-// APIs that no longer exist (session.prepareRename, manager.refreshSubagents,
-// the activeTurn cancel-target projection, remote $prepare/$mount admission,
+// APIs that no longer exist (remote $prepare/$mount admission,
 // the lane transport-failure classification, analyzeRemoteErrors, the
 // native-remote peer port, the
 // settings-hosts retarget/observation accessors, HandoffAction's removed
@@ -88,9 +87,6 @@ const platformUnsupportedTests = [...windowsUnsupportedTests, ...nonLinuxWebWork
 // .oxlintrc.json, and the inventory and re-port checklist live in
 // .merge-helpers/port-notes/2026-11-10-native-remote-peer-port-parked.md (附8).
 const parkedLaneTests = [
-  'packages/api/session-controller/tests/cancel-target.client.spec.ts',
-  'packages/api/session-controller/tests/rename-revision.client.spec.ts',
-  'packages/api/session-controller/tests/subagent-generation.client.spec.ts',
   'packages/api/gateway/tests/preparation.client.spec.ts',
   'packages/api/gateway/tests/transport-failure.client.spec.ts',
   'packages/api/remotes/tests/host-preparation.client.spec.ts',

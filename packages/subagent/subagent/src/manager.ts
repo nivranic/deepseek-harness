@@ -17,6 +17,7 @@ import type { ContentBlock, MessageId, MessageSource } from '@deepseek-ai/dsh-ll
 import { SessionLogOffset } from '@deepseek-ai/dsh-session'
 import type { SessionId, SessionEvent, UserMessage } from '@deepseek-ai/dsh-session'
 import type { SessionPersistence } from '@deepseek-ai/dsh-session-persistence'
+import type {} from '@deepseek-ai/dsh-session-projection'
 import type { SessionObservation, SessionQueryEngine } from '@deepseek-ai/dsh-session-query'
 import type { ObjectJsonSchema } from '@deepseek-ai/dsh-tools'
 import {
@@ -217,6 +218,23 @@ export class SubagentManager {
     // Disposal already stopped the target with a whole-Activation teardown;
     // a second cancel would be a redundant signal on a closing handle.
     if (activation.closing !== undefined) return
+    if (authority.kind === 'user' && authority.turnStartSeq !== undefined) {
+      // An external execution has no local session whose projection could
+      // verify the observed turn, so an unverifiable target is never cancelled.
+      if (activation.kind !== 'local') return
+      const session = activation.handle.agent.session
+      const timing = this.ctx.get('sessionProjections')?.snapshot(session, ['subagentTiming']).values.subagentTiming
+      if (timing === undefined) {
+        throw new SubagentError('subagent turn projection is unavailable', 'CONTINUATION_UNAVAILABLE')
+      }
+      // Only the child's own open turn is addressable: a start seq below the
+      // fork-inherited cut is a replayed ancestor turn promoted by the fold,
+      // and a mismatched or absent target is an accepted no-op.
+      if (timing.active === undefined
+        || timing.active.startSeq === undefined
+        || !session.isOwnSeq(timing.active.startSeq)
+        || authority.turnStartSeq !== timing.active.startSeq) return
+    }
     const kind = authority.kind === 'user' ? 'user' : 'parent'
     if (activation.kind === 'local') {
       activation.handle.agent.cancel({ kind }, { keepInbox: true })

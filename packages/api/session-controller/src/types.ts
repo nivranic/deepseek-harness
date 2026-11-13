@@ -204,6 +204,8 @@ declare module '@deepseek-ai/dsh-typert-protocol' {
     'session/queue-item-not-found': { readonly itemId: MessageId }
     'session/steer-unavailable': { readonly itemId: MessageId }
     'session/title-invalid': { readonly sessionId: SessionId }
+    /** A changed Session title revision rejects the requested rename. */
+    'session/revision-conflict': { readonly sessionId: SessionId }
     'session/fork-unavailable': { readonly sessionId: SessionId }
     'session/migration-required': { readonly sessionId: SessionId }
     'subagent/not-found': {
@@ -299,6 +301,12 @@ export interface SessionRenameRequest {
   readonly title: string
 }
 
+/** Conditional rename using the title event revision captured before editing. */
+export interface SessionRenameAtRequest extends SessionRenameRequest {
+  /** Durable title event seq, or null when no title has been accepted. */
+  readonly expectedRevision: number | null
+}
+
 /** Normalized title and the durable event position that committed it. */
 export interface SessionRenameValue {
   readonly title: string
@@ -364,6 +372,12 @@ export interface SessionUpdateQueueValue {
 /** Active-turn cancellation request. */
 export interface SessionCancelRequest {
   readonly sessionId: SessionId
+}
+
+/** Cancel the observed turn only; null records that the Client observed no open turn. */
+export interface SessionCancelTurnRequest {
+  readonly sessionId: SessionId
+  readonly turnStartSeq: number | null
 }
 
 /** Receipt after cancellation is admitted to the live Agent. */

@@ -11,6 +11,8 @@ import { ok, openStream, type RemoteTable } from '@deepseek-ai/dsh-remote-mock'
 /** Default responses of the boot-time Remote endpoints; a spec loads it first and layers its own table on top. */
 export const remoteDefaultResponses: RemoteTable = {
   unary: {
+    // Session controller capability admission for each Host generation.
+    'host/describe': ok({ capabilities: [] }),
     // api-session-controller `sessions.handleConnected()` on `connection/reset`.
     'session/list': ok({ items: [] }),
     // ui-workspace startup with no entries; first-use initialization is ineligible.

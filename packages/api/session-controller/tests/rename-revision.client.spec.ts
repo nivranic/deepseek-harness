@@ -7,8 +7,8 @@ import { FakeApiClient, ok } from './fake-api.client.ts'
 it('retains the editing baseline after later title updates and uses a fresh revision for a new editor', async () => {
   const api = new FakeApiClient()
   const remote = api.sessionRemotes()
-  Object.assign(remote.$host, { capabilities: ['session.rename-at.v1'] })
-  const session = new Session(SessionId('rename-baseline'), remote)
+  api.admission = ['session.rename-at.v1']
+  const session = new Session(SessionId('rename-baseline'), remote, { hostAdmission: () => api.admission })
   session.projections.seed({ asOfSeq: SessionSeq(30), values: { titleRevision: 4, title: 'Original' } })
   const submit = session.prepareRename()
   session.projections.apply('titleRevision', 40, SessionSeq(40))
@@ -30,8 +30,8 @@ it('retains the editing baseline after later title updates and uses a fresh revi
 it('keeps missing revision distinct from null and never silently upgrades an unready editor', async () => {
   const api = new FakeApiClient()
   const remote = api.sessionRemotes()
-  Object.assign(remote.$host, { capabilities: ['session.rename-at.v1'] })
-  const session = new Session(SessionId('rename-unready'), remote)
+  api.admission = ['session.rename-at.v1']
+  const session = new Session(SessionId('rename-unready'), remote, { hostAdmission: () => api.admission })
   const submit = session.prepareRename()
   session.projections.apply('titleRevision', null, SessionSeq(0))
   await expect(submit('Title')).resolves.toMatchObject({ ok: false, error: { code: 'gateway/connection-unavailable' } })
@@ -43,7 +43,7 @@ it('keeps missing revision distinct from null and never silently upgrades an unr
 
 it('uses the legacy method for Hosts without conditional rename', async () => {
   const api = new FakeApiClient()
-  const session = new Session(SessionId('rename-legacy'), api.sessionRemotes())
+  const session = new Session(SessionId('rename-legacy'), api.sessionRemotes(), { hostAdmission: () => api.admission })
   await session.prepareRename()('Title')
   expect(api.callsOf('session.rename')).toEqual([{ sessionId: session.sessionId, title: 'Title' }])
   expect(api.callsOf('session.renameAt')).toEqual([])

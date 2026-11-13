@@ -40,6 +40,7 @@ import type {
   SessionAttachmentRequest,
   SessionAttachmentValue,
   SessionCancelRequest,
+  SessionCancelTurnRequest,
   SessionCancelValue,
   SessionControlFrame,
   SessionCreateRequest,
@@ -56,6 +57,7 @@ import type {
   SessionProjectionFrame, SessionStateRequest, SessionState, SessionWaitRequest, SessionWaitValue,
   SessionPromptRequest,
   SessionPromptValue,
+  SessionRenameAtRequest,
   SessionRenameRequest,
   SessionRenameValue,
   SessionSearchRequest,
@@ -439,6 +441,17 @@ export class SessionController extends TypertRemoteService {
   }
 
   /**
+   * Rename one Session only against the title revision captured before editing;
+   * an identical user-pinned title returns its original acceptance.
+   * @param request - Session identity, proposed title, and durable editing baseline.
+   * @returns the accepted title and its original durable event sequence.
+   */
+  @Remote('renameAt')
+  renameAt(request: SessionRenameAtRequest): Promise<SessionRenameValue> {
+    return this.commands.renameAt(request)
+  }
+
+  /**
    * Fork one cold-readable exact event prefix into a new Session. An omitted
    * boundary selects the latest completed-turn prefix; an open cut receives
    * synthetic fork closers.
@@ -519,6 +532,17 @@ export class SessionController extends TypertRemoteService {
   @Remote('cancel')
   cancel(request: SessionCancelRequest): SessionCancelValue {
     return this.commands.cancel(request)
+  }
+
+  /**
+   * Cancel one observed Agent turn without arming cancellation for later
+   * work; a stale, absent, or completed target is an accepted no-op.
+   * @param request - Session and observed turn/start sequence, or null for no observed turn.
+   * @returns acceptance whether the target is cancelled or already inactive.
+   */
+  @Remote('cancelTurn')
+  cancelTurn(request: SessionCancelTurnRequest): SessionCancelValue {
+    return this.commands.cancelTurn(request)
   }
 
   /**

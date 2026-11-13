@@ -48,6 +48,7 @@ import {
 import type {
   SubagentDelivery,
   SubagentInterruptReceipt,
+  SubagentInterruptTurnRequest,
   SubagentPromptReceipt,
   SubagentPromptRequest,
   SubagentPromptRequestId,
@@ -523,8 +524,29 @@ export class SubagentRuntime extends TypertRemoteService {
     mode: 'continuable',
   ): SubagentInterruptReceipt {
     validateControlRequest('subagent.interrupt', { childSessionId, parentSessionId, mode })
+    return this.interruptAsUser(childSessionId, parentSessionId)
+  }
+
+  /**
+   * Stop an observed child turn under durable parent-address authority,
+   * including while the parent is offline.
+   * @param request - child address and the observed turn/start sequence, or null for an idle child.
+   * @returns acceptance; a stale, idle, absent or completed target is a no-op, not a quiescence receipt.
+   * @throws {RemoteError} invalid input, foreign live-child authority or unavailable turn projection.
+   */
+  @Remote('interruptTurnByParent')
+  interruptTurnByParent(request: SubagentInterruptTurnRequest): SubagentInterruptReceipt {
+    validateControlRequest('subagent.interrupt-turn', request)
+    return this.interruptAsUser(request.childSessionId, request.parentSessionId, request.turnStartSeq)
+  }
+
+  private interruptAsUser(childSessionId: SessionId, parentSessionId: SessionId, turnStartSeq?: number | null): SubagentInterruptReceipt {
     try {
-      this.interrupt(childSessionId, { kind: 'user', parentSessionId })
+      this.interrupt(childSessionId, {
+        kind: 'user',
+        parentSessionId,
+        ...(turnStartSeq === undefined ? {} : { turnStartSeq }),
+      })
     } catch (error: unknown) {
       if (error instanceof SubagentError && error.code === 'UNAUTHORIZED') {
         throw new RemoteError(
@@ -533,6 +555,9 @@ export class SubagentRuntime extends TypertRemoteService {
           { childSessionId },
           { cause: error },
         )
+      }
+      if (error instanceof SubagentError && error.code === 'CONTINUATION_UNAVAILABLE') {
+        throw new RemoteError('subagent/delivery-unavailable', 'subagent turn projection is unavailable', { childSessionId }, { cause: error })
       }
       throw new RemoteError('gateway/internal', 'subagent interrupt failed', {}, { cause: error })
     }

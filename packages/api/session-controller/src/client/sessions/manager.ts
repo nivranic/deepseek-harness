@@ -115,6 +115,10 @@ export class SessionManager {
   private readonly addresses = new Map<SessionId, SubagentAddress>()
   private readonly projectionLoads = new Map<SessionId, ProjectionLoad>()
   private readonly projectionInflight = new Map<SessionId, ProjectionInflight>()
+  /** Host capability ids from the latest answered describe; undefined before the first answer or after a failure. */
+  private hostAdmission: readonly string[] | undefined
+  /** Monotone refresh token: only the newest describe's answer may land. */
+  private admissionToken = 0
 
 
   private listSnapshotCache: SessionListSnapshot
@@ -130,6 +134,21 @@ export class SessionManager {
   /** @param remote - generated Remote namespaces used by catalog and history readers. */
   constructor(private readonly remote: SessionRemotes) {
     this.listSnapshotCache = this.buildListSnapshot()
+  }
+
+  /**
+   * Refresh Host capabilities for the current connection generation.
+   * Superseded responses are ignored and a failed response clears admission.
+   * @returns once the describe round-trip settled or was superseded.
+   */
+  refreshHostAdmission(): Promise<void> {
+    if (this.disposed) return Promise.resolve()
+    const token = ++this.admissionToken
+    return (async () => {
+      const result = await this.remote.host.describe()
+      if (this.disposed || token !== this.admissionToken) return
+      this.hostAdmission = result.ok ? result.value.capabilities : undefined
+    })()
   }
 
   /**
@@ -296,6 +315,7 @@ export class SessionManager {
         this.sessions.get(engaged.sessionId)?.handleBlank(false)
       },
       projections: this.projectionStore(sessionId),
+      hostAdmission: () => this.hostAdmission,
     })
   }
 

@@ -1,14 +1,16 @@
 /** Cancellation uses the target observed at the click, without retargeting pending requests. */
 import { expect, it } from 'vitest'
 import { SessionId, SessionSeq } from '@deepseek-ai/dsh-session/types'
+import { RemoteError } from '@deepseek-ai/dsh-typert-protocol'
 import { Session } from '../src/client/sessions/session.ts'
-import { FakeApiClient, deferred, ok } from './fake-api.client.ts'
+import { SessionManager } from '../src/client/sessions/manager.ts'
+import { FakeApiClient, deferred, err, ok } from './fake-api.client.ts'
 
 it('keeps a pending cancellation bound to its original projection and captures the next click separately', async () => {
   const api = new FakeApiClient()
   const remote = api.sessionRemotes()
-  Object.assign(remote.$host, { capabilities: ['session.cancel-turn.v1'] })
-  const session = new Session(SessionId('cancel-target'), remote)
+  api.admission = ['session.cancel-turn.v1']
+  const session = new Session(SessionId('cancel-target'), remote, { hostAdmission: () => api.admission })
   session.projections.apply('activeTurnStart', 4, SessionSeq(4))
   const receipt = deferred<ReturnType<typeof ok<{ accepted: true }>>>()
   api.onCancel = () => receipt.promise
@@ -28,8 +30,8 @@ it('keeps a pending cancellation bound to its original projection and captures t
 it('distinguishes an unavailable target from an explicitly idle projection', async () => {
   const api = new FakeApiClient()
   const remote = api.sessionRemotes()
-  Object.assign(remote.$host, { capabilities: ['session.cancel-turn.v1'] })
-  const session = new Session(SessionId('cancel-unready'), remote)
+  api.admission = ['session.cancel-turn.v1']
+  const session = new Session(SessionId('cancel-unready'), remote, { hostAdmission: () => api.admission })
   await expect(session.cancel()).resolves.toMatchObject({ ok: false, error: { code: 'gateway/connection-unavailable' } })
   expect(api.callsOf('session.cancelTurn')).toEqual([])
   expect(api.callsOf('session.cancel')).toEqual([])
@@ -41,7 +43,7 @@ it('distinguishes an unavailable target from an explicitly idle projection', asy
 
 it('uses the legacy request only when the Host does not advertise targeted cancellation', async () => {
   const api = new FakeApiClient()
-  const session = new Session(SessionId('cancel-legacy'), api.sessionRemotes())
+  const session = new Session(SessionId('cancel-legacy'), api.sessionRemotes(), { hostAdmission: () => api.admission })
   session.projections.apply('activeTurnStart', 4, SessionSeq(4))
   await expect(session.cancel()).resolves.toEqual(ok({ accepted: true }))
   expect(api.callsOf('session.cancel')).toEqual([{ sessionId: session.sessionId }])
@@ -52,8 +54,8 @@ it('uses the legacy request only when the Host does not advertise targeted cance
 it('binds subagent interruption to the observed child turn without requiring parent availability', async () => {
   const api = new FakeApiClient()
   const remote = api.sessionRemotes()
-  Object.assign(remote.$host, { capabilities: ['subagent.interrupt-turn.v1'] })
-  const session = new Session(SessionId('child-target'), remote)
+  api.admission = ['subagent.interrupt-turn.v1']
+  const session = new Session(SessionId('child-target'), remote, { hostAdmission: () => api.admission })
   const address = { parentSessionId: SessionId('offline-parent'), childSessionId: session.sessionId, mode: 'continuable' as const }
   session.configureSubagent(address, false)
   session.projections.apply('subagentTiming', { settledMs: 0, active: { since: 10, through: 20, startSeq: SessionSeq(4) } }, SessionSeq(5))
@@ -73,8 +75,8 @@ it('binds subagent interruption to the observed child turn without requiring par
 it('does not replace missing subagent target facts with legacy interruption', async () => {
   const api = new FakeApiClient()
   const remote = api.sessionRemotes()
-  Object.assign(remote.$host, { capabilities: ['subagent.interrupt-turn.v1', 'subagent.interrupt.v1'] })
-  const session = new Session(SessionId('child-unready'), remote)
+  api.admission = ['subagent.interrupt-turn.v1', 'subagent.interrupt.v1']
+  const session = new Session(SessionId('child-unready'), remote, { hostAdmission: () => api.admission })
   const address = { parentSessionId: SessionId('parent'), childSessionId: session.sessionId, mode: 'continuable' as const }
   session.configureSubagent(address, false)
   await expect(session.cancel()).resolves.toMatchObject({ ok: false, error: { code: 'gateway/connection-unavailable' } })
@@ -86,4 +88,33 @@ it('does not replace missing subagent target facts with legacy interruption', as
   await expect(session.cancel()).resolves.toEqual(ok({ accepted: true }))
   expect(api.callsOf('subagents.interruptTurnByParent')).toEqual([{ ...address, turnStartSeq: null }])
   await session.dispose()
+})
+
+it('shares the newest discovery admission with resident Sessions and clears it on failure', async ({ onTestFinished }) => {
+  const api = new FakeApiClient()
+  const remote = api.sessionRemotes()
+  const manager = new SessionManager(remote)
+  onTestFinished(() => manager.dispose())
+  const session = manager.get(SessionId('cancel-discovery'))
+  session.projections.apply('activeTurnStart', 4, SessionSeq(4))
+  const stale = deferred<Awaited<ReturnType<typeof remote.host.describe>>>()
+  remote.host.describe = () => stale.promise
+  const refreshing = manager.refreshHostAdmission()
+
+  api.admission = ['session.cancel-turn.v1']
+  remote.host.describe = () => Promise.resolve(ok({ capabilities: api.admission }))
+  await manager.refreshHostAdmission()
+  stale.resolve(ok({ capabilities: [] }))
+  await refreshing
+  await session.cancel()
+  expect(api.callsOf('session.cancelTurn')).toEqual([{ sessionId: session.sessionId, turnStartSeq: 4 }])
+  expect(api.callsOf('session.cancel')).toEqual([])
+
+  remote.host.describe = () => Promise.resolve(err(new RemoteError(
+    'gateway/connection-unavailable', 'Host unavailable', { endpoint: 'host/describe' },
+  )))
+  await manager.refreshHostAdmission()
+  await session.cancel()
+  expect(api.callsOf('session.cancel')).toEqual([{ sessionId: session.sessionId }])
+  expect(api.callsOf('session.cancelTurn')).toHaveLength(1)
 })

@@ -2773,6 +2773,12 @@ export const SERVICE_API: readonly ServiceApiEntry[] = [
         returns: 'the accepted title and durable event sequence.',
       },
       {
+        signature: '@Remote(\'renameAt\') renameAt(request: SessionRenameAtRequest): Promise<SessionRenameValue>',
+        description: 'Rename one Session only against the title revision captured before editing; an identical user-pinned title returns its original acceptance.',
+        parameters: [{ name: 'request', description: 'Session identity, proposed title, and durable editing baseline.' }],
+        returns: 'the accepted title and its original durable event sequence.',
+      },
+      {
         signature: '@Remote(\'fork\') async fork(request: SessionForkRequest): Promise<SessionForkValue>',
         description: 'Fork one cold-readable exact event prefix into a new Session. An omitted boundary selects the latest completed-turn prefix; an open cut receives synthetic fork closers.',
         parameters: [{ name: 'request', description: 'source Session, optional exact inclusive event boundary, and migration preflight choice.' }],
@@ -2801,6 +2807,12 @@ export const SERVICE_API: readonly ServiceApiEntry[] = [
         description: 'Cancel one active Agent turn without dropping its pending inbox.',
         parameters: [{ name: 'request', description: 'Session whose active Agent turn is cancelled.' }],
         returns: 'acknowledgement that cancellation was requested.',
+      },
+      {
+        signature: '@Remote(\'cancelTurn\') cancelTurn(request: SessionCancelTurnRequest): SessionCancelValue',
+        description: 'Cancel one observed Agent turn without arming cancellation for later work; a stale, absent, or completed target is an accepted no-op.',
+        parameters: [{ name: 'request', description: 'Session and observed turn/start sequence, or null for no observed turn.' }],
+        returns: 'acceptance whether the target is cancelled or already inactive.',
       },
       {
         signature: '@Remote events(request: SessionPageRequest, signal: AbortSignal): Promise<SessionEventsPage>',
@@ -3290,11 +3302,11 @@ export const SERVICE_API: readonly ServiceApiEntry[] = [
         returns: 'latest title snapshot, or `undefined` before eligible input.',
       },
       {
-        signature: 'rename(session: Session, title: string): SessionTitleSnapshot',
+        signature: 'rename(session: Session, title: string, expectedRevision?: SessionSeq | null): SessionTitleSnapshot',
         description: 'Accept an explicit user title. Appends a `session/title` event with the `user` source, which pins the title: in-flight automatic generation is superseded and later user messages schedule none (an explicit SessionTitleService.refresh remains the deliberate unpin).',
-        parameters: [{ name: 'session', description: 'exact live session to rename.' }, { name: 'title', description: 'raw user input; normalized before acceptance.' }],
-        returns: 'the accepted title snapshot.',
-        throws: ['{SessionTitleInvalidError} when the title normalizes to empty.', '{Error} when the session is not live or the service is disposed.'],
+        parameters: [{ name: 'session', description: 'exact live session to rename.' }, { name: 'title', description: 'raw user input; normalized before acceptance.' }, { name: 'expectedRevision', description: 'captured title event seq, or null before any title; omitted for unconditional acceptance.' }],
+        returns: 'the accepted title snapshot; an identical user-pinned conditional rename returns the existing event without appending.',
+        throws: ['{SessionTitleInvalidError} when the title normalizes to empty.', '{SessionTitleRevisionConflictError} when a conditional rename would replace a changed title.', '{Error} when the session is not live or the service is disposed.'],
       },
       {
         signature: 'async refresh(session: Session, signal?: AbortSignal): Promise<SessionTitleSnapshot | undefined>',
@@ -3757,6 +3769,13 @@ export const SERVICE_API: readonly ServiceApiEntry[] = [
         parameters: [{ name: 'childSessionId', description: 'durable child session id to interrupt.' }, { name: 'parentSessionId', description: 'durable direct parent whose authority is claimed.' }, { name: 'mode', description: 'required continuable-address discriminator.' }],
         returns: 'acknowledgement that the cancel signal was admitted, not that the target is quiescent.',
         throws: ['{RemoteError} `gateway/bad-request` for an empty id, `subagent/unauthorized` when the address does not own the live target, otherwise `gateway/internal`.'],
+      },
+      {
+        signature: '@Remote(\'interruptTurnByParent\') interruptTurnByParent(request: SubagentInterruptTurnRequest): SubagentInterruptReceipt',
+        description: 'Stop an observed child turn under durable parent-address authority, including while the parent is offline.',
+        parameters: [{ name: 'request', description: 'child address and the observed turn/start sequence, or null for an idle child.' }],
+        returns: 'acceptance; a stale, idle, absent or completed target is a no-op, not a quiescence receipt.',
+        throws: ['{RemoteError} invalid input, foreign live-child authority or unavailable turn projection.'],
       },
       {
         signature: 'registerProvider(provider: SubagentProvider): () => void',
@@ -8341,6 +8360,10 @@ export const TYPE_API: readonly TypeApiEntry[] = [
     declaration: 'export interface SessionCancelRequest {\n    readonly sessionId: SessionId;\n}',
   },
   {
+    name: 'SessionCancelTurnRequest',
+    declaration: 'export interface SessionCancelTurnRequest {\n    readonly sessionId: SessionId;\n    readonly turnStartSeq: number | null;\n}',
+  },
+  {
     name: 'SessionCancelValue',
     declaration: 'export interface SessionCancelValue {\n    readonly accepted: true;\n}',
   },
@@ -8723,6 +8746,10 @@ export const TYPE_API: readonly TypeApiEntry[] = [
   {
     name: 'SessionReferenceMentionCandidate',
     declaration: 'export interface SessionReferenceMentionCandidate extends SessionReferenceCandidate {\n    mention: string;\n}',
+  },
+  {
+    name: 'SessionRenameAtRequest',
+    declaration: 'export interface SessionRenameAtRequest extends SessionRenameRequest {\n    readonly expectedRevision: number | null;\n}',
   },
   {
     name: 'SessionRenameRequest',
@@ -9263,6 +9290,10 @@ export const TYPE_API: readonly TypeApiEntry[] = [
   {
     name: 'SubagentInterruptReceipt',
     declaration: 'export interface SubagentInterruptReceipt {\n    readonly accepted: true;\n}',
+  },
+  {
+    name: 'SubagentInterruptTurnRequest',
+    declaration: 'export interface SubagentInterruptTurnRequest {\n    readonly parentSessionId: SessionId;\n    readonly childSessionId: SessionId;\n    readonly mode: \'continuable\';\n    readonly turnStartSeq: number | null;\n}',
   },
   {
     name: 'SubagentListEntry',

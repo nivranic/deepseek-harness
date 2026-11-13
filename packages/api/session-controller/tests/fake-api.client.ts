@@ -4,7 +4,7 @@
 import type {
   MessageId,
   SessionId, SessionSearchItem,
-  SubagentCatalog, SubagentInterruptReceipt, SubagentPromptReceipt,
+  SubagentInterruptReceipt, SubagentPromptReceipt,
   WorkspaceId, WorkspaceView,
 } from '@deepseek-ai/dsh-api-remotes/client'
 import type {
@@ -15,6 +15,7 @@ import type {
   SessionFollowFrame,
   SessionFollowRequest,
   SessionPage,
+  SessionEventsPage,
   SessionPageRequest,
   SessionProjectionBaseline,
   SessionSelectModelRequest,
@@ -23,6 +24,7 @@ import type {
 import type { WorkspaceRemote } from '@deepseek-ai/dsh-api-workspace-controller/client'
 import type { WorkspaceFollowFrame } from '@deepseek-ai/dsh-api-workspace-controller/types'
 import type { RemoteFailure, RemoteResult } from '@deepseek-ai/dsh-typert-protocol'
+import { RemoteMock, streamHandle } from '@deepseek-ai/dsh-remote-mock'
 import {
   RemoteStream,
   type RemoteStreamOptions,
@@ -32,7 +34,7 @@ import { followSnapshot, pageThrough } from './remote/history.client.ts'
 
 const AVAILABLE_STREAM_CONNECTION = {
   generation: {
-    getSnapshot: () => ({ id: 1, host: { home: '/h', platform: 'linux', capabilities: ['session.control.v1', 'session.follow.v1'] } }),
+    getSnapshot: () => ({ id: 1, host: { home: '/h', platform: 'linux' } }),
     subscribe: () => () => {},
   },
 }
@@ -153,8 +155,6 @@ export class FakeApiClient {
   /** Optional Host opening cursor override for stale-page and reconnect tests. */
   followCursor: number | undefined
   controlBaseline: SessionControlBaseline = {
-    queues: {},
-    jobs: {},
     projections: {},
   }
   assistantStreamBaseline: SessionAssistantStreamBaseline = {
@@ -163,11 +163,10 @@ export class FakeApiClient {
   workspaceBaseline: Extract<WorkspaceFollowFrame, { type: 'baseline' }>['value'] = {
     items: [],
     archivedSessionIds: [],
+    pinnedSessionIds: [],
   }
   lastSearchSignal: AbortSignal | undefined
 
-  onSubagentList: (payload: unknown) => Promise<RemoteResult<SubagentCatalog>>
-    = () => Promise.resolve(ok({ entries: [], parentAvailable: true }))
   onSubagentPrompt: (payload: unknown) => Promise<RemoteResult<SubagentPromptReceipt>>
     = () => Promise.resolve(ok({ messageId: 'fake-message' as MessageId }))
 
@@ -192,59 +191,61 @@ export class FakeApiClient {
   onWorkspaceArchiveSession: (payload: unknown) => Promise<RemoteResult<{ archivedSessionIds: SessionId[] }>> =
     payload => Promise.resolve(ok({ archivedSessionIds: [(payload as { sessionId: SessionId }).sessionId] }))
 
-  /** Remote namespaces bound to this fake's programmable unary slots and stream pumps. */
-  host: SessionRemotes['$host'] = { home: undefined, platform: undefined, isLoopback: true,
-    capabilities: ['subagent.catalog.v1', 'subagent.prompt.v1', 'subagent.interrupt.v1'] }
+  /** Capability ids advertised by the fake Host discovery response. */
+  admission: readonly string[] = ['subagent.catalog.v1', 'subagent.prompt.v1', 'subagent.interrupt.v1']
 
+  /** Remote namespaces bound to this fake's programmable unary slots and stream pumps. */
   sessionRemotes(): RuntimeRemotes {
-    const host = () => this.host
+    const remote = RemoteMock.create().remote
+    const session = remote.session
+    session.list.mockImplementation(payload => this.record('session.list', payload, this.onList(payload)))
+    session.modelCatalog.mockResolvedValue(ok({
+      default: { provider: 'fixture', model: 'fixture' },
+      routableProviders: [],
+      groups: [],
+      failures: [],
+    }))
+    session.search.mockImplementation((payload, signal) => {
+      this.lastSearchSignal = signal
+      return this.record('session.search', payload, this.onSearch(payload))
+    })
+    session.create.mockImplementation(payload => this.record('session.create', payload, this.onCreate(payload)))
+    session.selectModel.mockImplementation(payload => this.record('session.selectModel', payload, this.onSelectModel(payload)))
+    session.rename.mockImplementation(payload => this.record('session.rename', payload, this.onRename(payload)))
+    session.renameAt.mockImplementation(payload => this.record('session.renameAt', payload, this.onRename(payload)))
+    session.fork.mockImplementation(payload => this.record('session.fork', payload, this.onFork(payload)))
+    session.prompt.mockImplementation(payload => this.record('session.prompt', payload, this.onPrompt(payload)))
+    session.attachment.mockImplementation(payload => this.record('session.attachment', payload, this.onAttachment(payload)))
+    session.updateQueue.mockImplementation(payload => this.record('session.updateQueue', payload, this.onUpdateQueue(payload)))
+    session.cancel.mockImplementation(payload => this.record('session.cancel', payload, this.onCancel(payload)))
+    session.cancelTurn.mockImplementation(payload => this.record('session.cancelTurn', payload, this.onCancel(payload)))
+    session.page.mockImplementation(request => this.page(request))
+    session.follow.mockImplementation((request, signal) => streamHandle(this.openFollow(request, signal)))
+    session.control.mockImplementation(signal => streamHandle(this.openControl(signal)))
+    const workspace = remote.workspace
+    workspace.create.mockImplementation(payload => this.record('workspace.create', payload, this.onWorkspaceCreate(payload)))
+    workspace.rename.mockImplementation(payload => this.record('workspace.rename', payload, this.onWorkspaceRename(payload)))
+    workspace.delete.mockImplementation(payload => this.record('workspace.delete', payload, this.onWorkspaceDelete(payload)))
+    workspace.insertBefore.mockImplementation(payload => this.record('workspace.insertBefore', payload, this.onWorkspaceInsertBefore(payload)))
+    workspace.insertSessionBefore.mockImplementation(payload => this.record(
+      'workspace.insertSessionBefore', payload, this.onWorkspaceInsertSessionBefore(payload),
+    ))
+    workspace.archiveSession.mockImplementation(payload => this.record(
+      'workspace.archiveSession', payload, this.onWorkspaceArchiveSession(payload),
+    ))
+    workspace.follow.mockImplementation(signal => streamHandle(this.openWorkspace(signal)))
     return {
-      get $host() { return host() },
+      host: {
+        describe: () => Promise.resolve(ok({ capabilities: this.admission })),
+      },
       $stream: <Item>(options: RemoteStreamOptions<Item>) => (
         new RemoteStream(AVAILABLE_STREAM_CONNECTION, options)
       ),
       commands: {
         execute: () => Promise.resolve({ ok: true, value: undefined }),
       },
-      session: {
-        list: payload => this.record('session.list', payload, this.onList(payload)),
-        modelCatalog: () => Promise.resolve({
-          ok: true,
-          value: {
-            default: { provider: 'fixture', model: 'fixture' },
-            routableProviders: [],
-            groups: [],
-            failures: [],
-          },
-        }),
-        search: (payload, signal) => {
-          this.lastSearchSignal = signal
-          return this.record('session.search', payload, this.onSearch(payload))
-        },
-        create: payload => this.record('session.create', payload, this.onCreate(payload)),
-        selectModel: payload => this.record(
-          'session.selectModel',
-          payload,
-          this.onSelectModel(payload),
-        ),
-        rename: payload => this.record('session.rename', payload, this.onRename(payload)),
-        renameAt: payload => this.record('session.renameAt', payload, this.onRename(payload)),
-        fork: payload => this.record('session.fork', payload, this.onFork(payload)),
-        prompt: payload => this.record('session.prompt', payload, this.onPrompt(payload)),
-        attachment: payload => this.record('session.attachment', payload, this.onAttachment(payload)),
-        updateQueue: payload => this.record('session.updateQueue', payload, this.onUpdateQueue(payload)),
-        cancel: payload => this.record('session.cancel', payload, this.onCancel(payload)),
-        cancelTurn: payload => this.record('session.cancelTurn', payload, this.onCancel(payload)),
-        page: request => this.page(request),
-        follow: (request, signal) => this.openFollow(request, signal),
-        control: signal => this.openControl(signal),
-      },
+      session,
       subagents: {
-        list: parentSessionId => this.record(
-          'subagents.list',
-          parentSessionId,
-          this.onSubagentList(parentSessionId),
-        ),
         prompt: request => this.record('subagents.prompt', request, this.onSubagentPrompt(request)),
         interruptTurnByParent: request => this.record(
           'subagents.interruptTurnByParent', request, this.onSubagentInterrupt(request),
@@ -255,27 +256,7 @@ export class FakeApiClient {
           this.onSubagentInterrupt({ childSessionId, parentSessionId, mode }),
         ),
       },
-      workspace: {
-        create: payload => this.record('workspace.create', payload, this.onWorkspaceCreate(payload)),
-        rename: payload => this.record('workspace.rename', payload, this.onWorkspaceRename(payload)),
-        delete: payload => this.record('workspace.delete', payload, this.onWorkspaceDelete(payload)),
-        insertBefore: payload => this.record(
-          'workspace.insertBefore',
-          payload,
-          this.onWorkspaceInsertBefore(payload),
-        ),
-        insertSessionBefore: payload => this.record(
-          'workspace.insertSessionBefore',
-          payload,
-          this.onWorkspaceInsertSessionBefore(payload),
-        ),
-        archiveSession: payload => this.record(
-          'workspace.archiveSession',
-          payload,
-          this.onWorkspaceArchiveSession(payload),
-        ),
-        follow: signal => this.openWorkspace(signal),
-      },
+      workspace,
     }
   }
 
@@ -330,14 +311,14 @@ export class FakeApiClient {
     return response
   }
 
-  private page(request: SessionPageRequest): Promise<RemoteResult<SessionPage>> {
+  private page(request: SessionPageRequest): Promise<RemoteResult<SessionEventsPage>> {
     return this.fetchPage(request)
   }
 
   private async fetchPage(
     request: SessionPageRequest,
     response?: Promise<RemoteResult<SessionPage>>,
-  ): Promise<RemoteResult<SessionPage>> {
+  ): Promise<RemoteResult<SessionEventsPage>> {
     const sessionId = addressSessionId(request.address)
     const payload = request.address.kind === 'session'
       ? {
@@ -357,14 +338,14 @@ export class FakeApiClient {
     const method = request.address.kind === 'session' ? 'session.history' : 'subagent.history'
     const result = await this.record(method, payload, response ?? this.onHistory({
       sessionId,
-      throughSeq: request.throughSeq,
+      ...request.throughSeq === undefined ? {} : { throughSeq: request.throughSeq },
       ...request.beforeSeq === undefined ? {} : { beforeSeq: request.beforeSeq },
       ...request.maxMessages === undefined ? {} : { maxMessages: request.maxMessages },
     }))
     if (!result.ok) return result
     return {
       ok: true,
-      value: pageThrough(result.value, request.throughSeq),
+      value: pageThrough(result.value, request.throughSeq ?? result.value.records.at(-1)?.event?.seq ?? -1),
     }
   }
 

@@ -62,12 +62,7 @@
     "packages/client/ui-settings-host-status/**",
     "packages/client/ui-settings-telemetry/**",
     "packages/client/ui-view-handoff/**",
-    "packages/api/session-controller/tests/fake-api.client.ts",
-    "packages/api/session-controller/tests/subagent-generation.client.spec.ts",
-    "packages/api/session-controller/tests/rename-revision.client.spec.ts",
-    "packages/api/session-controller/tests/cancel-target.client.spec.ts",
     "packages/api/gateway/tests/preparation.client.spec.ts",
-    "packages/api/workspace-files/tests/capabilities.client.spec.ts",
     "scripts/gen-lite-preset-catalog.ts",
     "scripts/gen-lite-preset-catalog.spec.ts"
   ],

@@ -729,6 +729,7 @@ describe('prompt and cancel errors', () => {
     const client = await start()
     // The Gateway-only assembly has no commands contribution; this facade test supplies its unary dependency.
     const session = new Session(SID, {
+      host: mock.remote.host,
       session: client.ctx.remote.session,
       subagents: client.ctx.remote.subagents,
       commands: mock.remote.commands,

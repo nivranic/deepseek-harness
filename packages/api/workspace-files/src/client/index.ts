@@ -17,7 +17,7 @@ import { createFileResourceProvider } from './provider.ts'
 export type { WorkspaceFileParams } from './types.ts'
 
 /** Required browser services: the resource model, the Remote carrier and its namespace. */
-export const inject = ['resources', 'remote', 'remote.workspaceFiles']
+export const inject = ['resources', 'remote', 'remote.host', 'remote.workspaceFiles']
 
 /**
  * Register metadata only for an admitted Host with stat support; replacement

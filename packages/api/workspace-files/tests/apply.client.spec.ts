@@ -19,6 +19,7 @@ describe('workspace-files client apply', () => {
     const controller = new AbortController()
     const pulls: Array<Promise<unknown>> = []
     ctx.provide('remote', remote as never)
+    ctx.provide('remote.host', remote.host as never)
     ctx.provide('remote.workspaceFiles', remote.workspaceFiles as never)
     const registered: Array<ResourceProvider<'file'>> = []
     let released = 0

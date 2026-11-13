@@ -38,6 +38,7 @@ import type {
   SessionAttachmentRequest,
   SessionAttachmentValue,
   SessionCancelRequest,
+  SessionCancelTurnRequest,
   SessionCancelValue,
   SessionControlFrame,
   SessionCreateRequest,
@@ -55,6 +56,7 @@ import type {
   SessionPageRequest,
   SessionPromptRequest,
   SessionPromptValue,
+  SessionRenameAtRequest,
   SessionRenameRequest,
   SessionRenameValue,
   SessionSearchRequest,
@@ -78,11 +80,13 @@ export interface TestSessionRemote {
   selectModel(request: SessionSelectModelRequest): Promise<RemoteResult<SessionSelectModelValue>>
   modelCatalog(): Promise<RemoteResult<ModelCatalog>>
   rename(request: SessionRenameRequest): Promise<RemoteResult<SessionRenameValue>>
+  renameAt(request: SessionRenameAtRequest): Promise<RemoteResult<SessionRenameValue>>
   fork(request: SessionForkRequest): Promise<RemoteResult<SessionForkValue>>
   prompt(request: SessionPromptRequest, signal?: AbortSignal): Promise<RemoteResult<SessionPromptValue>>
   attachment(request: SessionAttachmentRequest): Promise<RemoteResult<SessionAttachmentValue>>
   updateQueue(request: SessionUpdateQueueRequest): Promise<RemoteResult<SessionUpdateQueueValue>>
   cancel(request: SessionCancelRequest): Promise<RemoteResult<SessionCancelValue>>
+  cancelTurn(request: SessionCancelTurnRequest): Promise<RemoteResult<SessionCancelValue>>
   openWorkspacePath(
     request: SessionOpenWorkspacePathRequest,
     signal?: AbortSignal,
@@ -375,6 +379,7 @@ export async function createSessionTestRemote(
     selectModel: request => remoteResult(() => direct.selectModel(request)),
     modelCatalog: () => remoteResult(() => direct.modelCatalog()),
     rename: request => remoteResult(() => direct.rename(request)),
+    renameAt: request => remoteResult(() => direct.renameAt(request)),
     fork: request => remoteResult(() => direct.fork(request)),
     prompt: (request, signal = new AbortController().signal) => remoteResult(
       () => direct.prompt(request, signal),
@@ -383,6 +388,7 @@ export async function createSessionTestRemote(
     attachment: request => remoteResult(() => direct.attachment(request)),
     updateQueue: request => remoteResult(() => direct.updateQueue(request)),
     cancel: request => remoteResult(() => direct.cancel(request)),
+    cancelTurn: request => remoteResult(() => direct.cancelTurn(request)),
     openWorkspacePath: (request, signal = new AbortController().signal) => remoteResult(
       () => direct.openWorkspacePath(request, signal),
       signal,

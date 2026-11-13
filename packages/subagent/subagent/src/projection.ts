@@ -18,9 +18,9 @@ export interface TimingState {
   /** Milliseconds accumulated across completed post-descriptor turns. */
   settledMs: number
   /** Current open interval kept paired inside the fold. */
-  active?: { since: number; through: number } | undefined
+  active?: { since: number; through: number; startSeq: SessionSeq } | undefined
   /** Latest pre-descriptor turn start, promoted when the child's own descriptor arrives. */
-  pendingTurnStart?: number | undefined
+  pendingTurnStart?: { since: number; startSeq: SessionSeq } | undefined
   /** Whether the fold has crossed a descriptor in this logical log. */
   descriptorSeen: boolean
   /** Whether the latest closed post-descriptor turn completed normally; absent while a turn is open or before one closes. */
@@ -30,6 +30,7 @@ export interface TimingState {
 const activeIntervalSchema = z.object({
   since: z.number().int().nonnegative(),
   through: z.number().int().nonnegative(),
+  startSeq: z.number().int().nonnegative().max(Number.MAX_SAFE_INTEGER).transform(SessionSeq),
 }).strict()
 
 const projectionSchema: z.ZodType<SubagentTimingProjection> = z.object({
@@ -45,7 +46,7 @@ const projectionSchema: z.ZodType<SubagentTimingProjection> = z.object({
 const timingStateSchema: z.ZodType<TimingState> = z.object({
   settledMs: z.number().int().nonnegative(),
   active: activeIntervalSchema.optional(),
-  pendingTurnStart: z.number().int().nonnegative().optional(),
+  pendingTurnStart: activeIntervalSchema.omit({ through: true }).optional(),
   descriptorSeen: z.boolean(),
   lastTurnCompleted: z.boolean().optional(),
 }).strict()
@@ -66,17 +67,17 @@ export const subagentTimingProjectionDefinition = {
     if (event.type === 'turn/start') {
       const { lastTurnCompleted: _closed, ...openState } = state
       return state.descriptorSeen
-        ? { ...openState, active: { since: event.time, through: event.time } }
-        : { ...openState, pendingTurnStart: event.time }
+        ? { ...openState, active: { since: event.time, through: event.time, startSeq: event.seq } }
+        : { ...openState, pendingTurnStart: { since: event.time, startSeq: event.seq } }
     }
     if (event.type === 'subagent/descriptor') {
-      const activeSince = state.active?.since ?? state.pendingTurnStart
+      const promoted = state.active ?? (state.pendingTurnStart === undefined
+        ? undefined
+        : { since: state.pendingTurnStart.since, startSeq: state.pendingTurnStart.startSeq, through: event.time })
       return {
         descriptorSeen: true,
         settledMs: 0,
-        ...(activeSince === undefined
-          ? {}
-          : { active: { since: activeSince, through: event.time } }),
+        ...(promoted === undefined ? {} : { active: promoted }),
       }
     }
     if (event.type === 'turn/end') {
@@ -104,7 +105,7 @@ export const subagentTimingProjectionDefinition = {
       ...(state.lastTurnCompleted === undefined ? {} : { lastTurnCompleted: state.lastTurnCompleted }),
     }),
   },
-  stateVersion: 3,
+  stateVersion: 4,
 } satisfies ProjectionDefinition<'subagentTiming', TimingState>
 
 interface IdentityState {

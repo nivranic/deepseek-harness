@@ -43,6 +43,7 @@ it('withdraws metadata, drops late old results and resumes held resources agains
   const remote = new FakeRemote()
   const resources = new ResourceRegistry(ctx)
   ctx.provide('remote', remote as never)
+  ctx.provide('remote.host', remote.host as never)
   ctx.provide('remote.workspaceFiles', remote.workspaceFiles as never)
   ctx.provide('resources', resources)
   const fiber = ctx.plugin({ inject: [...inject], apply })

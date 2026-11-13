@@ -85,6 +85,8 @@ export const VIEWER_ENDPOINT_CLASSES = {
   // No reader role names these and no plugin offers them today, so the conservative class is
   // owner-only. A plugin that intends to expose one reclassifies it as 'plugin-offered', which still
   // only makes it eligible for the declaration path; the owner's per-share selection is the grant.
+  'session/cancelTurn': 'owner-only', // targeted mutations have no reader role
+  'session/renameAt': 'owner-only',
   'account/ackBonusNotified': 'owner-only', // owner account and sign-in; the served page never reads it
   'account/cancelSignIn': 'owner-only', // owner account and sign-in; the served page never reads it
   'account/getBalance': 'owner-only', // owner account and sign-in; the served page never reads it
@@ -224,6 +226,7 @@ export const VIEWER_ENDPOINT_CLASSES = {
   'schedule/list': 'owner-only', // owner schedules
   'schedule/update': 'owner-only', // owner schedules
   'subagents/interruptByParent': 'owner-only', // owner subagents
+  'subagents/interruptTurnByParent': 'owner-only',
   'subagents/prompt': 'owner-only', // owner subagents
 
   // Owner share management stays on the owner's own page; a `share-viewer` Peer is refused first.

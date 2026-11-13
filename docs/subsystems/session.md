@@ -921,6 +921,14 @@ workspaceDesktop(): { name: string; available: boolean; fileManager: 'finder' | 
 @Remote('rename') rename(request: SessionRenameRequest): Promise<SessionRenameValue>
 
 /**
+ * Rename one Session only against the title revision captured before editing;
+ * an identical user-pinned title returns its original acceptance.
+ * @param request - Session identity, proposed title, and durable editing baseline.
+ * @returns the accepted title and its original durable event sequence.
+ */
+@Remote('renameAt') renameAt(request: SessionRenameAtRequest): Promise<SessionRenameValue>
+
+/**
  * Fork one cold-readable exact event prefix into a new Session. An omitted
  * boundary selects the latest completed-turn prefix; an open cut receives
  * synthetic fork closers.
@@ -957,6 +965,14 @@ workspaceDesktop(): { name: string; available: boolean; fileManager: 'finder' | 
  * @returns acknowledgement that cancellation was requested.
  */
 @Remote('cancel') cancel(request: SessionCancelRequest): SessionCancelValue
+
+/**
+ * Cancel one observed Agent turn without arming cancellation for later
+ * work; a stale, absent, or completed target is an accepted no-op.
+ * @param request - Session and observed turn/start sequence, or null for no observed turn.
+ * @returns acceptance whether the target is cancelled or already inactive.
+ */
+@Remote('cancelTurn') cancelTurn(request: SessionCancelTurnRequest): SessionCancelValue
 
 /**
  * Read one cold-safe, message-aligned Session history page.

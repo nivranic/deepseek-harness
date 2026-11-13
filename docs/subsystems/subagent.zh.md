@@ -591,6 +591,15 @@ listDescendants(rootSessionId: SessionId, signal?: AbortSignal): Promise<Subagen
 @Remote('interruptByParent') interruptByParent( childSessionId: SessionId, parentSessionId: SessionId, mode: 'continuable', ): SubagentInterruptReceipt
 
 /**
+ * Stop an observed child turn under durable parent-address authority,
+ * including while the parent is offline.
+ * @param request - child address and the observed turn/start sequence, or null for an idle child.
+ * @returns acceptance; a stale, idle, absent or completed target is a no-op, not a quiescence receipt.
+ * @throws {RemoteError} invalid input, foreign live-child authority or unavailable turn projection.
+ */
+@Remote('interruptTurnByParent') interruptTurnByParent(request: SubagentInterruptTurnRequest): SubagentInterruptReceipt
+
+/**
  * Register a provider under its name. Registration is effect-scoped and HMR
  * safe; removing a provider blocks new starts but does not revoke runs that
  * were already returned to their holders. Providers without either execution

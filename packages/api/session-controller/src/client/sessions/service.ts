@@ -384,6 +384,15 @@ export class ClientSessions implements ISessions {
   }
 
   /**
+   * Repull Host capabilities through discovery for every capability-gated
+   * client operation; each connection generation calls this once.
+   * @returns once the describe round-trip settled or was superseded.
+   */
+  refreshHostAdmission(): Promise<void> {
+    return this.manager.refreshHostAdmission()
+  }
+
+  /**
    * Apply one remotely forwarded Session-list addition.
    * @param summary - current Host summary for the added Session.
    */

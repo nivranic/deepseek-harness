@@ -38,11 +38,6 @@
     "packages/api/remotes/src/client/host-preparation.ts", // Parked remotes preparation lane (preset registry migration pending replant).
     "packages/api/remotes/tests/host-preparation.client.spec.ts",
     "packages/api/gateway/tests/preparation.client.spec.ts", // Parked lane client specs excluded from the client face.
-    "packages/api/session-controller/tests/fake-api.client.ts",
-    "packages/api/session-controller/tests/subagent-generation.client.spec.ts",
-    "packages/api/session-controller/tests/rename-revision.client.spec.ts",
-    "packages/api/session-controller/tests/cancel-target.client.spec.ts",
-    "packages/api/workspace-files/tests/capabilities.client.spec.ts",
     "packages/preset/agent-preset-registry/tests/lite-preset-projection.spec.ts", // Parked Lite catalog cluster (official registry is Loader-based).
     "packages/typert/generator/tests/remote-errors.spec.ts", // Parked remote-error-model analyzer subsystem.
     "scripts/gen-lite-preset-catalog.ts", // Parked scripts bound to the retired preset-roster API.

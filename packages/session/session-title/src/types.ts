@@ -84,5 +84,7 @@ declare module '@deepseek-ai/dsh-session-projection/types' {
      * plain string: the shape the client list rows consume.
      */
     title: string | null
+    /** Durable title event seq for conditional renames; independent of the stream cursor. */
+    titleRevision: number | null
   }
 }
