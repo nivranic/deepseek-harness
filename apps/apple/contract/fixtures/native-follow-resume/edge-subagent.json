@@ -2,16 +2,15 @@
  "kind": "subagent",
  "parentSessionId": "p-1",
  "childSessionId": "c-9",
- "mode": "timeline",
+ "mode": "unknown",
  "maxMessages": 50,
- "fromSeq": null,
  "body": {
   "request": {
    "address": {
     "kind": "subagent",
     "parentSessionId": "p-1",
     "childSessionId": "c-9",
-    "mode": "timeline"
+    "mode": "unknown"
    },
    "maxMessages": 50
   }

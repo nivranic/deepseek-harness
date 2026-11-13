@@ -18,7 +18,7 @@ DeepSeek Harness 的下游 Apple 薄壳工程。设备首先是 Remote Companion
 
 本契约同时采纳第 26 节查看位置 handoff 词汇：`NativeViewLocations` 镜像 Android core（及 Web Client 的 `dsh-session-view.v1` 编解码器）——encode 以精确顺序的 ASCII JSON 字段写出单个带前缀 base64url 文档，decode 在每个解析边界 fail-loud（未知语法、非 base64url、非法 JSON、字段集不恰为 hostId/sessionId/anchorSeq 三者、非字符串或空 id、负数/小数/布尔/-0/超安全整数锚点）且绝不静默强制转换。共享夹具集（`fixtures/native-view-location/`，一份规范往返含钉死字节、三个边界用例——零锚点、id 转义字符、最大安全整数——与六个无效类）经 Kotlin 侧 `NativeViewLocationFixtureTest` 与本侧自检双向消费，两个编解码器读写相同的载荷字节。调用方尺寸限制与 Companion 深链接包装仍归客户端所有。
 
-本契约同时采纳第 25 节 follow 续传请求词汇：`NativeFollowResume` 镜像 Android core 的 `NativeFollowResume` 对象——相同的 follow 地址（会话 id，或 parent/child/mode 子代理地址）、正数 `maxMessages` 页大小、仅在存在时携带的可选非负 `fromSeq` 续传游标，因此全新 follow 信封不含 `fromSeq` 键。请求信封的契约是结构相等而非字节相等；键序仍归构建方所有。共享夹具集（`fixtures/native-follow-resume/`，一份规范续传、三个边界用例——全新 follow、零游标、子代理地址——与一个无效用例）经 Kotlin 侧 `NativeFollowResumeFixtureTest` 与本侧自检双向消费，两个构建方拒绝相同输入并产出结构相等的信封。
+`NativeFollowResume` 镜像 Android 的 Session follow 构造器：Session 或 parent/child/mode 地址，以及正数 `maxMessages` 上限。初始和重连请求使用相同字段，保留的序号仅存在于客户端本地。共享夹具覆盖普通请求、单消息分页、unknown 模式的子代理地址和无效的零分页大小。Kotlin 与 Swift 比较结构相等的信封；[Host 契约场景](../web/tests/native-follow-contract.e2e.ts)使用生成的 Host 校验器检查有效夹具，并验证完整 opening 快照。
 
 ## 已知限制与后续工作
 

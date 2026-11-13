@@ -17,7 +17,7 @@ import { compareOrRefreshGolden, fixtureUserPrompts, launchWebScaffold, webSnaps
 import { startAndroidCompanionUiDriver } from './android-companion-ui-driver.ts'
 
 const MODE = webSnapshotMode()
-const FIXTURE = fileURLToPath(new URL('../../../snapshots/web/live-interactions/session.v3.jsonl', import.meta.url))
+const FIXTURE = fileURLToPath(new URL('../../../snapshots/web/live-interactions/session.v4.jsonl', import.meta.url))
 const IMAGE = fileURLToPath(new URL('../../../snapshots/session/read-image/workspace/red.png', import.meta.url))
 const execute = promisify(execFile)
 const digest = (bytes: Uint8Array) => createHash('sha256').update(bytes).digest('hex')
@@ -180,13 +180,10 @@ it.skipIf(!process.env.DSH_ANDROID_ADB || MODE === 'record')('Android restores o
       { type: 'image', attachment: images[2]!.image },
     ])
     const contextMetadata = (source: UserMessage['source']) => {
-      expect(source.kind).toBe('plugin')
-      if (source.kind !== 'plugin') throw new Error('Unexpected non-user message source')
-      expect(source.plugin).toBe('@deepseek-ai/dsh-system-prompt')
-      const snapshot = source as typeof source & { form: string; sections: readonly { name: string }[] }
-      expect(snapshot.form).toBe('snapshot')
-      return { keys: Object.keys(source).sort(), kind: source.kind, plugin: source.plugin,
-        form: snapshot.form, sections: snapshot.sections.map(section => ({ keys: Object.keys(section).sort(), name: section.name })) }
+      if (source.kind !== 'runtime-context' && source.kind !== 'time-context') throw new Error('Unexpected non-user message source')
+      if (source.form !== 'snapshot') throw new Error('Expected a context snapshot')
+      return { keys: Object.keys(source).sort(), kind: source.kind,
+        form: source.form, sections: source.sections.map(section => ({ keys: Object.keys(section).sort(), name: section.name })) }
     }
     const fixtureContexts = fixtureText.trim().split(/\r?\n/u).flatMap((line) => {
       const event = JSON.parse(line) as { type: string; data: UserMessage }

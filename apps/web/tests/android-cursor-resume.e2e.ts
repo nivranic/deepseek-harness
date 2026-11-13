@@ -69,7 +69,7 @@ for (const recovery of ['covered', 'uncovered'] as const) {
       await command({ op: 'fillPromptDraft', text: 'Unsent during cursor recovery' })
       const first = await command({ op: 'loadOlderHistory' })
       expect(snapshots).toHaveLength(1)
-      expect(requests[0]?.fromSeq).toBeUndefined()
+      expect(requests[0]).not.toHaveProperty('fromSeq')
       const cursor = snapshots[0]!.cursor
       stage = 'append-during-interruption'
       const count = recovery === 'covered' ? 3 : 60
@@ -82,12 +82,16 @@ for (const recovery of ['covered', 'uncovered'] as const) {
       release.resolve(undefined)
       stage = 'resumed-window'
       await expect.poll(() => snapshots.length, { timeout: 20_000 }).toBe(2)
-      expect(requests[1]?.fromSeq).toBe(cursor)
+      expect(requests[1]).toEqual(requests[0])
       const resumed = snapshots[1]!
       const resumedFirst = resumed.records[0]!.event.seq
-      expect(resumed.records.length).toBe(recovery === 'covered' ? count : 50)
-      if (recovery === 'covered') expect(resumedFirst).toBe(cursor + 1)
-      else expect(resumedFirst).toBeGreaterThan(cursor + 1)
+      if (recovery === 'covered') {
+        expect(resumedFirst).toBeLessThanOrEqual(cursor)
+        expect(resumed.records.filter(record => record.event.seq > cursor)).toHaveLength(count)
+      } else {
+        expect(resumed.records).toHaveLength(50)
+        expect(resumedFirst).toBeGreaterThan(cursor + 1)
+      }
       await command({ op: 'assertSessionWindow', first: recovery === 'covered' ? first : resumedFirst, last: resumed.cursor, attempts: 2 })
       await command({ op: 'assertPromptDraft', text: 'Unsent during cursor recovery' })
       expect(mutations).toEqual([])
@@ -101,9 +105,9 @@ for (const recovery of ['covered', 'uncovered'] as const) {
         `# Android ${recovery} cursor recovery`, '',
         '- A real Host serves an 88-turn seeded Session to the installed Android application.',
         '- Android loads older history and retains unsent input before the logical follow interruption.',
-        '- The first request has no cursor; the reconnect request carries the last retained durable sequence.',
+        '- Initial and reconnect requests use the same address and page bound, without a wire resume cursor.',
         recovery === 'covered'
-          ? '- The Host returns only three new records; Android retains the older page and folds each sequence once.'
+          ? '- The Host returns a complete bounded window containing the three new records; Android verifies the overlap and retains its older page without duplicates.'
           : '- After sixty new messages, the Host returns its latest fifty-message window; Android drops the uncovered prefix without inventing a gap.',
         '- The final durable row is displayed; unsent input and the single device grant remain intact.',
         '- Recovery sends no prompt, creation, cancellation, reply, or runtime Handoff mutation.',

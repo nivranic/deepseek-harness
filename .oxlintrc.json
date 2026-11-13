@@ -33,14 +33,7 @@
     "scripts/gen-lite-preset-catalog.ts", // Parked scripts bound to the retired preset-roster API.
     "scripts/gen-lite-preset-catalog.spec.ts",
     "scripts/gen-tool-catalog.spec.ts",
-    "apps/web/tests/android-attachment-receipt-recovery.e2e.ts", // Pending preset/tool catalog and Session journal migrations.
     "apps/web/tests/android-tool-catalog.e2e.ts",
-    "apps/web/tests/android-cursor-resume.e2e.ts",
-    "apps/web/tests/android-follow-window-foreground.e2e.ts",
-    "apps/web/tests/android-follow-window-outage.e2e.ts",
-    "apps/web/tests/android-follow-window-persistence.e2e.ts",
-    "apps/web/tests/android-file-attachments.e2e.ts",
-    "apps/web/tests/android-photo-attachments.e2e.ts",
     "apps/web/tests/validation-details.e2e.ts", // Parked host-plane lane e2e family: excluded from the apps/web client project, restored with the upstream merge.
     "apps/web/tests/checkpoint-order.snapshot.ts",
     "apps/web/tests/host-description.e2e.ts",

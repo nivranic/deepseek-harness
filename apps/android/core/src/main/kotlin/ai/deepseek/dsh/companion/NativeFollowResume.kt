@@ -2,14 +2,10 @@ package ai.deepseek.dsh.companion
 
 import ai.deepseek.dsh.link.WireValue
 
-/** §25 session/follow opening envelope as shared construction rules: the address
- * vocabulary (session and subagent kinds) nested under one `address` entry, the
- * page bound every opening request carries, and the resume rule — the last
- * applied entry's inclusive seq rides only when one exists, so a fresh open
- * carries no `fromSeq` key. The Apple contract mirrors these rules
- * (apps/apple/contract/Sources/DSHContract/NativeFollowResume.swift) over shared
- * fixtures; the Kotlin implementation is the authority. The Host's wire-boundary
- * validation (safe-integer checks for untrusted JSON) stays Host-owned. */
+/** Session follow openings carry a durable address and a positive page bound.
+ * Reconnection requests the same complete opening window; retained cursors are
+ * local merge state and never enter the request. The Apple contract consumes
+ * the same request fixtures, which are also checked against the Host validator. */
 object NativeFollowResume {
     /** Address entries for one durable Session. */
     fun sessionAddress(sessionId: String): Map<String, WireValue> = mapOf(
@@ -39,17 +35,10 @@ object NativeFollowResume {
         return entries + ("maxMessages" to WireValue.NumberValue(maxMessages.toDouble()))
     }
 
-    /** The §25 resume rule: a null cursor adds no key; a present cursor must be non-negative. */
-    fun withResumeCursor(entries: Map<String, WireValue>, cursor: Long?): Map<String, WireValue> {
-        if (cursor == null) return entries
-        require(cursor >= 0) { "fromSeq must be a non-negative safe integer" }
-        return entries + ("fromSeq" to WireValue.NumberValue(cursor.toDouble()))
-    }
-
     /** One complete session/follow request body from the shared rules. */
-    fun request(address: Map<String, WireValue>, maxMessages: Int, cursor: Long?): Map<String, WireValue> = mapOf(
+    fun request(address: Map<String, WireValue>, maxMessages: Int): Map<String, WireValue> = mapOf(
         "request" to WireValue.ObjectValue(
-            withResumeCursor(withMaxMessages(mapOf("address" to WireValue.ObjectValue(address)), maxMessages), cursor),
+            withMaxMessages(mapOf("address" to WireValue.ObjectValue(address)), maxMessages),
         ),
     )
 }

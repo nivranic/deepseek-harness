@@ -1,16 +1,14 @@
 {
  "kind": "session",
  "sessionId": "s-7",
- "maxMessages": 30,
- "fromSeq": 0,
+ "maxMessages": 1,
  "body": {
   "request": {
    "address": {
     "kind": "session",
     "sessionId": "s-7"
    },
-   "maxMessages": 30,
-   "fromSeq": 0
+   "maxMessages": 1
   }
  }
 }

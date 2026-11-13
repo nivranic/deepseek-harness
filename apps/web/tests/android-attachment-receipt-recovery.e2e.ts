@@ -8,7 +8,7 @@ import { promisify } from 'node:util'
 import { expect, it, vi } from 'vitest'
 import type { AgentHandle } from '@deepseek-ai/dsh-agent'
 import type {} from '@deepseek-ai/dsh-agent-default-model'
-import type {} from '@deepseek-ai/dsh-agent-presets'
+import type {} from '@deepseek-ai/dsh-agent-preset-registry'
 import type {} from '@deepseek-ai/dsh-api-native-remote'
 import type {} from '@deepseek-ai/dsh-api-device-trust'
 import type {} from '@deepseek-ai/dsh-api-host-description'
@@ -21,7 +21,7 @@ import { compareOrRefreshGolden, fixtureUserPrompts, launchWebScaffold, webSnaps
 import { startAndroidCompanionUiDriver } from './android-companion-ui-driver.ts'
 
 const MODE = webSnapshotMode()
-const FIXTURE = fileURLToPath(new URL('../../../snapshots/web/live-interactions/session.v3.jsonl', import.meta.url))
+const FIXTURE = fileURLToPath(new URL('../../../snapshots/web/live-interactions/session.v4.jsonl', import.meta.url))
 const execute = promisify(execFile)
 const digest = (bytes: Uint8Array) => createHash('sha256').update(bytes).digest('hex')
 

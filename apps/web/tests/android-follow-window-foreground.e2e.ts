@@ -99,7 +99,7 @@ it.skipIf(!process.env.DSH_ANDROID_ADB || MODE === 'record')('Android presents t
     await command({ op: 'fillPromptDraft', text: 'Unsent across a backgrounded carrier loss' })
     const first = await command({ op: 'loadOlderHistory' })
     expect(snapshots).toHaveLength(1)
-    expect(requests[0]?.fromSeq).toBeUndefined()
+    expect(requests[0]).not.toHaveProperty('fromSeq')
     const cursor = snapshots[0]!.cursor
     const appendRecords = async (marker: string, count: number) => {
       for (let index = 0; index < count; index++) {
@@ -124,7 +124,7 @@ it.skipIf(!process.env.DSH_ANDROID_ADB || MODE === 'record')('Android presents t
     expect(terminated.terminated, 'the Host destroyed the device carrier while backgrounded').toBeGreaterThanOrEqual(1)
     stage = 'backgrounded-reopen'
     await expect.poll(() => requests.length, { timeout: 30_000 }).toBeGreaterThanOrEqual(2)
-    expect(requests[1]?.fromSeq, 'the backgrounded process re-opened follow with its durable cursor').toBe(cursor + 3)
+    expect(requests[1], 'the backgrounded process requests the same complete opening').toEqual(requests[0])
     stage = 'backgrounded-appends'
     await appendRecords('WHILE_BACKGROUND', 3)
     stage = 'foreground-return'
@@ -146,14 +146,14 @@ it.skipIf(!process.env.DSH_ANDROID_ADB || MODE === 'record')('Android presents t
     await compareOrRefreshGolden(fileURLToPath(new URL('./expected/android-follow-window-foreground.expected.md', import.meta.url)), [
       '# Android persisted follow window across a backgrounded carrier loss', '',
       '- A real Host serves a seeded Session; Android loads one older history page and three further records before backgrounding.',
-      '- While the application holds no window focus, the Host-side terminateDeviceConnections primitive destroys its stream carrier; the backgrounded process re-opens follow on its own with the last applied durable sequence.',
+      '- While the application holds no window focus, the Host-side terminateDeviceConnections primitive destroys its stream carrier; the backgrounded process re-opens follow on its own with the original address and page bound.',
       '- Three records appended while backgrounded are consumed by the re-attached background follower, so the cursor advances without the UI; a plain launcher return brings the same singleTask application back without routing any intent.',
       '- On foreground return the merged window keeps the retained older page and all six appended records contiguously — no full Session re-download; unsent input and the single device grant survive; no prompt, creation, cancellation, reply, or runtime Handoff mutation is sent.',
       '- This scenario qualifies backgrounded reconnect and foreground presentation for the persisted window; a healthy background round-trip by design produces no new follow request, OS background-kill behaviors, FCM delivery, and real devices remain unqualified.',
     ].join('\n'), MODE)
   } catch (error) {
     console.info('Android foreground window stage', stage, 'lastOp', lastOp.name,
-      'requests', JSON.stringify(requests.map((request, index) => ({ index, fromSeq: request.fromSeq ?? null }))),
+      'requests', JSON.stringify(requests.map((request, index) => ({ index, maxMessages: request.maxMessages ?? null }))),
       'snapshots', JSON.stringify(snapshots.map((snapshot, index) => ({ index, cursor: snapshot.cursor, first: snapshot.records[0]?.event.seq ?? null, length: snapshot.records.length }))))
     failures.push(error)
   }

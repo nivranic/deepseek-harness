@@ -280,6 +280,7 @@
     "apps/web/tests/fixture-home-paths.spec.ts",
     "apps/web/tests/hosts-settings.e2e.ts",
     "apps/web/tests/view-handoff.e2e.ts",
+    "apps/web/tests/native-follow-contract.e2e.ts",
     "apps/web/tests/device-interaction-reply.e2e.ts",
     "apps/web/tests/diff-preview.e2e.ts"
   ],
@@ -288,15 +289,8 @@
   // suffixes are mutually exclusive, so each aggregate excludes the other's
   // and the package test glob above needs no per-file entry.
   "exclude": [
-    // Android clients still require the preset/tool catalog and Session journal migrations.
-    "apps/web/tests/android-attachment-receipt-recovery.e2e.ts",
+    // The Android tool catalog still requires the Lite catalog migration.
     "apps/web/tests/android-tool-catalog.e2e.ts",
-    "apps/web/tests/android-cursor-resume.e2e.ts",
-    "apps/web/tests/android-follow-window-foreground.e2e.ts",
-    "apps/web/tests/android-follow-window-outage.e2e.ts",
-    "apps/web/tests/android-follow-window-persistence.e2e.ts",
-    "apps/web/tests/android-file-attachments.e2e.ts",
-    "apps/web/tests/android-photo-attachments.e2e.ts",
     "apps/desktop/tests/keyboard.spec.ts",
     "packages/client/*/src/**",
     "benchmarks/**/*.client.ts",

@@ -1,4 +1,4 @@
-/** The persisted follow window survives process death and reopens with its resume cursor. */
+/** The persisted follow window reconciles a complete opening after process death. */
 import { mkdir, writeFile } from 'node:fs/promises'
 import { fileURLToPath } from 'node:url'
 import { expect, it, vi } from 'vitest'
@@ -79,8 +79,10 @@ it.skipIf(!process.env.DSH_ANDROID_ADB || MODE === 'record')('Android reopens a 
     await command({ op: 'fillPromptDraft', text: 'Unsent across process death' })
     const first = await command({ op: 'loadOlderHistory' })
     expect(snapshots).toHaveLength(1)
-    expect(requests[0]?.fromSeq).toBeUndefined()
+    expect(requests[0]).not.toHaveProperty('fromSeq')
     const cursor = snapshots[0]!.cursor
+    stage = 'process-death'
+    await driver.kill()
     stage = 'appends-during-interruption'
     const appended = 3
     for (let index = 0; index < appended; index++) {
@@ -89,17 +91,16 @@ it.skipIf(!process.env.DSH_ANDROID_ADB || MODE === 'record')('Android reopens a 
       }), { surfaceOp: 'append' })
     }
     await scaffold.ctx.sessions.flush(session)
-    stage = 'process-death'
-    await driver.kill()
+    stage = 'process-restart'
     driver = await startAndroidCompanionUiDriver(process.env.DSH_ANDROID_ADB!, process.env.DSH_ANDROID_SERIAL ?? '', info.port, false)
     await command({ op: 'assertRestored' })
     stage = 'reopened-window'
     await command({ op: 'openSession', sessionId })
     await expect.poll(() => snapshots.length, { timeout: 20_000 }).toBe(2)
-    expect(requests[1]?.fromSeq).toBe(cursor)
+    expect(requests[1]).toEqual(requests[0])
     const resumed = snapshots[1]!
-    expect(resumed.records.length).toBe(appended)
-    expect(resumed.records[0]!.event.seq).toBe(cursor + 1)
+    expect(resumed.records.filter(record => record.event.seq > cursor)).toHaveLength(appended)
+    expect(resumed.records[0]!.event.seq).toBeLessThanOrEqual(cursor)
     expect(resumed.cursor).toBe(cursor + appended)
     await windowWithRetry({ first, last: resumed.cursor, attempts: 1 })
     await command({ op: 'assertPromptDraft', text: 'Unsent across process death' })
@@ -113,15 +114,15 @@ it.skipIf(!process.env.DSH_ANDROID_ADB || MODE === 'record')('Android reopens a 
     await compareOrRefreshGolden(fileURLToPath(new URL('./expected/android-follow-window.expected.md', import.meta.url)), [
       '# Android persisted follow window across process death', '',
       '- A real Host serves a seeded Session; Android loads one older history page before the process is killed.',
-      '- The first request has no cursor; after process death the reopened request carries the persisted durable sequence.',
-      '- The Host returns only the three records appended during the interruption; the persisted older page folds back without a gap or duplicate.',
+      '- After process death the reopened request uses the original address and page bound, without a wire resume cursor.',
+      '- The Host returns a complete bounded window including the three appended records; Android verifies its overlap with the persisted older page before merging.',
       '- Unsent input, the single device grant, and the displayed first row survive the restart.',
       '- Reopening sends no prompt, creation, cancellation, reply, or runtime Handoff mutation.',
       '- This scenario qualifies process-death persistence, not physical network loss or foreground recovery.',
     ].join('\n'), MODE)
   } catch (error) {
     console.info('Android persisted window stage', stage, 'lastOp', lastOp.name,
-      'requests', JSON.stringify(requests.map((request, index) => ({ index, fromSeq: request.fromSeq ?? null }))),
+      'requests', JSON.stringify(requests.map((request, index) => ({ index, maxMessages: request.maxMessages ?? null }))),
       'snapshots', JSON.stringify(snapshots.map((snapshot, index) => ({ index, cursor: snapshot.cursor, first: snapshot.records[0]?.event.seq ?? null, length: snapshot.records.length }))))
     failures.push(error)
   }

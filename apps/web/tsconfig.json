@@ -61,6 +61,7 @@
     "tests/fixture-home-paths.spec.ts",
     "tests/hosts-settings.e2e.ts",
     "tests/view-handoff.e2e.ts",
+    "tests/native-follow-contract.e2e.ts",
     "tests/device-interaction-reply.e2e.ts",
     "tests/diff-preview.e2e.ts",
     "tests/remote-welcome.e2e.ts",

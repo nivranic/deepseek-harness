@@ -3,7 +3,6 @@ package ai.deepseek.dsh.companion
 import ai.deepseek.dsh.link.WireValue
 import java.io.File
 import kotlinx.serialization.json.Json
-import kotlinx.serialization.json.JsonNull
 import kotlinx.serialization.json.JsonObject
 import kotlinx.serialization.json.JsonPrimitive
 import kotlin.test.*
@@ -26,17 +25,16 @@ class NativeFollowResumeFixtureTest {
         } else {
             NativeFollowResume.sessionAddress((root["sessionId"] as JsonPrimitive).content)
         }
-        val cursor = (root["fromSeq"] as? JsonPrimitive)?.takeUnless { it is JsonNull }?.content?.toLong()
-        return NativeFollowResume.request(address, (root["maxMessages"] as JsonPrimitive).content.toInt(), cursor)
+        return NativeFollowResume.request(address, (root["maxMessages"] as JsonPrimitive).content.toInt())
     }
 
     @Test fun `apple contract follow-resume fixtures build the pinned envelopes`() {
         val fixtures = appleFollowFixtures().listFiles()!!.sortedBy { it.name }
         assertEquals(listOf("valid.json"), fixtures.filterNot { it.name.startsWith("invalid-") || it.name.startsWith("edge-") }.map { it.name })
-        assertEquals(3, fixtures.count { it.name.startsWith("edge-") })
+        assertEquals(2, fixtures.count { it.name.startsWith("edge-") })
         assertEquals(1, fixtures.count { it.name.startsWith("invalid-") })
 
-        for (name in listOf("valid.json", "edge-fresh.json", "edge-cursor-zero.json", "edge-subagent.json")) {
+        for (name in listOf("valid.json", "edge-small-page.json", "edge-subagent.json")) {
             val root = Json.parseToJsonElement(File(appleFollowFixtures(), name).readText()) as JsonObject
             val expected = WireValue.fromJsonElement((root["body"] as JsonObject)["request"]!!)
             assertEquals(expected, envelope(name)["request"], name)
@@ -44,11 +42,11 @@ class NativeFollowResumeFixtureTest {
     }
 
     @Test fun `apple contract follow-resume invalid fixture is rejected at the builder boundary`() {
-        assertFails("negative resume cursor must be rejected") {
-            envelope("invalid-negative-seq.json")
-        }
         assertFails("zero page size must be rejected") {
-            NativeFollowResume.request(NativeFollowResume.sessionAddress("s-3"), 0, null)
+            envelope("invalid-page-size.json")
+        }
+        assertFails("negative page size must be rejected") {
+            NativeFollowResume.request(NativeFollowResume.sessionAddress("s-3"), -1)
         }
     }
 }

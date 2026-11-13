@@ -1,4 +1,4 @@
-/** The persisted follow window survives a Host-terminated carrier and resumes with its cursor. */
+/** The persisted follow window survives a Host-terminated carrier and merges a complete opening. */
 import { mkdir, writeFile } from 'node:fs/promises'
 import { fileURLToPath } from 'node:url'
 import { symbols } from '@deepseek-ai/cordis'
@@ -90,7 +90,7 @@ it.skipIf(!process.env.DSH_ANDROID_ADB || MODE === 'record')('Android resumes a 
     await command({ op: 'fillPromptDraft', text: 'Unsent across carrier loss' })
     const first = await command({ op: 'loadOlderHistory' })
     expect(snapshots).toHaveLength(1)
-    expect(requests[0]?.fromSeq).toBeUndefined()
+    expect(requests[0]).not.toHaveProperty('fromSeq')
     const cursor = snapshots[0]!.cursor
     const appendRecords = async (marker: string, count: number) => {
       for (let index = 0; index < count; index++) {
@@ -109,7 +109,7 @@ it.skipIf(!process.env.DSH_ANDROID_ADB || MODE === 'record')('Android resumes a 
     expect(terminated.terminated, 'the Host destroyed the device carrier').toBeGreaterThanOrEqual(1)
     stage = 'reopened-window'
     await expect.poll(() => requests.length, { timeout: 30_000 }).toBeGreaterThanOrEqual(2)
-    expect(requests[1]?.fromSeq, 'the reopen carries the last applied durable sequence').toBe(cursor + 3)
+    expect(requests[1], 'reconnection requests the same complete opening').toEqual(requests[0])
     stage = 'post-outage-live'
     await appendRecords('AFTER_OUTAGE', 3)
     await windowWithRetry({ first, last: cursor + 6, attempts: 2 })
@@ -125,14 +125,14 @@ it.skipIf(!process.env.DSH_ANDROID_ADB || MODE === 'record')('Android resumes a 
       '# Android persisted follow window across carrier loss', '',
       '- A real Host serves a seeded Session; Android loads one older history page and three further records before the outage.',
       '- The Host-side terminateDeviceConnections primitive destroys the paired device\'s stream carrier — a real transport break that the device detects on its own, with no adb-reverse removal involved.',
-      '- The re-opened follow request carries the last applied durable sequence; nothing was appended during the outage, so no outage-time Host write is claimed.',
+      '- The re-opened follow requests a complete bounded window and verifies its overlap with retained history; nothing was appended during the outage.',
       '- After reconnection three more records arrive on the re-opened stream and fold into the retained page without a gap or duplicate.',
       '- Unsent input and the single device grant survive the carrier loss; reconnection sends no prompt, creation, cancellation, reply, or runtime Handoff mutation.',
       '- This scenario qualifies carrier-loss resume for the persisted window; foreground/push recovery and real devices remain open.',
     ].join('\n'), MODE)
   } catch (error) {
     console.info('Android outage window stage', stage, 'lastOp', lastOp.name,
-      'requests', JSON.stringify(requests.map((request, index) => ({ index, fromSeq: request.fromSeq ?? null }))),
+      'requests', JSON.stringify(requests.map((request, index) => ({ index, maxMessages: request.maxMessages ?? null }))),
       'snapshots', JSON.stringify(snapshots.map((snapshot, index) => ({ index, cursor: snapshot.cursor, first: snapshot.records[0]?.event.seq ?? null, length: snapshot.records.length }))))
     failures.push(error)
   }

@@ -1,21 +1,12 @@
-/// The §25 follow-resume request envelope as the Android core builds it: one
-/// follow address (a session id, or a parent/child/mode subagent address), a
-/// positive `maxMessages` page size, and an optional non-negative `fromSeq`
-/// resume cursor riding only when present. Mirrors NativeFollowResume in
-/// apps/android/core — the Kotlin implementation is the authority; this mirror
-/// adopts the same builder rules (positive page size, non-negative cursor, a
-/// fresh follow envelope carries no `fromSeq` key), so an Apple client sends a
-/// wire structurally equal to the Companion's session/follow request. Key
-/// order stays builder-owned; structural equality, not byte equality, is the
-/// request-envelope contract.
+/// Session follow openings carry a durable address and positive page bound.
+/// Reconnection requests a complete opening window; retained cursors stay local.
+/// Shared fixtures are checked against both this builder and the Host validator.
 import Foundation
 
 /// Builder-rule failures, catchable so client self-checks can assert them.
 public enum NativeFollowResumeError: Error {
     /// `maxMessages` must be a positive page size.
     case maxMessages
-    /// `fromSeq` must be a non-negative cursor.
-    case fromSeq
 }
 
 public enum NativeFollowResume {
@@ -48,17 +39,8 @@ public enum NativeFollowResume {
         return out
     }
 
-    /// Add the resume cursor; a nil cursor keeps a fresh follow envelope with no `fromSeq` key.
-    public static func withResumeCursor(_ entries: [String: Any], cursor: Int64?) throws -> [String: Any] {
-        guard let cursor else { return entries }
-        guard cursor >= 0 else { throw NativeFollowResumeError.fromSeq }
-        var out = entries
-        out["fromSeq"] = Int(cursor)
-        return out
-    }
-
-    /// Build the full follow request envelope: `{"request": {"address": {…}, maxMessages, fromSeq?}}`.
-    public static func request(address: [String: Any], maxMessages: Int, cursor: Int64?) throws -> [String: Any] {
-        ["request": try withResumeCursor(try withMaxMessages(["address": address], maxMessages: maxMessages), cursor: cursor)]
+    /// Build the full follow request envelope: `{"request": {"address": {…}, maxMessages}}`.
+    public static func request(address: [String: Any], maxMessages: Int) throws -> [String: Any] {
+        ["request": try withMaxMessages(["address": address], maxMessages: maxMessages)]
     }
 }

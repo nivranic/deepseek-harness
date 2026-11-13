@@ -6,7 +6,7 @@ English | [中文](2026-10-02-android-follow-window-persistence.zh.md)
 
 ## Problem
 
-The §25 follow window lived only in memory: `NativeSessionJournal` kept the retained records and the resume cursor per in-memory owner, so reconnects within one owner resumed with `fromSeq`, but a process restart always reopened cold — the traceability row kept 持久化窗口 (persisted window) open while 物理断网 and 前台/推送恢复 stayed open beside it.
+An in-memory follow window disappears when the process ends. Retaining the complete bounded window lets a restarted process reconcile a new Host snapshot with earlier loaded history; a cursor alone cannot reconstruct the view.
 
 ## Decision
 
@@ -26,10 +26,10 @@ The §25 follow window lived only in memory: `NativeSessionJournal` kept the ret
 
 ## Consequences
 
-- A process restart of the same principal reopens its session carrying the persisted last sequence as `fromSeq`; the Host's §25 snapshot omission and the journal's overlap validation govern the merge unchanged.
+- A process restart of the same principal restores its records locally and requests a complete Host opening. Identical overlap preserves older history; an uncovered opening replaces it without inventing missing events.
 - 持久化窗口 closes at core level; 物理断网、前台与推送恢复及真机验收 stay open, and no emulator process-restart lane ran this increment.
 
 ## Open work
 
-- An installed-app lane that force-stops the process and observes the persisted-cursor reopen on a real Host (the input-persistence lane's restart pattern) would raise this from core-level to installed-level evidence.
+- The installed-app process-death scenario must verify persisted-window reconciliation with a complete opening after restart. Its current protocol adaptation still requires an installed-app run.
 - §25's physical-network and foreground/push recovery acceptance remain open.

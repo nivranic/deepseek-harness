@@ -117,7 +117,7 @@ class NativeCursorResumeTest {
         assertEquals(0L, journal.beginFollow(2))
     }
 
-    @Test fun `Session follow retries use the held cursor and never submit retained input`() = runTest {
+    @Test fun `Session follow retries request full windows and never submit retained input`() = runTest {
         val requests = mutableListOf<Map<String, WireValue>>()
         val source = object : WireDriving {
             override suspend fun call(method: String, args: Map<String, WireValue>): WireValue = error("unexpected mutation $method")
@@ -125,7 +125,7 @@ class NativeCursorResumeTest {
                 requests.add(payload)
                 when (requests.size) {
                     1 -> emit(snapshot(0, 2))
-                    2 -> { emit(snapshot(3, 4)); emit(value(event(5))) }
+                    2 -> { emit(snapshot(1, 4)); emit(value(event(5))) }
                     else -> { emit(snapshot(4, 5)); awaitCancellation() }
                 }
             }
@@ -135,7 +135,9 @@ class NativeCursorResumeTest {
         val model = SessionModel(source, backgroundScope, reconnectDelayMillis = 10, inputs = inputs)
         model.openSession("session"); runCurrent()
         advanceTimeBy(10); runCurrent(); advanceTimeBy(10); runCurrent()
-        assertEquals(listOf(null, 2.0, 5.0), requests.map { WireShape.number(it.getValue("request"), "fromSeq") })
+        assertEquals(3, requests.size)
+        assertTrue(requests.all { it == requests.first() })
+        assertEquals(setOf("address", "maxMessages"), (requests.first().getValue("request") as WireValue.ObjectValue).entries.keys)
         assertEquals((0L..5L).toList(), model.state.items.map { it.seq })
         assertEquals("unsent", model.input.value.drafts["session"]?.text)
         model.closeAndAwait()

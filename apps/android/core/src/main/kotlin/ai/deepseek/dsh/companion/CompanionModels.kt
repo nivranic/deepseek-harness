@@ -570,8 +570,7 @@ class SessionModel(
                 synchronized(submissionAdmission) { followGeneration = generation }
                 _viewAnchor.value = null
                 journal.reset(generation, sessionId, target)
-                // A persisted window from a previous process seeds the same owner before
-                // its first follow; the follow then carries the §25 fromSeq resume cursor.
+                // The first complete opening is checked against any retained local window.
                 journalStore?.load()?.let { persisted ->
                     if (persisted.sessionId == sessionId && persisted.address == target) {
                         journal.installPersisted(generation, sessionId, target, persisted)
@@ -709,11 +708,8 @@ class SessionModel(
                 followOwner.attempt(generation)
                 var received = false
                 try {
-                    val cursor = journal.beginFollow(generation)
-                    val request = payload.getValue("request") as WireValue.ObjectValue
-                    val resumed = if (cursor == null) payload else payload + ("request" to
-                        WireValue.ObjectValue(NativeFollowResume.withResumeCursor(request.entries, cursor)))
-                    wire.stream("session/follow", resumed).collect { frame ->
+                    journal.beginFollow(generation)
+                    wire.stream("session/follow", payload).collect { frame ->
                         if (followOwner.isCurrent(generation)) {
                             foldFrame(frame, generation)
                             if (!received) { followOwner.received(generation); received = true }

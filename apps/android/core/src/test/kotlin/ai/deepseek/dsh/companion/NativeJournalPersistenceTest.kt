@@ -80,7 +80,7 @@ class NativeJournalPersistenceTest {
         assertFailsWith<LinkClientException.BadWire> { journal.installPersisted(1, "session", address(), NativeJournalWindow("session", address(), 1, false, listOf(record(0), record(2)))) }
     }
 
-    @Test fun `a restarted process seeds its session window and resumes with fromSeq`() = runTest {
+    @Test fun `a restarted process merges a complete opening with its persisted window`() = runTest {
         val requests = mutableListOf<Map<String, WireValue>>()
         val source = object : WireDriving {
             override suspend fun call(method: String, args: Map<String, WireValue>): WireValue = error("unexpected mutation $method")
@@ -105,7 +105,8 @@ class NativeJournalPersistenceTest {
 
         val second = SessionModel(source, backgroundScope, reconnectDelayMillis = 10, journalStore = store)
         second.openSession("session"); runCurrent()
-        assertEquals(3.0, WireShape.number(requests.last().getValue("request"), "fromSeq"))
+        assertEquals(requests.first(), requests.last())
+        assertNull(WireShape.number(requests.last().getValue("request"), "fromSeq"))
         assertEquals((0L..5L).toList(), second.state.items.map { it.seq })
         second.closeAndAwait()
     }

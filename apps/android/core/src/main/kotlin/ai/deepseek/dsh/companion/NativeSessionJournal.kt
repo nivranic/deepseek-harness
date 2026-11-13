@@ -39,18 +39,18 @@ class NativeSessionJournal(
     private var address: WireValue.ObjectValue? = null
     private var window: Window? = null
     private var awaitingSnapshot = true
-    private var requestedCursor: Long? = null
+    private var retainedCursor: Long? = null
     private var page: Deferred<Boolean>? = null
     private val reads = ConcurrentHashMap.newKeySet<Deferred<Boolean>>()
     private val mutableState = MutableStateFlow(NativeHistoryState())
     val state: StateFlow<NativeHistoryState> = mutableState
 
-    /** Resume only records retained by this owner; every new transport must begin with a snapshot. */
+    /** Retain the local merge cut; every new transport must begin with a complete snapshot. */
     fun beginFollow(generation: Long): Long? = synchronized(lock) {
         if (generation != owner || address == null) return@synchronized null
         awaitingSnapshot = true
-        requestedCursor = window?.records?.lastOrNull()?.let(::sequence)
-        requestedCursor
+        retainedCursor = window?.records?.lastOrNull()?.let(::sequence)
+        retainedCursor
     }
 
     /** Invalidate old requests before the next follow generation is published. */
@@ -99,7 +99,7 @@ class NativeSessionJournal(
         page = null
         window = null
         awaitingSnapshot = true
-        requestedCursor = null
+        retainedCursor = null
         mutableState.value = NativeHistoryState()
     }
 
@@ -122,7 +122,7 @@ class NativeSessionJournal(
                 page?.cancel(); page = null
                 window = next.copy(bytes = bytes)
                 awaitingSnapshot = false
-                requestedCursor = null
+                retainedCursor = null
             }
             "event" -> {
                 if (awaitingSnapshot) invalid("live event precedes snapshot")
@@ -145,7 +145,7 @@ class NativeSessionJournal(
 
     private fun mergeSnapshot(cut: Long, records: List<WireValue>, more: Boolean): Window {
         val replacement = Window(cut, records, more, 0)
-        val cursor = requestedCursor ?: return replacement
+        val cursor = retainedCursor ?: return replacement
         val previous = window ?: return replacement
         if (cut < cursor) invalid("snapshot cursor moved backwards")
         val first = records.firstOrNull()?.let(::sequence) ?: invalid("resumed snapshot has no records")
