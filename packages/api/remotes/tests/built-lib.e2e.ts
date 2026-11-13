@@ -1,10 +1,9 @@
-import { createHash } from 'node:crypto'
 import { execFile } from 'node:child_process'
-import { existsSync, readFileSync } from 'node:fs'
+import { existsSync } from 'node:fs'
 import { mkdtemp, rm, writeFile } from 'node:fs/promises'
 import { dirname, join, resolve } from 'node:path'
 import { fileURLToPath, pathToFileURL } from 'node:url'
-import { describe, expect, it, type TestContext } from 'vitest'
+import { describe, expect, it } from 'vitest'
 
 /**
  * Built-artifact smoke for the first generated Remote: plain Node boots the
@@ -17,7 +16,7 @@ const artifact = (path: string): string => join(root, path)
 const artifactUrl = (path: string): string => pathToFileURL(artifact(path)).href
 
 const requiredArtifacts = [
-  'packages/client/connection/lib/client.js',
+  'packages/client/connection/lib/client.browser.js',
   'packages/client/connection/lib/index.js',
   'packages/api/remotes/lib/client.js',
   'packages/api/host-description/lib/index.js',
@@ -26,22 +25,22 @@ const requiredArtifacts = [
   'packages/core/session/lib/index.js',
   'packages/goal/goal/lib/index.js',
   'packages/goal/goal/lib/typert.host.js',
-  'packages/api/gateway/lib/client.js',
+  'packages/api/gateway/lib/client.browser.js',
   'packages/api/gateway/lib/index.js',
   'packages/api/remote-access/lib/index.js',
-  'packages/typert/registry/lib/client.js',
+  'packages/typert/registry/lib/client.browser.js',
   'packages/typert/registry/lib/index.js',
   'packages/session/session-projection/lib/index.js',
 ].every(path => existsSync(artifact(path)))
 
 describe.skipIf(!requiredArtifacts)('Goal Remote built LIB chain', () => {
-  it('exposes admitted Host facts and discovery failures to a standalone NodeNext consumer', async () => {
+  it('exposes Host discovery and Remote failures to a standalone NodeNext consumer', async () => {
     const consumer = await mkdtemp(join(packageDir, '.types-consumer-'))
     try {
       await writeFile(join(consumer, 'index.mts'), [
-        "import type { ClientRemote, HostDescriptor, RemoteErrorCode } from '../lib/types/client/index.js'",
-        'const describe = (remote: ClientRemote): HostDescriptor | undefined => remote.$host.descriptor',
-        "const unsupported: RemoteErrorCode = 'host/protocol-unsupported'",
+        "import type { ClientRemote, HostDescriptor, RemoteResult, RemoteErrorCode } from '../lib/types/client/index.js'",
+        'const describe = (remote: ClientRemote): Promise<RemoteResult<HostDescriptor>> => remote.host.describe()',
+        "const unsupported: RemoteErrorCode = 'gateway/protocol-unsupported'",
         'void describe; void unsupported;',
       ].join('\n') + '\n')
       await writeFile(join(consumer, 'tsconfig.json'), JSON.stringify({
@@ -60,48 +59,26 @@ describe.skipIf(!requiredArtifacts)('Goal Remote built LIB chain', () => {
     }
   })
 
-  it.for([{ client: 2, host: 2, selected: 2 }, { client: 2, host: 1, selected: 1 }, { client: 1, host: 2, selected: 1 }])('runs Client $client / Host $host through built bundles and real HTTP', { timeout: 60_000 }, async (versions: { client: number; host: number; selected: number }, context: TestContext) => {
-    const manifestPath = artifact('.artifacts/protocol-negotiation-before/archive.json')
-    if ((versions.client === 1 || versions.host === 1) && !existsSync(manifestPath)) context.skip()
-    const frozenManifest = existsSync(manifestPath) ? readFileSync(manifestPath) : undefined
-    if (frozenManifest !== undefined) {
-      expect(createHash('sha256').update(frozenManifest).digest('hex')).toBe('7dac688dd84913121325dd6e68f4823cde3d3e925b22c36a4c2757cbe384b14d')
-      const manifest = JSON.parse(frozenManifest.toString()) as { files: Array<{ path: string; sha256: string }> }
-      for (const file of manifest.files) expect(createHash('sha256').update(readFileSync(artifact(file.path))).digest('hex')).toBe(file.sha256)
-    }
+  it('runs root and Agent-scoped calls through generated bundles and real HTTP', async () => {
     const urls = Object.fromEntries(Object.entries({
       agent: 'packages/core/agent/lib/index.js',
-      apiGatewayClient: 'packages/api/gateway/lib/client.js',
+      apiGatewayClient: 'packages/api/gateway/lib/client.browser.js',
       apiGatewayHost: 'packages/api/gateway/lib/index.js',
-      connectionClient: 'packages/client/connection/lib/client.js',
+      connectionClient: 'packages/client/connection/lib/client.browser.js',
       connectionHost: 'packages/client/connection/lib/index.js',
       goal: 'packages/goal/goal/lib/index.js',
       goalTypert: 'packages/goal/goal/lib/typert.host.js',
       remoteAccess: 'packages/api/remote-access/lib/index.js',
-      registryClient: 'packages/typert/registry/lib/client.js',
+      registryClient: 'packages/typert/registry/lib/client.browser.js',
       registryHost: 'packages/typert/registry/lib/index.js',
       remotesClient: 'packages/api/remotes/lib/client.js',
       hostDescription: 'packages/api/host-description/lib/index.js',
       hostDescriptionTypert: 'packages/api/host-description/lib/typert.host.js',
       session: 'packages/core/session/lib/index.js',
       sessionProjections: 'packages/session/session-projection/lib/index.js',
-    }).map(([key, path]) => {
-      const frozen = versions.client === 1 && ['apiGatewayClient', 'remotesClient'].includes(key)
-        || versions.host === 1 && ['apiGatewayHost', 'hostDescription', 'hostDescriptionTypert'].includes(key)
-      return [key, artifactUrl(frozen ? '.artifacts/protocol-negotiation-before/' + path : path)]
-    }))
+    }).map(([key, path]) => [key, artifactUrl(path)]))
     const script = `
       import { createServer } from 'node:http'
-      import { registerHooks } from 'node:module'
-      const archivedRoot = ${JSON.stringify(artifactUrl('.artifacts/protocol-negotiation-before') + '/')}
-      const workspaceRoot = ${JSON.stringify(artifactUrl('') + '/')}
-      // Frozen API bundles keep their bytes; unchanged workspace dependencies resolve at their original package location.
-      registerHooks({ resolve(specifier, context, nextResolve) {
-        if (context.parentURL?.startsWith(archivedRoot) && !specifier.startsWith('.')) {
-          return nextResolve(specifier, { ...context, parentURL: workspaceRoot + context.parentURL.slice(archivedRoot.length) })
-        }
-        return nextResolve(specifier, context)
-      } })
       import * as cordis from '@deepseek-ai/cordis'
       import * as zod from 'zod'
 
@@ -116,6 +93,7 @@ describe.skipIf(!requiredArtifacts)('Goal Remote built LIB chain', () => {
       const { TYPERT } = await import(urls.goalTypert)
       const { default: TypertRegistry } = await import(urls.registryHost)
       const { Session, SessionId } = await import(urls.session)
+
       const { HostDescriptionGateway } = await import(urls.hostDescription)
       const { TYPERT: hostDescriptionTypert } = await import(urls.hostDescriptionTypert)
 
@@ -157,9 +135,6 @@ describe.skipIf(!requiredArtifacts)('Goal Remote built LIB chain', () => {
           })
         },
       })
-      host.effect(() => host.typertGateway.registerRemoteEvents(async function* (signal) {
-        if (!signal.aborted) await new Promise(resolve => signal.addEventListener('abort', resolve, { once: true }))
-      }, { home: '/built-fixture' }))
 
       const makeAgent = rawId => {
         const session = new Session(SessionId(rawId))
@@ -220,22 +195,6 @@ describe.skipIf(!requiredArtifacts)('Goal Remote built LIB chain', () => {
           return previousFetch(new URL(input, document.baseURI), { ...init, headers })
         }
 
-      const handoffs = new Map()
-      globalThis.window = {
-        __ModuleLoader__: {
-          load(handoff) { handoffs.set(handoff.id, handoff) },
-        },
-      }
-      globalThis.location = { hostname: '127.0.0.1', origin, search: '' }
-      globalThis.__DSH_TRANSPORT__ = {
-        async *openStream(endpoint, payload, signal) {
-          yield* await host.typertGateway.wireStream.open(endpoint, payload, signal)
-        },
-      }
-      await import(urls.registryClient)
-      await import(urls.connectionClient)
-      await import(urls.apiGatewayClient)
-      await import(urls.remotesClient)
         const handoffs = new Map()
         globalThis.window = {
           __ModuleLoader__: {
@@ -270,54 +229,8 @@ describe.skipIf(!requiredArtifacts)('Goal Remote built LIB chain', () => {
         client.typert.contexts.registerClient('agent', {
           identity: candidate => candidate.builtAgentId,
         })
-      }
-      const client = new Context()
-      let ready
-      const loaded = new Promise(resolve => { ready = resolve })
-      client.provide('loader', { await: () => loaded })
-      for (const id of [
-        '@deepseek-ai/dsh-typert-registry',
-        '@deepseek-ai/dsh-client-connection',
-        '@deepseek-ai/dsh-api-gateway',
-        '@deepseek-ai/dsh-api-remotes',
-      ]) {
-        const plugin = instantiate(id)
-        await client.plugin({ inject: plugin.inject, apply: plugin.apply })
-      }
-      ready()
-      client.typert.contexts.registerClient('agent', {
-        identity: candidate => candidate.builtAgentId,
-      })
 
-      let invalidRejected = false
-      try {
-        await client.remote.goals.create(rootAgent.id, { objective: 1 })
-      } catch {
-        invalidRejected = true
-      }
-      // Every generated method resolves to the RemoteResult envelope; the
-      // business values below are what the assertions pin.
-      const rootResult = await client.remote.goals.create(rootAgent.id, { objective: 'root goal' })
-      if (!rootResult.ok) throw rootResult.error
-      const rootEdit = await client.remote.goals.edit(
-        rootAgent.id,
-        rootResult.value.ref,
-        { objective: 'edited root goal' },
-      )
-      const agentContext = client.extend({ builtAgentId: scopedAgent.id })
-      const scopedResult = await agentContext.remote.goals.create({ objective: 'scoped goal', maxGoalRounds: 3 })
-      const result = {
-        invalidRejected,
-        selectedProtocol: client.remote.$host.descriptor.apiProtocolVersion,
-        rootResult: rootResult.value,
-        rootEdit: rootEdit.value,
-        scopedResult: scopedResult.value,
-        rootGoal: host.goals.get(rootAgent)?.objective,
-        scopedGoal: host.goals.get(scopedAgent)?.objective,
-        rootEvents: rootAgent.session.snapshotEvents().length,
-        scopedEvents: scopedAgent.session.snapshotEvents().length,
-      }
-
+        const description = await client.remote.host.describe()
         const invalidResult = await client.remote.goals.create(rootAgent.id, { objective: 1 })
         // Every generated method resolves to the RemoteResult envelope; the
         // business values below are what the assertions pin.
@@ -330,6 +243,7 @@ describe.skipIf(!requiredArtifacts)('Goal Remote built LIB chain', () => {
         const agentContext = client.extend({ builtAgentId: scopedAgent.id })
         const scopedResult = await agentContext.remote.goals.create({ objective: 'scoped goal', maxGoalRounds: 3 })
         const result = {
+          description,
           invalidResult,
           rootResult: rootResult.value,
           rootEdit: rootEdit.value,
@@ -367,8 +281,7 @@ describe.skipIf(!requiredArtifacts)('Goal Remote built LIB chain', () => {
       scopedEvents: number
     }
     expect(output).toMatchObject({
-      invalidRejected: true,
-      selectedProtocol: versions.selected,
+      description: { ok: true, value: { displayName: 'Built fixture', apiProtocolVersion: 1 } },
       invalidResult: { ok: false, error: { code: 'gateway/input-invalid' } },
       rootResult: { ref: { revision: 1 } },
       rootEdit: { objective: 'edited root goal', revision: 2 },
@@ -380,7 +293,7 @@ describe.skipIf(!requiredArtifacts)('Goal Remote built LIB chain', () => {
     })
     expect(output.rootResult.ref.id).toMatch(/^goal-/)
     expect(output.scopedResult.ref.id).toMatch(/^goal-/)
-  })
+  }, 60_000)
 })
 
 /** Execute one ESM script without tsx or a TypeScript loader. */

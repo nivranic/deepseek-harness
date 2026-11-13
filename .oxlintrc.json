@@ -35,9 +35,6 @@
     "packages/client/ui-settings-host-status/**",
     "packages/client/ui-settings-telemetry/**",
     "packages/client/ui-view-handoff/**",
-    "packages/api/remotes/src/client/host-preparation.ts", // Parked remotes preparation lane (preset registry migration pending replant).
-    "packages/api/remotes/tests/host-preparation.client.spec.ts",
-    "packages/api/gateway/tests/preparation.client.spec.ts", // Parked lane client specs excluded from the client face.
     "packages/preset/agent-preset-registry/tests/lite-preset-projection.spec.ts", // Parked Lite catalog cluster (official registry is Loader-based).
     "packages/typert/generator/tests/remote-errors.spec.ts", // Parked remote-error-model analyzer subsystem.
     "scripts/gen-lite-preset-catalog.ts", // Parked scripts bound to the retired preset-roster API.

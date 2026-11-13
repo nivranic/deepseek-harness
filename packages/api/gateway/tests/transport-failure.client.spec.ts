@@ -6,10 +6,10 @@ import { RemoteStream } from '../src/client/remote-stream.ts'
 import { RemoteStreamCarrierError } from '../src/client/stream-client.ts'
 
 describe('Gateway transport failure semantics', () => {
-  it('recognizes a separately bundled Connection transport marker without guessing from a message', () => {
+  it('reports carrier throws as internal failures without interpreting legacy transport markers', () => {
     const failure = { isDSHConnectionTransportError: true, message: 'Request interrupted' }
     expect(carrierFailure('fixture/call', failure)).toMatchObject({
-      ok: false, error: { code: 'gateway/transport-interrupted', details: { endpoint: 'fixture/call' } },
+      ok: false, error: { code: 'gateway/internal', details: {} },
     })
     expect(carrierFailure('fixture/call', new TypeError('Failed to fetch'))).toMatchObject({
       ok: false, error: { code: 'gateway/internal' },
@@ -17,7 +17,7 @@ describe('Gateway transport failure semantics', () => {
   })
 
   it.each([
-    ['carrier', () => new RemoteStreamCarrierError('socket lost'), 'gateway/transport-interrupted', 2],
+    ['carrier', () => new RemoteStreamCarrierError('socket lost'), 'gateway/internal', 2],
     ['business', () => new RemoteError('gateway/permission-denied', 'refused', { endpoint: 'fixture/watch', httpStatus: 403 }), 'gateway/permission-denied', 1],
     ['invalid stream', () => new RemoteError('gateway/stream-invalid', 'invalid frame', { stream: '/api/remote.mux' }), 'gateway/stream-invalid', 1],
     ['local', () => new Error('local defect'), 'gateway/internal', 1],
@@ -41,10 +41,9 @@ describe('Gateway transport failure semantics', () => {
     try {
       await expect(stream[Symbol.asyncIterator]().next()).rejects.toMatchObject({
         isDSHRemoteError: true, code,
-        ...code === 'gateway/transport-interrupted' ? { details: { stream: 'fixture observation' } } : {},
       })
       expect(opened).toBe(opens)
-      expect(losses).toBe(code === 'gateway/transport-interrupted' ? 2 : 0)
+      expect(losses).toBe(_kind === 'carrier' ? 2 : 0)
     } finally {
       await stream.dispose()
     }

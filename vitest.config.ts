@@ -77,8 +77,7 @@ const platformUnsupportedTests = [...windowsUnsupportedTests, ...nonLinuxWebWork
 
 // Lane specs whose feature surface the official master merge replaced: the
 // production code they exercise is now official-shaped, so they fail against
-// APIs that no longer exist (remote $prepare/$mount admission,
-// the lane transport-failure classification, analyzeRemoteErrors, the
+// APIs that no longer exist (analyzeRemoteErrors, the
 // native-remote peer port, the
 // settings-hosts retarget/observation accessors, HandoffAction's removed
 // component, and the Lite catalog
@@ -87,9 +86,6 @@ const platformUnsupportedTests = [...windowsUnsupportedTests, ...nonLinuxWebWork
 // .oxlintrc.json, and the inventory and re-port checklist live in
 // .merge-helpers/port-notes/2026-11-10-native-remote-peer-port-parked.md (附8).
 const parkedLaneTests = [
-  'packages/api/gateway/tests/preparation.client.spec.ts',
-  'packages/api/gateway/tests/transport-failure.client.spec.ts',
-  'packages/api/remotes/tests/host-preparation.client.spec.ts',
   'packages/api/native-remote/tests/tls-identity.host.spec.ts',
   'packages/api/native-remote/tests/transport.host.spec.ts',
   'packages/typert/generator/tests/remote-errors.spec.ts',

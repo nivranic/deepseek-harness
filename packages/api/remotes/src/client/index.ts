@@ -171,6 +171,7 @@ export type {
   RemoteErrorCode, RemoteErrorDetailsMap, RemoteFailure, RemoteResult,
 } from '@deepseek-ai/dsh-typert-protocol'
 export type { RemoteHostFacts } from '@deepseek-ai/dsh-api-gateway/client'
+export type { HostDescriptor, HostId, HostTransport } from '@deepseek-ai/dsh-api-host-description/types'
 
 declare module '@deepseek-ai/cordis' {
   interface Context {

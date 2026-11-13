@@ -50,7 +50,7 @@ Connection 可用时，Host 入口会在 Connection 共享的 `/api` FetchHandle
 
 Host 组合可通过 `registerRemoteEvents()` 注册唯一的应用事件 source。Gateway 为它保留内部 `$events` logical endpoint，只接受空 `args`，并在 source 撤回时中止该注册打开的流。事件名单、参数校验、每个 Client 的队列及 opening `{ type: 'ready', clientId, host: { home, platform } }` frame 中的 Host home 与 platform 由 API Remotes 拥有。source factory 在返回 iterable 前同步挂好增量 listener，因此 Client 只在增量投递就绪后发布 generation 并开始 baseline 读取。
 
-Gateway 接受协议 1 的 `{ args }` 请求，也接受与 `args` 并列的显式 `apiProtocolVersion` 1 或 2。共享 `/protocol` 入口按已选版本编码；版本 1 省略元数据以支持旧 Host。未知或格式错误的显式版本在业务调用、流打开或事件结果结算前返回 `gateway/protocol-unsupported`。端点参数仍严格校验。请求元数据不授予权限。应用准备回调必须返回明确选择的编解码器，由准入代际及其事件回复持有；独立组合显式解析为协议 1。
+Gateway 接受协议 1 的 `{ args }` 请求，也接受与 `args` 并列的显式 `apiProtocolVersion` 1 或 2。共享 `/protocol` 入口按已选版本编码；版本 1 省略元数据以支持旧 Host。未知或格式错误的显式版本在业务调用、流打开或事件结果结算前返回 `gateway/protocol-unsupported`。端点参数仍严格校验。请求元数据不授予权限。Client 使用协议 1 的 `{ args }` 编码，与事件连接的就绪状态无关。
 
 显式 `apiProtocolVersion` 0 声明落后两代的诊断层级：请求沿用冻结的协议 1 编解码，且只对只读 Host 发现端点（`host/describe`、`host/negotiate`）准入。其余所有端点——业务 RPC、流与事件结果结算——以携带相同兼容性详情的 `gateway/protocol-unsupported` 拒绝，Client 因此呈现常规升级指引。该层级是固定协议不变量而非配置项；`host/negotiate` 仍要求正整数报价，诊断层 Client 无法把自己协商进完整编解码器。
 
@@ -63,15 +63,7 @@ Gateway 接受协议 1 的 `{ args }` 请求，也接受与 `args` 并列的显�
 | 2（当前） | 准入 | 准入 | 准入 | 准入 |
 | 未知或畸形 | 拒绝：`gateway/protocol-unsupported` | 拒绝：`gateway/protocol-unsupported` | 拒绝：`gateway/protocol-unsupported` | 拒绝：`gateway/protocol-unsupported` |
 
-初始应用调用可在 `connecting` 期间等待，直到发现与事件首帧允许准入。`reconnecting`、`offline` 或失败状态期间发起的调用在载体发送前失败。重连不会重新提交被拒绝的操作；调用者必须在 `ready` 后显式发起新请求。
-
-建立 generation 时，Host 或 Gateway 协议不受支持、发现阶段缺少必需能力会发布 `incompatible`；Host 发现信息无效或 preparation owner 被撤回会发布 `fatal`。两者均暂停 Connection 的自动尝试。任一状态生效期间，业务调用在发送前失败；手动重连会重新执行发现后才允许调用。普通业务操作失败不改变 Connection 状态。
-
-无效的 WebSocket 帧、转发事件就绪信息或交互记录产生 `gateway/stream-invalid`，携带对应流并在本地保留解析原因。受影响流直接终止，不执行载体重试；事件代次失败后发布 `fatal`，直到显式重连。真实 socket 断开保留普通恢复策略。验证失败不授予重放变更或回答的权限。
-
 待处理的作用域 waterfall 由 Host 调用方持有，不随 Client 断线结束。第一个被接受的结果只结算一次请求。迟到回答、已关闭 Client 连接代次的回答，以及该 Client 已通过 `next()` 委托后的回答，均返回携带 `eventId` 的 `interaction-closed`，不改变任何待处理请求。Client 投递将此结果视为已完成的交互，而非 Connection 故障；其他错误保留原有失败行为。此结果不提供持久化变更回执或设备授权。
-
-除 `interaction-closed` 外，被拒绝的交互结果 envelope 以保留 Host 错误码和详情的 `RemoteError` 结束事件代次。因此既有 Connection 分类器可将不支持的协议暂停为 `incompatible`；版本冲突和未知码保留其普通恢复策略。收到拒绝只清除与该请求对应的保留回答。
 
 对于应用声明的交互，协议 2 在 waterfall 及其终结取消帧中附带 Host 持有的记录。`requestId` 等于 `eventId`；Session 身份和所需回答权限来自事件源，Gateway 分配创建时间、状态和 revision。重连重放同一份 revision 为 1 的待处理记录。其余投递以 revision 2 和 `resolved`、`delegated`、`cancelled` 或配置到期产生的 `expired` 状态关闭；回答方已持有自身结果。协议 1 保持原有事件字段，不附带该记录。记录仅存活于待处理的 Host 调用期间；权限元数据不授予权限。
 
@@ -98,33 +90,17 @@ Host 组合可通过 `registerRemoteEvents()` 注册唯一的应用事件 source
 <a id="client-service-clientremote-ctx-key-remote"></a>
 ## Client 服务：`ClientRemote`（ctx key：`remote`）
 
-协议 2 的 ready 帧包含 `pendingInteractionIds`，列出为该连接代次排队的待处理交互 id。HTTP 传输失败时，Client 保留已完成的回答，仅在应用提供的 `interactionReplyScope`、待处理 id 和 revision 均相同时重发。缺少 scope 或待处理 id 快照时禁用保留；scope 变化时必须重新作答。成功确认、`interaction-closed`、取消、业务错误，或下一次 ready 快照中没有该 id，都会清除回答。迟到确认只能清除其发送的那份保留回答。发送前复制监听器结果；未完成的监听器仍在断连时中止，委托结果不保留。浏览器组合将保留的回答持久化在 `dsh-retained-answers.v1`（上限为最近 32 条），因此页面刷新或应用重启后，只要 Host 的待处理快照仍以相同 scope 和 revision 列出该 id，保留的回答无需重新询问即可重放；损坏的落盘记录在解析时丢弃，卸载留下的记录交由下一次清扫处理。此重试不提供授权或持久化回执，也无法区分确认丢失与其他 Client 的回答胜出。
-
-`$prepare` 的可选第二个回调在传输层派发前，依据已准入连接代次的信息检查每个端点。拒绝只影响该操作。领域流可通过 `available` 等待符合条件的 Host，而不打开流；取消会释放连接代次观察订阅。
-
-逻辑流监督器将每次打开及交付的帧绑定到观察到的 Connection 代次。每次物理 WebSocket 尝试都以 `connection.targetOrigin()` 的选择构建 URL——第 28 节的选择逐次连接重读，`https` 翻转为 `wss`——未选择时回退页面 origin，因此 Host 切换同时重定向单次调用与流载体。准入或读取期间发生替换时，丢弃旧代次的 Remote 失败或迟到帧，等待符合条件的新代次。孤立的载体重试预算属于单个已准入 Connection，因此连续替换连接不会在基线到达前互相耗尽预算。未分类的本地错误仍会终止流。领域消费者不另建重连循环。
-
-`ctx.remote.$mount()` 会校验并注册生成的 Host-for-Client 贡献项，然后为发起调用的 Cordis fiber 安装具体的直接方法和作用域方法。每个 namespace 都是可追踪的 `remote.<namespace>` 子 Service，并在最后一个方法撤回后卸载。重复端点、命名空间冲突，以及缺少生成的严格编解码器的描述符，都会在方法可调用前报错。
-
-应用在挂载所选业务 namespace 前，通过 `ctx.remote.$prepare()` 安装唯一的发现回调。回调使用现有的一元调用载体和 Connection 本次尝试的取消信号。Gateway 等待发现完成后才打开 `$events`，并在该连接代际就绪后才放行一元与流式业务调用；已放行的调用共享该代际的取消生命周期。发现失败保留其 Remote 错误码；发现责任方撤回后，准入保持关闭，直到替代者注册。未安装应用发现责任方的独立 Gateway 组合保留通用调用行为。[API Remotes 组合](../remotes/README.zh.md)拥有 Host 专属策略及通过 `$host` 暴露的事实。
-
-发现回调接收 Connection source 的可选握手进度报告函数。Gateway 在发现回调报告进度前，记录本次尝试是否从首次 `connecting` 开始。业务调用可以等待该初始尝试的 `connecting` 或 `authenticating` 握手。重试即使显示 `authenticating` 也不允许等待；新调用在派发前失败，认证完成后不会重放。
-
-每次一元调用都会校验位置参数，构造与描述符完全匹配的具名 `args`，再通过 `ctx.connection.rpc.call('/api', endpoint, ...)` 发送。生成的流方法返回 `AsyncIterable`，并在进程内 Connection 载体可用时通过它打开逻辑流，否则通过共享的 Gateway WebSocket 打开。生成的支持取消的方法接受最后一个可选 `AbortSignal`；Client 会在调用载体前将它与贡献项的挂载生命周期合并。一元结果和每个流项都经过校验后才会交给应用代码。撤回贡献项会同时移除其描述符和方法、中止正在进行的调用与流，并使外部仍持有的方法句柄在调用时返回拒绝。 同一个 `./client` 导入在 Node 中选择独立的 ESM `lib/client.node.js`，在浏览器中选择 loader factory `lib/client.browser.js`；Host 包根入口保持独立。浏览器载体接受 [Connection](../../client/connection/README.zh.md#use-this-package) 定义的 shell 所拥有的流 origin；逻辑流帧与生命周期保持一致。
-
 `ctx.remote.$mount()` 会校验并注册生成的 Host-for-Client 贡献项，然后为发起调用的 Cordis fiber 安装具体的直接方法和作用域方法。每个 namespace 都是可追踪的 `remote.<namespace>` 子 Service，并在最后一个方法撤回后卸载。重复端点、命名空间冲突，以及缺少生成的严格 codec 的 Client 供值字段，都会在方法可调用前报错。
 
 每次一元调用都会检查位置参数数量，构造与描述符完全匹配的具名 `args`，再把带类型的值原样交给 `ctx.connection.rpc.call('/api', endpoint, ...)`，而不执行 Client 侧 schema；Host 会在业务调用前校验收到的 wire 字段。生成的流方法返回 `dsh-typert-protocol` 的 `RemoteStreamHandle<Out, In>`，并在被调用时就打开一条逻辑流，进程内 Connection 载体可用时通过它打开，否则通过共享的 Gateway WebSocket 打开。句柄只迭代下行一次。`send(item)` 把一个上行项入队，在 `open` 帧之后发出；`end()` 半关闭上行；`dispose()` 在未收到终止帧时发送 `cancel`，并让迭代安静结束。提前跳出迭代等价于 dispose 句柄；下行终止后 `send` 抛错，`end` 被忽略。生成的支持取消的方法接受最后一个可选 `AbortSignal`；Client 会在调用载体前将它与贡献项的挂载生命周期合并。Client 将一元结果转换交给 codec 的可选 `decode()`。生成的解码器校验嵌套元数据与原生字节类型，不逐字节遍历、复制或冻结字节载荷。JSON 一元结果与流项不经 Client 侧类型解析直接传递。撤回贡献项会同时移除其描述符和方法、中止正在进行的调用与流，并使外部仍持有的方法句柄在调用时返回拒绝。
 
 每次一元调用都解析为 `RemoteResult<T>`——`{ ok: true, value }` 或 `{ ok: false, error }`——且绝不因载体问题 reject：本面把断线载体折入错误分支，调用方 signal 中止时答以 `gateway/cancelled`，因此没有消费方需要包一层来兜载体失败。只有装配故障仍会 reject：参数个数不符、方法未挂载、贡献已撤下、缺少 Context 适配器。`error` 是活的 `RemoteError` 实例，所以 `throw result.error` 保持 throw 语义；而 `isRemoteFailure(value)` 是消费方唯一需要的谓词——它认下的捕获值带着 Remote 错误码，它拒绝的一律是本地故障，调用方应当让其崩掉。`carrierFailure(endpoint, error)` 与 `cancelledFailure(endpoint, cause)` 构造这两种折叠结果，测试里的替代实现据此采用相同的折叠方式。
 
-没有 Remote envelope 的 HTTP 拒绝由 Client 统一映射：401 为 `gateway/authentication-required`，403 为 `gateway/permission-denied`，503 为 `gateway/host-not-ready`，其他状态为 `gateway/transport-interrupted`，均携带 `{ endpoint, httpStatus }`。使自身连接代际失效的 401 保留认证错误码；调用者取消及到达时已取消的响应仍为 `gateway/cancelled`。这些代码描述失败请求：403 不证明设备撤销，503 也不会使其他方面已就绪的代际失效。未分类的载体异常仍为 `gateway/internal`，Host 业务失败保留自己的代码。
+HTTP 拒绝和其他载体异常使用 `gateway/internal`；Host 返回的 Remote 失败保留其错误码与详情。调用方取消使用 `gateway/cancelled`，优先于迟到的载体响应。事件连接重连不会重放或取消独立的一元调用。
 
-已识别的 Connection 传输中断使用 `gateway/transport-interrupted` 和 `{ endpoint }`；逻辑流的载体重试耗尽使用同一码和 `{ stream }`。只有实际收到 HTTP 响应时才提供 `httpStatus`。这些分类不会重试变更操作，也不改变流重试策略。
+`ctx.remote.$host` 提供固定的页面本地 `isLoopback` 值，以及当前事件连接代际的 `home`。在该代际不可用时，`home` 为 `undefined`。应用通过生成的 `host.describe()` 方法获取能力；领域消费者负责各自的能力准入。
 
-`ctx.remote.$host` 读取已准入代际的 Host 事实和页面本地的 `isLoopback` 值。在就绪前以及断连期间，`home`、`platform` 和应用发现事实不可用；运行位置表面读取 `platform`。它不添加存储或订阅；消费方通过 Connection 代际变化观察失效与替换，或通过 `connection/reset` 观察新建立的代际。
-
-`ctx.remote.$stream()` 返回跨越多个物理载体代次的单消费方 `RemoteStream`。每次调用领域 opener 前，它等待已准入 Host 及可选能力谓词满足；因此首次连接准备不会以不可用错误终止领域流。Host 仍在线时，它允许一次立即重试；Host 离线时，它等待下一代连接，并为每个流项标注物理代次。领域消费方校验并接受各代次的 opening value；业务与协议错误仍然终止流。一切终态失败离开本面时都是 `RemoteError`，包括重试耗尽和在 opening value 之前就结束的代次，因此流消费方与一元调用方用同一种方式判别。`RemoteStreamCarrierError` 命名的是可重试的物理丢失，它只作为 `carrierFailed` 回调参数到达领域，绝不作为终态结果。`RemoteSnapshotStream` 在此之上规定每代由一个初始快照和后续 delta 组成。`RemoteJournalStream` 将可选的 Host 可用性谓词传给同一流监督器，并基于领域提供的 entry 闭区间提供 follow-before-page、分页、重连追赶与缺口修复；它丢弃完整重复项，并拒绝缺口、倒置区间和部分重叠。子类可用最后已应用的 cursor 适配其重连 opening 请求（`resumeRequest`）；以该方式打开的换代会把 `replace` 变更标记为 `resumed`，领域因此可把该页视为已持窗口之外的后缀（规格 §25）而非整体替换。领域还可以携带无 cursor 的通知：通知绝不推进或修复持久 cursor，在缺口修复期间收到的通知只会在 replacement page 提交后发布。若更新代次取代该修复，旧代次 held notification 会与其 page 一同丢弃。对任一种流执行 dispose（资源释放）时，系统会取消该流的请求，并在活动 iterator 完全停止后完成资源释放。 `ctx.remote.$stream()` 返回跨越多个物理载体代次的单消费方 `RemoteStream`。对于回答型 Client，载体仍可用时的独立流故障允许一次立即重试；物理 WebSocket 丢失后等待 Connection 重开载体。如果 Host generation 已不可用，则等待下一代连接。每个流项都带有其物理代次。被动 Client 不使用 `$stream()`，而是调用生成的原始流方法，并自行处理终态载体故障。领域消费方校验并接受各代次的 opening value；业务与协议错误仍然终止流。一切终态失败离开本面时都是 `RemoteError`，包括重试耗尽和在 opening value 之前就结束的代次，因此流消费方与一元调用方用同一种方式判别。`RemoteStreamCarrierError` 命名的是可重试的物理丢失，它只作为 `carrierFailed` 回调参数到达领域，绝不作为终态结果。`RemoteSnapshotStream` 在此之上规定每代由一个初始快照和后续 delta 组成。`RemoteJournalStream` 基于领域提供的 entry 闭区间提供 follow-before-page、分页、重连追赶与缺口修复；它丢弃完整重复项，并拒绝缺口、倒置区间和部分重叠。领域还可以携带无 cursor 的通知：通知绝不推进或修复持久 cursor，在缺口修复期间收到的通知只会在 replacement page 提交后发布。若更新代次取代该修复，旧代次 held notification 会与其 page 一同丢弃。对任一种流执行 dispose（资源释放）时，系统会取消该流的请求，并在活动 iterator 完全停止后完成资源释放。
+`ctx.remote.$stream()` 返回跨越多个物理载体代次的单消费方 `RemoteStream`。对于回答型 Client，载体仍可用时的独立流故障允许一次立即重试；物理 WebSocket 丢失后等待 Connection 重开载体。如果 Host generation 已不可用，则等待下一代连接。每个流项都带有其物理代次。被动 Client 不使用 `$stream()`，而是调用生成的原始流方法，并自行处理终态载体故障。领域消费方校验并接受各代次的 opening value；业务与协议错误仍然终止流。一切终态失败离开本面时都是 `RemoteError`，包括重试耗尽和在 opening value 之前就结束的代次，因此流消费方与一元调用方用同一种方式判别。`RemoteStreamCarrierError` 命名的是可重试的物理丢失，它只作为 `carrierFailed` 回调参数到达领域，绝不作为终态结果。`RemoteSnapshotStream` 在此之上规定每代由一个初始快照和后续 delta 组成。`RemoteJournalStream` 基于领域提供的 entry 闭区间提供 follow-before-page、分页、重连追赶与缺口修复；它丢弃完整重复项，并拒绝缺口、倒置区间和部分重叠。领域还可以携带无 cursor 的通知：通知绝不推进或修复持久 cursor，在缺口修复期间收到的通知只会在 replacement page 提交后发布。若更新代次取代该修复，旧代次 held notification 会与其 page 一同丢弃。对任一种流执行 dispose（资源释放）时，系统会取消该流的请求，并在活动 iterator 完全停止后完成资源释放。
 
 `ctx.remote.$on()` 订阅一条被转发的 Host 事件。它的合法键恰好等于 Host 装配声明的转发选择，listener 类型就是事件所属包自己的 Cordis `Events` 声明，因此不存在会与之漂移的第二份签名。每个订阅归属调用方 fiber，并随该 fiber 一起消失。Client Remote 服务仅在 `connection.interactions` 为 `answer` 时把 `$events` pump 注册为 Connection generation source，无论当前是否存在 `$on` listener。选择 `none` 时，`$on()` 不可用，Client 只打开物理生命周期连接；unary 调用不等待 socket 就绪。浏览器使用 Remote mux，进程内组合使用 `connection.rpc.open`；opening `ready` 项建立 Connection generation 并提供 Host 信息。物理 carrier 失败、Remote 流故障、意外正常结束、非 ready 首项或畸形事件项都会终止该 generation，由 Connection 按持续且间隔封顶的带抖动指数退避重开。普通通知按注册顺序运行并隔离 listener 失败；Agent-scoped waterfall（瀑布式事件）允许 listener 返回结果、调用 `next()` 或拒绝，Gateway 再通过现有 HTTP 一元载体回送该结果。
 
