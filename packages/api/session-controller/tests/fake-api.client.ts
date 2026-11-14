@@ -247,6 +247,9 @@ export class FakeApiClient {
       session,
       subagents: {
         prompt: request => this.record('subagents.prompt', request, this.onSubagentPrompt(request)),
+        interruptByUser: childSessionId => this.record(
+          'subagents.interruptByUser', { childSessionId }, this.onSubagentInterrupt({ childSessionId }),
+        ),
         interruptTurnByParent: request => this.record(
           'subagents.interruptTurnByParent', request, this.onSubagentInterrupt(request),
         ),

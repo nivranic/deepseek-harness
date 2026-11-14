@@ -9,7 +9,8 @@
     "src/index.ts",
     "src/types.ts",
     "src/changes.ts",
-    "src/capabilities.ts"
+    "src/capabilities.ts",
+    "src/search.ts"
   ],
   "references": [
     {
@@ -35,6 +36,12 @@
     },
     {
       "path": "../../util/deque"
+    },
+    {
+      "path": "../../util/ripgrep"
+    },
+    {
+      "path": "../../subprocess/subprocess"
     }
   ]
 }

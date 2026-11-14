@@ -82,7 +82,7 @@ declare module '@deepseek-ai/dsh-typert-protocol' {
 throw new RemoteError('goal/not-found', `goal "${id}" does not exist`, { goalId: id })
 ```
 
-拥有方在失败点直接抛出；没有任何包再写错误类家族或出口映射函数。调用方按 `code` 判别——绝不用 `instanceof`——且 `code` 分支无需 cast 即收窄 `details`，因为 `RemoteFailure` 就是 `RemoteError` 实例按码判别的 union。需要识别跨模块或跨 realm 类副本传来的失败时，基础设施调用 `remoteErrorOf(value)`，它读结构标记而不是原型链。
+拥有方在失败点直接抛出；没有任何包再写错误类家族或出口映射函数。调用方按 `code` 判别——绝不用 `instanceof`——且 `code` 分支无需 cast 即收窄 `details`，因为 `RemoteFailure` 就是 `RemoteError` 实例按码判别的 union。需要识别跨模块或跨 realm 类副本传来的失败时，基础设施调用 `remoteErrorOf(value)`，它读结构标记而不是原型链。`RemoteError` 继承 [`@deepseek-ai/dsh-error`](../../util/error/README.zh.md) 的 `HarnessError`，因此工具体抛出它时，`tool/result` 会记录 `name: 'RemoteError'` 及其 Remote `code`。
 
 导出的[已知错误码 JSON Schema](remote-error-codes.schema.json) 列出本包构建对应的有限仓库词汇，保留各拥有方的 JSDoc 语义和源声明。使用 `pnpm run gen-remote-error-codes` 再生成；`verify-remote-error-codes`、`test:docs` 和 `doc-sync` 拒绝过期产物、重复拥有方、缺少说明的码与无界声明。它只识别错误码字符串：TypeScript details 注解不是用于 payload 验证的 JSON Schema。来自新版 Host 或外部插件的未知码仍是不透明诊断；保留 code、message 和 details，不据此推断恢复策略或权限。码属于该 schema 不表示对应能力已经挂载。
 

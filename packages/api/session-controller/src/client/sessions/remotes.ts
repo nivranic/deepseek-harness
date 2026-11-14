@@ -35,6 +35,9 @@ export interface SessionSubagentsRemote {
     request: SubagentPromptRequest,
     signal?: AbortSignal,
   ): Promise<RemoteResult<SubagentPromptReceipt>>
+  interruptByUser(
+    childSessionId: SessionId,
+  ): Promise<RemoteResult<SubagentInterruptReceipt>>
   interruptByParent(
     childSessionId: SessionId,
     parentSessionId: SessionId,

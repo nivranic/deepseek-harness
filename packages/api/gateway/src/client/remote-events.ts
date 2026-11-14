@@ -339,7 +339,7 @@ function invalidRemoteEventFrame(): never {
 }
 
 function privateEvents(ctx: Context): PrivateEventContext {
-  return ctx
+  return ctx.events
 }
 
 function toError(reason: unknown, message: string): Error {

@@ -88,18 +88,20 @@ export class SavedHostsStore {
   constructor(private readonly persistence?: SavedHostsPersistence) {
     const raw = persistence?.read()
     if (raw === undefined) return
+    let parsed: unknown
     try {
-      const parsed: unknown = JSON.parse(raw)
-      if (!Array.isArray(parsed)) return
-      const rows: SavedHost[] = []
-      for (const row of parsed) {
-        const saved = parseRow(row)
-        if (saved !== undefined) rows.push(saved)
-      }
-      this.rows = sortRows(rows).slice(0, MAX_SAVED_HOSTS)
+      parsed = JSON.parse(raw)
     } catch (_error) {
-      // Only the persisted roster's own JSON can fail here; a corrupt roster starts empty.
+      // A corrupt persisted roster starts empty.
+      return
     }
+    if (!Array.isArray(parsed)) return
+    const rows: SavedHost[] = []
+    for (const row of parsed) {
+      const saved = parseRow(row)
+      if (saved !== undefined) rows.push(saved)
+    }
+    this.rows = sortRows(rows).slice(0, MAX_SAVED_HOSTS)
   }
 
   /** Read the roster.

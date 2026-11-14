@@ -1,10 +1,10 @@
 /** §26 capture side: one Session-header action copying the cross-device view-location link. */
-import { useLayoutEffect, useRef, useState, type CSSProperties, type KeyboardEvent } from 'react'
+import { useId, useLayoutEffect, useRef, useState, type KeyboardEvent } from 'react'
 import { createPortal } from 'react-dom'
 import type { InjectFace, PropsLocale, PropsRuntime } from '@deepseek-ai/dsh-client-ui-slots'
 import type {} from '@deepseek-ai/dsh-client-ui-chat/client'
 import type {} from '@deepseek-ai/dsh-client-ui-conversation/client'
-import { IconShareOutlineRegular, useAnchoredPosition, useDismissOnOutsidePointer } from '@deepseek-ai/dsh-client-ui-primitives'
+import { IconShareOutlineRegular, useDismissOnOutsidePointer } from '@deepseek-ai/dsh-client-ui-primitives'
 import { QRCodeSVG } from 'qrcode.react'
 import type { ObservableSnapshot } from '@deepseek-ai/dsh-client-store'
 import type { SessionId, SessionSeq } from '@deepseek-ai/dsh-session/types'
@@ -37,9 +37,6 @@ const DRESS_MS = 2000
 
 /** Edge length of the scannable QR, matching the pairing panel's established size. */
 const QR_SIZE = 200
-
-/** Off-screen placeholder style while the anchored position takes its first measure. */
-const MEASURE_STYLE: CSSProperties = { visibility: 'hidden', left: 0, top: 0 }
 
 /**
  * One quiet share action: click captures the connected Host, this Session, and
@@ -80,14 +77,7 @@ export function HandoffAction(props: HandoffActionProps): React.JSX.Element | nu
   const rootRef = useRef<HTMLDivElement>(null)
   const triggerRef = useRef<HTMLButtonElement>(null)
   const panelRef = useRef<HTMLDivElement>(null)
-  const panelPosition = useAnchoredPosition({
-    open,
-    anchorRef: triggerRef,
-    panelRef,
-    side: 'bottom',
-    gap: 5,
-    margin: 16,
-  })
+  const anchorName = `--dsh-handoff-${useId().replaceAll(':', '')}`
 
   useDismissOnOutsidePointer(rootRef, open, setOpen, panelRef)
 
@@ -117,7 +107,7 @@ export function HandoffAction(props: HandoffActionProps): React.JSX.Element | nu
 
   const panel = open && link !== undefined
     ? createPortal((
-      <div ref={panelRef} role="dialog" className={css.panel} style={panelPosition ?? MEASURE_STYLE} aria-label={t('scan')}>
+      <div ref={panelRef} role="dialog" className={css.panel} style={{ positionAnchor: anchorName }} aria-label={t('scan')}>
         <QRCodeSVG value={link} size={QR_SIZE} marginSize={4} title={t('scan')} />
       </div>
     ), document.body)
@@ -127,6 +117,7 @@ export function HandoffAction(props: HandoffActionProps): React.JSX.Element | nu
     <div ref={rootRef} className={css.root} onKeyDown={onKeyDown}>
       <button
         ref={triggerRef}
+        style={{ anchorName }}
         type="button"
         className={css.action}
         onClick={share}

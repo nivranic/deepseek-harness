@@ -14,10 +14,9 @@ import { mkdirSync, mkdtempSync, readFileSync, readdirSync, rmSync, symlinkSync,
 import { tmpdir } from 'node:os'
 import { join, resolve } from 'node:path'
 import { pathToFileURL } from 'node:url'
-import { load } from 'js-yaml'
 import { Context } from '@deepseek-ai/cordis'
 import Loader from '@deepseek-ai/cordis-plugin-loader'
-import Include, { entryListSchema } from '@deepseek-ai/cordis-plugin-include'
+import Include, { parseEntryYaml } from '@deepseek-ai/cordis-plugin-include'
 import Group from '@deepseek-ai/cordis-plugin-group'
 import LlmRuntime from '@deepseek-ai/dsh-llm'
 import SessionStore from '@deepseek-ai/dsh-session'
@@ -165,7 +164,7 @@ export function requiresRuntimeVariables(assembly: PromptAssembly): string[] {
  * @throws when the composition has no persona row, or more than one.
  */
 export function personaRowOf(content: string): HarvestedPersona {
-  const rows: unknown = load(content, { schema: entryListSchema })
+  const rows = parseEntryYaml(content)
   const found: RawPersonaRow[] = []
   const walk = (entries: readonly unknown[]): void => {
     for (const entry of entries) {

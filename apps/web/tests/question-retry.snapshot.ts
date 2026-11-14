@@ -7,8 +7,7 @@ import { fileURLToPath } from 'node:url'
 import { chromium, type Browser, type Page } from 'playwright'
 import { expect, it } from 'vitest'
 import { Context } from '@deepseek-ai/cordis'
-import { entryListSchema } from '@deepseek-ai/cordis-plugin-include'
-import yaml from 'js-yaml'
+import { stringifyEntryYaml } from '@deepseek-ai/cordis-plugin-include'
 import { resolveExampleLaunch } from '@deepseek-ai/dsh-loader-smoke'
 import { SessionId, type SessionEvent } from '@deepseek-ai/dsh-session'
 import * as JsonlSessionPersistence from '@deepseek-ai/dsh-session-persistence-jsonl'
@@ -40,7 +39,7 @@ it.skipIf(process.env.DSH_SNAPSHOT === 'record').each([
   const workspace = join(root, 'workspace')
   await mkdir(workspace)
   const patch = join(root, 'scenario.patch.yml')
-  await writeFile(patch, yaml.dump([
+  await writeFile(patch, stringifyEntryYaml([
     { id: 'webserver', config: { host: '127.0.0.1', port: 0 } },
     { id: 'web-runtime', config: { openBrowser: false, printUrl: false, surfaceContext: true } },
     { id: 'llm-deepseek', disabled: true },
@@ -60,7 +59,7 @@ it.skipIf(process.env.DSH_SNAPSHOT === 'record').each([
       { id: 'tool-replay-fixture', name: new URL('./tool-reused-id.fixture.ts', import.meta.url).href,
         config: { file: fixture, browserApproval: true, finalTurn: 1 } },
     ] },
-  ], { schema: entryListSchema }))
+  ]))
   const launch = resolveExampleLaunch({
     srcBin: join(REPO_ROOT, 'apps/cli/src/bin.ts'),
     sourceImport: 'tsx/esm', tsconfigPath: join(REPO_ROOT, 'tsconfig.json'),

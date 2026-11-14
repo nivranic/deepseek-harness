@@ -29,6 +29,8 @@ kind: "package-reference"
 
 ### 注册命令
 
+从 `@deepseek-ai/dsh-commands/types` 以类型方式导入 `CommandDefinitionId` 和 `CommandId`。使用 `@deepseek-ai/dsh-brand` 的 `brandString<T>()` 为已准入的字符串添加品牌；它不验证或生成 id。
+
 插件通过 `ctx.commands.register()` 注册命令，提供小写名称、发现界面中的说明、必填的 Host 评定 `risk` 档位（`low`、`moderate`、`high`、`critical`——Host 层拥有分级，客户端只展示，规格 §37）、可选的 `input` 提示和处理器。可选的品牌类型字段 `definitionId` 为适配器提供带插件命名空间的稳定定义标识，它独立于显示文案和每次执行的 `commandId`。有效描述符只携带被选中定义的标识，作用域覆盖不会继承被遮蔽注册项的标识。
 
 ```text
@@ -64,6 +66,8 @@ Host 发现分别以 `command.catalog.v1` 声明 `list`，以 `command.execute.v
 
 交互式适配器调用 `execute(agent, request, signal)`，传入确切的接收 agent、一个 `CommandExecutionRequest`——完整命令行、本次提交的有序附件，以及可选的客户端铸造重试身份——以及 UI 请求的中止信号。它返回已结算的 `CommandExecution`——规范化结果加生命周期配对 `commandId`——语法无效或名称未知时返回 `undefined`。携带某个 `clientMutationId` 的重发，若其执行已在本 Host 进程内结算，则直接返回记录的执行结果而不再重跑处理器；收据是进程内有界的，不跨重启持久，抛异常的结算不记录收据。`list(agent)` 与 `find(agent, name)` 在应用 agent 作用域遮蔽后用于命令发现。
 
+无状态入口 `@deepseek-ai/dsh-commands/builtin` 为 Host 和 Client 适配器共享第一方身份、中英文输入 token 及描述符解析。`builtinCommandName()` 根据定义识别能力，不依赖注册名；`resolveCommand()` 保留精确名称优先级，并按定义 ID 解析别名。支持范围由适配器决定，注册器本身仍接受任意定义。
+
 ### 取消
 
 调用方的中止信号会让注册表停止等待处理器；无视信号的处理器可能在调用方停止等待后继续产生自身的外部副作用。被取消或抛异常的处理器在日志中以 `command/done` 错误结算。
@@ -83,8 +87,9 @@ Host 发现分别以 `command.catalog.v1` 声明 `list`，以 `command.execute.v
 | 文件 | 职责 |
 |---|---|
 | [`src/index.ts`](src/index.ts) | `CommandRuntime` 服务：注册、作用域、分派、生命周期事件 |
-| [`src/types.ts`](src/types.ts) | 命令定义、描述符、执行与结果类型 |
-| [`src/brand.ts`](src/brand.ts) | 稳定命令定义标识、每次执行的生命周期 id 与客户端变更 id |
+| [`src/types.ts`](src/types.ts) | 公开类型入口：标识类型再导出、描述符、执行与结果 |
+| [`src/brand.ts`](src/brand.ts) | 命令标识定义与兼容构造函数 |
+| [`src/builtin.ts`](src/builtin.ts) | Host 和 Client 适配器共享的第一方身份及输入 token 解析 |
 
 ### 生命周期事件
 

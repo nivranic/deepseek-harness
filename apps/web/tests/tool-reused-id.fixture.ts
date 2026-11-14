@@ -5,7 +5,7 @@ import { installLlmReplay } from '@deepseek-ai/dsh-llm-replay'
 import type {} from '@deepseek-ai/dsh-user-approval'
 import type {} from '@deepseek-ai/dsh-settings'
 import type {} from '@deepseek-ai/dsh-client-connection'
-import type {} from '@deepseek-ai/dsh-host-webserver'
+import type { WebEntryUrl } from '@deepseek-ai/dsh-host-webserver'
 import type {} from '@deepseek-ai/dsh-agent'
 
 export const name = 'tool-reused-id-fixture'
@@ -48,7 +48,11 @@ export function apply(ctx: Context, config: Config): void {
   void ctx.loader.await().then(async () => {
     await ctx.settings.mutate('ui-settings-general', [{ op: 'set', path: ['welcomeNoticeVersion'], value: '2026-09-28.1' }])
     // Credential-bearing startup URLs stay on the parent's private IPC channel.
-    process.send?.({ kind: 'ready', url: ctx.connection.authenticatedUrl(`http://127.0.0.1:${ctx.webServer.port}`) })
+    const entries: WebEntryUrl[] = []
+    ctx.emit('webserver/entry-url', `http://127.0.0.1:${ctx.webServer.port}`, entries)
+    const entry = entries.find(candidate => candidate.open)
+    if (entry === undefined) throw new Error('The Web profile supplied no startup URL')
+    process.send?.({ kind: 'ready', url: entry.url })
   }).catch((error: unknown) => {
     process.send?.({ kind: 'failure', error: String(error) })
   })

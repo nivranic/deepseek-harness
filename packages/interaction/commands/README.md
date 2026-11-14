@@ -29,6 +29,8 @@ Compose this service when an interactive UI should let users drive agent-side be
 
 ### Registering a command
 
+Import `CommandDefinitionId` and `CommandId` as types from `@deepseek-ai/dsh-commands/types`. Use `brandString<T>()` from `@deepseek-ai/dsh-brand` to brand an admitted string; it neither validates nor generates ids.
+
 A plugin registers a command with `ctx.commands.register()`: a lowercase name, a discovery description, a required Host-assessed `risk` tier (`low`, `moderate`, `high`, or `critical` — the Host layer owns the classification and clients only display it, specification §37), an optional `input` hint, and a handler. An optional branded `definitionId` gives the definition a stable, plugin-namespaced identity for adapters; it is independent of display copy and execution `commandId`. The effective descriptor carries only the selected definition's identity, so a scoped override never inherits the shadowed registration's identity.
 
 ```text
@@ -64,6 +66,8 @@ Host discovery advertises `command.catalog.v1` for `list` and `command.execute.v
 
 An interactive adapter calls `execute(agent, request, signal)` with the exact receiving agent, a `CommandExecutionRequest` — the full command line, the submission's ordered attachments, and an optional client-minted retry identity — and the UI request's cancellation signal. It returns the settled `CommandExecution` — the normalized result plus its lifecycle `commandId` — or `undefined` for invalid syntax or an unknown name. A resend carrying a `clientMutationId` whose execution already settled in this Host process returns the recorded execution without re-running the handler; receipts are process-local and bounded, not durable across restarts, and a thrown settlement records none. `list(agent)` and `find(agent, name)` serve discovery after agent-scoped shadowing.
 
+The stateless `@deepseek-ai/dsh-commands/builtin` entry shares first-party identity, English/Chinese input tokens, and descriptor resolution across Host and Client adapters. `builtinCommandName()` identifies the definition independently of its registered name; `resolveCommand()` preserves exact-name priority and follows aliases by definition ID. Adapters choose their supported subset; the registry itself continues to accept arbitrary definitions.
+
 ### Cancellation
 
 The caller's abort signal stops the registry from awaiting a handler; a handler that ignores the signal may continue its own external side effects after the caller stops waiting. A cancelled or thrown handler settles as a `command/done` error in the log.
@@ -83,8 +87,9 @@ The observable behavior is covered in [Use this package](#use-this-package); thi
 | File | Role |
 |---|---|
 | [`src/index.ts`](src/index.ts) | `CommandRuntime` service: registration, scoping, dispatch, lifecycle events |
-| [`src/types.ts`](src/types.ts) | Command definition, descriptor, execution, and result types |
-| [`src/brand.ts`](src/brand.ts) | Stable command-definition identities, per-execution lifecycle ids, and client mutation ids |
+| [`src/types.ts`](src/types.ts) | Public type entry: identity re-exports, descriptors, execution, and results |
+| [`src/brand.ts`](src/brand.ts) | Command identity definitions and compatibility constructors |
+| [`src/builtin.ts`](src/builtin.ts) | First-party identity and token resolution for Host and Client adapters |
 
 ### Lifecycle events
 

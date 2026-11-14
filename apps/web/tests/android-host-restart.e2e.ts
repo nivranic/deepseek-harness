@@ -9,8 +9,7 @@ import { fileURLToPath, pathToFileURL } from 'node:url'
 import { promisify } from 'node:util'
 import { expect, it } from 'vitest'
 import { Context } from '@deepseek-ai/cordis'
-import { entryListSchema } from '@deepseek-ai/cordis-plugin-include'
-import yaml from 'js-yaml'
+import { stringifyEntryYaml } from '@deepseek-ai/cordis-plugin-include'
 import { SessionId, type SessionEvent } from '@deepseek-ai/dsh-session'
 import * as JsonlSessionPersistence from '@deepseek-ai/dsh-session-persistence-jsonl'
 import { startMockLlmServer } from '@deepseek-ai/dsh-llm-mock-server'
@@ -94,7 +93,7 @@ it.skipIf(!process.env.DSH_ANDROID_ADB)('Android reconnects after a real Host SI
     dsh: { profile: { bundles: ['@deepseek-ai/dsh-base', '@deepseek-ai/dsh-web-app'] } },
   }))
   const fixture = new URL('./android-host-restart.fixture.ts', import.meta.url).href
-  await writeFile(join(profile, 'cordis.patch.yml'), yaml.dump([
+  await writeFile(join(profile, 'cordis.patch.yml'), stringifyEntryYaml([
     { id: 'webserver', config: { host: '127.0.0.1', port: webPort } },
     { id: 'web-runtime', config: { openBrowser: false, printUrl: false } },
     { id: 'llm-deepseek', config: { baseURL: mock.baseURL, apiKeyEnv: 'DSH_ANDROID_RESTART_KEY' } },
@@ -117,7 +116,7 @@ it.skipIf(!process.env.DSH_ANDROID_ADB)('Android reconnects after a real Host SI
       } },
       { id: 'android-host-restart-fixture', name: fixture, config: {} },
     ] },
-  ], { schema: entryListSchema }))
+  ]))
   const adb = process.env.DSH_ANDROID_ADB!
   const serial = process.env.DSH_ANDROID_SERIAL ?? ''
   const run = (...args: string[]) => execute(adb, ['-s', serial, ...args], { windowsHide: true, timeout: 30_000 })

@@ -42,6 +42,12 @@
       "x-typescript-details": "{ readonly ref: string }"
     },
     {
+      "const": "deepseekChatImport/owner-only",
+      "description": "Only the owner may import; every other principal is refused.",
+      "x-source": "packages/experimental/deepseek-chat-import/src/types.ts",
+      "x-typescript-details": "{}"
+    },
+    {
       "const": "device/admission-capacity",
       "description": "The bounded replay ledger cannot admit another nonce until existing receipts expire.",
       "x-source": "packages/api/device-trust/src/types.ts",
@@ -116,12 +122,42 @@
     {
       "const": "document-render/failed",
       "description": "The source was authorized, but its conversion failed.",
-      "x-source": "packages/document/office-to-pdf/src/types.ts",
-      "x-typescript-details": "{ readonly reason: OfficeToPdfErrorCode }"
+      "x-source": "packages/document/office-kit/src/types.ts",
+      "x-typescript-details": "{ readonly reason: OfficeKitErrorCode }"
     },
     {
       "const": "forgePanel/action-failed",
       "description": "The code host refused the change or could not be reached; the message gives the host's reason.",
+      "x-source": "packages/experimental/client-ui-forge/src/types.ts",
+      "x-typescript-details": "Record<string, never>"
+    },
+    {
+      "const": "forgePanel/action-unknown",
+      "description": "The code host did not confirm whether it applied the change, which must be checked there before trying again.",
+      "x-source": "packages/experimental/client-ui-forge/src/types.ts",
+      "x-typescript-details": "Record<string, never>"
+    },
+    {
+      "const": "forgePanel/base-missing",
+      "description": "The base branch chosen for the `branch` scope does not exist, as after the branch was deleted.",
+      "x-source": "packages/experimental/client-ui-forge/src/types.ts",
+      "x-typescript-details": "Record<string, never>"
+    },
+    {
+      "const": "forgePanel/checks-failed",
+      "description": "Complete checks could not be loaded; the polling preview remains available.",
+      "x-source": "packages/experimental/client-ui-forge/src/types.ts",
+      "x-typescript-details": "Record<string, never>"
+    },
+    {
+      "const": "forgePanel/commits-missing",
+      "description": "A chosen commit is no longer among the listed commits of the branch or change request, or the commits are out of order.",
+      "x-source": "packages/experimental/client-ui-forge/src/types.ts",
+      "x-typescript-details": "Record<string, never>"
+    },
+    {
+      "const": "forgePanel/commits-not-linear",
+      "description": "A chosen commit after the first lacks the commit listed before it as its first parent, so two ends cannot name the run.",
       "x-source": "packages/experimental/client-ui-forge/src/types.ts",
       "x-typescript-details": "Record<string, never>"
     },
@@ -138,14 +174,38 @@
       "x-typescript-details": "Record<string, never>"
     },
     {
+      "const": "forgePanel/filter-config-failed",
+      "description": "Filter configuration could not be read completely; no comparison ran. Correct Git settings or the output limit before retrying.",
+      "x-source": "packages/experimental/client-ui-forge/src/types.ts",
+      "x-typescript-details": "Record<string, never>"
+    },
+    {
       "const": "forgePanel/invalid-branch",
       "description": "The requested base branch name is empty.",
       "x-source": "packages/experimental/client-ui-forge/src/types.ts",
       "x-typescript-details": "Record<string, never>"
     },
     {
+      "const": "forgePanel/lens-failed",
+      "description": "The lens failed, ran past `lensTimeoutMs`, read more than `maxLensReadBytes`, or answered over `maxCachedLensBytes`; the message says which.",
+      "x-source": "packages/experimental/client-ui-forge/src/types.ts",
+      "x-typescript-details": "Record<string, never>"
+    },
+    {
+      "const": "forgePanel/lens-missing",
+      "description": "No lens with the requested identity is registered, as after its plugin unloaded.",
+      "x-source": "packages/experimental/client-ui-forge/src/types.ts",
+      "x-typescript-details": "Record<string, never>"
+    },
+    {
+      "const": "forgePanel/lens-stale",
+      "description": "The files the view shows are no longer the files the panel reads, so the view reads them again before asking.",
+      "x-source": "packages/experimental/client-ui-forge/src/types.ts",
+      "x-typescript-details": "Record<string, never>"
+    },
+    {
       "const": "forgePanel/no-fork-point",
-      "description": "No remote names a default branch that HEAD shares history with, and the checkout is not a worktree the Session created.",
+      "description": "HEAD shares no history with the base branch chosen for the `branch` scope, or with none chosen, no remote names a default branch that HEAD shares history with and the checkout is not a worktree the Session created.",
       "x-source": "packages/experimental/client-ui-forge/src/types.ts",
       "x-typescript-details": "Record<string, never>"
     },
@@ -180,6 +240,24 @@
       "x-typescript-details": "Record<string, never>"
     },
     {
+      "const": "forgePanel/review-failed",
+      "description": "The code host did not provide the change request's review threads, or its status has not been read yet; the message says why.",
+      "x-source": "packages/experimental/client-ui-forge/src/types.ts",
+      "x-typescript-details": "Record<string, never>"
+    },
+    {
+      "const": "forgePanel/review-unsupported",
+      "description": "The code host's provider cannot read review threads, so the changes view shows none.",
+      "x-source": "packages/experimental/client-ui-forge/src/types.ts",
+      "x-typescript-details": "Record<string, never>"
+    },
+    {
+      "const": "forgePanel/reviewers-failed",
+      "description": "The code host did not list the accounts a review can be requested from; the message says why.",
+      "x-source": "packages/experimental/client-ui-forge/src/types.ts",
+      "x-typescript-details": "Record<string, never>"
+    },
+    {
       "const": "forgePanel/session-busy",
       "description": "The Session's Agent is not loaded or has other work, so its checkout cannot change now.",
       "x-source": "packages/experimental/client-ui-forge/src/types.ts",
@@ -193,13 +271,19 @@
     },
     {
       "const": "forgePanel/stale-head",
-      "description": "The change request has new commits since the head the user confirmed, so it was not merged.",
+      "description": "The change request's head is no longer the commit the request named: the head the user confirmed for a merge, the head displayed for complete checks, the head of the latest status for a diff, or the head of the displayed diff for review threads and viewed marks. A diff, review, or viewed mark read the host refuses polls the change request again at once, so a later status names the current head.",
       "x-source": "packages/experimental/client-ui-forge/src/types.ts",
       "x-typescript-details": "Record<string, never>"
     },
     {
       "const": "forgePanel/unrecognized-url",
       "description": "No registered provider serves the change request URL.",
+      "x-source": "packages/experimental/client-ui-forge/src/types.ts",
+      "x-typescript-details": "Record<string, never>"
+    },
+    {
+      "const": "forgePanel/viewed-failed",
+      "description": "The code host did not provide the signed-in user's viewed marks on the change request's files; the message says why.",
       "x-source": "packages/experimental/client-ui-forge/src/types.ts",
       "x-typescript-details": "Record<string, never>"
     },
@@ -433,9 +517,9 @@
     },
     {
       "const": "liveshareShares/endpoint-not-offered",
-      "description": "A submitted capability names an endpoint the plugin does not offer under that kind.",
+      "description": "A submitted policy names an endpoint the platform catalog does not offer.",
       "x-source": "packages/experimental/liveshare/src/share-api-types.ts",
-      "x-typescript-details": "{\n      readonly plugin: string\n      readonly kind: 'readable' | 'writable'\n      readonly endpoint: string\n    }"
+      "x-typescript-details": "{\n      readonly plugin: string\n      readonly endpoint: string\n    }"
     },
     {
       "const": "liveshareShares/invalid-access-mode",
@@ -492,6 +576,12 @@
       "x-typescript-details": "Record<string, never>"
     },
     {
+      "const": "liveshareShares/missing-session-ids",
+      "description": "An addition named no usable Session id.",
+      "x-source": "packages/experimental/liveshare/src/share-api-types.ts",
+      "x-typescript-details": "Record<string, never>"
+    },
+    {
       "const": "liveshareShares/missing-share-id",
       "description": "A share-writing request named no share.",
       "x-source": "packages/experimental/liveshare/src/share-api-types.ts",
@@ -502,6 +592,12 @@
       "description": "Creating a share requires a verified owner credential at the effective Relay.",
       "x-source": "packages/experimental/liveshare/src/share-api-types.ts",
       "x-typescript-details": "{ readonly identity: OwnerIdentityStatus }"
+    },
+    {
+      "const": "liveshareShares/owner-state-held",
+      "description": "Another running host owns the owner state, so this host refuses to change the shares.",
+      "x-source": "packages/experimental/liveshare/src/share-api-types.ts",
+      "x-typescript-details": "Record<string, never>"
     },
     {
       "const": "liveshareShares/owner-state-unavailable",
@@ -528,6 +624,18 @@
       "x-typescript-details": "Record<string, never>"
     },
     {
+      "const": "liveshareShares/session-workspace-mismatch",
+      "description": "A source Session belongs to a different Workspace than the share's other sources.",
+      "x-source": "packages/experimental/liveshare/src/share-api-types.ts",
+      "x-typescript-details": "{\n      readonly sessionId: string\n      readonly workspaceId: string\n    }"
+    },
+    {
+      "const": "liveshareShares/session-workspace-unknown",
+      "description": "A source Session belongs to no Workspace.",
+      "x-source": "packages/experimental/liveshare/src/share-api-types.ts",
+      "x-typescript-details": "{ readonly sessionId: string }"
+    },
+    {
       "const": "liveshareShares/share-not-found",
       "description": "No share this host publishes carries the requested id.",
       "x-source": "packages/experimental/liveshare/src/share-api-types.ts",
@@ -538,6 +646,12 @@
       "description": "A submitted capability names a plugin that offers no viewer endpoints.",
       "x-source": "packages/experimental/liveshare/src/share-api-types.ts",
       "x-typescript-details": "{ readonly plugin: string }"
+    },
+    {
+      "const": "liveshareShares/workspace-unavailable",
+      "description": "The composition mounts no Workspace registry, so source placement cannot be checked.",
+      "x-source": "packages/experimental/liveshare/src/share-api-types.ts",
+      "x-typescript-details": "Record<string, never>"
     },
     {
       "const": "llm/model-discovery-rejected",
@@ -640,6 +754,30 @@
       "description": "An interaction answer does not match the pending revision; the answer is not accepted.",
       "x-source": "packages/api/gateway/src/remote-error-codes.ts",
       "x-typescript-details": "{\n      readonly eventId: RemoteEventId\n      readonly expectedRevision: number\n      readonly receivedRevision: number\n    }"
+    },
+    {
+      "const": "schedule/input-invalid",
+      "description": "The Schedule request failed validation before it was stored.",
+      "x-source": "packages/schedule/schedule/src/types.ts",
+      "x-typescript-details": "{ readonly code: ScheduleInputErrorCode }"
+    },
+    {
+      "const": "schedule/target-archived",
+      "description": "A delivery or run reached a `session` target that the Workspace registry lists as archived.",
+      "x-source": "packages/schedule/schedule/src/types.ts",
+      "x-typescript-details": "{ readonly sessionId: SessionId }"
+    },
+    {
+      "const": "session-status/not-found",
+      "description": "The requested Session does not exist.",
+      "x-source": "packages/client/ui-session-status/src/types.ts",
+      "x-typescript-details": "{ readonly sessionId: SessionId }"
+    },
+    {
+      "const": "session-status/unavailable",
+      "description": "Reading state could not be updated; the previous value remains visible.",
+      "x-source": "packages/client/ui-session-status/src/types.ts",
+      "x-typescript-details": "{}"
     },
     {
       "const": "session/agent-busy",
@@ -816,14 +954,8 @@
       "x-typescript-details": "{ readonly childSessionId: SessionId }"
     },
     {
-      "const": "subagent/parent-unavailable",
-      "description": "No live Agent carries the addressed parent session.",
-      "x-source": "packages/subagent/subagent/src/control-types.ts",
-      "x-typescript-details": "{ readonly parentSessionId: SessionId }"
-    },
-    {
       "const": "subagent/unauthorized",
-      "description": "The claimed parent does not own the addressed child.",
+      "description": "The supplied address or live subagent-tree identity could not be verified.",
       "x-source": "packages/subagent/subagent/src/control-types.ts",
       "x-typescript-details": "{ readonly childSessionId: SessionId }"
     },
@@ -892,6 +1024,12 @@
       "description": "The directory listing or watch path resolves outside the Session's workspace root.",
       "x-source": "packages/api/workspace-files/src/types.ts",
       "x-typescript-details": "{ readonly path: string }"
+    },
+    {
+      "const": "workspace-file/search-failed",
+      "description": "Search cannot run: missing subprocess, launch/execution failure, or configured timeout.",
+      "x-source": "packages/api/workspace-files/src/types.ts",
+      "x-typescript-details": "Record<string, never>"
     },
     {
       "const": "workspace-file/too-large",

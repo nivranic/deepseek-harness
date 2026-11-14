@@ -6,6 +6,8 @@
 
 import { randomUUID } from 'node:crypto'
 import { GOAL_REMOTE_CAPABILITIES } from './capabilities.ts'
+import { brandString } from '@deepseek-ai/dsh-brand'
+import type { GoalId } from './types.ts'
 import { Context, Service } from '@deepseek-ai/cordis'
 import z from '@deepseek-ai/schemastery'
 import { z as zod } from 'zod'
@@ -25,7 +27,6 @@ import type { GoalFoldState } from './fold.ts'
 import {
   GOAL_CHANGE_VERSION,
   GoalError,
-  GoalId,
 } from './runtime.ts'
 import type {
   CreateGoalRequest,
@@ -312,7 +313,7 @@ export class GoalService extends TypertRemoteService {
     }
     const now = Date.now()
     const goal: GoalSnapshot = {
-      id: GoalId(`goal-${randomUUID()}`),
+      id: brandString<GoalId>(`goal-${randomUUID()}`),
       revision: 1,
       objective: spec.objective,
       phase: 'active',
@@ -478,7 +479,7 @@ export class GoalService extends TypertRemoteService {
   /** Read the current durable projection maintained by the registry. */
   private state(session: Session): GoalProjection | null {
     const state = this.goalProjectionHandle.stateOf(session)
-    if (state.failure !== null) throw new Error(state.failure)
+    if (state.failure !== null) throw new GoalError(state.failure, 'GOAL_STATE_CORRUPT')
     return state.current
   }
 

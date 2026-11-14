@@ -9,7 +9,7 @@
 import { createHash } from 'node:crypto'
 import { build as bundle } from 'tsdown'
 import { spawn } from 'node:child_process'
-import { pnpmInvocation } from './executable-packaging.ts'
+import { pnpmInvocation, verifyStagedDependencies } from './executable-packaging.ts'
 import { existsSync, statSync } from 'node:fs'
 import { chmod, copyFile, cp, glob, mkdir, readFile, readdir, rm, writeFile } from 'node:fs/promises'
 import { basename, dirname, join, resolve, sep } from 'node:path'
@@ -19,7 +19,6 @@ import { resolveLinuxNodePtyAddon, resolveWindowsNodePtyAddons } from './executa
 import { officeSidecarArchives, runtimeNpmArchive, OFFICE_ASSET_IGNORES } from './build-exe-for-python-sdk-office.ts'
 import { syncPythonRuntimeProduct } from './build-exe-for-python-sdk-resources.ts'
 import { deduplicateStagedWorkspacePackages, materializeStagedLinks, relocateStagedBuildApprovals } from './build-exe-for-python-sdk-staging.ts'
-import { prepareOfficeSkillAssets } from './primary-runtime/prepare.ts'
 import primaryLock from './primary-runtime/lock.json' with { type: 'json' }
 
 const root = resolve(import.meta.dirname, '..')
@@ -69,6 +68,13 @@ const ASSET_GLOBS = [
   'node_modules/@deepseek-ai/dsh-web-frontend/dist/**/*',
   // The diagnosis provider extracts its PowerShell script for an external interpreter.
   'node_modules/@deepseek-ai/dsh-sandbox-windows-acl/assets/**/*',
+]
+
+/** Published source and documentation: types and maps already describe the runtime, so no load path needs them. */
+const PUBLISHED_PAYLOAD_IGNORES = [
+  '**/node_modules/@deepseek-ai/dsh/src/**',
+  '**/node_modules/@deepseek-ai/dsh-*/src/**',
+  '**/node_modules/@deepseek-ai/dsh/docs/**',
 ]
 
 const PLATFORMS = ['linux', 'macos', 'win'] as const
@@ -310,6 +316,7 @@ class SingleExeBuild {
       // Production deployment omits workspace tooling such as Electron's patched signer.
       '--config.allow-unused-patches=true',
       '--config.node-linker=hoisted',
+      `--config.pnpmfile=${join(root, 'scripts/python-runtime-deploy.pnpmfile.mjs')}`,
       '--config.link-workspace-packages=true',
       '--config.hoist-workspace-packages=false',
       '--ignore-scripts',
@@ -337,17 +344,21 @@ class SingleExeBuild {
     }
     await materializeStagedLinks(this.staging)
     await deduplicateStagedWorkspacePackages(this.staging, this.staging)
+    await verifyStagedDependencies(this.staging)
   }
 
   /** Add the executable entry and pkg assets to the staged manifest. */
   async injectPkgConfig(): Promise<void> {
     const sourceModules = join(root, 'node_modules').replaceAll('\\', '/')
+    const staging = this.staging.replaceAll('\\', '/')
     const patch = { bin: ENTRY_BIN, pkg: { assets: ASSET_GLOBS, ignore: [
-      ...OFFICE_ASSET_IGNORES,
+      // pkg's matcher does not traverse hidden checkout directories through a globstar.
+      ...[...OFFICE_ASSET_IGNORES, ...PUBLISHED_PAYLOAD_IGNORES,
+        '**/*.map', '**/*.d.ts', '**/*.d.mts', '**/*.d.cts',
+      ].map(pattern => `${staging}/${pattern}`),
       `${sourceModules}/**`, `${sourceModules}/.pnpm/**`,
       ...['packages', 'apps', 'vendor', 'native', 'scripts'].map(directory => `${join(root, directory).replaceAll('\\', '/')}/**`),
       `${root.replaceAll('\\', '/')}/tsconfig*.json`,
-      '**/*.map', '**/*.d.ts', '**/*.d.mts', '**/*.d.cts',
     ] } }
     const manifestPath = join(this.staging, 'package.json')
     if (this.cli.dryRun) {
@@ -414,7 +425,7 @@ class SingleExeBuild {
     const ripgrep = await this.copyRipgrepSidecar(target, product)
     const resources = join(this.outDir, `${target.platform}-${target.arch}`)
     if (this.cli.dryRun) {
-      console.log(`build-exe-for-python-sdk: [dry-run] lock optional resource downloads and copy Office skills to ${resources}`)
+      console.log(`build-exe-for-python-sdk: [dry-run] lock optional resource downloads in ${resources}`)
     } else {
       await rm(resources, { recursive: true, force: true })
       await mkdir(resources, { recursive: true })
@@ -424,7 +435,6 @@ class SingleExeBuild {
       const inputs = { version, target: `${target.platform === 'macos' ? 'mac' : target.platform}-${target.arch}`, office, pnpm }
       const identity = createHash('sha256').update(JSON.stringify({ ...inputs, primaryLock })).digest('hex')
       await writeFile(join(resources, 'downloads.json'), JSON.stringify({ ...inputs, identity }, undefined, 2) + '\n')
-      await prepareOfficeSkillAssets(join(this.staging, 'node_modules/@deepseek-ai/dsh-skill-office/assets'), join(resources, 'office-skills'))
     }
     if (target.platform !== 'macos') return [product, ripgrep, resources]
     const spawnHelper = `${product}-spawn-helper`

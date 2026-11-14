@@ -1,8 +1,8 @@
 /**
  * Verify that the executable deploy manifest supplies every plugin referenced
  * by a shipped agent preset and a required dependency supplies each workspace peer
- * on every dependency path. With auto peer installation disabled, an omission can otherwise
- * fail only when Cordis loads the packaged plugin.
+ * on every dependency path. Frozen deployment preserves the locked peer graph;
+ * explicit workspace peers make omissions fail before plugin loading.
  */
 import { globSync } from 'node:fs'
 import { readFile } from 'node:fs/promises'

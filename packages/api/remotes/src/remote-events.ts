@@ -15,6 +15,7 @@ import type {} from '@deepseek-ai/dsh-plugin-market/types'
 import type {} from '@deepseek-ai/dsh-schedule/client'
 import type { TypertForwardableEventEntry } from '@deepseek-ai/dsh-typert-protocol'
 import type { RemoteInteractionPolicy } from '@deepseek-ai/dsh-api-gateway/protocol'
+import type {} from '@deepseek-ai/dsh-web/types'
 
 /**
  * Host events this application forwards without renaming. The explicit mode is
@@ -55,4 +56,5 @@ export const API_REMOTE_FORWARDED_EVENTS = [
   { event: 'settings/document-updated', mode: 'emit' },
   { event: 'schedule/changed', mode: 'emit' },
   { event: 'user-questions/request', mode: 'waterfall', interaction: { type: 'question', requiredPermission: 'question.respond' } },
+  { event: 'web/providers-changed', mode: 'emit' },
 ] as const satisfies readonly (TypertForwardableEventEntry & { readonly interaction?: RemoteInteractionPolicy })[]

@@ -8,7 +8,7 @@ import type {} from '@deepseek-ai/dsh-user-approval'
 import type {} from '@deepseek-ai/dsh-user-questions'
 import type {} from '@deepseek-ai/dsh-settings'
 import type {} from '@deepseek-ai/dsh-client-connection'
-import type {} from '@deepseek-ai/dsh-host-webserver'
+import type { WebEntryUrl } from '@deepseek-ai/dsh-host-webserver'
 
 export const name = 'host-restart-fixture'
 export const inject = ['tools', 'approval', 'userQuestions', 'sessions', 'settings', 'connection', 'webServer', 'agents']
@@ -75,6 +75,10 @@ export function apply(ctx: Context, config: Config): void {
     await ctx.settings.mutate('ui-onboarding', [{ op: 'set', path: ['welcomeNoticeVersion'], value: '2026-08-13.1' }])
     const baseUrl = `http://127.0.0.1:${ctx.webServer.port}`
     // The credential-bearing URL stays exclusively on the parent's private IPC channel.
-    process.send?.({ kind: 'ready', url: ctx.connection.authenticatedUrl(baseUrl) })
+    const entries: WebEntryUrl[] = []
+    ctx.emit('webserver/entry-url', baseUrl, entries)
+    const entry = entries.find(candidate => candidate.open)
+    if (entry === undefined) throw new Error('The Web profile supplied no startup URL')
+    process.send?.({ kind: 'ready', url: entry.url })
   })
 }

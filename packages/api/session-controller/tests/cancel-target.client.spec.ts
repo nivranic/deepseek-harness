@@ -57,7 +57,7 @@ it('binds subagent interruption to the observed child turn without requiring par
   api.admission = ['subagent.interrupt-turn.v1']
   const session = new Session(SessionId('child-target'), remote, { hostAdmission: () => api.admission })
   const address = { parentSessionId: SessionId('offline-parent'), childSessionId: session.sessionId, mode: 'continuable' as const }
-  session.configureSubagent(address, false)
+  session.configureSubagent(address)
   session.projections.apply('subagentTiming', { settledMs: 0, active: { since: 10, through: 20, startSeq: SessionSeq(4) } }, SessionSeq(5))
   const receipt = deferred<ReturnType<typeof ok<{ accepted: true }>>>()
   api.onSubagentInterrupt = () => receipt.promise
@@ -78,7 +78,7 @@ it('does not replace missing subagent target facts with legacy interruption', as
   api.admission = ['subagent.interrupt-turn.v1', 'subagent.interrupt.v1']
   const session = new Session(SessionId('child-unready'), remote, { hostAdmission: () => api.admission })
   const address = { parentSessionId: SessionId('parent'), childSessionId: session.sessionId, mode: 'continuable' as const }
-  session.configureSubagent(address, false)
+  session.configureSubagent(address)
   await expect(session.cancel()).resolves.toMatchObject({ ok: false, error: { code: 'gateway/connection-unavailable' } })
   session.projections.apply('subagentTiming', { settledMs: 0, active: { since: 1, through: 2 } }, SessionSeq(2))
   await expect(session.cancel()).resolves.toMatchObject({ ok: false, error: { code: 'gateway/connection-unavailable' } })

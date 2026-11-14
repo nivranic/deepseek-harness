@@ -212,6 +212,29 @@
       "properties": {
         "code": {
           "type": "string",
+          "const": "deepseekChatImport/owner-only"
+        },
+        "message": {
+          "type": "string"
+        },
+        "details": {
+          "type": "object",
+          "properties": {}
+        }
+      },
+      "required": [
+        "code",
+        "message",
+        "details"
+      ],
+      "additionalProperties": {},
+      "description": "Only the owner may import; every other principal is refused."
+    },
+    {
+      "type": "object",
+      "properties": {
+        "code": {
+          "type": "string",
           "const": "device/admission-capacity"
         },
         "message": {
@@ -678,6 +701,10 @@
                 {
                   "type": "string",
                   "const": "source-changed"
+                },
+                {
+                  "type": "string",
+                  "const": "invalid-request"
                 }
               ]
             }
@@ -722,6 +749,146 @@
       ],
       "additionalProperties": {},
       "description": "The code host refused the change or could not be reached; the message gives the host's reason."
+    },
+    {
+      "type": "object",
+      "properties": {
+        "code": {
+          "type": "string",
+          "const": "forgePanel/action-unknown"
+        },
+        "message": {
+          "type": "string"
+        },
+        "details": {
+          "type": "object",
+          "propertyNames": {
+            "type": "string"
+          },
+          "additionalProperties": {
+            "not": {}
+          }
+        }
+      },
+      "required": [
+        "code",
+        "message",
+        "details"
+      ],
+      "additionalProperties": {},
+      "description": "The code host did not confirm whether it applied the change, which must be checked there before trying again."
+    },
+    {
+      "type": "object",
+      "properties": {
+        "code": {
+          "type": "string",
+          "const": "forgePanel/base-missing"
+        },
+        "message": {
+          "type": "string"
+        },
+        "details": {
+          "type": "object",
+          "propertyNames": {
+            "type": "string"
+          },
+          "additionalProperties": {
+            "not": {}
+          }
+        }
+      },
+      "required": [
+        "code",
+        "message",
+        "details"
+      ],
+      "additionalProperties": {},
+      "description": "The base branch chosen for the `branch` scope does not exist, as after the branch was deleted."
+    },
+    {
+      "type": "object",
+      "properties": {
+        "code": {
+          "type": "string",
+          "const": "forgePanel/checks-failed"
+        },
+        "message": {
+          "type": "string"
+        },
+        "details": {
+          "type": "object",
+          "propertyNames": {
+            "type": "string"
+          },
+          "additionalProperties": {
+            "not": {}
+          }
+        }
+      },
+      "required": [
+        "code",
+        "message",
+        "details"
+      ],
+      "additionalProperties": {},
+      "description": "Complete checks could not be loaded; the polling preview remains available."
+    },
+    {
+      "type": "object",
+      "properties": {
+        "code": {
+          "type": "string",
+          "const": "forgePanel/commits-missing"
+        },
+        "message": {
+          "type": "string"
+        },
+        "details": {
+          "type": "object",
+          "propertyNames": {
+            "type": "string"
+          },
+          "additionalProperties": {
+            "not": {}
+          }
+        }
+      },
+      "required": [
+        "code",
+        "message",
+        "details"
+      ],
+      "additionalProperties": {},
+      "description": "A chosen commit is no longer among the listed commits of the branch or change request, or the commits are out of order."
+    },
+    {
+      "type": "object",
+      "properties": {
+        "code": {
+          "type": "string",
+          "const": "forgePanel/commits-not-linear"
+        },
+        "message": {
+          "type": "string"
+        },
+        "details": {
+          "type": "object",
+          "propertyNames": {
+            "type": "string"
+          },
+          "additionalProperties": {
+            "not": {}
+          }
+        }
+      },
+      "required": [
+        "code",
+        "message",
+        "details"
+      ],
+      "additionalProperties": {},
+      "description": "A chosen commit after the first lacks the commit listed before it as its first parent, so two ends cannot name the run."
     },
     {
       "type": "object",
@@ -784,6 +951,34 @@
       "properties": {
         "code": {
           "type": "string",
+          "const": "forgePanel/filter-config-failed"
+        },
+        "message": {
+          "type": "string"
+        },
+        "details": {
+          "type": "object",
+          "propertyNames": {
+            "type": "string"
+          },
+          "additionalProperties": {
+            "not": {}
+          }
+        }
+      },
+      "required": [
+        "code",
+        "message",
+        "details"
+      ],
+      "additionalProperties": {},
+      "description": "Filter configuration could not be read completely; no comparison ran. Correct Git settings or the output limit before retrying."
+    },
+    {
+      "type": "object",
+      "properties": {
+        "code": {
+          "type": "string",
           "const": "forgePanel/invalid-branch"
         },
         "message": {
@@ -812,6 +1007,90 @@
       "properties": {
         "code": {
           "type": "string",
+          "const": "forgePanel/lens-failed"
+        },
+        "message": {
+          "type": "string"
+        },
+        "details": {
+          "type": "object",
+          "propertyNames": {
+            "type": "string"
+          },
+          "additionalProperties": {
+            "not": {}
+          }
+        }
+      },
+      "required": [
+        "code",
+        "message",
+        "details"
+      ],
+      "additionalProperties": {},
+      "description": "The lens failed, ran past `lensTimeoutMs`, read more than `maxLensReadBytes`, or answered over `maxCachedLensBytes`; the message says which."
+    },
+    {
+      "type": "object",
+      "properties": {
+        "code": {
+          "type": "string",
+          "const": "forgePanel/lens-missing"
+        },
+        "message": {
+          "type": "string"
+        },
+        "details": {
+          "type": "object",
+          "propertyNames": {
+            "type": "string"
+          },
+          "additionalProperties": {
+            "not": {}
+          }
+        }
+      },
+      "required": [
+        "code",
+        "message",
+        "details"
+      ],
+      "additionalProperties": {},
+      "description": "No lens with the requested identity is registered, as after its plugin unloaded."
+    },
+    {
+      "type": "object",
+      "properties": {
+        "code": {
+          "type": "string",
+          "const": "forgePanel/lens-stale"
+        },
+        "message": {
+          "type": "string"
+        },
+        "details": {
+          "type": "object",
+          "propertyNames": {
+            "type": "string"
+          },
+          "additionalProperties": {
+            "not": {}
+          }
+        }
+      },
+      "required": [
+        "code",
+        "message",
+        "details"
+      ],
+      "additionalProperties": {},
+      "description": "The files the view shows are no longer the files the panel reads, so the view reads them again before asking."
+    },
+    {
+      "type": "object",
+      "properties": {
+        "code": {
+          "type": "string",
           "const": "forgePanel/no-fork-point"
         },
         "message": {
@@ -833,7 +1112,7 @@
         "details"
       ],
       "additionalProperties": {},
-      "description": "No remote names a default branch that HEAD shares history with, and the checkout is not a worktree the Session created."
+      "description": "HEAD shares no history with the base branch chosen for the `branch` scope, or with none chosen, no remote names a default branch that HEAD shares history with and the checkout is not a worktree the Session created."
     },
     {
       "type": "object",
@@ -980,6 +1259,90 @@
       "properties": {
         "code": {
           "type": "string",
+          "const": "forgePanel/review-failed"
+        },
+        "message": {
+          "type": "string"
+        },
+        "details": {
+          "type": "object",
+          "propertyNames": {
+            "type": "string"
+          },
+          "additionalProperties": {
+            "not": {}
+          }
+        }
+      },
+      "required": [
+        "code",
+        "message",
+        "details"
+      ],
+      "additionalProperties": {},
+      "description": "The code host did not provide the change request's review threads, or its status has not been read yet; the message says why."
+    },
+    {
+      "type": "object",
+      "properties": {
+        "code": {
+          "type": "string",
+          "const": "forgePanel/review-unsupported"
+        },
+        "message": {
+          "type": "string"
+        },
+        "details": {
+          "type": "object",
+          "propertyNames": {
+            "type": "string"
+          },
+          "additionalProperties": {
+            "not": {}
+          }
+        }
+      },
+      "required": [
+        "code",
+        "message",
+        "details"
+      ],
+      "additionalProperties": {},
+      "description": "The code host's provider cannot read review threads, so the changes view shows none."
+    },
+    {
+      "type": "object",
+      "properties": {
+        "code": {
+          "type": "string",
+          "const": "forgePanel/reviewers-failed"
+        },
+        "message": {
+          "type": "string"
+        },
+        "details": {
+          "type": "object",
+          "propertyNames": {
+            "type": "string"
+          },
+          "additionalProperties": {
+            "not": {}
+          }
+        }
+      },
+      "required": [
+        "code",
+        "message",
+        "details"
+      ],
+      "additionalProperties": {},
+      "description": "The code host did not list the accounts a review can be requested from; the message says why."
+    },
+    {
+      "type": "object",
+      "properties": {
+        "code": {
+          "type": "string",
           "const": "forgePanel/session-busy"
         },
         "message": {
@@ -1057,7 +1420,7 @@
         "details"
       ],
       "additionalProperties": {},
-      "description": "The change request has new commits since the head the user confirmed, so it was not merged."
+      "description": "The change request's head is no longer the commit the request named: the head the user confirmed for a merge, the head displayed for complete checks, the head of the latest status for a diff, or the head of the displayed diff for review threads and viewed marks. A diff, review, or viewed mark read the host refuses polls the change request again at once, so a later status names the current head."
     },
     {
       "type": "object",
@@ -1086,6 +1449,34 @@
       ],
       "additionalProperties": {},
       "description": "No registered provider serves the change request URL."
+    },
+    {
+      "type": "object",
+      "properties": {
+        "code": {
+          "type": "string",
+          "const": "forgePanel/viewed-failed"
+        },
+        "message": {
+          "type": "string"
+        },
+        "details": {
+          "type": "object",
+          "propertyNames": {
+            "type": "string"
+          },
+          "additionalProperties": {
+            "not": {}
+          }
+        }
+      },
+      "required": [
+        "code",
+        "message",
+        "details"
+      ],
+      "additionalProperties": {},
+      "description": "The code host did not provide the signed-in user's viewed marks on the change request's files; the message says why."
     },
     {
       "type": "object",
@@ -1261,13 +1652,9 @@
                     "description": "Object keys and array indices; symbol keys use their diagnostic string.",
                     "type": "array",
                     "items": {
-                      "anyOf": [
-                        {
-                          "type": "string"
-                        },
-                        {
-                          "type": "number"
-                        }
+                      "type": [
+                        "string",
+                        "number"
                       ]
                     }
                   }
@@ -2566,19 +2953,6 @@
               "readOnly": true,
               "type": "string"
             },
-            "kind": {
-              "readOnly": true,
-              "anyOf": [
-                {
-                  "type": "string",
-                  "const": "readable"
-                },
-                {
-                  "type": "string",
-                  "const": "writable"
-                }
-              ]
-            },
             "endpoint": {
               "readOnly": true,
               "type": "string"
@@ -2586,7 +2960,6 @@
           },
           "required": [
             "plugin",
-            "kind",
             "endpoint"
           ]
         }
@@ -2597,7 +2970,7 @@
         "details"
       ],
       "additionalProperties": {},
-      "description": "A submitted capability names an endpoint the plugin does not offer under that kind."
+      "description": "A submitted policy names an endpoint the platform catalog does not offer."
     },
     {
       "type": "object",
@@ -2859,6 +3232,34 @@
       "properties": {
         "code": {
           "type": "string",
+          "const": "liveshareShares/missing-session-ids"
+        },
+        "message": {
+          "type": "string"
+        },
+        "details": {
+          "type": "object",
+          "propertyNames": {
+            "type": "string"
+          },
+          "additionalProperties": {
+            "not": {}
+          }
+        }
+      },
+      "required": [
+        "code",
+        "message",
+        "details"
+      ],
+      "additionalProperties": {},
+      "description": "An addition named no usable Session id."
+    },
+    {
+      "type": "object",
+      "properties": {
+        "code": {
+          "type": "string",
           "const": "liveshareShares/missing-share-id"
         },
         "message": {
@@ -2990,6 +3391,34 @@
       ],
       "additionalProperties": {},
       "description": "Creating a share requires a verified owner credential at the effective Relay."
+    },
+    {
+      "type": "object",
+      "properties": {
+        "code": {
+          "type": "string",
+          "const": "liveshareShares/owner-state-held"
+        },
+        "message": {
+          "type": "string"
+        },
+        "details": {
+          "type": "object",
+          "propertyNames": {
+            "type": "string"
+          },
+          "additionalProperties": {
+            "not": {}
+          }
+        }
+      },
+      "required": [
+        "code",
+        "message",
+        "details"
+      ],
+      "additionalProperties": {},
+      "description": "Another running host owns the owner state, so this host refuses to change the shares."
     },
     {
       "type": "object",
@@ -3196,6 +3625,73 @@
       "properties": {
         "code": {
           "type": "string",
+          "const": "liveshareShares/session-workspace-mismatch"
+        },
+        "message": {
+          "type": "string"
+        },
+        "details": {
+          "type": "object",
+          "properties": {
+            "sessionId": {
+              "readOnly": true,
+              "type": "string"
+            },
+            "workspaceId": {
+              "readOnly": true,
+              "type": "string"
+            }
+          },
+          "required": [
+            "sessionId",
+            "workspaceId"
+          ]
+        }
+      },
+      "required": [
+        "code",
+        "message",
+        "details"
+      ],
+      "additionalProperties": {},
+      "description": "A source Session belongs to a different Workspace than the share's other sources."
+    },
+    {
+      "type": "object",
+      "properties": {
+        "code": {
+          "type": "string",
+          "const": "liveshareShares/session-workspace-unknown"
+        },
+        "message": {
+          "type": "string"
+        },
+        "details": {
+          "type": "object",
+          "properties": {
+            "sessionId": {
+              "readOnly": true,
+              "type": "string"
+            }
+          },
+          "required": [
+            "sessionId"
+          ]
+        }
+      },
+      "required": [
+        "code",
+        "message",
+        "details"
+      ],
+      "additionalProperties": {},
+      "description": "A source Session belongs to no Workspace."
+    },
+    {
+      "type": "object",
+      "properties": {
+        "code": {
+          "type": "string",
           "const": "liveshareShares/share-not-found"
         },
         "message": {
@@ -3252,6 +3748,34 @@
       ],
       "additionalProperties": {},
       "description": "A submitted capability names a plugin that offers no viewer endpoints."
+    },
+    {
+      "type": "object",
+      "properties": {
+        "code": {
+          "type": "string",
+          "const": "liveshareShares/workspace-unavailable"
+        },
+        "message": {
+          "type": "string"
+        },
+        "details": {
+          "type": "object",
+          "propertyNames": {
+            "type": "string"
+          },
+          "additionalProperties": {
+            "not": {}
+          }
+        }
+      },
+      "required": [
+        "code",
+        "message",
+        "details"
+      ],
+      "additionalProperties": {},
+      "description": "The composition mounts no Workspace registry, so source placement cannot be checked."
     },
     {
       "type": "object",
@@ -3860,6 +4384,155 @@
       ],
       "additionalProperties": {},
       "description": "An interaction answer does not match the pending revision; the answer is not accepted."
+    },
+    {
+      "type": "object",
+      "properties": {
+        "code": {
+          "type": "string",
+          "const": "schedule/input-invalid"
+        },
+        "message": {
+          "type": "string"
+        },
+        "details": {
+          "type": "object",
+          "properties": {
+            "code": {
+              "readOnly": true,
+              "anyOf": [
+                {
+                  "type": "string",
+                  "const": "invalid_prompt"
+                },
+                {
+                  "type": "string",
+                  "const": "invalid_selector"
+                },
+                {
+                  "type": "string",
+                  "const": "invalid_rule"
+                },
+                {
+                  "type": "string",
+                  "const": "invalid_time_zone"
+                },
+                {
+                  "type": "string",
+                  "const": "not_future"
+                },
+                {
+                  "type": "string",
+                  "const": "time_out_of_range"
+                },
+                {
+                  "type": "string",
+                  "const": "frequency_too_high"
+                },
+                {
+                  "type": "string",
+                  "const": "subagent_session"
+                }
+              ]
+            }
+          },
+          "required": [
+            "code"
+          ]
+        }
+      },
+      "required": [
+        "code",
+        "message",
+        "details"
+      ],
+      "additionalProperties": {},
+      "description": "The Schedule request failed validation before it was stored."
+    },
+    {
+      "type": "object",
+      "properties": {
+        "code": {
+          "type": "string",
+          "const": "schedule/target-archived"
+        },
+        "message": {
+          "type": "string"
+        },
+        "details": {
+          "type": "object",
+          "properties": {
+            "sessionId": {
+              "readOnly": true,
+              "type": "string"
+            }
+          },
+          "required": [
+            "sessionId"
+          ]
+        }
+      },
+      "required": [
+        "code",
+        "message",
+        "details"
+      ],
+      "additionalProperties": {},
+      "description": "A delivery or run reached a `session` target that the Workspace registry lists as archived."
+    },
+    {
+      "type": "object",
+      "properties": {
+        "code": {
+          "type": "string",
+          "const": "session-status/not-found"
+        },
+        "message": {
+          "type": "string"
+        },
+        "details": {
+          "type": "object",
+          "properties": {
+            "sessionId": {
+              "readOnly": true,
+              "type": "string"
+            }
+          },
+          "required": [
+            "sessionId"
+          ]
+        }
+      },
+      "required": [
+        "code",
+        "message",
+        "details"
+      ],
+      "additionalProperties": {},
+      "description": "The requested Session does not exist."
+    },
+    {
+      "type": "object",
+      "properties": {
+        "code": {
+          "type": "string",
+          "const": "session-status/unavailable"
+        },
+        "message": {
+          "type": "string"
+        },
+        "details": {
+          "type": "object",
+          "properties": {}
+        }
+      },
+      "required": [
+        "code",
+        "message",
+        "details"
+      ],
+      "additionalProperties": {},
+      "description": "Reading state could not be updated; the previous value remains visible."
     },
     {
       "type": "object",
@@ -4810,37 +5483,6 @@
       "properties": {
         "code": {
           "type": "string",
-          "const": "subagent/parent-unavailable"
-        },
-        "message": {
-          "type": "string"
-        },
-        "details": {
-          "type": "object",
-          "properties": {
-            "parentSessionId": {
-              "readOnly": true,
-              "type": "string"
-            }
-          },
-          "required": [
-            "parentSessionId"
-          ]
-        }
-      },
-      "required": [
-        "code",
-        "message",
-        "details"
-      ],
-      "additionalProperties": {},
-      "description": "No live Agent carries the addressed parent session."
-    },
-    {
-      "type": "object",
-      "properties": {
-        "code": {
-          "type": "string",
           "const": "subagent/unauthorized"
         },
         "message": {
@@ -4865,7 +5507,7 @@
         "details"
       ],
       "additionalProperties": {},
-      "description": "The claimed parent does not own the addressed child."
+      "description": "The supplied address or live subagent-tree identity could not be verified."
     },
     {
       "type": "object",
@@ -5276,6 +5918,34 @@
       "properties": {
         "code": {
           "type": "string",
+          "const": "workspace-file/search-failed"
+        },
+        "message": {
+          "type": "string"
+        },
+        "details": {
+          "type": "object",
+          "propertyNames": {
+            "type": "string"
+          },
+          "additionalProperties": {
+            "not": {}
+          }
+        }
+      },
+      "required": [
+        "code",
+        "message",
+        "details"
+      ],
+      "additionalProperties": {},
+      "description": "Search cannot run: missing subprocess, launch/execution failure, or configured timeout."
+    },
+    {
+      "type": "object",
+      "properties": {
+        "code": {
+          "type": "string",
           "const": "workspace-file/too-large"
         },
         "message": {
@@ -5640,6 +6310,7 @@
               "agent-preset/not-found",
               "cotTranslation/failed",
               "credential/rejected",
+              "deepseekChatImport/owner-only",
               "device/admission-capacity",
               "device/admission-expired",
               "device/already-revoked",
@@ -5654,19 +6325,32 @@
               "directory-picker/unreadable",
               "document-render/failed",
               "forgePanel/action-failed",
+              "forgePanel/action-unknown",
+              "forgePanel/base-missing",
+              "forgePanel/checks-failed",
+              "forgePanel/commits-missing",
+              "forgePanel/commits-not-linear",
               "forgePanel/diff-failed",
               "forgePanel/diff-too-large",
+              "forgePanel/filter-config-failed",
               "forgePanel/invalid-branch",
+              "forgePanel/lens-failed",
+              "forgePanel/lens-missing",
+              "forgePanel/lens-stale",
               "forgePanel/no-fork-point",
               "forgePanel/no-worktree",
               "forgePanel/not-a-checkout",
               "forgePanel/not-bound",
               "forgePanel/not-waiting",
               "forgePanel/restore-failed",
+              "forgePanel/review-failed",
+              "forgePanel/review-unsupported",
+              "forgePanel/reviewers-failed",
               "forgePanel/session-busy",
               "forgePanel/session-started",
               "forgePanel/stale-head",
               "forgePanel/unrecognized-url",
+              "forgePanel/viewed-failed",
               "forgePanel/worktrees-unavailable",
               "gateway/ambiguous-endpoint",
               "gateway/arguments-invalid",
@@ -5715,14 +6399,19 @@
               "liveshareShares/invalid-ttl",
               "liveshareShares/missing-permission",
               "liveshareShares/missing-session-id",
+              "liveshareShares/missing-session-ids",
               "liveshareShares/missing-share-id",
               "liveshareShares/owner-login-required",
+              "liveshareShares/owner-state-held",
               "liveshareShares/owner-state-unavailable",
               "liveshareShares/relay-unavailable",
               "liveshareShares/relay-upgrade-required",
               "liveshareShares/relay-url-required",
+              "liveshareShares/session-workspace-mismatch",
+              "liveshareShares/session-workspace-unknown",
               "liveshareShares/share-not-found",
               "liveshareShares/unknown-plugin",
+              "liveshareShares/workspace-unavailable",
               "llm/model-discovery-rejected",
               "plan/invalid-address",
               "plan/not-found",
@@ -5740,6 +6429,10 @@
               "plugin-market/unknown-plugin",
               "remote-access/denied",
               "revision-conflict",
+              "schedule/input-invalid",
+              "schedule/target-archived",
+              "session-status/not-found",
+              "session-status/unavailable",
               "session/agent-busy",
               "session/attachment-invalid",
               "session/conflict",
@@ -5769,7 +6462,6 @@
               "subagent/invalid-time-zone",
               "subagent/not-found",
               "subagent/not-resumable",
-              "subagent/parent-unavailable",
               "subagent/unauthorized",
               "terminal/control-unavailable",
               "terminal/limit-reached",
@@ -5782,6 +6474,7 @@
               "workspace-file/not-regular-file",
               "workspace-file/not-text",
               "workspace-file/outside-workspace",
+              "workspace-file/search-failed",
               "workspace-file/too-large",
               "workspace-file/unknown-workspace",
               "workspace-file/unsupported-address",

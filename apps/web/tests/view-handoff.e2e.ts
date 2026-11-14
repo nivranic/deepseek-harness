@@ -29,7 +29,8 @@ it('copies an authenticated-page link and opens an earlier turn without carrying
   }
   await scaffold.ctx.sessionController.rename({ sessionId, title: 'Handoff history' })
   await scaffold.ctx.sessions.flush(agent.session)
-  const browser = await chromium.launch()
+  const executablePath = process.env.DSH_PLAYWRIGHT_EXECUTABLE_PATH
+  const browser = await chromium.launch(executablePath === undefined ? {} : { executablePath })
   onTestFinished(async () => { await browser.close() })
   const context = await browser.newContext({ viewport: { width: 1440, height: 900 }, locale: 'en-US' })
   await context.grantPermissions(['clipboard-read', 'clipboard-write'])
@@ -42,9 +43,29 @@ it('copies an authenticated-page link and opens an earlier turn without carrying
   await group.waitFor()
   if (await group.getAttribute('aria-expanded') === 'false') await group.click()
   await page.getByRole('treeitem').filter({ hasText: 'Handoff history' }).last().click()
-  await page.getByRole('button', { name: 'Continue on another device', exact: true }).click()
-  await page.getByRole('dialog', { name: 'Scan on another device to continue viewing', exact: true }).waitFor()
+  const trigger = page.getByRole('button', { name: /^(Continue on another device|View-location link copied)$/ })
+  const panel = page.getByRole('dialog', { name: 'Scan on another device to continue viewing', exact: true })
+  await trigger.click()
+  await panel.waitFor()
   const link = await page.evaluate(() => navigator.clipboard.readText())
+  for (const viewport of [{ width: 1440, height: 900 }, { width: 390, height: 844 }]) {
+    await page.setViewportSize(viewport)
+    await expect.poll(async () => {
+      const bounds = await panel.boundingBox()
+      return bounds !== null && bounds.x >= 0 && bounds.y >= 0
+        && bounds.x + bounds.width <= viewport.width && bounds.y + bounds.height <= viewport.height
+    }).toBe(true)
+  }
+  await page.emulateMedia({ colorScheme: 'dark' })
+  await page.keyboard.press('Escape')
+  await expect.poll(() => panel.isVisible()).toBe(false)
+  await expect.poll(() => trigger.evaluate(button => button === document.activeElement)).toBe(true)
+  await page.setViewportSize({ width: 1440, height: 900 })
+  await page.emulateMedia({ colorScheme: 'light' })
+  await trigger.click()
+  await panel.waitFor()
+  await page.locator('[data-composer-input][contenteditable="true"]').click()
+  await expect.poll(() => panel.isVisible()).toBe(false)
   const address = new URL(link)
   expect(address.search).toBe('')
   expect(address.origin).toBe(new URL(scaffold.authenticatedUrl).origin)

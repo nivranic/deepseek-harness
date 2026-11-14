@@ -3,8 +3,7 @@ import { readFile } from 'node:fs/promises'
 import { dirname, join, resolve } from 'node:path'
 import { fileURLToPath } from 'node:url'
 import type { Context } from '@deepseek-ai/cordis'
-import { entryListSchema } from '@deepseek-ai/cordis-plugin-include'
-import { dump, load } from 'js-yaml'
+import { parseEntryYaml, stringifyEntryYaml } from '@deepseek-ai/cordis-plugin-include'
 import { renderPrompt } from '@deepseek-ai/dsh-system-prompt'
 import { afterEach, describe, expect, it } from 'vitest'
 import type { PresetDefinition } from '../src/index.ts'
@@ -51,14 +50,14 @@ describe('a complete persona assembled through the official registry', () => {
   async function rosterWith(id: string, composition: string): Promise<Context> {
     const ctx = await harness()
     contexts.push(ctx)
-    await declare(ctx, { id, plugins: load(composition, { schema: entryListSchema }) as PresetDefinition['plugins'] })
+    await declare(ctx, { id, plugins: parseEntryYaml(composition) as PresetDefinition['plugins'] })
     return ctx
   }
 
   it('assembles to the persona prefix and suppresses the registry identity it owns', async () => {
     const minimal = shippedPresetDefinitions().find(preset => preset.id === 'minimal')!
-    const persona = personaRowOf(dump(minimal.plugins, { schema: entryListSchema }))
-    const composition = dump([{
+    const persona = personaRowOf(stringifyEntryYaml(minimal.plugins))
+    const composition = stringifyEntryYaml([{
       id: 'persona',
       name: new URL('../../persona/src/index.ts', import.meta.url).href,
       config: { prefix: persona.prefix, complete: true, includeRuntimeContext: false },
@@ -77,7 +76,7 @@ describe('a complete persona assembled through the official registry', () => {
   })
 
   it('leaves a non-complete persona alongside the registry sections it does not own', async () => {
-    const ctx = await rosterWith('lite-open-persona', dump([{
+    const ctx = await rosterWith('lite-open-persona', stringifyEntryYaml([{
       id: 'persona',
       name: new URL('../../persona/src/index.ts', import.meta.url).href,
       config: { prefix: 'You are an open persona.' },

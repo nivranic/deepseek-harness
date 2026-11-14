@@ -261,7 +261,7 @@ def test_mock_model_serves_native_messages_events() -> None:
 
 @pytest.mark.parametrize("directory", ["/fixture/workspace", r"C:\fixture\workspace"])
 def test_minimal_snapshot_pins_quoted_working_directory(directory: str) -> None:
-    context = f"Current working directory: {json.dumps(directory)}."
+    context = f"Current working directory: {json.dumps(str(Path(directory)))}."
     other = json.dumps(r"C:\another\directory")
     files = SMOKE["build_minimal_snapshot_files"]([{
         "system": [],
@@ -762,8 +762,8 @@ def test_profile_plugin_failure_reports_native_exit_status(monkeypatch: pytest.M
 
 def test_session_log_reads_utf8_with_a_legacy_default_encoding(tmp_path: Path, monkeypatch: pytest.MonkeyPatch) -> None:
     message = "中文–session"
-    header = {"type": "session", "version": 3, "cwd": str(tmp_path)}
-    (tmp_path / "session.v3.jsonl").write_text(
+    header = {"type": "session", "version": SESSION_FORMAT_VERSION, "cwd": str(tmp_path)}
+    (tmp_path / f"session.v{SESSION_FORMAT_VERSION}.jsonl").write_text(
         json.dumps(header, ensure_ascii=False) + "\n" + json.dumps({"text": message}, ensure_ascii=False) + "\n",
         encoding="utf-8",
     )
