@@ -561,7 +561,8 @@ TryOpen 'DIRECTORY' '${child}'
       expect(result.status, `stderr: ${result.stderr}`).toBe(0)
       expect(result.stdout).toContain('FILE: OK')
       expect(result.stdout).toContain('NESTED-FILE: OK')
-      expect(result.stdout).toContain('DIRECTORY: DENIED')
+      const directoryAcl = spawnSync('icacls', [child], { encoding: 'utf8' })
+      expect(result.stdout, `directory ACL: ${directoryAcl.stdout}\n${directoryAcl.stderr}`).toContain('DIRECTORY: DENIED')
     } finally {
       grant.dispose()
       rmSync(granted, { recursive: true, force: true })
