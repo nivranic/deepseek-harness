@@ -144,8 +144,10 @@ async function deepseekDefaultsServer(
           '',
         ].join('\n\n'))
       }
-      let timer = setTimeout(write, 60)
+      let timer: ReturnType<typeof setTimeout> | undefined
       response.once('close', () => { clearTimeout(timer); trace(`${requestNumber}:close`) })
+      // The first idle deadline includes request setup before this handler runs.
+      write()
     })
   })
   await new Promise<void>(resolve => server.listen(0, '127.0.0.1', resolve))
@@ -873,7 +875,9 @@ describe('headless stream-json snapshots', () => {
           model: request.model, maxTokens: request.max_tokens, title: isTitleRequest(request),
         })),
         activity: server.activity,
-        retries: parseJsonl(result.stdout).filter(record => /timeout|retry|attempt/i.test(JSON.stringify(record))),
+        retries: parseJsonl(result.stdout).filter(record => record.type === 'session_event'
+          && (record.event as JsonObject).type !== 'request/header'
+          && /timeout|retry|attempt/i.test(JSON.stringify(record))),
       })).toHaveLength(2)
       expect(server.paths).toEqual(['/v1/messages', '/v1/messages'])
       const agentRequest = server.requests.find(request => request.max_tokens === 256_000)
