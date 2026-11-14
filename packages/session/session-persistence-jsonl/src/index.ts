@@ -1054,7 +1054,11 @@ class JsonlSessionPersistence extends SessionPersistence {
 
   /** Primary bytes and recovery state together identify the current logical log. */
   private async currentRevision(path: string, identity?: JsonlPhysicalIdentity): Promise<PersistenceRevision> {
-    const primary = fileRevision(identity ?? await stat(path, { bigint: true }))
+    let physicalIdentity = identity
+    if (physicalIdentity === undefined) {
+      physicalIdentity = await stat(path, { bigint: true })
+    }
+    const primary = fileRevision(physicalIdentity)
     if (this.compression !== 'zstd') return primary
     const intent = await repairIntentRevision(path)
     return intent === undefined ? primary : brandString<PersistenceRevision>(`${primary}:repair:${intent}`)
