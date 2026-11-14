@@ -39,6 +39,7 @@ import type {
   SourceLocation,
   SymbolId,
   TypeDeclarationModel,
+  TypeGraph,
   TypeNodeId,
   TypeNodeModel,
   TypeOperatorName,
@@ -752,10 +753,7 @@ class FaceAnalyzer {
     return {
       face: this.face,
       packages,
-      graph: {
-        declarations: [...this.declarations.values()].sort((left, right) => left.id.localeCompare(right.id)),
-        nodes: [...this.nodes.values()].sort((left, right) => left.id.localeCompare(right.id)),
-      },
+      graph: this.typeGraph(),
     }
   }
 
@@ -811,10 +809,14 @@ class FaceAnalyzer {
     return {
       face: this.face,
       errors: [...errors.values()].sort((left, right) => left.code.localeCompare(right.code)),
-      graph: {
-        declarations: [...this.declarations.values()].sort((left, right) => left.id.localeCompare(right.id)),
-        nodes: [...this.nodes.values()].sort((left, right) => left.id.localeCompare(right.id)),
-      },
+      graph: this.typeGraph(),
+    }
+  }
+
+  private typeGraph(): TypeGraph {
+    return {
+      declarations: [...this.declarations.values()].sort((left, right) => left.id.localeCompare(right.id)),
+      nodes: [...this.nodes.values()].sort((left, right) => left.id.localeCompare(right.id)),
     }
   }
 

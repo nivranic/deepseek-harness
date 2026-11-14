@@ -121,6 +121,7 @@ export function isolatedStandardPresetPatch(root: string, skills: boolean): Patc
     { id: 'tool-skill', disabled: !skills },
     { id: 'skill-filesystem', config: {
       dshHome: join(root, 'skills'), agentsHome: join(root, 'agents'), bundledSkillDir: join(root, 'bundled'),
+      customSkillDirs: [join(REPO_ROOT, 'packages/preset/agent-preset/skills')],
       watch: false,
     } },
   ], (message) => { throw new Error(message) })

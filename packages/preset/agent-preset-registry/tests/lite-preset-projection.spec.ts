@@ -5,6 +5,7 @@ import { fileURLToPath } from 'node:url'
 import type { Context } from '@deepseek-ai/cordis'
 import { parseEntryYaml, stringifyEntryYaml } from '@deepseek-ai/cordis-plugin-include'
 import { renderPrompt } from '@deepseek-ai/dsh-system-prompt'
+import * as Persona from '@deepseek-ai/dsh-persona'
 import { afterEach, describe, expect, it } from 'vitest'
 import type { PresetDefinition } from '../src/index.ts'
 import { declare, harness } from './harness.ts'
@@ -50,6 +51,7 @@ describe('a complete persona assembled through the official registry', () => {
   async function rosterWith(id: string, composition: string): Promise<Context> {
     const ctx = await harness()
     contexts.push(ctx)
+    ctx.loader.builtins.persona = Persona
     await declare(ctx, { id, plugins: parseEntryYaml(composition) as PresetDefinition['plugins'] })
     return ctx
   }
@@ -59,7 +61,7 @@ describe('a complete persona assembled through the official registry', () => {
     const persona = personaRowOf(stringifyEntryYaml(minimal.plugins))
     const composition = stringifyEntryYaml([{
       id: 'persona',
-      name: new URL('../../persona/src/index.ts', import.meta.url).href,
+      name: 'cordis:persona',
       config: { prefix: persona.prefix, complete: true, includeRuntimeContext: false },
     }])
     const ctx = await rosterWith('lite-projection', composition)
@@ -78,7 +80,7 @@ describe('a complete persona assembled through the official registry', () => {
   it('leaves a non-complete persona alongside the registry sections it does not own', async () => {
     const ctx = await rosterWith('lite-open-persona', stringifyEntryYaml([{
       id: 'persona',
-      name: new URL('../../persona/src/index.ts', import.meta.url).href,
+      name: 'cordis:persona',
       config: { prefix: 'You are an open persona.' },
     }]))
     await using scope = await ctx.agentPresets.acquireScope('lite-open-persona')

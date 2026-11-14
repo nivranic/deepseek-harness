@@ -8,6 +8,7 @@
 
 import { globSync, readFileSync, writeFileSync } from 'node:fs'
 import { basename, dirname, resolve } from 'node:path'
+import { reportFirstDifference } from './gen-script-cli.ts'
 import { Context } from '@deepseek-ai/cordis'
 import LlmRuntime from '@deepseek-ai/dsh-llm'
 import type { ToolSchema } from '@deepseek-ai/dsh-llm'
@@ -1030,16 +1031,7 @@ async function main(): Promise<void> {
       continue
     }
     console.error(`gen-tool-catalog: ${file} is stale. Run \`pnpm run gen-tool-catalog\` and commit ${file}.`)
-    const committedLines = committed?.split('\n') ?? []
-    const generatedLines = content.split('\n')
-    const lineCount = Math.max(committedLines.length, generatedLines.length)
-    for (let index = 0; index < lineCount; index += 1) {
-      if (committedLines[index] === generatedLines[index]) continue
-      console.error(`gen-tool-catalog: first difference at line ${index + 1}`)
-      console.error(`  committed: ${JSON.stringify(committedLines[index])}`)
-      console.error(`  generated: ${JSON.stringify(generatedLines[index])}`)
-      break
-    }
+    reportFirstDifference('gen-tool-catalog', committed, content)
     process.exitCode = 1
   }
 }

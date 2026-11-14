@@ -104,12 +104,14 @@ export function HostStatusSection({ t, health }: HostStatusSectionProps): ReactN
 
   const { snapshot } = state
   const verdict = snapshot.ready ? 'ready' : 'notReady'
+  /* jscpd:ignore-start -- Each settings section owns its localized heading and CSS module. */
   return (
     <section className={css.section} aria-label={t('title')}>
       <div className={css.heading}>
         <h3>{t('title')}</h3>
         <p className={css.subtitle}>{t('subtitle')}</p>
       </div>
+      {/* jscpd:ignore-end */}
       <div className={css.verdict} data-host-ready={snapshot.ready ? 'true' : 'false'}>
         <Tag tone={VERDICT_TAG_TONES[verdict]}>{t(verdict)}</Tag>
       </div>

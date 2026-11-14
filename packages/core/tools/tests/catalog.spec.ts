@@ -5,6 +5,13 @@ import SystemPrompt from '@deepseek-ai/dsh-system-prompt'
 import * as NativeToolExecutor from '@deepseek-ai/dsh-tool-executor-native'
 import { createScope } from '@deepseek-ai/dsh-scope'
 import ToolRuntime, { defineTool, ToolDeclarationUnavailableError, type ToolDefinition } from '../src/index.ts'
+import { TOOL_REMOTE_CAPABILITIES } from '../src/capabilities.ts'
+
+it('exports the view-grade tool catalog operation set', () => {
+  expect(TOOL_REMOTE_CAPABILITIES).toEqual([
+    { id: 'tool.catalog.v1', methods: ['list'], requiredPermission: 'view' },
+  ])
+})
 
 function tool(name: string): ToolDefinition {
   return defineTool({

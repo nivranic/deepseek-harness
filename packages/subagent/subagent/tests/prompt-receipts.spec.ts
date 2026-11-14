@@ -1,12 +1,12 @@
-import { describe, expect, it } from 'vitest'
+import { describe, expect, it, onTestFinished } from 'vitest'
 import { Context } from '@deepseek-ai/cordis'
 import SessionStore, { SessionId, SessionLogOffset, SessionSeq } from '@deepseek-ai/dsh-session'
 import type { SessionEvent, UserMessage } from '@deepseek-ai/dsh-session'
-import { createUserMessage } from '@deepseek-ai/dsh-llm'
+import { createUserMessage, type MessageSource } from '@deepseek-ai/dsh-llm'
 import SessionProjectionRegistry from '@deepseek-ai/dsh-session-projection'
 import type { ProjectionCheckpoint } from '@deepseek-ai/dsh-session-projection'
 import type { SubagentPromptRequestId } from '../src/control-types.ts'
-import { findPromptReceipt, subagentPromptReceiptsProjectionDefinition as definition } from '../src/prompt-receipts.ts'
+import { findPromptReceipt, promptRequestId, subagentPromptReceiptsProjectionDefinition as definition } from '../src/prompt-receipts.ts'
 
 /** Registration handle type returned by the awaited projection registration. */
 type ReceiptsRegistration = Awaited<ReturnType<InstanceType<typeof SessionProjectionRegistry>['register']>>
@@ -17,6 +17,28 @@ function insertion(seq: number, message: UserMessage): SessionEvent<'agent/inbox
 }
 
 describe('subagent prompt receipts', () => {
+  it('ignores uncorrelated sources and unrelated events while retaining the first accepted message', async () => {
+    const ctx = new Context()
+    onTestFinished(() => ctx.fiber.dispose())
+    await ctx.plugin(SessionStore)
+    const session = ctx.sessions.create(SessionId('receipt-source-cases'))
+    const requestId = 'request' as SubagentPromptRequestId
+    const message = createUserMessage({ content: [], source: { kind: 'user', rpcId: requestId } })
+    const initial = definition.init(session.header, SessionLogOffset(0))
+    expect(promptRequestId(undefined)).toBeUndefined()
+    expect(promptRequestId({ kind: 'user' })).toBeUndefined()
+    const legacySource = JSON.parse('{"kind":"user","rpcId":1}') as MessageSource
+    expect(promptRequestId(legacySource)).toBeUndefined()
+    expect(findPromptReceipt(initial, requestId)).toBeUndefined()
+    const unrelated: SessionEvent<'turn/start'> = { type: 'turn/start', seq: SessionSeq(0), time: 0, data: { turn: 1 } }
+    expect(definition.apply(initial, unrelated)).toBe(initial)
+    expect(definition.apply(initial, insertion(0, createUserMessage({ content: [], source: { kind: 'user' } })))).toBe(initial)
+    const accepted = definition.apply(initial, { type: 'user/message', seq: SessionSeq(0), time: 0, data: message, surfaceOp: 'append' })
+    const repeated = definition.apply(accepted, insertion(1, { ...message, id: createUserMessage({ content: [], source: { kind: 'user' } }).id }))
+    expect(findPromptReceipt(repeated, requestId)).toBe(message.id)
+    expect(findPromptReceipt(repeated, 'missing' as SubagentPromptRequestId)).toBeUndefined()
+  })
+
   it('restores only child-owned acceptance and keeps receipts out of wire snapshots', async () => {
     const ctx = new Context()
     try {

@@ -14,6 +14,7 @@ import { mkdirSync, mkdtempSync, readFileSync, readdirSync, rmSync, symlinkSync,
 import { tmpdir } from 'node:os'
 import { join, resolve } from 'node:path'
 import { pathToFileURL } from 'node:url'
+import { reportFirstDifference } from './gen-script-cli.ts'
 import { Context } from '@deepseek-ai/cordis'
 import Loader from '@deepseek-ai/cordis-plugin-loader'
 import Include, { parseEntryYaml } from '@deepseek-ai/cordis-plugin-include'
@@ -470,16 +471,7 @@ async function main(): Promise<void> {
       process.exit(0)
     }
     console.error(`gen-lite-preset-catalog: ${OUT} is stale. Run \`pnpm run gen-lite-preset-catalog\` and commit ${OUT}.`)
-    const committedLines = committed?.split('\n') ?? []
-    const generatedLines = content.split('\n')
-    const lineCount = Math.max(committedLines.length, generatedLines.length)
-    for (let index = 0; index < lineCount; index += 1) {
-      if (committedLines[index] === generatedLines[index]) continue
-      console.error(`gen-lite-preset-catalog: first difference at line ${index + 1}`)
-      console.error(`  committed: ${JSON.stringify(committedLines[index])}`)
-      console.error(`  generated: ${JSON.stringify(generatedLines[index])}`)
-      break
-    }
+    reportFirstDifference('gen-lite-preset-catalog', committed, content)
     process.exit(1)
   }
 

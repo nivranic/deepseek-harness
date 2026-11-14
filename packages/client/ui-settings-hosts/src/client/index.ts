@@ -7,7 +7,7 @@ import type {} from '@deepseek-ai/dsh-client-ui-settings/client'
 import type {} from '@deepseek-ai/dsh-client-ui-renderer/client'
 import { HostsSettingsSection, type HostsSettingsSectionInjected } from './HostsSettingsSection.tsx'
 import { SavedHostsStore, browserSavedHostsPersistence } from './saved-hosts.ts'
-import { en, zh, type HostsLocaleKey } from './locales.ts'
+import { de, en, es, fr, ja, pt, ru, zh, type HostsLocaleKey } from './locales.ts'
 
 export type { HostsSettingsSectionInjected, HostsSettingsSectionProps } from './HostsSettingsSection.tsx'
 export type { SavedHost } from './saved-hosts.ts'
@@ -29,7 +29,7 @@ export const inject = ['slots', 'locale', 'connection', 'remote', 'remote.host']
  * @param ctx - Client plugin context.
  */
 export function apply(ctx: Context): void {
-  ctx.effect(() => ctx.locale.register(NS, { zh, en }), 'ui-settings-hosts: dictionaries')
+  ctx.effect(() => ctx.locale.register(NS, { zh, en, ja, es, fr, de, ru, pt }), 'ui-settings-hosts: dictionaries')
   const t = ctx.locale.bind(NS)
   const connection = ctx.get('connection') as ConnectionHandle
   const roster = new SavedHostsStore(browserSavedHostsPersistence())

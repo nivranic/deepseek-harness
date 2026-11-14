@@ -180,11 +180,12 @@ describe('LspConnection edge behavior', () => {
     void conn.closed.then(() => { closed = true })
     const failInput = await inputFailure.promise
     failInput()
-    expect(conn.failedWith(failure)).toBe(true)
+    const transportFailure: unknown = await first.catch((error: unknown) => error)
+    expect(transportFailure).toMatchObject({ code: 'LSP_SERVER_EXITED', cause: failure })
+    expect(conn.failedWith(transportFailure)).toBe(true)
     expect(closed).toBe(false)
-    await expect(first).rejects.toBe(failure)
-    await expect(second).rejects.toBe(failure)
-    await expect(conn.request('textDocument/definition', {})).rejects.toBe(failure)
+    await expect(second).rejects.toBe(transportFailure)
+    await expect(conn.request('textDocument/definition', {})).rejects.toBe(transportFailure)
     expect(closed).toBe(false)
     conn.terminate()
     await conn.closed

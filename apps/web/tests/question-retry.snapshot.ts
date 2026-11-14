@@ -33,6 +33,7 @@ it.skipIf(process.env.DSH_SNAPSHOT === 'record').each([
   const beforeHost = loss.endsWith('before-host')
   const competing = loss === 'competing'
   const artifacts = `.artifacts/question-retry-${loss}`
+  await mkdir('.artifacts', { recursive: true })
   const fixture = await selectedSessionFixture(join(scenario, 'session.jsonl'))
   const root = await mkdtemp(join(tmpdir(), 'dsh-question-retry-'))
   const home = join(root, 'home')

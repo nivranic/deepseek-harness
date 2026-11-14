@@ -8,7 +8,6 @@
 - id: system-prompt
   config:
     personaPrefix: You are a coding agent powered by the {{model}} model.
-    personaSuffix: Your working directory is {{cwd}}.
 
 - insert:
     - id: desktop-context

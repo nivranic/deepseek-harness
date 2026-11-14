@@ -19,14 +19,11 @@ const excludedPrefixes = [
   // Frozen lane evidence and audit snapshots cite the exact commits they
   // verified; maintained prose stays under the rule below.
   'artifacts/upstream-first/',
-  '.agents/notes/implemented/',
   'UPSTREAM_DELTA.json',
   'UPSTREAM_BASELINE.md',
   'CUSTOM_CAPABILITY_INVENTORY.json',
   'IMPLEMENTATION_STATUS.md',
   'COMPATIBILITY_MATRIX.md',
-  // Generated lockfiles carry dependency pseudo-versions.
-  'python/sdk/uv.lock',
   // The lane's native-scanner release toolchain pins AAR pseudo-versions.
   'scripts/release/mobile_scanner',
   'scripts/release/test_mobile_scanner',
@@ -34,6 +31,15 @@ const excludedPrefixes = [
   '.mimosa/',
   '.glm-router/',
 ]
+// Retained lane verification receipts identify the exact source commits they exercised.
+const retainedEvidenceFiles = new Set([
+  '.agents/notes/implemented/process/2026-09-20-scanner-toolchain-host-accommodations.md',
+  '.agents/notes/implemented/process/2026-09-20-scanner-toolchain-host-accommodations.zh.md',
+  '.agents/notes/implemented/testing/2026-10-23-live-model-e2e.md',
+  '.agents/notes/implemented/testing/2026-10-23-live-model-e2e.zh.md',
+  '.agents/notes/implemented/testing/2026-10-26-shared-diff-corpus.md',
+  '.agents/notes/implemented/testing/2026-10-26-shared-diff-corpus.zh.md',
+])
 const gitOutputLimit = 64 * 1024 * 1024
 // One 41-byte line per object; 1.2 million objects produce about 49 MiB.
 const objectListingLimit = 1024 * 1024 * 1024
@@ -49,7 +55,7 @@ export interface RepositoryReference {
 }
 
 function isMaintained(file: string): boolean {
-  return !excludedPrefixes.some(prefix => file.startsWith(prefix))
+  return !retainedEvidenceFiles.has(file) && !excludedPrefixes.some(prefix => file.startsWith(prefix))
 }
 
 /**

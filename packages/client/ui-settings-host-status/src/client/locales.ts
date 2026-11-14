@@ -59,3 +59,129 @@ export const en: Record<HostStatusLocaleKey, string> = {
   'state.degraded': 'Degraded',
   'state.down': 'Unavailable',
 }
+
+/** Japanese dictionary. */
+export const ja = {
+  'nav': 'ホストの状態',
+  'title': 'ホストの状態',
+  'subtitle': '6 つのヘルス項目と、このホストが現在エージェントのリクエストを受け付けられるかを表示します。',
+  'ready': 'エージェントのリクエストを受付中',
+  'notReady': 'エージェントのリクエストを受付停止中',
+  'loading': 'ホストの状態を読み込み中',
+  'error': 'ホストの状態を読み込めませんでした。',
+  'retry': '再試行',
+  'component.process': 'プロセス',
+  'component.runtime': 'ランタイム',
+  'component.sessionStore': 'セッションストア',
+  'component.pluginState': 'プラグインの状態',
+  'component.connection': '接続',
+  'component.modelProvider': 'モデルプロバイダー',
+  'state.up': '正常',
+  'state.degraded': '機能低下',
+  'state.down': '利用不可',
+}
+
+/** Spanish dictionary. */
+export const es = {
+  'nav': 'Estado del Host',
+  'title': 'Estado del Host',
+  'subtitle': 'Los seis componentes de salud y si este Host puede aceptar solicitudes de agentes actualmente.',
+  'ready': 'Aceptando solicitudes de agentes',
+  'notReady': 'Sin aceptar solicitudes de agentes',
+  'loading': 'Leyendo el estado del Host',
+  'error': 'No se pudo leer el estado del Host.',
+  'retry': 'Reintentar',
+  'component.process': 'Proceso',
+  'component.runtime': 'Entorno de ejecución',
+  'component.sessionStore': 'Almacén de sesiones',
+  'component.pluginState': 'Estado de los plugins',
+  'component.connection': 'Conexión',
+  'component.modelProvider': 'Proveedor de modelos',
+  'state.up': 'Correcto',
+  'state.degraded': 'Degradado',
+  'state.down': 'No disponible',
+}
+
+/** French dictionary. */
+export const fr = {
+  'nav': 'État de l’hôte',
+  'title': 'État de l’hôte',
+  'subtitle': 'Les six composants de santé et la capacité actuelle de cet hôte à accepter les requêtes des agents.',
+  'ready': 'Accepte les requêtes des agents',
+  'notReady': 'N’accepte pas les requêtes des agents',
+  'loading': 'Lecture de l’état de l’hôte',
+  'error': 'Impossible de lire l’état de l’hôte.',
+  'retry': 'Réessayer',
+  'component.process': 'Processus',
+  'component.runtime': 'Environnement d’exécution',
+  'component.sessionStore': 'Stockage des sessions',
+  'component.pluginState': 'État des plugins',
+  'component.connection': 'Connexion',
+  'component.modelProvider': 'Fournisseur de modèles',
+  'state.up': 'Opérationnel',
+  'state.degraded': 'Dégradé',
+  'state.down': 'Indisponible',
+}
+
+/** German dictionary. */
+export const de = {
+  'nav': 'Host-Status',
+  'title': 'Host-Status',
+  'subtitle': 'Die sechs Zustandskomponenten und ob dieser Host derzeit Agentenanfragen annehmen kann.',
+  'ready': 'Agentenanfragen werden angenommen',
+  'notReady': 'Agentenanfragen werden nicht angenommen',
+  'loading': 'Host-Status wird gelesen',
+  'error': 'Der Host-Status konnte nicht gelesen werden.',
+  'retry': 'Erneut versuchen',
+  'component.process': 'Prozess',
+  'component.runtime': 'Laufzeit',
+  'component.sessionStore': 'Sitzungsspeicher',
+  'component.pluginState': 'Plugin-Status',
+  'component.connection': 'Verbindung',
+  'component.modelProvider': 'Modellanbieter',
+  'state.up': 'Funktionsfähig',
+  'state.degraded': 'Eingeschränkt',
+  'state.down': 'Nicht verfügbar',
+}
+
+/** Russian dictionary. */
+export const ru = {
+  'nav': 'Состояние хоста',
+  'title': 'Состояние хоста',
+  'subtitle': 'Шесть компонентов состояния и возможность этого хоста принимать запросы агентов в данный момент.',
+  'ready': 'Принимает запросы агентов',
+  'notReady': 'Не принимает запросы агентов',
+  'loading': 'Чтение состояния хоста',
+  'error': 'Не удалось прочитать состояние хоста.',
+  'retry': 'Повторить',
+  'component.process': 'Процесс',
+  'component.runtime': 'Среда выполнения',
+  'component.sessionStore': 'Хранилище сеансов',
+  'component.pluginState': 'Состояние плагинов',
+  'component.connection': 'Подключение',
+  'component.modelProvider': 'Поставщик моделей',
+  'state.up': 'Исправен',
+  'state.degraded': 'Работает с ограничениями',
+  'state.down': 'Недоступен',
+}
+
+/** Portuguese dictionary. */
+export const pt = {
+  'nav': 'Estado do Host',
+  'title': 'Estado do Host',
+  'subtitle': 'Os seis componentes de estado e a capacidade atual deste Host para aceitar pedidos de agentes.',
+  'ready': 'A aceitar pedidos de agentes',
+  'notReady': 'Não está a aceitar pedidos de agentes',
+  'loading': 'A ler o estado do Host',
+  'error': 'Não foi possível ler o estado do Host.',
+  'retry': 'Tentar novamente',
+  'component.process': 'Processo',
+  'component.runtime': 'Ambiente de execução',
+  'component.sessionStore': 'Armazenamento de sessões',
+  'component.pluginState': 'Estado dos plugins',
+  'component.connection': 'Ligação',
+  'component.modelProvider': 'Fornecedor de modelos',
+  'state.up': 'Operacional',
+  'state.degraded': 'Degradado',
+  'state.down': 'Indisponível',
+}

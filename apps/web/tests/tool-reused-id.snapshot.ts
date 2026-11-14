@@ -32,6 +32,7 @@ it.skipIf(process.env.DSH_SNAPSHOT === 'record').each([
   const reload = loss.startsWith('reload-')
   const beforeHost = loss.endsWith('before-host')
   const artifacts = loss === 'none' ? '.artifacts/tool-replay' : `.artifacts/interaction-retry-${loss}`
+  await mkdir('.artifacts', { recursive: true })
   const fixture = await selectedSessionFixture(join(scenario, 'session.jsonl'))
   const root = await mkdtemp(join(tmpdir(), 'dsh-tool-replay-'))
   const home = join(root, 'home')

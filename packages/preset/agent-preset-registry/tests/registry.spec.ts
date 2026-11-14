@@ -8,6 +8,15 @@ import Loader from '@deepseek-ai/cordis-plugin-loader'
 import SessionProjectionRegistry from '@deepseek-ai/dsh-session-projection'
 import AgentPresets from '../src/index.ts'
 import type { Context } from '@deepseek-ai/cordis'
+import { AGENT_PRESET_REMOTE_CAPABILITIES } from '../src/capabilities.ts'
+
+it('exports separate catalog, selection, and management permissions', () => {
+  expect(AGENT_PRESET_REMOTE_CAPABILITIES).toEqual([
+    { id: 'agent-preset.catalog.v1', methods: ['list', 'read'], requiredPermission: 'view' },
+    { id: 'agent-preset.select.v1', methods: ['select'], requiredPermission: 'prompt.send' },
+    { id: 'agent-preset.manage.v1', methods: ['copy', 'deletePreset'], requiredPermission: 'prompt.send' },
+  ])
+})
 
 const contexts: Context[] = []
 afterEach(async () => { for (const ctx of contexts.splice(0)) await ctx.fiber.dispose() })

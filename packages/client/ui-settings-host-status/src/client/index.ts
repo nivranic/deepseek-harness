@@ -16,7 +16,7 @@ import type {} from '@deepseek-ai/dsh-api-remotes/client'
 import type {} from '@deepseek-ai/dsh-client-ui-settings/client'
 import type {} from '@deepseek-ai/dsh-client-ui-renderer/client'
 import { HostStatusSection, type HostStatusSectionInjected, type HostStatusSectionProps } from './HostStatusSection.tsx'
-import { en, zh, type HostStatusLocaleKey } from './locales.ts'
+import { de, en, es, fr, ja, pt, ru, zh, type HostStatusLocaleKey } from './locales.ts'
 
 export type { HostStatusSectionInjected, HostStatusSectionProps } from './HostStatusSection.tsx'
 export type { HostStatusLocaleKey } from './locales.ts'
@@ -41,7 +41,7 @@ export const inject = ['slots', 'locale', 'remote', 'remote.hostDiagnostics']
  * @param ctx - client root context.
  */
 export function apply(ctx: ClientContext): void {
-  ctx.effect(() => ctx.locale.register(NS, { zh, en }), 'ui-settings-host-status: dictionaries')
+  ctx.effect(() => ctx.locale.register(NS, { zh, en, ja, es, fr, de, ru, pt }), 'ui-settings-host-status: dictionaries')
 
   const t = ctx.locale.bind(NS)
   ctx.slots.inject('settings.section', () => {

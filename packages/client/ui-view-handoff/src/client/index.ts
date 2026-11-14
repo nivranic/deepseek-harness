@@ -11,7 +11,7 @@ import { ViewHandoffController } from './controller.ts'
 import { HandoffFailure } from './view-location.ts'
 import { HandoffAction, type HandoffActionInjected } from './HandoffAction.tsx'
 import { HandoffNotice, type HandoffNoticeInjected } from './HandoffNotice.tsx'
-import { en, NS, zh, type ViewHandoffKey } from './locales.ts'
+import { de, en, es, fr, ja, NS, pt, ru, zh, type ViewHandoffKey } from './locales.ts'
 
 declare module '@deepseek-ai/dsh-client-ui-slots' {
   interface LocaleNamespaceMap {
@@ -56,7 +56,7 @@ export function apply(ctx: Context): void {
     })
   })
   ctx.effect(() => () => { controller.dispose() }, 'view-handoff: lifetime')
-  ctx.effect(() => ctx.locale.register(NS, { zh, en }), 'view-handoff: dictionaries')
+  ctx.effect(() => ctx.locale.register(NS, { zh, en, ja, es, fr, de, ru, pt }), 'view-handoff: dictionaries')
   ctx.slots.inject('conversation.session.header.actions', () => ctx.slots.register({
     name: 'conversation.session.header.actions', id: 'view-handoff', order: 20, locale: NS,
     inject: (): HandoffActionInjected => ({

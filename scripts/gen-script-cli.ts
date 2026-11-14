@@ -3,6 +3,25 @@ import { resolve } from 'node:path'
 import { fileURLToPath } from 'node:url'
 
 /**
+ * Report the first differing line of a generated text artifact to stderr.
+ * @param generator - Generator name prefixed to the diagnostic.
+ * @param committed - Current artifact text, or null when it could not be read.
+ * @param generated - Regenerated artifact text.
+ */
+export function reportFirstDifference(generator: string, committed: string | null, generated: string): void {
+  const committedLines = committed?.split('\n') ?? []
+  const generatedLines = generated.split('\n')
+  const lineCount = Math.max(committedLines.length, generatedLines.length)
+  for (let index = 0; index < lineCount; index += 1) {
+    if (committedLines[index] === generatedLines[index]) continue
+    console.error(`${generator}: first difference at line ${index + 1}`)
+    console.error(`  committed: ${JSON.stringify(committedLines[index])}`)
+    console.error(`  generated: ${JSON.stringify(generatedLines[index])}`)
+    break
+  }
+}
+
+/**
  * Run one generator's main body only when this module is the invoked script,
  * accepting at most a single `--check` flag.
  * @param meta - the module's own URL and its usage line.

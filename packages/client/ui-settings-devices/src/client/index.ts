@@ -9,7 +9,7 @@ import type { RemoteResult } from '@deepseek-ai/dsh-typert-protocol'
 import type {} from '@deepseek-ai/dsh-client-ui-settings/client'
 import type {} from '@deepseek-ai/dsh-client-ui-renderer/client'
 import { DevicesSettingsSection, type DevicesSettingsSectionInjected, type DevicesSettingsSectionProps } from './DevicesSettingsSection.tsx'
-import { en, zh, type DevicesLocaleKey } from './locales.ts'
+import { de, en, es, fr, ja, pt, ru, zh, type DevicesLocaleKey } from './locales.ts'
 import { nativePairingOrigin } from './pairing-origin.ts'
 
 export type { DevicesSettingsSectionInjected, DevicesSettingsSectionProps } from './DevicesSettingsSection.tsx'
@@ -30,7 +30,7 @@ export const inject = ['slots', 'locale', 'remote', 'remote.host', 'remote.devic
 
 /** Contribute the Devices management section to Settings. */
 export function apply(ctx: ClientContext): void {
-  ctx.effect(() => ctx.locale.register(NS, { zh, en }), 'ui-settings-devices: dictionaries')
+  ctx.effect(() => ctx.locale.register(NS, { zh, en, ja, es, fr, de, ru, pt }), 'ui-settings-devices: dictionaries')
 
   const t = ctx.locale.bind(NS)
   const connection = ctx.get('connection') as ConnectionHandle
