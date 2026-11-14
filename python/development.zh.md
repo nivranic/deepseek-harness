@@ -15,7 +15,7 @@ pnpm exec tsx scripts/build-exe-for-python-sdk.ts
 
 所需 `lib/` 产物已存在时使用 `--skip-build`；如需选择平台，请使用 `--targets=node24-linux-x64,node24-linux-arm64,node24-macos-arm64,node24-macos-x64,node24-win-x64`。每个目标都应在其原生架构上构建。产物写入 `dist-exe/`，脚本会将所选载体同步到 `python/sdk-runtime/`。Windows 会生成 `.exe` 与 `-rg.exe`；macOS 构建还会同步 `node-pty` 所需的配套 spawn 辅助程序。
 
-构建前显式安装依赖；构建器会禁用 pnpm 执行命令前的自动安装。Windows 上，如果 `pnpm.cmd` 启动器未提供 JavaScript 入口，需要让 `npm_execpath` 指向已安装的 `pnpm.mjs` 或 `pnpm.cjs`。构建通过 Node 调用该文件，不经过命令 shell。
+构建前显式安装依赖。构建器会禁用 pnpm 执行命令前的自动安装，并通过 pnpm 11 的冻结部署从共享工作区锁文件部署精确依赖。Windows 上，如果 `pnpm.cmd` 启动器未提供 JavaScript 入口，需要让 `npm_execpath` 指向已安装的 `pnpm.mjs` 或 `pnpm.cjs`。构建通过 Node 调用该文件，不经过命令 shell。
 
 ## 验证 SDK
 
@@ -40,7 +40,7 @@ uv run --project python/sdk python scripts/smoke-python-runtime.py \
   --scenario sdk-minimal --exe dist-exe/deepseek-harness-sdk-runtime-macos-arm64
 ```
 
-SDK 场景会比对 `scripts/snapshots/python-sdk-single-exe/` 下已提交的期望输出。`minimal/model-visible.json` 固定 Linux／macOS `sdk-minimal` profile 所组装的系统提示词、对外公布的工具 schema 与模型可见消息；`minimal/win-x64/model-visible.json` 固定对应的 PowerShell 版本。`authoring/model-visible.json` 固定 Linux／macOS 的 Office 创作技能目录和依赖结果；`authoring/win-x64/model-visible.json` 固定 Windows 的技能目录，其中包含 ACL 诊断技能。因此，插件一旦贡献出计划外的系统分段或 user 消息，该任务即失败，且该 profile 发出的每条消息都会参与比对。`advanced/` 跨所有目标固定一个复杂进程的 SDK 结果及父／子会话日志。`restart/` 针对同一持久化根目录启动两个完整 SDK 运行时进程，并跨所有目标固定其彼此隔离的模型历史、高层结果与独立持久日志。恢复后的轮次初始化另一个模型，并固定持久模型选择、请求路由与 SDK 事件顺序。`sdk-minimal-in-history` 复用持久 shell 与编辑器场景，并在首次 shell 调用成功后更改一个分段。`minimal-in-history/prompt-history.json` 固定两个提示词版本、后续请求中不变的首条提示词、追加的 SDK system-message 事件及 `request/context.systemPromptUpdate`；工具 schema 保持不变，并独立检查编辑器创建的文件。`sdk-dynamic-tools` 在 `dynamic-tools/tool-history.json` 中固定原生工具的新增与移除，包括历史 header 引用，以及 Python SDK 结果、通知与持久事件的一致性。重新运行对应场景时加上 `--update-snapshots`，并在提交前审阅该差异。
+SDK 场景会比对 `scripts/snapshots/python-sdk-single-exe/` 下已提交的期望输出。`minimal/model-visible.json` 固定 Linux／macOS `sdk-minimal` profile 所组装的系统提示词、对外公布的工具 schema 与模型可见消息；`minimal/win-x64/model-visible.json` 固定对应的 PowerShell 版本。`authoring/model-visible.json` 固定 Linux／macOS 的 Office 创作技能目录和依赖结果；`authoring/win-x64/model-visible.json` 固定 Windows 的技能目录，其中包含 ACL 诊断技能。因此，插件一旦贡献出计划外的系统分段或 user 消息，该任务即失败，且该 profile 发出的每条消息都会参与比对。`advanced/` 跨所有目标固定一个复杂进程的 SDK 结果及父／子会话日志。`restart/` 针对同一持久化根目录启动两个完整 SDK 运行时进程，并跨所有目标固定其彼此隔离的模型历史、高层结果与独立持久日志。恢复后的轮次初始化另一个模型，并固定持久模型选择、请求路由与 SDK 事件顺序。`sdk-minimal-in-history` 复用持久 shell 与编辑器场景，并在首次 shell 调用成功后更改一个分段。`minimal-in-history/prompt-history.json` 固定两个提示词版本、后续请求中不变的首条提示词、追加的 SDK system-message 事件及 `request/context.systemPromptUpdate`；工具 schema 保持不变，并独立检查编辑器创建的文件。`sdk-dynamic-tools` 在 `dynamic-tools/tool-history.json` 与 `dynamic-tools/win-x64/tool-history.json` 中固定原生工具的新增与移除，包括历史 header 引用，以及 Python SDK 结果、通知与持久事件的一致性。Windows 期望输出包含内置 ACL 技能目录消息及其事件序号。重新运行对应场景时加上 `--update-snapshots`，并在提交前审阅该差异。
 
 `scheduler-recovery/` 记录一个失败的工具轮次及后续完成的轮次。它保留原始的 `UNKNOWN` 轮次错误、第一个工具已完成的结果，以及其余调用的 `TOOL_OUTCOME_UNKNOWN` / `TOOL_NOT_STARTED` 结果。`sdk-snapshot` 和 `all` 包含此场景；`--scenario sdk-recovery` 单独运行它。
 

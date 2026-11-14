@@ -145,6 +145,8 @@ IN_HISTORY_SNAPSHOT_FILENAMES = ("prompt-history.json",)
 DYNAMIC_TOOLS_SNAPSHOT_DIRECTORY = (
     Path(__file__).resolve().parent / "snapshots" / "python-sdk-single-exe" / "dynamic-tools"
 )
+if IS_WINDOWS:
+    DYNAMIC_TOOLS_SNAPSHOT_DIRECTORY /= "win-x64"
 DYNAMIC_TOOLS_SNAPSHOT_FILENAMES = ("tool-history.json",)
 RESTART_SNAPSHOT_DIRECTORY = (
     Path(__file__).resolve().parent / "snapshots" / "python-sdk-single-exe" / "restart"
@@ -1706,7 +1708,12 @@ def smoke_sdk_snapshot_mode(
         feedback_types = [event.get("type") for event in result.events
                           if str(event.get("type")).startswith("feedback/")]
         if feedback_types != ["feedback/record", "feedback/record", "feedback/message-put", "feedback/message-put", "feedback/message-delete"]:
-            raise AssertionError(f"advanced snapshot did not exercise all feedback mutations: {feedback_types}")
+            settlement = read_session_logs(sessions)[SNAPSHOT_SESSION_ID][-1]
+            raise AssertionError(
+                f"advanced snapshot did not exercise all feedback mutations: {feedback_types}; "
+                f"settlement: {settlement}; "
+                f"runtime diagnostics: {harness.client._runtime_diagnostics()}"
+            )
         methods = [notification.method for notification in result.notifications]
         expected_children = 2 if mode == "native" else 0
         if methods.count("subagent.started") != expected_children or methods.count("subagent.finished") != expected_children:
@@ -2297,7 +2304,7 @@ def assert_session_log(sessions: Path, cwd: Path, *expected_texts: str) -> None:
     logs = latest_persisted_session_paths(sessions)
     if len(logs) != 1:
         raise AssertionError(f"expected one JSONL session log under {sessions}, found {logs}")
-    content = logs[0].read_text()
+    content = logs[0].read_text(encoding="utf-8")
     assert_persisted_session_version(logs[0], content)
     lines = content.splitlines()
     header = json.loads(lines[0])

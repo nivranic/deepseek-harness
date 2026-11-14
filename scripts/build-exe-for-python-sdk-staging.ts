@@ -1,7 +1,34 @@
 /** Prepare a symlink-free executable runtime payload with shared workspace module instances. */
-import { cp, lstat, readFile, readdir, realpath, rm, unlink } from 'node:fs/promises'
+import { cp, lstat, readFile, readdir, realpath, rm, unlink, writeFile } from 'node:fs/promises'
 import { isAbsolute, join, relative, resolve, sep } from 'node:path'
-import { load } from 'js-yaml'
+import { pathToFileURL } from 'node:url'
+import { dump, load } from 'js-yaml'
+
+/**
+ * Resolve workspace-relative file build approvals to pnpm's deployed dependency identities.
+ * @param staging - Fresh shared-lock deployment, installed with scripts deferred.
+ * @param workspace - Original workspace root used by the reviewed approval selectors.
+ */
+export async function relocateStagedBuildApprovals(staging: string, workspace: string): Promise<void> {
+  const file = join(staging, 'pnpm-workspace.yaml')
+  const manifest = load(await readFile(file, 'utf8')) as {
+    allowBuilds?: Record<string, boolean | string>
+  }
+  const workspaceUrl = pathToFileURL(resolve(workspace) + sep)
+  const approvals = new Map<string, boolean | string>()
+  for (const [selector, permission] of Object.entries(manifest.allowBuilds ?? {})) {
+    const marker = selector.indexOf('@file:')
+    let identity = selector
+    if (marker !== -1) {
+      const source = new URL(selector.slice(marker + 1), workspaceUrl)
+      identity = `${selector.slice(0, marker)}@${source.href}`
+    }
+    if (approvals.get(identity) === false) continue
+    approvals.set(identity, permission)
+  }
+  manifest.allowBuilds = Object.fromEntries(approvals)
+  await writeFile(file, dump(manifest, { lineWidth: -1 }))
+}
 
 function isHoistedLocations(value: unknown): value is Record<string, string[]> {
   return typeof value === 'object' && value !== null && !Array.isArray(value)
