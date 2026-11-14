@@ -28,6 +28,12 @@ public enum NativeViewLocations {
     /// JSON numbers the grammar admits: integers in the safe range, never -0.
     private static let maxSafeInteger = 9_007_199_254_740_991.0
 
+    private struct Payload: Decodable {
+        let hostId: String
+        let sessionId: String
+        let anchorSeq: Double
+    }
+
     /// JSON string escaping for the two characters the ASCII grammar can carry verbatim.
     private static func jsonString(_ value: String) -> String {
         "\"" + value.replacingOccurrences(of: "\\", with: "\\\\").replacingOccurrences(of: "\"", with: "\\\"") + "\""
@@ -59,24 +65,23 @@ public enum NativeViewLocations {
             let json = String(data: bytes, encoding: .isoLatin1) else {
             throw NativeViewLocationError.notBase64url
         }
-        guard let parsed = try? JSONSerialization.jsonObject(with: Data(json.utf8)),
+        let jsonData = Data(json.utf8)
+        guard let parsed = try? JSONSerialization.jsonObject(with: jsonData),
             let value = parsed as? [String: Any] else {
             throw NativeViewLocationError.notJson
         }
-        guard value.count == 3, let hostId = value["hostId"] as? String, !hostId.isEmpty,
-            let sessionId = value["sessionId"] as? String, !sessionId.isEmpty,
-            let anchor = value["anchorSeq"] as? NSNumber else {
+        // Decode the anchor as Double before NSNumber integer bridging can erase the sign of -0.
+        guard value.count == 3, let payload = try? JSONDecoder().decode(Payload.self, from: jsonData),
+            !payload.hostId.isEmpty, !payload.sessionId.isEmpty else {
             throw NativeViewLocationError.grammar
         }
-        // NSNumber bridges booleans to numbers on macOS; the CF type id is the reliable boolean test.
-        guard CFGetTypeID(anchor) != CFBooleanGetTypeID() else { throw NativeViewLocationError.grammar }
-        let number = anchor.doubleValue
+        let number = payload.anchorSeq
         guard number.isFinite, number >= 0, number <= maxSafeInteger,
             number == number.rounded(.towardZero),
             !(number == 0 && number.sign == .minus) else {
             throw NativeViewLocationError.grammar
         }
-        return NativeViewLocation(hostId: hostId, sessionId: sessionId, anchorSeq: Int64(number))
+        return NativeViewLocation(hostId: payload.hostId, sessionId: payload.sessionId, anchorSeq: Int64(number))
     }
 }
 

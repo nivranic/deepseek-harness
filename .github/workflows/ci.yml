@@ -2,7 +2,6 @@ name: CI
 
 on:
   pull_request:
-  workflow_dispatch:
 permissions:
   contents: read
 
@@ -20,6 +19,19 @@ concurrency:
   cancel-in-progress: true
 
 jobs:
+  swift-contract:
+    runs-on: macos-15
+    timeout-minutes: 20
+    steps:
+      - uses: actions/checkout@v7.0.1
+        with:
+          persist-credentials: false
+      - name: Swift contract check
+        run: |
+          swift --version
+          swift run dsh-contract-check
+        working-directory: apps/apple/contract
+
   publisher-isolated:
     strategy:
       max-parallel: 1
@@ -73,38 +85,16 @@ jobs:
   # Blacksmith's hosted runners sized per workload (see
   # .agents/notes/implemented/process/2026-09-09-blacksmith-failover-leg.md). The
   # in-house pool's readiness is re-proven on every master push by the
-  # serial-linux-selfhosted standby lane in ci-master.yml. The Windows failover
-  # switch is the separate DSH_CI_FAILOVER_WINDOWS variable on the windows-native
-  # job below.
-  swift-contract:
-    if: (github.event_name == 'pull_request' || github.event_name == 'workflow_dispatch')
-    # The macos-14 image (deprecation scheduled 2026-11) fails swift test for
-    # ANY test target importing a sibling module — proven with a minimal fresh
-    # package on both installed toolchains ("could not build Objective-C
-    # module"), while library-only builds pass. macos-15 carries the lane.
-    runs-on: macos-15
-    timeout-minutes: 20
-    steps:
-      - uses: actions/checkout@v6
-      - name: Swift contract check
-        # The package is one executable target by design: hosted macOS runners
-        # fail test-target module imports nondeterministically (proven with a
-        # minimal fresh package on both toolchains and serial builds), so the
-        # mirror evidence runs as a plain exit-code check with no XCTest
-        # bundle and no cross-module import.
-        run: |
-          swift --version
-          swift run dsh-contract-check
-        working-directory: apps/apple/contract
   # serial-linux-selfhosted standby lane in ci-master.yml. Native Windows jobs
   # and their separate DSH_CI_FAILOVER_WINDOWS switch live in ci-windows.yml.
   node-24:
-    if: (github.event_name == 'pull_request' || github.event_name == 'workflow_dispatch')
+    if: github.event_name == 'pull_request'
     runs-on: >-
       ${{ vars.DSH_CI_FAILOVER_LINUX == 'blacksmith' && 'blacksmith-8vcpu-ubuntu-2404'
           || vars.DSH_CI_FAILOVER_LINUX == 'selfhosted'
           && github.event.pull_request.user.login != 'dependabot[bot]'
           && fromJSON('["self-hosted", "linux", "x64", "vm-backup"]')
+          || vars.DSH_CI_FAILOVER_LINUX == 'github' && 'ubuntu-24.04'
           || 'dsh-ubuntu-24-04-16core' }}
     name: node 24 / static
     env:
@@ -166,12 +156,13 @@ jobs:
         run: pnpm run check:ci:static
 
   node-24-coverage:
-    if: (github.event_name == 'pull_request' || github.event_name == 'workflow_dispatch')
+    if: github.event_name == 'pull_request'
     runs-on: >-
       ${{ vars.DSH_CI_FAILOVER_LINUX == 'blacksmith' && 'blacksmith-16vcpu-ubuntu-2404'
           || vars.DSH_CI_FAILOVER_LINUX == 'selfhosted'
           && github.event.pull_request.user.login != 'dependabot[bot]'
           && fromJSON('["self-hosted", "linux", "x64", "vm-backup"]')
+          || vars.DSH_CI_FAILOVER_LINUX == 'github' && 'ubuntu-24.04'
           || 'dsh-ubuntu-24-04-16core' }}
     name: node 24 / coverage
     env:
@@ -293,6 +284,7 @@ jobs:
           || vars.DSH_CI_FAILOVER_LINUX == 'selfhosted'
           && github.event.pull_request.user.login != 'dependabot[bot]'
           && fromJSON('["self-hosted", "linux", "x64", "vm-backup"]')
+          || vars.DSH_CI_FAILOVER_LINUX == 'github' && 'ubuntu-24.04'
           || 'dsh-ubuntu-24-04-16core' }}
     name: node 24 / lint
     env:
@@ -348,7 +340,7 @@ jobs:
         run: pnpm run check:ci:lint:contracts-ready
 
   node-24-bench:
-    if: (github.event_name == 'pull_request' || github.event_name == 'workflow_dispatch')
+    if: github.event_name == 'pull_request'
     runs-on: >-
       ${{ vars.DSH_CI_FAILOVER_LINUX == 'blacksmith' && 'blacksmith-4vcpu-ubuntu-2404'
           || 'ubuntu-24.04' }}
@@ -412,12 +404,13 @@ jobs:
           retention-days: 7
 
   node-24-consumers:
-    if: (github.event_name == 'pull_request' || github.event_name == 'workflow_dispatch')
+    if: github.event_name == 'pull_request'
     runs-on: >-
       ${{ vars.DSH_CI_FAILOVER_LINUX == 'blacksmith' && 'blacksmith-16vcpu-ubuntu-2404'
           || vars.DSH_CI_FAILOVER_LINUX == 'selfhosted'
           && github.event.pull_request.user.login != 'dependabot[bot]'
           && fromJSON('["self-hosted", "linux", "x64", "vm-backup"]')
+          || vars.DSH_CI_FAILOVER_LINUX == 'github' && 'ubuntu-24.04'
           || 'dsh-ubuntu-24-04-16core' }}
     name: node 24 / snapshots and artifacts
     env:
@@ -557,7 +550,7 @@ jobs:
 
   node-compat:
     needs: publisher-isolated
-    if: (github.event_name == 'pull_request' || github.event_name == 'workflow_dispatch')
+    if: github.event_name == 'pull_request'
     # Under the selfhosted leg this job admits only repository-owned PR code
     # to the persistent shared VM; the blacksmith branch targets ephemeral
     # runners and carries none of those predicates.
@@ -661,259 +654,6 @@ jobs:
       - name: Check Loader internal shape detection
         run: pnpm exec vitest run packages/boot/app-boot/tests/loader-shape.compat.spec.ts
 
-  python-sdk:
-    if: (github.event_name == 'pull_request' || github.event_name == 'workflow_dispatch')
-    runs-on: ubuntu-latest
-    name: python 3.10 / keyless SDK
-    steps:
-      - uses: actions/checkout@v6
-
-      - uses: actions/setup-python@v6.3.0
-        with:
-          python-version: '3.10'
-          cache: pip
-
-      - name: Install uv
-        run: python -m pip install uv==0.11.23
-
-      - name: Run complete keyless Python suite
-        run: uv run --python 3.10 --group test --project python/sdk pytest
-
-  # The reusable builder owns each published executable, wheel, clean-install,
-  # keyless black-box, and trusted real-API path. Linux/Windows x64 block PRs;
-  # Linux ARM64 and both macOS architectures run in ci-master.yml.
-  python-runtime:
-    if: (github.event_name == 'pull_request' || github.event_name == 'workflow_dispatch')
-    name: python runtime / release-shaped matrix
-    uses: ./.github/workflows/build-exe-for-python-sdk.yml
-    with:
-      targets: node24-linux-x64,node24-win-x64
-      ci: true
-    secrets:
-      DEEPSEEK_API_KEY_EXTERNAL: ${{ secrets.DEEPSEEK_API_KEY_EXTERNAL }}
-
-  # Every pull request also gets real Windows-kernel signals. The former
-  # monolithic windows-native job is split into smaller jobs so one slow
-  # coverage gate does not hold up build/static results, while the total
-  # per-job process count stays lower. Observational checks are non-blocking.
-  # Dependabot PRs are excluded from the self-hosted pool and stay queued for
-  # the hosted runner.
-  windows-build:
-    if: (github.event_name == 'pull_request' || github.event_name == 'workflow_dispatch')
-    runs-on: >-
-      ${{ vars.DSH_CI_FAILOVER_WINDOWS == 'blacksmith' && 'blacksmith-16vcpu-windows-2025'
-          || vars.DSH_CI_FAILOVER_WINDOWS == 'selfhosted'
-          && github.event.pull_request.user.login != 'dependabot[bot]'
-          && fromJSON('["self-hosted", "dsh-win-ci", "windows"]')
-          || 'dsh-windows-2025-16core' }}
-    name: windows node 24 / build
-    timeout-minutes: 60
-    env:
-      # A failing build or site aborts the sibling gate on the same runner.
-      DSH_GATE_FAIL_FAST: '1'
-    steps:
-      - uses: actions/checkout@v6
-        with:
-          persist-credentials: false
-      - name: Enable Developer Mode (symlink support)
-        shell: pwsh
-        run: >-
-          reg add "HKLM\SOFTWARE\Microsoft\Windows\CurrentVersion\AppModelUnlock"
-          /t REG_DWORD /f /v "AllowDevelopmentWithoutDevLicense" /d "1"
-      - uses: pnpm/action-setup@v4
-        with:
-          dest: ${{ runner.temp }}/setup-pnpm-js-${{ github.run_id }}-${{ github.run_attempt }}-${{ github.job }}
-      - uses: actions/setup-node@v6
-        with:
-          node-version: ${{ env.PRIMARY_NODE_VERSION }}
-      - name: Install (immutable)
-        shell: pwsh
-        # See 2026-08-30-windows-refs-store-block-clone-install for the
-        # ReFS block-clone rationale; detect the workspace filesystem and
-        # pass --package-import-method=clone only on ReFS.
-        run: >-
-          $drive = (Split-Path -Qualifier $env:GITHUB_WORKSPACE).TrimEnd(':');
-          $fs = (Get-Volume -DriveLetter $drive).FileSystem;
-          if ($fs -eq 'ReFS') {
-            corepack pnpm install --frozen-lockfile --package-import-method=clone
-          } else {
-            pnpm install --frozen-lockfile
-          }
-      - name: Run blocking Windows builds
-        shell: pwsh
-        run: pnpm run check:ci:windows-blocking
-
-  windows-coverage:
-    if: (github.event_name == 'pull_request' || github.event_name == 'workflow_dispatch')
-    runs-on: >-
-      ${{ vars.DSH_CI_FAILOVER_WINDOWS == 'blacksmith' && 'blacksmith-16vcpu-windows-2025'
-          || vars.DSH_CI_FAILOVER_WINDOWS == 'selfhosted'
-          && github.event.pull_request.user.login != 'dependabot[bot]'
-          && fromJSON('["self-hosted", "dsh-win-ci", "windows"]')
-          || 'dsh-windows-2025-16core' }}
-    name: windows node 24 / coverage
-    timeout-minutes: 120
-    env:
-      DSH_COVERAGE_MAX_WORKERS: '6'
-      DSH_COVERAGE_PARTITIONS: '4'
-      DSH_COVERAGE_TEST_TIMEOUT_MS: '90000'
-      DSH_GATE_CONCURRENCY: '3'
-      # A gate failure aborts the sibling gate instead of waiting out its
-      # multi-minute instrumented run.
-      DSH_GATE_FAIL_FAST: '1'
-    steps:
-      - uses: actions/checkout@v6
-        with:
-          persist-credentials: false
-      # Checkout removes the gitignored duration history, so restore it from
-      # the GitHub cache before coverage and save the updated one afterwards.
-      # The coordinator then weights partitions by measured durations on the
-      # second run instead of degrading to a file-count split. GitHub cache
-      # entries are immutable, so the save key is unique per run and the
-      # restore matches the newest entry through the stable prefix.
-      - name: Restore coverage duration history
-        uses: actions/cache/restore@v4
-        with:
-          path: .coverage-times.json
-          key: coverage-times-${{ github.run_id }}
-          restore-keys: |
-            coverage-times-
-      - name: Enable Developer Mode (symlink support)
-        shell: pwsh
-        run: >-
-          reg add "HKLM\SOFTWARE\Microsoft\Windows\CurrentVersion\AppModelUnlock"
-          /t REG_DWORD /f /v "AllowDevelopmentWithoutDevLicense" /d "1"
-      - uses: pnpm/action-setup@v4
-        with:
-          dest: ${{ runner.temp }}/setup-pnpm-js-${{ github.run_id }}-${{ github.run_attempt }}-${{ github.job }}
-      - uses: actions/setup-node@v6
-        with:
-          node-version: ${{ env.PRIMARY_NODE_VERSION }}
-      - name: Install (immutable)
-        shell: pwsh
-        # See 2026-08-30-windows-refs-store-block-clone-install for the
-        # ReFS block-clone rationale; detect the workspace filesystem and
-        # pass --package-import-method=clone only on ReFS.
-        run: >-
-          $drive = (Split-Path -Qualifier $env:GITHUB_WORKSPACE).TrimEnd(':');
-          $fs = (Get-Volume -DriveLetter $drive).FileSystem;
-          if ($fs -eq 'ReFS') {
-            corepack pnpm install --frozen-lockfile --package-import-method=clone
-          } else {
-            pnpm install --frozen-lockfile
-          }
-      # No build before coverage, matching the Linux lane: workspace imports
-      # resolve to src through the tsconfig paths map, and the lib-consuming
-      # suites (webworker-packer image-loadable, webworker-runtime
-      # transform-corpus, client ui-trajectory client-bundle) self-skip on
-      # unbuilt checkouts.
-      - name: Run Windows coverage
-        shell: pwsh
-        run: pnpm run check:ci:coverage
-      - name: Save coverage duration history
-        # Coverage flakes must not prevent the cache from building; the
-        # measured durations remain useful even when a partition failed. The
-        # per-run key keeps every save a fresh immutable cache entry.
-        if: ${{ !cancelled() }}
-        uses: actions/cache/save@v4
-        with:
-          path: .coverage-times.json
-          key: coverage-times-${{ github.run_id }}
-
-  windows-native-tests:
-    if: (github.event_name == 'pull_request' || github.event_name == 'workflow_dispatch')
-    runs-on: >-
-      ${{ vars.DSH_CI_FAILOVER_WINDOWS == 'blacksmith' && 'blacksmith-16vcpu-windows-2025'
-          || vars.DSH_CI_FAILOVER_WINDOWS == 'selfhosted'
-          && github.event.pull_request.user.login != 'dependabot[bot]'
-          && fromJSON('["self-hosted", "dsh-win-ci", "windows"]')
-          || 'dsh-windows-2025-16core' }}
-    name: windows node 24 / native tests
-    timeout-minutes: 60
-    steps:
-      - uses: actions/checkout@v6
-        with:
-          persist-credentials: false
-      - name: Enable Developer Mode (symlink support)
-        shell: pwsh
-        run: >-
-          reg add "HKLM\SOFTWARE\Microsoft\Windows\CurrentVersion\AppModelUnlock"
-          /t REG_DWORD /f /v "AllowDevelopmentWithoutDevLicense" /d "1"
-      - uses: pnpm/action-setup@v4
-        with:
-          dest: ${{ runner.temp }}/setup-pnpm-js-${{ github.run_id }}-${{ github.run_attempt }}-${{ github.job }}
-      - uses: actions/setup-node@v6
-        with:
-          node-version: ${{ env.PRIMARY_NODE_VERSION }}
-      - name: Install (immutable)
-        shell: pwsh
-        # See 2026-08-30-windows-refs-store-block-clone-install for the
-        # ReFS block-clone rationale; detect the workspace filesystem and
-        # pass --package-import-method=clone only on ReFS.
-        run: >-
-          $drive = (Split-Path -Qualifier $env:GITHUB_WORKSPACE).TrimEnd(':');
-          $fs = (Get-Volume -DriveLetter $drive).FileSystem;
-          if ($fs -eq 'ReFS') {
-            corepack pnpm install --frozen-lockfile --package-import-method=clone
-          } else {
-            pnpm install --frozen-lockfile
-          }
-      - name: Run Windows-specific native tests
-        shell: pwsh
-        run: >-
-          pnpm exec vitest run
-          --no-file-parallelism
-          --testTimeout 90000
-          packages/shell/tool-pwsh/tests/loader.spec.ts
-          packages/workflow/workflow-worker-thread/tests/workflow-worker-thread.spec.ts
-          packages/workflow/tool-ralph/tests/integration.spec.ts
-          packages/subprocess/subprocess-local/tests/process-exit.spec.ts
-
-  windows-observational:
-    if: (github.event_name == 'pull_request' || github.event_name == 'workflow_dispatch')
-    continue-on-error: true
-    runs-on: >-
-      ${{ vars.DSH_CI_FAILOVER_WINDOWS == 'blacksmith' && 'blacksmith-16vcpu-windows-2025'
-          || vars.DSH_CI_FAILOVER_WINDOWS == 'selfhosted'
-          && github.event.pull_request.user.login != 'dependabot[bot]'
-          && fromJSON('["self-hosted", "dsh-win-ci", "windows"]')
-          || 'dsh-windows-2025-16core' }}
-    name: windows node 24 / observational
-    timeout-minutes: 60
-    env:
-      DSH_PUBLINT_CONCURRENCY: '8'
-    steps:
-      - uses: actions/checkout@v6
-        with:
-          persist-credentials: false
-      - name: Enable Developer Mode (symlink support)
-        shell: pwsh
-        run: >-
-          reg add "HKLM\SOFTWARE\Microsoft\Windows\CurrentVersion\AppModelUnlock"
-          /t REG_DWORD /f /v "AllowDevelopmentWithoutDevLicense" /d "1"
-      - uses: pnpm/action-setup@v4
-        with:
-          dest: ${{ runner.temp }}/setup-pnpm-js-${{ github.run_id }}-${{ github.run_attempt }}-${{ github.job }}
-      - uses: actions/setup-node@v6
-        with:
-          node-version: ${{ env.PRIMARY_NODE_VERSION }}
-      - name: Install (immutable)
-        shell: pwsh
-        # See 2026-08-30-windows-refs-store-block-clone-install for the
-        # ReFS block-clone rationale; detect the workspace filesystem and
-        # pass --package-import-method=clone only on ReFS.
-        run: >-
-          $drive = (Split-Path -Qualifier $env:GITHUB_WORKSPACE).TrimEnd(':');
-          $fs = (Get-Volume -DriveLetter $drive).FileSystem;
-          if ($fs -eq 'ReFS') {
-            corepack pnpm install --frozen-lockfile --package-import-method=clone
-          } else {
-            pnpm install --frozen-lockfile
-          }
-      - name: Run Windows observational gates
-        shell: pwsh
-        run: pnpm run check:ci:windows-observational
-
   # Single stable required check for branch protection: require "all checks
   # passed" instead of enumerating matrix legs whose names change as lanes and
   # node versions evolve. Every blocking job in THIS workflow must be listed in
@@ -940,7 +680,7 @@ jobs:
           && github.event.pull_request.user.login != 'dependabot[bot]'
           && fromJSON('["self-hosted", "linux", "x64", "vm-backup"]')
           || 'ubuntu-latest' }}
-    needs: [publisher-isolated, node-24, node-24-coverage, node-24-lint, node-24-bench, node-24-consumers, node-compat, python-sdk, python-runtime, windows-build, windows-native-tests]
+    needs: [swift-contract, publisher-isolated, node-24, node-24-coverage, node-24-lint, node-24-bench, node-24-consumers, node-compat]
     if: ${{ !cancelled() && github.event_name == 'pull_request' }}
     steps:
       - name: Fail if any needed job did not succeed
