@@ -12,7 +12,10 @@ import { Context } from '@deepseek-ai/cordis'
 import { SessionId } from '@deepseek-ai/dsh-session'
 import * as JsonlSessionPersistence from '@deepseek-ai/dsh-session-persistence-jsonl'
 import { startMockLlmServer } from '@deepseek-ai/dsh-llm-mock-server'
-import type { RemoteInteractionRecord } from '@deepseek-ai/dsh-api-gateway/protocol'
+import type {
+  RemoteEventDownlinkFrame, RemoteEventInvocationFrame, RemoteEventCancellationFrame,
+  RemoteEventReadyFrame, RemoteEventResult,
+} from '@deepseek-ai/dsh-api-gateway/stream-protocol'
 import { connectFreshWorkspace, REPO_ROOT } from './support.ts'
 
 interface HostMessage {
@@ -111,12 +114,12 @@ it.each([
     browser = await chromium.launch(executablePath === undefined ? {} : { executablePath })
     const context = await browser.newContext({ viewport: { width: 1440, height: 1000 }, locale: 'en-US' })
     const page = await context.newPage()
-    const replies: { clientId: string; eventId: string; interactionRevision: number; outcome: unknown }[] = []
-    const generations: { clientId: string; pendingInteractionIds: string[] }[] = []
-    const records: RemoteInteractionRecord[] = []
-    const otherRecords: RemoteInteractionRecord[] = []
+    const replies: RemoteEventResult[] = []
+    const generations: RemoteEventReadyFrame[] = []
+    const records: (RemoteEventInvocationFrame | RemoteEventCancellationFrame)[] = []
+    const otherRecords: (RemoteEventInvocationFrame | RemoteEventCancellationFrame)[] = []
     const authenticationRejections: { path: string; status: number }[] = []
-    const heldAnswer = Promise.withResolvers<undefined>()
+    let answerHeld = false
     let disconnect: (() => Promise<void>) | undefined
     page.on('pageerror', error => failures.push(error))
     page.on('response', (response) => {
@@ -129,10 +132,10 @@ it.each([
       server.onMessage((message) => {
         const frame = JSON.parse(message.toString()) as {
           type?: string
-          value?: { type?: string; clientId: string; pendingInteractionIds: string[]; interaction?: RemoteInteractionRecord }
+          value?: RemoteEventDownlinkFrame
         }
         if (frame.type === 'item' && frame.value?.type === 'ready') generations.push(frame.value)
-        if (frame.type === 'item' && frame.value?.interaction !== undefined) records.push(frame.value.interaction)
+        if (frame.type === 'item' && (frame.value?.type === 'waterfall' || frame.value?.type === 'cancel')) records.push(frame.value)
         socket.send(message)
       })
     })
@@ -147,14 +150,14 @@ it.each([
         })
         expect(response.status()).toBe(401)
         await route.fulfill({ response })
-        heldAnswer.resolve(undefined)
+        answerHeld = true
         return
       }
       if (order === 'retry-before-cancel' && replies.length === 1) {
         await route.abort('connectionfailed')
         return
       }
-      heldAnswer.resolve(undefined)
+      answerHeld = true
       await releaseAnswer.promise
       await route.abort('connectionfailed')
     })
@@ -175,26 +178,31 @@ it.each([
     other.on('pageerror', error => failures.push(error))
     other.on('websocket', (socket) => {
       socket.on('framereceived', ({ payload }) => {
-        const frame = JSON.parse(payload.toString()) as { type?: string; value?: { interaction?: RemoteInteractionRecord } }
-        if (frame.type === 'item' && frame.value?.interaction !== undefined) otherRecords.push(frame.value.interaction)
+        const frame = JSON.parse(payload.toString()) as { type?: string; value?: RemoteEventDownlinkFrame }
+        if (frame.type === 'item' && (frame.value?.type === 'waterfall' || frame.value?.type === 'cancel')) otherRecords.push(frame.value)
       })
     })
     await other.goto(authenticationLoss ? authenticatedUrl : page.url(), { waitUntil: 'load' })
     await other.getByRole('treeitem').filter({ hasText: `Ask for ${interaction} once` }).first().click()
     await other.locator(selector).waitFor({ timeout: 30_000 })
-    if (interaction === 'approval') await panel.getByRole('button', { name: 'Allow once', exact: true }).click()
-    else {
-      await panel.getByRole('radio', { name: 'Stale answer', exact: true }).click()
-      await panel.getByRole('button', { name: 'Submit', exact: true }).click()
+    const submitStaleAnswer = async () => {
+      if (interaction === 'approval') await panel.getByRole('button', { name: 'Allow once', exact: true }).click()
+      else {
+        await panel.getByRole('radio', { name: 'Stale answer', exact: true }).click()
+        await panel.getByRole('button', { name: 'Submit', exact: true }).click()
+      }
     }
-    await heldAnswer.promise
-    const authenticationControl = page.getByRole('button', {
-      name: 'Open this Host using its current launch link to authenticate, then reconnect', exact: true,
-    })
+    await submitStaleAnswer()
+    if (order === 'retry-before-cancel') {
+      await expect.poll(() => generations.length, { timeout: 30_000 }).toBe(2)
+      await panel.waitFor()
+      expect(replies).toHaveLength(1)
+      await submitStaleAnswer()
+    }
+    await expect.poll(() => answerHeld, { timeout: 30_000 }).toBe(true)
     if (authenticationLoss) {
-      await authenticationControl.waitFor({ timeout: 30_000 })
-      await page.waitForTimeout(1_100)
-      expect(authenticationRejections).toEqual([{ path: '/api/$events/result', status: 401 }])
+      await expect.poll(() => authenticationRejections.filter(response => response.path === '/api/$events/result'))
+        .toEqual([{ path: '/api/$events/result', status: 401 }])
       await page.screenshot({ path: `${evidenceDir}/authentication.png`, fullPage: true })
     }
     const oldReply = replies[0]!
@@ -208,7 +216,7 @@ it.each([
     expect(turnStartSeq).toBeGreaterThanOrEqual(0)
     expect(beforeCancel.filter(event => event.type === 'tool/result')).toEqual([])
     const cancelBody = { type: 'client-request', rpcId: 'cancel-held-answer', method: 'session/cancelTurn', payload: {
-      apiProtocolVersion: 2, args: { request: { sessionId, turnStartSeq } },
+      args: { request: { sessionId, turnStartSeq } },
     } }
     const cancel = async () => {
       const response = await other.request.post(new URL('/api/session/cancelTurn', other.url()).href, { data: cancelBody })
@@ -217,29 +225,28 @@ it.each([
     await cancel()
     await expect.poll(() => messages.filter(message => message.kind === 'turn/end').length, { timeout: 30_000 }).toBe(1)
     await expect.poll(() => (authenticationLoss ? otherRecords : records)
-      .some(record => record.requestId === oldReply.eventId && record.status === 'cancelled')).toBe(true)
+      .some(record => record.eventId === oldReply.eventId && record.type === 'cancel')).toBe(true)
     await expect.poll(() => other.locator(selector).count()).toBe(0)
+    const beforeReconnect = records.length
     releaseAnswer.resolve(undefined)
     if (authenticationLoss) {
-      await authenticationControl.waitFor()
       expect(replies).toHaveLength(1)
       const login = await context.newPage()
       await login.goto(authenticatedUrl, { waitUntil: 'load' })
       expect(new URL(login.url()).searchParams.has('token')).toBe(false)
-      await authenticationControl.click()
       await expect.poll(() => generations.length, { timeout: 30_000 }).toBe(2)
       await login.close()
     } else await disconnect!()
     await expect.poll(() => generations.length, { timeout: 30_000 }).toBe(oldReplyCount + 1)
-    expect(generations.at(-1)!.pendingInteractionIds).toEqual([])
+    expect(records.slice(beforeReconnect).filter(record => record.type === 'waterfall')).toEqual([])
     expect(replies).toHaveLength(oldReplyCount)
     const stale = async (id: string) => {
       const response = await page.request.post(new URL('/api/$events/result', page.url()).href, { data: {
         type: 'client-request', rpcId: id, method: '$events/result', payload: {
-          apiProtocolVersion: 2, args: { ...oldReply, clientId: generations.at(-1)!.clientId },
+          args: { ...oldReply, clientId: generations.at(-1)!.clientId },
         },
       } })
-      expect(await response.json()).toMatchObject({ result: { ok: false, error: { code: 'interaction-closed' } } })
+      expect(await response.json()).toMatchObject({ result: { ok: true } })
     }
     await stale('late-answer-after-cancel')
     expect(mock.requests).toHaveLength(1)
@@ -257,7 +264,7 @@ it.each([
     await expect.poll(() => messages.filter(message => message.kind === 'tool-entered').length, { timeout: 30_000 }).toBe(2)
     child!.send({ kind: 'request-interaction' })
     await panel.waitFor({ timeout: 30_000 })
-    expect(records.at(-1)!.requestId).not.toBe(oldReply.eventId)
+    expect(records.filter(record => record.type === 'waterfall').at(-1)!.eventId).not.toBe(oldReply.eventId)
     await stale('late-answer-during-new-request')
     await cancel()
     expect(await panel.count()).toBe(1)
@@ -288,7 +295,7 @@ it.each([
     await writeFile(`${evidenceDir}/observation.json`, JSON.stringify({
       interaction, order, oldAnswerSubmissions: 1, oldAnswerRequests: oldReplyCount, generations: generations.length,
       authenticationLoss, authenticationRejections, cancellationFromIndependentContext: authenticationLoss,
-      staleAnswersRejected: 2, staleCancellationPreservedNewTurn: true, toolCalls: 2, toolResults: 2,
+      staleAnswersIgnored: 2, staleCancellationPreservedNewTurn: true, toolCalls: 2, toolResults: 2,
       modelRequests: mock.requests.length, sideEffects: 0, turnReasons: ['aborted', 'completed'],
       newAnswer: interaction === 'approval' ? 'rejected' : 'Fresh answer', cancellationCode,
     }, null, 2) + '\n')

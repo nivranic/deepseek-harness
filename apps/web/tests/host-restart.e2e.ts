@@ -12,8 +12,9 @@ import { Context } from '@deepseek-ai/cordis'
 import { SessionId } from '@deepseek-ai/dsh-session'
 import * as JsonlSessionPersistence from '@deepseek-ai/dsh-session-persistence-jsonl'
 import { startMockLlmServer } from '@deepseek-ai/dsh-llm-mock-server'
-import type { RemoteInteractionRecord } from '@deepseek-ai/dsh-api-gateway/protocol'
-import { connectFreshWorkspace, probeFreePort, REPO_ROOT } from './support.ts'
+import type { RemoteEventInvocationFrame, RemoteEventReadyFrame } from '@deepseek-ai/dsh-api-gateway/stream-protocol'
+import { connectFreshWorkspace, expandOwningTurnProcess, probeFreePort, REPO_ROOT } from './support.ts'
+import { isolatedStandardPresetPatch } from './scaffold.ts'
 
 interface HostMessage {
   kind: string
@@ -38,6 +39,7 @@ it.each(['approval', 'question'] as const)('recovers %s across Host restart and 
   }))
   const fixture = new URL('./host-restart.fixture.ts', import.meta.url).href
   await writeFile(join(profile, 'cordis.patch.yml'), JSON.stringify([
+    isolatedStandardPresetPatch(root, false),
     { id: 'webserver', config: { host: '127.0.0.1', port } },
     { id: 'web-runtime', config: { openBrowser: false, printUrl: false, surfaceContext: true } },
     { id: 'llm-deepseek', config: { baseURL: mock.baseURL, apiKeyEnv: 'DSH_RESTART_TEST_KEY' } },
@@ -107,7 +109,7 @@ it.each(['approval', 'question'] as const)('recovers %s across Host restart and 
     browser = await chromium.launch(executablePath === undefined ? {} : { executablePath })
     const page = await browser.newPage({ viewport: { width: 1440, height: 1000 }, locale: 'en-US' })
     let clientId: string | undefined
-    let pending: RemoteInteractionRecord | undefined
+    let pending: RemoteEventInvocationFrame | undefined
     const snapshots: { sessionId: string; events: { type: string; data: unknown }[] }[] = []
     page.on('pageerror', (error) => { failures.push(error) })
     page.on('console', (message) => {
@@ -117,17 +119,15 @@ it.each(['approval', 'question'] as const)('recovers %s across Host restart and 
       socket.on('framereceived', ({ payload }) => {
         const frame = JSON.parse(payload.toString()) as {
           type?: string
-          value?: {
-            clientId?: string
-            interaction?: RemoteInteractionRecord
-            type?: string
-            header?: { id: string }
-            records?: { event: { type: string; data: unknown } }[]
+          value?: RemoteEventInvocationFrame | RemoteEventReadyFrame | {
+            type: 'snapshot'
+            header: { id: string }
+            records: { event: { type: string; data: unknown } }[]
           }
         }
         if (frame.type !== 'item') return
-        if (frame.value?.clientId !== undefined) clientId = frame.value.clientId
-        if (frame.value?.interaction?.status === 'pending') pending = frame.value.interaction
+        if (frame.value?.type === 'ready') clientId = frame.value.clientId
+        if (frame.value?.type === 'waterfall') pending = frame.value
         if (frame.value?.type === 'snapshot' && frame.value.header !== undefined && frame.value.records !== undefined) {
           snapshots.push({ sessionId: frame.value.header.id, events: frame.value.records.map(record => record.event) })
         }
@@ -147,7 +147,7 @@ it.each(['approval', 'question'] as const)('recovers %s across Host restart and 
       await expect.poll(() => messages.some(message => message.kind === 'approval/asked'), { timeout: 30_000 }).toBe(true)
     }
     expect(pending).toBeDefined()
-    expect(pending!.type).toBe(interaction)
+    expect(pending!.event).toBe(interaction === 'approval' ? 'approval/request' : 'user-questions/request')
     expect(mock.requests).toHaveLength(1)
     expect(existsSync(join(home, 'side-effect'))).toBe(false)
     const sessionId = messages.find(message => message.kind === 'tool-entered')!.sessionId!
@@ -170,17 +170,17 @@ it.each(['approval', 'question'] as const)('recovers %s across Host restart and 
     await expect.poll(() => panel.count()).toBe(0)
     expect(await input.innerText()).toBe('Unsent draft survives Host restart')
     expect((await page.request.get(baseUrl)).status()).toBe(200)
-    async function rejectOldAnswer(rpcId: string): Promise<void> {
+    async function ignoreOldAnswer(rpcId: string): Promise<void> {
       const late = await page.request.post(`${baseUrl}/api/$events/result`, { data: {
         type: 'client-request', rpcId, method: '$events/result', payload: {
-          apiProtocolVersion: 2, args: { clientId, eventId: originalPending.requestId, interactionRevision: originalPending.revision,
+          args: { clientId, eventId: originalPending.eventId,
             outcome: { kind: 'result', value: interaction === 'approval' ? 'allowed-once'
               : { answers: [{ id: 'restart', selected: ['Stale answer'] }] } } },
         },
       } })
-      expect(await late.json()).toMatchObject({ result: { ok: false, error: { code: 'interaction-closed' } } })
+      expect(await late.json()).toMatchObject({ result: { ok: true } })
     }
-    await rejectOldAnswer('restart-stale-before-new-request')
+    await ignoreOldAnswer('restart-stale-before-new-request')
     await expect.poll(() => snapshots.length > snapshotCount, { timeout: 30_000 }).toBe(true)
     expect(snapshots.at(-1)!.sessionId).toBe(sessionId)
     const historyEvents = snapshots.at(-1)!.events
@@ -200,9 +200,9 @@ it.each(['approval', 'question'] as const)('recovers %s across Host restart and 
     await expect.poll(() => messages.some(message => message.kind === 'tool-entered'), { timeout: 30_000 }).toBe(true)
     child!.send({ kind: 'request-interaction' })
     await panel.waitFor({ timeout: 30_000 })
-    expect(pending!.requestId).not.toBe(originalPending.requestId)
-    expect(pending!.type).toBe(interaction)
-    await rejectOldAnswer('restart-stale-during-new-request')
+    expect(pending!.eventId).not.toBe(originalPending.eventId)
+    expect(pending!.event).toBe(interaction === 'approval' ? 'approval/request' : 'user-questions/request')
+    await ignoreOldAnswer('restart-stale-during-new-request')
     expect(await panel.count()).toBe(1)
     if (interaction === 'approval') {
       await panel.getByRole('button', { name: 'Reject', exact: true }).click()
@@ -243,18 +243,18 @@ it.each(['approval', 'question'] as const)('recovers %s across Host restart and 
     await expect.poll(() => toolRows.count()).toBe(2)
     expect(await toolRows.nth(0).getAttribute('data-error')).toBe('true')
     expect(await toolRows.nth(1).getAttribute('data-error')).toBeNull()
-    expect(await toolRows.nth(0).textContent()).toContain('TOOL_OUTCOME_UNKNOWN')
+    expect(await toolRows.nth(0).textContent()).toContain('The tool call was interrupted after it was recorded')
     expect(await toolRows.nth(1).textContent()).toContain(answeredText)
     const rowKeys = await toolRows.evaluateAll(rows => rows.map(row => row.getAttribute('data-trajectory-row-key')))
     expect(new Set(rowKeys).size).toBe(2)
     await page.screenshot({ path: `${evidenceDir}/trajectory.png`, fullPage: true })
     for (const occurrence of [1, 0]) {
       await page.getByRole('tab', { name: 'Chat', exact: true }).click()
-      const processToggle = page.locator('[data-turn-process][aria-expanded="false"]')
-      if (await processToggle.count() > 0) await processToggle.first().click()
       const tool = page.locator('[data-chat-flow-kind="tool-call"]').nth(occurrence)
+      await expandOwningTurnProcess(page, tool)
       const collapsed = tool.locator('[aria-expanded="false"]')
       if (await collapsed.count() > 0) await collapsed.first().click()
+      await tool.hover()
       await tool.getByRole('button', { name: 'Inspect', exact: true }).click()
       const details = page.getByRole('complementary', { name: 'Event details' })
       await expect.poll(() => details.textContent()).toContain(`Turn ${occurrence + 1} · Step 1`)
@@ -264,17 +264,19 @@ it.each(['approval', 'question'] as const)('recovers %s across Host restart and 
           await details.locator('[data-json-expander][aria-expanded="false"]').first().click()
         }
       }
-      await expect.poll(() => details.textContent()).toContain(occurrence === 0 ? 'TOOL_OUTCOME_UNKNOWN' : answeredText)
+      await expect.poll(() => details.textContent()).toContain(occurrence === 0
+        ? 'The tool call was interrupted after it was recorded'
+        : answeredText)
       await details.getByRole('tab', { name: 'Schema', exact: true }).click()
       await expect.poll(() => details.textContent()).toContain('Request human input for the restart regression.')
       await page.screenshot({ path: `${evidenceDir}/inspect-${occurrence + 1}.png`, fullPage: true })
     }
     await writeFile(`${evidenceDir}/observation.json`, JSON.stringify({
-      interaction, newInteractionAnswered: true, sameRecoveredConnection: true, staleAnswersRejected: 2,
+      interaction, newInteractionAnswered: true, sameRecoveredConnection: true, staleAnswersIgnored: 2,
       interruptedToolStillVisibleAfterNextTurn: true, trajectoryToolOccurrencesDistinct: true,
       inspectOccurrencesVerified: 2, inspectSchemaVerified: true,
       sessionId, processRestart: true, originalCookieAccepted: true, pendingCardRemoved: true,
-      draftRetained: true, lateAnswer: 'interaction-closed', modelRequests: mock.requests.length, sideEffects: 0,
+      draftRetained: true, lateAnswer: 'ignored', modelRequests: mock.requests.length, sideEffects: 0,
     }, null, 2) + '\n')
   } catch (error) {
     failures.push(error)

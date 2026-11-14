@@ -11,7 +11,7 @@ import type { NativePairingPayload } from '@deepseek-ai/dsh-api-native-remote/ty
 import { NativeTestClient } from './native-remote-support.ts'
 import type { SessionEvent } from '@deepseek-ai/dsh-session'
 import { compareOrRefreshGolden, fixtureUserPrompts, launchWebScaffold, webSnapshotMode } from './scaffold.ts'
-import { connectFreshWorkspace, newEnglishPage, writeComposerDraft } from './support.ts'
+import { connectFreshWorkspace, newEnglishPage, openSettings, writeComposerDraft } from './support.ts'
 
 const MODE = webSnapshotMode()
 const FIXTURE = fileURLToPath(new URL('../../../snapshots/web/question-composer/session.v3.jsonl', import.meta.url))
@@ -95,16 +95,16 @@ it.skipIf(MODE === 'record')('answers a recorded Question through the pinned TLS
     browser = await chromium.launch(executablePath === undefined ? {} : { executablePath })
     const operator = await newEnglishPage(browser)
     await operator.goto(scaffold.authenticatedUrl, { waitUntil: 'load' })
-    await operator.getByRole('button', { name: 'Settings', exact: true }).click()
+    await openSettings(operator, 'en')
     await operator.getByRole('dialog', { name: 'Settings', exact: true }).getByRole('button', { name: 'Devices', exact: true }).click()
     const ownAdmission = await pair(operator)
     await operator.setViewportSize({ width: 390, height: 844 })
-    await operator.locator('[data-sidebar-overlay]').waitFor({ state: 'attached' })
-    await operator.locator('[data-sidebar-overlay]').evaluate(async (frame) => {
+    await operator.getByRole('dialog', { name: 'Settings', exact: true }).waitFor()
+    await operator.getByRole('dialog', { name: 'Settings', exact: true }).evaluate(async (frame) => {
       await Promise.all(frame.getAnimations({ subtree: true }).filter(animation => animation instanceof CSSTransition)
         .map(animation => animation.finished.catch(() => undefined)))
     })
-    const hiddenAncestor = await operator.locator('[role="dialog"]').evaluate((dialog) => {
+    const hiddenAncestor = await operator.getByRole('dialog', { name: 'Settings', exact: true }).evaluate((dialog) => {
       for (let parent = dialog.parentElement; parent !== null; parent = parent.parentElement) {
         const style = getComputedStyle(parent)
         if (style.display === 'none' || style.visibility === 'hidden') return parent.className
@@ -115,37 +115,13 @@ it.skipIf(MODE === 'record')('answers a recorded Question through the pinned TLS
     const otherAdmission = await pair(operator)
     await operator.close()
     const page = await newEnglishPage(browser)
-    await page.routeWebSocket('**/api/remote.mux', async (socket) => {
-      const server = await native.mux()
-      server.on('message', (data) => {
-        const bytes = Array.isArray(data) ? Buffer.concat(data) : data instanceof ArrayBuffer ? Buffer.from(data) : data
-        socket.send(bytes.toString())
-      })
-      server.on('close', () => { void socket.close().catch((error: unknown) => { failures.push(error) }) })
-      server.on('error', () => {
-        void socket.close({ code: 1011, reason: 'native test carrier failed' }).catch((error: unknown) => { failures.push(error) })
-      })
-      socket.onClose(() => { server.close() })
-      socket.onMessage((message) => {
-        const frame = JSON.parse(message.toString()) as {
-          type?: string
-          endpoint?: string
-          payload?: { args: Record<string, unknown>; apiProtocolVersion?: number; device?: unknown }
-        }
-        if (frame.type === 'open' && frame.payload !== undefined) {
-          frame.payload.apiProtocolVersion = 2
-          if (frame.endpoint === '$events') frame.payload.args.device = ownAdmission()
-          else frame.payload.device = ownAdmission()
-        }
-        server.send(JSON.stringify(frame))
-      })
-    })
+    await native.bridgeStreams(page, ownAdmission, (error) => { failures.push(error) })
     const checked = Promise.withResolvers<undefined>()
     const outcome = checked.promise.catch((error: unknown) => error)
     const rejections: string[] = []
     await page.route('**/api/$events/result', async (route) => {
       try {
-        const request = route.request().postDataJSON() as { payload: { args: unknown; apiProtocolVersion: number } }
+        const request = route.request().postDataJSON() as { payload: { args: unknown } }
         const invalid = { ...ownAdmission(), signature: otherAdmission().signature }
         for (const [label, device, code] of [
           ['missing', undefined, 'gateway/permission-denied'],
@@ -153,14 +129,14 @@ it.skipIf(MODE === 'record')('answers a recorded Question through the pinned TLS
           ['wrong-signature', invalid, 'device/key-invalid'],
         ] as const) {
           const response = await native.post('/api/$events/result', JSON.stringify({
-            ...request, payload: { ...request.payload, ...(device === undefined ? {} : { device }) },
+            ...request, payload: { ...request.payload, apiProtocolVersion: 2, ...(device === undefined ? {} : { device }) },
           }))
           expect(await response.json()).toMatchObject({ result: { ok: false, error: { code } } })
           expect(events.some(event => event.type === 'tool/result')).toBe(false)
           rejections.push(`${label}: ${code}; Question remains pending`)
         }
         const response = await native.post('/api/$events/result', JSON.stringify({
-          ...request, payload: { ...request.payload, device: ownAdmission() },
+          ...request, payload: { ...request.payload, apiProtocolVersion: 2, device: ownAdmission() },
         }))
         expect(await response.clone().json()).toMatchObject({ result: { ok: true } })
         await route.fulfill({ status: response.status, contentType: 'application/json', body: await response.text() })

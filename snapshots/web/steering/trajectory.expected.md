@@ -1,6 +1,7 @@
 - banner:
   - navigation "Session hierarchy": Use the ask_user_question tool to
   - text: Standard mode
+  - button "Continue on another device"
   - button "More actions"
   - button "Open right sidebar"
   - tablist:

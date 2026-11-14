@@ -1089,7 +1089,8 @@ export async function launchWebScaffold(options: LaunchOptions = {}): Promise<We
         restoreCredentialEnvironment()
         restoreSkillRootEnvironment()
       }
-      if (failures.length > 0) throw new AggregateError(failures, 'web scaffold teardown failed')
+      if (failures.length === 1) throw failures[0]
+      if (failures.length > 1) throw new AggregateError(failures, 'web scaffold teardown failed')
     },
   }
 }

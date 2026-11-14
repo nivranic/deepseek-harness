@@ -7,6 +7,7 @@ import { expect, it } from 'vitest'
 import type {} from '@deepseek-ai/dsh-api-device-trust'
 import type { RedeemPairingResult } from '@deepseek-ai/dsh-api-device-trust'
 import type { SessionEvent } from '@deepseek-ai/dsh-session'
+import { NativeTestClient } from './native-remote-support.ts'
 import { compareOrRefreshGolden, fixtureUserPrompts, launchWebScaffold, webSnapshotMode } from './scaffold.ts'
 import { connectFreshWorkspace, newEnglishPage, writeComposerDraft } from './support.ts'
 
@@ -15,7 +16,12 @@ const FIXTURE = fileURLToPath(new URL('../../../snapshots/web/question-composer/
 const EXPECTED = fileURLToPath(new URL('./expected/device-interaction-reply.expected.md', import.meta.url))
 
 it.skipIf(MODE === 'record')('requires the stream device signature before a recorded Question can settle', async () => {
-  const scaffold = await launchWebScaffold({ replayFixture: FIXTURE, paceMs: 15, compareReplaySession: true })
+  const scaffold = await launchWebScaffold({
+    replayFixture: FIXTURE, paceMs: 15, compareReplaySession: true,
+    extraOverlayPath: fileURLToPath(new URL('./fixtures/native-remote.patch.yml', import.meta.url)),
+    extraInstallAnchors: [fileURLToPath(new URL('./fixtures/native-remote/package.json', import.meta.url))],
+  })
+  const native = new NativeTestClient(scaffold.ctx.nativeRemote.describe())
   let browser: Browser | undefined
   const failures: unknown[] = []
   const events: SessionEvent[] = []
@@ -27,11 +33,10 @@ it.skipIf(MODE === 'record')('requires the stream device signature before a reco
       code, deviceName: 'reply-test', devicePublicKey: keys.publicKey.export({ type: 'spki', format: 'der' }).toString('base64'),
     }
     const redeem = async () => {
-      const response = await scaffold.hostFetch('/api/deviceTrust/redeemPairing', {
-        method: 'POST', headers: { 'content-type': 'application/json' },
-        body: JSON.stringify({ type: 'client-request', rpcId: randomUUID(), method: 'deviceTrust/redeemPairing',
-          payload: { apiProtocolVersion: 2, args: { request } } }),
-      })
+      const response = await native.post('/api/deviceTrust/redeemPairing', JSON.stringify({
+        type: 'client-request', rpcId: randomUUID(), method: 'deviceTrust/redeemPairing',
+        payload: { apiProtocolVersion: 2, args: { request } },
+      }))
       expect(response.status).toBe(200)
       return await response.json() as { result:
         { ok: true; value: RedeemPairingResult } | { ok: false; error: { code: string } } }
@@ -58,16 +63,7 @@ it.skipIf(MODE === 'record')('requires the stream device signature before a reco
     const executablePath = process.env.DSH_PLAYWRIGHT_EXECUTABLE_PATH
     browser = await chromium.launch(executablePath === undefined ? {} : { executablePath })
     const page = await newEnglishPage(browser)
-    await page.routeWebSocket('**/api/remote.mux', (socket) => {
-      const server = socket.connectToServer()
-      socket.onMessage((message) => {
-        const frame = JSON.parse(message.toString()) as { type?: string; endpoint?: string; payload?: { args: Record<string, unknown> } }
-        if (frame.type === 'open' && frame.endpoint === '$events' && frame.payload !== undefined) {
-          frame.payload.args.device = ownAdmission()
-          server.send(JSON.stringify(frame))
-        } else server.send(message)
-      })
-    })
+    await native.bridgeStreams(page, ownAdmission, (error) => { failures.push(error) })
     const checked = Promise.withResolvers<undefined>()
     const outcome = checked.promise.catch((error: unknown) => error)
     const rejections: string[] = []
@@ -77,21 +73,21 @@ it.skipIf(MODE === 'record')('requires the stream device signature before a reco
         const invalid = { ...ownAdmission(), signature: otherAdmission().signature }
         for (const [label, device, code] of [
           ['missing', undefined, 'gateway/permission-denied'],
-          ['other-device', otherAdmission(), 'gateway/permission-denied'],
+          ['other-device', otherAdmission(), 'gateway/interactions-forbidden'],
           ['wrong-signature', invalid, 'device/key-invalid'],
         ] as const) {
-          const response = await route.fetch({ postData: JSON.stringify({
-            ...request, payload: { ...request.payload, ...(device === undefined ? {} : { device }) },
-          }) })
+          const response = await native.post('/api/$events/result', JSON.stringify({
+            ...request, payload: { ...request.payload, apiProtocolVersion: 2, ...(device === undefined ? {} : { device }) },
+          }))
           expect(await response.json()).toMatchObject({ result: { ok: false, error: { code } } })
           expect(events.some(event => event.type === 'tool/result')).toBe(false)
           rejections.push(`${label}: ${code}; Question remains pending`)
         }
-        const response = await route.fetch({ postData: JSON.stringify({
-          ...request, payload: { ...request.payload, device: ownAdmission() },
-        }) })
-        expect(await response.json()).toMatchObject({ result: { ok: true } })
-        await route.fulfill({ response })
+        const response = await native.post('/api/$events/result', JSON.stringify({
+          ...request, payload: { ...request.payload, apiProtocolVersion: 2, device: ownAdmission() },
+        }))
+        expect(await response.clone().json()).toMatchObject({ result: { ok: true } })
+        await route.fulfill({ status: response.status, contentType: 'application/json', body: await response.text() })
         checked.resolve(undefined)
       } catch (error) {
         checked.reject(error)
@@ -125,6 +121,7 @@ it.skipIf(MODE === 'record')('requires the stream device signature before a reco
     failures.push(error)
   } finally {
     await browser?.close().catch((error: unknown) => { failures.push(error) })
+    await native.close().catch((error: unknown) => { failures.push(error) })
     await scaffold.close().catch((error: unknown) => { failures.push(error) })
   }
   if (failures.length > 0) throw new AggregateError(failures, 'Device pairing and reply scenario failed')

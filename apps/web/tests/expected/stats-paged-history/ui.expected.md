@@ -1,5 +1,6 @@
 - banner:
   - navigation "Session hierarchy": {{workspace}}
+  - button "Continue on another device"
   - button "More actions"
   - button "Open right sidebar"
   - tablist:

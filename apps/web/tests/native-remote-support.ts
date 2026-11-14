@@ -4,6 +4,8 @@ import { once } from 'node:events'
 import { request } from 'node:http'
 import { connect, type TLSSocket } from 'node:tls'
 import WebSocket from 'ws'
+import type { Page } from 'playwright'
+import type { AdmitDeviceRequest } from '@deepseek-ai/dsh-api-device-trust/types'
 import type { NativeRemoteInfo } from '@deepseek-ai/dsh-api-native-remote'
 
 export class NativeTestClient {
@@ -49,6 +51,40 @@ export class NativeTestClient {
     ws.once('close', () => { this.websockets.delete(ws) })
     await once(ws, 'open')
     return ws
+  }
+
+  /**
+   * Forward browser streams through the signed native carrier.
+   * @param page - browser page before its first Host connection.
+   * @param admission - fresh signed device admission for each stream.
+   * @param onFailure - owner collecting asynchronous carrier failures.
+   */
+  async bridgeStreams(page: Page, admission: () => AdmitDeviceRequest, onFailure: (error: unknown) => void): Promise<void> {
+    await page.routeWebSocket('**/api/remote.mux', async (socket) => {
+      const server = await this.mux()
+      server.on('message', (data) => {
+        const bytes = Array.isArray(data) ? Buffer.concat(data) : data instanceof ArrayBuffer ? Buffer.from(data) : data
+        socket.send(bytes.toString())
+      })
+      server.on('close', () => { void socket.close().catch(onFailure) })
+      server.on('error', () => {
+        void socket.close({ code: 1011, reason: 'native test carrier failed' }).catch(onFailure)
+      })
+      socket.onClose(() => { server.close() })
+      socket.onMessage((message) => {
+        const frame = JSON.parse(message.toString()) as {
+          type?: string
+          endpoint?: string
+          payload?: { args: Record<string, unknown>; apiProtocolVersion?: number; device?: AdmitDeviceRequest }
+        }
+        if (frame.type === 'open' && frame.payload !== undefined) {
+          frame.payload.apiProtocolVersion = 2
+          if (frame.endpoint === '$events') frame.payload.args.device = admission()
+          else frame.payload.device = admission()
+        }
+        server.send(JSON.stringify(frame))
+      })
+    })
   }
 
   async close(): Promise<void> {

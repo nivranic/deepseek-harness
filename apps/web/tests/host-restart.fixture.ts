@@ -72,7 +72,7 @@ export function apply(ctx: Context, config: Config): void {
     process.send?.({ kind: 'disposed' })
   })
   void ctx.loader.await().then(async () => {
-    await ctx.settings.mutate('ui-onboarding', [{ op: 'set', path: ['welcomeNoticeVersion'], value: '2026-08-13.1' }])
+    await ctx.settings.mutate('ui-settings-general', [{ op: 'set', path: ['welcomeNoticeVersion'], value: '2026-09-28.1' }])
     const baseUrl = `http://127.0.0.1:${ctx.webServer.port}`
     // The credential-bearing URL stays exclusively on the parent's private IPC channel.
     const entries: WebEntryUrl[] = []
