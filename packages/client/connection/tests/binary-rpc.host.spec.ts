@@ -6,7 +6,7 @@ import { describe, expect, it } from 'vitest'
 import { createWebConnectionRpc } from '../src/client/rpc.ts'
 import { bridge } from '../src/http-bridge.ts'
 import type { ConnectionRpcHandlerResult, ConnectionRpcResult } from '../src/rpc.ts'
-import { HostConnectionService } from '../src/rpc-host.ts'
+import { createRpcFetchHandler, HostConnectionService } from '../src/rpc-host.ts'
 import { ConnectionAuthentication } from '../src/authentication.ts'
 
 function binaryResponse(rpcId: string, mutate: (parts: FormData) => void = () => {}): Response {
@@ -21,6 +21,11 @@ function binaryResponse(rpcId: string, mutate: (parts: FormData) => void = () =>
 }
 
 describe('Connection binary RPC', () => {
+  it.each(['', 'api', '/', '/api/v1'])('rejects an invalid shared RPC channel %s before dispatch', (channel) => {
+    expect(() => createRpcFetchHandler(channel, async () => ({ ok: true, value: null })))
+      .toThrow('connection: invalid RPC channel')
+  })
+
   it.each(['gzip', 'none'] as const)('preserves %s configuration through the HTTP bridge', async (compression) => {
     const ctx = new Context()
     try {

@@ -542,8 +542,7 @@ class JsonlSessionPersistence extends SessionPersistence {
         ...metadata,
         revision: selected.sourceVersion < SESSION_FORMAT_VERSION
           ? brandString<PersistenceRevision>(`${await this.currentRevision(selected.sourcePath, identity)}:${await this.historicalCorpusRevision(options?.signal)}`)
-          : selected.sourceVersion === SESSION_FORMAT_VERSION
-            ? await this.currentRevision(selected.sourcePath, identity) : fileRevision(identity),
+          : await this.currentRevision(selected.sourcePath, identity),
         sizeBytes: Number(identity.size),
         location: { kind: 'jsonl', path: selected.sourcePath },
       }

@@ -102,6 +102,17 @@ async function postUpload(
 }
 
 describe('streamed file upload edges over the real local attachment store', () => {
+  it('rejects invalid and unknown dedupe digests without issuing a receipt', async () => {
+    const { uploads, agent } = await storeHarness()
+    const signal = new AbortController().signal
+    await expect(uploads.uploadDedupe(agent, { digest: 'z'.repeat(64) }, signal)).rejects.toMatchObject({
+      code: 'session/attachment-invalid', details: { reason: 'FILE_DIGEST_INVALID' },
+    })
+    await expect(uploads.uploadDedupe(agent, { digest: 'ab'.repeat(32) }, signal)).rejects.toMatchObject({
+      code: 'session/attachment-invalid', details: { reason: 'FILE_DIGEST_NOT_KNOWN' },
+    })
+  })
+
   it('round-trips exact bytes containing NUL and high bytes through the registered route', async () => {
     const { ctx, uploads, route, agent, root } = await storeHarness()
     const bytes = Uint8Array.of(0, 1, 0x7f, 0x80, 0xfd, 0xfe, 0xff, 0, 0)

@@ -214,7 +214,8 @@ Device-trust service (`ctx.deviceTrust`) over the durable device_trust domain.
 
 /**
  * Revoke every still-active grant — the lost-device panic path. Already
- * revoked grants keep their original revocation time; the event carries
+ * revoked grants, including earlier queued revocations, keep their original
+ * revocation time. The event carries
  * exactly the identities this call revoked. A call that revoked at least
  * one grant also leaves one §44 `deviceTrustMetadata` ops record through
  * the optional session-telemetry owner; a no-op revoke-all records

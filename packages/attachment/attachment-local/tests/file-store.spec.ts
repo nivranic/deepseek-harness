@@ -3,7 +3,7 @@ import { chmod, mkdir, readdir, readFile, stat, unlink, writeFile } from 'node:f
 import { tmpdir } from 'node:os'
 import { join } from 'node:path'
 import { mkdtemp, rm } from 'node:fs/promises'
-import { afterEach, describe, expect, it } from 'vitest'
+import { afterEach, describe, expect, it, vi } from 'vitest'
 import type { AttachmentId } from '@deepseek-ai/dsh-attachment/types'
 import { brandString } from '@deepseek-ai/dsh-brand'
 import type { FileAttachmentRef } from '@deepseek-ai/dsh-attachment'
@@ -12,6 +12,11 @@ import {
   storedFilePath,
 } from '../src/file-store.ts'
 import { publishImmutableAlias } from '../src/store.ts'
+
+vi.mock('node:fs/promises', async (importOriginal) => {
+  const fs = await importOriginal<typeof import('node:fs/promises')>()
+  return { ...fs, stat: vi.fn(fs.stat) }
+})
 
 const roots: string[] = []
 
@@ -263,6 +268,17 @@ describe('readFileStreamVerbatim', () => {
 })
 
 describe('ensureFileByDigest', () => {
+  it('preserves a filesystem failure other than a missing object', async () => {
+    const root = await makeRoot()
+    const failure = Object.assign(new Error('object access denied'), { code: 'EACCES' })
+    vi.mocked(stat).mockRejectedValueOnce(failure)
+    try {
+      await expect(ensureFileByDigest(root, 'ab'.repeat(32))).rejects.toBe(failure)
+    } finally {
+      vi.mocked(stat).mockReset()
+    }
+  })
+
   it('resolves a stored object by digest, publishes the alias, and never rewrites bytes', async () => {
     const root = await makeRoot()
     const data = Uint8Array.of(1, 2, 3, 4)

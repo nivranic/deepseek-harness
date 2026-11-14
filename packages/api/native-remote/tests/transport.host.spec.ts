@@ -12,7 +12,7 @@ import Storage from '@deepseek-ai/dsh-storage'
 import * as JsonStorage from '@deepseek-ai/dsh-storage-json'
 import * as StorageDomain from '@deepseek-ai/dsh-storage-domain'
 import { LocalCredentialProvider } from '@deepseek-ai/dsh-credentials-local'
-import DeviceTrust, { DeviceId, type DeviceRole } from '@deepseek-ai/dsh-api-device-trust'
+import DeviceTrust, { DeviceId, type DeviceGrantRecord, type DeviceRole } from '@deepseek-ai/dsh-api-device-trust'
 import Gateway, { type TypertRemoteEventInvocation } from '@deepseek-ai/dsh-api-gateway'
 import type { RemoteEventDownlinkFrame } from '@deepseek-ai/dsh-api-gateway/stream-protocol'
 import RemoteAccess from '@deepseek-ai/dsh-api-remote-access'
@@ -204,6 +204,19 @@ describe('native encrypted Connection source', () => {
       const args = { clientId: ready.clientId, eventId: frame.eventId, outcome: { kind: 'result', value: 'accepted' } }
       const wrong = await post(info, '$events/result', { apiProtocolVersion: 2, args, device: other.admission() })
       expect(JSON.parse(wrong.body)).toMatchObject({ result: { ok: false, error: { code: 'gateway/interactions-forbidden' } } })
+      if (role === 'controller') {
+        const grants = ctx.deviceTrust['grants']
+        if (grants === undefined) throw new Error('device grants fixture did not open')
+        await grants.update(device.deviceId, (current: DeviceGrantRecord) => ({ ...current, role: 'viewer' }))
+        try {
+          const demoted = await post(info, '$events/result', { apiProtocolVersion: 2, args, device: device.admission() })
+          expect(JSON.parse(demoted.body)).toMatchObject({
+            result: { ok: false, error: { code: 'gateway/interactions-forbidden' } },
+          })
+        } finally {
+          await grants.update(device.deviceId, (current: DeviceGrantRecord) => ({ ...current, role }))
+        }
+      }
       const response = await post(info, '$events/result', { apiProtocolVersion: 2, args, device: device.admission() })
       expect(JSON.parse(response.body)).toMatchObject({ result: { ok: true } })
     }

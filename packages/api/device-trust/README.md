@@ -32,6 +32,8 @@ Roles use the section 21 table names (`viewer`, `collaborator`, `controller`, `o
 
 `maxAdmissionNonces` bounds retained hashes per device (default 4096). A full ledger refuses with `device/admission-capacity` (`host-state`, details `deviceId`, `limit`, `retryAt`) instead of evicting live receipts; a later explicit request can succeed after receipts expire. The nondecreasing retirement floor prevents discarded proofs from becoming valid after clock rollback or a wider window. The `device_trust` domain requires version 2 and rejects version 1 without migration. The [admission decision](../../../.agents/notes/implemented/bug-fix/2026-09-26-durable-unordered-device-admission.md) owns the rationale and first-arrival replay limitation.
 
+`revokeAllDevices` counts and reports the grants its own serialized updates revoke. A grant revoked by an earlier queued call retains its original timestamp and contributes to that earlier call's event and count.
+
 ## Model Experience
 
 None, as the pairing ceremony and admission are Client and Host control state and register no prompt, tool, or session event.

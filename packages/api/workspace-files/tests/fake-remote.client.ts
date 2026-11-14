@@ -110,7 +110,7 @@ export class FakeRemote implements WorkspaceFilesRemote {
   /** Capability ids the fake `host.describe` answer advertises; none by default. */
   admission: readonly string[] = []
   readonly host = {
-    describe: (): Promise<{ ok: true; value: { capabilities: readonly string[] } }> =>
+    describe: (): Promise<RemoteResult<{ capabilities: readonly string[] }>> =>
       Promise.resolve({ ok: true as const, value: { capabilities: this.admission } }),
   }
 

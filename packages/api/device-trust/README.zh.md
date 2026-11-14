@@ -32,6 +32,8 @@ kind: "package-reference"
 
 `maxAdmissionNonces` 限制每台设备保留的哈希数（默认 4096）。账本满时以 `device/admission-capacity` 拒绝（`host-state`，详情为 `deviceId`、`limit`、`retryAt`），不会驱逐仍有效的记录；记录过期后，后续显式请求可获准。单调不减的淘汰下界防止时钟回拨或窗口扩大使已丢弃证明重新有效。`device_trust` 域要求版本 2，无迁移地拒绝版本 1。[准入决定](../../../.agents/notes/implemented/bug-fix/2026-09-26-durable-unordered-device-admission.zh.md)记录设计理由与重放先到达的限制。
 
+`revokeAllDevices` 计数并报告由自身串行更新撤销的授权。被先前排队调用撤销的授权保留原撤销时间，并计入先前调用的事件和数量。
+
 <a id="model-experience"></a>
 ## 模型体验
 

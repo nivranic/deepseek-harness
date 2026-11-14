@@ -2,7 +2,7 @@ import { afterEach, describe, expect, it, vi } from 'vitest'
 import { mkdtemp, rm } from 'node:fs/promises'
 import { tmpdir } from 'node:os'
 import { join } from 'node:path'
-import { generateKeyPairSync, sign as edSign } from 'node:crypto'
+import { generateKeyPairSync, sign as edSign, verify as verifySignature } from 'node:crypto'
 import { Context } from '@deepseek-ai/cordis'
 import { remoteErrorOf, type TypertRemoteCapability } from '@deepseek-ai/dsh-typert-protocol'
 import type { SessionTelemetryRecord, TelemetryConsent } from '@deepseek-ai/dsh-session-telemetry'
@@ -16,6 +16,11 @@ import {
 import DeviceTrustService, { DeviceId, deviceGrantRecord, deviceTrustDomainSpec } from '../src/index.ts'
 import type { Config } from '../src/index.ts'
 import type { DeviceId as DeviceIdType } from '../src/types.ts'
+
+vi.mock('node:crypto', async (importOriginal) => {
+  const crypto = await importOriginal<typeof import('node:crypto')>()
+  return { ...crypto, verify: vi.fn(crypto.verify) }
+})
 
 /** One freshly generated Ed25519 pair with the wire form of its public key. */
 function ed25519(): { publicKeyB64: string; sign: (message: string) => string } {
@@ -99,6 +104,14 @@ describe('device-trust capability device permissions', () => {
 })
 
 describe('device-trust pairing issuance', () => {
+  it('resolves constructor defaults and refuses grant reads before storage opens', async () => {
+    const ctx = new Context()
+    contexts.push(ctx)
+    const service = new DeviceTrustService(ctx)
+    expect(service.issuePairing()).toMatchObject({ role: 'viewer' })
+    expect(() => service.listDevices()).toThrow('device-trust domain is not open')
+  })
+
   it('issues single-use codes with the assigned role', async () => {
     const service = await boot({ pairingTtlMs: 5_000 })
     const issuance = service.issuePairing('collaborator')
@@ -200,6 +213,20 @@ describe('device-trust pairing issuance', () => {
 })
 
 describe('device-trust key validation', () => {
+  it('contains a public-key decoding failure without consuming the pairing code', async () => {
+    const service = await boot()
+    const issuance = service.issuePairing()
+    const decode = vi.spyOn(Buffer, 'from').mockImplementationOnce(() => { throw new Error('key decoding failed') })
+    try {
+      await expect(service.redeemPairing({ code: issuance.code, deviceName: 'phone', devicePublicKey: spkiB64(7) }))
+        .rejects.toMatchObject({ code: 'device/key-invalid', details: { reason: 'not-base64' } })
+    } finally {
+      decode.mockRestore()
+    }
+    await expect(service.redeemPairing({ code: issuance.code, deviceName: 'phone', devicePublicKey: spkiB64(7) }))
+      .resolves.toMatchObject({ role: 'viewer' })
+  })
+
   it('rejects a public key that is not an Ed25519 SPKI DER', async () => {
     const service = await boot()
     const issuance = service.issuePairing()
@@ -218,6 +245,66 @@ describe('device-trust key validation', () => {
 })
 
 describe('device-trust grants and revocation', () => {
+  it('reports only grants revoked by revoke-all when a single revocation is already queued', async () => {
+    const { service, ctx } = await bootWithContext()
+    const { code } = service.issuePairing()
+    const grant = await service.redeemPairing({ code, deviceName: 'phone', devicePublicKey: spkiB64(8) })
+    const revoked = vi.fn()
+    ctx.on('deviceTrust/grantsRevoked', revoked)
+    const single = service.revokeDevice({ deviceId: grant.deviceId })
+    const all = service.revokeAllDevices()
+    const [first, rest] = await Promise.all([single, all])
+    expect(rest.count).toBe(0)
+    expect(service.listDevices()[0]?.revokedAt).toBe(first.revokedAt)
+    expect(revoked).toHaveBeenCalledExactlyOnceWith({ revokedAt: first.revokedAt, deviceIds: [grant.deviceId] })
+  })
+
+  it.each(['revokeDevice', 'renameDevice'] as const)('reports a grant deleted before the queued %s commits', async (method) => {
+    const service = await boot()
+    const { code } = service.issuePairing()
+    const grant = await service.redeemPairing({ code, deviceName: 'phone', devicePublicKey: spkiB64(8) })
+    const grants = service['grants']
+    if (grants === undefined) throw new Error('device grants fixture did not open')
+    const deleting = grants.delete(grant.deviceId)
+    const changing = service[method]({ deviceId: grant.deviceId, deviceName: 'renamed' })
+    const rejected = expect(changing).rejects.toMatchObject({ code: 'device/not-found' })
+    await deleting
+    await rejected
+    expect(service.listDevices()).toEqual([])
+  })
+
+  it.each(['revokeDevice', 'renameDevice'] as const)('preserves storage failure and the grant when %s cannot commit', async (method) => {
+    let refuse = false
+    const failure = new Error('grant storage unavailable')
+    const service = await boot({}, undefined, (unit) => {
+      const put = unit.putRecord.bind(unit)
+      vi.spyOn(unit, 'putRecord').mockImplementation((...args) => refuse ? Promise.reject(failure) : put(...args))
+      return unit
+    })
+    const { code } = service.issuePairing()
+    const grant = await service.redeemPairing({ code, deviceName: 'phone', devicePublicKey: spkiB64(8) })
+    const before = service.listDevices()
+    refuse = true
+    await expect(service[method]({ deviceId: grant.deviceId, deviceName: 'renamed' })).rejects.toBe(failure)
+    expect(service.listDevices()).toEqual(before)
+  })
+
+  it('retains platform, admission time and revocation when renaming a used grant', async () => {
+    const service = await boot()
+    const key = ed25519()
+    const { code } = service.issuePairing()
+    const grant = await service.redeemPairing({ code, deviceName: 'phone', devicePublicKey: key.publicKeyB64, platform: 'android' })
+    const timestamp = Date.now()
+    const nonce = 'rename-used-grant'
+    await service.admitDevice({
+      deviceId: grant.deviceId, timestamp, nonce, signature: key.sign(`${grant.deviceId}\n${timestamp}\n${nonce}`),
+    })
+    const revoked = await service.revokeDevice({ deviceId: grant.deviceId })
+    await expect(service.renameDevice({ deviceId: grant.deviceId, deviceName: 'tablet' })).resolves.toMatchObject({
+      deviceName: 'tablet', platform: 'android', lastSeenAt: timestamp, revokedAt: revoked.revokedAt,
+    })
+  })
+
   async function paired(config: Partial<Config> = {}): Promise<{ service: DeviceTrustService; deviceId: DeviceIdType }> {
     const service = await boot(config)
     const issuance = service.issuePairing('owner')
@@ -472,6 +559,30 @@ describe('device-trust durability', () => {
 })
 
 describe('device-trust signed admission', () => {
+  it.each(['decode', 'verify'] as const)('contains a signature %s failure without recording admission', async (failure) => {
+    const service = await boot()
+    const { deviceId, key } = await paired(service, 'viewer')
+    const timestamp = Date.now()
+    const nonce = 'signature-dependency-failure'
+    const message = `${deviceId}\n${timestamp}\n${nonce}`
+    const request = { deviceId, timestamp, nonce, signature: key.sign(message) }
+    const bytes = Buffer.from(message, 'utf8')
+    const decode = failure === 'decode'
+      ? vi.spyOn(Buffer, 'from').mockReturnValueOnce(bytes).mockImplementationOnce(() => { throw new Error('decode failed') })
+      : undefined
+    if (failure === 'verify') vi.mocked(verifySignature).mockImplementationOnce(() => { throw new Error('verify failed') })
+    try {
+      await expect(service.admitDevice(request)).rejects.toMatchObject({
+        code: 'device/key-invalid', details: { reason: failure === 'decode' ? 'not-base64' : 'signature-mismatch' },
+      })
+      expect(service.listDevices()[0]).not.toHaveProperty('lastSeenAt')
+    } finally {
+      decode?.mockRestore()
+      vi.mocked(verifySignature).mockReset()
+    }
+    await expect(service.admitDevice(request)).resolves.toMatchObject({ deviceId })
+  })
+
   /** Pair one real Ed25519 key under the named role. */
   async function paired(
     service: DeviceTrustService,

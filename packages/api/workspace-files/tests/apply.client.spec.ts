@@ -6,11 +6,53 @@
 import { Context } from '@deepseek-ai/cordis'
 import type { ResourceProvider } from '@deepseek-ai/dsh-client-resources/client'
 import { sessionFileAddress } from '@deepseek-ai/dsh-util-workspace-path'
-import { describe, expect, it, onTestFinished } from 'vitest'
+import { describe, expect, it, onTestFinished, vi } from 'vitest'
+import { RemoteError } from '@deepseek-ai/dsh-typert-protocol'
 import { apply, inject } from '../src/client/index.ts'
 import { FakeRemote, settle } from './fake-remote.client.ts'
 
 describe('workspace-files client apply', () => {
+  it('keeps the newest discovery and withdraws admission on either failure form', async () => {
+    const ctx = new Context()
+    const remote = new FakeRemote()
+    const first = Promise.withResolvers<Awaited<ReturnType<typeof remote.host.describe>>>()
+    const second = Promise.withResolvers<Awaited<ReturnType<typeof remote.host.describe>>>()
+    const late = Promise.withResolvers<Awaited<ReturnType<typeof remote.host.describe>>>()
+    const describeHost = vi.spyOn(remote.host, 'describe').mockReturnValueOnce(first.promise).mockReturnValueOnce(second.promise)
+    ctx.provide('remote', remote as never)
+    ctx.provide('remote.host', remote.host as never)
+    ctx.provide('remote.workspaceFiles', remote.workspaceFiles as never)
+    const release = vi.fn()
+    const register = vi.fn(() => release)
+    ctx.provide('resources', { register } as never)
+    const fiber = ctx.plugin({ inject: [...inject], apply })
+    onTestFinished(async () => { await ctx.fiber.dispose(); await remote.dispose() })
+    await fiber
+    ctx.emit('connection/reset')
+    second.resolve({ ok: true, value: { capabilities: ['workspace-files.stat.v1'] } })
+    await settle()
+    expect(register).toHaveBeenCalledOnce()
+    first.resolve({ ok: true, value: { capabilities: [] } })
+    await settle()
+    expect(release).not.toHaveBeenCalled()
+    describeHost.mockRejectedValueOnce(new Error('discovery unavailable'))
+    ctx.emit('connection/reset')
+    await settle()
+    expect(release).toHaveBeenCalledOnce()
+    describeHost.mockResolvedValueOnce({
+      ok: false, error: new RemoteError('gateway/connection-unavailable', 'offline', { endpoint: 'host/describe' }),
+    })
+    ctx.emit('connection/reset')
+    await settle()
+    expect(register).toHaveBeenCalledOnce()
+    describeHost.mockReturnValueOnce(late.promise)
+    ctx.emit('connection/reset')
+    await fiber.dispose()
+    late.resolve({ ok: true, value: { capabilities: ['workspace-files.stat.v1'] } })
+    await settle()
+    expect(register).toHaveBeenCalledOnce()
+  })
+
   it('registers the file provider over ctx.remote, and unregisters it with the fiber', async () => {
     const ctx = new Context()
     const remote = new FakeRemote()

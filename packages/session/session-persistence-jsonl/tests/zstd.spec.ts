@@ -1,11 +1,11 @@
 import { afterEach, describe, expect, it, vi } from 'vitest'
 import { Context } from '@deepseek-ai/cordis'
-import { appendFile, mkdir, mkdtemp, open, readFile, readdir, rm, stat, utimes, writeFile } from 'node:fs/promises'
+import { appendFile, link, mkdir, mkdtemp, open, readFile, readdir, rm, stat, utimes, writeFile } from 'node:fs/promises'
 import type { FileHandle } from 'node:fs/promises'
 import { tmpdir } from 'node:os'
 import { join } from 'node:path'
 import { performance } from 'node:perf_hooks'
-import { SessionSeq, type SessionId } from '@deepseek-ai/dsh-session'
+import { SessionLogOffset, SessionSeq, type SessionId } from '@deepseek-ai/dsh-session'
 import type { SessionEvent, SessionHeader } from '@deepseek-ai/dsh-session'
 import type { SessionPersistence } from '@deepseek-ai/dsh-session-persistence'
 import type { JsonlHandleStorage } from '../src/storage.ts'
@@ -24,10 +24,105 @@ import {
   runPersistenceContract, meta, oneTurnLog, releasedV1OneTurnLog,
 } from '../../session-persistence/tests/contract.ts'
 import { brandString } from '@deepseek-ai/dsh-brand'
+import { publishNewFileWin32 } from '../src/win32.ts'
+
+vi.mock('../src/win32.ts', async (importOriginal) => {
+  const win32 = await importOriginal<typeof import('../src/win32.ts')>()
+  return { ...win32, publishNewFileWin32: vi.fn(win32.publishNewFileWin32) }
+})
+
+type IntentStorage = SessionPersistence & JsonlHandleStorage & {
+  syncDirPosix(path: string): Promise<void>
+  readRepairIntent(path: string, id: SessionId, signal?: AbortSignal): Promise<RepairIntent | undefined>
+}
 
 const MAGIC = Buffer.from([0x28, 0xB5, 0x2F, 0xFD])
 const roots: string[] = []
 const contexts: Context[] = []
+
+it.each(['linux', 'win32'] as const)('publishes and reuses durable recovery intent through the %s namespace owner', async (platform) => {
+  const root = await freshRoot()
+  const ctx = await mount(root)
+  const header = meta(`intent-namespace-${platform}`, '/proj')
+  await writeLog(ctx.sessionPersistence, header, oneTurnLog())
+  const path = logPath(root, header.cwd, header.id, 'zstd')
+  const primary = await readFile(path)
+  const storage = ctx.sessionPersistence as IntentStorage
+  const sync = vi.spyOn(storage, 'syncDirPosix').mockResolvedValue(undefined)
+  vi.spyOn(ctx.logger, 'warn').mockImplementation(() => undefined)
+  const recovered: SessionEvent = { type: 'turn/start', seq: SessionSeq(6), time: 7, data: { turn: 2 } }
+  const descriptor = Object.getOwnPropertyDescriptor(process, 'platform')!
+  vi.mocked(publishNewFileWin32).mockClear()
+  vi.mocked(publishNewFileWin32).mockImplementationOnce(async (source, target) => { await link(source, target) })
+  Object.defineProperty(process, 'platform', { value: platform })
+  try {
+    await expect(storage.truncateTornTail(header, primary.length, [recovered])).resolves.toBe(true)
+    const intent = await readFile(`${path}.repair-intent`)
+    await expect(storage.truncateTornTail(header, primary.length, [recovered])).resolves.toBe(true)
+    await expect(storage.truncateTornTail(header, primary.length, [{ ...recovered, time: 8 }]))
+      .rejects.toThrow('repair intent does not preserve recovered seq 6')
+    expect(await readFile(`${path}.repair-intent`)).toEqual(intent)
+    expect(await readFile(path)).toEqual(primary)
+    await storage.discardTornTailIntent(header)
+    await storage.discardTornTailIntent(header)
+    expect(vi.mocked(publishNewFileWin32)).toHaveBeenCalledTimes(platform === 'win32' ? 1 : 0)
+    expect(sync.mock.calls.length).toBe(platform === 'win32' ? 0 : 4)
+  } finally {
+    Object.defineProperty(process, 'platform', descriptor)
+    vi.mocked(publishNewFileWin32).mockReset()
+    sync.mockRestore()
+  }
+})
+
+it('propagates recovery-intent filesystem failures and retains the obstructing object', async () => {
+  const root = await freshRoot()
+  const ctx = await mount(root)
+  const header = meta('intent-filesystem-failure', '/proj')
+  await writeLog(ctx.sessionPersistence, header, oneTurnLog())
+  const path = logPath(root, header.cwd, header.id, 'zstd')
+  const storage = ctx.sessionPersistence as IntentStorage
+  await mkdir(`${path}.repair-intent`)
+  await expect(storage.readRepairIntent(path, header.id)).rejects.toBeInstanceOf(Error)
+  await expect(storage.discardTornTailIntent(header)).rejects.toBeInstanceOf(Error)
+  expect((await stat(`${path}.repair-intent`)).isDirectory()).toBe(true)
+})
+
+it('validates recovered records of a seeded Session with its inherited cut', async () => {
+  const root = await freshRoot()
+  const ctx = await mount(root)
+  const header = { ...meta('seeded-recovery', '/proj'), isSeeded: true }
+  const path = logPath(root, header.cwd, header.id, 'zstd')
+  const marker: SessionEvent = { type: 'session/end-seed', seq: SessionSeq(6), time: 7, data: { inherited: true } }
+  const source = [toHeaderLine(header, SessionLogOffset(6)), ...oneTurnLog(), marker].map(row => JSON.stringify(row) + '\n')
+  await mkdir(sessionDir(root, header.cwd, header.id), { recursive: true })
+  await writeFile(path, Buffer.concat([
+    await compressZstdFrame(Buffer.from(source[0]!)),
+    await compressZstdFrame(Buffer.from(source.slice(1).join(''))),
+  ]))
+  const recovered: SessionEvent = { type: 'turn/start', seq: SessionSeq(7), time: 8, data: { turn: 2 } }
+  await writeFile(`${path}.repair-intent`, JSON.stringify({ version: 1, id: header.id, truncateTo: 0, events: [recovered] }))
+  const handle = await ctx.sessionPersistence.open(header.id, 'read')
+  try {
+    expect(handle.inheritedEventCount).toBe(6)
+    expect((await handle.read()).events).toEqual([...oneTurnLog(), marker, recovered])
+  } finally {
+    await handle.close()
+  }
+})
+
+it('preserves retired recovery syntax as a format refusal', async () => {
+  const root = await freshRoot()
+  const ctx = await mount(root)
+  const header = meta('unsupported-recovery-event', '/proj')
+  await writeLog(ctx.sessionPersistence, header, oneTurnLog())
+  const path = logPath(root, header.cwd, header.id, 'zstd')
+  const primary = await readFile(path)
+  await writeFile(`${path}.repair-intent`, JSON.stringify({ version: 1, id: header.id, truncateTo: 0,
+    events: [{ type: 'tool/code-dispatch-start', seq: 6, time: 7,
+      data: { rootCallId: 'root', parentCallId: 'root', subCallId: 'child', name: 'read', arguments: {} } }] }))
+  await expect(readAll(ctx.sessionPersistence, header.id)).rejects.toMatchObject({ name: 'SessionFormatUnsupportedError' })
+  expect(await readFile(path)).toEqual(primary)
+})
 
 interface ZstdReaderInternals {
   readZstdPrefix(buffer: Buffer, signal?: AbortSignal): Promise<{ events: SessionEvent[] }>

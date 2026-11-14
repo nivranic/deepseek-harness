@@ -1,8 +1,10 @@
 import { SESSION_FORMAT_VERSION } from '@deepseek-ai/dsh-session'
 import { afterEach, describe, expect, it, vi } from 'vitest'
 import { createHash } from 'node:crypto'
+import { writeFileSync } from 'node:fs'
 import {
   link,
+  lstat,
   mkdir,
   mkdtemp,
   open,
@@ -98,6 +100,30 @@ it('preserves cancellation raised while creating a child source decoder', async 
       throw reason
     },
   }, controller.signal)).rejects.toBe(reason)
+})
+
+it('wraps an ordinary child decoder failure as a Session format failure', async () => {
+  const path = join(await tempRoot(), 'session.v3.jsonl')
+  await writeFile(path, line(header(3)))
+  const failure = new Error('child decoder unavailable')
+  await expect(readDecodedJsonlSource(path, 3, 'none', {
+    createRestore() { throw failure },
+  })).rejects.toMatchObject({ name: 'SessionFormatError', cause: failure })
+})
+
+it('refuses a compressed source changed by the time child decoding completes', async () => {
+  const path = join(await tempRoot(), 'session.v3.jsonl.zstd')
+  const original = await encodeZstd(3, [event0])
+  const replacement = await encodeZstd(3, [event0, event1])
+  await writeFile(path, original)
+  const base = adapter()
+  await expect(readDecodedJsonlSource(path, 3, 'zstd', {
+    createRestore(value) {
+      const restore = base.createRestore(value)
+      return { ...restore, finish() { writeFileSync(path, replacement); return restore.finish() } }
+    },
+  })).rejects.toBeInstanceOf(JsonlGenerationSourceChangedError)
+  expect(await readFile(path)).toEqual(replacement)
 })
 
 const assistantUsage = { inputTokens: 3, outputTokens: 2 }
@@ -303,6 +329,60 @@ async function decodeZstdJsonl(path: string): Promise<string> {
 }
 
 describe('JSONL immutable generation publication', () => {
+  it('refuses a compressed source changed while related sources are validated', async () => {
+    const root = await tempRoot()
+    const request = options(root, 'zstd', adapter(), 3)
+    await writeFile(request.sourcePath, await encodeZstd(3, [event0]))
+    const replacement = await encodeZstd(3, [event0, event1])
+    await expect(prepareJsonlMigration({ ...request, verifyCurrentFile: vi.fn(),
+      validateRelatedSources: async () => { await writeFile(request.sourcePath, replacement) },
+    })).rejects.toBeInstanceOf(JsonlGenerationSourceChangedError)
+    expect(await readFile(request.sourcePath)).toEqual(replacement)
+    await expect(stat(request.currentPath)).rejects.toMatchObject({ code: 'ENOENT' })
+  })
+
+  it('refuses publication metadata identifying a symbolic-link target', async () => {
+    const root = await tempRoot()
+    const request = options(root)
+    await writeFile(request.sourcePath, line(header(0)))
+    await writeFile(request.currentPath, line(header(SESSION_FORMAT_VERSION)))
+    await expect(ensureWithOverrides(request, { fs: { lstat: async (path) => {
+      const info = await lstat(path, { bigint: true })
+      return path === request.currentPath ? Object.assign(info, { isSymbolicLink: () => true }) : info
+    } } })).rejects.toMatchObject({ cause: { message: 'target is a symbolic link' } })
+    expect(await readFile(request.sourcePath, 'utf8')).toBe(line(header(0)))
+  })
+
+  it.each(['read', 'recheck'] as const)('preserves a recovery-file metadata failure during %s', async (phase) => {
+    const root = await tempRoot()
+    const request = options(root, 'zstd', adapter(), 3)
+    await writeFile(request.sourcePath, await compressZstdFrame(Buffer.from(line(header(3)))))
+    const failure = fsError('EACCES', 'recovery metadata denied')
+    let observations = 0
+    const runtime = createJsonlGenerationTestRuntime({ fs: { stat: async (path) => {
+      if (path.endsWith('.repair-intent') && ++observations === (phase === 'read' ? 1 : 2)) throw failure
+      return await stat(path, { bigint: true })
+    } } })
+    await expect(runtime.prepare({ ...request, verifyCurrentFile: vi.fn() })).rejects.toBe(failure)
+    await expect(stat(request.currentPath)).rejects.toMatchObject({ code: 'ENOENT' })
+  })
+
+  it('refuses a final migrated artifact whose version differs from the admitted decoder header', async () => {
+    const root = await tempRoot()
+    const base = adapter()
+    const request = options(root, 'none', adapter({ createRestore(value) {
+      const restore = base.createRestore(value)
+      return { ...restore, finish() {
+        const artifact = restore.finish()
+        return { ...artifact, header: { ...artifact.header, version: SESSION_FORMAT_VERSION + 1 } }
+      } }
+    } }))
+    await writeFile(request.sourcePath, line(header(0)))
+    await expect(prepareJsonlMigration({ ...request, verifyCurrentFile: vi.fn() }))
+      .rejects.toThrow(`format migration returned v${SESSION_FORMAT_VERSION + 1}, expected v${SESSION_FORMAT_VERSION}`)
+    expect(await readdir(root)).toEqual(['session.jsonl'])
+  })
+
   it('refuses V2 messages without surface markers before writing a current successor', async () => {
     const root = await tempRoot()
     const request = options(root, 'none', catalogAdapter(), 2)

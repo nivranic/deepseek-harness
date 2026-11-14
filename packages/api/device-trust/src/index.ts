@@ -316,7 +316,8 @@ export class DeviceTrustService extends TypertRemoteService {
 
   /**
    * Revoke every still-active grant — the lost-device panic path. Already
-   * revoked grants keep their original revocation time; the event carries
+   * revoked grants, including earlier queued revocations, keep their original
+   * revocation time. The event carries
    * exactly the identities this call revoked. A call that revoked at least
    * one grant also leaves one §44 `deviceTrustMetadata` ops record through
    * the optional session-telemetry owner; a no-op revoke-all records
@@ -326,14 +327,18 @@ export class DeviceTrustService extends TypertRemoteService {
   @Remote('revokeAllDevices')
   async revokeAllDevices(): Promise<RevokeAllDevicesResult> {
     const revokedAt = Date.now()
-    const deviceIds: DeviceId[] = []
+    const candidates: DeviceId[] = []
     for (const [deviceId, grant] of this.table().entries()) {
       if (grant.revokedAt !== undefined) continue
-      deviceIds.push(deviceId)
+      candidates.push(deviceId)
     }
-    await Promise.all(deviceIds.map(deviceId =>
-      this.table().update(deviceId, (current): DeviceGrantRecord =>
-        current.revokedAt === undefined ? { ...current, revokedAt } : current),
+    const deviceIds: DeviceId[] = []
+    await Promise.all(candidates.map(deviceId =>
+      this.table().update(deviceId, (current): DeviceGrantRecord => {
+        if (current.revokedAt !== undefined) return current
+        deviceIds.push(deviceId)
+        return { ...current, revokedAt }
+      }),
     ))
     if (deviceIds.length > 0) {
       this.ctx.emit('deviceTrust/grantsRevoked', { revokedAt, deviceIds })
