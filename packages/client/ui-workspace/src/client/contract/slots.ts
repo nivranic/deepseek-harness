@@ -477,8 +477,8 @@ export interface SessionRenameDialogInjected {
   }
   /** Consume or cancel the pending request. */
   settleSessionRename: () => void
-  /** Rename a Session (explicit user title; resolves on host acceptance). */
-  renameSession: (sessionId: SessionId, title: string) => Promise<void>
+  /** Retain the Session and capture its editing revision until the dialog's signal aborts. */
+  prepareRename: (sessionId: SessionId, signal: AbortSignal) => Promise<(title: string) => Promise<void>>
 }
 
 /** Existing overlay share: the current notice and its dismissal. */

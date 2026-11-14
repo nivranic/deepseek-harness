@@ -213,13 +213,25 @@ export function apply(ctx: Context): void {
       console.warn('session unarchive rejected:', reason)
     })
   }
-  const renameSession: SessionRenameDialogInjected['renameSession'] = async (sessionId, title) => {
-    const result = await sessions.using(
-      sessionId,
-      { source: 'workspaceOperation' },
-      reference => reference.binding.session.rename(title),
-    )
-    if (!result.ok) throw new Error(result.error.message)
+  const prepareRename: SessionRenameDialogInjected['prepareRename'] = async (sessionId, signal) => {
+    const reference = sessions.retain(sessionId, { source: 'workspaceOperation', signal })
+    const release = () => { reference.release() }
+    signal.addEventListener('abort', release, { once: true })
+    try {
+      await reference.ready
+      signal.throwIfAborted()
+      const submit = reference.binding.session.prepareRename()
+      return async (title) => {
+        signal.throwIfAborted()
+        const result = await submit(title)
+        signal.throwIfAborted()
+        if (!result.ok) throw result.error
+      }
+    } catch (error) {
+      signal.removeEventListener('abort', release)
+      reference.release()
+      throw error
+    }
   }
   const pinInjected = (): PinSessionInjected => ({
     hooks: { pinned: pinnedSet, archived: archivedSet },
@@ -298,7 +310,7 @@ export function apply(ctx: Context): void {
   const renameDialogInjected = (): SessionRenameDialogInjected => ({
     hooks: { renameRequest },
     settleSessionRename: shortcutControls.closeRename,
-    renameSession,
+    prepareRename,
   })
   const toastActions = {
     undoArchive: unarchiveSession,

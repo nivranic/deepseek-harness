@@ -91,8 +91,9 @@ async function bench(access: 'fake' | 'static' = 'fake') {
     value: { items: [{ sessionId: 'session' as never, snippet: 'match' }], hasMore: false },
   }))
   const renameSession = vi.fn(async (title: string) => ({ ok: true, value: { title, seq: 1 } }))
+  const prepareRename = vi.fn(() => renameSession)
   const history = createSnapshotStore<Pick<SessionSnapshot, 'openState' | 'subagent'>>({ openState: 'open', subagent: null })
-  const session = { rename: renameSession, getSnapshot: () => history.getSnapshot() }
+  const session = { rename: renameSession, prepareRename, getSnapshot: () => history.getSnapshot() }
   const binding = vi.fn((_id: string) => ({ session }))
   const retainedIds = new Map<string, number>()
   const scope = vi.fn((id: string) => retainedIds.has(id) ? ctx : undefined)
@@ -172,7 +173,7 @@ async function bench(access: 'fake' | 'static' = 'fake') {
   return {
     ctx, slots: ctx.get('slots') as SlotRegistry, locale, create, rename, commands, accessSource,
     whenResourceAccess, stopGuard, status,
-    retain, using, selectPanel, search, renameSession, binding, fork, pickDirectory, pinSession, unpinSession,
+    retain, using, selectPanel, search, renameSession, prepareRename, binding, fork, pickDirectory, pinSession, unpinSession,
     workspacesSubscribe, initializeDefault, history, scope, sessionOf,
     setWorkspaces: (snapshot: WorkspaceSnapshot): void => { workspaceSnapshot = snapshot },
     setSessions: (snapshot: SessionListState): void => { sessionSnapshot = snapshot },
@@ -707,13 +708,18 @@ describe('ui-workspace apply', () => {
     dialog.settleSessionRename()
     expect(dialog.hooks.renameRequest.getSnapshot()).toBeNull()
     // The dialog's rename hop reaches the Session face and rethrows a business error.
-    await dialog.renameSession('session' as never, 'renamed session')
-    expect(b.using).toHaveBeenCalledWith('session', { source: 'workspaceOperation' }, expect.any(Function))
+    const renameLifetime = new AbortController()
+    const submitRename = await dialog.prepareRename('session' as never, renameLifetime.signal)
+    await submitRename('renamed session')
+    expect(b.retain).toHaveBeenCalledWith('session', { source: 'workspaceOperation', signal: renameLifetime.signal })
     expect(b.renameSession).toHaveBeenCalledWith('renamed session')
     b.renameSession.mockResolvedValueOnce({
       ok: false, error: new RemoteError('gateway/internal', 'title write failed', {}),
     } as never)
-    await expect(dialog.renameSession('session' as never, 'again')).rejects.toThrow('title write failed')
+    await expect(submitRename('again')).rejects.toThrow('title write failed')
+    renameLifetime.abort()
+    await expect(submitRename('after close')).rejects.toThrow()
+    expect(b.renameSession).toHaveBeenCalledTimes(2)
 
     // The browser raises the same rename request from a title double-click,
     // restores from its search results, and carries none of the row verbs itself.
@@ -725,6 +731,60 @@ describe('ui-workspace apply', () => {
     }
     await browser.unarchiveSession('session' as never)
     expect(unarchiveSession).toHaveBeenCalledWith('session')
+  })
+
+  it.each(['opening', 'capture'] as const)('releases a rename reference after %s fails', async (phase) => {
+    const b = await bench()
+    onTestFinished(() => b.ctx.fiber.dispose())
+    declare(b.slots, 'sidebar.workspaces', 'shell.overlay')
+    await b.ctx.plugin({ inject: [...inject], apply }).await()
+    const failure = new Error('rename preparation failed')
+    const reference = b.retain('session')
+    const release = vi.spyOn(reference, 'release')
+    if (phase === 'opening') {
+      b.retain.mockReturnValueOnce({ ...reference, ready: Promise.reject(failure) })
+    } else {
+      b.retain.mockReturnValueOnce(reference)
+      b.prepareRename.mockImplementationOnce(() => { throw failure })
+    }
+    const dialog = faceOf(entry(b.slots, 'shell.overlay', 'workspace.session-rename')) as SessionRenameDialogInjected
+    const lifetime = new AbortController()
+    await expect(dialog.prepareRename(sid('session'), lifetime.signal)).rejects.toBe(failure)
+    expect(release).toHaveBeenCalledOnce()
+    lifetime.abort()
+    expect(release).toHaveBeenCalledOnce()
+    expect(b.scope('session')).toBeUndefined()
+  })
+
+  it('releases an opening rename reference when its dialog closes', async () => {
+    const b = await bench()
+    onTestFinished(() => b.ctx.fiber.dispose())
+    declare(b.slots, 'sidebar.workspaces', 'shell.overlay')
+    await b.ctx.plugin({ inject: [...inject], apply }).await()
+    const dialog = faceOf(entry(b.slots, 'shell.overlay', 'workspace.session-rename')) as SessionRenameDialogInjected
+    const lifetime = new AbortController()
+    const prepared = dialog.prepareRename(sid('session'), lifetime.signal)
+    lifetime.abort()
+    await expect(prepared).rejects.toThrow()
+    expect(b.scope('session')).toBeUndefined()
+    expect(b.prepareRename).not.toHaveBeenCalled()
+  })
+
+  it('refuses a rename completion after its dialog releases the Session', async () => {
+    const b = await bench()
+    onTestFinished(() => b.ctx.fiber.dispose())
+    declare(b.slots, 'sidebar.workspaces', 'shell.overlay')
+    await b.ctx.plugin({ inject: [...inject], apply }).await()
+    const pending = Promise.withResolvers<Awaited<ReturnType<typeof b.renameSession>>>()
+    b.renameSession.mockImplementationOnce(() => pending.promise)
+    const dialog = faceOf(entry(b.slots, 'shell.overlay', 'workspace.session-rename')) as SessionRenameDialogInjected
+    const lifetime = new AbortController()
+    const submit = await dialog.prepareRename(sid('session'), lifetime.signal)
+    const accepted = submit('draft')
+    lifetime.abort()
+    pending.resolve({ ok: true, value: { title: 'draft', seq: 1 } })
+    await expect(accepted).rejects.toThrow()
+    expect(b.scope('session')).toBeUndefined()
   })
 
   it.each(['absent', 'cold', 'loading', 'error', 'closed'] as const)(

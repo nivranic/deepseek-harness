@@ -16,7 +16,7 @@ import type { SessionStatusSnapshot } from '@deepseek-ai/dsh-client-ui-session-s
 import type { SessionId } from '@deepseek-ai/dsh-session/types'
 import { createSnapshotStore } from '@deepseek-ai/dsh-client-store'
 import type { GlobalStandardProps, PropsLocale, PropsRenderSlots, PropsRuntime } from '@deepseek-ai/dsh-client-ui-slots'
-import { allowAllAccess, bindSnapshotSelector, makeTranslate, SlotTestRuntime } from '@deepseek-ai/dsh-client-test-runtime'
+import { allowAllAccess, bindSnapshotSelector, makeTranslate, RemoteError, SlotTestRuntime } from '@deepseek-ai/dsh-client-test-runtime'
 import { LocaleRuntime } from '@deepseek-ai/dsh-client-locale/client'
 import { registerToasts } from '../src/client/toast/register.ts'
 import { ArchiveToastEntry } from '../src/client/toast/Toast.tsx'
@@ -167,21 +167,22 @@ describe('archive action', () => {
 
 describe('SessionRenameDialog', () => {
   /** The dialog over a test-owned request source; settling clears the request the way apply does. */
-  function renameDialog(renameSession: SessionRenameDialogInjected['renameSession']) {
+  function renameDialog(renameSession: (sessionId: SessionId, title: string) => Promise<void>) {
     const request = createSnapshotStore<SessionRenameTarget | null>(null)
     const settleSessionRename = vi.fn(() => { request.set(null) })
+    const prepareRename = vi.fn<SessionRenameDialogInjected['prepareRename']>(async sessionId => title => renameSession(sessionId, title))
     render(
       <SessionRenameDialog
         {...overlay}
         useRenameRequest={bindSnapshotSelector(request)}
         settleSessionRename={settleSessionRename}
-        renameSession={renameSession}
+        prepareRename={prepareRename}
       />,
     )
-    const ask = (sessionId: string, currentTitle: string): void => {
-      act(() => { request.set({ sessionId: sid(sessionId), currentTitle }) })
+    const ask = async (sessionId: string, currentTitle: string): Promise<void> => {
+      await act(async () => { request.set({ sessionId: sid(sessionId), currentTitle }) })
     }
-    return { settleSessionRename, ask }
+    return { settleSessionRename, ask, prepareRename }
   }
 
   it('renders nothing until a rename is requested', () => {
@@ -198,7 +199,7 @@ describe('SessionRenameDialog', () => {
     composer.focus()
     composer.setSelectionRange(5, 9)
 
-    ask('one', 'Session title')
+    await ask('one', 'Session title')
     const firstInput = screen.getByLabelText<HTMLInputElement>('会话名称')
     expect(document.activeElement).toBe(firstInput)
     expect([firstInput.selectionStart, firstInput.selectionEnd]).toEqual([0, 'Session title'.length])
@@ -208,7 +209,7 @@ describe('SessionRenameDialog', () => {
     expect([composer.selectionStart, composer.selectionEnd]).toEqual([5, 9])
     expect(renameSession).not.toHaveBeenCalled()
 
-    ask('one', 'Session title')
+    await ask('one', 'Session title')
     const secondInput = screen.getByLabelText<HTMLInputElement>('会话名称')
     expect(document.activeElement).toBe(secondInput)
     fireEvent.change(secondInput, { target: { value: 'Renamed session' } })
@@ -224,7 +225,7 @@ describe('SessionRenameDialog', () => {
     const pending = Promise.withResolvers<undefined>()
     const renameSession = vi.fn(() => pending.promise)
     const { settleSessionRename, ask } = renameDialog(renameSession)
-    ask('one', '旧标题')
+    await ask('one', '旧标题')
     expect(screen.getByRole('dialog', { name: '重命名会话' })).toBeTruthy()
     const input = screen.getByLabelText<HTMLInputElement>('会话名称')
     expect(input.value).toBe('旧标题')
@@ -248,10 +249,10 @@ describe('SessionRenameDialog', () => {
     expect(screen.queryByRole('dialog')).toBeNull()
   })
 
-  it('Enter confirms only outside an IME composition', () => {
+  it('Enter confirms only outside an IME composition', async () => {
     const renameSession = vi.fn(async () => {})
     const { ask } = renameDialog(renameSession)
-    ask('one', 'Old')
+    await ask('one', 'Old')
     const input = screen.getByLabelText<HTMLInputElement>('会话名称')
     fireEvent.change(input, { target: { value: 'New' } })
     // Enter that commits a composition must not submit.
@@ -265,11 +266,11 @@ describe('SessionRenameDialog', () => {
   })
 
   it('keeps the dialog open with the rejection surfaced, clears it on edit, and reports a non-Error reason as text', async () => {
-    const renameSession = vi.fn<SessionRenameDialogInjected['renameSession']>()
+    const renameSession = vi.fn<(sessionId: SessionId, title: string) => Promise<void>>()
       .mockRejectedValueOnce(new Error('title write failed'))
       .mockRejectedValueOnce('denied')
     const { settleSessionRename, ask } = renameDialog(renameSession)
-    ask('one', 'Old')
+    await ask('one', 'Old')
     const input = screen.getByLabelText<HTMLInputElement>('会话名称')
     fireEvent.change(input, { target: { value: 'New' } })
     fireEvent.click(screen.getByRole('button', { name: '重命名' }))
@@ -283,26 +284,100 @@ describe('SessionRenameDialog', () => {
     expect(screen.getByRole('dialog', { name: '重命名会话' })).toBeTruthy()
   })
 
-  it('Cancel, Escape, and Close settle without renaming; a request for another Session starts a fresh draft', () => {
+  it('Cancel, Escape, and Close settle without renaming; a request for another Session starts a fresh draft', async () => {
     const renameSession = vi.fn(async () => {})
     const { settleSessionRename, ask } = renameDialog(renameSession)
-    ask('one', 'Old')
+    await ask('one', 'Old')
     fireEvent.change(screen.getByLabelText('会话名称'), { target: { value: 'Draft' } })
     fireEvent.click(screen.getByRole('button', { name: '取消' }))
     expect(settleSessionRename).toHaveBeenCalledOnce()
     expect(screen.queryByRole('dialog')).toBeNull()
-    ask('one', 'Old')
+    await ask('one', 'Old')
     fireEvent.keyDown(document, { key: 'Escape' })
     expect(settleSessionRename).toHaveBeenCalledTimes(2)
-    ask('one', 'Old')
+    await ask('one', 'Old')
     fireEvent.click(screen.getByRole('button', { name: '关闭' }))
     expect(settleSessionRename).toHaveBeenCalledTimes(3)
     expect(renameSession).not.toHaveBeenCalled()
 
-    ask('one', 'First')
+    await ask('one', 'First')
     fireEvent.change(screen.getByLabelText('会话名称'), { target: { value: 'Edited' } })
-    ask('two', 'Second')
+    await ask('two', 'Second')
     expect(screen.getByLabelText<HTMLInputElement>('会话名称').value).toBe('Second')
+  })
+
+  it('retains one editing baseline and the draft after revision conflicts, then releases it on close', async () => {
+    const renameSession = vi.fn<(sessionId: SessionId, title: string) => Promise<void>>()
+      .mockRejectedValue(new RemoteError('session/revision-conflict', 'stale revision', { sessionId: sid('one') }))
+    const { ask, prepareRename } = renameDialog(renameSession)
+    await ask('one', 'Old')
+    const input = screen.getByLabelText<HTMLInputElement>('会话名称')
+    fireEvent.change(input, { target: { value: 'Keep this draft' } })
+    fireEvent.click(screen.getByRole('button', { name: '重命名' }))
+    await waitFor(() => { expect(screen.getByRole('alert').textContent).toBe(zh['rename.session.conflict']) })
+    expect(input.value).toBe('Keep this draft')
+    fireEvent.click(screen.getByRole('button', { name: '重命名' }))
+    await waitFor(() => { expect(renameSession).toHaveBeenCalledTimes(2) })
+    expect(prepareRename).toHaveBeenCalledOnce()
+    const signal = prepareRename.mock.calls[0]![1]
+    expect(signal.aborted).toBe(false)
+    fireEvent.click(screen.getByRole('button', { name: '取消' }))
+    expect(signal.aborted).toBe(true)
+    await ask('one', 'Current title')
+    expect(prepareRename).toHaveBeenCalledTimes(2)
+    expect(screen.getByLabelText<HTMLInputElement>('会话名称').value).toBe('Current title')
+  })
+
+  it('keeps submission disabled during preparation and discards a late submitter after the request changes', async () => {
+    const pending = Promise.withResolvers<(title: string) => Promise<void>>()
+    const renameSession = vi.fn(async () => {})
+    const lateSubmit = vi.fn(async () => {})
+    const { ask, prepareRename } = renameDialog(renameSession)
+    prepareRename.mockReturnValueOnce(pending.promise)
+    await ask('one', 'First')
+    expect(screen.getByRole<HTMLButtonElement>('button', { name: '重命名' }).disabled).toBe(true)
+    fireEvent.keyDown(screen.getByLabelText('会话名称'), { key: 'Enter' })
+    expect(renameSession).not.toHaveBeenCalled()
+    await ask('two', 'Second')
+    expect(prepareRename.mock.calls[0]![1].aborted).toBe(true)
+    await act(async () => { pending.resolve(lateSubmit) })
+    fireEvent.click(screen.getByRole('button', { name: '重命名' }))
+    await waitFor(() => { expect(renameSession).toHaveBeenCalledWith(sid('two'), 'Second') })
+    expect(lateSubmit).not.toHaveBeenCalled()
+  })
+
+  it.each([new Error('preparation failed'), 'preparation failed'])('reports preparation failure %s and permits cancellation', async (reason) => {
+    const { ask, prepareRename, settleSessionRename } = renameDialog(vi.fn(async () => {}))
+    prepareRename.mockRejectedValueOnce(reason)
+    await ask('one', 'Draft')
+    expect(screen.getByRole('alert').textContent).toBe('preparation failed')
+    expect(screen.getByRole<HTMLButtonElement>('button', { name: '重命名' }).disabled).toBe(true)
+    fireEvent.click(screen.getByRole('button', { name: '取消' }))
+    expect(settleSessionRename).toHaveBeenCalledOnce()
+  })
+
+  it('ignores preparation rejection after the dialog closes', async () => {
+    const pending = Promise.withResolvers<(title: string) => Promise<void>>()
+    const { ask, prepareRename, settleSessionRename } = renameDialog(vi.fn(async () => {}))
+    prepareRename.mockReturnValueOnce(pending.promise)
+    await ask('one', 'Draft')
+    fireEvent.click(screen.getByRole('button', { name: '取消' }))
+    await act(async () => { pending.reject(new Error('late preparation failure')) })
+    expect(settleSessionRename).toHaveBeenCalledOnce()
+    expect(screen.queryByRole('alert')).toBeNull()
+  })
+
+  it.each(['accepted', 'rejected'] as const)('ignores an %s submission after unmount', async (outcome) => {
+    const pending = Promise.withResolvers<undefined>()
+    const { ask, settleSessionRename } = renameDialog(vi.fn(() => pending.promise))
+    await ask('one', 'Draft')
+    fireEvent.click(screen.getByRole('button', { name: '重命名' }))
+    cleanup()
+    await act(async () => {
+      if (outcome === 'accepted') pending.resolve(undefined)
+      else pending.reject(new Error('late submission failure'))
+    })
+    expect(settleSessionRename).not.toHaveBeenCalled()
   })
 })
 
