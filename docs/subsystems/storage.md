@@ -228,7 +228,9 @@ The mounted domain facility. Opens declared domains over routed backends; one fa
  * Lifecycle: the CALLER owns the returned handle and closes it via
  * `Domain.close()` (typically as its own `ctx.effect` disposer) — the
  * facility does not tie the domain to any consumer fiber. Domains still
- * open when the facility unmounts are closed by the plugin disposer.
+ * open when the facility or backend closes are drained before their units
+ * close. Closing joins pending initialization; an otherwise valid open
+ * rejects with `closed` instead of returning a handle after that request.
  * @param spec - The domain declaration, typically from `defineDomain`.
  * @returns the opened domain handle, typed by the spec.
  */
@@ -243,12 +245,13 @@ async open<S extends DomainSpec>(spec: S): Promise<Domain<S>>
 get(name: string): DomainImpl | undefined
 
 /**
- * Close every domain still open on this facility. The unmount path for
- * consumers that never called `Domain.close()` themselves; closing is
- * idempotent, so double-closing an already-closed domain is harmless.
- * @returns resolution after every unit is released.
+ * Stop new opens and close every initialized or still-opening domain.
+ * Pending initialization rejects instead of publishing a handle after close.
+ * Concurrent and repeated calls share one terminal teardown.
+ * @returns resolution after every owner and unit settles.
+ * @throws AggregateError containing domain teardown failures after all owners settle.
  */
-async closeAll(): Promise<void>
+closeAll(): Promise<void>
 ```
 
 Source: [`packages/storage/storage-domain/src/index.ts`](../../packages/storage/storage-domain/src/index.ts)
