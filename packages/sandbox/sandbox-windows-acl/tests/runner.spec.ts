@@ -538,6 +538,11 @@ describe.skipIf(!isWin32 || !pwshAvailable())('windows-acl runner', () => {
     mkdirSync(child)
     writeFileSync(join(granted, 'file.txt'), 'x')
     writeFileSync(join(child, 'deep.txt'), 'x')
+    const explicitChildAcl = spawnSync('icacls', [child, '/grant', '*S-1-1-0:(OI)(CI)(F)'], { encoding: 'utf8' })
+    expect(explicitChildAcl.status, `${explicitChildAcl.stdout}\n${explicitChildAcl.stderr}`).toBe(0)
+    // This probe exercises inherited permissions. Explicit allows precede an inherited deny.
+    const inheritedChildAcl = spawnSync('icacls', [child, '/reset'], { encoding: 'utf8' })
+    expect(inheritedChildAcl.status, `${inheritedChildAcl.stdout}\n${inheritedChildAcl.stderr}`).toBe(0)
     const grant = AclWriteGrant.create(workspaceWriteSid(granted))
     grant.add(granted, true)
     try {
