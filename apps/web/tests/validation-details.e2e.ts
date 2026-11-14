@@ -15,7 +15,7 @@ it('returns portable validation diagnostics without accepting invalid operations
     const requests = [
       { method: 'credentials/describe', args: { refs: ['invalid reference'] } },
       { method: 'settings/update', args: { ns: '', patch: {} } },
-      { method: 'subagents/list', args: { parentSessionId: '' } },
+      { method: 'subagents/interruptByUser', args: { childSessionId: '' } },
       { method: 'directoryPicker/createDirectory', args: { path: scaffold.workspaceCwd, name: '' } },
     ]
     for (const request of requests) {

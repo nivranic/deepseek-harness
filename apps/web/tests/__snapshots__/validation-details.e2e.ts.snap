@@ -48,14 +48,14 @@ exports[`returns portable validation diagnostics without accepting invalid opera
             "code": "too_small",
             "message": "Too small: expected string to have >=1 characters",
             "path": [
-              "parentSessionId",
+              "childSessionId",
             ],
           },
         ],
       },
-      "message": "invalid payload for subagent.list",
+      "message": "invalid payload for subagent.interrupt",
     },
-    "method": "subagents/list",
+    "method": "subagents/interruptByUser",
   },
   {
     "error": {

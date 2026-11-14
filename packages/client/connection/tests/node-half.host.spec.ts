@@ -761,6 +761,13 @@ describe('connection node half', () => {
         rpcId,
         result: { ok: false, error: { code: 'gateway/bad-request' } },
       })
+      const envelope = JSON.parse(String(response.state.body)) as {
+        result: { error: { details: { issues: object[] } } }
+      }
+      expect(envelope.result.error.details.issues.length).toBeGreaterThan(0)
+      for (const issue of envelope.result.error.details.issues) {
+        expect(Object.keys(issue).sort()).toEqual(['code', 'message', 'path'])
+      }
     }
 
     const failed = fakeResponse()

@@ -2,7 +2,7 @@
 
 import { Context, Service } from '@deepseek-ai/cordis'
 import type { WebRoute } from '@deepseek-ai/dsh-host-webserver'
-import type { PeerScope, Principal } from '@deepseek-ai/dsh-typert-protocol'
+import { remoteValidationIssues, type PeerScope, type Principal } from '@deepseek-ai/dsh-typert-protocol'
 import type { ConnectionInteractions } from './connect-protocol.ts'
 import { brandString } from '@deepseek-ai/dsh-brand'
 import type { ClientRequest, RpcId as RpcIdType } from './rpc.ts'
@@ -267,7 +267,7 @@ export function createRpcFetchHandler(
 
       const envelope = clientRequestSchema.safeParse(body)
       if (!envelope.success) {
-        return invalidEnvelopeResponse(body, envelope.error.issues)
+        return invalidEnvelopeResponse(body, remoteValidationIssues(envelope.error.issues))
       }
       const message: ClientRequest = envelope.data
       if (message.method !== endpoint) {
