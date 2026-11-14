@@ -1,8 +1,8 @@
 {
   "absent": {
-    "editable": "false",
+    "editable": "true",
     "draft": "Draft retained across capability changes",
-    "sendControls": 0,
+    "sendControls": 1,
     "stopControls": 0,
     "mutations": []
   },

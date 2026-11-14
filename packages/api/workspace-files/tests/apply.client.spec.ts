@@ -20,6 +20,7 @@ describe('workspace-files client apply', () => {
     const late = Promise.withResolvers<Awaited<ReturnType<typeof remote.host.describe>>>()
     const describeHost = vi.spyOn(remote.host, 'describe').mockReturnValueOnce(first.promise).mockReturnValueOnce(second.promise)
     ctx.provide('remote', remote as never)
+    ctx.provide('connection', { generation: remote.generation } as never)
     ctx.provide('remote.host', remote.host as never)
     ctx.provide('remote.workspaceFiles', remote.workspaceFiles as never)
     const release = vi.fn()
@@ -28,7 +29,7 @@ describe('workspace-files client apply', () => {
     const fiber = ctx.plugin({ inject: [...inject], apply })
     onTestFinished(async () => { await ctx.fiber.dispose(); await remote.dispose() })
     await fiber
-    ctx.emit('connection/reset')
+    remote.setConnected(true)
     second.resolve({ ok: true, value: { capabilities: ['workspace-files.stat.v1'] } })
     await settle()
     expect(register).toHaveBeenCalledOnce()
@@ -36,17 +37,17 @@ describe('workspace-files client apply', () => {
     await settle()
     expect(release).not.toHaveBeenCalled()
     describeHost.mockRejectedValueOnce(new Error('discovery unavailable'))
-    ctx.emit('connection/reset')
+    remote.setConnected(true)
     await settle()
     expect(release).toHaveBeenCalledOnce()
     describeHost.mockResolvedValueOnce({
       ok: false, error: new RemoteError('gateway/connection-unavailable', 'offline', { endpoint: 'host/describe' }),
     })
-    ctx.emit('connection/reset')
+    remote.setConnected(true)
     await settle()
     expect(register).toHaveBeenCalledOnce()
     describeHost.mockReturnValueOnce(late.promise)
-    ctx.emit('connection/reset')
+    remote.setConnected(true)
     await fiber.dispose()
     late.resolve({ ok: true, value: { capabilities: ['workspace-files.stat.v1'] } })
     await settle()
@@ -61,6 +62,7 @@ describe('workspace-files client apply', () => {
     const controller = new AbortController()
     const pulls: Array<Promise<unknown>> = []
     ctx.provide('remote', remote as never)
+    ctx.provide('connection', { generation: remote.generation } as never)
     ctx.provide('remote.host', remote.host as never)
     ctx.provide('remote.workspaceFiles', remote.workspaceFiles as never)
     const registered: Array<ResourceProvider<'file'>> = []

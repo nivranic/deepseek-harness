@@ -331,7 +331,6 @@
     "scripts/client-bundle-css.spec.ts",
     "packages/typert/generator/tests/fixtures/**",
     "scripts/client-bundle-purity.spec.ts",
-    "apps/web/tests/dynamic-cordis-capabilities.e2e.ts",
     "apps/web/tests/file-capabilities.e2e.ts",
     "apps/web/tests/preset-capabilities.e2e.ts",
     "apps/web/tests/subagent-capabilities.e2e.ts"

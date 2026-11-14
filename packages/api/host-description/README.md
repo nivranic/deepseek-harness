@@ -91,7 +91,7 @@ Discovery does not add or modify model request tokens.
 <a id="known-limitations-and-deferred-work"></a>
 
 - Discovery and negotiation report protocol availability; neither grants per-device permissions.
-- The [Client assembly](../remotes/README.md) negotiates protocols 2 and 1 before business calls. Capability-based UI admission and a dedicated upgrade interface remain incomplete.
+- The Connection reads its event generation from the first `ready` frame. Consumers can use Host discovery to admit optional operations. A dedicated upgrade interface remains incomplete. See the [Client assembly](../remotes/README.md).
 - This package describes the full Harness runtime. It does not provide a Lite runtime or migrate historical Host identities.
 
 <a id="dev-note"></a>

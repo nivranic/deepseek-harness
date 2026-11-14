@@ -2,23 +2,29 @@
   "discoveryControlled": true,
   "rawResponseDeliveryControlled": true,
   "noUnsupportedUpload": true,
-  "stalePickerRejected": true,
+  "pickerChecksCurrentAdmission": true,
+  "independentImageStaging": true,
   "imageDraftRetained": true,
   "composerDraftRetained": true,
-  "readyReceiptWithdrawn": true,
-  "queuedUploadNeverDispatched": true,
+  "completedReceiptRetained": true,
+  "unsupportedRetryRejected": true,
+  "queuedUploadWaitedForExplicitRetry": true,
   "oldResponsesSuppressed": true,
   "noAutomaticRetry": true,
-  "retryRestagedByDigest": true,
   "uploaded": [
     "active-one.txt",
     "active-two.txt",
+    "queued.txt",
     "ready.txt"
   ],
   "committed": [
     "active-one.txt",
     "active-two.txt",
+    "queued.txt",
     "ready.txt"
+  ],
+  "imageUploads": [
+    "keep.png"
   ],
   "modelRequests": 0
 }

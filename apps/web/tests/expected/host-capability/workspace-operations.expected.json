@@ -1,5 +1,5 @@
 {
-  "follows": ["registry-absent", "organization-absent", "restored"],
+  "follows": ["registry-absent", "organization-absent", "follow-absent", "restored"],
   "mutations": ["/api/workspace/rename"],
   "retainedSession": 1
 }

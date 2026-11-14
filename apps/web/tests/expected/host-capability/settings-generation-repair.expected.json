@@ -10,8 +10,8 @@
     "disabled": true
   },
   {
-    "stage": "withdrawn",
-    "label": "Loading",
+    "stage": "rediscovering",
+    "label": "Workspace Write",
     "disabled": true
   },
   {
@@ -26,11 +26,6 @@
   },
   {
     "stage": "new-saving",
-    "label": "Workspace Write",
-    "disabled": false
-  },
-  {
-    "stage": "late-old",
     "label": "Workspace Write",
     "disabled": false
   }

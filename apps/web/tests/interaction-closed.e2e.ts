@@ -1,16 +1,20 @@
 /** Competing approval answers through the real Web composition and two browser Clients. */
 import { mkdir, readFile, writeFile } from 'node:fs/promises'
 import { join } from 'node:path'
-import { chromium, type Browser } from 'playwright'
+import { chromium, type Browser, type Page } from 'playwright'
 import { expect, it } from 'vitest'
 import type {} from '@deepseek-ai/dsh-user-approval'
 import type { ServerResponse } from '@deepseek-ai/dsh-client-connection'
-import type { RemoteInteractionRecord } from '@deepseek-ai/dsh-api-gateway/protocol'
+import type {
+  RemoteEventDownlinkFrame, RemoteEventInvocationFrame, RemoteEventCancellationFrame,
+  RemoteEventReadyFrame, RemoteEventResult,
+} from '@deepseek-ai/dsh-api-gateway/stream-protocol'
 import { launchWebScaffold } from './scaffold.ts'
 
-it('suspends rejected interaction protocol replies until explicit reconnect and a fresh answer', async () => {
+it('recovers a rejected interaction reply without replaying the answer', async () => {
   const scaffold = await launchWebScaffold()
   let browser: Browser | undefined
+  let page: Page | undefined
   const abort = new AbortController()
   let approval: Promise<string> | undefined
   try {
@@ -26,77 +30,71 @@ it('suspends rejected interaction protocol replies until explicit reconnect and 
     })
     const executablePath = process.env.DSH_PLAYWRIGHT_EXECUTABLE_PATH
     browser = await chromium.launch(executablePath === undefined ? {} : { executablePath })
-    const page = await browser.newPage({ viewport: { width: 1440, height: 900 }, locale: 'en-US' })
-    await page.clock.install()
-    let negotiations = 0
-    let replies = 0
-    let corruptProtocol = true
-    let rejectedCode: string | undefined
-    const pending: RemoteInteractionRecord[] = []
-    page.on('request', (request) => {
-      if (new URL(request.url()).pathname === '/api/host/negotiate') negotiations++
-    })
+    page = await browser.newPage({ viewport: { width: 1440, height: 900 }, locale: 'en-US' })
+    const generations: RemoteEventReadyFrame[] = []
+    const pending: RemoteEventInvocationFrame[] = []
     page.on('websocket', (socket) => {
       socket.on('framereceived', ({ payload }) => {
-        const frame = JSON.parse(payload.toString()) as { type?: string; value?: { interaction?: RemoteInteractionRecord } }
-        if (frame.type === 'item' && frame.value?.interaction?.status === 'pending') pending.push(frame.value.interaction)
+        const frame = JSON.parse(payload.toString()) as { type?: string; value?: RemoteEventDownlinkFrame }
+        if (frame.type !== 'item') return
+        if (frame.value?.type === 'ready') generations.push(frame.value)
+        if (frame.value?.type === 'waterfall') pending.push(frame.value)
       })
     })
+    let replies = 0
+    let rejectedCode: string | undefined
     await page.route('**/api/$events/result', async (route) => {
       replies++
-      if (!corruptProtocol) { await route.continue(); return }
-      const request = route.request().postDataJSON() as { payload: { apiProtocolVersion: number } }
-      expect(request.payload.apiProtocolVersion).toBe(2)
-      request.payload.apiProtocolVersion = 3
-      const response = await route.fetch({ postData: JSON.stringify(request) })
+      if (replies !== 1) { await route.continue(); return }
+      const request = route.request().postDataJSON() as { payload: { args: RemoteEventResult } }
+      const invalid = { ...request, payload: { args: { ...request.payload.args, outcome: { kind: 'invalid' } } } }
+      const response = await route.fetch({ postData: JSON.stringify(invalid) })
       const envelope = await response.json() as ServerResponse
-      expect(envelope.result).toMatchObject({ ok: false, error: { code: 'gateway/protocol-unsupported' } })
       rejectedCode = envelope.result.ok ? 'unexpected-success' : envelope.result.error.code
       await route.fulfill({ response })
     })
     await page.goto(scaffold.authenticatedUrl, { waitUntil: 'load' })
     await page.locator('[data-composer-input][contenteditable="true"]').waitFor({ timeout: 30_000 })
-    const initialNegotiations = negotiations
+    await expect.poll(() => generations.length).toBe(1)
     agent.session.append('turn/start', { turn: 1 })
     approval = scaffold.ctx.approval.request({ agent, toolName: 'fixture_action', reason: 'Check the reply protocol', signal: abort.signal })
     const panel = page.locator('[data-approval-key]')
     await panel.waitFor()
     await panel.getByRole('button', { name: 'Allow once', exact: true }).click()
-    const blocked = page.getByText('Update required', { exact: true }).filter({ visible: true })
-    await blocked.waitFor()
-    await page.clock.fastForward(60_000)
-    expect(negotiations).toBe(initialNegotiations)
-    expect(replies).toBe(1)
-    expect(decisions).toEqual([])
-    const output = '.artifacts/interaction-reply-errors-browser'
-    await mkdir(output, { recursive: true })
-    await page.screenshot({ path: `${output}/incompatible.png`, fullPage: true })
-    corruptProtocol = false
-    await page.getByRole('button', { name: 'Host and Client are incompatible. Update the application, then reconnect', exact: true }).click()
-    await panel.waitFor()
+    await expect.poll(() => generations.length, { timeout: 10_000 }).toBe(2)
     await expect.poll(() => pending.length).toBe(2)
+    await panel.waitFor()
+    expect(rejectedCode).toBe('gateway/internal')
     expect(pending[1]).toEqual(pending[0])
     expect(replies).toBe(1)
+    expect(decisions).toEqual([])
     await panel.getByRole('button', { name: 'Reject', exact: true }).click()
     await expect(approval).resolves.toBe('rejected')
-    const observation = { rejectedCode, automaticReconnects: 0, manualReconnects: negotiations - initialNegotiations,
-      replies, decisions, samePendingInteraction: true, browserClockAdvanceMs: 60_000 }
+    const observation = { rejectedCode, automaticReconnects: generations.length - 1,
+      replies, decisions, samePendingEvent: true }
+    const output = '.artifacts/interaction-reply-errors-browser'
+    await mkdir(output, { recursive: true })
+    await page.screenshot({ path: `${output}/recovered.png`, fullPage: true })
+    await writeFile(`${output}/observation.json`, JSON.stringify(observation, null, 2) + '\n')
     const expected: unknown = JSON.parse(await readFile(new URL('./expected/interaction-reply-errors.expected.json', import.meta.url), 'utf8'))
     expect(observation).toEqual(expected)
-    await writeFile(`${output}/observation.json`, JSON.stringify(observation, null, 2) + '\n')
     agent.session.append('turn/end', { turn: 1, reason: { kind: 'completed' } })
     await scaffold.ctx.sessions.flush(agent.session)
   } finally {
     abort.abort()
     await approval?.catch(() => undefined)
+    await page?.unrouteAll({ behavior: 'wait' })
     await browser?.close()
     await scaffold.close()
   }
 }, 120_000)
 
-it('settles one approval and keeps the losing Client connected after interaction-closed', async () => {
+it('settles one approval and ignores a competing answer without reconnecting either Client', async () => {
   const scaffold = await launchWebScaffold()
   let browser: Browser | undefined
+  let second: Page | undefined
+  const abort = new AbortController()
+  const approvals: Promise<string>[] = []
   const releaseLosingReply = Promise.withResolvers<undefined>()
   try {
     const workspacePath = join(scaffold.workspaceCwd, 'workspace')
@@ -112,137 +110,122 @@ it('settles one approval and keeps the losing Client connected after interaction
     const executablePath = process.env.DSH_PLAYWRIGHT_EXECUTABLE_PATH
     browser = await chromium.launch(executablePath === undefined ? {} : { executablePath })
     const first = await browser.newPage({ viewport: { width: 1440, height: 900 }, locale: 'en-US' })
-    const second = await browser.newPage({ viewport: { width: 1440, height: 900 }, locale: 'en-US' })
-    const records: RemoteInteractionRecord[][] = [[], []]
+    second = await browser.newPage({ viewport: { width: 1440, height: 900 }, locale: 'en-US' })
+    const generations: RemoteEventReadyFrame[][] = [[], []]
+    const records: (RemoteEventInvocationFrame | RemoteEventCancellationFrame)[][] = [[], []]
     for (const [index, page] of [first, second].entries()) {
       page.on('websocket', (socket) => {
         socket.on('framereceived', ({ payload }) => {
-          const frame = JSON.parse(payload.toString()) as {
-            type?: string
-            value?: { eventId?: string; interaction?: RemoteInteractionRecord }
-          }
-          if (frame.type !== 'item' || frame.value?.interaction === undefined) return
-          expect(frame.value.interaction.requestId).toBe(frame.value.eventId)
-          records[index]!.push(frame.value.interaction)
+          const frame = JSON.parse(payload.toString()) as { type?: string; value?: RemoteEventDownlinkFrame }
+          if (frame.type !== 'item') return
+          if (frame.value?.type === 'ready') generations[index]!.push(frame.value)
+          if (frame.value?.type === 'waterfall' || frame.value?.type === 'cancel') records[index]!.push(frame.value)
         })
       })
     }
-    const rejectedReplies: string[] = []
-    let revisionProbed = false
-    let firstNegotiations = 0
-    first.on('request', (request) => {
-      if (new URL(request.url()).pathname.endsWith('/api/host/negotiate')) firstNegotiations++
-    })
-    await first.route('**/api/$events/result', async (route) => {
-      if (revisionProbed) { await route.continue(); return }
-      revisionProbed = true
-      const original = route.request().postDataJSON() as {
-        payload: { apiProtocolVersion?: number; args: { interactionRevision?: number } }
-      }
-      expect(original.payload.apiProtocolVersion).toBe(2)
-      expect(original.payload.args.interactionRevision).toBe(1)
-      let conflictResponse: Awaited<ReturnType<typeof route.fetch>> | undefined
-      for (const invalid of ['wrong', 'missing', 'downgraded']) {
-        const request = structuredClone(original)
-        if (invalid === 'wrong') request.payload.args.interactionRevision = 2
-        else delete request.payload.args.interactionRevision
-        if (invalid === 'downgraded') delete request.payload.apiProtocolVersion
-        const response = await route.fetch({ postData: JSON.stringify(request) })
-        if (invalid === 'wrong') conflictResponse = response
-        const result = (await response.json() as ServerResponse).result
-        rejectedReplies.push(result.ok ? 'unexpected-success' : result.error.code)
-        expect(decisions).toEqual([])
-      }
-      if (conflictResponse === undefined) throw new Error('revision conflict response missing')
-      await route.fulfill({ response: conflictResponse })
-    })
-    let secondNegotiations = 0
-    second.on('request', (request) => {
-      if (new URL(request.url()).pathname.endsWith('/api/host/negotiate')) secondNegotiations++
-    })
     let holdCancellation = true
     const heldCancellations: (() => void)[] = []
     await second.routeWebSocket('**/api/remote.mux', (socket) => {
       const server = socket.connectToServer()
       server.onMessage((message) => {
-        const frame = JSON.parse(message.toString()) as { type?: string; value?: { type?: string } }
+        const frame = JSON.parse(message.toString()) as { type?: string; value?: RemoteEventDownlinkFrame }
         if (holdCancellation && frame.type === 'item' && frame.value?.type === 'cancel') {
           heldCancellations.push(() => { socket.send(message) })
         } else socket.send(message)
       })
     })
-    const losingReplyReady = Promise.withResolvers<undefined>()
-    const losingResponse = Promise.withResolvers<ServerResponse['result']>()
-    let intercepted = false
+    let losingReply: RemoteEventResult | undefined
+    let losingResponse: ServerResponse['result'] | undefined
     await second.route('**/api/$events/result', async (route) => {
-      if (intercepted) { await route.continue(); return }
-      intercepted = true
-      losingReplyReady.resolve(undefined)
+      if (losingReply !== undefined) { await route.continue(); return }
+      const request = route.request().postDataJSON() as { payload: { args: RemoteEventResult } }
+      losingReply = request.payload.args
       await releaseLosingReply.promise
       const response = await route.fetch()
-      const envelope = await response.json() as ServerResponse
-      losingResponse.resolve(envelope.result)
+      losingResponse = (await response.json() as ServerResponse).result
       await route.fulfill({ response })
     })
     for (const page of [first, second]) {
       await page.goto(scaffold.authenticatedUrl, { waitUntil: 'load' })
       await page.locator('[data-composer-input][contenteditable="true"]').waitFor({ timeout: 30_000 })
     }
-    const baselineNegotiations = secondNegotiations
-    const baselineFirstNegotiations = firstNegotiations
+    await expect.poll(() => generations.map(items => items.length)).toEqual([1, 1])
     agent.session.append('turn/start', { turn: 1 })
-    const result = scaffold.ctx.approval.request({ agent, toolName: 'fixture_action', reason: 'Approve the shared test action' })
+    const result = scaffold.ctx.approval.request({
+      agent, toolName: 'fixture_action', reason: 'Approve the shared test action', signal: abort.signal,
+    })
+    approvals.push(result)
     const firstPanel = first.locator('[data-approval-key]')
     const secondPanel = second.locator('[data-approval-key]')
     await firstPanel.waitFor()
     await secondPanel.waitFor()
     await expect.poll(() => records.map(items => items.length)).toEqual([1, 1])
     expect(records[0]).toEqual(records[1])
-    expect(records[0]![0]).toEqual({
-      requestId: expect.any(String), sessionId, type: 'approval', requiredPermission: 'approval.respond',
-      createdAt: expect.any(Number), status: 'pending', revision: 1,
-    })
+    const original = records[0]![0]!
+    expect(original).toMatchObject({ type: 'waterfall', event: 'approval/request', agentId: sessionId })
+    const reply = { clientId: generations[0]![0]!.clientId, eventId: original.eventId,
+      outcome: { kind: 'result', value: 'allowed-once' } }
+    const invalidReplies = [
+      { ...reply, outcome: { kind: 'invalid' } },
+      { clientId: reply.clientId, outcome: reply.outcome },
+      { ...reply, interactionRevision: 1 },
+    ]
+    const rejectedReplies: string[] = []
+    for (const [index, invalid] of invalidReplies.entries()) {
+      const response = await first.request.post(new URL('/api/$events/result', first.url()).href, { data: {
+        type: 'client-request', rpcId: `invalid-event-reply-${index}`, method: '$events/result', payload: { args: invalid },
+      } })
+      const result = (await response.json() as ServerResponse).result
+      expect(result).toMatchObject({ ok: false, error: { code: 'gateway/internal', message: 'api gateway: invalid Remote event result' } })
+      rejectedReplies.push(result.ok ? 'unexpected-success' : result.error.code)
+      expect(decisions).toEqual([])
+    }
     await secondPanel.getByRole('button', { name: 'Allow once', exact: true }).click()
-    await losingReplyReady.promise
-    await firstPanel.getByRole('button', { name: 'Allow once', exact: true }).click()
-    await expect.poll(() => records[0]!.length).toBe(2)
-    expect(records[0]![1]).toEqual(records[0]![0])
-    expect(decisions).toEqual([])
+    await expect.poll(() => losingReply).toBeDefined()
     await firstPanel.getByRole('button', { name: 'Allow once', exact: true }).click()
     await expect(result).resolves.toBe('allowed-once')
     releaseLosingReply.resolve(undefined)
-    const response = await losingResponse.promise
-    expect(response).toMatchObject({ ok: false, error: { code: 'interaction-closed' } })
+    await expect.poll(() => losingResponse).toEqual({ ok: true })
     holdCancellation = false
     for (const send of heldCancellations) send()
-    await expect.poll(() => records[1]!.length).toBe(2)
-    expect(records[1]![1]).toEqual({ ...records[0]![0], status: 'resolved', revision: 2 })
     await expect.poll(() => secondPanel.count()).toBe(0)
     expect(decisions).toEqual(['allowed-once'])
 
-    // A later request proves the losing result did not invalidate the shared Connection.
-    const next = scaffold.ctx.approval.request({ agent, toolName: 'fixture_action', reason: 'Reject the second test action' })
+    const next = scaffold.ctx.approval.request({
+      agent, toolName: 'fixture_action', reason: 'Reject the second test action', signal: abort.signal,
+    })
+    approvals.push(next)
+    await firstPanel.waitFor()
     await secondPanel.waitFor()
+    const stale = await first.request.post(new URL('/api/$events/result', first.url()).href, { data: {
+      type: 'client-request', rpcId: 'old-answer-during-new-approval', method: '$events/result', payload: { args: reply },
+    } })
+    expect(await stale.json()).toMatchObject({ result: { ok: true } })
+    expect(await firstPanel.count()).toBe(1)
+    expect(decisions).toEqual(['allowed-once'])
     await secondPanel.getByRole('button', { name: 'Reject', exact: true }).click()
     await expect(next).resolves.toBe('rejected')
     await expect.poll(() => firstPanel.count()).toBe(0)
-    expect(secondNegotiations).toBe(baselineNegotiations)
-    await expect.poll(() => records.map(items => items.length)).toEqual([4, 3])
-    expect(records[0]![2]).toEqual(records[1]![2])
-    expect(records[0]![3]).toEqual({ ...records[1]![2], status: 'resolved', revision: 2 })
+    await expect.poll(() => records.map(items => items.length)).toEqual([3, 3])
+    expect(records[0]![1]).toEqual(records[1]![2])
+    expect(records[0]![1]!.eventId).not.toBe(original.eventId)
+    expect(records[0]![2]).toEqual({ type: 'cancel', eventId: records[1]![2]!.eventId })
+    expect(records[1]![1]).toEqual({ type: 'cancel', eventId: original.eventId })
+    expect(generations.map(items => items.length)).toEqual([1, 1])
+    const observation = { rejectedReplies, outcomes: decisions, losingResult: 'accepted-no-op', reconnects: [0, 0],
+      interactions: records.map(items => items.map(frame => frame.type === 'waterfall' ? frame.event : frame.type)) }
+    await mkdir('.artifacts/interaction-revision-browser', { recursive: true })
+    await writeFile('.artifacts/interaction-revision-browser/observation.json', JSON.stringify(observation, null, 2) + '\n')
     const expected: unknown = JSON.parse(await readFile(new URL('./expected/host-capability/interaction-closed.expected.json', import.meta.url), 'utf8'))
-    expect({ rejectedReplies, outcomes: decisions, losingResult: response.ok ? 'unexpected-success' : response.error.code,
-      reconnects: secondNegotiations - baselineNegotiations,
-      revisionReconnects: firstNegotiations - baselineFirstNegotiations,
-      interactions: records.map(items => items.map(({ type, status, revision, requiredPermission }) => (
-        { type, status, revision, requiredPermission }
-      ))) }).toEqual(expected)
+    expect(observation).toEqual(expected)
     agent.session.append('turn/end', { turn: 1, reason: { kind: 'completed' } })
     await scaffold.ctx.sessions.flush(agent.session)
-    await mkdir('.artifacts/interaction-revision-browser', { recursive: true })
     await second.screenshot({ path: '.artifacts/interaction-revision-browser/settled.png', fullPage: true })
   } finally {
     releaseLosingReply.resolve(undefined)
+    abort.abort()
+    await Promise.allSettled(approvals)
+    await second?.unrouteAll({ behavior: 'wait' })
     await browser?.close()
     await scaffold.close()
   }

@@ -2,11 +2,11 @@
   "true": {
     "modelControls": 1,
     "modelCommands": 1,
-    "modelCatalogCalls": 1
+    "modelCatalogRead": true
   },
   "false": {
-    "modelControls": 0,
-    "modelCommands": 0,
-    "modelCatalogCalls": 0
+    "modelControls": 1,
+    "modelCommands": 1,
+    "modelCatalogRead": true
   }
 }

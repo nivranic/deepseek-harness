@@ -1,5 +1,5 @@
 {
-  "notice": "Host command unavailable",
+  "notice": "command.execute failed: future/command-unavailable: Host command unavailable",
   "requests": 1,
   "runs": 0
 }

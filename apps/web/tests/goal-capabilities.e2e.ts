@@ -1,30 +1,27 @@
-/** Real Goal reads and edits with controlled capability advertisements and response delay. */
+/** Real Goal projection, compare-and-set refusals, and explicit editing after reconnect. */
 import { mkdir, readFile, writeFile } from 'node:fs/promises'
 import { join } from 'node:path'
-import { chromium, type Browser, type WebSocketRoute } from 'playwright'
+import { chromium, type Browser, type Page, type WebSocketRoute } from 'playwright'
 import { expect, it } from 'vitest'
-import type { HostDescriptor } from '@deepseek-ai/dsh-api-host-description/types'
 import type { ServerResponse } from '@deepseek-ai/dsh-client-connection'
-import type { GoalId } from '@deepseek-ai/dsh-goal/types'
+import type { RemoteEventDownlinkFrame } from '@deepseek-ai/dsh-api-gateway/stream-protocol'
+import type { GoalId, GoalRef } from '@deepseek-ai/dsh-goal/types'
 import type {} from '@deepseek-ai/dsh-goal'
 import { createUserMessage } from '@deepseek-ai/dsh-llm'
 import { launchWebScaffold } from './scaffold.ts'
 
-it('withdraws Goal controls and isolates an old edit response from the new connection editor', async () => {
-  let scaffold: Awaited<ReturnType<typeof launchWebScaffold>> | undefined
+it('preserves a refused Goal draft and retries against the current revision after reconnect', async () => {
+  const scaffold = await launchWebScaffold()
   let browser: Browser | undefined
-  const capabilities = ['goal.read.v1', 'goal.create.v1', 'goal.edit.v1', 'goal.pause.v1', 'goal.resume.v1', 'goal.complete.v1', 'goal.clear.v1']
-  let supported: string[] = []
-  let negotiations = 0
-  let delayed = false
-  let cancelledEdits = 0
+  let page: Page | undefined
+  let readyFrames = 0
   const release = Promise.withResolvers<undefined>()
-  const delivered = Promise.withResolvers<undefined>()
   const sockets: WebSocketRoute[] = []
   const calls: string[] = []
+  const editRefs: GoalRef[] = []
+  const editResponses: ServerResponse['result'][] = []
   const output = '.artifacts/goal-capability-browser'
   try {
-    scaffold = await launchWebScaffold()
     const path = join(scaffold.workspaceCwd, 'Goal capabilities')
     await mkdir(path, { recursive: true })
     const { workspace } = await scaffold.ctx.workspaceController.create({ path })
@@ -38,7 +35,7 @@ it('withdraws Goal controls and isolates an old edit response from the new conne
     }), { surfaceOp: 'append' })
     agent.session.append('step/end', { turn: 1, step: 1 })
     agent.session.append('turn/end', { turn: 1, reason: { kind: 'completed' } })
-    // A replayed active Goal is disarmed; no driver receives continuation authority.
+    // Seed a disarmed Goal so editing grants no continuation authority.
     agent.session.append('goal/change', {
       kind: 'goal/change', version: 1, operation: 'create',
       goal: { id: 'capability-goal' as GoalId, revision: 1, objective: 'Seeded objective', phase: 'active', maxGoalRounds: 3 },
@@ -46,94 +43,101 @@ it('withdraws Goal controls and isolates an old edit response from the new conne
     })
     await scaffold.ctx.sessionController.rename({ sessionId, title: 'Goal capability session' })
     await scaffold.ctx.sessions.flush(agent.session)
+    expect(scaffold.ctx.goals.get(agent)?.activation).toBe('disarmed')
     const executablePath = process.env.DSH_PLAYWRIGHT_EXECUTABLE_PATH
     browser = await chromium.launch(executablePath === undefined ? {} : { executablePath })
-    const page = await browser.newPage({ viewport: { width: 1440, height: 900 }, locale: 'en-US' })
+    page = await browser.newPage({ viewport: { width: 1440, height: 900 }, locale: 'en-US' })
     page.on('request', (request) => {
       const endpoint = new URL(request.url()).pathname
       if (endpoint.startsWith('/api/goals/')) calls.push(endpoint)
     })
-    page.on('requestfailed', (request) => {
-      if (new URL(request.url()).pathname === '/api/goals/edit') cancelledEdits++
+    page.on('websocket', (socket) => {
+      socket.on('framereceived', ({ payload }) => {
+        const frame = JSON.parse(payload.toString()) as { type?: string; value?: RemoteEventDownlinkFrame }
+        if (frame.type === 'item' && frame.value?.type === 'ready') readyFrames++
+      })
     })
     await page.routeWebSocket('**/api/remote.mux', (socket) => { socket.connectToServer(); sockets.push(socket) })
-    await page.route('**/api/host/*', async (route) => {
-      const response = await route.fetch()
-      const envelope = await response.json() as ServerResponse
-      if (!envelope.result.ok) throw new Error('Goal fixture discovery failed')
-      const descriptor = envelope.result.value as HostDescriptor
-      expect(descriptor.capabilities).toEqual(expect.arrayContaining(capabilities))
-      if (new URL(route.request().url()).pathname.endsWith('/negotiate')) negotiations++
-      await route.fulfill({ response, json: { ...envelope, result: { ok: true, value: {
-        ...descriptor, capabilities: descriptor.capabilities.filter(id => !capabilities.includes(id) || supported.includes(id)),
-      } } } })
-    })
     await page.route('**/api/goals/edit', async (route) => {
+      const request = route.request().postDataJSON() as { payload: { args: { ref: GoalRef } } }
+      editRefs.push(request.payload.args.ref)
+      if (editRefs.length === 1) await release.promise
       const response = await route.fetch()
-      delayed = true
-      await release.promise
+      editResponses.push((await response.json() as ServerResponse).result)
       await route.fulfill({ response })
-      delivered.resolve(undefined)
     })
     await page.goto(scaffold.authenticatedUrl, { waitUntil: 'load' })
-    const input = page.locator('[data-composer-input][contenteditable="true"]')
+    const input = page.locator('[data-composer-input][contenteditable="true"]').first()
     await input.waitFor({ timeout: 30_000 })
     const workspaceRow = page.getByRole('treeitem').filter({ hasText: 'Goal capabilities' }).first()
     if (await workspaceRow.getAttribute('aria-expanded') === 'false') await workspaceRow.click()
     await page.getByRole('treeitem').filter({ hasText: 'Goal capability session' }).click()
-    await input.fill('retain the message draft')
+    const composerDraft = 'retain the message draft'
+    await input.fill(composerDraft)
     const bar = page.locator('[data-goal-bar]')
-    const observations: Array<{ stage: string; bar: number; edit: number; resume: number; clear: number }> = []
-    const observe = async (stage: string) => {
-      observations.push({ stage, bar: await bar.count(), edit: await bar.getByRole('button', { name: 'Edit goal' }).count(),
-        resume: await bar.getByRole('button', { name: 'Resume goal' }).count(), clear: await bar.getByRole('button', { name: 'Clear goal' }).count() })
-    }
-    const reconnect = async (next: string[]) => {
-      supported = next
-      const target = negotiations + 1
-      await expect.poll(() => sockets.length).toBeGreaterThan(0)
-      await sockets.at(-1)!.close()
-      await expect.poll(() => negotiations, { timeout: 30_000 }).toBe(target)
-    }
-    expect(await bar.count()).toBe(0)
-    expect(calls).toEqual([])
-    await observe('absent')
-    await reconnect(['goal.read.v1'])
     await bar.getByText('Seeded objective', { exact: true }).waitFor()
-    await observe('read-only')
-    await reconnect(['goal.read.v1', 'goal.edit.v1'])
-    await bar.getByRole('button', { name: 'Edit goal' }).waitFor()
-    await observe('edit-only')
-    await bar.getByRole('button', { name: 'Edit goal' }).click()
-    await bar.getByRole('textbox', { name: 'Goal objective' }).fill('Accepted Host edit')
-    await bar.getByRole('button', { name: 'Save goal' }).click()
-    await expect.poll(() => delayed).toBe(true)
-    expect(scaffold.ctx.goals.get(agent)?.objective).toBe('Accepted Host edit')
-    await reconnect(capabilities)
-    await expect.poll(() => cancelledEdits).toBe(1)
     await bar.getByRole('button', { name: 'Resume goal' }).waitFor()
-    await observe('restored')
+    expect(await bar.getByRole('button', { name: 'Edit goal' }).count()).toBe(1)
+    expect(await bar.getByRole('button', { name: 'Clear goal' }).count()).toBe(1)
     await bar.getByRole('button', { name: 'Edit goal' }).click()
     const editor = bar.getByRole('textbox', { name: 'Goal objective' })
-    await editor.fill('new connection edit draft')
+    const goalDraft = 'Retained objective draft'
+    await editor.fill(goalDraft)
+    await bar.getByRole('button', { name: 'Save goal' }).click()
+    await expect.poll(() => editRefs.length).toBe(1)
+    const current = scaffold.ctx.goals.get(agent)
+    if (current === undefined) throw new Error('seeded Goal disappeared before the concurrent edit')
+    scaffold.ctx.goals.edit(agent, { id: current.id, revision: current.revision }, { objective: 'Concurrent Host edit' })
     release.resolve(undefined)
-    await delivered.promise
-    await page.evaluate(() => new Promise(resolve => requestAnimationFrame(() => requestAnimationFrame(resolve))))
-    expect(await editor.inputValue()).toBe('new connection edit draft')
+    const error = bar.getByRole('alert')
+    await error.waitFor()
+    const rejection = await error.textContent()
+    expect(rejection).toMatch(/stale goal ref .* revision 1; current is .* revision 2/)
+    expect(await editor.inputValue()).toBe(goalDraft)
+    expect(scaffold.ctx.goals.get(agent)?.objective).toBe('Concurrent Host edit')
+    const nextReady = readyFrames + 1
+    await sockets.at(-1)!.close()
+    await expect.poll(() => readyFrames, { timeout: 10_000 }).toBe(nextReady)
+    await bar.getByText('Concurrent Host edit', { exact: true }).waitFor()
+    expect(await editor.count()).toBe(0)
+    expect(await input.textContent()).toBe(composerDraft)
+    expect(editRefs).toEqual([{ id: 'capability-goal', revision: 1 }])
+    await bar.getByRole('button', { name: 'Edit goal' }).click()
+    await editor.fill(goalDraft)
+    await bar.getByRole('button', { name: 'Save goal' }).click()
+    await bar.getByText(goalDraft, { exact: true }).waitFor()
+    expect(editRefs).toEqual([{ id: 'capability-goal', revision: 1 }, { id: 'capability-goal', revision: 2 }])
+    expect(editResponses).toMatchObject([{ ok: false }, { ok: true }])
     expect(await bar.getByRole('alert').count()).toBe(0)
-    expect(await input.textContent()).toBe('retain the message draft')
-    expect(calls.filter(endpoint => endpoint !== '/api/goals/get')).toEqual(['/api/goals/edit'])
-    const changes = agent.session.snapshotEvents().filter(event => event.type === 'goal/change').map(event => event.data.operation)
-    expect(changes).toEqual(['create', 'edit'])
+    expect(scaffold.ctx.goals.get(agent)?.objective).toBe(goalDraft)
+    expect(scaffold.ctx.goals.get(agent)?.activation).toBe('disarmed')
+    await bar.getByRole('button', { name: 'Edit goal' }).click()
+    await editor.fill('cancelled goal draft')
+    await bar.getByRole('button', { name: 'Cancel edit', exact: true }).click()
+    await bar.getByText(goalDraft, { exact: true }).waitFor()
+    expect(editRefs).toHaveLength(2)
     await mkdir(output, { recursive: true })
-    await page.screenshot({ path: output + '/replacement-editor.png', fullPage: true })
-    const actual = { observations, cancelledEdits, changes, retainedComposerDraft: true, retainedReplacementEditor: true,
-      noMutationReplay: true, discoveryControlled: true, editReplyDeliveryControlled: true, goalInitiallySeededAndDisarmed: true }
-    await writeFile(output + '/actual.json', JSON.stringify(actual, null, 2) + '\n')
+    await page.screenshot({ path: `${output}/recovered.png`, fullPage: true })
+    await bar.getByRole('button', { name: 'Clear goal' }).click()
+    await expect.poll(() => bar.count()).toBe(0)
+    expect(scaffold.ctx.goals.get(agent)).toBeUndefined()
+    expect(await input.textContent()).toBe(composerDraft)
+    const changes = agent.session.snapshotEvents().filter(event => event.type === 'goal/change').map(event => event.data.operation)
+    expect(changes).toEqual(['create', 'edit', 'edit', 'clear'])
+    const mutationCalls = calls.filter(endpoint => endpoint !== '/api/goals/get')
+    expect(mutationCalls).toEqual(['/api/goals/edit', '/api/goals/edit', '/api/goals/clear'])
+    expect(agent.session.snapshotEvents().filter(event => event.type === 'user/message')).toHaveLength(1)
+    const actual = { rejection, editRevisions: editRefs.map(ref => ref.revision), changes, mutationCalls,
+      retainedComposerDraft: true, goalDraftRetainedAfterRefusal: true, reconnectShowsCurrentGoal: true,
+      noMutationReplay: true, goalInitiallySeededAndDisarmed: true }
+    await writeFile(`${output}/actual.json`, JSON.stringify(actual, null, 2) + '\n')
     const expected: unknown = JSON.parse(await readFile(new URL('./expected/host-capability/goal.expected.json', import.meta.url), 'utf8'))
     expect(actual).toEqual(expected)
+    await scaffold.ctx.sessions.flush(agent.session)
   } finally {
     release.resolve(undefined)
-    try { await browser?.close() } finally { await scaffold?.close() }
+    await page?.unrouteAll({ behavior: 'wait' })
+    await browser?.close()
+    await scaffold.close()
   }
 }, 120_000)

@@ -91,7 +91,7 @@ Web bundle 挂载此插件；Desktop 使用同一组合并配置其管道载体�
 <a id="known-limitations-and-deferred-work"></a>
 
 - 发现与协商报告协议可用性，两者都不授予逐设备权限。
-- [Client 组合](../remotes/README.zh.md)在业务调用前协商协议 2 或 1。基于能力的 UI 准入以及专用升级界面仍未完成。
+- Connection 从首个 `ready` 帧读取事件代际。消费者可通过 Host 发现准入可选操作。专用升级界面仍未完成。参见 [Client 组合](../remotes/README.zh.md)。
 - 本包描述完整 Harness 运行时，不提供 Lite 运行时，也不迁移历史 Host 身份。
 
 <a id="dev-note"></a>

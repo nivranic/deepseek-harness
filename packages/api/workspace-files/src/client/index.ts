@@ -9,6 +9,7 @@
 import type { Context as ClientContext } from '@deepseek-ai/cordis'
 import type {} from '@deepseek-ai/dsh-api-gateway/client'
 import type {} from '@deepseek-ai/dsh-client-resources/client'
+import type { ConnectionHandle } from '@deepseek-ai/dsh-client-connection/client'
 // Merges the generated `host` namespace into this client face for describe().
 import type {} from '@deepseek-ai/dsh-api-host-description/remote'
 import { ChangeFeed } from './change-feed.ts'
@@ -16,8 +17,8 @@ import { createFileResourceProvider } from './provider.ts'
 
 export type { WorkspaceFileParams } from './types.ts'
 
-/** Required browser services: the resource model, the Remote carrier and its namespace. */
-export const inject = ['resources', 'remote', 'remote.host', 'remote.workspaceFiles']
+/** Browser services provide resources, Connection generations and the Remote namespace. */
+export const inject = ['resources', 'remote', 'remote.host', 'remote.workspaceFiles', 'connection']
 
 /**
  * Register metadata only for an admitted Host with stat support; replacement
@@ -25,27 +26,29 @@ export const inject = ['resources', 'remote', 'remote.host', 'remote.workspaceFi
  * @param ctx - client root context carrying `resources` and the Remote face.
  */
 export function apply(ctx: ClientContext): void {
+  const { generation } = ctx.get('connection') as ConnectionHandle
   const changes = new ChangeFeed(ctx.remote)
   ctx.effect(() => {
     let remove: (() => void) | undefined
     let refreshToken = 0
     const refresh = async (): Promise<void> => {
       const token = ++refreshToken
+      remove?.()
+      remove = undefined
+      if (generation.getSnapshot() === undefined) return
       const described = await ctx.remote.host.describe().then(
         result => result.ok ? result.value.capabilities : undefined,
         () => undefined,
       )
       if (token !== refreshToken) return
-      remove?.()
-      remove = undefined
       if (described === undefined || !described.includes('workspace-files.stat.v1')) return
       const lifetime = new AbortController()
       const provider = createFileResourceProvider(ctx.remote, changes, { capabilities: described, signal: lifetime.signal })
       const release = ctx.resources.register(provider)
       remove = () => { lifetime.abort(); release() }
     }
+    const stop = generation.subscribe(() => { void refresh() })
     void refresh()
-    const stop = ctx.on('connection/reset', () => { void refresh() })
     return async () => {
       stop()
       refreshToken++

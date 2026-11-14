@@ -6,6 +6,7 @@
 import type { RemoteResult, RemoteStreamHandle } from '@deepseek-ai/dsh-typert-protocol'
 import { RemoteError } from '@deepseek-ai/dsh-typert-protocol'
 import { streamHandle } from '@deepseek-ai/dsh-remote-mock'
+import type { ConnectionGeneration, ConnectionGenerationState } from '@deepseek-ai/dsh-client-connection/client'
 import type { SessionId } from '@deepseek-ai/dsh-session/types'
 import type { WorkspaceFileWatchFrame, WorkspaceFileStat } from '../src/types.ts'
 import type { SupervisedStream, SupervisedStreamOptions, WorkspaceFilesRemote } from '../src/client/remote.ts'
@@ -93,6 +94,17 @@ interface OpenedWatch {
 
 /** Scripted stats and target-scoped Host streams, with explicit delivery and disposal barriers. */
 export class FakeRemote implements WorkspaceFilesRemote {
+  private generationId = 1
+  private currentGeneration: ConnectionGeneration | undefined = { id: 1, host: { home: '/fixture' } }
+  private readonly generationListeners = new Set<() => void>()
+  /** Observable Connection generations controlled independently from discovery. */
+  readonly generation: ConnectionGenerationState = {
+    getSnapshot: () => this.currentGeneration,
+    subscribe: (listener) => {
+      this.generationListeners.add(listener)
+      return () => { this.generationListeners.delete(listener) }
+    },
+  }
   readonly calls: Array<'changes' | 'accept' | 'stat'> = []
   readonly opened: OpenedWatch[] = []
   readonly disposed: string[] = []
@@ -112,6 +124,12 @@ export class FakeRemote implements WorkspaceFilesRemote {
   readonly host = {
     describe: (): Promise<RemoteResult<{ capabilities: readonly string[] }>> =>
       Promise.resolve({ ok: true as const, value: { capabilities: this.admission } }),
+  }
+
+  /** Establish a fresh Connection generation, or withdraw the current generation. */
+  setConnected(connected: boolean): void {
+    this.currentGeneration = connected ? { id: ++this.generationId, host: { home: '/fixture' } } : undefined
+    for (const listener of [...this.generationListeners]) listener()
   }
 
   /** Hold subsequent stream disposals until the spec releases or rejects this gate. */

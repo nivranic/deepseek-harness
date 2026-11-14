@@ -1,9 +1,7 @@
 {
-  "rejectedCode": "gateway/protocol-unsupported",
-  "automaticReconnects": 0,
-  "manualReconnects": 1,
+  "rejectedCode": "gateway/internal",
+  "automaticReconnects": 1,
   "replies": 2,
   "decisions": ["rejected"],
-  "samePendingInteraction": true,
-  "browserClockAdvanceMs": 60000
+  "samePendingEvent": true
 }

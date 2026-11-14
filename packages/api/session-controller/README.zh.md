@@ -39,7 +39,7 @@ Client 子级目录读取父 Session 的 `subagentCatalog` 投影。发现使用
 
 `session.rename-at.v1` 暴露 `renameAt(SessionRenameAtRequest)`，字段为 `sessionId`、原始 `title` 和 `expectedRevision`（标题事件序号或 null）。标题服务以 `session/revision-conflict` 拒绝已变化的编辑基线；若规范化后的标题与当前用户固定标题相同，则返回原有接受结果。`ISession.prepareRename()` 在编辑前捕获版本，并在重试时保留；缺少投影数据时不发送请求，直接失败。不支持此能力的 Host 和直接 `rename()` 调用保留无条件重命名语义。这提供条件变更安全性，不是持久化的变更 ID 回执账本。
 
-Client 控制流在打开前等待已准入且声明 `session.control.v1` 的 Host；事件 journal 同样要求 `session.follow.v1`。Journal 重连期间保留已发布历史，直到具备该能力的连接代次提供替换快照。能力缺失时保持等待，直到具备该能力的连接代次到来；销毁会取消等待并释放观察订阅。Host 能力声明和 Client 操作准入共同使用 `./capabilities` 声明。
+Client 在 Connection 就绪后打开 Session 控制流。事件 journal 在重连期间保留已发布历史，直到替换快照到达。销毁会取消待完成的流操作并释放订阅。Host 发现公布共享的 `./capabilities` 声明。定向取消与带版本检查的重命名使用注入的当前 Host 准入信息。
 
 此 owner 声明 `session.follow.v1`（跟随与分页）、`session.control.v1`（控制、prompt、队列更新与取消）、`session.list.v1`（列举）、`session.manage.v1`（创建、重命名与 fork）、`model.catalog.v1`（目录）和 `model.select.v1`（选择）。每个能力声明其设备权限：只读集合（跟随、列举、搜索、目录、文件引用与技能列表）要求 `view`；会话变更集合（控制、按轮取消、条件重命名、管理、附件、模型选择）要求 `prompt.send`——缺少已声明权限的设备角色在派发前被拒绝，匿名调用不受影响。[Host 发现](../host-description/README.zh.md)在其 Remote 定义可用时报告这些操作集合；能力存在不代表变更操作可安全重试。
 

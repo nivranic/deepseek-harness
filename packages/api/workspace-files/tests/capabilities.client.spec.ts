@@ -2,7 +2,7 @@
 import { Context } from '@deepseek-ai/cordis'
 import { ResourceRegistry } from '@deepseek-ai/dsh-client-resources/src/client/resources.ts'
 import { sessionFileAddress } from '@deepseek-ai/dsh-util-workspace-path'
-import { expect, it, onTestFinished } from 'vitest'
+import { expect, it, onTestFinished, vi } from 'vitest'
 import { apply, inject } from '../src/client/index.ts'
 import { ChangeFeed } from '../src/client/change-feed.ts'
 import { createFileResourceProvider } from '../src/client/provider.ts'
@@ -43,6 +43,7 @@ it('withdraws metadata, drops late old results and resumes held resources agains
   const remote = new FakeRemote()
   const resources = new ResourceRegistry(ctx)
   ctx.provide('remote', remote as never)
+  ctx.provide('connection', { generation: remote.generation } as never)
   ctx.provide('remote.host', remote.host as never)
   ctx.provide('remote.workspaceFiles', remote.workspaceFiles as never)
   ctx.provide('resources', resources)
@@ -60,18 +61,24 @@ it('withdraws metadata, drops late old results and resumes held resources agains
   expect(remote.calls).toEqual([])
 
   remote.admission = [STAT]
-  ctx.emit('connection/reset')
+  remote.setConnected(true)
   const old = await remote.waitForStat(0)
   remote.admission = []
-  ctx.emit('connection/reset')
-  // The replacement refresh completes its describe round-trip on microtasks.
-  await settle()
+  const discovery = Promise.withResolvers<Awaited<ReturnType<typeof remote.host.describe>>>()
+  const describeHost = vi.spyOn(remote.host, 'describe').mockReturnValueOnce(discovery.promise)
+  remote.setConnected(false)
   expect(old.signal?.aborted).toBe(true)
+  expect(describeHost).not.toHaveBeenCalled()
   old.resolve(metadata('stale'))
   await expect.poll(() => source.getSnapshot().status).toBe('none')
+  remote.setConnected(true)
+  expect(describeHost).toHaveBeenCalledOnce()
+  expect(remote.calls).toEqual(['stat'])
+  discovery.resolve({ ok: true, value: { capabilities: [] } })
+  await settle()
 
   remote.admission = [STAT, CHANGES]
-  ctx.emit('connection/reset')
+  remote.setConnected(true)
   const fresh = await remote.waitForStat(1)
   fresh.resolve(metadata('fresh'))
   await expect.poll(() => source.getSnapshot()).toMatchObject({ status: 'live', value: { version: 'fresh' } })
@@ -85,7 +92,7 @@ it('withdraws metadata, drops late old results and resumes held resources agains
   expect(remote.calls).toEqual(['stat', 'changes', 'accept', 'stat', 'stat'])
 
   remote.admission = [STAT]
-  ctx.emit('connection/reset')
+  remote.setConnected(true)
   const withoutFeed = await remote.waitForStat(3)
   expect(watch.source.aborted).toBe(true)
   withoutFeed.resolve(metadata('metadata-only'))

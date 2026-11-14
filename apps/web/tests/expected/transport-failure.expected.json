@@ -1,5 +1,5 @@
 {
-  "errorText": "client api: session/prompt transport interrupted (gateway/transport-interrupted)",
+  "errorText": "client api: session/prompt failed: Failed to fetch (gateway/internal)",
   "requestsAfterReconnect": 1,
   "explicitRetryRequests": 2,
   "draft": "TRANSPORT_FAILURE_MUST_NOT_REPLAY",
