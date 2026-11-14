@@ -1,5 +1,0 @@
-- id: typert-gateway
-  config:
-    interactionTimeoutMs:
-      approval: 10000
-      question: 10000

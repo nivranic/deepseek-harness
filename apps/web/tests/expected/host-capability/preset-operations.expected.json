@@ -1,17 +1,12 @@
 {
   "catalogRead": true,
-  "presetRead": 1,
-  "mutations": [
-    "/api/agentPresets/copy"
-  ],
-  "negotiations": 10,
-  "settingsOperations": [
-    "/api/settings/openAgentPresetDirectory",
-    "/api/settings/update"
-  ],
-  "copiedPreset": true,
-  "initialSettingsReads": 1,
-  "settingsReadSuppressed": true,
-  "documentActionWithdrawn": true,
-  "documentActionRestored": true
+  "compositionReads": 1,
+  "refusedPreferencePreserved": true,
+  "reconnectDidNotReplay": true,
+  "selectedDefaultPersisted": true,
+  "creatorDraftPreserved": true,
+  "userMessages": 0,
+  "generations": 2,
+  "preferenceWrites": 2,
+  "retiredMutations": []
 }

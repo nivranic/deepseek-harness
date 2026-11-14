@@ -23,7 +23,7 @@ kind: "package-reference"
 <a id="use-this-package"></a>
 ## 使用本包
 
-Host 发现从当前 Remote 绑定声明三个独立操作集：`settings.read.v1` 对应脱敏描述，`settings.write.v1` 对应合并、替换和路径写入，`settings.document-open.v1` 对应配置文档。Client 准入在派发前使用共享的 `./capabilities` 声明。能力存在只保证方法支持，不保证提供方已挂载、可写、具备原生桌面或拥有访问权限；提供方与具体操作的检查仍是权威。设备角色读取脱敏描述、配置文档和凭据元数据需要 `view`；配置写入与凭据写入需要 `prompt.send`。
+Host 发现声明 `settings.read.v1` 对应脱敏描述，`settings.write.v1` 对应合并、替换和路径写入，`settings.document-open.v1` 对应配置文档。浏览器配置表单从 `settings.describe()` 获取提供方的可用性和可写性。凭据控件从 `credentials.describe(refs)` 获取各个引用的可写性。Host 每次调用都检查提供方、权限和操作所需的原生桌面。设备角色读取脱敏描述、配置文档和凭据元数据需要 `view`。配置写入与凭据写入需要 `prompt.send`。
 
 请把本包作为 Loader entry 挂载到提供浏览器配置的 profile 中。本 entry 不依赖提供方是否存在而注册两个 namespace，因此缺少提供方会在调用时产生具名配置错误。它生成的 descriptor 进入严格 Typert 注册表，而 settings 与凭据 Definition 仍是普通 Cordis 服务，自身不承担任何 wire 义务。
 

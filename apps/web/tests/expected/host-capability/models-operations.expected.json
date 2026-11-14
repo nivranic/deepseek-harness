@@ -1,9 +1,14 @@
 {
-  "directoryAbsent": true,
-  "credentialReadSuppressed": true,
-  "credentialWriteHidden": true,
-  "discoveryIndependent": true,
-  "draftDiscarded": true,
-  "noCredentialOrDiscoveryMutation": true,
-  "negotiations": 5
+  "modelsEntryRegistered": true,
+  "readOnlySettingsDisabledCreation": true,
+  "credentialDescriptionRead": true,
+  "credentialControlPresent": true,
+  "discoveryControlPresent": true,
+  "catalogOnlyDiscovery": true,
+  "refusedDraftRetained": true,
+  "reconnectDidNotReplay": true,
+  "explicitSettingsAndKeyPersisted": true,
+  "generations": 3,
+  "settingsWrites": 2,
+  "credentialWrites": ["/api/credentials/set"]
 }

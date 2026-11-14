@@ -1,69 +1,12 @@
 {
-  "approvalOutcome": "unavailable",
-  "decisions": [
-    "unavailable"
-  ],
-  "questionError": "interaction-expired",
-  "lateResult": "interaction-closed",
+  "approvalOutcome": "cancelled",
+  "decisions": ["cancelled", "rejected"],
+  "lateResult": { "ok": true },
+  "questionResult": { "pending": true, "callId": "expiry-timed-question" },
+  "questionSettlements": 1,
   "deadlinePreserved": true,
-  "interactions": [
-    [
-      {
-        "type": "approval",
-        "status": "pending",
-        "revision": 1,
-        "lifetimeMs": 10000
-      },
-      {
-        "type": "approval",
-        "status": "expired",
-        "revision": 2,
-        "lifetimeMs": 10000
-      },
-      {
-        "type": "question",
-        "status": "pending",
-        "revision": 1,
-        "lifetimeMs": 10000
-      },
-      {
-        "type": "question",
-        "status": "expired",
-        "revision": 2,
-        "lifetimeMs": 10000
-      }
-    ],
-    [
-      {
-        "type": "approval",
-        "status": "pending",
-        "revision": 1,
-        "lifetimeMs": 10000
-      },
-      {
-        "type": "approval",
-        "status": "pending",
-        "revision": 1,
-        "lifetimeMs": 10000
-      },
-      {
-        "type": "approval",
-        "status": "expired",
-        "revision": 2,
-        "lifetimeMs": 10000
-      },
-      {
-        "type": "question",
-        "status": "pending",
-        "revision": 1,
-        "lifetimeMs": 10000
-      },
-      {
-        "type": "question",
-        "status": "expired",
-        "revision": 2,
-        "lifetimeMs": 10000
-      }
-    ]
-  ]
+  "approvalReplayed": true,
+  "questionReplayed": true,
+  "callerAborted": false,
+  "effects": []
 }

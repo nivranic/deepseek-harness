@@ -1,44 +1,22 @@
 [
   {
-    "stage": "absent",
-    "menu": 0,
-    "open": 0,
-    "reveal": 0
+    "stage": "unavailable",
+    "native": 0,
+    "preview": 1
   },
   {
-    "stage": "actions-without-metadata",
-    "menu": 0,
-    "open": 0,
-    "reveal": 0
+    "stage": "available",
+    "native": 1,
+    "preview": 1
   },
   {
-    "stage": "metadata-only",
-    "menu": 0,
-    "open": 0,
-    "reveal": 0
-  },
-  {
-    "stage": "open-only",
-    "menu": 1,
-    "open": 1,
-    "reveal": 0
-  },
-  {
-    "stage": "reveal-only",
-    "menu": 1,
-    "open": 0,
-    "reveal": 1
-  },
-  {
-    "stage": "withdrawn",
-    "menu": 0,
-    "open": 0,
-    "reveal": 0
+    "stage": "refused",
+    "native": 1,
+    "preview": 1
   },
   {
     "stage": "restored",
-    "menu": 1,
-    "open": 1,
-    "reveal": 1
+    "native": 1,
+    "preview": 1
   }
 ]

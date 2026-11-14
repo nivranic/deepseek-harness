@@ -43,7 +43,7 @@ Rows show the creation description, or an available Session title, above the age
 
 ### Continuing a conversation
 
-A continuable child keeps the ordinary input and independent Stop action regardless of creator availability. Prompts route through `subagents/prompt`, whose runtime validates the creation address and live Team root; failures use ordinary prompt feedback. Stop routes through `subagents/interruptByUser`.
+A continuable child keeps the ordinary input and independent Stop action regardless of creator availability. Prompts route through `subagents/prompt`, whose runtime validates the creation address and live Team root; failures use ordinary prompt feedback. Stop uses `subagents/interruptTurnByParent` with the observed turn when the Host declares `subagent.interrupt-turn.v1`, and `subagents/interruptByParent` otherwise.
 
 ### The `@` reference source
 

@@ -36,7 +36,7 @@ kind: "package-reference"
 | `search({ query, excludedPaths, includeHidden, respectGitignore })` | `WorkspaceFileSearchResult { matches, truncated, incomplete }` | 工作区任意位置中名称或相对路径包含查询的条目 |
 | `changes(path)` | `WorkspaceFileWatchFrame` 流 | 订阅就绪确认，随后为单个文件或目录直接子项的失效通知 |
 
-`./capabilities` 中的 `WORKSPACE_FILES_REMOTE_CAPABILITIES` 独立声明 stat、列目录、文本分页、字节窗口、完整读取、关联文件读取和变更观察。Host 通过现有 Typert 绑定声明这些操作集。Client 可依据这些声明准入可选文件操作。API 支持不授予文件系统访问权限。 设备权限遵循第 21 节表格：每个操作集都声明 `view`。 缺少已声明权限的设备角色在派发前被拒绝；匿名调用不受影响。
+`./capabilities` 中的 `WORKSPACE_FILES_REMOTE_CAPABILITIES` 分别声明 stat、列目录、文本分页、字节读取和变更观察的支持情况。完整文件、字节范围和关联文件共用 `workspace-files.read-bytes.v1` 操作集。Host 通过 Typert 绑定声明这些操作集。可选消费者可依据这些声明选择受支持的操作。Host 对每个请求检查文件系统访问权限和 Session 范围。每个操作集都声明 `view` 权限，Host 在派发设备主体的请求前检查该权限。
 
 ### 寻址与路径
 

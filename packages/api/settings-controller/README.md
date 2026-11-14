@@ -23,7 +23,7 @@ English | [中文](README.zh.md)
 <a id="use-this-package"></a>
 ## Use this package
 
-Host discovery advertises three independent operation sets from the live Remote binding: `settings.read.v1` for redacted description, `settings.write.v1` for merge/replace/path writes, and `settings.document-open.v1` for the settings document. The shared `./capabilities` declaration is consumed by Client admission before dispatch. Presence promises method support, not a mounted provider, writability, a native desktop, or access permission. Provider and operation checks remain authoritative. Device roles require `view` for redacted description, the settings document, and credential metadata; settings and credential writes require `prompt.send`.
+Host discovery advertises `settings.read.v1` for redacted descriptions, `settings.write.v1` for merge, replacement and path writes, and `settings.document-open.v1` for the settings document. Browser settings forms obtain provider availability and writability from `settings.describe()`. Credential controls obtain per-reference writability from `credentials.describe(refs)`. Each Host invocation checks its provider, permission and any required native desktop. Device roles require `view` for redacted descriptions, the settings document and credential metadata. Settings and credential writes require `prompt.send`.
 
 Mount this package as a Loader entry in a profile that serves browser configuration. The entry registers both namespaces independently of their providers so a missing provider produces a named configuration error at invocation. Its generated descriptors enter the strict Typert registry, while the settings and credential Definitions remain plain Cordis Services with no wire obligations of their own.
 

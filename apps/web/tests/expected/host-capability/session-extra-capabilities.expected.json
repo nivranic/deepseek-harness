@@ -1,26 +1,26 @@
 [
   {
-    "stage": "absent",
+    "stage": "unavailable",
     "local": 1,
     "content": 0,
-    "unavailable": true
+    "warning": 0
   },
   {
-    "stage": "search-only",
+    "stage": "search-restored",
     "local": 1,
     "content": 1,
-    "unavailable": false
+    "warning": 0
   },
   {
-    "stage": "attachment-only",
+    "stage": "unavailable-again",
     "local": 1,
     "content": 0,
-    "unavailable": true
+    "warning": 0
   },
   {
-    "stage": "both",
+    "stage": "restored",
     "local": 1,
     "content": 1,
-    "unavailable": false
+    "warning": 0
   }
 ]

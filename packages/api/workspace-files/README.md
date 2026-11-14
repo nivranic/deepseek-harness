@@ -36,7 +36,7 @@ Mount the package beside `dsh-fs`, `dsh-sandbox-policy`, the Session store, and 
 | `search({ query, excludedPaths, includeHidden, respectGitignore })` | `WorkspaceFileSearchResult { matches, truncated, incomplete }` | Entries anywhere in the workspace whose name or relative path contains the query |
 | `changes(path)` | stream of `WorkspaceFileWatchFrame` | Subscription readiness, then invalidations of one file or a directory's direct entries |
 
-`WORKSPACE_FILES_REMOTE_CAPABILITIES` in `./capabilities` declares stat, listing, text pages, byte windows, complete reads, related reads and observations independently. The Host advertises these operation sets through its existing Typert binding. Clients can use these declarations to admit optional file operations. API support does not grant filesystem access. Device permissions follow the section 21 table: every operation set declares `view`. A device role without the declared permission is refused before dispatch; anonymous callers are unaffected.
+`WORKSPACE_FILES_REMOTE_CAPABILITIES` in `./capabilities` declares separate support for stat, directory listing, text pages, byte reads and observations. Complete files, byte ranges and related files share the `workspace-files.read-bytes.v1` operation set. The Host advertises these operation sets through its Typert binding. Optional consumers can use these declarations to choose supported operations. The Host checks filesystem access and Session scope for every request. Each operation set declares the `view` permission, which the Host checks before dispatch for device principals.
 
 ### Addressing and paths
 

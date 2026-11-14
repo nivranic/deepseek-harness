@@ -1,30 +1,26 @@
 [
   {
-    "available": false,
-    "tool": 0,
-    "produced": 0,
-    "presented": 1,
-    "prose": 0
-  },
-  {
-    "available": true,
+    "metadata": false,
     "tool": 1,
-    "produced": 1,
-    "presented": 3,
+    "presented": 1,
     "prose": 1
   },
   {
-    "available": false,
-    "tool": 0,
-    "produced": 0,
+    "metadata": true,
+    "tool": 1,
     "presented": 1,
-    "prose": 0
+    "prose": 1
   },
   {
-    "available": true,
+    "metadata": false,
     "tool": 1,
-    "produced": 1,
-    "presented": 3,
+    "presented": 1,
+    "prose": 1
+  },
+  {
+    "metadata": true,
+    "tool": 1,
+    "presented": 1,
     "prose": 1
   }
 ]

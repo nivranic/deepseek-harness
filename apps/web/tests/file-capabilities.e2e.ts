@@ -1,25 +1,87 @@
-/** File UI negotiation through the shipped Client and isolated real Host. */
+/** File actions and independent discovery recovery through the shipped Client and an isolated Host. */
 import { mkdir, readFile, writeFile } from 'node:fs/promises'
 import { join } from 'node:path'
-import { chromium, type Browser, type WebSocketRoute } from 'playwright'
+import { chromium, type Browser, type Locator, type Page, type Route } from 'playwright'
 import { expect, it } from 'vitest'
 import type {} from '@deepseek-ai/dsh-tool-present/types'
 import { ToolCallId, createUserMessage, createAssistantMessage, createToolResultMessage } from '@deepseek-ai/dsh-llm'
+import { createLaunchEnvironmentSnapshot } from '@deepseek-ai/dsh-launch-environment'
 import type { HostDescriptor } from '@deepseek-ai/dsh-api-host-description/types'
 import type { ServerResponse } from '@deepseek-ai/dsh-client-connection'
 import type {} from '@deepseek-ai/dsh-api-workspace-controller'
 import type {} from '@deepseek-ai/dsh-api-session-controller'
-import { launchWebScaffold } from './scaffold.ts'
+import { launchWebScaffold, type WebScaffold } from './scaffold.ts'
 
-it('admits native file metadata, open and reveal independently through the generated Remote', async () => {
-  const scaffold = await launchWebScaffold()
+/** Observe physical Connection generations and close both carrier sides on replacement. */
+async function watchConnections(page: Page): Promise<() => Promise<void>> {
+  let generations = 0
+  const sockets: Array<() => Promise<void>> = []
+  await page.routeWebSocket('**/api/remote.mux', (socket) => {
+    const server = socket.connectToServer()
+    server.onMessage((message) => {
+      const frame = JSON.parse(message.toString()) as { type?: string; value?: { type?: string } }
+      if (frame.type === 'item' && frame.value?.type === 'ready') generations++
+      socket.send(message)
+    })
+    sockets.push(async () => { await server.close(); await socket.close() })
+  })
+  return async () => {
+    await expect.poll(() => generations, { timeout: 30_000 }).toBeGreaterThan(0)
+    const next = generations + 1
+    await sockets.at(-1)!()
+    await expect.poll(() => generations, { timeout: 30_000 }).toBe(next)
+  }
+}
+
+/** Wait for intercepted handlers before releasing their request contexts. */
+async function closeBrowser(browser: Browser | undefined): Promise<void> {
+  if (browser === undefined) return
+  try {
+    for (const context of browser.contexts()) {
+      for (const page of context.pages()) await page.unrouteAll({ behavior: 'wait' })
+    }
+  } finally { await browser.close() }
+}
+
+/** Preserve the failing browser state before its owner closes the page. */
+async function captureFailure(browser: Browser | undefined, output: string): Promise<void> {
+  const page = browser?.contexts()[0]?.pages()[0]
+  if (page === undefined) return
+  await mkdir(output, { recursive: true })
+  await page.screenshot({ path: join(output, 'failure.png'), fullPage: true })
+  await writeFile(join(output, 'failure-aria.txt'), await page.locator('body').ariaSnapshot())
+}
+
+/** Open one recorded Session through its Workspace row. */
+async function openRecordedSession(page: Page, scaffold: WebScaffold, workspace: string, title: string): Promise<Locator> {
+  await page.goto(scaffold.authenticatedUrl, { waitUntil: 'load' })
+  const input = page.locator('[data-composer-input][contenteditable="true"]')
+  await input.waitFor({ timeout: 30_000 })
+  const group = page.getByRole('treeitem').filter({ hasText: workspace }).first()
+  if (await group.getAttribute('aria-expanded') === 'false') await group.click()
+  await page.getByRole('treeitem').filter({ hasText: title }).click()
+  return input
+}
+
+/** Refuse one controlled Remote operation through its ordinary response envelope. */
+async function refuseOperation(route: Route, endpoint: string): Promise<void> {
+  const request = route.request().postDataJSON() as { rpcId: string }
+  await route.fulfill({ json: { type: 'server-response', rpcId: request.rpcId, result: {
+    ok: false, error: { code: 'gateway/invocation-unavailable', message: 'Fixture operation unavailable', details: { endpoint } },
+  } } })
+}
+
+it('keeps authenticated native file routes usable and reports refused file actions without changing the Session', async () => {
+  const scaffold = await launchWebScaffold({
+    openInAppEnvironment: createLaunchEnvironmentSnapshot([{ source: 'process', values: { SSH_CONNECTION: '10.0.0.2 55000 10.0.0.9 22' } }]),
+  })
   let browser: Browser | undefined
-  const sockets: WebSocketRoute[] = []
-  let supported: string[] = []
-  let stage = 'absent'
-  let negotiations = 0
-  const calls: Array<{ stage: string; method: string }> = []
+  let available = false
+  let refuse = false
+  let stage = 'unavailable'
+  const calls: Array<{ stage: string; action: string }> = []
   const output = '.artifacts/native-file-actions-browser'
+  const peer = scaffold.ctx.connection.createPeer({ principal: { kind: 'owner' } })
   try {
     const path = join(scaffold.workspaceCwd, 'Native actions')
     await mkdir(path, { recursive: true })
@@ -39,157 +101,113 @@ it('admits native file metadata, open and reveal independently through the gener
     await scaffold.ctx.sessionController.rename({ sessionId, title: 'Native action session' })
     await scaffold.ctx.sessions.flush(agent.session)
     const baseline = JSON.stringify(agent.session.snapshotEvents())
-    const retired: Array<{ method: string; anonymous: number; authenticated: number; directGateway: string }> = []
+    const checks: Array<{ method: string; anonymous: number; authenticated: number }> = []
     for (const method of ['canOpenWorkspacePath', 'openWorkspacePath', 'workspaceDesktop']) {
-      // An empty path prevents native effects if a retired entry regresses; an exposed method still fails the 404 assertion.
       const args = method === 'openWorkspacePath' ? { request: { path: '' } } : {}
       const request: RequestInit = { method: 'POST', headers: { 'content-type': 'application/json' },
-        body: JSON.stringify({ type: 'client-request', rpcId: `retired-${method}`, method: `session/${method}`, payload: { args } }),
+        body: JSON.stringify({ type: 'client-request', rpcId: 'native-' + method, method: 'session/' + method, payload: { args } }),
       }
-      const anonymous = (await fetch(new URL(`/api/session/${method}`, scaffold.baseUrl), request)).status
-      const authenticated = (await scaffold.hostFetch(`/api/session/${method}`, request)).status
-      expect(anonymous).toBe(401)
-      expect(authenticated).toBe(404)
-      await expect(scaffold.ctx.typertGateway.invoke({ namespace: 'session', method, args }))
-        .rejects.toMatchObject({ code: 'gateway/invocation-unavailable' })
-      retired.push({ method, anonymous, authenticated, directGateway: 'gateway/invocation-unavailable' })
+      const anonymous = await fetch(new URL('/api/session/' + method, scaffold.baseUrl), request)
+      const authenticated = await scaffold.hostFetch('/api/session/' + method, request)
+      expect(anonymous.status).toBe(401)
+      if (method === 'workspaceDesktop') {
+        expect(authenticated.status).toBe(404)
+        await expect(scaffold.ctx.typertGateway.invoke({ peer, namespace: 'session', method, args }))
+          .rejects.toMatchObject({ code: 'gateway/invocation-unavailable' })
+      } else {
+        expect(authenticated.status).toBe(200)
+        const envelope = await authenticated.json() as ServerResponse
+        if (method === 'canOpenWorkspacePath') {
+          if (!envelope.result.ok) throw new Error('native availability query failed')
+          expect(typeof envelope.result.value).toBe('boolean')
+        } else expect(envelope.result.ok).toBe(false)
+      }
+      checks.push({ method, anonymous: anonymous.status, authenticated: authenticated.status })
     }
-    await mkdir('.artifacts/session-native-retirement-browser', { recursive: true })
-    const retirement = JSON.stringify(retired, null, 2) + '\n'
-    await writeFile('.artifacts/session-native-retirement-browser/actual.json', retirement)
-    expect(retirement).toBe(await readFile(new URL('./expected/host-capability/session-native-retirement.expected.json', import.meta.url), 'utf8'))
-    const invalidRequest: RequestInit = {
-      method: 'POST', headers: { 'content-type': 'application/json' },
-      body: JSON.stringify({ type: 'client-request', rpcId: 'invalid-native-action', method: 'presentedFiles/open',
-        payload: { args: { request: { sessionId, seq: 3, index: -1 } } } }),
-    }
-    expect((await fetch(new URL('/api/presentedFiles/open', scaffold.baseUrl), invalidRequest)).status).toBe(401)
-    const invalid = await scaffold.hostFetch('/api/presentedFiles/open', invalidRequest)
-    expect(await invalid.json()).toMatchObject({ result: { ok: false, error: { code: 'gateway/bad-request' } } })
-    const malformed = await scaffold.hostFetch('/api/presentedFiles/open', { ...invalidRequest,
-      body: JSON.stringify({ type: 'client-request', rpcId: 'malformed-native-action', method: 'presentedFiles/open', payload: { args: { request: {} } } }),
-    })
-    expect(await malformed.json()).toMatchObject({ result: { ok: false, error: { code: 'gateway/input-invalid' } } })
-    expect((await scaffold.hostFetch('/api/present.host')).status).toBe(404)
-    expect((await scaffold.hostFetch('/api/present.open', { method: 'POST' })).status).toBe(404)
+    const invalid = '/api/present.open?sessionId=' + encodeURIComponent(sessionId) + '&seq=3&index=-1'
+    expect((await fetch(new URL('/api/present.host', scaffold.baseUrl))).status).toBe(401)
+    expect((await scaffold.hostFetch('/api/present.host')).status).toBe(200)
+    expect((await fetch(new URL(invalid, scaffold.baseUrl), { method: 'POST' })).status).toBe(401)
+    expect((await scaffold.hostFetch(invalid, { method: 'POST' })).status).toBe(400)
+    await mkdir(output, { recursive: true })
+    await writeFile(join(output, 'route-checks.json'), JSON.stringify(checks, null, 2) + '\n')
+    expect(checks).toEqual(JSON.parse(await readFile(new URL('./expected/host-capability/session-native-retirement.expected.json', import.meta.url), 'utf8')))
+
     const executablePath = process.env.DSH_PLAYWRIGHT_EXECUTABLE_PATH
     browser = await chromium.launch(executablePath === undefined ? {} : { executablePath })
     const page = await browser.newPage({ viewport: { width: 1440, height: 900 }, locale: 'en-US' })
-    page.on('request', (request) => {
-      const endpoint = new URL(request.url()).pathname
-      if (endpoint.startsWith('/api/presentedFiles/')) calls.push({ stage, method: endpoint.split('/').at(-1)! })
+    const reconnect = await watchConnections(page)
+    await page.route('**/api/present.host', route => route.fulfill({
+      json: { name: 'fixture-desktop', available, fileManager: 'directory' },
+    }))
+    await page.route('**/api/present.open?**', async (route) => {
+      if (route.request().method() === 'GET') {
+        await route.fulfill({ json: [{ id: 'fixture-app', name: 'Fixture app', default: true, icon: null }] })
+        return
+      }
+      const action = new URL(route.request().url()).searchParams.get('action') ?? 'open'
+      calls.push({ stage, action })
+      await route.fulfill({ status: refuse ? 422 : 204, body: refuse ? 'No verified Host path.' : '' })
     })
-    await page.routeWebSocket('**/api/remote.mux', (socket) => { socket.connectToServer(); sockets.push(socket) })
-    await page.route('**/api/host/*', async (route) => {
-      const response = await route.fetch()
-      const envelope = await response.json() as ServerResponse
-      if (!envelope.result.ok) throw new Error('native capability discovery failed')
-      if (new URL(route.request().url()).pathname.endsWith('/negotiate')) negotiations++
-      const descriptor = envelope.result.value as HostDescriptor
-      expect(descriptor.capabilities).toEqual(expect.arrayContaining([
-        'presented-file.desktop.v1', 'presented-file.open.v1', 'presented-file.reveal.v1',
-      ]))
-      await route.fulfill({ response, json: { ...envelope, result: { ok: true, value: {
-        ...descriptor, capabilities: descriptor.capabilities.filter(id => !id.startsWith('presented-file.') || supported.includes(id)),
-      } } } })
-    })
-    await page.route('**/api/presentedFiles/*', (route) => {
-      const request = route.request().postDataJSON() as { rpcId: string }
-      const metadata = new URL(route.request().url()).pathname.endsWith('/desktop')
-      return route.fulfill({ json: { type: 'server-response', rpcId: request.rpcId, result: {
-        ok: true, value: metadata ? { name: 'fixture-desktop', available: true, fileManager: 'finder' } : { completed: true },
-      } } })
-    })
-    const reconnect = async (name: string, methods: string[]) => {
-      const next = negotiations + 1
-      stage = name
-      supported = methods.map(method => `presented-file.${method}.v1`)
-      await sockets.at(-1)!.close()
-      await expect.poll(() => negotiations, { timeout: 30_000 }).toBe(next)
-    }
-    await page.goto(scaffold.authenticatedUrl, { waitUntil: 'load' })
-    const input = page.locator('[data-composer-input][contenteditable="true"]')
-    await input.waitFor({ timeout: 30_000 })
-    const group = page.getByRole('treeitem').filter({ hasText: 'Native actions' }).first()
-    if (await group.getAttribute('aria-expanded') === 'false') await group.click()
-    await page.getByRole('treeitem').filter({ hasText: 'Native action session' }).click()
+    const input = await openRecordedSession(page, scaffold, 'Native actions', 'Native action session')
     const card = page.locator('[data-presented-file]')
     await card.waitFor()
     await input.fill('retain native draft')
-    const menu = card.getByRole('button', { name: 'More file actions for native-note.md' })
-    const observations: Array<{ stage: string; menu: number; open: number; reveal: number }> = []
-    const observe = async () => {
-      observations.push({ stage, menu: await menu.count(),
-        open: await page.getByRole('menuitem', { name: 'Open in default app' }).count(),
-        reveal: await page.getByRole('menuitem', { name: 'Show in Finder' }).count(),
-      })
+    const primary = card.getByRole('button', { name: 'Open in Fixture app', exact: true })
+    const observations: Array<{ stage: string; native: number; preview: number }> = []
+    const observe = async (native: number) => {
+      await expect.poll(() => card.locator('[data-open-target]').count()).toBe(native)
+      observations.push({ stage, native: await card.locator('[data-open-target]').count(),
+        preview: await card.getByRole('button', { name: 'Preview native-note.md in sidebar', exact: true }).count() })
     }
-    expect(await menu.count()).toBe(0)
+    await observe(0)
     expect(calls).toEqual([])
-    await observe()
-    await reconnect('actions-without-metadata', ['open', 'reveal'])
-    expect(await menu.count()).toBe(0)
-    await observe()
-    expect(calls).toEqual([])
-    await reconnect('metadata-only', ['desktop'])
-    await expect.poll(() => calls.some(call => call.stage === stage && call.method === 'desktop')).toBe(true)
-    expect(await menu.count()).toBe(0)
-    await observe()
-    await reconnect('open-only', ['desktop', 'open'])
-    await menu.click()
-    await observe()
-    expect(await page.getByRole('menuitem', { name: 'Show in Finder' }).count()).toBe(0)
-    await page.getByRole('menuitem', { name: 'Open in default app' }).click()
-    await card.getByText('Opened in default app', { exact: true }).waitFor()
-    await reconnect('reveal-only', ['desktop', 'reveal'])
-    await menu.click()
-    await observe()
-    expect(await page.getByRole('menuitem', { name: 'Open in default app' }).count()).toBe(0)
-    await page.getByRole('menuitem', { name: 'Show in Finder' }).click()
-    await card.getByText('Requested display in file manager', { exact: true }).waitFor()
-    await menu.click()
-    await reconnect('withdrawn', [])
-    await expect.poll(() => menu.count()).toBe(0)
-    expect(await page.getByRole('menuitem').count()).toBe(0)
-    await observe()
-    await reconnect('restored', ['desktop', 'open', 'reveal'])
-    await menu.click()
-    await observe()
+    available = true
+    stage = 'available'
+    await reconnect()
+    await primary.waitFor()
+    await observe(1)
+    await primary.click()
+    await expect.poll(() => calls.map(call => call.action)).toEqual(['open'])
+    await card.locator('[data-open-target][data-state="idle"]').waitFor()
+    await card.getByRole('button', { name: 'More ways to open', exact: true }).click()
+    await page.getByRole('menuitem', { name: 'Show file location', exact: true }).click()
+    await expect.poll(() => calls.map(call => call.action)).toEqual(['open', 'reveal'])
+    await card.locator('[data-open-target][data-state="idle"]').waitFor()
+    stage = 'refused'
+    refuse = true
+    await primary.click()
+    await card.getByText('This file has no available Host path. Preview it in the sidebar.', { exact: true }).waitFor()
+    await observe(1)
+    stage = 'restored'
+    refuse = false
+    await reconnect()
+    await primary.click()
+    await expect.poll(() => calls.map(call => call.action)).toEqual(['open', 'reveal', 'open', 'open'])
+    await expect.poll(() => card.locator('[data-presented-description][data-error="true"]').count()).toBe(0)
+    await observe(1)
     expect(await input.textContent()).toBe('retain native draft')
+    expect(await readFile(join(path, 'native-note.md'), 'utf8')).toBe('# Native action fixture\n')
     expect(JSON.stringify(agent.session.snapshotEvents())).toBe(baseline)
-    expect(calls.filter(call => ['absent', 'actions-without-metadata', 'withdrawn'].includes(call.stage))).toEqual([])
-    expect(calls.filter(call => call.method === 'open').map(call => call.stage)).toEqual(['open-only'])
-    expect(calls.filter(call => call.method === 'reveal').map(call => call.stage)).toEqual(['reveal-only'])
-    await mkdir(output, { recursive: true })
+    await writeFile(join(output, 'actual.json'), JSON.stringify(observations, null, 2) + '\n')
+    expect(observations).toEqual(JSON.parse(await readFile(new URL('./expected/host-capability/native-file-actions.expected.json', import.meta.url), 'utf8')))
     await page.screenshot({ path: join(output, 'restored.png'), fullPage: true })
-    const actual = JSON.stringify(observations, null, 2) + '\n'
-    await writeFile(join(output, 'actual.json'), actual)
-    expect(actual).toBe(await readFile(new URL('./expected/host-capability/native-file-actions.expected.json', import.meta.url), 'utf8'))
-    await writeFile(join(output, 'observation.json'), JSON.stringify({ status: 'PASS', retainedDraft: true,
-      unchangedSession: true, authenticatedGateway: true, invalidCoordinatesRejected: true, retiredRoutesAbsent: true,
-      nativeResponsesControlled: true, calls, observations,
-    }, null, 2) + '\n')
   } catch (error) {
-    await mkdir(output, { recursive: true })
-    const page = browser?.contexts()[0]?.pages()[0]
-    await page?.screenshot({ path: join(output, 'failure.png'), fullPage: true })
-    if (page !== undefined) await writeFile(join(output, 'failure-aria.txt'), await page.locator('body').ariaSnapshot())
+    await captureFailure(browser, output)
     throw error
   } finally {
-    await browser?.close()
-    await scaffold.close()
+    try { await closeBrowser(browser) } finally {
+      try { await peer.dispose() } finally { await scaffold.close() }
+    }
   }
 }, 180_000)
 
-it('admits file, session and skill discovery independently without losing retained references', async () => {
+it('recovers file, Session and skill discovery independently while retaining existing references', async () => {
   const scaffold = await launchWebScaffold()
   let browser: Browser | undefined
-  const sockets: WebSocketRoute[] = []
-  const discovery = ['file-reference.list.v1', 'session-reference.candidates.v1', 'skill.catalog.v1']
-  let capabilities: string[] = []
   let stage = 'absent'
-  let negotiations = 0
-  const calls: Array<{ stage: string; endpoint: string }> = []
+  let available = new Set<string>()
+  const calls: Array<{ stage: string; endpoint: string; served: boolean }> = []
   const output = '.artifacts/reference-discovery-browser'
   try {
     const path = join(scaffold.workspaceCwd, 'Reference discovery')
@@ -227,123 +245,100 @@ it('admits file, session and skill discovery independently without losing retain
     const executablePath = process.env.DSH_PLAYWRIGHT_EXECUTABLE_PATH
     browser = await chromium.launch(executablePath === undefined ? {} : { executablePath })
     const page = await browser.newPage({ viewport: { width: 1440, height: 900 }, locale: 'en-US' })
-    page.on('request', (request) => {
-      const endpoint = new URL(request.url()).pathname
-      if (/^\/api\/(fileReferences\/list|sessionReferenceResolver\/candidates|skills\/list)$/u.test(endpoint)) {
-        calls.push({ stage, endpoint })
-      }
-    })
-    await page.routeWebSocket('**/api/remote.mux', (socket) => { socket.connectToServer(); sockets.push(socket) })
-    await page.route('**/api/host/*', async (route) => {
-      const response = await route.fetch()
-      const envelope = await response.json() as ServerResponse
-      if (!envelope.result.ok) throw new Error('discovery fixture failed')
-      if (new URL(route.request().url()).pathname.endsWith('/negotiate')) negotiations++
-      const descriptor = envelope.result.value as HostDescriptor
-      expect(descriptor.capabilities).toEqual(expect.arrayContaining(discovery))
-      await route.fulfill({ response, json: { ...envelope, result: { ok: true, value: {
-        ...descriptor, capabilities: descriptor.capabilities.filter(id => !discovery.includes(id) || capabilities.includes(id)),
-      } } } })
-    })
-    const reconnect = async (name: string, supported: string[]) => {
-      const next = negotiations + 1
-      stage = name
-      capabilities = supported
-      await sockets.at(-1)!.close()
-      await expect.poll(() => negotiations, { timeout: 30_000 }).toBe(next)
+    const reconnect = await watchConnections(page)
+    for (const endpoint of ['fileReferences/list', 'sessionReferenceResolver/candidates', 'skills/list']) {
+      await page.route('**/api/' + endpoint, async (route) => {
+        const served = available.has(endpoint)
+        calls.push({ stage, endpoint, served })
+        if (served) await route.continue()
+        else await refuseOperation(route, endpoint)
+      })
     }
-    await page.goto(scaffold.authenticatedUrl, { waitUntil: 'load' })
-    const input = page.locator('[data-composer-input][contenteditable="true"]')
-    await input.waitFor({ timeout: 30_000 })
-    const group = page.getByRole('treeitem').filter({ hasText: 'Reference discovery' }).first()
-    if (await group.getAttribute('aria-expanded') === 'false') await group.click()
-    await page.getByRole('treeitem').filter({ hasText: 'Discovery target' }).click()
+    const input = await openRecordedSession(page, scaffold, 'Reference discovery', 'Discovery target')
     const menu = page.getByRole('listbox', { name: 'Trigger suggestions' })
     const file = menu.getByRole('option', { name: /discovery-note\.md/u })
     const session = menu.getByRole('option', { name: /Discovery source/u })
     const skillOption = menu.getByRole('option', { name: /discovery-review/u })
     const observations: Array<{ stage: string; files: number; sessions: number; skills: number }> = []
-    const observe = async () => {
+    const observe = async (files: number, sessions: number, skills: number) => {
+      await expect.poll(() => file.count()).toBe(files)
+      await expect.poll(() => session.count()).toBe(sessions)
+      await expect.poll(() => skillOption.count()).toBe(skills)
       observations.push({ stage, files: await file.count(), sessions: await session.count(), skills: await skillOption.count() })
     }
     await input.fill('@discovery')
-    await expect.poll(() => menu.count()).toBe(0)
-    await observe()
-    expect(calls).toEqual([])
-    await reconnect('files', ['file-reference.list.v1'])
+    await expect.poll(() => calls.some(call => call.endpoint === 'fileReferences/list')).toBe(true)
+    await expect.poll(() => calls.some(call => call.endpoint === 'sessionReferenceResolver/candidates')).toBe(true)
+    await observe(0, 0, 0)
+    stage = 'files'
+    available = new Set(['fileReferences/list'])
+    await reconnect()
     await input.fill('@discovery-')
-    await file.waitFor()
-    await observe()
-    expect(await session.count()).toBe(0)
+    await observe(1, 0, 0)
     await file.click()
     const draft = await input.textContent()
-    await reconnect('sessions', ['session-reference.candidates.v1'])
+    stage = 'sessions'
+    available = new Set(['sessionReferenceResolver/candidates'])
+    await reconnect()
     expect(await input.textContent()).toBe(draft)
     expect(await input.locator('[data-composer-chip]').count()).toBe(1)
     await input.locator('[data-composer-chip]').click()
-    await page.locator('[data-sidebar-right-panel]').getByText('Discovery note', { exact: true }).waitFor()
+    await page.getByRole('heading', { name: 'Discovery note', exact: true }).waitFor()
     await input.press('End')
     await input.pressSequentially('@Discovery')
-    await session.waitFor()
-    await observe()
-    expect(await file.count()).toBe(0)
-    await reconnect('withdrawn', [])
-    await expect.poll(() => menu.count()).toBe(0)
-    await observe()
+    await observe(0, 1, 0)
+    stage = 'withdrawn'
+    available = new Set()
+    await reconnect()
+    await input.press('End')
+    await input.pressSequentially(' ')
+    await input.press('Backspace')
+    await observe(0, 0, 0)
     expect(await input.locator('[data-composer-chip]').count()).toBe(1)
-    await reconnect('skills', ['skill.catalog.v1'])
+    stage = 'skills'
+    available = new Set(['skills/list'])
+    await reconnect()
     await input.fill('/discovery')
-    await skillOption.waitFor()
-    await observe()
+    await observe(0, 0, 1)
     await skillOption.click()
     await expect.poll(() => input.textContent()).toBe('/discovery-review ')
-    await input.locator('[data-composer-text-ref]').waitFor()
     const skillDraft = await input.textContent()
-    await reconnect('skills-withdrawn', [])
-    await expect.poll(() => input.locator('[data-composer-text-ref]').count()).toBe(0)
+    stage = 'skills-withdrawn'
+    available = new Set()
+    await reconnect()
     expect(await input.textContent()).toBe(skillDraft)
-    await reconnect('restored', discovery)
-    await input.locator('[data-composer-text-ref]').waitFor()
+    stage = 'restored'
+    available = new Set(['fileReferences/list', 'sessionReferenceResolver/candidates', 'skills/list'])
+    await reconnect()
     expect(await input.textContent()).toBe(skillDraft)
     await input.fill('@discovery')
-    await file.waitFor()
-    await session.waitFor()
-    await observe()
-    for (const call of calls) {
-      const allowed = call.stage === 'restored'
-        || (call.stage === 'files' && call.endpoint === '/api/fileReferences/list')
-        || (call.stage === 'sessions' && call.endpoint === '/api/sessionReferenceResolver/candidates')
-        || (call.stage === 'skills' && call.endpoint === '/api/skills/list')
-      expect(allowed, JSON.stringify(call)).toBe(true)
-    }
+    await observe(1, 1, 0)
+    for (const endpoint of available) expect(calls.some(call => call.endpoint === endpoint && call.served)).toBe(true)
     expect(JSON.stringify(agent.session.snapshotEvents())).toBe(baseline)
     expect(JSON.stringify(targetAgent.session.snapshotEvents())).toBe(targetBaseline)
     await mkdir(output, { recursive: true })
+    await writeFile(join(output, 'actual.json'), JSON.stringify(observations, null, 2) + '\n')
+    expect(observations).toEqual(JSON.parse(await readFile(new URL('./expected/host-capability/reference-discovery.expected.json', import.meta.url), 'utf8')))
+    await writeFile(join(output, 'requests.json'), JSON.stringify(calls, null, 2) + '\n')
     await page.screenshot({ path: join(output, 'restored.png'), fullPage: true })
-    const actual = JSON.stringify(observations, null, 2) + '\n'
-    await writeFile(join(output, 'actual.json'), actual)
-    expect(actual).toBe(await readFile(new URL('./expected/host-capability/reference-discovery.expected.json', import.meta.url), 'utf8'))
-    await writeFile(join(output, 'observation.json'), JSON.stringify({ status: 'PASS', independentAdmission: true, retainedDraft: true, unchangedSession: true, calls, observations }, null, 2) + '\n')
   } catch (error) {
-    await mkdir(output, { recursive: true })
-    const page = browser?.contexts()[0]?.pages()[0]
-    await page?.screenshot({ path: join(output, 'failure.png'), fullPage: true })
-    if (page !== undefined) await writeFile(join(output, 'failure-aria.txt'), await page.locator('body').ariaSnapshot())
+    await captureFailure(browser, output)
     throw error
   } finally {
-    await browser?.close()
-    await scaffold.close()
+    try { await closeBrowser(browser) } finally { await scaffold.close() }
   }
 }, 180_000)
 
-it('admits listing, text, complete files and HTML dependencies independently across real connections', async () => {
-  const scaffold = await launchWebScaffold()
+it('recovers directory, text, byte and HTML dependency reads through their current Remote operations', async () => {
+  const scaffold = await launchWebScaffold({ developerTools: true })
   let browser: Browser | undefined
-  const sockets: WebSocketRoute[] = []
-  let negotiations = 0
-  let stage = 'absent'
-  let operations: string[] = []
-  const calls: Array<{ stage: string; method: string }> = []
+  let stage = 'metadata-absent'
+  let metadata = false
+  let listing = true
+  let text = false
+  let bytes = false
+  let related = false
+  const calls: Array<{ stage: string; method: string; baseFile?: string; served: boolean }> = []
   const output = '.artifacts/file-ui-capabilities-browser'
   try {
     const path = join(scaffold.workspaceCwd, 'File UI')
@@ -365,116 +360,118 @@ it('admits listing, text, complete files and HTML dependencies independently acr
     agent.session.append('turn/end', { turn: 1, reason: { kind: 'completed' } })
     await scaffold.ctx.sessionController.rename({ sessionId, title: 'File UI session' })
     await scaffold.ctx.sessions.flush(agent.session)
+    const baseline = JSON.stringify(agent.session.snapshotEvents())
     const executablePath = process.env.DSH_PLAYWRIGHT_EXECUTABLE_PATH
     browser = await chromium.launch(executablePath === undefined ? {} : { executablePath })
     const page = await browser.newPage({ viewport: { width: 1440, height: 900 }, locale: 'en-US' })
-    page.on('request', (request) => {
-      const endpoint = new URL(request.url()).pathname
-      if (endpoint.startsWith('/api/workspaceFiles/')) calls.push({ stage, method: endpoint.split('/').at(-1)! })
-    })
-    await page.routeWebSocket('**/api/remote.mux', (socket) => {
-      socket.connectToServer()
-      sockets.push(socket)
-    })
-    await page.route('**/api/host/*', async (route) => {
+    const reconnect = await watchConnections(page)
+    await page.route('**/api/host/describe', async (route) => {
+      const admitted = metadata
       const response = await route.fetch()
       const envelope = await response.json() as ServerResponse
-      if (!envelope.result.ok) throw new Error('file UI discovery failed')
-      if (new URL(route.request().url()).pathname.endsWith('/negotiate')) negotiations++
+      if (!envelope.result.ok) throw new Error('file metadata discovery failed')
       const descriptor = envelope.result.value as HostDescriptor
       await route.fulfill({ response, json: { ...envelope, result: { ok: true, value: {
-        ...descriptor, capabilities: descriptor.capabilities.filter(id => !id.startsWith('workspace-files.') || operations.includes(id)),
+        ...descriptor, capabilities: descriptor.capabilities.filter(id => admitted || id !== 'workspace-files.stat.v1'),
       } } } })
     })
-    const reconnect = async (name: string, supported: string[]) => {
-      const next = negotiations + 1
-      stage = name
-      operations = supported.map(method => `workspace-files.${method}.v1`)
-      await sockets.at(-1)!.close()
-      await expect.poll(() => negotiations, { timeout: 30_000 }).toBe(next)
-    }
-    await page.goto(scaffold.authenticatedUrl, { waitUntil: 'load' })
-    await page.locator('[data-composer-input][contenteditable="true"]').waitFor({ timeout: 30_000 })
-    const group = page.getByRole('treeitem').filter({ hasText: 'File UI' }).first()
-    if (await group.getAttribute('aria-expanded') === 'false') await group.click()
-    await page.getByRole('treeitem').filter({ hasText: 'File UI session' }).click()
-    await page.getByText('File UI capability fixture', { exact: true }).waitFor()
+    await page.route('**/api/workspaceFiles/*', async (route) => {
+      const method = new URL(route.request().url()).pathname.split('/').at(-1)!
+      const request = route.request().postDataJSON() as { payload: { args: { options?: { baseFile?: string } } } }
+      const baseFile = request.payload.args.options?.baseFile
+      let served = true
+      if (method === 'list') served = listing
+      if (method === 'read') served = text
+      if (method === 'readBytes') served = baseFile === undefined ? bytes : related
+      calls.push({ stage, method, ...(baseFile === undefined ? {} : { baseFile }), served })
+      if (served) await route.continue()
+      else await refuseOperation(route, 'workspaceFiles/' + method)
+    })
+    const input = await openRecordedSession(page, scaffold, 'File UI', 'File UI session')
+    await input.fill('retain file reading draft')
     await page.locator('[data-sidebar-right-expand]').click()
-    const guide = page.locator('[data-sidebar-right-guide]')
-    await guide.waitFor()
-    expect(await guide.locator('[data-sidebar-right-guide-entry="files"]').count()).toBe(0)
-    expect(calls).toEqual([])
-    await mkdir(output, { recursive: true })
-    await page.screenshot({ path: join(output, 'absent.png'), fullPage: true })
-
-    await reconnect('listing-only', ['list'])
-    await guide.locator('[data-sidebar-right-guide-entry="files"]').click()
+    const entry = page.locator('[data-sidebar-right-guide-entry="files"]')
+    await entry.waitFor()
+    await entry.click()
     const rows = page.locator('[data-files-entry="file"]')
     await rows.getByText('note.txt', { exact: true }).waitFor()
-    expect(await rows.locator('button').count()).toBe(0)
-    await page.screenshot({ path: join(output, 'listing-only.png'), fullPage: true })
-
     const filesTab = page.locator('[data-dockkit-tab]').filter({ has: page.getByText('Files', { exact: true }) })
     const openFile = async (name: string) => {
       await filesTab.click()
       await rows.getByRole('button', { name, exact: true }).click()
     }
-    const preview = page.locator('[data-document-preview]')
-    await reconnect('text-only', ['list', 'stat', 'read-text'])
     await openFile('note.txt')
+    await page.getByText('The file resource service is unavailable.', { exact: true }).waitFor()
+    expect(calls.some(call => call.method === 'read')).toBe(false)
+    metadata = true
+    stage = 'text-refused'
+    await reconnect()
+    const preview = page.locator('[data-document-preview]')
+    await preview.locator('[data-textpreview-failed]').waitFor()
+    expect(calls.some(call => call.method === 'read' && !call.served)).toBe(true)
+    stage = 'text-restored'
+    text = true
+    await preview.locator('[data-textpreview-tool="reload"]').click()
     await preview.getByText('FILE_UI_TEXT', { exact: true }).waitFor()
-    await openFile('page.html')
-    await expect.poll(() => preview.locator('[data-document-viewer-menu]').innerText()).toBe('Code')
-    await preview.locator('[data-document-viewer-menu]').click()
-    expect(await page.getByText('HTML', { exact: true }).count()).toBe(0)
-    await page.keyboard.press('Escape')
-    await page.screenshot({ path: join(output, 'text-only.png'), fullPage: true })
-
-    await reconnect('complete-only', ['list', 'stat', 'read-all'])
-    await filesTab.click()
-    await rows.getByText('page.html', { exact: true }).waitFor()
-    expect(await rows.getByRole('button', { name: 'page.html', exact: true }).count()).toBe(0)
-    expect(await rows.getByRole('button', { name: 'note.txt', exact: true }).count()).toBe(0)
+    stage = 'bytes-refused'
     await openFile('picture.svg')
+    await preview.locator('[data-textpreview-failed]').waitFor()
+    expect(calls.some(call => call.method === 'readBytes' && call.baseFile === undefined && !call.served)).toBe(true)
+    stage = 'bytes-restored'
+    bytes = true
+    await preview.locator('[data-textpreview-tool="reload"]').click()
     await preview.locator('img').waitFor()
-    await expect.poll(() => preview.locator('[data-document-viewer-menu]').innerText()).toBe('Image')
-    await page.screenshot({ path: join(output, 'complete-only.png'), fullPage: true })
-
-    await reconnect('html', ['list', 'stat', 'read-all', 'read-related'])
+    stage = 'related-refused'
     await openFile('page.html')
+    await expect.poll(() => calls.some(call => call.baseFile !== undefined && !call.served)).toBe(true)
+    await preview.getByRole('alert').waitFor()
+    stage = 'html-restored'
+    related = true
+    await preview.locator('[data-textpreview-tool="reload"]').click()
     const frame = page.frameLocator('[data-html-preview]')
     await frame.getByRole('heading', { name: 'File HTML', exact: true }).waitFor()
-    expect(await frame.locator('html').getAttribute('data-related-loaded')).toBe('yes')
-    expect(calls.some(call => call.stage === 'html' && call.method === 'readRelated')).toBe(true)
-    await reconnect('preview-without-list', ['stat', 'read-all', 'read-related'])
+    await expect.poll(() => frame.locator('html').getAttribute('data-related-loaded')).toBe('yes')
+    stage = 'listing-refused'
+    listing = false
+    await filesTab.click()
+    await page.locator('[data-files-reload]').click()
+    await expect.poll(() => calls.some(call => call.stage === 'listing-refused' && call.method === 'list' && !call.served)).toBe(true)
+    await page.locator('[data-dockkit-tab]').filter({ has: page.getByText('page.html', { exact: true }) }).click()
     await frame.getByRole('heading', { name: 'File HTML', exact: true }).waitFor()
-    await page.screenshot({ path: join(output, 'preview-without-list.png'), fullPage: true })
-
+    stage = 'listing-restored'
+    listing = true
+    await filesTab.click()
+    await page.locator('[data-files-reload]').click()
+    await rows.getByText('note.txt', { exact: true }).waitFor()
+    expect(calls.some(call => call.stage === 'listing-restored' && call.method === 'list' && call.served)).toBe(true)
+    expect(await input.textContent()).toBe('retain file reading draft')
+    expect(JSON.stringify(agent.session.snapshotEvents())).toBe(baseline)
     const observation = {
-      absentCalls: calls.filter(call => call.stage === 'absent').length,
-      listingOnlyNonListCalls: calls.filter(call => call.stage === 'listing-only' && call.method !== 'list').length,
-      textOnlyCompleteCalls: calls.filter(call => call.stage === 'text-only' && ['readAll', 'readRelated'].includes(call.method)).length,
-      completeOnlyTextOrRelatedCalls: calls.filter(call => call.stage === 'complete-only' && ['read', 'readRelated'].includes(call.method)).length,
-      htmlRelatedRead: calls.some(call => call.stage === 'html' && call.method === 'readRelated'),
-      previewWithoutListCalls: calls.filter(call => call.stage === 'preview-without-list' && call.method === 'list').length,
-      htmlRestoredWithoutList: true,
+      filesEntryWithoutMetadata: true, metadataReadDeferred: true, textRecovered: true, byteReadRecovered: true,
+      relatedReadRecovered: true, htmlRelatedRead: calls.some(call => call.baseFile !== undefined && call.served),
+      listingRecovered: true, previewRetainedDuringListingFailure: true, retainedDraft: true,
     }
-    const expected: unknown = JSON.parse(await readFile(new URL('./expected/host-capability/file-ui.expected.json', import.meta.url), 'utf8'))
-    expect(observation).toEqual(expected)
+    await mkdir(output, { recursive: true })
     await writeFile(join(output, 'observation.json'), JSON.stringify(observation, null, 2) + '\n')
+    expect(observation).toEqual(JSON.parse(await readFile(new URL('./expected/host-capability/file-ui.expected.json', import.meta.url), 'utf8')))
+    await writeFile(join(output, 'requests.json'), JSON.stringify(calls, null, 2) + '\n')
+    await page.screenshot({ path: join(output, 'restored.png'), fullPage: true })
+  } catch (error) {
+    await captureFailure(browser, output)
+    throw error
   } finally {
-    await browser?.close()
-    await scaffold.close()
+    try { await closeBrowser(browser) } finally { await scaffold.close() }
   }
-}, 120_000)
+}, 180_000)
 
-it('updates draft and sent reference preview actions across Host capability replacement', async () => {
-  const scaffold = await launchWebScaffold()
+it('retains transcript and draft preview actions while file metadata admission changes', async () => {
+  const scaffold = await launchWebScaffold({
+    openInAppEnvironment: createLaunchEnvironmentSnapshot([{ source: 'process', values: { SSH_CONNECTION: '10.0.0.2 55000 10.0.0.9 22' } }]),
+  })
   let browser: Browser | undefined
-  const sockets: WebSocketRoute[] = []
-  let readable = false
-  let negotiations = 0
+  let metadata = false
   let reads = 0
+  let refusedNative = 0
   const output = '.artifacts/transcript-file-previews-browser'
   try {
     const path = join(scaffold.workspaceCwd, 'Reference previews')
@@ -523,158 +520,127 @@ it('updates draft and sent reference preview actions across Host capability repl
     const executablePath = process.env.DSH_PLAYWRIGHT_EXECUTABLE_PATH
     browser = await chromium.launch(executablePath === undefined ? {} : { executablePath })
     const page = await browser.newPage({ viewport: { width: 1440, height: 900 }, locale: 'en-US' })
+    const reconnect = await watchConnections(page)
     page.on('request', (request) => {
-      if (/\/api\/workspaceFiles\/(stat|readText|readAll|readRelated)$/u.test(new URL(request.url()).pathname)) reads++
+      if (/\/api\/workspaceFiles\/(stat|read|readBytes)$/u.test(new URL(request.url()).pathname)) reads++
     })
-    await page.route('**/api/presentedFiles/desktop', async (route) => {
-      const response = await route.fetch()
-      const envelope = await response.json() as ServerResponse
-      await route.fulfill({ response, json: { ...envelope, result: {
-        ok: true, value: { name: 'fixture-native-host', available: true, fileManager: 'directory' },
-      } } })
+    await page.route('**/api/present.host', route => route.fulfill({
+      json: { name: 'fixture-native-host', available: true, fileManager: 'directory' },
+    }))
+    await page.route('**/api/present.open?**', async (route) => {
+      if (route.request().method() === 'GET') {
+        await route.fulfill({ json: [{ id: 'fixture-app', name: 'Fixture app', default: true, icon: null }] })
+      } else {
+        refusedNative++
+        await route.fulfill({ status: 422, body: 'No verified Host path.' })
+      }
     })
-    await page.route('**/api/presentedFiles/open', (route) => {
-      const request = route.request().postDataJSON() as { rpcId: string }
-      return route.fulfill({ json: { type: 'server-response', rpcId: request.rpcId, result: {
-        ok: false, error: { code: 'presented-file/path-unavailable', message: 'No verified native path', details: {} },
-      } } })
-    })
-    await page.routeWebSocket('**/api/remote.mux', (socket) => { socket.connectToServer(); sockets.push(socket) })
-    await page.route('**/api/host/*', async (route) => {
+    await page.route('**/api/host/describe', async (route) => {
+      const admitted = metadata
       const response = await route.fetch()
       const envelope = await response.json() as ServerResponse
       if (!envelope.result.ok) throw new Error('reference preview discovery failed')
-      if (new URL(route.request().url()).pathname.endsWith('/negotiate')) negotiations++
       const descriptor = envelope.result.value as HostDescriptor
       await route.fulfill({ response, json: { ...envelope, result: { ok: true, value: {
-        ...descriptor, capabilities: descriptor.capabilities.filter(id => readable || !id.startsWith('workspace-files.') || id === 'workspace-files.list.v1'),
+        ...descriptor, capabilities: descriptor.capabilities.filter(id => admitted || id !== 'workspace-files.stat.v1'),
       } } } })
     })
-    const reconnect = async (available: boolean) => {
-      const next = negotiations + 1
-      readable = available
-      await sockets.at(-1)!.close()
-      await expect.poll(() => negotiations, { timeout: 30_000 }).toBe(next)
-    }
-    await page.goto(scaffold.authenticatedUrl, { waitUntil: 'load' })
-    await page.locator('[data-composer-input][contenteditable="true"]').waitFor({ timeout: 30_000 })
-    const group = page.getByRole('treeitem').filter({ hasText: 'Reference previews' }).first()
-    if (await group.getAttribute('aria-expanded') === 'false') await group.click()
-    await page.getByRole('treeitem').filter({ hasText: 'Reference preview session' }).click()
+    const input = await openRecordedSession(page, scaffold, 'Reference previews', 'Reference preview session')
     const processControl = page.locator('[data-turn-process]')
     await processControl.waitFor()
     if (await processControl.getAttribute('aria-expanded') !== 'true') await processControl.click()
     const tool = page.locator('[data-tool="write"]')
-    const produced = page.locator('[data-produced-files-row]')
     const presented = page.locator('[data-presented-file]')
     const prose = page.locator('[data-chat-flow-kind="assistant-step"]').filter({ hasText: 'Created' })
-    await presented.waitFor()
-    const transcriptSnapshots: Array<{ available: boolean; tool: number; produced: number; presented: number; prose: number }> = []
-    const assertTranscriptActions = async (available: boolean) => {
-      await expect.poll(() => tool.getByRole('button', { name: 'note.md', exact: true }).count()).toBe(available ? 1 : 0)
-      await expect.poll(() => produced.locator('button').count()).toBe(available ? 1 : 0)
-      await expect.poll(() => presented.locator('button').count()).toBe(available ? 3 : 1)
-      await expect.poll(() => prose.getByRole('button', { name: 'Open note.md in sidebar', exact: true }).count()).toBe(available ? 1 : 0)
-      expect(await produced.innerText()).toContain('note.md')
-      expect(await presented.innerText()).toContain('note.md')
-      transcriptSnapshots.push({
-        available,
-        tool: await tool.getByRole('button', { name: 'note.md', exact: true }).count(),
-        produced: await produced.locator('button').count(),
-        presented: await presented.locator('button').count(),
-        prose: await prose.getByRole('button', { name: 'Open note.md in sidebar', exact: true }).count(),
-      })
-    }
-    await assertTranscriptActions(false)
-    await presented.getByRole('button', { name: 'More file actions for note.md' }).click()
-    await page.getByRole('menuitem', { name: 'Open in default app' }).click()
-    await expect.poll(() => presented.getByRole('status').innerText()).toBe('This file has no available Host path.')
     const sent = page.locator('[data-chat-flow-kind="user"]')
-    await sent.locator('[data-ref-chip="skill"]').waitFor()
-    expect(await sent.locator('button[data-ref-chip]').count()).toBe(0)
-    const input = page.locator('[data-composer-input][contenteditable="true"]')
+    await presented.waitFor()
+    const actions = [
+      tool.getByRole('button', { name: 'note.md', exact: true }),
+      presented.getByRole('button', { name: 'Preview note.md in sidebar', exact: true }),
+      prose.getByRole('button', { name: 'Open note.md in sidebar', exact: true }),
+    ]
+    const transcriptSnapshots: Array<{ metadata: boolean; tool: number; presented: number; prose: number }> = []
+    const observe = async () => {
+      if (await processControl.getAttribute('aria-expanded') !== 'true') await processControl.click()
+      const writeGroup = page.getByRole('button', { name: 'Wrote files', exact: true })
+      if (await writeGroup.getAttribute('aria-expanded') !== 'true') await writeGroup.click()
+      for (const action of actions) await action.waitFor()
+      transcriptSnapshots.push({ metadata, tool: await actions[0]!.count(),
+        presented: await actions[1]!.count(), prose: await actions[2]!.count() })
+    }
+    await observe()
+    await presented.getByRole('button', { name: 'Open in Fixture app', exact: true }).click()
+    await presented.getByText('This file has no available Host path. Preview it in the sidebar.', { exact: true }).waitFor()
+    expect(refusedNative).toBe(1)
+    expect(await readFile(join(path, 'note.md'), 'utf8')).toBe('# File preview fixture\n')
     await input.fill('/preview-review draft @note')
     await page.getByRole('listbox', { name: 'Trigger suggestions' }).getByRole('option', { name: /note\.md/u }).click()
     await input.locator('[data-composer-text-ref]').waitFor()
     const draft = await input.textContent()
-    expect(await input.locator('[data-reference-openable]').count()).toBe(0)
     await input.locator('[data-composer-chip]').click()
+    await page.getByText('The file resource service is unavailable.', { exact: true }).waitFor()
     expect(reads).toBe(0)
-    await mkdir(output, { recursive: true })
-    await page.screenshot({ path: join(output, 'unavailable.png'), fullPage: true })
 
-    await reconnect(true)
-    await expect.poll(() => sent.locator('button[data-ref-chip="file"]').count()).toBe(1)
-    // Catalog refresh belongs to the normal trigger menu; preview queries never fetch it.
-    await input.press('Home')
-    await input.press('ArrowRight')
-    await page.getByRole('listbox', { name: 'Trigger suggestions' }).getByRole('option', { name: /preview-review/u }).waitFor()
-    await input.press('Escape')
-    await expect.poll(() => sent.locator('button[data-ref-chip]').count()).toBe(2)
-    await assertTranscriptActions(true)
-    await expect.poll(() => input.locator('[data-reference-openable]').count()).toBe(2)
-    expect(await input.textContent()).toBe(draft)
-    for (const action of [
-      tool.getByRole('button', { name: 'note.md', exact: true }),
-      produced.getByRole('button'),
-      presented.getByRole('button', { name: 'Open note.md in sidebar', exact: true }),
-      prose.getByRole('button', { name: 'Open note.md in sidebar', exact: true }),
-    ]) {
+    metadata = true
+    await reconnect()
+    await observe()
+    for (const action of actions) {
       await action.click()
       await page.locator('[data-document-markdown]').getByRole('heading', { name: 'File preview fixture' }).waitFor()
     }
     await sent.locator('button[data-ref-chip="file"]').click()
     await page.locator('[data-document-markdown]').getByRole('heading', { name: 'File preview fixture' }).waitFor()
-    await sent.locator('button[data-ref-chip="skill"]').click()
-    await page.locator('[data-document-markdown]').getByRole('heading', { name: 'Skill preview fixture' }).waitFor()
-    await page.screenshot({ path: join(output, 'available.png'), fullPage: true })
-
-    await reconnect(false)
-    await expect.poll(() => sent.locator('button[data-ref-chip]').count()).toBe(0)
-    await expect.poll(() => input.locator('[data-reference-openable]').count()).toBe(0)
-    expect(await input.textContent()).toBe(draft)
-    await assertTranscriptActions(false)
-    const beforeUnavailableClick = reads
-    await input.locator('[data-composer-text-ref]').click()
-    await input.locator('[data-composer-chip]').click()
-    expect(reads).toBe(beforeUnavailableClick)
-    await page.screenshot({ path: join(output, 'withdrawn.png'), fullPage: true })
-    await reconnect(true)
-    await expect.poll(() => sent.locator('button[data-ref-chip="file"]').count()).toBe(1)
-    // Catalog refresh belongs to the normal trigger menu; preview queries never fetch it.
     await input.press('Home')
     await input.press('ArrowRight')
     await page.getByRole('listbox', { name: 'Trigger suggestions' }).getByRole('option', { name: /preview-review/u }).waitFor()
     await input.press('Escape')
-    await expect.poll(() => sent.locator('button[data-ref-chip]').count()).toBe(2)
-    await assertTranscriptActions(true)
-    await expect.poll(() => input.locator('[data-reference-openable]').count()).toBe(2)
+    await sent.locator('button[data-ref-chip="skill"]').click()
+    await page.locator('[data-document-markdown]').getByRole('heading', { name: 'Skill preview fixture' }).waitFor()
+    expect(await input.textContent()).toBe(draft)
+    expect(await input.locator('[data-composer-chip]').count()).toBe(1)
+    expect(await input.locator('[data-composer-text-ref]').count()).toBe(1)
+    metadata = false
+    await reconnect()
+    await observe()
+    expect(await input.locator('[data-composer-text-ref]').count()).toBe(0)
+    expect(await input.locator('[data-composer-chip]').count()).toBe(1)
+    const beforeUnavailableClick = reads
+    await input.locator('[data-composer-chip]').click()
+    expect(reads).toBe(beforeUnavailableClick)
+    expect(await input.textContent()).toBe(draft)
+    metadata = true
+    await reconnect()
+    await observe()
+    await sent.locator('button[data-ref-chip="file"]').click()
+    await page.locator('[data-document-markdown]').getByRole('heading', { name: 'File preview fixture' }).waitFor()
+    await sent.locator('button[data-ref-chip="skill"]').click()
+    await page.locator('[data-document-markdown]').getByRole('heading', { name: 'Skill preview fixture' }).waitFor()
+    await input.locator('[data-composer-text-ref]').waitFor()
+    expect(await input.locator('[data-composer-chip]').count()).toBe(1)
     expect(await input.textContent()).toBe(draft)
     expect(JSON.stringify(agent.session.snapshotEvents())).toBe(before)
-    const expectedTranscript: unknown = JSON.parse(await readFile(
-      new URL('./expected/host-capability/transcript-previews.expected.json', import.meta.url), 'utf8',
-    ))
-    expect(transcriptSnapshots).toEqual(expectedTranscript)
+    await mkdir(output, { recursive: true })
     await writeFile(join(output, 'transcript-actual.json'), JSON.stringify(transcriptSnapshots, null, 2) + '\n')
+    expect(transcriptSnapshots).toEqual(JSON.parse(await readFile(new URL('./expected/host-capability/transcript-previews.expected.json', import.meta.url), 'utf8')))
     await writeFile(join(output, 'observation.json'), JSON.stringify({
-      status: 'PASS', controlledDiscovery: true, isolatedRealHost: true,
-      stages: ['unavailable', 'available', 'withdrawn', 'restored'],
-      retainedDraft: true, unchangedSession: true, readRequests: reads,
-      controlledNativePathRefusal: true, toolPaths: true, producedFiles: true, presentedFiles: true, proseMentions: true,
+      retainedDraft: true, unchangedSession: true, readRequests: reads, refusedNative,
+      toolPaths: true, presentedFiles: true, proseMentions: true, retainedReferences: true,
     }, null, 2) + '\n')
+    await page.screenshot({ path: join(output, 'restored.png'), fullPage: true })
+  } catch (error) {
+    await captureFailure(browser, output)
+    throw error
   } finally {
-    try { await browser?.close() } finally { await scaffold.close() }
+    try { await closeBrowser(browser) } finally { await scaffold.close() }
   }
-})
+}, 180_000)
 
-
-it('admits Session content search independently and withdraws old Host results', async () => {
+it('keeps Session name matches and the draft when content search fails, then recovers the content results', async () => {
   const scaffold = await launchWebScaffold()
   let browser: Browser | undefined
-  const sockets: WebSocketRoute[] = []
-  let supported: string[] = []
-  let stage = 'absent'
-  let negotiations = 0
+  let available = false
+  let stage = 'unavailable'
+  let settled = 0
   const calls: string[] = []
   const output = '.artifacts/session-extra-capabilities-browser'
   try {
@@ -714,78 +680,64 @@ it('admits Session content search independently and withdraws old Host results',
     const executablePath = process.env.DSH_PLAYWRIGHT_EXECUTABLE_PATH
     browser = await chromium.launch(executablePath === undefined ? {} : { executablePath })
     const page = await browser.newPage({ viewport: { width: 1440, height: 900 }, locale: 'en-US' })
-    page.on('request', (request) => {
-      if (new URL(request.url()).pathname === '/api/session/search') calls.push(stage)
+    const reconnect = await watchConnections(page)
+    await page.route('**/api/session/search', async (route) => {
+      calls.push(stage)
+      if (available) {
+        const response = await route.fetch()
+        await route.fulfill({ response })
+      } else await refuseOperation(route, 'session/search')
+      settled++
     })
-    await page.routeWebSocket('**/api/remote.mux', (socket) => { socket.connectToServer(); sockets.push(socket) })
-    await page.route('**/api/host/*', async (route) => {
-      const response = await route.fetch()
-      const envelope = await response.json() as ServerResponse
-      if (!envelope.result.ok) throw new Error('Session capability discovery failed')
-      if (new URL(route.request().url()).pathname.endsWith('/negotiate')) negotiations++
-      const descriptor = envelope.result.value as HostDescriptor
-      expect(descriptor.capabilities).toEqual(expect.arrayContaining(['session.search.v1', 'session.attachment.v1']))
-      await route.fulfill({ response, json: { ...envelope, result: { ok: true, value: {
-        ...descriptor, capabilities: descriptor.capabilities.filter(id => !['session.search.v1', 'session.attachment.v1'].includes(id) || supported.includes(id)),
-      } } } })
-    })
-    const reconnect = async (name: string, capabilities: string[]) => {
-      const next = negotiations + 1
-      stage = name
-      supported = capabilities
-      await sockets.at(-1)!.close()
-      await expect.poll(() => negotiations, { timeout: 30_000 }).toBe(next)
-    }
-    await page.goto(scaffold.authenticatedUrl, { waitUntil: 'load' })
-    const composer = page.locator('[data-composer-input][contenteditable="true"]')
-    await composer.waitFor({ timeout: 30_000 })
-    const group = page.getByRole('treeitem').filter({ hasText: 'Session discovery' }).first()
-    if (await group.getAttribute('aria-expanded') === 'false') await group.click()
-    await page.getByRole('treeitem').filter({ hasText: 'Quartzneedle local title' }).click()
+    const composer = await openRecordedSession(page, scaffold, 'Session discovery', 'Quartzneedle local title')
     await composer.fill('retain Session search draft')
     await page.getByRole('button', { name: 'Search sessions', exact: true }).click()
-    const query = page.getByPlaceholder('Search sessions...')
-    await query.fill('quartzneedle')
+    const query = page.getByPlaceholder('Search session names')
     const results = page.getByRole('tree', { name: 'Search results' })
     const local = results.getByRole('treeitem').filter({ hasText: 'Quartzneedle local title' })
     const content = results.getByRole('treeitem').filter({ hasText: 'Content result' })
-    const warning = page.getByText('Content search is temporarily unavailable. Showing name matches.', { exact: true })
-    const observations: Array<{ stage: string; local: number; content: number; unavailable: boolean }> = []
-    const observe = async (available: boolean) => {
+    const observations: Array<{ stage: string; local: number; content: number; warning: number }> = []
+    const search = async () => {
+      const beforeSearch = settled
+      await query.fill('')
+      await expect.poll(() => results.count()).toBe(0)
+      await query.fill('quartzneedle')
+      await expect.poll(() => settled).toBeGreaterThan(beforeSearch)
+      await expect.poll(() => results.locator('..').getByRole('status').count()).toBe(0)
       await expect.poll(() => local.count()).toBe(1)
-      await expect.poll(() => content.count(), { timeout: 30_000 }).toBe(available ? 1 : 0)
-      await expect.poll(() => warning.count()).toBe(available ? 0 : 1)
-      observations.push({ stage, local: await local.count(), content: await content.count(), unavailable: await warning.count() === 1 })
+      await expect.poll(() => content.count()).toBe(available ? 1 : 0)
+      observations.push({ stage, local: await local.count(), content: await content.count(),
+        warning: await page.getByText('Content search is temporarily unavailable. Showing name matches.', { exact: true }).count() })
     }
-    await observe(false)
-    expect(calls).toEqual([])
-    await reconnect('search-only', ['session.search.v1'])
-    await observe(true)
-    await reconnect('attachment-only', ['session.attachment.v1'])
-    await observe(false)
-    await reconnect('both', ['session.search.v1', 'session.attachment.v1'])
-    await observe(true)
-    expect(calls).toEqual(['search-only', 'both'])
+    await search()
+    stage = 'search-restored'
+    available = true
+    await reconnect()
+    await search()
+    stage = 'unavailable-again'
+    available = false
+    await reconnect()
+    await search()
+    stage = 'restored'
+    available = true
+    await reconnect()
+    await search()
+    expect(calls).toEqual(['unavailable', 'search-restored', 'unavailable-again', 'restored'])
     expect(await query.inputValue()).toBe('quartzneedle')
     expect(await composer.textContent()).toBe('retain Session search draft')
     expect(agents.map(agent => JSON.stringify(agent.session.snapshotEvents()))).toEqual(baseline)
     await mkdir(output, { recursive: true })
-    await page.screenshot({ path: join(output, 'restored.png'), fullPage: true })
-    const actual = JSON.stringify(observations, null, 2) + '\n'
-    await writeFile(join(output, 'actual.json'), actual)
-    expect(actual).toBe(await readFile(new URL('./expected/host-capability/session-extra-capabilities.expected.json', import.meta.url), 'utf8'))
-    await writeFile(join(output, 'observation.json'), JSON.stringify({ status: 'PASS', observations, calls,
+    await writeFile(join(output, 'actual.json'), JSON.stringify(observations, null, 2) + '\n')
+    expect(observations).toEqual(JSON.parse(await readFile(new URL('./expected/host-capability/session-extra-capabilities.expected.json', import.meta.url), 'utf8')))
+    await writeFile(join(output, 'observation.json'), JSON.stringify({
       retainedDraft: true, unchangedSessions: true, authenticatedGateway: true,
-      invalidSearchAndAttachmentRejected: true, discoveryResponsesControlled: true, searchResponsesControlled: false,
+      invalidSearchAndAttachmentRejected: true, calls, observations,
     }, null, 2) + '\n')
+    await page.screenshot({ path: join(output, 'restored.png'), fullPage: true })
   } catch (error) {
-    await mkdir(output, { recursive: true })
-    const page = browser?.contexts()[0]?.pages()[0]
-    await page?.screenshot({ path: join(output, 'failure.png'), fullPage: true })
-    if (page !== undefined) await writeFile(join(output, 'failure-aria.txt'), await page.locator('body').ariaSnapshot())
+    await captureFailure(browser, output)
     throw error
   } finally {
-    await browser?.close()
-    await scaffold.close()
+    try { await closeBrowser(browser) } finally { await scaffold.close() }
   }
-}, 120_000)
+}, 180_000)

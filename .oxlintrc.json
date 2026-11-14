@@ -28,19 +28,7 @@
     "**/*.js",
     "**/*.mjs",
     "**/*.config.ts", // Tool and app configs are outside the repository TypeScript programs.
-    "packages/client/tsdown.client.ts", // Shared client build preset, also outside a TypeScript program.
-    "apps/web/tests/file-capabilities.e2e.ts",
-    "apps/web/tests/preset-capabilities.e2e.ts",
-    "apps/web/tests/subagent-capabilities.e2e.ts",
-    "apps/web/tests/plugin-inventory-capabilities.e2e.ts",
-    "apps/web/tests/interaction-expiry.e2e.ts",
-    "apps/web/tests/prompt-idempotency.e2e.ts",
-    "apps/web/tests/fixture-home-paths.ts",
-    "apps/web/tests/fixture-home-paths.spec.ts",
-    "apps/web/tests/device-interaction-reply.e2e.ts",
-    "apps/web/tests/diff-preview.e2e.ts",
-    "apps/web/tests/remote-welcome.e2e.ts",
-    "apps/web/tests/produced-files.e2e.ts"
+    "packages/client/tsdown.client.ts" // Shared client build preset, also outside a TypeScript program.
   ],
   "overrides": [
     {

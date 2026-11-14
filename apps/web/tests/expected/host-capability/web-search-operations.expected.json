@@ -1,10 +1,12 @@
 {
-  "credentialReadsSuppressed": true,
-  "ordinarySettingPersisted": true,
-  "keyWriteIndependent": true,
-  "replacedDraftDiscarded": true,
+  "credentialDescriptionRead": true,
+  "ordinarySettingsPersisted": true,
+  "readOnlyCredentialDisabled": true,
+  "providerChangeDiscardedDraft": true,
+  "refusedDraftRetained": true,
+  "reconnectDidNotReplay": true,
   "explicitKeyPersisted": true,
   "noSecretInSettingsOrUi": true,
-  "negotiations": 5,
-  "credentialWrites": ["/api/credentials/set"]
+  "generations": 3,
+  "credentialWrites": ["/api/credentials/set", "/api/credentials/set"]
 }

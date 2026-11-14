@@ -1,359 +1,420 @@
-/** Real Web entry changes across controlled Host capability advertisements. */
+/** Real Web settings through descriptor changes and physical connection replacement. */
 
-import { mkdir, mkdtemp, readFile, rm, writeFile } from 'node:fs/promises'
-import { tmpdir } from 'node:os'
+import { mkdir, readFile, writeFile } from 'node:fs/promises'
 import { randomBytes } from 'node:crypto'
 import { join } from 'node:path'
-import { fileURLToPath } from 'node:url'
-import { chromium, type Browser, type WebSocketRoute } from 'playwright'
+import { chromium, type Browser, type Page, type WebSocketRoute } from 'playwright'
 import { expect, it } from 'vitest'
-import type { HostDescriptor } from '@deepseek-ai/dsh-api-host-description/types'
 import type { ServerResponse } from '@deepseek-ai/dsh-client-connection'
 import { launchWebScaffold } from './scaffold.ts'
+import { connectFreshWorkspace, openSettings, writeComposerDraft } from './support.ts'
 
-it('admits preset catalog, selection and management independently across real connection replacement', async () => {
-  const userRoot = await mkdtemp(join(tmpdir(), 'dsh-preset-capabilities-'))
+/** Forward both carrier directions and count the event stream's accepted generations. */
+async function observeConnections(page: Page) {
+  const sockets: { client: WebSocketRoute; server: WebSocketRoute }[] = []
+  let readyFrames = 0
+  let closed = false
+  await page.routeWebSocket('**/api/remote.mux', (client) => {
+    if (closed) { void client.close(); return }
+    const server = client.connectToServer()
+    const events = new Set<string>()
+    sockets.push({ client, server })
+    client.onMessage((message) => {
+      const frame = JSON.parse(message.toString()) as { type: string; streamId: string; endpoint?: string }
+      if (frame.type === 'open' && frame.endpoint === '$events') events.add(frame.streamId)
+      server.send(message)
+    })
+    server.onMessage((message) => {
+      const frame = JSON.parse(message.toString()) as { type: string; streamId: string; value?: { type: string } }
+      if (frame.type === 'item' && events.has(frame.streamId) && frame.value?.type === 'ready') readyFrames++
+      client.send(message)
+    })
+  })
+  return {
+    generations: () => readyFrames,
+    reconnect: async () => {
+      await expect.poll(() => readyFrames).toBeGreaterThan(0)
+      const target = readyFrames + 1
+      const socket = sockets.at(-1)!
+      await socket.server.close()
+      await socket.client.close()
+      await expect.poll(() => readyFrames, { timeout: 30_000 }).toBe(target)
+    },
+    close: async () => {
+      closed = true
+      for (const socket of sockets) {
+        await socket.server.close()
+        await socket.client.close()
+      }
+    },
+  }
+}
+
+/** Settle intercepted requests and both carrier halves before disposing the Host. */
+async function closeFixture(
+  page: Page | undefined,
+  browser: Browser | undefined,
+  connections: Awaited<ReturnType<typeof observeConnections>> | undefined,
+  scaffold: Awaited<ReturnType<typeof launchWebScaffold>> | undefined,
+): Promise<void> {
+  try {
+    await page?.unrouteAll({ behavior: 'wait' })
+  } finally {
+    try { await connections?.close() } finally {
+      try { await browser?.close() } finally { await scaffold?.close() }
+    }
+  }
+}
+
+it('restores refused preset preferences across reconnect and keeps an unsent draft when entering Creator', async () => {
   let scaffold: Awaited<ReturnType<typeof launchWebScaffold>> | undefined
   let browser: Browser | undefined
-  let hidden: readonly string[] = ['agent-preset.catalog.v1', 'agent-preset.select.v1', 'agent-preset.manage.v1']
-  let negotiations = 0
-  const sockets: WebSocketRoute[] = []
+  let page: Page | undefined
+  let connections: Awaited<ReturnType<typeof observeConnections>> | undefined
+  let refuseDefault = true
+  let userMessages = 0
   const requests: string[] = []
-  const settingsTraffic: string[] = []
+  const output = '.artifacts/preset-capabilities-browser'
   try {
-    scaffold = await launchWebScaffold({
-      extraOverlayPath: fileURLToPath(new URL('./agent-preset-authoring.overlay.yml', import.meta.url)),
-      agentPresets: { roots: [{ path: userRoot, trust: 'user' }], default: 'standard' },
+    scaffold = await launchWebScaffold({ agentPresets: { default: 'standard' } })
+    const host = scaffold
+    const sessionPresets = async (): Promise<(string | null | undefined)[]> => {
+      const response = await host.hostFetch('/api/session/list', {
+        method: 'POST', headers: { 'content-type': 'application/json' },
+        body: JSON.stringify({ type: 'client-request', rpcId: 'preset-capabilities-list', method: 'session/list', payload: { args: { _request: {} } } }),
+      })
+      const envelope = await response.json() as ServerResponse
+      if (!envelope.result.ok) throw new Error('Preset Session listing failed')
+      const list = envelope.result.value as { items: { projections?: { values: { agentPreset?: string | null } } }[] }
+      return list.items.map(item => item.projections?.values.agentPreset)
+    }
+    scaffold.ctx.on('session/event', (_session, event) => {
+      if (event.type === 'user/message') userMessages++
     })
     const executablePath = process.env.DSH_PLAYWRIGHT_EXECUTABLE_PATH
     browser = await chromium.launch(executablePath === undefined ? {} : { executablePath })
-    const page = await browser.newPage({ viewport: { width: 1440, height: 900 }, locale: 'en-US' })
+    page = await browser.newPage({ viewport: { width: 1440, height: 900 }, locale: 'en-US' })
+    connections = await observeConnections(page)
     page.on('request', (request) => {
       const path = new URL(request.url()).pathname
-      if (path.startsWith('/api/settings/')) settingsTraffic.push(path)
-      if (path.startsWith('/api/agentPresets/') || /\/settings\/(canOpenAgentPresetDirectory|openAgentPresetDirectory|update)$/u.test(path)) requests.push(path)
+      if (path.startsWith('/api/agentPresets/')) requests.push(path)
+      if (path === '/api/settings/update') {
+        const payload = request.postDataJSON() as { payload: { args: { ns: string } } }
+        if (payload.payload.args.ns === 'agent-preset-registry') requests.push(path)
+      }
     })
-    await page.routeWebSocket('**/api/remote.mux', (socket) => {
-      socket.connectToServer()
-      sockets.push(socket)
-    })
-    await page.route('**/api/host/*', async (route) => {
-      const response = await route.fetch()
-      const envelope = await response.json() as ServerResponse
-      if (!envelope.result.ok) throw new Error('preset fixture discovery failed')
-      const descriptor = envelope.result.value as HostDescriptor
-      expect(descriptor.capabilities).toEqual(expect.arrayContaining([
-        'agent-preset.catalog.v1', 'agent-preset.select.v1', 'agent-preset.manage.v1',
-        'settings.read.v1', 'settings.write.v1', 'settings.document-open.v1', 'settings.agent-preset-directory.v1',
-      ]))
-      if (new URL(route.request().url()).pathname.endsWith('/negotiate')) negotiations++
-      await route.fulfill({ response, json: { ...envelope, result: { ok: true, value: {
-        ...descriptor, capabilities: descriptor.capabilities.filter(id => !hidden.includes(id)),
-      } } } })
+    await page.route('**/api/settings/update', async (route) => {
+      const request = route.request().postDataJSON() as { rpcId: string; payload: { args: { ns: string } } }
+      if (refuseDefault && request.payload.args.ns === 'agent-preset-registry') {
+        await route.fulfill({ json: { type: 'server-response', rpcId: request.rpcId, result: {
+          ok: false, error: { code: 'gateway/invocation-unavailable', message: 'Preset preferences are temporarily unavailable', details: {} },
+        } } })
+        return
+      }
+      await route.fulfill({ response: await route.fetch() })
     })
     await page.goto(scaffold.authenticatedUrl, { waitUntil: 'load' })
-    await page.getByRole('button', { name: 'Settings', exact: true }).waitFor({ timeout: 30_000 })
-    await page.getByRole('button', { name: 'Settings', exact: true }).click()
+    await connectFreshWorkspace(page, scaffold.workspaceCwd)
+    const original = host.ctx.agents.list()[0]
+    if (original === undefined) throw new Error('Connecting the workspace did not create a Session')
+    const composer = page.locator(`[data-conversation-session="${original.id}"] [data-composer-input][contenteditable="true"]`)
+    const draft = 'Keep this unsent Creator task'
+    await openSettings(page, 'en')
     const settings = page.getByRole('dialog', { name: 'Settings', exact: true })
     const entry = settings.getByRole('button', { name: 'Agent presets', exact: true })
-    expect(await entry.count()).toBe(0)
-    expect(requests).toEqual([])
-    await settings.getByRole('button', { name: 'Open configuration file', exact: true }).waitFor()
-    const initialSettingsReads = settingsTraffic.filter(path => path === '/api/settings/describe').length
-    expect(initialSettingsReads).toBe(1)
-    const output = '.artifacts/preset-capabilities-browser'
-    await mkdir(output, { recursive: true })
-    await page.screenshot({ path: output + '/absent.png', fullPage: true })
-    const replace = async (next: readonly string[]) => {
-      const target = negotiations + 1
-      hidden = next
-      await expect.poll(() => sockets.length).toBeGreaterThan(0)
-      await sockets.at(-1)!.close()
-      await expect.poll(() => negotiations, { timeout: 30_000 }).toBe(target)
-    }
-    await replace(['agent-preset.select.v1', 'agent-preset.manage.v1'])
     await entry.click()
-    const viewer = settings.getByRole('button', { name: 'View: Standard mode', exact: true })
-    await viewer.waitFor()
-    expect(await settings.getByRole('button', { name: /^Duplicate:/u }).count()).toBe(0)
-    expect(await settings.getByRole('button', { name: 'Draft a custom preset with Creator mode', exact: true }).count()).toBe(0)
+    const viewer = settings.getByRole('button', { name: 'View configuration: Standard mode', exact: true })
     await viewer.click()
-    await expect.poll(() => requests.filter(path => path.endsWith('/agentPresets/read')).length).toBe(1)
-    const composition = page.getByRole('dialog', { name: 'View · Standard mode', exact: true })
+    const composition = page.getByRole('dialog', { name: 'View configuration · Standard mode', exact: true })
     await composition.waitFor()
     expect(await composition.locator('pre').textContent()).toContain('@deepseek-ai/')
-    await page.screenshot({ path: output + '/catalog-only.png', fullPage: true })
-    await replace([])
-    // Replacement dismisses generation-bound viewers and drafts before restoring actions.
-    await entry.click()
-    const duplicate = settings.getByRole('button', { name: 'Duplicate: Standard mode', exact: true })
-    await duplicate.waitFor()
-    await duplicate.click()
-    await page.getByRole('dialog', { name: /^Duplicate preset ·/u }).waitFor()
-    await replace(['agent-preset.manage.v1'])
-    await expect.poll(() => page.getByRole('dialog', { name: /^Duplicate preset ·/u }).count()).toBe(0)
+    expect(await composition.getByRole('textbox').count()).toBe(0)
+    await composition.getByRole('button', { name: 'Close', exact: true }).last().click()
     expect(await settings.getByRole('button', { name: /^Duplicate:/u }).count()).toBe(0)
-    await entry.click()
+    const select = settings.getByRole('button', { name: 'Set as new task default: Minimal mode', exact: true })
+    await select.click()
+    await settings.getByText('Preset preferences are temporarily unavailable', { exact: true }).waitFor()
+    expect((await scaffold.ctx.agentPresets.remoteExportList()).presets.find(row => row.isDefault)?.id).toBe('standard')
+    const refusedWrites = requests.filter(path => path === '/api/settings/update').length
+    expect(refusedWrites).toBe(1)
+    refuseDefault = false
+    await connections.reconnect()
     await viewer.waitFor()
-    await page.screenshot({ path: output + '/management-withdrawn.png', fullPage: true })
-    const settingsStart = requests.length
-    await replace(['settings.write.v1', 'settings.agent-preset-directory.v1'])
-    await entry.click()
-    await viewer.waitFor()
-    const policy = settings.getByRole('switch', { name: 'Allow switching Agent modes', exact: true })
-    expect(await policy.isDisabled()).toBe(true)
-    await settings.getByText('Preset preferences cannot be changed on this Host', { exact: true }).waitFor()
-    await settings.getByRole('button', { name: 'Duplicate: Minimal mode', exact: true }).click()
-    const draft = page.getByRole('dialog', { name: /^Duplicate preset ·/u })
-    await draft.getByRole('textbox', { name: 'Identifier', exact: true }).fill('capability-copy')
-    await draft.getByRole('button', { name: 'Create', exact: true }).click()
-    await draft.waitFor({ state: 'detached' })
-    const copied = settings.getByRole('button', { name: 'Preset preferences cannot be changed on this Host: capability-copy', exact: true })
-    await copied.waitFor()
-    expect(await copied.isDisabled()).toBe(true)
-    expect(await settings.getByRole('button', { name: /^Show location:/u }).count()).toBe(0)
-    expect(requests.slice(settingsStart).filter(path => path.startsWith('/api/settings/'))).toEqual([])
-    const copiedText = await readFile(join(userRoot, 'capability-copy', 'agent.cordis.yml'), 'utf8')
-    expect(copiedText).toContain('@deepseek-ai/')
-    await page.screenshot({ path: output + '/settings-unavailable.png', fullPage: true })
-    await replace([])
-    await entry.click()
-    await viewer.waitFor()
-    expect(await policy.isDisabled()).toBe(false)
-    await settings.getByRole('button', { name: 'Show location: capability-copy', exact: true }).click()
-    await settings.locator('code').filter({ hasText: join(userRoot, 'capability-copy') }).waitFor()
-    await settings.getByRole('button', { name: 'Set as default: Minimal mode', exact: true }).click()
+    expect(requests.filter(path => path === '/api/settings/update')).toHaveLength(refusedWrites)
+    expect((await scaffold.ctx.agentPresets.remoteExportList()).presets.find(row => row.isDefault)?.id).toBe('standard')
+    await select.click()
     await settings.getByRole('button', { name: 'New task default: Minimal mode', exact: true }).waitFor()
-    expect(scaffold.ctx.settingsController.describe().namespaces.find(item => item.ns === 'agent-presets')?.value)
-      .toMatchObject({ default: 'minimal' })
-    await page.screenshot({ path: output + '/settings-restored.png', fullPage: true })
-    const settingsOperations = requests.slice(settingsStart).filter(path => /\/settings\/(update|openAgentPresetDirectory)$/u.test(path))
-    await replace(['settings.read.v1'])
-    const documentAction = settings.getByRole('button', { name: 'Open configuration file', exact: true })
-    await expect.poll(() => documentAction.count()).toBe(0)
-    const readWithdrawal = settingsTraffic.length
-    await settings.getByRole('button', { name: 'General', exact: true }).click()
-    expect(settingsTraffic.slice(readWithdrawal).filter(path => path === '/api/settings/describe')).toEqual([])
-    await page.screenshot({ path: output + '/settings-read-unavailable.png', fullPage: true })
-    await replace(['settings.document-open.v1'])
-    await expect.poll(() => settingsTraffic.slice(readWithdrawal).filter(path => path === '/api/settings/describe').length).toBe(1)
+    await expect.poll(sessionPresets).toContain('minimal')
+    expect(scaffold.ctx.settingsController.describe().namespaces.find(item => item.ns === 'agent-preset-registry')?.value)
+      .toMatchObject({ selectedDefault: 'minimal' })
+    const document = await readFile(scaffold.ctx.configEditor.documentPath, 'utf8')
+    expect(document).toContain('selectedDefault: minimal')
+    await settings.getByRole('button', { name: 'Close', exact: true }).last().click()
+    await writeComposerDraft(page, composer, draft)
+    await openSettings(page, 'en')
     await entry.click()
-    await viewer.waitFor()
-    expect(await documentAction.count()).toBe(0)
-    await page.screenshot({ path: output + '/settings-document-unavailable.png', fullPage: true })
-    await replace([])
-    await documentAction.waitFor()
-    expect(settingsTraffic.filter(path => path === '/api/settings/openSettingsDocument')).toEqual([])
-    await page.screenshot({ path: output + '/settings-document-restored.png', fullPage: true })
-    await replace(['agent-preset.catalog.v1', 'agent-preset.select.v1', 'agent-preset.manage.v1'])
-    await expect.poll(() => entry.count()).toBe(0)
+    await settings.getByRole('button', { name: 'Let the agent help me create a preset', exact: true }).click()
+    await settings.waitFor({ state: 'detached' })
+    const creatorPicker = page.getByRole('button', { name: 'Creator mode', exact: true })
+    await creatorPicker.waitFor()
+    await expect.poll(sessionPresets).toContain('cordis')
+    const creator = host.ctx.agents.list().find(agent => agent.session.header.agentPreset === 'cordis')
+    if (creator === undefined) throw new Error('The Creator entry did not create its Session')
+    expect(creator.id).not.toBe(original.id)
+    const creatorComposer = page.locator(`[data-conversation-session="${creator.id}"] [data-composer-input][contenteditable="true"]`)
+    expect((await creatorComposer.innerText()).trim()).toBe('')
+    // Finish a fixture turn so New Session can return to the saved Minimal blank.
+    creator.session.append('turn/start', { turn: 1 })
+    creator.session.append('turn/end', { turn: 1, reason: { kind: 'completed' } })
+    await host.ctx.sessions.flush(creator.session)
+    await creatorPicker.waitFor({ state: 'detached' })
+    const newSession = page.getByRole('button', { name: 'New session', exact: true }).filter({ hasText: 'New Session' })
+    const [reopening] = await Promise.all([page.waitForResponse('**/api/session/create'), newSession.click()])
+    expect(await reopening.json()).toMatchObject({ result: { ok: true, value: { sessionId: original.id, agentPreset: 'minimal' } } })
+    await composer.filter({ hasText: draft }).waitFor()
+    expect(await composer.textContent()).toBe(draft)
+    expect(userMessages).toBe(0)
+    expect((await scaffold.ctx.agentPresets.remoteExportList()).presets.find(row => row.isDefault)?.id).toBe('minimal')
     const observation = {
-      catalogRead: requests.some(path => path.endsWith('/agentPresets/list')),
-      presetRead: requests.filter(path => path.endsWith('/agentPresets/read')).length,
-      mutations: requests.filter(path => /\/agentPresets\/(select|copy|deletePreset)$/u.test(path)),
-      negotiations,
-      settingsOperations,
-      copiedPreset: true,
-      initialSettingsReads,
-      settingsReadSuppressed: true,
-      documentActionWithdrawn: true,
-      documentActionRestored: true,
+      catalogRead: requests.includes('/api/agentPresets/list'),
+      compositionReads: requests.filter(path => path === '/api/agentPresets/read').length,
+      refusedPreferencePreserved: true,
+      reconnectDidNotReplay: true,
+      selectedDefaultPersisted: true,
+      creatorDraftPreserved: true,
+      userMessages,
+      generations: connections.generations(),
+      preferenceWrites: requests.filter(path => path === '/api/settings/update').length,
+      retiredMutations: requests.filter(path => /\/agentPresets\/(copy|deletePreset)$/u.test(path)),
     }
     const expected: unknown = JSON.parse(await readFile(new URL('./expected/host-capability/preset-operations.expected.json', import.meta.url), 'utf8'))
     expect(observation).toEqual(expected)
+    await mkdir(output, { recursive: true })
+    await page.screenshot({ path: output + '/restored.png', fullPage: true })
     await writeFile(output + '/observation.json', JSON.stringify(observation, null, 2) + '\n')
-  } finally {
-    try { await browser?.close() } finally {
-      try { await scaffold?.close() } finally { await rm(userRoot, { recursive: true, force: true }) }
-    }
-  }
+  } finally { await closeFixture(page, browser, connections, scaffold) }
 }, 120_000)
 
-it('keeps Web-search settings writable without credential capability and discards replaced key drafts', async () => {
+it('uses credential descriptions for legacy Web search and retries a refused key only after explicit save', async () => {
   let scaffold: Awaited<ReturnType<typeof launchWebScaffold>> | undefined
   let browser: Browser | undefined
-  let hidden: readonly string[] = ['credentials.describe.v1', 'credentials.write.v1']
-  let negotiations = 0
-  const sockets: WebSocketRoute[] = []
+  let page: Page | undefined
+  let connections: Awaited<ReturnType<typeof observeConnections>> | undefined
+  let writable = false
+  let refuseKey = true
   const requests: string[] = []
   const messages: string[] = []
+  const keyRef = 'WEB_SEARCH_CAPABILITY_FIXTURE'
   const output = '.artifacts/web-search-capabilities-browser'
   try {
-    scaffold = await launchWebScaffold({ deepSeekSearch: { apiKeyEnv: 'WEB_SEARCH_CAPABILITY_FIXTURE', baseURL: 'https://example.invalid/search' } })
+    scaffold = await launchWebScaffold({ deepSeekSearch: { apiKeyEnv: keyRef, baseURL: 'https://example.invalid/search' } })
     const executablePath = process.env.DSH_PLAYWRIGHT_EXECUTABLE_PATH
     browser = await chromium.launch(executablePath === undefined ? {} : { executablePath })
-    const page = await browser.newPage({ viewport: { width: 1440, height: 1000 }, locale: 'en-US' })
+    page = await browser.newPage({ viewport: { width: 1440, height: 1000 }, locale: 'en-US' })
+    connections = await observeConnections(page)
     page.on('console', (message) => { messages.push(message.text()) })
     page.on('request', (request) => {
       const path = new URL(request.url()).pathname
       if (path.startsWith('/api/credentials/')) requests.push(path)
     })
-    await page.routeWebSocket('**/api/remote.mux', (socket) => {
-      socket.connectToServer()
-      sockets.push(socket)
-    })
-    await page.route('**/api/host/*', async (route) => {
+    await page.route('**/api/credentials/describe', async (route) => {
       const response = await route.fetch()
       const envelope = await response.json() as ServerResponse
-      if (!envelope.result.ok) throw new Error('Web-search fixture discovery failed')
-      const descriptor = envelope.result.value as HostDescriptor
-      if (new URL(route.request().url()).pathname.endsWith('/negotiate')) negotiations += 1
-      await route.fulfill({ response, json: { ...envelope, result: { ok: true, value: {
-        ...descriptor, capabilities: descriptor.capabilities.filter(id => !hidden.includes(id)),
-      } } } })
+      if (!envelope.result.ok) throw new Error('Web-search credential discovery failed')
+      const views = envelope.result.value as Record<string, { writable: boolean }>
+      const value = Object.fromEntries(Object.entries(views).map(([ref, view]) => [
+        ref, ref === keyRef ? { ...view, writable } : view,
+      ]))
+      await route.fulfill({ response, json: { ...envelope, result: { ok: true, value } } })
+    })
+    await page.route('**/api/credentials/set', async (route) => {
+      if (refuseKey) {
+        const request = route.request().postDataJSON() as { rpcId: string }
+        await route.fulfill({ json: { type: 'server-response', rpcId: request.rpcId, result: {
+          ok: false, error: { code: 'credential/rejected', message: 'Search key writes are temporarily unavailable', details: { ref: keyRef } },
+        } } })
+        return
+      }
+      await route.fulfill({ response: await route.fetch() })
     })
     await page.goto(scaffold.authenticatedUrl, { waitUntil: 'load' })
-    await page.getByRole('button', { name: 'Settings', exact: true }).click({ timeout: 30_000 })
-    const settings = page.getByRole('dialog', { name: 'Settings', exact: true })
-    const plugins = settings.getByRole('button', { name: 'Plugins', exact: true })
-    await plugins.click()
-    const expand = settings.getByRole('button', { name: 'Show settings: Web search', exact: true })
-    const card = settings.locator('li').filter({ has: page.getByRole('button', { name: /settings: Web search$/u }) })
-    await expand.click()
+    await page.getByRole('navigation', { name: 'Global panels', exact: true }).getByRole('button', { name: 'Plugins', exact: true }).click()
+    const panel = page.locator('[data-plugin-panel]')
+    await panel.getByRole('button', { name: 'View Web search and fetch', exact: true }).click()
+    const card = panel.locator('[data-plugin-config]')
+    await card.getByLabel('Results per search', { exact: true }).fill('12')
     expect(await card.getByLabel('API key', { exact: true }).count()).toBe(0)
-    expect(requests).toEqual([])
-    await card.getByLabel('Max searches per request', { exact: true }).fill('3')
+    await card.getByRole('button', { name: /^Billing /u }).waitFor()
     await card.getByRole('button', { name: 'Save', exact: true }).click()
-    await expand.waitFor()
-    const documentPath = join(scaffold.harnessHome, 'settings.yaml')
-    await expect.poll(async () => (await readFile(documentPath, 'utf8')).includes('maxUses: 3')).toBe(true)
-    await expand.click()
-    await mkdir(output, { recursive: true })
-    await page.screenshot({ path: output + '/credentials-absent.png', fullPage: true })
-    const replace = async (next: readonly string[]) => {
-      hidden = next
-      const target = negotiations + 1
-      await expect.poll(() => sockets.length).toBeGreaterThan(0)
-      await sockets.at(-1)!.close()
-      await expect.poll(() => negotiations, { timeout: 30_000 }).toBe(target)
-      await plugins.click()
-      await expand.click()
-    }
-    await replace(['credentials.write.v1'])
-    expect(await card.getByLabel('API key', { exact: true }).count()).toBe(0)
-    expect(await card.getByLabel('Max searches per request', { exact: true }).inputValue()).toBe('3')
-    await expect.poll(() => requests.filter(path => path === '/api/credentials/describe').length).toBeGreaterThan(0)
-    await page.screenshot({ path: output + '/write-absent.png', fullPage: true })
-    await replace([])
+    const documentPath = scaffold.ctx.configEditor.documentPath
+    await expect.poll(async () => (await readFile(documentPath, 'utf8')).includes('count: 12')).toBe(true)
+    const provider = card.getByRole('button', { name: /^Web search provider /u })
+    await provider.click()
+    await page.getByRole('menuitem', { name: 'DeepSeek (legacy)', exact: true }).click()
     const key = card.getByLabel('API key', { exact: true })
+    await expect.poll(() => key.isDisabled()).toBe(true)
+    await card.getByLabel('Maximum searches per request', { exact: true }).fill('3')
+    await card.getByRole('button', { name: 'Save', exact: true }).click()
+    await expect.poll(async () => (await readFile(documentPath, 'utf8')).includes('maxUses: 3')).toBe(true)
+    writable = true
+    await connections.reconnect()
     await expect.poll(() => key.isEnabled()).toBe(true)
     const discarded = randomBytes(12).toString('hex')
     await key.fill(discarded)
-    await replace(['credentials.write.v1'])
-    await replace([])
-    await expect.poll(() => key.isEnabled()).toBe(true)
+    await provider.click()
+    await page.getByRole('menuitem', { name: 'DeepSeek Search API', exact: true }).click()
+    expect(await key.count()).toBe(0)
+    await provider.click()
+    await page.getByRole('menuitem', { name: 'DeepSeek (legacy)', exact: true }).click()
     expect(await key.inputValue()).toBe('')
-    expect(requests.filter(path => /\/(set|unset)$/u.test(path))).toEqual([])
     const secret = randomBytes(12).toString('hex')
     await key.fill(secret)
     await card.getByRole('button', { name: 'Save', exact: true }).click()
-    await expand.waitFor()
-    await expand.click()
+    await card.getByText('The deployment did not accept these values; they were left for you to correct.', { exact: true }).waitFor()
+    expect(await key.inputValue()).toBe(secret)
+    expect(requests.filter(path => path === '/api/credentials/set')).toHaveLength(1)
+    refuseKey = false
+    await connections.reconnect()
+    await key.waitFor()
+    expect(requests.filter(path => path === '/api/credentials/set')).toHaveLength(1)
+    await key.fill(secret)
+    await card.getByRole('button', { name: 'Save', exact: true }).click()
     await card.getByText('A key is configured.', { exact: true }).waitFor()
     expect(await key.inputValue()).toBe('')
     const credentials = await readFile(join(scaffold.harnessHome, '.credentials.yaml'), 'utf8')
-    expect(credentials.includes(secret)).toBe(true)
-    expect(credentials.includes(discarded)).toBe(false)
-    expect((await readFile(documentPath, 'utf8')).includes(secret)).toBe(false)
-    expect((await page.content()).includes(secret)).toBe(false)
-    expect((await page.locator('body').ariaSnapshot()).includes(secret)).toBe(false)
+    expect(credentials).toContain(secret)
+    expect(credentials).not.toContain(discarded)
+    expect(await readFile(documentPath, 'utf8')).not.toContain(secret)
+    expect(await page.content()).not.toContain(secret)
+    expect(await page.locator('body').ariaSnapshot()).not.toContain(secret)
     expect(messages.some(message => message.includes(secret) || message.includes(discarded))).toBe(false)
-    await page.screenshot({ path: output + '/saved.png', fullPage: true })
-    const observation = { credentialReadsSuppressed: true, ordinarySettingPersisted: true, keyWriteIndependent: true,
-      replacedDraftDiscarded: true, explicitKeyPersisted: true, noSecretInSettingsOrUi: true, negotiations,
-      credentialWrites: requests.filter(path => /\/(set|unset)$/u.test(path)) }
+    const observation = {
+      credentialDescriptionRead: requests.includes('/api/credentials/describe'),
+      ordinarySettingsPersisted: true,
+      readOnlyCredentialDisabled: true,
+      providerChangeDiscardedDraft: true,
+      refusedDraftRetained: true,
+      reconnectDidNotReplay: true,
+      explicitKeyPersisted: true,
+      noSecretInSettingsOrUi: true,
+      generations: connections.generations(),
+      credentialWrites: requests.filter(path => /\/(set|unset)$/u.test(path)),
+    }
     const expected: unknown = JSON.parse(await readFile(new URL('./expected/host-capability/web-search-operations.expected.json', import.meta.url), 'utf8'))
     expect(observation).toEqual(expected)
+    await mkdir(output, { recursive: true })
+    await page.screenshot({ path: output + '/saved.png', fullPage: true })
     await writeFile(output + '/observation.json', JSON.stringify(observation, null, 2) + '\n')
-  } finally {
-    try { await browser?.close() } finally { await scaffold?.close() }
-  }
+  } finally { await closeFixture(page, browser, connections, scaffold) }
 }, 120_000)
 
-it('admits Models directory, credential controls and discovery independently and discards replaced drafts', async () => {
+it('keeps Models registered, restores writable settings and preserves a refused provider draft across reconnect', async () => {
   let scaffold: Awaited<ReturnType<typeof launchWebScaffold>> | undefined
   let browser: Browser | undefined
-  let hidden: readonly string[] = ['llm.providers.v1']
-  let negotiations = 0
-  const sockets: WebSocketRoute[] = []
+  let page: Page | undefined
+  let connections: Awaited<ReturnType<typeof observeConnections>> | undefined
+  let writable = false
+  let refuseSettings = true
   const requests: string[] = []
+  const catalogRequests: { provider?: string; baseURL?: string; apiKey?: string }[] = []
   const output = '.artifacts/models-capabilities-browser'
   try {
     scaffold = await launchWebScaffold()
     const executablePath = process.env.DSH_PLAYWRIGHT_EXECUTABLE_PATH
     browser = await chromium.launch(executablePath === undefined ? {} : { executablePath })
-    const page = await browser.newPage({ viewport: { width: 1440, height: 1000 }, locale: 'en-US' })
+    page = await browser.newPage({ viewport: { width: 1440, height: 1000 }, locale: 'en-US' })
+    connections = await observeConnections(page)
     page.on('request', (request) => {
       const path = new URL(request.url()).pathname
-      if (path.startsWith('/api/llm/') || path.startsWith('/api/credentials/')) requests.push(path)
+      if (path.startsWith('/api/llm/') || path.startsWith('/api/credentials/') || path === '/api/settings/mutate') requests.push(path)
+      if (path === '/api/llm/discoverModels') {
+        const payload = request.postDataJSON() as {
+          payload: { args: { request: { provider?: string; baseURL?: string; apiKey?: string } } }
+        }
+        catalogRequests.push(payload.payload.args.request)
+      }
     })
-    await page.routeWebSocket('**/api/remote.mux', (socket) => {
-      socket.connectToServer()
-      sockets.push(socket)
-    })
-    await page.route('**/api/host/*', async (route) => {
+    await page.route('**/api/settings/describe', async (route) => {
       const response = await route.fetch()
       const envelope = await response.json() as ServerResponse
-      if (!envelope.result.ok) throw new Error('Models fixture discovery failed')
-      const descriptor = envelope.result.value as HostDescriptor
-      expect(descriptor.capabilities).toEqual(expect.arrayContaining([
-        'llm.providers.v1', 'llm.discover-models.v1', 'credentials.describe.v1', 'credentials.write.v1',
-      ]))
-      if (new URL(route.request().url()).pathname.endsWith('/negotiate')) negotiations += 1
-      await route.fulfill({ response, json: { ...envelope, result: { ok: true, value: {
-        ...descriptor, capabilities: descriptor.capabilities.filter(id => !hidden.includes(id)),
-      } } } })
+      if (!envelope.result.ok) throw new Error('Models settings discovery failed')
+      const description = envelope.result.value as { writable: boolean }
+      await route.fulfill({ response, json: { ...envelope, result: { ok: true, value: { ...description, writable } } } })
+    })
+    await page.route('**/api/settings/mutate', async (route) => {
+      if (refuseSettings) {
+        const request = route.request().postDataJSON() as { rpcId: string }
+        await route.fulfill({ json: { type: 'server-response', rpcId: request.rpcId, result: {
+          ok: false, error: { code: 'settings/rejected', message: 'Provider settings are temporarily unavailable', details: { ns: 'llm-pi-ai' } },
+        } } })
+        return
+      }
+      await route.fulfill({ response: await route.fetch() })
     })
     await page.goto(scaffold.authenticatedUrl, { waitUntil: 'load' })
-    await page.getByRole('button', { name: 'Settings', exact: true }).click({ timeout: 30_000 })
+    await openSettings(page, 'en')
     const settings = page.getByRole('dialog', { name: 'Settings', exact: true })
-    await settings.getByRole('button', { name: 'Open configuration file', exact: true }).waitFor()
     const entry = settings.getByRole('button', { name: 'Models', exact: true })
-    expect(await entry.count()).toBe(0)
-    expect(requests.filter(path => path.startsWith('/api/llm/'))).toEqual([])
-    await mkdir(output, { recursive: true })
-    await page.screenshot({ path: output + '/directory-absent.png', fullPage: true })
-    const replace = async (next: readonly string[]) => {
-      hidden = next
-      const target = negotiations + 1
-      await expect.poll(() => sockets.length).toBeGreaterThan(0)
-      await sockets.at(-1)!.close()
-      await expect.poll(() => negotiations, { timeout: 30_000 }).toBe(target)
-    }
-    const credentialWithdrawal = requests.length
-    await replace(['credentials.describe.v1', 'credentials.write.v1', 'llm.discover-models.v1'])
     await entry.click()
-    const addCustom = settings.getByRole('button', { name: 'Add a custom provider', exact: true })
-    await addCustom.click()
-    await settings.getByText('Configure the providers and models available on this Host.', { exact: true }).waitFor()
-    expect(await settings.getByLabel('API key', { exact: true }).count()).toBe(0)
-    expect(await settings.getByRole('button', { name: 'Fetch available models', exact: true }).count()).toBe(0)
-    expect(requests.slice(credentialWithdrawal).filter(path => path.startsWith('/api/credentials/'))).toEqual([])
-    await page.screenshot({ path: output + '/credential-and-discovery-absent.png', fullPage: true })
-    await replace(['credentials.write.v1'])
-    await entry.click()
-    await addCustom.click()
-    await settings.getByRole('button', { name: 'Fetch available models', exact: true }).waitFor()
-    expect(await settings.getByLabel('API key', { exact: true }).count()).toBe(0)
-    await expect.poll(() => requests.filter(path => path === '/api/credentials/describe').length).toBeGreaterThan(0)
-    await page.screenshot({ path: output + '/credential-read-only.png', fullPage: true })
-    await replace([])
-    await entry.click()
-    await addCustom.click()
+    await settings.getByText('The settings document is read-only in this deployment.', { exact: true }).waitFor()
+    const add = settings.getByRole('button', { name: 'Add model provider', exact: true })
+    expect(await add.isDisabled()).toBe(true)
+    writable = true
+    await connections.reconnect()
+    await expect.poll(() => add.isEnabled()).toBe(true)
+    await add.click()
+    const provider = settings.getByLabel('Provider', { exact: true })
+    await provider.selectOption('minimax-cn')
     const key = settings.getByLabel('API key', { exact: true })
-    await key.fill(randomBytes(12).toString('hex'))
-    await replace([])
-    await entry.click()
-    await addCustom.click()
-    expect(await key.inputValue()).toBe('')
-    await page.screenshot({ path: output + '/draft-replaced.png', fullPage: true })
-    expect(requests.filter(path => /\/(set|unset|discoverModels)$/u.test(path))).toEqual([])
-    const observation = { directoryAbsent: true, credentialReadSuppressed: true, credentialWriteHidden: true,
-      discoveryIndependent: true, draftDiscarded: true, noCredentialOrDiscoveryMutation: true, negotiations }
+    await key.waitFor()
+    await settings.getByText('Customized settings', { exact: true }).click()
+    await settings.getByRole('button', { name: 'Fetch available models', exact: true }).waitFor()
+    const secret = randomBytes(12).toString('hex')
+    await key.fill(secret)
+    const apply = settings.getByRole('button', { name: 'Apply', exact: true })
+    await apply.click()
+    await settings.getByText('Provider settings are temporarily unavailable', { exact: true }).waitFor()
+    expect(await key.inputValue()).toBe(secret)
+    expect(requests.filter(path => path === '/api/settings/mutate')).toHaveLength(1)
+    expect(requests.filter(path => path === '/api/credentials/set')).toEqual([])
+    refuseSettings = false
+    await connections.reconnect()
+    await expect.poll(() => apply.isEnabled()).toBe(true)
+    expect(await key.inputValue()).toBe(secret)
+    expect(requests.filter(path => path === '/api/settings/mutate')).toHaveLength(1)
+    expect(requests.filter(path => path === '/api/credentials/set')).toEqual([])
+    await apply.click()
+    await settings.getByText('Saved minimax-cn.', { exact: true }).waitFor()
+    const document = await readFile(scaffold.ctx.configEditor.documentPath, 'utf8')
+    expect(document).toContain('apiKeyEnv: MINIMAX_CN_API_KEY')
+    expect(document).not.toContain(secret)
+    const credentials = await readFile(join(scaffold.harnessHome, '.credentials.yaml'), 'utf8')
+    expect(credentials).toContain(secret)
+    expect(await page.content()).not.toContain(secret)
+    expect(await page.locator('body').ariaSnapshot()).not.toContain(secret)
+    expect(catalogRequests.length).toBeGreaterThan(0)
+    for (const request of catalogRequests) {
+      expect(Object.keys(request)).toEqual(['provider'])
+      expect(request.provider).toBeTruthy()
+    }
+    const observation = {
+      modelsEntryRegistered: true,
+      readOnlySettingsDisabledCreation: true,
+      credentialDescriptionRead: requests.includes('/api/credentials/describe'),
+      credentialControlPresent: true,
+      discoveryControlPresent: true,
+      catalogOnlyDiscovery: true,
+      refusedDraftRetained: true,
+      reconnectDidNotReplay: true,
+      explicitSettingsAndKeyPersisted: true,
+      generations: connections.generations(),
+      settingsWrites: requests.filter(path => path === '/api/settings/mutate').length,
+      credentialWrites: requests.filter(path => /\/(set|unset)$/u.test(path)),
+    }
     const expected: unknown = JSON.parse(await readFile(new URL('./expected/host-capability/models-operations.expected.json', import.meta.url), 'utf8'))
     expect(observation).toEqual(expected)
+    await mkdir(output, { recursive: true })
+    await page.screenshot({ path: output + '/saved.png', fullPage: true })
     await writeFile(output + '/observation.json', JSON.stringify(observation, null, 2) + '\n')
-  } finally {
-    try { await browser?.close() } finally { await scaffold?.close() }
-  }
+  } finally { await closeFixture(page, browser, connections, scaffold) }
 }, 120_000)
