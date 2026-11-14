@@ -39,9 +39,11 @@ describe.skipIf(!requiredArtifacts)('Goal Remote built LIB chain', () => {
     try {
       await writeFile(join(consumer, 'index.mts'), [
         "import type { ClientRemote, HostDescriptor, RemoteResult, RemoteErrorCode } from '../lib/types/client/index.js'",
+        "import type { ToolDescriptorList } from '@deepseek-ai/dsh-tools/types'",
         'const describe = (remote: ClientRemote): Promise<RemoteResult<HostDescriptor>> => remote.host.describe()',
+        'const tools = (remote: ClientRemote): Promise<RemoteResult<ToolDescriptorList>> => remote.tools.list()',
         "const unsupported: RemoteErrorCode = 'gateway/protocol-unsupported'",
-        'void describe; void unsupported;',
+        'void describe; void tools; void unsupported;',
       ].join('\n') + '\n')
       await writeFile(join(consumer, 'tsconfig.json'), JSON.stringify({
         compilerOptions: { module: 'NodeNext', moduleResolution: 'NodeNext', target: 'ES2024', strict: true, noEmit: true, skipLibCheck: true },

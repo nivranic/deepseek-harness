@@ -76,7 +76,7 @@ tasks.matching { it.name == "preBuild" }.configureEach { dependsOn(verifyScanner
 // Host's tool-descriptor and tool-schema projections, and the app-owned
 // device declarations and device schemas the runtime unions with them — one
 // tool id or schema name in only one document per union side.
-val litePresetProjection = rootProject.projectDir.parentFile.parentFile.resolve("packages/preset/agent-presets/lite-preset-descriptors.json")
+val litePresetProjection = rootProject.projectDir.parentFile.parentFile.resolve("packages/preset/agent-preset-registry/lite-preset-descriptors.json")
 val liteToolSchemaProjection = rootProject.projectDir.parentFile.parentFile.resolve("packages/core/tools/lite-tool-schemas.json")
 val liteHostToolDescriptors = rootProject.projectDir.parentFile.parentFile.resolve("packages/core/tools/tool-descriptors.json")
 val liteDeviceToolDeclarations = projectDir.resolve("lite/lite-tool-declarations.json")

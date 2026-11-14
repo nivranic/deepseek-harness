@@ -3,15 +3,13 @@ import { mkdtemp, readFile, readdir, rm } from 'node:fs/promises'
 import { tmpdir } from 'node:os'
 import { join } from 'node:path'
 import { Context } from '@deepseek-ai/cordis'
-import AgentRegistry from '@deepseek-ai/dsh-agent'
 import type { Agent } from '@deepseek-ai/dsh-agent'
-import SessionProjectionRegistry from '@deepseek-ai/dsh-session-projection'
+import { mountAgentLoopTestDependencies, mountAgentLoopTestHarness } from '@deepseek-ai/dsh-agent-loop-testkit'
 import type AttachmentStore from '@deepseek-ai/dsh-attachment'
 import type { FileAttachmentRef } from '@deepseek-ai/dsh-attachment'
 import LocalAttachmentStore from '@deepseek-ai/dsh-attachment-local'
 import CommandRuntime from '@deepseek-ai/dsh-commands'
-import { createScope } from '@deepseek-ai/dsh-scope'
-import SessionStore, { SessionId } from '@deepseek-ai/dsh-session'
+import { SessionId } from '@deepseek-ai/dsh-session'
 import { afterEach, describe, expect, it } from 'vitest'
 import { FileUploads } from '../src/index.ts'
 import type { FileUploadReceiptId } from '../src/types.ts'
@@ -62,23 +60,11 @@ async function storeHarness(input: {
   contexts.push(ctx)
   const dshHome = input.dshHome ?? await mkdtemp(join(tmpdir(), 'dsh-upload-edge-'))
   if (input.dshHome === undefined) homes.push(dshHome)
-  await ctx.plugin(SessionStore)
-  await ctx.plugin(SessionProjectionRegistry)
-  await ctx.plugin(AgentRegistry)
+  await mountAgentLoopTestDependencies(ctx)
   await ctx.plugin(CommandRuntime)
   await ctx.plugin(LocalAttachmentStore, { dshHome })
-  const session = ctx.sessions.create(SessionId(input.sessionId ?? 'edge-session'), {
-    meta: { cwd: '/workspace' },
-  })
-  const agent = {
-    id: session.id,
-    session,
-    inbox: {},
-    status: 'idle',
-    ctx: undefined,
-  } as unknown as Agent
-  ;(agent as { ctx: Context }).ctx = createScope(ctx, agent).ctx
-  ctx.agents.register(agent)
+  const runtime = await mountAgentLoopTestHarness(ctx)
+  const agent = await runtime.create(SessionId(input.sessionId ?? 'edge-session'), {}, { cwd: '/workspace' })
   let route: ((request: Request) => Promise<Response>) | undefined
   ctx.provide('connection', {
     fetch: {

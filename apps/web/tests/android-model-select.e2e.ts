@@ -1,19 +1,13 @@
 /** Model selection renders by capability and reaches the Host as one signed selectModel intent. */
 import { fileURLToPath } from 'node:url'
-import { symbols } from '@deepseek-ai/cordis'
-import { expect, it, vi } from 'vitest'
+import { expect, it } from 'vitest'
 import type {} from '@deepseek-ai/dsh-api-native-remote'
 import type {} from '@deepseek-ai/dsh-api-device-trust'
 import type {} from '@deepseek-ai/dsh-api-host-description'
 import type {} from '@deepseek-ai/dsh-api-session-controller'
-import { compareOrRefreshGolden, launchWebScaffold, webSnapshotMode } from './scaffold.ts'
+import { compareOrRefreshGolden, webSnapshotMode } from './scaffold.ts'
+import { launchObservedNativeScaffold as launchWebScaffold } from './native-gateway-observer.ts'
 import { startAndroidCompanionUiDriver } from './android-companion-ui-driver.ts'
-
-/** Native entry points call these methods on the original Cordis receiver captured at startup. */
-interface GatewayWireHarness {
-  openWireStream(endpoint: string, payload: unknown, signal: AbortSignal, requireDevice?: boolean): Promise<AsyncIterable<unknown>>
-  dispatchRpc(endpoint: string, payload: unknown, signal: AbortSignal, requireDevice?: boolean): Promise<unknown>
-}
 
 const MODE = webSnapshotMode()
 // Selection drives no model call, so the replay Host boots providers-only over a
@@ -41,17 +35,15 @@ it.skipIf(!process.env.DSH_ANDROID_ADB || MODE === 'record')('Android composes a
     const hostB = b.ctx.hostDescription.describe()
     expect(hostB.capabilities ?? []).toContain('model.select.v1')
     expect(hostB.capabilities ?? []).toContain('model.catalog.v1')
-    const receiver = b.ctx.get('typertGateway') as unknown as GatewayWireHarness & { [symbols.original]?: GatewayWireHarness }
-    const gateway = receiver[symbols.original] ?? receiver
     const dispatched: { endpoint: string; provider: string; model: string }[] = []
-    const dispatch = gateway.dispatchRpc.bind(gateway)
-    vi.spyOn(gateway, 'dispatchRpc').mockImplementation((endpoint, payload, signal, requireDevice) => {
-      if (requireDevice === true && endpoint === 'session/selectModel') {
+    const dispatch = b.nativeGateway.rpc
+    b.nativeGateway.rpc = (endpoint, payload, signal, peer) => {
+      if (endpoint === 'session/selectModel') {
         const request = (payload as { args?: { request?: { provider?: string; model?: string } } }).args?.request
         dispatched.push({ endpoint, provider: String(request?.provider), model: String(request?.model) })
       }
-      return dispatch(endpoint, payload, signal, requireDevice)
-    })
+      return dispatch(endpoint, payload, signal, peer)
+    }
     const selections: { provider: string; model: string }[] = []
     b.ctx.on('session/event', (_session, event) => {
       if (event.type === 'model/selection') selections.push({ provider: event.data.provider, model: event.data.model })

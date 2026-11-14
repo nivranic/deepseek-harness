@@ -5023,6 +5023,68 @@
       "properties": {
         "code": {
           "type": "string",
+          "const": "tool-catalog/conflict"
+        },
+        "message": {
+          "type": "string"
+        },
+        "details": {
+          "type": "object",
+          "properties": {
+            "tool": {
+              "readOnly": true,
+              "type": "string"
+            }
+          },
+          "required": [
+            "tool"
+          ]
+        }
+      },
+      "required": [
+        "code",
+        "message",
+        "details"
+      ],
+      "additionalProperties": {},
+      "description": "Current compositions publish incompatible declarations for one name."
+    },
+    {
+      "type": "object",
+      "properties": {
+        "code": {
+          "type": "string",
+          "const": "tool-catalog/declaration-unavailable"
+        },
+        "message": {
+          "type": "string"
+        },
+        "details": {
+          "type": "object",
+          "properties": {
+            "tool": {
+              "readOnly": true,
+              "type": "string"
+            }
+          },
+          "required": [
+            "tool"
+          ]
+        }
+      },
+      "required": [
+        "code",
+        "message",
+        "details"
+      ],
+      "additionalProperties": {},
+      "description": "A visible tool lacks the metadata required by a catalog reader."
+    },
+    {
+      "type": "object",
+      "properties": {
+        "code": {
+          "type": "string",
           "const": "workspace-file/not-directory"
         },
         "message": {
@@ -5503,11 +5565,11 @@
                       },
                       {
                         "type": "string",
-                        "const": "subagent"
+                        "const": "schedule"
                       },
                       {
                         "type": "string",
-                        "const": "schedule"
+                        "const": "subagent"
                       },
                       {
                         "type": "string",
@@ -5713,6 +5775,8 @@
               "terminal/limit-reached",
               "terminal/unavailable",
               "terminal/view",
+              "tool-catalog/conflict",
+              "tool-catalog/declaration-unavailable",
               "workspace-file/not-directory",
               "workspace-file/not-found",
               "workspace-file/not-regular-file",

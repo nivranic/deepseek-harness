@@ -1,20 +1,14 @@
 /** Steer submissions render by capability and reach the Host with their exact mode. */
 import { readFile } from 'node:fs/promises'
 import { fileURLToPath } from 'node:url'
-import { symbols } from '@deepseek-ai/cordis'
-import { expect, it, vi } from 'vitest'
+import { expect, it } from 'vitest'
 import type {} from '@deepseek-ai/dsh-api-native-remote'
 import type {} from '@deepseek-ai/dsh-api-device-trust'
 import type {} from '@deepseek-ai/dsh-api-host-description'
 import type {} from '@deepseek-ai/dsh-api-session-controller'
-import { compareOrRefreshGolden, fixtureUserPrompts, launchWebScaffold, webSnapshotMode } from './scaffold.ts'
+import { compareOrRefreshGolden, fixtureUserPrompts, webSnapshotMode } from './scaffold.ts'
+import { launchObservedNativeScaffold as launchWebScaffold } from './native-gateway-observer.ts'
 import { startAndroidCompanionUiDriver } from './android-companion-ui-driver.ts'
-
-/** Native entry points call these methods on the original Cordis receiver captured at startup. */
-interface GatewayWireHarness {
-  openWireStream(endpoint: string, payload: unknown, signal: AbortSignal, requireDevice?: boolean): Promise<AsyncIterable<unknown>>
-  dispatchRpc(endpoint: string, payload: unknown, signal: AbortSignal, requireDevice?: boolean): Promise<unknown>
-}
 
 const MODE = webSnapshotMode()
 const FIXTURE = fileURLToPath(new URL('../../../snapshots/web/live-interactions/session.v3.jsonl', import.meta.url))
@@ -36,17 +30,15 @@ it.skipIf(!process.env.DSH_ANDROID_ADB || MODE === 'record')('Android submits st
     const infoB = b.ctx.nativeRemote.describe()
     const hostB = b.ctx.hostDescription.describe()
     expect(hostB.capabilities ?? []).toContain('model.steer.v1')
-    const receiver = b.ctx.get('typertGateway') as unknown as GatewayWireHarness & { [symbols.original]?: GatewayWireHarness }
-    const gateway = receiver[symbols.original] ?? receiver
     const dispatched: { endpoint: string; mode: string }[] = []
-    const dispatch = gateway.dispatchRpc.bind(gateway)
-    vi.spyOn(gateway, 'dispatchRpc').mockImplementation((endpoint, payload, signal, requireDevice) => {
-      if (requireDevice === true && endpoint === 'session/prompt') {
+    const dispatch = b.nativeGateway.rpc
+    b.nativeGateway.rpc = (endpoint, payload, signal, peer) => {
+      if (endpoint === 'session/prompt') {
         const args = (payload as { args?: { request?: { mode?: string } } }).args
         dispatched.push({ endpoint, mode: String(args?.request?.mode) })
       }
-      return dispatch(endpoint, payload, signal, requireDevice)
-    })
+      return dispatch(endpoint, payload, signal, peer)
+    }
     const issued = b.ctx.deviceTrust.issuePairing('collaborator')
     driver = await startAndroidCompanionUiDriver(
       process.env.DSH_ANDROID_ADB!, process.env.DSH_ANDROID_SERIAL ?? '', infoB.port, true, [infoA.port],

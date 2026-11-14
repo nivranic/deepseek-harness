@@ -2273,6 +2273,21 @@
     },
     {
       "doc": "docs/subsystems/tools.md",
+      "symbol": "ToolRisk",
+      "source": "packages/core/tools/src/types.ts"
+    },
+    {
+      "doc": "docs/subsystems/tools.md",
+      "symbol": "ToolDescriptor",
+      "source": "packages/core/tools/src/types.ts"
+    },
+    {
+      "doc": "docs/subsystems/tools.md",
+      "symbol": "ToolDescriptorList",
+      "source": "packages/core/tools/src/types.ts"
+    },
+    {
+      "doc": "docs/subsystems/tools.md",
       "symbol": "PtcDispatchLog",
       "source": "packages/core/tool-executor-ptc/src/runtime-types.ts"
     },

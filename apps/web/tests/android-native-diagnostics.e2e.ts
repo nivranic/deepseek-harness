@@ -82,8 +82,9 @@ it.skipIf(!process.env.DSH_ANDROID_ADB || MODE === 'record')('Android exports sc
     }
     stage = 'scanned-current-observation'
     const before = negotiations
+    const numberValue: unknown = expect.any(Number)
     expect(await document()).toMatchObject({ protocol: { queryState: 'available' },
-      transport: { registeredMuxStreams: expect.any(Number) as unknown, startedHttpCalls: expect.any(Number) as unknown } })
+      transport: { registeredMuxStreams: numberValue, startedHttpCalls: numberValue } })
     expect(negotiations).toBe(before)
     stage = 'refused-refresh'
     refuse = true

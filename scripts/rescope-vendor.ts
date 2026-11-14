@@ -32,6 +32,7 @@ import { existsSync, readFileSync, realpathSync, writeFileSync } from 'node:fs'
 import { resolve } from 'node:path'
 import { fileURLToPath } from 'node:url'
 import ts from 'typescript'
+import { isFrozenHandoffEvidence } from './handoff-evidence.ts'
 
 const root = resolve(import.meta.dirname, '..')
 
@@ -102,6 +103,8 @@ const GENERIC_SKIPS: readonly GenericSkip[] = [
   { file: 'apps/cli/tests/profiles/web/tests/fixtures/creator-plugin-manager.mjs', upstream: ['cordis'] },
   { file: 'apps/web/tests/agent-preset-authoring.e2e.ts', upstream: ['cordis'] },
   { file: 'packages/preset/agent-preset-registry/tests/session.spec.ts', upstream: ['cordis'] },
+  { file: 'packages/preset/agent-preset-registry/lite-preset-descriptors.json', upstream: ['cordis'] },
+  { file: 'scripts/gen-lite-preset-catalog.ts', upstream: ['cordis'] },
   { file: 'packages/experimental/creation-recommendations/src/index.ts', upstream: ['cordis'] },
   { file: 'packages/experimental/creation-recommendations/tests/creation.spec.ts', upstream: ['cordis'] },
   { file: 'packages/experimental/creation-recommendations/tests/loader-composition.spec.ts', upstream: ['cordis'] },
@@ -466,6 +469,7 @@ const VENDORED_LIBRARY = /^@deepseek-ai\\/(?:(?:cosmokit|schemastery)(?:\\/|$)|c
  * @returns Whether the codemod must preserve the file without scanning its tokens.
  */
 export function isRescopeExcluded(file: string): boolean {
+  if (isFrozenHandoffEvidence(file)) return true
   if (file === 'scripts/rescope-vendor.ts') return true // the mapping itself
   if (file.startsWith('.agents/notes/')) return true // notes record what was true when written
   // Recorded model payloads quote documentation verbatim, so they must mirror the
@@ -667,7 +671,7 @@ function main(): void {
   const mode = args.includes('--apply') ? 'apply' : args.includes('--check') ? 'check' : 'dry'
   const reverse = args.includes('--reverse')
   const all = patterns(reverse)
-  const files = execFileSync('git', ['ls-files', '-z'], { cwd: root, encoding: 'utf8' })
+  const files = execFileSync('git', ['ls-files', '-z'], { cwd: root, encoding: 'utf8', maxBuffer: 1 << 26 })
     .split('\0')
     .filter(file => file !== '' && !isRescopeExcluded(file))
 

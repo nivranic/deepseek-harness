@@ -45,7 +45,7 @@
     "@deepseek-ai/dsh-session-telemetry": "workspace:*",
     "@deepseek-ai/dsh-anonymous-user-id": "workspace:*",
     "@deepseek-ai/cordis": "workspace:~",
-    "@deepseek-ai/dsh-settings": "workspace:^",
+    "@deepseek-ai/dsh-settings": "workspace:*",
     "@deepseek-ai/dsh-otel": "workspace:*"
   },
   "devDependencies": {
@@ -65,7 +65,7 @@
     "@deepseek-ai/dsh-anonymous-user-id": "workspace:*",
     "@deepseek-ai/cordis": "workspace:~",
     "@deepseek-ai/dsh-http-proxy": "workspace:*",
-    "@deepseek-ai/dsh-settings": "workspace:^",
+    "@deepseek-ai/dsh-settings": "workspace:*",
     "@deepseek-ai/dsh-otel": "workspace:*"
   }
 }

@@ -42,12 +42,12 @@ const roots: string[] = []
 const contexts: Context[] = []
 
 /** Boot the full storage stack plus the service over one json root. */
-async function boot(
+async function bootWithContext(
   config: Partial<Config> = {},
   root?: string,
   wrapUnit?: (unit: KvUnit) => KvUnit,
   prepareDomain?: (ctx: Context) => Promise<void>,
-): Promise<DeviceTrustService> {
+): Promise<{ service: DeviceTrustService; ctx: Context }> {
   const ctx = new Context()
   contexts.push(ctx)
   const storageRoot = root ?? await mkdtemp(join(tmpdir(), 'device-trust-'))
@@ -64,13 +64,17 @@ async function boot(
   await ctx.plugin({ name: storageDomainName, inject: storageDomainInject, apply: storageDomainApply, Config: storageDomainConfig }, { backend: 'json' })
   await prepareDomain?.(ctx)
   await ctx.plugin(DeviceTrustService, config)
-  return ctx.deviceTrust
+  return { service: ctx.deviceTrust, ctx }
 }
 
-/** Boot like [boot] but also hand back the Context, for ctx-level event listeners. */
-async function bootWithContext(config: Partial<Config> = {}, root?: string): Promise<{ service: DeviceTrustService; ctx: Context }> {
-  const service = await boot(config, root)
-  return { service, ctx: (service as unknown as { ctx: Context }).ctx }
+/** Boot the full storage stack and return its device service. */
+async function boot(
+  config: Partial<Config> = {},
+  root?: string,
+  wrapUnit?: (unit: KvUnit) => KvUnit,
+  prepareDomain?: (ctx: Context) => Promise<void>,
+): Promise<DeviceTrustService> {
+  return (await bootWithContext(config, root, wrapUnit, prepareDomain)).service
 }
 
 afterEach(async () => {
@@ -371,10 +375,9 @@ describe('device-trust revocation telemetry egress (§44)', () => {
 
   /** Boot the full stack with the fake owner provided before the service composes. */
   async function bootWithOwner(owner: unknown): Promise<{ service: DeviceTrustService; ctx: Context }> {
-    const service = await boot({}, undefined, undefined, async (ctx) => {
+    return bootWithContext({}, undefined, undefined, async (ctx) => {
       ctx.provide('sessionTelemetry', owner as never)
     })
-    return { service, ctx: (service as unknown as { ctx: Context }).ctx }
   }
 
   it('revokes without the telemetry owner composed — zero exceptions, the RPC is unchanged', async () => {

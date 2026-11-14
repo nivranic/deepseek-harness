@@ -276,6 +276,7 @@ flowchart LR
   pkg_api_host_description["api-host-description"]
   svc_hostDescription["ctx.hostDescription<br/>Host discovery"]
   pkg_api_remotes["api-remotes"]
+  svc_toolCatalog["ctx.toolCatalog<br/>Host tool catalog"]
   pkg_api_device_trust["api-device-trust"]
   svc_deviceTrust["ctx.deviceTrust<br/>Device trust seam"]
   pkg_web_app["web-app"]
@@ -335,6 +336,7 @@ flowchart LR
   pkg_api_job_controller --> svc_jobController
   pkg_api_native_remote --> svc_nativeRemote
   pkg_api_remote_access --> svc_remoteAccess
+  pkg_api_remotes --> svc_toolCatalog
   pkg_api_session_controller --> svc_sessionController
   pkg_api_session_controller --> svc_sessionFileReferences
   pkg_api_session_controller --> svc_sessionSkillCatalog
@@ -759,6 +761,7 @@ flowchart LR
 | `ctx.claudeCodeMods` | `core` | [`experimental-claude-code-mods`](../packages/experimental/claude-code-mods) | - | - | - | Loads mods that defineMod plugins add, raises their hook chains from harness extension points, and draws the band above the prompt over its Remote. |
 | `ctx.inspector` | `core` | `inspector` | - | - | - | Owns the Worker-hosted CDP target and the transport-independent Host and Client observation and Cordis-tree query API. |
 | `ctx.hostDescription` | `core` | [`api-host-description`](../packages/api/host-description) | - | [`api-remotes`](../packages/api/remotes) | - | Reports persistent Host identity, independent version fields, and explicit capabilities from live Remote bindings through the existing authenticated API. |
+| `ctx.toolCatalog` | `core` | [`api-remotes`](../packages/api/remotes) | - | - | - | Reads complete Host declarations from global tools and retained preset scopes through the authenticated tools/list API. |
 | `ctx.deviceTrust` | `seam` | [`api-device-trust`](../packages/api/device-trust) | - | [`web-app`](../packages/bundle/web-app) | - | The gateway-owned device-facing access seam: one-time pairing issuance, device grants, and revocation over Typert Remote; permission execution stays with the interaction-reply seam. |
 | `ctx.nativeRemote` | `core` | [`api-native-remote`](../packages/api/native-remote) | - | - | - | Owns the opt-in TLS listener, pinned Host identity, and bounded carriers for signed device Peers. |
 | `ctx.hostDiagnostics` | `seam` | [`api-host-diagnostics`](../packages/api/host-diagnostics) | - | [`web-app`](../packages/bundle/web-app) | - | The section 41 health/readiness snapshot and the section 42 sanitized cross-platform diagnostics payload over Typert Remote; presence-based probes name the composed owner per component. |

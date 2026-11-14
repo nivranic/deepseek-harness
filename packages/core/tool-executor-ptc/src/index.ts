@@ -42,6 +42,11 @@ export class PtcExecutor implements ToolExecutor {
     return { schemas: [projectToolSchema(this.requirePtcTransport(), false)], knownNames: [RUN_CODE_NAME] }
   }
 
+  /** The reserved program transport retains the declaration owned by its executor. */
+  get transportDefinitions(): readonly ToolDefinition[] {
+    return [this.requirePtcTransport()]
+  }
+
   private renderSdk(tools: readonly ToolDefinition[]): string {
     const runtime = requirePtcRuntime(this.ctx)
     const render = SDK_RENDERERS[runtime.language]

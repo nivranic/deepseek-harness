@@ -96,7 +96,7 @@ it('expires approvals and questions at their original Host deadline and refuses 
         { type, status, revision, lifetimeMs: expiresAt! - createdAt }
       ))),
     }
-    const expected = JSON.parse(await readFile(new URL('./expected/host-capability/interaction-expiry.expected.json', import.meta.url), 'utf8')) as unknown
+    const expected: unknown = JSON.parse(await readFile(new URL('./expected/host-capability/interaction-expiry.expected.json', import.meta.url), 'utf8'))
     expect(actual).toEqual(expected)
     agent.session.append('turn/end', { turn: 1, reason: { kind: 'completed' } })
     await scaffold.ctx.sessions.flush(agent.session)

@@ -29,7 +29,7 @@ it.skipIf(!process.env.DEEPSEEK_API_KEY || !process.env.DSH_ANDROID_JAVA)('the r
   // The bundled-preset fidelity references: the same projection documents the
   // APK freezes, read from the repo sources the build bundles.
   const presets = JSON.parse(await readFile(
-    fileURLToPath(new URL('../../../packages/preset/agent-presets/lite-preset-descriptors.json', import.meta.url)), 'utf8'),
+    fileURLToPath(new URL('../../../packages/preset/agent-preset-registry/lite-preset-descriptors.json', import.meta.url)), 'utf8'),
   ) as { presets: Array<{ id: string; order: number; assembledSystemPrompt: string }> }
   const hostSchemas = JSON.parse(await readFile(
     fileURLToPath(new URL('../../../packages/core/tools/lite-tool-schemas.json', import.meta.url)), 'utf8'),

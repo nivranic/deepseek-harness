@@ -1,7 +1,6 @@
 /** The persisted follow window survives a Host-terminated carrier and merges a complete opening. */
 import { mkdir, writeFile } from 'node:fs/promises'
 import { fileURLToPath } from 'node:url'
-import { symbols } from '@deepseek-ai/cordis'
 import { expect, it, vi } from 'vitest'
 import type {} from '@deepseek-ai/dsh-api-native-remote'
 import type {} from '@deepseek-ai/dsh-api-device-trust'
@@ -11,11 +10,6 @@ import { createUserMessage } from '@deepseek-ai/dsh-llm'
 import { compareOrRefreshGolden, launchWebScaffold, seedSession, webSnapshotMode } from './scaffold.ts'
 import { createChatScrollFixture } from './chat-scroll-fixture.ts'
 import { startAndroidCompanionUiDriver } from './android-companion-ui-driver.ts'
-
-/** Host-plane carrier-hygiene surface used by this lane to destroy the device's transport. */
-interface GatewayHostPlane {
-  terminateDeviceConnections(request: { deviceId: string }): { terminated: number }
-}
 
 const MODE = webSnapshotMode()
 it.skipIf(!process.env.DSH_ANDROID_ADB || MODE === 'record')('Android resumes a persisted follow window after carrier loss', async () => {
@@ -45,8 +39,7 @@ it.skipIf(!process.env.DSH_ANDROID_ADB || MODE === 'record')('Android resumes a 
     if (['prompt', 'create', 'handoff', 'cancel', 'reply'].includes(request.method)) mutations.push(`${request.namespace}/${request.method}`)
     return invoke(request)
   })
-  const receiver = scaffold.ctx.typertGateway as unknown as GatewayHostPlane & { [symbols.original]?: GatewayHostPlane }
-  const gateway = receiver[symbols.original] ?? receiver
+  const gateway = scaffold.ctx.typertGateway
   let stage = 'seed'
   const lastOp = { name: 'none' }
   const command = async (request: object) => {

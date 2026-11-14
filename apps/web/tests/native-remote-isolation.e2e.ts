@@ -2,6 +2,7 @@
 import { createHash, generateKeyPairSync, randomUUID, sign } from 'node:crypto'
 import { once } from 'node:events'
 import { readFile } from 'node:fs/promises'
+import { fileURLToPath } from 'node:url'
 import { Context, Service, type Fiber } from '@deepseek-ai/cordis'
 import { DeviceId, type DeviceRole } from '@deepseek-ai/dsh-api-device-trust'
 import NativeRemote, { type Config } from '@deepseek-ai/dsh-api-native-remote'
@@ -12,6 +13,7 @@ import type {} from '@deepseek-ai/dsh-attachment'
 import { expect, it, vi } from 'vitest'
 import type WebSocket from 'ws'
 import { NativeTestClient } from './native-remote-support.ts'
+import { launchObservedNativeScaffold } from './native-gateway-observer.ts'
 import { launchWebScaffold } from './scaffold.ts'
 
 const config: Config = {
@@ -56,6 +58,55 @@ function nextMessage(socket: WebSocket) {
   return once(socket, 'message', { signal: AbortSignal.timeout(10_000) })
 }
 
+it('observes captured native RPC and stream callbacks while retaining signed admission', async () => {
+  const scaffold = await launchObservedNativeScaffold({
+    extraOverlayPath: fileURLToPath(new URL('./fixtures/native-remote.patch.yml', import.meta.url)),
+    extraInstallAnchors: [fileURLToPath(new URL('./fixtures/native-remote/package.json', import.meta.url))],
+  })
+  const client = new NativeTestClient(scaffold.ctx.nativeRemote.describe())
+  const failures: unknown[] = []
+  try {
+    await scaffold.ctx.plugin(ScopeProbe, 'observed-native-stream')
+    const instance: unknown = scaffold.ctx.get('nativeScopeProbe')
+    if (!(instance instanceof ScopeProbe)) throw new Error('Native observation probe is unavailable')
+    const calls: string[] = []
+    const streams: string[] = []
+    const dispatch = scaffold.nativeGateway.rpc
+    scaffold.nativeGateway.rpc = (endpoint, ...args) => {
+      calls.push(endpoint)
+      return dispatch(endpoint, ...args)
+    }
+    const open = scaffold.nativeGateway.open
+    scaffold.nativeGateway.open = (endpoint, ...args) => {
+      streams.push(endpoint)
+      return open(endpoint, ...args)
+    }
+    const owner = await pair(scaffold.ctx, client, 'owner')
+    expect(await rpc(client, 'nativeRemote/describe', { apiProtocolVersion: 2, args: {} }))
+      .toMatchObject({ result: { ok: false, error: { code: 'gateway/permission-denied' } } })
+    expect(await rpc(client, 'nativeRemote/describe', { apiProtocolVersion: 2, args: {}, device: owner.admission() }))
+      .toMatchObject({ result: { ok: true, value: scaffold.ctx.nativeRemote.describe() } })
+    expect(calls).toEqual(['deviceTrust/redeemPairing', 'nativeRemote/describe', 'nativeRemote/describe'])
+    const ws = await client.mux()
+    const unsigned = nextMessage(ws)
+    ws.send(JSON.stringify({ type: 'open', streamId: 'unsigned', endpoint: 'nativeScopeProbe/follow',
+      payload: { apiProtocolVersion: 2, args: {} } }))
+    expect(JSON.parse(String((await unsigned)[0]))).toMatchObject({ type: 'error', error: { code: 'gateway/permission-denied' } })
+    const signed = nextMessage(ws)
+    ws.send(JSON.stringify({ type: 'open', streamId: 'signed', endpoint: 'nativeScopeProbe/follow',
+      payload: { apiProtocolVersion: 2, args: {}, device: owner.admission() } }))
+    expect(JSON.parse(String((await signed)[0]))).toEqual({ type: 'item', streamId: 'signed', value: 'observed-native-stream' })
+    expect(streams).toEqual(['nativeScopeProbe/follow', 'nativeScopeProbe/follow'])
+    ws.send(JSON.stringify({ type: 'cancel', streamId: 'signed' }))
+    await vi.waitFor(() => { expect(instance.finished).toEqual(['observed-native-stream']) })
+  } catch (error) { failures.push(error) }
+  finally {
+    await client.close().catch((error: unknown) => { failures.push(error) })
+    await scaffold.close().catch((error: unknown) => { failures.push(error) })
+  }
+  if (failures.length > 0) throw new AggregateError(failures, 'Native callback observation failed')
+})
+
 async function pair(ctx: Context, client: NativeTestClient, role: DeviceRole) {
   const keys = generateKeyPairSync('ed25519')
   const issued = ctx.deviceTrust.issuePairing(role)
@@ -76,6 +127,54 @@ async function pair(ctx: Context, client: NativeTestClient, role: DeviceRole) {
     },
   }
 }
+
+it('serves complete live tool declarations to a signed viewer without granting tool execution', async () => {
+  const scaffold = await launchObservedNativeScaffold({
+    extraOverlayPath: fileURLToPath(new URL('./fixtures/native-remote.patch.yml', import.meta.url)),
+    extraInstallAnchors: [fileURLToPath(new URL('./fixtures/native-remote/package.json', import.meta.url))],
+  })
+  const client = new NativeTestClient(scaffold.ctx.nativeRemote.describe())
+  const failures: unknown[] = []
+  try {
+    expect(scaffold.ctx.hostDescription.describe().capabilities).toContain('tool.catalog.v1')
+    expect('typertRemote' in scaffold.ctx.tools).toBe(false)
+    const viewer = await pair(scaffold.ctx, client, 'viewer')
+    type Catalog = Awaited<ReturnType<typeof scaffold.ctx.toolCatalog.list>>
+    const read = async () => {
+      const response = await rpc(client, 'tools/list', { apiProtocolVersion: 2, args: {}, device: viewer.admission() })
+      expect(response).toMatchObject({ result: { ok: true } })
+      return (response as { result: { value: Catalog } }).result.value
+    }
+    const initial = await read()
+    expect(initial.tools).toEqual((await scaffold.ctx.toolCatalog.list()).tools)
+    expect(initial.tools.find(tool => tool.id === 'web_search')).toEqual({
+      id: 'web_search', version: 1, risk: 'moderate', permissions: [], supportsLite: true, supportsRemote: true,
+    })
+    const remove = scaffold.ctx.tools.register({
+      name: 'catalog_fixture_dynamic', description: 'Catalog fixture',
+      version: 1, risk: 'low', permissions: [], supportsLite: false, supportsRemote: true,
+      parameters: { type: 'object', properties: {} },
+      output: { schema: { type: 'string' }, render: () => [{ type: 'text', text: 'catalog fixture' }] },
+      execute: () => Promise.resolve('catalog fixture'),
+    })
+    expect((await read()).tools.some(tool => tool.id === 'catalog_fixture_dynamic')).toBe(true)
+    remove()
+    expect((await read()).tools.some(tool => tool.id === 'catalog_fixture_dynamic')).toBe(false)
+    expect(await rpc(client, 'tools/list', { apiProtocolVersion: 2, args: {} }))
+      .toMatchObject({ result: { ok: false, error: { code: 'gateway/permission-denied' } } })
+    const { sessionId } = await scaffold.ctx.sessionController.create({ cwd: scaffold.workspaceCwd })
+    expect(await rpc(client, 'session/prompt', {
+      apiProtocolVersion: 2,
+      args: { request: { requestId: randomUUID(), sessionId, mode: 'queue', content: [{ type: 'text', text: 'View-only request' }] } },
+      device: viewer.admission(),
+    })).toMatchObject({ result: { ok: false, error: { code: 'remote-access/denied' } } })
+  } catch (error) { failures.push(error) }
+  finally {
+    await client.close().catch((error: unknown) => { failures.push(error) })
+    await scaffold.close().catch((error: unknown) => { failures.push(error) })
+  }
+  if (failures.length > 0) throw new AggregateError(failures, 'Native tool catalog failed')
+})
 
 it.each([true, false])('keeps normal-profile native RPC and streams in the accepting listener scope with root listener = %s', async (withRoot) => {
   const scaffold = await launchWebScaffold()
@@ -124,7 +223,8 @@ it.each([true, false])('keeps normal-profile native RPC and streams in the accep
     ws.send(JSON.stringify({ type: 'open', streamId: 'unsigned', endpoint: 'nativeScopeProbe/follow',
       payload: { apiProtocolVersion: 2, args: {} } }))
     expect(JSON.parse(String((await unsigned)[0]))).toMatchObject({ type: 'error', error: { code: 'gateway/permission-denied' } })
-    const probe = child.get('nativeScopeProbe') as unknown as ScopeProbe
+    const probe: unknown = child.get('nativeScopeProbe')
+    if (!(probe instanceof ScopeProbe)) throw new Error('Native scope probe is unavailable')
     for (const action of ['cancel', 'revoke', 'dispose'] as const) {
       const opened = nextMessage(ws)
       ws.send(JSON.stringify({ type: 'open', streamId: action, endpoint: 'nativeScopeProbe/follow',

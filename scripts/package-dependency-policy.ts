@@ -71,6 +71,8 @@ const SAFE_HOST_DEPENDENCY_EXPORTS = {
 
 /** Runtime exports that require every consumer to resolve the provider's shared peer instance. */
 const PEER_REQUIRED_HOST_EXPORTS = {
+  // The catalog adapter matches declaration failures from the installed tool registry.
+  '@deepseek-ai/dsh-tools': ['ToolDeclarationUnavailableError'],
   // Gateway admission must use the installed carrier's Peer scopes and Device Trust's role permissions.
   '@deepseek-ai/dsh-client-connection': ['Peer'],
   '@deepseek-ai/dsh-api-device-trust': ['DEVICE_ROLE_PERMISSIONS'],

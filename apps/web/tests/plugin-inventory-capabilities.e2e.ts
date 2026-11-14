@@ -44,7 +44,7 @@ it.each([
     await dialog.getByRole('searchbox').fill('error-propagation-proof')
     await dialog.locator('[data-plugin-module="cordis:error-propagation-proof"]').waitFor()
     const observation = { locale: labels.locale, message: labels.error, reads, recovered: true }
-    const expected = JSON.parse(await readFile(new URL(`./expected/remote-error-${labels.locale}.expected.json`, import.meta.url), 'utf8')) as unknown
+    const expected: unknown = JSON.parse(await readFile(new URL(`./expected/remote-error-${labels.locale}.expected.json`, import.meta.url), 'utf8'))
     expect(observation).toEqual(expected)
     await writeFile(`${output}/${labels.locale}.json`, JSON.stringify(observation, null, 2) + '\n')
   } finally {

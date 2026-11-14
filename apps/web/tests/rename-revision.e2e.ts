@@ -97,7 +97,7 @@ it('preserves the newer title, keeps a conflicting draft, and deduplicates accep
       titles: agent.session.snapshotEvents().flatMap(event => event.type === 'session/title' && event.data.source.kind === 'user' ? [event.data.title] : []),
       finalTitle: scaffold.ctx.sessionTitle.get(agent.session)?.title,
     }
-    const expected = JSON.parse(await readFile(fileURLToPath(new URL('./expected/host-capability/rename-revision.expected.json', import.meta.url)), 'utf8')) as unknown
+    const expected: unknown = JSON.parse(await readFile(fileURLToPath(new URL('./expected/host-capability/rename-revision.expected.json', import.meta.url)), 'utf8'))
     expect(recorded).toEqual(expected)
     await first.getByRole('treeitem').filter({ hasText: 'Final title' }).last().waitFor()
     await first.screenshot({ path: '.artifacts/rename-revision-browser/settled.png', fullPage: true })

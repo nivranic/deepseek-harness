@@ -117,12 +117,14 @@ export function decodeRemoteRequest(endpoint: string, payload: unknown): Decoded
   if (prototype !== Object.prototype && prototype !== null) return { version: codec, payload, diagnosticsOnly }
   const keys = Reflect.ownKeys(payload)
   if (keys.length === 2 && Object.hasOwn(payload, 'args')) {
-    return { version: codec, payload: { args: Reflect.get(payload, 'args') as unknown }, diagnosticsOnly }
+    const args: unknown = Reflect.get(payload, 'args')
+    return { version: codec, payload: { args }, diagnosticsOnly }
   }
   if (keys.length === 3 && Object.hasOwn(payload, 'args') && Object.hasOwn(payload, 'device')) {
+    const args: unknown = Reflect.get(payload, 'args')
     return {
       version: codec,
-      payload: { args: Reflect.get(payload, 'args') as unknown },
+      payload: { args },
       diagnosticsOnly,
       device: Reflect.get(payload, 'device'),
     }

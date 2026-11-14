@@ -3,14 +3,14 @@ import { execFile } from 'node:child_process'
 import { mkdir, writeFile } from 'node:fs/promises'
 import { fileURLToPath } from 'node:url'
 import { promisify } from 'node:util'
-import { symbols } from '@deepseek-ai/cordis'
 import { RemoteError } from '@deepseek-ai/dsh-typert-protocol'
 import type {} from '@deepseek-ai/dsh-api-native-remote'
 import type {} from '@deepseek-ai/dsh-api-device-trust'
 import type {} from '@deepseek-ai/dsh-api-host-description'
 import type {} from '@deepseek-ai/dsh-user-approval'
 import { expect, it, vi } from 'vitest'
-import { compareOrRefreshGolden, launchWebScaffold, seedSession, webSnapshotMode } from './scaffold.ts'
+import { compareOrRefreshGolden, seedSession, webSnapshotMode } from './scaffold.ts'
+import { launchObservedNativeScaffold as launchWebScaffold } from './native-gateway-observer.ts'
 import { createChatScrollFixture } from './chat-scroll-fixture.ts'
 import { startAndroidCompanionUiDriver } from './android-companion-ui-driver.ts'
 
@@ -50,12 +50,6 @@ interface PermissionSnapshot {
 
 interface NotificationSnapshot { enabled: boolean; permission: boolean; count: number; titles: string[]; bodies: string[] }
 
-/** Native entry points call these methods on the original Cordis receiver captured at startup. */
-interface GatewayWireHarness {
-  openWireStream(endpoint: string, payload: unknown, signal: AbortSignal, requireDevice?: boolean): Promise<AsyncIterable<unknown>>
-  dispatchRpc(endpoint: string, payload: unknown, signal: AbortSignal, requireDevice?: boolean): Promise<unknown>
-}
-
 it.skipIf(!process.env.DSH_ANDROID_ADB || MODE === 'record')('Android recovers denied notifications through the real app settings switch without replaying consumed Push', async () => {
   const adb = process.env.DSH_ANDROID_ADB!
   const serial = process.env.DSH_ANDROID_SERIAL ?? ''
@@ -88,22 +82,18 @@ it.skipIf(!process.env.DSH_ANDROID_ADB || MODE === 'record')('Android recovers d
       agent.session.append('turn/end', { turn: 4, reason: { kind: 'completed' } })
       await scaffold.ctx.sessions.flush(agent.session)
     }
-    const receiver = scaffold.ctx.get('typertGateway') as unknown as GatewayWireHarness & { [symbols.original]?: GatewayWireHarness }
-    const gateway = receiver[symbols.original] ?? receiver
     let signedEventStreams = 0
-    const open = gateway.openWireStream.bind(gateway)
-    const openSpy = vi.spyOn(gateway, 'openWireStream').mockImplementation((endpoint, payload, signal, requireDevice) => {
-      if (endpoint === '$events' && requireDevice === true) signedEventStreams++
-      return open(endpoint, payload, signal, requireDevice)
-    })
-    restore.push(() => { openSpy.mockRestore() })
+    const open = scaffold.nativeGateway.open
+    scaffold.nativeGateway.open = (endpoint, ...args) => {
+      if (endpoint === '$events') signedEventStreams++
+      return open(endpoint, ...args)
+    }
     const signedCalls: string[] = []
-    const invoke = gateway.dispatchRpc.bind(gateway)
-    const rpcSpy = vi.spyOn(gateway, 'dispatchRpc').mockImplementation((endpoint, payload, signal, requireDevice) => {
-      if (requireDevice) signedCalls.push(endpoint)
-      return invoke(endpoint, payload, signal, requireDevice)
-    })
-    restore.push(() => { rpcSpy.mockRestore() })
+    const invoke = scaffold.nativeGateway.rpc
+    scaffold.nativeGateway.rpc = (endpoint, ...args) => {
+      signedCalls.push(endpoint)
+      return invoke(endpoint, ...args)
+    }
     let refusePrompt = true
     const businessInvoke = scaffold.ctx.typertGateway.invoke.bind(scaffold.ctx.typertGateway)
     const businessSpy = vi.spyOn(scaffold.ctx.typertGateway, 'invoke').mockImplementation((request) => {

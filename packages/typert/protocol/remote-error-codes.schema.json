@@ -852,6 +852,18 @@
       "x-typescript-details": "{ readonly issue: TerminalViewIssue }"
     },
     {
+      "const": "tool-catalog/conflict",
+      "description": "Current compositions publish incompatible declarations for one name.",
+      "x-source": "packages/api/remotes/src/types.ts",
+      "x-typescript-details": "{ readonly tool: string }"
+    },
+    {
+      "const": "tool-catalog/declaration-unavailable",
+      "description": "A visible tool lacks the metadata required by a catalog reader.",
+      "x-source": "packages/api/remotes/src/types.ts",
+      "x-typescript-details": "{ readonly tool: string }"
+    },
+    {
       "const": "workspace-file/not-directory",
       "description": "The path is not a directory, so it has no children to list.",
       "x-source": "packages/api/workspace-files/src/types.ts",

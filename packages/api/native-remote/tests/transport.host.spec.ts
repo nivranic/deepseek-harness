@@ -321,7 +321,8 @@ describe('native encrypted Connection source', () => {
     const revoked = once(ws, 'message')
     await ctx.deviceTrust.revokeDevice({ deviceId: viewer.deviceId })
     expect(JSON.parse(String((await revoked)[0]))).toMatchObject({ type: 'error', streamId: 'isolated', error: { code: 'device/already-revoked' } })
-    const service = child.get('nativeFixture') as unknown as FixtureService
+    const service: unknown = child.get('nativeFixture')
+    if (!(service instanceof FixtureService)) throw new Error('native fixture service is unavailable')
     await vi.waitFor(() => { expect(service.closed).toEqual(['isolated-stream']) })
     const owner = await paired(ctx, info, 'owner')
     const reopened = once(ws, 'message')

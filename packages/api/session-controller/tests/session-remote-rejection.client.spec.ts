@@ -9,6 +9,7 @@ import { describe, expect, it } from 'vitest'
 import type { SessionId } from '@deepseek-ai/dsh-api-remotes/client'
 import { Session } from '../src/client/sessions/session.ts'
 import type { SessionRemotes } from '../src/client/sessions/remotes.ts'
+import { RemoteMock } from '@deepseek-ai/dsh-remote-mock'
 
 const SID = 'fk-s1' as SessionId
 const PARENT = 'fk-parent' as SessionId
@@ -16,13 +17,14 @@ const PARENT = 'fk-parent' as SessionId
 /** Every command rejects with `message`; nothing else on the face is reachable from prompt or cancel. */
 function rejecting(message: string): SessionRemotes {
   const reject = (): Promise<never> => Promise.reject(new Error(message))
+  const mock = RemoteMock.create().unary('session/prompt', reject).unary('session/cancel', reject)
   return {
     host: { describe: reject },
     $stream: () => { throw new Error('unused') },
     commands: { execute: reject },
-    session: { prompt: reject, cancel: reject },
-    subagents: { list: reject, prompt: reject, interruptByParent: reject },
-  } as unknown as SessionRemotes
+    session: mock.remote.session,
+    subagents: { prompt: reject, interruptByParent: reject, interruptTurnByParent: reject },
+  }
 }
 
 describe('Session over a rejecting Remote face', () => {

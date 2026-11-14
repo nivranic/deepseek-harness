@@ -198,7 +198,7 @@ These limits define when the provider is a poor fit or needs special operational
 - **Same-reference concurrent writes are last-write-wins** — the writer lock and the read-modify-write keep concurrent writers from dropping each other's entries, but two writers editing one reference still resolve to the later write; there is no revision check.
 - **A same-UID process can read the document** — the file-effect sandbox modes do not deny reads, and an OS-keychain provider is deferred.
 - **Environment changes are invisible** — the snapshot is frozen at launch, so a variable exported after startup reaches neither resolution nor `describe`; changing an environment-sourced credential takes a restart.
-- **Directory fsync is POSIX-only** — inherited from `dsh-atomic-write`; the file content itself is fsynced before every rename commit, and the store re-reads on boot.
+- **Crash durability** depends on the filesystem persisting the replacement. The shared atomic writer performs no file or directory `fsync`.
 
 <a id="dev-note"></a>
 ### Dev Note

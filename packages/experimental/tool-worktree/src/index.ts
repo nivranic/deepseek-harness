@@ -16,6 +16,11 @@ export const inject = ['tools', 'worktrees']
 export function apply(ctx: Context): void {
   ctx.tools.register(defineTool({
     name: 'create_worktree',
+    version: 1,
+    risk: 'high',
+    permissions: [],
+    supportsLite: false,
+    supportsRemote: true,
     description: 'Create a new Git branch and worktree from a local commit, branch, or tag, then change this session\'s working directory to it. Uncommitted files stay in the source checkout. Existing names fail. Use working_directory with cd to leave; the checkout and branch remain.',
     parameters: {
       name: { type: 'string', description: 'New branch name, also used as the checkout directory: a few lowercase words joined by hyphens that describe the task, such as fix-login-retry. Omit to generate a unique name.' },

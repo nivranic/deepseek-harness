@@ -31,7 +31,7 @@ kind: "package-reference"
 
 ### 注册工具
 
-`defineTool` 构建类型化工具定义：面向模型的名称、描述与参数 schema、规范输出声明、只返回所声明 JSON 值的 `execute` 主体，以及 §32 的宿主侧声明——`version`（正整数，从 1 起）、`risk`（`low`/`moderate`/`high`/`critical`，按工具的副作用面定档）、`permissions`（完成一次调用可主张的额外 Remote 权限；为空即不主张）、`supportsLite` 与 `supportsRemote`。模型参数在执行前被校验，无效输入变成普通错误结果；`tools.register()` 会以 `TypeError` 拒绝非法声明。声明绝不会到达模型协议面；它经 `ctx.tools.descriptors(scope)` 与 `tools/list` Remote 操作投影为 `ToolDescriptor`，随产品发布的默认声明记录在生成的 [`tool-descriptors.json`](tool-descriptors.json) 中。
+`defineTool` 构建包含模型侧参数、规范输出、执行主体与 Host 声明的类型化工具定义。`ctx.tools.descriptors(scope)` 要求每个返回的工具都声明正安全整数 `version`、`risk`、`permissions`、`supportsLite` 与 `supportsRemote`。声明不完整时，整个目录读取以 `ToolDeclarationUnavailableError` 拒绝。描述符包含所选执行器的 `transportDefinitions`，返回冻结、按 id 排序的副本。生成的 [`tool-descriptors.json`](tool-descriptors.json) 记录随产品发布的声明。[API 适配器](../../api/remotes/README.zh.md#use-this-package) 拥有当前声明的 Remote 访问。
 
 规范值属于执行过程；Session 记录渲染后的内容及可选展示元数据。替换或脱敏这些内容不会移除程序化调用方可读取的规范值；需要禁止该访问的策略必须阻止执行或替换该值。
 
@@ -125,7 +125,7 @@ Agent 步骤的并发上限使用 [agent-loop 配置](../agent-loop/README.zh.md
 
 - [`src/index.ts`](src/index.ts) — 插件入口与公共工具 API；作用域工具服务与执行器选择.
 - [`src/contracts.ts`](src/contracts.ts) — 工具定义、调用结果、守卫与策略决策.
-- [`src/capabilities.ts`](src/capabilities.ts) — `tool.catalog.v1` Remote 能力声明.
+- [`src/catalog.ts`](src/catalog.ts) 与 [`src/types.ts`](src/types.ts) — 声明投影、完整性失败与 Client 安全的描述符类型。
 - [`src/executor.ts`](src/executor.ts) — 执行器描述与批量输入输出.
 - [`src/pipeline.ts`](src/pipeline.ts) — 共享的 `prepare`、`dispatch`、`complete` 阶段、阶段结果类型与批次入口。
 - [`src/batch.ts`](src/batch.ts) — 并发调度、结果顺序与可选 Session 日志.

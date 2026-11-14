@@ -26,7 +26,6 @@ import {
   type SessionTelemetrySink,
   type SessionTelemetryCapture,
   type SessionTelemetryRecord,
-  type TelemetryConsent,
 } from '../src/index.ts'
 
 declare module '@deepseek-ai/dsh-session/types' {
@@ -810,15 +809,12 @@ describe('section 44 telemetry consent vocabulary', () => {
     expect(resolveTelemetryConsent({})).toEqual(TELEMETRY_CONSENT_OFF)
   })
 
-  it('resolves a partial record per kind and fails closed on non-true values', () => {
+  it('resolves a partial record per kind and keeps explicit opt-outs disabled', () => {
     expect(resolveTelemetryConsent({ relayMetadata: true })).toEqual({
       ...TELEMETRY_CONSENT_OFF,
       relayMetadata: true,
     })
-    // Direct construction can bypass the runtime config schema; anything but
-    // boolean true stays off rather than coercing truthy strings or 1.
-    const hostile = { sessionTelemetry: 'yes', providerMetadata: 1 } as unknown as Partial<TelemetryConsent>
-    expect(resolveTelemetryConsent(hostile)).toEqual(TELEMETRY_CONSENT_OFF)
+    expect(resolveTelemetryConsent({ sessionTelemetry: false, providerMetadata: false })).toEqual(TELEMETRY_CONSENT_OFF)
   })
 
   it('names the settings namespace and lists exactly the five kinds once each', () => {

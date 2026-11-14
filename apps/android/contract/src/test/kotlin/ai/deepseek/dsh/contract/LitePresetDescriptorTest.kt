@@ -160,7 +160,7 @@ class LitePresetDescriptorTest {
         val resource = javaClass.classLoader.getResource("lite-preset-descriptors.json")
         Assumptions.assumeTrue(
             resource != null,
-            "packages/preset/agent-presets/lite-preset-descriptors.json has not been generated yet; the integration stage reruns this projection test",
+            "packages/preset/agent-preset-registry/lite-preset-descriptors.json has not been generated yet; the integration stage reruns this projection test",
         )
         val descriptors = LitePresetDescriptors.parseDocument(resource!!.readText(Charsets.UTF_8))
         val ids = descriptors.map { it.id }

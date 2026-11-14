@@ -207,6 +207,11 @@ export async function apply(ctx: Context, config: Config): Promise<void> {
       : ' Supply `provider` and `model` together. Omitted values use child defaults, falling back to compatible parent values. When the effective route changes, an omitted `reasoning_effort` uses the model\'s default.'
     const definition = defineTool({
       name: toolName,
+      version: 1,
+      risk: 'high',
+      permissions: [],
+      supportsLite: false,
+      supportsRemote: true,
       description: wording.description
         + ' This tool starts an independently managed subagent and immediately returns its id. The runtime notifies you when it finishes.'
         + (subagentProvider.prepareContinuable !== undefined

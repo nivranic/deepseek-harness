@@ -15,5 +15,12 @@ import type { API_REMOTE_FORWARDED_EVENTS } from './remote-events.ts'
 export type ApiRemoteForwardedEvent = typeof API_REMOTE_FORWARDED_EVENTS[number]['event']
 
 declare module '@deepseek-ai/dsh-typert-protocol' {
+  interface RemoteErrorDetailsMap {
+    /** A visible tool lacks the metadata required by a catalog reader. */
+    'tool-catalog/declaration-unavailable': { readonly tool: string }
+    /** Current compositions publish incompatible declarations for one name. */
+    'tool-catalog/conflict': { readonly tool: string }
+  }
+
   interface TypertRemoteEventSelection extends Record<ApiRemoteForwardedEvent, true> {}
 }

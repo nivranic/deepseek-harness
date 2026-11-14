@@ -29,13 +29,7 @@
     "**/*.mjs",
     "**/*.config.ts", // Tool and app configs are outside the repository TypeScript programs.
     "packages/client/tsdown.client.ts", // Shared client build preset, also outside a TypeScript program.
-    "packages/preset/agent-preset-registry/tests/lite-preset-projection.spec.ts", // Parked Lite catalog cluster (official registry is Loader-based).
-    "scripts/gen-lite-preset-catalog.ts", // Parked scripts bound to the retired preset-roster API.
-    "scripts/gen-lite-preset-catalog.spec.ts",
-    "scripts/gen-tool-catalog.spec.ts",
-    "apps/web/tests/android-tool-catalog.e2e.ts",
     "apps/web/tests/validation-details.e2e.ts", // Parked host-plane lane e2e family: excluded from the apps/web client project, restored with the upstream merge.
-    "apps/web/tests/checkpoint-order.snapshot.ts",
     "apps/web/tests/host-description.e2e.ts",
     "apps/web/tests/file-capabilities.e2e.ts",
     "apps/web/tests/preset-capabilities.e2e.ts",
@@ -52,9 +46,6 @@
     "apps/web/tests/interaction-expiry.e2e.ts",
     "apps/web/tests/host-restart.e2e.ts",
     "apps/web/tests/host-restart.fixture.ts",
-    "apps/web/tests/tool-reused-id.snapshot.ts",
-    "apps/web/tests/question-retry.snapshot.ts",
-    "apps/web/tests/tool-reused-id.fixture.ts",
     "apps/web/tests/prompt-idempotency.e2e.ts",
     "apps/web/tests/transport-failure.e2e.ts",
     "apps/web/tests/cancel-target.e2e.ts",

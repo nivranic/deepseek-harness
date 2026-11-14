@@ -866,6 +866,13 @@ const SERVICE_ROLES: ServiceRole[] = [
     note: 'Reports persistent Host identity, independent version fields, and explicit capabilities from live Remote bindings through the existing authenticated API.',
   },
   {
+    key: 'toolCatalog',
+    pkg: 'api-remotes',
+    title: 'Host tool catalog',
+    mode: 'core',
+    note: 'Reads complete Host declarations from global tools and retained preset scopes through the authenticated tools/list API.',
+  },
+  {
     key: 'deviceTrust',
     pkg: 'api-device-trust',
     title: 'Device trust seam',

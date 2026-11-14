@@ -44,12 +44,8 @@ declare module '@deepseek-ai/dsh-session-projection/types' {
   }
 }
 
-// The cast bridges only the optional success arms: Zod's optional output
-// includes explicit `undefined`, which exactOptionalPropertyTypes excludes
-// from the row interface. The runtime object never carries an explicit
-// `undefined` member — the spread omits absent keys — so the persisted state
-// survives JSON losslessly.
-const receiptRowSchema = z.discriminatedUnion('kind', [
+// Restored success rows omit absent optional fields, matching the persisted JSON.
+const receiptRowSchema: z.ZodType<CommandReceiptRow> = z.discriminatedUnion('kind', [
   z.object({
     clientMutationId: z.string().min(1).max(128),
     commandId: z.string().min(1),
@@ -63,7 +59,13 @@ const receiptRowSchema = z.discriminatedUnion('kind', [
     kind: z.literal('error'),
     text: z.string(),
   }).strict(),
-]) as unknown as z.ZodType<CommandReceiptRow>
+]).transform((row): CommandReceiptRow => row.kind === 'error' ? row : {
+  clientMutationId: row.clientMutationId,
+  commandId: row.commandId,
+  kind: row.kind,
+  ...row.text === undefined ? {} : { text: row.text },
+  ...row.sourceEventSeq === undefined ? {} : { sourceEventSeq: row.sourceEventSeq },
+})
 
 /** Host-only receipt fold: `command/done` settlements carrying a retry identity. */
 const commandReceiptProjection = {

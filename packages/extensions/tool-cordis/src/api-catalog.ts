@@ -3689,7 +3689,7 @@ export const SERVICE_API: readonly ServiceApiEntry[] = [
     methods: [
       {
         signature: 'async open<S extends DomainSpec>(spec: S): Promise<Domain<S>>',
-        description: 'Open one declared domain. Steps, each failing the whole call: reject a name that is already open (`already-open`); resolve the backend route (`backend-not-found` passes through from the hub); require its `kv` facet (`facet-unsupported`); open the unit projected from the spec (backend `version-mismatch`/`malformed-medium` pass through); load and validate every stored record against the spec\'s zod schemas (`invalid-record` with the offending table and key — unless the spec declares `invalidRecords: \'backup-and-skip\'` and the unit can move documents aside, in which case the failing record is backed up, logged, and skipped); construct the domain.\n\nLifecycle: the CALLER owns the returned handle and closes it via `Domain.close()` (typically as its own `ctx.effect` disposer) — the facility does not tie the domain to any consumer fiber. Domains still open when the facility unmounts are closed by the plugin disposer.',
+        description: 'Open one declared domain. Steps, each failing the whole call: reject a name that is already open (`already-open`); resolve the backend route (`backend-not-found` passes through from the hub); require its `kv` facet (`facet-unsupported`); open the unit projected from the spec (backend `version-mismatch`/`malformed-medium` pass through); load and validate every stored record against the spec\'s zod schemas (`invalid-record` with the offending table and key — unless the spec declares `invalidRecords: \'backup-and-skip\'` and the unit can move documents aside, in which case the failing record is backed up, logged, and skipped); construct the domain.\n\nLifecycle: the CALLER owns the returned handle and closes it via `Domain.close()` (typically as its own `ctx.effect` disposer) — the facility does not tie the domain to any consumer fiber. Domains still open when the facility or backend closes are drained before their units close. Closing joins pending initialization; an otherwise valid open rejects with `closed` instead of returning a handle after that request.',
         parameters: [{ name: 'spec', description: 'The domain declaration, typically from `defineDomain`.' }],
         returns: 'the opened domain handle, typed by the spec.',
       },
@@ -3700,10 +3700,11 @@ export const SERVICE_API: readonly ServiceApiEntry[] = [
         returns: 'the open domain runtime, or `undefined` when not open.',
       },
       {
-        signature: 'async closeAll(): Promise<void>',
-        description: 'Close every domain still open on this facility. The unmount path for consumers that never called `Domain.close()` themselves; closing is idempotent, so double-closing an already-closed domain is harmless.',
+        signature: 'closeAll(): Promise<void>',
+        description: 'Stop new opens and close every initialized or still-opening domain. Pending initialization rejects instead of publishing a handle after close. Concurrent and repeated calls share one terminal teardown.',
         parameters: [],
-        returns: 'resolution after every unit is released.',
+        returns: 'resolution after every owner and unit settles.',
+        throws: ['AggregateError containing domain teardown failures after all owners settle.'],
       },
     ],
   },
@@ -4095,6 +4096,20 @@ export const SERVICE_API: readonly ServiceApiEntry[] = [
     ],
   },
   {
+    key: 'toolCatalog',
+    summary: 'Read-only adapter over the ordinary tool registry and retained preset revisions.',
+    description: 'Read-only adapter over the ordinary tool registry and retained preset revisions.',
+    methods: [
+      {
+        signature: '@Remote async list(): Promise<ToolDescriptorList>',
+        description: 'Read current global and declared preset tools without creating an Agent.',
+        parameters: [],
+        returns: 'One complete id-sorted declaration per tool name.',
+        throws: ['RemoteError when a declaration is incomplete, compositions disagree, or a preset cannot be retained.'],
+      },
+    ],
+  },
+  {
     key: 'toolResultPruner',
     summary: 'Deterministic head/middle/tail pruning for current tool-result surface nodes.',
     description: 'Deterministic head/middle/tail pruning for current tool-result surface nodes.',
@@ -4177,6 +4192,13 @@ export const SERVICE_API: readonly ServiceApiEntry[] = [
         description: 'Provide the executor for the calling scope; an unscoped contribution is the deployment default. Rendering any executor-owned section requires the viewing scope\'s selection to remain available.',
         parameters: [{ name: 'executor', description: 'initialized provider owned by the contributing plugin.' }],
         returns: 'the effect disposer. Unloading leaves the selection unavailable until it is replaced.',
+      },
+      {
+        signature: 'descriptors(scope?: ScopeKey): readonly ToolDescriptor[]',
+        description: 'Read complete Host declarations from the selected capability and executor scopes.',
+        parameters: [{ name: 'scope', description: 'Agent or preset scope; omitted reads the root composition.' }],
+        returns: 'Frozen id-sorted descriptors, including executor-owned transports.',
+        throws: ['ToolDeclarationUnavailableError when any visible tool lacks required metadata.', 'ToolExecutorUnavailableError when this scope has no active executor.'],
       },
       {
         signature: 'async execute(input: ToolBatchInput): Promise<ToolBatchResult>',
@@ -9759,6 +9781,14 @@ export const TYPE_API: readonly TypeApiEntry[] = [
     declaration: 'export interface ToolDefinition extends ToolSchema {\n    readonly output: ToolOutputDefinition;\n    readonly version?: number;\n    readonly risk?: ToolRisk;\n    readonly permissions?: readonly RemoteCapabilityPermission[];\n    readonly supportsLite?: boolean;\n    readonly supportsRemote?: boolean;\n    execute(args: unknown, exec: ToolRunContext): Promise<unknown>;\n    projectContent?(exec: Readonly<ToolExecution>, result: Readonly<ToolExecutionResult>): ContentBlock[] | undefined;\n    finalizeContent?(exec: Readonly<ToolExecution>, result: Readonly<ToolExecutionResult>): ContentBlock[] | undefined;\n    timeoutMs?: number;\n    isConcurrencySafe?(args: unknown): boolean;\n    presentCall?(args: unknown): ToolCallView | undefined;\n    presentResult?(args: unknown, result: ToolResult): ToolResultView | undefined;\n}',
   },
   {
+    name: 'ToolDescriptor',
+    declaration: 'export interface ToolDescriptor {\n    readonly id: string;\n    readonly version: number;\n    readonly risk: ToolRisk;\n    readonly permissions: readonly RemoteCapabilityPermission[];\n    readonly supportsLite: boolean;\n    readonly supportsRemote: boolean;\n}',
+  },
+  {
+    name: 'ToolDescriptorList',
+    declaration: 'export interface ToolDescriptorList {\n    readonly tools: readonly ToolDescriptor[];\n}',
+  },
+  {
     name: 'ToolDispatchExecution',
     declaration: 'export interface ToolDispatchExecution extends Omit<ToolExecution, \'signal\'> {\n    signal: AbortSignal;\n}',
   },
@@ -9792,7 +9822,7 @@ export const TYPE_API: readonly TypeApiEntry[] = [
   },
   {
     name: 'ToolExecutor',
-    declaration: 'export interface ToolExecutor {\n    readonly sections?: readonly ToolPromptSection[];\n    describe(tools: readonly ToolDefinition[]): ToolModelInput;\n    execute(input: ToolBatchInput): Promise<ToolBatchResult>;\n}',
+    declaration: 'export interface ToolExecutor {\n    readonly transportDefinitions?: readonly ToolDefinition[];\n    readonly sections?: readonly ToolPromptSection[];\n    describe(tools: readonly ToolDefinition[]): ToolModelInput;\n    execute(input: ToolBatchInput): Promise<ToolBatchResult>;\n}',
   },
   {
     name: 'ToolFailure',
@@ -9872,7 +9902,7 @@ export const TYPE_API: readonly TypeApiEntry[] = [
   },
   {
     name: 'ToolsService',
-    declaration: 'export class ToolsService extends Service {\n    static inject;\n    static Config;\n    constructor(ctx: Context);\n    register(definition: ToolDefinition, options: ToolRegistrationOptions = {}): () => void;\n    restrict(filter: ToolRestriction): () => void;\n    get(name: string, scope?: ScopeKey, toolSet?: ResolvedToolSet): ToolDefinition | undefined;\n    executable(name: string, scope?: ScopeKey, toolSet?: ResolvedToolSet): ToolDefinition | undefined;\n    async resolve(context: ToolActivationContext): Promise<ResolvedToolSet>;\n    definitions(scope?: ScopeKey, toolSet?: ResolvedToolSet): readonly ToolDefinition[];\n    schemas(scope?: ScopeKey, toolSet?: ResolvedToolSet): ToolSchema[];\n    setExecutor(executor: ToolExecutor): () => void;\n    async execute(input: ToolBatchInput): Promise<ToolBatchResult>;\n    guard(guard: ToolGuard): () => void;\n    checkGuards(exec: ToolExecution): string | undefined;\n}',
+    declaration: 'export class ToolsService extends Service {\n    static inject;\n    static Config;\n    constructor(ctx: Context);\n    register(definition: ToolDefinition, options: ToolRegistrationOptions = {}): () => void;\n    restrict(filter: ToolRestriction): () => void;\n    get(name: string, scope?: ScopeKey, toolSet?: ResolvedToolSet): ToolDefinition | undefined;\n    executable(name: string, scope?: ScopeKey, toolSet?: ResolvedToolSet): ToolDefinition | undefined;\n    async resolve(context: ToolActivationContext): Promise<ResolvedToolSet>;\n    definitions(scope?: ScopeKey, toolSet?: ResolvedToolSet): readonly ToolDefinition[];\n    schemas(scope?: ScopeKey, toolSet?: ResolvedToolSet): ToolSchema[];\n    setExecutor(executor: ToolExecutor): () => void;\n    descriptors(scope?: ScopeKey): readonly ToolDescriptor[];\n    async execute(input: ToolBatchInput): Promise<ToolBatchResult>;\n    guard(guard: ToolGuard): () => void;\n    checkGuards(exec: ToolExecution): string | undefined;\n}',
   },
   {
     name: 'ToolUpdate',

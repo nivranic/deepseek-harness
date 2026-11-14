@@ -1,8 +1,8 @@
 /**
- * Generate `packages/preset/agent-presets/lite-preset-descriptors.json` — the
+ * Generate `packages/preset/agent-preset-registry/lite-preset-descriptors.json` — the
  * Lite persona/system-prompt projection (specification §33) — by really
- * booting every shipped agent preset through the AgentPresets roster and
- * reading the official SystemPrompt assembly of its standing scope. There is
+ * mounting every shipped declarative agent preset and
+ * reading its official SystemPrompt assembly. There is
  * no parallel prompt text behind this file: `assembledSystemPrompt` is exactly
  * what `ctx.systemPrompt.assemble()` returns for a cold reader of the preset,
  * and a preset whose assembled sections still reference `{{variable}}` groups
@@ -10,7 +10,8 @@
  * rather than substituted. `--check` verifies the committed artifact.
  */
 
-import { mkdirSync, readFileSync, readdirSync, rmSync, symlinkSync, writeFileSync } from 'node:fs'
+import { mkdirSync, mkdtempSync, readFileSync, readdirSync, rmSync, symlinkSync, writeFileSync } from 'node:fs'
+import { tmpdir } from 'node:os'
 import { join, resolve } from 'node:path'
 import { pathToFileURL } from 'node:url'
 import { load } from 'js-yaml'
@@ -23,6 +24,7 @@ import SessionStore from '@deepseek-ai/dsh-session'
 import SessionProjectionRegistry from '@deepseek-ai/dsh-session-projection'
 import SystemPrompt, { PERSONA_PREFIX_SECTION, renderPrompt, type PromptAssembly } from '@deepseek-ai/dsh-system-prompt'
 import ToolRuntime from '@deepseek-ai/dsh-tools'
+import * as NativeToolExecutor from '@deepseek-ai/dsh-tool-executor-native'
 import AgentRegistry from '@deepseek-ai/dsh-agent'
 import CommandRuntime from '@deepseek-ai/dsh-commands'
 import GoalService from '@deepseek-ai/dsh-goal'
@@ -35,6 +37,9 @@ import LocalFileSystem from '@deepseek-ai/dsh-fs-local'
 import LocalJobRegistry from '@deepseek-ai/dsh-jobs-local'
 import SkillRegistry from '@deepseek-ai/dsh-skill'
 import SandboxPolicyService from '@deepseek-ai/dsh-sandbox-policy'
+import WorkingDirectory from '@deepseek-ai/dsh-working-directory'
+import LocalSandboxProvider from '@deepseek-ai/dsh-sandbox-local'
+import NodePtcRuntime from '@deepseek-ai/dsh-ptc-runtime-node'
 import SubagentRuntime from '@deepseek-ai/dsh-subagent'
 import * as SubagentSpawnInProcess from '@deepseek-ai/dsh-subagent-spawn-in-process'
 import * as SubagentForkInProcess from '@deepseek-ai/dsh-subagent-fork-in-process'
@@ -42,13 +47,45 @@ import SubagentModelSelectionConfig from '@deepseek-ai/dsh-tool-subagent/model-s
 import TokenMeter from '@deepseek-ai/dsh-token-meter'
 import WebRuntime from '@deepseek-ai/dsh-web'
 import CordisHostRunner from '@deepseek-ai/dsh-cordis-host-runner'
-import AgentPresets from '@deepseek-ai/dsh-agent-presets'
-import type {
-  LitePresetCatalog, LitePresetExclusion, LitePresetProjection,
-} from '@deepseek-ai/dsh-agent-presets'
+import AgentPresets, { type PresetDefinition } from '@deepseek-ai/dsh-agent-preset-registry'
+import AgentPreset from '@deepseek-ai/dsh-agent-preset'
+import { composeEntries, loadOverlayPatches } from '@deepseek-ai/dsh-app-boot'
 
 const root = resolve(import.meta.dirname, '..')
-const OUT = 'packages/preset/agent-presets/lite-preset-descriptors.json'
+const OUT = 'packages/preset/agent-preset-registry/lite-preset-descriptors.json'
+
+/** One static preset assembly bundled by Lite clients. */
+export interface LitePresetProjection {
+  readonly id: string
+  readonly order?: number
+  readonly persona: { readonly prefix: string; readonly suffix?: string; readonly complete: boolean }
+  readonly includeRuntimeContext: boolean
+  readonly assembledSystemPrompt: string
+}
+
+/** A shipped preset whose prompt requires live Agent variables. */
+export interface LitePresetExclusion {
+  readonly id: string
+  readonly reason: string
+  readonly variables: readonly string[]
+}
+
+/** Generated static preset assemblies and explicit runtime-dependent exclusions. */
+export interface LitePresetCatalog {
+  readonly presets: readonly LitePresetProjection[]
+  readonly excluded: readonly LitePresetExclusion[]
+}
+
+/**
+ * Read the declarative presets shipped by the Web bundle.
+ * @returns Definitions parsed with the Loader's expression-preserving YAML dialect.
+ */
+export function shippedPresetDefinitions(): PresetDefinition[] {
+  const directory = resolve(root, 'packages/bundle/web-app/presets')
+  const patches = readdirSync(directory).filter(file => file.endsWith('.patch.yml')).sort()
+    .flatMap(file => loadOverlayPatches('Lite preset catalog', join(directory, file)))
+  return composeEntries([patches]).map(entry => entry.config as PresetDefinition)
+}
 
 /** The composition row that carries a preset's persona. */
 const PERSONA_ROW = '@deepseek-ai/dsh-persona'
@@ -84,7 +121,7 @@ export interface LitePresetHarvest {
   readonly order?: number
   /** The preset's persona row with plugin defaults applied. */
   readonly persona: HarvestedPersona
-  /** The official SystemPrompt assembly of this preset's standing scope. */
+  /** The official SystemPrompt assembly of this preset's retained revision. */
   readonly assembly: PromptAssembly
 }
 
@@ -109,7 +146,7 @@ export function templateVariablesIn(text: string): string[] {
  * The runtime variables one preset's assembled prompt references. A Lite
  * consumer has no agent loop, so any reference here means the prompt cannot be
  * rendered outside a live session without faking values.
- * @param assembly - the official assembly of one preset's standing scope.
+ * @param assembly - the official assembly of one preset's retained revision.
  * @returns the referenced names, deduplicated.
  */
 export function requiresRuntimeVariables(assembly: PromptAssembly): string[] {
@@ -181,10 +218,11 @@ export function personaRowOf(content: string): HarvestedPersona {
  * link to every workspace package. The links never choose what loads — the
  * imports still resolve through the tsconfig aliases to `src/`, so the boot
  * stays on the source plane and no built `lib/` mixes in.
+ * @param scratch - Scenario-owned temporary directory.
  * @returns the staged harness base directory.
  */
-function stageHarnessBase(): string {
-  const base = resolve(root, '.tmp/lite-preset-catalog/base')
+function stageHarnessBase(scratch: string): string {
+  const base = join(scratch, 'base')
   const scope = join(base, 'node_modules', '@deepseek-ai')
   mkdirSync(scope, { recursive: true })
   const packages = resolve(root, 'packages')
@@ -204,7 +242,6 @@ function stageHarnessBase(): string {
       }
       if (typeof name !== 'string' || !name.startsWith('@deepseek-ai/')) continue
       const link = join(scope, name.slice('@deepseek-ai/'.length))
-      rmSync(link, { recursive: true, force: true })
       symlinkSync(
         join(packages, group.name, entry.name),
         link,
@@ -216,21 +253,13 @@ function stageHarnessBase(): string {
 }
 
 /**
- * Boot the host-side service stack every shipped preset's rows inject, plus
- * the preset roster over the shipped root. One context for all presets: each
- * preset still composes its own standing scope, so assemblies stay attributed
- * to exactly one composition, and one boot amortizes the shared registries.
- *
- * The stack mirrors what the shipped host compositions keep on the host plane
- * (the registries, executors, and policy services a preset row injects but
- * must not own), mounting per platform the single shell executor the host
- * ships — the same `!!js` gate the presets' own shell rows apply.
- * @returns the booted context; the caller owns disposal.
+ * Mount the Host services required by the shipped preset declarations.
+ * @param ctx - Context owned and disposed by the caller.
+ * @param scratch - Scenario-owned base for package resolution and skill roots.
  */
-async function bootRosterContext(): Promise<Context> {
-  const ctx = new Context()
+async function bootRosterContext(ctx: Context, scratch: string): Promise<void> {
   // The staged base: preset-row health resolves package names against it.
-  ctx.baseUrl = pathToFileURL(stageHarnessBase()).href + '/'
+  ctx.baseUrl = pathToFileURL(stageHarnessBase(scratch)).href + '/'
   await ctx.plugin(Loader)
   ctx.loader.builtins.include = Include
   ctx.loader.builtins.group = Group
@@ -239,6 +268,7 @@ async function bootRosterContext(): Promise<Context> {
   await ctx.plugin(SessionProjectionRegistry)
   await ctx.plugin(SystemPrompt)
   await ctx.plugin(ToolRuntime)
+  await ctx.plugin(NativeToolExecutor)
   await ctx.plugin(AgentRegistry)
   await ctx.plugin(CommandRuntime)
   await ctx.plugin(GoalService)
@@ -247,9 +277,12 @@ async function bootRosterContext(): Promise<Context> {
   await ctx.plugin(BashEnvPlugin)
   await ctx.plugin(process.platform === 'win32' ? PwshLocalExecutor : LocalBashExecutor)
   await ctx.plugin(LocalFileSystem)
+  await ctx.plugin(WorkingDirectory)
   await ctx.plugin(LocalJobRegistry)
   await ctx.plugin(SkillRegistry)
   await ctx.plugin(SandboxPolicyService)
+  await ctx.plugin(LocalSandboxProvider)
+  await ctx.plugin(NodePtcRuntime)
   await ctx.plugin(SubagentRuntime)
   // The real in-process backends the shipped presets' delegation rows name.
   await ctx.plugin(SubagentSpawnInProcess)
@@ -260,8 +293,8 @@ async function bootRosterContext(): Promise<Context> {
   await ctx.plugin(WebRuntime)
   // The dynamic-package runner and inspect registry the `cordis` preset reads.
   await ctx.plugin(CordisHostRunner)
-  await ctx.plugin(AgentPresets, { default: 'standard', roots: [], includeShippedRoot: true, includeUserRoot: false })
-  return ctx
+  await ctx.plugin(AgentPresets, { default: 'standard' })
+  for (const definition of shippedPresetDefinitions()) await ctx.plugin(AgentPreset, definition)
 }
 
 /**
@@ -281,24 +314,26 @@ export async function collectLitePresetCatalog(): Promise<{
   // user state and the artifact stays machine-independent.
   const previousDshHome = process.env.DSH_HOME
   const previousAgentsHome = process.env.DSH_AGENTS_HOME
-  const scratch = resolve(root, '.tmp/lite-preset-catalog')
+  const previousBundledSkillDir = process.env.DSH_BUNDLED_SKILL_DIR
+  const scratch = mkdtempSync(join(tmpdir(), 'dsh-lite-preset-catalog-'))
   mkdirSync(resolve(scratch, '.dsh'), { recursive: true })
   mkdirSync(resolve(scratch, '.agents'), { recursive: true })
+  mkdirSync(resolve(scratch, 'bundled-skills'), { recursive: true })
   process.env.DSH_HOME = resolve(scratch, '.dsh')
   process.env.DSH_AGENTS_HOME = resolve(scratch, '.agents')
-  const ctx = await bootRosterContext()
+  process.env.DSH_BUNDLED_SKILL_DIR = resolve(scratch, 'bundled-skills')
+  const ctx = new Context()
   try {
+    await bootRosterContext(ctx, scratch)
     const presets = (await ctx.agentPresets.list()).slice().sort((left, right) => left.id.localeCompare(right.id))
     const harvested: LitePresetHarvest[] = []
     for (const preset of presets) {
       if (preset.broken !== undefined) {
         throw new Error(`gen-lite-preset-catalog: shipped preset "${preset.id}" is broken: ${preset.broken}`)
       }
-      const persona = personaRowOf(await ctx.agentPresets.read(preset.id))
-      // The cold-reader route: composes the standing scope without starting an
-      // agent, session, or turn — the same mount a transcript read resolves.
-      const scope = await ctx.agentPresets.standingKeyFor(preset.id)
-      const assembly = await ctx.systemPrompt.assemble({ scope })
+      const persona = personaRowOf((await ctx.agentPresets.readDocument(preset.id)).content)
+      await using scope = await ctx.agentPresets.acquireScope(preset.id)
+      const assembly = await ctx.systemPrompt.assemble({ scope: scope.key })
       const personaSection = assembly.sections.find(section => section.name === PERSONA_PREFIX_SECTION)
       if (personaSection === undefined || personaSection.text !== persona.prefix) {
         throw new Error(
@@ -315,11 +350,17 @@ export async function collectLitePresetCatalog(): Promise<{
     }
     return { harvested, shipped: presets.map(preset => preset.id) }
   } finally {
-    if (previousDshHome === undefined) delete process.env.DSH_HOME
-    else process.env.DSH_HOME = previousDshHome
-    if (previousAgentsHome === undefined) delete process.env.DSH_AGENTS_HOME
-    else process.env.DSH_AGENTS_HOME = previousAgentsHome
-    await ctx.fiber.dispose()
+    try {
+      await ctx.fiber.dispose()
+    } finally {
+      if (previousDshHome === undefined) delete process.env.DSH_HOME
+      else process.env.DSH_HOME = previousDshHome
+      if (previousAgentsHome === undefined) delete process.env.DSH_AGENTS_HOME
+      else process.env.DSH_AGENTS_HOME = previousAgentsHome
+      if (previousBundledSkillDir === undefined) delete process.env.DSH_BUNDLED_SKILL_DIR
+      else process.env.DSH_BUNDLED_SKILL_DIR = previousBundledSkillDir
+      rmSync(scratch, { recursive: true, force: true })
+    }
   }
 }
 
@@ -401,10 +442,8 @@ export function renderLitePresetCatalog(harvests: readonly LitePresetHarvest[]):
   )
   const document: LitePresetCatalog & { _comment: string } = {
     _comment: 'Generated by scripts/gen-lite-preset-catalog.ts — do not edit by hand. Run `pnpm run gen-lite-preset-catalog` to regenerate. '
-      + 'Lite persona projection (specification §33): each row is the OFFICIAL SystemPrompt assembly of one shipped agent preset, harvested by '
-      + 'really booting the preset through the AgentPresets roster and calling ctx.systemPrompt.assemble() on its standing scope; there is no '
-      + 'parallel prompt system behind this file. A preset whose assembled sections still reference {{variable}} groups is listed under '
-      + '"excluded" instead — those values are registered per agent at runtime, and this projection never substitutes placeholders.',
+      + 'Lite persona projection (specification §33). Each row contains the rendered SystemPrompt assembly of a shipped declarative preset '
+      + 'retained through registry.acquireScope(). Presets whose assembled sections require live Agent variables appear in excluded.',
     presets,
     excluded,
   }

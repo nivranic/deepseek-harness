@@ -1,5 +1,5 @@
 {
-  "_comment": "Same-schema sample of packages/preset/agent-presets/lite-preset-descriptors.json (the lane-A generator's projection); rerun that generator to refresh the real projection this sample mirrors. Persona text is synthetic placeholder markers — Lite owns no prompt prose (§33).",
+  "_comment": "Same-schema sample of packages/preset/agent-preset-registry/lite-preset-descriptors.json (the lane-A generator's projection); rerun that generator to refresh the real projection this sample mirrors. Persona text is synthetic placeholder markers — Lite owns no prompt prose (§33).",
   "presets": [
     {
       "id": "future-preset",

@@ -431,6 +431,11 @@ export function apply(ctx: Context, config: Config): void {
 
   ctx.tools.register(defineTool({
     name: 'job_output',
+    version: 1,
+    risk: 'low',
+    permissions: [],
+    supportsLite: false,
+    supportsRemote: true,
     description: 'Read a background job: output since the previous read for stream jobs, or the result of a finished final-output job.',
     // A timed-out wait returns job state rather than a TOOL_TIMEOUT error, so
     // this tool owns its deadline instead of using ToolDefinition.timeoutMs.
@@ -539,6 +544,11 @@ export function apply(ctx: Context, config: Config): void {
 
   ctx.tools.register(defineTool({
     name: 'job_list',
+    version: 1,
+    risk: 'low',
+    permissions: [],
+    supportsLite: false,
+    supportsRemote: true,
     description: 'List your background jobs (running and finished) with their ids, kinds, and statuses.',
     parameters: {},
     output: {
@@ -559,6 +569,11 @@ export function apply(ctx: Context, config: Config): void {
 
   ctx.tools.register(defineTool({
     name: 'job_kill',
+    version: 1,
+    risk: 'moderate',
+    permissions: [],
+    supportsLite: false,
+    supportsRemote: true,
     description: 'Request cancellation of a running background job.',
     parameters: {
       job_id: { type: 'string', required: true, description: 'Job id returned by the tool that started the background work.' },

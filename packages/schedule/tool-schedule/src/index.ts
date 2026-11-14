@@ -452,6 +452,11 @@ export function apply(ctx: Context): void {
 function registerScheduleTools(ctx: Context): void {
   ctx.tools.register(defineTool({
     name: 'schedule_create',
+    version: 1,
+    risk: 'moderate',
+    permissions: [],
+    supportsLite: false,
+    supportsRemote: true,
     description: CREATE_DESCRIPTION,
     parameters: {
       prompt: {
@@ -490,6 +495,11 @@ function registerScheduleTools(ctx: Context): void {
 
   ctx.tools.register(defineTool({
     name: 'schedule_list',
+    version: 1,
+    risk: 'low',
+    permissions: [],
+    supportsLite: false,
+    supportsRemote: true,
     description: LIST_DESCRIPTION,
     parameters: {},
     output: { schema: LIST_OUTPUT_SCHEMA, render: renderValue },
@@ -511,6 +521,11 @@ function registerScheduleTools(ctx: Context): void {
 
   ctx.tools.register(defineTool({
     name: 'schedule_delete',
+    version: 1,
+    risk: 'moderate',
+    permissions: [],
+    supportsLite: false,
+    supportsRemote: true,
     description: DELETE_DESCRIPTION,
     parameters: {
       id: { type: 'string', required: true, description: 'Exact schedule id.' },
@@ -537,6 +552,11 @@ function registerScheduleTools(ctx: Context): void {
 
   ctx.tools.register(defineTool({
     name: 'schedule_update',
+    version: 1,
+    risk: 'moderate',
+    permissions: [],
+    supportsLite: false,
+    supportsRemote: true,
     description: UPDATE_DESCRIPTION,
     parameters: {
       id: { type: 'string', required: true, description: 'Schedule id returned by schedule_list.' },

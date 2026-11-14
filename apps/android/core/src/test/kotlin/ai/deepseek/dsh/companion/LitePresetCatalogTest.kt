@@ -87,7 +87,7 @@ class LitePresetCatalogTest {
 
     /**
      * The real projection at
-     * `packages/preset/agent-presets/lite-preset-descriptors.json` (copied
+     * `packages/preset/agent-preset-registry/lite-preset-descriptors.json` (copied
      * into test resources by copyLitePresets): the runtime-variable presets
      * (standard, ptc) stay on the exclusion list, the fixed-prompt class
      * (minimal) is present, and its already-assembled system prompts carry no
@@ -100,7 +100,7 @@ class LitePresetCatalogTest {
         val resource = javaClass.classLoader.getResource("lite-preset-descriptors.json")
         Assumptions.assumeTrue(
             resource != null,
-            "packages/preset/agent-presets/lite-preset-descriptors.json has not been generated yet; the integration stage reruns this cross-check",
+            "packages/preset/agent-preset-registry/lite-preset-descriptors.json has not been generated yet; the integration stage reruns this cross-check",
         )
         val descriptors = LitePresetDescriptors.parseDocument(resource!!.readText(Charsets.UTF_8))
         val ids = descriptors.map { it.id }

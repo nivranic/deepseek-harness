@@ -19,6 +19,11 @@ export const inject = ['tools', 'workingDirectory']
 export function apply(ctx: Context): void {
   ctx.tools.register(defineTool({
     name: 'working_directory',
+    version: 1,
+    risk: 'moderate',
+    permissions: [],
+    supportsLite: false,
+    supportsRemote: true,
     description: 'Read the current working directory, or change it with cd. Relative paths use the current directory. Existing shells and running processes keep their own directories.',
     parameters: {
       cd: { type: 'string', description: 'Existing directory to enter. Omit to read the current directory.' },

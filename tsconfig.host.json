@@ -15,6 +15,7 @@
     "apps/web/tests/native-remote-question.e2e.ts",
     "apps/web/tests/native-remote-isolation.e2e.ts",
     "apps/web/tests/native-remote-support.ts",
+    "apps/web/tests/native-gateway-observer.ts",
     "apps/web/tests/creation-recommendations.e2e.ts",
     "apps/web/tests/plugin-recommendations.e2e.ts",
     "apps/web/tests/japanese-plugin-metadata.e2e.ts",
@@ -39,6 +40,7 @@
     "apps/web/tests/diff-context.e2e.ts",
     "apps/web/tests/search-empty-include.e2e.ts",
     "apps/web/tests/code-card-layout.e2e.ts",
+    "apps/web/tests/checkpoint-order.snapshot.ts",
     "apps/web/tests/code-language.snapshot.ts",
     "apps/web/tests/scaffold.ts",
     "apps/web/tests/clock.e2e.ts",
@@ -252,7 +254,6 @@
     "website/**/*.ts",
     "website/.vitepress/**/*.ts",
     "apps/web/tests/validation-details.e2e.ts",
-    "apps/web/tests/checkpoint-order.snapshot.ts",
     "apps/web/tests/host-description.e2e.ts",
     "apps/web/tests/file-capabilities.e2e.ts",
     "apps/web/tests/preset-capabilities.e2e.ts",
@@ -290,7 +291,6 @@
   // and the package test glob above needs no per-file entry.
   "exclude": [
     // The Android tool catalog still requires the Lite catalog migration.
-    "apps/web/tests/android-tool-catalog.e2e.ts",
     "apps/desktop/tests/keyboard.spec.ts",
     "packages/client/*/src/**",
     "benchmarks/**/*.client.ts",
@@ -304,10 +304,6 @@
     "scripts/client-bundle-css.spec.ts",
     "packages/typert/generator/tests/fixtures/**",
     "scripts/client-bundle-purity.spec.ts",
-    "scripts/gen-lite-preset-catalog.ts",
-    "scripts/gen-lite-preset-catalog.spec.ts",
-    "packages/preset/agent-preset-registry/tests/lite-preset-projection.spec.ts",
-    "scripts/gen-tool-catalog.spec.ts",
     "apps/web/tests/dynamic-cordis-capabilities.e2e.ts",
     "apps/web/tests/file-capabilities.e2e.ts",
     "apps/web/tests/preset-capabilities.e2e.ts",

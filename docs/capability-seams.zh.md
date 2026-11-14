@@ -278,6 +278,7 @@ flowchart LR
   pkg_api_host_description["api-host-description"]
   svc_hostDescription["ctx.hostDescription<br/>Host discovery"]
   pkg_api_remotes["api-remotes"]
+  svc_toolCatalog["ctx.toolCatalog<br/>Host tool catalog"]
   pkg_api_device_trust["api-device-trust"]
   svc_deviceTrust["ctx.deviceTrust<br/>Device trust seam"]
   pkg_web_app["web-app"]
@@ -337,6 +338,7 @@ flowchart LR
   pkg_api_job_controller --> svc_jobController
   pkg_api_native_remote --> svc_nativeRemote
   pkg_api_remote_access --> svc_remoteAccess
+  pkg_api_remotes --> svc_toolCatalog
   pkg_api_session_controller --> svc_sessionController
   pkg_api_session_controller --> svc_sessionFileReferences
   pkg_api_session_controller --> svc_sessionSkillCatalog
@@ -761,6 +763,7 @@ flowchart LR
 | `ctx.claudeCodeMods` | `core` | [`experimental-claude-code-mods`](../packages/experimental/claude-code-mods) | - | - | - | 加载 defineMod 插件添加的模组，从 harness 扩展点触发其钩子链，并通过其 Remote 绘制提示框上方的横幅。 |
 | `ctx.inspector` | `core` | `inspector` | - | - | - | 负责 Worker 托管的 CDP target，以及独立于传输的 Host 和 Client observation 与 Cordis tree query API。 |
 | `ctx.hostDescription` | `core` | [`api-host-description`](../packages/api/host-description) | - | [`api-remotes`](../packages/api/remotes) | - | 通过现有的认证 API 返回持久化 Host 身份、独立版本字段，以及实时 Remote 绑定中显式声明的能力。 |
+| `ctx.toolCatalog` | `core` | [`api-remotes`](../packages/api/remotes) | - | - | - | 通过已认证的 tools/list API 读取全局工具及保留的预设作用域中的完整 Host 声明。 |
 | `ctx.deviceTrust` | `seam` | [`api-device-trust`](../packages/api/device-trust) | - | [`web-app`](../packages/bundle/web-app) | - | 网关所有的设备侧接入接缝：经 Typert Remote 的一次性配对签发、设备授权与撤销；权限执行仍归交互回复接缝。 |
 | `ctx.nativeRemote` | `core` | [`api-native-remote`](../packages/api/native-remote) | - | - | - | 拥有按需启用的 TLS listener、固定的 Host 身份，以及供签名设备 Peer 使用的有界载体。 |
 | `ctx.hostDiagnostics` | `seam` | [`api-host-diagnostics`](../packages/api/host-diagnostics) | - | [`web-app`](../packages/bundle/web-app) | - | 第 41 节 health/readiness 快照与第 42 节经构造脱敏的跨平台诊断载荷走 Typert Remote；基于存在性的探测逐组件指名已组合的 owner。 |

@@ -54,7 +54,7 @@ export async function startAndroidCompanionUiDriver(
       await run('reverse', '--remove', `tcp:${value}`)
       reversed.delete(value)
     }))
-    const failures = results.filter(item => item.status === 'rejected').map(item => item.reason as unknown)
+    const failures = results.filter(item => item.status === 'rejected').map((item): unknown => item.reason)
     if (failures.length) throw new AggregateError(failures, 'Android reverse forwarding cleanup failed')
   }
   try {

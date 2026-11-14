@@ -383,6 +383,11 @@ export function apply(ctx: Context, config: Config = {}): void {
     /* jscpd:ignore-end */
     return defineTool({
       name: 'pwsh',
+      version: 1,
+      risk: 'high',
+      permissions: [],
+      supportsLite: false,
+      supportsRemote: true,
       description: pwshDescription(escalationModes.length > 0),
       /* jscpd:ignore-start -- deliberate mirror of dsh-tool-bash's parameter surface (pwsh-tool-and-executor Agent Note). */
       parameters: {

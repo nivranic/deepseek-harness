@@ -1,10 +1,13 @@
 /** Host-only reconstruction of accepted human prompts in a continuable child's own log. */
 
 import { z } from 'zod'
+import { brandString } from '@deepseek-ai/dsh-brand'
 import { appendChunkedList, chunkedListSchema, iterateChunkedList } from '@deepseek-ai/dsh-chunked-list'
 import type { ChunkedList } from '@deepseek-ai/dsh-chunked-list'
-import type { MessageId, MessageSource } from '@deepseek-ai/dsh-llm'
-import type { SessionEvent, SessionHeader, SessionLogOffset } from '@deepseek-ai/dsh-session'
+import type { MessageSource } from '@deepseek-ai/dsh-llm'
+import { MessageId } from '@deepseek-ai/dsh-llm/brand'
+import { SessionLogOffset } from '@deepseek-ai/dsh-session'
+import type { SessionEvent, SessionHeader } from '@deepseek-ai/dsh-session'
 import type { ProjectionDefinition } from '@deepseek-ai/dsh-session-projection'
 import type { SubagentPromptRequestId } from './control-types.ts'
 
@@ -26,11 +29,11 @@ declare module '@deepseek-ai/dsh-session-projection/types' {
 }
 
 const receiptSchema = z.object({
-  requestId: z.string().min(1) as unknown as z.ZodType<SubagentPromptRequestId>,
-  messageId: z.string().min(1) as unknown as z.ZodType<MessageId>,
+  requestId: z.string().min(1).transform(brandString<SubagentPromptRequestId>),
+  messageId: z.string().min(1).transform(MessageId),
 }).strict()
 const stateSchema: z.ZodType<SubagentPromptReceiptsState> = z.object({
-  inheritedEventCount: z.number().int().nonnegative() as unknown as z.ZodType<SessionLogOffset>,
+  inheritedEventCount: z.number().int().nonnegative().transform(SessionLogOffset),
   head: chunkedListSchema(receiptSchema).optional(),
 }).strict()
 

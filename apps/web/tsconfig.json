@@ -32,6 +32,7 @@
     "tests/android-companion-ui-driver.ts",
     "tests/android-companion-question.e2e.ts",
     "tests/native-remote-support.ts",
+    "tests/native-gateway-observer.ts",
     "tests/validation-details.e2e.ts",
     "tests/checkpoint-order.snapshot.ts",
     "tests/host-description.e2e.ts",

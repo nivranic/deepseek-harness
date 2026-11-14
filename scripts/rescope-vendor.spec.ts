@@ -14,6 +14,13 @@ function expectRoundTrip(file: string, text: string, scoped: string, lines: numb
 }
 
 describe('rescope file selection', () => {
+  it.each([
+    'artifacts/upstream-first/handoff/2026-09-29-01/uncommitted-files/scripts/gen-cordis-catalog.ts',
+    'artifacts/upstream-first/handoff/2026-09-29-01/resume-evidence/recorded.spec.ts',
+  ])('preserves frozen handoff evidence in %s', (file) => {
+    expect(isRescopeExcluded(file)).toBe(true)
+  })
+
   it('preserves the recorded npm resolution', () => {
     expect(isRescopeExcluded('scripts/dependency-catalog/package-lock.json')).toBe(true)
   })
@@ -24,6 +31,9 @@ describe('rescope file selection', () => {
     'scripts/other/package-lock.json',
     'packages/example/src/index.ts',
     'packages/example/package.json',
+    'artifacts/upstream-first/handoff/2026-09-29-01/verify.mjs',
+    'artifacts/upstream-first/handoff/current/uncommitted-files/source.ts',
+    'scripts/uncommitted-files/source.ts',
   ])('keeps %s subject to upstream package-name checks', (file) => {
     expect(isRescopeExcluded(file)).toBe(false)
   })
@@ -60,7 +70,16 @@ describe('exactEditState', () => {
 })
 
 describe('product identifiers', () => {
+  it('preserves Lite preset ids while rescoping their generator imports', () => {
+    const file = 'scripts/gen-lite-preset-catalog.ts'
+    const text = "const preset = 'cordis'\nimport { Context } from 'cordis'\n"
+    const scoped = "const preset = 'cordis'\nimport { Context } from '@deepseek-ai/cordis'\n"
+    expectRoundTrip(file, text, scoped, 1)
+  })
+
   it.each([
+    'scripts/gen-lite-preset-catalog.ts',
+    'packages/preset/agent-preset-registry/lite-preset-descriptors.json',
     'apps/cli/tests/optional-bundle-transitions.e2e.ts',
     'apps/web/tests/agent-preset-selection.e2e.ts',
     'apps/web/tests/developer-tools-settings.e2e.ts',

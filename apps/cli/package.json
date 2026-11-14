@@ -18,19 +18,10 @@
     "lib/*.js",
     "lib/types/*.d.ts"
   ],
-  "dsh": {
-    "configTrees": [
-      {
-        "mount": "config/agent-presets",
-        "path": "../../packages/preset/agent-presets/presets",
-        "scanRoster": true
-      }
-    ]
-  },
   "license": "MIT",
   "dependencies": {
     "@deepseek-ai/cordis": "workspace:~",
-    "@deepseek-ai/cordis-plugin-hmr": "workspace:^",
+    "@deepseek-ai/cordis-plugin-hmr": "workspace:~",
     "@deepseek-ai/cordis-plugin-include": "workspace:~",
     "@deepseek-ai/cordis-plugin-loader": "workspace:~",
     "@deepseek-ai/cordis-plugin-timer": "workspace:~",
@@ -52,8 +43,6 @@
     "@deepseek-ai/dsh-goal-round-driver": "workspace:*",
     "@deepseek-ai/dsh-headless": "workspace:*",
     "@deepseek-ai/dsh-home-paths": "workspace:*",
-    "@deepseek-ai/dsh-hooks-claude-code": "workspace:^",
-    "@deepseek-ai/dsh-hooks-codex": "workspace:^",
     "@deepseek-ai/dsh-jobs-local": "workspace:*",
     "@deepseek-ai/dsh-launch-environment": "workspace:*",
     "@deepseek-ai/dsh-mcp-client": "workspace:*",
@@ -84,7 +73,6 @@
     "@deepseek-ai/dsh-tool-jobs": "workspace:*",
     "@deepseek-ai/dsh-tool-pwsh": "workspace:*",
     "@deepseek-ai/dsh-tool-pwsh-persistent": "workspace:*",
-    "@deepseek-ai/dsh-tool-ralph": "workspace:^",
     "@deepseek-ai/dsh-tool-skill": "workspace:*",
     "@deepseek-ai/dsh-tool-str-replace-editor": "workspace:*",
     "@deepseek-ai/dsh-tool-subagent": "workspace:*",
@@ -93,8 +81,6 @@
     "@deepseek-ai/dsh-tool-web": "workspace:*",
     "@deepseek-ai/dsh-tool-workflow": "workspace:*",
     "@deepseek-ai/dsh-web-app": "workspace:*",
-    "@deepseek-ai/dsh-webhook": "workspace:^",
-    "@deepseek-ai/dsh-webhook-github": "workspace:^",
     "@deepseek-ai/schemastery": "workspace:~",
     "commander": "^15.0.0",
     "js-yaml": "^4.3.2",
@@ -139,7 +125,7 @@
     "@deepseek-ai/dsh-credentials-local": "workspace:*",
     "@deepseek-ai/dsh-deepseek-llm-api-extensions": "workspace:*",
     "@deepseek-ai/dsh-experimental-agent-team": "workspace:*",
-    "@deepseek-ai/dsh-experimental-agent-team-profile": "workspace:^",
+    "@deepseek-ai/dsh-experimental-agent-team-profile": "workspace:*",
     "@deepseek-ai/dsh-experimental-tool-agent-team": "workspace:*",
     "@deepseek-ai/dsh-fs-observation-policy": "workspace:*",
     "@deepseek-ai/dsh-fs-sandbox": "workspace:*",

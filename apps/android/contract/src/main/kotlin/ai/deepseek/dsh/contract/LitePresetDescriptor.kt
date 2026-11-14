@@ -25,7 +25,7 @@ data class LitePresetPersona(
  * One Host-projected lite preset (§33): Lite owns no prompt text, so the Host
  * projection carries each selectable preset with its already-assembled system
  * prompt. One entry of
- * `packages/preset/agent-presets/lite-preset-descriptors.json`; unknown future
+ * `packages/preset/agent-preset-registry/lite-preset-descriptors.json`; unknown future
  * fields stay tolerated.
  */
 data class LitePresetDescriptor(
@@ -57,7 +57,7 @@ data class LitePresetDescriptor(
 
 /**
  * Parse the lite-preset documents a Host serves: the generated projection
- * `packages/preset/agent-presets/lite-preset-descriptors.json` and a live
+ * `packages/preset/agent-preset-registry/lite-preset-descriptors.json` and a live
  * preset listing share one schema. The runtime-variable presets (standard,
  * ptc) stay on the generator's exclusion list and never appear in a parsed
  * document.

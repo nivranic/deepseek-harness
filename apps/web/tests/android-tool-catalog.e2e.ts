@@ -1,11 +1,11 @@
 /** Live tool-catalog fetch (specification §32) from the current real Host through the production Kotlin client. */
 import { readFile } from 'node:fs/promises'
 import { fileURLToPath } from 'node:url'
-import { expect, it, vi } from 'vitest'
+import { expect, it } from 'vitest'
 import type {} from '@deepseek-ai/dsh-api-native-remote'
 import type {} from '@deepseek-ai/dsh-api-device-trust'
 import type {} from '@deepseek-ai/dsh-api-host-description'
-import { launchWebScaffold } from './scaffold.ts'
+import { launchObservedNativeScaffold } from './native-gateway-observer.ts'
 import { startAndroidGatewayDriver } from './android-gateway-driver.ts'
 
 /** One Kotlin-parsed descriptor as the driver emits it — the shared contract's six fields. */
@@ -19,21 +19,17 @@ interface ServedDescriptor {
 }
 
 it.skipIf(!process.env.DSH_ANDROID_JAVA)('the paired Kotlin client fetches the live Host catalog once and caches the parse', async () => {
-  const scaffold = await launchWebScaffold({
+  const scaffold = await launchObservedNativeScaffold({
     extraOverlayPath: fileURLToPath(new URL('./fixtures/native-remote.patch.yml', import.meta.url)),
     extraInstallAnchors: [fileURLToPath(new URL('./fixtures/native-remote/package.json', import.meta.url))],
-    // The shipped Web composition parks every model-facing tool behind preset
-    // realms, so its global catalog serves an empty list; the sanctioned Cordis
-    // insert gives the global view shipped tool ids to serve through tools/list.
-    cordisTools: true,
   })
   let driver: Awaited<ReturnType<typeof startAndroidGatewayDriver>> | undefined
   let catalogFetches = 0
-  const invoke = scaffold.ctx.typertGateway.invoke.bind(scaffold.ctx.typertGateway)
-  const spy = vi.spyOn(scaffold.ctx.typertGateway, 'invoke').mockImplementation(async (request) => {
-    if (request.namespace === 'tools' && request.method === 'list') catalogFetches++
-    return invoke(request)
-  })
+  const invoke = scaffold.nativeGateway.rpc
+  scaffold.nativeGateway.rpc = (endpoint, ...args) => {
+    if (endpoint === 'tools/list') catalogFetches++
+    return invoke(endpoint, ...args)
+  }
   try {
     driver = await startAndroidGatewayDriver(process.env.DSH_ANDROID_JAVA!)
     const { request: command } = driver
@@ -51,7 +47,7 @@ it.skipIf(!process.env.DSH_ANDROID_JAVA)('the paired Kotlin client fetches the l
     expect(fetched.type).toBe('ok')
     const served = fetched.value as ServedDescriptor[]
     expect(served.length).toBeGreaterThan(0)
-    expect(served).toEqual([...scaffold.ctx.tools.list().tools])
+    expect(served).toEqual([...(await scaffold.ctx.toolCatalog.list()).tools])
     // Every fetched id the shipped projection also carries declares identical fields.
     const shipped = JSON.parse(await readFile(
       fileURLToPath(new URL('../../../packages/core/tools/tool-descriptors.json', import.meta.url)), 'utf8'),
@@ -71,7 +67,6 @@ it.skipIf(!process.env.DSH_ANDROID_JAVA)('the paired Kotlin client fetches the l
     expect(await driver.stop()).toBe(0)
   } finally {
     await driver?.kill()
-    spy.mockRestore()
     await scaffold.close()
   }
 }, 90_000)

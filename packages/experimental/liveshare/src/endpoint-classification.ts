@@ -38,6 +38,7 @@ export type ReaderEndpointClass = Extract<ViewerEndpointClass, `reader-${string}
  */
 export const VIEWER_ENDPOINT_CLASSES = {
   // ── reader-global-read ─────────────────────────────────────────────────────────────
+  'tools/list': 'reader-global-read', // complete declarations for the current Host compositions
   'llm/listConfigurableProviders': 'reader-global-read', // the page reads the configurable provider catalog
   'llm/listProviders': 'reader-global-read', // the page lists providers
   'session/canOpenWorkspacePath': 'reader-global-read', // the page asks whether a path can be opened

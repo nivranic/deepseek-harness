@@ -39,7 +39,7 @@ it('presents an unknown command rejection without replacing its diagnostic', asy
     await mkdir(output, { recursive: true })
     await page.screenshot({ path: `${output}/command-error.png`, fullPage: true })
     const observation = { notice: await notice.textContent(), requests, runs }
-    const expected = JSON.parse(await readFile(new URL('./expected/remote-error-command.expected.json', import.meta.url), 'utf8')) as unknown
+    const expected: unknown = JSON.parse(await readFile(new URL('./expected/remote-error-command.expected.json', import.meta.url), 'utf8'))
     expect(observation).toEqual(expected)
     await writeFile(`${output}/command.json`, JSON.stringify(observation, null, 2) + '\n')
   } finally {

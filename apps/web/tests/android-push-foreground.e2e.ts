@@ -3,14 +3,14 @@ import { execFile } from 'node:child_process'
 import { mkdir, writeFile } from 'node:fs/promises'
 import { fileURLToPath } from 'node:url'
 import { promisify } from 'node:util'
-import { symbols } from '@deepseek-ai/cordis'
 import { RemoteError } from '@deepseek-ai/dsh-typert-protocol'
 import type {} from '@deepseek-ai/dsh-api-native-remote'
 import type {} from '@deepseek-ai/dsh-api-device-trust'
 import type {} from '@deepseek-ai/dsh-api-host-description'
 import type {} from '@deepseek-ai/dsh-user-approval'
 import { expect, it, vi } from 'vitest'
-import { compareOrRefreshGolden, launchWebScaffold, seedSession, webSnapshotMode } from './scaffold.ts'
+import { compareOrRefreshGolden, seedSession, webSnapshotMode } from './scaffold.ts'
+import { launchObservedNativeScaffold as launchWebScaffold } from './native-gateway-observer.ts'
 import { createChatScrollFixture } from './chat-scroll-fixture.ts'
 import { startAndroidCompanionUiDriver } from './android-companion-ui-driver.ts'
 
@@ -40,12 +40,6 @@ interface NotificationSnapshot {
   titles: string[]
   bodies: string[]
   postTimes: number[]
-}
-
-/** The native adapter captures a public arrow before tests run; that arrow calls these methods on its original receiver. */
-interface GatewayWireHarness {
-  openWireStream(endpoint: string, payload: unknown, signal: AbortSignal, requireDevice?: boolean): Promise<AsyncIterable<unknown>>
-  dispatchRpc(endpoint: string, payload: unknown, signal: AbortSignal, requireDevice?: boolean): Promise<unknown>
 }
 
 it.skipIf(!process.env.DSH_ANDROID_ADB || MODE === 'record')('Android resumes Push once after a real notification click and retains unsent input', async () => {
@@ -85,29 +79,25 @@ it.skipIf(!process.env.DSH_ANDROID_ADB || MODE === 'record')('Android resumes Pu
     }
     const info = scaffold.ctx.nativeRemote.describe()
     const host = scaffold.ctx.hostDescription.describe()
-    // Unwrap Cordis so the native adapter's captured arrow reaches this fixture's actual receiver.
-    const receiver = scaffold.ctx.get('typertGateway') as unknown as GatewayWireHarness & { [symbols.original]?: GatewayWireHarness }
-    const gateway = receiver[symbols.original] ?? receiver
-    const open = gateway.openWireStream.bind(gateway)
-    const openSpy = vi.spyOn(gateway, 'openWireStream').mockImplementation(async (endpoint, payload, signal, requireDevice) => {
-      if (endpoint !== '$events' || requireDevice !== true) return open(endpoint, payload, signal, requireDevice)
+    const open = scaffold.nativeGateway.open
+    scaffold.nativeGateway.open = async (endpoint, payload, uplink, peer, control, window, connection) => {
+      if (endpoint !== '$events') return open(endpoint, payload, uplink, peer, control, window, connection)
       const ordinal = ++signedEventStreams
-      if (ordinal !== 1) return open(endpoint, payload, signal, requireDevice)
-      const source = await open(endpoint, payload, AbortSignal.any([signal, endFirst.signal]), requireDevice)
+      if (ordinal !== 1) return open(endpoint, payload, uplink, peer, control, window, connection)
+      endFirst.signal.addEventListener('abort', () => { control.abort(endFirst.signal.reason) }, { once: true, signal: control.signal })
+      const source = await open(endpoint, payload, uplink, peer, control, window, connection)
       return (async function* () {
         firstStarted = true
         try { yield* source }
         finally { firstFinished.resolve(undefined) }
       })()
-    })
-    restore.push(() => { openSpy.mockRestore() })
+    }
     const signedCalls: string[] = []
-    const invoke = gateway.dispatchRpc.bind(gateway)
-    const rpcSpy = vi.spyOn(gateway, 'dispatchRpc').mockImplementation((endpoint, payload, signal, requireDevice) => {
-      if (requireDevice) signedCalls.push(endpoint)
-      return invoke(endpoint, payload, signal, requireDevice)
-    })
-    restore.push(() => { rpcSpy.mockRestore() })
+    const invoke = scaffold.nativeGateway.rpc
+    scaffold.nativeGateway.rpc = (endpoint, ...args) => {
+      signedCalls.push(endpoint)
+      return invoke(endpoint, ...args)
+    }
     let refusePrompt = true
     const businessInvoke = scaffold.ctx.typertGateway.invoke.bind(scaffold.ctx.typertGateway)
     const businessSpy = vi.spyOn(scaffold.ctx.typertGateway, 'invoke').mockImplementation((request) => {

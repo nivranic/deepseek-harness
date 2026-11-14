@@ -10,6 +10,7 @@ import type { ToolSchema } from '@deepseek-ai/dsh-llm'
 import { projectToolSchema } from './schema.ts'
 import { assertSupportedJsonSchema } from './json-schema.ts'
 import { RUN_CODE_NAME, ToolActivationError } from './contracts.ts'
+import { toolDescriptorOf, type ToolDescriptor } from './catalog.ts'
 import type {
   ToolDefinition, ToolRestriction, ToolExecution, ToolGuard,
   ResolvedToolSet, ToolActivationContext, ToolRegistrationOptions,
@@ -367,6 +368,20 @@ export class ToolsService extends Service {
   }
 
   /**
+   * Read complete Host declarations from the selected capability and executor scopes.
+   * @param scope - Agent or preset scope; omitted reads the root composition.
+   * @returns Frozen id-sorted descriptors, including executor-owned transports.
+   * @throws ToolDeclarationUnavailableError when any visible tool lacks required metadata.
+   * @throws ToolExecutorUnavailableError when this scope has no active executor.
+   */
+  descriptors(scope?: ScopeKey): readonly ToolDescriptor[] {
+    const executor = this.selectExecutor(scope)
+    return Object.freeze([...this.definitions(scope), ...executor.transportDefinitions ?? []]
+      .map(toolDescriptorOf)
+      .sort((left, right) => left.id.localeCompare(right.id)))
+  }
+
+  /**
    * Delegate a raw call batch to its Agent's provider or the deployment default.
    * Select at dispatch; accepted batches settle through that provider even if it unloads.
    * @param input - original calls, optional owning Agent, and optional logging step.
@@ -406,6 +421,7 @@ export default ToolsService
 
 export * from './contracts.ts'
 export * from './executor.ts'
+export * from './catalog.ts'
 export * from './schema.ts'
 export * from './json-schema.ts'
 export * from './presentation.ts'

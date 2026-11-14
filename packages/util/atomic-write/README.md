@@ -25,7 +25,7 @@ Use `dsh-atomic-write` to replace a file without exposing partial content or fol
 <a id="use-this-package"></a>
 ## Use this package
 
-Use `writeFileAtomic` when a file-backed store must replace one already-rendered string without ever exposing a partial, symlink-hijacked, or wider-permission state, and `withFileLock` when several processes read-modify-write the same file; `fsyncDirectory` serves callers that rename or remove an entry themselves and must commit that directory change on POSIX. The smallest path is one call with the final content and the replacement's permission bits. Use `writeFileAtomic` when a file-backed store must replace complete text or binary content without ever exposing a partial, symlink-hijacked, or wider-permission state, and `withFileLock` when several processes read-modify-write the same file. The smallest path is one call with the final content and the replacement's permission bits.
+Use `writeFileAtomic` when a file-backed store must replace complete text or binary content without ever exposing a partial, symlink-hijacked, or wider-permission state, and `withFileLock` when several processes read-modify-write the same file. The smallest path is one call with the final content and the replacement's permission bits.
 
 ### Writing a file atomically
 
@@ -121,9 +121,6 @@ Nothing here enters a request prefix, so provider cache reuse is unaffected.
 
 These limits define where the package is not the right tool. They are current package constraints, not a task backlog.
 
-- **Directory fsync is POSIX-only** — the replacement itself is atomic on Windows (rename maps to `MoveFileExW`), but the parent-directory entry is not fsynced there; on POSIX both the temp file and the directory are fsynced.
-- **String content only** — no `Buffer` or stream form until a consumer needs one.
-- **Orphaned locks require operator recovery** — a process that exits while holding the lock leaves the sibling behind; later writers time out without deleting it.
 - **Atomic, not durable** — no `fsync` of the file or its directory, so after a crash the rename may be observed unwound. The file-backed stores here re-read and republish on boot, keeping durability the caller's policy.
 - **Callers supply complete content** — strings and `Uint8Array` (including `Buffer`) are accepted; streaming writes are unsupported.
 - **Some orphaned locks require operator recovery** — a lock whose record is empty or incomplete, or names a PID a live process reused, stays in place; later writers time out without deleting it. A contender that ends between creating a claim and removing the lock leaves both `<filename>.lock` and `<filename>.lock.takeover-<record hash>`, and the operator removes both.

@@ -25,7 +25,9 @@ describe.skipIf(webSnapshotMode() === 'record')('checkpoint capture order throug
       const resumeIndex = lines.findIndex(line => (JSON.parse(line) as Record<string, unknown>)['type'] === 'session/end-seed')
       expect(resumeIndex).toBeGreaterThan(1)
       const closedPrefix = lines.slice(0, resumeIndex).join('\n') + '\n'
-      const latestTitle = (JSON.parse(lines.at(-1)!) as { data: { title: string } }).data.title
+      const finalLine = lines.at(-1)
+      if (finalLine === undefined) throw new Error('checkpoint fixture has no final title')
+      const latestTitle = (JSON.parse(finalLine) as { data: { title: string } }).data.title
       const id = await seedSession(scaffold, closedPrefix, 'checkpoint-order', 'standard', { createdAt: 1 })
       const resolved = await scaffold.ctx.sessionController.resolveAgent(id)
       if ('error' in resolved) throw resolved.error

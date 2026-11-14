@@ -1,0 +1,4 @@
+{
+  "meta.title": "Host 诊断 API",
+  "meta.description": "报告 Host 就绪状态并收集脱敏诊断信息。"
+}

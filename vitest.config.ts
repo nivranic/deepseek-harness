@@ -75,22 +75,6 @@ const nonLinuxWebWorkerTests = process.platform === 'linux'
 
 const platformUnsupportedTests = [...windowsUnsupportedTests, ...nonLinuxWebWorkerTests]
 
-// Lane specs whose feature surface the official master merge replaced: the
-// production code they exercise is now official-shaped, so they fail against
-// APIs that no longer exist (analyzeRemoteErrors, the
-// native-remote peer port, the
-// settings-hosts retarget/observation accessors, HandoffAction's removed
-// component, and the Lite catalog
-// cluster whose dsh-agent-presets package no longer exists). Each file stays on
-// disk awaiting its re-port; the lint plane parks the same cluster in
-// .oxlintrc.json, and the inventory and re-port checklist live in
-// .merge-helpers/port-notes/2026-11-10-native-remote-peer-port-parked.md (附8).
-const parkedLaneTests = [
-  'packages/preset/agent-preset-registry/tests/lite-preset-projection.spec.ts',
-  'scripts/gen-lite-preset-catalog.spec.ts',
-  'scripts/gen-tool-catalog.spec.ts',
-]
-
 const windowsUnsupportedCoveragePackages = process.platform === 'win32'
   ? [...windowsUnsupportedPackages, 'packages/subprocess/*']
   : []
@@ -221,7 +205,7 @@ export default defineConfig({
     ],
     // .tsx: client component specs (jsdom via per-file @vitest-environment pragma).
     include: testIncludes,
-    exclude: [...platformUnsupportedTests, ...parkedLaneTests],
+    exclude: platformUnsupportedTests,
     // One coverage invocation aggregates both projects. Every suite forks for
     // Node stability; process-bound suites stay separate for inventory control.
     projects: [
@@ -242,7 +226,6 @@ export default defineConfig({
           include: testIncludes,
           exclude: [
             ...platformUnsupportedTests,
-            ...parkedLaneTests,
             ...processBoundTests,
             ...coverageExemptExcludes,
           ],
@@ -262,7 +245,6 @@ export default defineConfig({
           include: processBoundTests,
           exclude: [
             ...platformUnsupportedTests,
-            ...parkedLaneTests,
             ...coverageExemptExcludes,
           ],
         },

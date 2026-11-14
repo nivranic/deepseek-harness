@@ -63,7 +63,7 @@ External profile management uses `dsh plugin --profile <name> ...`. That command
 
 ## Build and distribution
 
-The closure check traverses application, package, vendor, and native workspace manifests, including the published `dsh` CLI. Every reachable required workspace peer must be an explicit runtime dependency; disabling automatic peer installation cannot remove those obligations. Build commands use installed tools and disable pnpm's automatic pre-command installation, so production deploy state cannot remove the packaging tool.
+The closure check traverses application, package, vendor, and native workspace manifests, including the published `dsh` CLI. Every reachable required workspace peer must be an explicit required dependency of the deploy root, the consuming package, or an ancestor on every dependency path. A provider declared only on another branch or as an optional dependency does not satisfy that requirement. Build commands use installed tools and disable pnpm's automatic pre-command installation, so production deploy state cannot remove the packaging tool.
 
 Production deployment permits unused workspace patches for packages outside the runtime closure; patches for included packages must still apply successfully. This exception is confined to the deploy command; repository installation still rejects unused patches.
 

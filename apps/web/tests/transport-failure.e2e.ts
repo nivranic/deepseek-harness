@@ -75,7 +75,7 @@ it.each(['en-US', 'zh-CN'].flatMap(locale => ['json', 'binary', 'interaction'].m
     const observation = { locale, kind, label, action, automaticReconnects: 0,
       manualReconnects: negotiations - initialNegotiations, replacementSockets: sockets.length - initialSockets,
       draftPreserved: await input.textContent() === draft, prompts, browserClockAdvanceMs: 60_000 }
-    const expected = JSON.parse(await readFile(new URL(`./expected/invalid-stream-${name}.expected.json`, import.meta.url), 'utf8')) as unknown
+    const expected: unknown = JSON.parse(await readFile(new URL(`./expected/invalid-stream-${name}.expected.json`, import.meta.url), 'utf8'))
     expect(observation).toEqual(expected)
     await writeFile(join(output, `${name}.json`), JSON.stringify(observation, null, 2) + '\n')
   } finally {
@@ -133,7 +133,7 @@ it('reports an interrupted Prompt transport and preserves explicit retry after r
     await expect.poll(() => requests).toBe(2)
     await expect.poll(() => input.textContent()).toBe(draft)
     const observation = { errorText, requestsAfterReconnect, explicitRetryRequests: requests, draft, acceptedPrompts, reconnected: true }
-    const expected = JSON.parse(await readFile(new URL('./expected/transport-failure.expected.json', import.meta.url), 'utf8')) as unknown
+    const expected: unknown = JSON.parse(await readFile(new URL('./expected/transport-failure.expected.json', import.meta.url), 'utf8'))
     expect(observation).toEqual(expected)
     await writeFile(join(output, 'observation.json'), JSON.stringify(observation, null, 2) + '\n')
   } finally {

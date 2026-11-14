@@ -231,6 +231,11 @@ export function createMcpToolDefinition(
   return {
     name,
     description,
+    version: 1,
+    risk: 'high',
+    permissions: [],
+    supportsLite: false,
+    supportsRemote: true,
     parameters: inputSchema,
     output: createOutput(rawName, supportedOutputSchema(options.outputSchema)),
     execute: createExecutor(ctx, options, projections),

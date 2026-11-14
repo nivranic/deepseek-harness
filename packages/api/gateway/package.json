@@ -20,9 +20,9 @@
     },
     "./client": {
       "types": "./lib/types/client/index.d.ts",
-      "default": "./lib/client.browser.js",
       "node": "./lib/client.node.js",
-      "browser": "./lib/client.browser.js"
+      "browser": "./lib/client.browser.js",
+      "default": "./lib/client.browser.js"
     },
     "./types": {
       "types": "./lib/types/types.d.ts",

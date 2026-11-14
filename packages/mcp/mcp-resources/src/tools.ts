@@ -32,6 +32,11 @@ export function registerResourceTools(ctx: Context, request: RequestResource): (
   const dispose = ctx.effect(function* () {
     yield ctx.tools.register(defineTool({
       name: 'list_mcp_resources',
+      version: 1,
+      risk: 'low',
+      permissions: [],
+      supportsLite: false,
+      supportsRemote: true,
       description: 'List resources available from an MCP server.',
       parameters: listParameters,
       output,
@@ -41,6 +46,11 @@ export function registerResourceTools(ctx: Context, request: RequestResource): (
     }))
     yield ctx.tools.register(defineTool({
       name: 'list_mcp_resource_templates',
+      version: 1,
+      risk: 'low',
+      permissions: [],
+      supportsLite: false,
+      supportsRemote: true,
       description: 'List parameterized resource URI templates from an MCP server.',
       parameters: listParameters,
       output,
@@ -50,6 +60,11 @@ export function registerResourceTools(ctx: Context, request: RequestResource): (
     }))
     yield ctx.tools.register(defineTool({
       name: 'read_mcp_resource',
+      version: 1,
+      risk: 'low',
+      permissions: [],
+      supportsLite: false,
+      supportsRemote: true,
       description: 'Read an MCP resource by URI from the named server. Use a listed URI or an expanded resource template.',
       parameters: {
         server: listParameters.server,

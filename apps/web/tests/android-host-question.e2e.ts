@@ -1,20 +1,14 @@
 /** A pending Host Question stays scoped to its own Host across selection, restart, and reply. */
 import { mkdir, readFile, writeFile } from 'node:fs/promises'
 import { fileURLToPath } from 'node:url'
-import { symbols } from '@deepseek-ai/cordis'
 import { expect, it, vi } from 'vitest'
 import type {} from '@deepseek-ai/dsh-api-native-remote'
 import type {} from '@deepseek-ai/dsh-api-device-trust'
 import type {} from '@deepseek-ai/dsh-api-host-description'
 import type {} from '@deepseek-ai/dsh-api-session-controller'
-import { compareOrRefreshGolden, fixtureUserPrompts, launchWebScaffold, webSnapshotMode } from './scaffold.ts'
+import { compareOrRefreshGolden, fixtureUserPrompts, webSnapshotMode } from './scaffold.ts'
+import { launchObservedNativeScaffold as launchWebScaffold } from './native-gateway-observer.ts'
 import { startAndroidCompanionUiDriver } from './android-companion-ui-driver.ts'
-
-/** Native entry points call these methods on the original Cordis receiver captured at startup. */
-interface GatewayWireHarness {
-  openWireStream(endpoint: string, payload: unknown, signal: AbortSignal, requireDevice?: boolean): Promise<AsyncIterable<unknown>>
-  dispatchRpc(endpoint: string, payload: unknown, signal: AbortSignal, requireDevice?: boolean): Promise<unknown>
-}
 
 const MODE = webSnapshotMode()
 const FIXTURE = fileURLToPath(new URL('../../../snapshots/web/question-composer/session.v3.jsonl', import.meta.url))
@@ -42,13 +36,11 @@ it.skipIf(!process.env.DSH_ANDROID_ADB || MODE === 'record')('Android isolates a
     const promptsA: string[] = []
     const promptsB: string[] = []
     for (const [scaffold, answers, prompts] of [[a, answersA, promptsA], [b, answersB, promptsB]] as const) {
-      const receiver = scaffold.ctx.get('typertGateway') as unknown as GatewayWireHarness & { [symbols.original]?: GatewayWireHarness }
-      const gateway = receiver[symbols.original] ?? receiver
-      const dispatch = gateway.dispatchRpc.bind(gateway)
-      vi.spyOn(gateway, 'dispatchRpc').mockImplementation((endpoint, payload, signal, requireDevice) => {
-        if (requireDevice === true && endpoint === '$events/result') answers.push(endpoint)
-        return dispatch(endpoint, payload, signal, requireDevice)
-      })
+      const dispatch = scaffold.nativeGateway.rpc
+      scaffold.nativeGateway.rpc = (endpoint, payload, signal, peer) => {
+        if (endpoint === '$events/result') answers.push(endpoint)
+        return dispatch(endpoint, payload, signal, peer)
+      }
       const invoke = scaffold.ctx.typertGateway.invoke.bind(scaffold.ctx.typertGateway)
       vi.spyOn(scaffold.ctx.typertGateway, 'invoke').mockImplementation(async (request) => {
         if (request.namespace === 'session' && request.method === 'prompt') prompts.push('prompt')

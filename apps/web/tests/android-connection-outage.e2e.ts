@@ -2,29 +2,14 @@
 import { fileURLToPath } from 'node:url'
 import { basename } from 'node:path'
 import { setTimeout as delay } from 'node:timers/promises'
-import { symbols } from '@deepseek-ai/cordis'
-import { expect, it, vi } from 'vitest'
+import { expect, it } from 'vitest'
 import type {} from '@deepseek-ai/dsh-api-native-remote'
 import type {} from '@deepseek-ai/dsh-api-device-trust'
 import type {} from '@deepseek-ai/dsh-api-host-description'
 import type {} from '@deepseek-ai/dsh-api-session-controller'
-import { compareOrRefreshGolden, launchWebScaffold, webSnapshotMode } from './scaffold.ts'
+import { compareOrRefreshGolden, webSnapshotMode } from './scaffold.ts'
+import { launchObservedNativeScaffold as launchWebScaffold } from './native-gateway-observer.ts'
 import { startAndroidCompanionUiDriver } from './android-companion-ui-driver.ts'
-
-/** Host-plane connection-hygiene surface used by this lane to produce a deterministic outage. */
-interface GatewayHostPlane {
-  terminateDeviceConnections(request: { deviceId: string }): { terminated: number }
-}
-
-interface GatewayWireHarness {
-  openWireStream(
-    endpoint: string,
-    payload: unknown,
-    signal: AbortSignal,
-    requireDevice?: boolean,
-    connection?: unknown,
-  ): Promise<AsyncIterable<unknown>>
-}
 
 const MODE = webSnapshotMode()
 // The outage leg reads settled facts and drives no model call, so the replay Host boots
@@ -58,14 +43,12 @@ it.skipIf(!process.env.DSH_ANDROID_ADB || MODE === 'record')('Android publishes 
     const infoB = b.ctx.nativeRemote.describe()
     const hostB = b.ctx.hostDescription.describe()
     const issued = b.ctx.deviceTrust.issuePairing('collaborator')
-    const receiver = b.ctx.get('typertGateway') as unknown as GatewayHostPlane & GatewayWireHarness & { [symbols.original]?: GatewayHostPlane & GatewayWireHarness }
-    const gateway = receiver[symbols.original] ?? receiver
-    const openStream = gateway.openWireStream.bind(gateway)
+    const openStream = b.nativeGateway.open
     const followOpens: number[] = []
-    vi.spyOn(gateway, 'openWireStream').mockImplementation((endpoint, payload, signal, requireDevice, connection) => {
+    b.nativeGateway.open = (endpoint, ...args) => {
       if (endpoint === 'session/follow') followOpens.push(followOpens.length)
-      return openStream(endpoint, payload, signal, requireDevice, connection)
-    })
+      return openStream(endpoint, ...args)
+    }
     driver = await startAndroidCompanionUiDriver(
       process.env.DSH_ANDROID_ADB!, process.env.DSH_ANDROID_SERIAL ?? '', infoB.port, true, [infoA.port],
     )
@@ -104,7 +87,7 @@ it.skipIf(!process.env.DSH_ANDROID_ADB || MODE === 'record')('Android publishes 
     await untilFacts(text => text === settled)
     expect(followOpens.length, 'the follow stream opened once before the outage').toBe(1)
     stage = 'outage'
-    const terminated = gateway.terminateDeviceConnections({ deviceId })
+    const terminated = b.ctx.typertGateway.terminateDeviceConnections({ deviceId })
     expect(terminated.terminated, 'the Host destroyed the device carrier').toBeGreaterThanOrEqual(1)
     stage = 'state-word'
     await command({ op: 'waitLocationFactsContains', text: '重连中' })

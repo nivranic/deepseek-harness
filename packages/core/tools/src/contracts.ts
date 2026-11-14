@@ -8,12 +8,8 @@ import type { JsonValue } from '@deepseek-ai/dsh-util-values'
 import type { JsonSchemaNode } from './json-schema.ts'
 import type { ToolCallView, ToolResultView } from './presentation.ts'
 import type { RemoteCapabilityPermission } from '@deepseek-ai/dsh-typert-protocol'
-
-/**
- * Host-assessed risk tier of one tool (specification §32), from the tool's
- * side-effect surface; clients display it, never re-derive it.
- */
-export type ToolRisk = 'low' | 'moderate' | 'high' | 'critical'
+import type { ToolRisk } from './types.ts'
+export type { ToolRisk } from './types.ts'
 
 /** Reserved model-facing program transport name. */
 export const RUN_CODE_NAME = 'run_code'
@@ -37,8 +33,7 @@ export interface ToolDefinition extends ToolSchema {
    * Descriptor schema version of this tool's host-only declaration
    * (specification §32), a positive integer starting at 1; it advances only
    * when the declaration semantics change, never for tool-behavior fixes.
-   * Optional in the merged surface: official-authored tools omit it until the
-   * Lite catalog consumers return to enforce it.
+   * Catalog reads require complete declarations for every reported tool.
    */
   readonly version?: number
   /** Host-assessed risk tier (specification §32); see {@link ToolRisk}. */

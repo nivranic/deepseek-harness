@@ -81,7 +81,7 @@ it('suspends rejected interaction protocol replies until explicit reconnect and 
     await expect(approval).resolves.toBe('rejected')
     const observation = { rejectedCode, automaticReconnects: 0, manualReconnects: negotiations - initialNegotiations,
       replies, decisions, samePendingInteraction: true, browserClockAdvanceMs: 60_000 }
-    const expected = JSON.parse(await readFile(new URL('./expected/interaction-reply-errors.expected.json', import.meta.url), 'utf8')) as unknown
+    const expected: unknown = JSON.parse(await readFile(new URL('./expected/interaction-reply-errors.expected.json', import.meta.url), 'utf8'))
     expect(observation).toEqual(expected)
     await writeFile(`${output}/observation.json`, JSON.stringify(observation, null, 2) + '\n')
     agent.session.append('turn/end', { turn: 1, reason: { kind: 'completed' } })
@@ -199,8 +199,8 @@ it('settles one approval and keeps the losing Client connected after interaction
     await expect.poll(() => records.map(items => items.length)).toEqual([1, 1])
     expect(records[0]).toEqual(records[1])
     expect(records[0]![0]).toEqual({
-      requestId: expect.any(String) as unknown, sessionId, type: 'approval', requiredPermission: 'approval.respond',
-      createdAt: expect.any(Number) as unknown, status: 'pending', revision: 1,
+      requestId: expect.any(String), sessionId, type: 'approval', requiredPermission: 'approval.respond',
+      createdAt: expect.any(Number), status: 'pending', revision: 1,
     })
     await secondPanel.getByRole('button', { name: 'Allow once', exact: true }).click()
     await losingReplyReady.promise
@@ -230,7 +230,7 @@ it('settles one approval and keeps the losing Client connected after interaction
     await expect.poll(() => records.map(items => items.length)).toEqual([4, 3])
     expect(records[0]![2]).toEqual(records[1]![2])
     expect(records[0]![3]).toEqual({ ...records[1]![2], status: 'resolved', revision: 2 })
-    const expected = JSON.parse(await readFile(new URL('./expected/host-capability/interaction-closed.expected.json', import.meta.url), 'utf8')) as unknown
+    const expected: unknown = JSON.parse(await readFile(new URL('./expected/host-capability/interaction-closed.expected.json', import.meta.url), 'utf8'))
     expect({ rejectedReplies, outcomes: decisions, losingResult: response.ok ? 'unexpected-success' : response.error.code,
       reconnects: secondNegotiations - baselineNegotiations,
       revisionReconnects: firstNegotiations - baselineFirstNegotiations,

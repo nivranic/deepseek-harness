@@ -5,6 +5,7 @@ import { createHash } from 'node:crypto'
 import { lstatSync, readFileSync, writeFileSync } from 'node:fs'
 import { resolve } from 'node:path'
 import ts from 'typescript'
+import { isFrozenHandoffEvidence } from './handoff-evidence.ts'
 
 const root = resolve(import.meta.dirname, '..')
 const baselinePath = 'scripts/no-unknown-casts.baseline.json'
@@ -69,6 +70,7 @@ function isSource(file: string): boolean {
   return /\.(?:[cm]?[jt]s|[jt]sx)$/u.test(file)
     && !file.startsWith('vendor/')
     && !file.startsWith('.agents/notes/archived/')
+    && !isFrozenHandoffEvidence(file)
 }
 
 /**

@@ -15,6 +15,7 @@ import { Deque } from '@deepseek-ai/dsh-deque'
 import { carrierKeyOf } from '@deepseek-ai/dsh-scope'
 import { isJsonValue, type JsonValue } from '@deepseek-ai/dsh-util-values'
 import { API_REMOTE_FORWARDED_EVENTS } from './remote-events.ts'
+import { ToolCatalogGateway } from './tool-catalog.ts'
 
 // The owner packages' client-safe `./types` exports carry the cordis `Events`
 // declarations for every allowlisted event. Pulling them into this face is what
@@ -34,12 +35,14 @@ export type {} from '@deepseek-ai/dsh-api-session-controller/types'
 
 export { API_REMOTE_FORWARDED_EVENTS } from './remote-events.ts'
 export type { ApiRemoteForwardedEvent } from './types.ts'
+export type { ToolCatalogGateway } from './tool-catalog.ts'
 
 /** Required Host service: the Gateway owns the physical Remote stream mux. */
 export const inject = ['typertGateway']
 
 /** Host plugin body registering this application's selected Cordis event source. */
 export function apply(ctx: Context): void {
+  ctx.inject(['tools'], (inner) => { inner.plugin(ToolCatalogGateway) })
   ctx.effect(
     () => ctx.typertGateway.registerRemoteEvents(remoteEventSource(ctx), { home: homedir(), platform: platform() }),
     'api-remotes: forwarded Cordis event source',

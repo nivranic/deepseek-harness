@@ -108,6 +108,11 @@ export function registerListSubagentModels(
 ): void {
   ctx.tools.register(defineTool({
     name: 'list_subagent_models',
+    version: 1,
+    risk: 'low',
+    permissions: [],
+    supportsLite: false,
+    supportsRemote: true,
     description:
       'Inspect subagent models without changing the current Agent. No arguments: providers; '
       + '`provider`: allowed models; `provider` + `model`: that model and its reasoning efforts. '

@@ -1,6 +1,8 @@
 /** Platform-neutral assembly of generated Host Remote contributions. */
 
 import type { Context } from '@deepseek-ai/cordis'
+import toolCatalogRemote from '@deepseek-ai/dsh-api-remotes/remote'
+export type {} from '@deepseek-ai/dsh-api-remotes/remote'
 import productAnalyticsRemote from '@deepseek-ai/dsh-client-product-analytics/remote'
 export type {} from '@deepseek-ai/dsh-client-product-analytics/remote'
 import hostDescriptionRemote from '@deepseek-ai/dsh-api-host-description/remote'
@@ -202,6 +204,7 @@ export async function apply(ctx: Context): Promise<() => Promise<void>> {
     for (const contribution of [
       // Host facts mount first: admission layers describe() them on every reset.
       hostDescriptionRemote,
+      toolCatalogRemote,
       deviceTrustRemote, nativeRemote, hostDiagnosticsRemote,
       productAnalyticsRemote, agentPresetsRemote, commandsRemote, settingsControllerRemote, accountRemote,
       goalsRemote, llmRemote, dynamicRemote, scheduleRemote,

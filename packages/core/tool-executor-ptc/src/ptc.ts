@@ -296,6 +296,11 @@ export function createRunCodeTool(
   const calls = new PtcCalls(ctx)
   const definition = defineTool({
     name: RUN_CODE_NAME,
+    version: 1,
+    risk: 'high',
+    permissions: [],
+    supportsLite: false,
+    supportsRemote: true,
     // The description and `code` parameter description are placeholders here:
     // the language-aware getters installed below replace both, resolving the
     // loaded runtime's flavor at schema-emission time so the schema the MODEL

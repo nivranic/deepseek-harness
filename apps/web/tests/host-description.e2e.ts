@@ -127,7 +127,7 @@ it('negotiates file metadata independently from observations and refreshes held 
       withdrawnCalls: calls.filter(call => call.stage === 'withdrawn' && call.method !== 'list').length,
       restoredMetadata: true,
     }
-    const expected = JSON.parse(await readFile(new URL('./expected/host-capability/file-resources.expected.json', import.meta.url), 'utf8')) as unknown
+    const expected: unknown = JSON.parse(await readFile(new URL('./expected/host-capability/file-resources.expected.json', import.meta.url), 'utf8'))
     expect(observation).toEqual(expected)
     await writeFile(join(output, 'observation.json'), JSON.stringify(observation, null, 2) + '\n')
     await page.screenshot({ path: join(output, 'restored.png'), fullPage: true })
@@ -275,7 +275,7 @@ it('admits directory browsing independently and preserves creation committed bef
       explicitAdoptionAfterRestoration: await scaffold.ctx.workspaceRegistry.resolveByPath(newFolder) !== undefined,
       selectedAfterRestoration: await restoredSection.locator('[role="treeitem"][aria-selected="true"]').count() === 1,
     }
-    const expected = JSON.parse(await readFile(new URL('./expected/host-capability/directory-operations.expected.json', import.meta.url), 'utf8')) as unknown
+    const expected: unknown = JSON.parse(await readFile(new URL('./expected/host-capability/directory-operations.expected.json', import.meta.url), 'utf8'))
     expect(observation).toEqual(expected)
     await writeFile(join(output, 'observation.json'), JSON.stringify(observation, null, 2) + '\n')
     await page.screenshot({ path: join(output, 'restored.png'), fullPage: true })
@@ -388,7 +388,7 @@ it('separates Workspace registry, session organization and follow capabilities a
     await rename.getByRole('button', { name: 'Rename', exact: true }).click()
     await page.getByRole('treeitem').filter({ hasText: 'Workspace restored' }).first().waitFor()
     const observation = { follows, mutations, retainedSession: await page.getByRole('treeitem').filter({ hasText: 'Workspace capability session' }).count() }
-    const expected = JSON.parse(await readFile(new URL('./expected/host-capability/workspace-operations.expected.json', import.meta.url), 'utf8')) as unknown
+    const expected: unknown = JSON.parse(await readFile(new URL('./expected/host-capability/workspace-operations.expected.json', import.meta.url), 'utf8'))
     expect(observation).toEqual(expected)
     await writeFile(join(output, 'observation.json'), JSON.stringify(observation, null, 2) + '\n')
     await page.screenshot({ path: join(output, 'restored.png'), fullPage: true })

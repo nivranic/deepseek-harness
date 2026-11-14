@@ -31,7 +31,7 @@ Mount `dsh-tools` wherever agents call tools: it provides `ctx.tools`, the regis
 
 ### Register a tool
 
-`defineTool` builds a typed tool definition: a model-facing name, description, and parameter schema, a canonical output declaration, an `execute` body that returns only the declared JSON value, and the host-only §32 declaration — `version` (positive integer, starts at 1), `risk` (`low`/`moderate`/`high`/`critical`, classified from the tool's side-effect surface), `permissions` (extra Remote permissions completing one call may claim; empty claims none), `supportsLite`, and `supportsRemote`. Model arguments are validated before execution; invalid input becomes a normal error result, and `tools.register()` rejects an invalid declaration with a `TypeError`. The declaration never reaches the model wire; it projects onto `ToolDescriptor` through `ctx.tools.descriptors(scope)` and the `tools/list` Remote operation, and the shipped default declarations are recorded in the generated [`tool-descriptors.json`](tool-descriptors.json).
+`defineTool` builds a typed tool definition with model-facing parameters, canonical output, an execution body, and Host declarations. `ctx.tools.descriptors(scope)` requires every reported tool to declare a positive safe-integer `version`, `risk`, `permissions`, `supportsLite`, and `supportsRemote`. An incomplete declaration rejects the entire catalog read with `ToolDeclarationUnavailableError`. Descriptors include the selected executor's `transportDefinitions` and return frozen, id-sorted copies. The generated [`tool-descriptors.json`](tool-descriptors.json) records shipped declarations. The [API adapter](../../api/remotes/README.md#use-this-package) owns Remote access to current declarations.
 
 Canonical values belong to execution; the Session records rendered content and optional presentation metadata instead. Replacing or redacting that content does not remove the canonical value available to a programmatic caller; a policy that must deny that access must block execution or replace the value.
 
@@ -125,7 +125,7 @@ The registry holds typed `ToolDefinition`s in scoped layers and projects them on
 
 - [`src/index.ts`](src/index.ts) — Plugin entry and public tool APIs; scoped tool service and executor selection.
 - [`src/contracts.ts`](src/contracts.ts) — Tool definitions, invocation results, guards and decisions.
-- [`src/capabilities.ts`](src/capabilities.ts) — The `tool.catalog.v1` Remote capability declaration.
+- [`src/catalog.ts`](src/catalog.ts) and [`src/types.ts`](src/types.ts) — Declaration projection, completeness failure, and Client-safe descriptor types.
 - [`src/executor.ts`](src/executor.ts) — Executor descriptions and batch input/output.
 - [`src/pipeline.ts`](src/pipeline.ts) — Shared `prepare`, `dispatch`, and `complete` stages, their result types, and the batch entry point.
 - [`src/batch.ts`](src/batch.ts) — Concurrency, ordered results and optional Session logging.

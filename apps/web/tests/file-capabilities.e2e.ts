@@ -460,7 +460,7 @@ it('admits listing, text, complete files and HTML dependencies independently acr
       previewWithoutListCalls: calls.filter(call => call.stage === 'preview-without-list' && call.method === 'list').length,
       htmlRestoredWithoutList: true,
     }
-    const expected = JSON.parse(await readFile(new URL('./expected/host-capability/file-ui.expected.json', import.meta.url), 'utf8')) as unknown
+    const expected: unknown = JSON.parse(await readFile(new URL('./expected/host-capability/file-ui.expected.json', import.meta.url), 'utf8'))
     expect(observation).toEqual(expected)
     await writeFile(join(output, 'observation.json'), JSON.stringify(observation, null, 2) + '\n')
   } finally {
@@ -652,9 +652,9 @@ it('updates draft and sent reference preview actions across Host capability repl
     await expect.poll(() => input.locator('[data-reference-openable]').count()).toBe(2)
     expect(await input.textContent()).toBe(draft)
     expect(JSON.stringify(agent.session.snapshotEvents())).toBe(before)
-    const expectedTranscript = JSON.parse(await readFile(
+    const expectedTranscript: unknown = JSON.parse(await readFile(
       new URL('./expected/host-capability/transcript-previews.expected.json', import.meta.url), 'utf8',
-    )) as unknown
+    ))
     expect(transcriptSnapshots).toEqual(expectedTranscript)
     await writeFile(join(output, 'transcript-actual.json'), JSON.stringify(transcriptSnapshots, null, 2) + '\n')
     await writeFile(join(output, 'observation.json'), JSON.stringify({

@@ -12,9 +12,6 @@
 
 import { describe, expect, it } from 'vitest'
 import type { PromptAssembly } from '@deepseek-ai/dsh-system-prompt'
-import type {
-  LitePresetExclusion, LitePresetProjection,
-} from '@deepseek-ai/dsh-agent-presets'
 import {
   assertCatalogCoverage,
   personaRowOf,
@@ -23,6 +20,8 @@ import {
   requiresRuntimeVariables,
   templateVariablesIn,
   type LitePresetHarvest,
+  type LitePresetExclusion,
+  type LitePresetProjection,
 } from './gen-lite-preset-catalog.ts'
 
 /** One assembly fixture: sections joined by name, nothing else contributing. */

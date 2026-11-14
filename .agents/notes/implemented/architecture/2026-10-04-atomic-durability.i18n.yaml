@@ -2,21 +2,21 @@
 # section, a hash of its English and Chinese blocks outside code blocks and generated regions.
 # After editing either side, bring the other along and re-record with:
 #   pnpm run verify-translation-pairing --write .agents/notes/implemented/architecture/2026-10-04-atomic-durability.md
-/agent-note-crash-durable-atomic-writes-and-a-retained-flat-migration-generation:
-  en: 8bc0040fdc28a8ff
-  zh: 2ccd5332d5741b2c
-/agent-note-crash-durable-atomic-writes-and-a-retained-flat-migration-generation/problem:
-  en: cf44bf0c24a77f25
-  zh: 9aba8d07b644eef2
-/agent-note-crash-durable-atomic-writes-and-a-retained-flat-migration-generation/decision:
-  en: 9d4d867a3037547c
-  zh: e43caecbd64c2e3a
-/agent-note-crash-durable-atomic-writes-and-a-retained-flat-migration-generation/alternatives-considered:
-  en: 2066198cb4456797
-  zh: 4a57195efa4786af
-/agent-note-crash-durable-atomic-writes-and-a-retained-flat-migration-generation/consequences:
-  en: 071581d4a76accf1
-  zh: 0c9f4663d8d64c49
-/agent-note-crash-durable-atomic-writes-and-a-retained-flat-migration-generation/open-follow-ups:
-  en: 144a163a70ef0f55
-  zh: c45c05b43bf04bdf
+/agent-note-atomic-replacement-and-a-retained-flat-migration-generation:
+  en: d35a724c8eb4f433
+  zh: e8637f0e251978fa
+/agent-note-atomic-replacement-and-a-retained-flat-migration-generation/problem:
+  en: 0790a09922467e04
+  zh: 7ad0046fc5ab5994
+/agent-note-atomic-replacement-and-a-retained-flat-migration-generation/decision:
+  en: f120f88e1372898c
+  zh: 0a1d89c3459de998
+/agent-note-atomic-replacement-and-a-retained-flat-migration-generation/alternatives-considered:
+  en: e620e7d44dd5b948
+  zh: 35d496295d439c09
+/agent-note-atomic-replacement-and-a-retained-flat-migration-generation/consequences:
+  en: d7293740b3d42aa7
+  zh: b6f3daa1588d1efe
+/agent-note-atomic-replacement-and-a-retained-flat-migration-generation/open-follow-ups:
+  en: f65c182050f93b12
+  zh: 9645873a23da8bd1
