@@ -73,12 +73,12 @@ export function renderRemoteErrorEnvelopeSchema(
     },
     additionalProperties: true,
   })
-  return JSON.stringify({
+  return JSON.stringify(comparableSchema({
     ...json,
     $id: 'urn:deepseek-harness:remote-errors',
     title: 'DeepSeek Harness Remote failure envelope',
     description: 'Validates known code details and preserves unknown codes as opaque diagnostics. Acceptance does not imply capability, permission, recovery policy or protocol compatibility. Additional fields are accepted; validators must not discard the original diagnostic.',
-  }, null, 2) + '\n'
+  }), null, 2) + '\n'
 }
 
 /** Union branch order depends on compiler import order and has no JSON Schema meaning. */

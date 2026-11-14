@@ -965,7 +965,7 @@ def _smoke_sdk_authoring_cached(base_url: str, executable: Path, update_snapshot
     cache_environment = {**os.environ, "DSH_RESOURCE_CACHE": str(cache), "DSH_RUNTIME_DOWNLOAD": "primary"}
     primary = Path(json.loads(subprocess.check_output([str(executable)], encoding="utf-8", env=cache_environment)))
     resources = primary.parent
-    manifest = json.loads((primary / "runtime.json").read_text())
+    manifest = json.loads((primary / "runtime.json").read_text(encoding="utf-8"))
     for mode in ("default", "replacement", "disabled"):
         with tempfile.TemporaryDirectory(prefix="dsh-sdk-authoring-") as temporary:
             root = Path(temporary).resolve()
@@ -1084,7 +1084,7 @@ def smoke_sdk_plugin_manager(base_url: str, executable: Path, cache: Path) -> No
                     assert result.final_response == expected, result.final_response
                     if decision == "rejected":
                         assert manifest_path.read_bytes() == before
-                manifest = json.loads(manifest_path.read_text())
+                manifest = json.loads(manifest_path.read_text(encoding="utf-8"))
                 assert "dsh-sdk-managed-fixture" in manifest["dependencies"], manifest
                 assert "dsh-sdk-managed-fixture" in manifest["dsh"]["profile"]["bundles"], manifest
             finally:
@@ -1100,10 +1100,10 @@ def smoke_sdk_plugin_manager(base_url: str, executable: Path, cache: Path) -> No
                         "--workspace", str(root), "--dsh-bin", str(executable)]
         for decision, expected in (("n", "plugin installation rejected"), ("y", "plugin installation saved")):
             run = subprocess.run([*example_args, PLUGIN_INSTALL_PROMPT + json.dumps(str(plugin)) + "\n"],
-                                 input=decision + "\n", env=example_environment, text=True, capture_output=True, timeout=120)
+                                 input=decision + "\n", env=example_environment, text=True, encoding="utf-8", capture_output=True, timeout=120)
             assert run.returncode == 0, run.stderr
             assert expected in run.stdout, run.stdout
-        assert "dsh-sdk-managed-fixture" in json.loads((example_home / "profiles/sdk/package.json").read_text())["dependencies"]
+        assert "dsh-sdk-managed-fixture" in json.loads((example_home / "profiles/sdk/package.json").read_text(encoding="utf-8"))["dependencies"]
 
 
 def smoke_sdk_office(executable: Path) -> None:
@@ -1132,7 +1132,7 @@ def smoke_sdk_office(executable: Path) -> None:
         selected = native if f"@deepseek-ai/libreoffice-kit-{native}" in declared else "wasm"
         expected_backend = "wasm" if selected == "wasm" else "native"
         engines = [
-            json.loads(manifest.read_text())["engine"]["kind"]
+            json.loads(manifest.read_text(encoding="utf-8"))["engine"]["kind"]
             for manifest in (office / "node_modules/@deepseek-ai").glob("libreoffice-kit-*/prebuilds.json")
         ]
         if engines != [expected_backend]:
@@ -1178,7 +1178,7 @@ def smoke_sdk_office(executable: Path) -> None:
             request_timeout_seconds=480,
         ):
             pass
-        result = json.loads(result_path.read_text())
+        result = json.loads(result_path.read_text(encoding="utf-8"))
         if result["backend"] != expected_backend:
             raise AssertionError(f"Office conversion did not use {expected_backend}: {result}")
         if not result["moduleUrl"].startswith(office.as_uri() + "/"):
@@ -1658,7 +1658,7 @@ def smoke_sdk_mcp(base_url: str, executable: Path | None) -> None:
             result = harness.run(MCP_PROMPT, session_id="mcp-smoke")
 
         assert result.final_response == MCP_TEXT, result.final_response
-        assert discovery_log.read_text().splitlines() == [
+        assert discovery_log.read_text(encoding="utf-8").splitlines() == [
             "server/discover",
             "initialize",
             "notifications/initialized",
@@ -1710,6 +1710,7 @@ def smoke_sdk_profile_plugin(base_url: str) -> None:
             cwd=root,
             env=environment,
             text=True,
+            encoding="utf-8",
             capture_output=True,
             check=False,
         )
@@ -1719,7 +1720,7 @@ def smoke_sdk_profile_plugin(base_url: str) -> None:
                 f"returncode={installed.returncode} (0x{installed.returncode & 0xffffffff:08x}) "
                 f"stdout={installed.stdout!r} stderr={installed.stderr!r}"
             )
-        manifest = json.loads((dsh_home / "profiles" / "sdk" / "package.json").read_text())
+        manifest = json.loads((dsh_home / "profiles" / "sdk" / "package.json").read_text(encoding="utf-8"))
         if "dsh-python-blackbox-plugin" not in manifest.get("dependencies", {}):
             raise AssertionError(f"dsh plugin did not record the external dependency: {manifest}")
         if "dsh-python-blackbox-plugin" not in manifest["dsh"]["profile"]["bundles"]:

@@ -150,7 +150,7 @@
   en: 94bfc5b03c63baef
   zh: 339338a0e74696c3
 /tool-schema-catalog/deepseek-ai-dsh-tool-fs/read-image:
-  en: 4e82f36d958c9c1c
+  en: f6f7a1140066ce04
   zh: d528e01a0939795a
 /tool-schema-catalog/deepseek-ai-dsh-tool-fs/write:
   en: 22e7c232e157a1e2
@@ -159,10 +159,10 @@
   en: 703fea005ce84c50
   zh: 703fea005ce84c50
 /tool-schema-catalog/deepseek-ai-dsh-tool-fs-search/glob:
-  en: 418d627507ddd693
+  en: 3ba734ba7852cdd5
   zh: c6ce31ff2c195520
 /tool-schema-catalog/deepseek-ai-dsh-tool-fs-search/grep:
-  en: 224288aaf3fbd214
+  en: 6e1f7da62cc9a35b
   zh: 594817b0befeea86
 /tool-schema-catalog/deepseek-ai-dsh-tool-terminal:
   en: 77501c1b592b6a88
@@ -237,7 +237,7 @@
   en: 927a5ac0974b7642
   zh: 927a5ac0974b7642
 /tool-schema-catalog/deepseek-ai-dsh-tool-skill/skill:
-  en: cd716dc11308817d
+  en: 9b159d5831855afb
   zh: 275ee82af0e0f59a
 /tool-schema-catalog/deepseek-ai-dsh-tool-session-query:
   en: eac1dff4b6d9e195

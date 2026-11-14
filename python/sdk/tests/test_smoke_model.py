@@ -748,6 +748,7 @@ def test_profile_plugin_failure_reports_native_exit_status(monkeypatch: pytest.M
     def failed_install(*args: object, **kwargs: object) -> subprocess.CompletedProcess[str]:
         command = args[0]
         assert isinstance(command, list)
+        assert kwargs["encoding"] == "utf-8"
         assert "plugin with spaces & unicode-插件" in command[-1]
         return subprocess.CompletedProcess(args=[], returncode=returncode, stdout="", stderr="")
 

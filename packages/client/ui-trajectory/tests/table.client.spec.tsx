@@ -1443,6 +1443,7 @@ describe('TrajectoryTable', () => {
           text: 'run_code · {"code":"..."}',
           inputDetail: '{"code":"..."}',
           callId: 'root',
+          callLocation: { turn: 1, step: 1 },
           timeSeconds: 0.5,
         },
         {
@@ -1450,6 +1451,7 @@ describe('TrajectoryTable', () => {
           kind: 'subtool',
           text: 'bash · {"command":"ls"}',
           callId: 'nested-first',
+          callLocation: { turn: 1, step: 1 },
           timeSeconds: 0.1,
         },
         {
@@ -1457,6 +1459,7 @@ describe('TrajectoryTable', () => {
           kind: 'subtool',
           text: 'read · {"file":"a"}',
           callId: 'nested-target',
+          callLocation: { turn: 1, step: 1 },
           timeSeconds: 0.1,
         },
         {
@@ -1464,6 +1467,7 @@ describe('TrajectoryTable', () => {
           kind: 'tool',
           text: 'write · {"file":"b"}',
           callId: 'sibling',
+          callLocation: { turn: 1, step: 1 },
           timeSeconds: 0.2,
         },
       ],
@@ -1572,7 +1576,7 @@ describe('TrajectoryTable', () => {
       <NestedCallTable
         initialAssistants={[NESTED_ASSISTANT_ID]}
         initialTools={[NESTED_TOOL_ID]}
-        inspectCallId="nested-target"
+        inspectCallId={'[1,1,"nested-target"]'}
         onInspectApplied={onInspectApplied}
       />,
     )

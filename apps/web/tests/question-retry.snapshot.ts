@@ -45,7 +45,7 @@ it.skipIf(process.env.DSH_SNAPSHOT === 'record').each([
     { id: 'llm-deepseek', disabled: true },
     { id: 'llm-deepseek-account', disabled: true },
     { id: 'agent-default-model', config: { provider: 'deepseek-official', model: 'deepseek-v4-flash' } },
-    isolatedStandardPresetPatch(root),
+    isolatedStandardPresetPatch(root, true),
     { id: 'session-title-llm', disabled: true },
     { id: 'session-telemetry-otel', disabled: true },
     { id: 'session-log-deepseek', config: { enabled: false } },

@@ -107,9 +107,10 @@ function appBoot(): AppBoot {
 /**
  * Isolate the shipped standard preset's instruction and skill inputs for recorded subprocess replays.
  * @param root - Scenario-owned temporary root for filesystem skill discovery.
+ * @param skills - Whether the recording includes the standard preset's skill catalog.
  * @returns A preset declaration override preserving the shipped plugin entries and Loader expressions.
  */
-export function isolatedStandardPresetPatch(root: string): PatchOptions {
+export function isolatedStandardPresetPatch(root: string, skills: boolean): PatchOptions {
   const { composeEntries, loadOverlayPatches } = appBoot()
   const file = join(REPO_ROOT, 'packages/bundle/web-app/presets/standard.patch.yml')
   const entries = composeEntries([loadOverlayPatches('Web snapshot', file)])
@@ -117,9 +118,10 @@ export function isolatedStandardPresetPatch(root: string): PatchOptions {
   if (config === undefined) throw new Error('Web snapshot requires the shipped standard preset')
   const plugins = applyEntryPatches(config.plugins, [
     { id: 'agent-instructions', disabled: true },
-    { id: 'tool-skill', disabled: true },
+    { id: 'tool-skill', disabled: !skills },
     { id: 'skill-filesystem', config: {
-      dshHome: join(root, 'skills'), agentsHome: join(root, 'agents'), bundledSkillDir: join(root, 'bundled'), watch: false,
+      dshHome: join(root, 'skills'), agentsHome: join(root, 'agents'), bundledSkillDir: join(root, 'bundled'),
+      watch: false,
     } },
   ], (message) => { throw new Error(message) })
   return { id: 'preset-standard', config: { ...config, plugins } }

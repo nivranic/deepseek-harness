@@ -97,7 +97,7 @@ it.skipIf(!process.env.DSH_ANDROID_ADB)('Android reconnects after a real Host SI
     { id: 'webserver', config: { host: '127.0.0.1', port: webPort } },
     { id: 'web-runtime', config: { openBrowser: false, printUrl: false } },
     { id: 'llm-deepseek', config: { baseURL: mock.baseURL, apiKeyEnv: 'DSH_ANDROID_RESTART_KEY' } },
-    isolatedStandardPresetPatch(root),
+    isolatedStandardPresetPatch(root, false),
     { id: 'session-title-llm', disabled: true },
     { id: 'session-telemetry-otel', disabled: true },
     { id: 'open-in-app', disabled: true },

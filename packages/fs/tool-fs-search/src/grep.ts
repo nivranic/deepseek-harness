@@ -85,7 +85,7 @@ function validateInclude(include: string): void {
  * Throws `ToolArgsError` (`INVALID_ARGS`) otherwise.
  *
  * @param args - the schema-validated `grep` arguments.
- * @returns the accepted input, unchanged.
+ * @returns the accepted input with an empty `include` omitted.
  */
 export function parseGrepArgs(args: { pattern: string; path?: string; include?: string }): GrepInput {
   if (args.pattern.length === 0) throw new ToolArgsError(['pattern must be a non-empty string'])
@@ -95,7 +95,7 @@ export function parseGrepArgs(args: { pattern: string; path?: string; include?: 
   return {
     pattern: args.pattern,
     ...args.path !== undefined ? { path: args.path } : {},
-    ...args.include !== undefined ? { include: args.include } : {},
+    ...include !== undefined ? { include } : {},
   }
 }
 
@@ -234,14 +234,14 @@ function formatRetainedGrep(retained: RetainedItems<GrepMatch>, spillRef?: Spill
 
 /**
  * Pending-call presentation: a search card titled by the pattern (and target /
- * include filter).
+ * include filter). An exact empty include contributes no filter suffix.
  *
  * @param args - the raw tool arguments; `pattern`, `path`, and `include` feed the title.
  * @returns the generic card view (`kind: 'search'`) shown while the call runs.
  */
 export function presentGrepCall(args: { pattern: string; path?: string; include?: string }): GenericCallView {
   const where = args.path !== undefined ? ` in ${args.path}` : ''
-  const filter = args.include !== undefined ? ` (${args.include})` : ''
+  const filter = args.include !== undefined && args.include !== '' ? ` (${args.include})` : ''
   return { card: 'generic', title: `Grep ${args.pattern}${where}${filter}`, kind: 'search', rawInput: args.pattern }
 }
 
@@ -286,8 +286,7 @@ export function applyGrepTool(ctx: Context, caps: GrepToolCaps): void {
   const tool = defineTool({
     name: 'grep',
     description: 'Search file contents with a ripgrep regular expression. Returns matching lines with line numbers, grouped by file. '
-      + `Returns the first ${caps.maxMatches} matches inline; a capped result reports where the complete match list was saved. `
-      + 'Use read on a matched file for surrounding context.',
+      + `Returns up to ${caps.maxMatches} matches; a larger result reports where the complete match list was saved.`,
     version: 1,
     risk: 'low',
     permissions: [],

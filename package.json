@@ -223,7 +223,6 @@
     "gen-provider-data": "tsx packages/llm/llm-pi-ai/scripts/gen-provider-data.ts",
     "verify-provider-data": "tsx packages/llm/llm-pi-ai/scripts/gen-provider-data.ts --check",
     "verify-product-use": "tsx scripts/verify-product-use.ts",
-    "check:ci:windows-observational": "tsx scripts/run-gates.ts ci-windows-observational",
     "verify-package-invariants": "tsx scripts/verify-package-invariants.ts",
     "verify-built-package-invariants": "node scripts/verify-built-package-invariants.mjs",
     "resolve-translation-pairing-conflicts": "tsx scripts/merge-translation-pairing.ts --resolve",

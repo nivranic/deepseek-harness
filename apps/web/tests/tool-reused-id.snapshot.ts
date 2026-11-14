@@ -44,7 +44,7 @@ it.skipIf(process.env.DSH_SNAPSHOT === 'record').each([
     { id: 'llm-deepseek', disabled: true },
     { id: 'llm-deepseek-account', disabled: true },
     { id: 'agent-default-model', config: { provider: 'deepseek-official', model: 'deepseek-v4-flash' } },
-    isolatedStandardPresetPatch(root),
+    isolatedStandardPresetPatch(root, false),
     { id: 'session-title-llm', disabled: true },
     { id: 'session-telemetry-otel', disabled: true },
     { id: 'session-log-deepseek', config: { enabled: false } },
@@ -246,7 +246,7 @@ it.skipIf(process.env.DSH_SNAPSHOT === 'record').each([
     await expect.poll(() => writes.count()).toBe(2)
     expect(await writes.nth(0).getAttribute('data-error')).toBe('true')
     expect(await writes.nth(1).getAttribute('data-error')).toBeNull()
-    expect(await writes.nth(0).textContent()).toContain('SANDBOX')
+    expect(await writes.nth(0).textContent()).toContain('[sandbox: file access denied under read-only mode]')
     expect(await writes.nth(1).textContent()).toContain('Created file')
     await page.screenshot({ path: `${artifacts}-trajectory.png`, fullPage: true })
     for (const step of [2, 1]) {
@@ -263,7 +263,7 @@ it.skipIf(process.env.DSH_SNAPSHOT === 'record').each([
       const details = page.getByRole('complementary', { name: 'Event details' })
       await expect.poll(() => details.textContent()).toContain(`Turn 4 · Step ${step}`)
       await details.getByRole('tab', { name: 'Result', exact: true }).click()
-      await expect.poll(() => details.textContent()).toContain(step === 1 ? 'SANDBOX' : 'Created file')
+      await expect.poll(() => details.textContent()).toContain(step === 1 ? '[sandbox: file access denied under read-only mode]' : 'Created file')
       await page.screenshot({ path: `${artifacts}-inspect-${step}.png`, fullPage: true })
     }
     await writeFile(`${artifacts}-observation.json`, JSON.stringify({

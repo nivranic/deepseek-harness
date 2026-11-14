@@ -68,6 +68,15 @@ describe('Remote failure envelope schema', () => {
       .toThrow('differ across faces')
   })
 
+  it('renders identical documents for compiler-face union orderings', () => {
+    const host = z.object({ kind: z.union([z.literal('turn'), z.literal('job')]) })
+    const client = z.object({ kind: z.union([z.literal('job'), z.literal('turn')]) })
+    const render = (schema: z.ZodType) => renderRemoteErrorEnvelopeSchema(expected, [
+      { face: 'host', schemas: new Map([['owner/refused', schema]]) },
+    ])
+    expect(render(host)).toBe(render(client))
+  })
+
   it('refuses tuple projection rather than silently omitting cardinality', () => {
     expect(() => document(z.object({ values: z.tuple([z.string(), z.number().optional()]) }))).toThrow('tuple cardinality')
     expect(() => document(z.object({ values: z.array(z.tuple([z.string()])) }))).toThrow('tuple cardinality')

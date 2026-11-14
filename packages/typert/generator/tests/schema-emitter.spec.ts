@@ -1004,9 +1004,9 @@ async function loadSchema(source: string): Promise<z.ZodType> {
   const path = join(root, 'schema.mjs')
   writeFileSync(path, source)
   const generated = await import(`${pathToFileURL(path).href}?test=${Date.now()}-${String(temporaryRoots.length)}`) as {
-    Root: z.ZodType
+    Root: () => z.ZodType
   }
-  return generated.Root
+  return generated.Root()
 }
 
 function distinct(values: readonly string[]): string[] {
