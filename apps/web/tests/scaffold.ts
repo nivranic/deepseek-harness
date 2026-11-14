@@ -30,10 +30,11 @@ import { basename, dirname, join, resolve } from 'node:path'
 import { pathToFileURL } from 'node:url'
 import type { Page } from 'playwright'
 import { expect } from 'vitest'
+import { captureFixtureHomePaths, realizeFixtureHomePaths } from './fixture-home-paths.ts'
 import { Context } from '@deepseek-ai/cordis'
 import { DSH_LAUNCH_ENVIRONMENT_KEY, type LaunchEnvironmentSnapshot } from '@deepseek-ai/dsh-launch-environment'
-import Loader from '@deepseek-ai/cordis-plugin-loader'
-import { stringifyEntryYaml, type PatchOptions } from '@deepseek-ai/cordis-plugin-include'
+import Loader, { type EntryOptions } from '@deepseek-ai/cordis-plugin-loader'
+import { applyEntryPatches, stringifyEntryYaml, type PatchOptions } from '@deepseek-ai/cordis-plugin-include'
 import {
   captureExpectedWorkspaceSnapshot,
   captureWorkspaceSnapshot,
@@ -101,6 +102,29 @@ let builtAppBoot: AppBoot | undefined
 function appBoot(): AppBoot {
   builtAppBoot ??= requireBuilt('@deepseek-ai/dsh-app-boot') as AppBoot
   return builtAppBoot
+}
+
+/**
+ * Isolate the shipped standard preset's instruction and skill inputs for recorded subprocess replays.
+ * @param root - Scenario-owned temporary root for filesystem skill discovery.
+ * @param skills - Whether the recording includes the standard preset's skill catalog.
+ * @returns A preset declaration override preserving the shipped plugin entries and Loader expressions.
+ */
+export function isolatedStandardPresetPatch(root: string, skills: boolean): PatchOptions {
+  const { composeEntries, loadOverlayPatches } = appBoot()
+  const file = join(REPO_ROOT, 'packages/bundle/web-app/presets/standard.patch.yml')
+  const entries = composeEntries([loadOverlayPatches('Web snapshot', file)])
+  const config = entries.find(entry => entry.id === 'preset-standard')?.config as { plugins: EntryOptions[] } | undefined
+  if (config === undefined) throw new Error('Web snapshot requires the shipped standard preset')
+  const plugins = applyEntryPatches(config.plugins, [
+    { id: 'agent-instructions', disabled: true },
+    { id: 'tool-skill', disabled: !skills },
+    { id: 'skill-filesystem', config: {
+      dshHome: join(root, 'skills'), agentsHome: join(root, 'agents'), bundledSkillDir: join(root, 'bundled'),
+      watch: false,
+    } },
+  ], (message) => { throw new Error(message) })
+  return { id: 'preset-standard', config: { ...config, plugins } }
 }
 
 // Host-side web e2e cannot import a browser package: doing so would pull that
@@ -725,7 +749,8 @@ export async function launchWebScaffold(options: LaunchOptions = {}): Promise<We
   // Live fields use a shared deployment layer; process-specific ports and roots stay in CLI overlays.
   const formEntries = new Set(['agent-default-model', 'agent-preset-registry', 'llm-deepseek', 'llm-pi-ai',
     'web', 'web-search-deepseek', 'web-deepseek-api', 'agent-loop', 'subagent', 'bash-sandbox', 'pwsh-sandbox',
-    'session-log-deepseek', 'ui-theme', 'locale', 'ui-chat', 'ui-conversation', 'ui-settings', 'ui-settings-general', 'permission'])
+    'session-log-deepseek', 'session-telemetry-otel', 'ui-theme', 'locale', 'ui-chat', 'ui-conversation',
+    'ui-settings', 'ui-settings-general', 'permission'])
   const formDefaults: PatchOptions[] = []
   const processOverlays = overlayPatches.map((patch) => {
     if (patch.id === undefined || !formEntries.has(patch.id) || patch.config === undefined) return patch
@@ -1217,24 +1242,33 @@ export function normalizeWebSessionVolatiles(log: string, workspaceCwd?: string)
   }).join('\n')
 }
 
-function stableSessionFixture(
-  session: Session,
+/**
+ * Stabilize a complete Web Session for versioned fixture write-back.
+ * @param log - Persisted or live Session JSONL, including its header.
+ * @param sessionId - Runtime Session identity.
+ * @param existing - Selected prior generation used to preserve stable identities.
+ * @param workspaceCwd - Session workspace path.
+ * @param harnessHome - Isolated home whose paths become fixture tokens.
+ * @returns current-format fixture text without volatile paths or opaque identities.
+ */
+export function stableWebSessionFixture(
+  log: string,
+  sessionId: SessionId,
   existing: string,
   workspaceCwd: string,
   harnessHome: string,
 ): string {
   const prepared = prepareSessionSnapshotFixtureForComparison(
-    normalizeWebSessionVolatiles(rawSessionLog(session), workspaceCwd),
+    captureFixtureHomePaths(normalizeWebSessionVolatiles(log, workspaceCwd), harnessHome),
   )
   const stabilized = existing === ''
     ? prepared
     : stabilizeRefreshLog(prepared, existing, [], {
-      sessionIds: [String(session.id)],
+      sessionIds: [String(sessionId)],
       cwd: workspaceCwd,
     })
   const fresh = scrubSessionSnapshot(stabilized)
-    .split(session.id).join('{{session:1}}')
-    .split(harnessHome).join('{{harnessHome}}')
+    .split(sessionId).join('{{session:1}}')
   const stable = redactSessionSnapshotIds(stabilizeFixtureMessageIds([fresh], [existing]))[0]
   if (stable === undefined) throw new Error('session harvest produced no stabilized fixture')
   return stable
@@ -1268,7 +1302,7 @@ async function assertReplaySession(
   if (sessionCwd === undefined) throw new Error(`${fixturePath}: replayed session has no cwd`)
   const actual = rawSessionLog(session)
   if (mode === 'refresh' && writesCurrentSessionFixtures(manifest, mode)) {
-    expected = stableSessionFixture(session, expected, sessionCwd, harnessHome)
+    expected = stableWebSessionFixture(actual, session.id, expected, sessionCwd, harnessHome)
     expectedPath = recordedSessionFixturePath(fixturePath, session.header.version)
     await writeFile(expectedPath, expected)
   }
@@ -1282,9 +1316,9 @@ async function assertReplaySession(
     cwd: typeof expectedHeader.cwd === 'string' ? expectedHeader.cwd : '\0no-cwd\0',
   }
   const actualSnapshot = normalizeSessionSnapshots([normalizeWebSessionVolatiles(actual)], actualContext)[0]
-    ?.split(harnessHome).join('{{harnessHome}}')
-  const expectedSnapshot = normalizeSessionSnapshots([normalizeWebSessionVolatiles(expected)], expectedContext)[0]
-    ?.split(harnessHome).join('{{harnessHome}}')
+  const expectedSnapshot = normalizeSessionSnapshots([
+    normalizeWebSessionVolatiles(realizeFixtureHomePaths(expected, harnessHome)),
+  ], expectedContext)[0]
   expect(actualSnapshot, `${fixturePath}: persisted replay`).toBe(expectedSnapshot)
 
   if (manifest.header?.pin !== true) return
@@ -1323,8 +1357,9 @@ export async function recordFixture(scaffold: WebScaffold, sessionId: SessionId,
   const target = recordedSessionFixturePath(fixturePath, agent.session.header.version)
   const existingPath = existsSync(target) ? target : fixturePath
   const existing = existsSync(existingPath) ? await readFile(existingPath, 'utf8') : ''
-  await writeFile(target, stableSessionFixture(
-    agent.session,
+  await writeFile(target, stableWebSessionFixture(
+    rawSessionLog(agent.session),
+    agent.session.id,
     existing,
     scaffold.workspaceCwd,
     scaffold.harnessHome,

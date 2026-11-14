@@ -1,0 +1,374 @@
+{
+  "scope": "Read-only launch-chain diagnosis with generated link fixtures",
+  "cases": [
+    {
+      "launcher": "node",
+      "exitCode": 0,
+      "stderr": "",
+      "probe": {
+        "pid": 46512,
+        "exitCode": 0,
+        "stderr": "",
+        "security": {
+          "groups": [
+            {
+              "sidHash": "023d1598c33b0b396b446ef0579e9c1bd48842d9b6dda3cd29bab4bf0cf984e7",
+              "attributes": 16
+            },
+            {
+              "sidHash": "1b20bede1acc437a583f75e3b6762a74d153048662b59a16dea02548fc867d1d",
+              "attributes": 7
+            },
+            {
+              "sidHash": "37597742669ef2b46b12a9a7ecd272eb218ea6def10c2fe812646b5b84cedf0e",
+              "attributes": 7
+            },
+            {
+              "sidHash": "3de7899caa1c3d49b4f359cd32b8e29c702c65700e44518c91307068aefd27f5",
+              "attributes": 16
+            },
+            {
+              "sidHash": "4a2d2e13ef5c4cded4ad673fee53e046b73cd5f7389c6727229bd06c9706f974",
+              "attributes": 96
+            },
+            {
+              "sidHash": "58c636c70d714c883acaba602353fe02bfd3f1d529a908d35d85350ee3580194",
+              "attributes": 7
+            },
+            {
+              "sidHash": "5e5a6a93eca3a6768bebb1972dc137143fdf8b38d34ef7ea5097deb53a712c19",
+              "attributes": 7
+            },
+            {
+              "sidHash": "6b383a626d048928df132818219a46455bd28bcbc753bd73608fb744b7997280",
+              "attributes": 7
+            },
+            {
+              "sidHash": "76eafa21a3eb3c1fe7ff253262bccd357e6c9815f031405a655ead424042b840",
+              "attributes": 7
+            },
+            {
+              "sidHash": "7fb8491a632b99f21bd0a15f8455abf55f6d37f15cf793bf8c216baac9000ce6",
+              "attributes": 7
+            },
+            {
+              "sidHash": "85a0f5c35e199d2b4e6e0c321b0fbebbe61a1fb1ba504001045f234e4189c353",
+              "attributes": 7
+            },
+            {
+              "sidHash": "a5a154a1e2e097b73d845c742b8da29c69a3dd6f23f2cde1fbe987e0e94fc3a9",
+              "attributes": 3221225479
+            },
+            {
+              "sidHash": "c8bfe41bc151a5d563c4de3bb7ac6d18832c6dfdfccb186ab09d2e9b52b02f53",
+              "attributes": 7
+            },
+            {
+              "sidHash": "cf6203fe526708faa694c99d4d91210aec685e27b034d5284a7d77bfe96d4375",
+              "attributes": 7
+            },
+            {
+              "sidHash": "d75d72b4253803c4666e7a2fda7dda5582b5a7adb3f173aafd5e79fac1bdb21d",
+              "attributes": 7
+            },
+            {
+              "sidHash": "f193630662f3c31669544502d52f0c69e29af82a7f3c0defd9e445e8877af28a",
+              "attributes": 7
+            }
+          ],
+          "restrictedGroups": [],
+          "privileges": [
+            {
+              "luid": [
+                19,
+                0
+              ],
+              "attributes": 0
+            },
+            {
+              "luid": [
+                23,
+                0
+              ],
+              "attributes": 3
+            },
+            {
+              "luid": [
+                25,
+                0
+              ],
+              "attributes": 0
+            },
+            {
+              "luid": [
+                33,
+                0
+              ],
+              "attributes": 0
+            }
+          ],
+          "integrity": {
+            "sidHash": "4a2d2e13ef5c4cded4ad673fee53e046b73cd5f7389c6727229bd06c9706f974",
+            "attributes": 96
+          },
+          "flags": {
+            "18": 3,
+            "20": 0,
+            "21": 1,
+            "23": 1,
+            "24": 0,
+            "27": 3,
+            "29": 0
+          },
+          "defaultDaclHash": "51b49f5af257d921343c7285d988f13013c57f7dea8b39aa4445610cd639dc36"
+        }
+      }
+    },
+    {
+      "launcher": "repository",
+      "exitCode": 0,
+      "stderr": "dsh: initialized profile sdk at C:\\Users\\11585\\AppData\\Local\\Temp\\dsh-installed-native-links-zflggh4p\\home\\profiles\\sdk\n",
+      "probe": {
+        "pid": 45520,
+        "exitCode": 0,
+        "stderr": "",
+        "security": {
+          "groups": [
+            {
+              "sidHash": "023d1598c33b0b396b446ef0579e9c1bd48842d9b6dda3cd29bab4bf0cf984e7",
+              "attributes": 16
+            },
+            {
+              "sidHash": "1b20bede1acc437a583f75e3b6762a74d153048662b59a16dea02548fc867d1d",
+              "attributes": 7
+            },
+            {
+              "sidHash": "37597742669ef2b46b12a9a7ecd272eb218ea6def10c2fe812646b5b84cedf0e",
+              "attributes": 7
+            },
+            {
+              "sidHash": "3de7899caa1c3d49b4f359cd32b8e29c702c65700e44518c91307068aefd27f5",
+              "attributes": 16
+            },
+            {
+              "sidHash": "4a2d2e13ef5c4cded4ad673fee53e046b73cd5f7389c6727229bd06c9706f974",
+              "attributes": 96
+            },
+            {
+              "sidHash": "58c636c70d714c883acaba602353fe02bfd3f1d529a908d35d85350ee3580194",
+              "attributes": 7
+            },
+            {
+              "sidHash": "5e5a6a93eca3a6768bebb1972dc137143fdf8b38d34ef7ea5097deb53a712c19",
+              "attributes": 7
+            },
+            {
+              "sidHash": "6b383a626d048928df132818219a46455bd28bcbc753bd73608fb744b7997280",
+              "attributes": 7
+            },
+            {
+              "sidHash": "76eafa21a3eb3c1fe7ff253262bccd357e6c9815f031405a655ead424042b840",
+              "attributes": 7
+            },
+            {
+              "sidHash": "7fb8491a632b99f21bd0a15f8455abf55f6d37f15cf793bf8c216baac9000ce6",
+              "attributes": 7
+            },
+            {
+              "sidHash": "85a0f5c35e199d2b4e6e0c321b0fbebbe61a1fb1ba504001045f234e4189c353",
+              "attributes": 7
+            },
+            {
+              "sidHash": "a5a154a1e2e097b73d845c742b8da29c69a3dd6f23f2cde1fbe987e0e94fc3a9",
+              "attributes": 3221225479
+            },
+            {
+              "sidHash": "c8bfe41bc151a5d563c4de3bb7ac6d18832c6dfdfccb186ab09d2e9b52b02f53",
+              "attributes": 7
+            },
+            {
+              "sidHash": "cf6203fe526708faa694c99d4d91210aec685e27b034d5284a7d77bfe96d4375",
+              "attributes": 7
+            },
+            {
+              "sidHash": "d75d72b4253803c4666e7a2fda7dda5582b5a7adb3f173aafd5e79fac1bdb21d",
+              "attributes": 7
+            },
+            {
+              "sidHash": "f193630662f3c31669544502d52f0c69e29af82a7f3c0defd9e445e8877af28a",
+              "attributes": 7
+            }
+          ],
+          "restrictedGroups": [],
+          "privileges": [
+            {
+              "luid": [
+                19,
+                0
+              ],
+              "attributes": 0
+            },
+            {
+              "luid": [
+                23,
+                0
+              ],
+              "attributes": 3
+            },
+            {
+              "luid": [
+                25,
+                0
+              ],
+              "attributes": 0
+            },
+            {
+              "luid": [
+                33,
+                0
+              ],
+              "attributes": 0
+            }
+          ],
+          "integrity": {
+            "sidHash": "4a2d2e13ef5c4cded4ad673fee53e046b73cd5f7389c6727229bd06c9706f974",
+            "attributes": 96
+          },
+          "flags": {
+            "18": 3,
+            "20": 0,
+            "21": 1,
+            "23": 1,
+            "24": 0,
+            "27": 3,
+            "29": 0
+          },
+          "defaultDaclHash": "51b49f5af257d921343c7285d988f13013c57f7dea8b39aa4445610cd639dc36"
+        }
+      }
+    },
+    {
+      "launcher": "installed",
+      "exitCode": 0,
+      "stderr": "",
+      "probe": {
+        "pid": 45372,
+        "exitCode": 0,
+        "stderr": "",
+        "security": {
+          "groups": [
+            {
+              "sidHash": "023d1598c33b0b396b446ef0579e9c1bd48842d9b6dda3cd29bab4bf0cf984e7",
+              "attributes": 16
+            },
+            {
+              "sidHash": "1b20bede1acc437a583f75e3b6762a74d153048662b59a16dea02548fc867d1d",
+              "attributes": 7
+            },
+            {
+              "sidHash": "37597742669ef2b46b12a9a7ecd272eb218ea6def10c2fe812646b5b84cedf0e",
+              "attributes": 7
+            },
+            {
+              "sidHash": "3de7899caa1c3d49b4f359cd32b8e29c702c65700e44518c91307068aefd27f5",
+              "attributes": 16
+            },
+            {
+              "sidHash": "4a2d2e13ef5c4cded4ad673fee53e046b73cd5f7389c6727229bd06c9706f974",
+              "attributes": 96
+            },
+            {
+              "sidHash": "58c636c70d714c883acaba602353fe02bfd3f1d529a908d35d85350ee3580194",
+              "attributes": 7
+            },
+            {
+              "sidHash": "5e5a6a93eca3a6768bebb1972dc137143fdf8b38d34ef7ea5097deb53a712c19",
+              "attributes": 7
+            },
+            {
+              "sidHash": "6b383a626d048928df132818219a46455bd28bcbc753bd73608fb744b7997280",
+              "attributes": 7
+            },
+            {
+              "sidHash": "76eafa21a3eb3c1fe7ff253262bccd357e6c9815f031405a655ead424042b840",
+              "attributes": 7
+            },
+            {
+              "sidHash": "7fb8491a632b99f21bd0a15f8455abf55f6d37f15cf793bf8c216baac9000ce6",
+              "attributes": 7
+            },
+            {
+              "sidHash": "85a0f5c35e199d2b4e6e0c321b0fbebbe61a1fb1ba504001045f234e4189c353",
+              "attributes": 7
+            },
+            {
+              "sidHash": "a5a154a1e2e097b73d845c742b8da29c69a3dd6f23f2cde1fbe987e0e94fc3a9",
+              "attributes": 3221225479
+            },
+            {
+              "sidHash": "c8bfe41bc151a5d563c4de3bb7ac6d18832c6dfdfccb186ab09d2e9b52b02f53",
+              "attributes": 7
+            },
+            {
+              "sidHash": "cf6203fe526708faa694c99d4d91210aec685e27b034d5284a7d77bfe96d4375",
+              "attributes": 7
+            },
+            {
+              "sidHash": "d75d72b4253803c4666e7a2fda7dda5582b5a7adb3f173aafd5e79fac1bdb21d",
+              "attributes": 7
+            },
+            {
+              "sidHash": "f193630662f3c31669544502d52f0c69e29af82a7f3c0defd9e445e8877af28a",
+              "attributes": 7
+            }
+          ],
+          "restrictedGroups": [],
+          "privileges": [
+            {
+              "luid": [
+                19,
+                0
+              ],
+              "attributes": 0
+            },
+            {
+              "luid": [
+                23,
+                0
+              ],
+              "attributes": 3
+            },
+            {
+              "luid": [
+                25,
+                0
+              ],
+              "attributes": 0
+            },
+            {
+              "luid": [
+                33,
+                0
+              ],
+              "attributes": 0
+            }
+          ],
+          "integrity": {
+            "sidHash": "4a2d2e13ef5c4cded4ad673fee53e046b73cd5f7389c6727229bd06c9706f974",
+            "attributes": 96
+          },
+          "flags": {
+            "18": 3,
+            "20": 0,
+            "21": 1,
+            "23": 1,
+            "24": 0,
+            "27": 3,
+            "29": 0
+          },
+          "defaultDaclHash": "51b49f5af257d921343c7285d988f13013c57f7dea8b39aa4445610cd639dc36"
+        }
+      }
+    }
+  ]
+}

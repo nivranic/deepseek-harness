@@ -27,7 +27,7 @@ kind: "package-reference"
 <a id="use-this-package"></a>
 ## 使用本包
 
-当部署方需要通过 OpenTelemetry 日志导出会话记录时挂载此插件。选择一个模式、给导出器一个端点，并决定是否在 seam 上挂载脱敏规则。
+当部署方需要通过 OpenTelemetry 日志导出会话记录时挂载此插件。选择一个模式、启用 `consent.sessionTelemetry`、给导出器一个端点，并决定是否在 seam 上挂载脱敏规则。
 
 ### 模式
 
@@ -43,10 +43,12 @@ kind: "package-reference"
 启用上传的模式必须提供 exporter URL。processor 设置控制独立的 Session 日志队列；路由头通过 `exporter.headers` 显式配置。
 
 ```yaml
-- id: sessionTelemetry-otel
+- id: session-telemetry-otel
   name: '@deepseek-ai/dsh-session-telemetry-otel'
   config:
     mode: FEEDBACK_ONLY       # optional; defaults to FEEDBACK_ONLY
+    consent:
+      sessionTelemetry: true
     shutdownTimeoutMillis: 3000 # optional; defaults to 3000
     exporter:                # explicit SDK transport settings
       url: https://collector.example.com/v1/logs
@@ -58,10 +60,13 @@ kind: "package-reference"
 | 字段 | 默认值 | 含义 |
 |---|---|---|
 | `mode` | `FEEDBACK_ONLY` | 共享策略：`FEEDBACK_ONLY` 或 `DISABLED` |
+| `consent` | 每类 `false` | 五个独立布尔字段；仅 `sessionTelemetry` 开启反馈授权日志上传。其他字段为各自后端保留，不在此处创建导出通道。用户通过 Loader 条目的 `consent` 配置覆盖组合层默认值 |
 | `exporter.url` | 上传模式必填 | 完整 OTLP 日志端点；必须能解析为 `http(s)` |
 | `exporter`, `processor` | — | SDK 传输及字节/条数聚合；不继承环境中的头部和 TLS 身份。agent 工厂负责返回实例的设置，包括 keepAlive |
 | `shutdownTimeoutMillis` | `3,000` | 所有排队 HTTP 请求的外层期限；到期后停止剩余排队发送 |
 | `maxRequestBytes` | `4,000,000` | gzip 前完整 OTLP JSON 请求的最大字节数；只能调低 |
+
+同意变更对后续反馈采集实时生效。撤回同意不会撤回已授权的批次；它们仍可能完成发送。以未同意状态挂载的后端，在首次获得同意的采集前不会创建传输。
 
 直接调用 `ctx.sessionTelemetry.emit()` 在任何模式下都是空操作，不能绕过反馈授权。继承的父会话反馈不授权子会话导出：子会话需要新的自身反馈。授权后的前缀包含继承的上下文。
 

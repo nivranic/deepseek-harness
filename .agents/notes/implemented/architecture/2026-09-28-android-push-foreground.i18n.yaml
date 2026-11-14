@@ -1,0 +1,22 @@
+# Bilingual-pair consistency record for 2026-09-28-android-push-foreground.md (docs/i18n/README.md): per heading
+# section, a hash of its English and Chinese blocks outside code blocks and generated regions.
+# After editing either side, bring the other along and re-record with:
+#   pnpm run verify-translation-pairing --write .agents/notes/implemented/architecture/2026-09-28-android-push-foreground.md
+/agent-note-android-push-recovery-follows-foreground-entry-and-model-ownership:
+  en: c0dd061c67fc3c1d
+  zh: 0398d776bf524737
+/agent-note-android-push-recovery-follows-foreground-entry-and-model-ownership/problem:
+  en: eb79610522317fb9
+  zh: 7726bc2fb311fd2b
+/agent-note-android-push-recovery-follows-foreground-entry-and-model-ownership/decision:
+  en: 3b262ec3fecc9d81
+  zh: c570ab82abd92c7d
+/agent-note-android-push-recovery-follows-foreground-entry-and-model-ownership/producer-and-notification-ownership:
+  en: 5738fb7696ebd23b
+  zh: 6fd162ebea0bb1a3
+/agent-note-android-push-recovery-follows-foreground-entry-and-model-ownership/alternatives-considered:
+  en: 9ae517ff75165f61
+  zh: e4c7140ff55f0426
+/agent-note-android-push-recovery-follows-foreground-entry-and-model-ownership/consequences:
+  en: 280a59a92d9c0e7d
+  zh: 8d7c5cbbe7423b63

@@ -1,0 +1,22 @@
+# Bilingual-pair consistency record for 2026-10-05-diagnostics-source-revision.md (docs/i18n/README.md): per heading
+# section, a hash of its English and Chinese blocks outside code blocks and generated regions.
+# After editing either side, bring the other along and re-record with:
+#   pnpm run verify-translation-pairing --write .agents/notes/implemented/architecture/2026-10-05-diagnostics-source-revision.md
+/agent-note-the-diagnostics-snapshot-carries-its-source-revision:
+  en: 73c691b9d1f95657
+  zh: 2a3e93e32b82005d
+/agent-note-the-diagnostics-snapshot-carries-its-source-revision/problem:
+  en: f98360d4dad8e1ba
+  zh: 85333dcac34c128f
+/agent-note-the-diagnostics-snapshot-carries-its-source-revision/decision:
+  en: 5d1f961a3911d1d6
+  zh: fa08a809994c19c7
+/agent-note-the-diagnostics-snapshot-carries-its-source-revision/alternatives-considered:
+  en: ef40af3c1e7348c4
+  zh: 6538e985bc694e13
+/agent-note-the-diagnostics-snapshot-carries-its-source-revision/consequences:
+  en: 3ed3d31ddff47d9e
+  zh: 24be418557a11c76
+/agent-note-the-diagnostics-snapshot-carries-its-source-revision/open-follow-ups:
+  en: 2d094a165d97e558
+  zh: 4a1ed88ed3d3477a

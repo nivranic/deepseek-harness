@@ -360,7 +360,7 @@ describe('dsh-tool-skill', () => {
     expect(await composePrefixForAgent(ctx, agent)).toEqual([])
   })
 
-  it('reports incomplete empty discovery and publishes recovery without an entry change', async () => {
+  it('defers incomplete empty discovery until a complete catalog is available', async () => {
     const home = await tempDir('tool-incomplete-prefix')
     const ctx = await setup(home)
     let failing = true
@@ -384,25 +384,24 @@ describe('dsh-tool-skill', () => {
     openMessageTurn(session)
 
     await composePrefixForAgent(ctx, agent)
-    expect(catalogMessages(session)).toMatchObject([{ data: { source: { entries: [], incomplete: true } } }])
-    const initial = JSON.stringify(catalogMessages(session)[0]?.data.content)
-    expect(initial).toContain('No skills could be confirmed in this discovery attempt.')
-    expect(initial).toContain('Discovery will be retried on the next request.')
-    expect(initial).not.toContain('The following skills are available')
-    expect(initial).not.toContain('If the user names a skill')
+    expect(catalogMessages(session)).toEqual([])
     await fireStep(ctx, agent, 1, 1)
-    expect(catalogMessages(session)).toHaveLength(1)
+    expect(catalogMessages(session)).toEqual([])
     failing = false
     invalidate()
     await fireStep(ctx, agent, 1, 1)
 
-    expect(catalogMessages(session)).toHaveLength(2)
-    expect(catalogMessages(session)[1]?.data.source).toEqual({
-      kind: 'skill-catalog', form: 'catalog', update: true, entries: [],
+    expect(catalogMessages(session)).toEqual([])
+    ctx.skills.register({ name: 'recovered-skill', description: 'Recovered', source: 'runtime', content: 'Body.' })
+    await fireStep(ctx, agent, 1, 2)
+    expect(catalogMessages(session)).toHaveLength(1)
+    expect(catalogMessages(session)[0]?.data.source).toEqual({
+      kind: 'skill-catalog', form: 'catalog',
+      entries: [{ name: 'recovered-skill', description: 'Recovered' }],
     })
   })
 
-  it('distinguishes an incomplete empty replacement from confirmed removal and republishes recovery', async () => {
+  it('retains the published catalog until complete discovery confirms removal', async () => {
     const home = await tempDir('tool-incomplete-empty-update')
     const ctx = await setup(home)
     const definition = { name: 'recovering-skill', description: 'Recovering skill', source: 'runtime' as const, content: 'Recovered body.' }
@@ -419,23 +418,17 @@ describe('dsh-tool-skill', () => {
     }))
 
     await fireStep(ctx, agent, 1, 1)
-    const update = catalogMessages(session)[1]
-    expect(update?.data.source).toMatchObject({ update: true, incomplete: true, entries: [] })
-    const text = JSON.stringify(update?.data.content)
-    expect(text).toContain('No skills could be confirmed in this discovery attempt.')
-    expect(text).toContain('Discovery will be retried on the next request.')
-    expect(text).toContain('Do not use names from earlier skill catalogs.')
-    expect(text).not.toContain('No skills are currently available')
-    expect(text).not.toContain('Listed skills remain available')
+    expect(catalogMessages(session)).toHaveLength(1)
+    expect(catalogMessages(session)[0]?.data.source).toMatchObject({ entries: [{ name: 'recovering-skill' }] })
     await fireStep(ctx, agent, 1, 2)
-    expect(catalogMessages(session)).toHaveLength(2)
+    expect(catalogMessages(session)).toHaveLength(1)
 
     unregisterFailure()
-    ctx.skills.register(definition)
     await fireStep(ctx, agent, 1, 3)
-    expect(catalogMessages(session)[2]?.data.source).toEqual({
+    expect(catalogMessages(session)).toHaveLength(2)
+    expect(catalogMessages(session)[1]?.data.source).toEqual({
       kind: 'skill-catalog', form: 'catalog', update: true,
-      entries: [{ name: 'recovering-skill', description: 'Recovering skill' }],
+      entries: [],
     })
   })
 
@@ -778,7 +771,7 @@ describe('dsh-tool-skill', () => {
     await scope.dispose()
   })
 
-  it('keeps readable skills loadable and publishes additions during incomplete discovery', async () => {
+  it('keeps readable skills loadable while deferring incomplete catalog changes', async () => {
     const home = await tempDir('tool-incomplete-catalog')
     const ctx = await setup(home)
     const disposeStable = ctx.skills.register({
@@ -792,7 +785,7 @@ describe('dsh-tool-skill', () => {
     openMessageTurn(session)
     expect(JSON.stringify(await composePrefixForAgent(ctx, agent))).toContain('stable-skill')
 
-    ctx.skills.registerProvider(() => ({
+    const unregisterFailure = ctx.skills.registerProvider(() => ({
       name: 'failing',
       async list() {
         throw new Error('temporarily unavailable')
@@ -803,11 +796,10 @@ describe('dsh-tool-skill', () => {
     }))
     await fireStep(ctx, agent, 1, 1)
 
-    expect(catalogMessages(session)).toHaveLength(2)
-    expect(catalogMessages(session)[1]?.data.source).toMatchObject({
-      incomplete: true, entries: [{ name: 'stable-skill' }],
+    expect(catalogMessages(session)).toHaveLength(1)
+    expect(catalogMessages(session)[0]?.data.source).toMatchObject({
+      entries: [{ name: 'stable-skill' }],
     })
-    expect(JSON.stringify(catalogMessages(session)[1]?.data.content)).toContain('Some skills could not be checked')
     const result = await executeToolFixture(ctx, {
       signal: testToolSignal, callId: brandString<ToolCallId>('partial-load'),
       name: 'skill', arguments: { name: 'stable-skill' }, agent,
@@ -817,14 +809,17 @@ describe('dsh-tool-skill', () => {
     ctx.skills.register({ name: 'new-skill', description: 'New skill', source: 'runtime', content: 'New body.' })
     disposeStable()
     await fireStep(ctx, agent, 1, 2)
-    expect(catalogMessages(session)[2]?.data.source).toMatchObject({
-      incomplete: true, entries: [{ name: 'new-skill' }],
-    })
+    expect(catalogMessages(session)).toHaveLength(1)
+    unregisterFailure()
     await fireStep(ctx, agent, 1, 3)
-    expect(catalogMessages(session)).toHaveLength(3)
+    expect(catalogMessages(session)).toHaveLength(2)
+    expect(catalogMessages(session)[1]?.data.source).toEqual({
+      kind: 'skill-catalog', form: 'catalog', update: true,
+      entries: [{ name: 'new-skill', description: 'New skill' }],
+    })
   })
 
-  it('publishes an incomplete initial catalog and clears its notice after recovery', async () => {
+  it('publishes the initial readable catalog after discovery becomes complete', async () => {
     const home = await tempDir('tool-partial-initial')
     const ctx = await setup(home)
     let complete = false
@@ -838,16 +833,16 @@ describe('dsh-tool-skill', () => {
     const agent = sessionAgent(session)
     openMessageTurn(session)
     await composePrefixForAgent(ctx, agent)
-    expect(catalogMessages(session)[0]?.data.source).toMatchObject({
-      incomplete: true, entries: [{ name: 'readable-skill' }],
-    })
+    expect(catalogMessages(session)).toEqual([])
     await fireStep(ctx, agent, 1, 1)
-    expect(catalogMessages(session)).toHaveLength(1)
+    expect(catalogMessages(session)).toEqual([])
     complete = true
     await fireStep(ctx, agent, 1, 2)
-    expect(catalogMessages(session)).toHaveLength(2)
-    expect(catalogMessages(session)[1]?.data.source).not.toHaveProperty('incomplete')
-    expect(JSON.stringify(catalogMessages(session)[1]?.data.content)).not.toContain('Some skills could not be checked')
+    expect(catalogMessages(session)).toHaveLength(1)
+    expect(catalogMessages(session)[0]?.data.source).toEqual({
+      kind: 'skill-catalog', form: 'catalog',
+      entries: [{ name: 'readable-skill', description: 'Readable' }],
+    })
   })
 
   it('omits catalog guidance when the calling agent restricts away the shipped skill tool', async () => {

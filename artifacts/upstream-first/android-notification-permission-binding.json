@@ -1,0 +1,16 @@
+{
+  "status": "PASS",
+  "controls": 3,
+  "sourceRecord": {
+    "path": "artifacts/upstream-first/android-notification-permission-source.json",
+    "sha256": "aa7137e210c98d8e2a4492c2694710a3e6554ae6333627e10bf541d4973215e6"
+  },
+  "generator": {
+    "path": "artifacts/upstream-first/write-reports.mjs",
+    "sha256": "8cdd52470867cea2c1aaafcb54893f5f84385746ee2488f82967d6bb95ee6ddc"
+  },
+  "helper": {
+    "path": ".artifacts/check-android-notification-permission-binding.mjs",
+    "sha256": "99ddd7c074fb3d7d95064a86a20d736be9bf3f8a11682505cdec723106528e3f"
+  }
+}

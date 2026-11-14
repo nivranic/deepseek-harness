@@ -1,0 +1,109 @@
+// Vitest Snapshot v1, https://vitest.dev/guide/snapshot.html
+
+exports[`returns portable validation diagnostics without accepting invalid operations 1`] = `
+[
+  {
+    "error": {
+      "code": "gateway/bad-request",
+      "details": {
+        "issues": [
+          {
+            "code": "invalid_format",
+            "message": "Invalid string: must match pattern /^[A-Za-z_][A-Za-z0-9_]*$/",
+            "path": [
+              "refs",
+              0,
+            ],
+          },
+        ],
+      },
+      "message": "invalid payload for credentials.describe",
+    },
+    "method": "credentials/describe",
+  },
+  {
+    "error": {
+      "code": "gateway/bad-request",
+      "details": {
+        "issues": [
+          {
+            "code": "too_small",
+            "message": "Too small: expected string to have >=1 characters",
+            "path": [
+              "ns",
+            ],
+          },
+        ],
+      },
+      "message": "invalid payload for settings.update",
+    },
+    "method": "settings/update",
+  },
+  {
+    "error": {
+      "code": "gateway/bad-request",
+      "details": {
+        "issues": [
+          {
+            "code": "too_small",
+            "message": "Too small: expected string to have >=1 characters",
+            "path": [
+              "parentSessionId",
+            ],
+          },
+        ],
+      },
+      "message": "invalid payload for subagent.list",
+    },
+    "method": "subagents/list",
+  },
+  {
+    "error": {
+      "code": "gateway/bad-request",
+      "details": {
+        "issues": [
+          {
+            "code": "custom",
+            "message": "host.createDirectory requires a single non-blank path segment name",
+            "path": [],
+          },
+        ],
+      },
+      "message": "invalid payload for host.createDirectory",
+    },
+    "method": "directoryPicker/createDirectory",
+  },
+  {
+    "error": {
+      "code": "gateway/bad-request",
+      "details": {
+        "issues": [
+          {
+            "code": "invalid_value",
+            "message": "Invalid input: expected "client-request"",
+            "path": [
+              "type",
+            ],
+          },
+          {
+            "code": "invalid_type",
+            "message": "Invalid input: expected string, received undefined",
+            "path": [
+              "method",
+            ],
+          },
+          {
+            "code": "invalid_type",
+            "message": "Invalid input: expected nonoptional, received undefined",
+            "path": [
+              "payload",
+            ],
+          },
+        ],
+      },
+      "message": "invalid client-request message",
+    },
+    "method": "invalid-envelope",
+  },
+]
+`;

@@ -19,12 +19,16 @@ kind: "package-reference"
 - [已知限制与延期工作](#known-limitations-and-deferred-work)
 - [开发备注](#dev-note)
 
+超时库保持 peer 依赖：`deadline` 创建的 `TimeoutReason` 由 `timeoutOf` 按类身份识别。原生及 Client 请求生命周期继续由各自所有者管理。
+
 -----
 
 <a id="host-service-typertgatewayservice-ctx-key-typertgateway"></a>
 ## Host 服务：`TypertGatewayService`（ctx key：`typertGateway`）
 
 每次调用时，`ctx.typertGateway.invoke()` 都会解析当前的描述符和 Cordis 服务，校验具名参数是否完全匹配，解析已注册的对象或 Context 身份标识，并调用公开的业务方法。业务服务继承 [`dsh-typert-protocol`](../../typert/protocol/README.zh.md) 的 `TypertRemoteService`，并用 `@Remote` 或 `@RemoteScope` 标记方法；已有其他基类时仍可改用 `bindTypertRemote()`。
+
+`capabilities()` 从活跃 Remote 绑定读取显式版本声明。所有必需方法都必须保持可用；严格定义撤回会抑制该能力，直到重新注册。重复 id 与指向未导出方法的声明会失败。排序后的结果描述支持的操作，不代表调用方权限或特定请求资源已就绪。[Host 发现](../host-description/README.zh.md)通过现有 Remote 载体暴露这些事实。
 
 严格模式从 `ctx.typert.local` 读取生成的调用描述符。查找参数使用 `ctx.typert.lookups` 中当前有效的解析器：业务包注册稳定声明与默认策略，Host 组合可用 effect-scoped `configure()` 覆盖解析行为；`@RemoteScope` 则通过已注册的 Host Context 适配器解析其接收者。SRC 模式是开发阶段的回退路径，适用于从未具备严格定义的端点；它解析简单参数名，并且只允许非查找参数使用可安全表示为 JSON 的值。已观测到的严格定义一旦撤回，系统会直接报错，而不会降低校验强度。对于一元结果，Gateway 在生成 codec 提供 `encode()` 时执行它，否则保持 strict JSON 值不变；SRC 则递归识别运行时字节值。两条路径都向 Connection 返回 JSON 兼容元数据及相对于结果的字节附件，由 Connection 完成传输帧封装。
 
@@ -44,24 +48,34 @@ Connection 可用时，Host 入口会在 Connection 共享的 `/api` FetchHandle
 
 每条流还在同一条逻辑流上携带从 Client 到 Host 的上行。方法把上行项类型声明为返回类型的第二个类型参数——来自 [`dsh-typert-protocol`](../../typert/protocol/README.zh.md) 的 `RemoteStream<Out, In>`；`In` 缺省为 `never`，返回 `Iterable`、`AsyncIterable` 或 `RemoteStream<Out>` 的方法即声明自己不读上行。运行中的方法通过 `this.ctx.invocation` 读取本次调用：Gateway 从携带该 `RemoteInvocation`（`request`、`service`、`peer`、`signal` 与 `uplink()`）的 Context 派生接收者，因此没有任何东西进入参数列表，而非 Remote 调用派生的 Context 上 `ctx.invocation` 为 `undefined`。`uplink()` 每次调用只能取一次。描述符带 codec 时它在交付前逐项解码；不带时——SRC 方法，或 `In` 为 `never` 的方法——它交付经 JSON 安全校验的 `unknown` 值。Client 在已打开的逻辑流上把每一项作为 `item` 帧发送（顶层 `undefined` 项是不带 `value` 的 `item` 帧），以 `end` 帧表示半关闭；方法通过 `uplink()` 迭代结束感知半关闭，通过 `signal` 感知取消。被拒绝的项使整条流以 `gateway/input-invalid`（字段 `uplink`）失败。上行项在 Host 逐项校验，因为它们来自浏览器；下行项是 Host 方法产出的值，不经校验原样透传。方法结束下行时 Gateway 调用 uplink 迭代器的 return 并丢弃未读的项；发给从未取用 uplink 的方法的项在 inbox 里等到那时为止。每条逻辑流最多缓冲 `streamInboxBytes`（默认 262144）字节的上行帧；超限使流以 `gateway/uplink-overflow` 失败，`end` 之后的项使流以 `gateway/protocol` 失败，两种情况都不关闭 socket。发给 Host 已结束的流 id 的 `item`、`end` 与 `cancel` 帧被丢弃；只有重复的 `open` 会关闭 socket。`$events` 这类 Gateway 自有的流在打开时立即 return 其 uplink，因此它们的 `item` 帧被丢弃而不缓冲。一元方法也可以调用 `uplink()`；其项只在方法运行期间可读。每条流都代表一个显式指明的 Peer：WebSocket 上的流代表 Connection 在升级时接纳的 Peer，该 scope 释放时 socket 关闭；进程内载体的流代表其调用方传入的 Peer。该 Peer 释放时，流方法的 `signal` 也随之中止，流以 `gateway/cancelled` 结束，`$events` 流也随其 Peer 结束；已在运行的一元调用不会被取消。
 
-Host 下行、Host 上行和 Client 上行泵的取消与停止状态归属单次读取，不保留已交付项的历史。下行结束也会唤醒尚未完成的上行读取。
+Host 组合通过 `registerRemoteEvents()` 注册唯一的应用事件 source。Gateway 为其保留 `$events`，载体完成准入后只接受空 `args`。API Remotes 拥有事件选择、参数校验、每个 Client 的队列，以及 `{ type: 'ready', clientId, host: { home, platform } }` 中的 Host 事实。source 在发布就绪前同步安装增量 listener；撤回 source 会中止其流。
 
-Host 组合可通过 `registerRemoteEvents()` 注册唯一的应用事件 source。Gateway 为它保留内部 `$events` logical endpoint，只接受空 `args`，并在 source 撤回时中止该注册打开的流。事件名单、参数校验、每个 Client 的队列及 opening `{ type: 'ready', clientId, host: { home } }` frame 中的 Host home 由 API Remotes 拥有。source factory 在返回 iterable 前同步挂好增量 listener，因此 Client 只在增量投递就绪后发布 generation 并开始 baseline 读取。Peer 的 principal 不是 owner 的 `$events` 流从不收到它可以作答的 scoped waterfall（瀑布式事件）；只有当 `ctx.remoteAccess.decide({ principal, action: 'event:<name>', resources })` 在该帧读取函数指明的资源上（帧没有读取函数时为 `global`）允许时，才整条、不裁剪地收到广播 emit 帧；每帧只解析一次资源，资源非法的帧不经判定即不送达任何非 owner 流，被拒的帧只对该流丢弃。这类 Peer 的 `$events/result` 回复以 `gateway/invocation-unavailable` 失败。
+每条非 owner 广播都以 `event:<name>` 交给 `remoteAccess.decide()`，资源来自声明的读取函数；没有读取函数时使用 `global`。Gateway 对每帧只解析一次资源，并为相应接收方丢弃非法或未获授权的帧。payload 不作裁剪。具有 `view` 的设备角色显式获准在整个 Host 上接收这些由 Host 选择的通知。
 
-已释放的 Peer 在事件流参与检查之前被拒绝。无论 principal 是否为 owner，`$events` 与 `$events/result` 都要求 `peer.interactions === 'answer'`；否则返回 `gateway/interactions-forbidden`。只有 owner Peer 接收并回答转发的 waterfall，回复必须来自持有该事件流的同一 Peer。`hasLiveClient()` 只计算未取消的 owner 回答流；非 owner 广播流、单独的 WebSocket 与已取消但尚未完成 iterator 清理的流均不计入。这一同步观察不保证后续投递成功或 Client Provider 已就绪。
+待处理的作用域 waterfall 属于 Host 调用方，Client 断开不会删除它。首个获准结果只结算一次；对已结算或被替代投递的后续回复按幂等 no-op 处理。source 或调用方取消会结束待处理调用。进程重启丢弃待处理调用，重连不授权重放工具效果。Session 恢复由 [Session owner](../../core/session/README.zh.md)负责。
+
+`$events` 与 `$events/result` 都要求存活的 Peer 且 `interactions: 'answer'`，否则 Gateway 返回 `gateway/interactions-forbidden`。本地 owner 流接收所有作用域 waterfall。设备只接收当前角色持有应用声明的 `requiredPermission` 的交互：Collaborator 可回答问题，Controller 与设备 Owner 还可回答审批，Viewer 不能回答。其他非 owner principal 只接收获准的广播。`hasLiveClient()` 统计尚未取消的回答型流；裸 socket 与 Viewer 流不计入，该观测也不保证 Client provider 已就绪。
+
+每次设备回复都要提供新的签名准入，DeviceId 必须与目标事件流相同。其他设备冒答或设备借 owner 流回复返回 `gateway/interactions-forbidden`；native 载体缺少身份则返回 `gateway/permission-denied`。无效、过期与重放签名保留 Device Trust 错误。拒绝不会移除投递；Gateway 在结算前重新检查待处理交互的答复权限。
+
+每个 native TLS listener 通过自己的 Cordis Context 调用 `createDeviceConnection()`。返回的回调保留隔离服务 receiver；除一次性 `deviceTrust/redeemPairing` 外，每次 RPC 与逻辑流都需要签名准入。载体 Peer 不具有设备权限；准入成功后创建独立的 `{ kind: 'device', deviceId }` Peer。Remote Access 将角色声明的端点 action 显式绑定到 `host`，保留原有 Host 级角色对合法 Session 和 Workspace 资源的访问。未声明或未获授权的端点返回 `remote-access/denied`；名为 `owner` 的设备角色从不成为本地 owner principal。撤销会移除授权并取消已打开的流，阻止后续值送达。
+
+Native 信封携带 `{ apiProtocolVersion: 2, args, device }`，仍接受 `$events` 的冻结形式——签名放在 `args.device` 中。不支持的版本返回 `gateway/protocol-unsupported`；版本 0 只准入 Host 发现端点。普通浏览器载体保留 Connection 拥有的准入与官方 `{ args }` payload。
+
+`terminateDeviceConnections({ deviceId })` 不经 WebSocket 关闭握手地销毁设备持有的每条不同物理流载体。这些载体上的流都观察到传输丢失，授权保持不变。流清理时释放其载体引用；没有活跃载体的设备返回零。`RemoteStreamMuxServer` 为 native listener 接受显式 `maxPayloadBytes` 与 `maxStreamsPerConnection` 限制。TLS 身份与部署限制见 [Native Remote Connection](../native-remote/README.zh.md)。
 
 <a id="client-service-clientremote-ctx-key-remote"></a>
 ## Client 服务：`ClientRemote`（ctx key：`remote`）
-
-同一个 `./client` 导入在 Node 中选择独立的 ESM `lib/client.node.js`，在浏览器中选择 loader factory `lib/client.browser.js`；Host 包根入口保持独立。浏览器载体接受 [Connection](../../client/connection/README.zh.md#use-this-package) 定义的 shell 所拥有的流 origin；逻辑流帧与生命周期保持一致。
 
 `ctx.remote.$mount()` 会校验并注册生成的 Host-for-Client 贡献项，然后为发起调用的 Cordis fiber 安装具体的直接方法和作用域方法。每个 namespace 都是可追踪的 `remote.<namespace>` 子 Service，并在最后一个方法撤回后卸载。重复端点、命名空间冲突，以及缺少生成的严格 codec 的 Client 供值字段，都会在方法可调用前报错。
 
 每次一元调用都会检查位置参数数量，构造与描述符完全匹配的具名 `args`，再把带类型的值原样交给 `ctx.connection.rpc.call('/api', endpoint, ...)`，而不执行 Client 侧 schema；Host 会在业务调用前校验收到的 wire 字段。生成的流方法返回 `dsh-typert-protocol` 的 `RemoteStreamHandle<Out, In>`，并在被调用时就打开一条逻辑流，进程内 Connection 载体可用时通过它打开，否则通过共享的 Gateway WebSocket 打开。句柄只迭代下行一次。`send(item)` 把一个上行项入队，在 `open` 帧之后发出；`end()` 半关闭上行；`dispose()` 在未收到终止帧时发送 `cancel`，并让迭代安静结束。提前跳出迭代等价于 dispose 句柄；下行终止后 `send` 抛错，`end` 被忽略。生成的支持取消的方法接受最后一个可选 `AbortSignal`；Client 会在调用载体前将它与贡献项的挂载生命周期合并。Client 将一元结果转换交给 codec 的可选 `decode()`。生成的解码器校验嵌套元数据与原生字节类型，不逐字节遍历、复制或冻结字节载荷。JSON 一元结果与流项不经 Client 侧类型解析直接传递。撤回贡献项会同时移除其描述符和方法、中止正在进行的调用与流，并使外部仍持有的方法句柄在调用时返回拒绝。
 
-每次一元调用都解析为 `RemoteResult<T>`——`{ ok: true, value }` 或 `{ ok: false, error }`——且绝不因载体问题 reject：本面把断线载体折入错误分支，调用方 signal 中止时答以 `gateway/cancelled`，因此没有消费方需要包一层来兜载体失败。只有装配故障仍会 reject：参数个数不符、方法未挂载、贡献已撤下、缺少 Context 适配器。`error` 是活的 `RemoteError` 实例，所以 `throw result.error` 保持 throw 语义；而 `isRemoteFailure(value)` 是消费方唯一需要的谓词——它认下的捕获值带着 Host 码，它拒绝的一律是本地故障，调用方应当让其崩掉。`carrierFailure(endpoint, error)` 与 `cancelledFailure(endpoint, cause)` 构造这两种折叠结果，测试里的替代实现据此采用相同的折叠方式。
+每次一元调用都解析为 `RemoteResult<T>`——`{ ok: true, value }` 或 `{ ok: false, error }`——且绝不因载体问题 reject：本面把断线载体折入错误分支，调用方 signal 中止时答以 `gateway/cancelled`，因此没有消费方需要包一层来兜载体失败。只有装配故障仍会 reject：参数个数不符、方法未挂载、贡献已撤下、缺少 Context 适配器。`error` 是活的 `RemoteError` 实例，所以 `throw result.error` 保持 throw 语义；而 `isRemoteFailure(value)` 是消费方唯一需要的谓词——它认下的捕获值带着 Remote 错误码，它拒绝的一律是本地故障，调用方应当让其崩掉。`carrierFailure(endpoint, error)` 与 `cancelledFailure(endpoint, cause)` 构造这两种折叠结果，测试里的替代实现据此采用相同的折叠方式。
 
-`ctx.remote.$host` 以普通值读取固定的 Host 事实：`home`（首个 ready 帧之前为 undefined）与 `isLoopback`。它不是存储——没有订阅、没有代次计数——所以需要响应重连的消费方去监听 `connection/reset`，而不是轮询它。
+HTTP 拒绝和其他载体异常使用 `gateway/internal`；Host 返回的 Remote 失败保留其错误码与详情。调用方取消使用 `gateway/cancelled`，优先于迟到的载体响应。事件连接重连不会重放或取消独立的一元调用。
+
+`ctx.remote.$host` 提供固定的页面本地 `isLoopback` 值，以及当前事件连接代际的 `home`。在该代际不可用时，`home` 为 `undefined`。应用通过生成的 `host.describe()` 方法获取能力；领域消费者负责各自的能力准入。
 
 `ctx.remote.$stream()` 返回跨越多个物理载体代次的单消费方 `RemoteStream`。对于回答型 Client，载体仍可用时的独立流故障允许一次立即重试；物理 WebSocket 丢失后等待 Connection 重开载体。如果 Host generation 已不可用，则等待下一代连接。每个流项都带有其物理代次。被动 Client 不使用 `$stream()`，而是调用生成的原始流方法，并自行处理终态载体故障。领域消费方校验并接受各代次的 opening value；业务与协议错误仍然终止流。一切终态失败离开本面时都是 `RemoteError`，包括重试耗尽和在 opening value 之前就结束的代次，因此流消费方与一元调用方用同一种方式判别。`code` 为 `gateway/carrier-lost` 的失败表示可重试的物理丢失：`RemoteStreamCarrierError` 带有该 code，`RemoteStreamCarrierFailure` 类型描述它，`isRemoteStreamCarrierFailure(error)` 供自行分类失败的领域复用同一重试判断，领域的 `ended` 回调也可以返回带该 code 的普通 `Error` 来请求重连，而无需导入该 class。是否重试只看 code，不看 class；该 code 只在前端进程内产生，因此宿主返回的 `RemoteError` 即使带有该 code 也会终止流；这类失败只作为 `carrierFailed` 回调参数到达领域，绝不作为终态结果。`RemoteSnapshotStream` 在此之上规定每代由一个初始快照和后续 delta 组成。`RemoteJournalStream` 基于领域提供的 entry 闭区间提供 follow-before-page、分页、重连追赶与缺口修复；它丢弃完整重复项，并拒绝缺口、倒置区间和部分重叠。领域还可以携带无 cursor 的通知：通知绝不推进或修复持久 cursor，在缺口修复期间收到的通知只会在 replacement page 提交后发布。若更新代次取代该修复，旧代次 held notification 会与其 page 一同丢弃。对任一种流执行 dispose（资源释放）时，系统会取消该流的请求，并在活动 iterator 完全停止后完成资源释放。
 

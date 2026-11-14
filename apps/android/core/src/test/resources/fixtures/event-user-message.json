@@ -1,0 +1,13 @@
+{
+  "id": "m-user-1",
+  "role": "user",
+  "content": [
+    {
+      "type": "text",
+      "text": "帮我把登录页改成液态玻璃风格"
+    }
+  ],
+  "source": {
+    "kind": "user"
+  }
+}

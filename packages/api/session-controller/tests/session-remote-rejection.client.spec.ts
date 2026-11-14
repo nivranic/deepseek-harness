@@ -23,7 +23,10 @@ function rejecting(message: string): SessionRemotes {
   remote.session.cancel.mockImplementation(reject)
   remote.subagents.prompt.mockImplementation(reject)
   remote.subagents.interruptByUser.mockImplementation(reject)
+  remote.subagents.interruptByParent.mockImplementation(reject)
+  remote.subagents.interruptTurnByParent.mockImplementation(reject)
   return {
+    host: { describe: reject },
     $stream: () => { throw new Error('unused') },
     commands: remote.commands,
     session: remote.session,

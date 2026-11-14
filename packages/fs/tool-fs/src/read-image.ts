@@ -86,7 +86,6 @@ const IMAGE_VALUE_SCHEMA = {
 
 /** The structured outcome declared by the `read_image` output schema. */
 export interface ImageReadValue {
-  /** Canonical absolute path in the filesystem provider's execution world. */
   path: string
   image: {
     attachmentId: string
@@ -289,6 +288,11 @@ export function applyReadImageTool(ctx: Context): void {
     name: 'read_image',
     description: 'Read a PNG/JPEG/WebP/GIF file and return the image itself. '
       + 'Large images are downscaled automatically; do not install image libraries or create thumbnails to inspect an image.',
+    version: 1,
+    risk: 'moderate',
+    permissions: [],
+    supportsLite: false,
+    supportsRemote: true,
     parameters: {
       file_path: { type: 'string', required: true, description: 'Path to the image file, resolved by the filesystem backend.' },
     },
@@ -297,7 +301,7 @@ export function applyReadImageTool(ctx: Context): void {
         type: 'object',
         additionalProperties: false,
         properties: {
-          path: { type: 'string', required: true, description: 'Canonical absolute path in the filesystem execution world.' },
+          path: { type: 'string', required: true },
           image: IMAGE_VALUE_SCHEMA,
         },
       },
@@ -363,7 +367,7 @@ export function applyReadImageTool(ctx: Context): void {
       }
       ctx.emit('fs/observed', target, { kind: 'present', version: info.version }, exec)
       const value: ImageReadValue = {
-        path: ctx.fs.processPath(target),
+        path: target.displayPath,
         image: {
           attachmentId: ref.attachmentId,
           mediaType: ref.mediaType,

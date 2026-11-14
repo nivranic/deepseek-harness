@@ -1,0 +1,16 @@
+{
+  "status": "PASS",
+  "controls": 3,
+  "sourceRecord": {
+    "path": "artifacts/upstream-first/android-attachment-receipt-recovery-source.json",
+    "sha256": "a6885018a5c9d2ca9564314993f9edff2d1af832023244979fd2842101feb14d"
+  },
+  "generator": {
+    "path": "artifacts/upstream-first/write-reports.mjs",
+    "sha256": "a7bb571c6c38443e88122b8f37d706b8e7d4204b3972044317bff48541a45087"
+  },
+  "helper": {
+    "path": ".artifacts/check-android-attachment-receipt-recovery-binding.mjs",
+    "sha256": "bfa281238f6b68ecddf931f3526c159eefa9937d6b0dbf6d43949172024c0154"
+  }
+}

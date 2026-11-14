@@ -9,6 +9,8 @@ This file is GENERATED and verified fresh by `pnpm run verify-tool-catalog` (par
 
 Scope: shipped product tools under `packages/*/tool-*`, each booted with its DEFAULT config, except where a Config field is REQUIRED with no default — there the generator must choose, and the per-package note records which branch this page shows. The registered tool NAME can be a load-time config (e.g. `tool-subagent`'s `toolName`), so a deployment may expose a package under a different or additional name — a per-package note records those shipped aliases where they exist. The `examples/` demo tools (e.g. `echo`) are excluded, matching the cordis catalog's packages-only scope.
 
+The same harvest writes Host declarations to `packages/core/tools/tool-descriptors.json` and Lite model schemas to `packages/core/tools/lite-tool-schemas.json`. The [API adapter](../packages/api/remotes/README.md#use-this-package) exposes current Host declarations through `tools/list`. Host declaration fields remain separate from the model schemas below.
+
 ## Tool Package Map
 
 This table connects model-visible tool names to the plugin package and service seams behind them. Exact JSON Schemas follow in the package sections below.

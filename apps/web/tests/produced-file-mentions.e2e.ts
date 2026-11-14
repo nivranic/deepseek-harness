@@ -132,7 +132,8 @@ describe('web e2e: inline-code mentions of produced files', () => {
     await writeFile(join(scaffold.workspaceCwd, 'report.txt'), 'ROOT FILE')
     await writeFile(join(scaffold.workspaceCwd, 'child/report.txt'), 'CHILD FILE')
     await seedSession(scaffold, mentionFixture(), SEED_ID)
-    browser = await chromium.launch()
+    const executablePath = process.env.DSH_PLAYWRIGHT_EXECUTABLE_PATH
+    browser = await chromium.launch(executablePath === undefined ? {} : { executablePath })
     page = await newEnglishPage(browser)
     tripwire = watchConsole(page)
     await page.goto(scaffold.authenticatedUrl, { waitUntil: 'load' })

@@ -1,0 +1,16 @@
+{
+  "status": "PASS",
+  "controls": 3,
+  "sourceRecord": {
+    "path": "artifacts/upstream-first/invalid-stream-errors-source.json",
+    "sha256": "ba8ba493b434d5cf8b98812f0c18759315c7862728e22625a2202aad46a11eb0"
+  },
+  "generator": {
+    "path": "artifacts/upstream-first/write-reports.mjs",
+    "sha256": "1948f327be5e78c69d0620eff5b7e345aa7a6bfe89b5d7480941cc39e027d69b"
+  },
+  "helper": {
+    "path": ".artifacts/check-invalid-stream-errors-binding.mjs",
+    "sha256": "4b429def9b79daf9b6cf9a3252323fc4e3ccff8bef3edca28364586c1e28ac0b"
+  }
+}

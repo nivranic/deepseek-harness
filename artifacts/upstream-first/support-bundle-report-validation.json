@@ -1,0 +1,70 @@
+{
+  "status": "PASS",
+  "scope": "Report bindings and audit for the Support bundle; the remaining specification sections stay open; full Upstream-First objective remains in progress",
+  "gate0": {
+    "validation": "PASS",
+    "gate0": "PASS",
+    "paths": 1938,
+    "components": 129,
+    "specificationCoverage": {
+      "status": "PASS",
+      "numberedSections": 81,
+      "nonEmptySourceLines": 1983,
+      "acceptanceProven": false
+    }
+  },
+  "sourceRecord": {
+    "path": "artifacts/upstream-first/support-bundle-source.json",
+    "sha256": "f20077cb708bc2e084cba9281b3f3127e3cec4fe20b214f62355dc03a265a4b9"
+  },
+  "generator": {
+    "path": "artifacts/upstream-first/write-reports.mjs",
+    "sha256": "82d6b71eb8345ef39e11471310ca3b76b8e35bc28bb61ee529cace2504da2bd4"
+  },
+  "binding": {
+    "path": "artifacts/upstream-first/support-bundle-binding.json",
+    "sha256": "2486c0f57854bfe8d0684fadf202df3a1b01d79149c441bdecfea23cd9e319e5"
+  },
+  "helpers": [
+    {
+      "path": ".artifacts/advance-support-bundle-reports.mjs",
+      "sha256": "7f5eac0d6e63622492619d99833d1798f453982f38bd290a5fc2b27400435fca"
+    },
+    {
+      "path": ".artifacts/capture-support-bundle-validation.mjs",
+      "sha256": "8eb3278bfa06e274e1a134dbfb8debda0fd6d6e2e7d1c555b6295022e2dcb480"
+    }
+  ],
+  "reports": [
+    {
+      "path": "IMPLEMENTATION_STATUS.md",
+      "sha256": "578132ed4cf5a70235b8aa2baca1a3330819f2aee8f93af816d6b4ebada5fdc8"
+    },
+    {
+      "path": "artifacts/upstream-first/evidence.json",
+      "sha256": "4c8f2c0603bd0fb55c5e0a8f714497beaed801c7a9f3aa909b09b8c488394725"
+    }
+  ],
+  "checks": [
+    {
+      "path": ".artifacts/support-bundle-binding.log",
+      "sha256": "7628499946454f8d3747866a48ecc2db1f1da528e7d531a7ede43989cada99af"
+    },
+    {
+      "path": ".artifacts/support-bundle-audit-tests.log",
+      "sha256": "833b0701a86483380ebb4cec5d14305dd98146cf613c068823b5941dbc33ddf7"
+    },
+    {
+      "path": ".artifacts/support-bundle-gate0.log",
+      "sha256": "505d74ef938f5d34d85490d37e0176ba804d93272fcf465ce2544a02c56b3f90"
+    },
+    {
+      "path": ".artifacts/support-bundle-report-diff-check.log",
+      "sha256": "e3b0c44298fc1c149afbf4c8996fb92427ae41e4649b934ca495991b7852b855"
+    },
+    {
+      "path": ".artifacts/support-bundle-report-generation.log",
+      "sha256": "32bce446ec607e1c4f1b4c87b0b5f972ef988447cd2eba022bdcefd0e105d936"
+    }
+  ]
+}

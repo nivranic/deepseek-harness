@@ -55,7 +55,7 @@ const record = domain.table('workspaces').get(id) // synchronous, from memory
 domain.table('workspaces').update(id, (r) => ({ ...r, path: newPath }))
 ```
 
-The caller owns the handle's lifecycle and releases it with `domain.close()` when the feature shuts down (typically its own `ctx.effect` disposer); domains still open when the plugin unmounts are closed by the facility.
+The caller owns the handle's lifecycle and releases it with `domain.close()` when the feature shuts down (typically its own `ctx.effect` disposer). Facility or backend close also drains accepted domain work before releasing units, including queued durability prerequisites. Closing during initialization waits for cleanup; a valid initialization rejects with `closed` instead of returning a handle.
 
 ### Routing domains to backends
 
@@ -70,7 +70,7 @@ The generated [configuration catalog](../../../docs/config-catalog.md#deepseek-a
 
 ### Observable behavior and failures
 
-Every write resolves only after the backend acknowledges durability, and each emits one `domain/changed` event in write order. Failures carry stable `DomainError` codes: `already-open` (the name is open or still closing), `facet-unsupported` (the routed backend serves no `kv` facet), `invalid-record` (a stored record or global fails its schema, naming the table and key), `missing-key` (an `update` on an absent record), and `closed` (any use after close). Backend failures such as `version-mismatch` pass through unchanged.
+Every write resolves only after the backend acknowledges durability, and each emits one `domain/changed` event in write order. Failures carry stable `DomainError` codes: `already-open` (the name is open or still closing), `facet-unsupported` (the routed backend serves no `kv` facet), `invalid-record` (a stored record or global fails its schema, naming the table and key), `missing-key` (an `update` on an absent record), and `closed` (any use after close). Backend failures such as `version-mismatch` pass through unchanged. `table.put(key, value, beforeWrite)` reserves the write position before invoking the optional asynchronous prerequisite. The prerequisite runs before backend I/O; its failure skips the write and event, and domain close drains it together with accepted writes. It must not await another write or close on the same domain, and is never invoked for a write rejected as closed.
 
 -----
 
@@ -92,6 +92,8 @@ The domain layer is a single implementation, not an abstracted seam: consumers d
 ### Open sequence
 
 `DomainFacility.open(spec)` runs a strict sequence, each step failing the whole call: reject a name already open or still closing (`already-open`); resolve the route (`backend-not-found`); require the `kv` facet (`facet-unsupported`); open the unit (backend `version-mismatch`/`malformed-medium` pass through); load and validate every stored record and the global against the spec's schemas (`invalid-record`); construct the domain. The caller owns the handle; the facility closes any domain left open when it unmounts, and a closed domain's name frees for reopening only after teardown completes.
+
+`closeAll()` permanently stops new opens and joins every pending or active domain. It reports cleanup failures after all owners settle; initialization failures remain visible to their opener, and a concurrent closer also receives initialization cleanup failures. See [owner teardown](../../../.agents/notes/implemented/bug-fix/2026-09-16-storage-owner-teardown.md).
 
 ### Source map
 

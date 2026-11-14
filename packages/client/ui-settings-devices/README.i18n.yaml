@@ -1,0 +1,55 @@
+# Bilingual-pair consistency record for README.md (docs/i18n/README.md): per heading
+# section, a hash of its English and Chinese blocks outside code blocks and generated regions.
+# After editing either side, bring the other along and re-record with:
+#   pnpm run verify-translation-pairing --write packages/client/ui-settings-devices/README.md
+/:
+  en: 015bb066537cc332
+  zh: d584054d1a224394
+/deepseek-ai-dsh-client-ui-settings-devices:
+  en: f14ccad952cb31cc
+  zh: f021905a70bbda4a
+/deepseek-ai-dsh-client-ui-settings-devices/summary:
+  en: 5819af23187f04b2
+  zh: 916fae90930fe8bb
+/deepseek-ai-dsh-client-ui-settings-devices/table-of-contents:
+  en: d152484eb41ac6b4
+  zh: 09388d293f9be9cb
+/deepseek-ai-dsh-client-ui-settings-devices/use-this-package:
+  en: 8adaf2353bc549bc
+  zh: 2a11557333925079
+/deepseek-ai-dsh-client-ui-settings-devices/use-this-package/managing-one-device:
+  en: 717f42da02175990
+  zh: ebf81b6fe1c212c4
+/deepseek-ai-dsh-client-ui-settings-devices/use-this-package/pairing-a-new-device:
+  en: 524511c4c80bc421
+  zh: 4ca887d0d97d3f81
+/deepseek-ai-dsh-client-ui-settings-devices/use-this-package/revoking-every-device:
+  en: 6a6941bcd13b1ecc
+  zh: cd8ac5cd27843338
+/deepseek-ai-dsh-client-ui-settings-devices/understand-the-implementation:
+  en: 276715cb1125f2c6
+  zh: d1bc3ded247db3bb
+/deepseek-ai-dsh-client-ui-settings-devices/understand-the-implementation/registration:
+  en: b1da3df2503f7f2f
+  zh: efed6de9207f2d48
+/deepseek-ai-dsh-client-ui-settings-devices/understand-the-implementation/remote-calls:
+  en: 02542635560ea541
+  zh: 18ba097973285f22
+/deepseek-ai-dsh-client-ui-settings-devices/understand-the-implementation/rendering:
+  en: eb653af4f70754db
+  zh: 49c17b401d83afa7
+/deepseek-ai-dsh-client-ui-settings-devices/further-exploration:
+  en: 9ce350b0449b0b3b
+  zh: a50151244c9fd209
+/deepseek-ai-dsh-client-ui-settings-devices/model-experience:
+  en: 3061726b5a98023e
+  zh: 6023a0f7d676e7cc
+/deepseek-ai-dsh-client-ui-settings-devices/model-experience/kv-cache-effect:
+  en: ca75c51c89c2c9b0
+  zh: c4a69d4d8b0599c2
+/deepseek-ai-dsh-client-ui-settings-devices/known-limitations-and-deferred-work:
+  en: b3a971e35f607771
+  zh: f833e13ec291cce6
+/deepseek-ai-dsh-client-ui-settings-devices/known-limitations-and-deferred-work/dev-note:
+  en: ae234d4968fd524a
+  zh: 0131040e4ccb6db7

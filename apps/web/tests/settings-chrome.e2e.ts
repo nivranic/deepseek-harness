@@ -1126,7 +1126,12 @@ describe('web e2e: Host-backed collapse timing preference', () => {
       host: await readFile(join(scaffold.harnessHome, 'profiles', 'scaffold', 'cordis.patch.yml'), 'utf8'),
       settings: structuredClone(scaffold.ctx.settings.describe({ redactSecrets: true }).map(({ ns, value }) => ({ ns, value }))),
       storage: await target.evaluate(() => ({
-        local: Object.fromEntries(Object.entries(localStorage)),
+        // Discovery refreshes connection timestamps on reload; all bookmark facts must remain stable.
+        local: Object.fromEntries(Object.entries<string>(localStorage).map(([key, value]): [string, string | Record<string, unknown>[]] => {
+          if (key !== 'dsh-saved-hosts.v1') return [key, value]
+          const bookmarks = JSON.parse(value) as Record<string, unknown>[]
+          return [key, bookmarks.map(({ lastConnectedAt: _connectedAt, ...bookmark }) => bookmark)]
+        })),
         session: Object.fromEntries(Object.entries(sessionStorage)),
       })),
     })

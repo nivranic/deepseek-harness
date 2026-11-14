@@ -1,0 +1,70 @@
+{
+  "status": "PASS",
+  "scope": "Report bindings and audit for Android Share explicit confirmation and atomic draft adoption; the remaining specification sections stay open; full Upstream-First objective remains in progress",
+  "gate0": {
+    "validation": "PASS",
+    "gate0": "PASS",
+    "paths": 1938,
+    "components": 129,
+    "specificationCoverage": {
+      "status": "PASS",
+      "numberedSections": 81,
+      "nonEmptySourceLines": 1983,
+      "acceptanceProven": false
+    }
+  },
+  "sourceRecord": {
+    "path": "artifacts/upstream-first/android-share-intake-source.json",
+    "sha256": "3127cfc9101bfc84d14da4e8f02be3a96bc42ce44542bc558754f1667c7c6d91"
+  },
+  "generator": {
+    "path": "artifacts/upstream-first/write-reports.mjs",
+    "sha256": "9f83656e47cccc5f71f898ac1cada908556f704db4dec8a75a9a51e51b6f45e2"
+  },
+  "binding": {
+    "path": "artifacts/upstream-first/android-share-intake-binding.json",
+    "sha256": "e50f60f9522fe6be64fd01ff81b4b4ef9d7df74ac5ad8c553d17f4b01abefbb3"
+  },
+  "helpers": [
+    {
+      "path": ".artifacts/advance-android-share-intake-reports.mjs",
+      "sha256": "e64e85b60a0e93f1b6cc30970f08d471b5903e0fa5fcf57b80ebd345b1de8772"
+    },
+    {
+      "path": ".artifacts/capture-android-share-intake-validation.mjs",
+      "sha256": "5e65ebeddde8fed8e1535e86a4f82cf07c047fe99e316336331d4e9137b7240e"
+    }
+  ],
+  "reports": [
+    {
+      "path": "IMPLEMENTATION_STATUS.md",
+      "sha256": "f5678adfb1d2c8bdc3e957d6e6cd57e7e946006844706864a025db97a79faff2"
+    },
+    {
+      "path": "artifacts/upstream-first/evidence.json",
+      "sha256": "26f341662327fd72f46565642afaa85a5ba1435c22fdb14b0e82c25396580cde"
+    }
+  ],
+  "checks": [
+    {
+      "path": ".artifacts/android-share-intake-binding.log",
+      "sha256": "2718e186f8ee26b74465960ffd8da8904f410af7194d107d2288c520146aa64d"
+    },
+    {
+      "path": ".artifacts/android-share-intake-audit-tests.log",
+      "sha256": "4a9f4b4f158f06693c093c1df53f3aa8baa60a94b3245e26b85d2d254bcb5f47"
+    },
+    {
+      "path": ".artifacts/android-share-intake-gate0-report.log",
+      "sha256": "5427f71ff5b67b500b327d785dcaf84a7af2c6edd24b1833c4c7d83ad2cf37c8"
+    },
+    {
+      "path": ".artifacts/android-share-intake-report-diff-check.log",
+      "sha256": "e3b0c44298fc1c149afbf4c8996fb92427ae41e4649b934ca495991b7852b855"
+    },
+    {
+      "path": ".artifacts/android-share-intake-report-generation.log",
+      "sha256": "5867d1d51cd43a59428de2e7fffa15847d7153b11f3b61ecf812224ee2dd2099"
+    }
+  ]
+}

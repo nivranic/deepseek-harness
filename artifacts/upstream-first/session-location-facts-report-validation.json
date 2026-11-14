@@ -1,0 +1,66 @@
+{
+  "status": "PASS",
+  "scope": "Report bindings and audit for the session location facts increment: the section 29 Android location-facts half lands on the session screen — SessionRow parses the wire-optional cwd into the workspace basename under both separators, SessionModel exposes permissionPreset as a StateFlow fed from the journal callback (replacement window without a record is the authoritative null, openSession resets) and mirrors the atomic connection snapshot into a Compose-observable connectionSnapshots StateFlow, the screen renders the facts line Host · workspace basename · preset word · non-OPEN state word? plus the detail line 完整运行时 and the full workspace cwd outside the composer row; acceptance is the sixteen-lane serial round on the local AVD emulator with rebuilt native-acceptance APKs (android-session-location new over the providers-only header-only replay Host proving whole-line facts equality and the detail line, fifteen prior lanes green all first-attempt, with the three-round outage-leg physics finding and three disclosed host incidents in the sealed narration) plus the gradle BUILD SUCCESSFUL round with the 73/471 XML aggregate and two new JVM tests, the web vitest matrix unchanged at 43 files / 618 tests, typecheck, oxlint, doc-quick, doc-sync and gate0; real hardware, the Swift-side facts and the deterministic outage lane stay open; full Upstream-First objective remains in progress",
+  "gate0": {
+    "validation": "PASS",
+    "gate0": "PASS",
+    "paths": 1938,
+    "components": 129,
+    "specificationCoverage": {
+      "status": "PASS",
+      "numberedSections": 81,
+      "nonEmptySourceLines": 1983,
+      "acceptanceProven": false
+    }
+  },
+  "sourceRecord": {
+    "path": "artifacts/upstream-first/session-location-facts-source.json",
+    "sha256": "06438e0dbca30a527751295cee30c18ce5cd2cdbf53befc6453b298037d6c0e5"
+  },
+  "generator": {
+    "path": "artifacts/upstream-first/write-reports.mjs",
+    "sha256": "1f93865e0a586f3fda0e33c46b0f8442ec19e931fe0eabaf84028a49c3ece994"
+  },
+  "binding": {
+    "path": "artifacts/upstream-first/session-location-facts-binding.json",
+    "sha256": "513ffea57d41811bada1d843d6012c8e77fadb9ac46e6e00bc38db9e4a3b8257"
+  },
+  "helpers": [
+    {
+      "path": ".artifacts/advance-session-location-facts-reports.mjs",
+      "sha256": "5b4bfe0993d60f4099e7bf6393330cf2ca817e418bc164b708998df30ab1705c"
+    },
+    {
+      "path": ".artifacts/capture-session-location-facts-validation.mjs",
+      "sha256": "2d09f62fb5b6af75a590a3ad60b993570ab41fdd2ca606814d82ea0852b5a973"
+    }
+  ],
+  "reports": [
+    {
+      "path": "IMPLEMENTATION_STATUS.md",
+      "sha256": "ddf2be676cd2c8091ca401c052ed71655258dead8f2fc0339b0a97195f8f498e"
+    },
+    {
+      "path": "artifacts/upstream-first/evidence.json",
+      "sha256": "11c3b2895a59147270902bd666b74765130c357c4f93f97ff32f0a43f6cab135"
+    }
+  ],
+  "checks": [
+    {
+      "path": ".artifacts/session-location-facts-binding.log",
+      "sha256": "53340c0ddf196f8b07ac904f60614b820a2993fd59a0a644cdd89995034bc00c"
+    },
+    {
+      "path": ".artifacts/session-location-facts-audit-final.log",
+      "sha256": "9a99d0f0ba6ef5fa47cf8cb2d32a7bd545a3fef369c7d9923450aaa782c9cd26"
+    },
+    {
+      "path": ".artifacts/session-location-facts-gate0-final.log",
+      "sha256": "505d74ef938f5d34d85490d37e0176ba804d93272fcf465ce2544a02c56b3f90"
+    },
+    {
+      "path": ".artifacts/session-location-facts-report-generation.log",
+      "sha256": "fe010532f71a6341467ae5719b29ac19470895de1d481156335b8f70a3273ed5"
+    }
+  ]
+}

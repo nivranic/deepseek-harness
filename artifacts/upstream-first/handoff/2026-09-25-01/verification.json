@@ -1,0 +1,15 @@
+{
+  "schemaVersion": 1,
+  "handoffId": "2026-09-25-01",
+  "mode": "package + live (node verify.mjs --live, recorded 2026-09-25)",
+  "selfCheck": {
+    "total": 47,
+    "failed": 0,
+    "failures": []
+  },
+  "notes": [
+    "The manual links to verification.json, so a first pass before this file exists reports two link failures; that bootstrap artifact is gone in the recorded pass above (47/47).",
+    "Checks cover: manifest bytes (8 files), specification sha, state/changes JSON facts, snapshots presence, local links, manual trailing newline, LATEST pointer, and in --live mode: HEAD, origin sync, latest record sha, evidence pointer, .artifacts manifest count, and the shared archivedInputs map in the generator.",
+    "Read-only: no product tests were rerun and the seal chain was not touched for this handoff."
+  ]
+}

@@ -1,0 +1,45 @@
+{
+  "status": "PASS",
+  "gate0": {
+    "validation": "PASS",
+    "gate0": "PASS",
+    "paths": 1938,
+    "components": 129
+  },
+  "sourceRecord": {
+    "path": "artifacts/upstream-first/session-follow-source.json",
+    "sha256": "65a06d64ffab4543b6f7d442c6cf4ceaf03649819cc93bcef4cfa78a853b593f"
+  },
+  "generator": {
+    "path": "artifacts/upstream-first/write-reports.mjs",
+    "sha256": "9ed4977f13f750b330db8340b84280406f897ca66c857ebb5fa352c0950f41e4"
+  },
+  "reports": [
+    {
+      "path": "IMPLEMENTATION_STATUS.md",
+      "sha256": "e3d8731b4d39489f912d4f5ebb3cc4c353006e83c166d1ab3c3d5d326fa1cfd0"
+    },
+    {
+      "path": "artifacts/upstream-first/evidence.json",
+      "sha256": "6410ae941175bcac3d0c5cee783dc42486d2c338e222af9252862c4217f98b76"
+    }
+  ],
+  "checks": [
+    {
+      "path": ".artifacts/session-follow-binding.log",
+      "sha256": "c42612ef7da61d9b0d00a8daf17cb0560e30f82686a3dba3153529f7f06a8993"
+    },
+    {
+      "path": ".artifacts/session-follow-audit-tests.log",
+      "sha256": "98e85f75bd81534df8f2c7d84e101ddd2a67d15b3d1cbb535b90e44441473d77"
+    },
+    {
+      "path": ".artifacts/session-follow-gate0.log",
+      "sha256": "4b5af3121a7e7caff0e1b6288bdaa7cfef9988842ae06bf02dc0a74852426043"
+    },
+    {
+      "path": ".artifacts/session-follow-diff-check.log",
+      "sha256": "e3b0c44298fc1c149afbf4c8996fb92427ae41e4649b934ca495991b7852b855"
+    }
+  ]
+}

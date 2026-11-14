@@ -1,0 +1,16 @@
+{
+  "status": "PASS",
+  "controls": 3,
+  "sourceRecord": {
+    "path": "artifacts/upstream-first/transport-failure-semantics-source.json",
+    "sha256": "453268d6a07920647888c1a77d06af2e844b3219b6cc71bbd40d7a22815eb55d"
+  },
+  "generator": {
+    "path": "artifacts/upstream-first/write-reports.mjs",
+    "sha256": "d69d523c808167a405d8c7910d417940b64eb47ada69c84fb71ff794d09544df"
+  },
+  "helper": {
+    "path": ".artifacts/check-transport-failure-semantics-binding.mjs",
+    "sha256": "272c9df37d5122e15174c233254b1f27731a2b1267f6a8bfbf7542ea76dc8f88"
+  }
+}

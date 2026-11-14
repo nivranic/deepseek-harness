@@ -1,6 +1,7 @@
 - banner:
   - navigation "Session hierarchy": "Remember the project requirements: imple"
   - text: Minimal mode
+  - button "Continue on another device"
   - button "More actions"
   - button "Open right sidebar"
   - tablist:

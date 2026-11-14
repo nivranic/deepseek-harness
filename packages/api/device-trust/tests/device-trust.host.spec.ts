@@ -1,0 +1,799 @@
+import { afterEach, describe, expect, it, vi } from 'vitest'
+import { mkdtemp, rm } from 'node:fs/promises'
+import { tmpdir } from 'node:os'
+import { join } from 'node:path'
+import { generateKeyPairSync, sign as edSign } from 'node:crypto'
+import { Context } from '@deepseek-ai/cordis'
+import { remoteErrorOf, type TypertRemoteCapability } from '@deepseek-ai/dsh-typert-protocol'
+import type { SessionTelemetryRecord, TelemetryConsent } from '@deepseek-ai/dsh-session-telemetry'
+import Storage, { type KvUnit } from '@deepseek-ai/dsh-storage'
+import {
+  apply as storageJsonApply, Config as storageJsonConfig, inject as storageJsonInject, name as storageJsonName,
+} from '@deepseek-ai/dsh-storage-json'
+import {
+  apply as storageDomainApply, Config as storageDomainConfig, inject as storageDomainInject, name as storageDomainName,
+} from '@deepseek-ai/dsh-storage-domain'
+import DeviceTrustService, { DeviceId, deviceGrantRecord, deviceTrustDomainSpec } from '../src/index.ts'
+import type { Config } from '../src/index.ts'
+import type { DeviceId as DeviceIdType } from '../src/types.ts'
+
+/** One freshly generated Ed25519 pair with the wire form of its public key. */
+function ed25519(): { publicKeyB64: string; sign: (message: string) => string } {
+  const { publicKey, privateKey } = generateKeyPairSync('ed25519')
+  const spki = publicKey.export({ type: 'spki', format: 'der' })
+  return {
+    publicKeyB64: spki.toString('base64'),
+    sign: message => edSign(null, Buffer.from(message, 'utf8'), privateKey).toString('base64'),
+  }
+}
+
+/** Fixed 12-byte Ed25519 SPKI prefix followed by 32 key bytes. */
+const spkiB64 = (fill: number): string =>
+  Buffer.concat([Buffer.of(0x30, 0x2a, 0x30, 0x05, 0x06, 0x03, 0x2b, 0x65, 0x70, 0x03, 0x21, 0x00), Buffer.alloc(32, fill)])
+    .toString('base64')
+
+const codeOf = (error: unknown): string => {
+  const remote = remoteErrorOf(error)
+  expect(remote).toBeDefined()
+  return remote!.code
+}
+
+const roots: string[] = []
+const contexts: Context[] = []
+
+/** Boot the full storage stack plus the service over one json root. */
+async function bootWithContext(
+  config: Partial<Config> = {},
+  root?: string,
+  wrapUnit?: (unit: KvUnit) => KvUnit,
+  prepareDomain?: (ctx: Context) => Promise<void>,
+): Promise<{ service: DeviceTrustService; ctx: Context }> {
+  const ctx = new Context()
+  contexts.push(ctx)
+  const storageRoot = root ?? await mkdtemp(join(tmpdir(), 'device-trust-'))
+  if (root === undefined) roots.push(storageRoot)
+  await ctx.plugin(Storage)
+  const jsonBackend = { name: storageJsonName, inject: storageJsonInject, apply: storageJsonApply, Config: storageJsonConfig }
+  await ctx.plugin(jsonBackend, { root: storageRoot })
+  if (wrapUnit !== undefined) {
+    const kv = ctx.storage.backend.get('json').kv
+    if (kv === undefined) throw new Error('test json backend must provide kv')
+    const open = kv.open.bind(kv)
+    vi.spyOn(kv, 'open').mockImplementation(async (...args) => wrapUnit(await open(...args)))
+  }
+  await ctx.plugin({ name: storageDomainName, inject: storageDomainInject, apply: storageDomainApply, Config: storageDomainConfig }, { backend: 'json' })
+  await prepareDomain?.(ctx)
+  await ctx.plugin(DeviceTrustService, config)
+  return { service: ctx.deviceTrust, ctx }
+}
+
+/** Boot the full storage stack and return its device service. */
+async function boot(
+  config: Partial<Config> = {},
+  root?: string,
+  wrapUnit?: (unit: KvUnit) => KvUnit,
+  prepareDomain?: (ctx: Context) => Promise<void>,
+): Promise<DeviceTrustService> {
+  return (await bootWithContext(config, root, wrapUnit, prepareDomain)).service
+}
+
+afterEach(async () => {
+  for (const ctx of contexts.splice(0).reverse()) await ctx.fiber.dispose()
+  await Promise.all(roots.splice(0).map(root => rm(root, { recursive: true, force: true })))
+})
+
+describe('device-trust capability device permissions', () => {
+  it('gates administration on device.admin and keeps the pairing bootstrap undeclared', async () => {
+    const { DEVICE_TRUST_REMOTE_CAPABILITIES } = await import('../src/capabilities.ts')
+    const capabilities: readonly TypertRemoteCapability[] = DEVICE_TRUST_REMOTE_CAPABILITIES
+    expect(capabilities.map(({ id, requiredPermission }) => [id, requiredPermission])).toEqual([
+      ['device-pair.issue.v1', 'device.admin'],
+      ['device-pair.redeem.v1', undefined],
+      ['device.admit.v1', undefined],
+      ['device.list.v1', 'device.admin'],
+      ['device.revoke.v1', 'device.admin'],
+      ['device.revoke-all.v1', 'device.admin'],
+      ['device.rename.v1', 'device.admin'],
+    ])
+  })
+})
+
+describe('device-trust pairing issuance', () => {
+  it('issues single-use codes with the assigned role', async () => {
+    const service = await boot({ pairingTtlMs: 5_000 })
+    const issuance = service.issuePairing('collaborator')
+    expect(issuance.role).toBe('collaborator')
+    expect(issuance.code).toMatch(/^dsh-pair-/)
+    expect(issuance.expiresAt).toBeGreaterThan(Date.now())
+    const grant = await service.redeemPairing({ code: issuance.code, deviceName: 'AVD', devicePublicKey: spkiB64(1) })
+    expect(grant.role).toBe('collaborator')
+    expect(grant.keyFingerprint).toHaveLength(64)
+    await expect(service.redeemPairing({ code: issuance.code, deviceName: 'again', devicePublicKey: spkiB64(3) }))
+      .rejects.toMatchObject({ code: 'device/pairing-invalid' })
+  })
+
+  it('assigns the deployment default role when issuance names none', async () => {
+    const service = await boot({ defaultRole: 'viewer' })
+    const issuance = service.issuePairing()
+    expect(issuance.role).toBe('viewer')
+    const grant = await service.redeemPairing({ code: issuance.code, deviceName: 'phone', devicePublicKey: spkiB64(4) })
+    expect(grant.role).toBe('viewer')
+  })
+
+  it('rejects an unknown code', async () => {
+    const service = await boot()
+    await expect(service.redeemPairing({ code: 'dsh-pair-missing', deviceName: 'phone', devicePublicKey: spkiB64(5) }))
+      .rejects.toMatchObject({ code: 'device/pairing-invalid' })
+  })
+
+  it('rejects redemption after expiry with the expiry detail', async () => {
+    const service = await boot({ pairingTtlMs: 1 })
+    const issuance = service.issuePairing('owner')
+    await new Promise(resolve => setTimeout(resolve, 5))
+    try {
+      await service.redeemPairing({ code: issuance.code, deviceName: 'phone', devicePublicKey: spkiB64(6) })
+      expect.unreachable()
+    } catch (error) {
+      expect(codeOf(error)).toBe('device/pairing-expired')
+    }
+  })
+
+  it('keeps an invalid key from consuming the code', async () => {
+    const service = await boot()
+    const issuance = service.issuePairing('viewer')
+    await expect(service.redeemPairing({ code: issuance.code, deviceName: 'phone', devicePublicKey: 'short' }))
+      .rejects.toMatchObject({ code: 'device/key-invalid' })
+    const grant = await service.redeemPairing({ code: issuance.code, deviceName: 'phone', devicePublicKey: spkiB64(9) })
+    expect(grant.role).toBe('viewer')
+  })
+
+  it('redeems a concurrently presented code for exactly one durable device', async () => {
+    const root = await mkdtemp(join(tmpdir(), 'device-pairing-race-'))
+    roots.push(root)
+    const service = await boot({}, root)
+    const { code } = service.issuePairing('controller')
+    const outcomes = await Promise.allSettled([
+      service.redeemPairing({ code, deviceName: 'first', devicePublicKey: spkiB64(21) }),
+      service.redeemPairing({ code, deviceName: 'second', devicePublicKey: spkiB64(22) }),
+    ])
+    expect(outcomes[0]?.status).toBe('fulfilled')
+    expect(outcomes[1]).toMatchObject({ status: 'rejected', reason: { code: 'device/pairing-invalid' } })
+    const restarted = await boot({}, root)
+    expect(restarted.listDevices()).toMatchObject([{ deviceName: 'first', role: 'controller' }])
+    expect(restarted.listDevices()).toHaveLength(1)
+  })
+
+  it('releases a failed durability claim for retry while rejecting overlapping redemption', async () => {
+    const entered = Promise.withResolvers<undefined>()
+    const release = Promise.withResolvers<undefined>()
+    const diskFailure = new Error('test medium rejected write')
+    const root = await mkdtemp(join(tmpdir(), 'device-pairing-write-'))
+    roots.push(root)
+    const service = await boot({}, root, (unit) => {
+      vi.spyOn(unit, 'putRecord').mockImplementationOnce(async () => {
+        entered.resolve(undefined)
+        await release.promise
+        throw diskFailure
+      })
+      return unit
+    })
+    const { code } = service.issuePairing('viewer')
+    const request = { code, deviceName: 'retry', devicePublicKey: spkiB64(23) }
+    const first = service.redeemPairing(request).catch((error: unknown) => error)
+    try {
+      await entered.promise
+      const overlap = service.redeemPairing({ ...request, deviceName: 'overlap' }).catch((error: unknown) => error)
+      // Release after starting the overlap: both calls see the same pending write.
+      release.resolve(undefined)
+      expect(await first).toBe(diskFailure)
+      expect(await overlap).toMatchObject({ code: 'device/pairing-invalid' })
+      expect(service.listDevices()).toHaveLength(0)
+      await expect(service.redeemPairing(request)).resolves.toMatchObject({ role: 'viewer' })
+      const restarted = await boot({}, root)
+      expect(restarted.listDevices()).toMatchObject([{ deviceName: 'retry' }])
+      expect(restarted.listDevices()).toHaveLength(1)
+    } finally {
+      release.resolve(undefined)
+      await first
+    }
+  })
+})
+
+describe('device-trust key validation', () => {
+  it('rejects a public key that is not an Ed25519 SPKI DER', async () => {
+    const service = await boot()
+    const issuance = service.issuePairing()
+    await expect(service.redeemPairing({ code: issuance.code, deviceName: 'phone', devicePublicKey: Buffer.alloc(10).toString('base64') }))
+      .rejects.toMatchObject({ code: 'device/key-invalid' })
+    await expect(service.redeemPairing({ code: issuance.code, deviceName: 'phone', devicePublicKey: 'not base64!!!' }))
+      .rejects.toMatchObject({ code: 'device/key-invalid' })
+  })
+
+  it('rejects an empty device name', async () => {
+    const service = await boot()
+    const issuance = service.issuePairing()
+    await expect(service.redeemPairing({ code: issuance.code, deviceName: '  ', devicePublicKey: spkiB64(7) }))
+      .rejects.toMatchObject({ code: 'gateway/bad-request' })
+  })
+})
+
+describe('device-trust grants and revocation', () => {
+  async function paired(config: Partial<Config> = {}): Promise<{ service: DeviceTrustService; deviceId: DeviceIdType }> {
+    const service = await boot(config)
+    const issuance = service.issuePairing('owner')
+    const grant = await service.redeemPairing({ code: issuance.code, deviceName: 'desk phone', devicePublicKey: spkiB64(8) })
+    return { service, deviceId: grant.deviceId }
+  }
+
+  it('lists grants without key material', async () => {
+    const { service } = await paired()
+    const views = service.listDevices()
+    expect(views).toHaveLength(1)
+    expect(views[0]).toMatchObject({ deviceName: 'desk phone', role: 'owner' })
+    expect(views[0]).not.toHaveProperty('devicePublicKey')
+  })
+
+  it('revokes once and keeps the grant listed with its revocation time', async () => {
+    const { service, deviceId } = await paired()
+    const revoked = await service.revokeDevice({ deviceId })
+    expect(revoked.revokedAt).toBeGreaterThan(0)
+    const view = service.listDevices().find(entry => entry.deviceId === deviceId)
+    expect(view?.revokedAt).toBe(revoked.revokedAt)
+    await expect(service.revokeDevice({ deviceId }))
+      .rejects.toMatchObject({ code: 'device/already-revoked' })
+  })
+
+  it('rejects revocation of an unknown device', async () => {
+    const { service } = await paired()
+    await expect(service.revokeDevice({ deviceId: DeviceId('device-none') }))
+      .rejects.toMatchObject({ code: 'device/not-found' })
+  })
+
+  it('revokes every active grant at once and keeps earlier revocations untouched', async () => {
+    const service = await boot()
+    const first = service.issuePairing('viewer')
+    const firstGrant = await service.redeemPairing({ code: first.code, deviceName: 'one', devicePublicKey: spkiB64(11) })
+    const second = service.issuePairing('collaborator')
+    const secondGrant = await service.redeemPairing({ code: second.code, deviceName: 'two', devicePublicKey: spkiB64(12) })
+    const earlier = await service.revokeDevice({ deviceId: firstGrant.deviceId })
+    const result = await service.revokeAllDevices()
+    expect(result.count).toBe(1)
+    expect(result.revokedAt).toBeGreaterThanOrEqual(earlier.revokedAt)
+    const views = service.listDevices()
+    expect(views.find(entry => entry.deviceId === firstGrant.deviceId)?.revokedAt).toBe(earlier.revokedAt)
+    expect(views.find(entry => entry.deviceId === secondGrant.deviceId)?.revokedAt).toBe(result.revokedAt)
+    expect(await service.revokeAllDevices()).toMatchObject({ count: 0 })
+  })
+
+  it('renames one grant without touching identity, key, or role', async () => {
+    const { service, deviceId } = await paired()
+    const renamed = await service.renameDevice({ deviceId, deviceName: '  tablet  ' })
+    expect(renamed).toMatchObject({ deviceId, deviceName: 'tablet', role: 'owner' })
+    expect(renamed.keyFingerprint).toBe(service.listDevices()[0]?.keyFingerprint)
+    await expect(service.renameDevice({ deviceId: DeviceId('device-none'), deviceName: 'x' }))
+      .rejects.toMatchObject({ code: 'device/not-found' })
+    await expect(service.renameDevice({ deviceId, deviceName: ' ' }))
+      .rejects.toMatchObject({ code: 'gateway/bad-request' })
+  })
+
+  it('a repeated device rename settles on the last value without touching grants', async () => {
+    const { service, deviceId } = await paired()
+    const before = service.listDevices().find(entry => entry.deviceId === deviceId)
+    if (before === undefined) throw new Error('fixture grant disappeared')
+    await service.renameDevice({ deviceId, deviceName: before.deviceName })
+    const settled = await service.renameDevice({ deviceId, deviceName: '  tablet  ' })
+    expect(settled).toMatchObject({ deviceId, deviceName: 'tablet', role: before.role })
+    const views = service.listDevices()
+    expect(views).toHaveLength(1)
+    expect(views[0]).toMatchObject({
+      deviceId,
+      deviceName: 'tablet',
+      role: before.role,
+      keyFingerprint: before.keyFingerprint,
+      pairedAt: before.pairedAt,
+    })
+  })
+
+  it('carries the pairing platform and the admission-derived last-seen time in listings', async () => {
+    const service = await boot()
+    const issuance = service.issuePairing('collaborator')
+    const grant = await service.redeemPairing({
+      code: issuance.code, deviceName: 'phone', devicePublicKey: spkiB64(13), platform: 'android',
+    })
+    const fresh = service.listDevices()[0]
+    expect(fresh).toMatchObject({ platform: 'android' })
+    expect(fresh).not.toHaveProperty('lastSeenAt')
+    await service.admitDevice({
+      deviceId: grant.deviceId, timestamp: Date.now(), nonce: 'nonce-seen', signature: 'unsigned',
+    }).then(() => undefined, () => undefined)
+    const key = ed25519()
+    const second = service.issuePairing('viewer')
+    const secondGrant = await service.redeemPairing({
+      code: second.code, deviceName: 'quiet phone', devicePublicKey: key.publicKeyB64,
+    })
+    const timestamp = Date.now()
+    await service.admitDevice({
+      deviceId: secondGrant.deviceId, timestamp, nonce: 'nonce-seen',
+      signature: key.sign(`${secondGrant.deviceId}\n${timestamp}\nnonce-seen`),
+    })
+    const seen = service.listDevices().find(entry => entry.deviceId === secondGrant.deviceId)
+    expect(seen?.lastSeenAt).toBe(timestamp)
+    const plain = service.issuePairing('viewer')
+    await service.redeemPairing({ code: plain.code, deviceName: 'bare', devicePublicKey: spkiB64(14) })
+    expect(service.listDevices().find(entry => entry.deviceName === 'bare')).not.toHaveProperty('platform')
+    const blank = service.issuePairing('viewer')
+    await expect(service.redeemPairing({ code: blank.code, deviceName: 'x', devicePublicKey: spkiB64(15), platform: '  ' }))
+      .rejects.toMatchObject({ code: 'gateway/bad-request' })
+  })
+
+  it('announces revoked identities for still-open admitted streams', async () => {
+    const root = await mkdtemp(join(tmpdir(), 'device-trust-events-'))
+    roots.push(root)
+    const first = await bootWithContext({}, root)
+    const key = ed25519()
+    const issuance = first.service.issuePairing('collaborator')
+    const grant = await first.service.redeemPairing({ code: issuance.code, deviceName: 'phone', devicePublicKey: key.publicKeyB64 })
+    const events: Array<{ revokedAt: number; deviceIds: readonly DeviceIdType[] }> = []
+    first.ctx.on('deviceTrust/grantsRevoked', (revocation) => { events.push({ ...revocation }) })
+    const single = await first.service.revokeDevice({ deviceId: grant.deviceId })
+    expect(events).toEqual([{ revokedAt: single.revokedAt, deviceIds: [grant.deviceId] }])
+    const second = await bootWithContext({}, root)
+    const other = second.service.issuePairing('viewer')
+    const otherGrant = await second.service.redeemPairing({ code: other.code, deviceName: 'two', devicePublicKey: spkiB64(16) })
+    events.length = 0
+    second.ctx.on('deviceTrust/grantsRevoked', (revocation) => { events.push({ ...revocation }) })
+    const all = await second.service.revokeAllDevices()
+    expect(events).toEqual([{ revokedAt: all.revokedAt, deviceIds: [otherGrant.deviceId] }])
+  })
+})
+
+describe('device-trust revocation telemetry egress (§44)', () => {
+  /** A fake session-telemetry owner capturing emits, provided like every optional owner. */
+  function telemetrySink(deviceTrustMetadata: boolean) {
+    const emitted: SessionTelemetryRecord[] = []
+    const owner = {
+      consent: {
+        sessionTelemetry: false,
+        providerMetadata: false,
+        relayMetadata: false,
+        deviceTrustMetadata,
+        crashDiagnostics: false,
+      } satisfies TelemetryConsent,
+      emit: (record: SessionTelemetryRecord) => {
+        emitted.push(record)
+      },
+    }
+    return { owner, emitted }
+  }
+
+  /** Pair one device under a distinct key fill and hand back its id. */
+  async function paired(service: DeviceTrustService, fill: number): Promise<DeviceIdType> {
+    const issuance = service.issuePairing('viewer')
+    const grant = await service.redeemPairing({ code: issuance.code, deviceName: 'phone', devicePublicKey: spkiB64(fill) })
+    return grant.deviceId
+  }
+
+  /** Boot the full stack with the fake owner provided before the service composes. */
+  async function bootWithOwner(owner: unknown): Promise<{ service: DeviceTrustService; ctx: Context }> {
+    return bootWithContext({}, undefined, undefined, async (ctx) => {
+      ctx.provide('sessionTelemetry', owner as never)
+    })
+  }
+
+  it('revokes without the telemetry owner composed — zero exceptions, the RPC is unchanged', async () => {
+    const service = await boot()
+    const deviceId = await paired(service, 31)
+    const revoked = await service.revokeDevice({ deviceId })
+    expect(revoked.revokedAt).toBeGreaterThan(0)
+    await expect(service.revokeAllDevices()).resolves.toMatchObject({ count: 0 })
+  })
+
+  it('an owner with deviceTrustMetadata consent closed stays silent — zero emits, revocation succeeds', async () => {
+    const { owner, emitted } = telemetrySink(false)
+    const { service } = await bootWithOwner(owner)
+    const deviceId = await paired(service, 32)
+    await expect(service.revokeDevice({ deviceId })).resolves.toMatchObject({ deviceId })
+    expect(emitted).toEqual([])
+  })
+
+  it('an open gate emits exactly one ops record for revokeDevice — no device id ever leaves', async () => {
+    const { owner, emitted } = telemetrySink(true)
+    const { service } = await bootWithOwner(owner)
+    const deviceId = await paired(service, 33)
+    const revoked = await service.revokeDevice({ deviceId })
+    expect(emitted).toHaveLength(1)
+    const record = emitted[0]!
+    expect(Object.keys(record).sort()).toEqual(['attributes', 'body', 'channel', 'severity', 'time'])
+    expect(record.channel).toBe('ops')
+    expect(record.severity).toBe('info')
+    expect(record.time).toBeGreaterThan(0)
+    expect(record.attributes).toEqual({ 'telemetry.op': 'device-trust-revocation' })
+    expect(record.body).toEqual({ op: 'device-trust-revocation', revokedAt: revoked.revokedAt, deviceCount: 1 })
+    expect(JSON.stringify(record)).not.toContain(deviceId)
+  })
+
+  it('revokeAllDevices reports one record with the revoked count', async () => {
+    const { owner, emitted } = telemetrySink(true)
+    const { service } = await bootWithOwner(owner)
+    await paired(service, 34)
+    await paired(service, 35)
+    const result = await service.revokeAllDevices()
+    expect(result.count).toBe(2)
+    expect(emitted).toHaveLength(1)
+    expect(emitted[0]).toMatchObject({
+      channel: 'ops',
+      severity: 'info',
+      attributes: { 'telemetry.op': 'device-trust-revocation' },
+      body: { op: 'device-trust-revocation', revokedAt: result.revokedAt, deviceCount: 2 },
+    })
+  })
+
+  it('a no-op revoke-all over zero active grants emits nothing and announces no event', async () => {
+    const { owner, emitted } = telemetrySink(true)
+    const { service, ctx } = await bootWithOwner(owner)
+    const events: number[] = []
+    ctx.on('deviceTrust/grantsRevoked', ({ revokedAt }) => { events.push(revokedAt) })
+    expect(await service.revokeAllDevices()).toMatchObject({ count: 0 })
+    expect(emitted).toEqual([])
+    expect(events).toEqual([])
+  })
+})
+
+describe('device-trust durability', () => {
+  it('keeps grants across a Host restart on the same root', async () => {
+    const root = await mkdtemp(join(tmpdir(), 'device-trust-durable-'))
+    roots.push(root)
+    const first = await boot({ defaultRole: 'collaborator' }, root)
+    const issuance = first.issuePairing('owner')
+    const grant = await first.redeemPairing({ code: issuance.code, deviceName: 'survivor', devicePublicKey: spkiB64(10) })
+    await first.revokeDevice({ deviceId: grant.deviceId }).then(() => undefined, () => undefined)
+
+    const second = await boot({}, root)
+    const views = second.listDevices()
+    expect(views).toHaveLength(1)
+    expect(views[0]).toMatchObject({
+      deviceId: grant.deviceId,
+      deviceName: 'survivor',
+      role: 'owner',
+      keyFingerprint: grant.keyFingerprint,
+    })
+    expect(views[0]?.revokedAt).toBeGreaterThan(0)
+  })
+
+  it('does not carry pending pairing codes across a restart', async () => {
+    const root = await mkdtemp(join(tmpdir(), 'device-trust-codes-'))
+    roots.push(root)
+    const first = await boot({ pairingTtlMs: 60_000 }, root)
+    const issuance = first.issuePairing('viewer')
+    const second = await boot({ pairingTtlMs: 60_000 }, root)
+    await expect(second.redeemPairing({ code: issuance.code, deviceName: 'late', devicePublicKey: spkiB64(11) }))
+      .rejects.toMatchObject({ code: 'device/pairing-invalid' })
+  })
+})
+
+describe('device-trust signed admission', () => {
+  /** Pair one real Ed25519 key under the named role. */
+  async function paired(
+    service: DeviceTrustService,
+    role: Config['defaultRole'],
+  ): Promise<{ deviceId: DeviceIdType; key: ReturnType<typeof ed25519> }> {
+    const key = ed25519()
+    const issuance = service.issuePairing(role)
+    const grant = await service.redeemPairing({ code: issuance.code, deviceName: 'phone', devicePublicKey: key.publicKeyB64 })
+    return { deviceId: grant.deviceId, key }
+  }
+
+  it.each(['one', 'all'] as const)('rejects admission queued behind revoke %s before either write settles', async (kind) => {
+    const service = await boot()
+    const { deviceId, key } = await paired(service, 'controller')
+    const timestamp = Date.now()
+    const nonce = 'queued-after-revoke'
+    const revoke = kind === 'one' ? service.revokeDevice({ deviceId }) : service.revokeAllDevices()
+    const admission = service.admitDevice({ deviceId, timestamp, nonce, signature: key.sign(`${deviceId}\n${timestamp}\n${nonce}`) })
+    const outcomes = await Promise.allSettled([revoke, admission])
+    expect(outcomes[0]?.status).toBe('fulfilled')
+    expect(outcomes[1]).toMatchObject({ status: 'rejected', reason: { code: 'device/already-revoked' } })
+    const view = service.listDevices().find(item => item.deviceId === deviceId)
+    expect(view?.revokedAt).toBeGreaterThan(0)
+    expect(view?.lastSeenAt).toBeUndefined()
+  })
+
+  it('returns the section 21 permission set for every role', async () => {
+    const service = await boot()
+    const table = [
+      ['viewer', ['view']] as const,
+      ['collaborator', ['view', 'prompt.send', 'question.respond']] as const,
+      ['controller', ['view', 'prompt.send', 'question.respond', 'approval.respond']] as const,
+      ['owner', ['view', 'prompt.send', 'question.respond', 'approval.respond', 'device.admin']] as const,
+    ]
+    for (const [role, permissions] of table) {
+      const { deviceId, key } = await paired(service, role)
+      const timestamp = Date.now()
+      const admission = await service.admitDevice({
+        deviceId, timestamp, nonce: `nonce-${role}`, signature: key.sign(`${deviceId}\n${timestamp}\nnonce-${role}`),
+      })
+      expect(admission.role).toBe(role)
+      expect(admission.permissions).toEqual(permissions)
+      expect(admission.deviceId).toBe(deviceId)
+    }
+  })
+
+  it('rejects an unknown device', async () => {
+    const service = await boot()
+    const key = ed25519()
+    const timestamp = Date.now()
+    const deviceId = DeviceId('device-none')
+    try {
+      await service.admitDevice({ deviceId, timestamp, nonce: 'nonce-a', signature: key.sign(`${deviceId}\n${timestamp}\nnonce-a`) })
+      expect.unreachable()
+    } catch (error) {
+      expect(codeOf(error)).toBe('device/not-found')
+    }
+  })
+
+  it('rejects a revoked device', async () => {
+    const service = await boot()
+    const { deviceId, key } = await paired(service, 'viewer')
+    await service.revokeDevice({ deviceId })
+    const timestamp = Date.now()
+    try {
+      await service.admitDevice({ deviceId, timestamp, nonce: 'nonce-a', signature: key.sign(`${deviceId}\n${timestamp}\nnonce-a`) })
+      expect.unreachable()
+    } catch (error) {
+      expect(codeOf(error)).toBe('device/already-revoked')
+    }
+  })
+
+  it('rejects a stale and a future timestamp outside the window', async () => {
+    const service = await boot({ admissionWindowMs: 1_000 })
+    const { deviceId, key } = await paired(service, 'collaborator')
+    for (const [timestamp, nonce] of [[Date.now() - 2_000, 'nonce-stale'], [Date.now() + 2_000, 'nonce-future']] as const) {
+      try {
+        await service.admitDevice({ deviceId, timestamp, nonce, signature: key.sign(`${deviceId}\n${timestamp}\n${nonce}`) })
+        expect.unreachable()
+      } catch (error) {
+        expect(codeOf(error)).toBe('device/admission-expired')
+      }
+    }
+  })
+
+  it('rejects a signature not made by the paired key', async () => {
+    const service = await boot()
+    const { deviceId } = await paired(service, 'controller')
+    const other = ed25519()
+    const timestamp = Date.now()
+    try {
+      await service.admitDevice({ deviceId, timestamp, nonce: 'nonce-a', signature: other.sign(`${deviceId}\n${timestamp}\nnonce-a`) })
+      expect.unreachable()
+    } catch (error) {
+      expect(codeOf(error)).toBe('device/key-invalid')
+    }
+  })
+
+  it('rejects an empty signature or nonce as a bad request', async () => {
+    const service = await boot()
+    const { deviceId } = await paired(service, 'owner')
+    for (const request of [
+      { deviceId, timestamp: Date.now(), nonce: 'nonce-a', signature: '' },
+      { deviceId, timestamp: Date.now(), nonce: '', signature: 'sig' },
+    ] as const) {
+      try {
+        await service.admitDevice(request)
+        expect.unreachable()
+      } catch (error) {
+        expect(codeOf(error)).toBe('gateway/bad-request')
+      }
+    }
+  })
+
+  it('admits fresh proofs delivered out of timestamp order', async () => {
+    const service = await boot()
+    const { deviceId, key } = await paired(service, 'collaborator')
+    const timestamp = Date.now()
+    for (const [time, nonce] of [[timestamp, 'later-proof'], [timestamp - 1, 'earlier-proof']] as const) {
+      await expect(service.admitDevice({ deviceId, timestamp: time, nonce,
+        signature: key.sign(`${deviceId}\n${time}\n${nonce}`),
+      })).resolves.toMatchObject({ role: 'collaborator' })
+    }
+  })
+
+  it('rejects every same-timestamp replay after restart', async () => {
+    const root = await mkdtemp(join(tmpdir(), 'device-trust-all-nonces-'))
+    roots.push(root)
+    const { service: first, ctx } = await bootWithContext({}, root)
+    const { deviceId, key } = await paired(first, 'viewer')
+    const timestamp = Date.now()
+    const proofs = ['first-proof', 'last-proof'].map(nonce => ({ deviceId, timestamp, nonce,
+      signature: key.sign(`${deviceId}\n${timestamp}\n${nonce}`),
+    }))
+    for (const proof of proofs) await first.admitDevice(proof)
+    await ctx.fiber.dispose()
+    const second = await boot({}, root)
+    for (const proof of proofs) {
+      await expect(second.admitDevice(proof)).rejects.toSatisfy((error: unknown) => codeOf(error) === 'device/replay-detected')
+    }
+  })
+
+  it('rejects nonce reuse at the same or a different signed timestamp', async () => {
+    const service = await boot()
+    const { deviceId, key } = await paired(service, 'collaborator')
+    const first = Date.now()
+    const message = (timestamp: number, nonce: string) => `${deviceId}\n${timestamp}\n${nonce}`
+    const admitted = await service.admitDevice({ deviceId, timestamp: first, nonce: 'nonce-1', signature: key.sign(message(first, 'nonce-1')) })
+    expect(admitted.role).toBe('collaborator')
+    try {
+      await service.admitDevice({ deviceId, timestamp: first, nonce: 'nonce-1', signature: key.sign(message(first, 'nonce-1')) })
+      expect.unreachable()
+    } catch (error) {
+      expect(codeOf(error)).toBe('device/replay-detected')
+    }
+    try {
+      await service.admitDevice({ deviceId, timestamp: first - 1, nonce: 'nonce-1', signature: key.sign(message(first - 1, 'nonce-1')) })
+      expect.unreachable()
+    } catch (error) {
+      expect(codeOf(error)).toBe('device/replay-detected')
+    }
+    const advanced = await service.admitDevice({ deviceId, timestamp: first + 1, nonce: 'nonce-3', signature: key.sign(message(first + 1, 'nonce-3')) })
+    expect(advanced.role).toBe('collaborator')
+  })
+
+  it('keeps consumed nonces across restart while admitting an unseen older proof', async () => {
+    const root = await mkdtemp(join(tmpdir(), 'device-trust-replay-'))
+    roots.push(root)
+    const first = await boot({}, root)
+    const { deviceId, key } = await paired(first, 'viewer')
+    const timestamp = Date.now()
+    await first.admitDevice({ deviceId, timestamp, nonce: 'nonce-1', signature: key.sign(`${deviceId}\n${timestamp}\nnonce-1`) })
+    const second = await boot({}, root)
+    const message = (nonce: string) => `${deviceId}\n${timestamp}\n${nonce}`
+    try {
+      await second.admitDevice({ deviceId, timestamp, nonce: 'nonce-1', signature: key.sign(message('nonce-1')) })
+      expect.unreachable()
+    } catch (error) {
+      expect(codeOf(error)).toBe('device/replay-detected')
+    }
+    await expect(second.admitDevice({ deviceId, timestamp: timestamp - 1, nonce: 'nonce-2',
+      signature: key.sign(`${deviceId}\n${timestamp - 1}\nnonce-2`),
+    })).resolves.toMatchObject({ role: 'viewer' })
+    expect(second.listDevices()[0]?.lastSeenAt).toBe(timestamp)
+    const resumed = await second.admitDevice({ deviceId, timestamp: timestamp + 1, nonce: 'nonce-3', signature: key.sign(`${deviceId}\n${timestamp + 1}\nnonce-3`) })
+    expect(resumed.role).toBe('viewer')
+  })
+
+  it('commits only one of two simultaneous copies of a proof', async () => {
+    const service = await boot()
+    const { deviceId, key } = await paired(service, 'viewer')
+    const timestamp = Date.now()
+    const nonce = 'simultaneous-proof'
+    const proof = { deviceId, timestamp, nonce, signature: key.sign(`${deviceId}\n${timestamp}\n${nonce}`) }
+    const results = await Promise.allSettled([service.admitDevice(proof), service.admitDevice(proof)])
+    expect(results.filter(result => result.status === 'fulfilled')).toHaveLength(1)
+    expect(results.find(result => result.status === 'rejected')).toMatchObject({
+      reason: { code: 'device/replay-detected', details: { reason: 'nonce-reuse' } },
+    })
+  })
+
+  it('does not consume a nonce when its durable write fails', async () => {
+    let failWrite = false
+    const service = await boot({}, undefined, (unit) => {
+      const put = unit.putRecord.bind(unit)
+      vi.spyOn(unit, 'putRecord').mockImplementation(async (...args) => {
+        if (failWrite) throw new Error('fixture admission write failed')
+        return put(...args)
+      })
+      return unit
+    })
+    const { deviceId, key } = await paired(service, 'viewer')
+    const timestamp = Date.now()
+    const nonce = 'retry-failed-commit'
+    const proof = { deviceId, timestamp, nonce, signature: key.sign(`${deviceId}\n${timestamp}\n${nonce}`) }
+    failWrite = true
+    await expect(service.admitDevice(proof)).rejects.toThrow('fixture admission write failed')
+    failWrite = false
+    await expect(service.admitDevice(proof)).resolves.toMatchObject({ role: 'viewer' })
+    await expect(service.admitDevice(proof)).rejects.toMatchObject({ code: 'device/replay-detected' })
+  })
+
+  it('refuses capacity without evicting live receipts and admits again after expiry', async () => {
+    const clock = vi.spyOn(Date, 'now').mockReturnValue(10_000)
+    try {
+      const service = await boot({ admissionWindowMs: 1_000, maxAdmissionNonces: 2 })
+      const { deviceId, key } = await paired(service, 'viewer')
+      const proof = (timestamp: number, nonce: string) => ({ deviceId, timestamp, nonce,
+        signature: key.sign(`${deviceId}\n${timestamp}\n${nonce}`),
+      })
+      const first = proof(10_000, 'first')
+      await service.admitDevice(first)
+      await service.admitDevice(proof(10_000, 'second'))
+      const third = proof(10_500, 'third')
+      await expect(service.admitDevice(third)).rejects.toMatchObject({
+        code: 'device/admission-capacity', details: { limit: 2, retryAt: 11_001 },
+      })
+      await expect(service.admitDevice(first)).rejects.toMatchObject({ code: 'device/replay-detected' })
+      clock.mockReturnValue(11_001)
+      await expect(service.admitDevice(third)).resolves.toMatchObject({ role: 'viewer' })
+    } finally { clock.mockRestore() }
+  })
+
+  it('keeps retired proofs rejected after restart, window expansion and clock rollback', async () => {
+    const clock = vi.spyOn(Date, 'now').mockReturnValue(10_000)
+    try {
+      const root = await mkdtemp(join(tmpdir(), 'device-trust-floor-'))
+      roots.push(root)
+      const { service, ctx } = await bootWithContext({ admissionWindowMs: 1_000 }, root)
+      const { deviceId, key } = await paired(service, 'viewer')
+      const proof = (timestamp: number, nonce: string) => ({ deviceId, timestamp, nonce,
+        signature: key.sign(`${deviceId}\n${timestamp}\n${nonce}`),
+      })
+      const old = proof(10_000, 'old')
+      await service.admitDevice(old)
+      clock.mockReturnValue(11_001)
+      await service.admitDevice(proof(11_001, 'current'))
+      await ctx.fiber.dispose()
+      const restarted = await boot({ admissionWindowMs: 5_000 }, root)
+      await expect(restarted.admitDevice(old)).rejects.toMatchObject({
+        code: 'device/replay-detected', details: { reason: 'timestamp-regressed' },
+      })
+      clock.mockReturnValue(10_000)
+      await expect(restarted.admitDevice(proof(10_000, 'unused'))).rejects.toMatchObject({
+        code: 'device/replay-detected', details: { reason: 'timestamp-regressed' },
+      })
+    } finally { clock.mockRestore() }
+  })
+
+  it('rejects the prior device storage domain version', async () => {
+    await expect(boot({}, undefined, undefined, async (ctx) => {
+      const domain = await ctx.storageDomain.open({ ...deviceTrustDomainSpec, version: 1 })
+      await domain.table('grants').put(DeviceId('old-format'), {
+        deviceName: 'old format', role: 'viewer', devicePublicKey: spkiB64(7), keyFingerprint: 'a'.repeat(64), pairedAt: 1,
+        admissionFloor: 0, admissionNonces: [],
+      })
+      await domain.close()
+    })).rejects.toThrow(/version/)
+  })
+
+  it('rechecks expiry after waiting behind a durable grant update', async () => {
+    const clock = vi.spyOn(Date, 'now').mockReturnValue(10_000)
+    const entered = Promise.withResolvers<undefined>()
+    const release = Promise.withResolvers<undefined>()
+    let blockWrite = false
+    try {
+      const service = await boot({ admissionWindowMs: 1_000 }, undefined, (unit) => {
+        const put = unit.putRecord.bind(unit)
+        vi.spyOn(unit, 'putRecord').mockImplementation(async (...args) => {
+          if (blockWrite) {
+            blockWrite = false
+            entered.resolve(undefined)
+            await release.promise
+          }
+          return put(...args)
+        })
+        return unit
+      })
+      const { deviceId, key } = await paired(service, 'viewer')
+      blockWrite = true
+      const rename = service.renameDevice({ deviceId, deviceName: 'renamed' })
+      await entered.promise
+      const nonce = 'waiting-proof'
+      const admission = service.admitDevice({ deviceId, timestamp: 10_000, nonce,
+        signature: key.sign(`${deviceId}\n10000\n${nonce}`),
+      }).catch((error: unknown) => error)
+      clock.mockReturnValue(11_001)
+      release.resolve(undefined)
+      await rename
+      expect(await admission).toMatchObject({ code: 'device/admission-expired' })
+      expect(service.listDevices()[0]?.lastSeenAt).toBeUndefined()
+    } finally { release.resolve(undefined); clock.mockRestore() }
+  })
+
+  it('rejects duplicate hashes and receipts below the stored replay floor', () => {
+    const grant = {
+      deviceName: 'fixture', role: 'viewer', devicePublicKey: spkiB64(9), keyFingerprint: 'a'.repeat(64), pairedAt: 1,
+      admissionFloor: 100, admissionNonces: [{ nonceHash: 'b'.repeat(64), timestamp: 101 }],
+    }
+    expect(deviceGrantRecord.safeParse(grant).success).toBe(true)
+    const repeated = { ...grant, admissionNonces: [...grant.admissionNonces, ...grant.admissionNonces] }
+    expect(deviceGrantRecord.safeParse(repeated).success).toBe(false)
+    expect(deviceGrantRecord.safeParse({ ...grant, admissionFloor: 102 }).success).toBe(false)
+  })
+})

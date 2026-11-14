@@ -1,0 +1,26 @@
+{
+  "schemaVersion": 1,
+  "status": "FAIL",
+  "scope": "Windows packaged dsh web outside checkout with an isolated home",
+  "realModelTested": false,
+  "installedWheelTested": false,
+  "helperSourceSha": "16482eec880f40bb472c9328acf5a8819bc988f9",
+  "lifecycle": "Shipped web profile plus a test-only file marker emitting SIGTERM, as in the upstream Windows built-bin fixture",
+  "isolatedRoot": "C:\\Users\\11585\\AppData\\Local\\Temp\\dsh-upstream-packaged-a4xisslx",
+  "executableSha256": "827bd17e09d2dd1b215d38de54a3d0b230aa419b2e8b1f4a893867567d94ab71",
+  "executableBytes": 240754176,
+  "pid": 55168,
+  "failureType": "RuntimeError",
+  "failure": "Packaged startup or browser verification failed; no credential-bearing output retained",
+  "shutdown": {
+    "exitCode": 1,
+    "forced": false,
+    "disposed": true
+  },
+  "diagnostics": [
+    "Error: dsh: plugin tree failed to load: failed to apply loader entry include (cordis:include): failed to import loader entry session-title-llm (@deepseek-ai/dsh-session-title-first-prompt-llm): Cannot find package '@deepseek-ai/dsh-session-title-llm' imported from C:\\snapshot\\upstream-first\\python\\sdk-runtime\\src\\deepseek_harness_runtime\\runtime\\node\\node_modules\\@deepseek-ai\\dsh-session-title-first-prompt-llm\\lib\\index.js",
+    "Error [ERR_MODULE_NOT_FOUND]: Cannot find package '@deepseek-ai/dsh-session-title-llm' imported from C:\\snapshot\\upstream-first\\python\\sdk-runtime\\src\\deepseek_harness_runtime\\runtime\\node\\node_modules\\@deepseek-ai\\dsh-session-title-first-prompt-llm\\lib\\index.js",
+    "[cause]: Error: failed to apply loader entry include (cordis:include): failed to import loader entry session-title-llm (@deepseek-ai/dsh-session-title-first-prompt-llm): Cannot find package '@deepseek-ai/dsh-session-title-llm' imported from C:\\snapshot\\upstream-first\\python\\sdk-runtime\\src\\deepseek_harness_runtime\\runtime\\node\\node_modules\\@deepseek-ai\\dsh-session-title-first-prompt-llm\\lib\\index.js",
+    "[cause]: Error: failed to import loader entry session-title-llm (@deepseek-ai/dsh-session-title-first-prompt-llm): Cannot find package '@deepseek-ai/dsh-session-title-llm' imported from C:\\snapshot\\upstream-first\\python\\sdk-runtime\\src\\deepseek_harness_runtime\\runtime\\node\\node_modules\\@deepseek-ai\\dsh-session-title-first-prompt-llm\\lib\\index.js"
+  ]
+}

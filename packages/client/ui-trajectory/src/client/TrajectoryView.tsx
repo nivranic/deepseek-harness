@@ -25,7 +25,7 @@ import {
   type TrajectoryTimelineMode,
   type TrajectoryTimeRange,
 } from './timeline.ts'
-import { trajectoryRecordId } from './trajectory-record.ts'
+import { trajectoryCallFocus, trajectoryRecordId } from './trajectory-record.ts'
 import { TrajectorySearchIndex } from './trajectory-search-index.ts'
 import type { TrajectorySnapshot } from './trajectory-contract.ts'
 import css from './views.module.css'
@@ -35,9 +35,9 @@ const EMPTY_RECORD_IDS: ReadonlySet<string> = new Set()
 const SEARCH_INDEX_THROTTLE_MS = 3_000
 const HISTORY_PAGE_NODES = 50
 
-function containsCall(calls: readonly ToolCallBlock[], callId: string): boolean {
+function containsCall(calls: readonly ToolCallBlock[], focus: string, location: { readonly turn: number; readonly step: number }): boolean {
   for (const call of calls) {
-    if (call.callId === callId || containsCall(call.subCalls, callId)) return true
+    if (trajectoryCallFocus(call.callId, location) === focus || containsCall(call.subCalls, focus, location)) return true
   }
   return false
 }
@@ -201,10 +201,14 @@ export function TrajectoryView({
   const inspectCallId = viewRequest?.view === 'trajectory' ? viewRequest.focus : null
   const inspectNodeIndex = useMemo(() => inspectCallId === null
     ? -1
-    : completeInspection.eventNodes.findIndex(node => node.kind === 'assistant'
-      ? node.blocks.some(block => block.kind === 'tool-call' && block.callId === inspectCallId)
-      : node.kind === 'tool-result' && containsCall([node], inspectCallId)),
-  [completeInspection.eventNodes, inspectCallId])
+    : completeInspection.eventNodes.findIndex((node) => {
+      if (node.kind === 'assistant') return node.blocks.some(block => block.kind === 'tool-call'
+        && trajectoryCallFocus(block.callId, node) === inspectCallId)
+      const location = completeInspection.eventLocations.get(node.seq)
+      return node.kind === 'tool-result' && location?.kind === 'step'
+        && containsCall([node], inspectCallId, { turn: location.turn.turn, step: location.step.step })
+    }),
+  [completeInspection.eventNodes, completeInspection.eventLocations, inspectCallId])
   useEffect(() => {
     if (inspectNodeIndex < 0 || inspectNodeIndex >= historyStartIndex) return
     setHistoryNodeLimit(limit => limit + historyStartIndex - inspectNodeIndex)

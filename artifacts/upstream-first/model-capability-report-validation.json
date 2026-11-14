@@ -1,0 +1,42 @@
+{
+  "status": "PASS",
+  "scope": "source binding and report audit only",
+  "files": [
+    {
+      "path": "artifacts/upstream-first/model-capability-source.json",
+      "sha256": "c3abb02be10d4c027f077a2939eb362e9cdd8911b45cf66723caca077c7f33ff"
+    },
+    {
+      "path": "artifacts/upstream-first/model-capability-binding.json",
+      "sha256": "4c56912212cce5a5befa319d3b7bb948b4cbde65291d1e3b159a567352dd2cd9"
+    },
+    {
+      "path": "artifacts/upstream-first/write-reports.mjs",
+      "sha256": "fa47ec4ca62a0a2ff35c373594ff8c8e13920fea32ee5ad9adb2dc370be876fa"
+    },
+    {
+      "path": ".artifacts/check-model-capability-binding.mjs",
+      "sha256": "3d93fee00fc7999db2dbb397c64c95d6787fc799a294d7e30af15a798b235d1b"
+    },
+    {
+      "path": ".artifacts/model-capability-binding.log",
+      "sha256": "d7e088c9968623a58d5b09e06665c734b1aa998be92f66990a982c26a9cc8270"
+    },
+    {
+      "path": ".artifacts/model-capability-audit-tests.log",
+      "sha256": "035e68cba4d7814216c58b8fe6bda012dce20fe8730be1d1e1a1f29081dc1f77"
+    },
+    {
+      "path": ".artifacts/model-capability-gate0.log",
+      "sha256": "4b5af3121a7e7caff0e1b6288bdaa7cfef9988842ae06bf02dc0a74852426043"
+    }
+  ],
+  "checks": {
+    "bindingControls": 3,
+    "auditTests": 13,
+    "gate0": "PASS",
+    "diffCheck": "PASS"
+  },
+  "fullGuiPassed": false,
+  "completeGoal": false
+}

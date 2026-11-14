@@ -195,6 +195,11 @@ export class ActionCards extends TypertRemoteService {
     this.projection = await this.ctx.sessionProjections.register(actionCardProjection)
     this.ctx.tools.register(defineTool({
       name: PROPOSE_ACTION,
+      version: 1,
+      risk: 'moderate',
+      permissions: [],
+      supportsLite: false,
+      supportsRemote: true,
       description: 'Show the user one optional action card under this answer. Call only as the skill that names the action instructs.',
       parameters: {
         action: { type: 'string', required: true, description: 'Action name from the skill.' },

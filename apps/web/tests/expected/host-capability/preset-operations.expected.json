@@ -1,0 +1,17 @@
+{
+  "catalogRead": true,
+  "presetRead": 1,
+  "mutations": [
+    "/api/agentPresets/copy"
+  ],
+  "negotiations": 10,
+  "settingsOperations": [
+    "/api/settings/openAgentPresetDirectory",
+    "/api/settings/update"
+  ],
+  "copiedPreset": true,
+  "initialSettingsReads": 1,
+  "settingsReadSuppressed": true,
+  "documentActionWithdrawn": true,
+  "documentActionRestored": true
+}

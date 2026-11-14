@@ -1,0 +1,40 @@
+{
+  "status": "PASS",
+  "files": [
+    {
+      "path": "artifacts/upstream-first/protocol-envelope-source.json",
+      "sha256": "3796e4c2e5fba3065890a6575f5ea5b4fcd36d7f3586269bb01326035ae127d0"
+    },
+    {
+      "path": "artifacts/upstream-first/protocol-envelope-binding.json",
+      "sha256": "79153f54645b6d25b53f7d6ef11e3944893d84787524597481e5bbf6ba7df80b"
+    },
+    {
+      "path": "artifacts/upstream-first/write-reports.mjs",
+      "sha256": "e31bddbef9809585ee3f370d5d1f09f0a422d700c57e78b41ab57c733a922b81"
+    },
+    {
+      "path": ".artifacts/check-protocol-envelope-binding.mjs",
+      "sha256": "837bb3a907feff6466f032cbcf14a191f93c9f46e205a8237abec161c3da92b4"
+    },
+    {
+      "path": ".artifacts/protocol-envelope-binding.log",
+      "sha256": "712085df688a6efa5830035adba398faa00155dc8ae4d9de99998ce37daeed92"
+    },
+    {
+      "path": ".artifacts/protocol-envelope-audit-tests.log",
+      "sha256": "b17a7ad1e2a40a13bf997d51221a1d9196522379ddde86e65ad755b7400fc836"
+    },
+    {
+      "path": ".artifacts/protocol-envelope-gate0.log",
+      "sha256": "4b5af3121a7e7caff0e1b6288bdaa7cfef9988842ae06bf02dc0a74852426043"
+    }
+  ],
+  "checks": {
+    "bindingControls": 3,
+    "auditTests": 13,
+    "gate0": "PASS",
+    "diffCheck": "PASS"
+  },
+  "completeGoal": false
+}

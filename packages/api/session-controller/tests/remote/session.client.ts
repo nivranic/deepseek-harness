@@ -139,6 +139,7 @@ export const sessionWorld: RemoteTable = {
   unary: {
     'session/prompt': ok({ accepted: true }),
     'session/cancel': ok({ accepted: true }),
+    'session/cancelTurn': ok({ accepted: true }),
     'session/updateQueue': ok({ accepted: true }),
     'session/rename': ok({ title: 'fk-renamed', seq: 0 }),
     'session/attachment': ok({
@@ -148,6 +149,8 @@ export const sessionWorld: RemoteTable = {
     'session/page': pageRule(ok({ cursor: -1, records: [], hasMore: false })),
     'session/projections': ok({ kind: 'sequenced', asOfSeq: -1, values: { subagentCatalog: [] } }),
     'subagents/prompt': ok({ messageId: 'fake-message' }),
+    'subagents/interruptByParent': ok({ accepted: true }),
+    'subagents/interruptTurnByParent': ok({ accepted: true }),
     'subagents/interruptByUser': ok({ accepted: true }),
   },
   stream: {

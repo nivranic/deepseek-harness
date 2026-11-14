@@ -1,0 +1,325 @@
+{
+  "schemaVersion": 1,
+  "baseSha": "c291e7961a515f6d7af9304e7fd1d257929aef26",
+  "capturedAt": "2026-09-15T14:07:40.530Z",
+  "scope": "Atomic writer-lock release inspection and linear lexical-path suffix removal; no new byte API or changed address grammar",
+  "sourceFiles": [
+    {
+      "path": "packages/util/atomic-write/src/index.ts",
+      "sha256": "e7635cb34e6eb93c489949a577e4ddfa0d9137f77291e501be9c526392c8fb4d",
+      "bytes": 8545
+    },
+    {
+      "path": "packages/util/atomic-write/package.json",
+      "sha256": "6e1ca9aec43953d7cb5894e931c46aa55609e20417d549f9f010c8496146c23a",
+      "bytes": 925
+    },
+    {
+      "path": "packages/util/atomic-write/tsconfig.json",
+      "sha256": "cd37553e80b9913dec33adf4aa0fff20071647b3952bf74118e4bf8193b5cc58",
+      "bytes": 153
+    },
+    {
+      "path": "packages/util/atomic-write/README.md",
+      "sha256": "5709f79228f1260d1f4ccaac141ed9d25d9e121f98b33cbb5564eeff4bf6b606",
+      "bytes": 7789
+    },
+    {
+      "path": "packages/util/atomic-write/README.zh.md",
+      "sha256": "f0406c8dd3a92e97ed01253b9d1c631ff4780954868e6208cfd08c49a98af5ce",
+      "bytes": 7278
+    },
+    {
+      "path": "packages/util/atomic-write/README.i18n.yaml",
+      "sha256": "43829a541a697432f318835511a9cb886c49b3d1098a0512c93f39b4c0ac2809",
+      "bytes": 436
+    },
+    {
+      "path": "packages/util/workspace-path/src/index.ts",
+      "sha256": "1f9a8f76d24a476c1166bd6b5a672a700d11e33ab4fe4c3575914449b8a7210f",
+      "bytes": 5624
+    },
+    {
+      "path": "packages/util/workspace-path/package.json",
+      "sha256": "dd6f37c2673be6a0a9a2fcbf4d4bc565e7c78495b2f48ce5244e1cdf6b812f82",
+      "bytes": 839
+    },
+    {
+      "path": "packages/util/workspace-path/tsconfig.json",
+      "sha256": "cd37553e80b9913dec33adf4aa0fff20071647b3952bf74118e4bf8193b5cc58",
+      "bytes": 153
+    },
+    {
+      "path": "packages/util/workspace-path/README.md",
+      "sha256": "46756a43f10b338b564d3c5ec2e3cd152f271ee1e7fbc4a2236f822c81306643",
+      "bytes": 3693
+    },
+    {
+      "path": "packages/util/workspace-path/README.zh.md",
+      "sha256": "1d10e03916b743340955ef7d2a6fcf39b8c0fb5e84f3a3916c99871a6f6182a3",
+      "bytes": 3455
+    },
+    {
+      "path": "packages/util/workspace-path/README.i18n.yaml",
+      "sha256": "326e0cfbd0d14fbeda1d269cc9694c5891cee160f635efd4d02067ccf9529b38",
+      "bytes": 438
+    },
+    {
+      "path": "packages/util/atomic-write/tests/atomic-write.spec.ts",
+      "sha256": "fa6679c4fa10bff3202f9e42c0e49449480a8e9187036dbb8e0989213849c0e0",
+      "bytes": 10801
+    },
+    {
+      "path": "packages/util/workspace-path/tests/index.spec.ts",
+      "sha256": "4809a94be6faa2e086239e1e9db83d18d0977b12dfde840a63ade85361b3f7c8",
+      "bytes": 7101
+    },
+    {
+      "path": "packages/util/workspace-path/src/file-address.ts",
+      "sha256": "e54979d7970c09a777d9917a098ab0de8768c60dd198a97167480ffde9bc8f7c",
+      "bytes": 5001
+    },
+    {
+      "path": "packages/util/workspace-path/tests/file-address.spec.ts",
+      "sha256": "ed9db10bba6635fcc9894b217fd6cc45463eb95d143c43eaecd3680d6626878c",
+      "bytes": 6424
+    },
+    {
+      "path": ".agents/notes/implemented/bug-fix/2026-09-15-lock-release-inspection-race.md",
+      "sha256": "f57894f7866cc1afcb5c6387312ee3adc6c425bb376587b8033ae136e966ddd8",
+      "bytes": 1976
+    },
+    {
+      "path": ".agents/notes/implemented/bug-fix/2026-09-15-lock-release-inspection-race.zh.md",
+      "sha256": "db0314e8e8b2a469e7daeabda046f572b367fe3b95773a1fca0394a2c4c88a52",
+      "bytes": 1738
+    },
+    {
+      "path": ".agents/notes/implemented/bug-fix/2026-09-15-lock-release-inspection-race.i18n.yaml",
+      "sha256": "dfd823fd64af8686cafab90d1386df1b63d5aff7fbce71a5668299e9a2944dac",
+      "bytes": 542
+    },
+    {
+      "path": ".agents/notes/implemented/bug-fix/2026-09-15-linear-path-suffix-trimming.md",
+      "sha256": "f0e06b4ae83cf26b360252696b1ad972b74a6d4ed5a0cad2b5e0260a5b81f00d",
+      "bytes": 1910
+    },
+    {
+      "path": ".agents/notes/implemented/bug-fix/2026-09-15-linear-path-suffix-trimming.zh.md",
+      "sha256": "3278f275ad1f5c30eecf0c3c52db61ed54366f086e33b628fea2f8a3836578af",
+      "bytes": 1716
+    },
+    {
+      "path": ".agents/notes/implemented/bug-fix/2026-09-15-linear-path-suffix-trimming.i18n.yaml",
+      "sha256": "fcc167d337cf9ba529929cbc09f131307eca10a80b5597a5c119d64d2bf1f055",
+      "bytes": 539
+    }
+  ],
+  "consumerSources": [
+    {
+      "path": "apps/desktop/src/shell-preferences.ts",
+      "sha256": "38ee3d96f8af72226be0d0e724819e30ed9b0fe026de26b2ab06fde6b143dd99",
+      "bytes": 2740
+    },
+    {
+      "path": "packages/preset/agent-presets/src/authoring.ts",
+      "sha256": "cce3e9d7e460cebce6016f38d697f91bcda7f851a584f80102daa101cd6f75bd",
+      "bytes": 8223
+    },
+    {
+      "path": "packages/llm/llm-deepseek/src/upload-index.ts",
+      "sha256": "0f29ea2557894cae556018a8f538ec17cdd29159e233db11f6158dcdbc685d73",
+      "bytes": 8936
+    },
+    {
+      "path": "packages/settings/settings-file/src/index.ts",
+      "sha256": "5066aff4bacd996badef2f4331e939e889b5674eefd9b6881dd64783814c6350",
+      "bytes": 14875
+    },
+    {
+      "path": "packages/credentials/credentials-local/src/index.ts",
+      "sha256": "45207ea04e6cf6d9bf49977bcb15651795197c902d2c713c1d65e7439a0249dd",
+      "bytes": 43567
+    },
+    {
+      "path": "packages/boot/app-boot/src/profile.ts",
+      "sha256": "29a4224ab083e7c6378d6b67f9c0dc65c1642a1ac84efab8d9f07eb736241922",
+      "bytes": 39156
+    }
+  ],
+  "artifacts": [
+    {
+      "path": "packages/util/atomic-write/lib/index.js",
+      "sha256": "12fbbd55b88ba89f8868b280ed328da741a224052118bf20d790c479080beb5d",
+      "bytes": 6641
+    },
+    {
+      "path": "packages/util/atomic-write/lib/types/index.js",
+      "sha256": "9b269d6720a267e43202123ac39dcc5ce5bc3129a23e0391e433e615c2966704",
+      "bytes": 7411
+    },
+    {
+      "path": "packages/util/atomic-write/lib/types/index.d.ts",
+      "sha256": "b6850306d07eab598564c7d4c8164d07589607e2b7515036fc120b7053927457",
+      "bytes": 4383
+    },
+    {
+      "path": "packages/util/workspace-path/lib/index.js",
+      "sha256": "22975a7c5f98ba837ce23052b44b32eabb58a1fc49674fe2309de03e2d015260",
+      "bytes": 8576
+    },
+    {
+      "path": "packages/util/workspace-path/lib/types/index.js",
+      "sha256": "76667d39a40ba0b88e1d7463434858274130e5146ef8f4065b4376b0f9682b19",
+      "bytes": 5587
+    },
+    {
+      "path": "packages/util/workspace-path/lib/types/index.d.ts",
+      "sha256": "d35de2a072f435b00a44c515425e7356c604031ac2caebfd50453bb214e65d26",
+      "bytes": 3150
+    }
+  ],
+  "receipts": [
+    {
+      "path": "artifacts/upstream-first/helper-built-smoke.json",
+      "sha256": "0c099f696dcca07e7abdbb8df97497f745eb765c0048dc484db6418296b537d2",
+      "bytes": 379
+    }
+  ],
+  "helpers": [
+    {
+      "path": ".artifacts/helper-built-smoke.mjs",
+      "sha256": "c47c14a86189f0480ad73e405785f2f89aeb63f2292df2596b8525356ccade4e",
+      "bytes": 1870
+    },
+    {
+      "path": ".artifacts/capture-helper-fixes.mjs",
+      "sha256": "965b4c50644cbcad32fcf3759c2dfbe9075c18ee1c92f3c16aecb00744d52ab0",
+      "bytes": 4584
+    }
+  ],
+  "logs": [
+    {
+      "path": ".artifacts/helper-regressions-before-sandbox.log",
+      "sha256": "1c498c49702caedcbc516f2e3fe8e174e12726d96e1d9f7545e5f1326c1aea56",
+      "bytes": 5366
+    },
+    {
+      "path": ".artifacts/helper-regressions-before.log",
+      "sha256": "84415aa150daf49df3b8839d8f27cc6752a8ecbe73a2c4c769e083c7f319c0b0",
+      "bytes": 3626
+    },
+    {
+      "path": ".artifacts/helper-regressions-after-sandbox.log",
+      "sha256": "793934a637579d2d72ff3e12662711e01a41b9064283575f02062c661ce06355",
+      "bytes": 4602
+    },
+    {
+      "path": ".artifacts/helper-regressions-after.log",
+      "sha256": "694ac01656eeba0bcbaef7a3209523764cd8621456e5a3582c015c6d389adc89",
+      "bytes": 2040
+    },
+    {
+      "path": ".artifacts/helper-lock-final.log",
+      "sha256": "49ed561618bd64de9adaee652f92f0be3a2ccc1329ea04d9dbd7986d8fbbdff4",
+      "bytes": 951
+    },
+    {
+      "path": ".artifacts/helper-lint.log",
+      "sha256": "e3b0c44298fc1c149afbf4c8996fb92427ae41e4649b934ca495991b7852b855",
+      "bytes": 0
+    },
+    {
+      "path": ".artifacts/helper-pairing-sandbox.log",
+      "sha256": "77ce1208b74ee6ad1de8c20b098e8ef59d0df7a4e0295cdbc631a1601c09454f",
+      "bytes": 1196
+    },
+    {
+      "path": ".artifacts/helper-pairing.log",
+      "sha256": "e7b716f646636a588d7273088adf2dcb93bd73f327c2cc1c3431838d40c5df70",
+      "bytes": 788
+    },
+    {
+      "path": ".artifacts/helper-doc-sync-sandbox.log",
+      "sha256": "680fc74305e8f9afdd045811450210f5c6271f99096292c7fc2e119865c2d1c4",
+      "bytes": 941
+    },
+    {
+      "path": ".artifacts/helper-doc-sync.log",
+      "sha256": "d1126bcdc9747fc640c957d7cf2618b91b7f22090de28728e6473c6af5a43949",
+      "bytes": 2947
+    },
+    {
+      "path": ".artifacts/helper-full-lint-sandbox.log",
+      "sha256": "7c358f1dcb3566f94d297259d4466e89af42dae8d89d4c21b31c4b68730570bb",
+      "bytes": 935
+    },
+    {
+      "path": ".artifacts/helper-full-lint.log",
+      "sha256": "4ff89f87d8ebc62934944bc257bbc1e93faa3c3cda652fb6e55a67c202a6233f",
+      "bytes": 31
+    }
+  ],
+  "historicalRecords": [
+    {
+      "path": "artifacts/upstream-first/desktop-context-source.json",
+      "sha256": "a76b0e3858d5e0c5dbaf5dfb4fe65e8a4d4668f7c41a5afac7605afb870d47c8",
+      "bytes": 28687
+    }
+  ],
+  "checks": [
+    {
+      "id": "helper-before-fix",
+      "status": "FAIL",
+      "expectedRegression": true,
+      "failed": 3,
+      "filteredSkips": 31,
+      "command": "pnpm exec vitest run packages/util/atomic-write/tests/atomic-write.spec.ts packages/util/workspace-path/tests/index.spec.ts -t 'holder releases|consecutive EPERM|long internal'",
+      "detail": "Holder-release case rejects, missing-lock attempt count differs, and the long path child times out before source changes."
+    },
+    {
+      "id": "helper-source-suite",
+      "status": "FAIL",
+      "passed": 81,
+      "failed": 1,
+      "command": "pnpm exec vitest run packages/util/atomic-write/tests/atomic-write.spec.ts packages/util/workspace-path/tests/index.spec.ts packages/util/workspace-path/tests/file-address.spec.ts",
+      "detail": "The unchanged file-symlink case fails during fixture symlink creation with EPERM on the actual Windows host before calling product code. The 69 path/address cases and other 12 atomic-write cases pass. Later fixture consolidation is separately checked by the final lock cases and full type/lint gates."
+    },
+    {
+      "id": "helper-lock-final",
+      "status": "PASS",
+      "tests": 6,
+      "filteredSkips": 7,
+      "command": "pnpm exec vitest run packages/util/atomic-write/tests/atomic-write.spec.ts -t withFileLock"
+    },
+    {
+      "id": "helper-built-libraries",
+      "status": "PASS",
+      "command": "node .artifacts/helper-built-smoke.mjs",
+      "receipt": "artifacts/upstream-first/helper-built-smoke.json"
+    },
+    {
+      "id": "helper-doc-sync",
+      "status": "PASS",
+      "passed": 34,
+      "failed": 0,
+      "command": "pnpm run doc-sync",
+      "log": ".artifacts/helper-doc-sync.log"
+    },
+    {
+      "id": "helper-full-lint",
+      "status": "PASS",
+      "command": "pnpm run lint:contracts-ready",
+      "log": ".artifacts/helper-full-lint.log"
+    }
+  ],
+  "deferred": {
+    "binaryWrites": "Current writeFileAtomic consumers render strings. Preserve the documented string-only API; reassess raw-byte support when a retained diagnostics consumer is integrated.",
+    "symlinkCase": "Windows host cannot create this test file symlink; unchanged scenario remains for a capable CI host."
+  },
+  "exclusions": [
+    "No new application, installer, real-model or macOS/Linux execution qualification",
+    "No changes to Windows rename retry, file-address generation or existing upstream exports",
+    "No user-data migration"
+  ]
+}

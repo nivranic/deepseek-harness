@@ -1,0 +1,377 @@
+{
+  "schemaVersion": 1,
+  "baseSha": "c291e7961a515f6d7af9304e7fd1d257929aef26",
+  "capturedAt": "2026-09-15T14:40:29.813Z",
+  "scope": "Retain current upstream Windows Job owner; native library and test-Host execution, plus independent installed-runtime diagnosis",
+  "upstreamSourceUnchanged": true,
+  "sourceFiles": [
+    {
+      "path": "packages/subprocess/subprocess-local/src/bin.ts",
+      "sha256": "2f4ed2f5b9a08d8b828a73c81f82ed3a9416787e73c3d50acf6c50f71884010f",
+      "bytes": 791
+    },
+    {
+      "path": "packages/subprocess/subprocess-local/src/index.ts",
+      "sha256": "81398ec668d58923aa5f23555b7f56b10637b9f0ad04706a7023002c58b7665d",
+      "bytes": 12270
+    },
+    {
+      "path": "packages/subprocess/subprocess-local/src/linux-execve.ts",
+      "sha256": "0cacd8f92c809df69611e4909183432bf79b375ec8c8903ec33c252070f5dd7c",
+      "bytes": 2333
+    },
+    {
+      "path": "packages/subprocess/subprocess-local/src/linux-scope.ts",
+      "sha256": "eb5dfc5c9592319528be5072bfd36582b66fd77d653f867b4f1b2aa8bec39ebf",
+      "bytes": 19675
+    },
+    {
+      "path": "packages/subprocess/subprocess-local/src/managed-owner.ts",
+      "sha256": "1cb92ee31829672fb6659dfac78f66f5fc68c5a9f41bc97f41d13985f8f58b09",
+      "bytes": 1934
+    },
+    {
+      "path": "packages/subprocess/subprocess-local/src/process-inspector.ts",
+      "sha256": "34c1ad546e2dea978e46c2219d429c3610d75b670cd1767fb15c7a53995d05b3",
+      "bytes": 19704
+    },
+    {
+      "path": "packages/subprocess/subprocess-local/src/runner-launch.ts",
+      "sha256": "3f247c2cda8837d8f00e57effd338f7ae54b8b4a9deb9f5066eb592225cddf87",
+      "bytes": 11381
+    },
+    {
+      "path": "packages/subprocess/subprocess-local/src/runner-protocol.ts",
+      "sha256": "f2ac79004be6f062f495a9c58e9d3e23750617e5f9bf1f31c5e39a6fcccb2458",
+      "bytes": 9789
+    },
+    {
+      "path": "packages/subprocess/subprocess-local/src/spawn-runner.ts",
+      "sha256": "41f5101afec84f1314df98e98393efec2e0a30075994624d0bb686d28343126f",
+      "bytes": 15902
+    },
+    {
+      "path": "packages/subprocess/subprocess-local/src/spawn.ts",
+      "sha256": "e96e3f1a8ec0a5a753ebf2b40a6da90f63a0546809fd2b19e9e4b62f0a6c6d37",
+      "bytes": 26174
+    },
+    {
+      "path": "packages/subprocess/subprocess-local/src/terminal.ts",
+      "sha256": "73b379696a023d836bb38194b94118fda8c7d19734890cf60e53d5bbcadfdab9",
+      "bytes": 16477
+    },
+    {
+      "path": "packages/subprocess/subprocess-local/src/windows-inspector.ts",
+      "sha256": "45e1206192b62da48978a01b1e36a7287e1d76d6daf97b9fe0b4aeabbde7305d",
+      "bytes": 13921
+    },
+    {
+      "path": "packages/subprocess/subprocess-local/src/windows-job.ts",
+      "sha256": "04fa708c704b6be74df17a957de3bd787e62a559a2b9e078c3b4752641292e7b",
+      "bytes": 7842
+    },
+    {
+      "path": "packages/subprocess/win32-process/src/abi.ts",
+      "sha256": "9caaf9e9e7a08249611f9a90d6ea09d01a85b17a3106f2e27057dea7b0d3cb3f",
+      "bytes": 2651
+    },
+    {
+      "path": "packages/subprocess/win32-process/src/errors.ts",
+      "sha256": "e0e7377a376ab5c16289d0c9d455ee0460efdcca5f45dd6bad99dfa39e313295",
+      "bytes": 520
+    },
+    {
+      "path": "packages/subprocess/win32-process/src/ffi.ts",
+      "sha256": "bb7adb2a2a728f8543a4648b0ed86f5821c20cc5eaea6ff429b4500579de5c97",
+      "bytes": 12691
+    },
+    {
+      "path": "packages/subprocess/win32-process/src/index.ts",
+      "sha256": "ef120e78e18da1f01fe27066d41eda6eca9ec214f2473e866c7e245b94b2d0bd",
+      "bytes": 844
+    },
+    {
+      "path": "packages/subprocess/win32-process/src/process.ts",
+      "sha256": "c08043279406acbeb74943f48fc8cbbabc674f617de7f5d5865dca983678215a",
+      "bytes": 20507
+    },
+    {
+      "path": "packages/subprocess/subprocess-local/tests/windows-job.spec.ts",
+      "sha256": "26758c7362c32f210de4f4635c260d3f827901aeab98140b777502bc31fcb8c0",
+      "bytes": 18244
+    },
+    {
+      "path": "packages/subprocess/subprocess-local/tests/spawn-runner.spec.ts",
+      "sha256": "075e46d154a696a98d1737a55d6c80475a963cc46a514eb8b68b0d8a3196aa5a",
+      "bytes": 41956
+    },
+    {
+      "path": "packages/subprocess/win32-process/tests/ordinary-process.spec.ts",
+      "sha256": "77937fc91902d2f40f9b336ed0e614b43c03266c2039bc363b5ff0800d92b4ee",
+      "bytes": 9161
+    },
+    {
+      "path": "packages/subprocess/subprocess-local/tests/native-windows.spec.ts",
+      "sha256": "0b4037368d9fc9d7719b005288f6a09a642661c534902a85a10c9a5ed1b9e08a",
+      "bytes": 10262
+    },
+    {
+      "path": "packages/subprocess/subprocess-local/tests/process-exit.spec.ts",
+      "sha256": "6c7da3ae95d2fc08fcfeea68d4b3b2f50c2731221a491ae447179eed00903b31",
+      "bytes": 6686
+    },
+    {
+      "path": "packages/subprocess/subprocess-local/tests/fixtures/process-exit-host.ts",
+      "sha256": "7c618cdb6533dc81da80f49c97aeb00a672c171dba099456965773614ab93b50",
+      "bytes": 2560
+    },
+    {
+      "path": "packages/subprocess/win32-process/tests/process-failure-paths.spec.ts",
+      "sha256": "534a3dcb083529bb454a6555ad50b6216ba6a7cee62aaa8220d170e294c57734",
+      "bytes": 16469
+    },
+    {
+      "path": "packages/subprocess/win32-process/tests/process-allocation-failure.spec.ts",
+      "sha256": "37c0488c564c0cbe1b780b1074fdb92213756d7d3b0409db5aa34f81ff48c2b8",
+      "bytes": 5039
+    },
+    {
+      "path": "packages/subprocess/subprocess-local/README.md",
+      "sha256": "2f375a6cbf0e77b3d0d8a4ccbc7dbede7a4f65bba6dc6ccc3c403d6995862c68",
+      "bytes": 15258
+    },
+    {
+      "path": "packages/subprocess/subprocess-local/package.json",
+      "sha256": "d36a3e46bcb2bf4af63da4c912e5e1feb7a101a3c806af779ba6c54ae14b6d7c",
+      "bytes": 1507
+    },
+    {
+      "path": "packages/subprocess/win32-process/README.md",
+      "sha256": "a5498204e313476521587212072ddabb6c3cc4b134211a645c3aaa370564cadb",
+      "bytes": 7378
+    },
+    {
+      "path": "packages/subprocess/win32-process/package.json",
+      "sha256": "a53922de52a2637f37e0df1274fb336a5e4f0301517d7395feb3235a4760702c",
+      "bytes": 902
+    }
+  ],
+  "logs": [
+    {
+      "path": ".artifacts/windows-job-contracts-sandbox.log",
+      "sha256": "747c00597d3958e0ca79fbad61e4d8dbe161cbdf43cda5683d96ca36c7ffbcaf",
+      "bytes": 3721
+    },
+    {
+      "path": ".artifacts/windows-job-contracts.log",
+      "sha256": "93a5dc29dafa22ca4eafebbbdc8033dcb72a4c3cea3c0644b23198a3a281489a",
+      "bytes": 2986
+    },
+    {
+      "path": ".artifacts/windows-job-native-sandbox.log",
+      "sha256": "77d15516e7a33c21242cc2954a12527c88345691d746a54fc24a14982bdc8df4",
+      "bytes": 6921
+    },
+    {
+      "path": ".artifacts/windows-job-native.log",
+      "sha256": "91cea9f5c635a1760534af50eee073402351ad3dc6a870e5a1634a2fef0b4cae",
+      "bytes": 939
+    },
+    {
+      "path": ".artifacts/windows-job-host-exit.log",
+      "sha256": "cf0c32779f0ccc2fa27bd6f9e5213c677de064d787479f848d75d48a51354d82",
+      "bytes": 951
+    },
+    {
+      "path": ".artifacts/windows-job-failure-paths.log",
+      "sha256": "c349f7052730e9c140d2552e6e6796b4c12f13fa57eb173a948dd1157f94449c",
+      "bytes": 940
+    },
+    {
+      "path": ".artifacts/runtime-location-probe.log",
+      "sha256": "aab3092421f1ebeb8acee452d68f3ef1bb27ff1e0a5f846d7f1e385268a772c6",
+      "bytes": 2700
+    },
+    {
+      "path": ".artifacts/installed-token-comparison.log",
+      "sha256": "4a14134ec0a6ca3370d0ab5b025ea71f74f11ecc265559261b6d470f3014464e",
+      "bytes": 1718
+    },
+    {
+      "path": ".artifacts/installed-token-comparison-final.log",
+      "sha256": "277f088ca9bfd58bef054da32b4aa1feb203ac0f05ce3d108081e6ba28d2811a",
+      "bytes": 6645
+    }
+  ],
+  "receipts": [
+    {
+      "path": "artifacts/upstream-first/installed-chain-probe.json",
+      "sha256": "4dbb15bbd3b7630fd0bb56303cddd155d853a5a95896859f27886881c4e5e96f",
+      "bytes": 6375
+    },
+    {
+      "path": "artifacts/upstream-first/installed-native-links-probe.json",
+      "sha256": "50839c78fe8791328543e95529d42db480d301a27adcafdcb9cca93d93f6d425",
+      "bytes": 4914
+    },
+    {
+      "path": "artifacts/upstream-first/installed-token-comparison.json",
+      "sha256": "a363aa472f2708190890b6903301415e0dbd67cdcf419d64a93ea512b08ecf6a",
+      "bytes": 2036
+    },
+    {
+      "path": "artifacts/upstream-first/installed-token-comparison-final.json",
+      "sha256": "0bcac37e67a1c621931b0cd54d04ba185669e632035a484a0acd07c7c9a9702e",
+      "bytes": 11457
+    },
+    {
+      "path": "artifacts/upstream-first/runtime-location-current.json",
+      "sha256": "840f345db89244e68f505d42929ab530b60e8f4e3fcce3b244c6683306a3c3df",
+      "bytes": 4084
+    },
+    {
+      "path": ".artifacts/runtime-probe-restoration.json",
+      "sha256": "fe8bf5ca88428bb2303517bfbd6355c4a7ad57dd0eecb4cfa388447774af8c69",
+      "bytes": 238
+    }
+  ],
+  "helpers": [
+    {
+      "path": ".artifacts/capture-windows-runtime-review.mjs",
+      "sha256": "cc945b13a38b2d188e6a19ffa10253ed2c1e4cf758d27633dcb5f9ea5487c735",
+      "bytes": 7147
+    },
+    {
+      "path": ".artifacts/probe-installed-chain-child.mjs",
+      "sha256": "10df93539157f28a8ea2bdf3e602412a3d3d58f842bdc4302faac1ef5628d0ba",
+      "bytes": 759
+    },
+    {
+      "path": ".artifacts/probe-installed-chain.py",
+      "sha256": "977ecb6a11a0f81e1609aa81b39e42be973a7aadbd52176e67ea9c6c653f00fa",
+      "bytes": 2592
+    },
+    {
+      "path": ".artifacts/probe-installed-links-child.mjs",
+      "sha256": "3848a20354a86fc724b445d60a4b3dfbfdd4d8292051df880eb217348d5c191c",
+      "bytes": 1432
+    },
+    {
+      "path": ".artifacts/probe-installed-links.py",
+      "sha256": "5099f08886be176fc1162a93b43ef6455bf37bb51e3fa25bec355d26b0c0b76b",
+      "bytes": 2017
+    },
+    {
+      "path": ".artifacts/read-token-comparison.py",
+      "sha256": "cc03f006d5b7c9277b776dc1ca168b01a339f8cdad21f641f09a319e41b651e0",
+      "bytes": 2416
+    },
+    {
+      "path": ".artifacts/probe-installed-token-child.mjs",
+      "sha256": "0b334ff33971db170c3604c91f0f16a9dc2644e799982d5bab55f7db9548989f",
+      "bytes": 374
+    },
+    {
+      "path": ".artifacts/probe-installed-tokens.py",
+      "sha256": "dcaba1c881f9b52850fad6a4a1897acfda59fa9235ebd1abcceb3349280d469f",
+      "bytes": 2098
+    },
+    {
+      "path": ".artifacts/probe-runtime-location-current.py",
+      "sha256": "7ad2f1e175dfdd8b61eecff630974b2b56105fb3190a7b68d36fa417972261e5",
+      "bytes": 2130
+    },
+    {
+      "path": ".artifacts/collect-runtime-location-current.mjs",
+      "sha256": "d6fffec1ce352a1bb5ddb03666f8432a3ed37f5438707fe3d3240dfde971a40a",
+      "bytes": 1745
+    }
+  ],
+  "historicalRecords": [
+    {
+      "path": "artifacts/upstream-first/cli-argv-source.json",
+      "sha256": "1351bffa2940c203f116ad6fce17bf53367990cbbd0e06f06124c71a660dfc77",
+      "bytes": 28579
+    },
+    {
+      "path": "artifacts/upstream-first/helper-fixes-source.json",
+      "sha256": "a91762aaf4ac7d7c71eff1616828357871e629ca3803a4a45f8e7389cec54a6e",
+      "bytes": 11935
+    }
+  ],
+  "checks": [
+    {
+      "id": "windows-job-contracts",
+      "status": "FAIL",
+      "passed": 53,
+      "failed": 2,
+      "skipped": 1,
+      "command": "pnpm exec vitest run packages/subprocess/subprocess-local/tests/windows-job.spec.ts packages/subprocess/subprocess-local/tests/spawn-runner.spec.ts packages/subprocess/win32-process/tests/ordinary-process.spec.ts",
+      "detail": "Two unchanged fixture symlink creations fail EPERM on the Windows host; one POSIX symlink traversal case is explicitly skipped. Windows Job parent, runner protocol and ordinary process cases pass."
+    },
+    {
+      "id": "windows-job-failure-paths",
+      "status": "PASS",
+      "tests": 26,
+      "command": "pnpm exec vitest run packages/subprocess/win32-process/tests/process-failure-paths.spec.ts packages/subprocess/win32-process/tests/process-allocation-failure.spec.ts"
+    },
+    {
+      "id": "windows-job-native",
+      "status": "PASS",
+      "tests": 4,
+      "command": "pnpm exec vitest run packages/subprocess/subprocess-local/tests/native-windows.spec.ts",
+      "detail": "Real Windows Job capability selected: writable stdin, null-device semantics, cwd/env/literal argv, direct exit 42, descendant termination, exit 17 and start errors. No native cases skipped."
+    },
+    {
+      "id": "windows-job-host-exit",
+      "status": "PASS",
+      "tests": 4,
+      "skipped": 1,
+      "command": "pnpm exec vitest run packages/subprocess/subprocess-local/tests/process-exit.spec.ts",
+      "detail": "Direct exit, uncaught exception, unhandled rejection and normal dispose remove both recorded processes; terminal exit is a POSIX-only scenario and remains skipped."
+    }
+  ],
+  "scenarioMap": [
+    {
+      "requirement": "Job membership before target code",
+      "owner": "spawnCurrentTokenJobProcess -> spawnJobProcess",
+      "evidence": "ordinary-process.spec.ts: creates suspended, assigns the Job, and resumes before returning; native target execution and containment"
+    },
+    {
+      "requirement": "Assignment/resume failure cleanup",
+      "owner": "spawnJobProcess",
+      "evidence": "process-failure-paths.spec.ts and process-allocation-failure.spec.ts; shared creator-independent failure paths"
+    },
+    {
+      "requirement": "Direct outcome versus range emptiness",
+      "owner": "WindowsJobRunner and WindowsJobOwner",
+      "evidence": "windows-job.spec.ts, spawn-runner.spec.ts and native-windows.spec.ts"
+    },
+    {
+      "requirement": "Cancellation, disconnect and Host exit",
+      "owner": "WindowsJobRunner and subprocess-local exit finalizer",
+      "evidence": "spawn-runner.spec.ts pre/post-commit controls; process-exit.spec.ts real process disappearance"
+    }
+  ],
+  "installedRuntime": {
+    "status": "IN_PROGRESS",
+    "runtimeSha256": "30d5a7ff6b8d7594b3d132de3acb53b6bc80743c99f2414471df194553aa1181",
+    "pythonEntryRequiredForFailure": false,
+    "inspectedEnvironmentFieldsEqual": true,
+    "inspectedTokenFieldsEqual": true,
+    "standaloneTempCopyAlsoFails": true,
+    "rootCauseConfirmed": false,
+    "detail": "Repository runtime allows the fixture Node child to create junctions; same-byte installed runtime and a standalone Temp copy do not. Python/entry bypass still reproduces it. Native Python junction diagnostic times out under the installed chain; a read-only token reader completes. No ACL, token, compatibility layer or system policy was modified.",
+    "corrections": [
+      "Initial token decoder assumed DWORD for a BOOLEAN result; corrected length-aware read passes all three chains.",
+      "Location recorder refused an existing historical filename; new receipt recovers completed observations from its log.",
+      "Native junction diagnostic gained a bounded child timeout after an initial parent timeout. A final host process query found no matching diagnostic children.",
+      "A new location probe reused a historical helper filename; report binding rejected it. The exact historical helper was restored from the task FileChange event with matching SHA256, and the new helper was preserved under a distinct filename."
+    ]
+  },
+  "exclusions": [
+    "No new Desktop installer, OS login, macOS/Linux or real-model qualification",
+    "No plugin-install PASS from fixture shims",
+    "No broader runtime rewrite or fallback wrapper"
+  ]
+}

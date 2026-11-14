@@ -1,0 +1,10 @@
+{
+  "credentialReadsSuppressed": true,
+  "ordinarySettingPersisted": true,
+  "keyWriteIndependent": true,
+  "replacedDraftDiscarded": true,
+  "explicitKeyPersisted": true,
+  "noSecretInSettingsOrUi": true,
+  "negotiations": 5,
+  "credentialWrites": ["/api/credentials/set"]
+}

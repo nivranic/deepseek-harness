@@ -1,0 +1,66 @@
+{
+  "status": "PASS",
+  "scope": "Report bindings and audit for the gateway outage increment: the session-location-facts generation's ruled deterministic-outage gap closes Host-side — RemoteStreamMuxConnection exposes RemoteStreamConnectionHandle whose terminate() destroys the carrier socket with no close handshake, the Gateway binds a physical connection to the device whose admitted stream opened on it (set-identity guard against stale unbinds) and unbinds when its admitted streams end, and the host-plane terminateDeviceConnections({deviceId}) destroys every live carrier of the device and returns the count while admission and grants survive (connection hygiene, not revocation); the TypertGateway DECLARATION interface gains the member, TypertGatewayWireStream.open gains the optional 4th connection parameter and the createDeviceConnection adapter forwards it so device binding reaches the native carrier; the Android companion needs zero code change (its androidTest gains the waitLocationFactsContains waitUntil op) and the new android-connection-outage lane proves on a real AVD the settled facts line → terminateDeviceConnections returning {terminated: 1} → the 重连中 state word caught in-device → the settled line returning unchanged with session/follow re-opened and the admission never revoked, while the corrected location lane re-runs green and the eighteen-lane serial regressions round is all first-attempt green; the gateway suite covers 492 tests including the new cross-device termination and handle tests, the Kotlin JVM suites replay green (core 73/464, contract 1/9), the web vitest matrix stays at 43 files / 618 tests (no web client spec change), typecheck is clean, the first lint round's two max-len failures are sealed honestly with the wrapped re-run green, doc-quick, doc-sync and gate0 pass; the three implementation iterations and the wrong-path first install are disclosed in the native-verified summary; real-device and Swift-side qualification stay open; full Upstream-First objective remains in progress",
+  "gate0": {
+    "validation": "PASS",
+    "gate0": "PASS",
+    "paths": 1938,
+    "components": 129,
+    "specificationCoverage": {
+      "status": "PASS",
+      "numberedSections": 81,
+      "nonEmptySourceLines": 1983,
+      "acceptanceProven": false
+    }
+  },
+  "sourceRecord": {
+    "path": "artifacts/upstream-first/gateway-outage-source.json",
+    "sha256": "17b30c5d70bdc07c2224ea7b583cbdf5f23847cd26cd78d1d123fe00d3e45d58"
+  },
+  "generator": {
+    "path": "artifacts/upstream-first/write-reports.mjs",
+    "sha256": "79621882a0ff8a1e2b95081bc6b45af683d7333878e4f68d59c0b4c2ab345fed"
+  },
+  "binding": {
+    "path": "artifacts/upstream-first/gateway-outage-binding.json",
+    "sha256": "e8b8a393e82985f29df3838e6f2a713d95c5ee65988dba06c03ad7ff162cb2b4"
+  },
+  "helpers": [
+    {
+      "path": ".artifacts/advance-gateway-outage-reports.mjs",
+      "sha256": "edc8b3e0d4bf8265ade0fb9eda570c8d4f2af1a896fd1d3d3e3002032d259b0a"
+    },
+    {
+      "path": ".artifacts/capture-gateway-outage-validation.mjs",
+      "sha256": "9847e93ac89c287ca57847896a7ff7ffca30b10d2da2ff75cb9a4321277bc370"
+    }
+  ],
+  "reports": [
+    {
+      "path": "IMPLEMENTATION_STATUS.md",
+      "sha256": "5558dab6d6b376f87652f7b5a13909da8ccfa0041ea439a83417632037284001"
+    },
+    {
+      "path": "artifacts/upstream-first/evidence.json",
+      "sha256": "4795649a2eb5aecde21189f505eeb8e947c200b81f71eecc561643e91fef4435"
+    }
+  ],
+  "checks": [
+    {
+      "path": ".artifacts/gateway-outage-binding.log",
+      "sha256": "7a2afa4fbc3a6a4d55ca9ca09b6843e3893d88ea44f81ef71d6be7e9d6b2f1d0"
+    },
+    {
+      "path": ".artifacts/gateway-outage-audit-final.log",
+      "sha256": "b1ec6af464d579107047d9e3a2f274f7ad780064b5df7c86a9b1b602a290470f"
+    },
+    {
+      "path": ".artifacts/gateway-outage-gate0-final.log",
+      "sha256": "505d74ef938f5d34d85490d37e0176ba804d93272fcf465ce2544a02c56b3f90"
+    },
+    {
+      "path": ".artifacts/gateway-outage-report-generation.log",
+      "sha256": "fe010532f71a6341467ae5719b29ac19470895de1d481156335b8f70a3273ed5"
+    }
+  ]
+}

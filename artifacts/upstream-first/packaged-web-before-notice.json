@@ -1,0 +1,65 @@
+{
+  "schemaVersion": 1,
+  "status": "IN_PROGRESS",
+  "scope": "Windows packaged dsh web outside checkout with an isolated home",
+  "realModelTested": false,
+  "installedWheelTested": false,
+  "helperSourceSha": "16482eec880f40bb472c9328acf5a8819bc988f9",
+  "lifecycle": "Shipped web profile plus a test-only file marker emitting SIGTERM, as in the upstream Windows built-bin fixture",
+  "isolatedRoot": "C:\\Users\\11585\\AppData\\Local\\Temp\\dsh-upstream-packaged-hmdlxqef",
+  "executableSha256": "184f1a4059ffa61c8a55c43e00c985142306bfcee5247c078236eea7be625b73",
+  "executableBytes": 240813056,
+  "pid": 53216,
+  "http": {
+    "authentication": "PASS",
+    "frontend": "PASS",
+    "scriptCount": 2,
+    "pluginCount": 53,
+    "batchCount": 2,
+    "sessionRpc": "PASS"
+  },
+  "browser": {
+    "status": "IN_PROGRESS",
+    "pageErrors": [],
+    "bootEntries": 53,
+    "settingsOpened": true,
+    "buttonsAfterSettings": [
+      "DSH Local Build0.1.5-rc.2-c291e79-dirty",
+      "",
+      "New Session",
+      "",
+      "",
+      "",
+      "Settings",
+      "General",
+      "Models",
+      "Plugins",
+      "Agent presets",
+      "Close",
+      "Loading",
+      "English",
+      "Light",
+      "Dark",
+      "System",
+      "",
+      "",
+      "Compact",
+      "Queue",
+      "Choose workspace",
+      "",
+      ""
+    ],
+    "headingsAfterSettings": [],
+    "limitation": "First-run notice overlapped the settings dialog; this observation does not qualify the full settings interaction"
+  },
+  "screenshot": {
+    "path": "artifacts/upstream-first/packaged-web-before-notice.png",
+    "sha256": "528df3aa324e157bb9cb51639535db326411da974b9d7476077cef7f32054926"
+  },
+  "shutdown": {
+    "exitCode": 0,
+    "forced": false,
+    "disposed": true
+  },
+  "diagnostics": []
+}

@@ -1,0 +1,22 @@
+# Bilingual-pair consistency record for 2026-09-30-hosts-roster-rename.md (docs/i18n/README.md): per heading
+# section, a hash of its English and Chinese blocks outside code blocks and generated regions.
+# After editing either side, bring the other along and re-record with:
+#   pnpm run verify-translation-pairing --write .agents/notes/implemented/architecture/2026-09-30-hosts-roster-rename.md
+/agent-note-local-saved-host-renaming-on-the-section-28-roster:
+  en: 7c12e1553fbeb614
+  zh: 24884e4a9533fdd1
+/agent-note-local-saved-host-renaming-on-the-section-28-roster/problem:
+  en: fcfc2c9932bb4371
+  zh: f8cf62299c9af5bf
+/agent-note-local-saved-host-renaming-on-the-section-28-roster/decision:
+  en: 7feb12c74f0b959f
+  zh: 98b011a9e039a419
+/agent-note-local-saved-host-renaming-on-the-section-28-roster/alternatives-considered:
+  en: 877738aba2ead93a
+  zh: 21204965142f04a1
+/agent-note-local-saved-host-renaming-on-the-section-28-roster/consequences:
+  en: dc9be347f389c144
+  zh: 8297da7f72947f10
+/agent-note-local-saved-host-renaming-on-the-section-28-roster/open-work:
+  en: 0833e9416a4d0be1
+  zh: 6163cefacaf267e4

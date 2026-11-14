@@ -1,0 +1,16 @@
+{
+  "status": "PASS",
+  "controls": 3,
+  "sourceRecord": {
+    "path": "artifacts/upstream-first/diagnostics-source-revision-source.json",
+    "sha256": "98036b4fe6399492fac96c3a38cce03362ba430eaef5c7d942a561dd301dabe5"
+  },
+  "generator": {
+    "path": "artifacts/upstream-first/write-reports.mjs",
+    "sha256": "e052cd7ede37df6adaf09cbf3e2717134a0868618ea1b665c444567cabe191c3"
+  },
+  "helper": {
+    "path": ".artifacts/check-diagnostics-source-revision-binding.mjs",
+    "sha256": "ce573a92305ed3615e59371b08b70c0a29dc440752b95046eb4fc2fb9eb615eb"
+  }
+}

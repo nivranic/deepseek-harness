@@ -77,7 +77,6 @@ export class TimelineStorage extends Service implements TimelineReader {
     }, 'timeline: pending session writes')
     ctx.inject(['connection', 'webServer'], (scope) => {
       scope.connection.rpc.handle(TIMELINE_CHANNEL, async (method, payload, signal, peer) => {
-        // oxlint-disable-next-line typescript/no-unnecessary-condition -- other plugins can define non-owner principals.
         if (peer.principal.kind !== 'owner' || (method !== TIMELINE_EDIT && method !== TIMELINE_LOCALE)) {
           return {
             ok: false,

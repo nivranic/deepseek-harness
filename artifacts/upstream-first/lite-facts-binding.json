@@ -1,0 +1,16 @@
+{
+  "status": "PASS",
+  "controls": 3,
+  "sourceRecord": {
+    "path": "artifacts/upstream-first/lite-facts-source.json",
+    "sha256": "cf1f1f795d89f87aebe4a7c3c39541b450b67b8e1133fe2fff4412d5f14ba081"
+  },
+  "generator": {
+    "path": "artifacts/upstream-first/write-reports.mjs",
+    "sha256": "3395a750f834c5ed1f86bc439603ca7c5ec4aab21e70df27d0510508da26050a"
+  },
+  "helper": {
+    "path": ".artifacts/check-lite-facts-binding.mjs",
+    "sha256": "9acd3df6eb5498162d4e7fba08a6ed04642eca380d02fa5cd80340e28c8b72c6"
+  }
+}

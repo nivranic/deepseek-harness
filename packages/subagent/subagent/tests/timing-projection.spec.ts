@@ -78,7 +78,7 @@ describe('subagent timing projection', () => {
       event('turn/end', 2, 900),
       event('turn/start', 3, 2_000),
       event('assistant/attempt', 4, 2_500),
-    ])).toEqual({ settledMs: 0, active: { since: 2_000, through: 2_500 } })
+    ])).toEqual({ settledMs: 0, active: { since: 2_000, through: 2_500, startSeq: 3 } })
   })
 
   it('publishes only the latest closed turn completion and clears it when another turn opens', () => {
@@ -95,7 +95,7 @@ describe('subagent timing projection', () => {
       event('subagent/descriptor', 1, 110),
       event('turn/end', 2, 200),
       event('turn/start', 3, 300),
-    ])).toEqual({ settledMs: 100, active: { since: 300, through: 300 } })
+    ])).toEqual({ settledMs: 100, active: { since: 300, through: 300, startSeq: 3 } })
   })
 
   it('ignores completed pre-descriptor turns and unrelated events', () => {

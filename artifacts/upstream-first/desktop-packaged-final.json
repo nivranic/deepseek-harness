@@ -1,0 +1,46 @@
+{
+  "schemaVersion": 1,
+  "status": "PASS",
+  "shellPid": 53928,
+  "hostPid": 55076,
+  "exeSha256": "0f9aa369b704e08ba66f5f8d3443504f9fc83c29dd6ff453d6eac22afa676709",
+  "scope": "Official unsigned Windows Desktop from packaged resources with isolated data; no installer or OS login registration",
+  "checks": {
+    "themes": true,
+    "tray": true,
+    "secondInstance": true,
+    "restoredPreferences": true,
+    "pluginManager": true
+  },
+  "priorReceipts": [
+    {
+      "path": "artifacts/upstream-first/desktop-packaged-acceptance.json",
+      "sha256": "c37554b68c7cdaca868ee170e90182c295553dde7fd9f0b3cb35fb10ed2c3775"
+    },
+    {
+      "path": "artifacts/upstream-first/desktop-packaged-completed.json",
+      "sha256": "b2e767695c5e3857ba1f1b479e2ff3db46d6029e1fbf8799eae01d82a227d9b5"
+    }
+  ],
+  "observationCorrections": [
+    "Plugin window URL is plugin-manager.html",
+    "BrowserWindow.close is asynchronous; observe closed state before counting windows"
+  ],
+  "limitations": [
+    "Unsigned unpacked application; installer not executed",
+    "No update, OS login, real model, macOS or full visual matrix",
+    "Native tray object/menu callbacks observed; no physical tray mouse input",
+    "Launcher hides initial window; app activate callback restores visibility"
+  ],
+  "osLoginRegistrationWritten": false,
+  "realModelTested": false,
+  "installerExecuted": false,
+  "finalWindows": [
+    {
+      "url": "dsh-app://app/index.html",
+      "visible": true
+    }
+  ],
+  "loginChecked": false,
+  "quitRequested": true
+}

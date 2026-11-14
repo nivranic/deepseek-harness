@@ -1,0 +1,70 @@
+{
+  "status": "PASS",
+  "scope": "Report bindings and audit for the Android refusal lane; the §48 link-access takeover decision and the remaining specification sections stay open; full Upstream-First objective remains in progress",
+  "gate0": {
+    "validation": "PASS",
+    "gate0": "PASS",
+    "paths": 1938,
+    "components": 129,
+    "specificationCoverage": {
+      "status": "PASS",
+      "numberedSections": 81,
+      "nonEmptySourceLines": 1983,
+      "acceptanceProven": false
+    }
+  },
+  "sourceRecord": {
+    "path": "artifacts/upstream-first/android-refusal-lane-source.json",
+    "sha256": "2348ab38cbe55f9565c6471edad68e51f161fe2d2b356c3cec4d819bc260e898"
+  },
+  "generator": {
+    "path": "artifacts/upstream-first/write-reports.mjs",
+    "sha256": "6f4fac3f88d001507f441ccc523aacaf801e08752163a243cd0d8ade53863eda"
+  },
+  "binding": {
+    "path": "artifacts/upstream-first/android-refusal-lane-binding.json",
+    "sha256": "27751ed6420d00c5c3b9047728c2abb43d5c60f6a88a2e2a549e75e194c4fed4"
+  },
+  "helpers": [
+    {
+      "path": ".artifacts/advance-android-refusal-lane-reports.mjs",
+      "sha256": "83de36f410532383097524bedb119b1d23c7e4929bf7bf3b9f2089b7483ad5a7"
+    },
+    {
+      "path": ".artifacts/capture-android-refusal-lane-validation.mjs",
+      "sha256": "8207e354b6ca8ce58dbbf73027e9480ce0074f60a815c0f266917cde616edb61"
+    }
+  ],
+  "reports": [
+    {
+      "path": "IMPLEMENTATION_STATUS.md",
+      "sha256": "2d592d16437146c0efb020d497cbdd1ea72411e2117c9f2c49dbd89d29e9f2c5"
+    },
+    {
+      "path": "artifacts/upstream-first/evidence.json",
+      "sha256": "ef5220a4db3075d1d1d9d1533448523ac1bdd65b8c60695b8d5c83f1d26ba635"
+    }
+  ],
+  "checks": [
+    {
+      "path": ".artifacts/android-refusal-lane-binding.log",
+      "sha256": "90f74f98fc0955a8ef2631159277efa200f76128aca78db89904ae9f85544426"
+    },
+    {
+      "path": ".artifacts/android-refusal-lane-audit-tests.log",
+      "sha256": "51b50d4e9d34df981e0487c735cb3a4be8f21f5cd6998e305a2065ce98456bb2"
+    },
+    {
+      "path": ".artifacts/android-refusal-lane-gate0.log",
+      "sha256": "505d74ef938f5d34d85490d37e0176ba804d93272fcf465ce2544a02c56b3f90"
+    },
+    {
+      "path": ".artifacts/android-refusal-lane-report-diff-check.log",
+      "sha256": "e3b0c44298fc1c149afbf4c8996fb92427ae41e4649b934ca495991b7852b855"
+    },
+    {
+      "path": ".artifacts/android-refusal-lane-report-generation.log",
+      "sha256": "fe010532f71a6341467ae5719b29ac19470895de1d481156335b8f70a3273ed5"
+    }
+  ]
+}

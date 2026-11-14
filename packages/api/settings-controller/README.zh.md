@@ -8,7 +8,7 @@ kind: "package-reference"
 
 ## 概述
 
-`@deepseek-ai/dsh-api-settings-controller` 为浏览器配置界面提供生成的 `ctx.remote.settings` 与 `ctx.remote.credentials` namespace。它返回脱敏的 settings 与凭据元数据，支持 settings 与凭据写入而不返回机密值，并在 Host 桌面打开由提供方持有的 settings 或 Agent preset 位置。提供方缺失时，namespace 仍会注册，并返回可操作的配置错误。
+`@deepseek-ai/dsh-api-settings-controller` 为浏览器配置界面提供生成的 `ctx.remote.settings` 与 `ctx.remote.credentials` namespace。它返回脱敏的 settings 与凭据元数据，支持 settings 与凭据写入而不返回机密值，并在 Host 桌面打开由提供方持有的 settings 文档。提供方缺失时，namespace 仍会注册，并返回可操作的配置错误。
 
 ## 目录
 
@@ -23,9 +23,13 @@ kind: "package-reference"
 <a id="use-this-package"></a>
 ## 使用本包
 
+Host 发现从当前 Remote 绑定声明三个独立操作集：`settings.read.v1` 对应脱敏描述，`settings.write.v1` 对应合并、替换和路径写入，`settings.document-open.v1` 对应配置文档。Client 准入在派发前使用共享的 `./capabilities` 声明。能力存在只保证方法支持，不保证提供方已挂载、可写、具备原生桌面或拥有访问权限；提供方与具体操作的检查仍是权威。设备角色读取脱敏描述、配置文档和凭据元数据需要 `view`；配置写入与凭据写入需要 `prompt.send`。
+
 请把本包作为 Loader entry 挂载到提供浏览器配置的 profile 中。本 entry 不依赖提供方是否存在而注册两个 namespace，因此缺少提供方会在调用时产生具名配置错误。它生成的 descriptor 进入严格 Typert 注册表，而 settings 与凭据 Definition 仍是普通 Cordis 服务，自身不承担任何 wire 义务。
 
 `describe(refs)` 以请求的名字为键返回一份 map，因此设置页描述其各行携带的全部引用时，这些行会一起落定。单次调用最多接受 64 个名字，无效名字或空写入值报告为 `bad-request`，并逐字段复制每个答案——提供方返回超出 `CredentialInfo` 声明的内容也无法扩大跨越 wire 的字段。视图可包含提供方生成的 `masked` 预览，不包含完整的已保存值。有效的 `set(ref, value)` 与 `unset(ref)` 调用把提供方拒绝报告为 `credential-rejected`，携带提供方的消息，details 中只有该引用。完整机密值只在这个方向跨越 wire：这里没有任何方法会返回它。
+
+请求验证返回 `gateway/bad-request`，详情采用协议辅助函数提供的[可移植验证诊断](../../typert/protocol/README.zh.md)。
 
 `settings.describe()` 返回部署信息，以及在 `redactSecrets: true` 下读取的所有 namespace。`settings.update`、`settings.replace` 与 `settings.mutate` 暴露 settings 服务的三种写入操作，并返回该 namespace 的新脱敏视图；陈旧写入使用 `settings-conflict`，其他提供方拒绝使用 `settings-rejected`。
 
@@ -67,3 +71,7 @@ kind: "package-reference"
 无。
 
 </details>
+
+**运行时不变式：** 不发布伴生入口。settings 与凭据 seam 负责存储和更新事件，本包只把它们的方法投影到 wire。
+
+独立的 credentials 绑定声明 `credentials.describe.v1`（引用元数据）与 `credentials.write.v1`（`set`/`unset`）。两者都不允许读取密钥值。Client 在派发前检查操作所有者声明的能力，凭据提供方是否存在以及写入权限仍由 Host 检查。

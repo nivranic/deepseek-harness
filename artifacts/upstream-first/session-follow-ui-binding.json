@@ -1,0 +1,16 @@
+{
+  "status": "PASS",
+  "controls": 3,
+  "sourceRecord": {
+    "path": "artifacts/upstream-first/session-follow-ui-source.json",
+    "sha256": "66615d36f68a4dbea3d623c0b67bcad3853cafbcd00a0a449b6e81516359aaa9"
+  },
+  "generator": {
+    "path": "artifacts/upstream-first/write-reports.mjs",
+    "sha256": "9abd30545dbf5053410f950aeddbb1a99ce05dcfab8b47c42acfaa15d057bf8a"
+  },
+  "helper": {
+    "path": ".artifacts/check-session-follow-ui-binding.mjs",
+    "sha256": "a63ed97f1df7121ff5008171d8009fdf7e0819188fbb8616ddd5e60d07c31ca8"
+  }
+}

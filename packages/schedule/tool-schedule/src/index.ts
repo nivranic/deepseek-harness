@@ -377,6 +377,11 @@ function registerScheduleTools(ctx: Context): void {
 
   ctx.tools.register(defineTool({
     name: 'schedule_create',
+    version: 1,
+    risk: 'moderate',
+    permissions: [],
+    supportsLite: false,
+    supportsRemote: true,
     description: CREATE_DESCRIPTION,
     parameters: {
       title: {
@@ -399,6 +404,11 @@ function registerScheduleTools(ctx: Context): void {
 
   ctx.tools.register(defineTool({
     name: 'schedule_list',
+    version: 1,
+    risk: 'low',
+    permissions: [],
+    supportsLite: false,
+    supportsRemote: true,
     description: LIST_DESCRIPTION,
     parameters: {
       active: {
@@ -424,6 +434,11 @@ function registerScheduleTools(ctx: Context): void {
 
   ctx.tools.register(defineTool({
     name: 'schedule_view',
+    version: 1,
+    risk: 'moderate',
+    permissions: [],
+    supportsLite: false,
+    supportsRemote: true,
     description: VIEW_DESCRIPTION,
     parameters: {
       id: { type: 'string', required: true, description: 'Task id.' },
@@ -440,6 +455,11 @@ function registerScheduleTools(ctx: Context): void {
 
   ctx.tools.register(defineTool({
     name: 'schedule_edit',
+    version: 1,
+    risk: 'moderate',
+    permissions: [],
+    supportsLite: false,
+    supportsRemote: true,
     description: EDIT_DESCRIPTION,
     parameters: {
       id: { type: 'string', required: true, description: 'Task id.' },

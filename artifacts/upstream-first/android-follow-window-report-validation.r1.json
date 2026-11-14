@@ -1,0 +1,66 @@
+{
+  "status": "PASS",
+  "scope": "Report bindings and audit for the android follow window increment: the core-level half of the section 25 persisted follow window closes — the follow window was previously memory-only (NativeSessionJournal retained records and the resume cursor per in-memory owner, so a process restart always reopened cold), and this generation adds the core persistence seam NativeJournalStore.kt (the NativeJournalWindow value, the NativeJournalStoring load/save interface and FileNativeJournalStore: one encrypted v1 document per principal along the FileCompanionInputStore layout with exact field sets, same-directory atomic replacement and bounded reads and writes) where the window is a Host-reconstructible cache, never user input — unreadable bytes quarantine beside their file as .unavailable-<uuid> and read as absent so the documented recovery is a cold open, an oversize window drops records from the oldest side with hasMore forced true while the cut and newest record never drop, and the persisted contract accepts a live window beyond its snapshot cut (last >= cut plus continuity, an empty window carrying the empty cut -1); NativeSessionJournal gains installPersisted and checkpoint, SessionModel seeds on open with a session-and-address double match (subagent addresses never seed), persists at replacement publications and on both close paths, and MainActivity constructs the store via the CompanionRuntime.followJournal accessor at both CompanionModelSet construction points; the executed round is the Kotlin JVM suite round (:core:test with the new NativeJournalPersistenceTest compiled in-round — eight cases covering the file round-trip, the live-beyond-cut window, the oversize trim, quarantine cold-open, the foreign principal, the installPersisted rejections, the two-instance restart resuming with fromSeq 3 and merging rows 0..5, and the subagent no-seed — whose XML reports aggregate 77 suites / 477 tests with zero failures/errors/skips; the sealed log is the final green rerun with :core:compileKotlin UP-TO-DATE because the new main-source NativeJournalStore.kt compiled in an earlier in-generation round), with the app wiring proven by its own :app:compileDebugKotlin compile lane under the scanner env; no failed round exists — the serial audit double round went 43 files / 618 tests green on both first passes with no -r1 log, typecheck and lint both clean (TYPECHECK_EXIT=0, LINT_EXIT=0), doc-quick, doc-sync and gate0 pass, and traceability section 25 closes the persisted-window mention at core level with three new candidate evidence paths; the emulator install-state restart lane, physical-network interruption, foreground-push recovery, physical devices, deep links and share routing stay open; full Upstream-First objective remains in progress",
+  "gate0": {
+    "validation": "PASS",
+    "gate0": "PASS",
+    "paths": 1938,
+    "components": 129,
+    "specificationCoverage": {
+      "status": "PASS",
+      "numberedSections": 81,
+      "nonEmptySourceLines": 1983,
+      "acceptanceProven": false
+    }
+  },
+  "sourceRecord": {
+    "path": "artifacts/upstream-first/android-follow-window-source.json",
+    "sha256": "96b468c7c4dbac79be66abda4c18298b46bcd2e925f5ea74754d9fda4b33c6c5"
+  },
+  "generator": {
+    "path": "artifacts/upstream-first/write-reports.mjs",
+    "sha256": "e0c8da65c6d0031f042160f89cdc70ffd887422aa4ef7a4d2db7f6aa4e4209d3"
+  },
+  "binding": {
+    "path": "artifacts/upstream-first/android-follow-window-binding.json",
+    "sha256": "cc7b425e57a461a7a5ad913e29bf1ab2c3a28d708eba8edd0dc5a95d476971ad"
+  },
+  "helpers": [
+    {
+      "path": ".artifacts/advance-android-follow-window-reports.mjs",
+      "sha256": "487ebb3c2cf55e4a22468d9d82d17dc726e89e5981bfec576cfa4f2dd12ffc25"
+    },
+    {
+      "path": ".artifacts/capture-android-follow-window-validation.mjs",
+      "sha256": "d13b52469ce4b8be8efb5d13adedc926d6b3cc2d41e9c94e50fdffc12bae2c51"
+    }
+  ],
+  "reports": [
+    {
+      "path": "IMPLEMENTATION_STATUS.md",
+      "sha256": "ff548378b24b34d3779a9537008f17c9e12e21aba7ff17602ef4e9a59412f4d3"
+    },
+    {
+      "path": "artifacts/upstream-first/evidence.json",
+      "sha256": "ee444d4e1a4484cc076b8ca2de4d8393a87fb561762afcfba96319446ef06031"
+    }
+  ],
+  "checks": [
+    {
+      "path": ".artifacts/android-follow-window-binding.log",
+      "sha256": "80655c944a613401edbc6df53bb8050967eb6796a3379dfeeff06a3f4033b21f"
+    },
+    {
+      "path": ".artifacts/android-follow-window-audit-final.log",
+      "sha256": "774d26de203864868897a0f2fb3ab3cc163e31f4bec1e42360b6c0a3e2098e13"
+    },
+    {
+      "path": ".artifacts/android-follow-window-gate0-final.log",
+      "sha256": "505d74ef938f5d34d85490d37e0176ba804d93272fcf465ce2544a02c56b3f90"
+    },
+    {
+      "path": ".artifacts/android-follow-window-report-generation.log",
+      "sha256": "fe010532f71a6341467ae5719b29ac19470895de1d481156335b8f70a3273ed5"
+    }
+  ]
+}

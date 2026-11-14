@@ -1,0 +1,70 @@
+{
+  "status": "PASS",
+  "scope": "Report bindings and audit for the durable device grants; role-mapped permission checks, request-signature admission, and the remaining specification sections stay open; full Upstream-First objective remains in progress",
+  "gate0": {
+    "validation": "PASS",
+    "gate0": "PASS",
+    "paths": 1938,
+    "components": 129,
+    "specificationCoverage": {
+      "status": "PASS",
+      "numberedSections": 81,
+      "nonEmptySourceLines": 1983,
+      "acceptanceProven": false
+    }
+  },
+  "sourceRecord": {
+    "path": "artifacts/upstream-first/device-trust-durable-source.json",
+    "sha256": "37325a3fc2e8bc7f537a005fc6e088128a940a61ae61aec5861f86712da01dcf"
+  },
+  "generator": {
+    "path": "artifacts/upstream-first/write-reports.mjs",
+    "sha256": "25a9f2492f681bddfbbdc9bcf8713b485f816b21f773205601d9ef4fc2bd5da2"
+  },
+  "binding": {
+    "path": "artifacts/upstream-first/device-trust-durable-binding.json",
+    "sha256": "98e88b40332c90cb96559a88a345fbe24b5ef73a3b036e5360ab56bfe2d3f941"
+  },
+  "helpers": [
+    {
+      "path": ".artifacts/advance-device-trust-durable-reports.mjs",
+      "sha256": "d725fbceca9b2ebeca5c82cae49a774d9db354675f8a4ae34220522def03cb5a"
+    },
+    {
+      "path": ".artifacts/capture-device-trust-durable-validation.mjs",
+      "sha256": "af808ffec3493a8ea9ae54f5d0166bb3e0a2b5fdcaa7f8cc70f4cc12ef70fb2b"
+    }
+  ],
+  "reports": [
+    {
+      "path": "IMPLEMENTATION_STATUS.md",
+      "sha256": "15d98119ecadbac6fab29217fe4b613db2106e5919ced089fe23e5af62998533"
+    },
+    {
+      "path": "artifacts/upstream-first/evidence.json",
+      "sha256": "14892e1968cbf0d376472aa022801567ac7f14ec9c7b1e60d32fc704086f4397"
+    }
+  ],
+  "checks": [
+    {
+      "path": ".artifacts/device-trust-durable-binding.log",
+      "sha256": "d92193fe91d20cb20fb0e1846680f12098f1bfc610d2109c1c5d9e1f6f29209b"
+    },
+    {
+      "path": ".artifacts/device-trust-durable-audit-tests.log",
+      "sha256": "2a2e864fdc3827487e1ab47617c629b7052853fb1f8a6a55b119c807bf8a2efe"
+    },
+    {
+      "path": ".artifacts/device-trust-durable-gate0.log",
+      "sha256": "505d74ef938f5d34d85490d37e0176ba804d93272fcf465ce2544a02c56b3f90"
+    },
+    {
+      "path": ".artifacts/device-trust-durable-report-diff-check.log",
+      "sha256": "e3b0c44298fc1c149afbf4c8996fb92427ae41e4649b934ca495991b7852b855"
+    },
+    {
+      "path": ".artifacts/device-trust-durable-report-generation.log",
+      "sha256": "fe010532f71a6341467ae5719b29ac19470895de1d481156335b8f70a3273ed5"
+    }
+  ]
+}

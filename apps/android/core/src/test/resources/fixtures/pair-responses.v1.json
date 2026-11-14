@@ -1,0 +1,266 @@
+{
+  "schemaVersion": 1,
+  "protocolVersion": 1,
+  "cases": [
+    {
+      "id": "valid-observer",
+      "accepted": true,
+      "response": {
+        "deviceId": "device-1",
+        "hostId": "host-1",
+        "hostName": "Compatibility Host",
+        "role": "observer",
+        "linkProtocolVersion": 1
+      }
+    },
+    {
+      "id": "valid-controller",
+      "accepted": true,
+      "response": {
+        "deviceId": "device-1",
+        "hostId": "host-1",
+        "hostName": "Compatibility Host",
+        "role": "controller",
+        "linkProtocolVersion": 1
+      }
+    },
+    {
+      "id": "valid-administrator",
+      "accepted": true,
+      "response": {
+        "deviceId": "device-1",
+        "hostId": "host-1",
+        "hostName": "Compatibility Host",
+        "role": "administrator",
+        "linkProtocolVersion": 1
+      }
+    },
+    {
+      "id": "additive-fields",
+      "accepted": true,
+      "response": {
+        "deviceId": "device-1",
+        "hostId": "host-1",
+        "hostName": "Compatibility Host",
+        "role": "controller",
+        "linkProtocolVersion": 1,
+        "futureCapability": {
+          "supported": true,
+          "levels": [
+            1,
+            2
+          ]
+        },
+        "futureLabel": "extension"
+      }
+    },
+    {
+      "id": "new-major",
+      "accepted": false,
+      "response": {
+        "deviceId": "device-1",
+        "hostId": "host-1",
+        "hostName": "Compatibility Host",
+        "role": "controller",
+        "linkProtocolVersion": 2
+      }
+    },
+    {
+      "id": "old-major",
+      "accepted": false,
+      "response": {
+        "deviceId": "device-1",
+        "hostId": "host-1",
+        "hostName": "Compatibility Host",
+        "role": "controller",
+        "linkProtocolVersion": 0
+      }
+    },
+    {
+      "id": "fractional-version",
+      "accepted": false,
+      "response": {
+        "deviceId": "device-1",
+        "hostId": "host-1",
+        "hostName": "Compatibility Host",
+        "role": "controller",
+        "linkProtocolVersion": 1.5
+      }
+    },
+    {
+      "id": "string-version",
+      "accepted": false,
+      "response": {
+        "deviceId": "device-1",
+        "hostId": "host-1",
+        "hostName": "Compatibility Host",
+        "role": "controller",
+        "linkProtocolVersion": "1"
+      }
+    },
+    {
+      "id": "null-version",
+      "accepted": false,
+      "response": {
+        "deviceId": "device-1",
+        "hostId": "host-1",
+        "hostName": "Compatibility Host",
+        "role": "controller",
+        "linkProtocolVersion": null
+      }
+    },
+    {
+      "id": "missing-deviceId",
+      "accepted": false,
+      "response": {
+        "hostId": "host-1",
+        "hostName": "Compatibility Host",
+        "role": "controller",
+        "linkProtocolVersion": 1
+      }
+    },
+    {
+      "id": "missing-hostId",
+      "accepted": false,
+      "response": {
+        "deviceId": "device-1",
+        "hostName": "Compatibility Host",
+        "role": "controller",
+        "linkProtocolVersion": 1
+      }
+    },
+    {
+      "id": "missing-hostName",
+      "accepted": false,
+      "response": {
+        "deviceId": "device-1",
+        "hostId": "host-1",
+        "role": "controller",
+        "linkProtocolVersion": 1
+      }
+    },
+    {
+      "id": "missing-role",
+      "accepted": false,
+      "response": {
+        "deviceId": "device-1",
+        "hostId": "host-1",
+        "hostName": "Compatibility Host",
+        "linkProtocolVersion": 1
+      }
+    },
+    {
+      "id": "missing-linkProtocolVersion",
+      "accepted": false,
+      "response": {
+        "deviceId": "device-1",
+        "hostId": "host-1",
+        "hostName": "Compatibility Host",
+        "role": "controller"
+      }
+    },
+    {
+      "id": "empty-deviceId",
+      "accepted": false,
+      "response": {
+        "deviceId": "",
+        "hostId": "host-1",
+        "hostName": "Compatibility Host",
+        "role": "controller",
+        "linkProtocolVersion": 1
+      }
+    },
+    {
+      "id": "empty-hostId",
+      "accepted": false,
+      "response": {
+        "deviceId": "device-1",
+        "hostId": "",
+        "hostName": "Compatibility Host",
+        "role": "controller",
+        "linkProtocolVersion": 1
+      }
+    },
+    {
+      "id": "empty-hostName",
+      "accepted": false,
+      "response": {
+        "deviceId": "device-1",
+        "hostId": "host-1",
+        "hostName": "",
+        "role": "controller",
+        "linkProtocolVersion": 1
+      }
+    },
+    {
+      "id": "empty-role",
+      "accepted": false,
+      "response": {
+        "deviceId": "device-1",
+        "hostId": "host-1",
+        "hostName": "Compatibility Host",
+        "role": "",
+        "linkProtocolVersion": 1
+      }
+    },
+    {
+      "id": "invalid-deviceId",
+      "accepted": false,
+      "response": {
+        "deviceId": 7,
+        "hostId": "host-1",
+        "hostName": "Compatibility Host",
+        "role": "controller",
+        "linkProtocolVersion": 1
+      }
+    },
+    {
+      "id": "invalid-hostId",
+      "accepted": false,
+      "response": {
+        "deviceId": "device-1",
+        "hostId": false,
+        "hostName": "Compatibility Host",
+        "role": "controller",
+        "linkProtocolVersion": 1
+      }
+    },
+    {
+      "id": "invalid-hostName",
+      "accepted": false,
+      "response": {
+        "deviceId": "device-1",
+        "hostId": "host-1",
+        "hostName": {},
+        "role": "controller",
+        "linkProtocolVersion": 1
+      }
+    },
+    {
+      "id": "invalid-role",
+      "accepted": false,
+      "response": {
+        "deviceId": "device-1",
+        "hostId": "host-1",
+        "hostName": "Compatibility Host",
+        "role": "future-role",
+        "linkProtocolVersion": 1
+      }
+    },
+    {
+      "id": "non-object-null",
+      "accepted": false,
+      "response": null
+    },
+    {
+      "id": "non-object-array",
+      "accepted": false,
+      "response": []
+    },
+    {
+      "id": "non-object-string",
+      "accepted": false,
+      "response": "invalid"
+    }
+  ]
+}

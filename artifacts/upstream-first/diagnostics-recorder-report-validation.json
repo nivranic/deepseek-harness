@@ -1,0 +1,70 @@
+{
+  "status": "PASS",
+  "scope": "Report bindings and audit for the Diagnostics recorder; the remaining specification sections stay open; full Upstream-First objective remains in progress",
+  "gate0": {
+    "validation": "PASS",
+    "gate0": "PASS",
+    "paths": 1938,
+    "components": 129,
+    "specificationCoverage": {
+      "status": "PASS",
+      "numberedSections": 81,
+      "nonEmptySourceLines": 1983,
+      "acceptanceProven": false
+    }
+  },
+  "sourceRecord": {
+    "path": "artifacts/upstream-first/diagnostics-recorder-source.json",
+    "sha256": "5c64642e7b9a164883b54d27e84fa7c6ada5659f716cc3977d96dc661efc3615"
+  },
+  "generator": {
+    "path": "artifacts/upstream-first/write-reports.mjs",
+    "sha256": "3b81e95966bd145751f011957dc4af5d32b5bcee10aa12545ac8c129794ecf22"
+  },
+  "binding": {
+    "path": "artifacts/upstream-first/diagnostics-recorder-binding.json",
+    "sha256": "a684aae4a1cf5f9a151b4147f857f851ea2407ca8e92954a5e3c7ccb39ed0194"
+  },
+  "helpers": [
+    {
+      "path": ".artifacts/advance-diagnostics-recorder-reports.mjs",
+      "sha256": "627dc296a0a0652710c5cfe795f2018e182532739a2b36b8ee283da1d269f943"
+    },
+    {
+      "path": ".artifacts/capture-diagnostics-recorder-validation.mjs",
+      "sha256": "d4e875e1e31af65d1c5b61eaab9bbd59bf856bdf963b56746ae173b0d4022834"
+    }
+  ],
+  "reports": [
+    {
+      "path": "IMPLEMENTATION_STATUS.md",
+      "sha256": "0f41334168b97a8f5daf698e491416796154a5b17fe102e6a690599cc556047e"
+    },
+    {
+      "path": "artifacts/upstream-first/evidence.json",
+      "sha256": "869028c06a74ac971664a166814a6b4c39279451d285708631826d9a174231f4"
+    }
+  ],
+  "checks": [
+    {
+      "path": ".artifacts/recorder-binding.log",
+      "sha256": "430ebdb557f9fb3dcd4f050386c425dd4e8610bdba5d501265087afc93c0b277"
+    },
+    {
+      "path": ".artifacts/recorder-audit-tests.log",
+      "sha256": "076d1d9774abf16602adef2d570e0564e7f9815943d9999f095ce617b421c3d5"
+    },
+    {
+      "path": ".artifacts/recorder-gate0.log",
+      "sha256": "505d74ef938f5d34d85490d37e0176ba804d93272fcf465ce2544a02c56b3f90"
+    },
+    {
+      "path": ".artifacts/recorder-report-diff-check.log",
+      "sha256": "e3b0c44298fc1c149afbf4c8996fb92427ae41e4649b934ca495991b7852b855"
+    },
+    {
+      "path": ".artifacts/recorder-report-generation.log",
+      "sha256": "fe010532f71a6341467ae5719b29ac19470895de1d481156335b8f70a3273ed5"
+    }
+  ]
+}

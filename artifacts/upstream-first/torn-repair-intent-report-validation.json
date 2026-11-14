@@ -1,0 +1,66 @@
+{
+  "status": "PASS",
+  "scope": "Report bindings and audit for the torn-repair-intent increment: the section 46 JSONL torn-tail repair-intent channel — the spec pinning on ledger facts adjudicated the three open section 46 items down to the zstd torn-tail repair truncation window as the only substantive engineering (the session-query-sqlite derived-table DROP rebuilds from the JSONL source of truth and the storage-sqlite version-mismatch refusal is the pre-release stance's own text, both kept honestly open), because a zstd log is a sequence of compressed frames whose torn frame's complete records are decompressed plaintext physically impossible to partially preserve while the raw path's committedBytes truncation is naturally idempotent, and the repair sequence truncateTornTail then persistBatch(recoveredTail) loses the recovered events silently when a crash lands between the truncation hitting disk and the rewrite; the implementation records the recovery events in a crash-durable <log>.repair-intent sidecar through dsh-atomic-write's writeFileAtomic (0600/0700, file plus POSIX directory fsync) before truncating, discards the intent with unlink plus the newly exported fsyncDirectory after the recovered records are durably rewritten, and reconciles on the next open (a still-present torn frame stays authoritative, a clean log replays only the intent tail beyond the last stored seq, and a foreign-session intent rejects as SessionPersistenceCorruptionError); the lanes (zstd.spec.ts's six new crash-window cases) ran green with one honest first failure on the A layout fixed per the existing-case precedent by adding a 300k chunk line, and the full lane at 523 passed / 11 skipped / 3 failed with all three failures symlink-EPERM of the gen-32 stash-probe HEAD baseline; both README pairs flip with the pairings re-recorded, the traceability section 46 remaining rewrites at 625 to 802 characters with candidateEvidence 4 to 6 (node --test 6/6), the note trio lands, and the documentation evidence keeps the two-file split — doc-quick 17 gates in its own docs log (the config-catalog line anchor regenerated from 88 to 89 after the first run's drift) and doc-sync 36 passed 0 failed in 287.09s in its own docsync log (the second round's site-checks load failure at 39.41s classified by an isolated 63/63 doc-gate rerun as the gen-29 archived flake's same form, sealed by the third-round whole-gate rerun) — with the audit serial double round green at the unchanged 85 files / 1061 tests (the touched packages are not client spec-list members), gate0 in both forms, and the repo-wide build-plus-lint round sealed in its honestly recorded single-trailer form (npm's own script echoes chaining build:lib:host into lint:contracts-ready, EXIT_CODE=0, Found 0 warnings and 0 errors, no labelled trailer in the log); the same-round gradle acceptance round (scanner env with -PdshNativeAcceptance, BUILD SUCCESSFUL in 1m 3s) replayed WARM with 1 executed of 67 actionable tasks and 66 up-to-date because nothing under apps/android changed this generation (no device lane ran and the emulator stayed off), the empty-derived byte proof compares both APKs byte-identically against the atomic-durability record's builtFiles entries (.artifacts/torn-repair-intent-apk-bytes.log), the still-valid XML reports aggregate 77 suites / 477 tests with zero failures/errors/skips (.artifacts/torn-repair-intent-core-results.json, with the 4s :core:test rerun log pinning the reports still the last executed round), and the prepare-side unresolved scan derived ZERO replaced prior build outputs (7617 files, 0 replaced — this generation ran no generator-adjudicated edit and no catalog regeneration touched lib) so the new record's own derivation stays empty and the generator gains no torn-repair-intent replaced-build-output set while every prior generation's own set (including the adjudicated four-key approvalFactsCompleteReplacedBuildOutputs set with its filter and guard, and the gen-32 round-1 repair's atomicDurabilitySupersededSources six-key set with its companion single-key desktopPackageReplacedBuildOutputs set) rides unchanged; the two adjudicated-open §46 items stay open; full Upstream-First objective remains in progress",
+  "gate0": {
+    "validation": "PASS",
+    "gate0": "PASS",
+    "paths": 1938,
+    "components": 129,
+    "specificationCoverage": {
+      "status": "PASS",
+      "numberedSections": 81,
+      "nonEmptySourceLines": 1983,
+      "acceptanceProven": false
+    }
+  },
+  "sourceRecord": {
+    "path": "artifacts/upstream-first/torn-repair-intent-source.json",
+    "sha256": "7ee58688eb7f8089cfb17d0eaeb39af5371a532b902d44e6f3772d6bcd818385"
+  },
+  "generator": {
+    "path": "artifacts/upstream-first/write-reports.mjs",
+    "sha256": "437f6d811f1ff5749d1df7b878bcbb5039a19b97b76949ddc41203f8e9d5f74e"
+  },
+  "binding": {
+    "path": "artifacts/upstream-first/torn-repair-intent-binding.json",
+    "sha256": "9342e28f9685448b801c3f7ee79a71a20de67348d842b5aace41b9b5e1692aa1"
+  },
+  "helpers": [
+    {
+      "path": ".artifacts/advance-torn-repair-intent-reports.mjs",
+      "sha256": "37459cb834b7a5ab6914039d057c808bb7c0a9e26092d976d9416a6da2ae8911"
+    },
+    {
+      "path": ".artifacts/capture-torn-repair-intent-validation.mjs",
+      "sha256": "ab78f8e2b7d5997be68fdfdcabfd8835cc6e22bff6d0633fc9acdfe8e795217d"
+    }
+  ],
+  "reports": [
+    {
+      "path": "IMPLEMENTATION_STATUS.md",
+      "sha256": "f2e1703fa4bcebddf894ca72a1a7996410c44e48adb433ab356285972c7ec9ef"
+    },
+    {
+      "path": "artifacts/upstream-first/evidence.json",
+      "sha256": "7df95b9575dbf25ae7ef0a802c675fd8c8dbab06ccad5f7acadb6c880a4e50d3"
+    }
+  ],
+  "checks": [
+    {
+      "path": ".artifacts/torn-repair-intent-binding.log",
+      "sha256": "0f413c12a4dbe3e6d5f4f85a45ec9b6b6827cff84ff67ced51503f66f8acf825"
+    },
+    {
+      "path": ".artifacts/torn-repair-intent-audit-final.log",
+      "sha256": "f3d138888cf42a439285b9ab416273d458f44d1fb0a9406fca6ff2de202c5737"
+    },
+    {
+      "path": ".artifacts/torn-repair-intent-gate0-final.log",
+      "sha256": "505d74ef938f5d34d85490d37e0176ba804d93272fcf465ce2544a02c56b3f90"
+    },
+    {
+      "path": ".artifacts/torn-repair-intent-report-generation.log",
+      "sha256": "fe010532f71a6341467ae5719b29ac19470895de1d481156335b8f70a3273ed5"
+    }
+  ]
+}

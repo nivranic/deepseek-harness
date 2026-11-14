@@ -1,0 +1,45 @@
+{
+  "status": "PASS",
+  "gate0": {
+    "validation": "PASS",
+    "gate0": "PASS",
+    "paths": 1938,
+    "components": 129
+  },
+  "sourceRecord": {
+    "path": "artifacts/upstream-first/interaction-closed-source.json",
+    "sha256": "247b121d2922f989bf631f065824af178b6bd8d1ec9ddd6a9bb8f9abd312fe1a"
+  },
+  "generator": {
+    "path": "artifacts/upstream-first/write-reports.mjs",
+    "sha256": "a2fb559e819e0bbeb8f7ff61aeeb9742170629e592535c9b1b64026b76a1c8b4"
+  },
+  "reports": [
+    {
+      "path": "IMPLEMENTATION_STATUS.md",
+      "sha256": "8b40f50aaa80c956a7f24d367a53fe6215e9a31dc9261252328df7c52eeae37d"
+    },
+    {
+      "path": "artifacts/upstream-first/evidence.json",
+      "sha256": "e95f476f2a5840fa7e40b9d95d06c4650467b926779882d2da281b2f853e7d54"
+    }
+  ],
+  "checks": [
+    {
+      "path": ".artifacts/interaction-closed-binding.log",
+      "sha256": "1c41ea62964728af570c7d2b77da394d31cc677d877d755bb69bf8505d233b77"
+    },
+    {
+      "path": ".artifacts/interaction-closed-audit-tests.log",
+      "sha256": "32c1ba903004437bef3b4416b925689183349eb845a9f9ade62590fd96f49711"
+    },
+    {
+      "path": ".artifacts/interaction-closed-gate0.log",
+      "sha256": "4b5af3121a7e7caff0e1b6288bdaa7cfef9988842ae06bf02dc0a74852426043"
+    },
+    {
+      "path": ".artifacts/interaction-closed-diff-check.log",
+      "sha256": "e3b0c44298fc1c149afbf4c8996fb92427ae41e4649b934ca495991b7852b855"
+    }
+  ]
+}

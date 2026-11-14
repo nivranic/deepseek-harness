@@ -1,0 +1,19 @@
+# Bilingual-pair consistency record for 2026-10-22-live-catalog-e2e.md (docs/i18n/README.md): per heading
+# section, a hash of its English and Chinese blocks outside code blocks and generated regions.
+# After editing either side, bring the other along and re-record with:
+#   pnpm run verify-translation-pairing --write .agents/notes/implemented/testing/2026-10-22-live-catalog-e2e.md
+/agent-note-the-live-tool-catalog-fetch-has-a-real-host-e2e-lane:
+  en: eaeb979fe6954979
+  zh: 2fbe886f9fbb9603
+/agent-note-the-live-tool-catalog-fetch-has-a-real-host-e2e-lane/problem:
+  en: c002f8b70d1b1811
+  zh: 0f1aa8796d417d05
+/agent-note-the-live-tool-catalog-fetch-has-a-real-host-e2e-lane/decision:
+  en: 79ce24d923f505be
+  zh: 94de3e1a2a026032
+/agent-note-the-live-tool-catalog-fetch-has-a-real-host-e2e-lane/alternatives-considered:
+  en: 2c3ce540b00da2d8
+  zh: 4c74cc64552e92ec
+/agent-note-the-live-tool-catalog-fetch-has-a-real-host-e2e-lane/consequences:
+  en: e9ac826ebd853fab
+  zh: 1cb137e101dba60e

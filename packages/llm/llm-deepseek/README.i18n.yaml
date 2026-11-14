@@ -10,7 +10,7 @@
   zh: d7188003d01964bb
 /deepseek-ai-dsh-llm-deepseek/summary:
   en: a8871f9ce192ac6a
-  zh: 7d642e993f4ca71c
+  zh: 0c1804bce4477a11
 /deepseek-ai-dsh-llm-deepseek/table-of-contents:
   en: d152484eb41ac6b4
   zh: 09388d293f9be9cb
@@ -39,8 +39,11 @@
   en: f13f24b504dcfb50
   zh: 69b0ed9e2adf3394
 /deepseek-ai-dsh-llm-deepseek/use-this-package/failures-and-recovery:
-  en: 63b17e204a764a7d
-  zh: dafcd75c80796d35
+  en: 3508c3ff3263841a
+  zh: 590942333626b6d6
+/deepseek-ai-dsh-llm-deepseek/use-this-package/provider-call-telemetry-outlet:
+  en: 1477bee3597fac70
+  zh: 369143119889218c
 /deepseek-ai-dsh-llm-deepseek/understand-the-implementation:
   en: 1598ac8a8bb9b6bf
   zh: fdd089c5ae7722cd

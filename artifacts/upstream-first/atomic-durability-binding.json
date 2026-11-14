@@ -1,0 +1,16 @@
+{
+  "status": "PASS",
+  "controls": 3,
+  "sourceRecord": {
+    "path": "artifacts/upstream-first/atomic-durability-source.json",
+    "sha256": "bad68d277ea43c737d4a3f4c318032e148e714cc1518e6d2058c0ae7cce6c865"
+  },
+  "generator": {
+    "path": "artifacts/upstream-first/write-reports.mjs",
+    "sha256": "13f47d3b85d118220eb56dbbac7033fab58729e98074b41e106871ed46ef26bd"
+  },
+  "helper": {
+    "path": ".artifacts/check-atomic-durability-binding.mjs",
+    "sha256": "bfddf4c021acaebbd8aa17753eda5687df651def2b829d1fdbbe4836d3676671"
+  }
+}

@@ -1,0 +1,16 @@
+{
+  "status": "PASS",
+  "controls": 3,
+  "sourceRecord": {
+    "path": "artifacts/upstream-first/android-host-roster-source.json",
+    "sha256": "ca95c9ec29c356eaad472da9850bea1abb7b6b041bad62d496e5e3f9f6b4ce56"
+  },
+  "generator": {
+    "path": "artifacts/upstream-first/write-reports.mjs",
+    "sha256": "3f0d7e4d0967954def8bc94f5c75a00e57e6f965064d83181f69a85f4197c7eb"
+  },
+  "helper": {
+    "path": ".artifacts/check-android-host-roster-binding.mjs",
+    "sha256": "166928232284d98258875fa3db261ec6c5b8e205db5d94eae3a59a43f5ba700c"
+  }
+}

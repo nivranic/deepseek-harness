@@ -1,0 +1,66 @@
+{
+  "status": "PASS",
+  "scope": "Report bindings and audit for the file-upload-edge increment: the gen-79 §34/§35 storage-edge matrix (the six-lane host spec over the real local attachment stack — SessionStore, AgentRegistry, CommandRuntime and LocalAttachmentStore on a temporary DSH_HOME with FileUploads instantiated directly and driven through its registered streaming route: exact NUL and high-byte round-trips through route, staged receipt, alias path and disk; the zero-byte body keeping the default leaf; CJK and emoji display names surviving the URL-encoded wire beside the sanitized Windows reserved-character stems; the 96 MiB patterned stream read back through the public readFileStream at exact byte count, digest and probed offsets; the failed mid-stream upload returning session/attachment-invalid with ATTACHMENT_WRITE_FAILED and leaving no object, alias or staging residue; the cross-instance foreign receipts with identical bytes deduplicating through the content-addressed layout to the same attachment id beside uploadDedupe and ensureFileByDigest alias additions) — beside the sniff NUL heuristic (any NUL byte routing the preview to the binary card, its two truncated-image assertions honestly flipped), the empty and unknown MIME classification to verbatim file drafts, and the digestBody chunk-boundary hash pinned end to end (the 2.5 MiB Blob crossing three 1 MiB boundaries, the dedupe probe carrying exactly the Node sha256); the three rejected alternatives honestly recorded (the stubbed attachment store, the combined mega-test, the store-internal temp-path assertions); the gates honestly recorded from log content: typecheck EXIT 0 (the build:lib:host chain) and lint Found 0 warnings and 0 errors on 3864 files (90 rules, 20 threads, 43.1s — 3863→3864, the new host spec entering the lint face), the docs lane green in one combined log (doc-quick 17 passed in 36.11s with doc-sync 37 passed in 114.47s and zero regeneration diff; the renamed r0 direct-tsx invocation artifact honestly recorded), pairing 964 pairs all consistent in its honest direct-round form (the standalone verify-translation-pairing check with its own EXIT_CODE=0 trailer — the 963→964 reconciliation riding the prose; the note trio 2026-10-26-file-upload-edge-matrix, testing class), the serial double audit round green at 87 files / 1074 tests on both passes over the curated list reused verbatim from the gen-54 lineage (the count honestly moving 1073→1074 with the orchestration classification case), gate0 PASS in both byte-identical forms (1938 paths / 129 components / 81 sections / 1983 lines — honestly recorded unchanged from the captured UPSTREAM_DELTA.json, not the live tree); the ledger §34/§35 rewrite narrowing the family row (81 sections kept; §34/§35 at 694/5 with the widened five-entry evidence list — the storage edges proven beside the shared Diff matrix and the partial-download and range semantics honestly left open; §31 keeping its gen-78 sealed 11411/28, §33 its gen-72 1641/11, §32 its gen-70 6041/25, §23 its gen-61 429/2 and §67 its gen-59 637/8 — honestly recorded); and the zero-derivation ruling (the standing zero-key form after gen-66/67/68 and gen-71): the prepare oracle derives exactly ZERO replaced prior build outputs over the ota-upgrade record (every prior-record builtFiles entry replaying byte-identically from disk — all 3615 non-tsbuildinfo entries verified; no android build and no bundling step ran this generation) with ZERO chain-resolvable fallback keys and ZERO miss keys, so the advance installs NO new set and demotes the ota-upgrade block with the plain history-head form, every prior generation's set staying exactly as sealed at HEAD (the gen-78 networkMatrixReplacedBuildOutputs at its two, the gen-77 resumeFeedReplacedBuildOutputs at its sixty-five, the gen-76B toolJournalReplacedBuildOutputs at its seventy-one and the rest as sealed); the honestly sealed diagnostic observation carries the three pre-existing host conditions (the two HEAD-state hygiene violations stash-probed to predate this increment beside the Windows GNU-tar C: quirk failing pdf-license-bundle) — none a regression from this increment; the remaining open channels (the gen-80 shared Diff matrix and partial-download ledger, the Phase 8 secure outbound relay and the CI synchronize gap) all stay open — so no whole-section PASS is granted; full Upstream-First objective remains in progress",
+  "gate0": {
+    "validation": "PASS",
+    "gate0": "PASS",
+    "paths": 1938,
+    "components": 129,
+    "specificationCoverage": {
+      "status": "PASS",
+      "numberedSections": 81,
+      "nonEmptySourceLines": 1983,
+      "acceptanceProven": false
+    }
+  },
+  "sourceRecord": {
+    "path": "artifacts/upstream-first/file-upload-edge-source.json",
+    "sha256": "672eb9bbfa2c4baf7f109830b94dddc07401ee95647c08dae58315e70970e399"
+  },
+  "generator": {
+    "path": "artifacts/upstream-first/write-reports.mjs",
+    "sha256": "2c3bbaa3f2a40cc7a4eb8c6528c522611ebe9d9e8b0e572e09e505876f439e6b"
+  },
+  "binding": {
+    "path": "artifacts/upstream-first/file-upload-edge-binding.json",
+    "sha256": "9498da8dd161bfbaf61cd02d17e13bd06e0f4b8ec8d27aebe3c1b2d8159ed5f8"
+  },
+  "helpers": [
+    {
+      "path": ".artifacts/advance-file-upload-edge-reports.mjs",
+      "sha256": "b76cb40d47eb3f324f4895cef8647c3d5f697bb90bec217a5fd68a1e0c0ab89b"
+    },
+    {
+      "path": ".artifacts/capture-file-upload-edge-validation.mjs",
+      "sha256": "3dffb34d33ade207c9fda823c42cb36d891cbc646cf9e9ea6ad7036cb936b69e"
+    }
+  ],
+  "reports": [
+    {
+      "path": "IMPLEMENTATION_STATUS.md",
+      "sha256": "c9bed914922bd4038fa85595c7ad5aa189ae0aeabf50ce55eea901bdacf21039"
+    },
+    {
+      "path": "artifacts/upstream-first/evidence.json",
+      "sha256": "037c5702b8dab11b440575697987d0578695b62621c8971cc73d67d34296683b"
+    }
+  ],
+  "checks": [
+    {
+      "path": ".artifacts/file-upload-edge-binding.log",
+      "sha256": "1c33656deb48c6ff03650b5210c18821f19af7aa5a6e47a537596061c3829731"
+    },
+    {
+      "path": ".artifacts/file-upload-edge-audit-final.log",
+      "sha256": "c8ef97fcb5affed54c406e0212c696beee61fb6d0cf0ef67608c64bc72953acb"
+    },
+    {
+      "path": ".artifacts/file-upload-edge-gate0-final.log",
+      "sha256": "7e00efd82bd2a2b91b03ca80537dcc4af46cd09eb318ff58520cb2d7d7d8a48a"
+    },
+    {
+      "path": ".artifacts/file-upload-edge-report-generation.log",
+      "sha256": "6616630463c8eb3ffd69d218e03ffc25be7852a2f9e639de6ae42558801b921d"
+    }
+  ]
+}

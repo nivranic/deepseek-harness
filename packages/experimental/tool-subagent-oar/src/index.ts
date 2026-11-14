@@ -34,6 +34,11 @@ export function apply(ctx: Context, config: Config): void {
   const toolName = config.toolName ?? 'subagent_oar'
   ctx.tools.register(defineTool({
     name: toolName,
+    version: 1,
+    risk: 'high',
+    permissions: [],
+    supportsLite: false,
+    supportsRemote: true,
     description: 'Delegate a self-contained task to a configured external agent. Choose its runtime for each call. '
       + 'The child works in its own context and does not see this conversation. '
       + 'This tool returns the child\'s name; a later completion notice includes its final answer. '

@@ -33,3 +33,12 @@ it('leaves configuration without local build rules unchanged', () => {
   const config = { strictDepBuilds: true }
   expect(hooks.updateConfig(config)).toBe(config)
 })
+
+it.each([true, false])('keeps a colliding denial with the absolute selector first %s', (denialFirst) => {
+  const absolute = `collision@${pathToFileURL(resolve(import.meta.dirname, '..', 'packages/collision')).href}`
+  const rules = [['collision@file:packages/collision', true], [absolute, false]] as const
+  const config = { allowBuilds: Object.fromEntries(denialFirst ? [...rules].reverse() : rules) }
+  const mapped = hooks.updateConfig(config)
+  expect(mapped.allowBuilds).toEqual({ [absolute]: false })
+  expect(hooks.updateConfig(mapped)).toEqual(mapped)
+})

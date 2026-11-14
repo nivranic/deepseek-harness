@@ -1,0 +1,22 @@
+[
+  {
+    "launcher": "direct",
+    "exitCode": 0,
+    "output": "{\"root\":\"C:\\\\Users\\\\11585\\\\AppData\\\\Local\\\\Temp\\\\dsh-child-link-oKqFrt\",\"execPath\":\"C:\\\\Program Files\\\\nodejs\\\\node.exe\",\"outcomes\":[{\"type\":\"junction\",\"status\":\"PASS\"},{\"type\":\"dir\",\"status\":\"FAIL\",\"code\":\"EPERM\",\"exists\":false},{\"type\":\"junction\",\"status\":\"PASS\"}]}\n"
+  },
+  {
+    "launcher": "built-cli",
+    "exitCode": 0,
+    "output": "dsh: initialized profile sdk at C:\\Users\\11585\\AppData\\Local\\Temp\\dsh-link-launchers-c8elzdkq\\home\\profiles\\sdk\n{\"root\":\"C:\\\\Users\\\\11585\\\\AppData\\\\Local\\\\Temp\\\\dsh-child-link-RwqgZa\",\"execPath\":\"C:\\\\Program Files\\\\nodejs\\\\node.exe\",\"outcomes\":[{\"type\":\"junction\",\"status\":\"PASS\"},{\"type\":\"dir\",\"status\":\"FAIL\",\"code\":\"EPERM\",\"exists\":false},{\"type\":\"junction\",\"status\":\"PASS\"}]}\n"
+  },
+  {
+    "launcher": "packaged-cli",
+    "exitCode": 0,
+    "output": "{\"root\":\"C:\\\\Users\\\\11585\\\\AppData\\\\Local\\\\Temp\\\\dsh-child-link-2RoGla\",\"execPath\":\"C:\\\\Program Files\\\\nodejs\\\\node.exe\",\"outcomes\":[{\"type\":\"junction\",\"status\":\"PASS\"},{\"type\":\"dir\",\"status\":\"FAIL\",\"code\":\"EPERM\",\"exists\":false},{\"type\":\"junction\",\"status\":\"PASS\"}]}\n"
+  },
+  {
+    "launcher": "wheel-wrapper",
+    "exitCode": 0,
+    "output": "{\"root\":\"C:\\\\Users\\\\11585\\\\AppData\\\\Local\\\\Temp\\\\dsh-child-link-4jRYnS\",\"execPath\":\"C:\\\\Program Files\\\\nodejs\\\\node.exe\",\"outcomes\":[{\"type\":\"junction\",\"status\":\"FAIL\",\"code\":\"EPERM\",\"exists\":false},{\"type\":\"dir\",\"status\":\"FAIL\",\"code\":\"EPERM\",\"exists\":false},{\"type\":\"junction\",\"status\":\"FAIL\",\"code\":\"EPERM\",\"exists\":false}]}\n"
+  }
+]

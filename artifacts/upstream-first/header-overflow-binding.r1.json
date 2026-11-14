@@ -1,0 +1,16 @@
+{
+  "status": "PASS",
+  "controls": 3,
+  "sourceRecord": {
+    "path": "artifacts/upstream-first/header-overflow-source.json",
+    "sha256": "51b2bc3b2a8095ee18b9acc6c799b9707e5df34a2b3479abe9cc8a4b42c2d8d8"
+  },
+  "generator": {
+    "path": "artifacts/upstream-first/write-reports.mjs",
+    "sha256": "860e63183eb2592a234df4e198b5e58a22c1cc228f3364f747327757e65efedd"
+  },
+  "helper": {
+    "path": ".artifacts/check-header-overflow-binding.mjs",
+    "sha256": "96863ddc465866f85537ed1bfd882b947a34d98ada0ac72ec4f91b57fe667bc6"
+  }
+}

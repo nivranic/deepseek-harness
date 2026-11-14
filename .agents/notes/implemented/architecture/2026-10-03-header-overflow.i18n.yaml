@@ -1,0 +1,22 @@
+# Bilingual-pair consistency record for 2026-10-03-header-overflow.md (docs/i18n/README.md): per heading
+# section, a hash of its English and Chinese blocks outside code blocks and generated regions.
+# After editing either side, bring the other along and re-record with:
+#   pnpm run verify-translation-pairing --write .agents/notes/implemented/architecture/2026-10-03-header-overflow.md
+/agent-note-section-10-phone-tier-header-overflow-menu:
+  en: 7b87ab6a04230aec
+  zh: e558dc8b45628e87
+/agent-note-section-10-phone-tier-header-overflow-menu/problem:
+  en: 4248ea6f67cb29e1
+  zh: f763caa79d4a1730
+/agent-note-section-10-phone-tier-header-overflow-menu/decision:
+  en: ed2aca85518c20cc
+  zh: fb8945bdec7d1f8f
+/agent-note-section-10-phone-tier-header-overflow-menu/alternatives-considered:
+  en: 261d81b6cdc188a5
+  zh: b19e2094c821ad64
+/agent-note-section-10-phone-tier-header-overflow-menu/consequences:
+  en: f762b8f976c9842c
+  zh: be076548bec3306e
+/agent-note-section-10-phone-tier-header-overflow-menu/open-work:
+  en: 04c6d9f54ef572bf
+  zh: f17080553c551d13

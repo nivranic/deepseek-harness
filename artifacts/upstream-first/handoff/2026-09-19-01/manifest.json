@@ -1,0 +1,117 @@
+{
+  "schemaVersion": 1,
+  "handoffId": "2026-09-19-01",
+  "scope": "Handover files; excludes this manifest and its verification receipt to avoid self-reference",
+  "files": [
+    {
+      "path": "HANDOFF.md",
+      "bytes": 66269,
+      "sha256": "6538c89e07a07ab0b5bc695121796f87c3163c0636f4af3fb913e91c401f8686"
+    },
+    {
+      "path": "capture.mjs",
+      "bytes": 10503,
+      "sha256": "cf73a7762f1eafac2d0dee75ac1d28be2de635d3ca80a04be16a656c1397a441"
+    },
+    {
+      "path": "changes.json",
+      "bytes": 314849,
+      "sha256": "29166d0f5878e8c4013e1335210d2339dab4a249bf6e2297563036dd9654d1d5"
+    },
+    {
+      "path": "evidence-index.json",
+      "bytes": 80251,
+      "sha256": "9b6ee2f704fcb1b7150fa32065f69607d163c967acdc9ff559c5bee46003aff6"
+    },
+    {
+      "path": "original-specification.md",
+      "bytes": 40658,
+      "sha256": "4f313ad5a779b497e239654bc6cb3734dbe32210c72adf11286637606f764e80"
+    },
+    {
+      "path": "report-snapshots/ARCHITECTURE_DECISIONS.md",
+      "bytes": 970,
+      "sha256": "463536005ca195746f313f6ebc051a907316eca31e1dee7ad38abcdccf4a13e6"
+    },
+    {
+      "path": "report-snapshots/COMPATIBILITY_MATRIX.md",
+      "bytes": 1779,
+      "sha256": "6acb4cd1c049ae317e072c4fb9b4f2a251d4d78b331163b6a9e6f31067b7e011"
+    },
+    {
+      "path": "report-snapshots/CUSTOM_CAPABILITY_INVENTORY.json",
+      "bytes": 319656,
+      "sha256": "7a6e8b6ea4808637bf21d18c6b7bd001066af2a7f5274ac6d4c01d21fafe6c95"
+    },
+    {
+      "path": "report-snapshots/IMPLEMENTATION_STATUS.md",
+      "bytes": 178121,
+      "sha256": "3dcba893049e267d3a4e079604aa34ed5ba3ef6c3c6dbfc92d7b5d7da636810a"
+    },
+    {
+      "path": "report-snapshots/PLATFORM_VERIFICATION.md",
+      "bytes": 2087,
+      "sha256": "8b2af3fed4eb3991e75f1a99c4f3caf3a2e5a9aff569cf76f2552c140db45e58"
+    },
+    {
+      "path": "report-snapshots/RELEASE_STATUS.md",
+      "bytes": 1092,
+      "sha256": "5ec39d62481c99eef7fea575f10a39ba0dd39440820e01d768c0096909c46900"
+    },
+    {
+      "path": "report-snapshots/SECURITY_STATUS.md",
+      "bytes": 1136,
+      "sha256": "4dd51df9532d7679cbb9e22d37e6eeb2ca3b51e65c05bf35a6ef2fa5b7d05f79"
+    },
+    {
+      "path": "report-snapshots/UPSTREAM_BASELINE.md",
+      "bytes": 3398,
+      "sha256": "ab2ef62c6fe41bc1d1ad3ec985e852958465ebf720db2c18da595c72b6587017"
+    },
+    {
+      "path": "report-snapshots/UPSTREAM_DELTA.json",
+      "bytes": 7915805,
+      "sha256": "eeb03d12100fa4d453c675df475dec149733e4984662c4b8ccf5ffad814eb138"
+    },
+    {
+      "path": "report-snapshots/UPSTREAM_DELTA.md",
+      "bytes": 26473,
+      "sha256": "2925860a7cbb832b909570d9b43b48afe9604260a0e2d80bde7b3a3b40009dee"
+    },
+    {
+      "path": "report-snapshots/evidence.json",
+      "bytes": 655102,
+      "sha256": "05e86c9a1cd15508db8adfd4eb6023947745d5aee18929380f72584af7fa3d76"
+    },
+    {
+      "path": "report-snapshots/remote-validation-details-report-validation.json",
+      "bytes": 2552,
+      "sha256": "c1c44b12b55f482b041d092ea5584544b28e01968ff21fb16b4caa257f78b0e9"
+    },
+    {
+      "path": "report-snapshots/specification-traceability.json",
+      "bytes": 227825,
+      "sha256": "8cb6426c076aaed7f52a797c9fdd2b95a9ae53df41cd56eb79869fa08d210dd0"
+    },
+    {
+      "path": "state.json",
+      "bytes": 6595,
+      "sha256": "aceceba2915f788956e20aa970472b9ecf00e18486df49619fd2e593f7f11488"
+    },
+    {
+      "path": "tracked-changes.patch",
+      "bytes": 2814096,
+      "sha256": "bf71d028ceb08352d06dadcb2da02850d8243e17c7146ed05b3f160dec62b17d"
+    },
+    {
+      "path": "unsealed-increment.json",
+      "bytes": 15375,
+      "sha256": "bc8602cae9bcd1dc50686f96c8aec1455dbe5cb23a0bec4151188a76d9859347"
+    },
+    {
+      "path": "verify.mjs",
+      "bytes": 8209,
+      "sha256": "305b47d6ec0c41732e54d7731f159276a788c7cfa7d9a00ccb67d76701430f7b"
+    }
+  ]
+}

@@ -1,0 +1,16 @@
+{
+  "status": "PASS",
+  "controls": 3,
+  "sourceRecord": {
+    "path": "artifacts/upstream-first/sender-wiring-source.json",
+    "sha256": "c1a612ba738d62c3510b378dfa5f3130105b47512f2af2f727e89fe9d9f93562"
+  },
+  "generator": {
+    "path": "artifacts/upstream-first/write-reports.mjs",
+    "sha256": "976b5215ebe1b050d97086d1219ee76cd3377902f12627f7c2de2442eea12062"
+  },
+  "helper": {
+    "path": ".artifacts/check-sender-wiring-binding.mjs",
+    "sha256": "208f210245d0fff84384f81c00490e9ffdd7791ed4a00506f081da0a0abbb8a5"
+  }
+}

@@ -1,0 +1,70 @@
+{
+  "status": "PASS",
+  "scope": "Report bindings and audit for the diff split view increment: the section 34 diff preview gains its second presentation through the pure split pairing module and the per-tab DiffBody view toggle, proven in the real-browser diff-preview lane as a split round-trip with paired per-side-gutter halves; the remaining specification sections stay open; full Upstream-First objective remains in progress",
+  "gate0": {
+    "validation": "PASS",
+    "gate0": "PASS",
+    "paths": 1938,
+    "components": 129,
+    "specificationCoverage": {
+      "status": "PASS",
+      "numberedSections": 81,
+      "nonEmptySourceLines": 1983,
+      "acceptanceProven": false
+    }
+  },
+  "sourceRecord": {
+    "path": "artifacts/upstream-first/diff-split-view-source.json",
+    "sha256": "47bf83e1c04762c156c18c1904e280a17479a166abe6502d23f537b136d1ebe5"
+  },
+  "generator": {
+    "path": "artifacts/upstream-first/write-reports.mjs",
+    "sha256": "cf37babb18be98bcf38b367e0ad44aa1b0f65e2482bd33df6bf28fcad31fcdbe"
+  },
+  "binding": {
+    "path": "artifacts/upstream-first/diff-split-view-binding.json",
+    "sha256": "ba7ee3c777eda0a091b42f2d24c3d14c3dc619d1bcf753f98c8c3c53868521cd"
+  },
+  "helpers": [
+    {
+      "path": ".artifacts/advance-diff-split-view-reports.mjs",
+      "sha256": "59efaefe060c2de0ac3675dcfdf60f83b8425e4d148fa429a26796674b5c7b13"
+    },
+    {
+      "path": ".artifacts/capture-diff-split-view-validation.mjs",
+      "sha256": "7653dd45a88326aa3297e51c5784204dce6d7083f016049b651dba872ec47271"
+    }
+  ],
+  "reports": [
+    {
+      "path": "IMPLEMENTATION_STATUS.md",
+      "sha256": "d03e2373b349f15f195cec88941f0e2e1517716a6042f8e0b57de2ccc7d34637"
+    },
+    {
+      "path": "artifacts/upstream-first/evidence.json",
+      "sha256": "c6e9cccd4c6dcf460d84f8d5fedac1a8731f74eb629d9d75fec698e98e27fffc"
+    }
+  ],
+  "checks": [
+    {
+      "path": ".artifacts/diff-split-view-binding.log",
+      "sha256": "ab683f9dddcad2f44dce578f5e450d83af9bc75b61bde47b434d00fa8213ee6e"
+    },
+    {
+      "path": ".artifacts/diff-split-view-audit-final.log",
+      "sha256": "25e389d2fbd120360053ef1770fbc0270477d952f22752e87265061e6e1104c5"
+    },
+    {
+      "path": ".artifacts/diff-split-view-gate0-final.log",
+      "sha256": "505d74ef938f5d34d85490d37e0176ba804d93272fcf465ce2544a02c56b3f90"
+    },
+    {
+      "path": ".artifacts/diff-split-view-report-diff-check.log",
+      "sha256": "e3b0c44298fc1c149afbf4c8996fb92427ae41e4649b934ca495991b7852b855"
+    },
+    {
+      "path": ".artifacts/diff-split-view-report-generation.log",
+      "sha256": "fe010532f71a6341467ae5719b29ac19470895de1d481156335b8f70a3273ed5"
+    }
+  ]
+}

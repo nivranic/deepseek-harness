@@ -1,0 +1,66 @@
+{
+  "status": "PASS",
+  "scope": "Report bindings and audit for the client-mutation increment: the §17 clientMutationId adoption (the open design ruling the mutation-idempotency-lanes survey named — fork minting a fresh sub-session per retry and command execute minting a fresh commandId re-running the handler on network retry, the two anchorless write lanes of the twenty-seven surveyed) — the optional branded clientMutationId (non-empty, no leading/trailing whitespace, at most 128 chars, wire boundary fail-loud: fork answering gateway/bad-request, execute throwing TypeError per package convention) riding SessionForkRequest and the new CommandExecutionRequest object form (execute switched to a request object — the session-controller @Remote precedent plus the typert cancellation-signal-last rule), the Host in-process FIFO 1024 receipt registry making same-id resends settle to the first outcome (fork returning the same sub-session without rebuilding, execute returning the same commandId and result without re-entering the handler or appending an event pair; admission errors recorded while thrown errors stay retryable; eviction re-running as a new request), the shape lane closing every call surface (client session/remotes/fixture, ui-commands, ui-plan, compaction x2, feedback x2, snapshots/sdk feedback-producer.mjs) and the catalogs regenerated — proven by the four-spec joint round 4 files / 134 tests green (.artifacts/client-mutation-specs.log: fork 12 / commands 65 / upload-file 46 / connection fixture 11); the ledger §17 1274→1628 chars with the evidence list 25→28 (the closure clause plus the adoption narration, a serialization round-trip check run before the write) with the note trio paired ahead of the doc-sync round (.artifacts/gen47-note-pairing.log); the gates: typecheck EXIT 0 in its own chained log (build:lib:host then tsc -b tsconfig.client.json) and lint clean in its own chained log (Found 0 warnings and 0 errors in 69.5s on 3855 files, no labelled trailer — the aborted eslint-append attempt the voided round riding no field), doc-quick 17 gates green in 94.88s and doc-sync 36 passed 0 failed 0 skipped in 215.39s (the post-repair forms — the regenerated-doc line drift and the zh-twin mirror repaired ahead of the rounds), traceability 6/6 (TAP, §17 at 1628 chars / 28 evidence entries), gate0 PASS in both forms (1938 paths / 129 components / 81 sections), and the serial double audit round green at 87 files / 1073 tests on both passes over gen-40's curated lineage at its gen-40 name (nothing this increment touches is a lineage member — the session-controller and interaction-commands surfaces, the docs families and the traceability ledger sit outside the client list); the android acceptance is recorded honestly: the scanner-env gradle round came back BUILD SUCCESSFUL in 43s with 70 actionable tasks of which 13 executed and 57 up-to-date — the gen-43-shaped one-time packaging rebuild (:app:packageDebug, :app:assembleDebug, :app:packageDebugAndroidTest and :app:assembleDebugAndroidTest re-executed, :app:verifyScannerResources executed, :app:compileDebugKotlin, :core:compileKotlin and :core:test all UP-TO-DATE) — with both APKs DRIFT against the time-context record's own builtFiles entries at the new stable bytes fb66b477/bbe7a3af (the record keeping the gen-43 rebuild bytes 6dea1eac/119bdaad, cross-checked live — the warm rerun at .artifacts/client-mutation-gradle-rerun.log BUILD SUCCESSFUL in 5s with 1 executed and 69 up-to-date proving them settled) and the core XML aggregate still reading 77 suites / 477 tests (.artifacts/client-mutation-core-results.json); the byte-proof follows the measured DRIFT form (.artifacts/client-mutation-apk-bytes.log, prior apk records: 2), and the prepare oracle derived the measured forty-one replaced prior build outputs (the four android keys of the one-time rebuild plus the thirty-seven lib/types keys the forced face builds re-emitted — the empty-set placeholder rejected and the keys backfilled in one two-step pass, sealing {\"files\":7739,\"reused\":0,\"written\":7739,\"replacedPriorBuildOutputs\":41}), so the generator gains no set at all (the Option A newest-history form, no new ReplacedBuildOutputs or SupersededSources collections, the gen-32 desktopPackageReplacedBuildOutputs set staying exactly six, the drift resolving through the older archives the historicalRecords chain walks); the durable receipt (needing a new SessionEventMap vocabulary plus the SDK projection flow) and the client-sender wiring stay open, relayMetadata is still the only class of the five without a producer (blocked on section 23), the section 56 signing/notarization/update-source acceptance stays open on its materials, the CI coverage gap for the client tsdown face stays open, and the pdf-license-bundle npm-pack host timing baseline stays outside the audit lineage with CI Linux green — so no whole-section PASS is granted; full Upstream-First objective remains in progress",
+  "gate0": {
+    "validation": "PASS",
+    "gate0": "PASS",
+    "paths": 1938,
+    "components": 129,
+    "specificationCoverage": {
+      "status": "PASS",
+      "numberedSections": 81,
+      "nonEmptySourceLines": 1983,
+      "acceptanceProven": false
+    }
+  },
+  "sourceRecord": {
+    "path": "artifacts/upstream-first/client-mutation-source.json",
+    "sha256": "c7014f91b3d29a39a006c7c037befaecc958e0b221c1968c4dc512ea85c2ca32"
+  },
+  "generator": {
+    "path": "artifacts/upstream-first/write-reports.mjs",
+    "sha256": "4df554c139d9297c25fc5a2ddfb02d3d01822e9d8384d645e6eaf65a9ea051f1"
+  },
+  "binding": {
+    "path": "artifacts/upstream-first/client-mutation-binding.json",
+    "sha256": "153af158a432bc9db29b21851a3dcbb2e3165ac30cd8f7f8d2c74103f633c3d9"
+  },
+  "helpers": [
+    {
+      "path": ".artifacts/advance-client-mutation-reports.mjs",
+      "sha256": "e0a357947578bd950cf7f713d40060597ed52fada42addd0b98539b6c403515d"
+    },
+    {
+      "path": ".artifacts/capture-client-mutation-validation.mjs",
+      "sha256": "20f80324256e006b5d07b8f342289f92c3d614023a7d7c6bd4e620918b9c315c"
+    }
+  ],
+  "reports": [
+    {
+      "path": "IMPLEMENTATION_STATUS.md",
+      "sha256": "df0cb3a658f788fac3dceaeebf0c52b3a349c4c9003365686623232bccc2216b"
+    },
+    {
+      "path": "artifacts/upstream-first/evidence.json",
+      "sha256": "0a3da00937ef066c508f8784623a41648ce8fadfd5280f8a0be70fea87f32def"
+    }
+  ],
+  "checks": [
+    {
+      "path": ".artifacts/client-mutation-binding.log",
+      "sha256": "3d62b44331cdb5a54a0adae24d7c3ed12b9783d3b644a840a07d69f1f7575ebd"
+    },
+    {
+      "path": ".artifacts/client-mutation-audit-final.log",
+      "sha256": "3ea9ba344aa19922fbb93114ab57eec7d224c4e884c7c3fe5c2575c469894bf4"
+    },
+    {
+      "path": ".artifacts/client-mutation-gate0-final.log",
+      "sha256": "7e00efd82bd2a2b91b03ca80537dcc4af46cd09eb318ff58520cb2d7d7d8a48a"
+    },
+    {
+      "path": ".artifacts/client-mutation-report-generation.log",
+      "sha256": "fe010532f71a6341467ae5719b29ac19470895de1d481156335b8f70a3273ed5"
+    }
+  ]
+}

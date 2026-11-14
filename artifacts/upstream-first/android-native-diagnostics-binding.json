@@ -1,0 +1,16 @@
+{
+  "status": "PASS",
+  "controls": 3,
+  "sourceRecord": {
+    "path": "artifacts/upstream-first/android-native-diagnostics-source.json",
+    "sha256": "f1e03ebba3a74c3ced114941f4fad58eaa5aa90607c7621a3d62fb74473106a7"
+  },
+  "generator": {
+    "path": "artifacts/upstream-first/write-reports.mjs",
+    "sha256": "1acbe62df96736857a71c5f86547333c41af2b8e53f453acb5029411e69477c2"
+  },
+  "helper": {
+    "path": ".artifacts/check-android-native-diagnostics-binding.mjs",
+    "sha256": "e304fce38e49b74902a332985d7e782ec69ab2c4df65a0c5266c71dcdf2f50cd"
+  }
+}

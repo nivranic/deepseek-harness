@@ -1,0 +1,16 @@
+{
+  "status": "PASS",
+  "controls": 3,
+  "sourceRecord": {
+    "path": "artifacts/upstream-first/swift-ci-recovery-source.json",
+    "sha256": "a361bf7a387da43be1bd20c6ffa3d317ff0e9d2a57f95664185b863d55f9b041"
+  },
+  "generator": {
+    "path": "artifacts/upstream-first/write-reports.mjs",
+    "sha256": "d80c9341a5236d4402d9365fb201bb091fc413fe7e57f95f80b37b53bb4a299b"
+  },
+  "helper": {
+    "path": ".artifacts/check-swift-ci-recovery-binding.mjs",
+    "sha256": "be7f76b1a2d86b8095ec8f1ad541c9b4b34aa8b8355703520135f28e0b80c19e"
+  }
+}

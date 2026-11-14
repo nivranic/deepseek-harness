@@ -25,7 +25,7 @@ Chat 与 Trajectory 可以识别同一个持久 event family，但各自保留�
 
 每个 Session 都保留单调增长的 active target 集合。创建或读取 target source 不会激活它。shell 会显式激活持久化选择或新选择的 View，其他消费者则通过 target source 的首个订阅激活 target。首次激活会创建该 target 的 builder，并从当前按 target 索引的 Context 调用一次 `replace()`。后续 flush 对每个 active target 调用 `apply()`，取消订阅不会移除 target。
 
-shell 拥有 View 选择，并在 binding 创建、被选为 current 或 View roster 变化时，于渲染前解析已注册的偏好 View 或 Chat fallback。assembler 只接收解析后的 target id，不自行选择 Chat 或其他默认 target。第三方 View 使用相同的选择与激活操作。View Definition 可以提供 `toolCallFocus(callId)`；shell 仅为声明了此能力且可见的目标提供 Inspect，由目标将调用 id 映射为自己的焦点标识。
+shell 拥有 View 选择，并在 binding 创建、被选为 current 或 View roster 变化时，于渲染前解析已注册的偏好 View 或 Chat fallback。assembler 只接收解析后的 target id，不自行选择 Chat 或其他默认 target。第三方 View 使用相同的选择与激活操作。View Definition 可以提供 `toolCallFocus(callId, location)`，接收调用所属的 Turn 和 Step。shell 仅为声明了此能力且可见的目标提供 Inspect，由目标将调用及其位置映射为自己的焦点标识。
 
 <a id="group-definitions"></a>
 ## Group Definition
@@ -54,6 +54,8 @@ Group 存储在安装前校验完整提交结果：根 Group 引用与记录一�
 渲染器按两种引用 kind 切换，由所属 View 选择组件，不通过组数据中的 renderer 字段选择。根 Node 引用与被引用组的成员构成完整渲染列表；未被引用的目标 Node 仍保留在存储中，但不渲染。组 body 将成员与摘要数据分开读取。展示模式必须保留组件类型、key 和成员父级；业务数据改变成员归属时，移动成员可以正常重挂载。框架不解释部分内容完备性、分段或展示策略。
 
 ## 可回放 event family
+
+业务 id 仅在单个模型 Step 内唯一的 Definition 声明 `identityScope: 'step'`。Assembler 使用持久化 Turn/Step 执行范围限定 id；对于缺少位置的分页前缀，只在下一次开启边界之前使用后续坐标。已认领但位置未知的事件保持待定，不发布临时 Node。默认身份范围仍是整个 Session，matcher 仍只读取自身事件。[身份决策](../../.agents/notes/implemented/architecture/2026-08-09-client-conversation-node-assembly.zh.md)说明分页方面的理由。
 
 编写 Definition 前先选定稳定的业务 id。构成同一个 Node 的每条事件都必须携带该 id，或只凭自身 payload 独立推导出该 id；Client 绝不能把 update 猜测为属于“最近一个未完成”的 Context。
 

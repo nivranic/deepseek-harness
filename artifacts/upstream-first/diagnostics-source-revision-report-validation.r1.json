@@ -1,0 +1,66 @@
+{
+  "status": "PASS",
+  "scope": "Report bindings and audit for the diagnostics-source-revision increment: the section 42 mandatory source-revision field — the spec pinning selected §42 as the highest-clarity reachable item (original-specification.md:1432 is a single-line hard requirement, the recorded remaining stating the SHA field absent with the build-injection seam undecided, and the Explore A/B/C/D classification leaving real-device/Swift/matrix sections unreachable); the implementation adds sourceRevision to DiagnosticsSnapshot with describe() reading process.env.DSH_BUILD_REVISION on every call and falling back to the literal source-tree for an unstamped checkout — no build-time inlining so one commit's library bytes never vary with stamping (exactly the incremental-emit variance the sealing replaced-build-outputs adjudications avoid), no runtime .git read so packaged artifacts never misreport, the library bytes carrying no inlined value at all and the injection responsibility left open with the section 56 release launcher; the first module-constant implementation was falsified on the spot by the injection case (the process imports before it stamps) and the read moved inside the call; the lanes ran green with the §42 key-set assertion falsified first then fixed and the new stamp/fallback case restoring the environment in a finally block at host-diagnostics 30/30, the tool-cordis api-catalog regenerated with the embedded declaration and member (103 computed / 1 written), both README sides flipped with the pairing re-recorded, the traceability section 42 remaining rewrites at 786 to 891 characters with candidateEvidence 5 to 7 (node --test 6/6), the note trio lands, and the documentation evidence keeps the two-file split — doc-quick 17 gates in its own docs log (the host-diagnostics Summary's first added sentence trimmed twice from 116 words to 96 with the zh mirror and the pairing re-recorded) and doc-sync 36 passed 0 failed in 223.77s in its own docsync log (the second round's Summaries-and-site-checks double failure classified by an isolated rerun as the gen-29 archived flake's same form, sealed by the third-round whole-gate rerun) — with the audit serial double round green at the unchanged 85 files / 1061 tests (the touched packages are not client spec-list members), gate0 in both forms, and the lint round sealed in its honestly recorded single-trailer form (lint:contracts-ready with EXIT_CODE=0, Found 0 warnings and 0 errors, no labelled trailer and no build:lib:host script echo in the log; the one JSDoc 183-character line split into two before the clean rerun); the same-round gradle acceptance round (scanner env with -PdshNativeAcceptance, BUILD SUCCESSFUL in 11s) replayed WARM with 1 executed of 67 actionable tasks and 66 up-to-date because nothing under apps/android changed this generation (no device lane ran and the emulator stayed off; the round's graph reaches neither :core:test nor :app:assembleRelease), the empty-derived byte proof compares both APKs byte-identically against the torn-repair-intent record's builtFiles entries (.artifacts/diagnostics-source-revision-apk-bytes.log), the still-standing XML reports aggregate 77 suites / 477 tests with zero failures/errors/skips (.artifacts/diagnostics-source-revision-core-results.json), and the prepare-side unresolved scan derived exactly THREE replaced prior build outputs (7628 files, 0 reused, 7628 written — the cordis-catalog regeneration rebuilt tool-cordis's untracked bundle, the three adjudicated keys riding the generator head as tornRepairIntentReplacedBuildOutputs sealed between prepare and advance) so the new record's own derivation stays empty and the generator gains no diagnostics-source-revision replaced-build-output set while every prior generation's own set (including the adjudicated four-key approvalFactsCompleteReplacedBuildOutputs set with its filter and guard, and the gen-32 round-1 repair's atomicDurabilitySupersededSources six-key set with its companion single-key desktopPackageReplacedBuildOutputs set) rides unchanged; the section 43 support bundle, the section 44 typed telemetry and the section 56 launcher stamping stay open; full Upstream-First objective remains in progress",
+  "gate0": {
+    "validation": "PASS",
+    "gate0": "PASS",
+    "paths": 1938,
+    "components": 129,
+    "specificationCoverage": {
+      "status": "PASS",
+      "numberedSections": 81,
+      "nonEmptySourceLines": 1983,
+      "acceptanceProven": false
+    }
+  },
+  "sourceRecord": {
+    "path": "artifacts/upstream-first/diagnostics-source-revision-source.json",
+    "sha256": "98036b4fe6399492fac96c3a38cce03362ba430eaef5c7d942a561dd301dabe5"
+  },
+  "generator": {
+    "path": "artifacts/upstream-first/write-reports.mjs",
+    "sha256": "e052cd7ede37df6adaf09cbf3e2717134a0868618ea1b665c444567cabe191c3"
+  },
+  "binding": {
+    "path": "artifacts/upstream-first/diagnostics-source-revision-binding.json",
+    "sha256": "b5c6bd489f8a5a32994cc2964563b5582e4f481cb5140ad2548e817915b2aafb"
+  },
+  "helpers": [
+    {
+      "path": ".artifacts/advance-diagnostics-source-revision-reports.mjs",
+      "sha256": "6a1181a67e96324422b0de867b0635a98f3f9cf85587de4ea88a625a1b071286"
+    },
+    {
+      "path": ".artifacts/capture-diagnostics-source-revision-validation.mjs",
+      "sha256": "a35dd2a35404170ce7698d2397315635686aad0bcc52556ca82874903f27cbd5"
+    }
+  ],
+  "reports": [
+    {
+      "path": "IMPLEMENTATION_STATUS.md",
+      "sha256": "719578cb913857c4a42099bd1774d9d28d93eed91ef26d4a0219e4caa14c70ff"
+    },
+    {
+      "path": "artifacts/upstream-first/evidence.json",
+      "sha256": "ccc48bff91cf5be7d3bf247423fedc89fc8b9c055d9d3c98348bf49528feb435"
+    }
+  ],
+  "checks": [
+    {
+      "path": ".artifacts/diagnostics-source-revision-binding.log",
+      "sha256": "a488bff54fa7a15f7f01cc8b7ce0e587f6dfae6123861b2ecdebb378ab2f0260"
+    },
+    {
+      "path": ".artifacts/diagnostics-source-revision-audit-final.log",
+      "sha256": "1fd81b0a04058c934d4b42246119dbe0119cdbf8016c7a2997233da90e35fb2c"
+    },
+    {
+      "path": ".artifacts/diagnostics-source-revision-gate0-final.log",
+      "sha256": "505d74ef938f5d34d85490d37e0176ba804d93272fcf465ce2544a02c56b3f90"
+    },
+    {
+      "path": ".artifacts/diagnostics-source-revision-report-generation.log",
+      "sha256": "fe010532f71a6341467ae5719b29ac19470895de1d481156335b8f70a3273ed5"
+    }
+  ]
+}

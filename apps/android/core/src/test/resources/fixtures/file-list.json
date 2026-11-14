@@ -1,0 +1,14 @@
+{
+  "path": "src",
+  "entries": [
+    {
+      "name": "app.ts",
+      "type": "file",
+      "size": 24
+    },
+    {
+      "name": "lib",
+      "type": "directory"
+    }
+  ]
+}

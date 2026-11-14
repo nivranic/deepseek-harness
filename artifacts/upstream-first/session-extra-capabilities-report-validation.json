@@ -1,0 +1,64 @@
+{
+  "status": "PASS",
+  "scope": "Report bindings and audit for Independent Session search and attachment admission with generation-safe Workspace content results; full Upstream-First objective remains in progress",
+  "gate0": {
+    "validation": "PASS",
+    "gate0": "PASS",
+    "paths": 1938,
+    "components": 129
+  },
+  "sourceRecord": {
+    "path": "artifacts/upstream-first/session-extra-capabilities-source.json",
+    "sha256": "650438a07315226e4c33356f347d05fc9e430678faf000ddb8b812e8cb577d7d"
+  },
+  "generator": {
+    "path": "artifacts/upstream-first/write-reports.mjs",
+    "sha256": "2d85e62bd9fb677439b95878e6243a6aa04c98b530a5cd188d9f094a159dd506"
+  },
+  "binding": {
+    "path": "artifacts/upstream-first/session-extra-capabilities-binding.json",
+    "sha256": "4a6624922450d42b38c9764466e7fc05fb98b160ac5436ea2c780cf2403cdf97"
+  },
+  "helpers": [
+    {
+      "path": ".artifacts/advance-session-extra-capabilities-reports.mjs",
+      "sha256": "1c2eec9692aeb79306b0667dd544b68f06389d04e3b1ee2a952892b7b87f8245"
+    },
+    {
+      "path": ".artifacts/capture-session-extra-capabilities-validation.mjs",
+      "sha256": "ffec805da88533167f8bcf0c21e2f03fca5d0207a55a0dc7341e594e69318dc7"
+    }
+  ],
+  "reports": [
+    {
+      "path": "IMPLEMENTATION_STATUS.md",
+      "sha256": "92061ee0f90fecc652d85c013fcdfebd0bbddf195c52760f550a1eb44503ee3d"
+    },
+    {
+      "path": "artifacts/upstream-first/evidence.json",
+      "sha256": "b69338d68aaa7d1c736401aca03c6c808657f33f6cc4a63e4e70e0258ac26717"
+    }
+  ],
+  "checks": [
+    {
+      "path": ".artifacts/session-extra-capabilities-binding.log",
+      "sha256": "87cecd5bce3974335b83eaf095b8f63820aa20731c4d23b8a62e2611ec5bf516"
+    },
+    {
+      "path": ".artifacts/session-extra-capabilities-audit-tests.log",
+      "sha256": "0920fc71d259b5f5749d8786deaca1276ccc2459c9e5b1768eb127837675f900"
+    },
+    {
+      "path": ".artifacts/session-extra-capabilities-gate0.log",
+      "sha256": "4b5af3121a7e7caff0e1b6288bdaa7cfef9988842ae06bf02dc0a74852426043"
+    },
+    {
+      "path": ".artifacts/session-extra-capabilities-report-diff-check.log",
+      "sha256": "e3b0c44298fc1c149afbf4c8996fb92427ae41e4649b934ca495991b7852b855"
+    },
+    {
+      "path": ".artifacts/session-extra-capabilities-report-generation.log",
+      "sha256": "5867d1d51cd43a59428de2e7fffa15847d7153b11f3b61ecf812224ee2dd2099"
+    }
+  ]
+}

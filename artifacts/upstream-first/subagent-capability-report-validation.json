@@ -1,0 +1,64 @@
+{
+  "status": "PASS",
+  "scope": "Report bindings and audit for Independent Subagent capabilities and generation-owned catalogs, prompting and interruption; full Upstream-First objective remains in progress",
+  "gate0": {
+    "validation": "PASS",
+    "gate0": "PASS",
+    "paths": 1938,
+    "components": 129
+  },
+  "sourceRecord": {
+    "path": "artifacts/upstream-first/subagent-capability-source.json",
+    "sha256": "7532b547dc33b7affbd42dbd7c82626d91282bc36fa82888315b9e1dfc07845b"
+  },
+  "generator": {
+    "path": "artifacts/upstream-first/write-reports.mjs",
+    "sha256": "cdcefb21dcd0e2700c01a8381dff00264ba4d7ef93f10455fa504519fe99a61f"
+  },
+  "binding": {
+    "path": "artifacts/upstream-first/subagent-capability-binding.json",
+    "sha256": "2a0f5ea043974e2b84f67a30067f977fbe6fdbc419179f95503a948611770025"
+  },
+  "helpers": [
+    {
+      "path": ".artifacts/advance-subagent-capability-reports.mjs",
+      "sha256": "1f3c4809769baad3fbe7d5886fad05754773dc2665f61501705b03924edf825d"
+    },
+    {
+      "path": ".artifacts/capture-subagent-capability-validation.mjs",
+      "sha256": "37009d1c6eec48201db1ca9a602328c28c46192d043586ce980d668ebc41cd8b"
+    }
+  ],
+  "reports": [
+    {
+      "path": "IMPLEMENTATION_STATUS.md",
+      "sha256": "f0e3a0a872a7e71d5ba6f66c062ba1f35f50eaa2cf9c0f67b33135f31601cc1a"
+    },
+    {
+      "path": "artifacts/upstream-first/evidence.json",
+      "sha256": "8805eff7fdbdd91888efed19b2af8f9841d4f3796088e170e93526e44e593fa3"
+    }
+  ],
+  "checks": [
+    {
+      "path": ".artifacts/subagent-capability-binding.log",
+      "sha256": "c7fe3df2974eb4f81a2072e3d3e2da107699732591a7e9cdac237911cc56558d"
+    },
+    {
+      "path": ".artifacts/subagent-capability-audit-tests.log",
+      "sha256": "87568a4ec4298a11bea866fb165d0e8e55f69ba2f9f987f3a142b657a1c2845f"
+    },
+    {
+      "path": ".artifacts/subagent-capability-gate0.log",
+      "sha256": "4b5af3121a7e7caff0e1b6288bdaa7cfef9988842ae06bf02dc0a74852426043"
+    },
+    {
+      "path": ".artifacts/subagent-capability-report-diff-check.log",
+      "sha256": "e3b0c44298fc1c149afbf4c8996fb92427ae41e4649b934ca495991b7852b855"
+    },
+    {
+      "path": ".artifacts/subagent-capability-report-generation.log",
+      "sha256": "1f7721b16bdbb9df13d51bdb4ed1f5ba3b2b9527f8b9dd1b8e1e8b4b31e34d59"
+    }
+  ]
+}

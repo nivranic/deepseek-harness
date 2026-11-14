@@ -27,6 +27,8 @@ English | [中文](README.zh.md)
 
 Mount this plugin for the inspection registry or programmatic dynamic-package lifecycle. Browser lifecycle consumers also require the Client runner and UI package. The shipped Creator workflow uses installed bundles instead of this definition registry.
 
+The Remote contribution declares independent `dynamic-cordis.*.v1` capabilities for inventory, Host activation, Client source, model-request resolution, user-run settlement, Stop, Undefine, inspect manifest and response, render and guard reports, and invocation. Client admission checks the exact operation declaration before dispatch. These declarations preserve Session ownership, exact activation checks and human approval; they do not authorize execution or make a mutation safe to replay. Device permissions follow the section 21 table: inventory, Client source, and the inspect manifest and response handshake declare `view`; Host activation, request resolution, user-run settlement, Stop, Undefine, failure reports, and invocation declare `prompt.send`. A device role without the declared permission is refused before dispatch; anonymous callers are unaffected.
+
 ### Minimal configuration
 
 ```yaml

@@ -412,6 +412,11 @@ export function apply(ctx: Context, config: Config = {}): void {
     }
     return defineTool({
       name: 'bash',
+      version: 1,
+      risk: 'high',
+      permissions: [],
+      supportsLite: false,
+      supportsRemote: true,
       description: bashDescription(),
       parameters: {
         description: {

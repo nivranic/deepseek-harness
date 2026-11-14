@@ -1,0 +1,70 @@
+{
+  "status": "PASS",
+  "scope": "Report bindings and audit for the Follow resume; the remaining specification sections stay open; full Upstream-First objective remains in progress",
+  "gate0": {
+    "validation": "PASS",
+    "gate0": "PASS",
+    "paths": 1938,
+    "components": 129,
+    "specificationCoverage": {
+      "status": "PASS",
+      "numberedSections": 81,
+      "nonEmptySourceLines": 1983,
+      "acceptanceProven": false
+    }
+  },
+  "sourceRecord": {
+    "path": "artifacts/upstream-first/follow-resume-source.json",
+    "sha256": "a8d52164a5c394cfba3be6872128e359e8a2d025c006d349eac6f06f8c6f51c1"
+  },
+  "generator": {
+    "path": "artifacts/upstream-first/write-reports.mjs",
+    "sha256": "832432bfe315746a8ad62984801af2294c5c8db30140a563265fb2c9c8087d34"
+  },
+  "binding": {
+    "path": "artifacts/upstream-first/follow-resume-binding.json",
+    "sha256": "3aecac0ac482ac30560ac4d8701754fb7a9fb772af47b21f4cc41b7a7262098b"
+  },
+  "helpers": [
+    {
+      "path": ".artifacts/advance-follow-resume-reports.mjs",
+      "sha256": "84a984093c9a1eae108e91a6028e4d6416f3e16b6e1830389fa1a80ac269000f"
+    },
+    {
+      "path": ".artifacts/capture-follow-resume-validation.mjs",
+      "sha256": "a8cf59d8ebb81c121e50127138702df2b4c32b13403ceaa55c847ffb24d34ac0"
+    }
+  ],
+  "reports": [
+    {
+      "path": "IMPLEMENTATION_STATUS.md",
+      "sha256": "24aa13c9aeff6bac6347dfbd8d8c3178843f4d495e8d60d0af3e0e2db2667878"
+    },
+    {
+      "path": "artifacts/upstream-first/evidence.json",
+      "sha256": "7e29d602e8b7d58ecf5f1769987eb42bafc911fa91c59bf14d591526630acd3e"
+    }
+  ],
+  "checks": [
+    {
+      "path": ".artifacts/follow-resume-binding.log",
+      "sha256": "0d9c925255e49d96150d332e4d8776f5a61247883663f1cc25ccaf1c715b6661"
+    },
+    {
+      "path": ".artifacts/follow-resume-audit-tests.log",
+      "sha256": "2478346492b06825a9cb95672a6b377e57efb89c44b179b4a9a2bf24efd12b0e"
+    },
+    {
+      "path": ".artifacts/follow-resume-gate0.log",
+      "sha256": "505d74ef938f5d34d85490d37e0176ba804d93272fcf465ce2544a02c56b3f90"
+    },
+    {
+      "path": ".artifacts/follow-resume-report-diff-check.log",
+      "sha256": "e3b0c44298fc1c149afbf4c8996fb92427ae41e4649b934ca495991b7852b855"
+    },
+    {
+      "path": ".artifacts/follow-resume-report-generation.log",
+      "sha256": "32bce446ec607e1c4f1b4c87b0b5f972ef988447cd2eba022bdcefd0e105d936"
+    }
+  ]
+}

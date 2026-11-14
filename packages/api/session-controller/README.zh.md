@@ -10,7 +10,7 @@ kind: "package-reference"
 
 ## 概述
 
-`@deepseek-ai/dsh-api-session-controller` 拥有 Host 的 `ctx.sessionController` 服务，以及生成的 Client `session`、`skills` 和 `fileReferences` Remote namespace。它提供 Session 生命周期与历史、Host generation 模型目录、人工后台任务终止、工作区路径打开、用户可调用 skill（技能）发现和 Agent（智能体）范围的文件引用。当 Client 需要按 Session 寻址的操作时，请通过 API Gateway 使用它。
+`@deepseek-ai/dsh-api-session-controller` 拥有 Host 的 `ctx.sessionController` 服务，以及生成的 Client `session`、`skills` 和 `fileReferences` Remote namespace。它提供 Session 生命周期与历史、Host generation 模型目录、用户可调用 skill（技能）发现和 Agent（智能体）范围的文件引用。当 Client 需要按 Session 寻址的操作时，请通过 API Gateway 使用它。
 
 ## 目录
 
@@ -22,10 +22,30 @@ kind: "package-reference"
 - [已知限制与延期工作](#known-limitations-and-deferred-work)
 - [开发备注](#dev-note)
 
+文件引用适配器声明 `file-reference.list.v1`，技能目录声明 `skill.catalog.v1`。这些操作集独立描述发现 API，与文件查看器、会话候选及技能调用分开。实际挂载的提供者与权限检查仍决定操作结果。
+
 -----
 
 <a id="use-this-package"></a>
 ## 使用本包
+
+fork 的子会话标题更新失败时，原样拒绝 rename 的 `RemoteError`；已发布的子会话仍可访问。
+
+携带 `clientMutationId` 的 fork 在子会话发布后，会向 source 会话日志写入一条持久 `session/forked` 收据；同一身份重发会重放收据记录的子会话而不是再铸一个，Host 重启后从存储恢复的 source 同样命中。收据按会话键控：fork 子会话的种子前缀可以携带祖先收据，但以子会话为地址的重发只扫描其自有事件。写入收据需要解析 source 的活 Agent，因此冷 source 会恢复一次；被 subagent 归属围栏挡住的 subagent source 仍返回其子会话，仅跳过收据并记录警告。
+
+独立的 `session.search.v1` 和 `session.attachment.v1` 能力分别准入内容搜索和持久化图片读取。API Gateway 在传输前拒绝未公布的操作，并随所属 Connection 代际取消待完成读取。附件授权仍要求被寻址 Session 日志中存在对应引用。
+
+Client 子级目录读取父 Session 的 `subagentCatalog` 投影。发现使用 Session 投影传输，不要求独立的子级列表 Remote 或能力。
+
+`session.rename-at.v1` 暴露 `renameAt(SessionRenameAtRequest)`，字段为 `sessionId`、原始 `title` 和 `expectedRevision`（标题事件序号或 null）。标题服务以 `session/revision-conflict` 拒绝已变化的编辑基线；若规范化后的标题与当前用户固定标题相同，则返回原有接受结果。`ISession.prepareRename()` 在编辑前捕获版本，并在重试时保留；缺少投影数据时不发送请求，直接失败。不支持此能力的 Host 和直接 `rename()` 调用保留无条件重命名语义。这提供条件变更安全性，不是持久化的变更 ID 回执账本。
+
+Client 控制流在打开前等待已准入且声明 `session.control.v1` 的 Host；事件 journal 同样要求 `session.follow.v1`。Journal 重连期间保留已发布历史，直到具备该能力的连接代次提供替换快照。能力缺失时保持等待，直到具备该能力的连接代次到来；销毁会取消等待并释放观察订阅。Host 能力声明和 Client 操作准入共同使用 `./capabilities` 声明。
+
+此 owner 声明 `session.follow.v1`（跟随与分页）、`session.control.v1`（控制、prompt、队列更新与取消）、`session.list.v1`（列举）、`session.manage.v1`（创建、重命名与 fork）、`model.catalog.v1`（目录）和 `model.select.v1`（选择）。每个能力声明其设备权限：只读集合（跟随、列举、搜索、目录、文件引用与技能列表）要求 `view`；会话变更集合（控制、按轮取消、条件重命名、管理、附件、模型选择）要求 `prompt.send`——缺少已声明权限的设备角色在派发前被拒绝，匿名调用不受影响。[Host 发现](../host-description/README.zh.md)在其 Remote 定义可用时报告这些操作集合；能力存在不代表变更操作可安全重试。
+
+额外的 `session.cancel-turn.v1` 能力提供 `cancelTurn({ sessionId, turnStartSeq })`。只有 `turnStartSeq` 等于当前 `activeTurnStart` 投影时，Host 才请求取消；过时目标或显式 null 返回接受结果且不执行操作。Client 每次点击捕获目标，投影尚未到达时报告不可用状态而不作推断。未声明该能力的 Host 使用旧的当前活动 `cancel` 操作，后者不承诺迟到重试安全。两种操作都不恢复冷 Agent，按目标取消保留待处理 inbox。
+
+对于可继续子级，`subagent.interrupt-turn.v1` 选择 `subagents.interruptTurnByParent`。Client 每次点击捕获 `subagentTiming.active.startSeq`，已知空闲投影则使用 null。Timing 缺失或活动目标缺失时在派发前失败；对声明按目标中断的 Host，不能退回范围更宽的操作。没有该能力的 Host 使用旧的父级寻址中断。父级权限和目标匹配仍由 Host 负责。
 
 提示重试按首次已提交入队记录中的请求标识去重，消息被领取或删除后仍然有效。异步附件准备结束后再次检查，因此并发重试只接受一条输入。接受确认入队，不代表执行或完成。
 

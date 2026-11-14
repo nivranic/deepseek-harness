@@ -1,0 +1,40 @@
+{
+  "schemaVersion": 1,
+  "status": "PASS",
+  "cases": [
+    {
+      "name": "wait-outside-queue",
+      "status": "PASS",
+      "source": "packages/session/session-projection-cache/src/index.ts",
+      "originalSha256": "f29133e7ec20457f679d924e3c11c426cd8a7c2026392a0d8055eef4a6f918ff",
+      "mutatedSha256": "8dd5438230e0e39fef0b2c763970749a5e23160487a2be2fa7f3d80c258541ee",
+      "command": [
+        "C:\\Program Files\\nodejs\\node.exe",
+        "node_modules/vitest/vitest.mjs",
+        "run",
+        "packages/session/session-projection-cache/tests/cache.spec.ts",
+        "-t",
+        "keeps checkpoint capture order"
+      ],
+      "exitCode": 1,
+      "log": ".artifacts/checkpoint-order-control-wait-outside-queue.log"
+    },
+    {
+      "name": "skip-prerequisite",
+      "status": "PASS",
+      "source": "packages/storage/storage-domain/src/domain.ts",
+      "originalSha256": "a00a2d0eb3ec9fb0c0f62ae5d2426ca0fcee18b134f21536f57523e47b04c7b8",
+      "mutatedSha256": "10190a532d9feaf331351747deebb9bf9ebdb98b4b483011165fa0f054dc9fba",
+      "command": [
+        "C:\\Program Files\\nodejs\\node.exe",
+        "node_modules/vitest/vitest.mjs",
+        "run",
+        "packages/storage/storage-domain/tests/domain.spec.ts",
+        "-t",
+        "skips a failed"
+      ],
+      "exitCode": 1,
+      "log": ".artifacts/checkpoint-order-control-skip-prerequisite.log"
+    }
+  ]
+}

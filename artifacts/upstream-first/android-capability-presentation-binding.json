@@ -1,0 +1,16 @@
+{
+  "status": "PASS",
+  "controls": 3,
+  "sourceRecord": {
+    "path": "artifacts/upstream-first/android-capability-presentation-source.json",
+    "sha256": "b6dd96faa1d96abb75a1012b0260822d35d9b431dc1000f4488c35759f84d2cc"
+  },
+  "generator": {
+    "path": "artifacts/upstream-first/write-reports.mjs",
+    "sha256": "a0e08840725082b13f070c64c1b8bc131f79135460def4671c0ccfa437323e11"
+  },
+  "helper": {
+    "path": ".artifacts/check-android-capability-presentation-binding.mjs",
+    "sha256": "582ccdbc0356e12672a2fe3f5bd66bb9d34fd4a935235f39d23017f42c8d4a6a"
+  }
+}

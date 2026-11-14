@@ -1,0 +1,66 @@
+{
+  "status": "PASS",
+  "scope": "Report bindings and audit for the loader-composition increment: the 3/4 e2e baseline red gen-41 onward carried as notCovered reads 4/4 through two test-fixture changes with zero production-semantic edits — the driver fixture's DSH_TELEMETRY_CONSENT='1' setting point (the §44 consent gate, default off in the base bundle at packages/bundle/base/cordis.patch.yml:195) and the telemetry overlay's agent-loop inject: [sessionPersistence] pinning the Loader same-group activation-order race (the win32+tsx in-subprocess timeline measuring the config agent ~840ms ahead of the session-persistence-jsonl backend via vendor/loader/src/config/group.ts:71 Promise.allSettled, createStoredSession's ctx.get returning undefined, the in-memory session, and session-persistence-jsonl/storage.ts:556-568's writers.get routing silently no-opping with a clean exit and zero disk writes — ruling out the assertions looking in the wrong place; the repository's existing line-level inject mechanism ordering it, the shipped headless bundle's headlessStartup form, fiber PENDING until the backend activates; production profiles' agents created after boot through the registry factory and never racing) — run on the e2e's own host config (vitest.e2e.config.ts, the test:e2e host; the default vitest.config excludes .e2e.ts), the main session's own rerun sealing 4/4 EXIT_CODE=0 (.artifacts/loader-composition-e2e.log, identical to the lane's first invocation) with the package suite 2 files / 72 tests green; the §44 ledger tail sentence rewritten from the open-channel form to the delivery narration (1833→2142 chars, candidateEvidence 16→19: driver.ts, telemetry.patch.yml, the note — a serialization round-trip check run before the write) with the note trio paired ahead of the doc-sync round (.artifacts/loader-composition-note-pairing.log); the gates: types-lint 0 warnings 0 errors EXIT 0 in the honestly recorded chained single-trailer form (Found 0 warnings and 0 errors in 82.1s on 3855 files, no TYPECHECK_EXIT and no LINT_EXIT token), doc-quick 17 gates green in 75.46s and doc-sync 36 passed 0 failed 0 skipped in 236.61s (both first-pass green — pure fixture-text and ledger changes cascading into no documentation gate), traceability 6/6 (TAP, §44 at 2142 chars / 19 evidence entries), gate0 PASS in both forms (1938 paths / 129 components / 81 sections), and the serial double audit round green at 87 files / 1073 tests on both passes over gen-40's curated lineage at its gen-40 name (nothing this increment touches is a lineage member — the two session-telemetry-otel fixtures and the traceability ledger sit outside the client list and the e2e host rides the e2e config); the android acceptance is recorded honestly: the scanner-env gradle round came back BUILD SUCCESSFUL in 1m 19s with 70 actionable tasks of which 1 executed and 69 up-to-date — the warm-replay form, :app:verifyScannerResources the one executed task with :app:assembleDebug, :app:assembleDebugAndroidTest, :core:compileKotlin, :app:compileDebugKotlin and :core:test all UP-TO-DATE — with both APKs IDENTICAL against the client-domain-graph record's own builtFiles entries at 6dea1eac/119bdaad (the exact bytes gen-43's rebuild sealed, cross-checked live — the second consecutive warm generation) and the core XML aggregate still reading 77 suites / 477 tests (.artifacts/loader-composition-core-results.json); the byte-proof follows the measured IDENTICAL form (.artifacts/loader-composition-apk-bytes.log, prior apk records: 2), and the prepare oracle derived exactly zero replaced prior build outputs (nothing built and no tsc -b ran — the tracked increment is two fixture text changes plus the traceability ledger — one pass sealing {\"files\":7751,\"reused\":0,\"written\":7751,\"replacedPriorBuildOutputs\":0}, the empty-set prediction holding with no backfill round), so the generator gains no set at all (the Option A zero-drift form, no new ReplacedBuildOutputs or SupersededSources collections, the gen-32 desktopPackageReplacedBuildOutputs set staying exactly six); the same-overlay time-context e2e red keeps its open channel (the same activation-order race family), relayMetadata is still the only class of the five without a producer (blocked on section 23), the section 56 signing/notarization/update-source acceptance stays open on its materials, the CI coverage gap for the client tsdown face and the file-upload admitEncodedImages classification ruling stay open, and the pdf-license-bundle npm-pack host timing baseline stays outside the audit lineage with CI Linux green — so no whole-section PASS is granted; full Upstream-First objective remains in progress",
+  "gate0": {
+    "validation": "PASS",
+    "gate0": "PASS",
+    "paths": 1938,
+    "components": 129,
+    "specificationCoverage": {
+      "status": "PASS",
+      "numberedSections": 81,
+      "nonEmptySourceLines": 1983,
+      "acceptanceProven": false
+    }
+  },
+  "sourceRecord": {
+    "path": "artifacts/upstream-first/loader-composition-source.json",
+    "sha256": "c95fc729e802978571a71da859a9cb8b17e9f0c63b516c4f463ffe9660f0b889"
+  },
+  "generator": {
+    "path": "artifacts/upstream-first/write-reports.mjs",
+    "sha256": "9916af80584c395000e21ca1ad451a7c48936e5205904c51ae45b1cf32dc4afa"
+  },
+  "binding": {
+    "path": "artifacts/upstream-first/loader-composition-binding.json",
+    "sha256": "425db4f818cb70c93843435c48d25bcbc43e3dd843507ad83ab7807b6bb44f94"
+  },
+  "helpers": [
+    {
+      "path": ".artifacts/advance-loader-composition-reports.mjs",
+      "sha256": "c19edad5ea2c544d73e6f2a3f569a33f799f38600154f29f302f2651eb71dd4f"
+    },
+    {
+      "path": ".artifacts/capture-loader-composition-validation.mjs",
+      "sha256": "c8a888905b60dce2a1fe1b64763f700c1b1991719fe1b0f0fa57970c78845f8e"
+    }
+  ],
+  "reports": [
+    {
+      "path": "IMPLEMENTATION_STATUS.md",
+      "sha256": "c1e58d9d351864f98be5ef0530510ca0c7e6b90ae870b786f24d84f3d34a7610"
+    },
+    {
+      "path": "artifacts/upstream-first/evidence.json",
+      "sha256": "ea8d249086f4c768d78216dce67983afb06e130bf49e4217c3fa5195da1889db"
+    }
+  ],
+  "checks": [
+    {
+      "path": ".artifacts/loader-composition-binding.log",
+      "sha256": "2d8b3a47ba9b31c4391afc5eb365f68f0bdc87f0928a8e743c9beddf3799f786"
+    },
+    {
+      "path": ".artifacts/loader-composition-audit-final.log",
+      "sha256": "66d7bebcd56f521054d67c6e9f3788ae845601cc3ba541ec27a6db2dfba31566"
+    },
+    {
+      "path": ".artifacts/loader-composition-gate0-final.log",
+      "sha256": "7e00efd82bd2a2b91b03ca80537dcc4af46cd09eb318ff58520cb2d7d7d8a48a"
+    },
+    {
+      "path": ".artifacts/loader-composition-report-generation.log",
+      "sha256": "fe010532f71a6341467ae5719b29ac19470895de1d481156335b8f70a3273ed5"
+    }
+  ]
+}

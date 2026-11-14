@@ -78,6 +78,8 @@ kind: "package-reference"
 
 [`src/backend.ts`](src/backend.ts) 是后端实现者的规范性约定；`tests/contract.ts` 中的共享一致性套件检查两个已交付后端的整单元行为。一个后端只拥有一种介质，并暴露可选的数据形状分面；`kv` 是唯一的分面。打开单元即可获得一个把 JSON 视为不透明值的句柄，其原子性与持久性按所选布局界定。单元名与表名必须匹配 `UNIT_NAME_RE`。整单元布局的键保持不透明；JSON 逐记录布局的键会成为路径安全的文件路径片段。调用方负责安排并发写入的顺序。读取接受当前版本或已声明的 `compatibleVersions`；不支持的单元版本戳以 `version-mismatch` 拒绝，不支持的 JSON 逐记录文档则读作不存在。修改将当前版本戳与数据原子提交；删除不存在的键不会重新盖戳。领域负责值转换，后端实现者必须保持这些语义；混合值、失败恢复与升级参阅[领域版本](../../../docs/subsystems/storage.zh.md#domain-versioning)。
 
+单元 owner 可通过 `kv.open` 注册清理回调。后端关闭会先排空 owner，再关闭其单元，包括仍在等待进入后端的工作。共享的 [`closeOwnedKvUnits`](src/close-units.ts) 辅助函数保留所有清理失败，并等全部 owner 与单元结束后才释放介质。参见[关闭顺序决策](../../../.agents/notes/implemented/bug-fix/2026-09-16-storage-owner-teardown.zh.md)。
+
 ### 源码地图
 
 | 文件 | 职责 |

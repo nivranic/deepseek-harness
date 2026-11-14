@@ -17,6 +17,7 @@ interface RecordedResponsesRequest {
 /** Behavior consumed by one Responses request. */
 export type ResponsesBehavior =
   | { readonly kind: 'complete'; readonly text: string }
+  | { readonly kind: 'completeAfterCommand'; readonly text: string }
   | { readonly kind: 'error'; readonly status: number; readonly message: string }
   | {
     readonly kind: 'functionCall'
@@ -154,15 +155,16 @@ export function completeResponsesEvents(text: string): Record<string, unknown>[]
 function functionCallEvents(
   name: string,
   argumentsValue: Record<string, unknown>,
+  callId: string,
 ): Record<string, unknown>[] {
   const argumentsText = JSON.stringify(argumentsValue)
   const item = {
-    id: 'fc_fixture',
+    id: `fc_${callId}`,
     type: 'function_call',
     status: 'completed',
     name,
     arguments: argumentsText,
-    call_id: 'call_fixture',
+    call_id: callId,
   }
   const completed = {
     ...responseObject(''),
@@ -238,8 +240,30 @@ function advertisedFunctionNames(body: Record<string, unknown>): Set<string> {
   )))
 }
 
+/** Resolve the last emitted command from tool metadata, excluding command output. */
+function afterCommand(body: Record<string, unknown>, text: string, callId: string | undefined): ResponsesBehavior {
+  const failed: ResponsesBehavior = { kind: 'error', status: 400, message: 'fixture command has no successful terminal result' }
+  if (callId === undefined || !Array.isArray(body.input)) return failed
+  const results = body.input.filter((item: unknown) => item !== null && typeof item === 'object'
+    && (item as Record<string, unknown>).type === 'function_call_output'
+    && (item as Record<string, unknown>).call_id === callId) as Record<string, unknown>[]
+  const output = results.length === 1 ? results[0]?.output : undefined
+  if (typeof output !== 'string') return failed
+  const sections = output.split(/\r?\n(?:Final output|Output):/u)
+  if (sections.length < 2) return failed
+  const statusLine = /^(?:Process running with session ID (\d+)|(?:Process exited with code |Exit code: )(-?\d+))\r?$/gmu
+  const states = [...sections[0]!.matchAll(statusLine)]
+  if (states.length !== 1) return failed
+  const state = states[0]!
+  if (state[2] === '0') return { kind: 'complete', text }
+  if (state[1] === undefined || !advertisedFunctionNames(body).has('write_stdin')) return failed
+  const sessionId = Number(state[1])
+  if (!Number.isSafeInteger(sessionId)) return failed
+  return { kind: 'functionCall', name: 'write_stdin', arguments: { session_id: sessionId, chars: '', yield_time_ms: 1000 } }
+}
+
 /**
- * Start a loopback-only Responses SSE fixture.
+ * Start a loopback-only Responses SSE fixture. Command completion follows yielded sessions until exit zero.
  * @param script - one behavior per expected Responses request.
  * @returns the running fixture and its observed requests.
  */
@@ -247,6 +271,7 @@ export async function startResponsesFixture(
   script: readonly ResponsesBehavior[],
 ): Promise<ResponsesFixture> {
   const behaviors = [...script]
+  let lastCallId: string | undefined
   const requests: RecordedResponsesRequest[] = []
   const started = Promise.withResolvers<undefined>()
   const openResponses = new Set<ServerResponse>()
@@ -262,11 +287,16 @@ export async function startResponsesFixture(
         body: parsedBody,
       })
       started.resolve(undefined)
-      const behavior = behaviors.shift()
+      let behavior = behaviors.shift()
       if (behavior === undefined) {
         response.writeHead(500, { 'content-type': 'application/json' })
         response.end(JSON.stringify({ error: { message: 'fixture script exhausted' } }))
         return
+      }
+      if (behavior.kind === 'completeAfterCommand') {
+        const next = afterCommand(parsedBody, behavior.text, lastCallId)
+        if (next.kind === 'functionCall') behaviors.unshift(behavior)
+        behavior = next
       }
       const advertisedCall = behavior.kind === 'advertisedFunctionCall'
         ? behavior.choices.find(choice => advertisedFunctionNames(parsedBody).has(choice.name))
@@ -295,7 +325,8 @@ export async function startResponsesFixture(
         const call = behavior.kind === 'functionCall'
           ? behavior
           : advertisedCall!
-        events = functionCallEvents(call.name, call.arguments)
+        lastCallId = `call_fixture_${requests.length}`
+        events = functionCallEvents(call.name, call.arguments, lastCallId)
       }
       for (const event of events) {
         response.write(`data: ${JSON.stringify(event)}\n\n`)

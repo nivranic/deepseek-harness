@@ -1,0 +1,22 @@
+# Bilingual-pair consistency record for 2026-10-07-client-domain-graph.md (docs/i18n/README.md): per heading
+# section, a hash of its English and Chinese blocks outside code blocks and generated regions.
+# After editing either side, bring the other along and re-record with:
+#   pnpm run verify-translation-pairing --write .agents/notes/implemented/architecture/2026-10-07-client-domain-graph.md
+/agent-note-client-packages-route-shared-surfaces-through-the-contract-layer:
+  en: 76488f11a52221a5
+  zh: d3501125466dbbcb
+/agent-note-client-packages-route-shared-surfaces-through-the-contract-layer/problem:
+  en: e903f380fb04d697
+  zh: 242c2e895d2f7eb2
+/agent-note-client-packages-route-shared-surfaces-through-the-contract-layer/decision:
+  en: 64f571364dae39d9
+  zh: 2f1e8e41ba0f0126
+/agent-note-client-packages-route-shared-surfaces-through-the-contract-layer/alternatives-considered:
+  en: 482ff3b814dacb2f
+  zh: ff5e85a2af7d3a6f
+/agent-note-client-packages-route-shared-surfaces-through-the-contract-layer/consequences:
+  en: 24f3e182612c128e
+  zh: 44fb7abde21f68f3
+/agent-note-client-packages-route-shared-surfaces-through-the-contract-layer/open-follow-ups:
+  en: e2e5bed582e67b3f
+  zh: aa0cb17b6fcae2f8

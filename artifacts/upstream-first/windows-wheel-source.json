@@ -1,0 +1,716 @@
+{
+  "schemaVersion": 1,
+  "baseSha": "c291e7961a515f6d7af9304e7fd1d257929aef26",
+  "capturedAt": "2026-09-14T21:43:06.686214+00:00",
+  "scope": "Windows Python entry, UTF-8 smoke, profile plugin root allowance, current packaged Web and installed-wheel qualification",
+  "sourceFiles": [
+    {
+      "path": ".agents/notes/implemented/architecture/2026-07-10-single-file-executable-sdk-runtime-distribution.i18n.yaml",
+      "sha256": "d9b3b700b0fd276043120dc436fe1b0edfcd6dd8889b8f2eb4d8834142aeca60",
+      "bytes": 604
+    },
+    {
+      "path": ".agents/notes/implemented/architecture/2026-07-10-single-file-executable-sdk-runtime-distribution.md",
+      "sha256": "6df910de0db75e54ef90272265fce738e4731dc7d307f9a11dc68d7b337f4242",
+      "bytes": 23051
+    },
+    {
+      "path": ".agents/notes/implemented/architecture/2026-07-10-single-file-executable-sdk-runtime-distribution.zh.md",
+      "sha256": "4012a14d29adc454bf7203926001573c5b470a79eb9b1e9d6708b45a171b7a5c",
+      "bytes": 21647
+    },
+    {
+      "path": ".agents/notes/implemented/architecture/2026-07-23-client-plugin-loading-model.i18n.yaml",
+      "sha256": "20d4af696e069e0bb4abac4ec0b5d9d7ec25bb4eba79104adfc16ed23dc5ed4e",
+      "bytes": 544
+    },
+    {
+      "path": ".agents/notes/implemented/architecture/2026-07-23-client-plugin-loading-model.md",
+      "sha256": "cc03242b1c3cdc3916ccdf5f5e60f55f98bb5296440ed26464b60ed5d4e4d3dd",
+      "bytes": 25486
+    },
+    {
+      "path": ".agents/notes/implemented/architecture/2026-07-23-client-plugin-loading-model.zh.md",
+      "sha256": "33a8d5b475f69f99f7bfab4e0fcab43f743c65ab5e1cea0d1b143415f193b623",
+      "bytes": 23114
+    },
+    {
+      "path": ".agents/notes/implemented/architecture/2026-08-05-profile-plugin-bundles.i18n.yaml",
+      "sha256": "007b043bbfb76cebe8fd1ec1168a60a5697216eb75208c14bc65a00cf326f563",
+      "bytes": 529
+    },
+    {
+      "path": ".agents/notes/implemented/architecture/2026-08-05-profile-plugin-bundles.md",
+      "sha256": "bb73567309514db8bd6c19a7656094d546fc3fa13fbdca3153de13d8ac8b3269",
+      "bytes": 8000
+    },
+    {
+      "path": ".agents/notes/implemented/architecture/2026-08-05-profile-plugin-bundles.zh.md",
+      "sha256": "61666b2e3be538770d3af224ec207dd94218e7a090950cf2acc9bc9155df7df5",
+      "bytes": 7704
+    },
+    {
+      "path": ".agents/notes/implemented/architecture/2026-09-15-desktop-shell-preferences.i18n.yaml",
+      "sha256": "acc53dff886963af31fce96b53e6e68be0b39265ecd54d24cdc3772682d1a604",
+      "bytes": 538
+    },
+    {
+      "path": ".agents/notes/implemented/architecture/2026-09-15-desktop-shell-preferences.md",
+      "sha256": "84e79f133e858d770c306c76a762a8e2e97f4022ca2a98dad44f9263a5ddebe8",
+      "bytes": 3486
+    },
+    {
+      "path": ".agents/notes/implemented/architecture/2026-09-15-desktop-shell-preferences.zh.md",
+      "sha256": "a1195221c675567c68bf6d4f06c4cefe63b54c778b687fa3b251c31bbed58374",
+      "bytes": 3100
+    },
+    {
+      "path": ".agents/notes/proposed/architecture/2026-09-14-upstream-first-convergence.i18n.yaml",
+      "sha256": "72b7fcc8810ca978820f58a3e4b7cecba0ea1bfdb83039f182c708e730f8bad0",
+      "bytes": 538
+    },
+    {
+      "path": ".agents/notes/proposed/architecture/2026-09-14-upstream-first-convergence.md",
+      "sha256": "7ea050cc5a6941189bc10625c8439dc0f2256636e2c44d8a677911b2946bdf68",
+      "bytes": 3949
+    },
+    {
+      "path": ".agents/notes/proposed/architecture/2026-09-14-upstream-first-convergence.zh.md",
+      "sha256": "d39c90fdba037f85e65754bb55744d59f0d561057572a25a164a5126a6400e9c",
+      "bytes": 3276
+    },
+    {
+      "path": "apps/cli/README.i18n.yaml",
+      "sha256": "b5c83e93115ecf8e5a32d6648d1c893184cdfc23e43de55b96267e0db548dd73",
+      "bytes": 418
+    },
+    {
+      "path": "apps/cli/README.md",
+      "sha256": "f8cdf52e8076b1f7b783977129b4049ed2de5504e80ac8d1963d4fc1c26b10cc",
+      "bytes": 4565
+    },
+    {
+      "path": "apps/cli/README.zh.md",
+      "sha256": "ae282d05f1c1b328abb87bb58398f403f00eeca7c4fa46c74b56ba500c3537f5",
+      "bytes": 4785
+    },
+    {
+      "path": "apps/cli/src/plugin.ts",
+      "sha256": "2222c55b31b54c366eac83a472e7d2e4b6d532adb02e273e3d8a43b4d9a0d939",
+      "bytes": 7298
+    },
+    {
+      "path": "apps/cli/tests/plugin.spec.ts",
+      "sha256": "44d11ab410510c129dab86a65eb6d7520168f8dadb5a9c18bdea221c0ea5a376",
+      "bytes": 1325
+    },
+    {
+      "path": "apps/desktop/README.i18n.yaml",
+      "sha256": "f15ee7adb8fa4096521536e74a50d9ebb30000bfa08ce4d7b431e1219cd99f18",
+      "bytes": 422
+    },
+    {
+      "path": "apps/desktop/README.md",
+      "sha256": "f0cca32fcf71536d7f534bb9512cde2cdccb22af23322ff10955674a70bde15d",
+      "bytes": 27781
+    },
+    {
+      "path": "apps/desktop/README.zh.md",
+      "sha256": "bff6f7dd12755155cf8312f312f80d8603652714eedd1cc6b1380e7fe455b32d",
+      "bytes": 25046
+    },
+    {
+      "path": "apps/desktop/electron-builder.config.mjs",
+      "sha256": "3242149b816114129b53d41701136c96199b8cbe12df39d8c189bebd9bf99507",
+      "bytes": 5574
+    },
+    {
+      "path": "apps/desktop/package.json",
+      "sha256": "bd09d67c08f2c66516124ebcc71e1a71a36325be44255310098e0fdcbba18f56",
+      "bytes": 2087
+    },
+    {
+      "path": "apps/desktop/resources/tray-icon.png",
+      "sha256": "0cbd9779acbe7a222001643672f748f046133b55d912c69083b339b240175ec9",
+      "bytes": 1112
+    },
+    {
+      "path": "apps/desktop/src/locale.ts",
+      "sha256": "49a9fd9264740f56acf861ec53af5e49f23462c4f7f4a0ae51301b47a95b8a4a",
+      "bytes": 7404
+    },
+    {
+      "path": "apps/desktop/src/login-item.ts",
+      "sha256": "ffc2f8a7acacfc56ca2e015188c42aa41b3e745b9244f49a4b5b472b9712788c",
+      "bytes": 2526
+    },
+    {
+      "path": "apps/desktop/src/main.ts",
+      "sha256": "c8ba2de4df3a165133b7c3d4f720c78500d584908b917c9e4f9300283a8fc1ef",
+      "bytes": 24338
+    },
+    {
+      "path": "apps/desktop/src/shell-behavior.ts",
+      "sha256": "ce599da150c30f10a59039097829c38b9abc420da9f8ea608b1bf98c11fc3c09",
+      "bytes": 3840
+    },
+    {
+      "path": "apps/desktop/src/shell-preferences.ts",
+      "sha256": "38ee3d96f8af72226be0d0e724819e30ed9b0fe026de26b2ab06fde6b143dd99",
+      "bytes": 2740
+    },
+    {
+      "path": "apps/desktop/tests/expected/native-menu-darwin-zh.json",
+      "sha256": "8e82117c3f979c62989c500c982fd9b18ed335b8c9bc3bda6e22fcd4ab9be3fb",
+      "bytes": 583
+    },
+    {
+      "path": "apps/desktop/tests/expected/native-menu-development-en.json",
+      "sha256": "07a848f623ebadd917d2b6872d4411f3956f45970d631eb54eccc16a68aa54b2",
+      "bytes": 267
+    },
+    {
+      "path": "apps/desktop/tests/expected/native-menu-win32-zh.json",
+      "sha256": "63ad63f6690ccf2dca27f614dc186af5948d49e5245b731289b5b01889a42cc9",
+      "bytes": 574
+    },
+    {
+      "path": "apps/desktop/tests/expected/native-tray-en.json",
+      "sha256": "65c4f0c0d0c49de85b40541eec05b39629396818d3ea7628368c0a57938764f1",
+      "bytes": 111
+    },
+    {
+      "path": "apps/desktop/tests/login-item.spec.ts",
+      "sha256": "8fbdbb0afc543731e2215a8303013930ff4dfb37b5d16780abd2c54e64af59ed",
+      "bytes": 2814
+    },
+    {
+      "path": "apps/desktop/tests/main-startup.spec.ts",
+      "sha256": "67e90467681d7c4cff60a841109e54610cd82e2528b45561454406c3ad3b9927",
+      "bytes": 24310
+    },
+    {
+      "path": "apps/desktop/tests/shell-behavior.spec.ts",
+      "sha256": "3d0fda2f2447dbf1906c4e2eca1a0e70ce9f8f19eeca09f49403b7c3ac1ae35e",
+      "bytes": 3977
+    },
+    {
+      "path": "apps/desktop/tests/shell-preferences.spec.ts",
+      "sha256": "5d8dfd7c5ccd391a03ee7f4d764f1851b60709c8015e7f897d5e7f98ca545d98",
+      "bytes": 3617
+    },
+    {
+      "path": "apps/desktop/tsconfig.json",
+      "sha256": "a9c6d65de293fd2a4880678a6add6c31237a82fb29cf01a732965a61ab7445ce",
+      "bytes": 266
+    },
+    {
+      "path": "packages/boot/app-boot/README.i18n.yaml",
+      "sha256": "94b02e93b59bba265fbe5859c3e1e5854e219d93c81d433346dd16a87a05d297",
+      "bytes": 432
+    },
+    {
+      "path": "packages/boot/app-boot/README.md",
+      "sha256": "1214b4bb58339542c43288d0f0ac22f0f5d4bb40a92e399645877d20ff094e08",
+      "bytes": 14820
+    },
+    {
+      "path": "packages/boot/app-boot/README.zh.md",
+      "sha256": "72961d51ba8cf29191d602f5cf7f9f17acaf44a40aafeef2ede3f2eb572083ad",
+      "bytes": 13967
+    },
+    {
+      "path": "packages/boot/app-boot/src/profile.ts",
+      "sha256": "29a4224ab083e7c6378d6b67f9c0dc65c1642a1ac84efab8d9f07eb736241922",
+      "bytes": 39156
+    },
+    {
+      "path": "packages/boot/app-boot/tests/profile-init.spec.ts",
+      "sha256": "6028b7b99a3374679af29ba7a006a72ef20b728888cd050fad867b2675070339",
+      "bytes": 1945
+    },
+    {
+      "path": "packages/boot/app-boot/tests/profile.spec.ts",
+      "sha256": "40905aa6ec8f8c0fe9904ed88dac0d1556a5fa3a68f9cdf53eb30339f15b001a",
+      "bytes": 50619
+    },
+    {
+      "path": "packages/client/modules/README.i18n.yaml",
+      "sha256": "c3e923b43a70a072f07409e30d37eb4cbb3ab2dcf3e89afa5857cefbb374e525",
+      "bytes": 433
+    },
+    {
+      "path": "packages/client/modules/README.md",
+      "sha256": "c7a0687209bf131b30bae71073f76210fcb51fcf92389fb9b5d4d8cf4daf126c",
+      "bytes": 10433
+    },
+    {
+      "path": "packages/client/modules/README.zh.md",
+      "sha256": "a836f800234d55c358d8d644ca201771877ca4a352f22c56e7f0b0e5625b61d6",
+      "bytes": 9719
+    },
+    {
+      "path": "packages/client/modules/src/index.ts",
+      "sha256": "c5f2c2b4b43f97da9506e6c7aed6f102a3bb4113ae25a692df2ef4e83b2008c9",
+      "bytes": 41343
+    },
+    {
+      "path": "packages/client/modules/src/package-manifest.ts",
+      "sha256": "0886bdfd080ae14fb3177883edbea4dd90b59d769406ddeba9d9b14df0a293db",
+      "bytes": 3637
+    },
+    {
+      "path": "packages/client/modules/tests/node-half.client.spec.ts",
+      "sha256": "6eb8bd2e05fe128aee5aa2f10e3ec0fc1b565243440c0c8dac76799d840267fe",
+      "bytes": 39779
+    },
+    {
+      "path": "packages/client/modules/tests/package-manifest.spec.ts",
+      "sha256": "73801ac05764d23cd6c68cdf214b269e3bf0a4a3c7eb0ec9804256f643df9874",
+      "bytes": 4341
+    },
+    {
+      "path": "pnpm-lock.yaml",
+      "sha256": "aca6c1434694060304eea0cf36c903e046c99da90d00dcaae1534c8c03a3e549",
+      "bytes": 868873
+    },
+    {
+      "path": "python/development.i18n.yaml",
+      "sha256": "d427cc3d3c494f18971cde441727407ae5b8c62473bddf79595ae0e190176235",
+      "bytes": 431
+    },
+    {
+      "path": "python/development.md",
+      "sha256": "2d89c8056bb1dceaba12fb146d51aa77eb2f0af8c0f75773b01f510b311b30e0",
+      "bytes": 8280
+    },
+    {
+      "path": "python/development.zh.md",
+      "sha256": "5d47c42a5b6e98dfb8d2b5ea75c86067e07898f3edb9abf33d897d3303b86257",
+      "bytes": 7969
+    },
+    {
+      "path": "python/sdk-runtime/README.i18n.yaml",
+      "sha256": "e8a93ed0815227b8740118de1197bcf4656dab6a8a7288440dbc06e8def79787",
+      "bytes": 428
+    },
+    {
+      "path": "python/sdk-runtime/README.md",
+      "sha256": "ed36bca11923993ec77b8b979a9e7fe3a37658c95114fe42c3b592eaaf3579a2",
+      "bytes": 4958
+    },
+    {
+      "path": "python/sdk-runtime/README.zh.md",
+      "sha256": "07cd1659c19cab272809b63b9f97f1e767d07fa4260587fa7b58ead4b704d3a3",
+      "bytes": 4689
+    },
+    {
+      "path": "python/sdk-runtime/package.json",
+      "sha256": "8137cf69d4ae99fd37344e35cc4d567fb1527aadc7b12342dd0c8f1a6cfad681",
+      "bytes": 8174
+    },
+    {
+      "path": "python/sdk-runtime/src/deepseek_harness_runtime/__init__.py",
+      "sha256": "e838ea61e3c7d4bb99f82dffe25b469d3a0b64486d88850e06254242b094655f",
+      "bytes": 7546
+    },
+    {
+      "path": "python/sdk/tests/test_runtime_resolution.py",
+      "sha256": "627ed1f78b21d9a04b0b7e32850f5b737556378b027891972f89c0bd73a33838",
+      "bytes": 9150
+    },
+    {
+      "path": "python/sdk/tests/test_smoke_model.py",
+      "sha256": "ea5fd43ca7ba84f8333e0d1290463e32001896823ae9d971fb29a5276910479f",
+      "bytes": 20853
+    },
+    {
+      "path": "scripts/build-exe-for-python-sdk.spec.ts",
+      "sha256": "679a3c1a890bdf59a7748dbde1badc29b13e4664ce35eaba1f89aa45cfef7cdd",
+      "bytes": 6513
+    },
+    {
+      "path": "scripts/build-exe-for-python-sdk.ts",
+      "sha256": "fc3e1e7ddad2714699d461316dceaea9322bf3a5bb47bad3cb2ba2d5236dab96",
+      "bytes": 26200
+    },
+    {
+      "path": "scripts/project-doc-site.spec.ts",
+      "sha256": "df38d9e41fc5f712ba0fe34ac4b12c1bb268f75d229fa26d4e51b88cc9010b9e",
+      "bytes": 36097
+    },
+    {
+      "path": "scripts/smoke-python-runtime.py",
+      "sha256": "5f2d3790f16743416709bf9bb7db9941627d2182a1ee0d7f71e5a37c25e50901",
+      "bytes": 105128
+    },
+    {
+      "path": "scripts/verify-runtime-closure.spec.ts",
+      "sha256": "3cdc64d89470298773c21a0f3867f0ceee40fcdae3182345431f3cebfcf183df",
+      "bytes": 7641
+    },
+    {
+      "path": "scripts/verify-runtime-closure.ts",
+      "sha256": "f47f7fceb33a60b507f39285ca35552af7d8ab8e009789809bf94423ab4c5448",
+      "bytes": 9214
+    }
+  ],
+  "artifacts": [
+    {
+      "path": "dist-exe/deepseek-harness-sdk-runtime-win-x64.exe",
+      "sha256": "d5f74e68e97da5cdf77e88be05b9bce53a5eaff4da527ce2d170292b1390be0c",
+      "bytes": 240814592
+    },
+    {
+      "path": "dist-exe/deepseek-harness-sdk-runtime-win-x64-rg.exe",
+      "sha256": "f9dde63498b3193f098355dbec97af99dc4f6b8fa0df5ed04114a03012c042cb",
+      "bytes": 5429760
+    },
+    {
+      "path": ".artifacts/python-wheels-final/deepseek_harness_runtime_bin-0.1.5rc2-py3-none-win_amd64.whl",
+      "sha256": "16b382e9ebb04ac44146e15cf78fec0e576d6fc21602980421d4ef4ce7df3fe0",
+      "bytes": 72300654
+    },
+    {
+      "path": ".artifacts/python-wheels-final/deepseek_harness_sdk-0.1.5rc2-py3-none-any.whl",
+      "sha256": "5f0d186098799a25f41dc9e653afeda5dabcf9d9a041c321bb458139adee7a54",
+      "bytes": 13694
+    }
+  ],
+  "receipts": [
+    {
+      "path": "artifacts/upstream-first/packaged-plugin-web-smoke.json",
+      "sha256": "dde65943e82f3bf506597afadaa6bb23478a2bd26913b680a3ddf9be870d239e",
+      "bytes": 2454
+    },
+    {
+      "path": "artifacts/upstream-first/packaged-plugin-web-settings.png",
+      "sha256": "fe4ec7a44fc8332d3ccd83468dfd9d8cb6af83a990e1ac0c442fe868e72ff0bd",
+      "bytes": 58224
+    },
+    {
+      "path": "artifacts/upstream-first/installed-wheel-final-smoke.json",
+      "sha256": "5605017de9261cd8737c097ffa5095d683a667ba8993438596c6061fd3f89aa7",
+      "bytes": 3172
+    },
+    {
+      "path": "artifacts/upstream-first/python-windows-dword-before.json",
+      "sha256": "ecbd7407df6d7085b8f7e5210e1ed453b169333194c6918a310c8a5b208af8ad",
+      "bytes": 329
+    },
+    {
+      "path": "artifacts/upstream-first/python-windows-dword-after.json",
+      "sha256": "f7acd4ca2e2e609a3d6610e20cff398394a36e9bbf9b0923f488c86156facc58",
+      "bytes": 327
+    },
+    {
+      "path": "artifacts/upstream-first/pnpm-launch-trace.json",
+      "sha256": "ac0dfe2f4843c6238987c0148703f84ee6c1bd7e38d7a6d0c94cab998159fef2",
+      "bytes": 471
+    },
+    {
+      "path": "artifacts/upstream-first/link-launchers.json",
+      "sha256": "96f8075755424044f5893a4bd2de0fddac73ab0e0b35e6b7e98c5d991b3065d6",
+      "bytes": 1827
+    },
+    {
+      "path": "artifacts/upstream-first/link-wheel-layers.json",
+      "sha256": "9f5c7baef9d60641154583e7ddf87415095185290e0598097783d41f8b273e13",
+      "bytes": 1497
+    },
+    {
+      "path": "artifacts/upstream-first/runtime-location-probe.json",
+      "sha256": "9dbaddde1174dd660048fb83ad3cff02baf1bde99f1ccf24fa940e780996d60d",
+      "bytes": 1880
+    }
+  ],
+  "helpers": [
+    {
+      "path": ".artifacts/smoke-packaged-plugin-final.py",
+      "sha256": "63eaa0fa1c780e368342e6b72b89667d64ca58aec08542f8106e75ae0546204e",
+      "bytes": 8317
+    },
+    {
+      "path": ".artifacts/qualify-installed-wheels-final.py",
+      "sha256": "a857a84c1bfe3fbcde4ebf0d094ef68a25a16e9038166a7fb8a2f02f068a03ad",
+      "bytes": 4037
+    },
+    {
+      "path": ".artifacts/trace-pnpm-launch.py",
+      "sha256": "0cb91565e4bbf6c187c95e2d6ee60d89a759ad164b3324fd07444bb3d5fde11c",
+      "bytes": 2186
+    },
+    {
+      "path": ".artifacts/trace-pnpm-symlink.mjs",
+      "sha256": "7a783222fb7921f9d98bb0aac73807fed69aba06b63e0a26300ef23fe085060a",
+      "bytes": 696
+    },
+    {
+      "path": ".artifacts/probe-link-child.mjs",
+      "sha256": "08f0329ca972f8d078a4e7037b617be3457ac4bffbc4ff86e2ce0660b7dc03fd",
+      "bytes": 701
+    },
+    {
+      "path": ".artifacts/probe-runtime-location.py",
+      "sha256": "6a8d10d27a926e0ee5cef6dd6e8ad0edba7f389466a6aaf589d1f0413eddf183",
+      "bytes": 1777
+    }
+  ],
+  "logs": [
+    {
+      "path": ".artifacts/cli-created-direct-pnpm.log",
+      "sha256": "d629bae599c29dfdde793c0bf51188ff8e367d894c160d8859e12e83982b7202",
+      "bytes": 305
+    },
+    {
+      "path": ".artifacts/cli-created-nested-pnpm.log",
+      "sha256": "19fea1ea6aaa356ac075b5e50fadc30972fd7203bb4c73f90934cf530e732626",
+      "bytes": 2756
+    },
+    {
+      "path": ".artifacts/installed-wheel-final-direct.log",
+      "sha256": "7b99d92ee794fd38a296593df5a59f345b67aa578365b99ac05d7fcdbba3f309",
+      "bytes": 37
+    },
+    {
+      "path": ".artifacts/installed-wheel-final-runner.log",
+      "sha256": "28f3e7408f22fe4e4aa8258d13f0ee46f6af82fabb0d60934e98f7b28e18899f",
+      "bytes": 37
+    },
+    {
+      "path": ".artifacts/installed-wheel-final-sdk-custom.log",
+      "sha256": "8cd89965fcb89b54805e5368249a5c56ff547c13dc116c56931d163eaebe6e30",
+      "bytes": 41
+    },
+    {
+      "path": ".artifacts/installed-wheel-final-sdk-default.log",
+      "sha256": "97dddf0eb4afee5a47763f4d1850ad9356fcf5125e60c179ebfc88314cdf71da",
+      "bytes": 42
+    },
+    {
+      "path": ".artifacts/installed-wheel-final-sdk-fs-search.log",
+      "sha256": "08113acf1fd7dda285bdc58869c7eaf9768528d51b5fad49c5fc945c5aa8ae9e",
+      "bytes": 44
+    },
+    {
+      "path": ".artifacts/installed-wheel-final-sdk-mcp.log",
+      "sha256": "b1428395a0f0654a8500c3a64ea26e0a8f095b68510639750235d0a7062b6a26",
+      "bytes": 38
+    },
+    {
+      "path": ".artifacts/installed-wheel-final-sdk-minimal-in-history.log",
+      "sha256": "f6ebc623e3a20ae72b5c5c814019126bb0a67409064fb862adafc402d9874c11",
+      "bytes": 53
+    },
+    {
+      "path": ".artifacts/installed-wheel-final-sdk-minimal.log",
+      "sha256": "99a7b4d8bffbc385a101c077af0cb16b8d4b661ec60bc4e34b06a7b8b478fbb0",
+      "bytes": 42
+    },
+    {
+      "path": ".artifacts/installed-wheel-final-sdk-profile-plugin.log",
+      "sha256": "45f59523dfee97458258f68c03f767fbe8843f3109ee507e0fd2f74f01b6de3a",
+      "bytes": 1478
+    },
+    {
+      "path": ".artifacts/installed-wheel-final-sdk-restart.log",
+      "sha256": "7442de8a3e46ebf94a4405b3efbed1bf05b9fec1db02c1c4399f16ee5ef7753a",
+      "bytes": 42
+    },
+    {
+      "path": ".artifacts/installed-wheel-final-sdk-snapshot.log",
+      "sha256": "9c2e07244f7a2b2c41f6e02c7053df3639be8ea959f4e7e695d121d2cc0ce37a",
+      "bytes": 43
+    },
+    {
+      "path": ".artifacts/installed-wheel-final-sdk-spawn-node.log",
+      "sha256": "ee043c855baf59e5414945f8db9e01c907f59114cc5df747f1b8e5b8eb581298",
+      "bytes": 45
+    },
+    {
+      "path": ".artifacts/plugin-final-doc-quick.log",
+      "sha256": "490b60152248685074af9114abec3b71751ee9e8312bf6d19817e83c5824419e",
+      "bytes": 1555
+    },
+    {
+      "path": ".artifacts/plugin-final-doc-sync.log",
+      "sha256": "468052d9754ca9a18a7992971133e47c6fa364410a5fa758521051624e5d45bb",
+      "bytes": 2948
+    },
+    {
+      "path": ".artifacts/plugin-final-frozen-install.log",
+      "sha256": "6ffccec8faaa189e88bad14d0396ff76125fcfe4d90d29d4f3872915b2f73652",
+      "bytes": 3318
+    },
+    {
+      "path": ".artifacts/plugin-final-lint.log",
+      "sha256": "4ff89f87d8ebc62934944bc257bbc1e93faa3c3cda652fb6e55a67c202a6233f",
+      "bytes": 31
+    },
+    {
+      "path": ".artifacts/plugin-root-before.log",
+      "sha256": "2aa5b4842cf6b8848411929624d1b2db54f75e0a95fc9764fd37133677bfc542",
+      "bytes": 3637
+    },
+    {
+      "path": ".artifacts/plugin-root-final.log",
+      "sha256": "9eb6bb14516f0efcfd45da8849515e27f8ea71272246dc430a2aee56985f4f79",
+      "bytes": 1148
+    },
+    {
+      "path": ".artifacts/plugin-root-lint.log",
+      "sha256": "e3b0c44298fc1c149afbf4c8996fb92427ae41e4649b934ca495991b7852b855",
+      "bytes": 0
+    },
+    {
+      "path": ".artifacts/pnpm-launch-trace-direct.log",
+      "sha256": "be82c3b1d2e6d1e6aea61e7fdc39914c96cd7926310b4e6e463ca2571b8530b0",
+      "bytes": 1176
+    },
+    {
+      "path": ".artifacts/pnpm-launch-trace-nested.log",
+      "sha256": "a8ad6c2b2a517710001973f97c060776aafe9e15e7ea2e0fc71080b890c45b17",
+      "bytes": 3129
+    },
+    {
+      "path": ".artifacts/python-smoke-encoding-before.log",
+      "sha256": "100a6821031176b531080cb6cd8cb654d72c1b77c3b7cb87a6eb6eb058e67421",
+      "bytes": 2952
+    },
+    {
+      "path": ".artifacts/python-smoke-model-final.log",
+      "sha256": "0a9ad875baa0fc9116be66b904f863092fa85b3146d1cc26300cd35029a852e8",
+      "bytes": 101
+    },
+    {
+      "path": ".artifacts/python-windows-final.log",
+      "sha256": "83cef6cdae8d6f41b4b16478b3e6f487641e28c83c9f0f6bc1e858e4b6226e2d",
+      "bytes": 101
+    },
+    {
+      "path": ".artifacts/runtime-build-plugin-final.log",
+      "sha256": "9ddcdefa7a4579d7f6ba0116f4d9ff818d2faf6c4fed596ab09357543c90d634",
+      "bytes": 574268
+    }
+  ],
+  "historicalRecords": [
+    {
+      "path": "artifacts/upstream-first/packaged-runtime-source.json",
+      "sha256": "de2a2166993d5f68ecf0e692838f2979f8fd2d3e5411fe34256493955799e9fb",
+      "bytes": 15349
+    },
+    {
+      "path": "artifacts/upstream-first/recovery-final-source.json",
+      "sha256": "99f01f0c5b0b1095f85dcf7d82191387908ea7b5f040e6f868ef1ecc54da2ecf",
+      "bytes": 12803
+    },
+    {
+      "path": "artifacts/upstream-first/desktop-tray-source.json",
+      "sha256": "64b3b62e0d8c3605a2c4c11518b7546feeff048cd42f8a3a7fa7cebba30432c0",
+      "bytes": 17333
+    },
+    {
+      "path": "artifacts/upstream-first/desktop-smoke-source.json",
+      "sha256": "922f190c9fd87bd93a58902d1d7bf7d98ed6d7fb8a6de90b86a8670f9e12c47b",
+      "bytes": 9365
+    }
+  ],
+  "checks": [
+    {
+      "id": "python-windows-runtime-resolution",
+      "status": "PASS",
+      "tests": 21,
+      "command": ".artifacts/python-tests/Scripts/python.exe -m pytest python/sdk/tests/test_runtime_resolution.py",
+      "log": ".artifacts/python-windows-final.log",
+      "detail": "Source SDK/runtime on PYTHONPATH; spaces, Chinese, quotes, empty args, trailing backslashes, inherited stdio, waiting and Windows DWORD statuses."
+    },
+    {
+      "id": "python-windows-native-dword",
+      "status": "PASS",
+      "tests": 4,
+      "receipt": "artifacts/upstream-first/python-windows-dword-after.json",
+      "detail": "Real native child ExitProcess preserves 0x7fffffff, 0x80000000, 0xc000013a and 0xffffffff."
+    },
+    {
+      "id": "python-smoke-utf8",
+      "status": "PASS",
+      "tests": 47,
+      "command": ".artifacts/python-tests/Scripts/python.exe -m pytest python/sdk/tests/test_smoke_model.py",
+      "log": ".artifacts/python-smoke-model-final.log",
+      "detail": "Explicit UTF-8 file/subprocess I/O; Unicode JSONL regression failed before the fix."
+    },
+    {
+      "id": "cli-profile-root",
+      "status": "PASS",
+      "tests": 2,
+      "command": "pnpm exec vitest run apps/cli/tests/plugin.spec.ts",
+      "log": ".artifacts/plugin-root-final.log",
+      "detail": "Invocation-local pnpm workspace-root allowance; no persistent pnpm configuration change."
+    },
+    {
+      "id": "cli-profile-root-lint",
+      "status": "PASS",
+      "command": "pnpm exec oxlint apps/cli/src/plugin.ts apps/cli/tests/plugin.spec.ts",
+      "log": ".artifacts/plugin-root-lint.log"
+    },
+    {
+      "id": "windows-runtime-build-current",
+      "status": "PASS",
+      "command": "node --import tsx/esm scripts/build-exe-for-python-sdk.ts --targets=node24-win-x64",
+      "log": ".artifacts/runtime-build-plugin-final.log",
+      "detail": "Complete source build and official runtime packaging; npm_execpath selects repository pnpm 11.7.0 and pnpm_config_verify_deps_before_run=false prevents implicit install."
+    },
+    {
+      "id": "windows-packaged-web-current",
+      "status": "PASS",
+      "command": "python .artifacts/smoke-packaged-plugin-final.py",
+      "receipt": "artifacts/upstream-first/packaged-plugin-web-smoke.json",
+      "detail": "Outside checkout, isolated home; auth, 53 plugins, Session RPC, real Chrome settings/themes and fixture disposal. No real model or native OS signal delivery."
+    },
+    {
+      "id": "windows-installed-wheels",
+      "status": "FAIL",
+      "passed": 11,
+      "failed": 1,
+      "command": "python .artifacts/qualify-installed-wheels-final.py",
+      "receipt": "artifacts/upstream-first/installed-wheel-final-smoke.json",
+      "detail": "Non-editable SDK/runtime wheels outside checkout; no PYTHONPATH or runtime-mode override. sdk-profile-plugin fails; other 11 scenarios pass. Real model excluded."
+    },
+    {
+      "id": "windows-wheel-frozen-install",
+      "status": "PASS",
+      "command": "pnpm install --frozen-lockfile --offline --ignore-scripts",
+      "log": ".artifacts/plugin-final-frozen-install.log"
+    },
+    {
+      "id": "windows-wheel-doc-quick",
+      "status": "PASS",
+      "passed": 16,
+      "failed": 0,
+      "command": "pnpm run test:docs",
+      "log": ".artifacts/plugin-final-doc-quick.log"
+    },
+    {
+      "id": "windows-wheel-doc-sync",
+      "status": "PASS",
+      "passed": 34,
+      "failed": 0,
+      "command": "pnpm run doc-sync",
+      "log": ".artifacts/plugin-final-doc-sync.log"
+    },
+    {
+      "id": "windows-wheel-lint",
+      "status": "PASS",
+      "command": "pnpm run lint:contracts-ready",
+      "log": ".artifacts/plugin-final-lint.log"
+    }
+  ],
+  "limitations": [
+    "Installed-wheel acceptance is 11/12; sdk-profile-plugin remains failed.",
+    "pnpm 10.2.1 ignores the profile workspace nodeLinker/autoInstallPeers settings; pnpm 11.7.0 reads them but still fails through the installed runtime.",
+    "Equal SHA256 executables copied into short and long Windows temp paths also yield child junction EPERM; repository executable, built CLI and ordinary venv Python-to-Node probes pass. The responsible OS or launch mechanism is not established.",
+    "Diagnostic pnpm shims and filesystem hooks only observe behavior; their exitCode 0 does not qualify failed junction outcomes.",
+    "No native OS signal delivery, real-model provider, signed Desktop installer, OS login registration, macOS/Linux artifact or mobile-device acceptance.",
+    "Legacy Desktop settings were inspected but no converter or real-user migration was implemented."
+  ]
+}

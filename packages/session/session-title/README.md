@@ -31,6 +31,8 @@ Mount the service to give sessions titles that clients can display and that neve
 
 Titles come from three sources, newest wins. The built-in fallback derives from the first eligible human message's leading words within the configured caps; a registered provider generates a title over eligible messages; an explicit `rename()` accepts a user-supplied title. Only text blocks from human `user/message` events are eligible, and empty or non-text prompts wait for later eligible input. A user-sourced latest title pins the session — later user messages schedule no automatic revision, and an explicit `refresh()` remains the deliberate unpin.
 
+`rename(session, title, expectedRevision)` compares the current title event seq synchronously with the captured revision; `null` means no title exists. A mismatch throws `SessionTitleRevisionConflictError` without superseding generation or appending an event. A title already pinned by a user with identical normalized text returns its existing snapshot, even for an older revision. Normalization uses the configured byte limit. Omitting the revision preserves unconditional acceptance. The `titleRevision` projection carries the durable title event seq separately from the string-valued `title` projection and the stream cursor.
+
 ### Minimal configuration
 
 All limits are required; the library supplies no defaults. Mount the service with the three bounds:

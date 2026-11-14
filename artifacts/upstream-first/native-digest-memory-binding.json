@@ -1,0 +1,16 @@
+{
+  "status": "PASS",
+  "controls": 3,
+  "sourceRecord": {
+    "path": "artifacts/upstream-first/native-digest-memory-source.json",
+    "sha256": "455c8ec0fee8fd24e6670a1e4c235cfdee423472b3c5bdb811a7e500546e984d"
+  },
+  "generator": {
+    "path": "artifacts/upstream-first/write-reports.mjs",
+    "sha256": "83e672718489b82b959bdda04c50b2d9d8cac1fbe613d01d17ef7e4e84082717"
+  },
+  "helper": {
+    "path": ".artifacts/check-native-digest-memory-binding.mjs",
+    "sha256": "bef60d20c159225c75bc480b4340a5dafb42c4fee0c73b1697efac5049bdcda9"
+  }
+}

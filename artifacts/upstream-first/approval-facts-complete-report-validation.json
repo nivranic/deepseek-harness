@@ -1,0 +1,66 @@
+{
+  "status": "PASS",
+  "scope": "Report bindings and audit for the approval-facts-complete increment: the section 37 approval facts per-item presentation clause of the remaining open sentence — the dual-track survey found the surface census gaps (the target absent end-to-end, the permission escalation rendered free-text reason with the sandbox tier buried in an English sentence) and the two real data-chain defects (the approval/asked durable append dropping risk — on the wire, absent from the log — and RELEASED_V0_EVENT_DISPOSITIONS admitting not even risk, so format-artifact validation rejected any current log carrying it, probe-proven by assertReleasedEventPayload reporting unexpected member \"risk\"). The ruling walks the target through the 2026-07-06 seam-sanctioned callId correlation channel — the new conversation.approval.target data seat implemented by ui-chat deriving the correlated call's args.command first with args.path as fallback, never a copy of tool arguments on the wire — while escalation enters wire and durable state as approval-owned structured metadata: user-approval/types grows the ApprovalSandboxMode three-literal mirror union (no dsh-sandbox import — the stash probe disproved the direct import by breaking the browser type program's Context merging) and ApprovalEscalationFact {requestedMode, effectiveMode}; the asked event and ApprovalRequestEvent carry the optional escalation; the service append spreads risk and escalation to repair the durable drop; the sandbox escalation approver request carries the structured escalation with the mode-derived risk; the released-v0 dispositions admit risk and escalation as asked optional members and the payload validation tightens to the four-tier risk literals, the exact-record escalation check and the two three-literal mode checks with the corruption-mutation loop covering the new leaves; the ui-approval slot contract grows the target seat with the escalation passthrough, the ApprovalPanel grows the target row (renderSlot narrowed to string) and the structured escalation row (localized modes through t('escalation.to', {mode, from}) with the free-text reason kept as the fallback for non-escalation asks) plus the bilingual dictionary keys; the ui-chat ApprovalTarget lands with its apply registration and the regenerated client slot catalog; the api-catalog, persistence-catalog and event-producer-consumer docs regenerate with their zh mirrors and the 913-pair translation pairing re-record; the lanes (user-approval 39, sandbox escalation, session-format 111, ui-approval and ui-chat, tool-cordis plus core/session 510) ran green on both passes with the honest rework (the dsh-sandbox import reverted to the mirror union with the peerDependency and tsconfig reference reverted in step, the dispositions opaque two-step reversion, the 12 mis-emitted declaration products cleared, the surplus as-unknown assertion deleted, the README Summary trimmed from 117 to 99 words against the 100 ceiling) recorded in .artifacts/approval-facts-complete-iteration-notes.log; the documentation evidence keeps the two-file split — doc-quick 17 gates in its own docs log and doc-sync 36 passed 0 failed in its own docsync log (the first run failed three generated-document gates stale against the approval/asked payload members, the three regenerated with both zh mirrors and the pairing re-recorded, then the isolated serial re-run green) — with five pairing re-records, the audit serial double round green at 85 files / 1061 tests over the list grown by the whole ui-approval and ui-chat directories (the locale whole-directory lineage precedent), gate0 in both forms, and traceability section 37 rewritten with candidateEvidence 2 to 6 (node --test 6/6); the same-round gradle acceptance round (scanner env with -PdshNativeAcceptance, BUILD SUCCESSFUL) replayed WARM with 2 executed of 89 actionable tasks and 87 up-to-date — the same form the previous two generations sealed — while :app:assembleRelease, :app:assembleDebug, :app:compileDebugKotlin and the whole :core: chain stayed UP-TO-DATE because nothing under apps/android changed this generation (no device lane ran and the emulator stayed off), the empty-derived byte proof compares both APKs byte-identically against the view-handoff-qr record's builtFiles entries (.artifacts/approval-facts-complete-apk-bytes.log), the prepare-side unresolved scan derived an empty replaced-build-output allowlist (7575 files, 0 replaced) and the generator gained no new replaced-build-output set — the adjudicated dwfq-a971bf50-1 approvalFactsReplacedTestReports single-key pinned set (the ReplacedTestReports class; the Sep-22 traceability gate log a colliding scratch rerun overwrote, no byte copy existing) is the one exception — and the still-valid XML reports aggregate 77 suites / 477 tests with zero failures/errors/skips; the hook-originated asks' risk-tier classification and the real multi-device acceptance stay open; full Upstream-First objective remains in progress",
+  "gate0": {
+    "validation": "PASS",
+    "gate0": "PASS",
+    "paths": 1938,
+    "components": 129,
+    "specificationCoverage": {
+      "status": "PASS",
+      "numberedSections": 81,
+      "nonEmptySourceLines": 1983,
+      "acceptanceProven": false
+    }
+  },
+  "sourceRecord": {
+    "path": "artifacts/upstream-first/approval-facts-complete-source.json",
+    "sha256": "d91b1c4ce0a60cf74f71b51b531bef7e3542a3ab5695d0bac8c36489a978b81b"
+  },
+  "generator": {
+    "path": "artifacts/upstream-first/write-reports.mjs",
+    "sha256": "95b8f0d61e8788cc15a8f55ee87ddec73b83e2c12d8bb41b4cc0afb4d1057f2e"
+  },
+  "binding": {
+    "path": "artifacts/upstream-first/approval-facts-complete-binding.json",
+    "sha256": "81c205855f62a026cb42e64a447695cb0e6401ab54de3769966a8607982f5d70"
+  },
+  "helpers": [
+    {
+      "path": ".artifacts/advance-approval-facts-complete-reports.mjs",
+      "sha256": "a784999103ec3fbc36305415b0c8f6350a0c65aec733f2e3d796e94ca431a01c"
+    },
+    {
+      "path": ".artifacts/capture-approval-facts-complete-validation.mjs",
+      "sha256": "530e99de3362633a58d0b73daacca7ab3ca3b71e4fb4ab519f3f5e136bb45bd2"
+    }
+  ],
+  "reports": [
+    {
+      "path": "IMPLEMENTATION_STATUS.md",
+      "sha256": "dba1b9a3623f49d1926ae6f3666d4a3316c0c2db382ef57dbd38afec3b46acdc"
+    },
+    {
+      "path": "artifacts/upstream-first/evidence.json",
+      "sha256": "8148175dee41da5ec9275fc2054f33a8eaa3f0d331b692c1485b38091e97806c"
+    }
+  ],
+  "checks": [
+    {
+      "path": ".artifacts/approval-facts-complete-binding.log",
+      "sha256": "5e8d7912e16dc58f9b18a37528fec57412573d208e5f72c7dad87a167103ff2a"
+    },
+    {
+      "path": ".artifacts/approval-facts-complete-audit-final.log",
+      "sha256": "67747315c92ff8b8c95f8297e10cd5252c80479a5cae13cc696f14fa64caf34d"
+    },
+    {
+      "path": ".artifacts/approval-facts-complete-gate0-final.log",
+      "sha256": "7e00efd82bd2a2b91b03ca80537dcc4af46cd09eb318ff58520cb2d7d7d8a48a"
+    },
+    {
+      "path": ".artifacts/approval-facts-complete-report-generation.log",
+      "sha256": "fe010532f71a6341467ae5719b29ac19470895de1d481156335b8f70a3273ed5"
+    }
+  ]
+}

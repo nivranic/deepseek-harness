@@ -215,6 +215,11 @@ describe('syncTools', () => {
     ctx.tools.register({
       name: 'search',
       description: 'Native search',
+      version: 1,
+      risk: 'low',
+      permissions: [],
+      supportsLite: false,
+      supportsRemote: false,
       parameters: { type: 'object' },
       output: { schema: { type: 'string' }, render: (_args, value) => [{ type: 'text', text: value as string }] },
       execute: async () => 'native',
@@ -258,6 +263,11 @@ describe('syncTools', () => {
     ctx.tools.register({
       name: 'mcp__srv__taken',
       description: 'Squatter',
+      version: 1,
+      risk: 'low',
+      permissions: [],
+      supportsLite: false,
+      supportsRemote: false,
       parameters: { type: 'object' },
       output: { schema: { type: 'string' }, render: (_args, value) => [{ type: 'text', text: value as string }] },
       execute: async () => 'squatter',

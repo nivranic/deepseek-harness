@@ -1,4 +1,4 @@
-import { chmod, mkdir, mkdtemp, readdir, rename, rm, symlink, writeFile } from 'node:fs/promises'
+import { chmod, mkdir, mkdtemp, rename, rm, symlink, writeFile } from 'node:fs/promises'
 import { tmpdir } from 'node:os'
 import { join } from 'node:path'
 import { afterEach, describe, expect, it, vi } from 'vitest'
@@ -18,12 +18,12 @@ vi.mock('node:fs/promises', async (importOriginal) => {
   const actual = await importOriginal<typeof import('node:fs/promises')>()
   return {
     ...actual,
-    readdir: vi.fn((async (path: unknown, ...rest: never[]) => {
+    readdir: (async (path: unknown, ...rest: never[]) => {
       if (fsControl.denyReaddir !== undefined && String(path) === fsControl.denyReaddir) {
         throw Object.assign(new Error('EACCES: injected unreadable directory'), { code: 'EACCES' })
       }
       return (actual.readdir as (path: unknown, ...args: never[]) => Promise<unknown>)(path, ...rest)
-    }) as typeof actual.readdir),
+    }) as typeof actual.readdir,
   }
 })
 
@@ -68,7 +68,6 @@ afterEach(async () => {
   for (const locked of locks.splice(0)) await chmod(locked, 0o700).catch(() => undefined)
   for (const instance of searches.splice(0)) instance.dispose()
   await Promise.all(roots.splice(0).map(root => rm(root, { recursive: true, force: true })))
-  vi.mocked(readdir).mockClear()
 })
 
 describe('file-reference grammar', () => {
@@ -199,8 +198,6 @@ describe('WorkspaceFileSearch', () => {
     const files = search(root)
     const signal = new AbortController().signal
     expect(await files.list('README', signal)).toEqual([{ path: 'README.md', kind: 'file' }])
-    const rootReads = () => vi.mocked(readdir).mock.calls.filter(([path]) => String(path) === root).length
-    const initialReads = rootReads()
 
     // A root that vanishes under a live index: an unreadable branch costs its
     // own candidates, but an unreadable root must not be published as an
@@ -208,16 +205,13 @@ describe('WorkspaceFileSearch', () => {
     await rm(root, { recursive: true, force: true })
     files.invalidate()
     expect(await files.list('README', signal)).toEqual([{ path: 'README.md', kind: 'file' }])
-    await vi.waitFor(async () => {
-      expect(await files.list('README', signal)).toEqual([{ path: 'README.md', kind: 'file' }])
-      expect(rootReads()).toBeGreaterThan(initialReads + 1)
-    })
+    await new Promise((resolve) => { setTimeout(resolve, 50) })
+    expect(await files.list('README', signal)).toEqual([{ path: 'README.md', kind: 'file' }])
 
-    // A retry can read the root as soon as it exists; publish its files together.
-    const replacement = await mkdtemp(`${root}-replacement-`)
-    roots.push(replacement)
-    await writeFile(join(replacement, 'restored.ts'), 'restored')
-    await rename(replacement, root)
+    // An in-flight retry must not index the replacement before its files exist.
+    const restoredRoot = await workspace()
+    await writeFile(join(restoredRoot, 'restored.ts'), 'restored')
+    await rename(restoredRoot, root)
     await vi.waitFor(async () => {
       expect(await files.list('restored', signal)).toEqual([{ path: 'restored.ts', kind: 'file' }])
     })

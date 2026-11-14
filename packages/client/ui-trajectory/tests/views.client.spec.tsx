@@ -1381,11 +1381,21 @@ describe('TrajectoryView state', () => {
     },
   ]
 
+  const nestedData = { get: () => undefined, source: () => ({ getSnapshot: () => undefined, subscribe: () => () => {} }) }
+  const nestedStep = { turn: 1, step: 1, start: undefined, end: undefined, status: 'closed' as const, data: nestedData }
+  const nestedTurn = { turn: 1, start: undefined, end: undefined, status: 'closed' as const, steps: [nestedStep], data: nestedData }
+  const nestedCallHistory = historySnapshot(nestedCallNodes, {
+    eventLocations: new Map([
+      [3, { kind: 'step', turn: nestedTurn, step: nestedStep }],
+      [4, { kind: 'step', turn: nestedTurn, step: nestedStep }],
+    ]),
+  })
+
   it('folds only descendants, searches them, and reveals a requested grandchild through every fold', () => {
     const nodes = nestedCallNodes
     const props = {
       ...standaloneProps(nodes),
-      ...standaloneHistory(historySnapshot(nodes)),
+      ...standaloneHistory(nestedCallHistory),
       ...standaloneDuration(),
     }
     const view = render(<TrajectoryView {...props} />)
@@ -1409,7 +1419,7 @@ describe('TrajectoryView state', () => {
     expect(screen.queryByRole('row', { name: /子工具.*bash/ })).toBeNull()
     fireEvent.click(screen.getByRole('button', { name: '收起所有调用' }))
     fireEvent.click(screen.getByRole('button', { name: '收起所有轮次' }))
-    view.rerender(<TrajectoryView {...props} viewRequest={{ view: 'trajectory', focus: 'grandchild' }} />)
+    view.rerender(<TrajectoryView {...props} viewRequest={{ view: 'trajectory', focus: '[1,1,"grandchild"]' }} />)
     expect(screen.getByRole('row', { name: /子工具.*grep/ }).getAttribute('aria-selected')).toBe('true')
     expect(screen.queryByRole('row', { name: /收起的/ })).toBeNull()
   })
@@ -1417,7 +1427,7 @@ describe('TrajectoryView state', () => {
   it.each(['click', 'Enter', ' '])('expands a subcall summary with %j', (activation) => {
     render(<TrajectoryView
       {...standaloneProps(nestedCallNodes)}
-      {...standaloneHistory(historySnapshot(nestedCallNodes))}
+      {...standaloneHistory(nestedCallHistory)}
       {...standaloneDuration()}
     />)
     fireEvent.click(screen.getByRole('button', { name: '收起所有子调用' }))
@@ -1436,7 +1446,7 @@ describe('TrajectoryView state', () => {
   ])('preserves subcall folding through outer folds $outer', ({ outer }) => {
     render(<TrajectoryView
       {...standaloneProps(nestedCallNodes)}
-      {...standaloneHistory(historySnapshot(nestedCallNodes))}
+      {...standaloneHistory(nestedCallHistory)}
       {...standaloneDuration()}
     />)
     fireEvent.click(screen.getByRole('button', { name: '收起所有子调用' }))
@@ -1622,6 +1632,9 @@ describe('TrajectoryView state', () => {
       }],
     }, 'hidden-child'],
   ])('reveals a hidden resident %s call for cross-view inspection', (_kind, target, focus) => {
+    const data = { get: () => undefined, source: () => ({ getSnapshot: () => undefined, subscribe: () => () => {} }) }
+    const step = { turn: 1, step: 1, start: undefined, end: undefined, status: 'closed' as const, data }
+    const turn = { turn: 1, start: undefined, end: undefined, status: 'closed' as const, steps: [step], data }
     const nodes: LegacyConversationSlice['nodes'] = [
       { kind: 'user', seq: 1, time: 1, content: [], source: null },
       {
@@ -1642,9 +1655,11 @@ describe('TrajectoryView state', () => {
     render(
       <TrajectoryView
         {...standaloneProps([])}
-        {...standaloneHistory(historySnapshot(nodes))}
+        {...standaloneHistory(historySnapshot(nodes, {
+          eventLocations: new Map([[target.seq, { kind: 'step', turn, step }]]),
+        }))}
         {...standaloneDuration()}
-        viewRequest={{ view: 'trajectory', focus }}
+        viewRequest={{ view: 'trajectory', focus: JSON.stringify([1, 1, focus]) }}
         completeViewRequest={completeViewRequest}
       />,
     )

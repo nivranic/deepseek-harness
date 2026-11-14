@@ -30,6 +30,10 @@
     },
     "./src/*": "./src/*",
     "./package.json": "./package.json",
+    "./protocol": {
+      "types": "./lib/types/protocol.d.ts",
+      "default": "./lib/types/protocol.js"
+    },
     "./stream-protocol": {
       "types": "./lib/types/stream-protocol.d.ts",
       "default": "./lib/types/stream-protocol.js"
@@ -70,6 +74,8 @@
     "@deepseek-ai/dsh-typert-protocol": "workspace:*"
   },
   "peerDependencies": {
+    "@deepseek-ai/dsh-api-device-trust": "workspace:*",
+    "@deepseek-ai/dsh-client-connection": "workspace:*",
     "@deepseek-ai/cordis": "workspace:~"
   },
   "devDependencies": {
@@ -83,6 +89,7 @@
     "@deepseek-ai/dsh-util-crypto": "workspace:*",
     "@types/ws": "^8.18.1",
     "@deepseek-ai/cordis": "workspace:~",
-    "zod": "4.6.6"
+    "zod": "4.6.6",
+    "@deepseek-ai/dsh-api-device-trust": "workspace:*"
   }
 }

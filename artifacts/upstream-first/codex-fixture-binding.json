@@ -1,0 +1,25 @@
+{
+  "status": "PASS",
+  "cases": [
+    {
+      "path": "artifacts/upstream-first/codex-fixture-source.json",
+      "status": "PASS",
+      "rejected": "Codex fixture source record changed"
+    },
+    {
+      "path": "packages/subagent/subagent-codex/tests/responses-fixture.ts",
+      "status": "PASS",
+      "rejected": "Codex fixture sourceFiles changed after validation"
+    },
+    {
+      "path": "artifacts/upstream-first/codex-fixture-concurrent.json",
+      "status": "PASS",
+      "rejected": "Codex fixture receipts changed after validation"
+    },
+    {
+      "path": ".artifacts/codex-fixture-before.log",
+      "status": "PASS",
+      "rejected": "Codex fixture logs changed after validation"
+    }
+  ]
+}

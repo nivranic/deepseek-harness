@@ -1,0 +1,66 @@
+{
+  "status": "PASS",
+  "scope": "Report bindings and audit for the baseline-red-repair increment: the two oldest baseline-red channels (carried as notCovered since gen-41) repaired green with zero production-code changes — the commands attachment spec's storeOf double gained the validateImageTotals prototype delegation the aggregate image-limit split had left behind (attachment/src/index.ts:77/:86), so its four cases assert the real admission limits again (mixed batch 2 images x 4 bytes over limit, third image tripping the documented count-limit copy at :688) instead of TypeError: this.validateImageTotals is not a function, and the workspace-controller transport spec's exhausted-carrier-retry expectation moved from the stale gateway/internal to gateway/transport-interrupted (:103 case name, :113 expectation; gateway remote-stream.ts:244-246 has mapped carrier exhaustion that way since the carrier merge and README:105 records it verbatim — the section 45 same-error-same-semantics-for-all-clients principle now holds in this client baseline too; tests describe behavior and the README plus glossary stay the authority, so the spec changed, not the gateway) — executed as one lane with the red form pinned at HEAD first (two files 5 failed | 68 passed, .artifacts/baseline-red-head.log) and the repair re-run green at 2 files / 73 tests EXIT 0 (.artifacts/baseline-red-repair-tests.log); the ledger carries the section 45 alignment sentence (remaining 1365 -> 1526 characters, candidateEvidence 25 -> 26 with transport.client.spec.ts added after a Node round-trip check), the note trio 2026-10-07-baseline-red-repair is paired through its i18n.yaml, and the gate evidence is the zero-cascade form this test-only change predicts: traceability 6/6 through the specification-traceability.test.mjs entry, types-lint 0 warnings 0 errors EXIT 0 in the chained single-trailer form (78.6s over 3854 files), doc-quick 17 gates green in 56.28s, doc-sync 36 passed 0 failed 0 skipped in 207.06s, gate0 PASS in both forms (1938 paths / 129 components / 81 sections), and the serial double audit round green at 87 files / 1073 tests on both passes over gen-40's curated lineage (neither spec is a client-lineage file, so the list is unchanged); the android acceptance is recorded honestly: the scanner-env gradle round came back BUILD SUCCESSFUL in 1m 12s with 70 actionable tasks of which 13 executed — the packaging chain re-executed for the first time since the original build and rebuilt both APKs plus both output-metadata.json files (the rerun 5s later was fully up-to-date with byte-stable outputs — a one-shot invalidation, suspected but unproven to be the concurrent prepare archive storm) — with no Kotlin source changed (:core:compileKotlin and :app:compileDebugKotlin UP-TO-DATE) and :core:test UP-TO-DATE, so the core XML aggregate still reads 77 suites / 477 tests (.artifacts/baseline-red-repair-core-results.json); the byte proof follows the measured form: both APKs DRIFT against the revision-stamping record's builtFiles entries (.artifacts/baseline-red-repair-apk-bytes.log, prior apk records: 2 — the seventh-consecutive IDENTICAL streak ends here and is re-recorded as drift), the prepare oracle derived exactly four replaced prior build outputs (the two APKs plus the two output-metadata entries) through the two-step method — the placeholder empty allowlist rejected before any archive write, the measured four-key set backfilled, one pass sealing {\"files\":7727,\"reused\":0,\"written\":7727,\"replacedPriorBuildOutputs\":4} — and every old byte is covered by the prior archives on the historicalRecords chain, so the drift resolves through the newest-history fallback and the generator gains no set at all (the Option A derivation, no new ReplacedBuildOutputs or SupersededSources collections, the gen-32 desktopPackageReplacedBuildOutputs set staying exactly six); relayMetadata is still the only class of the five without a producer (blocked on section 23), the section 56 signing/notarization/update-source acceptance stays open on its materials, the CI coverage gap for the client tsdown face and the loader-composition e2e baseline red keep their open channels, and the admitEncodedImages classification ruling and the client-domain-graph layering baseline (measured 21 lines) stay open — so no whole-section PASS is granted; full Upstream-First objective remains in progress",
+  "gate0": {
+    "validation": "PASS",
+    "gate0": "PASS",
+    "paths": 1938,
+    "components": 129,
+    "specificationCoverage": {
+      "status": "PASS",
+      "numberedSections": 81,
+      "nonEmptySourceLines": 1983,
+      "acceptanceProven": false
+    }
+  },
+  "sourceRecord": {
+    "path": "artifacts/upstream-first/baseline-red-repair-source.json",
+    "sha256": "d150214803f5d82f94f54139bd2872994644c3b24463043f580cb0d89cadca47"
+  },
+  "generator": {
+    "path": "artifacts/upstream-first/write-reports.mjs",
+    "sha256": "6dc193901a40bb869e58e8cd69d63d1ed788d8f0e7510bfdd74e704db601f86d"
+  },
+  "binding": {
+    "path": "artifacts/upstream-first/baseline-red-repair-binding.json",
+    "sha256": "9367f5d5a9d77e0aceb7937c310676c5e76f3511975911d1ebd9211df191f96c"
+  },
+  "helpers": [
+    {
+      "path": ".artifacts/advance-baseline-red-repair-reports.mjs",
+      "sha256": "c0f2416b1150d4085017e76d669dc22b773757e23c7858fd87358b5b1c18745a"
+    },
+    {
+      "path": ".artifacts/capture-baseline-red-repair-validation.mjs",
+      "sha256": "69976826e818db8b5a63f4de2aa5784bb1780dc11a728296336c7b0899ca9ca5"
+    }
+  ],
+  "reports": [
+    {
+      "path": "IMPLEMENTATION_STATUS.md",
+      "sha256": "db0b39c42c5b1248cc4e7f43a044e1afa9b6bc7d028a5619d06278b8de437ff4"
+    },
+    {
+      "path": "artifacts/upstream-first/evidence.json",
+      "sha256": "cd203c2b561c42703eb935982f48657395f877776ac502509aa484df52a1ce53"
+    }
+  ],
+  "checks": [
+    {
+      "path": ".artifacts/baseline-red-repair-binding.log",
+      "sha256": "2ab0a9defb1cf9f5a9ede501778a1175c910511576f43432c361f4027c76f2bd"
+    },
+    {
+      "path": ".artifacts/baseline-red-repair-audit-final.log",
+      "sha256": "906be98cf31c19ba711a5e01c599eae0e80c6e1e0e333a653dfe3743b491f01c"
+    },
+    {
+      "path": ".artifacts/baseline-red-repair-gate0-final.log",
+      "sha256": "7e00efd82bd2a2b91b03ca80537dcc4af46cd09eb318ff58520cb2d7d7d8a48a"
+    },
+    {
+      "path": ".artifacts/baseline-red-repair-report-generation.log",
+      "sha256": "fe010532f71a6341467ae5719b29ac19470895de1d481156335b8f70a3273ed5"
+    }
+  ]
+}

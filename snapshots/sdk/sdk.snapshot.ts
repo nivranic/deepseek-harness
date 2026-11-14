@@ -14,6 +14,7 @@ import { cp, mkdir, mkdtemp, readFile, readdir, realpath, rm, writeFile } from '
 import { tmpdir } from 'node:os'
 import { basename, delimiter, join } from 'node:path'
 import { fileURLToPath } from 'node:url'
+import { constants, zstdCompressSync, zstdDecompressSync } from 'node:zlib'
 import { describe, expect, it } from 'vitest'
 import {
   assertPersistedSessionVersion,
@@ -354,19 +355,58 @@ interface PersistedLog {
   readonly header: Record<string, unknown>
 }
 
-async function jsonlFiles(dir: string): Promise<string[]> {
+async function jsonlFiles(dir: string, compression: 'raw' | 'zstd' = 'raw'): Promise<string[]> {
   const entries = await readdir(dir, { recursive: true })
-  return latestPersistedSessionPaths(entries).map(entry => join(dir, entry))
+  return latestPersistedSessionPaths(entries, compression).map(entry => join(dir, entry))
 }
 
-async function persistedLogs(sessionsRoot: string): Promise<PersistedLog[]> {
-  const files = await jsonlFiles(sessionsRoot)
+function decodeZstdLog(bytes: Buffer): string {
+  const chunks: Buffer[] = []
+  while (bytes.length > 0) {
+    // Node decodes one frame; info reports the consumed bytes for concatenated frames.
+    const decoded: unknown = zstdDecompressSync(bytes, { info: true })
+    if (typeof decoded !== 'object' || decoded === null || !('buffer' in decoded) || !Buffer.isBuffer(decoded.buffer)
+      || !('engine' in decoded) || typeof decoded.engine !== 'object' || decoded.engine === null
+      || !('bytesWritten' in decoded.engine) || typeof decoded.engine.bytesWritten !== 'number'
+      || decoded.engine.bytesWritten <= 0 || decoded.engine.bytesWritten > bytes.length) {
+      throw new Error('Zstandard decoder did not report a complete frame')
+    }
+    chunks.push(decoded.buffer)
+    bytes = bytes.subarray(decoded.engine.bytesWritten)
+  }
+  return Buffer.concat(chunks).toString('utf8')
+}
+
+async function persistedLogs(sessionsRoot: string, compression: 'raw' | 'zstd' = 'raw'): Promise<PersistedLog[]> {
+  const files = await jsonlFiles(sessionsRoot, compression)
   return Promise.all(files.map(async (path) => {
-    const content = await readFile(path, 'utf8')
+    const bytes = await readFile(path)
+    const content = compression === 'raw' ? bytes.toString('utf8') : decodeZstdLog(bytes)
     expect(assertPersistedSessionVersion(basename(path), content), `${path}: current writer`).toBe(SESSION_FORMAT_VERSION)
     const header = JSON.parse(content.slice(0, content.indexOf('\n'))) as Record<string, unknown>
     return { path, content, header }
   }))
+}
+
+/** Preserve a completed first turn only in the intent, as after truncation but before a repair rewrite. */
+async function stageRepairIntent(sessionsRoot: string): Promise<PersistedLog> {
+  const logs = await persistedLogs(sessionsRoot, 'zstd')
+  expect(logs).toHaveLength(1)
+  const original = logs[0]!
+  const rows = original.content.trimEnd().split('\n')
+  const firstAssistant = rows.findIndex(row => (JSON.parse(row) as { type: string }).type === 'assistant/message')
+  expect(firstAssistant).toBeGreaterThan(1)
+  const frame = (text: string): Buffer => zstdCompressSync(Buffer.from(text), {
+    params: { [constants.ZSTD_c_checksumFlag]: 1 },
+  })
+  const prefix = Buffer.concat([frame(rows[0] + '\n'), frame(rows.slice(1, firstAssistant).join('\n') + '\n')])
+  await writeFile(`${original.path}.repair-intent`, JSON.stringify({
+    version: 1, id: original.header.id, truncateTo: prefix.length,
+    events: rows.slice(firstAssistant).map(row => JSON.parse(row)),
+  }) + '\n')
+  await writeFile(original.path, prefix)
+  expect(decodeZstdLog(await readFile(original.path))).not.toContain('"type":"assistant/message"')
+  return original
 }
 
 interface LoggedRequestHeader {
@@ -431,6 +471,8 @@ function contextOf(logs: readonly { content: string; header: Record<string, unkn
   return {
     sessionIds: logs.flatMap(log => typeof log.header.id === 'string' ? [log.header.id] : []),
     cwd,
+    // Runtime-context prose quotes the path as JSON before it enters the Session row.
+    cwdAliases: [JSON.stringify(cwd).slice(1, -1)],
   }
 }
 
@@ -456,7 +498,7 @@ async function hydrateReplayFixtures(scenario: CorpusScenario, cwd: string): Pro
   await mkdir(root, { recursive: true })
   return Promise.all((await fixtureFiles(scenario)).map(async (source) => {
     const destination = join(root, basename(source))
-    await writeFile(destination, (await readFile(source, 'utf8')).replaceAll('{{cwd}}', cwd))
+    await writeFile(destination, (await readFile(source, 'utf8')).replaceAll('{{cwd}}', () => JSON.stringify(cwd).slice(1, -1)))
     return destination
   }))
 }
@@ -745,7 +787,7 @@ function authoredPatches(scenario: CorpusScenario, replaying: boolean): string[]
 }
 
 /** One SDK-controlled recorded scenario against a fresh SDK-profile subprocess. */
-async function runScenario(scenario: CorpusScenario): Promise<{
+async function runScenario(scenario: CorpusScenario, recoverIntent = false): Promise<{
   results: RunResult[]
   notifications: HarnessNotification[]
   observedMethods: ReadonlySet<string>
@@ -781,6 +823,7 @@ async function runScenario(scenario: CorpusScenario): Promise<{
     ...authoredPatches(scenario, !recording),
     ...assertions.patches ?? [],
     ...scenario.name === 'session-resume' && !recording ? [join(scenario.dir, 'replay.cordis.yml')] : [],
+    ...recoverIntent ? [join(scenario.dir, 'repair.cordis.yml')] : [],
   ]
     .map((patch, index) => materializeProfilePatch(patch, cwd, scenario.manifest.profile, patchRoot, index))
   let childSessionsRoot: string | undefined
@@ -871,6 +914,7 @@ async function runScenario(scenario: CorpusScenario): Promise<{
     ...onUserQuestion === undefined ? {} : { onUserQuestion },
   })
   let harness = createHarness()
+  let interrupted: PersistedLog | undefined
   try {
     const notifications: HarnessNotification[] = []
     const observedMethods = new Set<string>()
@@ -948,6 +992,7 @@ async function runScenario(scenario: CorpusScenario): Promise<{
         if (scenario.name === 'session-resume' && results.length > 0) {
           subscription.close()
           await harness.close()
+          interrupted = recoverIntent ? await stageRepairIntent(sessionsRoot) : undefined
           await prepareTurnReplay(action.turn)
           harness = createHarness('deepseek-v4-pro')
           await harness.start()
@@ -1040,8 +1085,12 @@ async function runScenario(scenario: CorpusScenario): Promise<{
       titleSubscription?.close()
     }
     await harness.close()
+    if (interrupted !== undefined) {
+      expect(decodeZstdLog(await readFile(interrupted.path)).startsWith(interrupted.content)).toBe(true)
+      expect(existsSync(`${interrupted.path}.repair-intent`)).toBe(false)
+    }
     const logs = (await Promise.all([
-      persistedLogs(sessionsRoot),
+      persistedLogs(sessionsRoot, recoverIntent ? 'zstd' : 'raw'),
       ...(childSessionsRoot === undefined ? [] : [persistedLogs(childSessionsRoot)]),
     ])).flat()
     const finalWorkspace = await captureWorkspaceSnapshot(cwd, {
@@ -1195,12 +1244,17 @@ describe('TypeScript SDK snapshots over the jsonrpc runtime', () => {
     expect(await readFile(path, 'utf8')).toBe(fixture)
   })
 
-  for (const scenario of sdkScenarios) {
+  const runs = sdkScenarios.flatMap(scenario => [
+    { scenario, recoverIntent: false },
+    ...mode === 'replay' && scenario.name === 'session-resume' ? [{ scenario, recoverIntent: true }] : [],
+  ])
+  for (const { scenario, recoverIntent } of runs) {
     const scenarioTest = recording
       && (scenario.manifest.recording === 'authored' || scenario.manifest.sessionFormat !== undefined)
       ? it.skip
       : it
-    scenarioTest(`${mode}s ${scenario.name} through dsh --profile ${scenario.manifest.profile}`, async () => {
+    const recoveryLabel = recoverIntent ? ' after interrupted Zstandard repair' : ''
+    scenarioTest(`${mode}s ${scenario.name}${recoveryLabel} through dsh --profile ${scenario.manifest.profile}`, async () => {
       const scenarioDir = scenario.dir
       const retained = scenario.manifest.sessionFormat !== undefined
       const notificationsExpectedPath = join(scenarioDir, retained ? 'notifications.current.expected.jsonl' : 'notifications.expected.jsonl')
@@ -1216,7 +1270,7 @@ describe('TypeScript SDK snapshots over the jsonrpc runtime', () => {
         expect(writerFiles, 'native writer oracle inventory').toEqual(retained
           ? files.map((_, index) => writerSnapshotName(index)).sort() : [])
       }
-      const { results, notifications, observedMethods, logs, initialWorkspace, finalWorkspace, cwd, modelRequests } = await runScenario(scenario)
+      const { results, notifications, observedMethods, logs, initialWorkspace, finalWorkspace, cwd, modelRequests } = await runScenario(scenario, recoverIntent)
       const ordered = orderLogs(
         logs,
         recording ? logs.length : files.length,

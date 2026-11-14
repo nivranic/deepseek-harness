@@ -1,0 +1,16 @@
+{
+  "status": "PASS",
+  "controls": 3,
+  "sourceRecord": {
+    "path": "artifacts/upstream-first/lite-assembly-source.json",
+    "sha256": "5388638266fda00aebe5cc96d1fbf1dcb27f032705ad8257b41ed32da987423b"
+  },
+  "generator": {
+    "path": "artifacts/upstream-first/write-reports.mjs",
+    "sha256": "d52ae0fe0a514786172c75c29770f6ce5b6dab5ca00ab7848446bb1911b05b1c"
+  },
+  "helper": {
+    "path": ".artifacts/check-lite-assembly-binding.mjs",
+    "sha256": "0b3fcc741a0e7cfee32d8187012e2c00491e6b8b4ee5fede893335f288f4dccd"
+  }
+}

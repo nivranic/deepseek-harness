@@ -1,0 +1,16 @@
+{
+  "status": "PASS",
+  "controls": 3,
+  "sourceRecord": {
+    "path": "artifacts/upstream-first/android-download-checkpoint-source.json",
+    "sha256": "99e42a41784ec460c94b829b6723ea88ce34594f0e21b439ec56b93639681fac"
+  },
+  "generator": {
+    "path": "artifacts/upstream-first/write-reports.mjs",
+    "sha256": "6f8ea62c164694b0b6dcd860753122b1c7918c7fb20b3196d2362f90ab4c9af8"
+  },
+  "helper": {
+    "path": ".artifacts/check-android-download-checkpoint-binding.mjs",
+    "sha256": "2502aad9a39d12199a94d0a198a985fcccab1d765425b5f72fb73a012ac9e150"
+  }
+}

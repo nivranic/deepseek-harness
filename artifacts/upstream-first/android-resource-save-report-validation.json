@@ -1,0 +1,70 @@
+{
+  "status": "PASS",
+  "scope": "Report bindings and audit for Android complete resource system-picker saving and callback retirement; the remaining specification sections stay open; full Upstream-First objective remains in progress",
+  "gate0": {
+    "validation": "PASS",
+    "gate0": "PASS",
+    "paths": 1938,
+    "components": 129,
+    "specificationCoverage": {
+      "status": "PASS",
+      "numberedSections": 81,
+      "nonEmptySourceLines": 1983,
+      "acceptanceProven": false
+    }
+  },
+  "sourceRecord": {
+    "path": "artifacts/upstream-first/android-resource-save-source.json",
+    "sha256": "90a367b768c1b6f543a6a2602a56c86bb7bf25a5d4611b135516b70645108f01"
+  },
+  "generator": {
+    "path": "artifacts/upstream-first/write-reports.mjs",
+    "sha256": "6e8ff22550653aff225e72495a6211c62923d382f649f8162a5f8c769b1d3774"
+  },
+  "binding": {
+    "path": "artifacts/upstream-first/android-resource-save-binding.json",
+    "sha256": "b3c486a6e6b4c473080076cf029ca8cd08726fa13dd285e283f0b262860f9a21"
+  },
+  "helpers": [
+    {
+      "path": ".artifacts/advance-android-resource-save-reports.mjs",
+      "sha256": "c3066d69e8d41c58f7c05c648fe954faffea23b68c838da183697d0fdeead4b4"
+    },
+    {
+      "path": ".artifacts/capture-android-resource-save-validation.mjs",
+      "sha256": "3506dd92aff31f0762b88f4991832d28e9c82f56757fe036b2496c19d45d64fc"
+    }
+  ],
+  "reports": [
+    {
+      "path": "IMPLEMENTATION_STATUS.md",
+      "sha256": "ef978cd6647529aee28d80302f5b6a0b6325b1f09ba4e84f828044d8e37069f0"
+    },
+    {
+      "path": "artifacts/upstream-first/evidence.json",
+      "sha256": "7ef38b3a2de13055b6bc4b238d486bf299baa7f629357f4aad25cdfe87ed767d"
+    }
+  ],
+  "checks": [
+    {
+      "path": ".artifacts/android-resource-save-binding.log",
+      "sha256": "01d13b2a7e34d41862358a996e059e5aed9b20d615981ae7e8c34d81f825f7c9"
+    },
+    {
+      "path": ".artifacts/android-resource-save-audit-tests.log",
+      "sha256": "a190d70314d2bd524d201cbdb7a987f8d0d71ba73643366e6e8c208171b3fd14"
+    },
+    {
+      "path": ".artifacts/android-resource-save-gate0-report.log",
+      "sha256": "5427f71ff5b67b500b327d785dcaf84a7af2c6edd24b1833c4c7d83ad2cf37c8"
+    },
+    {
+      "path": ".artifacts/android-resource-save-report-diff-check.log",
+      "sha256": "e3b0c44298fc1c149afbf4c8996fb92427ae41e4649b934ca495991b7852b855"
+    },
+    {
+      "path": ".artifacts/android-resource-save-report-generation.log",
+      "sha256": "5867d1d51cd43a59428de2e7fffa15847d7153b11f3b61ecf812224ee2dd2099"
+    }
+  ]
+}

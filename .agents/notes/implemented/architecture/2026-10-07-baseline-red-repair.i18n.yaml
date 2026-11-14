@@ -1,0 +1,22 @@
+# Bilingual-pair consistency record for 2026-10-07-baseline-red-repair.md (docs/i18n/README.md): per heading
+# section, a hash of its English and Chinese blocks outside code blocks and generated regions.
+# After editing either side, bring the other along and re-record with:
+#   pnpm run verify-translation-pairing --write .agents/notes/implemented/architecture/2026-10-07-baseline-red-repair.md
+/agent-note-test-baselines-track-the-attachment-admission-and-carrier-exhaustion-contracts:
+  en: 7f7ae508cdfac633
+  zh: 2a285697cc47ddfe
+/agent-note-test-baselines-track-the-attachment-admission-and-carrier-exhaustion-contracts/problem:
+  en: c858d803e0696b41
+  zh: 03875d8c8e9795fa
+/agent-note-test-baselines-track-the-attachment-admission-and-carrier-exhaustion-contracts/decision:
+  en: 4cd11b1ed6559a66
+  zh: edd3966cba4f34cd
+/agent-note-test-baselines-track-the-attachment-admission-and-carrier-exhaustion-contracts/alternatives-considered:
+  en: bf9b2f36db66328b
+  zh: 4837c5577a4a15a8
+/agent-note-test-baselines-track-the-attachment-admission-and-carrier-exhaustion-contracts/consequences:
+  en: e2dd5d09aacb2c58
+  zh: 1cf42c50303999ed
+/agent-note-test-baselines-track-the-attachment-admission-and-carrier-exhaustion-contracts/open-follow-ups:
+  en: 039666b8fba2f999
+  zh: 76aa8a3e65e5f0d0

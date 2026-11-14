@@ -1,0 +1,66 @@
+{
+  "status": "PASS",
+  "scope": "Report bindings and audit for the lite-permission increment: the §31 \"Lite permission gate: decision points and tool-call closure\" (the third of the four-piece lite assembly after gen-50's declaration face, gen-51's persona and gen-52's model-face projection — with the model now seeing the tools array the permission gate decides what a received ToolCall may do) resting on the design that LiteToolPermissionPolicy is a single decision point consulted exactly once per call at LiteLoop's ToolCall branch (a three-way LiteToolDecision: AllowLocal, Handoff with its reason, Unknown), LiteLoopDriver wiring it as a constructor parameter placed before the trailing-lambda executor parameter (the trailing-lambda rebinding pit measured away, existing call faces unchanged), defaultPolicy reading only the host-declared facts where they exist (§37 risk comes from the Host output, the Client never guesses): a HOST_DECLARED name walks the four-gate ladder — not-lite hands off, a missing bundled execution face hands off (the no-bundled-executor gate the first cut honestly lacked: the implementation proxy reported the divergence, the main session's repair ruling added the gate to match the catalog semantics — supportsLite AND a bundled execution face — and the policy test gained the case pinning it), risk in {high, critical} hands off with the risk tier in the reason, non-empty permissions hand off — all four passed before AllowLocal; a BUNDLED_FALLBACK name carries no host risk facts, so it judges only the bundled capability (inventing a tier would be the guess §32/37 forbid); zero parallel vocabulary (§72) reusing the contract ToolRisk and ToolDescriptor.permissions; the Unknown closure turns a FALLBACK unknown name from the silent hang (tool/call forever phase=running, the turn ending wordless) into an explicit failing tool/result in the existing event shape (ok=false naming the unknown tool, the turn still closing) with the fold/journal vocabulary untouched and the handoff event keeping its fixed requiresFullRuntime capability field; LiteToolRegistry gains only the minimal read-only declaration(name) exposure; two behavior pins renamed with the behavior (unknownNamesFailExplicitlyInsteadOfHanging, aDeclaredUnknownToolFailsExplicitlyWithoutHandingOff); the executor result round-trip, a production local executor, the approval ask tier, the runtimeMode=lite exposure and UI changes deliberately stay out (the specification appendix defers built-in Tool Execution to P2); the gates honestly recorded from log content: the two :core:test rounds BUILD SUCCESSFUL (5m56s first round 511 tests and the gate-repair round 39s 512 tests, LiteToolPermissionPolicyTest 7/7, LiteLoopDriverTest 10/10, LiteChatViewModelTest 7/7 and LiteFoldTest 6/6 zero-change pins), typecheck EXIT_CODE=0 and lint Found 0 warnings and 0 errors on 3861 files, test:docs 17 and doc-sync 37 passed 0 failed 0 skipped (214.04s, zero regeneration diff — the pure-Kotlin increment adds no leaf), traceability 6/6 with the §31 rewrite at 517 chars and candidateEvidence 4 led by LiteToolPermissionPolicy.kt, the serial double audit round green at 87 files / 1073 tests on both passes with the two passes' file sets line-compared identical, gate0 PASS in both byte-identical forms (1938 paths / 129 components / 81 sections — honestly recorded unchanged from the captured UPSTREAM_DELTA.json, not the live tree); the android acceptance: the scanner-env gradle round BUILD SUCCESSFUL in 23s with 73 actionable tasks of which 6 executed and 67 up-to-date — with the androidTest APK IDENTICAL against the lite-tools record's sealed bytes (bbe7a3af cross-checked live) and the debug APK DRIFT at 55694f8f→c332d6c1 (the honest native-change signal, cross-checked live, this generation's capture becoming the new baseline) and the core XML aggregate reading 81 suites / 512 tests including the new LiteToolPermissionPolicyTest suite beside the contract half at 4 suites / 37 tests; the note trio 2026-10-15-lite-tool-permission-policy paired ahead of the doc-sync round; and the adjudicated single-set ruling on the adapter's measured three-source miss stop-point (the dwfq-b1ce6281-1 lineage, the gen-52 dwfq-d294994b-1 precedent form): the prepare oracle derives the measured eighty-four replaced prior build outputs — all android (one APK, one jar, seventeen recompiled classes, sixty-two XML reports, three binary outputs) — the adapter's generator-side measurement splits them into seventeen chain-resolvable recompiled-class keys (resolving through the newest-history fallback) and sixty-seven first-emission keys no archive holds (the gen-52 rounds' own emissions sealed only by the lite-tools record itself, untracked at HEAD, every prepare walk excluding build/ so no before-archive manifest holds them — the third consecutive generation of the same class: gen-51 ninety-four, gen-52 seventy-three, gen-53 sixty-seven), so the advance installs the liteToolsReplacedBuildOutputs exactly-sixty-seven build-output exemption on the demoted lite-tools block, derived and emitted at advance run time from the record, the chain archives and the disk — never transcribed — equal to the eighty-four-key derivation minus the seventeen fallback keys, the two source-side ledger miss keys resolving through the new before archive at their HEAD bytes (no UnrecoverableInputs set born), and every prior generation's set — the gen-52 litePersonaReplacedBuildOutputs seventy-three beside the gen-51 liteToolReplacedBuildOutputs ninety-four and liteToolUnrecoverableInputs two, the gen-32 desktopPackageReplacedBuildOutputs six, the gen-33 tornRepairIntentReplacedBuildOutputs three, the gen-48 clientMutationReplacedBuildOutputs two and the gen-46 durableReceiptsReplacedBuildOutputs three — stays exactly as sealed at HEAD; the runtimeMode=lite exposure, the approval ask tier, the tool-call result round-trip (P2), the app-layer wiring and the tool-name alignment all stay open — so no whole-section PASS is granted; full Upstream-First objective remains in progress",
+  "gate0": {
+    "validation": "PASS",
+    "gate0": "PASS",
+    "paths": 1938,
+    "components": 129,
+    "specificationCoverage": {
+      "status": "PASS",
+      "numberedSections": 81,
+      "nonEmptySourceLines": 1983,
+      "acceptanceProven": false
+    }
+  },
+  "sourceRecord": {
+    "path": "artifacts/upstream-first/lite-permission-source.json",
+    "sha256": "15cc178223acde84f45b3ce4e8ec41cecd3d3a2f6dbcc6f207e5099cb30c2100"
+  },
+  "generator": {
+    "path": "artifacts/upstream-first/write-reports.mjs",
+    "sha256": "1bd2611f8f9a48c80601ed5996256206d4c1279e640fd4ceca642cae85b45c5f"
+  },
+  "binding": {
+    "path": "artifacts/upstream-first/lite-permission-binding.json",
+    "sha256": "011f1cd0d8df317360d4ba7a585ef7438c479d333b45d0511ea9bab5b997c135"
+  },
+  "helpers": [
+    {
+      "path": ".artifacts/advance-lite-permission-reports.mjs",
+      "sha256": "adcf6a76a6f275d2c864157fcb016b672edec0e9185c7370aaa77b50a69c041c"
+    },
+    {
+      "path": ".artifacts/capture-lite-permission-validation.mjs",
+      "sha256": "68f712d56b3cdc9f4988dfc76379b751f173e8e319c8e98d49811fd4e55e3830"
+    }
+  ],
+  "reports": [
+    {
+      "path": "IMPLEMENTATION_STATUS.md",
+      "sha256": "1aef549bad759d98bf193a94f321ac5205f7790b7db2d309126096f956e9b583"
+    },
+    {
+      "path": "artifacts/upstream-first/evidence.json",
+      "sha256": "49608e8d4e0e597b0c9471902fe08385fbb6cd81e3474def57d01dc4c495ec79"
+    }
+  ],
+  "checks": [
+    {
+      "path": ".artifacts/lite-permission-binding.log",
+      "sha256": "4acb44eb48a63d3c5a0f22c81dde3a925750878296899850131de639e8408036"
+    },
+    {
+      "path": ".artifacts/lite-permission-audit-final.log",
+      "sha256": "9ad5596a9c08fffedebeb242578f13375b7f8a93e746d88d23ad9842effaac8b"
+    },
+    {
+      "path": ".artifacts/lite-permission-gate0-final.log",
+      "sha256": "7e00efd82bd2a2b91b03ca80537dcc4af46cd09eb318ff58520cb2d7d7d8a48a"
+    },
+    {
+      "path": ".artifacts/lite-permission-report-generation.log",
+      "sha256": "fe010532f71a6341467ae5719b29ac19470895de1d481156335b8f70a3273ed5"
+    }
+  ]
+}

@@ -1,0 +1,70 @@
+{
+  "status": "PASS",
+  "scope": "Report bindings and audit for the Safe-area insets; the remaining specification sections stay open; full Upstream-First objective remains in progress",
+  "gate0": {
+    "validation": "PASS",
+    "gate0": "PASS",
+    "paths": 1938,
+    "components": 129,
+    "specificationCoverage": {
+      "status": "PASS",
+      "numberedSections": 81,
+      "nonEmptySourceLines": 1983,
+      "acceptanceProven": false
+    }
+  },
+  "sourceRecord": {
+    "path": "artifacts/upstream-first/safe-area-insets-source.json",
+    "sha256": "e972b02e6ec8e4e1e29a34f75e676d4a0feb0714a9c1c969243ad223c2ae9d9a"
+  },
+  "generator": {
+    "path": "artifacts/upstream-first/write-reports.mjs",
+    "sha256": "4e773c9bc994220622e91179f25b8a58110f8f203602a292e3c52d9b4fac89b1"
+  },
+  "binding": {
+    "path": "artifacts/upstream-first/safe-area-insets-binding.json",
+    "sha256": "fde9e2fb6eacf718df1f2ce77f4f3638e910c00560587bb41504bc08ef794258"
+  },
+  "helpers": [
+    {
+      "path": ".artifacts/advance-safe-area-insets-reports.mjs",
+      "sha256": "b0b9a6cdf3164f04beeea2161f0ef21f4028270e909b85eb2e57802c364bd226"
+    },
+    {
+      "path": ".artifacts/capture-safe-area-insets-validation.mjs",
+      "sha256": "70fc7e183dd07f766052c84dc1177e2bfa74cc430ef240d29639e190450d5da0"
+    }
+  ],
+  "reports": [
+    {
+      "path": "IMPLEMENTATION_STATUS.md",
+      "sha256": "54d9e9e68eda8f7e8d02edf09c4f1278f2f52941428ffa5645566d696410d86c"
+    },
+    {
+      "path": "artifacts/upstream-first/evidence.json",
+      "sha256": "673908e78d100d549851209dd537093d6d7058b5b919a3f20ab23a6ad56ae9fa"
+    }
+  ],
+  "checks": [
+    {
+      "path": ".artifacts/safe-area-insets-binding.log",
+      "sha256": "9a84aa46fec3b8fa93ba2ab4d8f461a9cbb59adc644283b96d5b5c4e44d98a16"
+    },
+    {
+      "path": ".artifacts/safe-area-insets-audit-tests.log",
+      "sha256": "cbb174526f10204e14d80945126b257b820d7fb33d7a30a7286c85b891df07ae"
+    },
+    {
+      "path": ".artifacts/safe-area-insets-gate0.log",
+      "sha256": "505d74ef938f5d34d85490d37e0176ba804d93272fcf465ce2544a02c56b3f90"
+    },
+    {
+      "path": ".artifacts/safe-area-insets-report-diff-check.log",
+      "sha256": "e3b0c44298fc1c149afbf4c8996fb92427ae41e4649b934ca495991b7852b855"
+    },
+    {
+      "path": ".artifacts/safe-area-insets-report-generation.log",
+      "sha256": "fe010532f71a6341467ae5719b29ac19470895de1d481156335b8f70a3273ed5"
+    }
+  ]
+}

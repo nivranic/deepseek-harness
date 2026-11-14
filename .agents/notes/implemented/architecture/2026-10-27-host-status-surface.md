@@ -1,0 +1,21 @@
+# Agent Note: The Web Settings Host-status section surfaces the §41 readiness verdict
+
+Status: implemented
+
+English | [中文](2026-10-27-host-status-surface.zh.md)
+
+## Problem
+
+The §41-44 family row left the host-side readiness verdict surface open. The Host side of the verdict was complete — `hostDiagnostics/health` answers the six §41 components plus the derived `ready` field, and the Android companion learned to collect it in the previous generation — but no Host operator surface consumed it: a repository-wide search found the only `hostDiagnostics` consumers were the companion, the api-catalog projection, and the package's own spec. The official Web client rendered nothing: a user running a Host whose model provider had no registered provider (a Host that by the Host's own derivation cannot accept Agent requests) had no way to see that verdict or its cause in the product UI.
+
+## Decision
+
+A new Web Settings section, `ui-settings-host-status`, renders the verdict. It registers one `settings.section` contribution (`id: 'host-status'`, order 16 between Hosts and Telemetry) unconditionally — hostDiagnostics is the one Remote namespace every Settings-face Host composes, so there is no capability to watch, and a Host that cannot answer `health` surfaces through the section's own error line with retry rather than a missing nav entry. The data plane is one injected function, `health(): Promise<HealthSnapshot>`, whose registration-side adapter unwraps the generated client's `RemoteResult` (`ok: false` rejects, so every refusal shape lands in the component's single error state). The verdict line shows the snapshot's `ready` field as the Host derived it — the section never re-derives readiness client-side, so the rows and the verdict can never disagree — and the connection row is documented as deliberately outside that derivation (a Host without a network carrier is a legitimate deployment). Each of the six rows carries the component name, a state dot mapped `up → done`, `degraded → warning`, `down → error` (`ongoing` stays reserved for live transitions; §41 `degraded` is a settled partial failure), and the component's own non-secret `detail` verbatim. The display list and the dictionary keys derive from `keyof HealthSnapshot` minus `ready`, so a Host-side component rename fails this package's build until the row and its copy follow. The `hostDiagnostics` namespace itself now reaches the Client through the `dsh-api-remotes` aggregation: the aggregation `$mount`s the contribution and re-exports its declaration merge (`export type {} from '@deepseek-ai/dsh-api-host-diagnostics/remote'`), which is what makes `ctx.remote.hostDiagnostics.health()` type-check in consumer programs.
+
+## Alternatives considered
+
+Registering the section only while the Host advertises the capability (the telemetry section's pattern) was rejected — hostDiagnostics is not optional for a Settings-face Host, and a withdrawn nav row hides the failure the section exists to show. Re-deriving the verdict client-side from the six rows was rejected — two derivations drift; the Host's `ready` is the authority and the section states it. Live refresh over a forwarded event stream was deferred, not adopted — no `hostDiagnostics/health` change event exists today, so the section reads on entry and re-reads through retry, and the no-live-refresh limit is recorded in the README. Mounting the surface as a tab inside the plugins section was rejected — readiness is a Host-wide fact, not a plugin-domain detail.
+
+## Consequences
+
+Web Settings gains its Host-status section: the verdict line plus six component rows, in both shipped locales, with `data-host-ready` and per-row `data-component`/`data-component-state` hooks for tests. The client slot catalog regenerated with the new occupant line and passes its freshness check; the remotes aggregation carries one more namespace and one more type re-export; the client typecheck aggregate references the new package. The package's spec covers the all-green snapshot, the modelProvider-degraded and sessionStore-down verdict flips, the failed-read-then-retry recovery, the busy loading form, and both dictionaries' completeness. What stays open in the §41-44 family after this generation: the sanitizer audit and the same-candidate support-collector verification.

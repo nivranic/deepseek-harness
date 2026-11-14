@@ -1,0 +1,70 @@
+{
+  "status": "PASS",
+  "scope": "Report bindings and audit for the jobs failure-class threading; producer adoption and the emulator-lane Host pairing fixture remain queue items; full Upstream-First objective remains in progress",
+  "gate0": {
+    "validation": "PASS",
+    "gate0": "PASS",
+    "paths": 1938,
+    "components": 129,
+    "specificationCoverage": {
+      "status": "PASS",
+      "numberedSections": 81,
+      "nonEmptySourceLines": 1983,
+      "acceptanceProven": false
+    }
+  },
+  "sourceRecord": {
+    "path": "artifacts/upstream-first/jobs-failure-class-source.json",
+    "sha256": "5c13a75e7d3f68436104fa6f33c9905d3aa4d7959193e06c70ac76e8fc1dd570"
+  },
+  "generator": {
+    "path": "artifacts/upstream-first/write-reports.mjs",
+    "sha256": "a2db0f1686fd6d9b366a1217714725b7c7930a53096a41143fb8c2b689d62021"
+  },
+  "binding": {
+    "path": "artifacts/upstream-first/jobs-failure-class-binding.json",
+    "sha256": "8ec03f5b563979bcf71be3d58507275eefbd3b7923936b25e4a6205d3821e308"
+  },
+  "helpers": [
+    {
+      "path": ".artifacts/advance-jobs-failure-class-reports.mjs",
+      "sha256": "9e61a86e5f57ae18acd2e89c5153d4ad6a0b2e58a3885083d350d21ca547de90"
+    },
+    {
+      "path": ".artifacts/capture-jobs-failure-class-validation.mjs",
+      "sha256": "0cdbb09e585cc7e39a40b32df411fa3194d868301722252a1823adfffcdf7f0d"
+    }
+  ],
+  "reports": [
+    {
+      "path": "IMPLEMENTATION_STATUS.md",
+      "sha256": "441491c4a6ab26d6770d926b7df1f7effa8b2c360b85117dacc89aeb50e0a1d6"
+    },
+    {
+      "path": "artifacts/upstream-first/evidence.json",
+      "sha256": "9b7e041944790e5c8bf45e04140e4b36b4444f1b6f62538471d42ea1bacbdd43"
+    }
+  ],
+  "checks": [
+    {
+      "path": ".artifacts/jobs-failure-class-binding.log",
+      "sha256": "0cd31d3d84681cbadecf9a476ce2c0edf115662f638795963756d253cb998490"
+    },
+    {
+      "path": ".artifacts/jobs-failure-class-audit-tests.log",
+      "sha256": "139acd08d3bd8c8a8ed6a7ba67b0303e9151f78dbfb7d82a5120280b526c0821"
+    },
+    {
+      "path": ".artifacts/jobs-failure-class-gate0.log",
+      "sha256": "505d74ef938f5d34d85490d37e0176ba804d93272fcf465ce2544a02c56b3f90"
+    },
+    {
+      "path": ".artifacts/jobs-failure-class-report-diff-check.log",
+      "sha256": "e3b0c44298fc1c149afbf4c8996fb92427ae41e4649b934ca495991b7852b855"
+    },
+    {
+      "path": ".artifacts/jobs-failure-class-report-generation.log",
+      "sha256": "fe010532f71a6341467ae5719b29ac19470895de1d481156335b8f70a3273ed5"
+    }
+  ]
+}

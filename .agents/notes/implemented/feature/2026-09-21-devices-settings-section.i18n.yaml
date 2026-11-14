@@ -1,0 +1,19 @@
+# Bilingual-pair consistency record for 2026-09-21-devices-settings-section.md (docs/i18n/README.md): per heading
+# section, a hash of its English and Chinese blocks outside code blocks and generated regions.
+# After editing either side, bring the other along and re-record with:
+#   pnpm run verify-translation-pairing --write .agents/notes/implemented/feature/2026-09-21-devices-settings-section.md
+/agent-note-devices-settings-section-consumes-the-device-trust-remote-face:
+  en: 21698dbb3f98645c
+  zh: 18b64771af7d84bf
+/agent-note-devices-settings-section-consumes-the-device-trust-remote-face/problem:
+  en: da7b206c567bc890
+  zh: d9383edf46e53c93
+/agent-note-devices-settings-section-consumes-the-device-trust-remote-face/decision:
+  en: 204d93133215445e
+  zh: f985dcf440d526da
+/agent-note-devices-settings-section-consumes-the-device-trust-remote-face/alternatives-considered:
+  en: 5c16d52a4b21c39d
+  zh: a041239b7cf45814
+/agent-note-devices-settings-section-consumes-the-device-trust-remote-face/consequences:
+  en: 3d5af8c6b7ae24a4
+  zh: 0f608bddf54763eb

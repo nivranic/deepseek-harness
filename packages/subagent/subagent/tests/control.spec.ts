@@ -72,11 +72,9 @@ function emptyIdFailure(method: string, field: string) {
     code: 'gateway/bad-request',
     message: `invalid payload for ${method}`,
     details: {
+      // The Gateway serializes each zod issue compactly: code, path, message.
       issues: [{
-        origin: 'string',
         code: 'too_small',
-        minimum: 1,
-        inclusive: true,
         path: [field],
         message: 'Too small: expected string to have >=1 characters',
       }],
@@ -295,6 +293,26 @@ describe('subagent prompt Remote', () => {
 })
 
 describe('subagent interrupt Remote', () => {
+  it.each([undefined, -1, -0, 1.5, Number.MAX_SAFE_INTEGER + 1, '1', NaN, Infinity])
+  ('rejects an invalid addressed turn %s before cancellation', async (turnStartSeq) => {
+    const { subagents } = await bench()
+    const interrupt = vi.spyOn(subagents, 'interrupt')
+    expect(() => subagents.interruptTurnByParent({
+      childSessionId: CHILD, parentSessionId: PARENT, mode: 'continuable', turnStartSeq: turnStartSeq as number,
+    })).toThrow(expect.objectContaining({ code: 'gateway/bad-request' }))
+    expect(interrupt).not.toHaveBeenCalled()
+  })
+
+  it('retains the addressed target and does not require a live parent registry', async () => {
+    const { subagents } = await bench()
+    const interrupt = vi.spyOn(subagents, 'interrupt').mockReturnValue()
+    const request = { childSessionId: CHILD, parentSessionId: PARENT, mode: 'continuable' as const, turnStartSeq: 7 }
+    expect(subagents.interruptTurnByParent(request)).toEqual({ accepted: true })
+    expect(interrupt).toHaveBeenCalledWith(CHILD, { kind: 'user', parentSessionId: PARENT, turnStartSeq: 7 })
+    expect(subagents.interruptTurnByParent({ ...request, turnStartSeq: null })).toEqual({ accepted: true })
+    expect(interrupt).toHaveBeenLastCalledWith(CHILD, { kind: 'user', parentSessionId: PARENT, turnStartSeq: null })
+  })
+
   it('rejects an empty child id before interrupting', async () => {
     const { subagents } = await bench()
     const interrupt = vi.spyOn(subagents, 'interrupt')

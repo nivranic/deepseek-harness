@@ -1,0 +1,70 @@
+{
+  "status": "PASS",
+  "scope": "Report bindings and audit for the SessionTelemetry exit wiring; the remaining specification sections stay open; full Upstream-First objective remains in progress",
+  "gate0": {
+    "validation": "PASS",
+    "gate0": "PASS",
+    "paths": 1938,
+    "components": 129,
+    "specificationCoverage": {
+      "status": "PASS",
+      "numberedSections": 81,
+      "nonEmptySourceLines": 1983,
+      "acceptanceProven": false
+    }
+  },
+  "sourceRecord": {
+    "path": "artifacts/upstream-first/telemetry-gate-source.json",
+    "sha256": "f10be1ee590c58f5fd485669c81c6c3cb215db5405487704427471dc62ed9225"
+  },
+  "generator": {
+    "path": "artifacts/upstream-first/write-reports.mjs",
+    "sha256": "7075a8f3aa5c1888e0793a370afa8e74b8b9226c7fd2f139585456e956fe0b2e"
+  },
+  "binding": {
+    "path": "artifacts/upstream-first/telemetry-gate-binding.json",
+    "sha256": "60a383eb650e47fbd1030e9fb8d558ad68e57b06f6be2df5821d55c617eb1c29"
+  },
+  "helpers": [
+    {
+      "path": ".artifacts/advance-telemetry-gate-reports.mjs",
+      "sha256": "d2813559a5cb11f56121fe599cfc22bc19496b4b06e735d59e3f02db1fc8f4e4"
+    },
+    {
+      "path": ".artifacts/capture-telemetry-gate-validation.mjs",
+      "sha256": "a051ad1a3575bf36f58caebb91c42fab45af565e5486c52e4c88b85fa7884cf3"
+    }
+  ],
+  "reports": [
+    {
+      "path": "IMPLEMENTATION_STATUS.md",
+      "sha256": "b6d0508b57f1d2df5a63f7a6cd661d3a52ea37b2f19ec771da0e29e1d5ba8a6a"
+    },
+    {
+      "path": "artifacts/upstream-first/evidence.json",
+      "sha256": "4e9fb065ac06dd4052aa28558fd5a179440be58295829e23dbc3a28f7d06242b"
+    }
+  ],
+  "checks": [
+    {
+      "path": ".artifacts/telemetry-gate-binding.log",
+      "sha256": "70a6a43973728e47bc5241c98d39aa9bbca0d704b51562962d79a68a311199ef"
+    },
+    {
+      "path": ".artifacts/telemetry-gate-audit-tests.log",
+      "sha256": "2659a3b3a2df47ddda4105a39700a3364407b0a5a131b0a184710c780edac0b8"
+    },
+    {
+      "path": ".artifacts/telemetry-gate-gate0.log",
+      "sha256": "505d74ef938f5d34d85490d37e0176ba804d93272fcf465ce2544a02c56b3f90"
+    },
+    {
+      "path": ".artifacts/telemetry-gate-report-diff-check.log",
+      "sha256": "e3b0c44298fc1c149afbf4c8996fb92427ae41e4649b934ca495991b7852b855"
+    },
+    {
+      "path": ".artifacts/telemetry-gate-report-generation.log",
+      "sha256": "fe010532f71a6341467ae5719b29ac19470895de1d481156335b8f70a3273ed5"
+    }
+  ]
+}

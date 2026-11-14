@@ -43,7 +43,9 @@ files:
 
 After the build, `lib/typert.host.js` and `lib/typert.host.d.ts` exist and the [loader](../loader/README.md) registers the contribution in Loader compositions. The generated declaration file exposes `TYPERT` as `unknown`, so contributing packages never depend on the runtime registry. The generator fails the build when a declaration is missing, points at the wrong file, or publishes Remote artifacts without Remote methods; unsupported Zod projections fail with a `TypertEmitError` naming the construct instead of flattening or weakening the source type.
 
-<a id="ordinary-remote-metadata"></a>
+Binding options accept `namespace` and runtime-owned `capabilities`. Capability declarations do not alter generated invocation codecs or Client method signatures; unknown option names still reject analysis. See [Host discovery](../../api/host-description/README.md).
+
+<a id="analyzing-a-workspace-statically"></a> <a id="ordinary-remote-metadata"></a>
 ### Ordinary Remote metadata
 
 The emitter writes one static `TypertRemoteMethodSpec` per endpoint and calls the pure `createTypertRemoteInfo` factory with the spec and the artifact's own imported Zod runtime. Ordinary consumer `./remote` artifacts retain their default export and `TYPERT_REMOTE`, typed as `TypertRemoteInfo` with precise `TypertRemoteMethod<Input, Output, Mode, Uplink, DecodedOutput>` entries in `TYPERT_REMOTE.methods`. Each entry is the same object as its direct descriptor in `TYPERT_REMOTE.descriptors`; Context-only receivers remain in descriptors and scoped declarations. There is no separate `REMOTE_METHODS` export, nested `metadata`, or second `output` codec. The [protocol](<../protocol/README.md>) owns the factory and method API.
@@ -64,9 +66,13 @@ Static consumers call `WorkspaceAnalyzer` directly against the workspace's `tsco
 
 JSON, YAML, SVG, PNG, JPEG, and WebP resource exports contribute no TypeScript declarations and are excluded from the API model. Missing JavaScript or TypeScript export sources remain errors.
 
+`analyzeRemoteErrors()` extracts the base Remote error map and each selected package's augmentations directly from its compiler face, including declarations unused by service or schema roots. It returns `RemoteErrorWorkspaceModel` with owner, code, source location, semantic prose and an authored details node and a checker-resolved JSON details node for each error. Host and Client graphs remain separate, and references retain their existing public type links. Duplicate codes within a face, missing descriptions, non-enumerable declarations and non-JSON details fail analysis. Codec roots reuse the strict Remote type projection to resolve cross-face brands and computed types without merging compiler faces. The ordinary `analyze()` result is unchanged. These graphs are inputs to later emission, not executable codecs or JSON Schema.
+
+`emitRemoteErrorSchemas(face)` emits an ESM module whose `REMOTE_ERROR_DETAILS` export is a Map of error codes to Zod details validators. The consuming build provides Zod. The repository `verify-remote-error-envelope` gate includes the independent inventory and details-root checks, compares shared codes across faces, and checks the packaged JSON Schema in `doc-sync`. Normal TypeScript checks own project diagnostics; schema validation does not prove native-client compatibility.
+
 ### Running generation inside a tsdown build
 
-The `./tsdown` subpath exports `decoratorPlugin()` and `typertPlugin()`. The `./tsdown` subpath exports `decoratorPlugin()` and `typertPlugin()`. `decoratorPlugin()` lowers standard TypeScript decorators without reading or writing metadata. The repository build uses it after source-only generation; consumers that generate metadata during bundling use `typertPlugin()`.
+The `./tsdown` subpath exports `decoratorPlugin()` and `typertPlugin()`. `decoratorPlugin()` lowers standard TypeScript decorators without reading or writing metadata. The repository build uses it after source-only generation; consumers that generate metadata during bundling use `typertPlugin()`.
 
 `typertPlugin()` serves builds that generate metadata during bundling: it lowers standard decorators in TypeScript dependencies before bundling and emits the model-driven face artifacts at the package output root. A module-id filter on its `transform` hook keeps non-TypeScript modules out of JavaScript. The workspace root is the nearest ancestor of the bundle that contains both `tsconfig.host.json` and `packages/`, so a package's own face leaf config never qualifies. In `package` mode it generates synchronously in the bundled package's `writeBundle` and emits only that package.
 
@@ -116,6 +122,8 @@ Host and Client are independent TypeScript programs. Direct project references e
 `FaceModelEmitter` emits executable JavaScript containing success-cached Zod schema factories and the `TYPERT` contribution, plus a declaration file whose factories return `z.ZodType<SourceType>` through the package's public export; unsupported Zod projections fail. The Host face with Remote methods additionally emits `typert.remote-client.*` projections of Host Remote contracts for the Client, including the declaration map its generated declaration references. `WorkspaceTypertGenerator` validates each contributor's `package.json`: `./typert` and `./client/typert` (and `./remote` when Remote methods exist) must point at the exact generated files, and the `files` list must include them.
 
 [Unary binary results](../protocol/README.md) are recognized after generic type resolution. Their codecs validate the byte-array type and JSON metadata without iterating, copying, or freezing the byte payload; generated Client declarations retain the authored metadata and narrow the byte backing to `ArrayBuffer`.
+
+The `readonly` array and tuple operator uses Zod readonly schemas, which validate element types and freeze the parsed container. `keyof` and `unique` operators still fail emission; readonly does not make an unsupported element type projectable.
 
 ### Catalog projection
 

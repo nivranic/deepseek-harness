@@ -1,0 +1,17 @@
+<?xml version="1.0" encoding="UTF-8"?>
+<testsuite name="ai.deepseek.dsh.companion.NativeShareAttachmentsModelTest" tests="11" skipped="0" failures="0" errors="0" timestamp="2026-09-27T22:56:58.794Z" hostname="WADEPRUDENCE" time="0.091">
+  <properties/>
+  <testcase name="every source and receipt failure leaves the complete preexisting draft unchanged()" classname="ai.deepseek.dsh.companion.NativeShareAttachmentsModelTest" time="0.035"/>
+  <testcase name="a complete mixed batch merges once with the newest draft and leaves pending intent unchanged()" classname="ai.deepseek.dsh.companion.NativeShareAttachmentsModelTest" time="0.009"/>
+  <testcase name="per-item byte and encoded JSON limits close the source without adopting or calling the Host()" classname="ai.deepseek.dsh.companion.NativeShareAttachmentsModelTest" time="0.003"/>
+  <testcase name="save failure retains adopted content and explicit save retry neither uploads nor appends it again()" classname="ai.deepseek.dsh.companion.NativeShareAttachmentsModelTest" time="0.006"/>
+  <testcase name="duplicate receipts reject the whole batch without replacing its original draft()" classname="ai.deepseek.dsh.companion.NativeShareAttachmentsModelTest" time="0.005"/>
+  <testcase name="declared and detected images never fall back to file upload and capabilities precede name and open()" classname="ai.deepseek.dsh.companion.NativeShareAttachmentsModelTest" time="0.004"/>
+  <testcase name="text and combined count limits reject before provider metadata or upload()" classname="ai.deepseek.dsh.companion.NativeShareAttachmentsModelTest" time="0.003"/>
+  <testcase name="a later file budget refusal prevents partial batch adoption and preserves newer input and pending intent()" classname="ai.deepseek.dsh.companion.NativeShareAttachmentsModelTest" time="0.006"/>
+  <testcase name="text-only shares use one admission and preserve existing attachments without an upload()" classname="ai.deepseek.dsh.companion.NativeShareAttachmentsModelTest" time="0.005"/>
+  <testcase name="adoption rechecks current attachment count and never overwrites edits made while uploading()" classname="ai.deepseek.dsh.companion.NativeShareAttachmentsModelTest" time="0.003"/>
+  <testcase name="a reviewed Session generation cannot be substituted before or during import()" classname="ai.deepseek.dsh.companion.NativeShareAttachmentsModelTest" time="0.006"/>
+  <system-out><![CDATA[]]></system-out>
+  <system-err><![CDATA[]]></system-err>
+</testsuite>

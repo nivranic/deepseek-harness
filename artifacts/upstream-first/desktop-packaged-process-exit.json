@@ -1,0 +1,20 @@
+{
+  "scope": "Official unsigned Windows Desktop from packaged resources with isolated data; no installer or OS login registration",
+  "exe": "E:\\Mix\\project\\deepseek-harness\\.worktrees\\upstream-first\\apps\\desktop\\.desktop-build\\targets\\win-x64\\unsigned-artifacts\\win-unpacked\\DeepSeek Harness.exe",
+  "exeSha256": "0f9aa369b704e08ba66f5f8d3443504f9fc83c29dd6ff453d6eac22afa676709",
+  "outside": "C:\\Users\\11585\\AppData\\Local\\Temp\\dsh-desktop-packaged-CTxQfW",
+  "home": "C:\\Users\\11585\\AppData\\Local\\Temp\\dsh-desktop-packaged-CTxQfW\\home",
+  "userData": "C:\\Users\\11585\\AppData\\Local\\Temp\\dsh-desktop-packaged-CTxQfW\\electron-user-data",
+  "pid": 22816,
+  "args": [
+    "--inspect=0",
+    "--remote-debugging-port=0",
+    "--user-data-dir=C:\\Users\\11585\\AppData\\Local\\Temp\\dsh-desktop-packaged-CTxQfW\\electron-user-data"
+  ],
+  "log": ".artifacts/desktop-packaged-start.log",
+  "started": true,
+  "exitCode": 2147483651,
+  "signal": null,
+  "errors": [],
+  "endedAt": "2026-09-15T18:37:47.640Z"
+}

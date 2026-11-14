@@ -1,0 +1,19 @@
+# Bilingual-pair consistency record for 2026-09-16-storage-owner-teardown.md (docs/i18n/README.md): per heading
+# section, a hash of its English and Chinese blocks outside code blocks and generated regions.
+# After editing either side, bring the other along and re-record with:
+#   pnpm run verify-translation-pairing --write .agents/notes/implemented/bug-fix/2026-09-16-storage-owner-teardown.md
+/agent-note-backend-teardown-drains-unit-owners:
+  en: 6b4047df935c236f
+  zh: 2deef2366e3680dc
+/agent-note-backend-teardown-drains-unit-owners/problem:
+  en: 785a94ce9edc3b6f
+  zh: 78bffeae6e119bf7
+/agent-note-backend-teardown-drains-unit-owners/decision:
+  en: 8ca818e6f131c280
+  zh: 57e83446b483dad9
+/agent-note-backend-teardown-drains-unit-owners/alternatives-considered:
+  en: d1f413f0b3465f20
+  zh: 79045495bf751563
+/agent-note-backend-teardown-drains-unit-owners/consequences:
+  en: 8ce24c2ba31a7881
+  zh: bbf924691b41aa48

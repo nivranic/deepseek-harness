@@ -49,6 +49,9 @@ worktrees/
 .agents/worktrees/
 .typert-*/
 native/system/test/bin/
+# Local analysis-tool state (ZCode router, Mimosa scanner) never enters the repository.
+.glm-router/
+.mimosa/
 
 # Generated company-signed CUA release record.
 /packages/experimental/cua-macos/cua-helper.json

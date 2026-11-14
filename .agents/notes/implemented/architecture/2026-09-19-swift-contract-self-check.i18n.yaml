@@ -1,0 +1,46 @@
+# Bilingual-pair consistency record for 2026-09-19-swift-contract-self-check.md (docs/i18n/README.md): per heading
+# section, a hash of its English and Chinese blocks outside code blocks and generated regions.
+# After editing either side, bring the other along and re-record with:
+#   pnpm run verify-translation-pairing --write .agents/notes/implemented/architecture/2026-09-19-swift-contract-self-check.md
+/agent-note-swift-contract-column-runs-as-a-self-check-executable:
+  en: 8bf7a142328e2e8d
+  zh: 3fbde1006e17120c
+/agent-note-swift-contract-column-runs-as-a-self-check-executable/problem:
+  en: ee044758b549455e
+  zh: f0d286b471091d6a
+/agent-note-swift-contract-column-runs-as-a-self-check-executable/current-upstream-boundary:
+  en: a9083c84d68abe93
+  zh: 8c72a7b8fb2c1471
+/agent-note-swift-contract-column-runs-as-a-self-check-executable/decision:
+  en: f84ca825393da6aa
+  zh: 6b3065380f5f4ef5
+/agent-note-swift-contract-column-runs-as-a-self-check-executable/alternatives-considered:
+  en: 35631e863c4058aa
+  zh: d649020dac3c0cbf
+/agent-note-swift-contract-column-runs-as-a-self-check-executable/contract:
+  en: d1bdcf1afa418486
+  zh: 4a5f61969e2d3d77
+/agent-note-swift-contract-column-runs-as-a-self-check-executable/persistence:
+  en: 5098be1c2ae7260d
+  zh: d61450da8c308629
+/agent-note-swift-contract-column-runs-as-a-self-check-executable/security:
+  en: fdab1647f7b18517
+  zh: 87c127226c48b75b
+/agent-note-swift-contract-column-runs-as-a-self-check-executable/compatibility:
+  en: 961e5bf602ecefee
+  zh: 3c6aba43e2a30a68
+/agent-note-swift-contract-column-runs-as-a-self-check-executable/failure-handling:
+  en: 839494db967b9e94
+  zh: aede02fcfb3b55c7
+/agent-note-swift-contract-column-runs-as-a-self-check-executable/testing:
+  en: f3f0a6b4e9583d92
+  zh: 1d0eeb147cc7a37b
+/agent-note-swift-contract-column-runs-as-a-self-check-executable/rollout:
+  en: 59f0682c98cd4db3
+  zh: 6fd68c4abb739979
+/agent-note-swift-contract-column-runs-as-a-self-check-executable/rollback:
+  en: a5a17f099c33ddad
+  zh: 4b07d7ab8537c8fd
+/agent-note-swift-contract-column-runs-as-a-self-check-executable/consequences:
+  en: 589fa3bb98ea727e
+  zh: ac46f73a0904c916

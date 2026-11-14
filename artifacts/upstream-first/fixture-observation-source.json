@@ -1,0 +1,238 @@
+{
+  "schemaVersion": 1,
+  "baseSha": "c291e7961a515f6d7af9304e7fd1d257929aef26",
+  "capturedAt": "2026-09-15T15:40:08.085Z",
+  "scope": "Three reviewed downstream test-observation fixes and supported-entry source review; associated product sources and vendor code unchanged",
+  "productSourcesUnchangedFromUpstream": true,
+  "sourceFiles": [
+    {
+      "path": "packages/client/ui-subagent/tests/conversation-ui.client.spec.tsx",
+      "sha256": "efd6f2d618a1f13a84117b6660881fb2058247c3d7fb4078216ed73745b81cae",
+      "bytes": 34025
+    },
+    {
+      "path": "packages/context/file-reference-local/tests/search.spec.ts",
+      "sha256": "edfb6fb7e7a1b99c33545855547fa0d39602b0b2eacef02dfbe9fd60499e08b3",
+      "bytes": 14477
+    },
+    {
+      "path": "packages/credentials/credentials-local/tests/local.spec.ts",
+      "sha256": "68b3706d51cb3bf4ad1603234c043c850338490095b16fac7784c75b06948673",
+      "bytes": 24275
+    },
+    {
+      "path": ".agents/notes/implemented/testing/2026-09-08-ci-completion-observations.md",
+      "sha256": "eb6b31b7fef83a18f4603e21bdc3fb2a099829acdff8f2887860e03bb1df1379",
+      "bytes": 6586
+    },
+    {
+      "path": ".agents/notes/implemented/testing/2026-09-08-ci-completion-observations.zh.md",
+      "sha256": "f7d793067743e19a75174e487df2ea685af534133de02028c997db0e55ee1759",
+      "bytes": 5747
+    },
+    {
+      "path": ".agents/notes/implemented/testing/2026-09-08-ci-completion-observations.i18n.yaml",
+      "sha256": "913c38ff5d4eb63aac500c653b4ec10183697cd7dd8f62590421df7b5bcb95f8",
+      "bytes": 536
+    }
+  ],
+  "productSources": [
+    {
+      "path": "packages/client/ui-subagent/src/client/SubagentHeaderLineage.tsx",
+      "sha256": "41cc1f7726ce913f8b7c8057f87661ebb12682166ea6cd5342d64df4111077b2",
+      "bytes": 29843
+    },
+    {
+      "path": "packages/context/file-reference-local/src/search.ts",
+      "sha256": "78244bca498177d1c5e889746b8d8b1c0dda1d4e062050ac05469ab7568ac9b5",
+      "bytes": 15361
+    },
+    {
+      "path": "packages/credentials/credentials-local/src/index.ts",
+      "sha256": "45207ea04e6cf6d9bf49977bcb15651795197c902d2c713c1d65e7439a0249dd",
+      "bytes": 43567
+    }
+  ],
+  "reviewSources": [
+    {
+      "path": "vendor/hmr/src/index.ts",
+      "sha256": "5d9ea00ede52a1b03abbf10a0df75d886403debe25a2a0495c6814dc6842220b",
+      "bytes": 19647
+    },
+    {
+      "path": "apps/cli/src/bin.ts",
+      "sha256": "5e0d5ce83949d7ceed8207622151ac17b2680aa8991c84fff40e2bd9285b9ad2",
+      "bytes": 2052
+    },
+    {
+      "path": "apps/cli/src/profile-boot.ts",
+      "sha256": "33062248e5d402329c87aba9c7717abf043f863207fa2d5dcf48b1dc5238494d",
+      "bytes": 17489
+    },
+    {
+      "path": "apps/desktop/src/host-process.ts",
+      "sha256": "724f9a0db679ab3964d7d6bacc55caf0d84a4ffb0077eb5835642575b8df3ad5",
+      "bytes": 16691
+    },
+    {
+      "path": "python/sdk-runtime/runtime-bootstrap.mjs",
+      "sha256": "5f6cb11087fc4bd5ea93db0c5472e435a0ac18e325536d934ee46e8d5fd473ae",
+      "bytes": 505
+    },
+    {
+      "path": "scripts/build-exe-for-python-sdk.ts",
+      "sha256": "fc3e1e7ddad2714699d461316dceaea9322bf3a5bb47bad3cb2ba2d5236dab96",
+      "bytes": 26200
+    },
+    {
+      "path": "patches/@yao-pkg__pkg@6.21.0.patch",
+      "sha256": "28edd2180c36691c481522ef81f6f6614505f45e491aad542ac4663d4e6b3ff8",
+      "bytes": 640
+    },
+    {
+      "path": "packages/util/native-command/src/path-opener.ts",
+      "sha256": "777a10898d74243ea1b458108a672893f2b939b1a149bb282e47b697680cec48",
+      "bytes": 10715
+    },
+    {
+      "path": "packages/util/native-command/tests/path-opener.spec.ts",
+      "sha256": "085d6005acf5eb4972f45ac7f0ada2a074ad9b15601db5791669115a00a3fa51",
+      "bytes": 19442
+    },
+    {
+      "path": "packages/terminal/terminal-bash/tests/local.spec.ts",
+      "sha256": "b715daa38ec30fd7ebe44ebd0f22e1a5a0c1a84e0313c251e5a938c0b01b5526",
+      "bytes": 18484
+    },
+    {
+      "path": ".agents/notes/implemented/testing/2026-09-07-pwsh-ci-observable-completion.md",
+      "sha256": "cf55b8472ba2992fff34d6d753561ab60d44587fb1843fdc29e247e3d9af3b4a",
+      "bytes": 3154
+    }
+  ],
+  "dependencyEvidence": [
+    {
+      "path": "node_modules/@yao-pkg/pkg/prelude/sea-bootstrap.bundle.js",
+      "sha256": "a46a4d08f22f3cc22db0eeb5c21eae0bd9d2e4ce42d0e4d1f5300f747d3baa6b",
+      "bytes": 392030
+    },
+    {
+      "path": "node_modules/@yao-pkg/pkg/package.json",
+      "sha256": "2f8a034e7a0f4a2510d528f4115ce8fc0c37085fb91eac0b8986855a15219228",
+      "bytes": 4038
+    }
+  ],
+  "receipts": [
+    {
+      "path": "artifacts/upstream-first/fixture-observation-concurrent.json",
+      "sha256": "7420b22458d35c38e839da1dcae2d2fa7a0934264fbd43e9af132e69ac7cb937",
+      "bytes": 1449
+    }
+  ],
+  "helpers": [
+    {
+      "path": ".artifacts/fixture-observation-concurrent.mjs",
+      "sha256": "0f847a8b85c4496b44eadd3ac8f00a8ffabba307324fa698ac99da1b6d1d2fa7",
+      "bytes": 2470
+    },
+    {
+      "path": ".artifacts/capture-fixture-observation.mjs",
+      "sha256": "59d24186d748b4c9b6699f642e8a777d1bf3c367724228e13c9029ed3406b56f",
+      "bytes": 5593
+    }
+  ],
+  "logs": [
+    {
+      "path": ".artifacts/fixture-observation-before.log",
+      "sha256": "c276e591ecbbf2f8987b2ab3e9692e5146d27c08f82c3687529451f8f9ec3039",
+      "bytes": 955
+    },
+    {
+      "path": ".artifacts/fixture-observation-after.log",
+      "sha256": "d70df67aec3b6c6dfcceb2500e6174cc04e6a76760d77db8cef93ac83b1841ea",
+      "bytes": 955
+    },
+    {
+      "path": ".artifacts/fixture-observation-concurrent-full.log",
+      "sha256": "8385030679e6754ee309adc1e657582ee5151bd91ab0d3d77e7abc83d5dffa11",
+      "bytes": 943
+    },
+    {
+      "path": ".artifacts/fixture-observation-concurrent-focused.log",
+      "sha256": "04f94dada2096003955ff7e616e8c0f0184128e43adec40b0c320c4dafdfee7c",
+      "bytes": 943
+    },
+    {
+      "path": ".artifacts/fixture-observation-pairing.log",
+      "sha256": "cfcdeabdffa2f6e96d174daeb52d0cf57ffc74866533a28e4933929077d4efbe",
+      "bytes": 339
+    },
+    {
+      "path": ".artifacts/fixture-observation-doc-sync.log",
+      "sha256": "8af356e7408c76ad6087d8967902631cf18ae167c84ba7921c2537784d0f540b",
+      "bytes": 2948
+    },
+    {
+      "path": ".artifacts/fixture-observation-lint.log",
+      "sha256": "4ff89f87d8ebc62934944bc257bbc1e93faa3c3cda652fb6e55a67c202a6233f",
+      "bytes": 31
+    }
+  ],
+  "historicalRecords": [
+    {
+      "path": "artifacts/upstream-first/picker-source.json",
+      "sha256": "aae67546f7a02662ab38f492a3e102c328b347e5a2f12dd8650e315ebbbc826e",
+      "bytes": 13012
+    },
+    {
+      "path": "artifacts/upstream-first/desktop-context-source.json",
+      "sha256": "a76b0e3858d5e0c5dbaf5dfb4fe65e8a4d4668f7c41a5afac7605afb870d47c8",
+      "bytes": 28687
+    }
+  ],
+  "checks": [
+    {
+      "id": "fixture-observation-before",
+      "status": "PASS",
+      "passed": 3,
+      "filteredSkips": 94,
+      "detail": "The unmodified focused cases pass on this host; this run does not reproduce an intermittent failure."
+    },
+    {
+      "id": "fixture-observation-current",
+      "status": "PASS",
+      "passed": 95,
+      "platformSkipped": 2,
+      "command": "node .artifacts/fixture-observation-concurrent.mjs",
+      "receipt": "artifacts/upstream-first/fixture-observation-concurrent.json",
+      "detail": "The final full suite overlaps an independent three-case run. chmod directory denial and Unix credential mode checks retain their Windows skips."
+    },
+    {
+      "id": "fixture-observation-doc-sync",
+      "status": "PASS",
+      "passed": 34,
+      "failed": 0,
+      "command": "pnpm run doc-sync",
+      "log": ".artifacts/fixture-observation-doc-sync.log"
+    },
+    {
+      "id": "fixture-observation-lint",
+      "status": "PASS",
+      "command": "pnpm run lint:contracts-ready",
+      "log": ".artifacts/fixture-observation-lint.log"
+    }
+  ],
+  "dispositions": {
+    "reactTimer": "Applied act around timer advancement; existing cleanup restores real timers.",
+    "restoredDirectory": "Applied atomic rename of a populated private directory; existing cleanup owns both paths.",
+    "credentialSnapshot": "Checks initial entries, an explicit empty document, and a distinct surviving value with the removed entry absent.",
+    "nativeKernelProbe": "Keep upstream explicit osRelease fixtures for generic Linux and WSL2; do not add the legacy test that mirrors the ambient kernel implementation.",
+    "terminal": "Keep upstream held-command/retained-scrollback PowerShell assertions and existing timing. Linux /dev/tty output observation and initial prompt retention still need platform review; no terminal test changes made.",
+    "vendorEntry": "Keep upstream HMR unchanged. Source/built dsh and Desktop Host launch a file entry; the pinned pkg SEA bootstrap assigns argv[1] before application module loading. node -e and in-process Electron HMR are outside supported application entry paths."
+  },
+  "exclusions": [
+    "No product implementation, runtime timing, CI routing or recorded Session output changed",
+    "No claim that this host reproduced the old intermittent failures",
+    "No new Desktop, installed executable, external CLI, WSL or POSIX runtime qualification"
+  ]
+}

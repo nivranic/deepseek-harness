@@ -1,0 +1,70 @@
+{
+  "status": "PASS",
+  "scope": "Report bindings and audit for the Device identity confirmation; the remaining specification sections stay open; full Upstream-First objective remains in progress",
+  "gate0": {
+    "validation": "PASS",
+    "gate0": "PASS",
+    "paths": 1938,
+    "components": 129,
+    "specificationCoverage": {
+      "status": "PASS",
+      "numberedSections": 81,
+      "nonEmptySourceLines": 1983,
+      "acceptanceProven": false
+    }
+  },
+  "sourceRecord": {
+    "path": "artifacts/upstream-first/device-identity-confirmation-source.json",
+    "sha256": "86846d726cd5835bc18ee7b5cd47997fadcdd1a1dcad6d39ea169915b8382120"
+  },
+  "generator": {
+    "path": "artifacts/upstream-first/write-reports.mjs",
+    "sha256": "5d78cc996d5a08cee9f1c7acad877d497e3c012e623ee63d5a4e513133168d0e"
+  },
+  "binding": {
+    "path": "artifacts/upstream-first/device-identity-confirmation-binding.json",
+    "sha256": "a8558b63ecc9769a7cfb58fd6388d11d1d88985f51923b8fd9de17fe304c9a56"
+  },
+  "helpers": [
+    {
+      "path": ".artifacts/advance-device-identity-confirmation-reports.mjs",
+      "sha256": "4c287fd41dc95736b23e74321d3dca2cf8e0e875f88afa949f310b05179bb5bc"
+    },
+    {
+      "path": ".artifacts/capture-device-identity-confirmation-validation.mjs",
+      "sha256": "cd40fc807d063340bc5b644d0cc945183ee662c684d217030975137d1f4d3dd9"
+    }
+  ],
+  "reports": [
+    {
+      "path": "IMPLEMENTATION_STATUS.md",
+      "sha256": "c95cf82592b3fd5b31934e76e2a72681d70b0d262477458765f1a1d5d8aa57f1"
+    },
+    {
+      "path": "artifacts/upstream-first/evidence.json",
+      "sha256": "a9691dd836ae58d97d9c63f9375a4b81f3778928236d8a6f8dd0abdf86823a41"
+    }
+  ],
+  "checks": [
+    {
+      "path": ".artifacts/device-identity-confirmation-binding.log",
+      "sha256": "fcb52a83a89123fff7d5dab54f443b3eeb8e7b288e2e04cc3f515e163d7e7198"
+    },
+    {
+      "path": ".artifacts/device-identity-confirmation-audit-tests.log",
+      "sha256": "4471115b1003850e1edd4dd150e2ed4dbbbac0d1c9afb94812b8f9fbadbaaaac"
+    },
+    {
+      "path": ".artifacts/device-identity-confirmation-gate0.log",
+      "sha256": "505d74ef938f5d34d85490d37e0176ba804d93272fcf465ce2544a02c56b3f90"
+    },
+    {
+      "path": ".artifacts/device-identity-confirmation-report-diff-check.log",
+      "sha256": "e3b0c44298fc1c149afbf4c8996fb92427ae41e4649b934ca495991b7852b855"
+    },
+    {
+      "path": ".artifacts/device-identity-confirmation-report-generation.log",
+      "sha256": "fe010532f71a6341467ae5719b29ac19470895de1d481156335b8f70a3273ed5"
+    }
+  ]
+}

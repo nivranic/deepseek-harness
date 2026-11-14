@@ -1,0 +1,30 @@
+{
+  "status": "PASS",
+  "cases": [
+    {
+      "path": "artifacts/upstream-first/desktop-context-source.json",
+      "status": "PASS",
+      "rejected": "Desktop context source record changed"
+    },
+    {
+      "path": "apps/desktop/README.md",
+      "status": "PASS",
+      "rejected": "Desktop context sourceFiles changed after validation: apps\\/desktop\\/README.md"
+    },
+    {
+      "path": "apps/desktop-host/src/desktop-context.ts",
+      "status": "PASS",
+      "rejected": "Desktop context sourceFiles changed after validation: apps\\/desktop-host\\/src\\/desktop-context.ts"
+    },
+    {
+      "path": "artifacts/upstream-first/desktop-context-smoke.json",
+      "status": "PASS",
+      "rejected": "Desktop context receipts changed after validation: artifacts\\/upstream-first\\/desktop-context-smoke.json"
+    },
+    {
+      "path": ".artifacts/desktop-before-context/apps/desktop/README.md",
+      "status": "PASS",
+      "rejected": "Desktop context archivedFiles changed after validation"
+    }
+  ]
+}

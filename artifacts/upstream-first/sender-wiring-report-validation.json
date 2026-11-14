@@ -1,0 +1,66 @@
+{
+  "status": "PASS",
+  "scope": "Report bindings and audit for the sender-wiring increment: the §17 clientMutationId sender wiring (the client half of the gen-47 Host receipts — without a client minting the id, production traffic could never use the resend settlement) resting on the core safety property that the Host records a receipt only on successful settlement, so the client reuses the same id aggressively without ever blocking a real retry: a failed intent's same-id reuse runs fresh in the Host while a lost-response resend returns the first settlement — Lane A's ui-commands execute exit remembering by submit intent (same line plus identical attachment list reuses the id; a content change or an already-settled execution — handler-error settlements included — clears/replaces; per-session isolation; attachments held by reference and compared item-by-item), the uuid minted through dsh-util-crypto (the repo lint forbids crypto.randomUUID — the web insecure-context gap, the ui-conversation precedent — riding devDependencies with packaging inlined per the client-package convention, pnpm-lock synced), Lane B's client sessions fork exit remembering by the (sessionId, rounded atSeq) anchor (the entry written before the await so concurrent same-anchor submissions share one id, a failure keeps it, a success clears it; the packaging passing through at the manager layer) — proven by the two-spec joint round 2 files / 128 tests green (.artifacts/sender-wiring-specs.log: ui-commands 75 / sessions-service 53); no projection regeneration (the request interfaces flow from the gen-47 source types), no Kotlin execute surface and zero native-mirror change; the ledger §17 1628→1929 chars with the evidence list 28→30 with the note trio paired ahead of the doc-sync round (.artifacts/gen48-note-pairing.log); the gates: typecheck EXIT 0 in its own chained log (build:lib:host then tsc -b tsconfig.client.json) and lint clean in its own chained log (Found 0 warnings and 0 errors, Finished in 95.3s on 3855 files, no labelled trailer), doc-quick 17 gates green in 70.97s and doc-sync 36 passed 0 failed 0 skipped in 232.15s (both zero-repair first-pass forms — no repair round ran this generation), traceability 6/6 (TAP, §17 at 1929 chars / 30 evidence entries), gate0 PASS in both forms (1938 paths / 129 components / 81 sections), and the serial double audit round green at 87 files / 1073 tests on both passes over gen-40's curated lineage at its gen-40 name (nothing this increment touches is a lineage member — the session-controller client sessions and ui-commands surfaces, the docs families and the traceability ledger sit outside the client list); the android acceptance is recorded honestly: the scanner-env gradle round came back BUILD SUCCESSFUL in 1m 30s with 70 actionable tasks of which 1 executed (:app:verifyScannerResources) and 69 up-to-date — the fully warm zero-rebuild form, no gradle rerun round existing because the first round was already warm — with both APKs IDENTICAL against the client-mutation record's own builtFiles entries at the gen-47 rebuild bytes fb66b477/bbe7a3af (cross-checked live) and the core XML aggregate still reading 77 suites / 477 tests (.artifacts/sender-wiring-core-results.json); the byte-proof follows the measured IDENTICAL form (.artifacts/sender-wiring-apk-bytes.log, prior apk records: 2), and the prepare oracle derived the measured twelve replaced prior build outputs — ten old-stable lib keys resolving through the newest-history archive fallback and two second-order keys (the gen-47-created ui-commands service lib bytes with no disk, archive or committed copy) resolved by the dwfq-a83d7bb8-1 chain ruling (the 44th) as an exact 2-key skip set on the demoted client-mutation block per the gen-33 precedent (sealing {\"files\":7783,\"reused\":0,\"written\":7783,\"replacedPriorBuildOutputs\":12}), so the generator gains no sender-wiring set at all (the Option A newest-history form plus the adjudicated exemption, no new cumulative ReplacedBuildOutputs or SupersededSources collections, the gen-32 desktopPackageReplacedBuildOutputs set staying exactly six); the durable receipt (needing a new SessionEventMap vocabulary plus the SDK projection flow) stays open, relayMetadata is still the only class of the five without a producer (blocked on section 23), the section 56 signing/notarization/update-source acceptance stays open on its materials, the CI coverage gap for the client tsdown face stays open, the pdf-license-bundle npm-pack host timing baseline stays outside the audit lineage with CI Linux green, the admitEncodedImages acceptance awaits its manual ruling, and the Linux/lib forms ride CI — so no whole-section PASS is granted; full Upstream-First objective remains in progress",
+  "gate0": {
+    "validation": "PASS",
+    "gate0": "PASS",
+    "paths": 1938,
+    "components": 129,
+    "specificationCoverage": {
+      "status": "PASS",
+      "numberedSections": 81,
+      "nonEmptySourceLines": 1983,
+      "acceptanceProven": false
+    }
+  },
+  "sourceRecord": {
+    "path": "artifacts/upstream-first/sender-wiring-source.json",
+    "sha256": "c1a612ba738d62c3510b378dfa5f3130105b47512f2af2f727e89fe9d9f93562"
+  },
+  "generator": {
+    "path": "artifacts/upstream-first/write-reports.mjs",
+    "sha256": "976b5215ebe1b050d97086d1219ee76cd3377902f12627f7c2de2442eea12062"
+  },
+  "binding": {
+    "path": "artifacts/upstream-first/sender-wiring-binding.json",
+    "sha256": "e0dcd79fb8d634b3e887fce32e9c97bff7aa199dacddce3ad9afe65623549811"
+  },
+  "helpers": [
+    {
+      "path": ".artifacts/advance-sender-wiring-reports.mjs",
+      "sha256": "f8a48c5ce004063fafd3994d680b24c58b49d6011d6e4e53f668afffb9012c17"
+    },
+    {
+      "path": ".artifacts/capture-sender-wiring-validation.mjs",
+      "sha256": "f2d6931759349d90ed8e700b00d729ef7f1411d7bda9727015fb0adac07ba22b"
+    }
+  ],
+  "reports": [
+    {
+      "path": "IMPLEMENTATION_STATUS.md",
+      "sha256": "a46c615ab02e68d3b3f5759c3f40f2cbb11616bc601b3c6f15e6f4e809ecbdac"
+    },
+    {
+      "path": "artifacts/upstream-first/evidence.json",
+      "sha256": "7c4ab8e3c2d57166c2af9fff9762738fd0450f707ed722d487d1273096862a0f"
+    }
+  ],
+  "checks": [
+    {
+      "path": ".artifacts/sender-wiring-binding.log",
+      "sha256": "11706c0c147c2bd0cba3412450ebf8ebe3ab7e142615b4ce083146f469fecf76"
+    },
+    {
+      "path": ".artifacts/sender-wiring-audit-final.log",
+      "sha256": "7df12c1399a1052d8ff8ae8ca47bf3becb74cc1608f4ba161f5950bdc742a9ab"
+    },
+    {
+      "path": ".artifacts/sender-wiring-gate0-final.log",
+      "sha256": "7e00efd82bd2a2b91b03ca80537dcc4af46cd09eb318ff58520cb2d7d7d8a48a"
+    },
+    {
+      "path": ".artifacts/sender-wiring-report-generation.log",
+      "sha256": "fe010532f71a6341467ae5719b29ac19470895de1d481156335b8f70a3273ed5"
+    }
+  ]
+}

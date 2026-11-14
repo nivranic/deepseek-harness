@@ -1,0 +1,49 @@
+{
+  "status": "PASS",
+  "gate0": {
+    "validation": "PASS",
+    "gate0": "PASS",
+    "paths": 1938,
+    "components": 129
+  },
+  "sourceRecord": {
+    "path": "artifacts/upstream-first/rename-revision-source.json",
+    "sha256": "ca1a2a0a749c5024a0950a6b8af8edd361a7a1dd7889fa3f72e156eb7d0c66eb"
+  },
+  "generator": {
+    "path": "artifacts/upstream-first/write-reports.mjs",
+    "sha256": "c277956a7014ea8bae0c9573131c69697ce5179128e1fefd3273e92204a3ca4e"
+  },
+  "binding": {
+    "path": "artifacts/upstream-first/rename-revision-binding.json",
+    "sha256": "bc60bec9397ac35ba2d5fc2417e4bf7bea3bd85f8c19093ae0c19bdd7c0fa6e9"
+  },
+  "reports": [
+    {
+      "path": "IMPLEMENTATION_STATUS.md",
+      "sha256": "2e233b2003a88c65209b2e2658c05729a658fbf091b94925644f99014f8d84de"
+    },
+    {
+      "path": "artifacts/upstream-first/evidence.json",
+      "sha256": "0e7f136a3fd84e1e0f8ca07e4f7046bf0d7c79a9ecc5cd8c407fd5a948bed4f0"
+    }
+  ],
+  "checks": [
+    {
+      "path": ".artifacts/rename-revision-binding.log",
+      "sha256": "70b9c757a3f5d3aa8182fcd8b5ce678d3690eac24a736eda97f14fa00f2a5b79"
+    },
+    {
+      "path": ".artifacts/rename-revision-audit-tests.log",
+      "sha256": "caff80f426443583592737e3d131371fd0c34e7539dd77751a09e092ca994c83"
+    },
+    {
+      "path": ".artifacts/rename-revision-gate0.log",
+      "sha256": "4b5af3121a7e7caff0e1b6288bdaa7cfef9988842ae06bf02dc0a74852426043"
+    },
+    {
+      "path": ".artifacts/rename-revision-report-diff-check.log",
+      "sha256": "e3b0c44298fc1c149afbf4c8996fb92427ae41e4649b934ca495991b7852b855"
+    }
+  ]
+}

@@ -1,0 +1,49 @@
+{
+  "status": "PASS",
+  "gate0": {
+    "validation": "PASS",
+    "gate0": "PASS",
+    "paths": 1938,
+    "components": 129
+  },
+  "sourceRecord": {
+    "path": "artifacts/upstream-first/interaction-expiry-source.json",
+    "sha256": "cf3a80384c963c87ef4f446b6cbfcb06421ae59fd288bb542ba4db99773f62c9"
+  },
+  "generator": {
+    "path": "artifacts/upstream-first/write-reports.mjs",
+    "sha256": "264ee8c00eea60539c99546fc4a00d3727f97b2f4a4fb70e9764ef885952b726"
+  },
+  "binding": {
+    "path": "artifacts/upstream-first/interaction-expiry-binding.json",
+    "sha256": "efe335baac807a6dc8c962d4173ae3f8bd4cdb4dcc5143973989b5b4607427ff"
+  },
+  "reports": [
+    {
+      "path": "IMPLEMENTATION_STATUS.md",
+      "sha256": "8fe3d7d031572bbfe1edc8f154166aaf31cdfe73b3a360538db28a3d890ffe5a"
+    },
+    {
+      "path": "artifacts/upstream-first/evidence.json",
+      "sha256": "3119c7df038697e39aceb168b8154912542fc27cc017c7fc6d52602748c774dd"
+    }
+  ],
+  "checks": [
+    {
+      "path": ".artifacts/interaction-expiry-binding.log",
+      "sha256": "7a88fd3550083cf3bb2b547993a9e6f8ab7e76846a19f0cd7564eee1e0b780b5"
+    },
+    {
+      "path": ".artifacts/interaction-expiry-audit-tests.log",
+      "sha256": "e2fa55879abfe59ef5c31f9089ef72856ff88fd33e461817777e6896b7a7b890"
+    },
+    {
+      "path": ".artifacts/interaction-expiry-gate0.log",
+      "sha256": "4b5af3121a7e7caff0e1b6288bdaa7cfef9988842ae06bf02dc0a74852426043"
+    },
+    {
+      "path": ".artifacts/interaction-expiry-report-diff-check.log",
+      "sha256": "e3b0c44298fc1c149afbf4c8996fb92427ae41e4649b934ca495991b7852b855"
+    }
+  ]
+}

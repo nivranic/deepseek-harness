@@ -125,6 +125,12 @@ Non-2xx responses fail with stable codes: `AUTH` (401/403), `QUOTA`, `RATE_LIMIT
 
 Provider plugins own catalog availability. While its API key resolves, the API-key route serves its configured `models`, or the official model listing while `models` is the built-in catalog on the official endpoint; the account route serves its account listing while signed in (see the [API-key](../llm-deepseek-api-key/README.md) and [account](../llm-deepseek-account/README.md) providers). The transport supplies the bundled catalog, the catalog-entry field schemas, and capability resolution, plus the listing machinery both routes share: `requestModelListing`, the credential-scoped `ModelListingCache` (owned by `createModelListingCache` for automatic refresh, notifications, and plugin cleanup), and `resolveListedCatalog` with its client-version gate, listed badges, and `refuseListedModel`; `catalogModelInfo` attaches a listed badge to the advertised entry. Badge text rejects controls, Unicode line separators, bidi controls, and strings made only of whitespace or default-ignorable characters; joined emoji remain valid. A provider may also supply `connect(signal)`, which resolves the connection for exact-model lookups and prepared calls after provider-owned work such as a catalog load, and `admit(connection, model)`, which refuses a model before network I/O.
 
+### Provider-call telemetry outlet
+
+Each streaming call that reaches the HTTP boundary leaves exactly one ops record through the optional session-telemetry owner (`ctx.sessionTelemetry`), gated by the §44 `providerMetadata` consent kind, which defaults to off. The record carries the provider route, model, purpose when set, an `ok` flag, and — when observed — the HTTP status, provider request id, retry delay, and call duration; `session.id` rides the record attributes when the request names a session. Usage facts leave through the session-telemetry ledger exit instead, and message content, prompts, completions, the endpoint URL, and credential material never enter the record. A missing owner, a closed gate, and the default-off consent all keep the adapter silent.
+
+The outbound `User-Agent` and identity attribution headers every provider request already carries are static request-path product facts, not telemetry: they never pass through this outlet or its consent gate.
+
 -----
 
 <a id="understand-the-implementation"></a>

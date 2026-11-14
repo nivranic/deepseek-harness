@@ -1,0 +1,16 @@
+{
+  "status": "PASS",
+  "controls": 3,
+  "sourceRecord": {
+    "path": "artifacts/upstream-first/roster-ui-source.json",
+    "sha256": "3c69badcd0c276411c87b6b4fbb72058a4c8f311b2ef354945b6e2c5209a5008"
+  },
+  "generator": {
+    "path": "artifacts/upstream-first/write-reports.mjs",
+    "sha256": "83bf37f0c1beeff573fa75445b5c0cde07e6dda83fd6f475a6426f7b8e68cd10"
+  },
+  "helper": {
+    "path": ".artifacts/check-roster-ui-binding.mjs",
+    "sha256": "d8df51cb4a280a26bb6c84979b2f615b305525a59be97b9053ef2ddc83a663a0"
+  }
+}

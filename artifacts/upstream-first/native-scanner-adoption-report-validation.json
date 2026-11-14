@@ -1,0 +1,70 @@
+{
+  "status": "PASS",
+  "scope": "Report bindings and audit for native scanner source and Android builder provenance; the remaining specification sections stay open; full Upstream-First objective remains in progress",
+  "gate0": {
+    "validation": "PASS",
+    "gate0": "PASS",
+    "paths": 1938,
+    "components": 129,
+    "specificationCoverage": {
+      "status": "PASS",
+      "numberedSections": 81,
+      "nonEmptySourceLines": 1983,
+      "acceptanceProven": false
+    }
+  },
+  "sourceRecord": {
+    "path": "artifacts/upstream-first/native-scanner-adoption-source.json",
+    "sha256": "ce7caa28ab47b4c13f9ba38ab8fcbf931e7c0ea7243a3a4d6abfe999d6dda091"
+  },
+  "generator": {
+    "path": "artifacts/upstream-first/write-reports.mjs",
+    "sha256": "5689cca5e85e6b20e0153b57a216a7f45e7a343f50719055b4a34914df9ecc50"
+  },
+  "binding": {
+    "path": "artifacts/upstream-first/native-scanner-adoption-binding.json",
+    "sha256": "97e2c407f344dc995b13deab230e0ed7c105bd2991f6d8e72ff0da4941519906"
+  },
+  "helpers": [
+    {
+      "path": ".artifacts/advance-native-scanner-adoption-reports.mjs",
+      "sha256": "33079ccb49db96323b6893ae5df69e7b48cc6ac1d08e8b13b6375a66d7781007"
+    },
+    {
+      "path": ".artifacts/capture-native-scanner-adoption-validation.mjs",
+      "sha256": "f5061f452de79c71cecd4cf90c6ec4bf15c4c9fc5ae719d96b4603efc7d50ea5"
+    }
+  ],
+  "reports": [
+    {
+      "path": "IMPLEMENTATION_STATUS.md",
+      "sha256": "0d1201d6df4df104f5fad62b525c192faac3a8f746a5292451bddbdd40bb5321"
+    },
+    {
+      "path": "artifacts/upstream-first/evidence.json",
+      "sha256": "4d683ed9cc7942466d272533b092e4b8d7104972f2d07ce17b67f8cc022f11f4"
+    }
+  ],
+  "checks": [
+    {
+      "path": ".artifacts/native-scanner-adoption-binding.log",
+      "sha256": "3febc1265180d5cfd042f0963f0df001dca5252597fa07c68d0bff11ad38f309"
+    },
+    {
+      "path": ".artifacts/native-scanner-adoption-audit-tests.log",
+      "sha256": "430eb740f6f84fc8f213f565f40aa5449ec42f1493ed2798dbf87081f2c3e76f"
+    },
+    {
+      "path": ".artifacts/native-scanner-adoption-gate0-report.log",
+      "sha256": "5427f71ff5b67b500b327d785dcaf84a7af2c6edd24b1833c4c7d83ad2cf37c8"
+    },
+    {
+      "path": ".artifacts/native-scanner-adoption-report-diff-check.log",
+      "sha256": "e3b0c44298fc1c149afbf4c8996fb92427ae41e4649b934ca495991b7852b855"
+    },
+    {
+      "path": ".artifacts/native-scanner-adoption-report-generation.log",
+      "sha256": "d3217692f2d8c85b68a506cf9cbab3c91e2a5f204196d2049e2c5ed0d379efdc"
+    }
+  ]
+}

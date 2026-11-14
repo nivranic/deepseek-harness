@@ -1,0 +1,19 @@
+# Bilingual-pair consistency record for 2026-10-27-host-status-surface.md (docs/i18n/README.md): per heading
+# section, a hash of its English and Chinese blocks outside code blocks and generated regions.
+# After editing either side, bring the other along and re-record with:
+#   pnpm run verify-translation-pairing --write .agents/notes/implemented/architecture/2026-10-27-host-status-surface.md
+/agent-note-the-web-settings-host-status-section-surfaces-the-41-readiness-verdict:
+  en: a6c5f94d30392c03
+  zh: 5c98e3abae527672
+/agent-note-the-web-settings-host-status-section-surfaces-the-41-readiness-verdict/problem:
+  en: 79c4abede23bcfe0
+  zh: 260354ccb14af1ee
+/agent-note-the-web-settings-host-status-section-surfaces-the-41-readiness-verdict/decision:
+  en: d58fb3e596f9378d
+  zh: f844ec79a03a47bf
+/agent-note-the-web-settings-host-status-section-surfaces-the-41-readiness-verdict/alternatives-considered:
+  en: d67670c0506f8a12
+  zh: 8300a53d1a545956
+/agent-note-the-web-settings-host-status-section-surfaces-the-41-readiness-verdict/consequences:
+  en: c5e9cea6b883d82d
+  zh: 4e4a06eb0275a3a7

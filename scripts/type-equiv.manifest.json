@@ -12,19 +12,9 @@
       "source": "packages/session/session-log-deepseek/src/types.ts"
     },
     {
-      "doc": "docs/subsystems/compaction.md",
-      "symbol": "ImageOffloadTarget",
-      "source": "packages/compaction/compaction-image-offload/src/projection.ts"
-    },
-    {
       "doc": "docs/subsystems/core.md",
       "symbol": "Branded",
       "source": "packages/util/brand/src/index.ts"
-    },
-    {
-      "doc": "docs/subsystems/llm-streaming.md",
-      "symbol": "AssistantProviderMetadata",
-      "source": "packages/llm/llm/src/message.ts"
     },
     {
       "doc": "docs/subsystems/llm-streaming.md",
@@ -73,16 +63,6 @@
     },
     {
       "doc": "docs/subsystems/llm-streaming.md",
-      "symbol": "LlmModelBadgeTone",
-      "source": "packages/llm/llm/src/types.ts"
-    },
-    {
-      "doc": "docs/subsystems/llm-streaming.md",
-      "symbol": "LlmModelBadge",
-      "source": "packages/llm/llm/src/types.ts"
-    },
-    {
-      "doc": "docs/subsystems/llm-streaming.md",
       "symbol": "LlmModelInfo",
       "source": "packages/llm/llm/src/types.ts"
     },
@@ -123,16 +103,6 @@
     },
     {
       "doc": "docs/subsystems/llm-streaming.md",
-      "symbol": "RequestUserInput",
-      "source": "packages/llm/llm/src/types.ts"
-    },
-    {
-      "doc": "docs/subsystems/llm-streaming.md",
-      "symbol": "RequestMessage",
-      "source": "packages/llm/llm/src/types.ts"
-    },
-    {
-      "doc": "docs/subsystems/llm-streaming.md",
       "symbol": "LlmRequestPurposeMap",
       "source": "packages/llm/llm/src/types.ts"
     },
@@ -158,27 +128,12 @@
     },
     {
       "doc": "docs/subsystems/llm-streaming.md",
-      "symbol": "LlmCallControls",
-      "source": "packages/llm/llm/src/call-config.ts"
-    },
-    {
-      "doc": "docs/subsystems/llm-streaming.md",
-      "symbol": "ConfigureCall",
-      "source": "packages/llm/llm/src/call-config.ts"
-    },
-    {
-      "doc": "docs/subsystems/llm-streaming.md",
       "symbol": "LlmCallConfigAdapterDefaults",
       "source": "packages/llm/llm/src/call-config.ts"
     },
     {
       "doc": "docs/subsystems/core.md",
       "symbol": "Inbox",
-      "source": "packages/core/agent/src/runtime-types.ts"
-    },
-    {
-      "doc": "docs/subsystems/core.md",
-      "symbol": "Model",
       "source": "packages/core/agent/src/runtime-types.ts"
     },
     {
@@ -501,21 +456,6 @@
     },
     {
       "doc": "docs/subsystems/session.md",
-      "symbol": "PluginRecordType",
-      "source": "packages/core/session/src/types.ts"
-    },
-    {
-      "doc": "docs/subsystems/session.md",
-      "symbol": "PluginRecordMap",
-      "source": "packages/core/session/src/types.ts"
-    },
-    {
-      "doc": "docs/subsystems/session.md",
-      "symbol": "PluginRecord",
-      "source": "packages/core/session/src/types.ts"
-    },
-    {
-      "doc": "docs/subsystems/session.md",
       "symbol": "TurnEndCancelCause",
       "source": "packages/core/session/src/types.ts"
     },
@@ -693,11 +633,6 @@
     },
     {
       "doc": "docs/subsystems/session-title.md",
-      "symbol": "SessionTitleModelIdentity",
-      "source": "packages/session/session-title/src/types.ts"
-    },
-    {
-      "doc": "docs/subsystems/session-title.md",
       "symbol": "SessionTitleSource",
       "source": "packages/session/session-title/src/types.ts"
     },
@@ -778,16 +713,6 @@
     },
     {
       "doc": "docs/subsystems/tools.md",
-      "symbol": "ToolOutputDefinition",
-      "source": "packages/core/tools/src/contracts.ts"
-    },
-    {
-      "doc": "docs/subsystems/tools.md",
-      "symbol": "ToolDefinition",
-      "source": "packages/core/tools/src/contracts.ts"
-    },
-    {
-      "doc": "docs/subsystems/tools.md",
       "symbol": "ValueSchemaSpec",
       "source": "packages/core/tools/src/schema.ts"
     },
@@ -838,11 +763,6 @@
     },
     {
       "doc": "docs/subsystems/tools.md",
-      "symbol": "PtcDispatchLog",
-      "source": "packages/core/tool-executor-ptc/src/runtime-types.ts"
-    },
-    {
-      "doc": "docs/subsystems/tools.md",
       "symbol": "ToolRunContext",
       "source": "packages/core/tools/src/contracts.ts"
     },
@@ -864,21 +784,6 @@
     {
       "doc": "docs/subsystems/tools.md",
       "symbol": "ToolRestriction",
-      "source": "packages/core/tools/src/contracts.ts"
-    },
-    {
-      "doc": "docs/subsystems/tools.md",
-      "symbol": "ToolActivationContext",
-      "source": "packages/core/tools/src/contracts.ts"
-    },
-    {
-      "doc": "docs/subsystems/tools.md",
-      "symbol": "ToolRegistrationOptions",
-      "source": "packages/core/tools/src/contracts.ts"
-    },
-    {
-      "doc": "docs/subsystems/tools.md",
-      "symbol": "ResolvedToolSet",
       "source": "packages/core/tools/src/contracts.ts"
     },
     {
@@ -963,36 +868,6 @@
     },
     {
       "doc": "docs/subsystems/user-questions.md",
-      "symbol": "AskUserQuestionRequestEvent",
-      "source": "packages/interaction/user-questions/src/types.ts"
-    },
-    {
-      "doc": "docs/subsystems/user-questions.md",
-      "symbol": "TimedUserQuestionResult",
-      "source": "packages/interaction/user-questions/src/index.ts"
-    },
-    {
-      "doc": "docs/subsystems/user-questions.md",
-      "symbol": "UserQuestionState",
-      "source": "packages/interaction/user-questions/src/types.ts"
-    },
-    {
-      "doc": "docs/subsystems/user-questions.md",
-      "symbol": "PendingUserQuestion",
-      "source": "packages/interaction/user-questions/src/types.ts"
-    },
-    {
-      "doc": "docs/subsystems/user-questions.md",
-      "symbol": "SettledUserQuestion",
-      "source": "packages/interaction/user-questions/src/types.ts"
-    },
-    {
-      "doc": "docs/subsystems/user-questions.md",
-      "symbol": "UserQuestionProjectionView",
-      "source": "packages/interaction/user-questions/src/types.ts"
-    },
-    {
-      "doc": "docs/subsystems/user-questions.md",
       "symbol": "UserQuestionError",
       "source": "packages/interaction/user-questions/src/index.ts"
     },
@@ -1063,16 +938,6 @@
     },
     {
       "doc": "docs/subsystems/attachment.md",
-      "symbol": "ImageRequestTarget",
-      "source": "packages/attachment/attachment/src/types.ts"
-    },
-    {
-      "doc": "docs/subsystems/attachment.md",
-      "symbol": "ProjectedDimensions",
-      "source": "packages/attachment/attachment/src/request-projection.ts"
-    },
-    {
-      "doc": "docs/subsystems/attachment.md",
       "symbol": "RequestImageAttachment",
       "source": "packages/attachment/attachment/src/types.ts"
     },
@@ -1113,31 +978,6 @@
     },
     {
       "doc": "docs/subsystems/jobs.md",
-      "symbol": "JobRegisteredData",
-      "source": "packages/jobs/jobs/src/types.ts"
-    },
-    {
-      "doc": "docs/subsystems/jobs.md",
-      "symbol": "JobSettledData",
-      "source": "packages/jobs/jobs/src/types.ts"
-    },
-    {
-      "doc": "docs/subsystems/jobs.md",
-      "symbol": "JobToolCall",
-      "source": "packages/jobs/jobs/src/types.ts"
-    },
-    {
-      "doc": "docs/subsystems/jobs.md",
-      "symbol": "JobSpec",
-      "source": "packages/jobs/jobs/src/types.ts"
-    },
-    {
-      "doc": "docs/subsystems/jobs.md",
-      "symbol": "JobHandle",
-      "source": "packages/jobs/jobs/src/types.ts"
-    },
-    {
-      "doc": "docs/subsystems/jobs.md",
       "symbol": "JobHooks",
       "source": "packages/jobs/jobs/src/types.ts"
     },
@@ -1148,42 +988,7 @@
     },
     {
       "doc": "docs/subsystems/jobs.md",
-      "symbol": "JobOutputSource",
-      "source": "packages/jobs/jobs/src/types.ts"
-    },
-    {
-      "doc": "docs/subsystems/jobs.md",
-      "symbol": "JobSourceRead",
-      "source": "packages/jobs/jobs/src/types.ts"
-    },
-    {
-      "doc": "docs/subsystems/jobs.md",
-      "symbol": "JobChunk",
-      "source": "packages/jobs/jobs/src/view.ts"
-    },
-    {
-      "doc": "docs/subsystems/jobs.md",
-      "symbol": "JobOutputRead",
-      "source": "packages/jobs/jobs/src/types.ts"
-    },
-    {
-      "doc": "docs/subsystems/jobs.md",
-      "symbol": "JobView",
-      "source": "packages/jobs/jobs/src/view.ts"
-    },
-    {
-      "doc": "docs/subsystems/jobs.md",
       "symbol": "JobRead",
-      "source": "packages/jobs/jobs/src/types.ts"
-    },
-    {
-      "doc": "docs/subsystems/jobs.md",
-      "symbol": "JobEvent",
-      "source": "packages/jobs/jobs/src/types.ts"
-    },
-    {
-      "doc": "docs/subsystems/jobs.md",
-      "symbol": "JobEventFilter",
       "source": "packages/jobs/jobs/src/types.ts"
     },
     {
@@ -1544,6 +1349,11 @@
     },
     {
       "doc": "docs/subsystems/subagent.md",
+      "symbol": "SubagentDescendantListEntry",
+      "source": "packages/subagent/subagent/src/list-children.ts"
+    },
+    {
+      "doc": "docs/subsystems/subagent.md",
       "symbol": "ContinuableCreateRequest",
       "source": "packages/subagent/subagent/src/types.ts"
     },
@@ -1838,11 +1648,6 @@
       "source": "packages/llm/llm/src/types.ts"
     },
     {
-      "doc": "docs/subsystems/llm-streaming.md",
-      "symbol": "LlmNativeAuth",
-      "source": "packages/llm/llm/src/types.ts"
-    },
-    {
       "doc": "docs/subsystems/permission-presets.md",
       "symbol": "Config",
       "source": "packages/interaction/permission-presets/src/index.ts"
@@ -1869,22 +1674,7 @@
     },
     {
       "doc": "docs/subsystems/web-server.md",
-      "symbol": "WebResource",
-      "source": "packages/host/webserver/src/index.ts"
-    },
-    {
-      "doc": "docs/subsystems/web-server.md",
-      "symbol": "WebResourceRoute",
-      "source": "packages/host/webserver/src/index.ts"
-    },
-    {
-      "doc": "docs/subsystems/web-server.md",
       "symbol": "Config",
-      "source": "packages/host/webserver/src/index.ts"
-    },
-    {
-      "doc": "docs/subsystems/web-server.md",
-      "symbol": "TlsConfig",
       "source": "packages/host/webserver/src/index.ts"
     },
     {
@@ -1928,16 +1718,6 @@
       "source": "packages/workspace/workspace/src/types.ts"
     },
     {
-      "doc": "docs/subsystems/workspace.md",
-      "symbol": "SessionActivityKindMap",
-      "source": "packages/workspace/workspace/src/types.ts"
-    },
-    {
-      "doc": "docs/subsystems/workspace.md",
-      "symbol": "SessionActivity",
-      "source": "packages/workspace/workspace/src/types.ts"
-    },
-    {
       "doc": "docs/subsystems/client-modules.md",
       "symbol": "WebBootEntry",
       "source": "packages/client/modules/src/client/manifest.ts"
@@ -1950,11 +1730,6 @@
     {
       "doc": "docs/subsystems/client-modules.md",
       "symbol": "WebBootBatch",
-      "source": "packages/client/modules/src/client/manifest.ts"
-    },
-    {
-      "doc": "docs/subsystems/client-modules.md",
-      "symbol": "WebBootRelease",
       "source": "packages/client/modules/src/client/manifest.ts"
     },
     {
@@ -2029,66 +1804,6 @@
     },
     {
       "doc": "docs/subsystems/typert.md",
-      "symbol": "RemoteStream",
-      "source": "packages/typert/protocol/src/types.ts"
-    },
-    {
-      "doc": "docs/subsystems/typert.md",
-      "symbol": "RemoteStreamHandle",
-      "source": "packages/typert/protocol/src/types.ts"
-    },
-    {
-      "doc": "docs/subsystems/typert.md",
-      "symbol": "PrincipalMap",
-      "source": "packages/typert/protocol/src/types.ts"
-    },
-    {
-      "doc": "docs/subsystems/typert.md",
-      "symbol": "Principal",
-      "source": "packages/typert/protocol/src/types.ts"
-    },
-    {
-      "doc": "docs/subsystems/typert.md",
-      "symbol": "PeerScope",
-      "source": "packages/typert/protocol/src/types.ts"
-    },
-    {
-      "doc": "docs/subsystems/typert.md",
-      "symbol": "RemoteUplinkWindow",
-      "source": "packages/typert/protocol/src/types.ts"
-    },
-    {
-      "doc": "docs/subsystems/typert.md",
-      "symbol": "RemoteInvocation",
-      "source": "packages/typert/protocol/src/types.ts"
-    },
-    {
-      "doc": "docs/subsystems/typert.md",
-      "symbol": "TypertResourceMap",
-      "source": "packages/typert/protocol/src/types.ts"
-    },
-    {
-      "doc": "docs/subsystems/typert.md",
-      "symbol": "RemoteAccessResourceKind",
-      "source": "packages/typert/protocol/src/remote-access.ts"
-    },
-    {
-      "doc": "docs/subsystems/typert.md",
-      "symbol": "RemoteAccessResource",
-      "source": "packages/typert/protocol/src/remote-access.ts"
-    },
-    {
-      "doc": "docs/subsystems/typert.md",
-      "symbol": "RemoteScopeOptions",
-      "source": "packages/typert/protocol/src/index.ts"
-    },
-    {
-      "doc": "docs/subsystems/typert.md",
-      "symbol": "RemoteMethodOptions",
-      "source": "packages/typert/protocol/src/index.ts"
-    },
-    {
-      "doc": "docs/subsystems/typert.md",
       "symbol": "TypertRegistryContract",
       "source": "packages/typert/protocol/src/types.ts"
     },
@@ -2126,11 +1841,6 @@
       "doc": "docs/subsystems/permission-presets.md",
       "symbol": "PresetSpec",
       "source": "packages/interaction/permission-presets/src/index.ts"
-    },
-    {
-      "doc": "docs/subsystems/session-projection.md",
-      "symbol": "ProjectionHandle",
-      "source": "packages/session/session-projection/src/index.ts"
     },
     {
       "doc": "docs/subsystems/session-projection.md",
@@ -2313,6 +2023,436 @@
       "source": "packages/client/ui-conversation/src/client/contract/slots.ts"
     },
     {
+      "doc": "docs/subsystems/typert.md",
+      "symbol": "HostId",
+      "source": "packages/api/host-description/src/types.ts"
+    },
+    {
+      "doc": "docs/subsystems/typert.md",
+      "symbol": "HostTransport",
+      "source": "packages/api/host-description/src/types.ts"
+    },
+    {
+      "doc": "docs/subsystems/typert.md",
+      "symbol": "HostDescriptor",
+      "source": "packages/api/host-description/src/types.ts"
+    },
+    {
+      "doc": "docs/subsystems/typert.md",
+      "symbol": "RemoteCapabilityPermission",
+      "source": "packages/typert/protocol/src/index.ts"
+    },
+    {
+      "doc": "docs/subsystems/typert.md",
+      "symbol": "TypertRemoteCapability",
+      "source": "packages/typert/protocol/src/index.ts"
+    },
+    {
+      "doc": "docs/subsystems/device-trust.md",
+      "symbol": "DeviceRole",
+      "source": "packages/api/device-trust/src/types.ts"
+    },
+    {
+      "doc": "docs/subsystems/device-trust.md",
+      "symbol": "DevicePermission",
+      "source": "packages/api/device-trust/src/types.ts"
+    },
+    {
+      "doc": "docs/subsystems/device-trust.md",
+      "symbol": "AdmitDeviceRequest",
+      "source": "packages/api/device-trust/src/types.ts"
+    },
+    {
+      "doc": "docs/subsystems/device-trust.md",
+      "symbol": "DeviceAdmission",
+      "source": "packages/api/device-trust/src/types.ts"
+    },
+    {
+      "doc": "docs/subsystems/device-trust.md",
+      "symbol": "PairingIssuance",
+      "source": "packages/api/device-trust/src/types.ts"
+    },
+    {
+      "doc": "docs/subsystems/device-trust.md",
+      "symbol": "RedeemPairingRequest",
+      "source": "packages/api/device-trust/src/types.ts"
+    },
+    {
+      "doc": "docs/subsystems/device-trust.md",
+      "symbol": "RedeemPairingResult",
+      "source": "packages/api/device-trust/src/types.ts"
+    },
+    {
+      "doc": "docs/subsystems/device-trust.md",
+      "symbol": "DeviceView",
+      "source": "packages/api/device-trust/src/types.ts"
+    },
+    {
+      "doc": "docs/subsystems/device-trust.md",
+      "symbol": "RevokeDeviceRequest",
+      "source": "packages/api/device-trust/src/types.ts"
+    },
+    {
+      "doc": "docs/subsystems/device-trust.md",
+      "symbol": "RevokeDeviceResult",
+      "source": "packages/api/device-trust/src/types.ts"
+    },
+    {
+      "doc": "docs/subsystems/device-trust.md",
+      "symbol": "RevokeAllDevicesResult",
+      "source": "packages/api/device-trust/src/types.ts"
+    },
+    {
+      "doc": "docs/subsystems/device-trust.md",
+      "symbol": "RenameDeviceRequest",
+      "source": "packages/api/device-trust/src/types.ts"
+    },
+    {
+      "doc": "docs/subsystems/host-diagnostics.md",
+      "symbol": "ComponentHealth",
+      "source": "packages/api/host-diagnostics/src/types.ts"
+    },
+    {
+      "doc": "docs/subsystems/host-diagnostics.md",
+      "symbol": "DiagnosticsMigration",
+      "source": "packages/api/host-diagnostics/src/types.ts"
+    },
+    {
+      "doc": "docs/subsystems/host-diagnostics.md",
+      "symbol": "DiagnosticsPlugin",
+      "source": "packages/api/host-diagnostics/src/types.ts"
+    },
+    {
+      "doc": "docs/subsystems/host-diagnostics.md",
+      "symbol": "SupportBundle",
+      "source": "packages/api/host-diagnostics/src/types.ts"
+    },
+    {
+      "doc": "docs/subsystems/typert.md",
+      "symbol": "NativeHttpRequestBudget",
+      "source": "packages/api/native-remote/src/types.ts"
+    },
+    {
+      "doc": "docs/subsystems/typert.md",
+      "symbol": "NativeRemoteInfo",
+      "source": "packages/api/native-remote/src/types.ts"
+    },
+    {
+      "doc": "docs/subsystems/typert.md",
+      "symbol": "NativePairingPayload",
+      "source": "packages/api/native-remote/src/types.ts"
+    },
+    {
+      "doc": "docs/subsystems/compaction.md",
+      "symbol": "ImageOffloadTarget",
+      "source": "packages/compaction/compaction-image-offload/src/projection.ts"
+    },
+    {
+      "doc": "docs/subsystems/llm-streaming.md",
+      "symbol": "AssistantProviderMetadata",
+      "source": "packages/llm/llm/src/message.ts"
+    },
+    {
+      "doc": "docs/subsystems/llm-streaming.md",
+      "symbol": "LlmModelBadgeTone",
+      "source": "packages/llm/llm/src/types.ts"
+    },
+    {
+      "doc": "docs/subsystems/llm-streaming.md",
+      "symbol": "LlmModelBadge",
+      "source": "packages/llm/llm/src/types.ts"
+    },
+    {
+      "doc": "docs/subsystems/llm-streaming.md",
+      "symbol": "RequestUserInput",
+      "source": "packages/llm/llm/src/types.ts"
+    },
+    {
+      "doc": "docs/subsystems/llm-streaming.md",
+      "symbol": "RequestMessage",
+      "source": "packages/llm/llm/src/types.ts"
+    },
+    {
+      "doc": "docs/subsystems/llm-streaming.md",
+      "symbol": "LlmCallControls",
+      "source": "packages/llm/llm/src/call-config.ts"
+    },
+    {
+      "doc": "docs/subsystems/llm-streaming.md",
+      "symbol": "ConfigureCall",
+      "source": "packages/llm/llm/src/call-config.ts"
+    },
+    {
+      "doc": "docs/subsystems/core.md",
+      "symbol": "Model",
+      "source": "packages/core/agent/src/runtime-types.ts"
+    },
+    {
+      "doc": "docs/subsystems/session.md",
+      "symbol": "PluginRecordType",
+      "source": "packages/core/session/src/types.ts"
+    },
+    {
+      "doc": "docs/subsystems/session.md",
+      "symbol": "PluginRecordMap",
+      "source": "packages/core/session/src/types.ts"
+    },
+    {
+      "doc": "docs/subsystems/session.md",
+      "symbol": "PluginRecord",
+      "source": "packages/core/session/src/types.ts"
+    },
+    {
+      "doc": "docs/subsystems/session-title.md",
+      "symbol": "SessionTitleModelIdentity",
+      "source": "packages/session/session-title/src/types.ts"
+    },
+    {
+      "doc": "docs/subsystems/tools.md",
+      "symbol": "ToolOutputDefinition",
+      "source": "packages/core/tools/src/contracts.ts"
+    },
+    {
+      "doc": "docs/subsystems/tools.md",
+      "symbol": "ToolDefinition",
+      "source": "packages/core/tools/src/contracts.ts"
+    },
+    {
+      "doc": "docs/subsystems/tools.md",
+      "symbol": "ToolRisk",
+      "source": "packages/core/tools/src/types.ts"
+    },
+    {
+      "doc": "docs/subsystems/tools.md",
+      "symbol": "ToolDescriptor",
+      "source": "packages/core/tools/src/types.ts"
+    },
+    {
+      "doc": "docs/subsystems/tools.md",
+      "symbol": "ToolDescriptorList",
+      "source": "packages/core/tools/src/types.ts"
+    },
+    {
+      "doc": "docs/subsystems/tools.md",
+      "symbol": "PtcDispatchLog",
+      "source": "packages/core/tool-executor-ptc/src/runtime-types.ts"
+    },
+    {
+      "doc": "docs/subsystems/tools.md",
+      "symbol": "ToolActivationContext",
+      "source": "packages/core/tools/src/contracts.ts"
+    },
+    {
+      "doc": "docs/subsystems/tools.md",
+      "symbol": "ToolRegistrationOptions",
+      "source": "packages/core/tools/src/contracts.ts"
+    },
+    {
+      "doc": "docs/subsystems/tools.md",
+      "symbol": "ResolvedToolSet",
+      "source": "packages/core/tools/src/contracts.ts"
+    },
+    {
+      "doc": "docs/subsystems/user-questions.md",
+      "symbol": "AskUserQuestionRequestEvent",
+      "source": "packages/interaction/user-questions/src/types.ts"
+    },
+    {
+      "doc": "docs/subsystems/user-questions.md",
+      "symbol": "TimedUserQuestionResult",
+      "source": "packages/interaction/user-questions/src/index.ts"
+    },
+    {
+      "doc": "docs/subsystems/user-questions.md",
+      "symbol": "UserQuestionState",
+      "source": "packages/interaction/user-questions/src/types.ts"
+    },
+    {
+      "doc": "docs/subsystems/user-questions.md",
+      "symbol": "PendingUserQuestion",
+      "source": "packages/interaction/user-questions/src/types.ts"
+    },
+    {
+      "doc": "docs/subsystems/user-questions.md",
+      "symbol": "SettledUserQuestion",
+      "source": "packages/interaction/user-questions/src/types.ts"
+    },
+    {
+      "doc": "docs/subsystems/user-questions.md",
+      "symbol": "UserQuestionProjectionView",
+      "source": "packages/interaction/user-questions/src/types.ts"
+    },
+    {
+      "doc": "docs/subsystems/attachment.md",
+      "symbol": "ImageRequestTarget",
+      "source": "packages/attachment/attachment/src/types.ts"
+    },
+    {
+      "doc": "docs/subsystems/attachment.md",
+      "symbol": "ProjectedDimensions",
+      "source": "packages/attachment/attachment/src/request-projection.ts"
+    },
+    {
+      "doc": "docs/subsystems/jobs.md",
+      "symbol": "JobRegisteredData",
+      "source": "packages/jobs/jobs/src/types.ts"
+    },
+    {
+      "doc": "docs/subsystems/jobs.md",
+      "symbol": "JobSettledData",
+      "source": "packages/jobs/jobs/src/types.ts"
+    },
+    {
+      "doc": "docs/subsystems/jobs.md",
+      "symbol": "JobToolCall",
+      "source": "packages/jobs/jobs/src/types.ts"
+    },
+    {
+      "doc": "docs/subsystems/jobs.md",
+      "symbol": "JobSpec",
+      "source": "packages/jobs/jobs/src/types.ts"
+    },
+    {
+      "doc": "docs/subsystems/jobs.md",
+      "symbol": "JobHandle",
+      "source": "packages/jobs/jobs/src/types.ts"
+    },
+    {
+      "doc": "docs/subsystems/jobs.md",
+      "symbol": "JobOutputSource",
+      "source": "packages/jobs/jobs/src/types.ts"
+    },
+    {
+      "doc": "docs/subsystems/jobs.md",
+      "symbol": "JobSourceRead",
+      "source": "packages/jobs/jobs/src/types.ts"
+    },
+    {
+      "doc": "docs/subsystems/jobs.md",
+      "symbol": "JobChunk",
+      "source": "packages/jobs/jobs/src/view.ts"
+    },
+    {
+      "doc": "docs/subsystems/jobs.md",
+      "symbol": "JobOutputRead",
+      "source": "packages/jobs/jobs/src/types.ts"
+    },
+    {
+      "doc": "docs/subsystems/jobs.md",
+      "symbol": "JobView",
+      "source": "packages/jobs/jobs/src/view.ts"
+    },
+    {
+      "doc": "docs/subsystems/jobs.md",
+      "symbol": "JobEvent",
+      "source": "packages/jobs/jobs/src/types.ts"
+    },
+    {
+      "doc": "docs/subsystems/jobs.md",
+      "symbol": "JobEventFilter",
+      "source": "packages/jobs/jobs/src/types.ts"
+    },
+    {
+      "doc": "docs/subsystems/llm-streaming.md",
+      "symbol": "LlmNativeAuth",
+      "source": "packages/llm/llm/src/types.ts"
+    },
+    {
+      "doc": "docs/subsystems/web-server.md",
+      "symbol": "WebResource",
+      "source": "packages/host/webserver/src/index.ts"
+    },
+    {
+      "doc": "docs/subsystems/web-server.md",
+      "symbol": "WebResourceRoute",
+      "source": "packages/host/webserver/src/index.ts"
+    },
+    {
+      "doc": "docs/subsystems/web-server.md",
+      "symbol": "TlsConfig",
+      "source": "packages/host/webserver/src/index.ts"
+    },
+    {
+      "doc": "docs/subsystems/workspace.md",
+      "symbol": "SessionActivityKindMap",
+      "source": "packages/workspace/workspace/src/types.ts"
+    },
+    {
+      "doc": "docs/subsystems/workspace.md",
+      "symbol": "SessionActivity",
+      "source": "packages/workspace/workspace/src/types.ts"
+    },
+    {
+      "doc": "docs/subsystems/client-modules.md",
+      "symbol": "WebBootRelease",
+      "source": "packages/client/modules/src/client/manifest.ts"
+    },
+    {
+      "doc": "docs/subsystems/typert.md",
+      "symbol": "RemoteStream",
+      "source": "packages/typert/protocol/src/types.ts"
+    },
+    {
+      "doc": "docs/subsystems/typert.md",
+      "symbol": "RemoteStreamHandle",
+      "source": "packages/typert/protocol/src/types.ts"
+    },
+    {
+      "doc": "docs/subsystems/typert.md",
+      "symbol": "PrincipalMap",
+      "source": "packages/typert/protocol/src/types.ts"
+    },
+    {
+      "doc": "docs/subsystems/typert.md",
+      "symbol": "Principal",
+      "source": "packages/typert/protocol/src/types.ts"
+    },
+    {
+      "doc": "docs/subsystems/typert.md",
+      "symbol": "PeerScope",
+      "source": "packages/typert/protocol/src/types.ts"
+    },
+    {
+      "doc": "docs/subsystems/typert.md",
+      "symbol": "RemoteUplinkWindow",
+      "source": "packages/typert/protocol/src/types.ts"
+    },
+    {
+      "doc": "docs/subsystems/typert.md",
+      "symbol": "RemoteInvocation",
+      "source": "packages/typert/protocol/src/types.ts"
+    },
+    {
+      "doc": "docs/subsystems/typert.md",
+      "symbol": "TypertResourceMap",
+      "source": "packages/typert/protocol/src/types.ts"
+    },
+    {
+      "doc": "docs/subsystems/typert.md",
+      "symbol": "RemoteAccessResourceKind",
+      "source": "packages/typert/protocol/src/remote-access.ts"
+    },
+    {
+      "doc": "docs/subsystems/typert.md",
+      "symbol": "RemoteAccessResource",
+      "source": "packages/typert/protocol/src/remote-access.ts"
+    },
+    {
+      "doc": "docs/subsystems/typert.md",
+      "symbol": "RemoteScopeOptions",
+      "source": "packages/typert/protocol/src/index.ts"
+    },
+    {
+      "doc": "docs/subsystems/typert.md",
+      "symbol": "RemoteMethodOptions",
+      "source": "packages/typert/protocol/src/index.ts"
+    },
+    {
+      "doc": "docs/subsystems/session-projection.md",
+      "symbol": "ProjectionHandle",
+      "source": "packages/session/session-projection/src/index.ts"
+    },
+    {
       "doc": "docs/subsystems/session.md",
       "symbol": "SessionMessageProjection",
       "source": "packages/core/session/src/surface.ts"
@@ -2412,11 +2552,6 @@
       "doc": "docs/subsystems/product-telemetry.md",
       "symbol": "ProductTelemetryRecord",
       "source": "packages/host/product-telemetry-otel/src/index.ts"
-    },
-    {
-      "doc": "docs/subsystems/subagent.md",
-      "symbol": "SubagentDescendantListEntry",
-      "source": "packages/subagent/subagent/src/list-children.ts"
     },
     {
       "doc": "docs/subsystems/system-prompt.md",

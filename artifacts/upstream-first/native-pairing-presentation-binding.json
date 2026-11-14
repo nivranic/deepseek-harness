@@ -1,0 +1,16 @@
+{
+  "status": "PASS",
+  "controls": 3,
+  "sourceRecord": {
+    "path": "artifacts/upstream-first/native-pairing-presentation-source.json",
+    "sha256": "990320be77064a2d1f4b1df6379644bf604bbbdabf7d1ab0eb49708990954d86"
+  },
+  "generator": {
+    "path": "artifacts/upstream-first/write-reports.mjs",
+    "sha256": "e2ff2bb44e00d4606e98fa097daaf5d6fd2a62ae4805493064816a04ba2eaeda"
+  },
+  "helper": {
+    "path": ".artifacts/check-native-pairing-presentation-binding.mjs",
+    "sha256": "3fe31aea55a6482bd07f453a4f5de34c6aac341e6dcc0ac4d3b74c78947a82e3"
+  }
+}

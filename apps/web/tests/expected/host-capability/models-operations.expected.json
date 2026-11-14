@@ -1,0 +1,9 @@
+{
+  "directoryAbsent": true,
+  "credentialReadSuppressed": true,
+  "credentialWriteHidden": true,
+  "discoveryIndependent": true,
+  "draftDiscarded": true,
+  "noCredentialOrDiscoveryMutation": true,
+  "negotiations": 5
+}

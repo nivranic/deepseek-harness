@@ -84,6 +84,11 @@
     - id: ui-open-in-app
       name: '@deepseek-ai/dsh-client-ui-open-in-app'
 
+    # §26 view-location handoff: the Session-header capture action copying a
+    # cross-device link, and the one-shot received-link open (#dsh-view=…).
+    - id: ui-view-handoff
+      name: '@deepseek-ai/dsh-client-ui-view-handoff'
+
     - id: workspace
       name: '@deepseek-ai/dsh-workspace'
 
@@ -112,6 +117,13 @@
     # Read-only projection of current Loader entries for trusted client RPCs.
     - id: plugin-inventory
       name: '@deepseek-ai/dsh-host-plugin-inventory'
+
+    - id: host-description
+      name: '@deepseek-ai/dsh-api-host-description'
+      config:
+        identityFile: !!js ctx.dshHomePath('.host-id')
+        displayName: DeepSeek Harness
+        transports: [http, websocket]
 
     # Session commands, cold reads, and live control over Typert Remote.
     - id: session-controller
@@ -157,6 +169,17 @@
     # Workspace commands and reconnect-safe projection over Typert Remote.
     - id: workspace-controller
       name: '@deepseek-ai/dsh-api-workspace-controller'
+
+    # Device-trust seam: one-time pairing issuance, device grants, and
+    # revocation over Typert Remote; permission execution stays with the
+    # interaction-reply seam and no non-localhost admission opens here.
+    - id: device-trust
+      name: '@deepseek-ai/dsh-api-device-trust'
+
+    # Host-diagnostics seam: section 41 health/readiness and the section 42
+    # sanitized diagnostics payload over Typert Remote.
+    - id: host-diagnostics
+      name: '@deepseek-ai/dsh-api-host-diagnostics'
 
     - id: cordis-host-runner
       name: '@deepseek-ai/dsh-cordis-host-runner'
@@ -352,6 +375,18 @@
     # bundles the sidebar page leaves out are inspected here.
     - id: ui-settings-plugin-inventory
       name: '@deepseek-ai/dsh-client-ui-settings-plugin-inventory'
+
+    - id: ui-settings-devices
+      name: '@deepseek-ai/dsh-client-ui-settings-devices'
+
+    - id: ui-settings-hosts
+      name: '@deepseek-ai/dsh-client-ui-settings-hosts'
+
+    - id: ui-settings-host-status
+      name: '@deepseek-ai/dsh-client-ui-settings-host-status'
+
+    - id: ui-settings-telemetry
+      name: '@deepseek-ai/dsh-client-ui-settings-telemetry'
 
     - id: ui-conversation
       name: '@deepseek-ai/dsh-client-ui-conversation'

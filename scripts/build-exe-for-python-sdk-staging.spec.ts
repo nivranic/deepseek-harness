@@ -3,8 +3,10 @@ import { mkdir, mkdtemp, readFile, readdir, rm, symlink, writeFile } from 'node:
 import { tmpdir } from 'node:os'
 import { join, relative } from 'node:path'
 import { createRequire } from 'node:module'
+import { pathToFileURL } from 'node:url'
+import { load } from 'js-yaml'
 import { afterEach, expect, it } from 'vitest'
-import { deduplicateStagedWorkspacePackages, materializeStagedLinks } from './build-exe-for-python-sdk-staging.ts'
+import { deduplicateStagedWorkspacePackages, materializeStagedLinks, relocateStagedBuildApprovals } from './build-exe-for-python-sdk-staging.ts'
 
 const temporaryDirectories: string[] = []
 const directoryLinkType = process.platform === 'win32' ? 'junction' : 'dir'
@@ -18,6 +20,47 @@ async function fixture(prefix: string) {
   temporaryDirectories.push(workspace)
   return workspace
 }
+
+it.each([true, false])('retains local build permissions and denials with the absolute denial first %s', async (denialFirst) => {
+  const workspace = await fixture('dsh-python-staging-approvals-')
+  const staging = join(workspace, 'payload')
+  await mkdir(staging)
+  const collisionIdentity = `@fixture/collision@${pathToFileURL(join(workspace, 'packages/collision')).href}`
+  const collisionApprovals = [
+    ['@fixture/collision@file:packages/collision', true],
+    [collisionIdentity, false],
+  ] as const
+  const orderedApprovals = denialFirst ? [...collisionApprovals].reverse() : collisionApprovals
+  const manifest = {
+    packages: ['.'],
+    autoInstallPeers: true,
+    allowBuilds: {
+      '@fixture/local@file:packages/local': true,
+      '@fixture/denied@file:packages/denied': false,
+      'external@1.2.3': false,
+      esbuild: true,
+      ...Object.fromEntries(orderedApprovals),
+    },
+  }
+  const file = join(staging, 'pnpm-workspace.yaml')
+  await writeFile(file, JSON.stringify(manifest))
+
+  await relocateStagedBuildApprovals(staging, workspace)
+
+  const expected = {
+    ...manifest,
+    allowBuilds: {
+      [`@fixture/local@${pathToFileURL(join(workspace, 'packages/local')).href}`]: true,
+      [`@fixture/denied@${pathToFileURL(join(workspace, 'packages/denied')).href}`]: false,
+      'external@1.2.3': false,
+      esbuild: true,
+      [collisionIdentity]: false,
+    },
+  }
+  expect(load(await readFile(file, 'utf8'))).toEqual(expected)
+  await relocateStagedBuildApprovals(staging, workspace)
+  expect(load(await readFile(file, 'utf8'))).toEqual(expected)
+})
 
 /** List every symbolic link below a directory. */
 async function listSymlinks(directory: string): Promise<string[]> {
@@ -66,9 +109,10 @@ it('copies workspace package links as files and removes command shims', async ()
   expect(await listSymlinks(staging)).toEqual([])
 })
 
-it.each(['source', 'deployment'])('shares identical workspace packages with %s-relative metadata', async (base) => {
+it.each(['workspace', 'staging'])('shares an identical workspace package with %s-relative metadata', async (metadataLocation) => {
   const workspace = await fixture('dsh-python-staging-dedupe-')
   const staging = join(workspace, 'payload')
+  const metadataRoot = metadataLocation === 'staging' ? staging : workspace
   const modules = join(staging, 'node_modules')
   const root = join(modules, '@fixture', 'tools')
   const duplicate = join(modules, 'app', 'node_modules', '@fixture', 'tools')
@@ -79,7 +123,6 @@ it.each(['source', 'deployment'])('shares identical workspace packages with %s-r
     await mkdir(directory, { recursive: true })
     await writeFile(join(directory, 'index.js'), 'exports.scheduler = Symbol("scheduler")\n')
   }
-  const metadataRoot = base === 'source' ? workspace : staging
   const locations = (paths: string[]) => paths.map(path => relative(metadataRoot, path))
   await writeFile(join(modules, '.modules.yaml'), JSON.stringify({ hoistedLocations: {
     '@fixture/tools@file:packages/tools(peer@1)': locations([root, duplicate]),

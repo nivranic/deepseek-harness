@@ -1,0 +1,77 @@
+{
+  "covers": [
+    "Provider Error",
+    "Network Error"
+  ],
+  "events": [
+    {
+      "type": "prompt/accepted",
+      "requestId": "r4",
+      "content": "继续"
+    },
+    {
+      "type": "stream/delta",
+      "text": "好的"
+    },
+    {
+      "type": "network/error",
+      "kind": "dropped"
+    },
+    {
+      "type": "prompt/accepted",
+      "requestId": "r5",
+      "content": "重试"
+    },
+    {
+      "type": "provider/error",
+      "code": "RATE_LIMITED",
+      "message": "并发超限"
+    },
+    {
+      "type": "prompt/rejected",
+      "requestId": "r6",
+      "reason": "运行中不可插入"
+    }
+  ],
+  "expected": {
+    "conversation": [
+      {
+        "role": "user",
+        "text": "继续"
+      },
+      {
+        "role": "user",
+        "text": "重试"
+      }
+    ],
+    "streaming": {
+      "active": false,
+      "partialText": "",
+      "partialReasoning": ""
+    },
+    "interrupted": false,
+    "toolCalls": [],
+    "planActive": false,
+    "todos": [],
+    "artifacts": [],
+    "lastTurnEnd": "provider-error",
+    "errors": [
+      {
+        "kind": "network",
+        "code": "dropped",
+        "message": "dropped"
+      },
+      {
+        "kind": "provider",
+        "code": "RATE_LIMITED",
+        "message": "并发超限"
+      },
+      {
+        "kind": "provider",
+        "code": "PROMPT_REJECTED",
+        "message": "运行中不可插入"
+      }
+    ],
+    "pendingHandoff": null
+  }
+}

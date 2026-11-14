@@ -1,0 +1,16 @@
+{
+  "status": "PASS",
+  "controls": 3,
+  "sourceRecord": {
+    "path": "artifacts/upstream-first/telemetry-consent-settings-source.json",
+    "sha256": "768f3ccf6993d75a3bbb82ec9ab0adc1450aeff5aea2d2254d5df0ca237b670a"
+  },
+  "generator": {
+    "path": "artifacts/upstream-first/write-reports.mjs",
+    "sha256": "a146b5201a24c523de1fc407421e40c1b5a52a29dd5b48b3154a6dd50184646a"
+  },
+  "helper": {
+    "path": ".artifacts/check-telemetry-consent-settings-binding.mjs",
+    "sha256": "cd148e1498259fa9c24c3688d38b9d7b53550a0bab74396895ed70d8a064830a"
+  }
+}

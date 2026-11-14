@@ -1,0 +1,70 @@
+{
+  "status": "PASS",
+  "scope": "Report bindings and audit for Android encrypted download checkpoints and explicit same-version continuation; the remaining specification sections stay open; full Upstream-First objective remains in progress",
+  "gate0": {
+    "validation": "PASS",
+    "gate0": "PASS",
+    "paths": 1938,
+    "components": 129,
+    "specificationCoverage": {
+      "status": "PASS",
+      "numberedSections": 81,
+      "nonEmptySourceLines": 1983,
+      "acceptanceProven": false
+    }
+  },
+  "sourceRecord": {
+    "path": "artifacts/upstream-first/android-download-checkpoint-source.json",
+    "sha256": "99e42a41784ec460c94b829b6723ea88ce34594f0e21b439ec56b93639681fac"
+  },
+  "generator": {
+    "path": "artifacts/upstream-first/write-reports.mjs",
+    "sha256": "6f8ea62c164694b0b6dcd860753122b1c7918c7fb20b3196d2362f90ab4c9af8"
+  },
+  "binding": {
+    "path": "artifacts/upstream-first/android-download-checkpoint-binding.json",
+    "sha256": "f277571ad3e1caaf0cf9e592710f40bae92314d55f722afb6a268fecb1aa30e9"
+  },
+  "helpers": [
+    {
+      "path": ".artifacts/advance-android-download-checkpoint-reports.mjs",
+      "sha256": "319472158fab804db19c49aa820ef8629c0d7591ce2fb020bf3f1529fb7338b3"
+    },
+    {
+      "path": ".artifacts/capture-android-download-checkpoint-validation.mjs",
+      "sha256": "dc91534360eb88584be8789bcee04d8fdf38fc0b4173a6cb416088304096197b"
+    }
+  ],
+  "reports": [
+    {
+      "path": "IMPLEMENTATION_STATUS.md",
+      "sha256": "f828306036b7f3a63ab968843f5e7412b144e432125c55163040ed0b0cbc861e"
+    },
+    {
+      "path": "artifacts/upstream-first/evidence.json",
+      "sha256": "0bc5f573ad9431edca52bcb918b6edde60c432c383d7081743ec3dd35852651a"
+    }
+  ],
+  "checks": [
+    {
+      "path": ".artifacts/android-download-checkpoint-binding.log",
+      "sha256": "3d6d70b90a7a77972cb47f9ea6d5a2ec4412740f8edf03fe0391d2b1d2919832"
+    },
+    {
+      "path": ".artifacts/android-download-checkpoint-audit-tests.log",
+      "sha256": "2b0074246442d38e82374fd6e42fb42563248fc712c49bce0ec4dbd6adba78eb"
+    },
+    {
+      "path": ".artifacts/android-download-checkpoint-gate0-report.log",
+      "sha256": "5427f71ff5b67b500b327d785dcaf84a7af2c6edd24b1833c4c7d83ad2cf37c8"
+    },
+    {
+      "path": ".artifacts/android-download-checkpoint-report-diff-check.log",
+      "sha256": "e3b0c44298fc1c149afbf4c8996fb92427ae41e4649b934ca495991b7852b855"
+    },
+    {
+      "path": ".artifacts/android-download-checkpoint-report-generation.log",
+      "sha256": "5867d1d51cd43a59428de2e7fffa15847d7153b11f3b61ecf812224ee2dd2099"
+    }
+  ]
+}

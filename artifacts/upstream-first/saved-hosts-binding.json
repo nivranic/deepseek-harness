@@ -1,0 +1,16 @@
+{
+  "status": "PASS",
+  "controls": 3,
+  "sourceRecord": {
+    "path": "artifacts/upstream-first/saved-hosts-source.json",
+    "sha256": "a67a92fe544a981b8ce60979ae289e9f86f3cf35175397cf1cda2e4bb551ee35"
+  },
+  "generator": {
+    "path": "artifacts/upstream-first/write-reports.mjs",
+    "sha256": "11cedf79ada7585928e6b44c0fbf03e5a43309a88961b2b86493bf367c9b9edc"
+  },
+  "helper": {
+    "path": ".artifacts/check-saved-hosts-binding.mjs",
+    "sha256": "e9f4392f8942e95a6927223eeb7fe8981a84f690556e72c0ce1982f7a9b0bd87"
+  }
+}

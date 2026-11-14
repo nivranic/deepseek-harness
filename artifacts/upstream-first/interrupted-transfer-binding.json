@@ -1,0 +1,16 @@
+{
+  "status": "PASS",
+  "controls": 3,
+  "sourceRecord": {
+    "path": "artifacts/upstream-first/interrupted-transfer-source.json",
+    "sha256": "243af43ad9065b0424afbfa90c0c26370e7968796d3db80751356f8458fae684"
+  },
+  "generator": {
+    "path": "artifacts/upstream-first/write-reports.mjs",
+    "sha256": "823b14f68fb473f67d37b48e9165a07044c0e18406f1afc3e231141e496562a6"
+  },
+  "helper": {
+    "path": ".artifacts/check-interrupted-transfer-binding.mjs",
+    "sha256": "de77055bf7328c354b1f242b82dab31cb9f0e6b0e386874e511c3ed0376e3bd8"
+  }
+}

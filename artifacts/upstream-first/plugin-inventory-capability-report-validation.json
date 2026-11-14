@@ -1,0 +1,64 @@
+{
+  "status": "PASS",
+  "scope": "Report bindings and audit for Read-only plugin inventory capability and Connection-owned Settings tabs; full Upstream-First objective remains in progress",
+  "gate0": {
+    "validation": "PASS",
+    "gate0": "PASS",
+    "paths": 1938,
+    "components": 129
+  },
+  "sourceRecord": {
+    "path": "artifacts/upstream-first/plugin-inventory-capability-source.json",
+    "sha256": "35edf3b072c20d2a6564468c118adca1c4a0fa56c6f6f4841fea7981958204ef"
+  },
+  "generator": {
+    "path": "artifacts/upstream-first/write-reports.mjs",
+    "sha256": "78d2972965c22b1f07b587e789811dd3730f262309007cb7ccbcc785cb5a1ec3"
+  },
+  "binding": {
+    "path": "artifacts/upstream-first/plugin-inventory-capability-binding.json",
+    "sha256": "4cdbb7cd8c0b33aee7d2d9113e63bc449da6684486db31fe64a5d16aeebdcb1e"
+  },
+  "helpers": [
+    {
+      "path": ".artifacts/advance-plugin-inventory-capability-reports.mjs",
+      "sha256": "e9bd8e5c9e65c54fd75d431b6515b44fb3e1af3a12f33dda9576b98ae827ff27"
+    },
+    {
+      "path": ".artifacts/capture-plugin-inventory-capability-validation.mjs",
+      "sha256": "6d3bf9b0a87395823dc0296e6e5712b75611eb3adaef6185170d96044bdc52f7"
+    }
+  ],
+  "reports": [
+    {
+      "path": "IMPLEMENTATION_STATUS.md",
+      "sha256": "73cebc3501bb5f9beda2e6b573081b4796dca92793ffe1679e715d1334713e1e"
+    },
+    {
+      "path": "artifacts/upstream-first/evidence.json",
+      "sha256": "6fda0fe718aff35ccdb8eb48b83dae8b7b030d4dafedf0c8d209932c34d2af53"
+    }
+  ],
+  "checks": [
+    {
+      "path": ".artifacts/plugin-inventory-capability-binding.log",
+      "sha256": "8973af431a53ee2c5551660885913419d191f8ee860487494d4e68e362f734e1"
+    },
+    {
+      "path": ".artifacts/plugin-inventory-capability-audit-tests.log",
+      "sha256": "3376260f61eb9dd5cfc39d27560ca530cd4c616a88ae4a721062c61b204ac7bf"
+    },
+    {
+      "path": ".artifacts/plugin-inventory-capability-gate0.log",
+      "sha256": "4b5af3121a7e7caff0e1b6288bdaa7cfef9988842ae06bf02dc0a74852426043"
+    },
+    {
+      "path": ".artifacts/plugin-inventory-capability-report-diff-check.log",
+      "sha256": "e3b0c44298fc1c149afbf4c8996fb92427ae41e4649b934ca495991b7852b855"
+    },
+    {
+      "path": ".artifacts/plugin-inventory-capability-report-generation.log",
+      "sha256": "58212bc028854f826f2265a33d372882520a6259fb2ed64982531288b3b9b453"
+    }
+  ]
+}

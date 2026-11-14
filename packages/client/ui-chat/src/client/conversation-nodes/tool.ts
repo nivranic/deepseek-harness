@@ -291,6 +291,7 @@ function fallbackState(context: ConversationNodeContext<ToolState>): ToolState |
 /** Root Tool preparation, dispatch, result, and nested PTC calls. */
 export const toolDefinition: ConversationNodeDefinition<ToolState> = {
   kind: 'tool-call',
+  identityScope: 'step',
   target: 'chat',
   match: (event) => {
     if (event.type === 'assistant/live-chunk') {

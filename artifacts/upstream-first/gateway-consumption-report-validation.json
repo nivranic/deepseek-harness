@@ -1,0 +1,70 @@
+{
+  "status": "PASS",
+  "scope": "Report bindings and audit for the Android shell Gateway failure contract consumption; a live Host-to-device refusal exchange and locale-dictionary presentation remain unproven; full Upstream-First objective remains in progress",
+  "gate0": {
+    "validation": "PASS",
+    "gate0": "PASS",
+    "paths": 1938,
+    "components": 129,
+    "specificationCoverage": {
+      "status": "PASS",
+      "numberedSections": 81,
+      "nonEmptySourceLines": 1983,
+      "acceptanceProven": false
+    }
+  },
+  "sourceRecord": {
+    "path": "artifacts/upstream-first/gateway-consumption-source.json",
+    "sha256": "208c8b3591d5675b0f17b2c96e2276ad4cfd9a30e22e0f0df533faa2d8c652c2"
+  },
+  "generator": {
+    "path": "artifacts/upstream-first/write-reports.mjs",
+    "sha256": "82db4a5d529944617efae161a9d2871190a7f1257704e4977c4f5949d2f8bf9e"
+  },
+  "binding": {
+    "path": "artifacts/upstream-first/gateway-consumption-binding.json",
+    "sha256": "261e4e3c93d1c87f30e7a26d13edaa31e82a5e9afe8e15829ed196cd921a8ad4"
+  },
+  "helpers": [
+    {
+      "path": ".artifacts/advance-gateway-consumption-reports.mjs",
+      "sha256": "247e5aed6e71022e1db479f2be6eaf4e6be97457a602b927d6ebb726176e212a"
+    },
+    {
+      "path": ".artifacts/capture-gateway-consumption-validation.mjs",
+      "sha256": "ab8b8422eeff6500744540177dde85946a43e769792f2b00d6c69a1f3cafc562"
+    }
+  ],
+  "reports": [
+    {
+      "path": "IMPLEMENTATION_STATUS.md",
+      "sha256": "065c363c96e85de220b48ea42e003ee3fc3b41fc3e9553dfd39cfb613c8c92d1"
+    },
+    {
+      "path": "artifacts/upstream-first/evidence.json",
+      "sha256": "e4308f370fa766145d4d49ff0dcc601f5fd998353e67ac1ad9c922b2f994c618"
+    }
+  ],
+  "checks": [
+    {
+      "path": ".artifacts/gateway-consumption-binding.log",
+      "sha256": "a68f50df765bd7bab50cb02bb574d945b488d85c050a126fa8707dc75a255350"
+    },
+    {
+      "path": ".artifacts/gateway-consumption-audit-tests.log",
+      "sha256": "ef73e11fbf8fb0abf278726f22d82fc0076a8a105d24734e748c6f423d5757db"
+    },
+    {
+      "path": ".artifacts/gateway-consumption-gate0.log",
+      "sha256": "505d74ef938f5d34d85490d37e0176ba804d93272fcf465ce2544a02c56b3f90"
+    },
+    {
+      "path": ".artifacts/gateway-consumption-report-diff-check.log",
+      "sha256": "e3b0c44298fc1c149afbf4c8996fb92427ae41e4649b934ca495991b7852b855"
+    },
+    {
+      "path": ".artifacts/gateway-consumption-report-generation.log",
+      "sha256": "fe010532f71a6341467ae5719b29ac19470895de1d481156335b8f70a3273ed5"
+    }
+  ]
+}

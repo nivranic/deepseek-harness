@@ -1,0 +1,22 @@
+# Bilingual-pair consistency record for 2026-10-01-android-model-select.md (docs/i18n/README.md): per heading
+# section, a hash of its English and Chinese blocks outside code blocks and generated regions.
+# After editing either side, bring the other along and re-record with:
+#   pnpm run verify-translation-pairing --write .agents/notes/implemented/architecture/2026-10-01-android-model-select.md
+/agent-note-the-android-model-picker-joins-the-shared-capability-contract-30:
+  en: 91a49b1e7641d85e
+  zh: b105622a11896f37
+/agent-note-the-android-model-picker-joins-the-shared-capability-contract-30/problem:
+  en: 12ff609554a30ef7
+  zh: 258943ce350c7a8d
+/agent-note-the-android-model-picker-joins-the-shared-capability-contract-30/decision:
+  en: 4e29750ad2036093
+  zh: dbb3fce1855f3e2b
+/agent-note-the-android-model-picker-joins-the-shared-capability-contract-30/alternatives-considered:
+  en: 1e78fa8e531028f1
+  zh: e0643ba91ee95bda
+/agent-note-the-android-model-picker-joins-the-shared-capability-contract-30/consequences:
+  en: 7008993c5bf8e16b
+  zh: 5544c2018cf85d56
+/agent-note-the-android-model-picker-joins-the-shared-capability-contract-30/open-work:
+  en: e37e62a9d0784304
+  zh: 1fb09d32d7eadb12

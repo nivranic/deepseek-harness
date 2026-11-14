@@ -1,0 +1,4 @@
+{
+  "meta.title": "API de découverte du Host",
+  "meta.description": "Expose l’identité du Host, les versions du protocole et les capacités disponibles."
+}

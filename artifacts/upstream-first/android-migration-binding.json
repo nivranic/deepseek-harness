@@ -1,0 +1,16 @@
+{
+  "status": "PASS",
+  "controls": 3,
+  "sourceRecord": {
+    "path": "artifacts/upstream-first/android-migration-source.json",
+    "sha256": "f9783a410561d8dd91db99ca2dfe93c169930c340b57c05f16ec423cc13ee68d"
+  },
+  "generator": {
+    "path": "artifacts/upstream-first/write-reports.mjs",
+    "sha256": "523f5eca5cd6f05dc74f172f3d62a0fb9454ea7fb3ecabbb6fc718d7abad79e5"
+  },
+  "helper": {
+    "path": ".artifacts/check-android-migration-binding.mjs",
+    "sha256": "9c869b0f7e6db6b54948d9363ffb2f2c6c05a2b77443e3d2d1a1fdb9d1934c54"
+  }
+}

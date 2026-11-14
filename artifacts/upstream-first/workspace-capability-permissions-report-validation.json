@@ -1,0 +1,70 @@
+{
+  "status": "PASS",
+  "scope": "Report bindings and audit for the workspace capability permissions; jobs/settings adoption and the remaining specification sections stay open; full Upstream-First objective remains in progress",
+  "gate0": {
+    "validation": "PASS",
+    "gate0": "PASS",
+    "paths": 1938,
+    "components": 129,
+    "specificationCoverage": {
+      "status": "PASS",
+      "numberedSections": 81,
+      "nonEmptySourceLines": 1983,
+      "acceptanceProven": false
+    }
+  },
+  "sourceRecord": {
+    "path": "artifacts/upstream-first/workspace-capability-permissions-source.json",
+    "sha256": "8d70fed1c1a84f3fcc7ede484a68ac72130d8d23ade9afc5a6ed88354639969b"
+  },
+  "generator": {
+    "path": "artifacts/upstream-first/write-reports.mjs",
+    "sha256": "53cc70d8f98ab82bf8ad09952746f6c1ec2e804ac284b9c45e3fa1ea92a84bc5"
+  },
+  "binding": {
+    "path": "artifacts/upstream-first/workspace-capability-permissions-binding.json",
+    "sha256": "a1a7f44cbd3465e50c94166bf41baeae7ef0375e3e04e9ef22aa2f8716cbfd1d"
+  },
+  "helpers": [
+    {
+      "path": ".artifacts/advance-workspace-capability-permissions-reports.mjs",
+      "sha256": "a7a4d0f9a4a022d49b472fe8a939c041c98d457096e0c8dd85d6c5718668a3dd"
+    },
+    {
+      "path": ".artifacts/capture-workspace-capability-permissions-validation.mjs",
+      "sha256": "1f646b3b77211606a980977d1618f5d284faba20d2c70fc6403cc23552306360"
+    }
+  ],
+  "reports": [
+    {
+      "path": "IMPLEMENTATION_STATUS.md",
+      "sha256": "a4faf9b3740d6b427d1270706f23e004a0df8e6d75a86a9183316a6e06dfccd5"
+    },
+    {
+      "path": "artifacts/upstream-first/evidence.json",
+      "sha256": "02ff3aff07bee30147e621badae1dd253882f46e73f187cf26ae79214b908d74"
+    }
+  ],
+  "checks": [
+    {
+      "path": ".artifacts/workspace-capability-permissions-binding.log",
+      "sha256": "b025b4ead3063a37fbedf06c1fa28e3667042e4204ee01d87e4f907b90039aa5"
+    },
+    {
+      "path": ".artifacts/workspace-capability-permissions-audit-tests.log",
+      "sha256": "2ead7b79b7708b56878ae9b9853ca58fb2dff324d71cfc94b878527b49578e91"
+    },
+    {
+      "path": ".artifacts/workspace-capability-permissions-gate0.log",
+      "sha256": "505d74ef938f5d34d85490d37e0176ba804d93272fcf465ce2544a02c56b3f90"
+    },
+    {
+      "path": ".artifacts/workspace-capability-permissions-report-diff-check.log",
+      "sha256": "e3b0c44298fc1c149afbf4c8996fb92427ae41e4649b934ca495991b7852b855"
+    },
+    {
+      "path": ".artifacts/workspace-capability-permissions-report-generation.log",
+      "sha256": "fe010532f71a6341467ae5719b29ac19470895de1d481156335b8f70a3273ed5"
+    }
+  ]
+}

@@ -1,0 +1,24 @@
+{
+  "discoveryControlled": true,
+  "rawResponseDeliveryControlled": true,
+  "noUnsupportedUpload": true,
+  "stalePickerRejected": true,
+  "imageDraftRetained": true,
+  "composerDraftRetained": true,
+  "readyReceiptWithdrawn": true,
+  "queuedUploadNeverDispatched": true,
+  "oldResponsesSuppressed": true,
+  "noAutomaticRetry": true,
+  "retryRestagedByDigest": true,
+  "uploaded": [
+    "active-one.txt",
+    "active-two.txt",
+    "ready.txt"
+  ],
+  "committed": [
+    "active-one.txt",
+    "active-two.txt",
+    "ready.txt"
+  ],
+  "modelRequests": 0
+}

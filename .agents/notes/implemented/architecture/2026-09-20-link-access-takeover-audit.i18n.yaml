@@ -1,0 +1,22 @@
+# Bilingual-pair consistency record for 2026-09-20-link-access-takeover-audit.md (docs/i18n/README.md): per heading
+# section, a hash of its English and Chinese blocks outside code blocks and generated regions.
+# After editing either side, bring the other along and re-record with:
+#   pnpm run verify-translation-pairing --write .agents/notes/implemented/architecture/2026-09-20-link-access-takeover-audit.md
+/agent-note-link-access-takeover-the-candidate-gateway-owns-device-facing-access:
+  en: b59fac40d90660c5
+  zh: 89ac2f94a28e123a
+/agent-note-link-access-takeover-the-candidate-gateway-owns-device-facing-access/problem:
+  en: 596c55993e12e0ba
+  zh: b09c10923e779283
+/agent-note-link-access-takeover-the-candidate-gateway-owns-device-facing-access/audit-findings:
+  en: 4b8692cac6480dd3
+  zh: 4e4d338b66d98a2d
+/agent-note-link-access-takeover-the-candidate-gateway-owns-device-facing-access/decision:
+  en: 6fe78ad0ecf2f04b
+  zh: 12dd9ce070822deb
+/agent-note-link-access-takeover-the-candidate-gateway-owns-device-facing-access/alternatives-considered:
+  en: 03aab4a744e75670
+  zh: 4192ac846d356a35
+/agent-note-link-access-takeover-the-candidate-gateway-owns-device-facing-access/consequences:
+  en: 9fbad921e4cac350
+  zh: c1eef711feae9979

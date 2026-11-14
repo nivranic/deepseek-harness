@@ -1,0 +1,66 @@
+{
+  "status": "PASS",
+  "scope": "Report bindings and audit for the lite-preset increment: the gen-56 follow-up closing the one left-open §33 implementation piece (the preset selection face — LitePresetCatalog owning preset(id), the pure firstOrNull id lookup, and resolve(id), the one-shot resolution taking null to the catalog default with an unknown id failing loud as an IllegalArgumentException naming the id, the source and every catalog id — the no-guess rule applied to the persona face with the resolution living on :core so the fail-loud form is directly testable without a Context; the carriage face — LiteSessionFacts gaining the trailing presetId: String? = null field documented as catalog data never a constant, LiteChatViewModel carrying selectedPreset (defaulting to presetCatalog.default) with send() submitting selectedPreset?.assembledSystemPrompt byte-identically on the default path and the derived facts reading presetId = selectedPreset?.id, LiteSessionAssembler gaining the optional presetId parameter resolving through bundled.presets.resolve; the persistence face — LiteConfig gaining the trailing presetId: String? = null optional key through the optional-field precedent (a missing key or JSON null reading null, a non-string value failing loud, a null save omitting the key — the default-choice archive byte-identical with the legacy three-key sealed document, zero migration) and the save gate rejecting a presetId outside the catalog; the entry face — LiteEntry's config form gaining the lite-config-preset row with its three-way text (the explicit id, the resolved default id, none) and the AlertDialog picker honestly listing the single catalog entry per the SessionModelSelection form, LiteChatFace gaining the presetId parameter with the remember assembly-cache key extension so a preset switch means a new assembly and new facts) resting on the connected evidence honestly narrated (emulator-5554 LiteEntryNativeTest \"Starting 4 tests … Finished 4 tests\" 4/0/0 walking the real form-row and save-reload chain, the deliberately re-pinned facts equality honestly noted as the observability-precedent ruling); the test faces pin the resolution matrix (LitePresetCatalogTest 5→8: the id hit and miss, resolve taking the explicit id over the lowest-order default, null to the default, the unknown-id fail-loud message naming its inputs), the facts field and the persistence equivalence (LiteSessionFactsTest 3→5, LiteStoresTest 10→13 with the round-trip and null-omitting save plus the mistyped-value fail-loud form), and the selected-preset submit chain (LiteChatViewModelTest 7→8 with the submitted assembled system prompt and facts.presetId); the gates honestly recorded from log content: typecheck EXIT 0 and lint Found 0 warnings and 0 errors on 3861 files (90 rules, 20 threads, 87.8s — both chained rounds carrying no exit trailer — the zero exits rode the invoking shell, recorded beside the logs), test:docs 17 (115.16s) and doc-sync 37 passed 0 failed 0 skipped (178.84s, zero regeneration diff — the post-round git status matching the pre-round snapshot file for file), traceability 6/6 with the §33 selection-face closeout rewrite at 900 chars and candidateEvidence 11 (the six new files joining the row) with §31 and §32 unchanged at their gen-56 and gen-54 sealed 1121/13 and 1134/14, pairing 941 pairs all consistent (the note trio 2026-10-17-lite-preset-selection-face with its dictionary written ahead, the 940→941 reconciliation honestly recorded), the serial double audit round green at 87 files / 1073 tests on both passes over the curated list reused verbatim from .artifacts/lite-assembly-g2-audit-file-list.txt (87 lines, the gen-54 precedent lineage, neither sealed log carrying an exit trailer), gate0 PASS in both byte-identical forms (1938 paths / 129 components / 81 sections / 1983 lines — honestly recorded unchanged from the captured UPSTREAM_DELTA.json, not the live tree); the android acceptance: the scanner-env gradle round BUILD SUCCESSFUL in 9s with 75 actionable tasks of which 2 executed and 73 up-to-date — the honestly recorded verification form (:app:verifyLiteAssetSources and :app:verifyScannerResources executed, the two verification halves, with every compile/package/assemble task UP-TO-DATE because the real changes compiled and packaged in the implementation rounds before; this round's task graph never reaches :app:assembleRelease) — with BOTH APK faces DRIFT against the lite-http record's sealed bytes (androidTest 322bc97a→92285a46 and debug 9f404497→6c3aff72, cross-checked live, this generation's capture becoming the new baseline) and the core XML aggregate reading 83 suites / 533 tests — the reconciliation over gen-56's 524 at +9 (the catalog-resolution, facts-field, config-storage and ViewModel cases with LitePresetCatalogTest 8/0 and LiteChatViewModelTest 8/0) — beside the contract half at 4 suites / 37 tests (aggregate JSON keys named skips — .artifacts/lite-preset-g3-core-results.json); and the adjudicated single-set ruling on the adapter's measured three-source miss stop-point (the gen-53 dwfq-b1ce6281-1 precedent form): the prepare oracle derives the measured seventy-six replaced prior build outputs — all android (two APKs, one jar, eight classes, sixty-two XML reports, three binary outputs) — the adapter's generator-side measurement splits them into six chain-resolvable keys (the recompiled LiteChatViewModelTest five members plus LiteArtifactReadingTest at the deterministic bytes older records hold — this generation's fallback shape the recompiled-classes form of gen-53, gen-55 and gen-56, honestly recorded) and seventy first-emission keys no archive holds (BOTH APK faces among them: the androidTest's sealed 322bc97a bytes and the debug's sealed 9f404497 bytes ride no older archive, beside the repacked jar, the two LiteStoresTest and LiteStoresTestKt class members at their own new first-emission bytes and the sixty-two XML reports and three binary outputs sealed only by the prior record itself — the seventh consecutive generation of the same class: gen-51 ninety-four, gen-52 seventy-three, gen-53 sixty-seven, gen-54 sixty-seven, gen-55 sixty-eight, gen-56 sixty-eight, gen-57 seventy), so the advance installs the liteHttpReplacedBuildOutputs exactly-seventy build-output exemption on the demoted lite-http block, derived and emitted at advance run time from the record, the chain archives and the disk — never transcribed — equal to the seventy-six-key derivation minus the six fallback keys, the two source-side ledger miss keys resolving through the new before archive at their HEAD bytes (no UnrecoverableInputs set born), and every prior generation's set — the gen-56 liteFactsReplacedBuildOutputs sixty-eight beside the gen-55 liteAssemblyReplacedBuildOutputs sixty-eight, the gen-54 litePermissionReplacedBuildOutputs sixty-seven, the gen-53 liteToolsReplacedBuildOutputs sixty-seven, the gen-52 litePersonaReplacedBuildOutputs seventy-three, the gen-51 liteToolReplacedBuildOutputs ninety-four plus liteToolUnrecoverableInputs two, the gen-32 desktopPackageReplacedBuildOutputs six, the gen-33 tornRepairIntentReplacedBuildOutputs three, the gen-48 clientMutationReplacedBuildOutputs two and the gen-46 durableReceiptsReplacedBuildOutputs three — stays exactly as sealed at HEAD; the stale-presetId self-healing failure row, the further-preset re-projection once the runtime-variable exclusion lifts, the context composition beyond profile/preset (§33's other remaining piece), the dormant RelayClient migration-or-retirement decision, the attribution-header decision, the journal continuation, the fact diagnostics projection, the approval ask tier (§38), the tool-call result round-trip (P2) and the §54 network matrix device-side verification all stay open — so no whole-section PASS is granted; full Upstream-First objective remains in progress",
+  "gate0": {
+    "validation": "PASS",
+    "gate0": "PASS",
+    "paths": 1938,
+    "components": 129,
+    "specificationCoverage": {
+      "status": "PASS",
+      "numberedSections": 81,
+      "nonEmptySourceLines": 1983,
+      "acceptanceProven": false
+    }
+  },
+  "sourceRecord": {
+    "path": "artifacts/upstream-first/lite-preset-source.json",
+    "sha256": "28c2be0e80a03dce2d4d404e846436938eaefcfcc9199c7d2f32841740466311"
+  },
+  "generator": {
+    "path": "artifacts/upstream-first/write-reports.mjs",
+    "sha256": "3ce2700f2b0bd03694efec5859bc0fcf75f0f22eaf3f24ac7b32e5c9f125f86e"
+  },
+  "binding": {
+    "path": "artifacts/upstream-first/lite-preset-binding.json",
+    "sha256": "06ca63789c695cb34b0262cc5c8f689af2394ae75d47d0a0c0b28c0926f39235"
+  },
+  "helpers": [
+    {
+      "path": ".artifacts/advance-lite-preset-reports.mjs",
+      "sha256": "0226aec1a145a50fef97622e558c5a400da6d168ff04b574c8a4b88192862db0"
+    },
+    {
+      "path": ".artifacts/capture-lite-preset-validation.mjs",
+      "sha256": "116bcfd0ae44ff3173b4344b40e58eb51dae119384557f558685b0d79fc47e96"
+    }
+  ],
+  "reports": [
+    {
+      "path": "IMPLEMENTATION_STATUS.md",
+      "sha256": "5ef536e455c219fae967a5652941e4b6ee506a24732ae65f69e00c02b00dc484"
+    },
+    {
+      "path": "artifacts/upstream-first/evidence.json",
+      "sha256": "885294da884a6c1800f0a8d173d144f956a87b299fa6388c26fbaa113c8160f3"
+    }
+  ],
+  "checks": [
+    {
+      "path": ".artifacts/lite-preset-binding.log",
+      "sha256": "531cf7a86e459b4306ada8ebefa9fb21ed741df6e561e2e017cadb3f125ad1c8"
+    },
+    {
+      "path": ".artifacts/lite-preset-audit-final.log",
+      "sha256": "70cc774be363eb6155820a362bd131b5a3b7df36d6fea70c4111e64129603ddf"
+    },
+    {
+      "path": ".artifacts/lite-preset-gate0-final.log",
+      "sha256": "505d74ef938f5d34d85490d37e0176ba804d93272fcf465ce2544a02c56b3f90"
+    },
+    {
+      "path": ".artifacts/lite-preset-report-generation.log",
+      "sha256": "fe010532f71a6341467ae5719b29ac19470895de1d481156335b8f70a3273ed5"
+    }
+  ]
+}

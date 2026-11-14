@@ -1,0 +1,13 @@
+{
+  "schemaVersion": 1,
+  "status": "PASS",
+  "scope": "Plain Node public built libraries; lexical paths and real filesystem concurrent writers",
+  "pathCases": 7,
+  "concurrentWriters": 4,
+  "result": "4",
+  "lockRemoved": true,
+  "scratch": ".artifacts/helper-built-workspace-s9CWQP",
+  "injectedLockRaceTested": false,
+  "symlinkTested": false,
+  "applicationTested": false
+}

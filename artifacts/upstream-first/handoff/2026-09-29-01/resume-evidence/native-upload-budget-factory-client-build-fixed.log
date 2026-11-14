@@ -1,0 +1,1952 @@
+$ tsc -b tsconfig.client.json && tsdown --env.DSH_BUILD_FACE client
+ℹ tsdown v0.22.2 powered by rolldown v1.1.1
+ℹ config file: E:\Mix\project\deepseek-harness\.worktrees\upstream-first\tsdown.config.ts 
+ℹ config file: E:\Mix\project\deepseek-harness\.worktrees\upstream-first\apps\cli\tsdown.config.ts 
+ℹ config file: E:\Mix\project\deepseek-harness\.worktrees\upstream-first\vendor\loader\tsdown.config.ts 
+ℹ config file: E:\Mix\project\deepseek-harness\.worktrees\upstream-first\vendor\logger-console\tsdown.config.ts 
+ℹ config file: E:\Mix\project\deepseek-harness\.worktrees\upstream-first\vendor\schemastery\tsdown.config.ts 
+ℹ config file: E:\Mix\project\deepseek-harness\.worktrees\upstream-first\packages\api\gateway\tsdown.config.ts 
+ℹ config file: E:\Mix\project\deepseek-harness\.worktrees\upstream-first\packages\api\remotes\tsdown.config.ts 
+ℹ config file: E:\Mix\project\deepseek-harness\.worktrees\upstream-first\packages\api\session-controller\tsdown.config.ts 
+ℹ config file: E:\Mix\project\deepseek-harness\.worktrees\upstream-first\packages\api\workspace-controller\tsdown.config.ts 
+ℹ config file: E:\Mix\project\deepseek-harness\.worktrees\upstream-first\packages\api\workspace-files\tsdown.config.ts 
+ℹ config file: E:\Mix\project\deepseek-harness\.worktrees\upstream-first\packages\boot\app-boot\tsdown.config.ts 
+ℹ config file: E:\Mix\project\deepseek-harness\.worktrees\upstream-first\packages\code-runtime\code-runtime-worker-thread\tsdown.config.ts 
+ℹ config file: E:\Mix\project\deepseek-harness\.worktrees\upstream-first\packages\compaction\compaction\tsdown.config.ts 
+ℹ config file: E:\Mix\project\deepseek-harness\.worktrees\upstream-first\packages\context\time-context\tsdown.config.ts 
+ℹ config file: E:\Mix\project\deepseek-harness\.worktrees\upstream-first\packages\client\connection\tsdown.config.ts 
+ℹ config file: E:\Mix\project\deepseek-harness\.worktrees\upstream-first\packages\client\hmr\tsdown.config.ts 
+ℹ config file: E:\Mix\project\deepseek-harness\.worktrees\upstream-first\packages\client\locale\tsdown.config.ts 
+ℹ config file: E:\Mix\project\deepseek-harness\.worktrees\upstream-first\packages\client\file-upload\tsdown.config.ts 
+ℹ config file: E:\Mix\project\deepseek-harness\.worktrees\upstream-first\packages\client\modules\tsdown.config.ts 
+ℹ config file: E:\Mix\project\deepseek-harness\.worktrees\upstream-first\packages\client\resources\tsdown.config.ts 
+ℹ config file: E:\Mix\project\deepseek-harness\.worktrees\upstream-first\packages\client\store\tsdown.config.ts 
+ℹ config file: E:\Mix\project\deepseek-harness\.worktrees\upstream-first\packages\client\ui-agent-preset\tsdown.config.ts 
+ℹ config file: E:\Mix\project\deepseek-harness\.worktrees\upstream-first\packages\client\ui-attachment\tsdown.config.ts 
+ℹ config file: E:\Mix\project\deepseek-harness\.worktrees\upstream-first\packages\client\ui-approval\tsdown.config.ts 
+ℹ config file: E:\Mix\project\deepseek-harness\.worktrees\upstream-first\packages\client\ui-brand-official\tsdown.config.ts 
+ℹ config file: E:\Mix\project\deepseek-harness\.worktrees\upstream-first\packages\client\ui-commands\tsdown.config.ts 
+ℹ config file: E:\Mix\project\deepseek-harness\.worktrees\upstream-first\packages\client\ui-conversation\tsdown.config.ts 
+ℹ config file: E:\Mix\project\deepseek-harness\.worktrees\upstream-first\packages\client\ui-chat\tsdown.config.ts 
+ℹ config file: E:\Mix\project\deepseek-harness\.worktrees\upstream-first\packages\client\ui-deliverables\tsdown.config.ts 
+ℹ config file: E:\Mix\project\deepseek-harness\.worktrees\upstream-first\packages\client\ui-directory-picker-browse\tsdown.config.ts 
+ℹ config file: E:\Mix\project\deepseek-harness\.worktrees\upstream-first\packages\client\ui-directory-picker-native\tsdown.config.ts 
+ℹ config file: E:\Mix\project\deepseek-harness\.worktrees\upstream-first\packages\client\ui-dockkit\tsdown.config.ts 
+ℹ config file: E:\Mix\project\deepseek-harness\.worktrees\upstream-first\packages\client\ui-goal\tsdown.config.ts 
+ℹ config file: E:\Mix\project\deepseek-harness\.worktrees\upstream-first\packages\client\ui-jobs\tsdown.config.ts 
+ℹ config file: E:\Mix\project\deepseek-harness\.worktrees\upstream-first\packages\client\ui-layout\tsdown.config.ts 
+ℹ config file: E:\Mix\project\deepseek-harness\.worktrees\upstream-first\packages\client\ui-input-trigger\tsdown.config.ts 
+ℹ config file: E:\Mix\project\deepseek-harness\.worktrees\upstream-first\packages\client\ui-message-feedback\tsdown.config.ts 
+ℹ config file: E:\Mix\project\deepseek-harness\.worktrees\upstream-first\packages\client\ui-model-selection\tsdown.config.ts 
+ℹ config file: E:\Mix\project\deepseek-harness\.worktrees\upstream-first\packages\client\ui-open-in-app\tsdown.config.ts 
+ℹ config file: E:\Mix\project\deepseek-harness\.worktrees\upstream-first\packages\client\ui-permission-presets\tsdown.config.ts 
+ℹ config file: E:\Mix\project\deepseek-harness\.worktrees\upstream-first\packages\client\ui-plan\tsdown.config.ts 
+ℹ config file: E:\Mix\project\deepseek-harness\.worktrees\upstream-first\packages\client\ui-primitives\tsdown.config.ts 
+ℹ config file: E:\Mix\project\deepseek-harness\.worktrees\upstream-first\packages\client\ui-renderer\tsdown.config.ts 
+ℹ config file: E:\Mix\project\deepseek-harness\.worktrees\upstream-first\packages\client\ui-reference\tsdown.config.ts 
+ℹ config file: E:\Mix\project\deepseek-harness\.worktrees\upstream-first\packages\client\ui-schedule\tsdown.config.ts 
+ℹ config file: E:\Mix\project\deepseek-harness\.worktrees\upstream-first\packages\client\ui-session\tsdown.config.ts 
+ℹ config file: E:\Mix\project\deepseek-harness\.worktrees\upstream-first\packages\client\ui-settings\tsdown.config.ts 
+ℹ config file: E:\Mix\project\deepseek-harness\.worktrees\upstream-first\packages\client\ui-settings-devices\tsdown.config.ts 
+ℹ config file: E:\Mix\project\deepseek-harness\.worktrees\upstream-first\packages\client\ui-settings-general\tsdown.config.ts 
+ℹ config file: E:\Mix\project\deepseek-harness\.worktrees\upstream-first\packages\client\ui-settings-hosts\tsdown.config.ts 
+ℹ config file: E:\Mix\project\deepseek-harness\.worktrees\upstream-first\packages\client\ui-settings-models\tsdown.config.ts 
+ℹ config file: E:\Mix\project\deepseek-harness\.worktrees\upstream-first\packages\client\ui-settings-plugin-inventory\tsdown.config.ts 
+ℹ config file: E:\Mix\project\deepseek-harness\.worktrees\upstream-first\packages\client\ui-settings-plugins\tsdown.config.ts 
+ℹ config file: E:\Mix\project\deepseek-harness\.worktrees\upstream-first\packages\client\ui-sidebar\tsdown.config.ts 
+ℹ config file: E:\Mix\project\deepseek-harness\.worktrees\upstream-first\packages\client\ui-sidebar-documentpreview\tsdown.config.ts 
+ℹ config file: E:\Mix\project\deepseek-harness\.worktrees\upstream-first\packages\client\ui-sidebar-files\tsdown.config.ts 
+ℹ config file: E:\Mix\project\deepseek-harness\.worktrees\upstream-first\packages\client\ui-sidebar-right\tsdown.config.ts 
+ℹ config file: E:\Mix\project\deepseek-harness\.worktrees\upstream-first\packages\client\ui-skill\tsdown.config.ts 
+ℹ config file: E:\Mix\project\deepseek-harness\.worktrees\upstream-first\packages\client\ui-slots\tsdown.config.ts 
+ℹ config file: E:\Mix\project\deepseek-harness\.worktrees\upstream-first\packages\client\ui-theme\tsdown.config.ts 
+ℹ config file: E:\Mix\project\deepseek-harness\.worktrees\upstream-first\packages\client\ui-subagent\tsdown.config.ts 
+ℹ config file: E:\Mix\project\deepseek-harness\.worktrees\upstream-first\packages\client\ui-trajectory\tsdown.config.ts 
+ℹ config file: E:\Mix\project\deepseek-harness\.worktrees\upstream-first\packages\client\ui-tool\tsdown.config.ts 
+ℹ config file: E:\Mix\project\deepseek-harness\.worktrees\upstream-first\packages\client\ui-workflow-run\tsdown.config.ts 
+ℹ config file: E:\Mix\project\deepseek-harness\.worktrees\upstream-first\packages\client\ui-user-questions\tsdown.config.ts 
+ℹ config file: E:\Mix\project\deepseek-harness\.worktrees\upstream-first\packages\client\web\tsdown.config.ts 
+ℹ config file: E:\Mix\project\deepseek-harness\.worktrees\upstream-first\packages\core\agent\tsdown.config.ts 
+ℹ config file: E:\Mix\project\deepseek-harness\.worktrees\upstream-first\packages\client\ui-workspace\tsdown.config.ts 
+ℹ config file: E:\Mix\project\deepseek-harness\.worktrees\upstream-first\packages\core\agent-default-model\tsdown.config.ts 
+ℹ config file: E:\Mix\project\deepseek-harness\.worktrees\upstream-first\packages\core\agent-loop\tsdown.config.ts 
+ℹ config file: E:\Mix\project\deepseek-harness\.worktrees\upstream-first\packages\core\scope\tsdown.config.ts 
+ℹ config file: E:\Mix\project\deepseek-harness\.worktrees\upstream-first\packages\core\session\tsdown.config.ts 
+ℹ config file: E:\Mix\project\deepseek-harness\.worktrees\upstream-first\packages\experimental\agent-team\tsdown.config.ts 
+ℹ config file: E:\Mix\project\deepseek-harness\.worktrees\upstream-first\packages\experimental\client-ui-agent-team\tsdown.config.ts 
+ℹ config file: E:\Mix\project\deepseek-harness\.worktrees\upstream-first\packages\experimental\code-runtime-python\tsdown.config.ts 
+ℹ config file: E:\Mix\project\deepseek-harness\.worktrees\upstream-first\packages\experimental\inspector\tsdown.config.ts 
+ℹ config file: E:\Mix\project\deepseek-harness\.worktrees\upstream-first\packages\experimental\webworker-packer\tsdown.config.ts 
+ℹ config file: E:\Mix\project\deepseek-harness\.worktrees\upstream-first\packages\experimental\webworker-runtime\tsdown.config.ts 
+ℹ config file: E:\Mix\project\deepseek-harness\.worktrees\upstream-first\packages\extensions\cordis-client-runner\tsdown.config.ts 
+ℹ config file: E:\Mix\project\deepseek-harness\.worktrees\upstream-first\packages\extensions\ui-cordis\tsdown.config.ts 
+ℹ config file: E:\Mix\project\deepseek-harness\.worktrees\upstream-first\packages\goal\goal\tsdown.config.ts 
+ℹ config file: E:\Mix\project\deepseek-harness\.worktrees\upstream-first\packages\goal\goal-round-driver\tsdown.config.ts 
+ℹ config file: E:\Mix\project\deepseek-harness\.worktrees\upstream-first\packages\host\directory-picker-browse\tsdown.config.ts 
+ℹ config file: E:\Mix\project\deepseek-harness\.worktrees\upstream-first\packages\host\directory-picker-native\tsdown.config.ts 
+ℹ config file: E:\Mix\project\deepseek-harness\.worktrees\upstream-first\packages\host\open-in-app\tsdown.config.ts 
+ℹ config file: E:\Mix\project\deepseek-harness\.worktrees\upstream-first\packages\interaction\user-approval\tsdown.config.ts 
+ℹ config file: E:\Mix\project\deepseek-harness\.worktrees\upstream-first\packages\llm\llm-retry\tsdown.config.ts 
+ℹ config file: E:\Mix\project\deepseek-harness\.worktrees\upstream-first\packages\sandbox\sandbox-policy\tsdown.config.ts 
+ℹ config file: E:\Mix\project\deepseek-harness\.worktrees\upstream-first\packages\sandbox\sandbox-windows-acl\tsdown.config.ts 
+ℹ config file: E:\Mix\project\deepseek-harness\.worktrees\upstream-first\packages\schedule\schedule\tsdown.config.ts 
+ℹ config file: E:\Mix\project\deepseek-harness\.worktrees\upstream-first\packages\session\session-format\tsdown.config.ts 
+ℹ config file: E:\Mix\project\deepseek-harness\.worktrees\upstream-first\packages\session\session-format-catalog\tsdown.config.ts 
+ℹ config file: E:\Mix\project\deepseek-harness\.worktrees\upstream-first\packages\session\session-format-v0-to-v1\tsdown.config.ts 
+ℹ config file: E:\Mix\project\deepseek-harness\.worktrees\upstream-first\packages\session\session-format-v1-to-v2\tsdown.config.ts 
+ℹ config file: E:\Mix\project\deepseek-harness\.worktrees\upstream-first\packages\session\session-format-v2-to-v3\tsdown.config.ts 
+ℹ config file: E:\Mix\project\deepseek-harness\.worktrees\upstream-first\packages\session\session-persistence-jsonl\tsdown.config.ts 
+ℹ config file: E:\Mix\project\deepseek-harness\.worktrees\upstream-first\packages\session-query\session-log-export\tsdown.config.ts 
+ℹ config file: E:\Mix\project\deepseek-harness\.worktrees\upstream-first\packages\settings\settings\tsdown.config.ts 
+ℹ config file: E:\Mix\project\deepseek-harness\.worktrees\upstream-first\packages\subagent\tool-subagent\tsdown.config.ts 
+ℹ config file: E:\Mix\project\deepseek-harness\.worktrees\upstream-first\packages\subprocess\subprocess-local\tsdown.config.ts 
+ℹ config file: E:\Mix\project\deepseek-harness\.worktrees\upstream-first\packages\test-support\client-runtime\tsdown.config.ts 
+ℹ config file: E:\Mix\project\deepseek-harness\.worktrees\upstream-first\packages\test-support\llm-mock-server\tsdown.config.ts 
+ℹ config file: E:\Mix\project\deepseek-harness\.worktrees\upstream-first\packages\test-support\remote-mock\tsdown.config.ts 
+ℹ config file: E:\Mix\project\deepseek-harness\.worktrees\upstream-first\packages\typert\registry\tsdown.config.ts 
+ℹ config file: E:\Mix\project\deepseek-harness\.worktrees\upstream-first\packages\workflow\workflow-worker-thread\tsdown.config.ts 
+ℹ config file: E:\Mix\project\deepseek-harness\.worktrees\upstream-first\vendor\cordis\package.json 
+ℹ config file: E:\Mix\project\deepseek-harness\.worktrees\upstream-first\vendor\include\package.json 
+ℹ config file: E:\Mix\project\deepseek-harness\.worktrees\upstream-first\vendor\cosmokit\package.json 
+ℹ config file: E:\Mix\project\deepseek-harness\.worktrees\upstream-first\vendor\timer\package.json 
+ℹ config file: E:\Mix\project\deepseek-harness\.worktrees\upstream-first\vendor\hmr\package.json 
+ℹ config file: E:\Mix\project\deepseek-harness\.worktrees\upstream-first\packages\api\native-remote\package.json 
+ℹ config file: E:\Mix\project\deepseek-harness\.worktrees\upstream-first\packages\api\device-trust\package.json 
+ℹ config file: E:\Mix\project\deepseek-harness\.worktrees\upstream-first\vendor\group\package.json 
+ℹ config file: E:\Mix\project\deepseek-harness\.worktrees\upstream-first\packages\api\settings-controller\package.json 
+ℹ config file: E:\Mix\project\deepseek-harness\.worktrees\upstream-first\packages\acp\acp\package.json 
+ℹ config file: E:\Mix\project\deepseek-harness\.worktrees\upstream-first\packages\api\host-description\package.json 
+ℹ config file: E:\Mix\project\deepseek-harness\.worktrees\upstream-first\packages\api\host-diagnostics\package.json 
+ℹ config file: E:\Mix\project\deepseek-harness\.worktrees\upstream-first\packages\attachment\attachment\package.json 
+ℹ config file: E:\Mix\project\deepseek-harness\.worktrees\upstream-first\packages\attachment\attachment-local\package.json 
+ℹ config file: E:\Mix\project\deepseek-harness\.worktrees\upstream-first\packages\boot\cmdline\package.json 
+ℹ config file: E:\Mix\project\deepseek-harness\.worktrees\upstream-first\packages\bundle\headless\package.json 
+ℹ config file: E:\Mix\project\deepseek-harness\.worktrees\upstream-first\packages\bundle\acp-app\package.json 
+ℹ config file: E:\Mix\project\deepseek-harness\.worktrees\upstream-first\packages\bundle\sdk-minimal\package.json 
+ℹ config file: E:\Mix\project\deepseek-harness\.worktrees\upstream-first\packages\bundle\sdk-app\package.json 
+ℹ config file: E:\Mix\project\deepseek-harness\.worktrees\upstream-first\packages\bundle\web-app\package.json 
+ℹ config file: E:\Mix\project\deepseek-harness\.worktrees\upstream-first\packages\bundle\base\package.json 
+ℹ config file: E:\Mix\project\deepseek-harness\.worktrees\upstream-first\packages\code-runtime\code-runtime\package.json 
+ℹ config file: E:\Mix\project\deepseek-harness\.worktrees\upstream-first\packages\compaction\command-compact\package.json 
+ℹ config file: E:\Mix\project\deepseek-harness\.worktrees\upstream-first\packages\context\agent-instructions\package.json 
+ℹ config file: E:\Mix\project\deepseek-harness\.worktrees\upstream-first\packages\context\file-reference-local\package.json 
+ℹ config file: E:\Mix\project\deepseek-harness\.worktrees\upstream-first\packages\compaction\compaction-tool-result-pruner\package.json 
+ℹ config file: E:\Mix\project\deepseek-harness\.worktrees\upstream-first\packages\compaction\compaction-basic\package.json 
+ℹ config file: E:\Mix\project\deepseek-harness\.worktrees\upstream-first\packages\context\file-reference\package.json 
+ℹ config file: E:\Mix\project\deepseek-harness\.worktrees\upstream-first\packages\context\tmux-context\package.json 
+ℹ config file: E:\Mix\project\deepseek-harness\.worktrees\upstream-first\packages\core\agent-tool-presentation\package.json 
+ℹ config file: E:\Mix\project\deepseek-harness\.worktrees\upstream-first\packages\core\system-prompt\package.json 
+ℹ config file: E:\Mix\project\deepseek-harness\.worktrees\upstream-first\packages\e2b\subprocess-e2b\package.json 
+ℹ config file: E:\Mix\project\deepseek-harness\.worktrees\upstream-first\packages\context\session-reference\package.json 
+ℹ config file: E:\Mix\project\deepseek-harness\.worktrees\upstream-first\packages\e2b\e2b\package.json 
+ℹ config file: E:\Mix\project\deepseek-harness\.worktrees\upstream-first\packages\e2b\fs-e2b\package.json 
+ℹ config file: E:\Mix\project\deepseek-harness\.worktrees\upstream-first\packages\core\tools\package.json 
+ℹ config file: E:\Mix\project\deepseek-harness\.worktrees\upstream-first\packages\credentials\authorization\package.json 
+ℹ config file: E:\Mix\project\deepseek-harness\.worktrees\upstream-first\packages\credentials\credentials\package.json 
+ℹ config file: E:\Mix\project\deepseek-harness\.worktrees\upstream-first\packages\experimental\agent-team-web-profile\package.json 
+ℹ config file: E:\Mix\project\deepseek-harness\.worktrees\upstream-first\packages\credentials\credentials-local\package.json 
+ℹ config file: E:\Mix\project\deepseek-harness\.worktrees\upstream-first\packages\experimental\tool-agent-team\package.json 
+ℹ config file: E:\Mix\project\deepseek-harness\.worktrees\upstream-first\packages\experimental\agent-team-profile\package.json 
+ℹ config file: E:\Mix\project\deepseek-harness\.worktrees\upstream-first\packages\extensions\cordis-host-runner\package.json 
+ℹ config file: E:\Mix\project\deepseek-harness\.worktrees\upstream-first\packages\extensions\tool-cordis\package.json 
+ℹ config file: E:\Mix\project\deepseek-harness\.worktrees\upstream-first\packages\feedback\command-feedback\package.json 
+ℹ config file: E:\Mix\project\deepseek-harness\.worktrees\upstream-first\packages\fs\fs-observation-policy\package.json 
+ℹ config file: E:\Mix\project\deepseek-harness\.worktrees\upstream-first\packages\fs\fs-sandbox\package.json 
+ℹ config file: E:\Mix\project\deepseek-harness\.worktrees\upstream-first\packages\fs\tool-fs\package.json 
+ℹ config file: E:\Mix\project\deepseek-harness\.worktrees\upstream-first\packages\fs\fs\package.json 
+ℹ config file: E:\Mix\project\deepseek-harness\.worktrees\upstream-first\packages\fs\tool-fs-search\package.json 
+ℹ config file: E:\Mix\project\deepseek-harness\.worktrees\upstream-first\packages\feedback\message-feedback\package.json 
+ℹ config file: E:\Mix\project\deepseek-harness\.worktrees\upstream-first\packages\fs\fs-local\package.json 
+ℹ config file: E:\Mix\project\deepseek-harness\.worktrees\upstream-first\packages\goal\command-goal\package.json 
+ℹ config file: E:\Mix\project\deepseek-harness\.worktrees\upstream-first\packages\fs\tool-str-replace-editor\package.json 
+ℹ config file: E:\Mix\project\deepseek-harness\.worktrees\upstream-first\packages\guard\repeat-tool-reminder\package.json 
+ℹ config file: E:\Mix\project\deepseek-harness\.worktrees\upstream-first\packages\goal\tool-goal\package.json 
+ℹ config file: E:\Mix\project\deepseek-harness\.worktrees\upstream-first\packages\fs\tool-present\package.json 
+ℹ config file: E:\Mix\project\deepseek-harness\.worktrees\upstream-first\packages\guard\timeout-policy\package.json 
+ℹ config file: E:\Mix\project\deepseek-harness\.worktrees\upstream-first\packages\hooks\hook-protocol\package.json 
+ℹ config file: E:\Mix\project\deepseek-harness\.worktrees\upstream-first\packages\hooks\hooks-codex\package.json 
+ℹ config file: E:\Mix\project\deepseek-harness\.worktrees\upstream-first\packages\host\directory-picker\package.json 
+ℹ config file: E:\Mix\project\deepseek-harness\.worktrees\upstream-first\packages\host\frontend-static\package.json 
+ℹ config file: E:\Mix\project\deepseek-harness\.worktrees\upstream-first\packages\hooks\hooks-claude-code\package.json 
+ℹ config file: E:\Mix\project\deepseek-harness\.worktrees\upstream-first\packages\host\plugin-inventory\package.json 
+ℹ config file: E:\Mix\project\deepseek-harness\.worktrees\upstream-first\packages\host\directory-picker-auto\package.json 
+ℹ config file: E:\Mix\project\deepseek-harness\.worktrees\upstream-first\packages\identity\anonymous-user-id\package.json 
+ℹ config file: E:\Mix\project\deepseek-harness\.worktrees\upstream-first\packages\host\webserver\package.json 
+ℹ config file: E:\Mix\project\deepseek-harness\.worktrees\upstream-first\packages\jobs\jobs\package.json 
+ℹ config file: E:\Mix\project\deepseek-harness\.worktrees\upstream-first\packages\jobs\tool-jobs\package.json 
+ℹ config file: E:\Mix\project\deepseek-harness\.worktrees\upstream-first\packages\interaction\tool-ask-user\package.json 
+ℹ config file: E:\Mix\project\deepseek-harness\.worktrees\upstream-first\packages\jobs\jobs-local\package.json 
+ℹ config file: E:\Mix\project\deepseek-harness\.worktrees\upstream-first\packages\interaction\user-questions\package.json 
+ℹ config file: E:\Mix\project\deepseek-harness\.worktrees\upstream-first\packages\interaction\permission-presets\package.json 
+ℹ config file: E:\Mix\project\deepseek-harness\.worktrees\upstream-first\packages\interaction\commands\package.json 
+ℹ config file: E:\Mix\project\deepseek-harness\.worktrees\upstream-first\packages\llm\deepseek-llm-api-extensions\package.json 
+ℹ config file: E:\Mix\project\deepseek-harness\.worktrees\upstream-first\packages\llm\llm-deepseek\package.json 
+ℹ config file: E:\Mix\project\deepseek-harness\.worktrees\upstream-first\packages\llm\llm\package.json 
+ℹ config file: E:\Mix\project\deepseek-harness\.worktrees\upstream-first\packages\llm\plugin-package-inventory-deepseek\package.json 
+ℹ config file: E:\Mix\project\deepseek-harness\.worktrees\upstream-first\packages\lsp\lsp\package.json 
+ℹ config file: E:\Mix\project\deepseek-harness\.worktrees\upstream-first\packages\lsp\tool-lsp\package.json 
+ℹ config file: E:\Mix\project\deepseek-harness\.worktrees\upstream-first\packages\llm\token-meter\package.json 
+ℹ config file: E:\Mix\project\deepseek-harness\.worktrees\upstream-first\packages\lsp\lsp-stdio\package.json 
+ℹ config file: E:\Mix\project\deepseek-harness\.worktrees\upstream-first\packages\preset\agent-presets\package.json 
+ℹ config file: E:\Mix\project\deepseek-harness\.worktrees\upstream-first\packages\llm\llm-pi-ai\package.json 
+ℹ config file: E:\Mix\project\deepseek-harness\.worktrees\upstream-first\packages\mcp\mcp-client\package.json 
+ℹ config file: E:\Mix\project\deepseek-harness\.worktrees\upstream-first\packages\preset\persona\package.json 
+ℹ config file: E:\Mix\project\deepseek-harness\.worktrees\upstream-first\packages\sandbox\sandbox-local\package.json 
+ℹ config file: E:\Mix\project\deepseek-harness\.worktrees\upstream-first\packages\sandbox\sandbox\package.json 
+ℹ config file: E:\Mix\project\deepseek-harness\.worktrees\upstream-first\packages\runtime-diagnostics\invariants\package.json 
+ℹ config file: E:\Mix\project\deepseek-harness\.worktrees\upstream-first\packages\plan\plan-mode\package.json 
+ℹ config file: E:\Mix\project\deepseek-harness\.worktrees\upstream-first\packages\session\session-checkpoint-policy\package.json 
+ℹ config file: E:\Mix\project\deepseek-harness\.worktrees\upstream-first\packages\session\session-log-deepseek\package.json 
+ℹ config file: E:\Mix\project\deepseek-harness\.worktrees\upstream-first\packages\sdk\client\package.json 
+ℹ config file: E:\Mix\project\deepseek-harness\.worktrees\upstream-first\packages\sdk\protocol\package.json 
+ℹ config file: E:\Mix\project\deepseek-harness\.worktrees\upstream-first\packages\session\session-persistence\package.json 
+ℹ config file: E:\Mix\project\deepseek-harness\.worktrees\upstream-first\packages\session\session-projection-cache\package.json 
+ℹ config file: E:\Mix\project\deepseek-harness\.worktrees\upstream-first\packages\sdk\server\package.json 
+ℹ config file: E:\Mix\project\deepseek-harness\.worktrees\upstream-first\packages\session\session-projection\package.json 
+ℹ config file: E:\Mix\project\deepseek-harness\.worktrees\upstream-first\packages\session\session-telemetry\package.json 
+ℹ config file: E:\Mix\project\deepseek-harness\.worktrees\upstream-first\packages\session\session-title\package.json 
+ℹ config file: E:\Mix\project\deepseek-harness\.worktrees\upstream-first\packages\session\session-stats\package.json 
+ℹ config file: E:\Mix\project\deepseek-harness\.worktrees\upstream-first\packages\session\session-title-all-prompts-llm\package.json 
+ℹ config file: E:\Mix\project\deepseek-harness\.worktrees\upstream-first\packages\session\session-title-first-prompt-llm\package.json 
+ℹ config file: E:\Mix\project\deepseek-harness\.worktrees\upstream-first\packages\session\session-telemetry-otel\package.json 
+ℹ config file: E:\Mix\project\deepseek-harness\.worktrees\upstream-first\packages\session\session-title-llm\package.json 
+ℹ config file: E:\Mix\project\deepseek-harness\.worktrees\upstream-first\packages\session-query\session-query\package.json 
+ℹ config file: E:\Mix\project\deepseek-harness\.worktrees\upstream-first\packages\session\session-turn-outline\package.json 
+ℹ config file: E:\Mix\project\deepseek-harness\.worktrees\upstream-first\packages\settings\settings-file\package.json 
+ℹ config file: E:\Mix\project\deepseek-harness\.worktrees\upstream-first\packages\shell\bash-local\package.json 
+ℹ config file: E:\Mix\project\deepseek-harness\.worktrees\upstream-first\packages\shell\bash-sandbox\package.json 
+ℹ config file: E:\Mix\project\deepseek-harness\.worktrees\upstream-first\packages\shell\pwsh-local\package.json 
+ℹ config file: E:\Mix\project\deepseek-harness\.worktrees\upstream-first\packages\shell\shell-env\package.json 
+ℹ config file: E:\Mix\project\deepseek-harness\.worktrees\upstream-first\packages\shell\shell\package.json 
+ℹ config file: E:\Mix\project\deepseek-harness\.worktrees\upstream-first\packages\shell\pwsh-sandbox\package.json 
+ℹ config file: E:\Mix\project\deepseek-harness\.worktrees\upstream-first\packages\shell\tool-bash\package.json 
+ℹ config file: E:\Mix\project\deepseek-harness\.worktrees\upstream-first\packages\shell\tool-pwsh\package.json 
+ℹ config file: E:\Mix\project\deepseek-harness\.worktrees\upstream-first\packages\shell\tool-bash-persistent\package.json 
+ℹ config file: E:\Mix\project\deepseek-harness\.worktrees\upstream-first\packages\shell\tool-pwsh-persistent\package.json 
+ℹ config file: E:\Mix\project\deepseek-harness\.worktrees\upstream-first\packages\skill\skill\package.json 
+ℹ config file: E:\Mix\project\deepseek-harness\.worktrees\upstream-first\packages\skill\skill-filesystem\package.json 
+ℹ config file: E:\Mix\project\deepseek-harness\.worktrees\upstream-first\packages\session-query\session-query-sqlite\package.json 
+ℹ config file: E:\Mix\project\deepseek-harness\.worktrees\upstream-first\packages\session-query\tool-session-query\package.json 
+ℹ config file: E:\Mix\project\deepseek-harness\.worktrees\upstream-first\packages\skill\skill-badge\package.json 
+ℹ config file: E:\Mix\project\deepseek-harness\.worktrees\upstream-first\packages\spill\spill\package.json 
+ℹ config file: E:\Mix\project\deepseek-harness\.worktrees\upstream-first\packages\spill\spill-policy\package.json 
+ℹ config file: E:\Mix\project\deepseek-harness\.worktrees\upstream-first\packages\spill\spill-local\package.json 
+ℹ config file: E:\Mix\project\deepseek-harness\.worktrees\upstream-first\packages\skill\tool-skill\package.json 
+ℹ config file: E:\Mix\project\deepseek-harness\.worktrees\upstream-first\packages\storage\storage\package.json 
+ℹ config file: E:\Mix\project\deepseek-harness\.worktrees\upstream-first\packages\storage\storage-domain\package.json 
+ℹ config file: E:\Mix\project\deepseek-harness\.worktrees\upstream-first\packages\subagent\subagent\package.json 
+ℹ config file: E:\Mix\project\deepseek-harness\.worktrees\upstream-first\packages\subagent\subagent-acp\package.json 
+ℹ config file: E:\Mix\project\deepseek-harness\.worktrees\upstream-first\packages\storage\storage-json\package.json 
+ℹ config file: E:\Mix\project\deepseek-harness\.worktrees\upstream-first\packages\subagent\subagent-codex\package.json 
+ℹ config file: E:\Mix\project\deepseek-harness\.worktrees\upstream-first\packages\subagent\subagent-claude-code\package.json 
+ℹ config file: E:\Mix\project\deepseek-harness\.worktrees\upstream-first\packages\subagent\subagent-dsh-sdk\package.json 
+ℹ config file: E:\Mix\project\deepseek-harness\.worktrees\upstream-first\packages\storage\storage-sqlite\package.json 
+ℹ config file: E:\Mix\project\deepseek-harness\.worktrees\upstream-first\packages\subagent\subagent-fork-in-process\package.json 
+ℹ config file: E:\Mix\project\deepseek-harness\.worktrees\upstream-first\packages\subagent\tool-subagent-control\package.json 
+ℹ config file: E:\Mix\project\deepseek-harness\.worktrees\upstream-first\packages\subagent\subagent-in-process-driver\package.json 
+ℹ config file: E:\Mix\project\deepseek-harness\.worktrees\upstream-first\packages\subagent\subagent-spawn-in-process\package.json 
+ℹ config file: E:\Mix\project\deepseek-harness\.worktrees\upstream-first\packages\subprocess\win32-process\package.json 
+ℹ config file: E:\Mix\project\deepseek-harness\.worktrees\upstream-first\packages\subprocess\subprocess\package.json 
+ℹ config file: E:\Mix\project\deepseek-harness\.worktrees\upstream-first\packages\terminal\terminal-bash\package.json 
+ℹ config file: E:\Mix\project\deepseek-harness\.worktrees\upstream-first\packages\terminal\tool-terminal\package.json 
+ℹ config file: E:\Mix\project\deepseek-harness\.worktrees\upstream-first\packages\terminal\terminal\package.json 
+ℹ config file: E:\Mix\project\deepseek-harness\.worktrees\upstream-first\packages\test-support\llm-replay\package.json 
+ℹ config file: E:\Mix\project\deepseek-harness\.worktrees\upstream-first\packages\test-support\agent-loop-testkit\package.json 
+ℹ config file: E:\Mix\project\deepseek-harness\.worktrees\upstream-first\packages\test-support\session-snapshot\package.json 
+ℹ config file: E:\Mix\project\deepseek-harness\.worktrees\upstream-first\packages\test-support\loader-smoke\package.json 
+ℹ config file: E:\Mix\project\deepseek-harness\.worktrees\upstream-first\packages\todo\tool-todo\package.json 
+ℹ config file: E:\Mix\project\deepseek-harness\.worktrees\upstream-first\packages\typert\loader\package.json 
+ℹ config file: E:\Mix\project\deepseek-harness\.worktrees\upstream-first\packages\typert\protocol\package.json 
+ℹ config file: E:\Mix\project\deepseek-harness\.worktrees\upstream-first\packages\typert\generator\package.json 
+ℹ config file: E:\Mix\project\deepseek-harness\.worktrees\upstream-first\packages\util\atomic-write\package.json 
+ℹ config file: E:\Mix\project\deepseek-harness\.worktrees\upstream-first\packages\util\chunked-list\package.json 
+ℹ config file: E:\Mix\project\deepseek-harness\.worktrees\upstream-first\packages\util\deque\package.json 
+ℹ config file: E:\Mix\project\deepseek-harness\.worktrees\upstream-first\packages\util\brand\package.json 
+ℹ config file: E:\Mix\project\deepseek-harness\.worktrees\upstream-first\packages\util\home-paths\package.json 
+ℹ config file: E:\Mix\project\deepseek-harness\.worktrees\upstream-first\packages\util\crypto\package.json 
+ℹ config file: E:\Mix\project\deepseek-harness\.worktrees\upstream-first\packages\util\output-retention\package.json 
+ℹ config file: E:\Mix\project\deepseek-harness\.worktrees\upstream-first\packages\util\http-proxy\package.json 
+ℹ config file: E:\Mix\project\deepseek-harness\.worktrees\upstream-first\packages\util\native-command\package.json 
+ℹ config file: E:\Mix\project\deepseek-harness\.worktrees\upstream-first\packages\util\package-manifest\package.json 
+ℹ config file: E:\Mix\project\deepseek-harness\.worktrees\upstream-first\packages\util\values\package.json 
+ℹ config file: E:\Mix\project\deepseek-harness\.worktrees\upstream-first\packages\util\time\package.json 
+ℹ config file: E:\Mix\project\deepseek-harness\.worktrees\upstream-first\packages\util\launch-environment\package.json 
+ℹ config file: E:\Mix\project\deepseek-harness\.worktrees\upstream-first\packages\web\tool-web\package.json 
+ℹ config file: E:\Mix\project\deepseek-harness\.worktrees\upstream-first\packages\util\timeout\package.json 
+ℹ config file: E:\Mix\project\deepseek-harness\.worktrees\upstream-first\packages\web\web\package.json 
+ℹ config file: E:\Mix\project\deepseek-harness\.worktrees\upstream-first\packages\web\web-search-exa\package.json 
+ℹ config file: E:\Mix\project\deepseek-harness\.worktrees\upstream-first\packages\util\workspace-path\package.json 
+ℹ config file: E:\Mix\project\deepseek-harness\.worktrees\upstream-first\packages\web\web-fetch-http\package.json 
+ℹ config file: E:\Mix\project\deepseek-harness\.worktrees\upstream-first\packages\webhook\webhook\package.json 
+ℹ config file: E:\Mix\project\deepseek-harness\.worktrees\upstream-first\packages\web\web-search-perplexity\package.json 
+ℹ config file: E:\Mix\project\deepseek-harness\.worktrees\upstream-first\packages\web\web-search-deepseek\package.json 
+ℹ config file: E:\Mix\project\deepseek-harness\.worktrees\upstream-first\packages\webhook\webhook-github\package.json 
+ℹ config file: E:\Mix\project\deepseek-harness\.worktrees\upstream-first\packages\workflow\tool-ralph\package.json 
+ℹ config file: E:\Mix\project\deepseek-harness\.worktrees\upstream-first\packages\workflow\tool-workflow\package.json 
+ℹ config file: E:\Mix\project\deepseek-harness\.worktrees\upstream-first\packages\workflow\workflow\package.json 
+ℹ config file: E:\Mix\project\deepseek-harness\.worktrees\upstream-first\packages\workspace\workspace\package.json 
+ℹ [@deepseek-ai/dsh] entry: lib/types/bin.js
+ℹ [@deepseek-ai/dsh] target: es2024
+ℹ [@deepseek-ai/dsh] tsconfig: tsconfig.json
+ℹ [@deepseek-ai/cordis-plugin-loader] entry: lib/types/index.js
+ℹ [@deepseek-ai/cordis-plugin-loader] target: es2024
+ℹ [@deepseek-ai/cordis-plugin-loader] tsconfig: tsconfig.json
+ℹ [@deepseek-ai/dsh-api-gateway] entry: lib/types/index.js
+ℹ [@deepseek-ai/dsh-api-gateway] target: es2024
+ℹ [@deepseek-ai/dsh-api-gateway] tsconfig: tsconfig.json
+ℹ [@deepseek-ai/cordis-plugin-logger-console] entry: lib/types/browser.js
+ℹ [@deepseek-ai/cordis-plugin-logger-console] target: es2024
+ℹ [@deepseek-ai/cordis-plugin-logger-console] tsconfig: tsconfig.json
+ℹ [@deepseek-ai/dsh-code-runtime-worker-thread] entry: lib/types/index.js
+ℹ [@deepseek-ai/dsh-code-runtime-worker-thread] target: es2024
+ℹ [@deepseek-ai/dsh-code-runtime-worker-thread] tsconfig: tsconfig.json
+ℹ [@deepseek-ai/schemastery] entry: lib/types/index.js
+ℹ [@deepseek-ai/schemastery] target: es2024
+ℹ [@deepseek-ai/schemastery] tsconfig: tsconfig.json
+ℹ [@deepseek-ai/cordis-plugin-logger-console] entry: lib/types/index.js
+ℹ [@deepseek-ai/cordis-plugin-logger-console] target: es2024
+ℹ [@deepseek-ai/cordis-plugin-logger-console] tsconfig: tsconfig.json
+ℹ [@deepseek-ai/dsh-code-runtime-worker-thread] entry: lib/types/worker.js
+ℹ [@deepseek-ai/dsh-code-runtime-worker-thread] target: es2024
+ℹ [@deepseek-ai/dsh-code-runtime-worker-thread] tsconfig: tsconfig.json
+ℹ [@deepseek-ai/dsh-compaction] entry: lib/types/index.js
+ℹ [@deepseek-ai/dsh-compaction] target: es2024
+ℹ [@deepseek-ai/dsh-compaction] tsconfig: tsconfig.json
+ℹ [@deepseek-ai/dsh-app-boot] entry: lib/types/index.js
+ℹ [@deepseek-ai/dsh-app-boot] target: es2024
+ℹ [@deepseek-ai/dsh-app-boot] tsconfig: tsconfig.json
+ℹ [@deepseek-ai/dsh-compaction] entry: lib/types/invariant.js
+ℹ [@deepseek-ai/dsh-compaction] target: es2024
+ℹ [@deepseek-ai/dsh-compaction] tsconfig: tsconfig.json
+ℹ [@deepseek-ai/dsh-time-context] entry: lib/types/index.js
+ℹ [@deepseek-ai/dsh-time-context] target: es2024
+ℹ [@deepseek-ai/dsh-time-context] tsconfig: tsconfig.json
+ℹ [@deepseek-ai/dsh-time-context] entry: lib/types/invariant.js
+ℹ [@deepseek-ai/dsh-time-context] target: es2024
+ℹ [@deepseek-ai/dsh-time-context] tsconfig: tsconfig.json
+ℹ [@deepseek-ai/dsh-client-connection] entry: lib/types/index.js
+ℹ [@deepseek-ai/dsh-client-connection] target: es2024
+ℹ [@deepseek-ai/dsh-client-connection] tsconfig: tsconfig.json
+ℹ [@deepseek-ai/dsh-client-file-upload] entry: lib/types/index.js
+ℹ [@deepseek-ai/dsh-client-file-upload] target: es2024
+ℹ [@deepseek-ai/dsh-client-file-upload] tsconfig: tsconfig.json
+ℹ [@deepseek-ai/dsh-client-locale] entry: lib/types/index.js
+ℹ [@deepseek-ai/dsh-client-locale] target: es2024
+ℹ [@deepseek-ai/dsh-client-locale] tsconfig: tsconfig.json
+ℹ [@deepseek-ai/dsh-client-hmr] entry: lib/types/index.js, lib/types/invariant.js
+ℹ [@deepseek-ai/dsh-client-hmr] target: es2024
+ℹ [@deepseek-ai/dsh-client-hmr] tsconfig: tsconfig.json
+ℹ [@deepseek-ai/dsh-client-modules] entry: lib/types/index.js, lib/types/invariant.js
+ℹ [@deepseek-ai/dsh-client-modules] target: es2024
+ℹ [@deepseek-ai/dsh-client-modules] tsconfig: tsconfig.json
+ℹ [@deepseek-ai/dsh-client-resources] entry: lib/types/index.js
+ℹ [@deepseek-ai/dsh-client-resources] target: es2024
+ℹ [@deepseek-ai/dsh-client-resources] tsconfig: tsconfig.json
+ℹ [@deepseek-ai/dsh-client-ui-agent-preset] entry: lib/types/index.js
+ℹ [@deepseek-ai/dsh-client-ui-agent-preset] target: es2024
+ℹ [@deepseek-ai/dsh-client-ui-agent-preset] tsconfig: tsconfig.json
+ℹ [@deepseek-ai/dsh-client-ui-brand-official] entry: lib/types/index.js
+ℹ [@deepseek-ai/dsh-client-ui-brand-official] target: es2024
+ℹ [@deepseek-ai/dsh-client-ui-brand-official] tsconfig: tsconfig.json
+ℹ [@deepseek-ai/dsh-client-ui-approval] entry: lib/types/index.js
+ℹ [@deepseek-ai/dsh-client-ui-approval] target: es2024
+ℹ [@deepseek-ai/dsh-client-ui-approval] tsconfig: tsconfig.json
+ℹ [@deepseek-ai/dsh-client-ui-attachment] entry: lib/types/index.js
+ℹ [@deepseek-ai/dsh-client-ui-attachment] target: es2024
+ℹ [@deepseek-ai/dsh-client-ui-attachment] tsconfig: tsconfig.json
+ℹ [@deepseek-ai/dsh-client-ui-commands] entry: lib/types/index.js
+ℹ [@deepseek-ai/dsh-client-ui-commands] target: es2024
+ℹ [@deepseek-ai/dsh-client-ui-commands] tsconfig: tsconfig.json
+ℹ [@deepseek-ai/dsh-client-ui-chat] entry: lib/types/index.js
+ℹ [@deepseek-ai/dsh-client-ui-chat] target: es2024
+ℹ [@deepseek-ai/dsh-client-ui-chat] tsconfig: tsconfig.json
+ℹ [@deepseek-ai/dsh-client-ui-conversation] entry: lib/types/index.js
+ℹ [@deepseek-ai/dsh-client-ui-conversation] target: es2024
+ℹ [@deepseek-ai/dsh-client-ui-conversation] tsconfig: tsconfig.json
+ℹ [@deepseek-ai/dsh-client-ui-directory-picker-browse] entry: lib/types/index.js
+ℹ [@deepseek-ai/dsh-client-ui-directory-picker-browse] target: es2024
+ℹ [@deepseek-ai/dsh-client-ui-directory-picker-browse] tsconfig: tsconfig.json
+ℹ [@deepseek-ai/dsh-client-ui-goal] entry: lib/types/index.js
+ℹ [@deepseek-ai/dsh-client-ui-goal] target: es2024
+ℹ [@deepseek-ai/dsh-client-ui-goal] tsconfig: tsconfig.json
+ℹ [@deepseek-ai/dsh-client-ui-directory-picker-native] entry: lib/types/index.js
+ℹ [@deepseek-ai/dsh-client-ui-directory-picker-native] target: es2024
+ℹ [@deepseek-ai/dsh-client-ui-directory-picker-native] tsconfig: tsconfig.json
+ℹ [@deepseek-ai/dsh-client-ui-input-trigger] entry: lib/types/index.js
+ℹ [@deepseek-ai/dsh-client-ui-input-trigger] target: es2024
+ℹ [@deepseek-ai/dsh-client-ui-input-trigger] tsconfig: tsconfig.json
+ℹ [@deepseek-ai/dsh-client-ui-jobs] entry: lib/types/index.js
+ℹ [@deepseek-ai/dsh-client-ui-jobs] target: es2024
+ℹ [@deepseek-ai/dsh-client-ui-jobs] tsconfig: tsconfig.json
+ℹ [@deepseek-ai/dsh-client-ui-layout] entry: lib/types/index.js
+ℹ [@deepseek-ai/dsh-client-ui-layout] target: es2024
+ℹ [@deepseek-ai/dsh-client-ui-layout] tsconfig: tsconfig.json
+ℹ [@deepseek-ai/dsh-client-ui-message-feedback] entry: lib/types/index.js
+ℹ [@deepseek-ai/dsh-client-ui-message-feedback] target: es2024
+ℹ [@deepseek-ai/dsh-client-ui-message-feedback] tsconfig: tsconfig.json
+ℹ [@deepseek-ai/dsh-client-ui-open-in-app] entry: lib/types/index.js
+ℹ [@deepseek-ai/dsh-client-ui-open-in-app] target: es2024
+ℹ [@deepseek-ai/dsh-client-ui-open-in-app] tsconfig: tsconfig.json
+ℹ [@deepseek-ai/dsh-client-ui-model-selection] entry: lib/types/index.js
+ℹ [@deepseek-ai/dsh-client-ui-model-selection] target: es2024
+ℹ [@deepseek-ai/dsh-client-ui-model-selection] tsconfig: tsconfig.json
+ℹ [@deepseek-ai/dsh-client-ui-permission-presets] entry: lib/types/index.js
+ℹ [@deepseek-ai/dsh-client-ui-permission-presets] target: es2024
+ℹ [@deepseek-ai/dsh-client-ui-permission-presets] tsconfig: tsconfig.json
+ℹ [@deepseek-ai/dsh-client-ui-plan] entry: lib/types/index.js
+ℹ [@deepseek-ai/dsh-client-ui-plan] target: es2024
+ℹ [@deepseek-ai/dsh-client-ui-plan] tsconfig: tsconfig.json
+ℹ [@deepseek-ai/dsh-client-ui-renderer] entry: lib/types/index.js, lib/types/invariant.js
+ℹ [@deepseek-ai/dsh-client-ui-renderer] target: es2024
+ℹ [@deepseek-ai/dsh-client-ui-renderer] tsconfig: tsconfig.json
+ℹ [@deepseek-ai/dsh-client-ui-reference] entry: lib/types/index.js
+ℹ [@deepseek-ai/dsh-client-ui-reference] target: es2024
+ℹ [@deepseek-ai/dsh-client-ui-reference] tsconfig: tsconfig.json
+ℹ [@deepseek-ai/dsh-client-ui-settings] entry: lib/types/index.js
+ℹ [@deepseek-ai/dsh-client-ui-settings] target: es2024
+ℹ [@deepseek-ai/dsh-client-ui-settings] tsconfig: tsconfig.json
+ℹ [@deepseek-ai/dsh-client-ui-session] entry: lib/types/index.js
+ℹ [@deepseek-ai/dsh-client-ui-session] target: es2024
+ℹ [@deepseek-ai/dsh-client-ui-session] tsconfig: tsconfig.json
+ℹ [@deepseek-ai/dsh-client-ui-settings-devices] entry: lib/types/index.js
+ℹ [@deepseek-ai/dsh-client-ui-settings-devices] target: es2024
+ℹ [@deepseek-ai/dsh-client-ui-settings-devices] tsconfig: tsconfig.json
+ℹ [@deepseek-ai/dsh-client-ui-schedule] entry: lib/types/index.js
+ℹ [@deepseek-ai/dsh-client-ui-schedule] target: es2024
+ℹ [@deepseek-ai/dsh-client-ui-schedule] tsconfig: tsconfig.json
+ℹ [@deepseek-ai/dsh-client-ui-settings-general] entry: lib/types/index.js
+ℹ [@deepseek-ai/dsh-client-ui-settings-general] target: es2024
+ℹ [@deepseek-ai/dsh-client-ui-settings-general] tsconfig: tsconfig.json
+ℹ [@deepseek-ai/dsh-client-ui-settings-hosts] entry: lib/types/index.js
+ℹ [@deepseek-ai/dsh-client-ui-settings-hosts] target: es2024
+ℹ [@deepseek-ai/dsh-client-ui-settings-hosts] tsconfig: tsconfig.json
+ℹ [@deepseek-ai/dsh-client-ui-settings-models] entry: lib/types/index.js
+ℹ [@deepseek-ai/dsh-client-ui-settings-models] target: es2024
+ℹ [@deepseek-ai/dsh-client-ui-settings-models] tsconfig: tsconfig.json
+ℹ [@deepseek-ai/dsh-client-ui-settings-plugin-inventory] entry: lib/types/index.js
+ℹ [@deepseek-ai/dsh-client-ui-settings-plugin-inventory] target: es2024
+ℹ [@deepseek-ai/dsh-client-ui-settings-plugin-inventory] tsconfig: tsconfig.json
+ℹ [@deepseek-ai/dsh-client-ui-sidebar] entry: lib/types/index.js
+ℹ [@deepseek-ai/dsh-client-ui-sidebar] target: es2024
+ℹ [@deepseek-ai/dsh-client-ui-sidebar] tsconfig: tsconfig.json
+ℹ [@deepseek-ai/dsh-client-ui-settings-plugins] entry: lib/types/index.js
+ℹ [@deepseek-ai/dsh-client-ui-settings-plugins] target: es2024
+ℹ [@deepseek-ai/dsh-client-ui-settings-plugins] tsconfig: tsconfig.json
+ℹ [@deepseek-ai/dsh-client-ui-sidebar-documentpreview] entry: lib/types/index.js
+ℹ [@deepseek-ai/dsh-client-ui-sidebar-documentpreview] target: es2024
+ℹ [@deepseek-ai/dsh-client-ui-sidebar-documentpreview] tsconfig: tsconfig.json
+ℹ [@deepseek-ai/dsh-client-ui-sidebar-files] entry: lib/types/index.js
+ℹ [@deepseek-ai/dsh-client-ui-sidebar-files] target: es2024
+ℹ [@deepseek-ai/dsh-client-ui-sidebar-files] tsconfig: tsconfig.json
+ℹ [@deepseek-ai/dsh-client-ui-sidebar-right] entry: lib/types/index.js
+ℹ [@deepseek-ai/dsh-client-ui-sidebar-right] target: es2024
+ℹ [@deepseek-ai/dsh-client-ui-sidebar-right] tsconfig: tsconfig.json
+ℹ [@deepseek-ai/dsh-client-ui-subagent] entry: lib/types/index.js
+ℹ [@deepseek-ai/dsh-client-ui-subagent] target: es2024
+ℹ [@deepseek-ai/dsh-client-ui-subagent] tsconfig: tsconfig.json
+ℹ [@deepseek-ai/dsh-client-ui-skill] entry: lib/types/index.js
+ℹ [@deepseek-ai/dsh-client-ui-skill] target: es2024
+ℹ [@deepseek-ai/dsh-client-ui-skill] tsconfig: tsconfig.json
+ℹ [@deepseek-ai/dsh-client-ui-theme] entry: lib/types/index.js
+ℹ [@deepseek-ai/dsh-client-ui-theme] target: es2024
+ℹ [@deepseek-ai/dsh-client-ui-theme] tsconfig: tsconfig.json
+ℹ [@deepseek-ai/dsh-client-ui-tool] entry: lib/types/index.js
+ℹ [@deepseek-ai/dsh-client-ui-tool] target: es2024
+ℹ [@deepseek-ai/dsh-client-ui-tool] tsconfig: tsconfig.json
+ℹ [@deepseek-ai/dsh-client-ui-trajectory] entry: lib/types/index.js
+ℹ [@deepseek-ai/dsh-client-ui-trajectory] target: es2024
+ℹ [@deepseek-ai/dsh-client-ui-trajectory] tsconfig: tsconfig.json
+ℹ [@deepseek-ai/dsh-client-ui-workflow-run] entry: lib/types/index.js
+ℹ [@deepseek-ai/dsh-client-ui-workflow-run] target: es2024
+ℹ [@deepseek-ai/dsh-client-ui-workflow-run] tsconfig: tsconfig.json
+ℹ [@deepseek-ai/dsh-client-ui-workspace] entry: lib/types/index.js
+ℹ [@deepseek-ai/dsh-client-ui-workspace] target: es2024
+ℹ [@deepseek-ai/dsh-client-ui-workspace] tsconfig: tsconfig.json
+ℹ [@deepseek-ai/dsh-agent] entry: lib/types/invariant.js
+ℹ [@deepseek-ai/dsh-agent] target: es2024
+ℹ [@deepseek-ai/dsh-agent] tsconfig: tsconfig.json
+ℹ [@deepseek-ai/dsh-client-ui-user-questions] entry: lib/types/index.js
+ℹ [@deepseek-ai/dsh-client-ui-user-questions] target: es2024
+ℹ [@deepseek-ai/dsh-client-ui-user-questions] tsconfig: tsconfig.json
+ℹ [@deepseek-ai/dsh-agent] entry: lib/types/index.js
+ℹ [@deepseek-ai/dsh-agent] target: es2024
+ℹ [@deepseek-ai/dsh-agent] tsconfig: tsconfig.json
+ℹ [@deepseek-ai/dsh-agent-default-model] entry: lib/types/index.js
+ℹ [@deepseek-ai/dsh-agent-default-model] target: es2024
+ℹ [@deepseek-ai/dsh-agent-default-model] tsconfig: tsconfig.json
+ℹ [@deepseek-ai/dsh-agent-loop] entry: lib/types/index.js
+ℹ [@deepseek-ai/dsh-agent-loop] target: es2024
+ℹ [@deepseek-ai/dsh-agent-loop] tsconfig: tsconfig.json
+ℹ [@deepseek-ai/dsh-agent-loop] entry: lib/types/invariant.js
+ℹ [@deepseek-ai/dsh-agent-loop] target: es2024
+ℹ [@deepseek-ai/dsh-agent-loop] tsconfig: tsconfig.json
+ℹ [@deepseek-ai/dsh-scope] entry: lib/types/index.js
+ℹ [@deepseek-ai/dsh-scope] target: es2024
+ℹ [@deepseek-ai/dsh-scope] tsconfig: tsconfig.json
+ℹ [@deepseek-ai/dsh-scope] entry: lib/types/invariant.js
+ℹ [@deepseek-ai/dsh-scope] target: es2024
+ℹ [@deepseek-ai/dsh-scope] tsconfig: tsconfig.json
+ℹ [@deepseek-ai/dsh-session] entry: lib/types/index.js
+ℹ [@deepseek-ai/dsh-session] target: es2024
+ℹ [@deepseek-ai/dsh-session] tsconfig: tsconfig.json
+ℹ [@deepseek-ai/dsh-session] entry: lib/types/invariant.js
+ℹ [@deepseek-ai/dsh-session] target: es2024
+ℹ [@deepseek-ai/dsh-session] tsconfig: tsconfig.json
+ℹ [@deepseek-ai/dsh-experimental-agent-team] entry: lib/types/index.js
+ℹ [@deepseek-ai/dsh-experimental-agent-team] target: es2024
+ℹ [@deepseek-ai/dsh-experimental-agent-team] tsconfig: tsconfig.json
+ℹ [@deepseek-ai/dsh-experimental-agent-team] entry: lib/types/invariant.js
+ℹ [@deepseek-ai/dsh-experimental-agent-team] target: es2024
+ℹ [@deepseek-ai/dsh-experimental-agent-team] tsconfig: tsconfig.json
+ℹ [@deepseek-ai/dsh-experimental-client-ui-agent-team] entry: lib/types/index.js
+ℹ [@deepseek-ai/dsh-experimental-client-ui-agent-team] target: es2024
+ℹ [@deepseek-ai/dsh-experimental-client-ui-agent-team] tsconfig: tsconfig.json
+ℹ [@deepseek-ai/dsh-experimental-webworker-packer] entry: lib/types/index.js, lib/types/bin.js
+ℹ [@deepseek-ai/dsh-experimental-webworker-packer] target: es2024
+ℹ [@deepseek-ai/dsh-experimental-webworker-packer] tsconfig: tsconfig.json
+ℹ [@deepseek-ai/dsh-experimental-code-runtime-python] entry: lib/types/index.js
+ℹ [@deepseek-ai/dsh-experimental-code-runtime-python] target: es2024
+ℹ [@deepseek-ai/dsh-experimental-code-runtime-python] tsconfig: tsconfig.json
+ℹ [@deepseek-ai/dsh-experimental-webworker-runtime] entry: src/index.ts
+ℹ [@deepseek-ai/dsh-experimental-webworker-runtime] target: es2024
+ℹ [@deepseek-ai/dsh-experimental-webworker-runtime] tsconfig: tsconfig.json
+ℹ [@deepseek-ai/dsh-cordis-client-runner] entry: lib/types/index.js
+ℹ [@deepseek-ai/dsh-cordis-client-runner] target: es2024
+ℹ [@deepseek-ai/dsh-cordis-client-runner] tsconfig: tsconfig.json
+ℹ [@deepseek-ai/dsh-client-ui-cordis] entry: lib/types/index.js
+ℹ [@deepseek-ai/dsh-client-ui-cordis] target: es2024
+ℹ [@deepseek-ai/dsh-client-ui-cordis] tsconfig: tsconfig.json
+ℹ [@deepseek-ai/dsh-experimental-webworker-runtime] entry: src/client/index.ts
+ℹ [@deepseek-ai/dsh-experimental-webworker-runtime] target: es2022
+ℹ [@deepseek-ai/dsh-experimental-webworker-runtime] tsconfig: tsconfig.json
+ℹ [@deepseek-ai/dsh-goal] entry: lib/types/index.js
+ℹ [@deepseek-ai/dsh-goal] target: es2024
+ℹ [@deepseek-ai/dsh-goal] tsconfig: tsconfig.json
+ℹ [@deepseek-ai/dsh-goal] entry: lib/types/invariant.js
+ℹ [@deepseek-ai/dsh-goal] target: es2024
+ℹ [@deepseek-ai/dsh-goal] tsconfig: tsconfig.json
+ℹ [@deepseek-ai/dsh-goal-round-driver] entry: lib/types/index.js
+ℹ [@deepseek-ai/dsh-goal-round-driver] target: es2024
+ℹ [@deepseek-ai/dsh-goal-round-driver] tsconfig: tsconfig.json
+ℹ [@deepseek-ai/dsh-goal-round-driver] entry: lib/types/invariant.js
+ℹ [@deepseek-ai/dsh-goal-round-driver] target: es2024
+ℹ [@deepseek-ai/dsh-goal-round-driver] tsconfig: tsconfig.json
+ℹ [@deepseek-ai/dsh-host-directory-picker-browse] entry: lib/types/index.js
+ℹ [@deepseek-ai/dsh-host-directory-picker-browse] target: es2024
+ℹ [@deepseek-ai/dsh-host-directory-picker-browse] tsconfig: tsconfig.json
+ℹ [@deepseek-ai/dsh-host-directory-picker-native] entry: lib/types/index.js
+ℹ [@deepseek-ai/dsh-host-directory-picker-native] target: es2024
+ℹ [@deepseek-ai/dsh-host-directory-picker-native] tsconfig: tsconfig.json
+ℹ [@deepseek-ai/dsh-host-directory-picker-native] entry: lib/types/win32-dialog-worker.js
+ℹ [@deepseek-ai/dsh-host-directory-picker-native] target: es2024
+ℹ [@deepseek-ai/dsh-host-directory-picker-native] tsconfig: tsconfig.json
+ℹ [@deepseek-ai/dsh-host-open-in-app] entry: lib/types/index.js
+ℹ [@deepseek-ai/dsh-host-open-in-app] target: es2024
+ℹ [@deepseek-ai/dsh-host-open-in-app] tsconfig: tsconfig.json
+ℹ [@deepseek-ai/dsh-user-approval] entry: lib/types/index.js
+ℹ [@deepseek-ai/dsh-user-approval] target: es2024
+ℹ [@deepseek-ai/dsh-user-approval] tsconfig: tsconfig.json
+ℹ [@deepseek-ai/dsh-sandbox-policy] entry: lib/types/invariant.js
+ℹ [@deepseek-ai/dsh-sandbox-policy] target: es2024
+ℹ [@deepseek-ai/dsh-sandbox-policy] tsconfig: tsconfig.json
+ℹ [@deepseek-ai/dsh-llm-retry] entry: lib/types/index.js
+ℹ [@deepseek-ai/dsh-llm-retry] target: es2024
+ℹ [@deepseek-ai/dsh-llm-retry] tsconfig: tsconfig.json
+ℹ [@deepseek-ai/dsh-llm-retry] entry: lib/types/invariant.js
+ℹ [@deepseek-ai/dsh-llm-retry] target: es2024
+ℹ [@deepseek-ai/dsh-llm-retry] tsconfig: tsconfig.json
+ℹ [@deepseek-ai/dsh-sandbox-policy] entry: lib/types/index.js
+ℹ [@deepseek-ai/dsh-sandbox-policy] target: es2024
+ℹ [@deepseek-ai/dsh-sandbox-policy] tsconfig: tsconfig.json
+ℹ [@deepseek-ai/dsh-user-approval] entry: lib/types/invariant.js
+ℹ [@deepseek-ai/dsh-user-approval] target: es2024
+ℹ [@deepseek-ai/dsh-user-approval] tsconfig: tsconfig.json
+ℹ [@deepseek-ai/dsh-sandbox-windows-acl] entry: lib/types/index.js, lib/types/runner.js
+ℹ [@deepseek-ai/dsh-sandbox-windows-acl] target: es2024
+ℹ [@deepseek-ai/dsh-sandbox-windows-acl] tsconfig: tsconfig.json
+ℹ [@deepseek-ai/dsh-session-format-catalog] entry: lib/types/index.js
+ℹ [@deepseek-ai/dsh-session-format-catalog] target: es2024
+ℹ [@deepseek-ai/dsh-session-format-catalog] tsconfig: tsconfig.json
+ℹ [@deepseek-ai/dsh-schedule] entry: lib/types/invariant.js
+ℹ [@deepseek-ai/dsh-schedule] target: es2024
+ℹ [@deepseek-ai/dsh-schedule] tsconfig: tsconfig.json
+ℹ [@deepseek-ai/dsh-schedule] entry: lib/types/index.js
+ℹ [@deepseek-ai/dsh-schedule] target: es2024
+ℹ [@deepseek-ai/dsh-schedule] tsconfig: tsconfig.json
+ℹ [@deepseek-ai/dsh-session-format] entry: lib/types/index.js
+ℹ [@deepseek-ai/dsh-session-format] target: es2024
+ℹ [@deepseek-ai/dsh-session-format] tsconfig: tsconfig.json
+ℹ [@deepseek-ai/dsh-session-format-v0-to-v1] entry: lib/types/index.js
+ℹ [@deepseek-ai/dsh-session-format-v0-to-v1] target: es2024
+ℹ [@deepseek-ai/dsh-session-format-v0-to-v1] tsconfig: tsconfig.json
+ℹ [@deepseek-ai/dsh-session-format-v1-to-v2] entry: lib/types/index.js
+ℹ [@deepseek-ai/dsh-session-format-v1-to-v2] target: es2024
+ℹ [@deepseek-ai/dsh-session-format-v1-to-v2] tsconfig: tsconfig.json
+ℹ [@deepseek-ai/dsh-session-format-v2-to-v3] entry: lib/types/index.js
+ℹ [@deepseek-ai/dsh-session-format-v2-to-v3] target: es2024
+ℹ [@deepseek-ai/dsh-session-format-v2-to-v3] tsconfig: tsconfig.json
+ℹ [@deepseek-ai/dsh-settings] entry: lib/types/invariant.js
+ℹ [@deepseek-ai/dsh-settings] target: es2024
+ℹ [@deepseek-ai/dsh-settings] tsconfig: tsconfig.json
+ℹ [@deepseek-ai/dsh-tool-subagent] entry: lib/types/index.js
+ℹ [@deepseek-ai/dsh-tool-subagent] target: es2024
+ℹ [@deepseek-ai/dsh-tool-subagent] tsconfig: tsconfig.json
+ℹ [@deepseek-ai/dsh-tool-subagent] entry: lib/types/model-selection-settings.js
+ℹ [@deepseek-ai/dsh-tool-subagent] target: es2024
+ℹ [@deepseek-ai/dsh-tool-subagent] tsconfig: tsconfig.json
+ℹ [@deepseek-ai/dsh-settings] entry: lib/types/index.js
+ℹ [@deepseek-ai/dsh-settings] target: es2024
+ℹ [@deepseek-ai/dsh-settings] tsconfig: tsconfig.json
+ℹ [@deepseek-ai/dsh-tool-subagent] entry: lib/types/invariant.js
+ℹ [@deepseek-ai/dsh-tool-subagent] target: es2024
+ℹ [@deepseek-ai/dsh-tool-subagent] tsconfig: tsconfig.json
+ℹ [@deepseek-ai/dsh-subprocess-local] entry: lib/types/index.js, lib/types/bin.js
+ℹ [@deepseek-ai/dsh-subprocess-local] target: es2024
+ℹ [@deepseek-ai/dsh-subprocess-local] tsconfig: tsconfig.json
+ℹ [@deepseek-ai/dsh-client-test-runtime] entry: lib/types/index.js
+ℹ [@deepseek-ai/dsh-client-test-runtime] target: es2024
+ℹ [@deepseek-ai/dsh-client-test-runtime] tsconfig: tsconfig.json
+ℹ [@deepseek-ai/dsh-remote-mock] entry: lib/types/index.js
+ℹ [@deepseek-ai/dsh-remote-mock] target: es2024
+ℹ [@deepseek-ai/dsh-remote-mock] tsconfig: tsconfig.json
+ℹ [@deepseek-ai/dsh-typert-registry] entry: lib/types/index.js
+ℹ [@deepseek-ai/dsh-typert-registry] target: es2024
+ℹ [@deepseek-ai/dsh-typert-registry] tsconfig: tsconfig.json
+ℹ [@deepseek-ai/dsh-llm-mock-server] entry: lib/types/index.js
+ℹ [@deepseek-ai/dsh-llm-mock-server] target: es2024
+ℹ [@deepseek-ai/dsh-llm-mock-server] tsconfig: tsconfig.json
+ℹ [@deepseek-ai/dsh-workflow-worker-thread] entry: lib/types/index.js
+ℹ [@deepseek-ai/dsh-workflow-worker-thread] target: es2024
+ℹ [@deepseek-ai/dsh-workflow-worker-thread] tsconfig: tsconfig.json
+ℹ [@deepseek-ai/dsh-workflow-worker-thread] entry: lib/types/worker.js
+ℹ [@deepseek-ai/dsh-workflow-worker-thread] target: es2024
+ℹ [@deepseek-ai/dsh-workflow-worker-thread] tsconfig: tsconfig.json
+ℹ [@deepseek-ai/dsh-client-store] entry: lib/types/index.js
+ℹ [@deepseek-ai/dsh-client-store] target: es2024
+ℹ [@deepseek-ai/dsh-client-store] tsconfig: tsconfig.json
+ℹ [@deepseek-ai/dsh-experimental-webworker-runtime] entry: src/worker.ts
+ℹ [@deepseek-ai/dsh-experimental-webworker-runtime] target: es2022
+ℹ [@deepseek-ai/dsh-experimental-webworker-runtime] tsconfig: tsconfig.json
+
+ WARN  `noExternal` is deprecated. Use `deps.alwaysBundle` instead.
+
+ℹ [@deepseek-ai/dsh-client-ui-dockkit] entry: lib/types/index.js
+ℹ [@deepseek-ai/dsh-client-ui-dockkit] target: es2024
+ℹ [@deepseek-ai/dsh-client-ui-dockkit] tsconfig: tsconfig.json
+ℹ [@deepseek-ai/dsh-client-ui-primitives] entry: lib/types/index.js
+ℹ [@deepseek-ai/dsh-client-ui-primitives] target: es2024
+ℹ [@deepseek-ai/dsh-client-ui-primitives] tsconfig: tsconfig.json
+ℹ [@deepseek-ai/dsh-client-web] entry: lib/types/index.js
+ℹ [@deepseek-ai/dsh-client-web] target: es2024
+ℹ [@deepseek-ai/dsh-client-web] tsconfig: tsconfig.json
+ℹ [@deepseek-ai/dsh-client-ui-slots] entry: lib/types/index.js
+ℹ [@deepseek-ai/dsh-client-ui-slots] target: es2024
+ℹ [@deepseek-ai/dsh-client-ui-slots] tsconfig: tsconfig.json
+ℹ [@deepseek-ai/dsh-api-gateway/client] entry: lib/types/client/index.js
+ℹ [@deepseek-ai/dsh-api-gateway/client] target: es2024
+ℹ [@deepseek-ai/dsh-api-gateway/client] tsconfig: tsconfig.json
+ℹ [@deepseek-ai/dsh-api-session-controller/client] entry: lib/types/client/index.js
+ℹ [@deepseek-ai/dsh-api-session-controller/client] target: es2024
+ℹ [@deepseek-ai/dsh-api-session-controller/client] tsconfig: tsconfig.json
+ℹ [@deepseek-ai/dsh-api-workspace-controller/client] entry: lib/types/client/index.js
+ℹ [@deepseek-ai/dsh-api-workspace-controller/client] target: es2024
+ℹ [@deepseek-ai/dsh-api-workspace-controller/client] tsconfig: tsconfig.json
+ℹ [@deepseek-ai/dsh-api-workspace-files/client] entry: lib/types/client/index.js
+ℹ [@deepseek-ai/dsh-api-workspace-files/client] target: es2024
+ℹ [@deepseek-ai/dsh-api-workspace-files/client] tsconfig: tsconfig.json
+ℹ [@deepseek-ai/dsh-client-connection/client] entry: lib/types/client/index.js
+ℹ [@deepseek-ai/dsh-client-connection/client] target: es2024
+ℹ [@deepseek-ai/dsh-client-connection/client] tsconfig: tsconfig.json
+ℹ [@deepseek-ai/dsh-api-remotes/client] entry: lib/types/client/index.js
+ℹ [@deepseek-ai/dsh-api-remotes/client] target: es2024
+ℹ [@deepseek-ai/dsh-api-remotes/client] tsconfig: tsconfig.json
+ℹ [@deepseek-ai/dsh-client-file-upload/client] entry: lib/types/client/index.js
+ℹ [@deepseek-ai/dsh-client-file-upload/client] target: es2024
+ℹ [@deepseek-ai/dsh-client-file-upload/client] tsconfig: tsconfig.json
+ℹ [@deepseek-ai/dsh-client-hmr/client] entry: lib/types/client/index.js
+ℹ [@deepseek-ai/dsh-client-hmr/client] target: es2024
+ℹ [@deepseek-ai/dsh-client-hmr/client] tsconfig: tsconfig.json
+ℹ [@deepseek-ai/dsh-client-locale/client] entry: lib/types/client/index.js
+ℹ [@deepseek-ai/dsh-client-locale/client] target: es2024
+ℹ [@deepseek-ai/dsh-client-locale/client] tsconfig: tsconfig.json
+ℹ [@deepseek-ai/dsh-client-modules/client] entry: lib/types/client/index.js
+ℹ [@deepseek-ai/dsh-client-modules/client] target: es2024
+ℹ [@deepseek-ai/dsh-client-modules/client] tsconfig: tsconfig.json
+ℹ [@deepseek-ai/dsh-client-resources/client] entry: lib/types/client/index.js
+ℹ [@deepseek-ai/dsh-client-resources/client] target: es2024
+ℹ [@deepseek-ai/dsh-client-resources/client] tsconfig: tsconfig.json
+ℹ [@deepseek-ai/dsh-client-ui-agent-preset/client] entry: lib/types/client/index.js
+ℹ [@deepseek-ai/dsh-client-ui-agent-preset/client] target: es2024
+ℹ [@deepseek-ai/dsh-client-ui-agent-preset/client] tsconfig: tsconfig.json
+ℹ [@deepseek-ai/dsh-client-ui-approval/client] entry: lib/types/client/index.js
+ℹ [@deepseek-ai/dsh-client-ui-approval/client] target: es2024
+ℹ [@deepseek-ai/dsh-client-ui-approval/client] tsconfig: tsconfig.json
+ℹ [@deepseek-ai/dsh-client-ui-attachment/client] entry: lib/types/client/index.js
+ℹ [@deepseek-ai/dsh-client-ui-attachment/client] target: es2024
+ℹ [@deepseek-ai/dsh-client-ui-attachment/client] tsconfig: tsconfig.json
+ℹ [@deepseek-ai/dsh-client-ui-brand-official/client] entry: lib/types/client/index.js
+ℹ [@deepseek-ai/dsh-client-ui-brand-official/client] target: es2024
+ℹ [@deepseek-ai/dsh-client-ui-brand-official/client] tsconfig: tsconfig.json
+ℹ [@deepseek-ai/dsh-client-ui-chat/client] entry: lib/types/client/index.js
+ℹ [@deepseek-ai/dsh-client-ui-chat/client] target: es2024
+ℹ [@deepseek-ai/dsh-client-ui-chat/client] tsconfig: tsconfig.json
+ℹ [@deepseek-ai/dsh-client-ui-commands/client] entry: lib/types/client/index.js
+ℹ [@deepseek-ai/dsh-client-ui-commands/client] target: es2024
+ℹ [@deepseek-ai/dsh-client-ui-commands/client] tsconfig: tsconfig.json
+ℹ [@deepseek-ai/dsh-client-ui-conversation/client] entry: lib/types/client/index.js
+ℹ [@deepseek-ai/dsh-client-ui-conversation/client] target: es2024
+ℹ [@deepseek-ai/dsh-client-ui-conversation/client] tsconfig: tsconfig.json
+ℹ [@deepseek-ai/dsh-client-ui-deliverables/client] entry: lib/types/client/index.js
+ℹ [@deepseek-ai/dsh-client-ui-deliverables/client] target: es2024
+ℹ [@deepseek-ai/dsh-client-ui-deliverables/client] tsconfig: tsconfig.json
+ℹ [@deepseek-ai/dsh-client-ui-directory-picker-browse/client] entry: lib/types/client/index.js
+ℹ [@deepseek-ai/dsh-client-ui-directory-picker-browse/client] target: es2024
+ℹ [@deepseek-ai/dsh-client-ui-directory-picker-browse/client] tsconfig: tsconfig.json
+ℹ [@deepseek-ai/dsh-client-ui-directory-picker-native/client] entry: lib/types/client/index.js
+ℹ [@deepseek-ai/dsh-client-ui-directory-picker-native/client] target: es2024
+ℹ [@deepseek-ai/dsh-client-ui-directory-picker-native/client] tsconfig: tsconfig.json
+ℹ [@deepseek-ai/dsh-client-ui-goal/client] entry: lib/types/client/index.js
+ℹ [@deepseek-ai/dsh-client-ui-goal/client] target: es2024
+ℹ [@deepseek-ai/dsh-client-ui-goal/client] tsconfig: tsconfig.json
+ℹ [@deepseek-ai/dsh-client-ui-input-trigger/client] entry: lib/types/client/index.js
+ℹ [@deepseek-ai/dsh-client-ui-input-trigger/client] target: es2024
+ℹ [@deepseek-ai/dsh-client-ui-input-trigger/client] tsconfig: tsconfig.json
+ℹ [@deepseek-ai/dsh-client-ui-jobs/client] entry: lib/types/client/index.js
+ℹ [@deepseek-ai/dsh-client-ui-jobs/client] target: es2024
+ℹ [@deepseek-ai/dsh-client-ui-jobs/client] tsconfig: tsconfig.json
+ℹ [@deepseek-ai/dsh-client-ui-layout/client] entry: lib/types/client/index.js
+ℹ [@deepseek-ai/dsh-client-ui-layout/client] target: es2024
+ℹ [@deepseek-ai/dsh-client-ui-layout/client] tsconfig: tsconfig.json
+ℹ [@deepseek-ai/dsh-client-ui-message-feedback/client] entry: lib/types/client/index.js
+ℹ [@deepseek-ai/dsh-client-ui-message-feedback/client] target: es2024
+ℹ [@deepseek-ai/dsh-client-ui-message-feedback/client] tsconfig: tsconfig.json
+ℹ [@deepseek-ai/dsh-client-ui-model-selection/client] entry: lib/types/client/index.js
+ℹ [@deepseek-ai/dsh-client-ui-model-selection/client] target: es2024
+ℹ [@deepseek-ai/dsh-client-ui-model-selection/client] tsconfig: tsconfig.json
+ℹ [@deepseek-ai/dsh-client-ui-open-in-app/client] entry: lib/types/client/index.js
+ℹ [@deepseek-ai/dsh-client-ui-open-in-app/client] target: es2024
+ℹ [@deepseek-ai/dsh-client-ui-open-in-app/client] tsconfig: tsconfig.json
+ℹ [@deepseek-ai/dsh-client-ui-permission-presets/client] entry: lib/types/client/index.js
+ℹ [@deepseek-ai/dsh-client-ui-permission-presets/client] target: es2024
+ℹ [@deepseek-ai/dsh-client-ui-permission-presets/client] tsconfig: tsconfig.json
+ℹ [@deepseek-ai/dsh-client-ui-plan/client] entry: lib/types/client/index.js
+ℹ [@deepseek-ai/dsh-client-ui-plan/client] target: es2024
+ℹ [@deepseek-ai/dsh-client-ui-plan/client] tsconfig: tsconfig.json
+ℹ [@deepseek-ai/dsh-client-ui-reference/client] entry: lib/types/client/index.js
+ℹ [@deepseek-ai/dsh-client-ui-reference/client] target: es2024
+ℹ [@deepseek-ai/dsh-client-ui-reference/client] tsconfig: tsconfig.json
+ℹ [@deepseek-ai/dsh-client-ui-renderer/client] entry: lib/types/client/index.js
+ℹ [@deepseek-ai/dsh-client-ui-renderer/client] target: es2024
+ℹ [@deepseek-ai/dsh-client-ui-renderer/client] tsconfig: tsconfig.json
+ℹ [@deepseek-ai/dsh-client-ui-schedule/client] entry: lib/types/client/index.js
+ℹ [@deepseek-ai/dsh-client-ui-schedule/client] target: es2024
+ℹ [@deepseek-ai/dsh-client-ui-schedule/client] tsconfig: tsconfig.json
+ℹ [@deepseek-ai/dsh-client-ui-session/client] entry: lib/types/client/index.js
+ℹ [@deepseek-ai/dsh-client-ui-session/client] target: es2024
+ℹ [@deepseek-ai/dsh-client-ui-session/client] tsconfig: tsconfig.json
+ℹ [@deepseek-ai/dsh-client-ui-settings/client] entry: lib/types/client/index.js
+ℹ [@deepseek-ai/dsh-client-ui-settings/client] target: es2024
+ℹ [@deepseek-ai/dsh-client-ui-settings/client] tsconfig: tsconfig.json
+ℹ [@deepseek-ai/dsh-client-ui-settings-devices/client] entry: lib/types/client/index.js
+ℹ [@deepseek-ai/dsh-client-ui-settings-devices/client] target: es2024
+ℹ [@deepseek-ai/dsh-client-ui-settings-devices/client] tsconfig: tsconfig.json
+ℹ [@deepseek-ai/dsh-client-ui-settings-general/client] entry: lib/types/client/index.js
+ℹ [@deepseek-ai/dsh-client-ui-settings-general/client] target: es2024
+ℹ [@deepseek-ai/dsh-client-ui-settings-general/client] tsconfig: tsconfig.json
+ℹ [@deepseek-ai/dsh-client-ui-settings-hosts/client] entry: lib/types/client/index.js
+ℹ [@deepseek-ai/dsh-client-ui-settings-hosts/client] target: es2024
+ℹ [@deepseek-ai/dsh-client-ui-settings-hosts/client] tsconfig: tsconfig.json
+ℹ [@deepseek-ai/dsh-client-ui-settings-models/client] entry: lib/types/client/index.js
+ℹ [@deepseek-ai/dsh-client-ui-settings-models/client] target: es2024
+ℹ [@deepseek-ai/dsh-client-ui-settings-models/client] tsconfig: tsconfig.json
+ℹ [@deepseek-ai/dsh-client-ui-settings-plugin-inventory/client] entry: lib/types/client/index.js
+ℹ [@deepseek-ai/dsh-client-ui-settings-plugin-inventory/client] target: es2024
+ℹ [@deepseek-ai/dsh-client-ui-settings-plugin-inventory/client] tsconfig: tsconfig.json
+ℹ [@deepseek-ai/dsh-client-ui-settings-plugins/client] entry: lib/types/client/index.js
+ℹ [@deepseek-ai/dsh-client-ui-settings-plugins/client] target: es2024
+ℹ [@deepseek-ai/dsh-client-ui-settings-plugins/client] tsconfig: tsconfig.json
+ℹ [@deepseek-ai/dsh-client-ui-sidebar/client] entry: lib/types/client/index.js
+ℹ [@deepseek-ai/dsh-client-ui-sidebar/client] target: es2024
+ℹ [@deepseek-ai/dsh-client-ui-sidebar/client] tsconfig: tsconfig.json
+ℹ [@deepseek-ai/dsh-client-ui-sidebar-files/client] entry: lib/types/client/index.js
+ℹ [@deepseek-ai/dsh-client-ui-sidebar-files/client] target: es2024
+ℹ [@deepseek-ai/dsh-client-ui-sidebar-files/client] tsconfig: tsconfig.json
+ℹ [@deepseek-ai/dsh-client-ui-sidebar-right/client] entry: lib/types/client/index.js
+ℹ [@deepseek-ai/dsh-client-ui-sidebar-right/client] target: es2024
+ℹ [@deepseek-ai/dsh-client-ui-sidebar-right/client] tsconfig: tsconfig.json
+ℹ [@deepseek-ai/dsh-client-ui-skill/client] entry: lib/types/client/index.js
+ℹ [@deepseek-ai/dsh-client-ui-skill/client] target: es2024
+ℹ [@deepseek-ai/dsh-client-ui-skill/client] tsconfig: tsconfig.json
+ℹ [@deepseek-ai/dsh-client-ui-subagent/client] entry: lib/types/client/index.js
+ℹ [@deepseek-ai/dsh-client-ui-subagent/client] target: es2024
+ℹ [@deepseek-ai/dsh-client-ui-subagent/client] tsconfig: tsconfig.json
+ℹ [@deepseek-ai/dsh-client-ui-theme/client] entry: lib/types/client/index.js
+ℹ [@deepseek-ai/dsh-client-ui-theme/client] target: es2024
+ℹ [@deepseek-ai/dsh-client-ui-theme/client] tsconfig: tsconfig.json
+ℹ [@deepseek-ai/dsh-client-ui-trajectory/client] entry: lib/types/client/index.js
+ℹ [@deepseek-ai/dsh-client-ui-trajectory/client] target: es2024
+ℹ [@deepseek-ai/dsh-client-ui-trajectory/client] tsconfig: tsconfig.json
+ℹ [@deepseek-ai/dsh-client-ui-user-questions/client] entry: lib/types/client/index.js
+ℹ [@deepseek-ai/dsh-client-ui-user-questions/client] target: es2024
+ℹ [@deepseek-ai/dsh-client-ui-user-questions/client] tsconfig: tsconfig.json
+ℹ [@deepseek-ai/dsh-client-ui-tool/client] entry: lib/types/client/index.js
+ℹ [@deepseek-ai/dsh-client-ui-tool/client] target: es2024
+ℹ [@deepseek-ai/dsh-client-ui-tool/client] tsconfig: tsconfig.json
+ℹ [@deepseek-ai/dsh-client-ui-workflow-run/client] entry: lib/types/client/index.js
+ℹ [@deepseek-ai/dsh-client-ui-workflow-run/client] target: es2024
+ℹ [@deepseek-ai/dsh-client-ui-workflow-run/client] tsconfig: tsconfig.json
+ℹ [@deepseek-ai/dsh-client-ui-workspace/client] entry: lib/types/client/index.js
+ℹ [@deepseek-ai/dsh-client-ui-workspace/client] target: es2024
+ℹ [@deepseek-ai/dsh-client-ui-workspace/client] tsconfig: tsconfig.json
+ℹ [@deepseek-ai/dsh-experimental-client-ui-agent-team/client] entry: lib/types/client/index.js
+ℹ [@deepseek-ai/dsh-experimental-client-ui-agent-team/client] target: es2024
+ℹ [@deepseek-ai/dsh-experimental-client-ui-agent-team/client] tsconfig: tsconfig.json
+ℹ [@deepseek-ai/dsh-experimental-inspector/client] entry: lib/types/client/index.js
+ℹ [@deepseek-ai/dsh-experimental-inspector/client] target: es2024
+ℹ [@deepseek-ai/dsh-experimental-inspector/client] tsconfig: tsconfig.json
+ℹ [@deepseek-ai/dsh-cordis-client-runner/client] entry: lib/types/client/index.js
+ℹ [@deepseek-ai/dsh-cordis-client-runner/client] target: es2024
+ℹ [@deepseek-ai/dsh-cordis-client-runner/client] tsconfig: tsconfig.json
+ℹ [@deepseek-ai/dsh-client-ui-cordis/client] entry: lib/types/client/index.js
+ℹ [@deepseek-ai/dsh-client-ui-cordis/client] target: es2024
+ℹ [@deepseek-ai/dsh-client-ui-cordis/client] tsconfig: tsconfig.json
+ℹ [@deepseek-ai/dsh-session-log-export/client] entry: lib/types/client/index.js
+ℹ [@deepseek-ai/dsh-session-log-export/client] target: es2024
+ℹ [@deepseek-ai/dsh-session-log-export/client] tsconfig: tsconfig.json
+ℹ [@deepseek-ai/dsh-typert-registry/client] entry: lib/types/client/index.js
+ℹ [@deepseek-ai/dsh-typert-registry/client] target: es2024
+ℹ [@deepseek-ai/dsh-typert-registry/client] tsconfig: tsconfig.json
+ℹ [@deepseek-ai/dsh-client-ui-sidebar-documentpreview/client] entry: lib/types/client/index.js
+ℹ [@deepseek-ai/dsh-client-ui-sidebar-documentpreview/client] target: es2024
+ℹ [@deepseek-ai/dsh-client-ui-sidebar-documentpreview/client] tsconfig: tsconfig.json
+ℹ Build start
+ℹ Cleaning 5 files
+
+ WARN  inlineDynamicImports option is deprecated, please use codeSplitting: false instead.
+
+ℹ [@deepseek-ai/dsh-experimental-webworker-runtime] lib\client.js  30.47 kB │ gzip: 9.67 kB
+ℹ [@deepseek-ai/dsh-experimental-webworker-runtime] 1 files, total: 30.47 kB
+✔ [@deepseek-ai/dsh-experimental-webworker-runtime] Build complete in 6787ms
+ℹ [@deepseek-ai/dsh-experimental-webworker-packer] Granting execute permission to lib\bin.js
+ℹ [@deepseek-ai/schemastery] [ESM] lib\index.mjs  21.07 kB │ gzip: 5.30 kB
+ℹ [@deepseek-ai/schemastery] [ESM] 1 files, total: 21.07 kB
+ℹ [@deepseek-ai/cordis-plugin-logger-console] lib\browser.js  2.58 kB │ gzip: 1.06 kB
+ℹ [@deepseek-ai/cordis-plugin-logger-console] 1 files, total: 2.58 kB
+ℹ [@deepseek-ai/schemastery] [CJS] lib\index.cjs  21.84 kB │ gzip: 5.33 kB
+ℹ [@deepseek-ai/schemastery] [CJS] 1 files, total: 21.84 kB
+ℹ [@deepseek-ai/dsh-time-context] lib\invariant.js  10.98 kB │ gzip: 3.79 kB
+ℹ [@deepseek-ai/dsh-time-context] 1 files, total: 10.98 kB
+ℹ [@deepseek-ai/dsh-compaction] lib\index.js  7.56 kB │ gzip: 2.72 kB
+ℹ [@deepseek-ai/dsh-compaction] 1 files, total: 7.56 kB
+ℹ [@deepseek-ai/dsh-agent-loop] lib\invariant.js  2.61 kB │ gzip: 1.02 kB
+ℹ [@deepseek-ai/dsh-agent-loop] 1 files, total: 2.61 kB
+ℹ [@deepseek-ai/dsh-agent-default-model] lib\index.js  2.65 kB │ gzip: 1.04 kB
+ℹ [@deepseek-ai/dsh-agent-default-model] 1 files, total: 2.65 kB
+ℹ [@deepseek-ai/dsh-agent] lib\invariant.js  1.01 kB │ gzip: 0.55 kB
+ℹ [@deepseek-ai/dsh-agent] 1 files, total: 1.01 kB
+ℹ [@deepseek-ai/dsh-code-runtime-worker-thread] [ESM] lib\index.js  36.83 kB │ gzip: 10.36 kB
+ℹ [@deepseek-ai/dsh-code-runtime-worker-thread] [ESM] 1 files, total: 36.83 kB
+ℹ [@deepseek-ai/dsh-experimental-agent-team] lib\invariant.js  13.46 kB │ gzip: 3.90 kB
+ℹ [@deepseek-ai/dsh-experimental-agent-team] 1 files, total: 13.46 kB
+ℹ [@deepseek-ai/dsh-scope] lib\invariant.js  3.53 kB │ gzip: 1.25 kB
+ℹ [@deepseek-ai/dsh-scope] 1 files, total: 3.53 kB
+ℹ [@deepseek-ai/dsh-scope] lib\index.js  12.15 kB │ gzip: 3.99 kB
+ℹ [@deepseek-ai/dsh-scope] 1 files, total: 12.15 kB
+ℹ [@deepseek-ai/dsh-llm-retry] lib\invariant.js  8.04 kB │ gzip: 2.41 kB
+ℹ [@deepseek-ai/dsh-llm-retry] 1 files, total: 8.04 kB
+ℹ [@deepseek-ai/dsh-user-approval] lib\index.js  8.51 kB │ gzip: 3.28 kB
+ℹ [@deepseek-ai/dsh-user-approval] 1 files, total: 8.51 kB
+ℹ [@deepseek-ai/dsh-host-directory-picker-browse] lib\index.js  9.31 kB │ gzip: 3.58 kB
+ℹ [@deepseek-ai/dsh-host-directory-picker-browse] 1 files, total: 9.31 kB
+ℹ [@deepseek-ai/dsh-schedule] lib\invariant.js  13.50 kB │ gzip: 4.01 kB
+ℹ [@deepseek-ai/dsh-schedule] 1 files, total: 13.50 kB
+ℹ [@deepseek-ai/dsh-settings] lib\invariant.js  1.65 kB │ gzip: 0.73 kB
+ℹ [@deepseek-ai/dsh-settings] 1 files, total: 1.65 kB
+ℹ [@deepseek-ai/dsh-goal] lib\invariant.js  14.86 kB │ gzip: 4.13 kB
+ℹ [@deepseek-ai/dsh-goal] 1 files, total: 14.86 kB
+ℹ [@deepseek-ai/dsh-host-directory-picker-native] [CJS] lib\worker.cjs  10.30 kB │ gzip: 3.96 kB
+ℹ [@deepseek-ai/dsh-host-directory-picker-native] [CJS] 1 files, total: 10.30 kB
+ℹ [@deepseek-ai/dsh-sandbox-policy] lib\invariant.js  2.70 kB │ gzip: 1.35 kB
+ℹ [@deepseek-ai/dsh-sandbox-policy] 1 files, total: 2.70 kB
+ℹ [@deepseek-ai/dsh-session-format] lib\index.js  21.07 kB │ gzip: 4.83 kB
+ℹ [@deepseek-ai/dsh-session-format] 1 files, total: 21.07 kB
+ℹ [@deepseek-ai/dsh-llm-retry] lib\index.js  6.28 kB │ gzip: 2.21 kB
+ℹ [@deepseek-ai/dsh-llm-retry] 1 files, total: 6.28 kB
+ℹ [@deepseek-ai/dsh-goal-round-driver] lib\invariant.js  3.95 kB │ gzip: 1.71 kB
+ℹ [@deepseek-ai/dsh-goal-round-driver] 1 files, total: 3.95 kB
+ℹ [@deepseek-ai/dsh-user-approval] lib\invariant.js  12.24 kB │ gzip: 4.27 kB
+ℹ [@deepseek-ai/dsh-user-approval] 1 files, total: 12.24 kB
+ℹ [@deepseek-ai/dsh-llm-mock-server] lib\index.js  17.97 kB │ gzip: 5.17 kB
+ℹ [@deepseek-ai/dsh-llm-mock-server] 1 files, total: 17.97 kB
+ℹ [@deepseek-ai/dsh-goal-round-driver] lib\index.js  13.90 kB │ gzip: 3.81 kB
+ℹ [@deepseek-ai/dsh-goal-round-driver] 1 files, total: 13.90 kB
+ℹ [@deepseek-ai/dsh-sandbox-policy] lib\index.js  7.51 kB │ gzip: 3.01 kB
+ℹ [@deepseek-ai/dsh-sandbox-policy] 1 files, total: 7.51 kB
+ℹ [@deepseek-ai/dsh-settings] lib\index.js  25.68 kB │ gzip: 7.91 kB
+ℹ [@deepseek-ai/dsh-settings] 1 files, total: 25.68 kB
+[PLUGIN_TIMINGS] Your build spent significant time in plugin `tsdown:deps`. See https://rolldown.rs/options/checks#plugintimings for more details.
+
+[PLUGIN_TIMINGS] Your build spent significant time in plugin `tsdown:deps`. See https://rolldown.rs/options/checks#plugintimings for more details.
+
+ℹ [@deepseek-ai/dsh-schedule] lib\index.js  56.37 kB │ gzip: 14.30 kB
+ℹ [@deepseek-ai/dsh-schedule] 1 files, total: 56.37 kB
+[PLUGIN_TIMINGS] Your build spent significant time in plugin `tsdown:deps`. See https://rolldown.rs/options/checks#plugintimings for more details.
+
+[PLUGIN_TIMINGS] Your build spent significant time in plugin `tsdown:deps`. See https://rolldown.rs/options/checks#plugintimings for more details.
+
+[PLUGIN_TIMINGS] Your build spent significant time in plugin `tsdown:deps`. See https://rolldown.rs/options/checks#plugintimings for more details.
+
+[PLUGIN_TIMINGS] Your build spent significant time in plugin `tsdown:deps`. See https://rolldown.rs/options/checks#plugintimings for more details.
+
+[PLUGIN_TIMINGS] Your build spent significant time in plugin `tsdown:deps`. See https://rolldown.rs/options/checks#plugintimings for more details.
+
+[PLUGIN_TIMINGS] Your build spent significant time in plugin `tsdown:deps`. See https://rolldown.rs/options/checks#plugintimings for more details.
+
+[PLUGIN_TIMINGS] Your build spent significant time in plugin `tsdown:deps`. See https://rolldown.rs/options/checks#plugintimings for more details.
+
+[PLUGIN_TIMINGS] Your build spent significant time in plugin `tsdown:deps`. See https://rolldown.rs/options/checks#plugintimings for more details.
+
+[PLUGIN_TIMINGS] Your build spent significant time in plugin `tsdown:deps`. See https://rolldown.rs/options/checks#plugintimings for more details.
+
+[PLUGIN_TIMINGS] Your build spent significant time in plugin `tsdown:deps`. See https://rolldown.rs/options/checks#plugintimings for more details.
+
+[PLUGIN_TIMINGS] Your build spent significant time in plugin `tsdown:deps`. See https://rolldown.rs/options/checks#plugintimings for more details.
+
+[PLUGIN_TIMINGS] Your build spent significant time in plugin `tsdown:deps`. See https://rolldown.rs/options/checks#plugintimings for more details.
+
+[PLUGIN_TIMINGS] Your build spent significant time in plugin `tsdown:deps`. See https://rolldown.rs/options/checks#plugintimings for more details.
+
+[PLUGIN_TIMINGS] Your build spent significant time in plugin `tsdown:deps`. See https://rolldown.rs/options/checks#plugintimings for more details.
+
+[PLUGIN_TIMINGS] Your build spent significant time in plugin `tsdown:deps`. See https://rolldown.rs/options/checks#plugintimings for more details.
+
+[PLUGIN_TIMINGS] Your build spent significant time in plugin `tsdown:deps`. See https://rolldown.rs/options/checks#plugintimings for more details.
+
+[PLUGIN_TIMINGS] Your build spent significant time in plugin `tsdown:deps`. See https://rolldown.rs/options/checks#plugintimings for more details.
+
+[PLUGIN_TIMINGS] Your build spent significant time in plugin `tsdown:deps`. See https://rolldown.rs/options/checks#plugintimings for more details.
+
+[PLUGIN_TIMINGS] Your build spent significant time in plugin `tsdown:deps`. See https://rolldown.rs/options/checks#plugintimings for more details.
+
+[PLUGIN_TIMINGS] Your build spent significant time in plugin `tsdown:deps`. See https://rolldown.rs/options/checks#plugintimings for more details.
+
+[PLUGIN_TIMINGS] Your build spent significant time in plugin `tsdown:deps`. See https://rolldown.rs/options/checks#plugintimings for more details.
+
+[PLUGIN_TIMINGS] Your build spent significant time in plugin `tsdown:deps`. See https://rolldown.rs/options/checks#plugintimings for more details.
+
+[PLUGIN_TIMINGS] Your build spent significant time in plugin `tsdown:deps`. See https://rolldown.rs/options/checks#plugintimings for more details.
+
+[PLUGIN_TIMINGS] Your build spent significant time in plugin `tsdown:deps`. See https://rolldown.rs/options/checks#plugintimings for more details.
+
+[PLUGIN_TIMINGS] Your build spent significant time in plugin `tsdown:deps`. See https://rolldown.rs/options/checks#plugintimings for more details.
+
+[PLUGIN_TIMINGS] Your build spent significant time in plugin `tsdown:deps`. See https://rolldown.rs/options/checks#plugintimings for more details.
+
+ℹ [@deepseek-ai/dsh-experimental-code-runtime-python] lib\index.js  78.48 kB │ gzip: 25.44 kB
+ℹ [@deepseek-ai/dsh-experimental-code-runtime-python] 1 files, total: 78.48 kB
+ℹ [@deepseek-ai/dsh] Granting execute permission to lib\bin.js
+[PLUGIN_TIMINGS] Your build spent significant time in plugin `tsdown:deps`. See https://rolldown.rs/options/checks#plugintimings for more details.
+
+✔ [@deepseek-ai/schemastery] Build complete in 6851ms
+✔ [@deepseek-ai/cordis-plugin-logger-console] Build complete in 6851ms
+ℹ [@deepseek-ai/dsh-experimental-webworker-runtime] lib\index.js  122.94 kB │ gzip: 35.43 kB
+ℹ [@deepseek-ai/dsh-experimental-webworker-runtime] 1 files, total: 122.94 kB
+[PLUGIN_TIMINGS] Your build spent significant time in plugin `tsdown:deps`. See https://rolldown.rs/options/checks#plugintimings for more details.
+
+✔ [@deepseek-ai/schemastery] Build complete in 6861ms
+✔ [@deepseek-ai/dsh-time-context] Build complete in 6861ms
+✔ [@deepseek-ai/dsh-compaction] Build complete in 6861ms
+✔ [@deepseek-ai/dsh-agent-loop] Build complete in 6861ms
+✔ [@deepseek-ai/dsh-agent-default-model] Build complete in 6861ms
+✔ [@deepseek-ai/dsh-agent] Build complete in 6861ms
+✔ [@deepseek-ai/dsh-code-runtime-worker-thread] Build complete in 6862ms
+✔ [@deepseek-ai/dsh-experimental-agent-team] Build complete in 6862ms
+✔ [@deepseek-ai/dsh-scope] Build complete in 6862ms
+✔ [@deepseek-ai/dsh-scope] Build complete in 6862ms
+✔ [@deepseek-ai/dsh-llm-retry] Build complete in 6862ms
+✔ [@deepseek-ai/dsh-user-approval] Build complete in 6862ms
+✔ [@deepseek-ai/dsh-host-directory-picker-browse] Build complete in 6862ms
+✔ [@deepseek-ai/dsh-schedule] Build complete in 6862ms
+✔ [@deepseek-ai/dsh-settings] Build complete in 6862ms
+✔ [@deepseek-ai/dsh-goal] Build complete in 6862ms
+✔ [@deepseek-ai/dsh-host-directory-picker-native] Build complete in 6862ms
+✔ [@deepseek-ai/dsh-session-format] Build complete in 6862ms
+✔ [@deepseek-ai/dsh-llm-retry] Build complete in 6862ms
+✔ [@deepseek-ai/dsh-goal-round-driver] Build complete in 6863ms
+✔ [@deepseek-ai/dsh-sandbox-policy] Build complete in 6863ms
+✔ [@deepseek-ai/dsh-user-approval] Build complete in 6863ms
+✔ [@deepseek-ai/dsh-llm-mock-server] Build complete in 6863ms
+✔ [@deepseek-ai/dsh-goal-round-driver] Build complete in 6864ms
+✔ [@deepseek-ai/dsh-sandbox-policy] Build complete in 6864ms
+✔ [@deepseek-ai/dsh-settings] Build complete in 6864ms
+ℹ [@deepseek-ai/cordis-plugin-logger-console] lib\index.js  2.78 kB │ gzip: 1.16 kB
+ℹ [@deepseek-ai/cordis-plugin-logger-console] 1 files, total: 2.78 kB
+ℹ [@deepseek-ai/dsh-typert-registry] [ESM] lib\index.js  21.49 kB │ gzip: 4.93 kB
+ℹ [@deepseek-ai/dsh-typert-registry] [ESM] 1 files, total: 21.49 kB
+ℹ [@deepseek-ai/dsh-time-context] lib\index.js  10.93 kB │ gzip: 3.79 kB
+ℹ [@deepseek-ai/dsh-time-context] 1 files, total: 10.93 kB
+ℹ [@deepseek-ai/dsh-client-ui-conversation] [ESM] lib\index.js  1.43 kB │ gzip: 0.69 kB
+ℹ [@deepseek-ai/dsh-client-ui-conversation] [ESM] 1 files, total: 1.43 kB
+ℹ [@deepseek-ai/dsh-client-ui-settings-general] [ESM] lib\index.js  0.64 kB │ gzip: 0.40 kB
+ℹ [@deepseek-ai/dsh-client-ui-settings-general] [ESM] 1 files, total: 0.64 kB
+ℹ [@deepseek-ai/dsh-client-locale] [ESM] lib\index.js  1.30 kB │ gzip: 0.68 kB
+ℹ [@deepseek-ai/dsh-client-locale] [ESM] 1 files, total: 1.30 kB
+ℹ [@deepseek-ai/dsh-client-test-runtime] lib\index.js  45.14 kB │ gzip: 13.59 kB
+ℹ [@deepseek-ai/dsh-client-test-runtime] 1 files, total: 45.14 kB
+ℹ [@deepseek-ai/cordis-plugin-loader] lib\index.js  25.70 kB │ gzip: 7.47 kB
+ℹ [@deepseek-ai/cordis-plugin-loader] 1 files, total: 25.70 kB
+ℹ [@deepseek-ai/dsh-agent] lib\index.js  26.52 kB │ gzip: 8.57 kB
+ℹ [@deepseek-ai/dsh-agent] 1 files, total: 26.52 kB
+[PLUGIN_TIMINGS] Your build spent significant time in plugin `tsdown:deps`. See https://rolldown.rs/options/checks#plugintimings for more details.
+
+✔ [@deepseek-ai/dsh-schedule] Build complete in 6872ms
+ℹ [@deepseek-ai/dsh-goal] lib\index.js  37.57 kB │ gzip: 9.33 kB
+ℹ [@deepseek-ai/dsh-goal] 1 files, total: 37.57 kB
+ℹ [@deepseek-ai/dsh-client-ui-chat] [ESM] lib\index.js  1.30 kB │ gzip: 0.62 kB
+ℹ [@deepseek-ai/dsh-client-ui-chat] [ESM] 1 files, total: 1.30 kB
+ℹ [@deepseek-ai/dsh-host-open-in-app] lib\index.js  49.45 kB │ gzip: 14.50 kB
+ℹ [@deepseek-ai/dsh-host-open-in-app] 1 files, total: 49.45 kB
+ℹ [@deepseek-ai/dsh-code-runtime-worker-thread] [CJS] lib\worker.cjs  34.94 kB │ gzip: 9.41 kB
+ℹ [@deepseek-ai/dsh-code-runtime-worker-thread] [CJS] 1 files, total: 34.94 kB
+ℹ [@deepseek-ai/dsh-tool-subagent] lib\model-selection-settings.js  3.87 kB │ gzip: 1.43 kB
+ℹ [@deepseek-ai/dsh-tool-subagent] 1 files, total: 3.87 kB
+ℹ [@deepseek-ai/dsh-tool-subagent] lib\invariant.js  2.39 kB │ gzip: 1.04 kB
+ℹ [@deepseek-ai/dsh-tool-subagent] 1 files, total: 2.39 kB
+ℹ [@deepseek-ai/dsh-client-ui-commands] [ESM] lib\index.js  0.49 kB │ gzip: 0.33 kB
+ℹ [@deepseek-ai/dsh-client-ui-commands] [ESM] 1 files, total: 0.49 kB
+ℹ [@deepseek-ai/dsh-client-ui-brand-official] [ESM] lib\index.js  0.32 kB │ gzip: 0.25 kB
+ℹ [@deepseek-ai/dsh-client-ui-brand-official] [ESM] 1 files, total: 0.32 kB
+ℹ [@deepseek-ai/dsh-client-ui-plan] [ESM] lib\index.js  0.58 kB │ gzip: 0.38 kB
+ℹ [@deepseek-ai/dsh-client-ui-plan] [ESM] 1 files, total: 0.58 kB
+ℹ [@deepseek-ai/dsh-client-ui-input-trigger] [ESM] lib\index.js  0.41 kB │ gzip: 0.29 kB
+ℹ [@deepseek-ai/dsh-client-ui-input-trigger] [ESM] 1 files, total: 0.41 kB
+ℹ [@deepseek-ai/dsh-client-ui-goal] [ESM] lib\index.js  0.40 kB │ gzip: 0.29 kB
+ℹ [@deepseek-ai/dsh-client-ui-goal] [ESM] 1 files, total: 0.40 kB
+ℹ [@deepseek-ai/dsh-client-ui-message-feedback] [ESM] lib\index.js  0.42 kB │ gzip: 0.30 kB
+ℹ [@deepseek-ai/dsh-client-ui-message-feedback] [ESM] 1 files, total: 0.42 kB
+ℹ [@deepseek-ai/dsh-client-ui-open-in-app] [ESM] lib\index.js  0.48 kB │ gzip: 0.34 kB
+ℹ [@deepseek-ai/dsh-client-ui-open-in-app] [ESM] 1 files, total: 0.48 kB
+ℹ [@deepseek-ai/dsh-client-ui-model-selection] [ESM] lib\index.js  0.41 kB │ gzip: 0.29 kB
+ℹ [@deepseek-ai/dsh-client-ui-model-selection] [ESM] 1 files, total: 0.41 kB
+ℹ [@deepseek-ai/dsh-client-ui-jobs] [ESM] lib\index.js  0.41 kB │ gzip: 0.30 kB
+ℹ [@deepseek-ai/dsh-client-ui-jobs] [ESM] 1 files, total: 0.41 kB
+ℹ [@deepseek-ai/dsh-client-ui-agent-preset] [ESM] lib\index.js  0.42 kB │ gzip: 0.30 kB
+ℹ [@deepseek-ai/dsh-client-ui-agent-preset] [ESM] 1 files, total: 0.42 kB
+ℹ [@deepseek-ai/dsh-client-ui-directory-picker-native] [ESM] lib\index.js  0.50 kB │ gzip: 0.35 kB
+ℹ [@deepseek-ai/dsh-client-ui-directory-picker-native] [ESM] 1 files, total: 0.50 kB
+ℹ [@deepseek-ai/dsh-client-ui-attachment] [ESM] lib\index.js  0.23 kB │ gzip: 0.18 kB
+ℹ [@deepseek-ai/dsh-client-ui-attachment] [ESM] 1 files, total: 0.23 kB
+ℹ [@deepseek-ai/dsh-client-ui-directory-picker-browse] [ESM] lib\index.js  0.52 kB │ gzip: 0.36 kB
+ℹ [@deepseek-ai/dsh-client-ui-directory-picker-browse] [ESM] 1 files, total: 0.52 kB
+ℹ [@deepseek-ai/dsh-workflow-worker-thread] [ESM] lib\index.js  38.56 kB │ gzip: 12.12 kB
+ℹ [@deepseek-ai/dsh-workflow-worker-thread] [ESM] 1 files, total: 38.56 kB
+[PLUGIN_TIMINGS] Your build spent significant time in plugin `tsdown:deps`. See https://rolldown.rs/options/checks#plugintimings for more details.
+
+[PLUGIN_TIMINGS] Your build spent significant time in plugin `tsdown:deps`. See https://rolldown.rs/options/checks#plugintimings for more details.
+
+[PLUGIN_TIMINGS] Your build spent significant time in plugin `tsdown:deps`. See https://rolldown.rs/options/checks#plugintimings for more details.
+
+[PLUGIN_TIMINGS] Your build spent significant time in plugin `tsdown:deps`. See https://rolldown.rs/options/checks#plugintimings for more details.
+
+✔ [@deepseek-ai/dsh-experimental-code-runtime-python] Build complete in 6878ms
+[PLUGIN_TIMINGS] Your build spent significant time in plugin `tsdown:deps`. See https://rolldown.rs/options/checks#plugintimings for more details.
+
+[PLUGIN_TIMINGS] Your build spent significant time in plugin `tsdown:deps`. See https://rolldown.rs/options/checks#plugintimings for more details.
+
+[PLUGIN_TIMINGS] Your build spent significant time in plugin `tsdown:deps`. See https://rolldown.rs/options/checks#plugintimings for more details.
+
+[PLUGIN_TIMINGS] Your build spent significant time in plugin `tsdown:deps`. See https://rolldown.rs/options/checks#plugintimings for more details.
+
+[PLUGIN_TIMINGS] Your build spent significant time in plugin `tsdown:deps`. See https://rolldown.rs/options/checks#plugintimings for more details.
+
+[PLUGIN_TIMINGS] Your build spent significant time in plugin `tsdown:deps`. See https://rolldown.rs/options/checks#plugintimings for more details.
+
+ℹ [@deepseek-ai/dsh-session-format-v1-to-v2] lib\index.js  33.60 kB │ gzip: 7.52 kB
+ℹ [@deepseek-ai/dsh-session-format-v1-to-v2] 1 files, total: 33.60 kB
+ℹ [@deepseek-ai/dsh-app-boot] lib\index.js  70.83 kB │ gzip: 21.20 kB
+ℹ [@deepseek-ai/dsh-app-boot] 1 files, total: 70.83 kB
+ℹ [@deepseek-ai/dsh-tool-subagent] lib\index.js  35.29 kB │ gzip: 9.48 kB
+ℹ [@deepseek-ai/dsh-tool-subagent] 1 files, total: 35.29 kB
+ℹ [@deepseek-ai/dsh-experimental-webworker-packer] lib\bin.js                   3.20 kB │ gzip:  1.44 kB
+ℹ [@deepseek-ai/dsh-experimental-webworker-packer] lib\index.js                 0.46 kB │ gzip:  0.26 kB
+ℹ [@deepseek-ai/dsh-experimental-webworker-packer] lib\repository-Lozj5Dm5.js  33.68 kB │ gzip: 11.25 kB
+ℹ [@deepseek-ai/dsh-experimental-webworker-packer] 3 files, total: 37.34 kB
+ℹ [@deepseek-ai/dsh-session] lib\index.js  74.76 kB │ gzip: 21.77 kB
+ℹ [@deepseek-ai/dsh-session] 1 files, total: 74.76 kB
+ℹ [@deepseek-ai/dsh-client-ui-tool] [ESM] lib\index.js  0.18 kB │ gzip: 0.16 kB
+ℹ [@deepseek-ai/dsh-client-ui-tool] [ESM] 1 files, total: 0.18 kB
+ℹ [@deepseek-ai/dsh-client-ui-settings-plugin-inventory] [ESM] lib\index.js  0.26 kB │ gzip: 0.20 kB
+ℹ [@deepseek-ai/dsh-client-ui-settings-plugin-inventory] [ESM] 1 files, total: 0.26 kB
+ℹ [@deepseek-ai/dsh-client-ui-layout] [ESM] lib\index.js  0.18 kB │ gzip: 0.16 kB
+ℹ [@deepseek-ai/dsh-client-ui-layout] [ESM] 1 files, total: 0.18 kB
+ℹ [@deepseek-ai/dsh-client-ui-settings-devices] [ESM] lib\index.js  0.26 kB │ gzip: 0.20 kB
+ℹ [@deepseek-ai/dsh-client-ui-settings-devices] [ESM] 1 files, total: 0.26 kB
+ℹ [@deepseek-ai/dsh-client-resources] [ESM] lib\index.js  0.23 kB │ gzip: 0.18 kB
+ℹ [@deepseek-ai/dsh-client-resources] [ESM] 1 files, total: 0.23 kB
+ℹ [@deepseek-ai/dsh-client-ui-reference] [ESM] lib\index.js  0.41 kB │ gzip: 0.30 kB
+ℹ [@deepseek-ai/dsh-client-ui-reference] [ESM] 1 files, total: 0.41 kB
+ℹ [@deepseek-ai/dsh-client-ui-permission-presets] [ESM] lib\index.js  0.46 kB │ gzip: 0.32 kB
+ℹ [@deepseek-ai/dsh-client-ui-permission-presets] [ESM] 1 files, total: 0.46 kB
+ℹ [@deepseek-ai/dsh-client-ui-cordis] [ESM] lib\index.js  0.41 kB │ gzip: 0.29 kB
+ℹ [@deepseek-ai/dsh-client-ui-cordis] [ESM] 1 files, total: 0.41 kB
+ℹ [@deepseek-ai/dsh-client-ui-settings-plugins] [ESM] lib\index.js  0.56 kB │ gzip: 0.37 kB
+ℹ [@deepseek-ai/dsh-client-ui-settings-plugins] [ESM] 1 files, total: 0.56 kB
+ℹ [@deepseek-ai/dsh-cordis-client-runner] [ESM] lib\index.js  0.43 kB │ gzip: 0.31 kB
+ℹ [@deepseek-ai/dsh-cordis-client-runner] [ESM] 1 files, total: 0.43 kB
+ℹ [@deepseek-ai/dsh-client-ui-session] [ESM] lib\index.js  0.18 kB │ gzip: 0.16 kB
+ℹ [@deepseek-ai/dsh-client-ui-session] [ESM] 1 files, total: 0.18 kB
+ℹ [@deepseek-ai/dsh-client-ui-settings-hosts] [ESM] lib\index.js  0.26 kB │ gzip: 0.20 kB
+ℹ [@deepseek-ai/dsh-client-ui-settings-hosts] [ESM] 1 files, total: 0.26 kB
+ℹ [@deepseek-ai/dsh-client-ui-workspace] [ESM] lib\index.js  0.45 kB │ gzip: 0.31 kB
+ℹ [@deepseek-ai/dsh-client-ui-workspace] [ESM] 1 files, total: 0.45 kB
+ℹ [@deepseek-ai/dsh-client-ui-approval] [ESM] lib\index.js  0.20 kB │ gzip: 0.17 kB
+ℹ [@deepseek-ai/dsh-client-ui-approval] [ESM] 1 files, total: 0.20 kB
+ℹ [@deepseek-ai/dsh-client-ui-sidebar-right] [ESM] lib\index.js  0.23 kB │ gzip: 0.18 kB
+ℹ [@deepseek-ai/dsh-client-ui-sidebar-right] [ESM] 1 files, total: 0.23 kB
+ℹ [@deepseek-ai/dsh-client-ui-skill] [ESM] lib\index.js  0.41 kB │ gzip: 0.29 kB
+ℹ [@deepseek-ai/dsh-client-ui-skill] [ESM] 1 files, total: 0.41 kB
+ℹ [@deepseek-ai/dsh-client-ui-sidebar] [ESM] lib\index.js  0.18 kB │ gzip: 0.16 kB
+ℹ [@deepseek-ai/dsh-client-ui-sidebar] [ESM] 1 files, total: 0.18 kB
+✔ [@deepseek-ai/dsh-typert-registry] Build complete in 6884ms
+✔ [@deepseek-ai/dsh-client-ui-conversation] Build complete in 6884ms
+✔ [@deepseek-ai/dsh-client-ui-settings-general] Build complete in 6884ms
+✔ [@deepseek-ai/dsh-client-locale] Build complete in 6884ms
+✔ [@deepseek-ai/dsh-client-test-runtime] Build complete in 6884ms
+✔ [@deepseek-ai/dsh-experimental-webworker-runtime] Build complete in 6889ms
+ℹ [@deepseek-ai/dsh-client-ui-sidebar-files] [ESM] lib\index.js  0.23 kB │ gzip: 0.18 kB
+ℹ [@deepseek-ai/dsh-client-ui-sidebar-files] [ESM] 1 files, total: 0.23 kB
+ℹ [@deepseek-ai/dsh-client-ui-workflow-run] [ESM] lib\index.js  0.19 kB │ gzip: 0.17 kB
+ℹ [@deepseek-ai/dsh-client-ui-workflow-run] [ESM] 1 files, total: 0.19 kB
+ℹ [@deepseek-ai/dsh-client-ui-schedule] [ESM] lib\index.js  0.32 kB │ gzip: 0.24 kB
+ℹ [@deepseek-ai/dsh-client-ui-schedule] [ESM] 1 files, total: 0.32 kB
+ℹ [@deepseek-ai/dsh-client-ui-settings] [ESM] lib\index.js  0.25 kB │ gzip: 0.20 kB
+ℹ [@deepseek-ai/dsh-client-ui-settings] [ESM] 1 files, total: 0.25 kB
+ℹ [@deepseek-ai/dsh-client-ui-settings-models] [ESM] lib\index.js  0.24 kB │ gzip: 0.19 kB
+ℹ [@deepseek-ai/dsh-client-ui-settings-models] [ESM] 1 files, total: 0.24 kB
+ℹ [@deepseek-ai/dsh-experimental-client-ui-agent-team] [ESM] lib\index.js  0.24 kB │ gzip: 0.19 kB
+ℹ [@deepseek-ai/dsh-experimental-client-ui-agent-team] [ESM] 1 files, total: 0.24 kB
+ℹ [@deepseek-ai/dsh-client-ui-sidebar-documentpreview] [ESM] lib\index.js  0.23 kB │ gzip: 0.18 kB
+ℹ [@deepseek-ai/dsh-client-ui-sidebar-documentpreview] [ESM] 1 files, total: 0.23 kB
+ℹ [@deepseek-ai/dsh-client-ui-trajectory] [ESM] lib\index.js  0.18 kB │ gzip: 0.16 kB
+ℹ [@deepseek-ai/dsh-client-ui-trajectory] [ESM] 1 files, total: 0.18 kB
+ℹ [@deepseek-ai/dsh-client-ui-user-questions] [ESM] lib\index.js  0.50 kB │ gzip: 0.33 kB
+ℹ [@deepseek-ai/dsh-client-ui-user-questions] [ESM] 1 files, total: 0.50 kB
+ℹ [@deepseek-ai/dsh-client-ui-subagent] [ESM] lib\index.js  0.41 kB │ gzip: 0.29 kB
+ℹ [@deepseek-ai/dsh-client-ui-subagent] [ESM] 1 files, total: 0.41 kB
+ℹ [@deepseek-ai/dsh-client-ui-theme] [ESM] lib\index.js  4.01 kB │ gzip: 1.60 kB
+ℹ [@deepseek-ai/dsh-client-ui-theme] [ESM] 1 files, total: 4.01 kB
+ℹ [@deepseek-ai/dsh-compaction] lib\invariant.js  12.72 kB │ gzip: 3.46 kB
+ℹ [@deepseek-ai/dsh-compaction] 1 files, total: 12.72 kB
+[PLUGIN_TIMINGS] Your build spent significant time in plugin `tsdown:deps`. See https://rolldown.rs/options/checks#plugintimings for more details.
+
+[PLUGIN_TIMINGS] Your build spent significant time in plugin `tsdown:deps`. See https://rolldown.rs/options/checks#plugintimings for more details.
+
+[PLUGIN_TIMINGS] Your build spent significant time in plugin `tsdown:deps`. See https://rolldown.rs/options/checks#plugintimings for more details.
+
+[PLUGIN_TIMINGS] Your build spent significant time in plugin `tsdown:deps`. See https://rolldown.rs/options/checks#plugintimings for more details.
+
+[PLUGIN_TIMINGS] Your build spent significant time in plugin `tsdown:deps`. See https://rolldown.rs/options/checks#plugintimings for more details.
+
+✔ [@deepseek-ai/dsh-client-ui-chat] Build complete in 6893ms
+✔ [@deepseek-ai/dsh-client-ui-commands] Build complete in 6894ms
+✔ [@deepseek-ai/dsh-client-ui-brand-official] Build complete in 6894ms
+✔ [@deepseek-ai/dsh-client-ui-plan] Build complete in 6894ms
+✔ [@deepseek-ai/dsh-client-ui-input-trigger] Build complete in 6894ms
+✔ [@deepseek-ai/dsh-client-ui-goal] Build complete in 6894ms
+✔ [@deepseek-ai/dsh-client-ui-message-feedback] Build complete in 6894ms
+✔ [@deepseek-ai/dsh-client-ui-open-in-app] Build complete in 6894ms
+✔ [@deepseek-ai/dsh-client-ui-model-selection] Build complete in 6894ms
+✔ [@deepseek-ai/dsh-client-ui-jobs] Build complete in 6894ms
+✔ [@deepseek-ai/dsh-client-ui-agent-preset] Build complete in 6894ms
+✔ [@deepseek-ai/dsh-client-ui-directory-picker-native] Build complete in 6894ms
+✔ [@deepseek-ai/dsh-client-ui-attachment] Build complete in 6894ms
+✔ [@deepseek-ai/dsh-client-ui-directory-picker-browse] Build complete in 6894ms
+✔ [@deepseek-ai/cordis-plugin-logger-console] Build complete in 6894ms
+✔ [@deepseek-ai/dsh-time-context] Build complete in 6894ms
+✔ [@deepseek-ai/cordis-plugin-loader] Build complete in 6894ms
+✔ [@deepseek-ai/dsh-agent] Build complete in 6894ms
+ℹ [@deepseek-ai/dsh-remote-mock] lib\index.js  18.52 kB │ gzip: 5.59 kB
+ℹ [@deepseek-ai/dsh-remote-mock] 1 files, total: 18.52 kB
+ℹ [@deepseek-ai/dsh-session-format-v0-to-v1] lib\index.js  104.66 kB │ gzip: 21.81 kB
+ℹ [@deepseek-ai/dsh-session-format-v0-to-v1] 1 files, total: 104.66 kB
+ℹ [@deepseek-ai/dsh-client-ui-renderer] [ESM] lib\invariant.js  1.41 kB │ gzip: 0.73 kB
+ℹ [@deepseek-ai/dsh-client-ui-renderer] [ESM] lib\index.js      0.18 kB │ gzip: 0.16 kB
+ℹ [@deepseek-ai/dsh-client-ui-renderer] [ESM] 2 files, total: 1.58 kB
+[PLUGIN_TIMINGS] Your build spent significant time in plugin `tsdown:deps`. See https://rolldown.rs/options/checks#plugintimings for more details.
+
+✔ [@deepseek-ai/dsh-client-ui-tool] Build complete in 6903ms
+✔ [@deepseek-ai/dsh-client-ui-settings-plugin-inventory] Build complete in 6903ms
+✔ [@deepseek-ai/dsh-client-ui-layout] Build complete in 6904ms
+✔ [@deepseek-ai/dsh-client-ui-settings-devices] Build complete in 6904ms
+✔ [@deepseek-ai/dsh-client-resources] Build complete in 6904ms
+✔ [@deepseek-ai/dsh-client-ui-reference] Build complete in 6904ms
+✔ [@deepseek-ai/dsh-client-ui-permission-presets] Build complete in 6904ms
+✔ [@deepseek-ai/dsh-client-ui-cordis] Build complete in 6904ms
+✔ [@deepseek-ai/dsh-client-ui-settings-plugins] Build complete in 6904ms
+✔ [@deepseek-ai/dsh-cordis-client-runner] Build complete in 6904ms
+✔ [@deepseek-ai/dsh-client-ui-session] Build complete in 6904ms
+✔ [@deepseek-ai/dsh-client-ui-settings-hosts] Build complete in 6904ms
+✔ [@deepseek-ai/dsh-client-ui-workspace] Build complete in 6904ms
+✔ [@deepseek-ai/dsh-client-ui-approval] Build complete in 6904ms
+✔ [@deepseek-ai/dsh-client-ui-sidebar-right] Build complete in 6904ms
+✔ [@deepseek-ai/dsh-client-ui-skill] Build complete in 6904ms
+✔ [@deepseek-ai/dsh-client-ui-sidebar] Build complete in 6904ms
+✔ [@deepseek-ai/dsh-goal] Build complete in 6904ms
+✔ [@deepseek-ai/dsh-host-open-in-app] Build complete in 6904ms
+✔ [@deepseek-ai/dsh-code-runtime-worker-thread] Build complete in 6904ms
+✔ [@deepseek-ai/dsh-tool-subagent] Build complete in 6904ms
+✔ [@deepseek-ai/dsh-tool-subagent] Build complete in 6904ms
+✔ [@deepseek-ai/dsh-workflow-worker-thread] Build complete in 6904ms
+✔ [@deepseek-ai/dsh-client-ui-sidebar-files] Build complete in 6904ms
+✔ [@deepseek-ai/dsh-client-ui-workflow-run] Build complete in 6904ms
+✔ [@deepseek-ai/dsh-client-ui-schedule] Build complete in 6905ms
+✔ [@deepseek-ai/dsh-client-ui-settings] Build complete in 6905ms
+✔ [@deepseek-ai/dsh-client-ui-settings-models] Build complete in 6905ms
+✔ [@deepseek-ai/dsh-experimental-client-ui-agent-team] Build complete in 6905ms
+✔ [@deepseek-ai/dsh-client-ui-sidebar-documentpreview] Build complete in 6905ms
+✔ [@deepseek-ai/dsh-client-ui-trajectory] Build complete in 6905ms
+✔ [@deepseek-ai/dsh-client-ui-user-questions] Build complete in 6905ms
+✔ [@deepseek-ai/dsh-client-ui-subagent] Build complete in 6905ms
+ℹ [@deepseek-ai/dsh-session] lib\invariant.js  6.79 kB │ gzip: 2.16 kB
+ℹ [@deepseek-ai/dsh-session] 1 files, total: 6.79 kB
+ℹ [@deepseek-ai/dsh-sandbox-windows-acl] lib\runner.js           7.47 kB │ gzip:  2.88 kB
+ℹ [@deepseek-ai/dsh-sandbox-windows-acl] lib\index.js            0.26 kB │ gzip:  0.16 kB
+ℹ [@deepseek-ai/dsh-sandbox-windows-acl] lib\types-DuU3lSVe.js  50.88 kB │ gzip: 14.87 kB
+ℹ [@deepseek-ai/dsh-sandbox-windows-acl] 3 files, total: 58.61 kB
+[PLUGIN_TIMINGS] Your build spent significant time in plugin `tsdown:deps`. See https://rolldown.rs/options/checks#plugintimings for more details.
+
+✔ [@deepseek-ai/dsh-client-ui-theme] Build complete in 6906ms
+✔ [@deepseek-ai/dsh-session-format-v1-to-v2] Build complete in 6906ms
+✔ [@deepseek-ai/dsh-app-boot] Build complete in 6907ms
+✔ [@deepseek-ai/dsh-tool-subagent] Build complete in 6906ms
+✔ [@deepseek-ai/dsh-experimental-webworker-packer] Build complete in 6907ms
+✔ [@deepseek-ai/dsh-session] Build complete in 6907ms
+✔ [@deepseek-ai/dsh-remote-mock] Build complete in 6907ms
+ℹ [@deepseek-ai/dsh-session-format-catalog] lib\index.js  3.07 kB │ gzip: 1.00 kB
+ℹ [@deepseek-ai/dsh-session-format-catalog] 1 files, total: 3.07 kB
+ℹ [@deepseek-ai/dsh-session-format-v2-to-v3] lib\index.js  36.08 kB │ gzip: 8.89 kB
+ℹ [@deepseek-ai/dsh-session-format-v2-to-v3] 1 files, total: 36.08 kB
+ℹ [@deepseek-ai/dsh-workflow-worker-thread] [CJS] lib\worker.cjs  32.16 kB │ gzip: 9.88 kB
+ℹ [@deepseek-ai/dsh-workflow-worker-thread] [CJS] 1 files, total: 32.16 kB
+[PLUGIN_TIMINGS] Your build spent significant time in plugin `tsdown:deps`. See https://rolldown.rs/options/checks#plugintimings for more details.
+
+[PLUGIN_TIMINGS] Your build spent significant time in plugin `tsdown:deps`. See https://rolldown.rs/options/checks#plugintimings for more details.
+
+✔ [@deepseek-ai/dsh-client-ui-renderer] Build complete in 6909ms
+✔ [@deepseek-ai/dsh-compaction] Build complete in 6909ms
+ℹ [@deepseek-ai/dsh-client-hmr] [ESM] lib\index.js      4.80 kB │ gzip: 1.88 kB
+ℹ [@deepseek-ai/dsh-client-hmr] [ESM] lib\invariant.js  2.10 kB │ gzip: 1.04 kB
+ℹ [@deepseek-ai/dsh-client-hmr] [ESM] 2 files, total: 6.90 kB
+ℹ [@deepseek-ai/dsh-api-gateway] [ESM] lib\index.js  66.97 kB │ gzip: 16.45 kB
+ℹ [@deepseek-ai/dsh-api-gateway] [ESM] 1 files, total: 66.97 kB
+ℹ [@deepseek-ai/dsh-agent-loop] lib\index.js  71.27 kB │ gzip: 19.30 kB
+ℹ [@deepseek-ai/dsh-agent-loop] 1 files, total: 71.27 kB
+[PLUGIN_TIMINGS] Your build spent significant time in plugin `tsdown:deps`. See https://rolldown.rs/options/checks#plugintimings for more details.
+
+[PLUGIN_TIMINGS] Your build spent significant time in plugin `tsdown:deps`. See https://rolldown.rs/options/checks#plugintimings for more details.
+
+[PLUGIN_TIMINGS] Your build spent significant time in plugin `tsdown:deps`. See https://rolldown.rs/options/checks#plugintimings for more details.
+
+✔ [@deepseek-ai/dsh-session-format-v0-to-v1] Build complete in 6911ms
+ℹ [@deepseek-ai/dsh-client-connection] [ESM] lib\index.js  33.88 kB │ gzip: 10.73 kB
+ℹ [@deepseek-ai/dsh-client-connection] [ESM] 1 files, total: 33.88 kB
+[PLUGIN_TIMINGS] Your build spent significant time in plugin `tsdown:deps`. See https://rolldown.rs/options/checks#plugintimings for more details.
+
+✔ [@deepseek-ai/dsh-session] Build complete in 6917ms
+✔ [@deepseek-ai/dsh-sandbox-windows-acl] Build complete in 6917ms
+✔ [@deepseek-ai/dsh-client-hmr] Build complete in 6924ms
+✔ [@deepseek-ai/dsh-api-gateway] Build complete in 6924ms
+✔ [@deepseek-ai/dsh-session-format-catalog] Build complete in 6924ms
+✔ [@deepseek-ai/dsh-session-format-v2-to-v3] Build complete in 6924ms
+✔ [@deepseek-ai/dsh-workflow-worker-thread] Build complete in 6924ms
+ℹ [@deepseek-ai/dsh] lib\bin.js                     9.16 kB │ gzip: 3.18 kB
+ℹ [@deepseek-ai/dsh] lib\profile-boot-Dk-7KqJc.js  14.35 kB │ gzip: 5.07 kB
+ℹ [@deepseek-ai/dsh] lib\plugin-NeRsFf44.js         6.28 kB │ gzip: 2.56 kB
+ℹ [@deepseek-ai/dsh] lib\dump-config-lFgMwK8i.js    2.12 kB │ gzip: 0.96 kB
+ℹ [@deepseek-ai/dsh] lib\profile-boot-BP_C0vpU.js   0.09 kB │ gzip: 0.09 kB
+ℹ [@deepseek-ai/dsh] 5 files, total: 32.00 kB
+ℹ [@deepseek-ai/dsh-experimental-agent-team] lib\index.js  75.00 kB │ gzip: 18.89 kB
+ℹ [@deepseek-ai/dsh-experimental-agent-team] 1 files, total: 75.00 kB
+✔ [@deepseek-ai/dsh-client-connection] Build complete in 6940ms
+✔ [@deepseek-ai/dsh-agent-loop] Build complete in 6940ms
+ℹ [@deepseek-ai/dsh-subprocess-local] lib\index.js                   41.15 kB │ gzip: 11.26 kB
+ℹ [@deepseek-ai/dsh-subprocess-local] lib\runner.js                  13.00 kB │ gzip:  3.80 kB
+ℹ [@deepseek-ai/dsh-subprocess-local] lib\runner-launch-COYGu0Dl.js  60.09 kB │ gzip: 18.26 kB
+ℹ [@deepseek-ai/dsh-subprocess-local] 3 files, total: 114.25 kB
+ℹ [@deepseek-ai/dsh-host-directory-picker-native] [ESM] lib\index.js  10.99 kB │ gzip: 4.05 kB
+ℹ [@deepseek-ai/dsh-host-directory-picker-native] [ESM] 1 files, total: 10.99 kB
+[PLUGIN_TIMINGS] Your build spent significant time in plugin `tsdown:deps`. See https://rolldown.rs/options/checks#plugintimings for more details.
+
+[PLUGIN_TIMINGS] Your build spent significant time in plugin `tsdown:deps`. See https://rolldown.rs/options/checks#plugintimings for more details.
+
+[PLUGIN_TIMINGS] Your build spent significant time in plugin `tsdown:deps`. See https://rolldown.rs/options/checks#plugintimings for more details.
+
+[PLUGIN_TIMINGS] Your build spent significant time in plugin `tsdown:deps`. See https://rolldown.rs/options/checks#plugintimings for more details.
+
+ℹ [@deepseek-ai/dsh-client-store] lib\index.js       6.32 kB │ gzip: 2.64 kB
+ℹ [@deepseek-ai/dsh-client-store] lib\index.js.map  12.85 kB │ gzip: 4.94 kB
+ℹ [@deepseek-ai/dsh-client-store] 2 files, total: 19.17 kB
+✔ [@deepseek-ai/dsh] Build complete in 6960ms
+✔ [@deepseek-ai/dsh-experimental-agent-team] Build complete in 6960ms
+✔ [@deepseek-ai/dsh-subprocess-local] Build complete in 6967ms
+[PLUGIN_TIMINGS] Your build spent significant time in plugins. Here is a breakdown:
+  - dsh-css-asset (50%)
+  - dsh-static-linked-external (45%)
+See https://rolldown.rs/options/checks#plugintimings for more details.
+
+✔ [@deepseek-ai/dsh-host-directory-picker-native] Build complete in 6969ms
+ℹ [@deepseek-ai/dsh-client-modules] [ESM] lib\index.js      39.92 kB │ gzip: 12.57 kB
+ℹ [@deepseek-ai/dsh-client-modules] [ESM] lib\invariant.js   1.61 kB │ gzip:  0.85 kB
+ℹ [@deepseek-ai/dsh-client-modules] [ESM] 2 files, total: 41.53 kB
+ℹ [@deepseek-ai/dsh-client-file-upload] [ESM] lib\index.js  18.77 kB │ gzip: 6.06 kB
+ℹ [@deepseek-ai/dsh-client-file-upload] [ESM] 1 files, total: 18.77 kB
+✔ [@deepseek-ai/dsh-client-store] Build complete in 6983ms
+✔ [@deepseek-ai/dsh-client-modules] Build complete in 6989ms
+✔ [@deepseek-ai/dsh-client-file-upload] Build complete in 6993ms
+ℹ [@deepseek-ai/dsh-client-ui-slots] lib\index.js      17.74 kB │ gzip:  5.52 kB
+ℹ [@deepseek-ai/dsh-client-ui-slots] lib\index.js.map  72.43 kB │ gzip: 20.39 kB
+ℹ [@deepseek-ai/dsh-client-ui-slots] 2 files, total: 90.17 kB
+[PLUGIN_TIMINGS] Your build spent significant time in plugin `dsh-static-linked-external`. See https://rolldown.rs/options/checks#plugintimings for more details.
+
+✔ [@deepseek-ai/dsh-client-ui-slots] Build complete in 7231ms
+ℹ [@deepseek-ai/dsh-client-ui-brand-official/client] [CJS] lib\client.js      1.92 kB │ gzip: 0.86 kB
+ℹ [@deepseek-ai/dsh-client-ui-brand-official/client] [CJS] lib\client.js.map  2.48 kB │ gzip: 1.06 kB
+ℹ [@deepseek-ai/dsh-client-ui-brand-official/client] [CJS] 2 files, total: 4.41 kB
+ℹ [@deepseek-ai/dsh-client-hmr/client] [CJS] lib\client.js       5.22 kB │ gzip: 2.11 kB
+ℹ [@deepseek-ai/dsh-client-hmr/client] [CJS] lib\client.js.map  13.69 kB │ gzip: 5.25 kB
+ℹ [@deepseek-ai/dsh-client-hmr/client] [CJS] 2 files, total: 18.91 kB
+ℹ [@deepseek-ai/dsh-client-resources/client] [CJS] lib\client.js       5.81 kB │ gzip: 2.00 kB
+ℹ [@deepseek-ai/dsh-client-resources/client] [CJS] lib\client.js.map  12.91 kB │ gzip: 4.25 kB
+ℹ [@deepseek-ai/dsh-client-resources/client] [CJS] 2 files, total: 18.72 kB
+ℹ [@deepseek-ai/dsh-client-ui-directory-picker-native/client] [CJS] lib\client.js      3.72 kB │ gzip: 1.48 kB
+ℹ [@deepseek-ai/dsh-client-ui-directory-picker-native/client] [CJS] lib\client.js.map  7.25 kB │ gzip: 2.79 kB
+ℹ [@deepseek-ai/dsh-client-ui-directory-picker-native/client] [CJS] 2 files, total: 10.97 kB
+ℹ [@deepseek-ai/dsh-client-ui-session/client] [CJS] lib\client.js      12.53 kB │ gzip: 3.45 kB
+ℹ [@deepseek-ai/dsh-client-ui-session/client] [CJS] lib\client.js.map  27.13 kB │ gzip: 7.15 kB
+ℹ [@deepseek-ai/dsh-client-ui-session/client] [CJS] 2 files, total: 39.66 kB
+[PLUGIN_TIMINGS] Your build spent significant time in plugin `dsh-client-bundle-purity`. See https://rolldown.rs/options/checks#plugintimings for more details.
+
+[PLUGIN_TIMINGS] Your build spent significant time in plugin `dsh-client-bundle-purity`. See https://rolldown.rs/options/checks#plugintimings for more details.
+
+[PLUGIN_TIMINGS] Your build spent significant time in plugin `dsh-client-bundle-purity`. See https://rolldown.rs/options/checks#plugintimings for more details.
+
+[PLUGIN_TIMINGS] Your build spent significant time in plugin `dsh-client-bundle-purity`. See https://rolldown.rs/options/checks#plugintimings for more details.
+
+[PLUGIN_TIMINGS] Your build spent significant time in plugin `dsh-client-bundle-purity`. See https://rolldown.rs/options/checks#plugintimings for more details.
+
+✔ [@deepseek-ai/dsh-client-ui-brand-official/client] Build complete in 7379ms
+✔ [@deepseek-ai/dsh-client-hmr/client] Build complete in 7379ms
+✔ [@deepseek-ai/dsh-client-resources/client] Build complete in 7379ms
+✔ [@deepseek-ai/dsh-client-ui-directory-picker-native/client] Build complete in 7379ms
+✔ [@deepseek-ai/dsh-client-ui-session/client] Build complete in 7390ms
+ℹ [@deepseek-ai/dsh-client-modules/client] [CJS] lib\client.js      20.75 kB │ gzip:  6.24 kB
+ℹ [@deepseek-ai/dsh-client-modules/client] [CJS] lib\client.js.map  42.74 kB │ gzip: 12.15 kB
+ℹ [@deepseek-ai/dsh-client-modules/client] [CJS] 2 files, total: 63.49 kB
+[PLUGIN_TIMINGS] Your build spent significant time in plugin `dsh-client-bundle-purity`. See https://rolldown.rs/options/checks#plugintimings for more details.
+
+ℹ [@deepseek-ai/dsh-client-ui-approval/client] [CJS] lib\client.js      14.69 kB │ gzip: 4.80 kB
+ℹ [@deepseek-ai/dsh-client-ui-approval/client] [CJS] lib\client.js.map  22.10 kB │ gzip: 6.94 kB
+ℹ [@deepseek-ai/dsh-client-ui-approval/client] [CJS] 2 files, total: 36.79 kB
+ℹ [@deepseek-ai/dsh-client-ui-schedule/client] [CJS] lib\client.js      13.63 kB │ gzip: 4.27 kB
+ℹ [@deepseek-ai/dsh-client-ui-schedule/client] [CJS] lib\client.js.map  16.32 kB │ gzip: 5.29 kB
+ℹ [@deepseek-ai/dsh-client-ui-schedule/client] [CJS] 2 files, total: 29.95 kB
+ℹ [@deepseek-ai/dsh-client-ui-plan/client] [CJS] lib\client.js      6.01 kB │ gzip: 2.35 kB
+ℹ [@deepseek-ai/dsh-client-ui-plan/client] [CJS] lib\client.js.map  8.62 kB │ gzip: 3.15 kB
+ℹ [@deepseek-ai/dsh-client-ui-plan/client] [CJS] 2 files, total: 14.63 kB
+ℹ [@deepseek-ai/dsh-client-ui-settings-hosts/client] [CJS] lib\client.js      11.53 kB │ gzip: 3.48 kB
+ℹ [@deepseek-ai/dsh-client-ui-settings-hosts/client] [CJS] lib\client.js.map  14.19 kB │ gzip: 4.65 kB
+ℹ [@deepseek-ai/dsh-client-ui-settings-hosts/client] [CJS] 2 files, total: 25.72 kB
+ℹ [@deepseek-ai/dsh-client-ui-jobs/client] [CJS] lib\client.js      14.14 kB │ gzip: 4.78 kB
+ℹ [@deepseek-ai/dsh-client-ui-jobs/client] [CJS] lib\client.js.map  17.38 kB │ gzip: 6.01 kB
+ℹ [@deepseek-ai/dsh-client-ui-jobs/client] [CJS] 2 files, total: 31.52 kB
+ℹ [@deepseek-ai/dsh-client-ui-workflow-run/client] [CJS] lib\client.js      29.11 kB │ gzip:  6.96 kB
+ℹ [@deepseek-ai/dsh-client-ui-workflow-run/client] [CJS] lib\client.js.map  40.07 kB │ gzip: 10.65 kB
+ℹ [@deepseek-ai/dsh-client-ui-workflow-run/client] [CJS] 2 files, total: 69.18 kB
+[PLUGIN_TIMINGS] Your build spent significant time in plugin `dsh-client-bundle-purity`. See https://rolldown.rs/options/checks#plugintimings for more details.
+
+[PLUGIN_TIMINGS] Your build spent significant time in plugin `dsh-client-bundle-purity`. See https://rolldown.rs/options/checks#plugintimings for more details.
+
+✔ [@deepseek-ai/dsh-client-modules/client] Build complete in 7478ms
+[PLUGIN_TIMINGS] Your build spent significant time in plugin `dsh-client-bundle-purity`. See https://rolldown.rs/options/checks#plugintimings for more details.
+
+[PLUGIN_TIMINGS] Your build spent significant time in plugin `dsh-client-bundle-purity`. See https://rolldown.rs/options/checks#plugintimings for more details.
+
+[PLUGIN_TIMINGS] Your build spent significant time in plugin `dsh-client-bundle-purity`. See https://rolldown.rs/options/checks#plugintimings for more details.
+
+✔ [@deepseek-ai/dsh-client-ui-workflow-run/client] Build complete in 7490ms
+✔ [@deepseek-ai/dsh-client-ui-approval/client] Build complete in 7492ms
+✔ [@deepseek-ai/dsh-client-ui-schedule/client] Build complete in 7492ms
+ℹ [@deepseek-ai/dsh-client-ui-goal/client] [CJS] lib\client.js      28.08 kB │ gzip:  7.59 kB
+ℹ [@deepseek-ai/dsh-client-ui-goal/client] [CJS] lib\client.js.map  42.47 kB │ gzip: 12.02 kB
+ℹ [@deepseek-ai/dsh-client-ui-goal/client] [CJS] 2 files, total: 70.55 kB
+✔ [@deepseek-ai/dsh-client-ui-plan/client] Build complete in 7499ms
+✔ [@deepseek-ai/dsh-client-ui-settings-hosts/client] Build complete in 7499ms
+✔ [@deepseek-ai/dsh-client-ui-jobs/client] Build complete in 7500ms
+ℹ [@deepseek-ai/dsh-client-ui-permission-presets/client] [CJS] lib\client.js      22.58 kB │ gzip:  6.76 kB
+ℹ [@deepseek-ai/dsh-client-ui-permission-presets/client] [CJS] lib\client.js.map  37.43 kB │ gzip: 10.88 kB
+ℹ [@deepseek-ai/dsh-client-ui-permission-presets/client] [CJS] 2 files, total: 60.01 kB
+[PLUGIN_TIMINGS] Your build spent significant time in plugins. Here is a breakdown:
+  - dsh-client-bundle-purity (52%)
+  - dsh-tsc-sourcemap (33%)
+See https://rolldown.rs/options/checks#plugintimings for more details.
+
+[PLUGIN_TIMINGS] Your build spent significant time in plugin `dsh-client-bundle-purity`. See https://rolldown.rs/options/checks#plugintimings for more details.
+
+✔ [@deepseek-ai/dsh-client-ui-goal/client] Build complete in 7536ms
+ℹ [@deepseek-ai/dsh-client-ui-reference/client] [CJS] lib\client.js      14.14 kB │ gzip:  4.73 kB
+ℹ [@deepseek-ai/dsh-client-ui-reference/client] [CJS] lib\client.js.map  33.71 kB │ gzip: 10.30 kB
+ℹ [@deepseek-ai/dsh-client-ui-reference/client] [CJS] 2 files, total: 47.85 kB
+✔ [@deepseek-ai/dsh-client-ui-permission-presets/client] Build complete in 7542ms
+[PLUGIN_TIMINGS] Your build spent significant time in plugin `dsh-client-bundle-purity`. See https://rolldown.rs/options/checks#plugintimings for more details.
+
+ℹ [@deepseek-ai/dsh-client-ui-cordis/client] [CJS] lib\client.js       78.95 kB │ gzip: 16.38 kB
+ℹ [@deepseek-ai/dsh-client-ui-cordis/client] [CJS] lib\client.js.map  102.06 kB │ gzip: 23.75 kB
+ℹ [@deepseek-ai/dsh-client-ui-cordis/client] [CJS] 2 files, total: 181.01 kB
+ℹ [@deepseek-ai/dsh-client-ui-skill/client] [CJS] lib\client.js      21.43 kB │ gzip:  6.66 kB
+ℹ [@deepseek-ai/dsh-client-ui-skill/client] [CJS] lib\client.js.map  38.58 kB │ gzip: 12.20 kB
+ℹ [@deepseek-ai/dsh-client-ui-skill/client] [CJS] 2 files, total: 60.00 kB
+ℹ [@deepseek-ai/dsh-client-ui-settings-plugin-inventory/client] [CJS] lib\client.js      37.05 kB │ gzip:  9.26 kB
+ℹ [@deepseek-ai/dsh-client-ui-settings-plugin-inventory/client] [CJS] lib\client.js.map  45.97 kB │ gzip: 12.82 kB
+ℹ [@deepseek-ai/dsh-client-ui-settings-plugin-inventory/client] [CJS] 2 files, total: 83.02 kB
+ℹ [@deepseek-ai/dsh-client-ui-layout/client] [CJS] lib\client.js      26.93 kB │ gzip:  7.73 kB
+ℹ [@deepseek-ai/dsh-client-ui-layout/client] [CJS] lib\client.js.map  51.77 kB │ gzip: 15.50 kB
+ℹ [@deepseek-ai/dsh-client-ui-layout/client] [CJS] 2 files, total: 78.71 kB
+[PLUGIN_TIMINGS] Your build spent significant time in plugin `dsh-tsc-sourcemap`. See https://rolldown.rs/options/checks#plugintimings for more details.
+
+✔ [@deepseek-ai/dsh-client-ui-reference/client] Build complete in 7564ms
+[PLUGIN_TIMINGS] Your build spent significant time in plugin `dsh-client-bundle-purity`. See https://rolldown.rs/options/checks#plugintimings for more details.
+
+[PLUGIN_TIMINGS] Your build spent significant time in plugins. Here is a breakdown:
+  - dsh-client-bundle-purity (52%)
+  - dsh-tsc-sourcemap (31%)
+See https://rolldown.rs/options/checks#plugintimings for more details.
+
+✔ [@deepseek-ai/dsh-client-ui-skill/client] Build complete in 7571ms
+ℹ [@deepseek-ai/dsh-session-log-export/client] lib\client.js      11.86 kB │ gzip: 4.05 kB
+ℹ [@deepseek-ai/dsh-session-log-export/client] lib\client.js.map  18.46 kB │ gzip: 5.86 kB
+ℹ [@deepseek-ai/dsh-session-log-export/client] 2 files, total: 30.32 kB
+ℹ [@deepseek-ai/dsh-client-web] lib\index.js              11.54 kB │ gzip: 4.21 kB
+ℹ [@deepseek-ai/dsh-client-web] lib\index.js.map          21.98 kB │ gzip: 7.21 kB
+ℹ [@deepseek-ai/dsh-client-web] lib\boot-page.module.css   2.35 kB │ gzip: 0.91 kB
+ℹ [@deepseek-ai/dsh-client-web] lib\base.css               1.30 kB │ gzip: 0.75 kB
+ℹ [@deepseek-ai/dsh-client-web] 4 files, total: 37.17 kB
+✔ [@deepseek-ai/dsh-client-ui-cordis/client] Build complete in 7583ms
+ℹ [@deepseek-ai/dsh-client-ui-sidebar/client] Hint: consider adding deps.onlyBundle option to avoid unintended bundling of dependencies, or set deps.onlyBundle: false to disable this hint.
+See more at https://tsdown.dev/options/dependencies#deps-onlybundle
+Detected dependencies in bundle:
+- clsx
+[PLUGIN_TIMINGS] Your build spent significant time in plugin `dsh-static-linked-external`. See https://rolldown.rs/options/checks#plugintimings for more details.
+
+✔ [@deepseek-ai/dsh-client-ui-settings-plugin-inventory/client] Build complete in 7588ms
+✔ [@deepseek-ai/dsh-client-ui-layout/client] Build complete in 7588ms
+ℹ [@deepseek-ai/dsh-client-ui-settings-general/client] Hint: consider adding deps.onlyBundle option to avoid unintended bundling of dependencies, or set deps.onlyBundle: false to disable this hint.
+See more at https://tsdown.dev/options/dependencies#deps-onlybundle
+Detected dependencies in bundle:
+- clsx
+ℹ [@deepseek-ai/dsh-client-ui-model-selection/client] Hint: consider adding deps.onlyBundle option to avoid unintended bundling of dependencies, or set deps.onlyBundle: false to disable this hint.
+See more at https://tsdown.dev/options/dependencies#deps-onlybundle
+Detected dependencies in bundle:
+- clsx
+✔ [@deepseek-ai/dsh-session-log-export/client] Build complete in 7592ms
+✔ [@deepseek-ai/dsh-client-web] Build complete in 7598ms
+ℹ [@deepseek-ai/dsh-client-ui-agent-preset/client] [CJS] lib\client.js       84.50 kB │ gzip: 21.64 kB
+ℹ [@deepseek-ai/dsh-client-ui-agent-preset/client] [CJS] lib\client.js.map  129.03 kB │ gzip: 34.09 kB
+ℹ [@deepseek-ai/dsh-client-ui-agent-preset/client] [CJS] 2 files, total: 213.53 kB
+ℹ [@deepseek-ai/dsh-api-workspace-controller/client] lib\client.js      19.11 kB │ gzip:  5.05 kB
+ℹ [@deepseek-ai/dsh-api-workspace-controller/client] lib\client.js.map  47.13 kB │ gzip: 12.27 kB
+ℹ [@deepseek-ai/dsh-api-workspace-controller/client] 2 files, total: 66.24 kB
+ℹ [@deepseek-ai/dsh-client-ui-commands/client] Hint: consider adding deps.onlyBundle option to avoid unintended bundling of dependencies, or set deps.onlyBundle: false to disable this hint.
+See more at https://tsdown.dev/options/dependencies#deps-onlybundle
+Detected dependencies in bundle:
+- clsx
+ℹ [@deepseek-ai/dsh-api-workspace-files/client] lib\client.js      16.74 kB │ gzip:  5.44 kB
+ℹ [@deepseek-ai/dsh-api-workspace-files/client] lib\client.js.map  48.63 kB │ gzip: 14.60 kB
+ℹ [@deepseek-ai/dsh-api-workspace-files/client] 2 files, total: 65.38 kB
+[PLUGIN_TIMINGS] Your build spent significant time in plugins. Here is a breakdown:
+  - dsh-client-bundle-purity (48%)
+  - dsh-tsc-sourcemap (27%)
+See https://rolldown.rs/options/checks#plugintimings for more details.
+
+[PLUGIN_TIMINGS] Your build spent significant time in plugin `dsh-client-bundle-purity`. See https://rolldown.rs/options/checks#plugintimings for more details.
+
+[PLUGIN_TIMINGS] Your build spent significant time in plugin `dsh-client-bundle-purity`. See https://rolldown.rs/options/checks#plugintimings for more details.
+
+✔ [@deepseek-ai/dsh-client-ui-agent-preset/client] Build complete in 7618ms
+✔ [@deepseek-ai/dsh-api-workspace-controller/client] Build complete in 7618ms
+ℹ [@deepseek-ai/dsh-client-ui-sidebar/client] [CJS] lib\client.js      27.58 kB │ gzip: 6.96 kB
+ℹ [@deepseek-ai/dsh-client-ui-sidebar/client] [CJS] lib\client.js.map  30.68 kB │ gzip: 9.47 kB
+ℹ [@deepseek-ai/dsh-client-ui-sidebar/client] [CJS] 2 files, total: 58.26 kB
+✔ [@deepseek-ai/dsh-api-workspace-files/client] Build complete in 7623ms
+ℹ [@deepseek-ai/dsh-client-ui-settings-general/client] [CJS] lib\client.js      34.93 kB │ gzip:  9.16 kB
+ℹ [@deepseek-ai/dsh-client-ui-settings-general/client] [CJS] lib\client.js.map  45.22 kB │ gzip: 12.89 kB
+ℹ [@deepseek-ai/dsh-client-ui-settings-general/client] [CJS] 2 files, total: 80.14 kB
+[PLUGIN_TIMINGS] Your build spent significant time in plugin `dsh-client-bundle-purity`. See https://rolldown.rs/options/checks#plugintimings for more details.
+
+ℹ [@deepseek-ai/dsh-client-ui-open-in-app/client] [CJS] lib\client.js      16.27 kB │ gzip: 5.74 kB
+ℹ [@deepseek-ai/dsh-client-ui-open-in-app/client] [CJS] lib\client.js.map  22.93 kB │ gzip: 7.77 kB
+ℹ [@deepseek-ai/dsh-client-ui-open-in-app/client] [CJS] 2 files, total: 39.20 kB
+ℹ [@deepseek-ai/dsh-client-ui-model-selection/client] [CJS] lib\client.js      44.71 kB │ gzip: 11.99 kB
+ℹ [@deepseek-ai/dsh-client-ui-model-selection/client] [CJS] lib\client.js.map  66.05 kB │ gzip: 18.71 kB
+ℹ [@deepseek-ai/dsh-client-ui-model-selection/client] [CJS] 2 files, total: 110.76 kB
+[PLUGIN_TIMINGS] Your build spent significant time in plugins. Here is a breakdown:
+  - dsh-tsc-sourcemap (36%)
+  - dsh-client-bundle-purity (36%)
+See https://rolldown.rs/options/checks#plugintimings for more details.
+
+[PLUGIN_TIMINGS] Your build spent significant time in plugin `dsh-client-bundle-purity`. See https://rolldown.rs/options/checks#plugintimings for more details.
+
+[PLUGIN_TIMINGS] Your build spent significant time in plugins. Here is a breakdown:
+  - dsh-client-bundle-purity (48%)
+  - dsh-tsc-sourcemap (28%)
+See https://rolldown.rs/options/checks#plugintimings for more details.
+
+✔ [@deepseek-ai/dsh-client-ui-sidebar/client] Build complete in 7647ms
+ℹ [@deepseek-ai/dsh-client-file-upload/client] [CJS] lib\client.js      14.96 kB │ gzip:  4.91 kB
+ℹ [@deepseek-ai/dsh-client-file-upload/client] [CJS] lib\client.js.map  39.14 kB │ gzip: 11.66 kB
+ℹ [@deepseek-ai/dsh-client-file-upload/client] [CJS] 2 files, total: 54.10 kB
+✔ [@deepseek-ai/dsh-client-ui-settings-general/client] Build complete in 7658ms
+ℹ [@deepseek-ai/dsh-client-ui-message-feedback/client] [CJS] lib\client.js      42.80 kB │ gzip: 11.26 kB
+ℹ [@deepseek-ai/dsh-client-ui-message-feedback/client] [CJS] lib\client.js.map  65.66 kB │ gzip: 17.49 kB
+ℹ [@deepseek-ai/dsh-client-ui-message-feedback/client] [CJS] 2 files, total: 108.47 kB
+ℹ [@deepseek-ai/dsh-client-ui-commands/client] [CJS] lib\client.js      55.13 kB │ gzip: 15.59 kB
+ℹ [@deepseek-ai/dsh-client-ui-commands/client] [CJS] lib\client.js.map  91.41 kB │ gzip: 25.20 kB
+ℹ [@deepseek-ai/dsh-client-ui-commands/client] [CJS] 2 files, total: 146.54 kB
+[PLUGIN_TIMINGS] Your build spent significant time in plugin `dsh-client-bundle-purity`. See https://rolldown.rs/options/checks#plugintimings for more details.
+
+✔ [@deepseek-ai/dsh-client-ui-open-in-app/client] Build complete in 7661ms
+✔ [@deepseek-ai/dsh-client-ui-model-selection/client] Build complete in 7661ms
+[PLUGIN_TIMINGS] Your build spent significant time in plugins. Here is a breakdown:
+  - dsh-client-bundle-purity (49%)
+  - dsh-tsc-sourcemap (33%)
+See https://rolldown.rs/options/checks#plugintimings for more details.
+
+[PLUGIN_TIMINGS] Your build spent significant time in plugins. Here is a breakdown:
+  - dsh-client-bundle-purity (48%)
+  - dsh-tsc-sourcemap (26%)
+See https://rolldown.rs/options/checks#plugintimings for more details.
+
+✔ [@deepseek-ai/dsh-client-file-upload/client] Build complete in 7669ms
+✔ [@deepseek-ai/dsh-client-ui-message-feedback/client] Build complete in 7674ms
+✔ [@deepseek-ai/dsh-client-ui-commands/client] Build complete in 7674ms
+ℹ [@deepseek-ai/dsh-cordis-client-runner/client] [CJS] lib\client.js      276.11 kB │ gzip: 51.74 kB
+ℹ [@deepseek-ai/dsh-cordis-client-runner/client] [CJS] lib\client.js.map  406.94 kB │ gzip: 77.71 kB
+ℹ [@deepseek-ai/dsh-cordis-client-runner/client] [CJS] 2 files, total: 683.05 kB
+[PLUGIN_TIMINGS] Your build spent significant time in plugin `dsh-tsc-sourcemap`. See https://rolldown.rs/options/checks#plugintimings for more details.
+
+✔ [@deepseek-ai/dsh-cordis-client-runner/client] Build complete in 7695ms
+ℹ [@deepseek-ai/dsh-client-ui-sidebar-files/client] Hint: consider adding deps.onlyBundle option to avoid unintended bundling of dependencies, or set deps.onlyBundle: false to disable this hint.
+See more at https://tsdown.dev/options/dependencies#deps-onlybundle
+Detected dependencies in bundle:
+- clsx
+ℹ [@deepseek-ai/dsh-api-gateway/client] [CJS] lib\client.js      100.77 kB │ gzip: 24.33 kB
+ℹ [@deepseek-ai/dsh-api-gateway/client] [CJS] lib\client.js.map  214.96 kB │ gzip: 51.43 kB
+ℹ [@deepseek-ai/dsh-api-gateway/client] [CJS] 2 files, total: 315.73 kB
+ℹ [@deepseek-ai/dsh-client-ui-dockkit] lib\index.js                       106.20 kB │ gzip: 28.75 kB
+ℹ [@deepseek-ai/dsh-client-ui-dockkit] lib\index.js.map                   193.90 kB │ gzip: 50.19 kB
+ℹ [@deepseek-ai/dsh-client-ui-dockkit] lib\components\dockkit.module.css   20.82 kB │ gzip:  6.25 kB
+ℹ [@deepseek-ai/dsh-client-ui-dockkit] 3 files, total: 320.92 kB
+[PLUGIN_TIMINGS] Your build spent significant time in plugins. Here is a breakdown:
+  - dsh-client-bundle-purity (41%)
+  - tsdown:deps (23%)
+  - dsh-tsc-sourcemap (17%)
+See https://rolldown.rs/options/checks#plugintimings for more details.
+
+[PLUGIN_TIMINGS] Your build spent significant time in plugins. Here is a breakdown:
+  - dsh-static-linked-external (50%)
+  - dsh-css-asset (27%)
+  - dsh-tsc-sourcemap (23%)
+See https://rolldown.rs/options/checks#plugintimings for more details.
+
+ℹ [@deepseek-ai/dsh-client-ui-user-questions/client] Hint: consider adding deps.onlyBundle option to avoid unintended bundling of dependencies, or set deps.onlyBundle: false to disable this hint.
+See more at https://tsdown.dev/options/dependencies#deps-onlybundle
+Detected dependencies in bundle:
+- clsx
+✔ [@deepseek-ai/dsh-api-gateway/client] Build complete in 7721ms
+ℹ [@deepseek-ai/dsh-client-ui-attachment/client] Hint: consider adding deps.onlyBundle option to avoid unintended bundling of dependencies, or set deps.onlyBundle: false to disable this hint.
+See more at https://tsdown.dev/options/dependencies#deps-onlybundle
+Detected dependencies in bundle:
+- clsx
+ℹ [@deepseek-ai/dsh-client-ui-input-trigger/client] Hint: consider adding deps.onlyBundle option to avoid unintended bundling of dependencies, or set deps.onlyBundle: false to disable this hint.
+See more at https://tsdown.dev/options/dependencies#deps-onlybundle
+Detected dependencies in bundle:
+- clsx
+✔ [@deepseek-ai/dsh-client-ui-dockkit] Build complete in 7730ms
+ℹ [@deepseek-ai/dsh-client-ui-settings-plugins/client] Hint: consider adding deps.onlyBundle option to avoid unintended bundling of dependencies, or set deps.onlyBundle: false to disable this hint.
+See more at https://tsdown.dev/options/dependencies#deps-onlybundle
+Detected dependencies in bundle:
+- clsx
+ℹ [@deepseek-ai/dsh-client-ui-directory-picker-browse/client] Hint: consider adding deps.onlyBundle option to avoid unintended bundling of dependencies, or set deps.onlyBundle: false to disable this hint.
+See more at https://tsdown.dev/options/dependencies#deps-onlybundle
+Detected dependencies in bundle:
+- clsx
+ℹ [@deepseek-ai/dsh-client-ui-sidebar-files/client] [CJS] lib\client.js      32.23 kB │ gzip:  9.70 kB
+ℹ [@deepseek-ai/dsh-client-ui-sidebar-files/client] [CJS] lib\client.js.map  58.29 kB │ gzip: 17.20 kB
+ℹ [@deepseek-ai/dsh-client-ui-sidebar-files/client] [CJS] 2 files, total: 90.52 kB
+[PLUGIN_TIMINGS] Your build spent significant time in plugins. Here is a breakdown:
+  - dsh-tsc-sourcemap (38%)
+  - dsh-client-bundle-purity (28%)
+See https://rolldown.rs/options/checks#plugintimings for more details.
+
+ℹ [@deepseek-ai/dsh-client-ui-user-questions/client] [CJS] lib\client.js      42.85 kB │ gzip: 11.02 kB
+ℹ [@deepseek-ai/dsh-client-ui-user-questions/client] [CJS] lib\client.js.map  55.49 kB │ gzip: 15.85 kB
+ℹ [@deepseek-ai/dsh-client-ui-user-questions/client] [CJS] 2 files, total: 98.34 kB
+[PLUGIN_TIMINGS] Your build spent significant time in plugin `dsh-tsc-sourcemap`. See https://rolldown.rs/options/checks#plugintimings for more details.
+
+✔ [@deepseek-ai/dsh-client-ui-sidebar-files/client] Build complete in 7768ms
+ℹ [@deepseek-ai/dsh-client-ui-attachment/client] [CJS] lib\client.js      45.71 kB │ gzip: 11.73 kB
+ℹ [@deepseek-ai/dsh-client-ui-attachment/client] [CJS] lib\client.js.map  52.99 kB │ gzip: 15.45 kB
+ℹ [@deepseek-ai/dsh-client-ui-attachment/client] [CJS] 2 files, total: 98.70 kB
+ℹ [@deepseek-ai/dsh-client-ui-input-trigger/client] [CJS] lib\client.js      54.88 kB │ gzip: 15.15 kB
+ℹ [@deepseek-ai/dsh-client-ui-input-trigger/client] [CJS] lib\client.js.map  87.34 kB │ gzip: 23.93 kB
+ℹ [@deepseek-ai/dsh-client-ui-input-trigger/client] [CJS] 2 files, total: 142.22 kB
+[PLUGIN_TIMINGS] Your build spent significant time in plugins. Here is a breakdown:
+  - dsh-client-bundle-purity (52%)
+  - dsh-tsc-sourcemap (22%)
+See https://rolldown.rs/options/checks#plugintimings for more details.
+
+✔ [@deepseek-ai/dsh-client-ui-user-questions/client] Build complete in 7790ms
+[PLUGIN_TIMINGS] Your build spent significant time in plugins. Here is a breakdown:
+  - dsh-client-bundle-purity (46%)
+  - dsh-tsc-sourcemap (26%)
+See https://rolldown.rs/options/checks#plugintimings for more details.
+
+ℹ [@deepseek-ai/dsh-client-ui-directory-picker-browse/client] [CJS] lib\client.js      50.46 kB │ gzip: 13.55 kB
+ℹ [@deepseek-ai/dsh-client-ui-directory-picker-browse/client] [CJS] lib\client.js.map  78.78 kB │ gzip: 23.79 kB
+ℹ [@deepseek-ai/dsh-client-ui-directory-picker-browse/client] [CJS] 2 files, total: 129.24 kB
+ℹ [@deepseek-ai/dsh-client-ui-settings-plugins/client] [CJS] lib\client.js       78.97 kB │ gzip: 19.03 kB
+ℹ [@deepseek-ai/dsh-client-ui-settings-plugins/client] [CJS] lib\client.js.map  123.53 kB │ gzip: 30.58 kB
+ℹ [@deepseek-ai/dsh-client-ui-settings-plugins/client] [CJS] 2 files, total: 202.51 kB
+✔ [@deepseek-ai/dsh-client-ui-attachment/client] Build complete in 7803ms
+ℹ [@deepseek-ai/dsh-client-ui-settings-models/client] [CJS] lib\client.js      143.56 kB │ gzip: 34.68 kB
+ℹ [@deepseek-ai/dsh-client-ui-settings-models/client] [CJS] lib\client.js.map  222.75 kB │ gzip: 56.86 kB
+ℹ [@deepseek-ai/dsh-client-ui-settings-models/client] [CJS] 2 files, total: 366.30 kB
+[PLUGIN_TIMINGS] Your build spent significant time in plugin `dsh-client-bundle-purity`. See https://rolldown.rs/options/checks#plugintimings for more details.
+
+[PLUGIN_TIMINGS] Your build spent significant time in plugins. Here is a breakdown:
+  - dsh-tsc-sourcemap (46%)
+  - dsh-client-bundle-purity (24%)
+See https://rolldown.rs/options/checks#plugintimings for more details.
+
+✔ [@deepseek-ai/dsh-client-ui-input-trigger/client] Build complete in 7808ms
+[PLUGIN_TIMINGS] Your build spent significant time in plugins. Here is a breakdown:
+  - dsh-tsc-sourcemap (41%)
+  - dsh-client-bundle-purity (26%)
+  - dsh-css-modules-inline (16%)
+See https://rolldown.rs/options/checks#plugintimings for more details.
+
+ℹ [@deepseek-ai/dsh-client-ui-settings-devices/client] Hint: consider adding deps.onlyBundle option to avoid unintended bundling of dependencies, or set deps.onlyBundle: false to disable this hint.
+See more at https://tsdown.dev/options/dependencies#deps-onlybundle
+Detected dependencies in bundle:
+- qrcode.react
+✔ [@deepseek-ai/dsh-client-ui-directory-picker-browse/client] Build complete in 7817ms
+✔ [@deepseek-ai/dsh-client-ui-settings-plugins/client] Build complete in 7817ms
+✔ [@deepseek-ai/dsh-client-ui-settings-models/client] Build complete in 7821ms
+ℹ [@deepseek-ai/dsh-client-ui-settings-devices/client] [CJS] lib\client.js       72.55 kB │ gzip: 18.61 kB
+ℹ [@deepseek-ai/dsh-client-ui-settings-devices/client] [CJS] lib\client.js.map  136.36 kB │ gzip: 35.44 kB
+ℹ [@deepseek-ai/dsh-client-ui-settings-devices/client] [CJS] 2 files, total: 208.91 kB
+[PLUGIN_TIMINGS] Your build spent significant time in plugin `dsh-client-bundle-purity`. See https://rolldown.rs/options/checks#plugintimings for more details.
+
+✔ [@deepseek-ai/dsh-client-ui-settings-devices/client] Build complete in 7884ms
+ℹ [@deepseek-ai/dsh-client-ui-theme/client] Hint: consider adding deps.onlyBundle option to avoid unintended bundling of dependencies, or set deps.onlyBundle: false to disable this hint.
+See more at https://tsdown.dev/options/dependencies#deps-onlybundle
+Detected dependencies in bundle:
+- clsx
+ℹ [@deepseek-ai/dsh-client-ui-sidebar-right/client] Hint: consider adding deps.onlyBundle option to avoid unintended bundling of dependencies, or set deps.onlyBundle: false to disable this hint.
+See more at https://tsdown.dev/options/dependencies#deps-onlybundle
+Detected dependencies in bundle:
+- picomatch
+ℹ [@deepseek-ai/dsh-client-ui-subagent/client] [CJS] lib\client.js      49.85 kB │ gzip: 13.07 kB
+ℹ [@deepseek-ai/dsh-client-ui-subagent/client] [CJS] lib\client.js.map  88.17 kB │ gzip: 23.85 kB
+ℹ [@deepseek-ai/dsh-client-ui-subagent/client] [CJS] 2 files, total: 138.02 kB
+[PLUGIN_TIMINGS] Your build spent significant time in plugin `dsh-tsc-sourcemap`. See https://rolldown.rs/options/checks#plugintimings for more details.
+
+ℹ [@deepseek-ai/dsh-client-ui-workspace/client] Hint: consider adding deps.onlyBundle option to avoid unintended bundling of dependencies, or set deps.onlyBundle: false to disable this hint.
+See more at https://tsdown.dev/options/dependencies#deps-onlybundle
+Detected dependencies in bundle:
+- clsx
+ℹ [@deepseek-ai/dsh-client-locale/client] [CJS] lib\client.js       55.55 kB │ gzip: 15.66 kB
+ℹ [@deepseek-ai/dsh-client-locale/client] [CJS] lib\client.js.map  113.39 kB │ gzip: 30.13 kB
+ℹ [@deepseek-ai/dsh-client-locale/client] [CJS] 2 files, total: 168.95 kB
+✔ [@deepseek-ai/dsh-client-ui-subagent/client] Build complete in 7930ms
+[PLUGIN_TIMINGS] Your build spent significant time in plugins. Here is a breakdown:
+  - dsh-client-bundle-purity (50%)
+  - dsh-tsc-sourcemap (24%)
+See https://rolldown.rs/options/checks#plugintimings for more details.
+
+✔ [@deepseek-ai/dsh-client-locale/client] Build complete in 7939ms
+ℹ [@deepseek-ai/dsh-client-ui-deliverables/client] lib\client.js      50.04 kB │ gzip: 13.51 kB
+ℹ [@deepseek-ai/dsh-client-ui-deliverables/client] lib\client.js.map  95.52 kB │ gzip: 26.63 kB
+ℹ [@deepseek-ai/dsh-client-ui-deliverables/client] 2 files, total: 145.55 kB
+[PLUGIN_TIMINGS] Your build spent significant time in plugins. Here is a breakdown:
+  - dsh-client-bundle-purity (39%)
+  - dsh-tsc-sourcemap (29%)
+See https://rolldown.rs/options/checks#plugintimings for more details.
+
+ℹ [@deepseek-ai/dsh-client-ui-settings/client] [CJS] lib\client.js       53.42 kB │ gzip: 13.79 kB
+ℹ [@deepseek-ai/dsh-client-ui-settings/client] [CJS] lib\client.js.map  112.16 kB │ gzip: 28.51 kB
+ℹ [@deepseek-ai/dsh-client-ui-settings/client] [CJS] 2 files, total: 165.57 kB
+[PLUGIN_TIMINGS] Your build spent significant time in plugin `dsh-client-bundle-purity`. See https://rolldown.rs/options/checks#plugintimings for more details.
+
+✔ [@deepseek-ai/dsh-client-ui-deliverables/client] Build complete in 7948ms
+ℹ [@deepseek-ai/dsh-client-ui-theme/client] [CJS] lib\client.js       91.55 kB │ gzip: 21.45 kB
+ℹ [@deepseek-ai/dsh-client-ui-theme/client] [CJS] lib\client.js.map  116.22 kB │ gzip: 30.35 kB
+ℹ [@deepseek-ai/dsh-client-ui-theme/client] [CJS] 2 files, total: 207.76 kB
+ℹ [@deepseek-ai/dsh-client-ui-primitives] lib\index.js                          437.70 kB │ gzip: 142.71 kB
+ℹ [@deepseek-ai/dsh-client-ui-primitives] lib\index.js.map                      657.65 kB │ gzip: 195.90 kB
+ℹ [@deepseek-ai/dsh-client-ui-primitives] lib\markdown\MarkdownText.module.css    7.91 kB │ gzip:   2.64 kB
+ℹ [@deepseek-ai/dsh-client-ui-primitives] lib\TerminalBlock.module.css            6.75 kB │ gzip:   2.40 kB
+ℹ [@deepseek-ai/dsh-client-ui-primitives] lib\Menu.module.css                     5.76 kB │ gzip:   2.24 kB
+ℹ [@deepseek-ai/dsh-client-ui-primitives] lib\JsonTree.module.css                 4.35 kB │ gzip:   1.36 kB
+ℹ [@deepseek-ai/dsh-client-ui-primitives] lib\markdown\CodeBlock.module.css       3.55 kB │ gzip:   1.20 kB
+ℹ [@deepseek-ai/dsh-client-ui-primitives] lib\WebBlock.module.css                 3.41 kB │ gzip:   1.33 kB
+ℹ [@deepseek-ai/dsh-client-ui-primitives] lib\DiffBlock.module.css                2.59 kB │ gzip:   1.05 kB
+ℹ [@deepseek-ai/dsh-client-ui-primitives] lib\ReadBlock.module.css                2.50 kB │ gzip:   0.87 kB
+ℹ [@deepseek-ai/dsh-client-ui-primitives] lib\SearchBlock.module.css              2.34 kB │ gzip:   0.77 kB
+ℹ [@deepseek-ai/dsh-client-ui-primitives] lib\Modal.module.css                    2.10 kB │ gzip:   0.85 kB
+ℹ [@deepseek-ai/dsh-client-ui-primitives] lib\DisclosureRow.module.css            2.09 kB │ gzip:   0.89 kB
+ℹ [@deepseek-ai/dsh-client-ui-primitives] lib\ConnectionIndicator.module.css      1.97 kB │ gzip:   0.72 kB
+ℹ [@deepseek-ai/dsh-client-ui-primitives] lib\Toast.module.css                    1.96 kB │ gzip:   0.98 kB
+ℹ [@deepseek-ai/dsh-client-ui-primitives] lib\Tag.module.css                      1.86 kB │ gzip:   0.70 kB
+ℹ [@deepseek-ai/dsh-client-ui-primitives] lib\StateDot.module.css                 1.82 kB │ gzip:   0.83 kB
+ℹ [@deepseek-ai/dsh-client-ui-primitives] lib\Button.module.css                   1.72 kB │ gzip:   0.67 kB
+ℹ [@deepseek-ai/dsh-client-ui-primitives] lib\user-text.module.css                1.72 kB │ gzip:   0.87 kB
+ℹ [@deepseek-ai/dsh-client-ui-primitives] lib\Switch.module.css                   1.37 kB │ gzip:   0.67 kB
+ℹ [@deepseek-ai/dsh-client-ui-primitives] lib\HoverCard.module.css                1.27 kB │ gzip:   0.70 kB
+ℹ [@deepseek-ai/dsh-client-ui-primitives] lib\RiskConfirmation.module.css         1.18 kB │ gzip:   0.48 kB
+ℹ [@deepseek-ai/dsh-client-ui-primitives] lib\FileTypeIcon.module.css             1.06 kB │ gzip:   0.30 kB
+ℹ [@deepseek-ai/dsh-client-ui-primitives] lib\Tooltip.module.css                  1.01 kB │ gzip:   0.55 kB
+ℹ [@deepseek-ai/dsh-client-ui-primitives] lib\Input.module.css                    0.69 kB │ gzip:   0.32 kB
+ℹ [@deepseek-ai/dsh-client-ui-primitives] lib\markdown\JsonBlock.module.css       0.63 kB │ gzip:   0.30 kB
+ℹ [@deepseek-ai/dsh-client-ui-primitives] lib\OnboardingSurface.module.css        0.59 kB │ gzip:   0.35 kB
+ℹ [@deepseek-ai/dsh-client-ui-primitives] lib\Pill.module.css                     0.57 kB │ gzip:   0.27 kB
+ℹ [@deepseek-ai/dsh-client-ui-primitives] 28 files, total: 1.16 MB
+[PLUGIN_TIMINGS] Your build spent significant time in plugins. Here is a breakdown:
+  - dsh-tsc-sourcemap (27%)
+  - dsh-client-bundle-purity (24%)
+See https://rolldown.rs/options/checks#plugintimings for more details.
+
+✔ [@deepseek-ai/dsh-client-ui-settings/client] Build complete in 7952ms
+[PLUGIN_TIMINGS] Your build spent significant time in plugins. Here is a breakdown:
+  - dsh-static-linked-external (41%)
+  - dsh-tsc-sourcemap (34%)
+  - dsh-css-asset (23%)
+See https://rolldown.rs/options/checks#plugintimings for more details.
+
+ℹ [@deepseek-ai/dsh-typert-registry/client] Hint: consider adding deps.onlyBundle option to avoid unintended bundling of dependencies, or set deps.onlyBundle: false to disable this hint.
+See more at https://tsdown.dev/options/dependencies#deps-onlybundle
+Detected dependencies in bundle:
+- zod
+✔ [@deepseek-ai/dsh-client-ui-theme/client] Build complete in 7954ms
+✔ [@deepseek-ai/dsh-client-ui-primitives] Build complete in 7955ms
+ℹ [@deepseek-ai/dsh-client-ui-sidebar-right/client] [CJS] lib\client.js      140.81 kB │ gzip: 36.57 kB
+ℹ [@deepseek-ai/dsh-client-ui-sidebar-right/client] [CJS] lib\client.js.map  248.97 kB │ gzip: 65.01 kB
+ℹ [@deepseek-ai/dsh-client-ui-sidebar-right/client] [CJS] 2 files, total: 389.78 kB
+ℹ [@deepseek-ai/dsh-client-ui-workspace/client] [CJS] lib\client.js      143.32 kB │ gzip: 32.64 kB
+ℹ [@deepseek-ai/dsh-client-ui-workspace/client] [CJS] lib\client.js.map  239.34 kB │ gzip: 59.79 kB
+ℹ [@deepseek-ai/dsh-client-ui-workspace/client] [CJS] 2 files, total: 382.66 kB
+[PLUGIN_TIMINGS] Your build spent significant time in plugins. Here is a breakdown:
+  - dsh-tsc-sourcemap (43%)
+  - dsh-client-bundle-purity (21%)
+See https://rolldown.rs/options/checks#plugintimings for more details.
+
+[PLUGIN_TIMINGS] Your build spent significant time in plugins. Here is a breakdown:
+  - tsdown:deps (26%)
+  - dsh-tsc-sourcemap (24%)
+See https://rolldown.rs/options/checks#plugintimings for more details.
+
+✔ [@deepseek-ai/dsh-client-ui-sidebar-right/client] Build complete in 7967ms
+✔ [@deepseek-ai/dsh-client-ui-workspace/client] Build complete in 7967ms
+ℹ [@deepseek-ai/dsh-typert-registry/client] [CJS] lib\client.js       52.13 kB │ gzip: 11.22 kB
+ℹ [@deepseek-ai/dsh-typert-registry/client] [CJS] lib\client.js.map  124.81 kB │ gzip: 27.26 kB
+ℹ [@deepseek-ai/dsh-typert-registry/client] [CJS] 2 files, total: 176.94 kB
+[PLUGIN_TIMINGS] Your build spent significant time in plugins. Here is a breakdown:
+  - dsh-css-global-inline (29%)
+  - dsh-css-modules-inline (24%)
+  - dsh-css-text-inline (19%)
+  - dsh-client-bundle-purity (18%)
+See https://rolldown.rs/options/checks#plugintimings for more details.
+
+✔ [@deepseek-ai/dsh-typert-registry/client] Build complete in 7979ms
+ℹ [@deepseek-ai/dsh-client-ui-tool/client] Hint: consider adding deps.onlyBundle option to avoid unintended bundling of dependencies, or set deps.onlyBundle: false to disable this hint.
+See more at https://tsdown.dev/options/dependencies#deps-onlybundle
+Detected dependencies in bundle:
+- clsx
+ℹ [@deepseek-ai/dsh-client-connection/client] [CJS] lib\client.js      238.01 kB │ gzip:  59.69 kB
+ℹ [@deepseek-ai/dsh-client-connection/client] [CJS] lib\client.js.map  497.73 kB │ gzip: 124.97 kB
+ℹ [@deepseek-ai/dsh-client-connection/client] [CJS] 2 files, total: 735.73 kB
+[PLUGIN_TIMINGS] Your build spent significant time in plugins. Here is a breakdown:
+  - dsh-client-bundle-purity (32%)
+  - tsdown:deps (25%)
+  - dsh-tsc-sourcemap (24%)
+See https://rolldown.rs/options/checks#plugintimings for more details.
+
+✔ [@deepseek-ai/dsh-client-connection/client] Build complete in 7999ms
+ℹ [@deepseek-ai/dsh-api-remotes/client] Hint: consider adding deps.onlyBundle option to avoid unintended bundling of dependencies, or set deps.onlyBundle: false to disable this hint.
+See more at https://tsdown.dev/options/dependencies#deps-onlybundle
+Detected dependencies in bundle:
+- zod
+ℹ [@deepseek-ai/dsh-client-ui-tool/client] [CJS] lib\client.js      105.68 kB │ gzip: 24.95 kB
+ℹ [@deepseek-ai/dsh-client-ui-tool/client] [CJS] lib\client.js.map  191.72 kB │ gzip: 49.37 kB
+ℹ [@deepseek-ai/dsh-client-ui-tool/client] [CJS] 2 files, total: 297.41 kB
+[PLUGIN_TIMINGS] Your build spent significant time in plugins. Here is a breakdown:
+  - dsh-tsc-sourcemap (26%)
+  - dsh-client-bundle-purity (24%)
+  - dsh-css-global-inline (13%)
+  - dsh-css-modules-inline (13%)
+  - dsh-css-text-inline (12%)
+See https://rolldown.rs/options/checks#plugintimings for more details.
+
+ℹ [@deepseek-ai/dsh-experimental-client-ui-agent-team/client] Hint: consider adding deps.onlyBundle option to avoid unintended bundling of dependencies, or set deps.onlyBundle: false to disable this hint.
+See more at https://tsdown.dev/options/dependencies#deps-onlybundle
+Detected dependencies in bundle:
+- zod
+✔ [@deepseek-ai/dsh-client-ui-tool/client] Build complete in 8013ms
+ℹ [@deepseek-ai/dsh-client-ui-trajectory/client] Hint: consider adding deps.onlyBundle option to avoid unintended bundling of dependencies, or set deps.onlyBundle: false to disable this hint.
+See more at https://tsdown.dev/options/dependencies#deps-onlybundle
+Detected dependencies in bundle:
+- @tanstack/virtual-core
+- @tanstack/react-virtual
+- diff
+ℹ [@deepseek-ai/dsh-client-ui-renderer/client] Hint: consider adding deps.onlyBundle option to avoid unintended bundling of dependencies, or set deps.onlyBundle: false to disable this hint.
+See more at https://tsdown.dev/options/dependencies#deps-onlybundle
+Detected dependencies in bundle:
+- use-sync-external-store
+ℹ [@deepseek-ai/dsh-client-ui-renderer/client] [CJS] lib\client.js       57.07 kB │ gzip: 15.09 kB
+ℹ [@deepseek-ai/dsh-client-ui-renderer/client] [CJS] lib\client.js.map  106.21 kB │ gzip: 29.14 kB
+ℹ [@deepseek-ai/dsh-client-ui-renderer/client] [CJS] 2 files, total: 163.28 kB
+[PLUGIN_TIMINGS] Your build spent significant time in plugin `dsh-client-bundle-purity`. See https://rolldown.rs/options/checks#plugintimings for more details.
+
+ℹ [@deepseek-ai/dsh-experimental-client-ui-agent-team/client] [CJS] lib\client.js      172.61 kB │ gzip: 33.14 kB
+ℹ [@deepseek-ai/dsh-experimental-client-ui-agent-team/client] [CJS] lib\client.js.map  429.29 kB │ gzip: 76.26 kB
+ℹ [@deepseek-ai/dsh-experimental-client-ui-agent-team/client] [CJS] 2 files, total: 601.90 kB
+[PLUGIN_TIMINGS] Your build spent significant time in plugins. Here is a breakdown:
+  - dsh-css-global-inline (25%)
+  - dsh-css-modules-inline (21%)
+  - dsh-css-text-inline (21%)
+  - dsh-client-bundle-purity (18%)
+See https://rolldown.rs/options/checks#plugintimings for more details.
+
+✔ [@deepseek-ai/dsh-client-ui-renderer/client] Build complete in 8043ms
+✔ [@deepseek-ai/dsh-experimental-client-ui-agent-team/client] Build complete in 8044ms
+ℹ [@deepseek-ai/dsh-experimental-webworker-runtime] Hint: consider adding deps.onlyBundle option to avoid unintended bundling of dependencies, or set deps.onlyBundle: false to disable this hint.
+See more at https://tsdown.dev/options/dependencies#deps-onlybundle
+Detected dependencies in bundle:
+- base64-js
+- ieee754
+- buffer
+- @noble/hashes
+- readable-stream
+- abort-controller
+- events
+- process
+- safe-buffer
+- string_decoder
+- @yarnpkg/parsers
+- picomatch
+ℹ [@deepseek-ai/dsh-api-remotes/client] lib\client.js      374.28 kB │ gzip:  48.23 kB
+ℹ [@deepseek-ai/dsh-api-remotes/client] lib\client.js.map  774.77 kB │ gzip: 106.43 kB
+ℹ [@deepseek-ai/dsh-api-remotes/client] 2 files, total: 1.15 MB
+[PLUGIN_TIMINGS] Your build spent significant time in plugins. Here is a breakdown:
+  - tsdown:deps (37%)
+  - dsh-client-bundle-purity (18%)
+  - dsh-css-modules-inline (15%)
+  - dsh-css-text-inline (13%)
+  - dsh-css-global-inline (11%)
+See https://rolldown.rs/options/checks#plugintimings for more details.
+
+✔ [@deepseek-ai/dsh-api-remotes/client] Build complete in 8045ms
+ℹ [@deepseek-ai/dsh-experimental-inspector/client] lib\client.js      128.66 kB │ gzip: 28.93 kB
+ℹ [@deepseek-ai/dsh-experimental-inspector/client] lib\client.js.map  273.00 kB │ gzip: 58.14 kB
+ℹ [@deepseek-ai/dsh-experimental-inspector/client] 2 files, total: 401.66 kB
+[PLUGIN_TIMINGS] Your build spent significant time in plugins. Here is a breakdown:
+  - dsh-tsc-sourcemap (44%)
+  - dsh-client-bundle-purity (15%)
+  - dsh-css-global-inline (14%)
+See https://rolldown.rs/options/checks#plugintimings for more details.
+
+✔ [@deepseek-ai/dsh-experimental-inspector/client] Build complete in 8057ms
+ℹ [@deepseek-ai/dsh-client-ui-trajectory/client] [CJS] lib\client.js      395.11 kB │ gzip:  82.07 kB
+ℹ [@deepseek-ai/dsh-client-ui-trajectory/client] [CJS] lib\client.js.map  641.46 kB │ gzip: 142.83 kB
+ℹ [@deepseek-ai/dsh-client-ui-trajectory/client] [CJS] 2 files, total: 1.04 MB
+[PLUGIN_TIMINGS] Your build spent significant time in plugins. Here is a breakdown:
+  - dsh-tsc-sourcemap (33%)
+  - dsh-client-bundle-purity (18%)
+  - dsh-css-modules-inline (17%)
+  - dsh-css-global-inline (15%)
+See https://rolldown.rs/options/checks#plugintimings for more details.
+
+✔ [@deepseek-ai/dsh-client-ui-trajectory/client] Build complete in 8063ms
+ℹ [@deepseek-ai/dsh-experimental-webworker-runtime] lib\worker.js      705.27 kB │ gzip: 163.75 kB
+ℹ [@deepseek-ai/dsh-experimental-webworker-runtime] lib\worker.js.map    1.39 MB
+ℹ [@deepseek-ai/dsh-experimental-webworker-runtime] 2 files, total: 2.09 MB
+[PLUGIN_TIMINGS] Your build spent significant time in plugins. Here is a breakdown:
+  - dsh-module-proxies (50%)
+  - dsh-shell-parser-only (30%)
+  - tsdown:deps (20%)
+See https://rolldown.rs/options/checks#plugintimings for more details.
+
+✔ [@deepseek-ai/dsh-experimental-webworker-runtime] Build complete in 8081ms
+ℹ [@deepseek-ai/dsh-client-ui-chat/client] [CJS] lib\client.js      374.61 kB │ gzip:  84.49 kB
+ℹ [@deepseek-ai/dsh-client-ui-chat/client] [CJS] lib\client.js.map  686.80 kB │ gzip: 164.06 kB
+ℹ [@deepseek-ai/dsh-client-ui-chat/client] [CJS] 2 files, total: 1.06 MB
+[PLUGIN_TIMINGS] Your build spent significant time in plugins. Here is a breakdown:
+  - dsh-tsc-sourcemap (32%)
+  - dsh-client-bundle-purity (24%)
+  - dsh-css-modules-inline (15%)
+See https://rolldown.rs/options/checks#plugintimings for more details.
+
+ℹ [@deepseek-ai/dsh-api-session-controller/client] lib\client.js      153.04 kB │ gzip: 40.00 kB
+ℹ [@deepseek-ai/dsh-api-session-controller/client] lib\client.js.map  375.00 kB │ gzip: 97.92 kB
+ℹ [@deepseek-ai/dsh-api-session-controller/client] 2 files, total: 528.04 kB
+✔ [@deepseek-ai/dsh-client-ui-chat/client] Build complete in 8097ms
+[PLUGIN_TIMINGS] Your build spent significant time in plugins. Here is a breakdown:
+  - dsh-client-bundle-purity (36%)
+  - dsh-tsc-sourcemap (24%)
+  - tsdown:deps (19%)
+See https://rolldown.rs/options/checks#plugintimings for more details.
+
+✔ [@deepseek-ai/dsh-api-session-controller/client] Build complete in 8098ms
+ℹ [@deepseek-ai/dsh-client-ui-sidebar-documentpreview/client] Hint: consider adding deps.onlyBundle option to avoid unintended bundling of dependencies, or set deps.onlyBundle: false to disable this hint.
+See more at https://tsdown.dev/options/dependencies#deps-onlybundle
+Detected dependencies in bundle:
+- clsx
+- pdfjs-dist
+- @tanstack/virtual-core
+- @tanstack/react-virtual
+- diff
+ℹ [@deepseek-ai/dsh-client-ui-conversation/client] Hint: consider adding deps.onlyBundle option to avoid unintended bundling of dependencies, or set deps.onlyBundle: false to disable this hint.
+See more at https://tsdown.dev/options/dependencies#deps-onlybundle
+Detected dependencies in bundle:
+- lexical
+- @lexical/selection
+- @lexical/utils
+- @lexical/extension
+- @lexical/html
+- @lexical/clipboard
+- @lexical/plain-text
+- @lexical/history
+- clsx
+- @lexical/text
+ℹ [@deepseek-ai/dsh-client-ui-sidebar-documentpreview/client] [CJS] lib\client.js      7.01 MB
+ℹ [@deepseek-ai/dsh-client-ui-sidebar-documentpreview/client] [CJS] lib\client.js.map  1.83 MB
+ℹ [@deepseek-ai/dsh-client-ui-sidebar-documentpreview/client] [CJS] 2 files, total: 8.84 MB
+[PLUGIN_TIMINGS] Your build spent significant time in plugins. Here is a breakdown:
+  - dsh-tsc-sourcemap (30%)
+  - dsh-css-modules-inline (14%)
+  - dsh-pdf-worker-source (13%)
+  - tsdown:deps (13%)
+  - dsh-css-text-inline (12%)
+See https://rolldown.rs/options/checks#plugintimings for more details.
+
+✔ [@deepseek-ai/dsh-client-ui-sidebar-documentpreview/client] Build complete in 8142ms
+ℹ [@deepseek-ai/dsh-client-ui-conversation/client] [CJS] lib\client.js      678.20 kB │ gzip: 169.31 kB
+ℹ [@deepseek-ai/dsh-client-ui-conversation/client] [CJS] lib\client.js.map    1.26 MB
+ℹ [@deepseek-ai/dsh-client-ui-conversation/client] [CJS] 2 files, total: 1.93 MB
+[PLUGIN_TIMINGS] Your build spent significant time in plugins. Here is a breakdown:
+  - dsh-tsc-sourcemap (27%)
+  - tsdown:deps (21%)
+  - dsh-client-bundle-purity (19%)
+  - dsh-css-modules-inline (12%)
+See https://rolldown.rs/options/checks#plugintimings for more details.
+
+✔ [@deepseek-ai/dsh-client-ui-conversation/client] Build complete in 8158ms

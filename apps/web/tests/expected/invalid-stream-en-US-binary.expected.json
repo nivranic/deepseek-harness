@@ -1,0 +1,12 @@
+{
+  "locale": "en-US",
+  "kind": "binary",
+  "label": "Host data unavailable",
+  "action": "Host data is invalid or unavailable. Automatic retries are paused; check Host, then reconnect",
+  "automaticReconnects": 0,
+  "manualReconnects": 1,
+  "replacementSockets": 1,
+  "draftPreserved": true,
+  "prompts": 0,
+  "browserClockAdvanceMs": 60000
+}

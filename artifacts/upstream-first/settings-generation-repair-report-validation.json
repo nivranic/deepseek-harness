@@ -1,0 +1,64 @@
+{
+  "status": "PASS",
+  "scope": "Report bindings and audit for Immediate Settings generation withdrawal, Host-bound permission saves and explicit Settings test fixtures; full Upstream-First objective remains in progress",
+  "gate0": {
+    "validation": "PASS",
+    "gate0": "PASS",
+    "paths": 1938,
+    "components": 129
+  },
+  "sourceRecord": {
+    "path": "artifacts/upstream-first/settings-generation-repair-source.json",
+    "sha256": "abf72b68c97ae76b9d9a0797afcef963d93cccd2c04513bb0c80afbc5edba6c3"
+  },
+  "generator": {
+    "path": "artifacts/upstream-first/write-reports.mjs",
+    "sha256": "894172127a9c4483e559832051eae5b753999de56589f07dc4039da80355787f"
+  },
+  "binding": {
+    "path": "artifacts/upstream-first/settings-generation-repair-binding.json",
+    "sha256": "b117ca96bd0e1846fba3c3a146505c0649cc4f8b8615d2940f9c9b257136eda9"
+  },
+  "helpers": [
+    {
+      "path": ".artifacts/advance-settings-generation-repair-reports.mjs",
+      "sha256": "98a9ee92de4c1aa42612f96c9194cc86f3c8e9fce416ab16506fe09aeb7bb65d"
+    },
+    {
+      "path": ".artifacts/capture-settings-generation-repair-validation.mjs",
+      "sha256": "a4ffd8eb7e2ab5696feec3250d92cdaddc873d1ea400e91440c81e0d6deb3d10"
+    }
+  ],
+  "reports": [
+    {
+      "path": "IMPLEMENTATION_STATUS.md",
+      "sha256": "3b8e197387255aa138a155f9609a86cde37b926382ee0e191c57b307ac4514d3"
+    },
+    {
+      "path": "artifacts/upstream-first/evidence.json",
+      "sha256": "9de641e3f288c0591141387d88facdb66e21616627f9215a928d79351330a2aa"
+    }
+  ],
+  "checks": [
+    {
+      "path": ".artifacts/settings-generation-repair-binding.log",
+      "sha256": "4f2ca8106444cddc2e3d1177af720c9df95c8dfad8695192737735a21d49ce9c"
+    },
+    {
+      "path": ".artifacts/settings-generation-repair-audit-tests.log",
+      "sha256": "fc3588be015cc44c020494b755c0dc37a2c4f319878be38d367ca731579ed82b"
+    },
+    {
+      "path": ".artifacts/settings-generation-repair-gate0.log",
+      "sha256": "4b5af3121a7e7caff0e1b6288bdaa7cfef9988842ae06bf02dc0a74852426043"
+    },
+    {
+      "path": ".artifacts/settings-generation-repair-report-diff-check.log",
+      "sha256": "e3b0c44298fc1c149afbf4c8996fb92427ae41e4649b934ca495991b7852b855"
+    },
+    {
+      "path": ".artifacts/settings-generation-repair-report-generation.log",
+      "sha256": "5867d1d51cd43a59428de2e7fffa15847d7153b11f3b61ecf812224ee2dd2099"
+    }
+  ]
+}

@@ -1,0 +1,66 @@
+{
+  "status": "PASS",
+  "scope": "Report bindings and audit for the android follow foreground increment: the section 25 persisted follow window gains its backgrounded carrier loss with foreground recovery — the new lane apps/web/tests/android-follow-window-foreground.e2e.ts (on the outage skeleton plus lifecycle driving) pairs a device against a real Host, opens a seeded Session, fills an unsent prompt draft, loads one older history page (first follow request with no cursor), appends exactly three records and lets the device display them (moving the persisted cut forward to cursor + 3), backgrounds the application via systemHome and polls the backgrounded state (CREATED, no window focus, a foreign window package owning the window), destroys the paired device's stream carrier Host-side while backgrounded via the section 29 deterministic primitive gateway.terminateDeviceConnections({ deviceId }) — the follow loop is lifecycle-agnostic (viewModelScope, no foreground hooks, 1s retry), so the backgrounded process itself re-opens follow carrying the durable cursor including the pre-background appends (fromSeq == cursor + 3) — appends three more records while still backgrounded which the re-attached background follower consumes (the cursor advances without the UI), returns through driver.bringToFront() (a plain launcher am start on the exported singleTask Activity with no intent routing), settles the foreground state through a merged three-condition poll (RESUMED and focused and the application package owning the window — lifecycle and focus granting race in flight), asserts the whole window first..cursor + 6 contiguous through the three-step bounded retry ladder with attempts 2, keeps the unsent draft, the single device grant and zero business mutations, and lands the screenshot as .artifacts/screenshots/android-follow-window/foreground.png against the six-line golden; the driver test-infrastructure change rides the generation (bringToFront plus the per-request budget raised from 40 to 90 seconds — the whole-window scroll at the Host's ~192-record bound measured ~60s server-side-complete on the loaded emulator), after which the lane went two consecutive green runs (run-8 and run-9), with the honest diagnostic record preserved (the run-1 foreground-return focus-grant race fixed by the merged poll, the run-3/6 existing timeout class root-fixed by the 90-second budget, the run-7 turns falsification — the window bound swallowed the whole 20-turn fixture — the two Mimosa hook false positives on bare in-lane adb writes rerouted through the driver's bringToFront() pattern, and the emulator's one natural process exit with exit 0; narrated in .artifacts/android-follow-foreground-iteration-notes.log); the same-round gradle acceptance round (:app:assembleDebug + :app:assembleDebugAndroidTest + :core:test, scanner env with -PdshNativeAcceptance, BUILD SUCCESSFUL) executed exactly one task (:app:verifyScannerResources) with every build task UP-TO-DATE because no source changed this generation — the acceptance APK bytes verified byte-identical to the installed state, the prepare-side unresolved scan derived an empty replaced-build-output allowlist and the generator gained no new replaced set, and the XML reports still aggregate 77 suites / 477 tests with zero failures/errors/skips; the serial audit double round went 43 files / 618 tests green on both first passes with no -r1 log, typecheck and lint both clean (TYPECHECK_EXIT=0, LINT_EXIT=0), doc-quick, doc-sync and gate0 pass, and traceability section 25 rewrites the boundary sentence and adds the foreground lane sentence with four new candidate evidence paths (32 total, including the driver change); OS background-kill behaviors, FCM delivery, physical devices, deep links and share routing stay open; full Upstream-First objective remains in progress",
+  "gate0": {
+    "validation": "PASS",
+    "gate0": "PASS",
+    "paths": 1938,
+    "components": 129,
+    "specificationCoverage": {
+      "status": "PASS",
+      "numberedSections": 81,
+      "nonEmptySourceLines": 1983,
+      "acceptanceProven": false
+    }
+  },
+  "sourceRecord": {
+    "path": "artifacts/upstream-first/android-follow-foreground-source.json",
+    "sha256": "dfbeb2a55a3767131ec20860c08938c9841fc3b22c1a6aa79a79436ed8abf831"
+  },
+  "generator": {
+    "path": "artifacts/upstream-first/write-reports.mjs",
+    "sha256": "7d4394aec9ed9264cb1a537ed33bb780f94873bfbbf0994879dc723c33820356"
+  },
+  "binding": {
+    "path": "artifacts/upstream-first/android-follow-foreground-binding.json",
+    "sha256": "0655a75aad0481e0c51d3a0cf396f1d47a1d273e17008a565e45df95f5f9deec"
+  },
+  "helpers": [
+    {
+      "path": ".artifacts/advance-android-follow-foreground-reports.mjs",
+      "sha256": "dda9435d05e1a2fcb48aab5ad39d09c2f6b6a8e88828ea693d1706b87ddb9265"
+    },
+    {
+      "path": ".artifacts/capture-android-follow-foreground-validation.mjs",
+      "sha256": "6801c9295a7f1cb95770ec170a984d20f3473eb8d0d293f5e2b524b30b179d9c"
+    }
+  ],
+  "reports": [
+    {
+      "path": "IMPLEMENTATION_STATUS.md",
+      "sha256": "07c1ae8660573e8d244834886cb236650f50ea795c74fcca250e2640bf0fd966"
+    },
+    {
+      "path": "artifacts/upstream-first/evidence.json",
+      "sha256": "709909adb85fd0fad7714266ef7868037581da3789d6d62172bb2cb6b39bb557"
+    }
+  ],
+  "checks": [
+    {
+      "path": ".artifacts/android-follow-foreground-binding.log",
+      "sha256": "72c7f8426fcb26b8bff820b3ae81c060d00a3d0b8c6734ede0d1a728f9193463"
+    },
+    {
+      "path": ".artifacts/android-follow-foreground-audit-final.log",
+      "sha256": "ff692f0917eff4856a947b76570b95ee07d8e8db038e599a17624549768ee51b"
+    },
+    {
+      "path": ".artifacts/android-follow-foreground-gate0-final.log",
+      "sha256": "505d74ef938f5d34d85490d37e0176ba804d93272fcf465ce2544a02c56b3f90"
+    },
+    {
+      "path": ".artifacts/android-follow-foreground-report-generation.log",
+      "sha256": "fe010532f71a6341467ae5719b29ac19470895de1d481156335b8f70a3273ed5"
+    }
+  ]
+}

@@ -1,0 +1,70 @@
+{
+  "status": "PASS",
+  "scope": "Report bindings and audit for the Browser Host origin; the remaining specification sections stay open; full Upstream-First objective remains in progress",
+  "gate0": {
+    "validation": "PASS",
+    "gate0": "PASS",
+    "paths": 1938,
+    "components": 129,
+    "specificationCoverage": {
+      "status": "PASS",
+      "numberedSections": 81,
+      "nonEmptySourceLines": 1983,
+      "acceptanceProven": false
+    }
+  },
+  "sourceRecord": {
+    "path": "artifacts/upstream-first/browser-host-origin-source.json",
+    "sha256": "8dcf68d891dc37337e634085f2c551da5292bc79f0baf93d1d7f1321dc36fa1f"
+  },
+  "generator": {
+    "path": "artifacts/upstream-first/write-reports.mjs",
+    "sha256": "a6d64f7cdcc0975c634802368825d426501fab10a8e186b40cf1358a917149c4"
+  },
+  "binding": {
+    "path": "artifacts/upstream-first/browser-host-origin-binding.json",
+    "sha256": "32220d3bd6ac4d7d8caab3b5fff8b67a5607a40c459efe7dfa37ca0bf01b9d3e"
+  },
+  "helpers": [
+    {
+      "path": ".artifacts/advance-browser-host-origin-reports.mjs",
+      "sha256": "0118684619516532dd5b289b7acdc65535cfbcee453d81770a4d9cc29af339c4"
+    },
+    {
+      "path": ".artifacts/capture-browser-host-origin-validation.mjs",
+      "sha256": "9a19d916041317b7dbc8680ad00fcf52b2aeda0dc682e9d4d389935307277c20"
+    }
+  ],
+  "reports": [
+    {
+      "path": "IMPLEMENTATION_STATUS.md",
+      "sha256": "c85d17b8df70fd949b369e71b22726d0f7a773281d0fc0bce150231f4758c11d"
+    },
+    {
+      "path": "artifacts/upstream-first/evidence.json",
+      "sha256": "3390461b1b6ce14e01e6981d1c0abf5f40b82f359edf2147a4e67f0096e676b1"
+    }
+  ],
+  "checks": [
+    {
+      "path": ".artifacts/browser-host-origin-binding.log",
+      "sha256": "5d775811b864d758547506a4de337ade34e5a7e9e7f3e015fec16d6654bf11af"
+    },
+    {
+      "path": ".artifacts/browser-host-origin-audit-tests.log",
+      "sha256": "06ed4074f7491604f71c956b0050c3d2091074890b83580152a6c1d0556fefd7"
+    },
+    {
+      "path": ".artifacts/browser-host-origin-gate0.log",
+      "sha256": "5427f71ff5b67b500b327d785dcaf84a7af2c6edd24b1833c4c7d83ad2cf37c8"
+    },
+    {
+      "path": ".artifacts/browser-host-origin-report-diff-check.log",
+      "sha256": "e3b0c44298fc1c149afbf4c8996fb92427ae41e4649b934ca495991b7852b855"
+    },
+    {
+      "path": ".artifacts/browser-host-origin-report-generation.log",
+      "sha256": "5867d1d51cd43a59428de2e7fffa15847d7153b11f3b61ecf812224ee2dd2099"
+    }
+  ]
+}

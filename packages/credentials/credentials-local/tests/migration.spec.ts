@@ -91,6 +91,21 @@ describe('flat-layout boot migration', () => {
     expect(await ctx.credentials.resolve(credentialRef('DSH_CRED_TEST'))).toEqual({ value: 'stored', source: 'file' })
   })
 
+  it('retains the flat original as an owner-only old generation beside the migrated document', async () => {
+    const dir = await tempDir()
+    const path = join(dir, '.credentials.yaml')
+    await writeCredentials(path, FLAT)
+    await boot({ path, watch: false })
+    const backup = join(dir, '.credentials.yaml.migration-v0.bak')
+    expect(await readFile(backup, 'utf8')).toBe(FLAT)
+    if (process.platform !== 'win32') expect((await stat(backup)).mode & 0o777).toBe(0o600)
+    expect(await readFile(path, 'utf8')).toBe(MIGRATED)
+    // A later boot of the already-migrated document leaves the retained
+    // generation exactly where the migration left it.
+    await boot({ path, watch: false })
+    expect(await readFile(backup, 'utf8')).toBe(FLAT)
+  })
+
   it('yields to a concurrent migrator under the writer lock', async () => {
     const dir = await tempDir()
     const path = join(dir, '.credentials.yaml')

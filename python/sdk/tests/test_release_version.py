@@ -38,6 +38,33 @@ def test_wheel_verification_uses_distribution_metadata_not_nested_libraries(tmp_
     build_python_release.verify_wheel(wheel, "sdk", "1.2.3", None)
 
 
+def test_runtime_wheel_compression_preserves_payload_and_executable_metadata(tmp_path: Path) -> None:
+    wheel = tmp_path / "runtime.whl"
+    executable = zipfile.ZipInfo("runtime/dsh", date_time=(2026, 1, 1, 0, 0, 0))
+    executable.external_attr = 0o100755 << 16
+    executable.comment = b"executable"
+    payload = b"runtime payload\n" * 10000
+    with zipfile.ZipFile(wheel, "w") as archive:
+        archive.comment = b"runtime wheel"
+        archive.writestr(executable, payload)
+        archive.writestr("runtime.dist-info/RECORD", b"unchanged hashes\n")
+    before = wheel.stat().st_size
+
+    build_python_release.compress_runtime_wheel(wheel)
+
+    assert wheel.stat().st_size < before
+    with zipfile.ZipFile(wheel) as archive:
+        assert archive.comment == b"runtime wheel"
+        assert archive.namelist() == ["runtime/dsh", "runtime.dist-info/RECORD"]
+        assert archive.read("runtime/dsh") == payload
+        assert archive.read("runtime.dist-info/RECORD") == b"unchanged hashes\n"
+        entry = archive.getinfo("runtime/dsh")
+        assert entry.external_attr == executable.external_attr
+        assert entry.date_time == executable.date_time
+        assert entry.comment == executable.comment
+        assert entry.compress_type == zipfile.ZIP_DEFLATED
+
+
 def test_release_tag_must_match_repository_version() -> None:
     build_python_release.validate_release_tag("python-v1.2.3", "1.2.3")
 

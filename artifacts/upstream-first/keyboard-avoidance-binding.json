@@ -1,0 +1,16 @@
+{
+  "status": "PASS",
+  "controls": 3,
+  "sourceRecord": {
+    "path": "artifacts/upstream-first/keyboard-avoidance-source.json",
+    "sha256": "4df77a0ba6c6741391cd8afd18c65d478be91391b01ca476a5b3d045c97c2772"
+  },
+  "generator": {
+    "path": "artifacts/upstream-first/write-reports.mjs",
+    "sha256": "6edee7bba3b1b381c774099ce5f9b2a35c0bc59ec1bce2eebf247fc57570ae54"
+  },
+  "helper": {
+    "path": ".artifacts/check-keyboard-avoidance-binding.mjs",
+    "sha256": "0e8de618d24b216d83794d49e8208e556b1b54a4581c8b9a36ccd34245c689d0"
+  }
+}

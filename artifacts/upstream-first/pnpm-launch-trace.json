@@ -1,0 +1,20 @@
+{
+  "root": "C:\\Users\\11585\\AppData\\Local\\Temp\\dsh-pnpm-launch-trace-umt5lnel",
+  "cases": [
+    {
+      "name": "init",
+      "exitCode": 0,
+      "log": ".artifacts\\pnpm-launch-trace-init.log"
+    },
+    {
+      "name": "nested",
+      "exitCode": 4294963248,
+      "log": ".artifacts\\pnpm-launch-trace-nested.log"
+    },
+    {
+      "name": "direct",
+      "exitCode": 0,
+      "log": ".artifacts\\pnpm-launch-trace-direct.log"
+    }
+  ]
+}

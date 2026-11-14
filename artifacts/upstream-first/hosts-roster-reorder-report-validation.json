@@ -1,0 +1,66 @@
+{
+  "status": "PASS",
+  "scope": "Report bindings and audit for the hosts roster reorder increment: the manual arrangement deferred by the hosts-roster-rename generation (\"conflicts with the most-recent-first invariant\") lands client-only — SavedHost gains the optional client-chosen order (sortRows orders by order first with order ?? +Infinity, recency descending within and after the ordered block), SavedHostsStore.moveHost(hostId, direction) swaps adjacent rows and stamps an explicit order on every row so one move puts the whole roster into manual mode (boundary and unknown moves change nothing, notify nobody, return false), record() keeps order like customName, rename() carries it across its in-place rewrite and parseRow validates it as a finite number; ConnectionHandle.moveSavedHost mirrors renameSavedHost as a roster seam with no connection effect, and each row gains Move up / Move down actions (data-host-move-up/down, boundary-disabled, first/last from the map index) with zh/en moveUp/moveDown copy; the store suite covers 13 tests (adjacent swap with full stamping persisted across store lifetimes, boundary/unknown silence, the arrangement surviving refreshes/renames/unordered arrivals, parse admission), the component suite covers the boundary-disabled buttons, the injected-action swap and the published-roster re-render, the plugin suite proves face.move entering the persisted roster with order stamps [0,1], and the real-browser hosts-settings lane drives the reorder leg on the system Chrome (DOM order swap, boundary-disabled state, the dsh-saved-hosts.v1 \"order\":0/\"order\":1 stamps, the golden Reorder row) as this generation's only device-face round after three runs to green narrated in iteration-notes.log; the regenerated api-catalog mirrors moveSavedHost/moveHost/SavedHost.order, the README pair's limitation line is rewritten with the pairing re-recorded, traceability §28 closes the local-editing and manual-reorder remaining (node --test 6/6); the audit matrix stays at 6 files / 44 tests, typecheck and lint are both clean (TYPECHECK_EXIT=0, LINT_EXIT=0), doc-quick, doc-sync and gate0 pass; non-web roster columns stay open; full Upstream-First objective remains in progress",
+  "gate0": {
+    "validation": "PASS",
+    "gate0": "PASS",
+    "paths": 1938,
+    "components": 129,
+    "specificationCoverage": {
+      "status": "PASS",
+      "numberedSections": 81,
+      "nonEmptySourceLines": 1983,
+      "acceptanceProven": false
+    }
+  },
+  "sourceRecord": {
+    "path": "artifacts/upstream-first/hosts-roster-reorder-source.json",
+    "sha256": "323af8d4ffb735dc95ea641217c3b8aad6b07a06d050a748bb76a8007563fb40"
+  },
+  "generator": {
+    "path": "artifacts/upstream-first/write-reports.mjs",
+    "sha256": "2057c563773dd3bf85f8b926582f039c84e79e9081702be811b0eabe8d4c0e25"
+  },
+  "binding": {
+    "path": "artifacts/upstream-first/hosts-roster-reorder-binding.json",
+    "sha256": "35d551b7a541b7d13af77752486e2b73ee1d09bdbbe3613ed3d635c74d8289de"
+  },
+  "helpers": [
+    {
+      "path": ".artifacts/advance-hosts-roster-reorder-reports.mjs",
+      "sha256": "eabe0f47bb72c20dc3987dae165991bed3dd54c0000ddb86c16667ffc8faaee6"
+    },
+    {
+      "path": ".artifacts/capture-hosts-roster-reorder-validation.mjs",
+      "sha256": "c3d950107b73ec1cbec93a79bc1bd83588681ca9d1ff38b843391a143bcf6e49"
+    }
+  ],
+  "reports": [
+    {
+      "path": "IMPLEMENTATION_STATUS.md",
+      "sha256": "eba66f8c23d6aa2ba2607af80eccb1a6c336819c1e80cb3c92976d718ac956c9"
+    },
+    {
+      "path": "artifacts/upstream-first/evidence.json",
+      "sha256": "31038e84ec0ee02cad142e68f90ba0f38a08c079e206ece6aac5e5a768f1e132"
+    }
+  ],
+  "checks": [
+    {
+      "path": ".artifacts/hosts-roster-reorder-binding.log",
+      "sha256": "f47e5df8fb65d3c8b1e317aff32d06f29470d3dcc15e81de0ae2c583715df489"
+    },
+    {
+      "path": ".artifacts/hosts-roster-reorder-audit-final.log",
+      "sha256": "718983c01c3e4ba771e7e3c8899921049bf32418e9d8fc6a236edbac12d1ecc9"
+    },
+    {
+      "path": ".artifacts/hosts-roster-reorder-gate0-final.log",
+      "sha256": "505d74ef938f5d34d85490d37e0176ba804d93272fcf465ce2544a02c56b3f90"
+    },
+    {
+      "path": ".artifacts/hosts-roster-reorder-report-generation.log",
+      "sha256": "fe010532f71a6341467ae5719b29ac19470895de1d481156335b8f70a3273ed5"
+    }
+  ]
+}

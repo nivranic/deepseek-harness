@@ -14,6 +14,8 @@ import type {
 } from './types.ts'
 
 export { RemoteError, remoteErrorOf } from './remote-error.ts'
+export { remoteValidationIssues } from './validation-issues.ts'
+export { classifyRemoteFailure, classifyRemoteFailureCode, REMOTE_FAILURE_CLASSES, type RemoteFailureClass } from './failure-classes.ts'
 export { TYPERT_OWNED_VALUE, isTypertOwnedValue, typertOwnedValue } from './owned-value.ts'
 export type { TypertOwnedValue } from './owned-value.ts'
 export { isRemoteJsonValue, isRemoteUplinkItem } from './json-value.ts'
@@ -111,6 +113,34 @@ export type {
 export interface TypertGatewayBindingOptions {
   /** Wire namespace; defaults to the Cordis service key. */
   readonly namespace?: string
+  /** Versioned business capabilities whose required Remote methods this Service owns. */
+  readonly capabilities?: readonly TypertRemoteCapability[]
+}
+
+/**
+ * Grantable permission kinds from the section 21 device-role table columns.
+ * The two `*.respond` kinds are checked against pending interactions'
+ * requiredPermission; the others gate device-identified business requests.
+ */
+export type RemoteCapabilityPermission =
+  | 'view'
+  | 'prompt.send'
+  | 'question.respond'
+  | 'approval.respond'
+  | 'device.admin'
+
+/** One explicitly versioned business operation set advertised by its live Remote owner. */
+export interface TypertRemoteCapability {
+  /** Semantic capability id ending in `.v` and a positive integer, such as `session.follow.v1`. */
+  readonly id: string
+  /** Nonempty set of exported method names required by this capability in the binding's namespace. */
+  readonly methods: readonly string[]
+  /**
+   * Permission a device-identified request must hold to invoke this
+   * capability's methods. Absent capabilities are not device-admissible;
+   * anonymous callers are unaffected by this field.
+   */
+  readonly requiredPermission?: RemoteCapabilityPermission
 }
 
 /** Visible declaration that one Service participates in Typert Gateway export. */
@@ -118,6 +148,7 @@ export interface TypertGatewayBinding<Service extends object = object> {
   readonly service: Service
   readonly serviceKey: string
   readonly namespace: string
+  readonly capabilities?: readonly TypertRemoteCapability[]
 }
 
 /** Invocation mode recorded by a Remote method decorator. */
@@ -230,7 +261,7 @@ const REMOTE_METHOD_DESCRIPTOR = '@deepseek-ai/dsh-typert-protocol/remote-method
  * a Host composition to read it.
  * @param service - owning Service instance, normally `this`.
  * @param serviceKey - exact Cordis service key.
- * @param options - optional wire namespace.
+ * @param options - optional distinct wire namespace and versioned capability declarations.
  * @returns a frozen, inspectable binding with no compiler-injected metadata.
  */
 export function bindTypertRemote<Service extends object>(
@@ -241,9 +272,18 @@ export function bindTypertRemote<Service extends object>(
   validateName('service key', serviceKey)
   const namespace = options.namespace ?? serviceKey
   validateName('namespace', namespace)
+  for (const capability of options.capabilities ?? []) {
+    if (!/^[a-z][a-zA-Z0-9.-]*\.v[1-9]\d*$/u.test(capability.id) || capability.methods.length === 0) {
+      throw new TypeError(`invalid Remote capability declaration for ${JSON.stringify(serviceKey)}: ${JSON.stringify(capability.id)}`)
+    }
+    for (const method of capability.methods) validateName('capability method', method)
+  }
   const ctx: unknown = Reflect.get(service, 'ctx')
   if (Context.is(ctx)) provideInvocationAccessor(ctx)
-  return Object.freeze({ service, serviceKey, namespace })
+  return Object.freeze({
+    service, serviceKey, namespace,
+    ...(options.capabilities === undefined ? {} : { capabilities: options.capabilities }),
+  })
 }
 
 /** Cordis Service base that exposes its registered name through Typert Gateway. */

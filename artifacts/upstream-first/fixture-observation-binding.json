@@ -1,0 +1,25 @@
+{
+  "status": "PASS",
+  "cases": [
+    {
+      "path": "artifacts/upstream-first/fixture-observation-source.json",
+      "status": "PASS",
+      "rejected": "Fixture observation source record changed"
+    },
+    {
+      "path": "packages/credentials/credentials-local/tests/local.spec.ts",
+      "status": "PASS",
+      "rejected": "Fixture observation sourceFiles changed after validation"
+    },
+    {
+      "path": "artifacts/upstream-first/fixture-observation-concurrent.json",
+      "status": "PASS",
+      "rejected": "Fixture observation receipts changed after validation"
+    },
+    {
+      "path": ".artifacts/fixture-observation-concurrent-full.log",
+      "status": "PASS",
+      "rejected": "Fixture observation logs changed after validation"
+    }
+  ]
+}

@@ -1,0 +1,26 @@
+[
+  {
+    "stage": "absent",
+    "local": 1,
+    "content": 0,
+    "unavailable": true
+  },
+  {
+    "stage": "search-only",
+    "local": 1,
+    "content": 1,
+    "unavailable": false
+  },
+  {
+    "stage": "attachment-only",
+    "local": 1,
+    "content": 0,
+    "unavailable": true
+  },
+  {
+    "stage": "both",
+    "local": 1,
+    "content": 1,
+    "unavailable": false
+  }
+]

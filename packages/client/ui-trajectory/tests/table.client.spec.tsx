@@ -1419,6 +1419,7 @@ describe('TrajectoryTable', () => {
         text: 'bash · {"command":"pwd"}',
         inputDetail: '{"command":"pwd"}',
         callId: 'call-1',
+        callLocation: { turn: 1, step: 1 },
         timeSeconds: 0.1,
       }],
     }],
@@ -1442,6 +1443,7 @@ describe('TrajectoryTable', () => {
           text: 'run_code · {"code":"..."}',
           inputDetail: '{"code":"..."}',
           callId: 'root',
+          callLocation: { turn: 1, step: 1 },
           timeSeconds: 0.5,
         },
         {
@@ -1449,6 +1451,7 @@ describe('TrajectoryTable', () => {
           kind: 'subtool',
           text: 'bash · {"command":"ls"}',
           callId: 'nested-first',
+          callLocation: { turn: 1, step: 1 },
           timeSeconds: 0.1,
         },
         {
@@ -1456,6 +1459,7 @@ describe('TrajectoryTable', () => {
           kind: 'subtool',
           text: 'read · {"file":"a"}',
           callId: 'nested-target',
+          callLocation: { turn: 1, step: 1 },
           timeSeconds: 0.1,
         },
         {
@@ -1463,6 +1467,7 @@ describe('TrajectoryTable', () => {
           kind: 'tool',
           text: 'write · {"file":"b"}',
           callId: 'sibling',
+          callLocation: { turn: 1, step: 1 },
           timeSeconds: 0.2,
         },
       ],
@@ -1571,7 +1576,7 @@ describe('TrajectoryTable', () => {
       <NestedCallTable
         initialAssistants={[NESTED_ASSISTANT_ID]}
         initialTools={[NESTED_TOOL_ID]}
-        inspectCallId="nested-target"
+        inspectCallId={'[1,1,"nested-target"]'}
         onInspectApplied={onInspectApplied}
       />,
     )
@@ -1588,7 +1593,7 @@ describe('TrajectoryTable', () => {
       <TrajectoryTable
         turns={CALL_TURNS}
         {...FOLD_PROPS}
-        inspectCallId="call-1"
+        inspectCallId={'[1,1,"call-1"]'}
         onInspectApplied={onInspectApplied}
       />,
     )
@@ -1611,6 +1616,33 @@ describe('TrajectoryTable', () => {
 
     expect(screen.getByRole('row', { name: /TOOL/ }).getAttribute('aria-selected')).toBe('false')
     expect(onInspectApplied).not.toHaveBeenCalled()
+  })
+
+  it('inspects the requested Step when another Step reuses its call id', () => {
+    const turns: readonly TrajectoryTurnModel[] = [{
+      turn: 1,
+      groups: [1, 2].map(step => ({
+        title: `Step ${step}`,
+        cells: [{
+          index: step, kind: 'tool' as const, text: `write ${step}`, callId: 'reused',
+          callLocation: { turn: 1, step }, timeSeconds: 1,
+          outputDetail: step === 1 ? 'First write failed' : 'Second write succeeded',
+          isError: step === 1,
+        }],
+      })),
+    }]
+    const applied = vi.fn()
+    const view = render(<TrajectoryTable turns={turns} {...FOLD_PROPS}
+      inspectCallId={'[1,2,"reused"]'} onInspectApplied={applied} />)
+    const rows = screen.getAllByRole('row', { name: /TOOL/ })
+    expect(rows.map(row => row.getAttribute('aria-selected'))).toEqual(['false', 'true'])
+    expect(screen.getByRole('complementary', { name: 'Event details' }).textContent).toContain('Second write succeeded')
+    expect(applied).toHaveBeenCalledOnce()
+    view.rerender(<TrajectoryTable turns={turns} {...FOLD_PROPS}
+      inspectCallId={'[1,1,"reused"]'} onInspectApplied={applied} />)
+    expect(rows.map(row => row.getAttribute('aria-selected'))).toEqual(['true', 'false'])
+    expect(screen.getByRole('complementary', { name: 'Event details' }).textContent).toContain('First write failed')
+    expect(applied).toHaveBeenCalledTimes(2)
   })
 })
 

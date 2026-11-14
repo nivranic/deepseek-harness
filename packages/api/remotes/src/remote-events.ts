@@ -14,6 +14,7 @@ import type {} from '@deepseek-ai/dsh-plugin-manager/types'
 import type {} from '@deepseek-ai/dsh-plugin-market/types'
 import type {} from '@deepseek-ai/dsh-schedule/client'
 import type { TypertForwardableEventEntry } from '@deepseek-ai/dsh-typert-protocol'
+import type { RemoteInteractionPolicy } from '@deepseek-ai/dsh-api-gateway/protocol'
 import type {} from '@deepseek-ai/dsh-web/types'
 
 /**
@@ -26,7 +27,7 @@ import type {} from '@deepseek-ai/dsh-web/types'
  */
 export const API_REMOTE_FORWARDED_EVENTS = [
   { event: 'agent-preset/selected', mode: 'emit' },
-  { event: 'approval/request', mode: 'waterfall' },
+  { event: 'approval/request', mode: 'waterfall', interaction: { type: 'approval', requiredPermission: 'approval.respond' } },
   { event: 'api-session/activity', mode: 'emit', resources: { session: (sessionId): SessionId => sessionId } },
   { event: 'api-session/added', mode: 'emit', resources: { session: (summary): SessionId => summary.sessionId } },
   { event: 'api-session/error', mode: 'emit', resources: { session: (sessionId): SessionId => sessionId } },
@@ -54,6 +55,6 @@ export const API_REMOTE_FORWARDED_EVENTS = [
   { event: 'plugin-market/changed', mode: 'emit' },
   { event: 'settings/document-updated', mode: 'emit' },
   { event: 'schedule/changed', mode: 'emit' },
-  { event: 'user-questions/request', mode: 'waterfall' },
+  { event: 'user-questions/request', mode: 'waterfall', interaction: { type: 'question', requiredPermission: 'question.respond' } },
   { event: 'web/providers-changed', mode: 'emit' },
-] as const satisfies readonly TypertForwardableEventEntry[]
+] as const satisfies readonly (TypertForwardableEventEntry & { readonly interaction?: RemoteInteractionPolicy })[]

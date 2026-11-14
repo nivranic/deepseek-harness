@@ -1,0 +1,16 @@
+{
+  "status": "PASS",
+  "controls": 3,
+  "sourceRecord": {
+    "path": "artifacts/upstream-first/device-admission-lifecycle-source.json",
+    "sha256": "ea6ba57d2fc8471a93da4b124ddd472cd23d03683a49a6332b6e9eefccf3c7ca"
+  },
+  "generator": {
+    "path": "artifacts/upstream-first/write-reports.mjs",
+    "sha256": "5940dbcafb4cf12e0f4b5dac690e8cbf5849c53401a12b44f3cf8e1c849d0d8a"
+  },
+  "helper": {
+    "path": ".artifacts/check-device-admission-lifecycle-binding.mjs",
+    "sha256": "861587bc6c092f7df0fbc6386cf8e5c876fe00732467cde2a38aec65fd74163b"
+  }
+}

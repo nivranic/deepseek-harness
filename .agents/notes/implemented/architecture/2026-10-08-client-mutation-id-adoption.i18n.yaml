@@ -1,0 +1,22 @@
+# Bilingual-pair consistency record for 2026-10-08-client-mutation-id-adoption.md (docs/i18n/README.md): per heading
+# section, a hash of its English and Chinese blocks outside code blocks and generated regions.
+# After editing either side, bring the other along and re-record with:
+#   pnpm run verify-translation-pairing --write .agents/notes/implemented/architecture/2026-10-08-client-mutation-id-adoption.md
+/agent-note-fork-and-command-execute-adopt-clientmutationid-receipts:
+  en: 7762bbf5d30fe84d
+  zh: 0bdd1d3a0c4db03f
+/agent-note-fork-and-command-execute-adopt-clientmutationid-receipts/problem:
+  en: 1ed3313f627a6358
+  zh: b23cf12e2b6fdd36
+/agent-note-fork-and-command-execute-adopt-clientmutationid-receipts/decision:
+  en: d4bfcbeb0bfb8387
+  zh: c126463f74b13917
+/agent-note-fork-and-command-execute-adopt-clientmutationid-receipts/alternatives-considered:
+  en: 1855bcf17c71be97
+  zh: e7214138ae9260f5
+/agent-note-fork-and-command-execute-adopt-clientmutationid-receipts/consequences:
+  en: c93f486cdf9e301e
+  zh: f8956fcbf1e7a4f5
+/agent-note-fork-and-command-execute-adopt-clientmutationid-receipts/open-follow-ups:
+  en: 42ef6df42e1cf106
+  zh: 63f255bf655c9273

@@ -1,0 +1,81 @@
+{
+  "schemaVersion": 1,
+  "status": "PASS",
+  "scope": "Windows official development Desktop standard Session; actual confined PowerShell and process-tree cancellation, scripted model only",
+  "host": {
+    "pid": 42840,
+    "parentPid": 42460,
+    "node": "22.22.1",
+    "electron": null
+  },
+  "shell": {
+    "pid": 42460,
+    "electron": "44.0.0",
+    "packaged": false
+  },
+  "context": {
+    "sessionCwdMatches": true,
+    "assembledPromptMatchesModelRequest": true,
+    "desktopOrientationPresent": false
+  },
+  "cases": [
+    {
+      "id": "pwsh-cwd-stdio-environment-write",
+      "status": "PASS",
+      "environment": {
+        "cwd": "E:\\Mix\\project\\deepseek-harness\\.worktrees\\upstream-first\\.artifacts\\desktop-execution2-home\\execution-workspace-zRZibU",
+        "shellPid": 41964,
+        "tokenPresent": false,
+        "marker": "fixture-public",
+        "dshShell": "1",
+        "sessionId": "session-f6b69ffe-2f67-418b-ae12-3490175fc572",
+        "nodeOptionsPresent": false
+      }
+    },
+    {
+      "id": "nonzero-exit",
+      "status": "PASS",
+      "exitCode": 37
+    },
+    {
+      "id": "user-cancel-process-tree",
+      "status": "PASS",
+      "processObservation": {
+        "observedPids": [
+          44864,
+          33084,
+          43632
+        ],
+        "live": [],
+        "allExited": true
+      },
+      "turnEnd": {
+        "turn": 3,
+        "reason": {
+          "kind": "aborted",
+          "reason": {
+            "kind": "user"
+          }
+        }
+      }
+    },
+    {
+      "id": "confined-grandchild-pipe",
+      "status": "PASS",
+      "outcome": "EXPECTED_DENIAL",
+      "limitation": "Upstream documents libuv named-pipe stdio denial inside restricted descendants."
+    }
+  ],
+  "realModelTested": false,
+  "macosTested": false,
+  "bashTested": false,
+  "installedApplicationTested": false,
+  "osLoginRegistrationWritten": false,
+  "helperScope": "Final reproduction recipes; manual probes preceded the final helper revisions. Product source remained unchanged throughout.",
+  "shutdown": {
+    "launcherExitCode": 0,
+    "hostExited": true,
+    "shellExited": true,
+    "forced": false
+  }
+}

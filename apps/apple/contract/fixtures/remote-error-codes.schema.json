@@ -1,0 +1,1089 @@
+{
+  "$schema": "https://json-schema.org/draft/2020-12/schema",
+  "$id": "urn:deepseek-harness:remote-error-codes",
+  "title": "DeepSeek Harness known Remote error codes",
+  "description": "Known codes for this package build. An unknown code remains opaque diagnostic data; preserve its original code, message and details without inferring recovery or permissions. This schema recognizes codes only and does not validate error envelopes or details.",
+  "type": "string",
+  "oneOf": [
+    {
+      "const": "agent-preset/conflict",
+      "description": "The requested preset conflicts with the existing Session's preset.",
+      "x-source": "packages/api/session-controller/src/types.ts",
+      "x-typescript-details": "{\n      readonly sessionId: SessionId\n      readonly requestedPreset: string\n    }"
+    },
+    {
+      "const": "agent-preset/invalid",
+      "description": "The id is unusable, already taken, or its composition cannot be installed.",
+      "x-source": "packages/preset/agent-preset-registry/src/types.ts",
+      "x-typescript-details": "{ readonly agentPreset: string; readonly reason: string }"
+    },
+    {
+      "const": "agent-preset/locked",
+      "description": "The session's conversation has started, so its composition is fixed.",
+      "x-source": "packages/preset/agent-preset-registry/src/types.ts",
+      "x-typescript-details": "{ readonly sessionId: SessionId; readonly agentPreset: string }"
+    },
+    {
+      "const": "agent-preset/not-found",
+      "description": "No declaration supplies the requested identity.",
+      "x-source": "packages/preset/agent-preset-registry/src/types.ts",
+      "x-typescript-details": "{ readonly agentPreset: string; readonly available: readonly string[] }"
+    },
+    {
+      "const": "cotTranslation/failed",
+      "description": "Provider or input failure, without original text or response details.",
+      "x-source": "packages/experimental/client-ui-cot-translation/src/types.ts",
+      "x-typescript-details": "Record<string, never>"
+    },
+    {
+      "const": "credential/rejected",
+      "description": "The provider refused a valid credential write, for example because the stored document no longer parses. The details name only the reference, never the value.",
+      "x-source": "packages/api/settings-controller/src/types.ts",
+      "x-typescript-details": "{ readonly ref: string }"
+    },
+    {
+      "const": "deepseekChatImport/owner-only",
+      "description": "Only the owner may import; every other principal is refused.",
+      "x-source": "packages/experimental/deepseek-chat-import/src/types.ts",
+      "x-typescript-details": "{}"
+    },
+    {
+      "const": "device/admission-capacity",
+      "description": "The bounded replay ledger cannot admit another nonce until existing receipts expire.",
+      "x-source": "packages/api/device-trust/src/types.ts",
+      "x-typescript-details": "{\n      readonly deviceId: string\n      readonly limit: number\n      readonly retryAt: number\n    }"
+    },
+    {
+      "const": "device/admission-expired",
+      "description": "The signed admission timestamp fell outside the acceptance window.",
+      "x-source": "packages/api/device-trust/src/types.ts",
+      "x-typescript-details": "{\n      readonly deviceId: string\n      readonly timestamp: number\n      readonly admissionWindowMs: number\n    }"
+    },
+    {
+      "const": "device/already-revoked",
+      "description": "The addressed device grant was already revoked.",
+      "x-source": "packages/api/device-trust/src/types.ts",
+      "x-typescript-details": "{ readonly deviceId: string; readonly revokedAt: number }"
+    },
+    {
+      "const": "device/key-invalid",
+      "description": "The presented public key is not a base64 Ed25519 SPKI DER.",
+      "x-source": "packages/api/device-trust/src/types.ts",
+      "x-typescript-details": "{ readonly reason: string }"
+    },
+    {
+      "const": "device/not-found",
+      "description": "The addressed device grant does not exist.",
+      "x-source": "packages/api/device-trust/src/types.ts",
+      "x-typescript-details": "{ readonly deviceId: string }"
+    },
+    {
+      "const": "device/pairing-expired",
+      "description": "The presented code expired before redemption.",
+      "x-source": "packages/api/device-trust/src/types.ts",
+      "x-typescript-details": "{ readonly code: string; readonly expiresAt: number }"
+    },
+    {
+      "const": "device/pairing-invalid",
+      "description": "The presented code is unknown or was already redeemed.",
+      "x-source": "packages/api/device-trust/src/types.ts",
+      "x-typescript-details": "{ readonly code: string }"
+    },
+    {
+      "const": "device/replay-detected",
+      "description": "The timestamp is below the durable replay floor, or the nonce was already consumed.",
+      "x-source": "packages/api/device-trust/src/types.ts",
+      "x-typescript-details": "{\n      readonly deviceId: string\n      readonly reason: 'timestamp-regressed' | 'nonce-reuse'\n    }"
+    },
+    {
+      "const": "directory-picker/create-failed",
+      "description": "The parent is not fully qualified, the name is not one segment, or creation failed.",
+      "x-source": "packages/api/workspace-controller/src/types.ts",
+      "x-typescript-details": "{ readonly path: string }"
+    },
+    {
+      "const": "directory-picker/exists",
+      "description": "A child of that name is already there.",
+      "x-source": "packages/api/workspace-controller/src/types.ts",
+      "x-typescript-details": "{ readonly path: string }"
+    },
+    {
+      "const": "directory-picker/unavailable",
+      "description": "The verb needs an interaction the composed backend does not serve.",
+      "x-source": "packages/api/workspace-controller/src/types.ts",
+      "x-typescript-details": "{ readonly capability: string }"
+    },
+    {
+      "const": "directory-picker/unreadable",
+      "description": "The target is not fully qualified, or the backend cannot list it.",
+      "x-source": "packages/api/workspace-controller/src/types.ts",
+      "x-typescript-details": "{ readonly path: string }"
+    },
+    {
+      "const": "document-render/failed",
+      "description": "The source was authorized, but its conversion failed.",
+      "x-source": "packages/document/office-kit/src/types.ts",
+      "x-typescript-details": "{ readonly reason: OfficeKitErrorCode }"
+    },
+    {
+      "const": "forgePanel/action-failed",
+      "description": "The code host refused the change or could not be reached; the message gives the host's reason.",
+      "x-source": "packages/experimental/client-ui-forge/src/types.ts",
+      "x-typescript-details": "Record<string, never>"
+    },
+    {
+      "const": "forgePanel/action-unknown",
+      "description": "The code host did not confirm whether it applied the change, which must be checked there before trying again.",
+      "x-source": "packages/experimental/client-ui-forge/src/types.ts",
+      "x-typescript-details": "Record<string, never>"
+    },
+    {
+      "const": "forgePanel/base-missing",
+      "description": "The base branch chosen for the `branch` scope does not exist, as after the branch was deleted.",
+      "x-source": "packages/experimental/client-ui-forge/src/types.ts",
+      "x-typescript-details": "Record<string, never>"
+    },
+    {
+      "const": "forgePanel/checks-failed",
+      "description": "Complete checks could not be loaded; the polling preview remains available.",
+      "x-source": "packages/experimental/client-ui-forge/src/types.ts",
+      "x-typescript-details": "Record<string, never>"
+    },
+    {
+      "const": "forgePanel/commits-missing",
+      "description": "A chosen commit is no longer among the listed commits of the branch or change request, or the commits are out of order.",
+      "x-source": "packages/experimental/client-ui-forge/src/types.ts",
+      "x-typescript-details": "Record<string, never>"
+    },
+    {
+      "const": "forgePanel/commits-not-linear",
+      "description": "A chosen commit after the first lacks the commit listed before it as its first parent, so two ends cannot name the run.",
+      "x-source": "packages/experimental/client-ui-forge/src/types.ts",
+      "x-typescript-details": "Record<string, never>"
+    },
+    {
+      "const": "forgePanel/diff-failed",
+      "description": "The code host did not provide the change request's diff or file, or its status has not been read yet; the message says why.",
+      "x-source": "packages/experimental/client-ui-forge/src/types.ts",
+      "x-typescript-details": "Record<string, never>"
+    },
+    {
+      "const": "forgePanel/diff-too-large",
+      "description": "The patch, the untracked file list, or the file exceeds `maxDiffBytes`, or the code host or its provider refuses a change request's diff or file over a size limit.",
+      "x-source": "packages/experimental/client-ui-forge/src/types.ts",
+      "x-typescript-details": "Record<string, never>"
+    },
+    {
+      "const": "forgePanel/filter-config-failed",
+      "description": "Filter configuration could not be read completely; no comparison ran. Correct Git settings or the output limit before retrying.",
+      "x-source": "packages/experimental/client-ui-forge/src/types.ts",
+      "x-typescript-details": "Record<string, never>"
+    },
+    {
+      "const": "forgePanel/invalid-branch",
+      "description": "The requested base branch name is empty.",
+      "x-source": "packages/experimental/client-ui-forge/src/types.ts",
+      "x-typescript-details": "Record<string, never>"
+    },
+    {
+      "const": "forgePanel/lens-failed",
+      "description": "The lens failed, ran past `lensTimeoutMs`, read more than `maxLensReadBytes`, or answered over `maxCachedLensBytes`; the message says which.",
+      "x-source": "packages/experimental/client-ui-forge/src/types.ts",
+      "x-typescript-details": "Record<string, never>"
+    },
+    {
+      "const": "forgePanel/lens-missing",
+      "description": "No lens with the requested identity is registered, as after its plugin unloaded.",
+      "x-source": "packages/experimental/client-ui-forge/src/types.ts",
+      "x-typescript-details": "Record<string, never>"
+    },
+    {
+      "const": "forgePanel/lens-stale",
+      "description": "The files the view shows are no longer the files the panel reads, so the view reads them again before asking.",
+      "x-source": "packages/experimental/client-ui-forge/src/types.ts",
+      "x-typescript-details": "Record<string, never>"
+    },
+    {
+      "const": "forgePanel/no-fork-point",
+      "description": "HEAD shares no history with the base branch chosen for the `branch` scope, or with none chosen, no remote names a default branch that HEAD shares history with and the checkout is not a worktree the Session created.",
+      "x-source": "packages/experimental/client-ui-forge/src/types.ts",
+      "x-typescript-details": "Record<string, never>"
+    },
+    {
+      "const": "forgePanel/no-worktree",
+      "description": "The Session has no created worktree to restore or leave.",
+      "x-source": "packages/experimental/client-ui-forge/src/types.ts",
+      "x-typescript-details": "Record<string, never>"
+    },
+    {
+      "const": "forgePanel/not-a-checkout",
+      "description": "The Session's directory is not inside a Git checkout, so it has no local changes.",
+      "x-source": "packages/experimental/client-ui-forge/src/types.ts",
+      "x-typescript-details": "Record<string, never>"
+    },
+    {
+      "const": "forgePanel/not-bound",
+      "description": "The URL is not a visible binding of the Session that a provider serves, so the panel does not act on it.",
+      "x-source": "packages/experimental/client-ui-forge/src/types.ts",
+      "x-typescript-details": "Record<string, never>"
+    },
+    {
+      "const": "forgePanel/not-waiting",
+      "description": "No message of the Session waits after a failed or stopped attempt to create its worktree.",
+      "x-source": "packages/experimental/client-ui-forge/src/types.ts",
+      "x-typescript-details": "Record<string, never>"
+    },
+    {
+      "const": "forgePanel/restore-failed",
+      "description": "The removed worktree could not be checked out again; the message gives the reason.",
+      "x-source": "packages/experimental/client-ui-forge/src/types.ts",
+      "x-typescript-details": "Record<string, never>"
+    },
+    {
+      "const": "forgePanel/review-failed",
+      "description": "The code host did not provide the change request's review threads, or its status has not been read yet; the message says why.",
+      "x-source": "packages/experimental/client-ui-forge/src/types.ts",
+      "x-typescript-details": "Record<string, never>"
+    },
+    {
+      "const": "forgePanel/review-unsupported",
+      "description": "The code host's provider cannot read review threads, so the changes view shows none.",
+      "x-source": "packages/experimental/client-ui-forge/src/types.ts",
+      "x-typescript-details": "Record<string, never>"
+    },
+    {
+      "const": "forgePanel/reviewers-failed",
+      "description": "The code host did not list the accounts a review can be requested from; the message says why.",
+      "x-source": "packages/experimental/client-ui-forge/src/types.ts",
+      "x-typescript-details": "Record<string, never>"
+    },
+    {
+      "const": "forgePanel/session-busy",
+      "description": "The Session's Agent is not loaded or has other work, so its checkout cannot change now.",
+      "x-source": "packages/experimental/client-ui-forge/src/types.ts",
+      "x-typescript-details": "Record<string, never>"
+    },
+    {
+      "const": "forgePanel/session-started",
+      "description": "A turn of the Session has started, or its worktree was created, so its worktree request can no longer change.",
+      "x-source": "packages/experimental/client-ui-forge/src/types.ts",
+      "x-typescript-details": "Record<string, never>"
+    },
+    {
+      "const": "forgePanel/stale-head",
+      "description": "The change request's head is no longer the commit the request named: the head the user confirmed for a merge, the head displayed for complete checks, the head of the latest status for a diff, or the head of the displayed diff for review threads and viewed marks. A diff, review, or viewed mark read the host refuses polls the change request again at once, so a later status names the current head.",
+      "x-source": "packages/experimental/client-ui-forge/src/types.ts",
+      "x-typescript-details": "Record<string, never>"
+    },
+    {
+      "const": "forgePanel/unrecognized-url",
+      "description": "No registered provider serves the change request URL.",
+      "x-source": "packages/experimental/client-ui-forge/src/types.ts",
+      "x-typescript-details": "Record<string, never>"
+    },
+    {
+      "const": "forgePanel/viewed-failed",
+      "description": "The code host did not provide the signed-in user's viewed marks on the change request's files; the message says why.",
+      "x-source": "packages/experimental/client-ui-forge/src/types.ts",
+      "x-typescript-details": "Record<string, never>"
+    },
+    {
+      "const": "forgePanel/worktrees-unavailable",
+      "description": "No worktree service is mounted.",
+      "x-source": "packages/experimental/client-ui-forge/src/types.ts",
+      "x-typescript-details": "Record<string, never>"
+    },
+    {
+      "const": "gateway/ambiguous-endpoint",
+      "description": "More than one live provider claims the requested endpoint.",
+      "x-source": "packages/api/gateway/src/remote-error-codes.ts",
+      "x-typescript-details": "TypertGatewayFaultDetails"
+    },
+    {
+      "const": "gateway/arguments-invalid",
+      "description": "Named arguments do not match the endpoint's declared parameters.",
+      "x-source": "packages/api/gateway/src/remote-error-codes.ts",
+      "x-typescript-details": "TypertGatewayFaultDetails"
+    },
+    {
+      "const": "gateway/authentication-required",
+      "description": "The HTTP carrier returned 401; authenticate with the Host before explicitly retrying the operation.",
+      "x-source": "packages/api/gateway/src/remote-error-codes.ts",
+      "x-typescript-details": "TypertGatewayHttpFaultDetails"
+    },
+    {
+      "const": "gateway/bad-request",
+      "description": "Owner-side business validation refused the request; `issues` carries portable diagnostics when a codec produced them.",
+      "x-source": "packages/typert/protocol/src/types.ts",
+      "x-typescript-details": "{ readonly issues?: readonly RemoteValidationIssue[] }"
+    },
+    {
+      "const": "gateway/binding-invalid",
+      "description": "The service's Remote binding is malformed or disagrees with its registration.",
+      "x-source": "packages/api/gateway/src/remote-error-codes.ts",
+      "x-typescript-details": "TypertGatewayFaultDetails"
+    },
+    {
+      "const": "gateway/cancelled",
+      "description": "The call was cancelled by the carrier signal or the backend.",
+      "x-source": "packages/typert/protocol/src/types.ts",
+      "x-typescript-details": "{}"
+    },
+    {
+      "const": "gateway/connection-unavailable",
+      "description": "The Client connection is not ready to admit this operation; reconnect does not automatically resubmit it.",
+      "x-source": "packages/api/gateway/src/remote-error-codes.ts",
+      "x-typescript-details": "TypertGatewayFaultDetails"
+    },
+    {
+      "const": "gateway/context-failed",
+      "description": "The Host Context adapter failed while resolving the requested receiver.",
+      "x-source": "packages/api/gateway/src/remote-error-codes.ts",
+      "x-typescript-details": "TypertGatewayFaultDetails"
+    },
+    {
+      "const": "gateway/context-not-found",
+      "description": "The Host Context adapter found no receiver for the supplied identity.",
+      "x-source": "packages/api/gateway/src/remote-error-codes.ts",
+      "x-typescript-details": "TypertGatewayFaultDetails"
+    },
+    {
+      "const": "gateway/context-unavailable",
+      "description": "The Host Context adapter required by this endpoint is not registered.",
+      "x-source": "packages/api/gateway/src/remote-error-codes.ts",
+      "x-typescript-details": "TypertGatewayFaultDetails"
+    },
+    {
+      "const": "gateway/definition-unavailable",
+      "description": "No live generated definition or source declaration exposes this endpoint.",
+      "x-source": "packages/api/gateway/src/remote-error-codes.ts",
+      "x-typescript-details": "TypertGatewayFaultDetails"
+    },
+    {
+      "const": "gateway/host-not-ready",
+      "description": "The HTTP carrier returned 503 for this request; it does not invalidate an otherwise ready generation.",
+      "x-source": "packages/api/gateway/src/remote-error-codes.ts",
+      "x-typescript-details": "TypertGatewayHttpFaultDetails"
+    },
+    {
+      "const": "gateway/input-invalid",
+      "description": "A wire argument or uplink item fails the endpoint's input codec.",
+      "x-source": "packages/api/gateway/src/remote-error-codes.ts",
+      "x-typescript-details": "TypertGatewayFaultDetails"
+    },
+    {
+      "const": "gateway/interactions-forbidden",
+      "description": "The Peer cannot participate in interactions or the reply belongs to another Peer.",
+      "x-source": "packages/api/gateway/src/remote-error-codes.ts",
+      "x-typescript-details": "TypertGatewayFaultDetails"
+    },
+    {
+      "const": "gateway/internal",
+      "description": "Carrier, dispatch, or unclassified Host failure.",
+      "x-source": "packages/typert/protocol/src/types.ts",
+      "x-typescript-details": "{}"
+    },
+    {
+      "const": "gateway/invocation-unavailable",
+      "description": "The requested forwarded invocation cannot be answered through this caller.",
+      "x-source": "packages/api/gateway/src/remote-error-codes.ts",
+      "x-typescript-details": "TypertGatewayFaultDetails"
+    },
+    {
+      "const": "gateway/lookup-failed",
+      "description": "A lookup provider failed while resolving a wire identity.",
+      "x-source": "packages/api/gateway/src/remote-error-codes.ts",
+      "x-typescript-details": "TypertGatewayFaultDetails"
+    },
+    {
+      "const": "gateway/lookup-not-found",
+      "description": "A lookup provider found no object for the supplied identity.",
+      "x-source": "packages/api/gateway/src/remote-error-codes.ts",
+      "x-typescript-details": "TypertGatewayFaultDetails"
+    },
+    {
+      "const": "gateway/lookup-unavailable",
+      "description": "The lookup provider required by a parameter is not registered.",
+      "x-source": "packages/api/gateway/src/remote-error-codes.ts",
+      "x-typescript-details": "TypertGatewayFaultDetails"
+    },
+    {
+      "const": "gateway/method-unavailable",
+      "description": "The declared method has no callable implementation on its live receiver.",
+      "x-source": "packages/api/gateway/src/remote-error-codes.ts",
+      "x-typescript-details": "TypertGatewayFaultDetails"
+    },
+    {
+      "const": "gateway/peer-disposed",
+      "description": "The calling Peer was disposed before the operation could be admitted.",
+      "x-source": "packages/api/gateway/src/remote-error-codes.ts",
+      "x-typescript-details": "TypertGatewayFaultDetails"
+    },
+    {
+      "const": "gateway/permission-denied",
+      "description": "The HTTP carrier returned 403, or a device-identified request was refused; the refusal does not establish that a device was revoked.",
+      "x-source": "packages/api/gateway/src/remote-error-codes.ts",
+      "x-typescript-details": "| TypertGatewayHttpFaultDetails\n      | { readonly endpoint: string; readonly role: string; readonly reason: 'undeclared' }\n      | { readonly endpoint: string; readonly role: string; readonly required: string }\n      | { readonly endpoint: string; readonly reason: 'device-identity' }"
+    },
+    {
+      "const": "gateway/preparation-unavailable",
+      "description": "The Host cannot complete the requested preparation operation.",
+      "x-source": "packages/api/gateway/src/remote-error-codes.ts",
+      "x-typescript-details": "TypertGatewayFaultDetails"
+    },
+    {
+      "const": "gateway/protocol",
+      "description": "A carrier frame violates the Remote protocol.",
+      "x-source": "packages/api/gateway/src/remote-error-codes.ts",
+      "x-typescript-details": "TypertGatewayFaultDetails"
+    },
+    {
+      "const": "gateway/protocol-unsupported",
+      "description": "The supplied or negotiated API protocol is unsupported; update the application before reconnecting.",
+      "x-source": "packages/api/gateway/src/remote-error-codes.ts",
+      "x-typescript-details": "{\n      readonly endpoint: string\n      readonly supportedApiProtocolVersions: readonly number[]\n    }"
+    },
+    {
+      "const": "gateway/provider-mismatch",
+      "description": "The live provider disagrees with the endpoint's declared service or namespace.",
+      "x-source": "packages/api/gateway/src/remote-error-codes.ts",
+      "x-typescript-details": "TypertGatewayFaultDetails"
+    },
+    {
+      "const": "gateway/result-invalid",
+      "description": "A method result fails its declared output codec or stream mode.",
+      "x-source": "packages/api/gateway/src/remote-error-codes.ts",
+      "x-typescript-details": "TypertGatewayFaultDetails"
+    },
+    {
+      "const": "gateway/service-unavailable",
+      "description": "The endpoint's service or forwarded event source is unavailable.",
+      "x-source": "packages/api/gateway/src/remote-error-codes.ts",
+      "x-typescript-details": "TypertGatewayFaultDetails"
+    },
+    {
+      "const": "gateway/signature-invalid",
+      "description": "A source method's signature cannot be dispatched as a Remote method.",
+      "x-source": "packages/api/gateway/src/remote-error-codes.ts",
+      "x-typescript-details": "TypertGatewayFaultDetails"
+    },
+    {
+      "const": "gateway/stream-invalid",
+      "description": "Received stream data failed validation; event-generation failure suspends automatic reconnect until explicit recovery.",
+      "x-source": "packages/api/gateway/src/remote-error-codes.ts",
+      "x-typescript-details": "{ readonly stream: string }"
+    },
+    {
+      "const": "gateway/transport-interrupted",
+      "description": "The request transport was interrupted, a logical stream exhausted carrier retries, or an otherwise unclassified HTTP failure occurred; mutation acceptance may be unknown.",
+      "x-source": "packages/api/gateway/src/remote-error-codes.ts",
+      "x-typescript-details": "| { readonly endpoint: string; readonly httpStatus?: number }\n      | { readonly stream: string }"
+    },
+    {
+      "const": "gateway/uplink-overflow",
+      "description": "Buffered Client uplink data exceeded the logical stream's byte limit.",
+      "x-source": "packages/api/gateway/src/remote-error-codes.ts",
+      "x-typescript-details": "TypertGatewayFaultDetails"
+    },
+    {
+      "const": "host/capability-unavailable",
+      "description": "The admitted Host lacks a capability required by discovery or the requested operation.",
+      "x-source": "packages/api/gateway/src/remote-error-codes.ts",
+      "x-typescript-details": "{ readonly capability: string }"
+    },
+    {
+      "const": "interaction-closed",
+      "description": "This delivery can no longer accept an answer; it does not identify which Client settled the interaction.",
+      "x-source": "packages/api/gateway/src/remote-error-codes.ts",
+      "x-typescript-details": "{ readonly eventId: RemoteEventId }"
+    },
+    {
+      "const": "interaction-expired",
+      "description": "The Host deadline elapsed before the pending interaction was settled.",
+      "x-source": "packages/api/gateway/src/remote-error-codes.ts",
+      "x-typescript-details": "{ readonly eventId: RemoteEventId }"
+    },
+    {
+      "const": "job/not-found",
+      "description": "The session's job list no longer carries a killable row under that id.",
+      "x-source": "packages/api/job-controller/src/types.ts",
+      "x-typescript-details": "{ readonly sessionId: SessionId; readonly jobId: JobId }"
+    },
+    {
+      "const": "liveshareShares/audit-unavailable",
+      "description": "The Relay's audit trail could not be read; `body` carries a relay answer unchanged.",
+      "x-source": "packages/experimental/liveshare/src/share-api-types.ts",
+      "x-typescript-details": "{\n      readonly relay: string\n      readonly status?: number\n      readonly contentType?: string\n      readonly body?: string\n    }"
+    },
+    {
+      "const": "liveshareShares/endpoint-not-offered",
+      "description": "A submitted policy names an endpoint the platform catalog does not offer.",
+      "x-source": "packages/experimental/liveshare/src/share-api-types.ts",
+      "x-typescript-details": "{\n      readonly plugin: string\n      readonly endpoint: string\n    }"
+    },
+    {
+      "const": "liveshareShares/invalid-access-mode",
+      "description": "The requested access mode is not one this build stores.",
+      "x-source": "packages/experimental/liveshare/src/share-api-types.ts",
+      "x-typescript-details": "Record<string, never>"
+    },
+    {
+      "const": "liveshareShares/invalid-allows-fork",
+      "description": "The requested fork switch is not a boolean.",
+      "x-source": "packages/experimental/liveshare/src/share-api-types.ts",
+      "x-typescript-details": "Record<string, never>"
+    },
+    {
+      "const": "liveshareShares/invalid-capabilities",
+      "description": "The submitted capability selection is not a list of plugin groups.",
+      "x-source": "packages/experimental/liveshare/src/share-api-types.ts",
+      "x-typescript-details": "Record<string, never>"
+    },
+    {
+      "const": "liveshareShares/invalid-relay",
+      "description": "The requested Relay address is not a usable base URL.",
+      "x-source": "packages/experimental/liveshare/src/share-api-types.ts",
+      "x-typescript-details": "{ readonly relay: string }"
+    },
+    {
+      "const": "liveshareShares/invalid-relay-url",
+      "description": "The posted Relay address is neither null nor a string, or does not normalize.",
+      "x-source": "packages/experimental/liveshare/src/share-api-types.ts",
+      "x-typescript-details": "Record<string, never>"
+    },
+    {
+      "const": "liveshareShares/invalid-session-mode",
+      "description": "The requested tier is not one this build drives.",
+      "x-source": "packages/experimental/liveshare/src/share-api-types.ts",
+      "x-typescript-details": "Record<string, never>"
+    },
+    {
+      "const": "liveshareShares/invalid-ttl",
+      "description": "The requested lifetime is not a positive safe-integer count of minutes within the ceiling.",
+      "x-source": "packages/experimental/liveshare/src/share-api-types.ts",
+      "x-typescript-details": "Record<string, never>"
+    },
+    {
+      "const": "liveshareShares/missing-permission",
+      "description": "A permission update named neither the tier nor the fork switch.",
+      "x-source": "packages/experimental/liveshare/src/share-api-types.ts",
+      "x-typescript-details": "Record<string, never>"
+    },
+    {
+      "const": "liveshareShares/missing-session-id",
+      "description": "A creation or publish check named no Session.",
+      "x-source": "packages/experimental/liveshare/src/share-api-types.ts",
+      "x-typescript-details": "Record<string, never>"
+    },
+    {
+      "const": "liveshareShares/missing-session-ids",
+      "description": "An addition named no usable Session id.",
+      "x-source": "packages/experimental/liveshare/src/share-api-types.ts",
+      "x-typescript-details": "Record<string, never>"
+    },
+    {
+      "const": "liveshareShares/missing-share-id",
+      "description": "A share-writing request named no share.",
+      "x-source": "packages/experimental/liveshare/src/share-api-types.ts",
+      "x-typescript-details": "Record<string, never>"
+    },
+    {
+      "const": "liveshareShares/owner-login-required",
+      "description": "Creating a share requires a verified owner credential at the effective Relay.",
+      "x-source": "packages/experimental/liveshare/src/share-api-types.ts",
+      "x-typescript-details": "{ readonly identity: OwnerIdentityStatus }"
+    },
+    {
+      "const": "liveshareShares/owner-state-held",
+      "description": "Another running host owns the owner state, so this host refuses to change the shares.",
+      "x-source": "packages/experimental/liveshare/src/share-api-types.ts",
+      "x-typescript-details": "Record<string, never>"
+    },
+    {
+      "const": "liveshareShares/owner-state-unavailable",
+      "description": "The owner state file could not be written; the previous record is still in force.",
+      "x-source": "packages/experimental/liveshare/src/share-api-types.ts",
+      "x-typescript-details": "Record<string, never>"
+    },
+    {
+      "const": "liveshareShares/relay-unavailable",
+      "description": "The Relay did not accept the registration this host attempted.",
+      "x-source": "packages/experimental/liveshare/src/share-api-types.ts",
+      "x-typescript-details": "{ readonly relay: string; readonly reason?: string }"
+    },
+    {
+      "const": "liveshareShares/relay-upgrade-required",
+      "description": "The effective Relay predates owner identity binding, so a verified credential cannot help.",
+      "x-source": "packages/experimental/liveshare/src/share-api-types.ts",
+      "x-typescript-details": "{ readonly identity: OwnerIdentityStatus }"
+    },
+    {
+      "const": "liveshareShares/relay-url-required",
+      "description": "No Liveshare server address is saved, so the request has nowhere to publish or probe.",
+      "x-source": "packages/experimental/liveshare/src/share-api-types.ts",
+      "x-typescript-details": "Record<string, never>"
+    },
+    {
+      "const": "liveshareShares/session-workspace-mismatch",
+      "description": "A source Session belongs to a different Workspace than the share's other sources.",
+      "x-source": "packages/experimental/liveshare/src/share-api-types.ts",
+      "x-typescript-details": "{\n      readonly sessionId: string\n      readonly workspaceId: string\n    }"
+    },
+    {
+      "const": "liveshareShares/session-workspace-unknown",
+      "description": "A source Session belongs to no Workspace.",
+      "x-source": "packages/experimental/liveshare/src/share-api-types.ts",
+      "x-typescript-details": "{ readonly sessionId: string }"
+    },
+    {
+      "const": "liveshareShares/share-not-found",
+      "description": "No share this host publishes carries the requested id.",
+      "x-source": "packages/experimental/liveshare/src/share-api-types.ts",
+      "x-typescript-details": "{ readonly shareId: string }"
+    },
+    {
+      "const": "liveshareShares/unknown-plugin",
+      "description": "A submitted capability names a plugin that offers no viewer endpoints.",
+      "x-source": "packages/experimental/liveshare/src/share-api-types.ts",
+      "x-typescript-details": "{ readonly plugin: string }"
+    },
+    {
+      "const": "liveshareShares/workspace-unavailable",
+      "description": "The composition mounts no Workspace registry, so source placement cannot be checked.",
+      "x-source": "packages/experimental/liveshare/src/share-api-types.ts",
+      "x-typescript-details": "Record<string, never>"
+    },
+    {
+      "const": "llm/model-discovery-rejected",
+      "description": "A draft provider interrogation refused or failed.",
+      "x-source": "packages/llm/llm/src/types.ts",
+      "x-typescript-details": "{\n      readonly settingsNs: string\n      readonly baseURL?: string\n    }"
+    },
+    {
+      "const": "plan/invalid-address",
+      "description": "The resource URL does not identify a plan invocation.",
+      "x-source": "packages/client/ui-plan/src/client/plan-resource.ts",
+      "x-typescript-details": "Record<string, never>"
+    },
+    {
+      "const": "plan/not-found",
+      "description": "The Session has no readable plan for this invocation.",
+      "x-source": "packages/client/ui-plan/src/client/plan-resource.ts",
+      "x-typescript-details": "Record<string, never>"
+    },
+    {
+      "const": "plan/read-failed",
+      "description": "The Session history read failed.",
+      "x-source": "packages/client/ui-plan/src/client/plan-resource.ts",
+      "x-typescript-details": "Record<string, never>"
+    },
+    {
+      "const": "plugin-manager/detail-unavailable",
+      "description": "A bundle's detail document or image exists but cannot be read: `too-large` beyond a size limit, `network` when the npm file CDNs cannot be reached, `invalid` for a malformed locale file or `meta.detail`, or a named file that does not exist. Bundle files come from local directories and public CDNs, which never answer `denied`.",
+      "x-source": "packages/boot/plugin-manager/src/types.ts",
+      "x-typescript-details": "{ readonly reason: DetailFailureReason }"
+    },
+    {
+      "const": "plugin-manager/invalid-language",
+      "description": "The display language is not a BCP 47 language id.",
+      "x-source": "packages/boot/plugin-manager/src/types.ts",
+      "x-typescript-details": "{ readonly language: string }"
+    },
+    {
+      "const": "plugin-manager/unknown-bundle",
+      "description": "The profile lists no such bundle, or its directory cannot be resolved.",
+      "x-source": "packages/boot/plugin-manager/src/types.ts",
+      "x-typescript-details": "{ readonly name: string }"
+    },
+    {
+      "const": "plugin-market/detail-unavailable",
+      "description": "A detail document exists but cannot be read: `too-large` beyond a size limit, `network` when a source cannot be reached, `denied` when Git refuses the repository with the user's credentials, `git-unavailable` when the repository must be cloned and Git cannot run, `invalid` for a malformed locale file or `meta.detail`, or a named file that does not exist.",
+      "x-source": "packages/boot/plugin-market/src/types.ts",
+      "x-typescript-details": "{ readonly reason: DetailFailureReason }"
+    },
+    {
+      "const": "plugin-market/fetch-failed",
+      "description": "The index could not be fetched: network failure, timeout, redirect, non-2xx status, or a body over the size limit.",
+      "x-source": "packages/boot/plugin-market/src/types.ts",
+      "x-typescript-details": "{ readonly url: string; readonly reason: string }"
+    },
+    {
+      "const": "plugin-market/invalid-index",
+      "description": "The fetched document is not valid format-1 JSON; `path` names the offending JSON value.",
+      "x-source": "packages/boot/plugin-market/src/types.ts",
+      "x-typescript-details": "{ readonly url: string; readonly path: string; readonly reason: string }"
+    },
+    {
+      "const": "plugin-market/invalid-index-url",
+      "description": "An index URL is not http(s), or carries credentials or a fragment.",
+      "x-source": "packages/boot/plugin-market/src/types.ts",
+      "x-typescript-details": "{ readonly url: string; readonly reason: string }"
+    },
+    {
+      "const": "plugin-market/invalid-query",
+      "description": "A search page request is out of range; `field` names the offending query field.",
+      "x-source": "packages/boot/plugin-market/src/types.ts",
+      "x-typescript-details": "{ readonly field: string; readonly reason: string }"
+    },
+    {
+      "const": "plugin-market/settings-unavailable",
+      "description": "Index sources cannot be saved without the settings service and this service's profile entry.",
+      "x-source": "packages/boot/plugin-market/src/types.ts",
+      "x-typescript-details": "Record<string, never>"
+    },
+    {
+      "const": "plugin-market/unknown-index",
+      "description": "The URL is not one of the configured index sources.",
+      "x-source": "packages/boot/plugin-market/src/types.ts",
+      "x-typescript-details": "{ readonly url: string }"
+    },
+    {
+      "const": "plugin-market/unknown-plugin",
+      "description": "The index lists no such plugin or version.",
+      "x-source": "packages/boot/plugin-market/src/types.ts",
+      "x-typescript-details": "{ readonly name: string; readonly version: string }"
+    },
+    {
+      "const": "remote-access/denied",
+      "description": "The non-owner principal lacks access, the resources are invalid, or its policy failed.",
+      "x-source": "packages/api/remote-access/src/types.ts",
+      "x-typescript-details": "RemoteAccessDeniedDetails"
+    },
+    {
+      "const": "revision-conflict",
+      "description": "An interaction answer does not match the pending revision; the answer is not accepted.",
+      "x-source": "packages/api/gateway/src/remote-error-codes.ts",
+      "x-typescript-details": "{\n      readonly eventId: RemoteEventId\n      readonly expectedRevision: number\n      readonly receivedRevision: number\n    }"
+    },
+    {
+      "const": "schedule/input-invalid",
+      "description": "The Schedule request failed validation before it was stored.",
+      "x-source": "packages/schedule/schedule/src/types.ts",
+      "x-typescript-details": "{ readonly code: ScheduleInputErrorCode }"
+    },
+    {
+      "const": "schedule/target-archived",
+      "description": "A delivery or run reached a `session` target that the Workspace registry lists as archived.",
+      "x-source": "packages/schedule/schedule/src/types.ts",
+      "x-typescript-details": "{ readonly sessionId: SessionId }"
+    },
+    {
+      "const": "session-status/not-found",
+      "description": "The requested Session does not exist.",
+      "x-source": "packages/client/ui-session-status/src/types.ts",
+      "x-typescript-details": "{ readonly sessionId: SessionId }"
+    },
+    {
+      "const": "session-status/unavailable",
+      "description": "Reading state could not be updated; the previous value remains visible.",
+      "x-source": "packages/client/ui-session-status/src/types.ts",
+      "x-typescript-details": "{}"
+    },
+    {
+      "const": "session/agent-busy",
+      "description": "The Agent cannot accept this operation in its current state or at this address.",
+      "x-source": "packages/api/session-controller/src/types.ts",
+      "x-typescript-details": "{ readonly reason: string }"
+    },
+    {
+      "const": "session/attachment-invalid",
+      "description": "A prompt attachment is invalid or unavailable for this Session.",
+      "x-source": "packages/api/session-controller/src/types.ts",
+      "x-typescript-details": "{ readonly reason: string }"
+    },
+    {
+      "const": "session/conflict",
+      "description": "The requested working directory conflicts with the existing Session.",
+      "x-source": "packages/api/session-controller/src/types.ts",
+      "x-typescript-details": "{\n      readonly sessionId: SessionId\n      readonly requestedCwd: string\n      readonly existingCwd?: string\n    }"
+    },
+    {
+      "const": "session/fork-unavailable",
+      "description": "The addressed Session cannot be forked in its current state.",
+      "x-source": "packages/api/session-controller/src/types.ts",
+      "x-typescript-details": "{ readonly sessionId: SessionId }"
+    },
+    {
+      "const": "session/invalid-time-zone",
+      "description": "The supplied time zone is not a supported IANA time zone.",
+      "x-source": "packages/api/session-controller/src/types.ts",
+      "x-typescript-details": "{ readonly value: string }"
+    },
+    {
+      "const": "session/migration-required",
+      "description": "The source Session must be opened and migrated before it can be forked.",
+      "x-source": "packages/api/session-controller/src/types.ts",
+      "x-typescript-details": "{ readonly sessionId: SessionId }"
+    },
+    {
+      "const": "session/model-unavailable",
+      "description": "The requested provider and model are unavailable; select an available model.",
+      "x-source": "packages/api/session-controller/src/types.ts",
+      "x-typescript-details": "{ readonly provider: string; readonly model: string }"
+    },
+    {
+      "const": "session/not-found",
+      "description": "The named Session does not exist; produced by every layer that resolves a SessionId.",
+      "x-source": "packages/core/session/src/types.ts",
+      "x-typescript-details": "{ readonly sessionId: SessionId }"
+    },
+    {
+      "const": "session/observation-ended",
+      "description": "A wait observation ended before a stopping state; the caller should reread.",
+      "x-source": "packages/api/session-controller/src/types.ts",
+      "x-typescript-details": "Record<string, never>"
+    },
+    {
+      "const": "session/projections-unavailable",
+      "description": "The Session projection snapshot is unavailable.",
+      "x-source": "packages/api/session-controller/src/types.ts",
+      "x-typescript-details": "Record<string, never>"
+    },
+    {
+      "const": "session/provider-credentials-unavailable",
+      "description": "Provider credentials are unavailable for the requested Session operation.",
+      "x-source": "packages/api/session-controller/src/types.ts",
+      "x-typescript-details": "Record<string, never>"
+    },
+    {
+      "const": "session/provider-models-unavailable",
+      "description": "The selected provider exposes no usable model catalog.",
+      "x-source": "packages/api/session-controller/src/types.ts",
+      "x-typescript-details": "{ readonly provider: string }"
+    },
+    {
+      "const": "session/queue-item-not-found",
+      "description": "The addressed inbox item is no longer pending.",
+      "x-source": "packages/api/session-controller/src/types.ts",
+      "x-typescript-details": "{ readonly itemId: MessageId }"
+    },
+    {
+      "const": "session/revision-conflict",
+      "description": "A changed Session title revision rejects the requested rename.",
+      "x-source": "packages/api/session-controller/src/types.ts",
+      "x-typescript-details": "{ readonly sessionId: SessionId }"
+    },
+    {
+      "const": "session/steer-unavailable",
+      "description": "The current turn no longer accepts the queued item as steering.",
+      "x-source": "packages/api/session-controller/src/types.ts",
+      "x-typescript-details": "{ readonly itemId: MessageId }"
+    },
+    {
+      "const": "session/title-invalid",
+      "description": "The requested Session title fails title validation.",
+      "x-source": "packages/api/session-controller/src/types.ts",
+      "x-typescript-details": "{ readonly sessionId: SessionId }"
+    },
+    {
+      "const": "session/wait-timeout",
+      "description": "No state arrived before the deadline; a timeout after a state returns its value instead.",
+      "x-source": "packages/api/session-controller/src/types.ts",
+      "x-typescript-details": "Record<string, never>"
+    },
+    {
+      "const": "session/workspace-attach-failed",
+      "description": "The Session could not be attached to the requested Workspace.",
+      "x-source": "packages/api/session-controller/src/types.ts",
+      "x-typescript-details": "{ readonly sessionId: SessionId; readonly workspaceId: string }"
+    },
+    {
+      "const": "session/writer-held",
+      "description": "Another writer holds the Session, preventing this operation from acquiring it.",
+      "x-source": "packages/api/session-controller/src/types.ts",
+      "x-typescript-details": "{ readonly sessionId: SessionId }"
+    },
+    {
+      "const": "settings/conflict",
+      "description": "The stored revision moved after the caller read it. Its own outcome rather than an invalid request: the caller must re-read and re-apply.",
+      "x-source": "packages/api/settings-controller/src/types.ts",
+      "x-typescript-details": "{ readonly ns: string; readonly expected: number; readonly actual: number }"
+    },
+    {
+      "const": "settings/rejected",
+      "description": "Every seam refusal that is not a stale write: an unregistered or malformed namespace, a read-only provider, schema validation, storage.",
+      "x-source": "packages/api/settings-controller/src/types.ts",
+      "x-typescript-details": "{ readonly ns: string }"
+    },
+    {
+      "const": "speech/invalid-audio",
+      "description": "Audio encoding or intake limits prevented transcription.",
+      "x-source": "packages/experimental/api-speech-to-text/src/types.ts",
+      "x-typescript-details": "{ readonly reason: string }"
+    },
+    {
+      "const": "speech/transcription-failed",
+      "description": "The selected provider rejected transcription.",
+      "x-source": "packages/experimental/api-speech-to-text/src/types.ts",
+      "x-typescript-details": "{ readonly reason: string }"
+    },
+    {
+      "const": "subagent/attachment-invalid",
+      "description": "Image admission or model image-capability refusal.",
+      "x-source": "packages/subagent/subagent/src/control-types.ts",
+      "x-typescript-details": "{ readonly reason: string }"
+    },
+    {
+      "const": "subagent/catalog-diagnostic",
+      "description": "The addressed subagent descriptor cannot be read from the durable catalog.",
+      "x-source": "packages/api/session-controller/src/types.ts",
+      "x-typescript-details": "{\n      readonly parentSessionId: SessionId\n      readonly childSessionId: SessionId\n      readonly reason: 'corrupt' | 'unsupported' | 'unavailable'\n    }"
+    },
+    {
+      "const": "subagent/delivery-unavailable",
+      "description": "The child cannot admit the requested Prompt or addressed interruption with its current runtime state.",
+      "x-source": "packages/subagent/subagent/src/control-types.ts",
+      "x-typescript-details": "{ readonly childSessionId: SessionId }"
+    },
+    {
+      "const": "subagent/invalid-time-zone",
+      "description": "A browser-supplied zone is neither UTC nor a canonical IANA name.",
+      "x-source": "packages/subagent/subagent/src/control-types.ts",
+      "x-typescript-details": "{ readonly value: string }"
+    },
+    {
+      "const": "subagent/not-found",
+      "description": "No subagent is available at the supplied parent and child address.",
+      "x-source": "packages/api/session-controller/src/types.ts",
+      "x-typescript-details": "{\n      readonly parentSessionId: SessionId\n      readonly childSessionId: SessionId\n    }"
+    },
+    {
+      "const": "subagent/not-resumable",
+      "description": "The addressed child cannot take a continuation.",
+      "x-source": "packages/subagent/subagent/src/control-types.ts",
+      "x-typescript-details": "{ readonly childSessionId: SessionId }"
+    },
+    {
+      "const": "subagent/unauthorized",
+      "description": "The supplied address or live subagent-tree identity could not be verified.",
+      "x-source": "packages/subagent/subagent/src/control-types.ts",
+      "x-typescript-details": "{ readonly childSessionId: SessionId }"
+    },
+    {
+      "const": "terminal/control-unavailable",
+      "description": "Input or resize was refused without invalidating the output attachment.",
+      "x-source": "packages/api/terminal-controller/src/types.ts",
+      "x-typescript-details": "{ readonly reason: 'read-only' | 'not-running' }"
+    },
+    {
+      "const": "terminal/limit-reached",
+      "description": "Retained screens and pending allocations consume the Session's terminal quota.",
+      "x-source": "packages/api/terminal-controller/src/types.ts",
+      "x-typescript-details": "{ readonly limit: number }"
+    },
+    {
+      "const": "terminal/unavailable",
+      "description": "The terminal identity is missing or has begun process cleanup.",
+      "x-source": "packages/api/terminal-controller/src/types.ts",
+      "x-typescript-details": "Record<string, never>"
+    },
+    {
+      "const": "terminal/view",
+      "description": "Client terminal failure preserved through the Remote stream supervisor.",
+      "x-source": "packages/api/terminal-controller/src/client/model.ts",
+      "x-typescript-details": "{ readonly issue: TerminalViewIssue }"
+    },
+    {
+      "const": "tool-catalog/conflict",
+      "description": "Current compositions publish incompatible declarations for one name.",
+      "x-source": "packages/api/remotes/src/types.ts",
+      "x-typescript-details": "{ readonly tool: string }"
+    },
+    {
+      "const": "tool-catalog/declaration-unavailable",
+      "description": "A visible tool lacks the metadata required by a catalog reader.",
+      "x-source": "packages/api/remotes/src/types.ts",
+      "x-typescript-details": "{ readonly tool: string }"
+    },
+    {
+      "const": "workspace-file/not-directory",
+      "description": "The path is not a directory, so it has no children to list.",
+      "x-source": "packages/api/workspace-files/src/types.ts",
+      "x-typescript-details": "{\n      readonly path: string\n      readonly kind: 'file' | 'symlink' | 'other'\n    }"
+    },
+    {
+      "const": "workspace-file/not-found",
+      "description": "No entry exists at that path inside the workspace.",
+      "x-source": "packages/api/workspace-files/src/types.ts",
+      "x-typescript-details": "{ readonly path: string }"
+    },
+    {
+      "const": "workspace-file/not-regular-file",
+      "description": "The path is not a regular file, so it has no text to read.",
+      "x-source": "packages/api/workspace-files/src/types.ts",
+      "x-typescript-details": "{\n      readonly path: string\n      readonly kind: 'directory' | 'symlink' | 'other'\n    }"
+    },
+    {
+      "const": "workspace-file/not-text",
+      "description": "The content read so far is not decodable UTF-8 text, or the page carries NUL bytes.",
+      "x-source": "packages/api/workspace-files/src/types.ts",
+      "x-typescript-details": "{ readonly path: string }"
+    },
+    {
+      "const": "workspace-file/outside-workspace",
+      "description": "The directory listing or watch path resolves outside the Session's workspace root.",
+      "x-source": "packages/api/workspace-files/src/types.ts",
+      "x-typescript-details": "{ readonly path: string }"
+    },
+    {
+      "const": "workspace-file/search-failed",
+      "description": "Search cannot run: missing subprocess, launch/execution failure, or configured timeout.",
+      "x-source": "packages/api/workspace-files/src/types.ts",
+      "x-typescript-details": "Record<string, never>"
+    },
+    {
+      "const": "workspace-file/too-large",
+      "description": "The requested page exceeds the configured byte cap; nothing is returned.",
+      "x-source": "packages/api/workspace-files/src/types.ts",
+      "x-typescript-details": "{ readonly path: string; readonly limit: number }"
+    },
+    {
+      "const": "workspace-file/unknown-workspace",
+      "description": "An `absolute` address has no Session to authorize its Host call. Raised by the Client provider; the Host never emits it. Session addresses are resolved by the Host without a Client Session summary.",
+      "x-source": "packages/api/workspace-files/src/client/types.ts",
+      "x-typescript-details": "{ readonly address: string }"
+    },
+    {
+      "const": "workspace-file/unsupported-address",
+      "description": "The address is not a `dsh-resource://file/` address in a scope the provider recognizes: `session/<sessionId>/<path>` or `absolute/<absolute path>`. Raised by the Client provider; the Host never emits it.",
+      "x-source": "packages/api/workspace-files/src/client/types.ts",
+      "x-typescript-details": "{ readonly address: string }"
+    },
+    {
+      "const": "workspace-file/watch-unsupported",
+      "description": "The filesystem provider cannot initialize a watch for this target.",
+      "x-source": "packages/api/workspace-files/src/types.ts",
+      "x-typescript-details": "{ readonly path: string }"
+    },
+    {
+      "const": "workspace/invalid-path",
+      "description": "The requested directory cannot back a Workspace.",
+      "x-source": "packages/api/workspace-controller/src/types.ts",
+      "x-typescript-details": "{ readonly path: string }"
+    },
+    {
+      "const": "workspace/move-invalid",
+      "description": "The Session or its anchor is not in the Workspace's manual order.",
+      "x-source": "packages/api/workspace-controller/src/types.ts",
+      "x-typescript-details": "{\n      readonly workspaceId: WorkspaceId\n      readonly sessionId: SessionId\n      readonly beforeSessionId?: SessionId\n    }"
+    },
+    {
+      "const": "workspace/name-conflict",
+      "description": "Another Workspace already uses the requested name.",
+      "x-source": "packages/api/workspace-controller/src/types.ts",
+      "x-typescript-details": "{ readonly name: string }"
+    },
+    {
+      "const": "workspace/not-found",
+      "description": "No registration carries that Workspace identity.",
+      "x-source": "packages/workspace/workspace/src/types.ts",
+      "x-typescript-details": "{ readonly workspaceId: WorkspaceId }"
+    },
+    {
+      "const": "workspace/session-active",
+      "description": "The Session still has running work — its own turn, a subagent, a background job, or an active schedule — so archiving was refused without a write; `activity` names what must stop first.",
+      "x-source": "packages/api/workspace-controller/src/types.ts",
+      "x-typescript-details": "{\n      readonly sessionId: SessionId\n      readonly activity: readonly SessionActivity[]\n    }"
+    }
+  ]
+}

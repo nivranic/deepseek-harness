@@ -1,0 +1,64 @@
+{
+  "status": "PASS",
+  "scope": "Report bindings and audit for Workspace capability ownership, connection-bound projection and management controls; full Upstream-First objective remains in progress",
+  "gate0": {
+    "validation": "PASS",
+    "gate0": "PASS",
+    "paths": 1938,
+    "components": 129
+  },
+  "sourceRecord": {
+    "path": "artifacts/upstream-first/workspace-capabilities-source.json",
+    "sha256": "20b396539706dc39d2d1b6ef3da2e63d1997edd67404bf15ee8116b27fec40d3"
+  },
+  "generator": {
+    "path": "artifacts/upstream-first/write-reports.mjs",
+    "sha256": "b51273c5f93aa222b87bb407750b583eee07f5899d0ccd39a8828a306e465b5d"
+  },
+  "binding": {
+    "path": "artifacts/upstream-first/workspace-capabilities-binding.json",
+    "sha256": "0c0d9757122eb7775d8c83447931fa1ec56bf221a30353ee0e176ef169dc221e"
+  },
+  "helpers": [
+    {
+      "path": ".artifacts/advance-workspace-capabilities-reports.mjs",
+      "sha256": "6d9600cd89b3b261f741fbbcef3fe2e7280f76ed1a46d72273bf3bd29440afba"
+    },
+    {
+      "path": ".artifacts/capture-workspace-capabilities-validation.mjs",
+      "sha256": "d083b6e07ff23b9d40b410121f0d2e53b613dd980e8c6d4db732551da7393135"
+    }
+  ],
+  "reports": [
+    {
+      "path": "IMPLEMENTATION_STATUS.md",
+      "sha256": "4ee84f540c6127a824be85fb7b5022a4369a64d2b05a92dca53698b9331d012b"
+    },
+    {
+      "path": "artifacts/upstream-first/evidence.json",
+      "sha256": "e30a49f8ff9eaa5d88b827a5e9f8efe12c642c06a128af674a3460f9e61fd128"
+    }
+  ],
+  "checks": [
+    {
+      "path": ".artifacts/workspace-capabilities-binding.log",
+      "sha256": "0a2c6435c7e12d946676ec7b8a10d3daae41fa08c76726c7d92bcf5a67544ed5"
+    },
+    {
+      "path": ".artifacts/workspace-capabilities-audit-tests.log",
+      "sha256": "e053330a64d059cff870f65bcb5e0f540caade50ee64806b3a8f665818801e72"
+    },
+    {
+      "path": ".artifacts/workspace-capabilities-gate0.log",
+      "sha256": "4b5af3121a7e7caff0e1b6288bdaa7cfef9988842ae06bf02dc0a74852426043"
+    },
+    {
+      "path": ".artifacts/workspace-capabilities-report-diff-check.log",
+      "sha256": "e3b0c44298fc1c149afbf4c8996fb92427ae41e4649b934ca495991b7852b855"
+    },
+    {
+      "path": ".artifacts/workspace-capabilities-report-generation.log",
+      "sha256": "3107843805c981ff8a63506c3acaab1ed00a9870c1860c411cb4b81804bcbafe"
+    }
+  ]
+}

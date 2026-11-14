@@ -1,0 +1,16 @@
+{
+  "status": "PASS",
+  "controls": 3,
+  "sourceRecord": {
+    "path": "artifacts/upstream-first/interaction-cancel-source.json",
+    "sha256": "f6dff6b8b16ee65bd9be409caa044b56f8adcf8a3ba6b757008564346d5b5774"
+  },
+  "generator": {
+    "path": "artifacts/upstream-first/write-reports.mjs",
+    "sha256": "a564c7d461336b86b31cac46197a58b9736d1d90c1f97fd5050a3d7cb27236e9"
+  },
+  "helper": {
+    "path": ".artifacts/check-interaction-cancel-binding.mjs",
+    "sha256": "b9a10d535dadef7fba8c8a1002257ca7d511bea0b53fdc9f7b662f681a3cb4ab"
+  }
+}

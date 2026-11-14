@@ -1,0 +1,70 @@
+{
+  "status": "PASS",
+  "scope": "Report bindings and audit for the queue-dock shared-classification adoption; jobs-detail threading and the emulator-lane Host pairing fixture remain queue items; full Upstream-First objective remains in progress",
+  "gate0": {
+    "validation": "PASS",
+    "gate0": "PASS",
+    "paths": 1938,
+    "components": 129,
+    "specificationCoverage": {
+      "status": "PASS",
+      "numberedSections": 81,
+      "nonEmptySourceLines": 1983,
+      "acceptanceProven": false
+    }
+  },
+  "sourceRecord": {
+    "path": "artifacts/upstream-first/queue-classification-adoption-source.json",
+    "sha256": "c9a7e316db4f784fb265854f5231e212cc94e368cb1bc2c8c4a2792d53847b37"
+  },
+  "generator": {
+    "path": "artifacts/upstream-first/write-reports.mjs",
+    "sha256": "52a0859d078295739106fa8f2bacbd63cdfc42181728d342d4442c3176f41019"
+  },
+  "binding": {
+    "path": "artifacts/upstream-first/queue-classification-adoption-binding.json",
+    "sha256": "f13baf2d4053fadc9bca901dd990d4b6b48919f4839b29708347896f8339c0d5"
+  },
+  "helpers": [
+    {
+      "path": ".artifacts/advance-queue-classification-adoption-reports.mjs",
+      "sha256": "198b9b504e4fe1ae28e02056d6b4844b133fc796119cfc99d2d736f1eed78fcb"
+    },
+    {
+      "path": ".artifacts/capture-queue-classification-adoption-validation.mjs",
+      "sha256": "de59fcd3434c1e5389b2cba13c5b63ccc2b598966e939b7dcff06c3486a04054"
+    }
+  ],
+  "reports": [
+    {
+      "path": "IMPLEMENTATION_STATUS.md",
+      "sha256": "7cd2ab37dafe9d0563bc3940444b375ed9e4136ca9ae48b741234e7bb1541500"
+    },
+    {
+      "path": "artifacts/upstream-first/evidence.json",
+      "sha256": "2060092a12dd3f346ded130ed08ed7e442421fd22ded6dd4e883a5fa91def76d"
+    }
+  ],
+  "checks": [
+    {
+      "path": ".artifacts/queue-classification-adoption-binding.log",
+      "sha256": "24bbbd09fccaafd2e76b509da99d56aca4aa31741c2b8536be4b5b31ebb50397"
+    },
+    {
+      "path": ".artifacts/queue-classification-adoption-audit-tests.log",
+      "sha256": "48475040346767c2e35483ed0f6994ae82fec483f7d9d8bcdaf871ad9d524c9c"
+    },
+    {
+      "path": ".artifacts/queue-classification-adoption-gate0.log",
+      "sha256": "505d74ef938f5d34d85490d37e0176ba804d93272fcf465ce2544a02c56b3f90"
+    },
+    {
+      "path": ".artifacts/queue-classification-adoption-report-diff-check.log",
+      "sha256": "e3b0c44298fc1c149afbf4c8996fb92427ae41e4649b934ca495991b7852b855"
+    },
+    {
+      "path": ".artifacts/queue-classification-adoption-report-generation.log",
+      "sha256": "fe010532f71a6341467ae5719b29ac19470895de1d481156335b8f70a3273ed5"
+    }
+  ]
+}

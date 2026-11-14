@@ -1,0 +1,64 @@
+{
+  "status": "PASS",
+  "scope": "Report bindings and audit for LLM and credential capability admission and generation-bound Models editors; full Upstream-First objective remains in progress",
+  "gate0": {
+    "validation": "PASS",
+    "gate0": "PASS",
+    "paths": 1938,
+    "components": 129
+  },
+  "sourceRecord": {
+    "path": "artifacts/upstream-first/models-capabilities-source.json",
+    "sha256": "b594ec94eaaa664b5ef571484a5cdb2937288831c0e509e84843595bc177c7ab"
+  },
+  "generator": {
+    "path": "artifacts/upstream-first/write-reports.mjs",
+    "sha256": "4f4152a52dceba44efbecffa5ed914bfe64645d79bb534a748fa6f91da5f7491"
+  },
+  "binding": {
+    "path": "artifacts/upstream-first/models-capabilities-binding.json",
+    "sha256": "8ecd7b2287cbae1997a4dca184c42fc2e1572878f724be9442714ac457024501"
+  },
+  "helpers": [
+    {
+      "path": ".artifacts/advance-models-capabilities-reports.mjs",
+      "sha256": "7bc58062a2d41a06d38374775f0c59e66c37e902f8d1528b060f1347376c1454"
+    },
+    {
+      "path": ".artifacts/capture-models-capabilities-validation.mjs",
+      "sha256": "16dd7f13ab735bc483654cd723adb772e3be80df5eb99fbe92160ac4c1e44b70"
+    }
+  ],
+  "reports": [
+    {
+      "path": "IMPLEMENTATION_STATUS.md",
+      "sha256": "f11e8df4fdbb56b3938635b3099735adb1d2cff0239b729f77b038ef7fb0c4b5"
+    },
+    {
+      "path": "artifacts/upstream-first/evidence.json",
+      "sha256": "4e19acc82a5983184a06ca5027bd0b07bc7889d7aa2cd619996385272cc3815d"
+    }
+  ],
+  "checks": [
+    {
+      "path": ".artifacts/models-capabilities-binding.log",
+      "sha256": "6eb409c09ad95d69e3cb598903737c4c8c4e23f345740676788bfa0e61e1c9f8"
+    },
+    {
+      "path": ".artifacts/models-capabilities-audit-tests.log",
+      "sha256": "c374998f9207b4fac53b7b17d7ed5365c59c344b9732fc1d451fcc29a81ef1d6"
+    },
+    {
+      "path": ".artifacts/models-capabilities-gate0.log",
+      "sha256": "4b5af3121a7e7caff0e1b6288bdaa7cfef9988842ae06bf02dc0a74852426043"
+    },
+    {
+      "path": ".artifacts/models-capabilities-report-diff-check.log",
+      "sha256": "e3b0c44298fc1c149afbf4c8996fb92427ae41e4649b934ca495991b7852b855"
+    },
+    {
+      "path": ".artifacts/models-capabilities-report-generation.log",
+      "sha256": "5867d1d51cd43a59428de2e7fffa15847d7153b11f3b61ecf812224ee2dd2099"
+    }
+  ]
+}

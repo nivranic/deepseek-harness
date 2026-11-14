@@ -108,6 +108,11 @@ export function registerListSubagentModels(
 ): void {
   ctx.tools.register(defineTool({
     name: 'list_subagent_models',
+    version: 1,
+    risk: 'low',
+    permissions: [],
+    supportsLite: false,
+    supportsRemote: true,
     description:
       'Inspect the routes available for explicit subagent model selection. No arguments: authorized providers. '
       + '`provider`: that provider\'s authorized models. `provider` + `model`: that model and its reasoning efforts. '

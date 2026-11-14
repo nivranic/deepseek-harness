@@ -1,0 +1,118 @@
+{
+  "schemaVersion": 1,
+  "baseSha": "c291e7961a515f6d7af9304e7fd1d257929aef26",
+  "capturedAt": "2026-09-15T17:27:22.569Z",
+  "scope": "Read-only review of legacy SDK request-wait and Claude teardown timeout changes against current upstream",
+  "reviewedSourcesUnchangedFromUpstream": true,
+  "sourceFiles": [
+    {
+      "path": "packages/sdk/server/src/index.ts",
+      "sha256": "8ce9469392abfb957e1c01f9e0d213852c28a2efd09ea6077e62d04e4722f028",
+      "bytes": 4443
+    },
+    {
+      "path": "packages/sdk/server/src/server.ts",
+      "sha256": "89c4b3cb18f906c8de1f465985d22ddf1b60991fd97f9cc6b9a1e0d90892c7d9",
+      "bytes": 12584
+    },
+    {
+      "path": "packages/sdk/server/tests/server.spec.ts",
+      "sha256": "371256c093bed8579732729bf36b62e05b16c51fb16ad7e1ea8ea1d4a23741b2",
+      "bytes": 49922
+    },
+    {
+      "path": "packages/subagent/subagent-claude-code/package.json",
+      "sha256": "87894bf98785930bfd36fb2d2dec12556bf2e8fdbf39b65996f753da1ccb1266",
+      "bytes": 2292
+    },
+    {
+      "path": "packages/subagent/subagent-claude-code/src/index.ts",
+      "sha256": "153bf9029cca9f6c84430e9b9dbb805fa3293befb0d6fe68936a609cd7c075b0",
+      "bytes": 5459
+    },
+    {
+      "path": "packages/subagent/subagent-claude-code/src/process.ts",
+      "sha256": "cff37d31564cd9cd7b16bea4a2cbeac69edaf196ad7ee01739809a9f3d7f8e01",
+      "bytes": 5059
+    },
+    {
+      "path": "packages/subagent/subagent-claude-code/src/run.ts",
+      "sha256": "905e4ecbb31f802814d9bf00f8151d6223797c6a83414d28443821ab13487a5c",
+      "bytes": 18899
+    },
+    {
+      "path": "packages/subagent/subagent-claude-code/tests/messages-fixture.ts",
+      "sha256": "d3b7277a012692106f95a89fb36181490ab04b95d554fdf50c29a04c38e847c2",
+      "bytes": 6426
+    },
+    {
+      "path": "packages/subagent/subagent-claude-code/tests/real-product.spec.ts",
+      "sha256": "8fbd0cef07752277e863fbbd3bbf47a07bf60affedbbda418cac2bda466b3cf5",
+      "bytes": 20375
+    }
+  ],
+  "dependencyFiles": [
+    {
+      "path": "node_modules/.pnpm/@anthropic-ai+claude-agent-_d28c5258171e04b4bc6aca7166a6f5a1/node_modules/@anthropic-ai/claude-agent-sdk/package.json",
+      "sha256": "dda13abc4e1fc75c83c525e7f926ada50a0049055b5a0c74f277e0c1e5286d5e",
+      "bytes": 2380
+    },
+    {
+      "path": "node_modules/.pnpm/@anthropic-ai+claude-agent-_d28c5258171e04b4bc6aca7166a6f5a1/node_modules/@anthropic-ai/claude-agent-sdk-win32-x64/claude.exe",
+      "sha256": "0b35df94c1307004f07b738390bfef8dfca5e9af29aaf6517f305bf086b95b03",
+      "bytes": 218746016
+    }
+  ],
+  "helpers": [
+    {
+      "path": ".artifacts/capture-sdk-claude-review.mjs",
+      "sha256": "927abe8af73bd3c07f2e94e9bbc6f68b2291f7797cbf8453ac31b7f2ccddafd8",
+      "bytes": 3717
+    }
+  ],
+  "logs": [
+    {
+      "path": ".artifacts/sdk-wait-review.log",
+      "sha256": "1c2faf0b50894d97d99948a2bdb5642e0121bfe825b262a3df774e496aec4722",
+      "bytes": 953
+    },
+    {
+      "path": ".artifacts/claude-cli-review.log",
+      "sha256": "f6aed2f67362ffcfc7d851c6ee3b91c627577c9fce4e9c7dbb119404b17b6de7",
+      "bytes": 1806
+    }
+  ],
+  "historicalRecords": [
+    {
+      "path": "artifacts/upstream-first/codex-fixture-source.json",
+      "sha256": "cae4ba87b59734cd977cc1dfccbae1620a686831c47fbe51d3577a7cbc7613ff",
+      "bytes": 9115
+    }
+  ],
+  "dispositions": {
+    "sdk": "Keep the current no-system-prompt test and its request observation. The specific legacy change adds a five-second polling bound; current targeted execution passes without it. No claim about CI contention and no larger timeout imported.",
+    "claude": "Keep the current execution-lane hook budget. The legacy change hardcodes 60 seconds in afterEach, while current real CLI tests pass with the inherited budget. Current SDK 0.3.263/CLI 2.1.263 and Session projection remain; older dependency pins and architecture deletions are not imported."
+  },
+  "checks": [
+    {
+      "id": "sdk-wait-review",
+      "status": "PASS",
+      "tests": 1,
+      "filteredSkipped": 31,
+      "command": "pnpm exec vitest run packages/sdk/server/tests/server.spec.ts -t 'creates an SDK session without an optional system prompt'",
+      "log": ".artifacts/sdk-wait-review.log"
+    },
+    {
+      "id": "claude-cli-review",
+      "status": "PASS",
+      "tests": 8,
+      "command": "pnpm exec vitest run packages/subagent/subagent-claude-code/tests/real-product.spec.ts",
+      "log": ".artifacts/claude-cli-review.log"
+    }
+  ],
+  "limitations": [
+    "Windows x64 only; actual Claude CLI uses a local scripted Messages server, not an authenticated model provider",
+    "No source, timeout, dependency, cleanup strategy, permission mode, or host setting changed",
+    "Passing this run does not prove CI timing reliability or provide installer/macOS qualification"
+  ]
+}

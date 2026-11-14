@@ -1,0 +1,273 @@
+{
+  "schemaVersion": 1,
+  "baseSha": "c291e7961a515f6d7af9304e7fd1d257929aef26",
+  "capturedAt": "2026-09-15T16:53:13.638Z",
+  "scope": "LSP scripted-server cancellation and live-child stdin failure observations; test-only migration",
+  "productSourcesUnchangedFromUpstream": true,
+  "sourceFiles": [
+    {
+      "path": "packages/lsp/lsp-stdio/tests/fixture-server.ts",
+      "sha256": "0b9665ce6b3aeeaa12ed931d679eaec05bbda62487699eb30f301a8e712c1e3e",
+      "bytes": 8808
+    },
+    {
+      "path": "packages/lsp/lsp-stdio/tests/instance.spec.ts",
+      "sha256": "b2c56cc4dbf33fe3fb4c1bf1ffcec226230a198c0ed6582633b615c2c5379147",
+      "bytes": 21247
+    },
+    {
+      "path": "packages/lsp/lsp-stdio/tests/connection.spec.ts",
+      "sha256": "b90f6235df91dd7b75d1394ab95d1560ebd23db7c26a66f1b483e7378cc77417",
+      "bytes": 13845
+    },
+    {
+      "path": ".agents/notes/implemented/testing/2026-09-16-lsp-request-observation.md",
+      "sha256": "ecb9d64086606e848c4586c4c10424ea3959c1c0d0409bc745c3441047105a4a",
+      "bytes": 3168
+    },
+    {
+      "path": ".agents/notes/implemented/testing/2026-09-16-lsp-request-observation.zh.md",
+      "sha256": "8a30c81c063d581d819ac7c14add1b9d0da3856afe72320a53d874497ccae862",
+      "bytes": 2687
+    },
+    {
+      "path": ".agents/notes/implemented/testing/2026-09-16-lsp-request-observation.i18n.yaml",
+      "sha256": "c7ab32dad01a4a3831a1aa891d2164356242b91c6a584775d9eadfd34ec50f2c",
+      "bytes": 527
+    }
+  ],
+  "productSources": [
+    {
+      "path": "packages/lsp/lsp-stdio/src/abort.ts",
+      "sha256": "68753fc8ae1b82ea067ca0f070acf873a5d216c18ad2917e06e843c1e70ae92d",
+      "bytes": 2053
+    },
+    {
+      "path": "packages/lsp/lsp-stdio/src/connection.ts",
+      "sha256": "ebe55e1377409f03dfb863d4d0dd10826b847bfe08febb97082163f833251284",
+      "bytes": 13190
+    },
+    {
+      "path": "packages/lsp/lsp-stdio/src/framing.ts",
+      "sha256": "3963e0195fc8aa1e7825b7a1412ee76d82198d78647cf1cddeeb5f53057fd72a",
+      "bytes": 4359
+    },
+    {
+      "path": "packages/lsp/lsp-stdio/src/host.ts",
+      "sha256": "130d758b9105c685cd5263579e6f08e9c4dcf74c0817b3150e11956b709508b1",
+      "bytes": 4365
+    },
+    {
+      "path": "packages/lsp/lsp-stdio/src/index.ts",
+      "sha256": "686eb214ff5b774ef0b39ec17b70145b15f38feeeea250d2e2eddcab93797425",
+      "bytes": 17225
+    },
+    {
+      "path": "packages/lsp/lsp-stdio/src/instance.ts",
+      "sha256": "32fcf25c2a524d99a0618cda6270caa041c542b88310fb1f0312fdec8232c923",
+      "bytes": 16079
+    },
+    {
+      "path": "packages/lsp/lsp-stdio/src/protocol.ts",
+      "sha256": "1338551b466308bd61d2288b88d617361d5f3fa8808d94e4a41ce9db977144e0",
+      "bytes": 2922
+    },
+    {
+      "path": "packages/lsp/lsp-stdio/src/translate.ts",
+      "sha256": "21c5b5c3a75ba2cfd204f2d4f7c52c7c5e7444c25088c470f4362f4281a8086d",
+      "bytes": 10517
+    }
+  ],
+  "receipts": [
+    {
+      "path": "artifacts/upstream-first/lsp-concurrent.json",
+      "sha256": "fcaaead5a3b4ecf55255b01d9209358929833bef55e3527e76521fa99ce98a9e",
+      "bytes": 1322
+    },
+    {
+      "path": "artifacts/upstream-first/lsp-final-rejection-controls.json",
+      "sha256": "4637fde1b409c14148b22f1ac135387c0fbc2e57d2efc9ff19f8a286f0e227d0",
+      "bytes": 1387
+    },
+    {
+      "path": "artifacts/upstream-first/lsp-rejection-controls.json",
+      "sha256": "521edac0bb31f53ecc0f9ac74eae098668398b412f5f89697446fdc7bc07e14a",
+      "bytes": 1375
+    }
+  ],
+  "helpers": [
+    {
+      "path": ".artifacts/capture-lsp-observation.mjs",
+      "sha256": "cc748a35b0f5a44c7460ab7bf2a1f297807875487d6d86bc7fcc0bbc47fb073b",
+      "bytes": 4968
+    },
+    {
+      "path": ".artifacts/lsp-concurrent.mjs",
+      "sha256": "112b36145c3efbd3f568e9375a308fb076e5c7a1de2e0a2ca3479eab59eba034",
+      "bytes": 2450
+    },
+    {
+      "path": ".artifacts/lsp-final-rejection-controls.mjs",
+      "sha256": "8d7011ca1cdb5c176b088d909d4cfd19bac2e6daf557eea4fd3586f38f165ab2",
+      "bytes": 2426
+    },
+    {
+      "path": ".artifacts/lsp-rejection-controls.mjs",
+      "sha256": "9cb7c46c7043a773321bf698ccae6f7b25e5cdfa515b39bc3312c95a3d2c6fb3",
+      "bytes": 2414
+    }
+  ],
+  "logs": [
+    {
+      "path": ".artifacts/lsp-tests-before.log",
+      "sha256": "673bdfd545c526f30be2f99c9187be0bbbb219115366acb3eff66b882780a0a6",
+      "bytes": 943
+    },
+    {
+      "path": ".artifacts/lsp-tests-after.log",
+      "sha256": "8cb50243c04d03c90da867fdd56202e823f7caa0a8dc69db27d8c43afe6bc078",
+      "bytes": 943
+    },
+    {
+      "path": ".artifacts/lsp-control-fixed-wait.log",
+      "sha256": "01b1182e056614aab4364839515a567613dd45b9a06a3bf85b838877e690c4e7",
+      "bytes": 2018
+    },
+    {
+      "path": ".artifacts/lsp-control-stdin-event.log",
+      "sha256": "4f18b4d0302fef3614c078567bf89eec980aa707fe734258b1c6bfb47f7754a2",
+      "bytes": 1891
+    },
+    {
+      "path": ".artifacts/lsp-concurrent-full.log",
+      "sha256": "4fa66858cfe4eb133994d9b5e4862b0f585cb9e1c461f82ca4d0b192bb66e8b2",
+      "bytes": 931
+    },
+    {
+      "path": ".artifacts/lsp-concurrent-focused.log",
+      "sha256": "5eae27e872a0c0e1b6e35155eab9d311bbc98507cc8e3f7fe732f1028b005754",
+      "bytes": 941
+    },
+    {
+      "path": ".artifacts/lsp-concurrent-final-full.log",
+      "sha256": "626333fb6b86d8b4c40bf07b8efe9d65139093de670d41c31aa84a4dd9a0350d",
+      "bytes": 1407
+    },
+    {
+      "path": ".artifacts/lsp-concurrent-final-focused.log",
+      "sha256": "c0b372183da75a18a93062a69632795ce22ea98dbb2efa434141caedc693d999",
+      "bytes": 2603
+    },
+    {
+      "path": ".artifacts/lsp-concurrent-final-host-full.log",
+      "sha256": "ca662a9384922db0ed8889125f3c08f951cb7bb3e44c8d9f6a30025cdf469f70",
+      "bytes": 931
+    },
+    {
+      "path": ".artifacts/lsp-concurrent-final-host-focused.log",
+      "sha256": "962656501585fefdec98a127ff83d46d047f5f22a1cee7a828566fdef108b317",
+      "bytes": 941
+    },
+    {
+      "path": ".artifacts/lsp-final-control-fixed-wait.log",
+      "sha256": "293423330b57dc515d901c51d637a47e9aa76c2e81495fb86a33a19fbc8008e5",
+      "bytes": 2018
+    },
+    {
+      "path": ".artifacts/lsp-final-control-stdin-event.log",
+      "sha256": "07be888ca421b92977e9d000fcb8c5b0fd64e4b1be250d8aa6ff784d84587719",
+      "bytes": 1891
+    },
+    {
+      "path": ".artifacts/lsp-pairing-sandbox.log",
+      "sha256": "0730f161af53a617fdbd595fabc8851402b73c40b6a2c36633922a253d88e228",
+      "bytes": 1033
+    },
+    {
+      "path": ".artifacts/lsp-pairing.log",
+      "sha256": "870eced51694ec79df2ab73e75c6287a730317a471a5d6863a3f586ae9eee072",
+      "bytes": 333
+    },
+    {
+      "path": ".artifacts/lsp-focused-lint-final.log",
+      "sha256": "e3b0c44298fc1c149afbf4c8996fb92427ae41e4649b934ca495991b7852b855",
+      "bytes": 0
+    },
+    {
+      "path": ".artifacts/lsp-doc-sync.log",
+      "sha256": "4417ef5304d3cef79d4ddec7e7aeb2b836e20481a93653fb7a7c8f5b42516ef7",
+      "bytes": 2948
+    },
+    {
+      "path": ".artifacts/lsp-full-lint.log",
+      "sha256": "4ff89f87d8ebc62934944bc257bbc1e93faa3c3cda652fb6e55a67c202a6233f",
+      "bytes": 31
+    }
+  ],
+  "historicalRecords": [
+    {
+      "path": "artifacts/upstream-first/fixture-observation-source.json",
+      "sha256": "5fe3c169b2b06aac89cb7370d7e0bd7cabe8f07a1e774d067db27e134b51c25c",
+      "bytes": 9216
+    },
+    {
+      "path": "artifacts/upstream-first/profile-composition-source.json",
+      "sha256": "59f4ca5851df8b759b11eda44275b09c6f2baf9bd8efb55d218208a53d7e1e87",
+      "bytes": 11375
+    }
+  ],
+  "checks": [
+    {
+      "id": "lsp-observation-source-tests",
+      "status": "PASS",
+      "tests": 46,
+      "files": 2,
+      "command": "node .artifacts/lsp-concurrent.mjs",
+      "log": ".artifacts/lsp-concurrent-final-host-full.log"
+    },
+    {
+      "id": "lsp-observation-concurrent",
+      "status": "PASS",
+      "tests": 6,
+      "filteredSkipped": 40,
+      "overlapped": true,
+      "command": "node .artifacts/lsp-concurrent.mjs",
+      "receipt": "artifacts/upstream-first/lsp-concurrent.json"
+    },
+    {
+      "id": "lsp-observation-controls",
+      "status": "PASS",
+      "rejected": 2,
+      "command": "node .artifacts/lsp-final-rejection-controls.mjs",
+      "receipt": "artifacts/upstream-first/lsp-final-rejection-controls.json"
+    },
+    {
+      "id": "lsp-observation-doc-sync",
+      "status": "PASS",
+      "passed": 34,
+      "failed": 0,
+      "command": "pnpm run doc-sync",
+      "log": ".artifacts/lsp-doc-sync.log"
+    },
+    {
+      "id": "lsp-observation-full-lint",
+      "status": "PASS",
+      "command": "pnpm run lint:contracts-ready",
+      "log": ".artifacts/lsp-full-lint.log"
+    }
+  ],
+  "historicalAttempts": [
+    {
+      "status": "FAIL",
+      "detail": "Earlier concurrent test processes passed 46 and 7 cases, but the helper expected 6 focused cases. Its broad filter also selected shutdown escalation; narrowed to the intended cancellation case. Earlier logs retained."
+    },
+    {
+      "status": "FAIL",
+      "detail": "Final-source sandbox concurrent run timed out in the live-child stdin case and cleanup. Full lane did not settle; the verified wrapper PID 23816 and descendants were terminated on the host. Pairing independently failed with uv_os_get_passwd ENOMEM. Same test command passed on host without timeout or product changes; sandbox timeout root cause not separately established."
+    }
+  ],
+  "exclusions": [
+    "No installed language-server, external CLI, real-model, packaging, renderer, or other-platform qualification",
+    "No changes to LSP product sources, timeouts, session output, CI scheduling, or historical evidence"
+  ]
+}

@@ -18,8 +18,14 @@
   en: d382227271bf92ae
   zh: 1f66b181418c91b9
 /deepseek-ai-dsh-tools/use-this-package/register-a-tool:
-  en: 1808e2a95ee21584
-  zh: 40c40da7d1418407
+  en: 54f3f7e9da072cb4
+  zh: c3f6bc3d183c24f5
+/deepseek-ai-dsh-tools/use-this-package/lite-tool-schemas-projection:
+  en: cc4c206f07989a49
+  zh: 49db6b593850dd30
+/deepseek-ai-dsh-tools/use-this-package/configure-the-presentation-mode:
+  en: 9997fe7cdb1d7ace
+  zh: f0e5273243f1f7b1
 /deepseek-ai-dsh-tools/use-this-package/conditional-tools:
   en: eb80334754c2493a
   zh: b431635ec1f4664f
@@ -39,11 +45,11 @@
   en: ce7e776e9d516bdb
   zh: 59d2751743db7795
 /deepseek-ai-dsh-tools/understand-the-implementation/design-concept:
-  en: 516a6195a21e742b
-  zh: 33c7b99b42c5acac
+  en: 60b72dc25e16f328
+  zh: 2498ed8d400232e4
 /deepseek-ai-dsh-tools/understand-the-implementation/source-map:
-  en: 2dee0a37e0c1fa38
-  zh: 0963cba32685612e
+  en: a9300d8fa9094dc5
+  zh: 7522eac7bb426142
 /deepseek-ai-dsh-tools/understand-the-implementation/execution-and-cancellation:
   en: 5f289c5a05345776
   zh: c2b488e03fa38deb

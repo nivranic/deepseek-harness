@@ -26,6 +26,7 @@ import SubagentRuntime, {
 } from '@deepseek-ai/dsh-subagent'
 import { Session, type SessionId, type SessionEvent } from '@deepseek-ai/dsh-session'
 import SessionProjectionRegistry from '@deepseek-ai/dsh-session-projection'
+import { remoteMethods } from '@deepseek-ai/dsh-typert-protocol'
 
 function fakeParent(id = 'parent-1'): Agent {
   return { id: brandString<SessionId>(id) } as Agent
@@ -105,6 +106,16 @@ async function start(subagents: SubagentRuntime, provider: string, request: Suba
 }
 
 describe('SubagentRuntime', () => {
+  it('advertises only exported controls and keeps provider listing Host-local', async () => {
+    const { subagents } = await service(false)
+    const methods = new Set(remoteMethods(subagents).map(method => method.method))
+    expect(methods.has('list')).toBe(false)
+    expect(subagents.typertRemote.capabilities).toHaveLength(3)
+    for (const capability of subagents.typertRemote.capabilities ?? []) {
+      for (const method of capability.methods) expect(methods.has(method), `${capability.id}: ${method}`).toBe(true)
+    }
+  })
+
   it('resolves Activation roots only for exact live child and root instances', async () => {
     const { ctx, subagents } = await service()
     const root = await ctx.agents.create({ sessionId: brandString<SessionId>('lineage-root') })

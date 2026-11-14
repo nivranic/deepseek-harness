@@ -1,0 +1,16 @@
+{
+  "status": "PASS",
+  "controls": 3,
+  "sourceRecord": {
+    "path": "artifacts/upstream-first/directory-capabilities-source.json",
+    "sha256": "cebc79a026d42bd9989f7ddccbbbb685b37b6515d7825aa162ce8ef9d75e2083"
+  },
+  "generator": {
+    "path": "artifacts/upstream-first/write-reports.mjs",
+    "sha256": "fca2c31643c973cdec92f51ea6edec713d9a7689d6c5d324597e890095af742a"
+  },
+  "helper": {
+    "path": ".artifacts/check-directory-capabilities-binding.mjs",
+    "sha256": "145701da704e5a7b04ad1dcd731490f7a4bc8286e34cb76560faaaca9301a94b"
+  }
+}

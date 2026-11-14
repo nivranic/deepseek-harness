@@ -1,0 +1,130 @@
+{
+  "schemaVersion": 1,
+  "status": "PASS",
+  "scope": "Windows development Desktop legacy settings import with native dialogs",
+  "startedAt": "2026-09-14T22:12:17.461Z",
+  "source": "E:\\Mix\\project\\deepseek-harness\\.worktrees\\upstream-first\\.artifacts\\desktop-import-fixture.yaml",
+  "sourceSha256": "9bbfff102d98cceb1a40d5b568edf33a2c1e6adcb3435892ac6715612df2b8ec",
+  "initial": {
+    "pid": 54024,
+    "packaged": false,
+    "menu": [
+      {
+        "id": "desktop-close-to-tray",
+        "label": "关闭窗口时隐藏到托盘",
+        "checked": false,
+        "enabled": true
+      },
+      {
+        "id": "desktop-launch-at-login",
+        "label": "登录系统时启动（仅打包应用可用）",
+        "checked": false,
+        "enabled": false
+      },
+      {
+        "id": "desktop-import-legacy-settings",
+        "label": "导入旧版桌面设置…",
+        "checked": false,
+        "enabled": true
+      }
+    ],
+    "windows": [
+      {
+        "id": 1,
+        "visible": true,
+        "url": "dsh-app://app/index.html"
+      }
+    ]
+  },
+  "osLoginRegistrationWritten": false,
+  "realModelTested": false,
+  "after": {
+    "pid": 54024,
+    "packaged": false,
+    "menu": [
+      {
+        "id": "desktop-close-to-tray",
+        "label": "关闭窗口时隐藏到托盘",
+        "checked": true,
+        "enabled": true
+      },
+      {
+        "id": "desktop-launch-at-login",
+        "label": "登录系统时启动（仅打包应用可用）",
+        "checked": false,
+        "enabled": false
+      },
+      {
+        "id": "desktop-import-legacy-settings",
+        "label": "导入旧版桌面设置…",
+        "checked": false,
+        "enabled": true
+      }
+    ],
+    "windows": [
+      {
+        "id": 1,
+        "visible": true,
+        "url": "dsh-app://app/index.html"
+      }
+    ]
+  },
+  "sourceUnchanged": true,
+  "preferences": {
+    "schemaVersion": 1,
+    "closeToTray": true
+  },
+  "trays": [
+    {
+      "destroyed": false,
+      "bounds": {
+        "x": 1300,
+        "y": 1019,
+        "width": 32,
+        "height": 49
+      }
+    }
+  ],
+  "host": {
+    "pid": 57400,
+    "node": "22.22.1",
+    "electron": null
+  },
+  "hidden": [
+    {
+      "id": 1,
+      "visible": false
+    }
+  ],
+  "undo": {
+    "schemaVersion": 1,
+    "closeToTray": false
+  },
+  "afterUndoTrays": [],
+  "restored": [
+    {
+      "id": 1,
+      "visible": true
+    }
+  ],
+  "cancel": {
+    "status": "PASS",
+    "sourceUnchanged": true,
+    "preferenceRetained": true
+  },
+  "shutdown": {
+    "launcherExitCode": 0,
+    "forced": false,
+    "shellExited": true,
+    "hostExited": true
+  },
+  "finishedAt": "2026-09-14T22:21:02.240Z",
+  "builtMainSha256": "bacd4b038cc07692382679821bd50a16ff1c65ef7a8187a5695dc01084d2af2a",
+  "interaction": "Supported start:desktop launcher; MenuItem callbacks via main inspector, real Windows file selection and confirmation via UI Automation; activation event restores hidden window.",
+  "limitations": [
+    "Windows development application only; no signed installer or macOS run",
+    "OS login menu disabled; no registration change or real model",
+    "Native controls automated, not physical mouse input",
+    "Renderer logged a control-stream network error during application shutdown"
+  ]
+}

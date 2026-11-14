@@ -1,0 +1,16 @@
+{
+  "_comment": "Same-schema sample of packages/core/tools/lite-tool-schemas.json (the lane-A generator's projection); rerun that generator to refresh the real projection this sample mirrors. Schema text is synthetic placeholder markers — Lite owns no tool-schema prose (§32).",
+  "tools": [
+    {
+      "name": "sample_web_search",
+      "description": "sample-description-web-search",
+      "parameters": { "type": "object", "properties": { "query": { "type": "string" } }, "required": ["query"] },
+      "futureField": { "note": "tolerated" }
+    },
+    {
+      "name": "sample_url_fetch",
+      "description": "sample-description-url-fetch",
+      "parameters": { "type": "object", "properties": { "url": { "type": "string" } } }
+    }
+  ]
+}

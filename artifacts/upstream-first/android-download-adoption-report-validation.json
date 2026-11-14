@@ -1,0 +1,70 @@
+{
+  "status": "PASS",
+  "scope": "Report bindings and audit for Android persistent download adoption and bounded disk export; the remaining specification sections stay open; full Upstream-First objective remains in progress",
+  "gate0": {
+    "validation": "PASS",
+    "gate0": "PASS",
+    "paths": 1938,
+    "components": 129,
+    "specificationCoverage": {
+      "status": "PASS",
+      "numberedSections": 81,
+      "nonEmptySourceLines": 1983,
+      "acceptanceProven": false
+    }
+  },
+  "sourceRecord": {
+    "path": "artifacts/upstream-first/android-download-adoption-source.json",
+    "sha256": "f9cee5ccd220afcf95b509d306d3894450ac4c4c0d102888936daa997fa38c46"
+  },
+  "generator": {
+    "path": "artifacts/upstream-first/write-reports.mjs",
+    "sha256": "004e5b87f7fe1d8adbb95cf3bdc9ff6bf2de2e867cf67a6625a32ac44088e03b"
+  },
+  "binding": {
+    "path": "artifacts/upstream-first/android-download-adoption-binding.json",
+    "sha256": "235da4818358cb99e5635c36832a74e78d5c5d745dbcade28ca9f0a77cc88af0"
+  },
+  "helpers": [
+    {
+      "path": ".artifacts/advance-android-download-adoption-reports.mjs",
+      "sha256": "49032d8ae39b0fb1c196744ce92a1cf0959414634324a13c46b548f5e1170f2c"
+    },
+    {
+      "path": ".artifacts/capture-android-download-adoption-validation.mjs",
+      "sha256": "af7d57db04955b08dbb77f6281889eada8a6ad67ab19c754ffa487a7932298b1"
+    }
+  ],
+  "reports": [
+    {
+      "path": "IMPLEMENTATION_STATUS.md",
+      "sha256": "956d98d7638fe9ea2b718c29cb7e1e658229c4cfa2d6823ea3c5a34e811b6672"
+    },
+    {
+      "path": "artifacts/upstream-first/evidence.json",
+      "sha256": "8240bf416db08071b01be00846b4c23559067683525612c50c50c8374fc9fc08"
+    }
+  ],
+  "checks": [
+    {
+      "path": ".artifacts/android-download-adoption-binding.log",
+      "sha256": "59fdab492b602a7bb09f6697b9c051fe76b7c4bfb5f162def1890057fb2a5e64"
+    },
+    {
+      "path": ".artifacts/android-download-adoption-audit-tests.log",
+      "sha256": "3caaff4e834cf1d74410f3d109e400919a6ba28607fcc57b911ab1cfe86adf53"
+    },
+    {
+      "path": ".artifacts/android-download-adoption-gate0-report.log",
+      "sha256": "505d74ef938f5d34d85490d37e0176ba804d93272fcf465ce2544a02c56b3f90"
+    },
+    {
+      "path": ".artifacts/android-download-adoption-report-diff-check.log",
+      "sha256": "e3b0c44298fc1c149afbf4c8996fb92427ae41e4649b934ca495991b7852b855"
+    },
+    {
+      "path": ".artifacts/android-download-adoption-report-generation.log",
+      "sha256": "5867d1d51cd43a59428de2e7fffa15847d7153b11f3b61ecf812224ee2dd2099"
+    }
+  ]
+}

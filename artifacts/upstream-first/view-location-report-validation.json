@@ -1,0 +1,70 @@
+{
+  "status": "PASS",
+  "scope": "Report bindings and audit for the View-location handoff; the remaining specification sections stay open; full Upstream-First objective remains in progress",
+  "gate0": {
+    "validation": "PASS",
+    "gate0": "PASS",
+    "paths": 1938,
+    "components": 129,
+    "specificationCoverage": {
+      "status": "PASS",
+      "numberedSections": 81,
+      "nonEmptySourceLines": 1983,
+      "acceptanceProven": false
+    }
+  },
+  "sourceRecord": {
+    "path": "artifacts/upstream-first/view-location-source.json",
+    "sha256": "5eb55a9aa9d47203c17d2efd5f8171cfb62fe0acc785bc8daf3e1aa5b610895c"
+  },
+  "generator": {
+    "path": "artifacts/upstream-first/write-reports.mjs",
+    "sha256": "1ce12762edd2ce41db2c73e7ec9263715f4a2cc9c7f2bb51233e98e4303e0b77"
+  },
+  "binding": {
+    "path": "artifacts/upstream-first/view-location-binding.json",
+    "sha256": "370f7390f2c1b0e6a7d11b4fff747c1f573c3326047d5a8959ec47186a15106e"
+  },
+  "helpers": [
+    {
+      "path": ".artifacts/advance-view-location-reports.mjs",
+      "sha256": "b50abe0d00801aa716fc9ae2e38779e1c8b5861ea76991b4d39f2661a5bc10ed"
+    },
+    {
+      "path": ".artifacts/capture-view-location-validation.mjs",
+      "sha256": "0d10356aebe35c904ef0130727cee594c808a26af5544bde9ab72827d896f212"
+    }
+  ],
+  "reports": [
+    {
+      "path": "IMPLEMENTATION_STATUS.md",
+      "sha256": "2d01f127c3b1501f4dcf1e20c8692600412da17ef952edd74e39a6475e24cbb1"
+    },
+    {
+      "path": "artifacts/upstream-first/evidence.json",
+      "sha256": "c707ad57ee5dad526cde7d28551a256bb94f2575b70aef4a96f08882f21c88b8"
+    }
+  ],
+  "checks": [
+    {
+      "path": ".artifacts/view-location-binding.log",
+      "sha256": "5eda445f42150db2e6995442f3abee69b7d4ea55e37aad3e7309adfeb962b20e"
+    },
+    {
+      "path": ".artifacts/view-location-audit-tests.log",
+      "sha256": "4db59d07c63da2a78996332be0a2ee8e498fe0afabefcacf760ba131edf9859d"
+    },
+    {
+      "path": ".artifacts/view-location-gate0.log",
+      "sha256": "505d74ef938f5d34d85490d37e0176ba804d93272fcf465ce2544a02c56b3f90"
+    },
+    {
+      "path": ".artifacts/view-location-report-diff-check.log",
+      "sha256": "e3b0c44298fc1c149afbf4c8996fb92427ae41e4649b934ca495991b7852b855"
+    },
+    {
+      "path": ".artifacts/view-location-report-generation.log",
+      "sha256": "32bce446ec607e1c4f1b4c87b0b5f972ef988447cd2eba022bdcefd0e105d936"
+    }
+  ]
+}

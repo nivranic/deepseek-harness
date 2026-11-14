@@ -8,7 +8,7 @@
  */
 
 import type { SessionSeq } from '@deepseek-ai/dsh-session/types'
-import type { CommandDefinitionId, CommandId } from './brand.ts'
+import type { CommandDefinitionId, CommandId, CommandMutationId } from './brand.ts'
 import type { EncodedImageAttachment } from '@deepseek-ai/dsh-attachment/types'
 
 /** One browser-submitted command attachment: encoded image input or a staged file receipt. */
@@ -53,6 +53,33 @@ export interface CommandExecution {
   readonly result: CommandResult
 }
 
+/**
+ * One command submission addressed to the executor: the line to parse plus
+ * everything the dispatching UI carries alongside it.
+ */
+export interface CommandExecutionRequest {
+  /** Complete slash-command line, leading slash included. */
+  readonly line: string
+  /**
+   * Encoded images and staged file receipts accompanying the line, in
+   * submission order; empty for a plain invocation.
+   */
+  readonly submittedAttachments: readonly CommandSubmitAttachment[]
+  /**
+   * Client-minted opaque retry identity. When carried, a resend whose id has
+   * a settled `command/done` receipt in this session's log returns that
+   * execution's {@link CommandExecution} — reconstructed from the log —
+   * without re-running the handler.
+   */
+  readonly clientMutationId?: CommandMutationId
+}
+
+/**
+ * Host-assessed risk tier of one command (specification §37): the Host
+ * command layer owns the classification; clients only display it.
+ */
+export type CommandRisk = 'low' | 'moderate' | 'high' | 'critical'
+
 /** Handler-free immutable command view returned to UI adapters. */
 export interface CommandDescriptor {
   /** Stable plugin-owned identity; absent for definitions without identity-based client behavior. */
@@ -61,6 +88,8 @@ export interface CommandDescriptor {
   readonly name: string
   /** Human-readable summary used in discovery UI. */
   readonly description: string
+  /** Host-assessed risk tier shown by capable clients beside the description. */
+  readonly risk?: CommandRisk
   /** Optional free-form input hint advertised to capable clients. */
   readonly input?: CommandInputDescriptor
 }
@@ -101,19 +130,33 @@ declare module '@deepseek-ai/dsh-session/types' {
      * folding its own command records, a rich command card) never re-parses
      * a line. `args` is absent when the definition sets `recordInput: false`
      * because an authoritative domain event owns the input payload.
+     * `clientMutationId` carries the submission's retry identity as an audit
+     * trail of which client intent produced this run.
      */
-    'command/run': { commandId: CommandId; name: string; args?: string; source: CommandSource }
+    'command/run': {
+      commandId: CommandId
+      name: string
+      args?: string
+      source: CommandSource
+      clientMutationId?: CommandMutationId
+    }
     /**
      * The paired command settled. `kind`/`text` carry the handler's verbatim
      * outcome (a thrown/aborted handler settles as `kind: 'error'` with the
      * rendered failure). A successful command may identify the earlier
      * authoritative domain event for a richer client-computed presentation.
+     * `clientMutationId` is present exactly when the settled execution came
+     * from an id-carrying submission: it is the durable receipt marker, and
+     * the command registry's receipt projection replays a resend of that id
+     * from the logged settlement without re-running the handler. A thrown
+     * settlement writes no id, so its resends re-run.
      */
     'command/done': {
       commandId: CommandId
       kind: 'success' | 'error'
       text?: string
       sourceEventSeq?: import('@deepseek-ai/dsh-session/types').SessionSeq
+      clientMutationId?: CommandMutationId
     }
   }
 }

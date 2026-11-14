@@ -1,0 +1,22 @@
+# Bilingual-pair consistency record for 2026-09-20-jobs-failure-class-threading.md (docs/i18n/README.md): per heading
+# section, a hash of its English and Chinese blocks outside code blocks and generated regions.
+# After editing either side, bring the other along and re-record with:
+#   pnpm run verify-translation-pairing --write .agents/notes/implemented/feature/2026-09-20-jobs-failure-class-threading.md
+/agent-note-job-failures-carry-the-shared-remote-failure-class-to-the-client:
+  en: f8eef8325f2f75c3
+  zh: d6384ffb2060528a
+/agent-note-job-failures-carry-the-shared-remote-failure-class-to-the-client/problem:
+  en: dddd692cfd93e64c
+  zh: a15978e21368158b
+/agent-note-job-failures-carry-the-shared-remote-failure-class-to-the-client/current-upstream-boundary:
+  en: f1fc92d197ac2415
+  zh: 7c4579b06b64dcde
+/agent-note-job-failures-carry-the-shared-remote-failure-class-to-the-client/decision:
+  en: 385628b7f06f2094
+  zh: cddcced6f9a951e2
+/agent-note-job-failures-carry-the-shared-remote-failure-class-to-the-client/alternatives-considered:
+  en: 8931c918012bf1ae
+  zh: ee90b1e1ddaf09df
+/agent-note-job-failures-carry-the-shared-remote-failure-class-to-the-client/consequences:
+  en: ceabb0a1b13655f7
+  zh: 9004b1a7af5df2f8

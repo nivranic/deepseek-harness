@@ -1,0 +1,64 @@
+{
+  "status": "PASS",
+  "scope": "Report bindings and audit for Delayed Host readiness, same-generation recovery and automatic replacement; full Upstream-First objective remains in progress",
+  "gate0": {
+    "validation": "PASS",
+    "gate0": "PASS",
+    "paths": 1938,
+    "components": 129
+  },
+  "sourceRecord": {
+    "path": "artifacts/upstream-first/host-readiness-source.json",
+    "sha256": "58dc1af5d85e27a262822c70797899d7f6f15fb41b16b027dd9674fd5ab762f5"
+  },
+  "generator": {
+    "path": "artifacts/upstream-first/write-reports.mjs",
+    "sha256": "386ba8abf2da2bedd4260fd5c6d43c7e4efcc8656aca6d75227913bc04b35921"
+  },
+  "binding": {
+    "path": "artifacts/upstream-first/host-readiness-binding.json",
+    "sha256": "c8e03e2ced4d522a096b2b09b0edd985c6e21f198acbb55000a645531cc5d194"
+  },
+  "helpers": [
+    {
+      "path": ".artifacts/advance-host-readiness-reports.mjs",
+      "sha256": "04f0d485cb8c79a6cead79af97d823debc9f069b8ccea060c560c9caa8bad864"
+    },
+    {
+      "path": ".artifacts/capture-host-readiness-validation.mjs",
+      "sha256": "65609c5b74305b58639ad94afeef75bfa2610bad55f53097c027c2363c4fc00f"
+    }
+  ],
+  "reports": [
+    {
+      "path": "IMPLEMENTATION_STATUS.md",
+      "sha256": "ccdf0d69b9e048f5db26ba74df943ce601b0313ff4f80b0601e3d42e523f1d07"
+    },
+    {
+      "path": "artifacts/upstream-first/evidence.json",
+      "sha256": "e53e01666b767ac82fc246c7977f1aa05e234b0c5a20bd4f49061039bc033f1e"
+    }
+  ],
+  "checks": [
+    {
+      "path": ".artifacts/host-readiness-binding.log",
+      "sha256": "867ab8f99f8f95d880abafedf684cc681ccf38e56f6c8b06eb4ca2431c628b3e"
+    },
+    {
+      "path": ".artifacts/host-readiness-audit-tests.log",
+      "sha256": "4580bb5a1ffe66eeced8bc1a9e1a10ff7b3fa7884cc5197acb0bf6df7753b675"
+    },
+    {
+      "path": ".artifacts/host-readiness-gate0.log",
+      "sha256": "4b5af3121a7e7caff0e1b6288bdaa7cfef9988842ae06bf02dc0a74852426043"
+    },
+    {
+      "path": ".artifacts/host-readiness-report-diff-check.log",
+      "sha256": "e3b0c44298fc1c149afbf4c8996fb92427ae41e4649b934ca495991b7852b855"
+    },
+    {
+      "path": ".artifacts/host-readiness-report-generation.log",
+      "sha256": "5867d1d51cd43a59428de2e7fffa15847d7153b11f3b61ecf812224ee2dd2099"
+    }
+  ]
+}

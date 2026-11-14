@@ -1,0 +1,22 @@
+# Bilingual-pair consistency record for 2026-09-30-apple-roster-contract.md (docs/i18n/README.md): per heading
+# section, a hash of its English and Chinese blocks outside code blocks and generated regions.
+# After editing either side, bring the other along and re-record with:
+#   pnpm run verify-translation-pairing --write .agents/notes/implemented/architecture/2026-09-30-apple-roster-contract.md
+/agent-note-the-apple-contract-adopts-the-section-28-native-host-roster-vocabulary:
+  en: 5efa9fb520e7873a
+  zh: e408a6780ef10285
+/agent-note-the-apple-contract-adopts-the-section-28-native-host-roster-vocabulary/problem:
+  en: 3e2960541a9c50fd
+  zh: e3d583c81b4f1e97
+/agent-note-the-apple-contract-adopts-the-section-28-native-host-roster-vocabulary/decision:
+  en: 732641c0b398139f
+  zh: 65ad4d5a00f044ba
+/agent-note-the-apple-contract-adopts-the-section-28-native-host-roster-vocabulary/alternatives-considered:
+  en: 6aae209f5bbb89a2
+  zh: 7df447f51bc954ed
+/agent-note-the-apple-contract-adopts-the-section-28-native-host-roster-vocabulary/consequences:
+  en: 81bd19ab9e2f49d9
+  zh: 8fe55ee5884701e8
+/agent-note-the-apple-contract-adopts-the-section-28-native-host-roster-vocabulary/open-work:
+  en: ae1be79c2214a539
+  zh: 4da49e26e75b673a

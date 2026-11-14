@@ -1,0 +1,16 @@
+{
+  "status": "PASS",
+  "controls": 3,
+  "sourceRecord": {
+    "path": "artifacts/upstream-first/lite-persona-source.json",
+    "sha256": "f8eaa962b5cff856db6b3d3a88cbf161006d136b677ad4697094188f20d3ba9c"
+  },
+  "generator": {
+    "path": "artifacts/upstream-first/write-reports.mjs",
+    "sha256": "61a17a619495d15c0be7fee1cd63d9a63ef66551250115a54e648982547aba2e"
+  },
+  "helper": {
+    "path": ".artifacts/check-lite-persona-binding.mjs",
+    "sha256": "f70a48e9969ba2dbe2f8bcc90927ef8888118d2c72dd50c886fbe718fe173641"
+  }
+}

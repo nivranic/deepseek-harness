@@ -1,0 +1,70 @@
+{
+  "status": "PASS",
+  "scope": "Report bindings and audit for the Roster switch and stream adoption; the remaining specification sections stay open; full Upstream-First objective remains in progress",
+  "gate0": {
+    "validation": "PASS",
+    "gate0": "PASS",
+    "paths": 1938,
+    "components": 129,
+    "specificationCoverage": {
+      "status": "PASS",
+      "numberedSections": 81,
+      "nonEmptySourceLines": 1983,
+      "acceptanceProven": false
+    }
+  },
+  "sourceRecord": {
+    "path": "artifacts/upstream-first/roster-switch-source.json",
+    "sha256": "b55da02be58d2b2b2525deb040c27c178f7a1cfcaf23bac415ae4d6273cf6897"
+  },
+  "generator": {
+    "path": "artifacts/upstream-first/write-reports.mjs",
+    "sha256": "143c2bd85734ea3beca9cdeeacd004e356f21605ad6892ce3a18a1e02838b2b4"
+  },
+  "binding": {
+    "path": "artifacts/upstream-first/roster-switch-binding.json",
+    "sha256": "80caebd38d224fe97b8860cbae4d32cdd80be06934c41b0742f6ad8fb72dc1a0"
+  },
+  "helpers": [
+    {
+      "path": ".artifacts/advance-roster-switch-reports.mjs",
+      "sha256": "f3e4e55a0b7d8bc61b4ad0829ee5fd98dc47c7fc31fdace80606088fb32b4c2a"
+    },
+    {
+      "path": ".artifacts/capture-roster-switch-validation.mjs",
+      "sha256": "db3846ddb0f78364e97b6aee63d1bc8685dca2968fa90a1b54b3fc6d8f9ec5dc"
+    }
+  ],
+  "reports": [
+    {
+      "path": "IMPLEMENTATION_STATUS.md",
+      "sha256": "4fffcc668c76be6c2f6b2a541a49399b755c151dceb04b6133958d420c9f8f82"
+    },
+    {
+      "path": "artifacts/upstream-first/evidence.json",
+      "sha256": "c76f6aab7de4ff032be6ac429d4ea8f50a2818835ca2ea2a4b6a00fe9f4a5b23"
+    }
+  ],
+  "checks": [
+    {
+      "path": ".artifacts/roster-switch-binding.log",
+      "sha256": "c4eede6c78455535b42972b35b7cf5545d489f42d6c26790378e77732378754d"
+    },
+    {
+      "path": ".artifacts/roster-switch-audit-tests.log",
+      "sha256": "30d4f9795b173788c0e4cdbf808cfa01d151f91cc7b0be3121bddc6d5a74c2b2"
+    },
+    {
+      "path": ".artifacts/roster-switch-gate0.log",
+      "sha256": "505d74ef938f5d34d85490d37e0176ba804d93272fcf465ce2544a02c56b3f90"
+    },
+    {
+      "path": ".artifacts/roster-switch-report-diff-check.log",
+      "sha256": "e3b0c44298fc1c149afbf4c8996fb92427ae41e4649b934ca495991b7852b855"
+    },
+    {
+      "path": ".artifacts/roster-switch-report-generation.log",
+      "sha256": "304142619dca56563615e738a3fe21961ef9d5f37153092c05036c5ec94afca9"
+    }
+  ]
+}

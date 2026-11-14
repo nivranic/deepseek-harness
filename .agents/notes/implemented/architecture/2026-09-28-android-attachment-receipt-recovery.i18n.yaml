@@ -1,0 +1,22 @@
+# Bilingual-pair consistency record for 2026-09-28-android-attachment-receipt-recovery.md (docs/i18n/README.md): per heading
+# section, a hash of its English and Chinese blocks outside code blocks and generated regions.
+# After editing either side, bring the other along and re-record with:
+#   pnpm run verify-translation-pairing --write .agents/notes/implemented/architecture/2026-09-28-android-attachment-receipt-recovery.md
+/agent-note-android-attachment-receipt-recovery-preserves-explicit-prompt-intent:
+  en: d8f6922db24f76ec
+  zh: eee3c7dd6b953ab7
+/agent-note-android-attachment-receipt-recovery-preserves-explicit-prompt-intent/problem:
+  en: 22f0e6a6e30f23d9
+  zh: 80ba4637f08a695d
+/agent-note-android-attachment-receipt-recovery-preserves-explicit-prompt-intent/decision:
+  en: 2a0c66d0c8afabe7
+  zh: 7e41ac348baa73b4
+/agent-note-android-attachment-receipt-recovery-preserves-explicit-prompt-intent/pending-sends-and-newer-drafts:
+  en: 122389a4704fdffa
+  zh: b12113547a7141ff
+/agent-note-android-attachment-receipt-recovery-preserves-explicit-prompt-intent/alternatives-considered:
+  en: bc5a7142d66aec96
+  zh: 3c3cee7bfda2129f
+/agent-note-android-attachment-receipt-recovery-preserves-explicit-prompt-intent/consequences:
+  en: f9acc132372fc10d
+  zh: b1868fb36d24feca

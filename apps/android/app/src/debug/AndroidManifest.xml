@@ -1,0 +1,7 @@
+<?xml version="1.0" encoding="utf-8"?>
+<manifest xmlns:android="http://schemas.android.com/apk/res/android">
+    <!-- Debug-only overlay: the §54 network matrix's instrumentation rounds
+         need cleartext to loopback (see network_matrix_loopback.xml). The
+         release face never carries this overlay. -->
+    <application android:networkSecurityConfig="@xml/network_matrix_loopback" />
+</manifest>

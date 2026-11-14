@@ -1,0 +1,16 @@
+{
+  "status": "PASS",
+  "controls": 3,
+  "sourceRecord": {
+    "path": "artifacts/upstream-first/failure-classes-adoption-source.json",
+    "sha256": "9b2571e44ce64110a5ae79f70b9d27d8ad46e41508f35be02fd09b68aa9afb9c"
+  },
+  "generator": {
+    "path": "artifacts/upstream-first/write-reports.mjs",
+    "sha256": "f9890fa94d3f6caeb6d0f6fc849880fd699161c2d5cc97edd01f377a9290d919"
+  },
+  "helper": {
+    "path": ".artifacts/check-failure-classes-adoption-binding.mjs",
+    "sha256": "21c6095ce43c8fc6cbc2c23eff11d2098be3e68eefaa5439ec2f104bc9b97323"
+  }
+}

@@ -1,0 +1,20 @@
+{
+  "status": "PASS",
+  "cases": [
+    {
+      "path": "artifacts/upstream-first/windows-wheel-source.json",
+      "status": "PASS",
+      "rejected": "historicalRecords changed after validation: artifacts\\/upstream-first\\/windows-wheel-source.json"
+    },
+    {
+      "path": "python/sdk-runtime/src/deepseek_harness_runtime/__init__.py",
+      "status": "PASS",
+      "rejected": "sourceFiles changed after validation: python\\/sdk-runtime\\/src\\/deepseek_harness_runtime\\/__init__.py"
+    },
+    {
+      "path": "artifacts/upstream-first/installed-wheel-final-smoke.json",
+      "status": "PASS",
+      "rejected": "receipts changed after validation: artifacts\\/upstream-first\\/installed-wheel-final-smoke.json"
+    }
+  ]
+}

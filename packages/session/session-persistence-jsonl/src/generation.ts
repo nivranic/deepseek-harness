@@ -38,6 +38,7 @@ import { validateStoredEvents } from '@deepseek-ai/dsh-session-persistence'
 import type { JsonlCompression } from './format.ts'
 import { generationLogFilename, logSuffix, SessionLogScanner } from './format.ts'
 import { publishNewFileWin32 } from './win32.ts'
+import { restoreWithRepairIntent } from './repair-intent.ts'
 import {
   compressZstdFrame,
   createZstdFrameDecoder,
@@ -121,6 +122,7 @@ export class JsonlGenerationSourceChangedError extends Error {
 /** Current logical state prepared independently from durable publication. */
 export interface PreparedJsonlMigration {
   readonly sourceIdentity: JsonlPhysicalIdentity
+  readonly sourceRecoveryRevision: string | undefined
   readonly artifact: SessionFormatArtifact
   /** Encode, verify, and exclusively publish once; every call shares the same success or failure. */
   publish(): Promise<JsonlPhysicalIdentity>
@@ -281,6 +283,38 @@ async function readStableSnapshot(
   }
 }
 
+/** Recovery files use the same stable-read and source-change rules as their primary generation. */
+async function readRecoverySource(
+  path: string,
+  compression: JsonlCompression,
+  signal: AbortSignal | undefined,
+  fs: GenerationFileSystem,
+): Promise<StablePhysicalFile | undefined> {
+  if (compression !== 'zstd') return undefined
+  try { return await readStableSnapshot(`${path}.repair-intent`, signal, fs) }
+  catch (error) {
+    if ((error as NodeJS.ErrnoException).code === 'ENOENT') return undefined
+    throw error
+  }
+}
+
+async function assertRecoverySource(
+  path: string,
+  compression: JsonlCompression,
+  recovery: StablePhysicalFile | undefined,
+  fs: GenerationFileSystem,
+): Promise<void> {
+  if (compression !== 'zstd') return
+  let current: JsonlPhysicalIdentity | undefined
+  try { current = await fs.stat(`${path}.repair-intent`) }
+  catch (error) {
+    if ((error as NodeJS.ErrnoException).code !== 'ENOENT') throw error
+  }
+  if ((current === undefined ? undefined : identity(current)) !== (recovery === undefined ? undefined : identity(recovery.identity))) {
+    throw new JsonlGenerationSourceChangedError(`${path}.repair-intent`)
+  }
+}
+
 /** Parse the version discriminator without validating any version-specific field. */
 function storedVersion(header: unknown): number {
   if (typeof header !== 'object' || header === null || Array.isArray(header)) {
@@ -377,6 +411,7 @@ async function startMigrationStream(
   sourceVersion: number,
   format: Pick<JsonlGenerationFormatAdapter, 'createRestore'>,
   validateHistoricalHeader?: PrepareJsonlMigrationOptions['validateHistoricalHeader'],
+  recovery?: Buffer,
 ): Promise<StartedMigrationStream> {
   const value = parseJson(headerRecord.subarray(0, -1).toString('utf8'), 'header line')
   const version = storedVersion(value)
@@ -387,7 +422,9 @@ async function startMigrationStream(
   const validation = validateHistoricalHeader?.(header)
   if (validation !== undefined) await validation
   const stream = format.createRestore(header)
-  return { parser: new MigratingJsonlRows(stream) }
+  return {
+    parser: new MigratingJsonlRows(recovery === undefined ? stream : restoreWithRepairIntent(stream, header, sourceVersion, recovery)),
+  }
 }
 
 async function consumeMigrationBytes(
@@ -415,6 +452,7 @@ async function decodeStreamingMigration(
   format: Pick<JsonlGenerationFormatAdapter, 'createRestore'>,
   validateHistoricalHeader: PrepareJsonlMigrationOptions['validateHistoricalHeader'],
   signal?: AbortSignal,
+  recovery?: Buffer,
 ): Promise<SessionFormatArtifact> {
   signal?.throwIfAborted()
   if (compression === 'none') {
@@ -425,6 +463,7 @@ async function decodeStreamingMigration(
       sourceVersion,
       format,
       validateHistoricalHeader,
+      recovery,
     )
     signal?.throwIfAborted()
     const bodyEnd = bytes.lastIndexOf(0x0A)
@@ -452,6 +491,7 @@ async function decodeStreamingMigration(
       sourceVersion,
       format,
       validateHistoricalHeader,
+      recovery,
     )
     signal?.throwIfAborted()
     await consumeMigrationBytes(stream.parser, decoded, signal)
@@ -886,6 +926,7 @@ async function publishPreparedMigration(
   suffix: string,
   artifact: SessionFormatArtifact,
   sourceIdentity: JsonlPhysicalIdentity,
+  recovery: StablePhysicalFile | undefined,
   internals: JsonlGenerationInternals,
 ): Promise<JsonlPhysicalIdentity> {
   await scheduler.yield()
@@ -904,6 +945,7 @@ async function publishPreparedMigration(
     }
     await internals.barrier('before-source-check', 1)
     await options.validateRelatedSources?.()
+    await assertRecoverySource(sourcePath, compression, recovery, internals.fs)
     const beforePublish = await internals.fs.stat(sourcePath)
     if (identity(beforePublish) !== identity(sourceIdentity)) {
       throw new JsonlGenerationSourceChangedError(sourcePath)
@@ -958,6 +1000,7 @@ async function prepareMigration(
   if (sourceVersion >= format.currentVersion) {
     throw new Error(`migration preparation requires a historical source, got v${sourceVersion}`)
   }
+  const recovery = await readRecoverySource(sourcePath, compression, signal, internals.fs)
   const source = await readStableSnapshot(sourcePath, signal, internals.fs)
   let artifact: SessionFormatArtifact
   try {
@@ -968,6 +1011,7 @@ async function prepareMigration(
       format,
       options.validateHistoricalHeader,
       signal,
+      recovery?.bytes,
     )
   } catch (error: unknown) {
     if (format.isUnsupportedMigrationError?.(error) === true) {
@@ -979,10 +1023,15 @@ async function prepareMigration(
     throw new Error(`format migration returned v${artifact.header.version}, expected v${format.currentVersion}`)
   }
   await options.validateRelatedSources?.()
+  await assertRecoverySource(sourcePath, compression, recovery, internals.fs)
+  if (compression === 'zstd' && identity(await internals.fs.stat(sourcePath)) !== identity(source.identity)) {
+    throw new JsonlGenerationSourceChangedError(sourcePath)
+  }
   const sourceIdentity = source.identity
   let publication: Promise<JsonlPhysicalIdentity> | undefined
   return {
     sourceIdentity,
+    sourceRecoveryRevision: recovery === undefined ? undefined : identity(recovery.identity),
     artifact,
     publish() {
       if (publication === undefined) {
@@ -991,6 +1040,7 @@ async function prepareMigration(
           suffix,
           artifact,
           sourceIdentity,
+          recovery,
           internals,
         )
       }
@@ -1046,14 +1096,19 @@ export async function readDecodedJsonlSource(
   compression: JsonlCompression,
   format: Pick<JsonlGenerationFormatAdapter, 'createRestore'>,
   signal?: AbortSignal,
-): Promise<{ artifact: SessionFormatArtifact; identity: JsonlPhysicalIdentity }> {
+): Promise<{ artifact: SessionFormatArtifact; identity: JsonlPhysicalIdentity; recoveryRevision: string | undefined }> {
+  const recovery = await readRecoverySource(path, compression, signal, defaultFileSystem)
   const source = await readStableJsonlFile(path, signal)
   let artifact: SessionFormatArtifact
   try {
-    artifact = await decodeStreamingMigration(source.bytes, compression, version, format, undefined, signal)
+    artifact = await decodeStreamingMigration(source.bytes, compression, version, format, undefined, signal, recovery?.bytes)
   } catch (error: unknown) {
     if (signal?.aborted || error instanceof SessionFormatError) throw error
     throw new SessionFormatError(String(error), { cause: error })
   }
-  return { artifact, identity: source.identity }
+  await assertRecoverySource(path, compression, recovery, defaultFileSystem)
+  if (compression === 'zstd' && identity(await defaultFileSystem.stat(path)) !== identity(source.identity)) {
+    throw new JsonlGenerationSourceChangedError(path)
+  }
+  return { artifact, identity: source.identity, recoveryRevision: recovery === undefined ? undefined : identity(recovery.identity) }
 }

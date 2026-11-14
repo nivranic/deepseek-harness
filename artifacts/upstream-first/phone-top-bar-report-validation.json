@@ -1,0 +1,70 @@
+{
+  "status": "PASS",
+  "scope": "Report bindings and audit for the Phone-tier conversation top bar; the remaining specification sections stay open; full Upstream-First objective remains in progress",
+  "gate0": {
+    "validation": "PASS",
+    "gate0": "PASS",
+    "paths": 1938,
+    "components": 129,
+    "specificationCoverage": {
+      "status": "PASS",
+      "numberedSections": 81,
+      "nonEmptySourceLines": 1983,
+      "acceptanceProven": false
+    }
+  },
+  "sourceRecord": {
+    "path": "artifacts/upstream-first/phone-top-bar-source.json",
+    "sha256": "b2eee35146fe741df266aacc9751b7371f32f56a172de18073b502b4e7fd2db1"
+  },
+  "generator": {
+    "path": "artifacts/upstream-first/write-reports.mjs",
+    "sha256": "97a77173b63a757724f2a94d7d1171f765ec423849b6c4e9aed8950319c4e61f"
+  },
+  "binding": {
+    "path": "artifacts/upstream-first/phone-top-bar-binding.json",
+    "sha256": "2f94f2461fdb6e4794b1019a9b171b168a3fe8b2a16968c875a7768229ee42dc"
+  },
+  "helpers": [
+    {
+      "path": ".artifacts/advance-phone-top-bar-reports.mjs",
+      "sha256": "976d4300bb17c75330553aecade5988daf67c9950c7a7f218db25abf91ff21fa"
+    },
+    {
+      "path": ".artifacts/capture-phone-top-bar-validation.mjs",
+      "sha256": "e85297eb5d2954889397696d6d725f78a5fc4636b6eacc4f74f7eb75c628af00"
+    }
+  ],
+  "reports": [
+    {
+      "path": "IMPLEMENTATION_STATUS.md",
+      "sha256": "f837c090228b6e4e10e0bcb16077a56c6e315e5c7283b58260441adb2a0e5b43"
+    },
+    {
+      "path": "artifacts/upstream-first/evidence.json",
+      "sha256": "a2006ef4cde20ca8d7b2855788c2e4cf1410575b5095636c06ca11762ca83caf"
+    }
+  ],
+  "checks": [
+    {
+      "path": ".artifacts/phone-top-bar-binding.log",
+      "sha256": "062c9036002b737c9c350fca0ddc2e5addf02d09f82675d8ed103c0ff849c689"
+    },
+    {
+      "path": ".artifacts/phone-top-bar-audit-tests.log",
+      "sha256": "21b136d6f96e63cec9862e6bd88750b325885e54bf961ef43d672344b8b4c253"
+    },
+    {
+      "path": ".artifacts/phone-top-bar-gate0.log",
+      "sha256": "505d74ef938f5d34d85490d37e0176ba804d93272fcf465ce2544a02c56b3f90"
+    },
+    {
+      "path": ".artifacts/phone-top-bar-report-diff-check.log",
+      "sha256": "e3b0c44298fc1c149afbf4c8996fb92427ae41e4649b934ca495991b7852b855"
+    },
+    {
+      "path": ".artifacts/phone-top-bar-report-generation.log",
+      "sha256": "fe010532f71a6341467ae5719b29ac19470895de1d481156335b8f70a3273ed5"
+    }
+  ]
+}

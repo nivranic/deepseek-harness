@@ -1,0 +1,22 @@
+# Bilingual-pair consistency record for 2026-10-06-device-trust-outlet.md (docs/i18n/README.md): per heading
+# section, a hash of its English and Chinese blocks outside code blocks and generated regions.
+# After editing either side, bring the other along and re-record with:
+#   pnpm run verify-translation-pairing --write .agents/notes/implemented/architecture/2026-10-06-device-trust-outlet.md
+/agent-note-device-trust-revocations-leave-through-the-ops-telemetry-outlet-under-their-own-consent-kind:
+  en: 0da9660da7c2c9e7
+  zh: 4e3963e6ede8e4c7
+/agent-note-device-trust-revocations-leave-through-the-ops-telemetry-outlet-under-their-own-consent-kind/problem:
+  en: b3941ecd1f920858
+  zh: a8ed31abaeb0b606
+/agent-note-device-trust-revocations-leave-through-the-ops-telemetry-outlet-under-their-own-consent-kind/decision:
+  en: d28efb0ccee4bacc
+  zh: 8a2188c286ab9559
+/agent-note-device-trust-revocations-leave-through-the-ops-telemetry-outlet-under-their-own-consent-kind/alternatives-considered:
+  en: 2653a8e0b21dd531
+  zh: f7d74f97d8fa20e7
+/agent-note-device-trust-revocations-leave-through-the-ops-telemetry-outlet-under-their-own-consent-kind/consequences:
+  en: 5da4c449fddf3300
+  zh: 43906074f44f0659
+/agent-note-device-trust-revocations-leave-through-the-ops-telemetry-outlet-under-their-own-consent-kind/open-follow-ups:
+  en: 3493897ad4649693
+  zh: 1c3103bdfa0726aa

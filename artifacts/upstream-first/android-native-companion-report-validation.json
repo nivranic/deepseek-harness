@@ -1,0 +1,70 @@
+{
+  "status": "PASS",
+  "scope": "Report bindings and audit for the Android Native Companion; the remaining specification sections stay open; full Upstream-First objective remains in progress",
+  "gate0": {
+    "validation": "PASS",
+    "gate0": "PASS",
+    "paths": 1938,
+    "components": 129,
+    "specificationCoverage": {
+      "status": "PASS",
+      "numberedSections": 81,
+      "nonEmptySourceLines": 1983,
+      "acceptanceProven": false
+    }
+  },
+  "sourceRecord": {
+    "path": "artifacts/upstream-first/android-native-companion-source.json",
+    "sha256": "2f2f03ccf7dfb55e1b8695ab1a0d180aa550e33c8fe190baa9403ee2f3ec1baf"
+  },
+  "generator": {
+    "path": "artifacts/upstream-first/write-reports.mjs",
+    "sha256": "3236d6115965f82658540357f69ecfa434042a41155d18b17159f5edc6e2aec8"
+  },
+  "binding": {
+    "path": "artifacts/upstream-first/android-native-companion-binding.json",
+    "sha256": "e51c414d50ea057d81bce50c6fe578e7dae5f7263a64e1e6e38b69bddd0f2bf5"
+  },
+  "helpers": [
+    {
+      "path": ".artifacts/advance-android-native-companion-reports.mjs",
+      "sha256": "01febd09131266d2873a50a6572f46326ef8b719217422f732cbf74cd1ebf027"
+    },
+    {
+      "path": ".artifacts/capture-android-native-companion-validation.mjs",
+      "sha256": "87296fcc3dba593da252a268cba880336528bfe8d902f9cdbfaeabdc4d669c84"
+    }
+  ],
+  "reports": [
+    {
+      "path": "IMPLEMENTATION_STATUS.md",
+      "sha256": "301d384b0592d74c1c6fcd069012fc40278aebb98fd1b4f4dbd6df1fcff3974e"
+    },
+    {
+      "path": "artifacts/upstream-first/evidence.json",
+      "sha256": "bf9fc84f411c60eb29d9a51b1cccfd72b6150c37c75a6deb25fd19cb0ab1b09d"
+    }
+  ],
+  "checks": [
+    {
+      "path": ".artifacts/android-native-companion-binding.log",
+      "sha256": "74c33303e06ba964b39257853cee98bfbb791d8f894f32e80115ab75c936792a"
+    },
+    {
+      "path": ".artifacts/android-native-companion-audit-tests.log",
+      "sha256": "66980928e498544f4993ed0e114a4684c21b6389566f5f6098a741e78190750e"
+    },
+    {
+      "path": ".artifacts/android-native-companion-gate0.log",
+      "sha256": "5427f71ff5b67b500b327d785dcaf84a7af2c6edd24b1833c4c7d83ad2cf37c8"
+    },
+    {
+      "path": ".artifacts/android-native-companion-report-diff-check.log",
+      "sha256": "e3b0c44298fc1c149afbf4c8996fb92427ae41e4649b934ca495991b7852b855"
+    },
+    {
+      "path": ".artifacts/android-native-companion-report-generation.log",
+      "sha256": "5867d1d51cd43a59428de2e7fffa15847d7153b11f3b61ecf812224ee2dd2099"
+    }
+  ]
+}

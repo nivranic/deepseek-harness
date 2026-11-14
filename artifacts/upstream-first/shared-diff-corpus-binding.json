@@ -1,0 +1,16 @@
+{
+  "status": "PASS",
+  "controls": 3,
+  "sourceRecord": {
+    "path": "artifacts/upstream-first/shared-diff-corpus-source.json",
+    "sha256": "21099fa50533680463fa35087608e4d67d34a4680b63b204471c66c8036c8d03"
+  },
+  "generator": {
+    "path": "artifacts/upstream-first/write-reports.mjs",
+    "sha256": "a310e5996592dae7d8e01c34b98545e11c204616cdc7672050ed92a842d17850"
+  },
+  "helper": {
+    "path": ".artifacts/check-shared-diff-corpus-binding.mjs",
+    "sha256": "7fa15270dcec67e90b4f7bee7ed8a37c29ab9c28de1c26ad6a00619f790cab9e"
+  }
+}

@@ -1,0 +1,64 @@
+{
+  "status": "PASS",
+  "scope": "Report bindings and audit for Current-viewer admission for composer and sent-message file and skill reference previews; full Upstream-First objective remains in progress",
+  "gate0": {
+    "validation": "PASS",
+    "gate0": "PASS",
+    "paths": 1938,
+    "components": 129
+  },
+  "sourceRecord": {
+    "path": "artifacts/upstream-first/reference-previews-source.json",
+    "sha256": "369c6d7223ccd8989d5b0f442e070de539ca07f729a31389b9cc121e6b6c4332"
+  },
+  "generator": {
+    "path": "artifacts/upstream-first/write-reports.mjs",
+    "sha256": "fde881780470c55fba9ba1cc2a66042e4914e8d947b4873b04b421543a8d5620"
+  },
+  "binding": {
+    "path": "artifacts/upstream-first/reference-previews-binding.json",
+    "sha256": "107bf159d5667cb8badc6cc47d770ed26deeac8fdf2eb1af172298a1819c3d6d"
+  },
+  "helpers": [
+    {
+      "path": ".artifacts/advance-reference-previews-reports.mjs",
+      "sha256": "ae0e4c49a85fc6d51d5ccd087b9e53cd14372f62811c85e3e5700ba77efbdd21"
+    },
+    {
+      "path": ".artifacts/capture-reference-previews-validation.mjs",
+      "sha256": "7178a24248c60dd94c5bc08f4657dcd31f3c1e9eda9f90b436da9925515ff8b3"
+    }
+  ],
+  "reports": [
+    {
+      "path": "IMPLEMENTATION_STATUS.md",
+      "sha256": "fa79b6d00e35e5707127a90640c516bb0fdb2259e0384da485b061cdabfb2449"
+    },
+    {
+      "path": "artifacts/upstream-first/evidence.json",
+      "sha256": "8fcdbf735521b5eeea9326be329ead3b2325c0223d1f43602619bf599ac23c36"
+    }
+  ],
+  "checks": [
+    {
+      "path": ".artifacts/reference-previews-binding.log",
+      "sha256": "3fd86de2f84ce080ff37161d1c895159074b058ae4f04444ed3a87ab5208199f"
+    },
+    {
+      "path": ".artifacts/reference-previews-audit-tests.log",
+      "sha256": "f71c174068ecfd8fb93bc44861174ad99d472c112925d7b1fff7cbc4374d5217"
+    },
+    {
+      "path": ".artifacts/reference-previews-gate0.log",
+      "sha256": "4b5af3121a7e7caff0e1b6288bdaa7cfef9988842ae06bf02dc0a74852426043"
+    },
+    {
+      "path": ".artifacts/reference-previews-report-diff-check.log",
+      "sha256": "e3b0c44298fc1c149afbf4c8996fb92427ae41e4649b934ca495991b7852b855"
+    },
+    {
+      "path": ".artifacts/reference-previews-report-generation.log",
+      "sha256": "5867d1d51cd43a59428de2e7fffa15847d7153b11f3b61ecf812224ee2dd2099"
+    }
+  ]
+}

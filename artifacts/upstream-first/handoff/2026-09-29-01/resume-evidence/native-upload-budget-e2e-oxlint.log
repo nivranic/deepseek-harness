@@ -1,0 +1,1 @@
+apps/web/tests/android-native-upload-budget.e2e.ts:187:1: error @stylistic(max-len): This line has a length of 142. Maximum allowed is 140.

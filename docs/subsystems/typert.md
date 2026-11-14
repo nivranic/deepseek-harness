@@ -4,6 +4,8 @@ English | [中文](typert.zh.md)
 
 Types shared by generated Remote artifacts, the Host Gateway, and consumer API assemblies. The [Typert Gateway Agent Note](../../.agents/notes/implemented/architecture/2026-08-02-typert-remote-method-calls.md) owns the architecture and transport decisions; this page records the literal public contracts from [`dsh-typert-protocol`](../../packages/typert/protocol/src/types.ts) and [`dsh-api-gateway`](../../packages/api/gateway/src/types.ts).
 
+Validation failures use the exported `RemoteValidationIssue` type: `code` and `message` are strings, and `path` is a readonly array of string keys and numeric indices. `RemoteErrorDetailsMap['gateway/bad-request'].issues` is optional; absence means the owner supplied no codec diagnostics. The [protocol helper](../../packages/typert/protocol/README.md) owns conversion from validation-library output.
+
 ## Lookup and Context declarations
 
 Business-object packages extend two empty maps through declaration merging. A lookup associates one Host object type with its wire identity; a Context declaration associates one scoped Context kind with its wire identity. Generated descriptors name these keys, while runtime providers supply the live resolution behavior.
@@ -286,6 +288,8 @@ interface RemoteInvocation {
 
 ## Remote access resources
 
+An explicit `host` binding grants its listed actions across every valid resource. It preserves device roles that apply across a Host without changing `global` or individual resource grants; both `host` and `global` are reserved and cannot be registered as domain resource kinds. The [device Peer decision](../../.agents/notes/implemented/architecture/2026-11-13-device-peer-host-bindings.md) owns this extension.
+
 Every Remote method is under the access control of [`dsh-api-remote-access`](../../packages/api/remote-access/README.md): a non-owner call is allowed only when the policy for its principal kind binds, on every resource the call touches, a role that lists the endpoint action. The package that owns an identity type merge-declares its resource kind in `TypertResourceMap`; `global`, the built-in identity-less resource, is never a kind there. The Gateway reads a kind's identities from the `resources` readers of `@Remote({ resources })` or `@RemoteScope(key, { resources })`, else from a lookup parameter or scoped Context that declares the kind as its `resource`, else from the default field or resolver registered in `typert.resources`; a call that names no resource touches `global`. The [Peer principals Agent Note](../../.agents/notes/implemented/architecture/2026-10-12-peer-principal-and-remote-access.md) owns the decision.
 
 ```ts type-equiv
@@ -293,24 +297,25 @@ Every Remote method is under the access control of [`dsh-api-remote-access`](../
  * Merge-extensible resource kinds whose identities a Remote call or forwarded
  * event may carry. The package that owns an identity type declares its kind;
  * the value is that kind's identity type, a string type such as a branded id.
- * `global` names the built-in identity-less resource and is never a kind here.
+ * `global` and `host` name built-in identity-less resources and are never kinds here.
  */
 interface TypertResourceMap {}
 ```
 
 ```ts type-equiv
-/** One resource kind: the built-in `global` kind or a declared kind. */
-type RemoteAccessResourceKind = 'global' | TypertResourceKind
+/** One resource kind: a built-in kind or a declared kind. */
+type RemoteAccessResourceKind = 'global' | 'host' | TypertResourceKind
 ```
 
 ```ts type-equiv
 /**
- * One resource a call or forwarded event touches: `global`, or one identity
- * of a declared kind. Identities are wire values, read before any lookup
- * resolves or validates them.
+ * A binding target or a resource touched by a call or forwarded event.
+ * `host` is an explicit Host-wide binding target; `global` names operations
+ * without a domain resource. Domain identities are wire values read before lookup.
  */
 type RemoteAccessResource =
   | { readonly kind: 'global' }
+  | { readonly kind: 'host' }
   | {
     [Kind in TypertResourceKind]: { readonly kind: Kind; readonly id: TypertResourceId<TypertResourceMap[Kind]> }
   }[TypertResourceKind]
@@ -383,7 +388,9 @@ interface TypertRemoteNamespaceMap {}
 
 ## Host Gateway
 
-Connection decodes its carrier envelope before calling `ctx.typertGateway`. The request carries exact named wire fields, the carrier's cancellation signal, and the Peer the call speaks for separately; every carrier and in-process caller names that Peer, and the Gateway refuses a disposed one with `gateway/peer-disposed`. For a non-owner call the Gateway resolves its resources and asks `ctx.remoteAccess.decide()` after argument validation and before any lookup or Context resolution; infrastructure and boundary failures ride `TypertGatewayError`, whose `gateway/*` codes are ordinary `RemoteError` codes, so the RPC adapter passes every structurally identified `RemoteError` through with its code and details intact and folds only unrecognized exceptions into `gateway/internal`.
+The internal protocol-2 ready frame's optional `pendingInteractionIds` lists the pending interactions queued for its Client generation. [Gateway answer retention](../../packages/api/gateway/README.md#client-service-clientremote-ctx-key-remote) requires this snapshot and the application preparation’s branded `RemoteInteractionReplyScope` to restrict retries to pending work on the same discovered Host. A missing scope disables retention; the scope is Client-local and is not a wire field or an authorization decision.
+
+Connection decodes its carrier envelope before calling `ctx.typertGateway`. The request carries exact named wire fields and the carrier's cancellation signal separately; infrastructure and boundary failures ride `TypertGatewayError`, whose `gateway/*` codes are ordinary `RemoteError` codes, so the RPC adapter passes every structurally identified `RemoteError` through with its code and details intact and folds only unrecognized exceptions into `gateway/internal`. Connection decodes its carrier envelope before calling `ctx.typertGateway`. The request carries exact named wire fields, the carrier's cancellation signal, and the Peer the call speaks for separately; every carrier and in-process caller names that Peer, and the Gateway refuses a disposed one with `gateway/peer-disposed`. For a non-owner call the Gateway resolves its resources and asks `ctx.remoteAccess.decide()` after argument validation and before any lookup or Context resolution; infrastructure and boundary failures ride `TypertGatewayError`, whose `gateway/*` codes are ordinary `RemoteError` codes, so the RPC adapter passes every structurally identified `RemoteError` through with its code and details intact and folds only unrecognized exceptions into `gateway/internal`.
 
 ```ts type-equiv
 /** One Remote method request after a carrier has decoded its envelope. */
@@ -440,12 +447,29 @@ interface TypertGateway {
   /** Carrier adapter shared by WebSocket and in-process transports. */
   readonly wireStream: TypertGatewayWireStream
   /**
-   * Check for an active owner Client event stream, the only kind that can answer forwarded waterfalls.
-   * @returns whether an owner stream is open and has not been cancelled.
+   * Create a native carrier adapter requiring signed device admission.
+   * @returns callbacks retaining the caller's service scope.
+   */
+  createDeviceConnection(): TypertGatewayDeviceConnection
+  /**
+   * Destroy every active stream carrier for one device without revoking its grant.
+   * @param request - verified device identity whose transports end.
+   * @returns number of distinct physical carriers destroyed.
+   */
+  terminateDeviceConnections(request: { readonly deviceId: DeviceId }): { readonly terminated: number }
+  /**
+   * Check for an active Client event stream permitted to answer forwarded waterfalls.
+   * @returns whether an answering stream is open and has not been cancelled.
    */
   hasLiveClient(): boolean
   /** @returns detached metadata for all unsettled forwarded events in arrival order. */
   getPendingRemoteEvents(): readonly PendingRemoteEventInfo[]
+  /**
+   * Read the explicit operation sets of live Remote owners without invoking them.
+   * @returns sorted capability ids whose required method definitions are available.
+   * @throws for duplicate ids, invalid method declarations, or inconsistent bindings.
+   */
+  capabilities(): readonly string[]
   /**
    * Register the application-selected forwarded-event source.
    * @param source - stream factory installed by the Remote assembly.
@@ -469,6 +493,141 @@ interface TypertGateway {
    * @returns a cancellation-aware iterable over the business results.
    */
   stream(request: InvokeRemoteRequest): Promise<AsyncIterable<unknown>>
+}
+```
+
+<a id="native-tls-source"></a>
+## Native TLS source
+
+[Native Remote Connection](../../packages/api/native-remote/README.md) mounts a separate, opt-in TLS listener. Each listener calls the Gateway's ordinary createDeviceConnection factory in its own Cordis context. The returned RPC and stream callbacks preserve that context and require signed identities, except for one-time pairing redemption. Device-owned business streams observe grant revocation throughout admission and iteration. NativeRemoteInfo exposes only the configured bindHost, actual port, and SPKI fingerprint to authenticated operators and device administrators; it never exposes private-key material.
+
+The independent native-remote.http-request-budget.v1 capability exposes nativeRemote/httpRequestBudget with view permission. Its limit belongs to that ready Native listener, not a Web or Desktop carrier. Clients can compare their complete encoded body with the observed value, but the Host still checks actual bytes and current authorization. Administrative listener metadata continues to require device.admin.
+
+### NativeHttpRequestBudget
+
+```ts type-equiv
+/** Buffered HTTP request admission configured on one ready native TLS listener. */
+interface NativeHttpRequestBudget {
+  /**
+   * Inclusive byte limit, a positive safe integer, for the complete UTF-8 JSON
+   * body including the RPC envelope and device admission. Excludes HTTP
+   * headers, TLS, and chunk framing; does not limit decoded file bytes alone.
+   */
+  readonly maxRequestBodyBytes: number
+}
+```
+
+### NativeRemoteInfo
+
+```ts type-equiv
+/** Public listener facts available to an authenticated device administrator. */
+interface NativeRemoteInfo {
+  /** Configured literal interface; an all-interface address is not a pairing destination. */
+  readonly bindHost: '127.0.0.1' | '0.0.0.0' | '::1' | '::'
+  /** Actual TCP port, including an OS-assigned value. */
+  readonly port: number
+  /** Lowercase SHA-256 of the certificate SPKI, independently of its DNS name or issuing CA. */
+  readonly spkiFingerprint: string
+}
+```
+
+### NativePairingPayload
+
+```ts type-equiv
+/** Single-use pairing information displayed by an authenticated Host operator. */
+interface NativePairingPayload {
+  /** Distinguishes Gateway pairing from the retired Link fixture format. */
+  readonly kind: 'dsh-native-pairing'
+  /** Pairing payload format, independent of the Gateway API and Session formats. */
+  readonly version: 1
+  /** Operator-supplied reachable HTTPS origin of the native listener. */
+  readonly endpoint: string
+  /** Persistent Host identity to confirm after device admission. */
+  readonly hostId: HostId
+  /** Operator-visible Host label, never an identity check. */
+  readonly displayName: string
+  /** Certificate SPKI pin to verify before sending the pairing secret. */
+  readonly spkiFingerprint: string
+  /** Single-use secret; keep out of storage, diagnostics, and logs. */
+  readonly code: string
+  /** Host-enforced expiration, in epoch milliseconds. */
+  readonly expiresAt: number
+  /** Role selected by the operator and fixed by Device Trust issuance. */
+  readonly role: DeviceRole
+}
+```
+
+<a id="host-discovery"></a>
+## Host discovery
+
+[Host description](../../packages/api/host-description/README.md) returns these facts through the existing authenticated Remote. Live bindings declare capabilities explicitly; they are not caller permissions, and the three version fields have independent owners.
+
+```ts type-equiv
+/** One explicitly versioned business operation set advertised by its live Remote owner. */
+interface TypertRemoteCapability {
+  /** Semantic capability id ending in `.v` and a positive integer, such as `session.follow.v1`. */
+  readonly id: string
+  /** Nonempty set of exported method names required by this capability in the binding's namespace. */
+  readonly methods: readonly string[]
+  /**
+   * Permission a device-identified request must hold to invoke this
+   * capability's methods. Absent capabilities are not device-admissible;
+   * anonymous callers are unaffected by this field.
+   */
+  readonly requiredPermission?: RemoteCapabilityPermission
+}
+```
+
+```ts type-equiv
+/**
+ * Grantable permission kinds from the section 21 device-role table columns.
+ * The two `*.respond` kinds are checked against pending interactions'
+ * requiredPermission; the others gate device-identified business requests.
+ */
+type RemoteCapabilityPermission =
+  | 'view'
+  | 'prompt.send'
+  | 'question.respond'
+  | 'approval.respond'
+  | 'device.admin'
+```
+```ts type-equiv
+/** Persistent identity of one Harness home; not an authentication credential. */
+type HostId = Branded<'HostId'>
+```
+
+```ts type-equiv
+/** Physical carriers provided by the Host composition. */
+type HostTransport = 'http' | 'websocket' | 'desktop-pipe'
+```
+
+```ts type-equiv
+/** Authenticated discovery result for the currently running Host. */
+interface HostDescriptor {
+  /** Stable across launches sharing the same configured identity file. */
+  readonly hostId: HostId
+  /** Operator-configured label; never used to resolve Host identity. */
+  readonly displayName: string
+  /** Installed Harness package release, independent of protocol generations. */
+  readonly productVersion: string
+  /** Selected response generation; describe uses the protocol-1 discovery representation. */
+  readonly apiProtocolVersion: number
+  /** Offered request codecs; absent on Hosts without negotiation. */
+  readonly supportedApiProtocolVersions?: readonly number[]
+  /** Session writer generation; Clients do not parse the corresponding disk format. */
+  readonly sessionFormatVersion: number
+  /** Host Node.js platform value. */
+  readonly platform: string
+  /** Host Node.js architecture value. */
+  readonly arch: string
+  /** This implementation runs the full Harness; Lite is a separate runtime. */
+  readonly runtimeMode: 'full'
+  /** Explicit versioned operation sets supported by live Remote owners, sorted by id. */
+  readonly capabilities: readonly string[]
+  /** Carriers configured by the application that hosts this service. */
+  readonly transports: readonly HostTransport[]
+  /** Host UTC clock at description time, in milliseconds since the Unix epoch. */
+  readonly serverTime: number
 }
 ```
 
@@ -508,6 +667,54 @@ interface TypertClientRemote extends TypertRemoteNamespaceMap {
 
 Generated from source by `scripts/gen-cordis-catalog.ts` (verified fresh by `pnpm run verify-cordis-catalog` in doc-sync; regenerate with `pnpm run gen-cordis-catalog`) — the language sides differ only in locale-specific paired document paths. Signature blocks use a `ts cordis-catalog` fence and keep the original source JSDoc; dispatch modes are defined in the [primer](../cordis-primer.md#dispatch-modes), and the framework-inherited `ctx` API lives in [cordis-api/inherited.md](../cordis-api/inherited.md).
 
+<a id="ctxhostdescription--hostdescriptiongateway"></a>
+
+### `ctx.hostDescription` — `HostDescriptionGateway`
+
+Read-only Remote namespace for Host facts and explicitly declared capabilities.
+
+```ts cordis-catalog
+/**
+ * Read current Host facts without changing Session or Workspace state.
+ * Capability presence does not grant permission to invoke its operations.
+ * @returns installed versions, stable identity, and current operation availability.
+ */
+@Remote('describe') describe(): HostDescriptor
+
+/**
+ * Select the highest shared request codec without changing identity or granting permissions.
+ * @param supportedApiProtocolVersions - nonempty, distinct positive integer Client offers.
+ * @returns Host facts expressed in the selected API generation.
+ */
+@Remote('negotiate') negotiate(supportedApiProtocolVersions: readonly number[]): HostDescriptor
+```
+
+Source: [`packages/api/host-description/src/index.ts`](../../packages/api/host-description/src/index.ts)
+
+<a id="ctxnativeremote--nativeremoteservice"></a>
+
+### `ctx.nativeRemote` — `NativeRemoteService`
+
+A separately configured HTTPS listener with no browser assets, cookies, or local exact Fetch routes.
+
+```ts cordis-catalog
+/**
+ * Read the bound port and certificate pin for the local operator.
+ * @returns public identity facts, without certificate or private-key material.
+ * @throws while the listener is not ready or has been disposed.
+ */
+@Remote('describe') describe(): NativeRemoteInfo
+
+/**
+ * Read this listener's buffered HTTP body limit without granting upload permission.
+ * @returns the inclusive byte limit used by this listener's HTTP bridge.
+ * @throws while the listener is not ready or has been disposed.
+ */
+@Remote('httpRequestBudget') httpRequestBudget(): NativeHttpRequestBudget
+```
+
+Source: [`packages/api/native-remote/src/index.ts`](../../packages/api/native-remote/src/index.ts)
+
 <a id="ctxremoteaccess--remoteaccessservice"></a>
 
 ### `ctx.remoteAccess` — `RemoteAccessService`
@@ -539,7 +746,7 @@ invalidate(principal?: Principal): void
  * The owner is allowed, and so is `remoteAccess/follow`: every Peer reads
  * its own snapshot. Otherwise the action is allowed only when, on every
  * listed resource, some binding of the principal's policy names that
- * resource, has a role listing the action, and has no condition or a
+ * resource or `host`, has a role listing the action, and has no condition or a
  * condition that allows. `bindings()` is called once per decision.
  * @param request - the caller or recipient, the action, the resources it
  *   touches, and a call's arguments.
@@ -661,8 +868,21 @@ Resolve strict generated definitions or conservative SRC markers against current
 
 ```ts cordis-catalog
 /**
- * Check for an active owner Client event stream, the only kind that can answer forwarded waterfalls.
- * @returns whether an owner stream is open and has not been cancelled.
+ * Create a native carrier adapter requiring signed device admission.
+ * @returns callbacks owned by the caller's service scope.
+ */
+createDeviceConnection(): TypertGatewayDeviceConnection
+
+/**
+ * Destroy a device's active stream transports without revoking its grant.
+ * @param request - device whose carriers end now.
+ * @returns number of distinct carriers destroyed.
+ */
+terminateDeviceConnections(request: { readonly deviceId: DeviceId }): { readonly terminated: number }
+
+/**
+ * Check for an active Client event stream permitted to answer forwarded waterfalls.
+ * @returns whether an answering stream is open and has not been cancelled.
  */
 hasLiveClient(): boolean
 
@@ -679,6 +899,13 @@ getPendingRemoteEvents(): readonly PendingRemoteEventInfo[]
  * @returns disposer removing this source and cancelling its active streams.
  */
 registerRemoteEvents( source: TypertRemoteEventSource, host: RemoteEventHostInfo, ): () => Promise<void>
+
+/**
+ * Read the explicit operation sets of live Remote owners without invoking them.
+ * @returns sorted capability ids whose required method definitions are available.
+ * @throws for duplicate ids, invalid method declarations, or inconsistent bindings.
+ */
+capabilities(): readonly string[]
 
 /**
  * Invoke one live Remote method through strict generated reflection or SRC markers.

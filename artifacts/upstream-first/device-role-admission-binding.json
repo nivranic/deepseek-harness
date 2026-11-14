@@ -1,0 +1,16 @@
+{
+  "status": "PASS",
+  "controls": 3,
+  "sourceRecord": {
+    "path": "artifacts/upstream-first/device-role-admission-source.json",
+    "sha256": "ab3a6b9658073023a944f8effec3d230b355b9cf742e098e342b981d3e33e0cb"
+  },
+  "generator": {
+    "path": "artifacts/upstream-first/write-reports.mjs",
+    "sha256": "867f0a9a0716056617f79aa8065021c7ebfe0b2422ed212df610f701890a1bc3"
+  },
+  "helper": {
+    "path": ".artifacts/check-device-role-admission-binding.mjs",
+    "sha256": "6d05c73414c4e9cd6d7f29de368337e6bed15623db5bfdb58b3802bdf2897acc"
+  }
+}

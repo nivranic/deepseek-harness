@@ -80,6 +80,16 @@ Web and desktop share the [Coding Tools preference](../../packages/client/ui-set
 
 Physical and logical recovery are separate. Gateway mux restores the physical WebSocket; each `RemoteStream` reopens its own logical source when the Connection publishes a usable generation. A carrier failure is retryable, while a business error, malformed opening item, or protocol violation is terminal for the owning logical stream.
 
+Connection also publishes `incompatible` and `fatal` when Gateway classifies a discovery failure that requires intervention. These states suspend automatic generation attempts and refuse application admission; Settings presents localized remediation and manual reconnect. The [discovery failure decision](../../.agents/notes/implemented/bug-fix/2026-09-17-terminal-host-discovery.md) defines the classification scope.
+
+The HTTP caller captures its Connection generation before dispatch. A 401 invalidates only that active generation and publishes `auth-expired`; cancelled callers and obsolete generations cannot revoke a newer connection. Recovery uses the existing browser-token exchange and an explicit reconnect, without automatically resubmitting rejected Prompts.
+
+A handshake that reaches its warning threshold or hard deadline without a ready frame publishes `host-not-ready`. It keeps the existing readiness cancellation and retry schedule. This is observed readiness delay, not a diagnosis of Host startup or a replacement for authentication failure.
+
+Connection distinguishes the first `connecting` attempt from later `reconnecting` attempts, `offline` suspension and admitted `ready` generations. Initial application admission can wait for the first handshake; recovery states reject new business operations until a ready generation exists. Settings projects these facts through localized text or compact rail controls.
+
+The source’s `ConnectionGenerationProgress` callback reports `authenticating` during Host access verification on initial and replacement attempts. It shares Connection’s generation cancellation and readiness deadline. Gateway retains the attempt’s initial-admission eligibility across these progress changes, so retry authentication cannot queue a new business operation.
+
 Recovery follows the data's semantics:
 
 - A durable Session journal validates logical sequence ranges and replaces its window from every generation's opening snapshot; `page()` supplies older history and repairs any later range gap.
@@ -119,6 +129,9 @@ Use the four detailed references according to the extension being added:
 - [Web Client Slots](slots.md) for components, hooks, stores, injection, and placement.
 - [Conversation](conversation.md) for durable event correlation, target snapshots, and Chat or Trajectory view contributions.
 
+## Native delivery actions
+
+The Web delivery owner exposes `ctx.presentedFiles` through generated Remote methods. `PresentedFileRequest` identifies a viewed `sessionId` and nonnegative safe-integer `seq` and `index` coordinates in a persisted delivery event. `PresentedFileActionValue` carries `completed: true` after the Host native command accepts the verified source path. `PresentedHost` carries the serving `name`, configured `available` state, and `fileManager`: `finder`, `explorer`, `directory`, or `null`. API capability presence does not establish native permission or file availability; the [owner](../../packages/client/ui-deliverables/README.md#explicit-deliveries) defines the action lifecycle and Client admission.
 <!-- BEGIN GENERATED cordis-surface (gen-cordis-catalog.ts) — do not edit between markers -->
 
 <a id="cordis-surface"></a>

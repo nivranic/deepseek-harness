@@ -29,6 +29,7 @@
  */
 import type { Volatile } from '@deepseek-ai/cordis'
 
+import { SUBAGENT_REMOTE_CAPABILITIES } from './capabilities.ts'
 import { Context, Service } from '@deepseek-ai/cordis'
 import z from '@deepseek-ai/schemastery'
 import type {} from '@deepseek-ai/dsh-working-directory'
@@ -47,6 +48,7 @@ import {
 } from './control.ts'
 import type {
   SubagentInterruptReceipt,
+  SubagentInterruptTurnRequest,
   SubagentPromptReceipt,
   SubagentPromptRequest,
   SubagentPromptRequestId,
@@ -207,7 +209,7 @@ export class SubagentRuntime extends TypertRemoteService {
   private readonly emitLifecycle: LifecycleEmitter
 
   constructor(ctx: Context, private config: Config) {
-    super(ctx, 'subagents')
+    super(ctx, 'subagents', { capabilities: SUBAGENT_REMOTE_CAPABILITIES })
     this.emitLifecycle = createLifecycleEmitter(this.ctx, parent => scopeTarget(this, parent))
   }
 
@@ -503,9 +505,53 @@ export class SubagentRuntime extends TypertRemoteService {
   @Remote({ name: 'interruptByUser', resources: { session: childSessionId => childSessionId } })
   interruptByUser(childSessionId: SessionId): SubagentInterruptReceipt {
     validateControlRequest('subagent.interrupt', { childSessionId })
+    return this.interruptAsUser(childSessionId)
+  }
+
+  /**
+   * Interrupt the current child turn under its durable direct parent.
+   * @param childSessionId - durable child Session.
+   * @param parentSessionId - durable direct creator.
+   * @param mode - continuable child control mode.
+   * @returns cancellation admission acknowledgement.
+   * @throws {RemoteError} invalid input, parent mismatch, or an internal failure.
+   */
+  @Remote({ name: 'interruptByParent', resources: { session: childSessionId => childSessionId } })
+  interruptByParent(
+    childSessionId: SessionId,
+    parentSessionId: SessionId,
+    mode: 'continuable',
+  ): SubagentInterruptReceipt {
+    validateControlRequest('subagent.interrupt-turn', { childSessionId, parentSessionId, mode, turnStartSeq: null })
+    return this.interruptAsUser(childSessionId, parentSessionId)
+  }
+
+  /**
+   * Stop an observed child turn under its durable direct parent.
+   * @param request - child address and observed turn/start sequence, or null for an idle child.
+   * @returns acceptance for a cancelled, stale, idle, absent, or completed target.
+   * @throws {RemoteError} invalid input, parent mismatch, or unavailable turn projection.
+   */
+  @Remote({ name: 'interruptTurnByParent', resources: { session: request => request.childSessionId } })
+  interruptTurnByParent(request: SubagentInterruptTurnRequest): SubagentInterruptReceipt {
+    validateControlRequest('subagent.interrupt-turn', request)
+    return this.interruptAsUser(request.childSessionId, request.parentSessionId, request.turnStartSeq)
+  }
+
+  private interruptAsUser(childSessionId: SessionId, parentSessionId?: SessionId, turnStartSeq?: number | null): SubagentInterruptReceipt {
     try {
-      this.interrupt(childSessionId, { kind: 'user' })
+      this.interrupt(childSessionId, {
+        kind: 'user',
+        ...(parentSessionId === undefined ? {} : { parentSessionId }),
+        ...(turnStartSeq === undefined ? {} : { turnStartSeq }),
+      })
     } catch (error: unknown) {
+      if (error instanceof SubagentError && error.code === 'UNAUTHORIZED') {
+        throw new RemoteError('subagent/unauthorized', 'subagent does not belong to this parent', { childSessionId }, { cause: error })
+      }
+      if (error instanceof SubagentError && error.code === 'CONTINUATION_UNAVAILABLE') {
+        throw new RemoteError('subagent/delivery-unavailable', 'subagent turn projection is unavailable', { childSessionId }, { cause: error })
+      }
       throw new RemoteError('gateway/internal', 'subagent interrupt failed', {}, { cause: error })
     }
     return { accepted: true }

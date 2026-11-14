@@ -1,0 +1,86 @@
+{
+  "covers": [
+    "Tool Call",
+    "Tool Result",
+    "Turn"
+  ],
+  "events": [
+    {
+      "type": "prompt/accepted",
+      "requestId": "r9",
+      "content": "算一下 2 + 3 * 4"
+    },
+    {
+      "type": "stream/delta",
+      "text": "先算"
+    },
+    {
+      "type": "tool/call",
+      "id": "c1",
+      "name": "calculator",
+      "arguments": "{\"expression\":\"2 + 3 * 4\"}"
+    },
+    {
+      "type": "tool/result",
+      "id": "c1",
+      "ok": true,
+      "text": "14"
+    },
+    {
+      "type": "message/completed",
+      "text": "先算"
+    },
+    {
+      "type": "stream/delta",
+      "text": "结果是 "
+    },
+    {
+      "type": "stream/delta",
+      "text": "14"
+    },
+    {
+      "type": "message/completed",
+      "text": "结果是 14"
+    },
+    {
+      "type": "turn/completed"
+    }
+  ],
+  "expected": {
+    "conversation": [
+      {
+        "role": "user",
+        "text": "算一下 2 + 3 * 4"
+      },
+      {
+        "role": "assistant",
+        "text": "先算"
+      },
+      {
+        "role": "assistant",
+        "text": "结果是 14"
+      }
+    ],
+    "streaming": {
+      "active": false,
+      "partialText": "",
+      "partialReasoning": ""
+    },
+    "interrupted": false,
+    "toolCalls": [
+      {
+        "id": "c1",
+        "name": "calculator",
+        "arguments": "{\"expression\":\"2 + 3 * 4\"}",
+        "phase": "completed",
+        "resultText": "14"
+      }
+    ],
+    "planActive": false,
+    "todos": [],
+    "artifacts": [],
+    "lastTurnEnd": "completed",
+    "errors": [],
+    "pendingHandoff": null
+  }
+}

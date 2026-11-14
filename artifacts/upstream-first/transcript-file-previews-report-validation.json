@@ -1,0 +1,68 @@
+{
+  "status": "PASS",
+  "scope": "Report bindings and audit for Current-viewer admission for Tool paths, produced-file chips, explicit-delivery previews and closing prose; full Upstream-First objective remains in progress",
+  "gate0": {
+    "validation": "PASS",
+    "gate0": "PASS",
+    "paths": 1938,
+    "components": 129
+  },
+  "sourceRecord": {
+    "path": "artifacts/upstream-first/transcript-file-previews-source.json",
+    "sha256": "ff75bbbba53dc6a67061c66177b1438c14c0aa50b5ff2624c9e50a6f314cf24d"
+  },
+  "generator": {
+    "path": "artifacts/upstream-first/write-reports.mjs",
+    "sha256": "1f1fd7617ff244663a99994f1c1555d3dc71d70b4178d473446f987bd541f08f"
+  },
+  "binding": {
+    "path": "artifacts/upstream-first/transcript-file-previews-binding.json",
+    "sha256": "7d0a3b8b335b3381e34314aae8d90524f9b4b15e642990bfaa57fc0f6ede8eeb"
+  },
+  "helpers": [
+    {
+      "path": ".artifacts/advance-transcript-file-previews-reports.mjs",
+      "sha256": "d6b7aa0ce86ce22567d7649909d411e7dde40a981ffbbced1b449c96fe736a91"
+    },
+    {
+      "path": ".artifacts/correct-transcript-evidence-status.mjs",
+      "sha256": "bbb40f0ca1449b8377a24933870cd93c1b2914ae6e86c3862e290508f887a2c0"
+    },
+    {
+      "path": ".artifacts/capture-transcript-file-previews-validation.mjs",
+      "sha256": "99802a1fba91c7af8049b39476ad301ec39f12e376aff27b8150ec0f89a5148f"
+    }
+  ],
+  "reports": [
+    {
+      "path": "IMPLEMENTATION_STATUS.md",
+      "sha256": "161bdaffa93b8260cfab12328eef30c7281e69853be8c4c3c66350426f49956f"
+    },
+    {
+      "path": "artifacts/upstream-first/evidence.json",
+      "sha256": "e347c933b3eeb0333867a69760617bc78b5551f79ca5c26668fd3598eeca317e"
+    }
+  ],
+  "checks": [
+    {
+      "path": ".artifacts/transcript-file-previews-binding.log",
+      "sha256": "e93c6d42aba1adb549ad1900cca6005e20af2fb43fdcf7d2f0966d9e612d569a"
+    },
+    {
+      "path": ".artifacts/transcript-file-previews-audit-tests.log",
+      "sha256": "539876d1e754834c613700dc29dc8fc6eb8b6566e2475934fc45718d30566b85"
+    },
+    {
+      "path": ".artifacts/transcript-file-previews-gate0.log",
+      "sha256": "4b5af3121a7e7caff0e1b6288bdaa7cfef9988842ae06bf02dc0a74852426043"
+    },
+    {
+      "path": ".artifacts/transcript-file-previews-report-diff-check.log",
+      "sha256": "e3b0c44298fc1c149afbf4c8996fb92427ae41e4649b934ca495991b7852b855"
+    },
+    {
+      "path": ".artifacts/transcript-file-previews-report-generation.log",
+      "sha256": "5867d1d51cd43a59428de2e7fffa15847d7153b11f3b61ecf812224ee2dd2099"
+    }
+  ]
+}

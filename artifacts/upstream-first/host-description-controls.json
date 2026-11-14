@@ -1,0 +1,60 @@
+{
+  "schemaVersion": 1,
+  "status": "PASS",
+  "cases": [
+    {
+      "name": "identity-replacement",
+      "status": "PASS",
+      "source": "packages/api/host-description/src/identity.ts",
+      "backup": ".artifacts/host-description-control-inputs/identity-replacement.ts",
+      "originalSha256": "a760ea895ff2ba213614c84fd906f444824c0c2fca6041c8cd3f5605169ee2a4",
+      "mutatedSha256": "e8ef8ccf0d9bf771cea716b8320b3acd27d83f993b1634e0acc07b7d682e39c1",
+      "command": [
+        "C:\\Program Files\\nodejs\\node.exe",
+        "node_modules/vitest/vitest.mjs",
+        "run",
+        "packages/api/host-description/tests/identity.spec.ts",
+        "-t",
+        "refuses a malformed persisted identity"
+      ],
+      "exitCode": 1,
+      "log": ".artifacts/host-description-control-identity-replacement.log"
+    },
+    {
+      "name": "identity-unserialized",
+      "status": "PASS",
+      "source": "packages/api/host-description/src/identity.ts",
+      "backup": ".artifacts/host-description-control-inputs/identity-unserialized.ts",
+      "originalSha256": "a760ea895ff2ba213614c84fd906f444824c0c2fca6041c8cd3f5605169ee2a4",
+      "mutatedSha256": "02a92e3a61422ff3ae160fdeffed92e7131713d1e861c2a75c7536cc324d79a0",
+      "command": [
+        "C:\\Program Files\\nodejs\\node.exe",
+        "node_modules/vitest/vitest.mjs",
+        "run",
+        "packages/api/host-description/tests/identity.spec.ts",
+        "-t",
+        "persists one identity across concurrent first loads"
+      ],
+      "exitCode": 1,
+      "log": ".artifacts/host-description-control-identity-unserialized.log"
+    },
+    {
+      "name": "withdrawn-capability",
+      "status": "PASS",
+      "source": "packages/api/gateway/src/index.ts",
+      "backup": ".artifacts/host-description-control-inputs/withdrawn-capability.ts",
+      "originalSha256": "e5d8511059bf6672c917ba8085af044f7a4c59628b3db5a5f342b0db383019b9",
+      "mutatedSha256": "86a95322e6283a5e8ec10561c53c17d8bfe0d93e922bc32fd75a880b9bc5b6cd",
+      "command": [
+        "C:\\Program Files\\nodejs\\node.exe",
+        "node_modules/vitest/vitest.mjs",
+        "run",
+        "packages/api/gateway/tests/gateway.host.spec.ts",
+        "-t",
+        "withdraws a capability when a required strict definition is removed"
+      ],
+      "exitCode": 1,
+      "log": ".artifacts/host-description-control-withdrawn-capability.log"
+    }
+  ]
+}

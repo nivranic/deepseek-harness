@@ -1,0 +1,70 @@
+{
+  "status": "PASS",
+  "scope": "Report bindings and audit for the Device admission lifecycle; the remaining specification sections stay open; full Upstream-First objective remains in progress",
+  "gate0": {
+    "validation": "PASS",
+    "gate0": "PASS",
+    "paths": 1938,
+    "components": 129,
+    "specificationCoverage": {
+      "status": "PASS",
+      "numberedSections": 81,
+      "nonEmptySourceLines": 1983,
+      "acceptanceProven": false
+    }
+  },
+  "sourceRecord": {
+    "path": "artifacts/upstream-first/device-admission-lifecycle-source.json",
+    "sha256": "ea6ba57d2fc8471a93da4b124ddd472cd23d03683a49a6332b6e9eefccf3c7ca"
+  },
+  "generator": {
+    "path": "artifacts/upstream-first/write-reports.mjs",
+    "sha256": "5940dbcafb4cf12e0f4b5dac690e8cbf5849c53401a12b44f3cf8e1c849d0d8a"
+  },
+  "binding": {
+    "path": "artifacts/upstream-first/device-admission-lifecycle-binding.json",
+    "sha256": "dea0f1797e54dcfa03dd7f8ea82fc9fcb371cdca52e9222ba296c1dd3bdcc289"
+  },
+  "helpers": [
+    {
+      "path": ".artifacts/advance-device-admission-lifecycle-reports.mjs",
+      "sha256": "7ffdc4cb3d95ebc53be0ef0ba61405d4b71c80a217b7c44a908d8a147b210ca9"
+    },
+    {
+      "path": ".artifacts/capture-device-admission-lifecycle-validation.mjs",
+      "sha256": "e578a91eb45d1bd8822f8ffaa98f89cae027e3ef5c4c26d69545eb355818005b"
+    }
+  ],
+  "reports": [
+    {
+      "path": "IMPLEMENTATION_STATUS.md",
+      "sha256": "d68b472cfe687e8c352c7cddabbb9cbd1c50c2ee033d3a362c9962817496d1e2"
+    },
+    {
+      "path": "artifacts/upstream-first/evidence.json",
+      "sha256": "cd2ddc6b004277e19a05ec67bf3947bd3115db656ab4ba9b0a223e00f2bff59b"
+    }
+  ],
+  "checks": [
+    {
+      "path": ".artifacts/device-admission-lifecycle-binding.log",
+      "sha256": "48258b1df3efaf738cc6d9f876f94fce00f82500d439834dd1394ea5351dc859"
+    },
+    {
+      "path": ".artifacts/device-admission-lifecycle-audit-tests.log",
+      "sha256": "27e61295efe007017f6e324ed7ad23760488092eccb00b68e9079ce806af1cb8"
+    },
+    {
+      "path": ".artifacts/device-admission-lifecycle-gate0.log",
+      "sha256": "5427f71ff5b67b500b327d785dcaf84a7af2c6edd24b1833c4c7d83ad2cf37c8"
+    },
+    {
+      "path": ".artifacts/device-admission-lifecycle-report-diff-check.log",
+      "sha256": "e3b0c44298fc1c149afbf4c8996fb92427ae41e4649b934ca495991b7852b855"
+    },
+    {
+      "path": ".artifacts/device-admission-lifecycle-report-generation.log",
+      "sha256": "5867d1d51cd43a59428de2e7fffa15847d7153b11f3b61ecf812224ee2dd2099"
+    }
+  ]
+}

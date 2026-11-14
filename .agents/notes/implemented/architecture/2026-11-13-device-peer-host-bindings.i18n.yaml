@@ -1,0 +1,19 @@
+# Bilingual-pair consistency record for 2026-11-13-device-peer-host-bindings.md (docs/i18n/README.md): per heading
+# section, a hash of its English and Chinese blocks outside code blocks and generated regions.
+# After editing either side, bring the other along and re-record with:
+#   pnpm run verify-translation-pairing --write .agents/notes/implemented/architecture/2026-11-13-device-peer-host-bindings.md
+/agent-note-device-peers-and-explicit-host-bindings:
+  en: 9b7b4867a009be29
+  zh: e12cd0fd3fdfc306
+/agent-note-device-peers-and-explicit-host-bindings/problem:
+  en: 96fabad47d7bf914
+  zh: 0f8e0e1b77d8ff81
+/agent-note-device-peers-and-explicit-host-bindings/decision:
+  en: 719bac6a80e377bf
+  zh: 98612a9e8ba4d243
+/agent-note-device-peers-and-explicit-host-bindings/alternatives-considered:
+  en: af3f18b5ae690e88
+  zh: ec3143c69a0bda9c
+/agent-note-device-peers-and-explicit-host-bindings/consequences:
+  en: 05ad24d463c6364c
+  zh: 9fd222364d619095

@@ -1,0 +1,16 @@
+{
+  "status": "PASS",
+  "controls": 3,
+  "sourceRecord": {
+    "path": "artifacts/upstream-first/failure-copy-source.json",
+    "sha256": "e3af68a2a7804a7e1b1d535a6c80e2307ec675af9d769a3dbf08660419f71c8d"
+  },
+  "generator": {
+    "path": "artifacts/upstream-first/write-reports.mjs",
+    "sha256": "0004c9d9db8a11731492520c8c4067014f068eb0c481953a1cd63f54b8b6e490"
+  },
+  "helper": {
+    "path": ".artifacts/check-failure-copy-binding.mjs",
+    "sha256": "44706e39cfcff08857fb8597cd1480621766e3b06af13250d8da17fd221b33c1"
+  }
+}

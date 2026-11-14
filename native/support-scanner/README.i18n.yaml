@@ -1,0 +1,37 @@
+# Bilingual-pair consistency record for README.md (docs/i18n/README.md): per heading
+# section, a hash of its English and Chinese blocks outside code blocks and generated regions.
+# After editing either side, bring the other along and re-record with:
+#   pnpm run verify-translation-pairing --write native/support-scanner/README.md
+/:
+  en: aca28f94b271f7f4
+  zh: 1ab17788b9b61741
+/support-scanner:
+  en: 4a9118131f552383
+  zh: 0daa32f0c1b4116d
+/support-scanner/summary:
+  en: e51574664a05af38
+  zh: 13afb58506e35e7c
+/support-scanner/table-of-contents:
+  en: c865320cfce0e174
+  zh: baa46460d4454d26
+/support-scanner/use-the-library:
+  en: 59e46e7f7a7a93e7
+  zh: c4baaa540c62db18
+/support-scanner/verify-the-source:
+  en: 0e65e1c4f638f4de
+  zh: f53da535f3670951
+/support-scanner/build-android-resources:
+  en: 0a658509bf5cc6aa
+  zh: 4a20aa2dff3219f1
+/support-scanner/understand-the-implementation:
+  en: f82158adeff31ae1
+  zh: 39511a67affb326c
+/support-scanner/model-experience:
+  en: 3a28213c94fb1929
+  zh: 9be9254860d4e4a0
+/support-scanner/known-limitations-and-deferred-work:
+  en: 1367dd8c38fd4be2
+  zh: a0009a2069dde801
+/support-scanner/known-limitations-and-deferred-work/dev-note:
+  en: 0a1253c6f7b5e8b9
+  zh: 8cf5bc5201fe4738

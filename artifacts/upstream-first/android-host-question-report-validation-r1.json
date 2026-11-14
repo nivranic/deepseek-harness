@@ -1,0 +1,70 @@
+{
+  "status": "PASS",
+  "scope": "Report bindings and audit for the android host question increment: the section 28 pending-Question cross-principal isolation gains its physical lane acceptance on the local AVD emulator with two real dual-Host scaffolds sharing one Session id, plus the gradle :core:test/:contract:test aggregate and audit rounds; real hardware, the Swift shell, background/push delivery and full Session location metadata stay open; full Upstream-First objective remains in progress",
+  "gate0": {
+    "validation": "PASS",
+    "gate0": "PASS",
+    "paths": 1938,
+    "components": 129,
+    "specificationCoverage": {
+      "status": "PASS",
+      "numberedSections": 81,
+      "nonEmptySourceLines": 1983,
+      "acceptanceProven": false
+    }
+  },
+  "sourceRecord": {
+    "path": "artifacts/upstream-first/android-host-question-source.json",
+    "sha256": "89953978030e91f99a04e2873ca075e17ed3a3a1ed4d1173ffc9ecaf454e2f0d"
+  },
+  "generator": {
+    "path": "artifacts/upstream-first/write-reports.mjs",
+    "sha256": "0c33b4148ab341c0d68900bc86dec5534bc0bf29f44573860c9d4e93a4817a98"
+  },
+  "binding": {
+    "path": "artifacts/upstream-first/android-host-question-binding.json",
+    "sha256": "f6e5b905324a6b980834206a3c7bb540cd09c354db039b898627f01327e17f2f"
+  },
+  "helpers": [
+    {
+      "path": ".artifacts/advance-android-host-question-reports.mjs",
+      "sha256": "dbc33f8a4a2a1b87781aac820fed54fe2d9e5490ef49de7e4735dff918dc760e"
+    },
+    {
+      "path": ".artifacts/capture-android-host-question-validation.mjs",
+      "sha256": "58d2a5bc9a45e050c8881b58df1ae9ff42fe26793dc99d210a883a614f63c78a"
+    }
+  ],
+  "reports": [
+    {
+      "path": "IMPLEMENTATION_STATUS.md",
+      "sha256": "a74e30a5108cb9110b653410f7b8930b319101429194a07cb814e4b5d6b0b447"
+    },
+    {
+      "path": "artifacts/upstream-first/evidence.json",
+      "sha256": "5cb8d94a4a88ab22cdfae8c0759a862316c0dc03a7f64ca313e8d59d06a84bd9"
+    }
+  ],
+  "checks": [
+    {
+      "path": ".artifacts/android-host-question-binding.log",
+      "sha256": "9ae79eedadd855b068499d5f9dfc7c0ef341ea2409402b13a95321e1ae8076c7"
+    },
+    {
+      "path": ".artifacts/android-host-question-audit-final.log",
+      "sha256": "451d8f836965d84ff520f4f993b46a6e7f65f6ccb807d89d067fecd926a8f184"
+    },
+    {
+      "path": ".artifacts/android-host-question-gate0-final.log",
+      "sha256": "505d74ef938f5d34d85490d37e0176ba804d93272fcf465ce2544a02c56b3f90"
+    },
+    {
+      "path": ".artifacts/android-host-question-report-diff-check.log",
+      "sha256": "e3b0c44298fc1c149afbf4c8996fb92427ae41e4649b934ca495991b7852b855"
+    },
+    {
+      "path": ".artifacts/android-host-question-report-generation.log",
+      "sha256": "fe010532f71a6341467ae5719b29ac19470895de1d481156335b8f70a3273ed5"
+    }
+  ]
+}

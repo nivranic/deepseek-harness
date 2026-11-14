@@ -1,0 +1,16 @@
+{
+  "status": "PASS",
+  "controls": 3,
+  "sourceRecord": {
+    "path": "artifacts/upstream-first/workspace-management-source.json",
+    "sha256": "dcf26815c6c94d63ff3579bae3d43aa38c7cd45e0ec5a9e85af1bbdbdef50175"
+  },
+  "generator": {
+    "path": "artifacts/upstream-first/write-reports.mjs",
+    "sha256": "b6907a0afc71c10e366507de1dae8cce0d67a9cd09521e88c298f778f2f70785"
+  },
+  "helper": {
+    "path": ".artifacts/check-workspace-management-binding.mjs",
+    "sha256": "5503686d7f63a0cb76e7681c2e185afa8d96bc94d9201291e455b4df40786058"
+  }
+}

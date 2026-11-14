@@ -1,0 +1,12 @@
+{
+  "true": {
+    "modelControls": 1,
+    "modelCommands": 1,
+    "modelCatalogCalls": 1
+  },
+  "false": {
+    "modelControls": 0,
+    "modelCommands": 0,
+    "modelCatalogCalls": 0
+  }
+}

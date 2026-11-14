@@ -1,0 +1,19 @@
+# Bilingual-pair consistency record for 2026-09-27-android-current-resource-reading.md (docs/i18n/README.md): per heading
+# section, a hash of its English and Chinese blocks outside code blocks and generated regions.
+# After editing either side, bring the other along and re-record with:
+#   pnpm run verify-translation-pairing --write .agents/notes/implemented/architecture/2026-09-27-android-current-resource-reading.md
+/agent-note-native-file-and-delivery-previews-share-bounded-current-host-reads:
+  en: 5b1a468ff63afcce
+  zh: 841ba8f532f4000c
+/agent-note-native-file-and-delivery-previews-share-bounded-current-host-reads/problem:
+  en: 4db6237d34ccf6fc
+  zh: 2ed1dc8c67cb89fa
+/agent-note-native-file-and-delivery-previews-share-bounded-current-host-reads/decision:
+  en: b6100a420b01fedd
+  zh: a284520af1ba50e0
+/agent-note-native-file-and-delivery-previews-share-bounded-current-host-reads/alternatives-considered:
+  en: 66d9aa1ac338933c
+  zh: b560214addd1a481
+/agent-note-native-file-and-delivery-previews-share-bounded-current-host-reads/consequences:
+  en: 942c281e1f69b16a
+  zh: d7a7d4f41a4a5191

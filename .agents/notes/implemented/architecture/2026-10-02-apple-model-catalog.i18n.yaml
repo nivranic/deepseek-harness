@@ -1,0 +1,22 @@
+# Bilingual-pair consistency record for 2026-10-02-apple-model-catalog.md (docs/i18n/README.md): per heading
+# section, a hash of its English and Chinese blocks outside code blocks and generated regions.
+# After editing either side, bring the other along and re-record with:
+#   pnpm run verify-translation-pairing --write .agents/notes/implemented/architecture/2026-10-02-apple-model-catalog.md
+/agent-note-apple-contract-adopts-the-model-selection-vocabulary-30:
+  en: d5f1aff1db3b0e5a
+  zh: 0978446dc6fe885f
+/agent-note-apple-contract-adopts-the-model-selection-vocabulary-30/problem:
+  en: 960afc7d9699faa4
+  zh: f6467d96507bc0a0
+/agent-note-apple-contract-adopts-the-model-selection-vocabulary-30/decision:
+  en: 429940e6e1143a06
+  zh: ea49612aea48b54b
+/agent-note-apple-contract-adopts-the-model-selection-vocabulary-30/alternatives-considered:
+  en: daccd09a9e63276e
+  zh: 32954803e4364d4b
+/agent-note-apple-contract-adopts-the-model-selection-vocabulary-30/consequences:
+  en: bc2c410ed6b08de9
+  zh: 2c3d93c975f92c8a
+/agent-note-apple-contract-adopts-the-model-selection-vocabulary-30/open-work:
+  en: 231b3d55ca4498b0
+  zh: 2374f3bd76e2f5f0

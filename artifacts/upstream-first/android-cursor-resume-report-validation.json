@@ -1,0 +1,70 @@
+{
+  "status": "PASS",
+  "scope": "Report bindings and audit for Android retained-cursor follow recovery and bounded native history; the remaining specification sections stay open; full Upstream-First objective remains in progress",
+  "gate0": {
+    "validation": "PASS",
+    "gate0": "PASS",
+    "paths": 1938,
+    "components": 129,
+    "specificationCoverage": {
+      "status": "PASS",
+      "numberedSections": 81,
+      "nonEmptySourceLines": 1983,
+      "acceptanceProven": false
+    }
+  },
+  "sourceRecord": {
+    "path": "artifacts/upstream-first/android-cursor-resume-source.json",
+    "sha256": "23ea29ea4b0a77b1bc32f734228cbffb37ab211fb10fc83d22ee727f4319481d"
+  },
+  "generator": {
+    "path": "artifacts/upstream-first/write-reports.mjs",
+    "sha256": "6782d1bee567b33f3fb19c1d7ab2b42e9da228fabce5c3072b7d61b4a187e69c"
+  },
+  "binding": {
+    "path": "artifacts/upstream-first/android-cursor-resume-binding.json",
+    "sha256": "5e3b027f4fbfa91b42fe3522abfdf195ba21de10e2297b39c4c65e6b08f0d70c"
+  },
+  "helpers": [
+    {
+      "path": ".artifacts/advance-android-cursor-resume-reports.mjs",
+      "sha256": "4fefefe100e173648bf13965726ba1c3b56593895f9c7ead5a460efb1ec485de"
+    },
+    {
+      "path": ".artifacts/capture-android-cursor-resume-validation.mjs",
+      "sha256": "b43ecbccf82b65d0bcff948870d6df1cfba4bce8a2d7916c92f30da3822996ea"
+    }
+  ],
+  "reports": [
+    {
+      "path": "IMPLEMENTATION_STATUS.md",
+      "sha256": "3df540fd52aa65c2335ba74bf0b25fc8b5c976c8041728f65a3cddea5ed23b2d"
+    },
+    {
+      "path": "artifacts/upstream-first/evidence.json",
+      "sha256": "a8b7ff878e5d415b0324ff34a3b24ecdef8f15117b083be65491032a0a23c03a"
+    }
+  ],
+  "checks": [
+    {
+      "path": ".artifacts/android-cursor-resume-binding.log",
+      "sha256": "5ea142ecb8c9afe947fba817fcc342c32b1027e86793adc074009d9df5a50598"
+    },
+    {
+      "path": ".artifacts/android-cursor-resume-audit-tests.log",
+      "sha256": "35c9476e0a6631969889b2d1f11c6dbf84f54406e29ece6a620a98933eaf9400"
+    },
+    {
+      "path": ".artifacts/android-cursor-resume-gate0-report.log",
+      "sha256": "5427f71ff5b67b500b327d785dcaf84a7af2c6edd24b1833c4c7d83ad2cf37c8"
+    },
+    {
+      "path": ".artifacts/android-cursor-resume-report-diff-check.log",
+      "sha256": "e3b0c44298fc1c149afbf4c8996fb92427ae41e4649b934ca495991b7852b855"
+    },
+    {
+      "path": ".artifacts/android-cursor-resume-report-generation.log",
+      "sha256": "fb61453fa61ef033e7ac0e9066ffd5078001a031bc4134f7cc3287ddc33b01b8"
+    }
+  ]
+}

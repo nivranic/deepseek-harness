@@ -26,7 +26,7 @@ import type {
 } from './contract/slots.ts'
 import type { InputNotice } from './contract/input.ts'
 import type { ReferenceInsert } from './contract/draft-editor.ts'
-import { createConversationStore, readConversationViewPreference } from './stores.ts'
+import { readConversationViewPreference } from './stores.ts'
 import { formatFileMention } from '@deepseek-ai/dsh-file-reference/grammar'
 import { relativizeToCwd, workspaceTitleOf } from '@deepseek-ai/dsh-util-workspace-path'
 import { ConversationController, UnsupportedImageMediaTypeError, isImageMediaType } from './service.ts'
@@ -193,7 +193,7 @@ export function apply(ctx: Context, config: Config = Config({})): void {
 
   ctx.effect(() => ctx.locale.register(NS, { zh, en, ja, es, fr, de, ru, pt }), 'ui-conversation: dictionaries')
   const t = ctx.locale.bind(NS)
-  const conversationStore = createConversationStore()
+  const conversationStore = uiConversation.presentationStore
   const submissionPolicy = new ComposerSubmissionPolicy(
     ctx.configForms.get<ConversationSettings>(CONVERSATION_SETTINGS_NAMESPACE),
   )
@@ -413,9 +413,9 @@ export function apply(ctx: Context, config: Config = Config({})): void {
         definition.toolCallFocus !== undefined
         && conversationViews.getSnapshot().some(view => view.id === definition.target),
       )
-      const inspectCall = (callId: string): void => {
+      const inspectCall = (callId: string, location: { readonly turn: number; readonly step: number }): void => {
         const target = inspectionTarget()
-        if (target?.toolCallFocus !== undefined) openView(target.target, target.toolCallFocus(callId))
+        if (target?.toolCallFocus !== undefined) openView(target.target, target.toolCallFocus(callId, location))
       }
       return {
         hooks: {

@@ -1,0 +1,10 @@
+{
+  "type": "client-request",
+  "rpcId": "rpc-probe/echo",
+  "method": "probe/echo",
+  "payload": {
+    "args": {
+      "value": "hi"
+    }
+  }
+}

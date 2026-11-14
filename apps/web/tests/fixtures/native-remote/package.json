@@ -1,0 +1,7 @@
+{
+  "name": "@fixture/native-remote-profile",
+  "private": true,
+  "dependencies": {
+    "@deepseek-ai/dsh-api-native-remote": "workspace:^"
+  }
+}

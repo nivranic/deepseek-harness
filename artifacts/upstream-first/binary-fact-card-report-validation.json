@@ -1,0 +1,70 @@
+{
+  "status": "PASS",
+  "scope": "Report bindings and audit for the Binary fact card; the remaining specification sections stay open; full Upstream-First objective remains in progress",
+  "gate0": {
+    "validation": "PASS",
+    "gate0": "PASS",
+    "paths": 1938,
+    "components": 129,
+    "specificationCoverage": {
+      "status": "PASS",
+      "numberedSections": 81,
+      "nonEmptySourceLines": 1983,
+      "acceptanceProven": false
+    }
+  },
+  "sourceRecord": {
+    "path": "artifacts/upstream-first/binary-fact-card-source.json",
+    "sha256": "62582887e55863a849634d0699d24c4b847f3057f9054ebd97f3c63689f5d855"
+  },
+  "generator": {
+    "path": "artifacts/upstream-first/write-reports.mjs",
+    "sha256": "c444657d782ab8b3eccaafd17b6c65176284135fce0819a7a8ab53bcba585c5c"
+  },
+  "binding": {
+    "path": "artifacts/upstream-first/binary-fact-card-binding.json",
+    "sha256": "54b0ddff1c957002924bd026a24ff2ebdf861d11b9b6179da737230eedcc9aa3"
+  },
+  "helpers": [
+    {
+      "path": ".artifacts/advance-binary-fact-card-reports.mjs",
+      "sha256": "e829ff6cbd0d319a9a29941249e43097441c19a9a0e65233f144db7150aa421a"
+    },
+    {
+      "path": ".artifacts/capture-binary-fact-card-validation.mjs",
+      "sha256": "61eeaf869a79cef94b632499eedfb7e88276ffb05ee06e1d804a7025baacaf73"
+    }
+  ],
+  "reports": [
+    {
+      "path": "IMPLEMENTATION_STATUS.md",
+      "sha256": "7e42c4fc9f221dd4f492439b821c8c717b13b5b6080d0c18847f6c6aace646d0"
+    },
+    {
+      "path": "artifacts/upstream-first/evidence.json",
+      "sha256": "be16569586899dcf463943ed1663aaec3253f01c2efca3ba3d4962790c3d6120"
+    }
+  ],
+  "checks": [
+    {
+      "path": ".artifacts/binary-fact-card-binding.log",
+      "sha256": "cf8b7d48212e42fe754cddc99eeade7618e88887b536e2d60828d9f5823800cb"
+    },
+    {
+      "path": ".artifacts/binary-fact-card-audit-tests.log",
+      "sha256": "e0188c393de5a65f175523db688ead9d7c0d6caf30e677bedfafd175a2f21fe8"
+    },
+    {
+      "path": ".artifacts/binary-fact-card-gate0.log",
+      "sha256": "505d74ef938f5d34d85490d37e0176ba804d93272fcf465ce2544a02c56b3f90"
+    },
+    {
+      "path": ".artifacts/binary-fact-card-report-diff-check.log",
+      "sha256": "e3b0c44298fc1c149afbf4c8996fb92427ae41e4649b934ca495991b7852b855"
+    },
+    {
+      "path": ".artifacts/binary-fact-card-report-generation.log",
+      "sha256": "304142619dca56563615e738a3fe21961ef9d5f37153092c05036c5ec94afca9"
+    }
+  ]
+}

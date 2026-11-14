@@ -1,0 +1,16 @@
+{
+  "absent": {
+    "editable": "false",
+    "draft": "Draft retained across capability changes",
+    "sendControls": 0,
+    "stopControls": 0,
+    "mutations": []
+  },
+  "restored": {
+    "editable": "true",
+    "draft": "Draft retained across capability changes",
+    "sendControls": 1,
+    "stopControls": 0,
+    "mutations": []
+  }
+}

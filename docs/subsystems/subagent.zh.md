@@ -8,6 +8,10 @@
 
 所有后端都使用 startActivation。能力标记校验请求选项；prepareContinuable 选择本地 Agent 创建，start 选择一次外部执行。面向模型的工具采用 parent 回传。Workflow 与 code mode 消费者可以等待 caller 结果，不额外向父代理注入消息。历史子会话的 descriptor 不可用时，以 `mode: 'unknown'` 保持可发现性，但不授予继续执行能力；[包 README](../../packages/subagent/subagent/README.zh.md) 定义目录持久化语义。
 
+`subagentCatalog` projection 通过 Session 观察和客户端快照暴露按父会话事件排序的 `SubagentCatalogEntry[]`。每个条目包含子级 id、创建时间、模式和依模式确定的标签；fork 继承的目录事实不在其中。[subagent 包](../../packages/subagent/subagent/README.zh.md) 定义目录创建和持久化语义。
+
+`subagentPromptReceipts` 是仅属于 Host 的投影，记录已接受的浏览器请求身份及原消息 id。它折叠既有 inbox 与用户消息事件中属于子级自身的部分，通过投影 checkpoint 机制持久化，不提供 wire 视图。[Prompt 重试语义](../../packages/subagent/subagent/README.zh.md)由 subagent 包拥有。
+
 可选的 `cwd` 指定子级的初始目录；相对路径以父级当前有效目录为基准解析。省略时，在准入阶段捕获该目录。本地子 Session 保留父级的原始项目，冷恢复保留其日志中的目录状态。
 
 ```ts type-equiv
@@ -137,6 +141,18 @@ interface ResolvedSubagentStartRequest extends SubagentStartRequest {
 
 只有 spawn 支持独立的 `agentPreset`；省略选择与 fork 都继承父方的活跃组装。[子级 preset 规则](../../packages/subagent/subagent/README.zh.md#restoring-child-composition)定义显式选择、事件顺序和历史恢复行为。
 
+`SubagentRuntime.interrupt(targetSessionId, authority)` 是唯一的公开停止操作：它同步完成鉴权，对在线目标发出 `Agent.cancel(cause, { keepInbox: true })`，然后不等待完全停稳即返回。Activation、其尚未领取的待处理 inbox 工作与已发布的后代均不受影响；已被领取进入中断轮次的工作不会重新入队。被中断的 driver 进入 idle 后，一次唤醒发送会恢复被暂停的 FIFO 队列。不存在的目标——未知、一次性或已结算——以及未绑定管理器的组合是被接受的 no-op。对在线目标，错误的 parent 地址或不在其在线祖先链中的调用方会以 `UNAUTHORIZED` 拒绝；陈旧的 ancestor 对象和指向自身的 ancestor 请求会在查找目标前拒绝。
+
+`SubagentInterruptTurnRequest` 携带 `parentSessionId`、`childSessionId`、`mode: 'continuable'` 及已观察的 `turnStartSeq` 或 null。`subagents.interruptTurnByParent` 将目标与 `subagentTiming.active.startSeq` 比较；对于声明 `subagent.interrupt-turn.v1` 的 Host，缺少活动轮次序号不能授权 Client 回退。[中断决策](../../.agents/notes/archived/feature/2026-08-06-continuable-subagent-interrupt.md)拥有权限、no-op 结果和旧行为。
+
+每个 Activation 都拥有自己的 `AgentHandle` 和一个 `ownedChildren: Set<SessionId>`；由于一份会话至多有一个存活 Activation，子会话 id 无需另一个运行时化身引用即可标识存活的子 agent。启动子 agent 或提交源自 parent 的工作，会在子 agent 能够运行之前将其注册到受继续执行管理的父级集合中；只要该集合非空，该父级就无法 settle。顶层或其他非继续执行的 Agent 没有 Activation，处于 waiting 图之外。只有当子 Agent 没有活跃工作、其 Inbox 为空、该子 agent 的每个子级都已 dispose、best-effort 的最终会话 flush 结算完毕，且子 agent 的 `AgentHandle` 完成 dispose 之后，才会释放子 agent。
+
+最终结算会等待 `ctx.sessions.flush(session)`，但会忽略其参与布尔值，因为任意 listener 都无法证明某个持久化后端已存储该状态。rejection 会被记录，但不会使 Activation 失败；管理器仍会 dispose 该 handle 并释放所有权，此后持久化的子 agent 状态在后续恢复时可能缺失或陈旧。管理器卸载会调用内部的管理器全局 drain，关闭准入并 dispose 每片在线森林；`drainContinuableDescendants(parents)` 只关闭由 host 确切拥有的在线 Agent 之下的准入，并 dispose 其可继续后代，而无关森林保持在线。两者都会等待各自作用域内已获准的物化过程，自顶向下传播取消，按 child-first 顺序释放 handle，并且即使个别分支失败也会等待所有选中分支。持久化子会话不受该进程内拆卸的影响。
+
+当驻留 Activation 结算时，管理器会向该子级的持久化直接父级投递一份通知，描述该纪元如何结束，并携带其最终助手内容。对每个调用方已收到其 id 的子级，该投递是无条件的，并且发生在可能让父级被判为已结算的所有权释放之前；对驻留父级，它通过与 Agent 消息相同的唤醒投递送达。自身血缘已在拆卸中的父级不经唤醒即可收到通知，因为唤醒一个空闲 Agent 会启动轮次而不是排队工作。其来源是一种独立的 kind，因此会话记录绝不会把运行时的陈述呈现为子级写下的话。
+
+提供方只参与准备初始创建 spec，`spawn` 与 `fork` 的差异正体现在这里。它返回的 spec 只携带分离的提供方专属创建输入——可选的父级历史 seed——不含 Agent、`AgentHandle`、提示词投递、结果、释放或恢复操作。冷恢复完全不经过提供方派发：管理器折叠通用 descriptor，通过同一 activation-owner 作用域调用 `ctx.agents.resume()`，并提交等待中的轮次。
+
 本地子代理拥有持久 Session，最多有一个在线 activation。Manager 预留身份和容量，通过后端准备子代理，并管理输入准入、冷恢复以及先子后父的释放顺序。activation 结果在资源释放和完成通知之后结算。释放操作单独报告清理失败，不会覆盖已捕获的结果。结构化结果提交会关闭该 activation 的输入；之后的冷恢复不会继承输出 schema。
 
 ```ts type-equiv
@@ -244,10 +260,15 @@ interface SubagentSendMessageOptions {
  * invoking it. `ancestor` carries an exact live Agent in the target's creation ancestry.
  */
 type SubagentInterruptAuthority =
-  | { readonly kind: 'user' }
+  | {
+    readonly kind: 'user'
+    /** Optional durable direct parent required by parent-addressed operations. */
+    readonly parentSessionId?: SessionId
+    /** Omission keeps current-turn interruption; null or a stale sequence cannot cancel later work. */
+    readonly turnStartSeq?: number | null
+  }
   | { readonly kind: 'ancestor'; readonly agent: Agent }
 ```
-
 ## 持久枚举
 
 父级拥有的 `subagentCatalog` 投影列出所有本地子级及 parent 投递的外部子级。caller 投递的外部执行由调用方负责成员关系与结果收集；本地工作流子级在完成后仍可被发现。外部条目携带 `mode: 'external'`，不能打开子 Session 或接受后续消息。目录在创建时记录成员关系，不携带执行状态。`list_agents` 展示根和可达的可继续后代，其活跃状态为 `running` 或 `inactive`；参见[控制工具](../../packages/subagent/tool-subagent-control/README.zh.md#list_agents)。
@@ -337,6 +358,7 @@ interface SubagentRun {
 }
 ```
 
+<a id="the-provider-contract-subagentprovider"></a>
 ## 提供方约定：SubagentProvider
 
 `SubagentManager` 统一管理启动、消息准入与执行生命周期。Spawn 与 Fork 提供用于本地 Agent 的独立创建输入。Codex、Claude Code、ACP 和 DSH SDK 提供一个执行句柄，不增加多轮能力。每条 activation 都是直接持有 AgentHandle 或 SubagentRun 的执行期记录。外部完成由句柄的 result promise 确定；inbox 与空闲准入仅属于本地执行。两条路径共用准入、容量、父子所有权、取消和释放机制。[包参考](../../packages/subagent/subagent/README.zh.md)说明组合与部署要求。
@@ -416,9 +438,7 @@ type SubagentDescendantListEntry = SubagentListEntry & {
 }
 ```
 
-
 <a id="the-terminal-result-subagentresult"></a>
-
 
 <!-- BEGIN GENERATED cordis-surface (gen-cordis-catalog.ts) — do not edit between markers -->
 
@@ -598,6 +618,24 @@ listDescendants(rootSessionId: SessionId, signal?: AbortSignal): Promise<Subagen
  *   otherwise `gateway/internal`.
  */
 @Remote({ name: 'interruptByUser', resources: { session: childSessionId => childSessionId } }) interruptByUser(childSessionId: SessionId): SubagentInterruptReceipt
+
+/**
+ * Interrupt the current child turn under its durable direct parent.
+ * @param childSessionId - durable child Session.
+ * @param parentSessionId - durable direct creator.
+ * @param mode - continuable child control mode.
+ * @returns cancellation admission acknowledgement.
+ * @throws {RemoteError} invalid input, parent mismatch, or an internal failure.
+ */
+@Remote({ name: 'interruptByParent', resources: { session: childSessionId => childSessionId } }) interruptByParent( childSessionId: SessionId, parentSessionId: SessionId, mode: 'continuable', ): SubagentInterruptReceipt
+
+/**
+ * Stop an observed child turn under its durable direct parent.
+ * @param request - child address and observed turn/start sequence, or null for an idle child.
+ * @returns acceptance for a cancelled, stale, idle, absent, or completed target.
+ * @throws {RemoteError} invalid input, parent mismatch, or unavailable turn projection.
+ */
+@Remote({ name: 'interruptTurnByParent', resources: { session: request => request.childSessionId } }) interruptTurnByParent(request: SubagentInterruptTurnRequest): SubagentInterruptReceipt
 
 /**
  * Register a provider under its name. Registration is effect-scoped and HMR

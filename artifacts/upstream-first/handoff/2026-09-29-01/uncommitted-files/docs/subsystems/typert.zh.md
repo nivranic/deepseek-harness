@@ -1,0 +1,557 @@
+# Typert 远程调用
+
+[English](typert.md) | 中文
+
+以下类型由生成的 Remote 产物、Host Gateway 与消费方 API assembly 共用。[Typert Gateway Agent Note](../../.agents/notes/implemented/architecture/2026-08-02-typert-remote-method-calls.zh.md) 负责架构与传输决策；本页记录 [`dsh-typert-protocol`](../../packages/typert/protocol/src/types.ts) 和 [`dsh-api-gateway`](../../packages/api/gateway/src/types.ts) 中公共约定的字面定义。
+
+验证失败使用导出的 `RemoteValidationIssue` 类型：`code` 和 `message` 是字符串，`path` 是由字符串键与数字索引组成的只读数组。`RemoteErrorDetailsMap['gateway/bad-request'].issues` 可省略，缺失表示拥有方未提供 codec 诊断。[协议辅助函数](../../packages/typert/protocol/README.zh.md)负责转换验证库输出。
+
+## Lookup 与上下文声明
+
+业务对象包通过声明合并扩展两个空 map。lookup 将一种 Host 对象类型与其 wire identity 关联；上下文声明将一种作用域上下文类别与其 wire identity 关联。生成的 descriptor 引用这些 key，运行时提供方则提供活对象解析行为。
+
+```ts type-equiv
+/** Merge-extensible Host object lookup declarations. */
+interface TypertLookupMap {}
+```
+
+```ts type-equiv
+/** Merge-extensible scoped Context declarations. */
+interface TypertContextMap {}
+```
+
+lookup 的 resolver 卸载后，注册表仍会保留其 wire 声明。因此 SRC 发现过程会继续把该参数归类为 lookup，并因不可用而失败，而不会把 wire 值当作普通业务对象接受。
+
+```ts type-equiv
+/** Stable wire declaration retained after a lookup provider unloads. */
+interface TypertLookupDefinition {
+  /** Merge-declared lookup key. */
+  readonly key: string
+  /** Source parameter name recognized by the SRC weak parser. */
+  readonly parameter: string
+  /** Wire field replacing the Host object parameter. */
+  readonly wire: string
+  /** Canonical Host type symbol used by strict generation. */
+  readonly hostTypeSymbol: string
+  /** Canonical wire type symbol used by strict generation. */
+  readonly wireTypeSymbol: string
+}
+```
+
+## 调用 descriptor
+
+`InvocationDescriptor` 是本地反射信息，不是 wire message。Host 与消费方构建会生成彼此对应的 descriptor；请求只发送 endpoint 与具名 `args`。strict codec 携带生成的 schema，SRC codec 则在不恢复结构类型的前提下强制要求 JSON 安全值。取消通过带外 carrier signal 表达：它在业务参数之后注入，绝不进入 `args`。
+
+```ts type-equiv
+/** Codec attached to one invocation parameter or result. */
+type TypertCodec =
+  | {
+    readonly mode: 'strict'
+    readonly typeSymbol: string
+    readonly schema: TypertSchema
+  }
+  | {
+    readonly mode: 'src-json'
+  }
+```
+
+```ts type-equiv
+/** One ordered business parameter in a Remote invocation. */
+interface InvocationParameterDescriptor {
+  /** Source-level parameter name. */
+  readonly name: string
+  /** Required key in the wire `args` object. */
+  readonly wire: string
+  /** Whether the value is JSON or requires a registered Host lookup. */
+  readonly source: 'json' | 'lookup'
+  /** Lookup key when `source` is `lookup`. */
+  readonly lookup?: string
+  /** Boundary codec for the wire representation. */
+  readonly codec: TypertCodec
+  /** Missing wire fields decode to `undefined` only for an explicitly declared `T | undefined`. */
+  readonly acceptsUndefined?: true
+}
+```
+
+```ts type-equiv
+/** Carrier-independent description of one exported method invocation. */
+interface InvocationDescriptor {
+  /** Globally stable generated identity. */
+  readonly id: string
+  /** Cordis service key owning the method. */
+  readonly service: string
+  /** Wire namespace, defaulting to the service key. */
+  readonly namespace: string
+  /** Public instance method name. */
+  readonly method: string
+  /** Service member invoked when the exported method name is an alias. */
+  readonly implementation?: string
+  /** Absent for unary calls; stream calls validate and deliver every yielded item. */
+  readonly mode?: 'stream'
+  /** Receiver selection mode. */
+  readonly invocation:
+    | { readonly kind: 'direct' }
+    | {
+      readonly kind: 'context'
+      readonly context: string
+      readonly wire: string
+      readonly codec: TypertCodec
+    }
+  /** Optional consuming-Context projection for one direct lookup parameter. */
+  readonly scope?: {
+    /** Context kind whose Client adapter supplies the identity. */
+    readonly context: string
+    /** Lookup parameter wire field replaced by the Context identity. */
+    readonly wire: string
+  }
+  /** Ordered business parameters. */
+  readonly parameters: readonly InvocationParameterDescriptor[]
+  /** Transport cancellation injected after business parameters instead of entering wire args. */
+  readonly cancellation?: {
+    /** Reserved final Host method parameter. */
+    readonly parameter: 'signal'
+  }
+  /** Codec for the unary result or each yielded stream item. */
+  readonly result: TypertCodec
+  /** Source declaration used only for diagnostics. */
+  readonly sourceLocation?: InvocationSourceLocation
+}
+```
+
+## Typert 注册表
+
+`ctx.typert` 分开保存当前环境的 descriptor、显式选择的 Remote contribution、lookup 提供方与作用域上下文提供方。lookup 提供方拥有稳定 wire 声明和默认 resolver；Host 组合可以为同一个 key 配置 effect-scoped 同步或异步 resolver，配置卸载后恢复默认策略。各项注册都是由 Cordis 持有的 effect，并返回可等待的 disposer。
+
+```ts type-equiv
+/** Minimal Typert runtime consumed through dependency inversion. */
+interface TypertRegistryContract {
+  readonly local: TypertLocalRegistry
+  readonly remotes: TypertRemoteRegistry
+  readonly lookups: TypertLookupRegistry
+  readonly contexts: TypertContextRegistry
+}
+```
+
+生成的消费方声明会把 direct namespace 合并到 `TypertClientRemote` 继承的 map 中。
+
+```ts type-equiv
+/** Merge-extensible direct namespace surface generated for Client Remote services. */
+interface TypertRemoteNamespaceMap {}
+```
+
+## Host Gateway
+
+内部协议 2 的 ready 帧通过可选字段 `pendingInteractionIds` 列出为该 Client 连接代次排队的待处理交互。[Gateway 回答保留](../../packages/api/gateway/README.zh.md#client-service-clientremote-ctx-key-remote)要求同时具备此快照与应用准备回调提供的品牌类型 `RemoteInteractionReplyScope`，将重试限制在同一已发现 Host 的待处理工作内。缺少 scope 时禁用保留；scope 仅属于 Client，不是 wire 字段或授权决定。
+
+Connection 会先解码 carrier envelope，再调用 `ctx.typertGateway`。请求将精确的具名 wire 字段与 carrier 的取消 signal 分开携带；基础设施与边界失败由 `TypertGatewayError` 承载，其 `gateway/*` 码就是普通的 `RemoteError` 码，因此 RPC 适配器会把每个经结构识别的 `RemoteError` 连同其 code 与 details 原样放行，只把无法识别的异常归并为 `gateway/internal`。
+
+```ts type-equiv
+/** One Remote method request after a carrier has decoded its envelope. */
+interface InvokeRemoteRequest {
+  /** Remote namespace selected by the generated descriptor. */
+  readonly namespace: string
+  /** Exported Service method name. */
+  readonly method: string
+  /** Named wire values; fields must exactly match the descriptor. */
+  readonly args: Readonly<Record<string, unknown>>
+  /** Carrier or direct-caller cancellation injected only into cancellation-aware methods. */
+  readonly signal?: AbortSignal
+}
+```
+
+```ts type-equiv
+/** Stable infrastructure and boundary failures emitted before or after business execution. */
+type TypertGatewayErrorCode =
+  | 'gateway/ambiguous-endpoint'
+  | 'gateway/arguments-invalid'
+  | 'gateway/binding-invalid'
+  | 'gateway/context-failed'
+  | 'gateway/context-not-found'
+  | 'gateway/context-unavailable'
+  | 'gateway/definition-unavailable'
+  | 'gateway/input-invalid'
+  | 'gateway/invocation-unavailable'
+  | 'gateway/lookup-failed'
+  | 'gateway/lookup-not-found'
+  | 'gateway/lookup-unavailable'
+  | 'gateway/method-unavailable'
+  | 'gateway/provider-mismatch'
+  | 'gateway/result-invalid'
+  | 'gateway/service-unavailable'
+  | 'gateway/signature-invalid'
+```
+
+```ts type-equiv
+/** Device-authenticated RPC and streams bound to the factory caller's Cordis context. */
+interface TypertGatewayDeviceConnection {
+  /** Decode and authorize one device RPC; unsigned pairing redemption is the sole exception. */
+  readonly rpc: ConnectionRpcHandler
+  /** Open device-owned streams; device grants remain revocable throughout iteration. */
+  readonly stream: TypertGatewayWireStream
+}
+```
+
+```ts type-equiv
+/** Host dispatcher consumed by Connection adapters. */
+interface TypertGateway {
+  /** Carrier adapter shared by WebSocket and in-process transports. */
+  readonly wireStream: TypertGatewayWireStream
+
+  /**
+   * Capture the caller's Cordis context for a native carrier. Direct methods
+   * resolve services in that context on every call. Device identity is required
+   * except for one-time pairing redemption; browser cookies cannot authorize it.
+   * @returns RPC and stream callbacks retaining the caller's service scope.
+   */
+  createDeviceConnection(): TypertGatewayDeviceConnection
+
+  /**
+   * Read explicit capability ids from active Remote bindings whose required
+   * methods are available. Withdrawn strict definitions are not advertised.
+   * This describes operations, not a caller's authorization to invoke them.
+   * @returns unique capability ids in lexical order.
+   * @throws for duplicate ids, invalid method declarations, or inconsistent bindings.
+   */
+  capabilities(): readonly string[]
+  /**
+   * Register the application-selected forwarded-event source.
+   * @param source - stream factory installed by the Remote assembly.
+   * @param host - stable Host facts included in each Client generation's opening frame.
+   * @returns disposer removing this exact source and cancelling its active streams.
+   */
+  registerRemoteEvents(
+    source: TypertRemoteEventSource,
+    host: RemoteEventHostInfo,
+  ): () => Promise<void>
+  /**
+   * Invoke one live Remote method without assuming a carrier or response envelope.
+   * @param request - decoded endpoint and named wire arguments.
+   * @returns the business result without output decoding.
+   * @throws {@link TypertGatewayError} for dispatch, provider, or boundary failures; lookup-policy and business errors retain identity.
+   */
+  invoke(request: InvokeRemoteRequest): Promise<unknown>
+  /**
+   * Open one live stream Remote method without assuming a physical carrier.
+   * @param request - decoded endpoint and named wire arguments.
+   * @returns a cancellation-aware iterable over the business results.
+   */
+  stream(request: InvokeRemoteRequest): Promise<AsyncIterable<unknown>>
+}
+```
+
+<a id="native-tls-source"></a>
+## 原生 TLS 入口
+
+[原生 Remote Connection](../../packages/api/native-remote/README.zh.md) 挂载独立、按需启用的 TLS 监听器。每个监听器在自己的 Cordis context 中调用 Gateway 的普通 createDeviceConnection factory。返回的 RPC 与 stream 回调保留该 context，并要求签名身份，唯一例外是一次性配对兑换。设备业务流在准入及迭代期间持续观察授权撤销。NativeRemoteInfo 向已认证操作者和设备管理员提供配置的 bindHost、实际 port 与 SPKI 指纹，不暴露私钥材料。
+
+独立的 native-remote.http-request-budget.v1 capability 通过 view 权限公开 nativeRemote/httpRequestBudget。其上限属于该就绪的 Native 监听器，不描述 Web 或 Desktop carrier。客户端可以用观察值检查完整编码请求体，但 Host 仍检查实际字节与当前授权。管理类监听器信息继续要求 device.admin。
+
+### NativeHttpRequestBudget
+
+```ts type-equiv
+/** Buffered HTTP request admission configured on one ready native TLS listener. */
+interface NativeHttpRequestBudget {
+  /**
+   * Inclusive byte limit, a positive safe integer, for the complete UTF-8 JSON
+   * body including the RPC envelope and device admission. Excludes HTTP
+   * headers, TLS, and chunk framing; does not limit decoded file bytes alone.
+   */
+  readonly maxRequestBodyBytes: number
+}
+```
+
+### NativeRemoteInfo
+
+```ts type-equiv
+/** Public listener facts available to an authenticated device administrator. */
+interface NativeRemoteInfo {
+  /** Configured literal interface; an all-interface address is not a pairing destination. */
+  readonly bindHost: '127.0.0.1' | '0.0.0.0' | '::1' | '::'
+  /** Actual TCP port, including an OS-assigned value. */
+  readonly port: number
+  /** Lowercase SHA-256 of the certificate SPKI, independently of its DNS name or issuing CA. */
+  readonly spkiFingerprint: string
+}
+```
+
+### NativePairingPayload
+
+```ts type-equiv
+/** Single-use pairing information displayed by an authenticated Host operator. */
+interface NativePairingPayload {
+  /** Distinguishes Gateway pairing from the retired Link fixture format. */
+  readonly kind: 'dsh-native-pairing'
+  /** Pairing payload format, independent of the Gateway API and Session formats. */
+  readonly version: 1
+  /** Operator-supplied reachable HTTPS origin of the native listener. */
+  readonly endpoint: string
+  /** Persistent Host identity to confirm after device admission. */
+  readonly hostId: HostId
+  /** Operator-visible Host label, never an identity check. */
+  readonly displayName: string
+  /** Certificate SPKI pin to verify before sending the pairing secret. */
+  readonly spkiFingerprint: string
+  /** Single-use secret; keep out of storage, diagnostics, and logs. */
+  readonly code: string
+  /** Host-enforced expiration, in epoch milliseconds. */
+  readonly expiresAt: number
+  /** Role selected by the operator and fixed by Device Trust issuance. */
+  readonly role: DeviceRole
+}
+```
+
+<a id="host-discovery"></a>
+## Host 发现
+
+[Host description](../../packages/api/host-description/README.zh.md)通过现有认证 Remote 返回下列事实。能力由活跃绑定显式声明，不代表调用方权限；三类版本分别由不同位置拥有。
+
+```ts type-equiv
+/** One explicitly versioned business operation set advertised by its live Remote owner. */
+interface TypertRemoteCapability {
+  /** Semantic capability id ending in `.v` and a positive integer, such as `session.follow.v1`. */
+  readonly id: string
+  /** Nonempty set of exported method names required by this capability in the binding's namespace. */
+  readonly methods: readonly string[]
+  /**
+   * Permission a device-identified request must hold to invoke this
+   * capability's methods. Absent capabilities are not device-admissible;
+   * anonymous callers are unaffected by this field.
+   */
+  readonly requiredPermission?: RemoteCapabilityPermission
+}
+```
+
+```ts type-equiv
+/**
+ * Grantable permission kinds from the section 21 device-role table columns.
+ * The two `*.respond` kinds are checked against pending interactions'
+ * requiredPermission; the others gate device-identified business requests.
+ */
+type RemoteCapabilityPermission =
+  | 'view'
+  | 'prompt.send'
+  | 'question.respond'
+  | 'approval.respond'
+  | 'device.admin'
+```
+```ts type-equiv
+/** Persistent identity of one Harness home; not an authentication credential. */
+type HostId = Branded<'HostId'>
+```
+
+```ts type-equiv
+/** Physical carriers provided by the Host composition. */
+type HostTransport = 'http' | 'websocket' | 'desktop-pipe'
+```
+
+```ts type-equiv
+/** Authenticated discovery result for the currently running Host. */
+interface HostDescriptor {
+  /** Stable across launches sharing the same configured identity file. */
+  readonly hostId: HostId
+  /** Operator-configured label; never used to resolve Host identity. */
+  readonly displayName: string
+  /** Installed Harness package release, independent of protocol generations. */
+  readonly productVersion: string
+  /** Selected response generation; describe uses the protocol-1 discovery representation. */
+  readonly apiProtocolVersion: number
+  /** Offered request codecs; absent on Hosts without negotiation. */
+  readonly supportedApiProtocolVersions?: readonly number[]
+  /** Session writer generation; Clients do not parse the corresponding disk format. */
+  readonly sessionFormatVersion: number
+  /** Host Node.js platform value. */
+  readonly platform: string
+  /** Host Node.js architecture value. */
+  readonly arch: string
+  /** This implementation runs the full Harness; Lite is a separate runtime. */
+  readonly runtimeMode: 'full'
+  /** Explicit versioned operation sets supported by live Remote owners, sorted by id. */
+  readonly capabilities: readonly string[]
+  /** Carriers configured by the application that hosts this service. */
+  readonly transports: readonly HostTransport[]
+  /** Host UTC clock at description time, in milliseconds since the Unix epoch. */
+  readonly serverTime: number
+}
+```
+
+## 消费方 Remote
+
+`ctx.remote` 只暴露由已导入 `/remote` 产物贡献的 namespace。`$mount()` 会把生成的 descriptor 与具体方法作为一项由 fiber 持有的操作统一注册。每个 namespace 都是可追踪的 `remote.<namespace>` Cordis 子服务，其生命周期覆盖已挂载的方法；JavaScript Proxy 与 Host 业务服务类型都不会进入消费方。
+
+```ts type-equiv
+/** Client Remote capability implemented by the Gateway and consumed by Remote assemblies. */
+interface TypertClientRemote extends TypertRemoteNamespaceMap {
+  /**
+   * Mount one generated Host-for-Client contribution in the caller's fiber.
+   * @param contribution - explicitly selected Remote package artifact.
+   * @returns disposer after namespace services and concrete methods are ready.
+   */
+  $mount(contribution: TypertRemoteContribution): Promise<TypertDisposer>
+  /**
+   * Subscribe to one forwarded Host event. Notifications run in registration
+   * order and isolate failures; scoped waterfalls return, delegate through
+   * `next()`, or reject the Host dispatch.
+   * @template Event - forwarded event name selected by the Host assembly.
+   * @param event - forwarded Host event name, unchanged on the wire.
+   * @param listener - receives the Client projection of the Cordis `Events` declaration.
+   * @returns disposer owned by the calling fiber.
+   */
+  $on<Event extends TypertRemoteEvent>(event: Event, listener: TypertClientEventListener<Event>): () => void
+}
+```
+
+<!-- BEGIN GENERATED cordis-surface (gen-cordis-catalog.ts) — do not edit between markers -->
+
+<a id="cordis-surface"></a>
+
+## Cordis API
+
+Generated from source by `scripts/gen-cordis-catalog.ts` (verified fresh by `pnpm run verify-cordis-catalog` in doc-sync; regenerate with `pnpm run gen-cordis-catalog`) — the language sides differ only in locale-specific paired document paths. Signature blocks use a `ts cordis-catalog` fence and keep the original source JSDoc; dispatch modes are defined in the [primer](../cordis-primer.zh.md#dispatch-modes), and the framework-inherited `ctx` API lives in [cordis-api/inherited.md](../cordis-api/inherited.md).
+
+<a id="ctxhostdescription--hostdescriptiongateway"></a>
+
+### `ctx.hostDescription` — `HostDescriptionGateway`
+
+Read-only Remote namespace for Host facts and explicitly declared capabilities.
+
+```ts cordis-catalog
+/**
+ * Read current Host facts without changing Session or Workspace state.
+ * Capability presence does not grant permission to invoke its operations.
+ * @returns installed versions, stable identity, and current operation availability.
+ */
+@Remote('describe') describe(): HostDescriptor
+
+/**
+ * Select the highest shared request codec without changing identity or granting permissions.
+ * @param supportedApiProtocolVersions - nonempty, distinct positive integer Client offers.
+ * @returns Host facts expressed in the selected API generation.
+ */
+@Remote('negotiate') negotiate(supportedApiProtocolVersions: readonly number[]): HostDescriptor
+```
+
+Source: [`packages/api/host-description/src/index.ts`](../../packages/api/host-description/src/index.ts)
+
+<a id="ctxnativeremote--nativeremoteservice"></a>
+
+### `ctx.nativeRemote` — `NativeRemoteService`
+
+A separately configured HTTPS listener with no browser assets, cookies, or local exact Fetch routes.
+
+```ts cordis-catalog
+/**
+ * Read the bound port and certificate pin for the local operator.
+ * @returns public identity facts, without certificate or private-key material.
+ * @throws while the listener is not ready or has been disposed.
+ */
+@Remote('describe') describe(): NativeRemoteInfo
+```
+
+Source: [`packages/api/native-remote/src/index.ts`](../../packages/api/native-remote/src/index.ts)
+
+<a id="ctxtypert--typertregistry"></a>
+
+### `ctx.typert` — `TypertRegistry`
+
+Registry of generated schemas, package reflection, invocations, and Remote dependency providers.
+
+```ts cordis-catalog
+/**
+ * Register one generated contribution atomically for the calling fiber.
+ * Duplicate package-face identities, schemas, invocation ids, or endpoints
+ * reject the whole batch.
+ * @param contribution - generated schemas, reflection, and Host invocations.
+ * @returns the exact effect disposer that removes this contribution.
+ */
+register(contribution: TypertContribution): TypertDisposer
+
+/**
+ * Look up one schema by `<package>#<name>`.
+ * @param key - global schema key.
+ * @returns the live schema record, or `undefined` when absent.
+ */
+get(key: string): TypertSchemaRecord | undefined
+
+/**
+ * Resolve one required schema.
+ * @param key - global schema key.
+ * @returns the live schema record.
+ * @throws when the key is malformed, the package face is absent, or the schema is not contributed.
+ */
+resolve(key: string): TypertSchemaRecord
+
+/**
+ * Enumerate live schemas in registration order.
+ * @param filter - optional package and face restriction.
+ * @returns matching schema records.
+ */
+list(filter: TypertSchemaFilter = {}): TypertSchemaRecord[]
+
+/**
+ * Look up generated reflection for one package face.
+ * @param packageName - exact npm package name.
+ * @param face - face to query; defaults to the host runtime.
+ * @returns the live package record, or `undefined` when absent.
+ */
+getPackage(packageName: string, face: TypertFace = 'host'): TypertPackageRecord | undefined
+
+/**
+ * Enumerate generated package reflection in registration order.
+ * @param filter - optional package and face restriction.
+ * @returns matching package records.
+ */
+listPackages(filter: TypertPackageFilter = {}): TypertPackageRecord[]
+
+/**
+ * Project a live Zod schema to JSON Schema without caching the result.
+ * @param key - global schema key.
+ * @param params - Zod projection parameters.
+ * @returns a fresh JSON Schema document.
+ */
+toJSONSchema(key: string, params?: z.core.ToJSONSchemaParams): z.core.JSONSchema.BaseSchema
+```
+
+Types: [TypertContribution](invariants.zh.md) · [TypertFace](invariants.zh.md) · [TypertPackageFilter](invariants.zh.md) · [TypertPackageRecord](invariants.zh.md) · [TypertSchemaFilter](invariants.zh.md) · [TypertSchemaRecord](invariants.zh.md)
+
+Source: [`packages/typert/registry/src/service.ts`](../../packages/typert/registry/src/service.ts)
+
+<a id="ctxtypertgateway--typertgatewayservice"></a>
+
+### `ctx.typertGateway` — `TypertGatewayService`
+
+Resolve strict generated definitions or conservative SRC markers against current Cordis Services and Typert providers.
+
+```ts cordis-catalog
+/**
+ * Register the sole application-selected forwarded-event source.
+ * @param source - stream factory installed by the Remote assembly.
+ * @param host - stable Host facts included in each Client generation's opening frame.
+ * @returns disposer removing this source and cancelling its active streams.
+ */
+registerRemoteEvents( source: TypertRemoteEventSource, host: RemoteEventHostInfo, ): () => Promise<void>
+
+/**
+ * Read the explicit operation sets of live Remote owners without invoking them.
+ * @returns sorted capability ids whose required method definitions are available.
+ * @throws for duplicate ids, invalid method declarations, or inconsistent bindings.
+ */
+capabilities(): readonly string[]
+
+/**
+ * Invoke one live Remote method through strict generated reflection or SRC markers.
+ * @param request - decoded endpoint and exact named wire arguments.
+ * @returns the business result without output decoding.
+ * @throws {@link TypertGatewayError} for dispatch, provider, or boundary failures; lookup-policy and business errors retain identity.
+ */
+async invoke(request: InvokeRemoteRequest): Promise<unknown>
+
+/**
+ * Open one live stream Remote method without assuming a physical carrier.
+ * @param request - decoded endpoint and named wire arguments.
+ * @returns a cancellation-aware iterable over the business results.
+ */
+async stream(request: InvokeRemoteRequest): Promise<AsyncIterable<unknown>>
+```
+
+Source: [`packages/api/gateway/src/index.ts`](../../packages/api/gateway/src/index.ts)
+<!-- END GENERATED cordis-surface -->

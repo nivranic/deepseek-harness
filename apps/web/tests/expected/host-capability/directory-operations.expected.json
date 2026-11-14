@@ -1,0 +1,12 @@
+{
+  "absentCalls": 0,
+  "nativeCalls": 0,
+  "creationCalls": 1,
+  "workspaceCreates": 2,
+  "callsAfterReplacement": 0,
+  "creationRequestCancelled": true,
+  "existingRegistered": true,
+  "createdDirectoryRetained": true,
+  "explicitAdoptionAfterRestoration": true,
+  "selectedAfterRestoration": true
+}

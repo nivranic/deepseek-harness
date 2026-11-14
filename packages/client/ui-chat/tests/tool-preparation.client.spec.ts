@@ -96,7 +96,7 @@ function harness(
     return snapshot.nodes.values().filter((node): node is ChatNode<'tool-call'> => node.kind === 'tool-call' && node.visibility === 'visible')
       .sort((left, right) => left.anchorSeq - right.anchorSeq)
   }
-  const phases = () => tools().map(node => [node.id, 'kind' in node.data.root ? 'result' : node.data.root.phase])
+  const phases = () => tools().map(node => [node.data.root.callId, 'kind' in node.data.root ? 'result' : node.data.root.phase])
   const material = () => tools().map(({ key, anchorSeq, data }) => ({ key, anchorSeq, data }))
   return { assembler, tools, phases, material }
 }

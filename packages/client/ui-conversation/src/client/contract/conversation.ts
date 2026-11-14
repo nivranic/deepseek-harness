@@ -212,6 +212,12 @@ export type ConversationMatchHandler = (event: SessionEventLike) => Conversation
 /** One independently registered business Event-to-Node state machine. */
 export interface ConversationNodeDefinition<State = unknown> {
   readonly kind: string
+  /**
+   * Omission keeps ids unique across the loaded Session. `step` scopes each id
+   * to its Turn and Step as JSON `[turn, step, id]`; unlocated matches wait
+   * for enclosing history without crossing a start or explicit Session event.
+   */
+  readonly identityScope?: 'step'
   /** Sole view target owned by this Definition; omitted for state-only Contexts. */
   readonly target?: string
   /**
@@ -319,9 +325,10 @@ export interface ConversationViewDefinition<Node extends ConversationViewNode = 
   /**
    * Address a tool call in this target's inspector; absent for non-inspection views.
    * @param callId - tool-call identity from the Session.
+   * @param location - Turn and Step that own the call.
    * @returns the target's opaque focus identity.
    */
-  toolCallFocus?(callId: string): string
+  toolCallFocus?(callId: string, location: Pick<StepLocation, 'turn' | 'step'>): string
   /** @returns a new Session-owned incremental builder. */
   create(): ConversationViewBuilder<Node, Snapshot>
   /**

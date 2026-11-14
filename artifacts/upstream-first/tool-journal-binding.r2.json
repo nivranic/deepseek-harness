@@ -1,0 +1,16 @@
+{
+  "status": "PASS",
+  "controls": 3,
+  "sourceRecord": {
+    "path": "artifacts/upstream-first/tool-journal-source.json",
+    "sha256": "81b3de640a8b54d7a61edd96b7d0eacb77edbf154253dfb2a2b2958c384083ac"
+  },
+  "generator": {
+    "path": "artifacts/upstream-first/write-reports.mjs",
+    "sha256": "a64339365a2943700675dbcbee47dfd6f994cd9eb587324e8b967e2c22ef9d35"
+  },
+  "helper": {
+    "path": ".artifacts/check-tool-journal-binding.mjs",
+    "sha256": "fe818f34cb9b0958bc937d518971ab08e93d658c425a57fd63769e9a7d1c3b91"
+  }
+}

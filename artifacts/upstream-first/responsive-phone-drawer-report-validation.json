@@ -1,0 +1,70 @@
+{
+  "status": "PASS",
+  "scope": "Report bindings and audit for the live-browser responsive matrix and the phone-tier overlay drawer; vision-channel acceptance of the screenshots and an active-conversation matrix remain unproven; full Upstream-First objective remains in progress",
+  "gate0": {
+    "validation": "PASS",
+    "gate0": "PASS",
+    "paths": 1938,
+    "components": 129,
+    "specificationCoverage": {
+      "status": "PASS",
+      "numberedSections": 81,
+      "nonEmptySourceLines": 1983,
+      "acceptanceProven": false
+    }
+  },
+  "sourceRecord": {
+    "path": "artifacts/upstream-first/responsive-phone-drawer-source.json",
+    "sha256": "82080d7cc9b712e61acc0640695d57a686bdc7d2e5045f3b9dd2127c30d09862"
+  },
+  "generator": {
+    "path": "artifacts/upstream-first/write-reports.mjs",
+    "sha256": "4ad22483329373ed66377d36eadb6bdaad1ddd7cf748504ec48d1524b785a524"
+  },
+  "binding": {
+    "path": "artifacts/upstream-first/responsive-phone-drawer-binding.json",
+    "sha256": "946add42ca05672e56997eb796361589a83b6fc22dd99140034b8a8e96e31ac0"
+  },
+  "helpers": [
+    {
+      "path": ".artifacts/advance-responsive-phone-drawer-reports.mjs",
+      "sha256": "af375d8daeb9e1696baf09c5ab2872f2453a6d6ae8150abf733edb59a821782f"
+    },
+    {
+      "path": ".artifacts/capture-responsive-phone-drawer-validation.mjs",
+      "sha256": "2e153e5e79f7ff1ea7c632f4366c637d787e0ca92d709fdf9e1619ae0128b9cd"
+    }
+  ],
+  "reports": [
+    {
+      "path": "IMPLEMENTATION_STATUS.md",
+      "sha256": "b360f21551cf3c9aae7e96295a85e3632a2f8d4f93b07bc1dd03ddfe9ba3bac0"
+    },
+    {
+      "path": "artifacts/upstream-first/evidence.json",
+      "sha256": "c464d12d0fe4cffa1eb19c64b84467c4ba247951ca76d491d182ffe5baf1d780"
+    }
+  ],
+  "checks": [
+    {
+      "path": ".artifacts/responsive-phone-drawer-binding.log",
+      "sha256": "fce85fe2bfd775842cc4c54f7b0ad922700ef3e900ce14c58b4a4dd475de9c6c"
+    },
+    {
+      "path": ".artifacts/responsive-phone-drawer-audit-tests.log",
+      "sha256": "d8ce9b262d48366802adc456298e2e7b58a40ce1d62b9f4766c2f9de58e7d245"
+    },
+    {
+      "path": ".artifacts/responsive-phone-drawer-gate0.log",
+      "sha256": "505d74ef938f5d34d85490d37e0176ba804d93272fcf465ce2544a02c56b3f90"
+    },
+    {
+      "path": ".artifacts/responsive-phone-drawer-report-diff-check.log",
+      "sha256": "e3b0c44298fc1c149afbf4c8996fb92427ae41e4649b934ca495991b7852b855"
+    },
+    {
+      "path": ".artifacts/responsive-phone-drawer-report-generation.log",
+      "sha256": "fe010532f71a6341467ae5719b29ac19470895de1d481156335b8f70a3273ed5"
+    }
+  ]
+}

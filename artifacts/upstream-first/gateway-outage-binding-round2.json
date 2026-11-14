@@ -1,0 +1,16 @@
+{
+  "status": "PASS",
+  "controls": 3,
+  "sourceRecord": {
+    "path": "artifacts/upstream-first/gateway-outage-source.json",
+    "sha256": "17b30c5d70bdc07c2224ea7b583cbdf5f23847cd26cd78d1d123fe00d3e45d58"
+  },
+  "generator": {
+    "path": "artifacts/upstream-first/write-reports.mjs",
+    "sha256": "79621882a0ff8a1e2b95081bc6b45af683d7333878e4f68d59c0b4c2ab345fed"
+  },
+  "helper": {
+    "path": ".artifacts/check-gateway-outage-binding.mjs",
+    "sha256": "ceaf634c9606777608ae404b9d7f74c4eafb81bfda92d843e90bb88ed18b81ee"
+  }
+}

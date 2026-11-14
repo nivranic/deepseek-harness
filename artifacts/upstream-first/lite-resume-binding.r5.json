@@ -1,0 +1,16 @@
+{
+  "status": "PASS",
+  "controls": 3,
+  "sourceRecord": {
+    "path": "artifacts/upstream-first/lite-resume-source.json",
+    "sha256": "0d731dd24d498d66f6e5b68ab56a857d1d216d56ad925bdde4e556c684956f30"
+  },
+  "generator": {
+    "path": "artifacts/upstream-first/write-reports.mjs",
+    "sha256": "2b1a3d2b56236ac0e673b908f90f3f342e425cf528e8f66164c6e1061434fdc9"
+  },
+  "helper": {
+    "path": ".artifacts/check-lite-resume-binding.mjs",
+    "sha256": "1743ab831a727c0b6503df30ab84cca1747a68f2e27168d5c7e244afc38e0d2e"
+  }
+}

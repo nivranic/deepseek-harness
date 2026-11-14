@@ -1,0 +1,66 @@
+{
+  "status": "PASS",
+  "scope": "Report bindings and audit for the host-status-surface increment: the gen-83 §41 host-side readiness verdict surface (the new ui-settings-host-status package owning the Web Settings Host-status section — registered unconditionally at order 16 between Hosts and Telemetry because hostDiagnostics is a settings-face Host-mandatory Remote namespace, a Host that cannot answer health rendering the section's error row with its retry rather than hiding the nav entry; the injected face a single health(): Promise<HealthSnapshot> adapter unwrapping the generated client's RemoteResult with ok:false surfacing as the section's one error state, the PluginInventory ViewState/request-count pattern; the verdict line trusting the Host-derived ready with no client-side re-derivation — the connection component deliberately excluded from that derivation, the README pinning that a down connection row beside a ready verdict is a correct rendering since CLI and desktop pipelines have no network carrier; the six component rows derived from keyof HealthSnapshot minus ready through HOST_STATUS_COMPONENTS so a Host-side component rename fails the build until rows and copy follow, the StateDot mapping up→done/degraded→warning/down→error with ongoing reserved for in-progress transitions and the settled-partial-failure ruling in the row comment, non-sensitive probe detail passed through verbatim, data-host-ready and per-row data-component/data-component-state test hooks; the bilingual dictionaries with ready=可接受 Agent 请求/Accepting agent requests and the rest of the nine key groups) — mounted through the dsh-api-remotes aggregation (the import and $mount roster beside the export type {} declaration-merge re-export that makes ctx.remote.hostDiagnostics type-check in consumers, the named-capabilities forwarding honestly rejected after the analyzer TypeError finding — the empty type re-export carries no symbol and is safe, the diagnostic reached through a temporary DIAG throw in the analyzer restored before the sealed round) — beside the four rejected alternatives (capability-announcement-gated registration, client-side verdict re-derivation, forwarded health-change events, a plugins-tab placement) and the honest gate record: typecheck EXIT 0 (the standalone lane log — the new package referenced into the client aggregate resolving through the remotes declaration re-export), lint Found 0 warnings and 0 errors on 3875 files with 90 rules using 20 threads in 43.3s (3869→3875: the new package's six lint-face sources, the two interim max-len/arrow-parens findings fixed before the sealed round), the docs lane green in one combined log (doc-quick 17 passed in 54.96s on the green post-re-record form with doc-sync 37 passed in 163.74s — the README skeleton vocabulary, the model-experience registry entry, the config-catalog regeneration with its hand-mirrored zh line and the three pairing re-records each an honest designed gate the lane then passed), pairing 969 pairs all consistent in its honest direct-round form (the 967→969 reconciliation riding the prose: the new host-status README pair and note pair beside the re-recorded config-catalog pair), the serial double audit round green at 91 files / 1113 tests on both passes (the gen-80 90-file lineage list plus this generation's components spec with its six cases), gate0 PASS (1938 paths / 129 components / 81 sections / 1983 lines — honestly recorded unchanged from the captured UPSTREAM_DELTA.json); the android lane honestly narrowed: zero Android source change, no connected round (the sealed gen-82 taxonomy standing unchanged) with the scanner-env gradle acceptance aggregate green over both cleanly repackaged APK faces — the clean-repackage finding recorded rather than hidden: both faces walk past their gen-82 sealed bytes, the incremental UP-TO-DATE round's IDENTICAL androidTest face an artifact of not repackaging, the debug face's 301e99b7 provenance not reproducible at recoverable cost even across the exhausted stamp matrix, the same-day clean repackage measured byte-stable; the ledger §41-44 rewrite narrowing the family row (81 sections kept; §41-44 at 1522/6 with the readiness half flipped to its closed form beside the appended gen-83 landing, the gen-82 narration preserved verbatim; every prior family row keeping its sealed form — §31 at its gen-78 11411/28, §33 its gen-72 1641/11, §32 its gen-70 6041/25, §34/35 their gen-81 1879/11, §23 its gen-61 429/2 and §67 its gen-59 637/8); and the 27-key derivation ruling: the prepare oracle derives exactly 27 replaced prior build outputs over the host-runtime-health record — the web dist html pair beside the vanished hash-named preview chunks, the remotes client lib face, the ui-primitives/sidebar/trajectory/documentpreview bundle re-emissions and the client-runner slot-catalog face, plus both APKs of the clean-repackage round; the first pure-TypeScript-material family since gen-80 folded with the APK half — with every prior generation's set staying exactly as sealed at HEAD (the gen-82 hostRuntimeHealthReplacedBuildOutputs at exactly its eighty-one, the gen-80 sharedDiffCorpusReplacedBuildOutputs at its seven, the gen-78 networkMatrixReplacedBuildOutputs at its two, the gen-77 resumeFeedReplacedBuildOutputs at its sixty-five, the gen-76B toolJournalReplacedBuildOutputs at its seventy-one and the rest as sealed), the source-side tracked keys resolving through the new before archive; the remaining open channels (the sanitizer audit, the same-candidate support-collector verification, the Phase 8 secure outbound relay and the CI synchronize gap) all stay open — so no whole-section PASS is granted; full Upstream-First objective remains in progress",
+  "gate0": {
+    "validation": "PASS",
+    "gate0": "PASS",
+    "paths": 1938,
+    "components": 129,
+    "specificationCoverage": {
+      "status": "PASS",
+      "numberedSections": 81,
+      "nonEmptySourceLines": 1983,
+      "acceptanceProven": false
+    }
+  },
+  "sourceRecord": {
+    "path": "artifacts/upstream-first/host-status-surface-source.json",
+    "sha256": "c892eac1508801b8b94c1d205883d320729af8680f0a5c4a11bd580c6c72fe1d"
+  },
+  "generator": {
+    "path": "artifacts/upstream-first/write-reports.mjs",
+    "sha256": "ae470854013ed4f48acbd75d4d9dd20220496281efa681a2d8a59546323e5907"
+  },
+  "binding": {
+    "path": "artifacts/upstream-first/host-status-surface-binding.json",
+    "sha256": "d720c16df9dbd22fb7fbd864a9e80a6794763a824ab350681088f96292836978"
+  },
+  "helpers": [
+    {
+      "path": ".artifacts/advance-host-status-surface-reports.mjs",
+      "sha256": "6c560623a6b8cd9c204a12811643ed5e24b6b34c6454bcc788c2c19c0bb1da62"
+    },
+    {
+      "path": ".artifacts/capture-host-status-surface-validation.mjs",
+      "sha256": "81a882c4d4f734089684dab71d616d668cd28542bdc0f32b9ac5be758c90079d"
+    }
+  ],
+  "reports": [
+    {
+      "path": "IMPLEMENTATION_STATUS.md",
+      "sha256": "4f1d3066acaece7d3c8537772baaed02b41df77710a4d916d32110739515d95e"
+    },
+    {
+      "path": "artifacts/upstream-first/evidence.json",
+      "sha256": "0de5655012f9432fc43b20cb53c7278303cb614cdc7fd2cca88b76321bcdcf8b"
+    }
+  ],
+  "checks": [
+    {
+      "path": ".artifacts/host-status-surface-binding.log",
+      "sha256": "1ed67ea206b6bcb79d60c19884454d53bd2029a6d5976be2f7b8e0875ab79445"
+    },
+    {
+      "path": ".artifacts/host-status-surface-audit-final.log",
+      "sha256": "b1ec536b71689103d70246862adbd54b057c6c8bf48687b356df920d4c4429f1"
+    },
+    {
+      "path": ".artifacts/host-status-surface-gate0-final.log",
+      "sha256": "7e00efd82bd2a2b91b03ca80537dcc4af46cd09eb318ff58520cb2d7d7d8a48a"
+    },
+    {
+      "path": ".artifacts/host-status-surface-report-generation.log",
+      "sha256": "6616630463c8eb3ffd69d218e03ffc25be7852a2f9e639de6ae42558801b921d"
+    }
+  ]
+}

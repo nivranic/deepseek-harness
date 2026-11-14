@@ -1,0 +1,37 @@
+[
+  {
+    "stage": "ready",
+    "label": "Workspace Write",
+    "disabled": false
+  },
+  {
+    "stage": "old-saving",
+    "label": "Workspace Write",
+    "disabled": true
+  },
+  {
+    "stage": "withdrawn",
+    "label": "Loading",
+    "disabled": true
+  },
+  {
+    "stage": "read-only",
+    "label": "Read Only",
+    "disabled": true
+  },
+  {
+    "stage": "restored",
+    "label": "Read Only",
+    "disabled": false
+  },
+  {
+    "stage": "new-saving",
+    "label": "Workspace Write",
+    "disabled": false
+  },
+  {
+    "stage": "late-old",
+    "label": "Workspace Write",
+    "disabled": false
+  }
+]

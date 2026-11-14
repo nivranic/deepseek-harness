@@ -1,0 +1,12 @@
+{
+  "schemaVersion": 1,
+  "status": "PASS",
+  "newImporter": "packages/api/host-description",
+  "newReferences": [
+    "packages/api/remotes",
+    "packages/bundle/web-app"
+  ],
+  "unrelatedImporterChanges": 0,
+  "resolvedPackageChanges": 0,
+  "snapshotChanges": 0
+}

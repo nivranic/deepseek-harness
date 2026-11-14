@@ -1,0 +1,22 @@
+# Bilingual-pair consistency record for 2026-10-17-lite-handoff-defects.md (docs/i18n/README.md): per heading
+# section, a hash of its English and Chinese blocks outside code blocks and generated regions.
+# After editing either side, bring the other along and re-record with:
+#   pnpm run verify-translation-pairing --write .agents/notes/implemented/architecture/2026-10-17-lite-handoff-defects.md
+/agent-note-lite-handoff-turns-journal-as-themselves-no-fabricated-completion-no-sticky-pending-handoff:
+  en: ca2cabaf911385a8
+  zh: 52a06649ff2fff3a
+/agent-note-lite-handoff-turns-journal-as-themselves-no-fabricated-completion-no-sticky-pending-handoff/problem:
+  en: 876d96a797a64db4
+  zh: ea1fabcff87f5d2d
+/agent-note-lite-handoff-turns-journal-as-themselves-no-fabricated-completion-no-sticky-pending-handoff/decision:
+  en: 758d6722aa2b178a
+  zh: f5eb7734b02f05e4
+/agent-note-lite-handoff-turns-journal-as-themselves-no-fabricated-completion-no-sticky-pending-handoff/alternatives-considered:
+  en: fe13b9ae9e1ab6da
+  zh: c33744a22e4a8df1
+/agent-note-lite-handoff-turns-journal-as-themselves-no-fabricated-completion-no-sticky-pending-handoff/consequences:
+  en: ef6d8f7f0d5c55ee
+  zh: ac181f45bf426f41
+/agent-note-lite-handoff-turns-journal-as-themselves-no-fabricated-completion-no-sticky-pending-handoff/open-follow-ups:
+  en: dc9caedc4759fe04
+  zh: ee1254a72012e467

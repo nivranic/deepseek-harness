@@ -18,12 +18,13 @@ function callName(call: ToolCallPhaseProps): string {
 
 /** One atomic call dispatched through the Tool-owned keyed slot. */
 const ToolCall = memo(function ToolCall({
-  renderSlot, callId, toolName, call, openFile, renderFallback, cwd, home, inspectCall, loadImage, useDisclosure, children,
+  renderSlot, callId, toolName, call, location, openFile, renderFallback, cwd, home, inspectCall, loadImage, useDisclosure, children,
 }: Pick<ToolTreeProps, 'renderSlot' | 'openFile' | 'cwd' | 'inspectCall' | 'loadImage' | 'useDisclosure'> & {
   renderFallback: (owner: ToolCallOwnerProps) => ReactNode
   callId: string
   toolName: string
   call: ToolCallPhaseProps
+  location: ToolTreeProps['node']['location']
   home?: string | undefined
   children?: ReactNode
 }) {
@@ -36,8 +37,9 @@ const ToolCall = memo(function ToolCall({
     home,
     loadImage,
     useDisclosure,
-    inspect: inspectCall === undefined ? undefined : () => { inspectCall(callId) },
-  }), [callId, toolName, call, openFile, cwd, home, loadImage, inspectCall, useDisclosure])
+    inspect: inspectCall === undefined || location.kind !== 'step' ? undefined
+      : () => { inspectCall(callId, { turn: location.turn.turn, step: location.step.step }) },
+  }), [callId, toolName, call, location, openFile, cwd, home, loadImage, inspectCall, useDisclosure])
   const autoReviewDenied = useMemo(
     () => call.phase === 'result' && toolRowModel(toolName, call.block).autoReviewDenial !== null,
     [toolName, call],
@@ -60,10 +62,11 @@ const ToolCall = memo(function ToolCall({
 })
 
 const ToolCallBranch = memo(function ToolCallBranch({
-  renderSlot, block, cwd, home, openFile, renderFallback, inspectCall, loadImage, useDisclosure,
+  renderSlot, block, location, cwd, home, openFile, renderFallback, inspectCall, loadImage, useDisclosure,
 }: Pick<ToolTreeProps, 'renderSlot' | 'cwd' | 'openFile' | 'inspectCall' | 'loadImage' | 'useDisclosure'> & {
   renderFallback: (owner: ToolCallOwnerProps) => ReactNode
   block: ToolCallBlock
+  location: ToolTreeProps['node']['location']
   home?: string | undefined
 }) {
   const call = useMemo(() => toolCallPhase(block), [block])
@@ -73,6 +76,7 @@ const ToolCallBranch = memo(function ToolCallBranch({
       callId={call.block.callId}
       toolName={callName(call)}
       call={call}
+      location={location}
       openFile={openFile}
       renderFallback={renderFallback}
       cwd={cwd}
@@ -88,6 +92,7 @@ const ToolCallBranch = memo(function ToolCallBranch({
               key={child.callId}
               renderSlot={renderSlot}
               block={child}
+              location={location}
               cwd={cwd}
               home={home}
               openFile={openFile}
@@ -123,6 +128,7 @@ export function ToolCallTree({
     <ToolCallBranch
       renderSlot={renderSlot}
       block={node.data.root}
+      location={node.location}
       cwd={cwd}
       home={home}
       openFile={openFile}

@@ -7,10 +7,19 @@
  */
 
 import { execFileSync } from 'node:child_process'
-import { existsSync, globSync, mkdirSync, mkdtempSync, readFileSync, rmSync, symlinkSync, writeFileSync } from 'node:fs'
-import { dirname, resolve } from 'node:path'
+import {
+  existsSync, globSync, lstatSync, mkdirSync, mkdtempSync,
+  readFileSync, rmSync, symlinkSync, unlinkSync, writeFileSync,
+} from 'node:fs'
+import { basename, dirname, resolve } from 'node:path'
 
 const root = resolve(import.meta.dirname, '..')
+const createdLinks: string[] = []
+
+function linkDirectory(target: string, link: string): void {
+  symlinkSync(target, link, process.platform === 'win32' ? 'junction' : 'dir')
+  createdLinks.push(link)
+}
 
 interface ExportTarget {
   types?: string
@@ -84,7 +93,7 @@ function linkPackage(pkg: WorkspacePackage, nodeModules: string): void {
   const parts = pkg.name.split('/')
   const link = resolve(nodeModules, ...parts)
   mkdirSync(dirname(link), { recursive: true })
-  symlinkSync(pkg.dir, link, 'dir')
+  linkDirectory(pkg.dir, link)
 }
 
 const packages = workspacePackages()
@@ -117,7 +126,7 @@ try {
   if (existsSync(rootTypes)) {
     const typesDir = resolve(nodeModules, '@types')
     mkdirSync(typesDir, { recursive: true })
-    symlinkSync(rootTypes, resolve(typesDir, 'node'), 'dir')
+    linkDirectory(rootTypes, resolve(typesDir, 'node'))
   }
 
   writeFileSync(resolve(tmp, 'package.json'), `${JSON.stringify({ type: 'module', private: true }, null, 2)}\n`)
@@ -155,9 +164,18 @@ try {
 } catch (error: unknown) {
   failed = true
   const output = error as { stdout?: Buffer; stderr?: Buffer }
-  console.error('verify-node-next-types: NodeNext consumer typecheck failed.\n')
-  console.error(`${output.stdout?.toString() ?? ''}${output.stderr?.toString() ?? ''}`)
+  console.error('verify-node-next-types: NodeNext consumer verification failed.\n')
+  const detail = `${output.stdout?.toString() ?? ''}${output.stderr?.toString() ?? ''}`
+  console.error(detail || (error instanceof Error ? error.message : String(error)))
 } finally {
+  // Unlink the owned junctions before removing their temporary parent, never their targets.
+  for (const link of createdLinks.reverse()) {
+    if (!lstatSync(link).isSymbolicLink()) throw new Error(`temporary package link was replaced: ${link}`)
+    unlinkSync(link)
+  }
+  if (dirname(tmp) !== root || !basename(tmp).startsWith('.node-next-types-')) {
+    throw new Error('refusing to remove a temporary consumer outside the workspace')
+  }
   rmSync(tmp, { recursive: true, force: true })
 }
 

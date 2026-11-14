@@ -1,0 +1,48 @@
+{
+  "status": "PASS",
+  "overlapped": true,
+  "runs": [
+    {
+      "name": "full",
+      "status": "PASS",
+      "command": [
+        "C:\\Program Files\\nodejs\\node.exe",
+        "node_modules/vitest/vitest.mjs",
+        "run",
+        "packages/client/ui-subagent/tests/conversation-ui.client.spec.tsx",
+        "packages/context/file-reference-local/tests/search.spec.ts",
+        "packages/credentials/credentials-local/tests/local.spec.ts"
+      ],
+      "log": ".artifacts/fixture-observation-concurrent-full.log",
+      "passed": 95,
+      "skipped": 2,
+      "started": 1789486594546,
+      "ended": 1789486606332,
+      "exitCode": 0,
+      "signal": null,
+      "timedOut": false
+    },
+    {
+      "name": "focused",
+      "status": "PASS",
+      "command": [
+        "C:\\Program Files\\nodejs\\node.exe",
+        "node_modules/vitest/vitest.mjs",
+        "run",
+        "packages/client/ui-subagent/tests/conversation-ui.client.spec.tsx",
+        "packages/context/file-reference-local/tests/search.spec.ts",
+        "packages/credentials/credentials-local/tests/local.spec.ts",
+        "-t",
+        "ticks active duration|keeps the stale entries|publishes external edits"
+      ],
+      "log": ".artifacts/fixture-observation-concurrent-focused.log",
+      "passed": 3,
+      "skipped": 94,
+      "started": 1789486594569,
+      "ended": 1789486605986,
+      "exitCode": 0,
+      "signal": null,
+      "timedOut": false
+    }
+  ]
+}

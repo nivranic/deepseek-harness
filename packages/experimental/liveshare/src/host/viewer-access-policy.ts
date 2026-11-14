@@ -124,6 +124,7 @@ const VIEWER_SESSION_READ_ROLE: RemoteAccessRole<'session'> = {
   actions: [
     'commands/list',
     'fileUploads/upload',
+    'fileUploads/uploadDedupe',
     'goals/get',
     'session/attachment',
     'session/control',

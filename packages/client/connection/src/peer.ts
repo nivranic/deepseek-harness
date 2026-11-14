@@ -14,7 +14,7 @@ import type { PeerId, PeerScope, Principal } from '@deepseek-ai/dsh-typert-proto
 export interface PeerOptions {
   /** Caller identity every call through this Peer speaks for. */
   readonly principal: Principal
-  /** Omission permits an event stream; non-owner Peers still cannot answer waterfalls. */
+  /** Omission permits an event stream; Gateway separately checks authority to answer each waterfall. */
   readonly interactions?: 'answer' | 'none'
 }
 

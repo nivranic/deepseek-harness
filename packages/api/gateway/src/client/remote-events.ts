@@ -270,12 +270,18 @@ function parseRemoteEventReady(value: unknown): {
     || !hasExactRemoteEventKeys(value, ['type', 'clientId', 'host'])
     || value.type !== 'ready'
     || !isRemoteEventClientId(value.clientId)
-    || !isRemoteEventRecord(value.host)
-    || !hasExactRemoteEventKeys(value.host, ['home'])
-    || typeof value.host.home !== 'string') {
+    || !isRemoteEventRecord(value.host)) {
     throw new TypeError('client api: forwarded Remote event stream did not begin with ready')
   }
-  return { clientId: value.clientId, host: { home: value.host.home } }
+  const { clientId, host } = value
+  // A generation opened by a Host that predates the platform field carries home alone.
+  if (hasExactRemoteEventKeys(host, ['home']) && typeof host.home === 'string') {
+    return { clientId, host: { home: host.home } }
+  }
+  if (hasExactRemoteEventKeys(host, ['home', 'platform']) && typeof host.home === 'string' && typeof host.platform === 'string') {
+    return { clientId, host: { home: host.home, platform: host.platform } }
+  }
+  throw new TypeError('client api: forwarded Remote event stream did not begin with ready')
 }
 
 /** Validate one untrusted value from the Gateway-internal forwarded-event stream. */

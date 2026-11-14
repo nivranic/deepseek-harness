@@ -87,6 +87,8 @@ The tray renderer enlarges the whale by 20% around the tile center while preserv
 
 <a id="key-technical-decisions"></a>
 
+Shared [Host discovery](../../packages/api/host-description/README.md) reports persistent Host identity and current Remote capabilities. Desktop uses the same identity file and configures only `desktop-pipe`; the description does not claim a Web listener.
+
 ## Key technical decisions
 
 The original artwork lives in `resources/icon.png` and `resources/icon.svg`; platform adaptations retain the whale and gradients in `resources/icon-windows.*` and `resources/icon-macos.*`. Export each platform SVG as a transparent 1024×1024 PNG. Electron-builder generates the multi-size ICO for the Windows application, installer, and uninstaller ([Windows icon requirements](https://learn.microsoft.com/en-us/windows/apps/design/iconography/app-icon-construction)). The installation pages use matching artwork in both themes; the uninstaller's welcome and finish pages share `installer/assets/uninstaller-sidebar.png`, converted to a 164×314 BMP during preparation.
@@ -169,6 +171,8 @@ Windows uses a 40-DIP caption with native window controls and colors synchronize
 
 On macOS the custom menu retains Electron's standard Window menu and application hide commands, including Minimize (⌘M) and Hide (⌘H). Its Edit menu copies Electron's, binds Paste and Match Style to ⇧⌘V, and keeps Electron's ⌥⇧⌘V as a hidden alias; the Substitutions and Speech titles come from the desktop locale, while the other items keep Electron's English labels. Linux keeps the application and Edit menus.
 
+The local Host adds a model-facing Desktop orientation after reusable tool guidance and before the working-directory suffix. It identifies the application window and the machine hosting the Session without implying access to the screen or placing every tool on that machine. Normal preset personas retain the section; a complete persona suppresses it. Prompt-service reload restores the registration, and Host-context disposal removes it. The [Desktop context decision](../../.agents/notes/implemented/architecture/2026-09-15-desktop-model-context.md) owns the rationale.
+
 ### Runtime and plugin activation
 
 The signed `resources/app.asar/dsh/desktop-runtime.json` binds the shell version, Electron's Node version, platform, architecture, shared package versions, and final file inventory. Startup reads the metadata and checks shared package records. Release schema, shell version, target compatibility, and file integrity are verified during packaging. Reintroducing startup release comparisons requires a concrete installation failure that packaging validation and actual Host diagnostics cannot adequately explain. Core packages are never copied into profile storage or installed by pnpm at first launch.
@@ -188,6 +192,17 @@ Desktop fatal failures use native recovery with Exit, Restart, Disable third-par
 macOS and Linux GUI launches inherit only the session manager's environment, without variables exported by shell startup files. Before the first Host starts, Desktop runs the account's login shell (from the user database, not `$SHELL`) once as `<shell> -ilc` and reads its `env -0` output between delimiters, so `~/.zprofile` and `~/.zshrc` (or the shell's equivalents) take effect for the Host, agent shells, terminals, and profile configuration. Reading runs in parallel with profile preparation. The probe has no terminal input and sets `DISABLE_AUTO_UPDATE=true`, `ZSH_TMUX_AUTOSTARTED=true`, and `ZSH_TMUX_AUTOSTART=false` to keep oh-my-zsh and tmux plugins from blocking. Shell values replace inherited values except `PWD`, `OLDPWD`, `SHLVL`, `_`, those probe variables, and launcher-owned `DSH_*` and `ELECTRON_*` names; Desktop resolves paths such as `DSH_HOME` before the read, so the Host keeps the same values. The read completes at the closing delimiter, so background processes started by startup files may keep running with their output discarded. A candidate that fails to start, exits nonzero, prints no delimited output, or exceeds `DSH_DESKTOP_LOGIN_SHELL_TIMEOUT_MS` (integer milliseconds from 1000 through 2147483647, default `10000`; its process group is killed) is logged as a warning, and Desktop tries `/bin/zsh`, `/bin/bash`, and `/bin/sh` in turn; when all fail the Host uses the inherited environment. The dump command uses POSIX syntax, so an account shell such as csh, tcsh, or nushell fails and the Host receives the environment from the first system shell's startup files instead. Quitting Desktop during the read kills the running probe's process group. The result is read once per application process, so changes to shell startup files apply after quitting and reopening Desktop. Windows GUI launches already inherit the user and system environment variables from the registry, so Windows skips this step.
 
 <a id="develop"></a>
+
+<a id="tray-and-login-startup"></a>
+## Tray and login startup
+
+The application menu offers **Hide to Tray When Closing Window** on Windows and the equivalent menu-bar option on macOS. It is off by default. Enabling it keeps the Host running when the main window closes; the tray restores the window or quits the application. A second launch also restores the existing window. Disabling it reveals the window before removing the tray. If tray creation fails, closing keeps the platform's ordinary behavior. Explicit Quit always stops the Host.
+
+**Launch at Login** is available only in packaged Windows and macOS applications. The operating system owns its enabled state; the application reads that state and registers a change only after a user selects the menu item. macOS approval requirements or OS refusal are reported without claiming activation. Login launches hide only when a usable tray can restore the window. Development launches cannot register login startup.
+
+The Shell owns `$DSH_HOME/desktop/preferences.json`, containing `schemaVersion: 1` and `closeToTray`. It serializes atomic replacements and waits for admitted writes on exit. Missing files select the default; malformed or unsupported documents fail startup without rewriting the file. Host settings and application-renderer IPC do not own these preferences. [The Shell preference decision](../../.agents/notes/implemented/architecture/2026-09-15-desktop-shell-preferences.md) records ownership and verification limits.
+
+**Import Legacy Desktop Settings…** reads a selected JSON/YAML file up to 1 MiB. It accepts an unversioned document or `formatVersion: 1` with a `desktop` section; omitted `closeAction` and `launchAtLogin` fields use the legacy defaults, `tray` and `false`. The preview shows the current and imported close behavior plus the old login preference. Confirmation imports only close behavior; review **Launch at Login** separately. The source stays unchanged, and a changed source, unsupported input, or failed tray/persistence operation preserves the current preference. Cancel is the default. Use the close-behavior menu to undo an import.
 
 ## Develop
 
@@ -358,6 +373,9 @@ Selecting Check for Updates while mandatory policy is already blocking focuses i
 
 Background mandatory-installation confirmation requests Windows taskbar attention or an informational macOS Dock bounce plus one silent notification per readiness episode. It does not restore or focus the app. Notification clicks only return to current confirmation. Foreground return, installation, policy clearance, and shutdown clear owned reminders. System permissions and focus modes can suppress notifications; installed Windows and macOS notification qualification remains required.
 
+Before packaging, the bundled Node verifies native module execution, Session write exclusion and release, and the matching frontend through a real Host with an external plugin. The [native smoke decision](../../.agents/notes/implemented/bug-fix/2026-09-16-desktop-native-runtime-smoke.md) defines the checked operations.
+
+An unpacked artifact contains Electron, the materialized dsh production tree, upstream Node.js and pnpm, and the shell application. Installer size and filesystem size differ; release qualification measures both, plus the profile’s plugin storage and first-launch latency. The runtime trades more application files for eliminating core package installation on the user’s machine.
 ### Local updater qualification
 
 Ordinary update HTTP requests have a per-connection inactivity deadline: no response headers or no further response bytes for `60000` ms fails the operation. `DSH_DESKTOP_UPDATE_HTTP_IDLE_TIMEOUT_MS` accepts an integer from `1000` through `2147483647` to adjust it; active downloads have no total-duration deadline. Failed downloads retain the retry indicator and require another user action.

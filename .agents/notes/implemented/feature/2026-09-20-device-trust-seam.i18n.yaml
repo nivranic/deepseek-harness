@@ -1,0 +1,19 @@
+# Bilingual-pair consistency record for 2026-09-20-device-trust-seam.md (docs/i18n/README.md): per heading
+# section, a hash of its English and Chinese blocks outside code blocks and generated regions.
+# After editing either side, bring the other along and re-record with:
+#   pnpm run verify-translation-pairing --write .agents/notes/implemented/feature/2026-09-20-device-trust-seam.md
+/agent-note-the-device-trust-seam-lands-pairing-issuance-and-grants-on-the-gateway:
+  en: a36180eb9efe9c64
+  zh: 21e85a5dfa3097fe
+/agent-note-the-device-trust-seam-lands-pairing-issuance-and-grants-on-the-gateway/problem:
+  en: c455c6ab07267cb9
+  zh: 31bb8d83db0122a8
+/agent-note-the-device-trust-seam-lands-pairing-issuance-and-grants-on-the-gateway/decision:
+  en: 29c494860ccea9a2
+  zh: 1a02b62fdbd04125
+/agent-note-the-device-trust-seam-lands-pairing-issuance-and-grants-on-the-gateway/alternatives-considered:
+  en: d9c06e6b465c55fa
+  zh: 53d0e155ff967726
+/agent-note-the-device-trust-seam-lands-pairing-issuance-and-grants-on-the-gateway/consequences:
+  en: ed686215563814bd
+  zh: 6a96fd6e1efe8a65

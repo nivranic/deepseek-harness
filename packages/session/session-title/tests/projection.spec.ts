@@ -36,7 +36,9 @@ describe('title projection unit', () => {
     const { ctx, session } = await harness(true)
     const snapshot = ctx.sessionProjections.snapshot(session)
     expect(snapshot.values.title).toBeNull()
+    expect(snapshot.values.titleRevision).toBeNull()
     expect(ctx.sessionProjections.checkpoint(session).title).toEqual({ ver: 1, seq: -1, val: null })
+    expect(ctx.sessionProjections.checkpoint(session).titleRevision).toEqual({ ver: 1, seq: -1, val: null })
   })
 
   it('serves the latest title last-wins and notifies the change feed with the causing seq', async () => {
@@ -48,12 +50,15 @@ describe('title projection unit', () => {
     const firstSeq = appendTitle(session, 'First title')
     const secondSeq = appendTitle(session, 'Second title')
     session.append('turn/start', { turn: 1 })
-    expect(changes.filter(change => change.key === 'title')).toEqual([
+    expect(changes.filter(change => change.key === 'title' || change.key === 'titleRevision')).toEqual([
       { key: 'title', value: 'First title', seq: firstSeq },
+      { key: 'titleRevision', value: firstSeq, seq: firstSeq },
       { key: 'title', value: 'Second title', seq: secondSeq },
+      { key: 'titleRevision', value: secondSeq, seq: secondSeq },
     ])
     const snapshot = ctx.sessionProjections.snapshot(session)
     expect(snapshot.values.title).toBe('Second title')
+    expect(snapshot.values.titleRevision).toBe(secondSeq)
     expect(snapshot.asOfSeq).toBe(session.seq - 1)
   })
 
@@ -69,17 +74,22 @@ describe('title projection unit', () => {
     const { ctx, session } = await harness(false)
     appendTitle(session, 'Pre-mount title')
     await ctx.plugin(SessionTitleService, CONFIG)
-    expect(ctx.sessionProjections.snapshot(session).values.title).toBe('Pre-mount title')
+    const snapshot = ctx.sessionProjections.snapshot(session)
+    expect(snapshot.values.title).toBe('Pre-mount title')
+    expect(snapshot.values.titleRevision).toBe(session.seq - 1)
   })
 
   it('has no title key without the title service, and drops it when the service unloads (HMR safety)', async () => {
     const { ctx, session } = await harness(false)
     expect('title' in ctx.sessionProjections.snapshot(session).values).toBe(false)
+    expect('titleRevision' in ctx.sessionProjections.snapshot(session).values).toBe(false)
     const fiber = await ctx.plugin(SessionTitleService, CONFIG)
     appendTitle(session, 'Ephemeral')
     expect(ctx.sessionProjections.snapshot(session).values.title).toBe('Ephemeral')
+    expect(ctx.sessionProjections.snapshot(session).values.titleRevision).toBe(session.seq - 1)
     await fiber.dispose()
     expect('title' in ctx.sessionProjections.snapshot(session).values).toBe(false)
+    expect('titleRevision' in ctx.sessionProjections.snapshot(session).values).toBe(false)
   })
 
   it('keeps thousands of title inputs as a bounded aggregate and checkpoints it', async () => {

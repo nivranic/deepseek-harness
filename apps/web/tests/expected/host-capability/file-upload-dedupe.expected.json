@@ -1,0 +1,15 @@
+{
+  "dedupeCapabilityAdvertised": true,
+  "firstUploadTookCarrier": true,
+  "rememberedReuploadSkippedCarrier": true,
+  "distinctBytesTookCarrier": true,
+  "freshContextTookCarrier": true,
+  "storedObjectUntouched": true,
+  "rememberedAliasPublished": true,
+  "carrierUploads": [
+    "first.txt",
+    "third.txt",
+    "fourth.txt"
+  ],
+  "modelRequests": 0
+}

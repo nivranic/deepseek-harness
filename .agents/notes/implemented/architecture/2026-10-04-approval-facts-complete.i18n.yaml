@@ -1,0 +1,22 @@
+# Bilingual-pair consistency record for 2026-10-04-approval-facts-complete.md (docs/i18n/README.md): per heading
+# section, a hash of its English and Chinese blocks outside code blocks and generated regions.
+# After editing either side, bring the other along and re-record with:
+#   pnpm run verify-translation-pairing --write .agents/notes/implemented/architecture/2026-10-04-approval-facts-complete.md
+/agent-note-approval-surface-presents-the-complete-itemized-approval-information:
+  en: 97583a5a6761774e
+  zh: 918f754498be1427
+/agent-note-approval-surface-presents-the-complete-itemized-approval-information/problem:
+  en: 3237accb57667698
+  zh: d5aff9433d93712f
+/agent-note-approval-surface-presents-the-complete-itemized-approval-information/decision:
+  en: c5ba087810ad6452
+  zh: 89b92f0f76422382
+/agent-note-approval-surface-presents-the-complete-itemized-approval-information/alternatives-considered:
+  en: 76ba6ebb336e6d8f
+  zh: 532b7a25e5c3e946
+/agent-note-approval-surface-presents-the-complete-itemized-approval-information/consequences:
+  en: 1277aea3265394e3
+  zh: e8df7d53f970cdcf
+/agent-note-approval-surface-presents-the-complete-itemized-approval-information/open-follow-ups:
+  en: 125e19fc5bbfc6ca
+  zh: b3201ca5360497c1

@@ -1,0 +1,22 @@
+# Bilingual-pair consistency record for 2026-09-27-android-file-attachments.md (docs/i18n/README.md): per heading
+# section, a hash of its English and Chinese blocks outside code blocks and generated regions.
+# After editing either side, bring the other along and re-record with:
+#   pnpm run verify-translation-pairing --write .agents/notes/implemented/architecture/2026-09-27-android-file-attachments.md
+/agent-note-android-file-attachments-retain-one-explicit-selection-and-complete-prompt-intent:
+  en: a444fc132427880c
+  zh: 359daf40cab24779
+/agent-note-android-file-attachments-retain-one-explicit-selection-and-complete-prompt-intent/problem:
+  en: f434a3ad79a8393c
+  zh: 2931451709e8e619
+/agent-note-android-file-attachments-retain-one-explicit-selection-and-complete-prompt-intent/decision:
+  en: 828c500c6ce39369
+  zh: 192bd6bda06125e9
+/agent-note-android-file-attachments-retain-one-explicit-selection-and-complete-prompt-intent/durable-intent-and-receipt-lifetime:
+  en: b4ae62ec60c912a8
+  zh: 1fd789ff1f9677ef
+/agent-note-android-file-attachments-retain-one-explicit-selection-and-complete-prompt-intent/alternatives-considered:
+  en: 55b5f81fcb745655
+  zh: 5848ce7cfc963688
+/agent-note-android-file-attachments-retain-one-explicit-selection-and-complete-prompt-intent/consequences:
+  en: 900b561d441df05e
+  zh: c387bef3e1bc53dc

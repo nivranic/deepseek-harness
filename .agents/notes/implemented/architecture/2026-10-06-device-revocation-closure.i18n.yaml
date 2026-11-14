@@ -1,0 +1,22 @@
+# Bilingual-pair consistency record for 2026-10-06-device-revocation-closure.md (docs/i18n/README.md): per heading
+# section, a hash of its English and Chinese blocks outside code blocks and generated regions.
+# After editing either side, bring the other along and re-record with:
+#   pnpm run verify-translation-pairing --write .agents/notes/implemented/architecture/2026-10-06-device-revocation-closure.md
+/agent-note-device-revocation-state-closes-the-cross-section-tail-phrase-in-five-ledger-sections:
+  en: f16a53c3a79c996c
+  zh: adbd005bb2e8d941
+/agent-note-device-revocation-state-closes-the-cross-section-tail-phrase-in-five-ledger-sections/problem:
+  en: c46115a4b6d6e8e8
+  zh: 19f6051e71db8028
+/agent-note-device-revocation-state-closes-the-cross-section-tail-phrase-in-five-ledger-sections/decision:
+  en: 31e4e04d8dd796e6
+  zh: 9567838590e6c007
+/agent-note-device-revocation-state-closes-the-cross-section-tail-phrase-in-five-ledger-sections/alternatives-considered:
+  en: 0a167ea55ae22b49
+  zh: d3ae673bd0ac5ebf
+/agent-note-device-revocation-state-closes-the-cross-section-tail-phrase-in-five-ledger-sections/consequences:
+  en: c27553c242440022
+  zh: 8e7f00b775ff0db0
+/agent-note-device-revocation-state-closes-the-cross-section-tail-phrase-in-five-ledger-sections/open-follow-ups:
+  en: 02edd0bb08f19934
+  zh: 71611df6873fbf5c

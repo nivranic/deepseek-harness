@@ -38,63 +38,90 @@ interface HostFile {
 }
 
 /**
+ * The Host admission a registration was built from: the capabilities the
+ * Host's `describe` answer advertised, plus the registration's lifetime.
+ */
+export interface HostAdmission {
+  /** Capability ids the admitted Host advertised through `host.describe`. */
+  readonly capabilities: readonly string[]
+  /** Registration cancellation, independent from individual resource holders. */
+  readonly signal?: AbortSignal
+}
+
+/**
  * Build the `file` provider over one Remote face and one change feed.
  * @param remote - the Remote face carrying `workspaceFiles.stat`.
  * @param changes - target-scoped change streams shared by file resources.
+ * @param admission - the Host admission snapshot this registration is bound to;
+ *   without `workspace-files.stat.v1` every open ends at once, and the change
+ *   feed is followed only while `workspace-files.changes.v1` is advertised. An
+ *   omitted snapshot serves every call.
  * @returns the provider to register into `ctx.resources`.
  */
 export function createFileResourceProvider(
   remote: WorkspaceFilesRemote,
   changes: ChangeFeed,
+  admission?: HostAdmission,
 ): ResourceProvider<'file'> {
+  const capabilities = admission?.capabilities
   return {
     protocol: 'file',
     async *open(address, { signal }): AsyncIterable<RemoteResult<WorkspaceFileStat>> {
+      signal = admission?.signal === undefined ? signal : AbortSignal.any([signal, admission.signal])
+      const retired = (): boolean => signal.aborted
+      // An explicit admission snapshot gates registration-level support; a
+      // provider built without one serves every call.
+      if (retired() || capabilities !== undefined && !capabilities.includes('workspace-files.stat.v1')) return
       const resolved = resolve(address)
       if (!resolved.ok) {
         yield resolved
         return
       }
       const { sessionId, path } = resolved.value
-      // Queue changes delivered to this Client while stat is pending.
-      const notices = changes.follow(sessionId, path, signal)
+      // Queue changes delivered to this Client while stat is pending. The feed
+      // is followed whenever support is unknown; an admission without
+      // `workspace-files.changes.v1` pays for no stream.
+      const notices = capabilities === undefined || capabilities.includes('workspace-files.changes.v1')
+        ? changes.follow(sessionId, path, signal) : undefined
       const stat = (): Promise<RemoteResult<WorkspaceFileStat>> => remote.workspaceFiles.stat(sessionId, path, signal)
-      // Read through a call: a plain `signal.aborted` is narrowed to `false` by
-      // the first check and would read as always-false after the later awaits.
-      const aborted = (): boolean => signal.aborted
       // Undefined while the last stat failed: the follow is on the address, not
       // on the file, so a write can still bring the file live.
       let current: WorkspaceFileStat | undefined
       try {
-        if (!await notices.ready) {
-          if (aborted()) return
+        if (notices !== undefined && !await notices.ready) {
+          // Observation ended before ready, including `watch-unsupported`: one
+          // fallback stat unless the holder already left.
+          if (retired()) return
           const result = await stat()
-          if (!aborted()) yield result
+          if (!retired()) yield result
           return
         }
-        if (aborted()) return
+        if (retired()) return
         const first = await stat()
-        if (aborted()) return
+        if (retired()) return
         if (first.ok) {
-          notices.bind(first.value.absolutePath)
+          notices?.bind(first.value.absolutePath)
           current = first.value
           yield { ok: true, value: current }
         } else {
           yield first
         }
+        if (notices === undefined) return
         for await (const notice of notices) {
-          if (aborted()) return
+          if (retired()) return
           if (current === undefined) {
             // Still gone: nothing new to report.
             if (notice.kind === 'absent') continue
           } else if (notice.kind === 'changed') {
             // Frames report observations: holding this version already means the
-            // consumer learns nothing new.
+            // consumer learns nothing new. A different version always re-stats:
+            // the refresh rebinds the canonical path a misrouted frame could
+            // otherwise hide behind notice versions.
             if (notice.version === current.version) continue
           }
           // A Host notice may mean stale content.
           const again = await stat()
-          if (aborted()) return
+          if (retired()) return
           if (!again.ok) {
             current = undefined
             yield again
@@ -105,7 +132,7 @@ export function createFileResourceProvider(
           yield { ok: true, value: current }
         }
       } finally {
-        notices.dispose()
+        notices?.dispose()
       }
     },
   }

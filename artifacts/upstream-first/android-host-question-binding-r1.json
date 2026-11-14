@@ -1,0 +1,16 @@
+{
+  "status": "PASS",
+  "controls": 3,
+  "sourceRecord": {
+    "path": "artifacts/upstream-first/android-host-question-source.json",
+    "sha256": "89953978030e91f99a04e2873ca075e17ed3a3a1ed4d1173ffc9ecaf454e2f0d"
+  },
+  "generator": {
+    "path": "artifacts/upstream-first/write-reports.mjs",
+    "sha256": "0c33b4148ab341c0d68900bc86dec5534bc0bf29f44573860c9d4e93a4817a98"
+  },
+  "helper": {
+    "path": ".artifacts/check-android-host-question-binding.mjs",
+    "sha256": "7a07cf63644d76e8cb4d1560bd01e7aa9f00109c87aff689dec62f7fe3dae8db"
+  }
+}

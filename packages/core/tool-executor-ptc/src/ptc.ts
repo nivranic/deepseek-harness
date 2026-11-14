@@ -255,6 +255,11 @@ export function createRunCodeTransport(
   const stateOwners = new WeakMap<object, WeakSet<PtcRuntime>>()
   const definition = defineTool({
     name: toolName,
+    version: 1,
+    risk: 'high',
+    permissions: [],
+    supportsLite: false,
+    supportsRemote: true,
     // Getters below project the current program format; argument validation uses this static spec.
     description: TYPESCRIPT_FLAVOR.description,
     parameters: {

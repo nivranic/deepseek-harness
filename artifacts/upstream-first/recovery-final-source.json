@@ -1,0 +1,306 @@
+{
+  "schemaVersion": 1,
+  "baseSha": "c291e7961a515f6d7af9304e7fd1d257929aef26",
+  "capturedAt": "2026-09-14T20:13:26.808360+00:00",
+  "scope": "Profile empty junction recovery and optional Web carrier lifecycle in the source launcher",
+  "sourceFiles": [
+    {
+      "path": ".agents/notes/implemented/architecture/2026-07-10-single-file-executable-sdk-runtime-distribution.i18n.yaml",
+      "sha256": "484129e6b913a095b7f42fefcbbad4246bed6126b0dcd82d3a38b5e7c17e331d"
+    },
+    {
+      "path": ".agents/notes/implemented/architecture/2026-07-10-single-file-executable-sdk-runtime-distribution.md",
+      "sha256": "5ee8391fef97a330486398de2cbe92463ae7e245f90d72ba278acae457597532"
+    },
+    {
+      "path": ".agents/notes/implemented/architecture/2026-07-10-single-file-executable-sdk-runtime-distribution.zh.md",
+      "sha256": "39cb60dd731ffdf356c88c4f732a977a84f249985526f8035b4315a09ce5a233"
+    },
+    {
+      "path": ".agents/notes/implemented/architecture/2026-07-23-client-plugin-loading-model.i18n.yaml",
+      "sha256": "20d4af696e069e0bb4abac4ec0b5d9d7ec25bb4eba79104adfc16ed23dc5ed4e"
+    },
+    {
+      "path": ".agents/notes/implemented/architecture/2026-07-23-client-plugin-loading-model.md",
+      "sha256": "cc03242b1c3cdc3916ccdf5f5e60f55f98bb5296440ed26464b60ed5d4e4d3dd"
+    },
+    {
+      "path": ".agents/notes/implemented/architecture/2026-07-23-client-plugin-loading-model.zh.md",
+      "sha256": "33a8d5b475f69f99f7bfab4e0fcab43f743c65ab5e1cea0d1b143415f193b623"
+    },
+    {
+      "path": ".agents/notes/implemented/architecture/2026-08-05-profile-plugin-bundles.i18n.yaml",
+      "sha256": "d797e6a5310c876ed79c6130dbbe27c0ed36823bf62a2aefccc53c59485c186d"
+    },
+    {
+      "path": ".agents/notes/implemented/architecture/2026-08-05-profile-plugin-bundles.md",
+      "sha256": "9ebbb5ef5ab21e7ab8d6ea8b6c84c9c5e305e404d57ef98dd466ac5986430753"
+    },
+    {
+      "path": ".agents/notes/implemented/architecture/2026-08-05-profile-plugin-bundles.zh.md",
+      "sha256": "a4dfc883360de762dd169cc85b9f59b06ebe0f8918b0f2badd14de72a3a596b1"
+    },
+    {
+      "path": "apps/desktop/README.i18n.yaml",
+      "sha256": "f15ee7adb8fa4096521536e74a50d9ebb30000bfa08ce4d7b431e1219cd99f18"
+    },
+    {
+      "path": "apps/desktop/README.md",
+      "sha256": "f0cca32fcf71536d7f534bb9512cde2cdccb22af23322ff10955674a70bde15d"
+    },
+    {
+      "path": "apps/desktop/README.zh.md",
+      "sha256": "bff6f7dd12755155cf8312f312f80d8603652714eedd1cc6b1380e7fe455b32d"
+    },
+    {
+      "path": "apps/desktop/electron-builder.config.mjs",
+      "sha256": "3242149b816114129b53d41701136c96199b8cbe12df39d8c189bebd9bf99507"
+    },
+    {
+      "path": "apps/desktop/package.json",
+      "sha256": "bd09d67c08f2c66516124ebcc71e1a71a36325be44255310098e0fdcbba18f56"
+    },
+    {
+      "path": "apps/desktop/resources/tray-icon.png",
+      "sha256": "0cbd9779acbe7a222001643672f748f046133b55d912c69083b339b240175ec9"
+    },
+    {
+      "path": "apps/desktop/src/locale.ts",
+      "sha256": "49a9fd9264740f56acf861ec53af5e49f23462c4f7f4a0ae51301b47a95b8a4a"
+    },
+    {
+      "path": "apps/desktop/src/login-item.ts",
+      "sha256": "ffc2f8a7acacfc56ca2e015188c42aa41b3e745b9244f49a4b5b472b9712788c"
+    },
+    {
+      "path": "apps/desktop/src/main.ts",
+      "sha256": "c8ba2de4df3a165133b7c3d4f720c78500d584908b917c9e4f9300283a8fc1ef"
+    },
+    {
+      "path": "apps/desktop/src/shell-behavior.ts",
+      "sha256": "ce599da150c30f10a59039097829c38b9abc420da9f8ea608b1bf98c11fc3c09"
+    },
+    {
+      "path": "apps/desktop/src/shell-preferences.ts",
+      "sha256": "38ee3d96f8af72226be0d0e724819e30ed9b0fe026de26b2ab06fde6b143dd99"
+    },
+    {
+      "path": "apps/desktop/tests/expected/native-menu-darwin-zh.json",
+      "sha256": "8e82117c3f979c62989c500c982fd9b18ed335b8c9bc3bda6e22fcd4ab9be3fb"
+    },
+    {
+      "path": "apps/desktop/tests/expected/native-menu-development-en.json",
+      "sha256": "07a848f623ebadd917d2b6872d4411f3956f45970d631eb54eccc16a68aa54b2"
+    },
+    {
+      "path": "apps/desktop/tests/expected/native-menu-win32-zh.json",
+      "sha256": "63ad63f6690ccf2dca27f614dc186af5948d49e5245b731289b5b01889a42cc9"
+    },
+    {
+      "path": "apps/desktop/tests/expected/native-tray-en.json",
+      "sha256": "65c4f0c0d0c49de85b40541eec05b39629396818d3ea7628368c0a57938764f1"
+    },
+    {
+      "path": "apps/desktop/tests/login-item.spec.ts",
+      "sha256": "8fbdbb0afc543731e2215a8303013930ff4dfb37b5d16780abd2c54e64af59ed"
+    },
+    {
+      "path": "apps/desktop/tests/main-startup.spec.ts",
+      "sha256": "67e90467681d7c4cff60a841109e54610cd82e2528b45561454406c3ad3b9927"
+    },
+    {
+      "path": "apps/desktop/tests/shell-behavior.spec.ts",
+      "sha256": "3d0fda2f2447dbf1906c4e2eca1a0e70ce9f8f19eeca09f49403b7c3ac1ae35e"
+    },
+    {
+      "path": "apps/desktop/tests/shell-preferences.spec.ts",
+      "sha256": "5d8dfd7c5ccd391a03ee7f4d764f1851b60709c8015e7f897d5e7f98ca545d98"
+    },
+    {
+      "path": "apps/desktop/tsconfig.json",
+      "sha256": "a9c6d65de293fd2a4880678a6add6c31237a82fb29cf01a732965a61ab7445ce"
+    },
+    {
+      "path": "packages/boot/app-boot/README.i18n.yaml",
+      "sha256": "94b02e93b59bba265fbe5859c3e1e5854e219d93c81d433346dd16a87a05d297"
+    },
+    {
+      "path": "packages/boot/app-boot/README.md",
+      "sha256": "1214b4bb58339542c43288d0f0ac22f0f5d4bb40a92e399645877d20ff094e08"
+    },
+    {
+      "path": "packages/boot/app-boot/README.zh.md",
+      "sha256": "72961d51ba8cf29191d602f5cf7f9f17acaf44a40aafeef2ede3f2eb572083ad"
+    },
+    {
+      "path": "packages/boot/app-boot/src/profile.ts",
+      "sha256": "29a4224ab083e7c6378d6b67f9c0dc65c1642a1ac84efab8d9f07eb736241922"
+    },
+    {
+      "path": "packages/boot/app-boot/tests/profile-init.spec.ts",
+      "sha256": "6028b7b99a3374679af29ba7a006a72ef20b728888cd050fad867b2675070339"
+    },
+    {
+      "path": "packages/boot/app-boot/tests/profile.spec.ts",
+      "sha256": "40905aa6ec8f8c0fe9904ed88dac0d1556a5fa3a68f9cdf53eb30339f15b001a"
+    },
+    {
+      "path": "packages/client/modules/README.i18n.yaml",
+      "sha256": "c3e923b43a70a072f07409e30d37eb4cbb3ab2dcf3e89afa5857cefbb374e525"
+    },
+    {
+      "path": "packages/client/modules/README.md",
+      "sha256": "c7a0687209bf131b30bae71073f76210fcb51fcf92389fb9b5d4d8cf4daf126c"
+    },
+    {
+      "path": "packages/client/modules/README.zh.md",
+      "sha256": "a836f800234d55c358d8d644ca201771877ca4a352f22c56e7f0b0e5625b61d6"
+    },
+    {
+      "path": "packages/client/modules/src/index.ts",
+      "sha256": "c5f2c2b4b43f97da9506e6c7aed6f102a3bb4113ae25a692df2ef4e83b2008c9"
+    },
+    {
+      "path": "packages/client/modules/src/package-manifest.ts",
+      "sha256": "0886bdfd080ae14fb3177883edbea4dd90b59d769406ddeba9d9b14df0a293db"
+    },
+    {
+      "path": "packages/client/modules/tests/node-half.client.spec.ts",
+      "sha256": "6eb8bd2e05fe128aee5aa2f10e3ec0fc1b565243440c0c8dac76799d840267fe"
+    },
+    {
+      "path": "packages/client/modules/tests/package-manifest.spec.ts",
+      "sha256": "73801ac05764d23cd6c68cdf214b269e3bf0a4a3c7eb0ec9804256f643df9874"
+    },
+    {
+      "path": "pnpm-lock.yaml",
+      "sha256": "aca6c1434694060304eea0cf36c903e046c99da90d00dcaae1534c8c03a3e549"
+    },
+    {
+      "path": "python/development.i18n.yaml",
+      "sha256": "d427cc3d3c494f18971cde441727407ae5b8c62473bddf79595ae0e190176235"
+    },
+    {
+      "path": "python/development.md",
+      "sha256": "2d89c8056bb1dceaba12fb146d51aa77eb2f0af8c0f75773b01f510b311b30e0"
+    },
+    {
+      "path": "python/development.zh.md",
+      "sha256": "5d47c42a5b6e98dfb8d2b5ea75c86067e07898f3edb9abf33d897d3303b86257"
+    },
+    {
+      "path": "python/sdk-runtime/README.i18n.yaml",
+      "sha256": "20c094fcb5c277d4ad81d656ca487ef85d18767ddbe8081e05ab23cdb5858c2e"
+    },
+    {
+      "path": "python/sdk-runtime/README.md",
+      "sha256": "f7d1b113b59cf5e9dd3e93533b54ada7ddbada891e126a43e2ef7f7ddeeb676f"
+    },
+    {
+      "path": "python/sdk-runtime/README.zh.md",
+      "sha256": "b084a183062eaba8e952e4d6202bcb0bc51981d6e64355cea5ce5ab5325fca4f"
+    },
+    {
+      "path": "python/sdk-runtime/package.json",
+      "sha256": "8137cf69d4ae99fd37344e35cc4d567fb1527aadc7b12342dd0c8f1a6cfad681"
+    },
+    {
+      "path": "scripts/build-exe-for-python-sdk.spec.ts",
+      "sha256": "679a3c1a890bdf59a7748dbde1badc29b13e4664ce35eaba1f89aa45cfef7cdd"
+    },
+    {
+      "path": "scripts/build-exe-for-python-sdk.ts",
+      "sha256": "fc3e1e7ddad2714699d461316dceaea9322bf3a5bb47bad3cb2ba2d5236dab96"
+    },
+    {
+      "path": "scripts/project-doc-site.spec.ts",
+      "sha256": "df38d9e41fc5f712ba0fe34ac4b12c1bb268f75d229fa26d4e51b88cc9010b9e"
+    },
+    {
+      "path": "scripts/verify-runtime-closure.spec.ts",
+      "sha256": "3cdc64d89470298773c21a0f3867f0ceee40fcdae3182345431f3cebfcf183df"
+    },
+    {
+      "path": "scripts/verify-runtime-closure.ts",
+      "sha256": "f47f7fceb33a60b507f39285ca35552af7d8ab8e009789809bf94423ab4c5448"
+    }
+  ],
+  "helper": {
+    "path": ".artifacts/smoke-source-profile-recovery.py",
+    "sha256": "d31c45a215a72f3cc34a2e0587412bc9d912b7509e84efd1218e1103a019fef3"
+  },
+  "receipt": {
+    "path": "artifacts/upstream-first/profile-recovery-smoke.json",
+    "sha256": "43fe9000c8b96622608a2d6115fa4a1de02217585ed99a5b0024411c28785680"
+  },
+  "checks": [
+    {
+      "id": "profile-empty-junction-regressions",
+      "status": "PASS",
+      "tests": 49,
+      "files": 2,
+      "command": "pnpm exec vitest run packages/boot/app-boot/tests/profile.spec.ts packages/boot/app-boot/tests/profile-init.spec.ts",
+      "detail": "Two new empty-directory recovery regressions failed before the fix. The existing foreign-directory case now contains real content and verifies preservation; pnpm-owned empty entries remain untouched.",
+      "sourceRecord": "artifacts/upstream-first/recovery-source.json"
+    },
+    {
+      "id": "web-carrier-lifecycle",
+      "status": "PASS",
+      "tests": 67,
+      "files": 2,
+      "command": "pnpm exec vitest run packages/client/modules/tests/node-half.client.spec.ts packages/client/modules/tests/package-manifest.spec.ts",
+      "detail": "Real Cordis plugin fibers cover both Web service load orders, route disposal/replacement, and stable graph revision. Before the fix, preexisting webServer failed injection access; fixture route readiness and invariant startup are awaited.",
+      "sourceRecord": "artifacts/upstream-first/recovery-source.json"
+    },
+    {
+      "id": "source-web-recovery-smoke",
+      "status": "PASS",
+      "command": "python .artifacts/smoke-source-profile-recovery.py",
+      "receipt": "artifacts/upstream-first/profile-recovery-smoke.json",
+      "detail": "Supported source dsh web launcher, isolated home, precreated empty CLI fallback. Actual junction target, authentication, 53 plugin entries, Session RPC, Chrome settings/theme and fixture disposal with exit 0 passed.",
+      "sourceRecord": "artifacts/upstream-first/recovery-source.json"
+    },
+    {
+      "id": "recovery-doc-sync-final",
+      "status": "PASS",
+      "passed": 34,
+      "failed": 0,
+      "command": "pnpm run doc-sync",
+      "sourceRecord": "artifacts/upstream-first/recovery-source.json",
+      "detail": "Complete final document aggregate; the later fixture-only nonempty graph adjustment passed Host typecheck separately."
+    },
+    {
+      "id": "recovery-full-lint-final",
+      "status": "PASS",
+      "command": "pnpm run lint:contracts-ready",
+      "sourceRecord": "artifacts/upstream-first/recovery-source.json",
+      "detail": "Full repository lint after final prose edits; the later test-only fixture change passed scoped lint separately."
+    },
+    {
+      "id": "recovery-nonempty-graph-fixture",
+      "status": "PASS",
+      "tests": 2,
+      "command": "pnpm exec vitest run packages/client/modules/tests/node-half.client.spec.ts -t 'tracks a Web carrier'",
+      "detail": "Nonempty module graph gives each rebuilt service a distinct revision, detecting accidental parent recreation on carrier replacement."
+    },
+    {
+      "id": "recovery-final-fixture-types",
+      "status": "PASS",
+      "command": "pnpm exec tsc -b tsconfig.host.json --pretty false"
+    },
+    {
+      "id": "recovery-final-fixture-lint",
+      "status": "PASS",
+      "command": "pnpm exec oxlint packages/client/modules/tests/node-half.client.spec.ts"
+    }
+  ],
+  "limitations": [
+    "The packaged executable predates these two source fixes and was not rebuilt.",
+    "No installed wheel, real model, native OS signal, Desktop installer or other-platform acceptance."
+  ],
+  "previousSourceRecord": {
+    "path": "artifacts/upstream-first/recovery-source.json",
+    "sha256": "5db28b0dcc73ead5eb34c6a7a70c9c59cef86a23b083bf3b128dfcb7e8780ebe"
+  },
+  "remainingOwnedRuntimeProcesses": 0
+}

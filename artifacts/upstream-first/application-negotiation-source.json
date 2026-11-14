@@ -1,0 +1,822 @@
+{
+  "schemaVersion": 1,
+  "baseSha": "c291e7961a515f6d7af9304e7fd1d257929aef26",
+  "capturedAt": "2026-09-16T06:52:41.323Z",
+  "scope": "Host/Client protocol 2/1 negotiation with generation-owned encoding and frozen v1 API-bundle interoperability",
+  "sourceFiles": [
+    {
+      "path": ".agents/notes/implemented/architecture/2026-08-02-typert-remote-method-calls.i18n.yaml",
+      "sha256": "5d799f5f2bef5fc9807a96ecf24d2abef6f4ee7ae75f87690f20b7b0e51108ae",
+      "bytes": 541
+    },
+    {
+      "path": ".agents/notes/implemented/architecture/2026-08-02-typert-remote-method-calls.md",
+      "sha256": "a170b53aafd150827dc2a4737ca0b9b835b40d9481310e87b091f67be24a9de3",
+      "bytes": 52856
+    },
+    {
+      "path": ".agents/notes/implemented/architecture/2026-08-02-typert-remote-method-calls.zh.md",
+      "sha256": "7441fc25517fd6fda399c3413d07f409b3c3a43d764d496dc450e2a7a6538790",
+      "bytes": 47002
+    },
+    {
+      "path": ".agents/notes/implemented/architecture/2026-09-16-host-description-and-capabilities.i18n.yaml",
+      "sha256": "6576fac08fd2793ebb83ce6e97ab37f0135e2e09f1addf1fcd4e9beaeb461aaa",
+      "bytes": 562
+    },
+    {
+      "path": ".agents/notes/implemented/architecture/2026-09-16-host-description-and-capabilities.md",
+      "sha256": "9d7c52f3c63c686f776071b1307a312fac37214fcc10d36f7c168137a60b25e0",
+      "bytes": 5497
+    },
+    {
+      "path": ".agents/notes/implemented/architecture/2026-09-16-host-description-and-capabilities.zh.md",
+      "sha256": "fdae8b1115b3eef84406a021f7fad5e20372386e6b1b454dbdafa5c694dba259",
+      "bytes": 4666
+    },
+    {
+      "path": ".agents/notes/implemented/process/2026-06-17-ts-build-config.i18n.yaml",
+      "sha256": "967096667d4cddb80229953f0554316db1615b58795cddcfcd838da6c6a9798e",
+      "bytes": 503
+    },
+    {
+      "path": ".agents/notes/implemented/process/2026-06-17-ts-build-config.md",
+      "sha256": "5596a6de408ce0d1e42eae6c092984532282053e3a3ee350e0dca13e7b463f08",
+      "bytes": 8439
+    },
+    {
+      "path": ".agents/notes/implemented/process/2026-06-17-ts-build-config.zh.md",
+      "sha256": "738cba4bebf887a2cf26c37259482de32cb7082f8b0479995fc0ea09941a039a",
+      "bytes": 7943
+    },
+    {
+      "path": "apps/desktop-host/config/desktop.cordis.patch.yml",
+      "sha256": "ba50a9c28cbf49780d3585fc559587a8e4f1011d3035da88932d08eff25bfdaa",
+      "bytes": 761
+    },
+    {
+      "path": "apps/desktop/README.i18n.yaml",
+      "sha256": "50ad58496773e3ef50afaa52e31cb30a0a5e1dca27a52ddcf326983b5b20b295",
+      "bytes": 422
+    },
+    {
+      "path": "apps/desktop/README.md",
+      "sha256": "a5e6c188bce765f239e7a641ab8405bc454a32afc383462bed7fb697bfe93b1b",
+      "bytes": 29574
+    },
+    {
+      "path": "apps/desktop/README.zh.md",
+      "sha256": "abdc4ba84bb3184af5ae53f371a2f0aed23109a2d23ca3be399605c844b56a21",
+      "bytes": 26671
+    },
+    {
+      "path": "apps/web/tests/host-description.e2e.ts",
+      "sha256": "d9266976f4fe1ca05ec338e791226dc25afdffa55ca06274aa34a1568635af93",
+      "bytes": 5919
+    },
+    {
+      "path": "apps/web/tsconfig.json",
+      "sha256": "e17a7e69dc18235fa47279e2e87c8033b4281629caf401bc62b87f4a9638c1ca",
+      "bytes": 4517
+    },
+    {
+      "path": "docs/capability-seams.i18n.yaml",
+      "sha256": "29f0a27a35e0276d851c26f2185beb9709a38d5dfeec4c7ede35d69c9d5735af",
+      "bytes": 444
+    },
+    {
+      "path": "docs/capability-seams.md",
+      "sha256": "fd5a9760ce228408ac22f222fad5abb9801e01395a476d43d337ed1383bdc884",
+      "bytes": 49750
+    },
+    {
+      "path": "docs/capability-seams.zh.md",
+      "sha256": "a0b04de60255e61b5004b97792ff60c35373db8496a8e28fd540b0cc5d9e7025",
+      "bytes": 49513
+    },
+    {
+      "path": "docs/config-catalog.i18n.yaml",
+      "sha256": "51ab028922d8dd66d4b3b69e9c6557c54482737d8db7cb030db8424b701aa058",
+      "bytes": 438
+    },
+    {
+      "path": "docs/config-catalog.md",
+      "sha256": "0a5f54a8abb7153692aaa75350b2af8664c195a18303248d25493f135c3b9f95",
+      "bytes": 156647
+    },
+    {
+      "path": "docs/config-catalog.zh.md",
+      "sha256": "de9ec2afdc37e0dae1238b9088185b4229638f05ef1c0b0068c341790a9cd4ab",
+      "bytes": 157288
+    },
+    {
+      "path": "docs/subsystems/typert.i18n.yaml",
+      "sha256": "64708a8592feb15f88658c2a49c85fdd00f990fe0ceb1158d29d52745e8a504d",
+      "bytes": 425
+    },
+    {
+      "path": "docs/subsystems/typert.md",
+      "sha256": "f71de0396710e567fac93e946512bdfdc498dc4dbd567598721975804d47077f",
+      "bytes": 19228
+    },
+    {
+      "path": "docs/subsystems/typert.zh.md",
+      "sha256": "08479c5794c1130b10020a05d40a59004cf763574588f0b5c4e35c718911be21",
+      "bytes": 19021
+    },
+    {
+      "path": "packages/api/README.i18n.yaml",
+      "sha256": "b304fa468ac35f036c4899999d0977a2736d99d6dec4380866ac0b4a41640d99",
+      "bytes": 422
+    },
+    {
+      "path": "packages/api/README.md",
+      "sha256": "a5e8128e7c80ed5afc99e4471c9196958bebf25485b2dc347382da945cd0b74f",
+      "bytes": 3708
+    },
+    {
+      "path": "packages/api/README.zh.md",
+      "sha256": "e2ab523576c6c553f8a583197490272d4b6d8f68a2c17b2320bae43b05bfb76a",
+      "bytes": 3393
+    },
+    {
+      "path": "packages/api/gateway/README.i18n.yaml",
+      "sha256": "4b1c303886875db4630fb622e5bb9d57ada57a9843a8c4b21402d9f2da27c868",
+      "bytes": 430
+    },
+    {
+      "path": "packages/api/gateway/README.md",
+      "sha256": "8d19b5e4fd2946a002bb66087c1c93cf5407a35bbc588c6753f32e5bc7d1d4b2",
+      "bytes": 14945
+    },
+    {
+      "path": "packages/api/gateway/README.zh.md",
+      "sha256": "284198f7d969a55d401f96e6fffe46403b19402cdd4e9578e372bf696c62a9a0",
+      "bytes": 13758
+    },
+    {
+      "path": "packages/api/gateway/package.json",
+      "sha256": "9b004f2adb5bd9b044249fddc85df14feafb21eababa22fd9bb64fcc225288b5",
+      "bytes": 2031
+    },
+    {
+      "path": "packages/api/gateway/src/client/index.ts",
+      "sha256": "5e2f2129441f9ac094000ca32df67f4f56ba23c19c6f8ae044c950cd2c61f53a",
+      "bytes": 32291
+    },
+    {
+      "path": "packages/api/gateway/src/client/preparation.ts",
+      "sha256": "d685dde656f1aba021d1e750f18b4a17c0ec8da2849433b25c84e06875bec896",
+      "bytes": 6304
+    },
+    {
+      "path": "packages/api/gateway/src/client/remote-events.ts",
+      "sha256": "db13a5a22ab0fd49486af1d1d520a08e0e7eaea2d3f55c1cba39ce45c02a85b7",
+      "bytes": 12983
+    },
+    {
+      "path": "packages/api/gateway/src/index.ts",
+      "sha256": "e44f71cc64941e21f7c1a93b82e30cd5eeb0da80feb17f27483e1b6d4bcf35d8",
+      "bytes": 47599
+    },
+    {
+      "path": "packages/api/gateway/src/protocol.ts",
+      "sha256": "f1c0166178aa4784ba7d99b84e574ef61088c23a42fa10291e2a954e5efba8ad",
+      "bytes": 2508
+    },
+    {
+      "path": "packages/api/gateway/src/remote-error-codes.ts",
+      "sha256": "8e25f59b32b6b89ab5b963b77f7004d1be741d6c65dc5cce6e960cbc58c94047",
+      "bytes": 1870
+    },
+    {
+      "path": "packages/api/gateway/src/types.ts",
+      "sha256": "d744f7ca1c7c30ec107574875f579124eb7bc45502e02d996b67559541557378",
+      "bytes": 6655
+    },
+    {
+      "path": "packages/api/gateway/tests/gateway-stream.host.spec.ts",
+      "sha256": "f3e0794a64445a77ce9da1fd2337c4ada17f49e1f85663a4125a1958aa91c156",
+      "bytes": 43881
+    },
+    {
+      "path": "packages/api/gateway/tests/gateway.client.spec.ts",
+      "sha256": "d6177734e3e86ef4839d1406ad49d2a6de38acf8e9fee2d717a84868c1126b0d",
+      "bytes": 105130
+    },
+    {
+      "path": "packages/api/gateway/tests/gateway.host.spec.ts",
+      "sha256": "92dd1bdf1d3e1dc53886686631a0ad59b89c4fa0fde735d3af26ec74ce00ca33",
+      "bytes": 54519
+    },
+    {
+      "path": "packages/api/gateway/tests/preparation.client.spec.ts",
+      "sha256": "628a65357d0d9d17e1b36e7184686736cb1199971e0e9363848982fa72f1c7f6",
+      "bytes": 10550
+    },
+    {
+      "path": "packages/api/gateway/tests/protocol.host.spec.ts",
+      "sha256": "c1931afe161e8825f7b4049ad8b5d93af13ce8bca258edca012dc4f9cf7159e1",
+      "bytes": 1455
+    },
+    {
+      "path": "packages/api/gateway/tsconfig.client.json",
+      "sha256": "ea571d9254f4e49aee37161e61bff2797ec7781d2c44d5dffa4b18a31ac0e893",
+      "bytes": 821
+    },
+    {
+      "path": "packages/api/gateway/tsconfig.host.json",
+      "sha256": "1591e3923b069ba9ac8164772c2788032d6c27085d96d659b884de32c1ef1de4",
+      "bytes": 802
+    },
+    {
+      "path": "packages/api/host-description/README.i18n.yaml",
+      "sha256": "cb813a9e46ee7295ea0c6b07d65df07da7338e799b7d132a9160e2b8570cde50",
+      "bytes": 439
+    },
+    {
+      "path": "packages/api/host-description/README.md",
+      "sha256": "07d895ad4a6c10e7ea6a5cc9f3a0bc9080585c4597f2ac8d121956c7da37b931",
+      "bytes": 5518
+    },
+    {
+      "path": "packages/api/host-description/README.zh.md",
+      "sha256": "41ee24081b09f2abbbf06cc8d55e177a7da2546f2554b667852809bafc3bc098",
+      "bytes": 4953
+    },
+    {
+      "path": "packages/api/host-description/package.json",
+      "sha256": "67c55b1e9f615ef06e6ff20f9aadc462c1a73943f33423b669c7ac9f73e2a309",
+      "bytes": 1954
+    },
+    {
+      "path": "packages/api/host-description/src/identity.ts",
+      "sha256": "a760ea895ff2ba213614c84fd906f444824c0c2fca6041c8cd3f5605169ee2a4",
+      "bytes": 1917
+    },
+    {
+      "path": "packages/api/host-description/src/index.ts",
+      "sha256": "9cb91b1fe418cd27db253b75070cc0e702202422dd6c4784a7ec49b6a1c850f9",
+      "bytes": 5406
+    },
+    {
+      "path": "packages/api/host-description/src/types.ts",
+      "sha256": "3f7b38a05fe555fcd2efceca3bece75bc5aa0da7b94277f3d1032e69c16aae33",
+      "bytes": 1816
+    },
+    {
+      "path": "packages/api/host-description/src/version.ts",
+      "sha256": "56a1dee78a6a486ab5d23028e0c922821af127f29ac6a8bb5340e6166fc3d473",
+      "bytes": 604
+    },
+    {
+      "path": "packages/api/host-description/tests/expected/host-description.json",
+      "sha256": "666fccba6686713bd6336f9921e30bc1519e72b6ae725452586f4c7325a682e2",
+      "bytes": 430
+    },
+    {
+      "path": "packages/api/host-description/tests/host-description.spec.ts",
+      "sha256": "3f2c85482aa88528e5b872b38cc99e37931e7c36ce6fe52feddff35070ffe88f",
+      "bytes": 4442
+    },
+    {
+      "path": "packages/api/host-description/tests/identity.spec.ts",
+      "sha256": "04b284d4549337d815e27f40a0a10f9989791fe45c5d44b91842f6a5985df15b",
+      "bytes": 1925
+    },
+    {
+      "path": "packages/api/host-description/tsconfig.json",
+      "sha256": "c4db1870a24519e896e8ad2ea1bb7731967cd907512ee25c509b77f215050ec5",
+      "bytes": 541
+    },
+    {
+      "path": "packages/api/remotes/README.i18n.yaml",
+      "sha256": "5e52ff537499769674da49c50919b09367168f029e9c8d954b3046b80876ab49",
+      "bytes": 430
+    },
+    {
+      "path": "packages/api/remotes/README.md",
+      "sha256": "c3e2d18a589b74b7ad41924387e66ee3867c27e511a6846b0987fd1f604154d7",
+      "bytes": 10091
+    },
+    {
+      "path": "packages/api/remotes/README.zh.md",
+      "sha256": "4f2119fddc589343ac4d018b076bc450b5109a614658706e568f1826cc6309ea",
+      "bytes": 9122
+    },
+    {
+      "path": "packages/api/remotes/package.json",
+      "sha256": "8dba0c436aa598898a5415cb55c8407d5642d6a436c386444897197765efbf38",
+      "bytes": 2962
+    },
+    {
+      "path": "packages/api/remotes/src/client/host-preparation.ts",
+      "sha256": "cbe407f95666b25e7e30c1f780519c377f813bd68507e998cef348f5fc251a78",
+      "bytes": 5144
+    },
+    {
+      "path": "packages/api/remotes/src/client/index.ts",
+      "sha256": "c18d982c7551239f8e98c49562e0d700dacc897683169e896edfb6faee9029b1",
+      "bytes": 8640
+    },
+    {
+      "path": "packages/api/remotes/tests/built-lib.e2e.ts",
+      "sha256": "f73beb08425449215cf746be2aa3500751adc166efd74acb98f06975796547a5",
+      "bytes": 15682
+    },
+    {
+      "path": "packages/api/remotes/tests/host-preparation.client.spec.ts",
+      "sha256": "c9d4f31d9c76eb2d72f86e4ac9e8ef7fe451dce6dec3218a7b91bbfa0a06999b",
+      "bytes": 8069
+    },
+    {
+      "path": "packages/api/remotes/tsconfig.client.json",
+      "sha256": "6dae79de1d73a900ff11f5fedf7353d55f60f3c02aa4cbec1a9786d2cf156b50",
+      "bytes": 1820
+    },
+    {
+      "path": "packages/api/session-controller/README.i18n.yaml",
+      "sha256": "48a01ab05a5e453ea154a465145ad54d215e92c0d0216fcad487ebee0f8bd186",
+      "bytes": 441
+    },
+    {
+      "path": "packages/api/session-controller/README.md",
+      "sha256": "afabb8485732d5bc94eb31ce96412428be04d7ad6cff80de7d81226af59baea5",
+      "bytes": 11443
+    },
+    {
+      "path": "packages/api/session-controller/README.zh.md",
+      "sha256": "f66eed546bf510250ab767dce3f861dd457fe770b3bd5385f44da6a228a6d83e",
+      "bytes": 10761
+    },
+    {
+      "path": "packages/api/session-controller/src/index.ts",
+      "sha256": "9669b2ce867a0a8f434080e24216c25fd6954a6e3919ecb98ce52538011b1a85",
+      "bytes": 16285
+    },
+    {
+      "path": "packages/bundle/web-app/README.i18n.yaml",
+      "sha256": "52a6a09280c6c7efdbd8ce7d2880f38f29728e0f826643c05254d305e0f215f0",
+      "bytes": 433
+    },
+    {
+      "path": "packages/bundle/web-app/README.md",
+      "sha256": "32921ddfa39c27db42ae7a492367d513ee68d3c0c884ebd56ade19c88c0a4e22",
+      "bytes": 10870
+    },
+    {
+      "path": "packages/bundle/web-app/README.zh.md",
+      "sha256": "55c4159a50cbd2a004caae7f4abed4b390f50743bcad41627b1d50b563836a88",
+      "bytes": 10117
+    },
+    {
+      "path": "packages/bundle/web-app/cordis.patch.yml",
+      "sha256": "d025b8c8fc67ac892463e66d788e35640efa2875deb6eda1ee1a1568e1412a35",
+      "bytes": 18813
+    },
+    {
+      "path": "packages/bundle/web-app/package.json",
+      "sha256": "df5589bd8a38186a8d33c0bff3b300758398cec6e6279011dc67c501a31d08c9",
+      "bytes": 6278
+    },
+    {
+      "path": "packages/client/connection/src/client/fixture.ts",
+      "sha256": "39d6e1e1d908ff07b5a3243a5b8fc8dd64a7865390c736c58171009e64b4b14f",
+      "bytes": 169034
+    },
+    {
+      "path": "packages/client/tsdown.client.ts",
+      "sha256": "13081b4d500600e7f59873d1e949826997788504c7c485a0483404e51ae8cd84",
+      "bytes": 29681
+    },
+    {
+      "path": "packages/extensions/cordis-client-runner/src/client/api-catalog.ts",
+      "sha256": "1a8fb1a0564b1988a2307149cdd60e69ed72c2add6a505434aaa566a22ba6c0c",
+      "bytes": 60177
+    },
+    {
+      "path": "packages/extensions/tool-cordis/src/api-catalog.ts",
+      "sha256": "54e18ba717c965149536386d56f3eda2ed33089e9a520602b71581c2e784b7b4",
+      "bytes": 475344
+    },
+    {
+      "path": "packages/typert/generator/README.i18n.yaml",
+      "sha256": "b0195e036f228783eb6685894083fd176671beb333ba089ee8d85d08a58a2ef4",
+      "bytes": 435
+    },
+    {
+      "path": "packages/typert/generator/README.md",
+      "sha256": "1010c7dc32e74ec06f9791a07334e85f66f4d99d425cf2e177c954b05fba62b3",
+      "bytes": 10191
+    },
+    {
+      "path": "packages/typert/generator/README.zh.md",
+      "sha256": "6702b4236f2eb3ccd2943e05554df041893aee302101c26fce526040d507b2f0",
+      "bytes": 9312
+    },
+    {
+      "path": "packages/typert/generator/src/analyzer.ts",
+      "sha256": "70d2c3ddf9ff02068c763031197216016c78e753826cfed91f13b9f6c88c41bc",
+      "bytes": 140179
+    },
+    {
+      "path": "packages/typert/generator/tests/fixtures/remote-model/typert-protocol.d.ts",
+      "sha256": "8b1a479d23a21756de36a322c6b44bf3fe5b7d797bd9324f290f83e5f163eccc",
+      "bytes": 2651
+    },
+    {
+      "path": "packages/typert/generator/tests/remote-model.spec.ts",
+      "sha256": "a997bedd776a84f196f9a11e1e4fee7060f6bfe5f1bb06e3a578cac626cf7ab1",
+      "bytes": 34204
+    },
+    {
+      "path": "packages/typert/protocol/README.i18n.yaml",
+      "sha256": "acf024a4d7fbce55aa33fd21a4ca8d8e83dfb4944d0653a04d995a5247d0db3b",
+      "bytes": 434
+    },
+    {
+      "path": "packages/typert/protocol/README.md",
+      "sha256": "ccecfa255c81f684108a4d7ae9491f1b9621b91602282ab5d7aee28ec7d32b23",
+      "bytes": 9786
+    },
+    {
+      "path": "packages/typert/protocol/README.zh.md",
+      "sha256": "9cd11b8b11dbc344d3271114638d60a90d0ccf10130cfd9a21aa1e86ffda5aaa",
+      "bytes": 8993
+    },
+    {
+      "path": "packages/typert/protocol/src/index.ts",
+      "sha256": "c77a0605ab76db9365cb7b5ab7fe702a36fb1ffcf7fe76c201df42262b9b3be0",
+      "bytes": 13201
+    },
+    {
+      "path": "packages/typert/protocol/tests/protocol.spec.ts",
+      "sha256": "0acb5573b300a474489d4a4f148458f6315cc6c3240e0d9b4553dd56dbe19c7e",
+      "bytes": 15175
+    },
+    {
+      "path": "pnpm-lock.yaml",
+      "sha256": "311acf1539ed3c5a3cf39c405ac8a02ebcfef46844d855ed2e0e398a8e2ae085",
+      "bytes": 870281
+    },
+    {
+      "path": "scripts/client-bundle-purity.spec.ts",
+      "sha256": "8ecc3af18c35026cd9941f8176f4ebc049518759a256fc9bc9f046cab1577b93",
+      "bytes": 12991
+    },
+    {
+      "path": "scripts/gen-cordis-catalog.ts",
+      "sha256": "5fe2c9509865fafe3ef1f2cc10897a2c33f7d76f559ce4a3023b96235467a242",
+      "bytes": 61429
+    },
+    {
+      "path": "scripts/gen-doc-graphs.ts",
+      "sha256": "b921e8d88f74358e87f117d9124c480278c0300b9c7a0fef925f3293b6809a4b",
+      "bytes": 71091
+    },
+    {
+      "path": "scripts/type-equiv.manifest.json",
+      "sha256": "0dfdff4e5fda4348d238fc0a8211c2e17e06cc61ada96ff5bd6ed59a49f0f908",
+      "bytes": 65687
+    },
+    {
+      "path": "scripts/verify-node-next-types.ts",
+      "sha256": "5651fd66b03ccf88a3963002435669748d8b225ae35156e9b0c11a10e70b6074",
+      "bytes": 6779
+    },
+    {
+      "path": "scripts/verify-package-readme-model-experience.ts",
+      "sha256": "500c68ff7b464ae13ef3a70b79e873caecae4a55e39fda76aa15b6e4cf1bf5e8",
+      "bytes": 43976
+    },
+    {
+      "path": "tsconfig.base.json",
+      "sha256": "5d97650d263a301168d7d25c9a85c6be4a874bed73557e39e2b6d10993bafef7",
+      "bytes": 39312
+    },
+    {
+      "path": "tsconfig.host.json",
+      "sha256": "27262ce6c816f703d762e653389d14f730c4492be341a0dc14e3ddbf862dea0f",
+      "bytes": 17858
+    }
+  ],
+  "removedPaths": [
+    "packages/api/host-description/src/protocol.ts",
+    "packages/api/host-description/lib/types/protocol.js",
+    "packages/api/host-description/lib/types/protocol.js.map",
+    "packages/api/host-description/lib/types/protocol.d.ts",
+    "packages/api/host-description/lib/types/protocol.d.ts.map"
+  ],
+  "builtFiles": [
+    {
+      "path": "packages/api/gateway/lib/client.js",
+      "sha256": "fb1043ab349b0e7cdbdce5f6f4619d3dc268b0fa926c0ffed912b28d7757baa0",
+      "bytes": 80439
+    },
+    {
+      "path": "packages/api/gateway/lib/index.js",
+      "sha256": "b2828fc71db24bc4f596983829907580ef417f6b31e355e7a1d4c3566f7a363f",
+      "bytes": 51734
+    },
+    {
+      "path": "packages/api/gateway/lib/types/client/index.d.ts",
+      "sha256": "578831c98cc26aa863f1a87b6f1faedefa197e304441263349759807ade65c97",
+      "bytes": 4457
+    },
+    {
+      "path": "packages/api/gateway/lib/types/client/preparation.d.ts",
+      "sha256": "5f770d4e621d3e7da1eb0d81118ec67cda2652bf360f1835cde21abea5271786",
+      "bytes": 2844
+    },
+    {
+      "path": "packages/api/gateway/lib/types/client/remote-events.d.ts",
+      "sha256": "30db061477778da75fea1fc60aaa7cc0253ec70a201f4315901775ce378c67e1",
+      "bytes": 2512
+    },
+    {
+      "path": "packages/api/gateway/lib/types/protocol.d.ts",
+      "sha256": "2178b9af7fb1c20704f057abdac22c14d40b35ced0f644643cb4d9e2cfd0786f",
+      "bytes": 1694
+    },
+    {
+      "path": "packages/api/gateway/lib/types/protocol.js",
+      "sha256": "0b47659c2b99518bf77e18a11c6955f044d795415d39ea628cf53431b2271c79",
+      "bytes": 2262
+    },
+    {
+      "path": "packages/api/gateway/lib/types/remote-error-codes.d.ts",
+      "sha256": "9ff8a330201960761f8a86d50e056e7efa3e074580693ba5019593a294671185",
+      "bytes": 2048
+    },
+    {
+      "path": "packages/api/host-description/lib/index.js",
+      "sha256": "64f1f082c61ea02d9f46a263bf7e30603e5ed735e1b65a3bba6462104772d35b",
+      "bytes": 9578
+    },
+    {
+      "path": "packages/api/host-description/lib/tsconfig.tsbuildinfo",
+      "sha256": "07ab0e33d264d35138de92a150670954365e88cbe8bf7e19ddd3f2b0dd8d866c",
+      "bytes": 66117
+    },
+    {
+      "path": "packages/api/host-description/lib/typert.host.d.ts",
+      "sha256": "5e2d26ee86d0fe170dac8cd3f5854e67bdea334c57f40a5766ace57b8304c17d",
+      "bytes": 123
+    },
+    {
+      "path": "packages/api/host-description/lib/typert.host.js",
+      "sha256": "add5c7a64d78552e9d3fcf63d4739cc341207331bfc20240051b5a0606d821b3",
+      "bytes": 6060
+    },
+    {
+      "path": "packages/api/host-description/lib/typert.remote-client.d.ts",
+      "sha256": "a8e0dd645be4a6192287b350f7f9a7743b5cd5a6036016bd7d069b64b4560c8f",
+      "bytes": 984
+    },
+    {
+      "path": "packages/api/host-description/lib/typert.remote-client.js",
+      "sha256": "d81ea3245fcd11697a00911fd35fa7934c156ac40f2dff81077c099a8d3f4e6d",
+      "bytes": 3312
+    },
+    {
+      "path": "packages/api/host-description/lib/types/identity.d.ts",
+      "sha256": "9d9d45e5ff648e4196e156097b2bf37a1b4de56462d5922572b629309971772d",
+      "bytes": 634
+    },
+    {
+      "path": "packages/api/host-description/lib/types/identity.js",
+      "sha256": "f319c5a72649208787dadd75d1c548eb8331ab96768fc1073c7fbb05e83bba13",
+      "bytes": 1912
+    },
+    {
+      "path": "packages/api/host-description/lib/types/index.d.ts",
+      "sha256": "823a590215bbcb562f17f989cebd8af76477b7ff1e4edf263c85f7fc1daba0b7",
+      "bytes": 3006
+    },
+    {
+      "path": "packages/api/host-description/lib/types/index.js",
+      "sha256": "8c2c0f01edd44a2462f2aefc4365a8979bdb05b89f2bab66b614a96dd6c40359",
+      "bytes": 8052
+    },
+    {
+      "path": "packages/api/host-description/lib/types/types.d.ts",
+      "sha256": "ec8dad5b4752f660cce51212c9675015ef44dda57682f022cf567bd333c01de5",
+      "bytes": 1910
+    },
+    {
+      "path": "packages/api/host-description/lib/types/types.js",
+      "sha256": "35d332e6f474f0fcf900697c292199234513828b2ef04d63470900fc5a42b383",
+      "bytes": 130
+    },
+    {
+      "path": "packages/api/host-description/lib/types/version.d.ts",
+      "sha256": "c249f2d8abe87aaa2742d6ffdd72f1a4bfed517b2030d3db6fbb6e512f7ff82a",
+      "bytes": 329
+    },
+    {
+      "path": "packages/api/host-description/lib/types/version.js",
+      "sha256": "f35758e686be87ae62f0b6b2eee9dd812e21fe5ab27c16bee528b3f49d323cf9",
+      "bytes": 622
+    },
+    {
+      "path": "packages/api/remotes/lib/client.js",
+      "sha256": "a8d3da9afadb6b1841e43961a56d64c5a7b11f67957cd0266864ea5c809148f6",
+      "bytes": 338664
+    },
+    {
+      "path": "packages/api/remotes/lib/types/client/host-preparation.d.ts",
+      "sha256": "6c2295872dbf51cdb46a22a950411366f73f232d1d0855b7cc2a52217e7e40e0",
+      "bytes": 1369
+    },
+    {
+      "path": "packages/api/remotes/lib/types/client/index.d.ts",
+      "sha256": "adaf855d635ca118c1e3b0fb4402b062475d4a684f206f947e0c0fbb0f291761",
+      "bytes": 5198
+    },
+    {
+      "path": "packages/api/session-controller/lib/index.js",
+      "sha256": "63f517e1f06edb1a39ce4e3995d38012b9493517056232d6b2a88be4de3ce4de",
+      "bytes": 113923
+    },
+    {
+      "path": "packages/client/connection/lib/client.js",
+      "sha256": "0d3b759269484575558e6ffec0424a6454967cdb5d6eee17b706cce54d6754d4",
+      "bytes": 222670
+    },
+    {
+      "path": "packages/extensions/cordis-client-runner/lib/client.js",
+      "sha256": "94ce60cf7f41141d1e0c1c10b17fea28213369f5afeb4a31b4446919335dbfb6",
+      "bytes": 263064
+    },
+    {
+      "path": "packages/typert/generator/lib/index.js",
+      "sha256": "bfac432cefc8ff68af045915644904080f9d060abdbf8b91afd1d2abe771abf5",
+      "bytes": 198904
+    },
+    {
+      "path": "packages/typert/protocol/lib/index.js",
+      "sha256": "58c8a13aaab9869389cd614d00b9dae7517ae7f97ba6abf31cad8a4b5f8be0e3",
+      "bytes": 8762
+    }
+  ],
+  "logs": [
+    {
+      "path": ".artifacts/negotiation-source-tests-v2.log",
+      "sha256": "2b9b362ce50905a40696e239c20b43810ff2ae765d5a3f741f4b166f921d9e8c",
+      "bytes": 943
+    },
+    {
+      "path": ".artifacts/negotiation-generation-final.log",
+      "sha256": "73fa68eca85322246eca5211e16004694a7a7316a239a906495fcf76332ab923",
+      "bytes": 939
+    },
+    {
+      "path": ".artifacts/negotiation-built-matrix-final.log",
+      "sha256": "e01dd2684e615be5da32c37c978de4f9cf9e162a750497fc9191d6ac08e652e2",
+      "bytes": 480
+    },
+    {
+      "path": ".artifacts/negotiation-real-web-final.log",
+      "sha256": "864838f53e1319a0b09c0ee5aff00c41af0790ea51e83ad16b645d13bbb1e01a",
+      "bytes": 481
+    },
+    {
+      "path": ".artifacts/negotiation-host-build.log",
+      "sha256": "429d32a11607039a57b601fc7a15d56b73f9012433ee9beddb2d7947695cbede",
+      "bytes": 182233
+    },
+    {
+      "path": ".artifacts/negotiation-client-build.log",
+      "sha256": "32e141a747523b9216e33181301dbfa10d425a5f17800071fb1913b4f69a3d6d",
+      "bytes": 155804
+    },
+    {
+      "path": ".artifacts/negotiation-host-rebuild.log",
+      "sha256": "445449cca9afdefc6543482739d073911d155e0c924a7943d20d574ceda34fb7",
+      "bytes": 34860
+    },
+    {
+      "path": ".artifacts/negotiation-client-rebuild-v2.log",
+      "sha256": "512440b5f5a8e86898af47ed1fa0f594ff11fd229defa15a72b401b1d8b42276",
+      "bytes": 7872
+    },
+    {
+      "path": ".artifacts/negotiation-types-v3.log",
+      "sha256": "e3b0c44298fc1c149afbf4c8996fb92427ae41e4649b934ca495991b7852b855",
+      "bytes": 0
+    },
+    {
+      "path": ".artifacts/negotiation-lint-v4.log",
+      "sha256": "e3b0c44298fc1c149afbf4c8996fb92427ae41e4649b934ca495991b7852b855",
+      "bytes": 0
+    },
+    {
+      "path": ".artifacts/negotiation-doc-sync.log",
+      "sha256": "b60ce3353bf4ae25f99064d16e1d89b52e464a9a55d7b35a24399e8bef814ad9",
+      "bytes": 4291
+    },
+    {
+      "path": ".artifacts/negotiation-doc-typecheck-final.log",
+      "sha256": "d90b9f646860acba5af81424dce1abd7c118a3453c06ce1a1266f1a669e6ad0c",
+      "bytes": 182996
+    },
+    {
+      "path": ".artifacts/negotiation-cordis-check-final.log",
+      "sha256": "f517484cb38599e115ce7219d44729e6493c5edc15d10e2b8057d0ed66fd08bb",
+      "bytes": 68
+    },
+    {
+      "path": ".artifacts/negotiation-pairing-final.log",
+      "sha256": "0d9743db6fd1c6f7b5795dc702d013f2895d274958df610fb5ddb7e7d7c9eaec",
+      "bytes": 103
+    },
+    {
+      "path": ".artifacts/negotiation-built-matrix-v3.log",
+      "sha256": "68938450886cffc86fd7d0639979c6191a442f500a63f68cc266698c723efc12",
+      "bytes": 480
+    }
+  ],
+  "helpers": [
+    {
+      "path": ".artifacts/capture-application-negotiation.mjs",
+      "sha256": "2c81008819341ce2d947fdc031f9a3c8ee392924bfc35d953e55a1b40f28c012",
+      "bytes": 3706
+    }
+  ],
+  "historicalRecords": [
+    {
+      "path": ".artifacts/negotiation-application-before/archive.json",
+      "sha256": "adecfb401e633ab78056425f64a39998618fe981365c888f1b9fb694001c288f",
+      "bytes": 35570
+    },
+    {
+      "path": ".artifacts/protocol-negotiation-before/archive.json",
+      "sha256": "7dac688dd84913121325dd6e68f4823cde3d3e925b22c36a4c2757cbe384b14d",
+      "bytes": 36718
+    },
+    {
+      "path": ".artifacts/negotiation-retired-protocol/manifest.json",
+      "sha256": "d379611b2482620ff5be7982c0f6d91f76930c0e1021224b753afacb8be0a6e9",
+      "bytes": 643
+    }
+  ],
+  "checks": [
+    {
+      "scope": "source negotiation + Client regressions",
+      "log": ".artifacts/negotiation-source-tests-v2.log",
+      "tests": 142,
+      "status": "PASS"
+    },
+    {
+      "scope": "generation protocol encoding + event replies",
+      "log": ".artifacts/negotiation-generation-final.log",
+      "tests": 9,
+      "status": "PASS"
+    },
+    {
+      "scope": "built public declarations + three API protocol pairs",
+      "log": ".artifacts/negotiation-built-matrix-v3.log",
+      "tests": 4,
+      "status": "PASS"
+    },
+    {
+      "scope": "real Web Loader and installed Chrome admission",
+      "log": ".artifacts/negotiation-real-web-final.log",
+      "tests": 2,
+      "status": "PASS"
+    }
+  ],
+  "conclusions": {
+    "apiProtocolVersion": 2,
+    "bootstrapRepresentation": 1,
+    "negotiatedProtocols": [
+      2,
+      1
+    ],
+    "frozenApiPairs": [
+      [
+        2,
+        2
+      ],
+      [
+        2,
+        1
+      ],
+      [
+        1,
+        2
+      ]
+    ],
+    "negotiatedIdentityChecked": true,
+    "silentDowngrade": false,
+    "generationOwnedEncoding": true,
+    "realChrome": true,
+    "phase3Complete": false
+  },
+  "limitations": [
+    "Matrix freezes API bundles; unchanged workspace dependencies are shared, not complete historical installations",
+    "Goal root/scoped mutation and event-readiness fixtures do not prove every domain, native platform or upgrade workflow",
+    "No N-2 diagnostics, capability UI, complete error taxonomy, idempotency, migration, signing or installer qualification",
+    "doc-sync initially 32/34; failed doc-typecheck and Cordis catalog require named final rechecks, not a claimed full rerun"
+  ]
+}

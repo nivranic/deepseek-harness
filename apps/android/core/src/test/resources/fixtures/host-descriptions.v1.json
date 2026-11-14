@@ -1,0 +1,353 @@
+{
+  "schemaVersion": 1,
+  "cases": [
+    {
+      "id": "current",
+      "decodes": true,
+      "compatible": true,
+      "body": "{\"linkProtocolVersion\":1,\"contractVersion\":1,\"hostVersion\":\"0.1.2-alpha.1\",\"hostId\":\"9f2c1a44-1e6a-4a5e-b1d0-77c2f4a19a30\",\"hostName\":\"Studio Desk\",\"runtimeClass\":\"full\",\"sessionFormatVersion\":0,\"allowRemoteApproval\":false,\"capabilities\":{\"session\":{\"list\":true,\"history\":true,\"follow\":true,\"prompt\":true,\"cancel\":true},\"workspace\":{\"follow\":true},\"interaction\":{\"approval\":false,\"question\":false}}}"
+    },
+    {
+      "id": "application-version-independent",
+      "decodes": true,
+      "compatible": true,
+      "body": "{\"linkProtocolVersion\":1,\"contractVersion\":1,\"hostVersion\":\"999.0.0\",\"hostId\":\"9f2c1a44-1e6a-4a5e-b1d0-77c2f4a19a30\",\"hostName\":\"Studio Desk\",\"runtimeClass\":\"full\",\"sessionFormatVersion\":0,\"allowRemoteApproval\":false,\"capabilities\":{\"session\":{\"list\":true,\"history\":true,\"follow\":true,\"prompt\":true,\"cancel\":true},\"workspace\":{\"follow\":true},\"interaction\":{\"approval\":false,\"question\":false}}}"
+    },
+    {
+      "id": "unknown-fields-and-capabilities",
+      "decodes": true,
+      "compatible": true,
+      "body": "{\"linkProtocolVersion\":1,\"contractVersion\":1,\"hostVersion\":\"0.1.2-alpha.1\",\"hostId\":\"9f2c1a44-1e6a-4a5e-b1d0-77c2f4a19a30\",\"hostName\":\"Studio Desk\",\"runtimeClass\":\"full\",\"sessionFormatVersion\":0,\"allowRemoteApproval\":false,\"capabilities\":{\"session\":{\"list\":true,\"history\":true,\"follow\":true,\"prompt\":true,\"cancel\":true,\"futureAction\":true},\"workspace\":{\"follow\":true},\"interaction\":{\"approval\":false,\"question\":false},\"futureCapability\":{\"enabled\":true}},\"futureField\":{\"mode\":\"new\"}}"
+    },
+    {
+      "id": "known-capability-disabled",
+      "decodes": true,
+      "compatible": true,
+      "body": "{\"linkProtocolVersion\":1,\"contractVersion\":1,\"hostVersion\":\"0.1.2-alpha.1\",\"hostId\":\"9f2c1a44-1e6a-4a5e-b1d0-77c2f4a19a30\",\"hostName\":\"Studio Desk\",\"runtimeClass\":\"full\",\"sessionFormatVersion\":0,\"allowRemoteApproval\":false,\"capabilities\":{\"session\":{\"list\":true,\"history\":true,\"follow\":true,\"prompt\":false,\"cancel\":true},\"workspace\":{\"follow\":true},\"interaction\":{\"approval\":false,\"question\":false}}}"
+    },
+    {
+      "id": "unsupported-linkProtocolVersion-0",
+      "decodes": true,
+      "compatible": false,
+      "body": "{\"linkProtocolVersion\":0,\"contractVersion\":1,\"hostVersion\":\"0.1.2-alpha.1\",\"hostId\":\"9f2c1a44-1e6a-4a5e-b1d0-77c2f4a19a30\",\"hostName\":\"Studio Desk\",\"runtimeClass\":\"full\",\"sessionFormatVersion\":0,\"allowRemoteApproval\":false,\"capabilities\":{\"session\":{\"list\":true,\"history\":true,\"follow\":true,\"prompt\":true,\"cancel\":true},\"workspace\":{\"follow\":true},\"interaction\":{\"approval\":false,\"question\":false}}}"
+    },
+    {
+      "id": "unsupported-linkProtocolVersion-2",
+      "decodes": true,
+      "compatible": false,
+      "body": "{\"linkProtocolVersion\":2,\"contractVersion\":1,\"hostVersion\":\"0.1.2-alpha.1\",\"hostId\":\"9f2c1a44-1e6a-4a5e-b1d0-77c2f4a19a30\",\"hostName\":\"Studio Desk\",\"runtimeClass\":\"full\",\"sessionFormatVersion\":0,\"allowRemoteApproval\":false,\"capabilities\":{\"session\":{\"list\":true,\"history\":true,\"follow\":true,\"prompt\":true,\"cancel\":true},\"workspace\":{\"follow\":true},\"interaction\":{\"approval\":false,\"question\":false}}}"
+    },
+    {
+      "id": "unsupported-contractVersion-0",
+      "decodes": true,
+      "compatible": false,
+      "body": "{\"linkProtocolVersion\":1,\"contractVersion\":0,\"hostVersion\":\"0.1.2-alpha.1\",\"hostId\":\"9f2c1a44-1e6a-4a5e-b1d0-77c2f4a19a30\",\"hostName\":\"Studio Desk\",\"runtimeClass\":\"full\",\"sessionFormatVersion\":0,\"allowRemoteApproval\":false,\"capabilities\":{\"session\":{\"list\":true,\"history\":true,\"follow\":true,\"prompt\":true,\"cancel\":true},\"workspace\":{\"follow\":true},\"interaction\":{\"approval\":false,\"question\":false}}}"
+    },
+    {
+      "id": "unsupported-contractVersion-2",
+      "decodes": true,
+      "compatible": false,
+      "body": "{\"linkProtocolVersion\":1,\"contractVersion\":2,\"hostVersion\":\"0.1.2-alpha.1\",\"hostId\":\"9f2c1a44-1e6a-4a5e-b1d0-77c2f4a19a30\",\"hostName\":\"Studio Desk\",\"runtimeClass\":\"full\",\"sessionFormatVersion\":0,\"allowRemoteApproval\":false,\"capabilities\":{\"session\":{\"list\":true,\"history\":true,\"follow\":true,\"prompt\":true,\"cancel\":true},\"workspace\":{\"follow\":true},\"interaction\":{\"approval\":false,\"question\":false}}}"
+    },
+    {
+      "id": "unsupported-sessionFormatVersion-1",
+      "decodes": true,
+      "compatible": false,
+      "body": "{\"linkProtocolVersion\":1,\"contractVersion\":1,\"hostVersion\":\"0.1.2-alpha.1\",\"hostId\":\"9f2c1a44-1e6a-4a5e-b1d0-77c2f4a19a30\",\"hostName\":\"Studio Desk\",\"runtimeClass\":\"full\",\"sessionFormatVersion\":1,\"allowRemoteApproval\":false,\"capabilities\":{\"session\":{\"list\":true,\"history\":true,\"follow\":true,\"prompt\":true,\"cancel\":true},\"workspace\":{\"follow\":true},\"interaction\":{\"approval\":false,\"question\":false}}}"
+    },
+    {
+      "id": "unsupported-runtimeClass-future-runtime",
+      "decodes": true,
+      "compatible": false,
+      "body": "{\"linkProtocolVersion\":1,\"contractVersion\":1,\"hostVersion\":\"0.1.2-alpha.1\",\"hostId\":\"9f2c1a44-1e6a-4a5e-b1d0-77c2f4a19a30\",\"hostName\":\"Studio Desk\",\"runtimeClass\":\"future-runtime\",\"sessionFormatVersion\":0,\"allowRemoteApproval\":false,\"capabilities\":{\"session\":{\"list\":true,\"history\":true,\"follow\":true,\"prompt\":true,\"cancel\":true},\"workspace\":{\"follow\":true},\"interaction\":{\"approval\":false,\"question\":false}}}"
+    },
+    {
+      "id": "negative-linkProtocolVersion",
+      "decodes": false,
+      "compatible": false,
+      "body": "{\"linkProtocolVersion\":-1,\"contractVersion\":1,\"hostVersion\":\"0.1.2-alpha.1\",\"hostId\":\"9f2c1a44-1e6a-4a5e-b1d0-77c2f4a19a30\",\"hostName\":\"Studio Desk\",\"runtimeClass\":\"full\",\"sessionFormatVersion\":0,\"allowRemoteApproval\":false,\"capabilities\":{\"session\":{\"list\":true,\"history\":true,\"follow\":true,\"prompt\":true,\"cancel\":true},\"workspace\":{\"follow\":true},\"interaction\":{\"approval\":false,\"question\":false}}}"
+    },
+    {
+      "id": "fractional-linkProtocolVersion",
+      "decodes": false,
+      "compatible": false,
+      "body": "{\"linkProtocolVersion\":1.5,\"contractVersion\":1,\"hostVersion\":\"0.1.2-alpha.1\",\"hostId\":\"9f2c1a44-1e6a-4a5e-b1d0-77c2f4a19a30\",\"hostName\":\"Studio Desk\",\"runtimeClass\":\"full\",\"sessionFormatVersion\":0,\"allowRemoteApproval\":false,\"capabilities\":{\"session\":{\"list\":true,\"history\":true,\"follow\":true,\"prompt\":true,\"cancel\":true},\"workspace\":{\"follow\":true},\"interaction\":{\"approval\":false,\"question\":false}}}"
+    },
+    {
+      "id": "string-linkProtocolVersion",
+      "decodes": false,
+      "compatible": false,
+      "body": "{\"linkProtocolVersion\":\"1\",\"contractVersion\":1,\"hostVersion\":\"0.1.2-alpha.1\",\"hostId\":\"9f2c1a44-1e6a-4a5e-b1d0-77c2f4a19a30\",\"hostName\":\"Studio Desk\",\"runtimeClass\":\"full\",\"sessionFormatVersion\":0,\"allowRemoteApproval\":false,\"capabilities\":{\"session\":{\"list\":true,\"history\":true,\"follow\":true,\"prompt\":true,\"cancel\":true},\"workspace\":{\"follow\":true},\"interaction\":{\"approval\":false,\"question\":false}}}"
+    },
+    {
+      "id": "null-linkProtocolVersion",
+      "decodes": false,
+      "compatible": false,
+      "body": "{\"linkProtocolVersion\":null,\"contractVersion\":1,\"hostVersion\":\"0.1.2-alpha.1\",\"hostId\":\"9f2c1a44-1e6a-4a5e-b1d0-77c2f4a19a30\",\"hostName\":\"Studio Desk\",\"runtimeClass\":\"full\",\"sessionFormatVersion\":0,\"allowRemoteApproval\":false,\"capabilities\":{\"session\":{\"list\":true,\"history\":true,\"follow\":true,\"prompt\":true,\"cancel\":true},\"workspace\":{\"follow\":true},\"interaction\":{\"approval\":false,\"question\":false}}}"
+    },
+    {
+      "id": "unsafe-integer-linkProtocolVersion",
+      "decodes": false,
+      "compatible": false,
+      "body": "{\"linkProtocolVersion\":9007199254740992,\"contractVersion\":1,\"hostVersion\":\"0.1.2-alpha.1\",\"hostId\":\"9f2c1a44-1e6a-4a5e-b1d0-77c2f4a19a30\",\"hostName\":\"Studio Desk\",\"runtimeClass\":\"full\",\"sessionFormatVersion\":0,\"allowRemoteApproval\":false,\"capabilities\":{\"session\":{\"list\":true,\"history\":true,\"follow\":true,\"prompt\":true,\"cancel\":true},\"workspace\":{\"follow\":true},\"interaction\":{\"approval\":false,\"question\":false}}}"
+    },
+    {
+      "id": "negative-contractVersion",
+      "decodes": false,
+      "compatible": false,
+      "body": "{\"linkProtocolVersion\":1,\"contractVersion\":-1,\"hostVersion\":\"0.1.2-alpha.1\",\"hostId\":\"9f2c1a44-1e6a-4a5e-b1d0-77c2f4a19a30\",\"hostName\":\"Studio Desk\",\"runtimeClass\":\"full\",\"sessionFormatVersion\":0,\"allowRemoteApproval\":false,\"capabilities\":{\"session\":{\"list\":true,\"history\":true,\"follow\":true,\"prompt\":true,\"cancel\":true},\"workspace\":{\"follow\":true},\"interaction\":{\"approval\":false,\"question\":false}}}"
+    },
+    {
+      "id": "fractional-contractVersion",
+      "decodes": false,
+      "compatible": false,
+      "body": "{\"linkProtocolVersion\":1,\"contractVersion\":1.5,\"hostVersion\":\"0.1.2-alpha.1\",\"hostId\":\"9f2c1a44-1e6a-4a5e-b1d0-77c2f4a19a30\",\"hostName\":\"Studio Desk\",\"runtimeClass\":\"full\",\"sessionFormatVersion\":0,\"allowRemoteApproval\":false,\"capabilities\":{\"session\":{\"list\":true,\"history\":true,\"follow\":true,\"prompt\":true,\"cancel\":true},\"workspace\":{\"follow\":true},\"interaction\":{\"approval\":false,\"question\":false}}}"
+    },
+    {
+      "id": "string-contractVersion",
+      "decodes": false,
+      "compatible": false,
+      "body": "{\"linkProtocolVersion\":1,\"contractVersion\":\"1\",\"hostVersion\":\"0.1.2-alpha.1\",\"hostId\":\"9f2c1a44-1e6a-4a5e-b1d0-77c2f4a19a30\",\"hostName\":\"Studio Desk\",\"runtimeClass\":\"full\",\"sessionFormatVersion\":0,\"allowRemoteApproval\":false,\"capabilities\":{\"session\":{\"list\":true,\"history\":true,\"follow\":true,\"prompt\":true,\"cancel\":true},\"workspace\":{\"follow\":true},\"interaction\":{\"approval\":false,\"question\":false}}}"
+    },
+    {
+      "id": "null-contractVersion",
+      "decodes": false,
+      "compatible": false,
+      "body": "{\"linkProtocolVersion\":1,\"contractVersion\":null,\"hostVersion\":\"0.1.2-alpha.1\",\"hostId\":\"9f2c1a44-1e6a-4a5e-b1d0-77c2f4a19a30\",\"hostName\":\"Studio Desk\",\"runtimeClass\":\"full\",\"sessionFormatVersion\":0,\"allowRemoteApproval\":false,\"capabilities\":{\"session\":{\"list\":true,\"history\":true,\"follow\":true,\"prompt\":true,\"cancel\":true},\"workspace\":{\"follow\":true},\"interaction\":{\"approval\":false,\"question\":false}}}"
+    },
+    {
+      "id": "unsafe-integer-contractVersion",
+      "decodes": false,
+      "compatible": false,
+      "body": "{\"linkProtocolVersion\":1,\"contractVersion\":9007199254740992,\"hostVersion\":\"0.1.2-alpha.1\",\"hostId\":\"9f2c1a44-1e6a-4a5e-b1d0-77c2f4a19a30\",\"hostName\":\"Studio Desk\",\"runtimeClass\":\"full\",\"sessionFormatVersion\":0,\"allowRemoteApproval\":false,\"capabilities\":{\"session\":{\"list\":true,\"history\":true,\"follow\":true,\"prompt\":true,\"cancel\":true},\"workspace\":{\"follow\":true},\"interaction\":{\"approval\":false,\"question\":false}}}"
+    },
+    {
+      "id": "negative-sessionFormatVersion",
+      "decodes": false,
+      "compatible": false,
+      "body": "{\"linkProtocolVersion\":1,\"contractVersion\":1,\"hostVersion\":\"0.1.2-alpha.1\",\"hostId\":\"9f2c1a44-1e6a-4a5e-b1d0-77c2f4a19a30\",\"hostName\":\"Studio Desk\",\"runtimeClass\":\"full\",\"sessionFormatVersion\":-1,\"allowRemoteApproval\":false,\"capabilities\":{\"session\":{\"list\":true,\"history\":true,\"follow\":true,\"prompt\":true,\"cancel\":true},\"workspace\":{\"follow\":true},\"interaction\":{\"approval\":false,\"question\":false}}}"
+    },
+    {
+      "id": "fractional-sessionFormatVersion",
+      "decodes": false,
+      "compatible": false,
+      "body": "{\"linkProtocolVersion\":1,\"contractVersion\":1,\"hostVersion\":\"0.1.2-alpha.1\",\"hostId\":\"9f2c1a44-1e6a-4a5e-b1d0-77c2f4a19a30\",\"hostName\":\"Studio Desk\",\"runtimeClass\":\"full\",\"sessionFormatVersion\":1.5,\"allowRemoteApproval\":false,\"capabilities\":{\"session\":{\"list\":true,\"history\":true,\"follow\":true,\"prompt\":true,\"cancel\":true},\"workspace\":{\"follow\":true},\"interaction\":{\"approval\":false,\"question\":false}}}"
+    },
+    {
+      "id": "string-sessionFormatVersion",
+      "decodes": false,
+      "compatible": false,
+      "body": "{\"linkProtocolVersion\":1,\"contractVersion\":1,\"hostVersion\":\"0.1.2-alpha.1\",\"hostId\":\"9f2c1a44-1e6a-4a5e-b1d0-77c2f4a19a30\",\"hostName\":\"Studio Desk\",\"runtimeClass\":\"full\",\"sessionFormatVersion\":\"1\",\"allowRemoteApproval\":false,\"capabilities\":{\"session\":{\"list\":true,\"history\":true,\"follow\":true,\"prompt\":true,\"cancel\":true},\"workspace\":{\"follow\":true},\"interaction\":{\"approval\":false,\"question\":false}}}"
+    },
+    {
+      "id": "null-sessionFormatVersion",
+      "decodes": false,
+      "compatible": false,
+      "body": "{\"linkProtocolVersion\":1,\"contractVersion\":1,\"hostVersion\":\"0.1.2-alpha.1\",\"hostId\":\"9f2c1a44-1e6a-4a5e-b1d0-77c2f4a19a30\",\"hostName\":\"Studio Desk\",\"runtimeClass\":\"full\",\"sessionFormatVersion\":null,\"allowRemoteApproval\":false,\"capabilities\":{\"session\":{\"list\":true,\"history\":true,\"follow\":true,\"prompt\":true,\"cancel\":true},\"workspace\":{\"follow\":true},\"interaction\":{\"approval\":false,\"question\":false}}}"
+    },
+    {
+      "id": "unsafe-integer-sessionFormatVersion",
+      "decodes": false,
+      "compatible": false,
+      "body": "{\"linkProtocolVersion\":1,\"contractVersion\":1,\"hostVersion\":\"0.1.2-alpha.1\",\"hostId\":\"9f2c1a44-1e6a-4a5e-b1d0-77c2f4a19a30\",\"hostName\":\"Studio Desk\",\"runtimeClass\":\"full\",\"sessionFormatVersion\":9007199254740992,\"allowRemoteApproval\":false,\"capabilities\":{\"session\":{\"list\":true,\"history\":true,\"follow\":true,\"prompt\":true,\"cancel\":true},\"workspace\":{\"follow\":true},\"interaction\":{\"approval\":false,\"question\":false}}}"
+    },
+    {
+      "id": "missing-linkProtocolVersion",
+      "decodes": false,
+      "compatible": false,
+      "body": "{\"contractVersion\":1,\"hostVersion\":\"0.1.2-alpha.1\",\"hostId\":\"9f2c1a44-1e6a-4a5e-b1d0-77c2f4a19a30\",\"hostName\":\"Studio Desk\",\"runtimeClass\":\"full\",\"sessionFormatVersion\":0,\"allowRemoteApproval\":false,\"capabilities\":{\"session\":{\"list\":true,\"history\":true,\"follow\":true,\"prompt\":true,\"cancel\":true},\"workspace\":{\"follow\":true},\"interaction\":{\"approval\":false,\"question\":false}}}"
+    },
+    {
+      "id": "missing-contractVersion",
+      "decodes": false,
+      "compatible": false,
+      "body": "{\"linkProtocolVersion\":1,\"hostVersion\":\"0.1.2-alpha.1\",\"hostId\":\"9f2c1a44-1e6a-4a5e-b1d0-77c2f4a19a30\",\"hostName\":\"Studio Desk\",\"runtimeClass\":\"full\",\"sessionFormatVersion\":0,\"allowRemoteApproval\":false,\"capabilities\":{\"session\":{\"list\":true,\"history\":true,\"follow\":true,\"prompt\":true,\"cancel\":true},\"workspace\":{\"follow\":true},\"interaction\":{\"approval\":false,\"question\":false}}}"
+    },
+    {
+      "id": "missing-hostVersion",
+      "decodes": false,
+      "compatible": false,
+      "body": "{\"linkProtocolVersion\":1,\"contractVersion\":1,\"hostId\":\"9f2c1a44-1e6a-4a5e-b1d0-77c2f4a19a30\",\"hostName\":\"Studio Desk\",\"runtimeClass\":\"full\",\"sessionFormatVersion\":0,\"allowRemoteApproval\":false,\"capabilities\":{\"session\":{\"list\":true,\"history\":true,\"follow\":true,\"prompt\":true,\"cancel\":true},\"workspace\":{\"follow\":true},\"interaction\":{\"approval\":false,\"question\":false}}}"
+    },
+    {
+      "id": "missing-hostId",
+      "decodes": false,
+      "compatible": false,
+      "body": "{\"linkProtocolVersion\":1,\"contractVersion\":1,\"hostVersion\":\"0.1.2-alpha.1\",\"hostName\":\"Studio Desk\",\"runtimeClass\":\"full\",\"sessionFormatVersion\":0,\"allowRemoteApproval\":false,\"capabilities\":{\"session\":{\"list\":true,\"history\":true,\"follow\":true,\"prompt\":true,\"cancel\":true},\"workspace\":{\"follow\":true},\"interaction\":{\"approval\":false,\"question\":false}}}"
+    },
+    {
+      "id": "missing-hostName",
+      "decodes": false,
+      "compatible": false,
+      "body": "{\"linkProtocolVersion\":1,\"contractVersion\":1,\"hostVersion\":\"0.1.2-alpha.1\",\"hostId\":\"9f2c1a44-1e6a-4a5e-b1d0-77c2f4a19a30\",\"runtimeClass\":\"full\",\"sessionFormatVersion\":0,\"allowRemoteApproval\":false,\"capabilities\":{\"session\":{\"list\":true,\"history\":true,\"follow\":true,\"prompt\":true,\"cancel\":true},\"workspace\":{\"follow\":true},\"interaction\":{\"approval\":false,\"question\":false}}}"
+    },
+    {
+      "id": "missing-runtimeClass",
+      "decodes": false,
+      "compatible": false,
+      "body": "{\"linkProtocolVersion\":1,\"contractVersion\":1,\"hostVersion\":\"0.1.2-alpha.1\",\"hostId\":\"9f2c1a44-1e6a-4a5e-b1d0-77c2f4a19a30\",\"hostName\":\"Studio Desk\",\"sessionFormatVersion\":0,\"allowRemoteApproval\":false,\"capabilities\":{\"session\":{\"list\":true,\"history\":true,\"follow\":true,\"prompt\":true,\"cancel\":true},\"workspace\":{\"follow\":true},\"interaction\":{\"approval\":false,\"question\":false}}}"
+    },
+    {
+      "id": "missing-sessionFormatVersion",
+      "decodes": false,
+      "compatible": false,
+      "body": "{\"linkProtocolVersion\":1,\"contractVersion\":1,\"hostVersion\":\"0.1.2-alpha.1\",\"hostId\":\"9f2c1a44-1e6a-4a5e-b1d0-77c2f4a19a30\",\"hostName\":\"Studio Desk\",\"runtimeClass\":\"full\",\"allowRemoteApproval\":false,\"capabilities\":{\"session\":{\"list\":true,\"history\":true,\"follow\":true,\"prompt\":true,\"cancel\":true},\"workspace\":{\"follow\":true},\"interaction\":{\"approval\":false,\"question\":false}}}"
+    },
+    {
+      "id": "missing-allowRemoteApproval",
+      "decodes": false,
+      "compatible": false,
+      "body": "{\"linkProtocolVersion\":1,\"contractVersion\":1,\"hostVersion\":\"0.1.2-alpha.1\",\"hostId\":\"9f2c1a44-1e6a-4a5e-b1d0-77c2f4a19a30\",\"hostName\":\"Studio Desk\",\"runtimeClass\":\"full\",\"sessionFormatVersion\":0,\"capabilities\":{\"session\":{\"list\":true,\"history\":true,\"follow\":true,\"prompt\":true,\"cancel\":true},\"workspace\":{\"follow\":true},\"interaction\":{\"approval\":false,\"question\":false}}}"
+    },
+    {
+      "id": "missing-capabilities",
+      "decodes": false,
+      "compatible": false,
+      "body": "{\"linkProtocolVersion\":1,\"contractVersion\":1,\"hostVersion\":\"0.1.2-alpha.1\",\"hostId\":\"9f2c1a44-1e6a-4a5e-b1d0-77c2f4a19a30\",\"hostName\":\"Studio Desk\",\"runtimeClass\":\"full\",\"sessionFormatVersion\":0,\"allowRemoteApproval\":false}"
+    },
+    {
+      "id": "empty-hostId",
+      "decodes": false,
+      "compatible": false,
+      "body": "{\"linkProtocolVersion\":1,\"contractVersion\":1,\"hostVersion\":\"0.1.2-alpha.1\",\"hostId\":\"\",\"hostName\":\"Studio Desk\",\"runtimeClass\":\"full\",\"sessionFormatVersion\":0,\"allowRemoteApproval\":false,\"capabilities\":{\"session\":{\"list\":true,\"history\":true,\"follow\":true,\"prompt\":true,\"cancel\":true},\"workspace\":{\"follow\":true},\"interaction\":{\"approval\":false,\"question\":false}}}"
+    },
+    {
+      "id": "empty-hostName",
+      "decodes": false,
+      "compatible": false,
+      "body": "{\"linkProtocolVersion\":1,\"contractVersion\":1,\"hostVersion\":\"0.1.2-alpha.1\",\"hostId\":\"9f2c1a44-1e6a-4a5e-b1d0-77c2f4a19a30\",\"hostName\":\"\",\"runtimeClass\":\"full\",\"sessionFormatVersion\":0,\"allowRemoteApproval\":false,\"capabilities\":{\"session\":{\"list\":true,\"history\":true,\"follow\":true,\"prompt\":true,\"cancel\":true},\"workspace\":{\"follow\":true},\"interaction\":{\"approval\":false,\"question\":false}}}"
+    },
+    {
+      "id": "empty-hostVersion",
+      "decodes": false,
+      "compatible": false,
+      "body": "{\"linkProtocolVersion\":1,\"contractVersion\":1,\"hostVersion\":\"\",\"hostId\":\"9f2c1a44-1e6a-4a5e-b1d0-77c2f4a19a30\",\"hostName\":\"Studio Desk\",\"runtimeClass\":\"full\",\"sessionFormatVersion\":0,\"allowRemoteApproval\":false,\"capabilities\":{\"session\":{\"list\":true,\"history\":true,\"follow\":true,\"prompt\":true,\"cancel\":true},\"workspace\":{\"follow\":true},\"interaction\":{\"approval\":false,\"question\":false}}}"
+    },
+    {
+      "id": "empty-runtimeClass",
+      "decodes": false,
+      "compatible": false,
+      "body": "{\"linkProtocolVersion\":1,\"contractVersion\":1,\"hostVersion\":\"0.1.2-alpha.1\",\"hostId\":\"9f2c1a44-1e6a-4a5e-b1d0-77c2f4a19a30\",\"hostName\":\"Studio Desk\",\"runtimeClass\":\"\",\"sessionFormatVersion\":0,\"allowRemoteApproval\":false,\"capabilities\":{\"session\":{\"list\":true,\"history\":true,\"follow\":true,\"prompt\":true,\"cancel\":true},\"workspace\":{\"follow\":true},\"interaction\":{\"approval\":false,\"question\":false}}}"
+    },
+    {
+      "id": "invalid-approval",
+      "decodes": false,
+      "compatible": false,
+      "body": "{\"linkProtocolVersion\":1,\"contractVersion\":1,\"hostVersion\":\"0.1.2-alpha.1\",\"hostId\":\"9f2c1a44-1e6a-4a5e-b1d0-77c2f4a19a30\",\"hostName\":\"Studio Desk\",\"runtimeClass\":\"full\",\"sessionFormatVersion\":0,\"allowRemoteApproval\":\"false\",\"capabilities\":{\"session\":{\"list\":true,\"history\":true,\"follow\":true,\"prompt\":true,\"cancel\":true},\"workspace\":{\"follow\":true},\"interaction\":{\"approval\":false,\"question\":false}}}"
+    },
+    {
+      "id": "missing-follow",
+      "decodes": false,
+      "compatible": false,
+      "body": "{\"linkProtocolVersion\":1,\"contractVersion\":1,\"hostVersion\":\"0.1.2-alpha.1\",\"hostId\":\"9f2c1a44-1e6a-4a5e-b1d0-77c2f4a19a30\",\"hostName\":\"Studio Desk\",\"runtimeClass\":\"full\",\"sessionFormatVersion\":0,\"allowRemoteApproval\":false,\"capabilities\":{\"session\":{\"list\":true,\"history\":true,\"prompt\":true,\"cancel\":true},\"workspace\":{\"follow\":true},\"interaction\":{\"approval\":false,\"question\":false}}}"
+    },
+    {
+      "id": "invalid-follow",
+      "decodes": false,
+      "compatible": false,
+      "body": "{\"linkProtocolVersion\":1,\"contractVersion\":1,\"hostVersion\":\"0.1.2-alpha.1\",\"hostId\":\"9f2c1a44-1e6a-4a5e-b1d0-77c2f4a19a30\",\"hostName\":\"Studio Desk\",\"runtimeClass\":\"full\",\"sessionFormatVersion\":0,\"allowRemoteApproval\":false,\"capabilities\":{\"session\":{\"list\":true,\"history\":true,\"follow\":true,\"prompt\":true,\"cancel\":true},\"workspace\":{\"follow\":1},\"interaction\":{\"approval\":false,\"question\":false}}}"
+    },
+    {
+      "id": "invalid-capability-object",
+      "decodes": false,
+      "compatible": false,
+      "body": "{\"linkProtocolVersion\":1,\"contractVersion\":1,\"hostVersion\":\"0.1.2-alpha.1\",\"hostId\":\"9f2c1a44-1e6a-4a5e-b1d0-77c2f4a19a30\",\"hostName\":\"Studio Desk\",\"runtimeClass\":\"full\",\"sessionFormatVersion\":0,\"allowRemoteApproval\":false,\"capabilities\":{\"session\":[],\"workspace\":{\"follow\":true},\"interaction\":{\"approval\":false,\"question\":false}}}"
+    },
+    {
+      "id": "non-object-null",
+      "decodes": false,
+      "compatible": false,
+      "body": "null"
+    },
+    {
+      "id": "non-object-array",
+      "decodes": false,
+      "compatible": false,
+      "body": "[]"
+    },
+    {
+      "id": "non-object-string",
+      "decodes": false,
+      "compatible": false,
+      "body": "\"host\""
+    },
+    {
+      "id": "malformed-json",
+      "decodes": false,
+      "compatible": false,
+      "body": "{invalid"
+    },
+    {
+      "id": "invalid-capability-group-session",
+      "decodes": false,
+      "compatible": false,
+      "body": "{\"linkProtocolVersion\":1,\"contractVersion\":1,\"hostVersion\":\"0.1.2-alpha.1\",\"hostId\":\"9f2c1a44-1e6a-4a5e-b1d0-77c2f4a19a30\",\"hostName\":\"Studio Desk\",\"runtimeClass\":\"full\",\"sessionFormatVersion\":0,\"allowRemoteApproval\":false,\"capabilities\":{\"session\":[],\"workspace\":{\"follow\":true},\"interaction\":{\"approval\":false,\"question\":false}}}"
+    },
+    {
+      "id": "invalid-capability-session-list",
+      "decodes": false,
+      "compatible": false,
+      "body": "{\"linkProtocolVersion\":1,\"contractVersion\":1,\"hostVersion\":\"0.1.2-alpha.1\",\"hostId\":\"9f2c1a44-1e6a-4a5e-b1d0-77c2f4a19a30\",\"hostName\":\"Studio Desk\",\"runtimeClass\":\"full\",\"sessionFormatVersion\":0,\"allowRemoteApproval\":false,\"capabilities\":{\"session\":{\"list\":\"false\",\"history\":true,\"follow\":true,\"prompt\":true,\"cancel\":true},\"workspace\":{\"follow\":true},\"interaction\":{\"approval\":false,\"question\":false}}}"
+    },
+    {
+      "id": "invalid-capability-session-history",
+      "decodes": false,
+      "compatible": false,
+      "body": "{\"linkProtocolVersion\":1,\"contractVersion\":1,\"hostVersion\":\"0.1.2-alpha.1\",\"hostId\":\"9f2c1a44-1e6a-4a5e-b1d0-77c2f4a19a30\",\"hostName\":\"Studio Desk\",\"runtimeClass\":\"full\",\"sessionFormatVersion\":0,\"allowRemoteApproval\":false,\"capabilities\":{\"session\":{\"list\":true,\"history\":\"false\",\"follow\":true,\"prompt\":true,\"cancel\":true},\"workspace\":{\"follow\":true},\"interaction\":{\"approval\":false,\"question\":false}}}"
+    },
+    {
+      "id": "invalid-capability-session-follow",
+      "decodes": false,
+      "compatible": false,
+      "body": "{\"linkProtocolVersion\":1,\"contractVersion\":1,\"hostVersion\":\"0.1.2-alpha.1\",\"hostId\":\"9f2c1a44-1e6a-4a5e-b1d0-77c2f4a19a30\",\"hostName\":\"Studio Desk\",\"runtimeClass\":\"full\",\"sessionFormatVersion\":0,\"allowRemoteApproval\":false,\"capabilities\":{\"session\":{\"list\":true,\"history\":true,\"follow\":\"false\",\"prompt\":true,\"cancel\":true},\"workspace\":{\"follow\":true},\"interaction\":{\"approval\":false,\"question\":false}}}"
+    },
+    {
+      "id": "invalid-capability-session-prompt",
+      "decodes": false,
+      "compatible": false,
+      "body": "{\"linkProtocolVersion\":1,\"contractVersion\":1,\"hostVersion\":\"0.1.2-alpha.1\",\"hostId\":\"9f2c1a44-1e6a-4a5e-b1d0-77c2f4a19a30\",\"hostName\":\"Studio Desk\",\"runtimeClass\":\"full\",\"sessionFormatVersion\":0,\"allowRemoteApproval\":false,\"capabilities\":{\"session\":{\"list\":true,\"history\":true,\"follow\":true,\"prompt\":\"false\",\"cancel\":true},\"workspace\":{\"follow\":true},\"interaction\":{\"approval\":false,\"question\":false}}}"
+    },
+    {
+      "id": "invalid-capability-session-cancel",
+      "decodes": false,
+      "compatible": false,
+      "body": "{\"linkProtocolVersion\":1,\"contractVersion\":1,\"hostVersion\":\"0.1.2-alpha.1\",\"hostId\":\"9f2c1a44-1e6a-4a5e-b1d0-77c2f4a19a30\",\"hostName\":\"Studio Desk\",\"runtimeClass\":\"full\",\"sessionFormatVersion\":0,\"allowRemoteApproval\":false,\"capabilities\":{\"session\":{\"list\":true,\"history\":true,\"follow\":true,\"prompt\":true,\"cancel\":\"false\"},\"workspace\":{\"follow\":true},\"interaction\":{\"approval\":false,\"question\":false}}}"
+    },
+    {
+      "id": "invalid-capability-group-workspace",
+      "decodes": false,
+      "compatible": false,
+      "body": "{\"linkProtocolVersion\":1,\"contractVersion\":1,\"hostVersion\":\"0.1.2-alpha.1\",\"hostId\":\"9f2c1a44-1e6a-4a5e-b1d0-77c2f4a19a30\",\"hostName\":\"Studio Desk\",\"runtimeClass\":\"full\",\"sessionFormatVersion\":0,\"allowRemoteApproval\":false,\"capabilities\":{\"session\":{\"list\":true,\"history\":true,\"follow\":true,\"prompt\":true,\"cancel\":true},\"workspace\":[],\"interaction\":{\"approval\":false,\"question\":false}}}"
+    },
+    {
+      "id": "invalid-capability-workspace-follow",
+      "decodes": false,
+      "compatible": false,
+      "body": "{\"linkProtocolVersion\":1,\"contractVersion\":1,\"hostVersion\":\"0.1.2-alpha.1\",\"hostId\":\"9f2c1a44-1e6a-4a5e-b1d0-77c2f4a19a30\",\"hostName\":\"Studio Desk\",\"runtimeClass\":\"full\",\"sessionFormatVersion\":0,\"allowRemoteApproval\":false,\"capabilities\":{\"session\":{\"list\":true,\"history\":true,\"follow\":true,\"prompt\":true,\"cancel\":true},\"workspace\":{\"follow\":\"false\"},\"interaction\":{\"approval\":false,\"question\":false}}}"
+    },
+    {
+      "id": "invalid-capability-group-interaction",
+      "decodes": false,
+      "compatible": false,
+      "body": "{\"linkProtocolVersion\":1,\"contractVersion\":1,\"hostVersion\":\"0.1.2-alpha.1\",\"hostId\":\"9f2c1a44-1e6a-4a5e-b1d0-77c2f4a19a30\",\"hostName\":\"Studio Desk\",\"runtimeClass\":\"full\",\"sessionFormatVersion\":0,\"allowRemoteApproval\":false,\"capabilities\":{\"session\":{\"list\":true,\"history\":true,\"follow\":true,\"prompt\":true,\"cancel\":true},\"workspace\":{\"follow\":true},\"interaction\":[]}}"
+    },
+    {
+      "id": "invalid-capability-interaction-approval",
+      "decodes": false,
+      "compatible": false,
+      "body": "{\"linkProtocolVersion\":1,\"contractVersion\":1,\"hostVersion\":\"0.1.2-alpha.1\",\"hostId\":\"9f2c1a44-1e6a-4a5e-b1d0-77c2f4a19a30\",\"hostName\":\"Studio Desk\",\"runtimeClass\":\"full\",\"sessionFormatVersion\":0,\"allowRemoteApproval\":false,\"capabilities\":{\"session\":{\"list\":true,\"history\":true,\"follow\":true,\"prompt\":true,\"cancel\":true},\"workspace\":{\"follow\":true},\"interaction\":{\"approval\":\"false\",\"question\":false}}}"
+    },
+    {
+      "id": "invalid-capability-interaction-question",
+      "decodes": false,
+      "compatible": false,
+      "body": "{\"linkProtocolVersion\":1,\"contractVersion\":1,\"hostVersion\":\"0.1.2-alpha.1\",\"hostId\":\"9f2c1a44-1e6a-4a5e-b1d0-77c2f4a19a30\",\"hostName\":\"Studio Desk\",\"runtimeClass\":\"full\",\"sessionFormatVersion\":0,\"allowRemoteApproval\":false,\"capabilities\":{\"session\":{\"list\":true,\"history\":true,\"follow\":true,\"prompt\":true,\"cancel\":true},\"workspace\":{\"follow\":true},\"interaction\":{\"approval\":false,\"question\":\"false\"}}}"
+    },
+    {
+      "id": "maximum-exact-version",
+      "decodes": true,
+      "compatible": false,
+      "body": "{\"linkProtocolVersion\":1,\"contractVersion\":9007199254740991,\"hostVersion\":\"0.1.2-alpha.1\",\"hostId\":\"9f2c1a44-1e6a-4a5e-b1d0-77c2f4a19a30\",\"hostName\":\"Studio Desk\",\"runtimeClass\":\"full\",\"sessionFormatVersion\":0,\"allowRemoteApproval\":false,\"capabilities\":{\"session\":{\"list\":true,\"history\":true,\"follow\":true,\"prompt\":true,\"cancel\":true},\"workspace\":{\"follow\":true},\"interaction\":{\"approval\":false,\"question\":false}}}"
+    }
+  ]
+}

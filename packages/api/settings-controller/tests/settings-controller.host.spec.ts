@@ -18,6 +18,10 @@ describe('settings Remote', () => {
     expect(remoteMethods(controller).map(method => method.method)).toEqual([
       'describe', 'update', 'replace', 'mutate', 'openSettingsDocument',
     ])
+    const methods = new Set(remoteMethods(controller).map(method => method.method))
+    for (const capability of controller.typertRemote.capabilities ?? []) {
+      for (const method of capability.methods) expect(methods.has(method), `${capability.id}: ${method}`).toBe(true)
+    }
     expect(ctx.get('credentialsController')).toBeDefined()
   })
 

@@ -1,0 +1,16 @@
+{
+  "status": "PASS",
+  "controls": 3,
+  "sourceRecord": {
+    "path": "artifacts/upstream-first/android-gateway-source.json",
+    "sha256": "cce103b875986d3d82cbf9b28a89f50162bf5ad7d3ea44ae69981397c9c75552"
+  },
+  "generator": {
+    "path": "artifacts/upstream-first/write-reports.mjs",
+    "sha256": "a34371238f272f0dd10ed3b6783bc82e457fd0cd69833ac29daff08785cdcbe2"
+  },
+  "helper": {
+    "path": ".artifacts/check-android-gateway-binding.mjs",
+    "sha256": "f4af9ca7d47ba07056ffd06dcc68dd7eb314c90fe25224de4fe43e634f29e65c"
+  }
+}

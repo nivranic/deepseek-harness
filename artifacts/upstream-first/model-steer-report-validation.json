@@ -1,0 +1,66 @@
+{
+  "status": "PASS",
+  "scope": "Report bindings and audit for the model steer increment: the section 30 steer half rides the shared capability contract — model.steer.v1 advertised over the prompt method (order-independent prompt.send overlap with session.control.v1), the web composer gates the explicit steer submission on the advertisement plus an admitting prompt path, Android observes NativeObservedCapability.MODEL_STEER and selects the wire mode through submitPrompt's steer parameter with a two-character label keeping the one-row composer; acceptance is the fourteen-lane composer-surface serial round on the local AVD emulator (android-steer new, camera flake grounded by its standalone rerun) plus the gradle 73/469 JVM aggregate, the web vitest matrix (43 files / 618 tests), typecheck, oxlint, doc-sync and gate0; the Android model-select entry and real-device qualification stay open; full Upstream-First objective remains in progress",
+  "gate0": {
+    "validation": "PASS",
+    "gate0": "PASS",
+    "paths": 1938,
+    "components": 129,
+    "specificationCoverage": {
+      "status": "PASS",
+      "numberedSections": 81,
+      "nonEmptySourceLines": 1983,
+      "acceptanceProven": false
+    }
+  },
+  "sourceRecord": {
+    "path": "artifacts/upstream-first/model-steer-source.json",
+    "sha256": "cfbb79b92481c68c6fa3d898dc0587d7b9f8fb0973eacef9da6941f8aa407138"
+  },
+  "generator": {
+    "path": "artifacts/upstream-first/write-reports.mjs",
+    "sha256": "8ca7482f68476c4e1db2507dd04c08ba31b892ffcc6666cbbce97e9f08a2bc50"
+  },
+  "binding": {
+    "path": "artifacts/upstream-first/model-steer-binding.json",
+    "sha256": "ca7a5546bfbdca19a9a905bb6202de67ca3e9e523f8bb0915e72a548a5390a05"
+  },
+  "helpers": [
+    {
+      "path": ".artifacts/advance-model-steer-reports.mjs",
+      "sha256": "82c287e5103284561abbaa6dc5c3d26607df272467b3bde24cf1b1b7f0beca39"
+    },
+    {
+      "path": ".artifacts/capture-model-steer-validation.mjs",
+      "sha256": "3288c789723a7d97be944facd2d1fc68fc15d8cf25f5e4b58d6066714f0c304a"
+    }
+  ],
+  "reports": [
+    {
+      "path": "IMPLEMENTATION_STATUS.md",
+      "sha256": "6b4c9fb21a31c5b495aaf70361dbd19cd8d6e11de5d3e249fad459db8b10cb10"
+    },
+    {
+      "path": "artifacts/upstream-first/evidence.json",
+      "sha256": "88098845edd57e63a387cd0a86cb29d376ca4ee3134fc807a7044e0e94c675fd"
+    }
+  ],
+  "checks": [
+    {
+      "path": ".artifacts/model-steer-binding.log",
+      "sha256": "57e06eeb58964c2d41a76cab99c81b746a298db863db58108134426dab3c6afc"
+    },
+    {
+      "path": ".artifacts/model-steer-audit-final.log",
+      "sha256": "ed6dd14d7025a77c889ba3b5baa01a61389bc0e6a945e6ec05074f52ee2cb492"
+    },
+    {
+      "path": ".artifacts/model-steer-gate0-final.log",
+      "sha256": "505d74ef938f5d34d85490d37e0176ba804d93272fcf465ce2544a02c56b3f90"
+    },
+    {
+      "path": ".artifacts/model-steer-report-generation.log",
+      "sha256": "fe010532f71a6341467ae5719b29ac19470895de1d481156335b8f70a3273ed5"
+    }
+  ]
+}

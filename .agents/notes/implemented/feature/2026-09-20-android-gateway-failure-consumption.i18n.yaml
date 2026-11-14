@@ -1,0 +1,22 @@
+# Bilingual-pair consistency record for 2026-09-20-android-gateway-failure-consumption.md (docs/i18n/README.md): per heading
+# section, a hash of its English and Chinese blocks outside code blocks and generated regions.
+# After editing either side, bring the other along and re-record with:
+#   pnpm run verify-translation-pairing --write .agents/notes/implemented/feature/2026-09-20-android-gateway-failure-consumption.md
+/agent-note-the-android-shell-consumes-the-gateway-failure-contract:
+  en: f0026c6f9be2a15a
+  zh: 7155e2574e582e52
+/agent-note-the-android-shell-consumes-the-gateway-failure-contract/problem:
+  en: 0688a057561a1789
+  zh: 957db66033c63a31
+/agent-note-the-android-shell-consumes-the-gateway-failure-contract/current-upstream-boundary:
+  en: 21db050a26e28e29
+  zh: 9a11fff3144432b4
+/agent-note-the-android-shell-consumes-the-gateway-failure-contract/decision:
+  en: c43f20b7c2f836ce
+  zh: 59f905cd8ccdf88c
+/agent-note-the-android-shell-consumes-the-gateway-failure-contract/alternatives-considered:
+  en: 779e8e7e3a53c27a
+  zh: f279e92b7dc2b1c7
+/agent-note-the-android-shell-consumes-the-gateway-failure-contract/consequences:
+  en: d16d3f67738ce6e7
+  zh: 25e069e26a82ff62

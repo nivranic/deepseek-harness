@@ -1,0 +1,26 @@
+<?xml version="1.0" encoding="utf-8"?>
+<resources>
+    <string name="native_view_link_title">查看位置链接</string>
+    <string name="native_view_link_target">Host：%1$s\n会话：%2$s · 记录 %3$d</string>
+    <string name="native_view_link_waiting">正在等待当前 Host 和读取能力就绪…</string>
+    <string name="native_view_link_opening">正在打开会话并定位历史记录…</string>
+    <string name="native_view_link_opened">已定位到所请求的历史位置。</string>
+    <string name="native_view_link_cancelling">正在停止定位并等待读取结束…</string>
+    <string name="native_view_link_interrupted">上次链接定位已中断，未重新打开旧链接。请明确再次打开所需链接。</string>
+    <string name="native_view_link_invalid">查看位置链接无效，请使用完整的 dsh-companion 链接。</string>
+    <string name="native_view_link_unpaired">尚未连接可信 Host。请先配对，再明确重试打开链接。</string>
+    <string name="native_view_link_wrong_host">链接属于其他 Host，未切换连接。请手动选择匹配的可信 Host 后重试。</string>
+    <string name="native_view_link_host_unavailable">当前 Host 尚不可用，请完成恢复或切换后明确重试。</string>
+    <string name="native_view_link_host_changed">Host 已变化，旧定位已停止。请核对当前 Host 后明确重试。</string>
+    <string name="native_view_link_busy">请先处理当前分享、附件或消息发送，再明确重试定位。</string>
+    <string name="native_view_link_unsupported">当前 Host 尚未声明支持会话读取。请刷新连接能力后明确重试。</string>
+    <string name="native_view_link_capability_failed">无法确认当前 Host 的读取能力。请检查连接、刷新能力后明确重试。</string>
+    <string name="native_view_link_cancelled">定位已停止。已打开的会话保持不变，草稿仍保留在原会话。</string>
+    <string name="native_view_link_failed">无法定位到这条历史记录，请检查会话访问权限、记录和连接后明确重试。</string>
+    <string name="native_view_link_incoming_rejected">已有链接正在处理，未接收新的链接或分享。请处理完成后重新打开或分享。</string>
+    <string name="native_view_link_cancel">停止定位</string>
+    <string name="native_view_link_retry">重试打开</string>
+    <string name="native_view_link_dismiss">关闭提示</string>
+    <string name="native_view_link_copy">复制查看位置链接</string>
+    <string name="native_view_link_copied">查看位置链接已复制</string>
+</resources>

@@ -260,12 +260,15 @@ describe('Session Controller access', () => {
       content: [{ type: 'text', text: `from ${principal.kind}` }],
     }, signal)
     await expect(prompt(GUEST, 'guest-1')).resolves.toEqual({ accepted: true })
+    const device: Principal = { kind: 'device', deviceId: 'paired-fixture' as Extract<Principal, { kind: 'device' }>['deviceId'] }
+    await expect(prompt(device, 'device-1')).resolves.toEqual({ accepted: true })
     await expect(prompt(OWNER, 'owner-1')).resolves.toEqual({ accepted: true })
     // The durable Inbox splice records each accepted message with its source.
     const logged = shared.session.snapshotEvents()
       .flatMap(event => event.type === 'agent/inbox/spliced' ? event.data.inserted.map(item => item.source) : [])
     expect(logged).toEqual([
       { kind: 'user', rpcId: 'guest-1', principal: GUEST },
+      { kind: 'user', rpcId: 'device-1', principal: device },
       { kind: 'user', rpcId: 'owner-1' },
     ])
   })

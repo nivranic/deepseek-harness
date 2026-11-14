@@ -1,0 +1,19 @@
+# Bilingual-pair consistency record for 2026-09-15-linear-index-tag-lookup.md (docs/i18n/README.md): per heading
+# section, a hash of its English and Chinese blocks outside code blocks and generated regions.
+# After editing either side, bring the other along and re-record with:
+#   pnpm run verify-translation-pairing --write .agents/notes/implemented/bug-fix/2026-09-15-linear-index-tag-lookup.md
+/agent-note-linear-index-opening-tag-lookup:
+  en: 9459ec7fea07442b
+  zh: bea4ae4fc212e1df
+/agent-note-linear-index-opening-tag-lookup/problem:
+  en: 8a856303e105c1ce
+  zh: ebe109a8d31296ab
+/agent-note-linear-index-opening-tag-lookup/decision:
+  en: fd753a4677dc687e
+  zh: 66d7027dab7545ca
+/agent-note-linear-index-opening-tag-lookup/alternatives-considered:
+  en: 5c80f7b1ea6b67e1
+  zh: 2448d426ea4f993e
+/agent-note-linear-index-opening-tag-lookup/consequences:
+  en: 5fad711a357b6c81
+  zh: 8a80b9de51c51847

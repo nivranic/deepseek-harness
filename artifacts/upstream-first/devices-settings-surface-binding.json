@@ -1,0 +1,16 @@
+{
+  "status": "PASS",
+  "controls": 3,
+  "sourceRecord": {
+    "path": "artifacts/upstream-first/devices-settings-surface-source.json",
+    "sha256": "9d36ed92019f756398adceb042a5e094bda02ac8cf4126eaae468ec80e9b429f"
+  },
+  "generator": {
+    "path": "artifacts/upstream-first/write-reports.mjs",
+    "sha256": "8f76cafde38d2995448fa98d6480d25bdb3743c2f01af32809415ffcf3f0b49c"
+  },
+  "helper": {
+    "path": ".artifacts/check-devices-settings-surface-binding.mjs",
+    "sha256": "1467b45a4a6e2104213809e2602223b28270f2b85ca8a21ac637cd3dd302491a"
+  }
+}

@@ -22,7 +22,7 @@ import { buildForkSeed } from '@deepseek-ai/dsh-session/fork'
 import { SessionLogOffset, SessionSeq } from '@deepseek-ai/dsh-session'
 import type { Session, SessionEvent, SessionHeader, SessionId, UserMessage } from '@deepseek-ai/dsh-session'
 import { SessionQueryError, type SessionObservation } from '@deepseek-ai/dsh-session-query'
-import { SessionTitleInvalidError } from '@deepseek-ai/dsh-session-title'
+import { SessionTitleInvalidError, SessionTitleRevisionConflictError } from '@deepseek-ai/dsh-session-title'
 import { assertNever } from '@deepseek-ai/dsh-util-values'
 import { RemoteError, remoteErrorOf } from '@deepseek-ai/dsh-typert-protocol'
 import type { Workspace } from '@deepseek-ai/dsh-workspace'
@@ -39,6 +39,7 @@ import type {
   SessionAttachmentRequest,
   SessionAttachmentValue,
   SessionCancelRequest,
+  SessionCancelTurnRequest,
   SessionCancelValue,
   SessionCreateRequest,
   SessionCreateValue,
@@ -46,6 +47,7 @@ import type {
   SessionForkValue,
   SessionPromptRequest,
   SessionPromptValue,
+  SessionRenameAtRequest,
   SessionRenameRequest,
   SessionRenameValue,
   SessionSelectModelRequest,
@@ -200,15 +202,37 @@ export class SessionCommandController {
    * @returns the accepted title and durable event sequence.
    */
   async rename(request: SessionRenameRequest): Promise<SessionRenameValue> {
+    return this.renameTitle(request)
+  }
+
+  /**
+   * Accept a title only against its captured revision, or return the already pinned identical title.
+   * @param request - Session, title and durable editing baseline.
+   * @returns the accepted title and its original durable event sequence.
+   */
+  async renameAt(request: SessionRenameAtRequest): Promise<SessionRenameValue> {
+    let revision: SessionSeq | null
+    try {
+      revision = request.expectedRevision === null ? null : SessionSeq(request.expectedRevision)
+    } catch {
+      throw new RemoteError('gateway/bad-request', 'expectedRevision must be null or a non-negative safe integer', {})
+    }
+    return this.renameTitle(request, revision)
+  }
+
+  private async renameTitle(request: SessionRenameRequest, expectedRevision?: SessionSeq | null): Promise<SessionRenameValue> {
     const agent = await this.resolveAgent(request.sessionId)
     const titles = this.ctx.get('sessionTitle')
     if (titles === undefined) {
       throw new RemoteError('gateway/internal', 'renaming is unavailable: this deployment mounts no session-title service', {})
     }
     try {
-      const accepted = titles.rename(agent.session, request.title)
+      const accepted = titles.rename(agent.session, request.title, expectedRevision)
       return { title: accepted.title, seq: accepted.eventSeq }
     } catch (error) {
+      if (error instanceof SessionTitleRevisionConflictError) {
+        throw new RemoteError('session/revision-conflict', error.message, { sessionId: request.sessionId })
+      }
       if (error instanceof SessionTitleInvalidError) {
         throw new RemoteError('session/title-invalid', error.message, { sessionId: request.sessionId })
       }
@@ -524,19 +548,42 @@ export class SessionCommandController {
    * @returns acknowledgement that cancellation was requested.
    */
   cancel(request: SessionCancelRequest): SessionCancelValue {
-    const agent = this.ctx.agents.get(request.sessionId)
+    const agent = this.cancellableAgent(request.sessionId)
+    agent.cancel({ kind: 'user' }, { keepInbox: true })
+    return { accepted: true }
+  }
+
+  /**
+   * Cancel the addressed turn without arming cancellation for later work.
+   * @param request - Session and observed turn/start sequence, or null for no observed turn.
+   * @returns acceptance whether the target is cancelled or already inactive.
+   */
+  cancelTurn(request: SessionCancelTurnRequest): SessionCancelValue {
+    if (request.turnStartSeq !== null) {
+      try { SessionSeq(request.turnStartSeq) } catch {
+        throw new RemoteError('gateway/bad-request', 'turnStartSeq must be null or a non-negative safe integer', {})
+      }
+    }
+    const agent = this.cancellableAgent(request.sessionId)
+    const active = this.ctx.sessionProjections.snapshot(agent.session, ['activeTurnStart']).values.activeTurnStart
+    if (active === undefined) throw new RemoteError('gateway/internal', 'active turn projection is unavailable', {})
+    if (active !== null && active === request.turnStartSeq) agent.cancel({ kind: 'user' }, { keepInbox: true })
+    return { accepted: true }
+  }
+
+  private cancellableAgent(sessionId: SessionId): Agent {
+    const agent = this.ctx.agents.get(sessionId)
     if (agent === undefined) {
       throw new RemoteError(
         'session/not-found',
-        `session "${request.sessionId}" not found (not attached)`,
-        { sessionId: request.sessionId },
+        `session "${sessionId}" not found (not attached)`,
+        { sessionId },
       )
     }
     if (hasApiSessionSubagentOwner(agent.session)) {
-      throw apiSessionSubagentOwnershipError(request.sessionId)
+      throw apiSessionSubagentOwnershipError(sessionId)
     }
-    agent.cancel({ kind: 'user' }, { keepInbox: true })
-    return { accepted: true }
+    return agent
   }
 
   private async resolveAgent(sessionId: SessionId): Promise<Agent> {

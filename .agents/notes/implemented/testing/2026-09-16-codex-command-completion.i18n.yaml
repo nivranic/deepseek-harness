@@ -1,0 +1,19 @@
+# Bilingual-pair consistency record for 2026-09-16-codex-command-completion.md (docs/i18n/README.md): per heading
+# section, a hash of its English and Chinese blocks outside code blocks and generated regions.
+# After editing either side, bring the other along and re-record with:
+#   pnpm run verify-translation-pairing --write .agents/notes/implemented/testing/2026-09-16-codex-command-completion.md
+/agent-note-codex-fixture-completion-follows-command-exit:
+  en: cf1f8193ffb75ccb
+  zh: d7207d82eab685db
+/agent-note-codex-fixture-completion-follows-command-exit/problem:
+  en: 6b7736c51345d606
+  zh: f29faf3c4e5fec5e
+/agent-note-codex-fixture-completion-follows-command-exit/decision:
+  en: d0372654d747fdce
+  zh: 7ba35345aeac2abb
+/agent-note-codex-fixture-completion-follows-command-exit/alternatives-considered:
+  en: e1095885f4426e68
+  zh: 50bb3c8b72fd5bcc
+/agent-note-codex-fixture-completion-follows-command-exit/consequences:
+  en: b0456b5ea6052db0
+  zh: b96da1772e5c07bd

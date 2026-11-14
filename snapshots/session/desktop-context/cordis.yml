@@ -1,0 +1,15 @@
+# Pin application orientation independently of the platform's shell tool.
+- id: tool-bash
+  disabled: true
+
+- id: tool-pwsh
+  disabled: true
+
+- id: system-prompt
+  config:
+    personaPrefix: You are a coding agent powered by the {{model}} model.
+    personaSuffix: Your working directory is {{cwd}}.
+
+- insert:
+    - id: desktop-context
+      name: './fixture.mjs'

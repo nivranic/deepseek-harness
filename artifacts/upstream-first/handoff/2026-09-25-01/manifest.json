@@ -1,0 +1,46 @@
+{
+  "schemaVersion": 1,
+  "handoffId": "2026-09-25-01",
+  "files": [
+    {
+      "path": "changes.json",
+      "sha256": "9b218e5f815565d954d7ab8aa2fafb50c8b96108082c473c5f580c3bbc21cdb8",
+      "bytes": 14836
+    },
+    {
+      "path": "evidence-index.json",
+      "sha256": "e88e611f3db50b09b0885c3e061acf32053beb44f06436593600315446be757a",
+      "bytes": 1550
+    },
+    {
+      "path": "HANDOFF.md",
+      "sha256": "0e5a866593a0c8860bf914864b984f4402055d3af923cb37cdfd77b6b05b1d51",
+      "bytes": 25864
+    },
+    {
+      "path": "original-specification.md",
+      "sha256": "4f313ad5a779b497e239654bc6cb3734dbe32210c72adf11286637606f764e80",
+      "bytes": 40658
+    },
+    {
+      "path": "report-snapshots/IMPLEMENTATION_STATUS.md",
+      "sha256": "f24315c5f893b7fd50a13f49ef67e8946e6caa481aa0a83986fd423def9d587e",
+      "bytes": 251455
+    },
+    {
+      "path": "report-snapshots/specification-traceability.json",
+      "sha256": "7f85a0dd2316942f5ff790a6d51eeb41ab28dcfdb3d063f2f3413a732513cacc",
+      "bytes": 253984
+    },
+    {
+      "path": "state.json",
+      "sha256": "d1e722c8035a9e4ff93119c1bc0ff5a55a8159ea6c59ab2473ca373a2756c242",
+      "bytes": 3155
+    },
+    {
+      "path": "verify.mjs",
+      "sha256": "f2675d7d72a65a415bc75ceb4c7f773157004f3cb76eca3e9f70fbb2b592cbd3",
+      "bytes": 4789
+    }
+  ]
+}

@@ -1,0 +1,613 @@
+{
+  "schemaVersion": 1,
+  "status": "PASS",
+  "scope": "Windows development Shell tray and native menu integration",
+  "observedAt": "2026-09-14T18:24:21.508Z",
+  "baseSha": "c291e7961a515f6d7af9304e7fd1d257929aef26",
+  "sourceFiles": [
+    {
+      "path": "apps/desktop/README.i18n.yaml",
+      "sha256": "da9d46a3be7b3f5794e250672de24f812153398efd455712637544083e906139"
+    },
+    {
+      "path": "apps/desktop/README.md",
+      "sha256": "aeaa9c647df70128f3c4e6f2437af86c811f5fbe7e40133e5e2c21aa5c17d51f"
+    },
+    {
+      "path": "apps/desktop/README.zh.md",
+      "sha256": "cf41a382f1813a80403ec6613a6b588b244f5183e0985ce0af84169d750019e2"
+    },
+    {
+      "path": "apps/desktop/electron-builder.config.d.mts",
+      "sha256": "2f7a4553a5977fdda0e00e75d4143e7970332425ad7f24fb99a24d64b1bea950"
+    },
+    {
+      "path": "apps/desktop/electron-builder.config.mjs",
+      "sha256": "3242149b816114129b53d41701136c96199b8cbe12df39d8c189bebd9bf99507"
+    },
+    {
+      "path": "apps/desktop/package.json",
+      "sha256": "bd09d67c08f2c66516124ebcc71e1a71a36325be44255310098e0fdcbba18f56"
+    },
+    {
+      "path": "apps/desktop/renderer/plugin-manager.css",
+      "sha256": "c1ab4b6d85866488b9dc0a3d567ba0384cc811422cdfdfcb39315e041f979704"
+    },
+    {
+      "path": "apps/desktop/renderer/plugin-manager.html",
+      "sha256": "329aeafcaa09fa8dfbd4b1a9e6f8ccb7df66177f8f7023e1f52d64ad61dfd2d7"
+    },
+    {
+      "path": "apps/desktop/renderer/plugin-manager.js",
+      "sha256": "62decc7d611270f6288139262856d89227a48fc2a4b59cf37470120db8c90040"
+    },
+    {
+      "path": "apps/desktop/renderer/startup.css",
+      "sha256": "83d221d4686dc05edcc2d1bc9b8807b62ae2525c5202f3b95bf60362f70d958d"
+    },
+    {
+      "path": "apps/desktop/renderer/startup.html",
+      "sha256": "0076664202606a62340eb49d23729096911547e2591d7ab4a1925cfff73cb9da"
+    },
+    {
+      "path": "apps/desktop/renderer/startup.js",
+      "sha256": "783a335de0401584b4149c9f19e78f8280db169e39dd08e1c4d243c0bbe172eb"
+    },
+    {
+      "path": "apps/desktop/resources/tray-icon.png",
+      "sha256": "0cbd9779acbe7a222001643672f748f046133b55d912c69083b339b240175ec9"
+    },
+    {
+      "path": "apps/desktop/scripts/desktop-auto-update-environment.d.mts",
+      "sha256": "721ca79a2a356544b48266cf14ecb40cdc21cf03c3603e1b34fa713e47942e53"
+    },
+    {
+      "path": "apps/desktop/scripts/desktop-auto-update-environment.mjs",
+      "sha256": "88795d74c7800568d4c5bf5e471d349028a4ceace72a0baa772800cd8b2dfdf0"
+    },
+    {
+      "path": "apps/desktop/scripts/desktop-build-paths.d.mts",
+      "sha256": "daabf7b1782903d4481b0e155634b033e61641fcc3d8a5e04b3c71ce75dd45c2"
+    },
+    {
+      "path": "apps/desktop/scripts/desktop-build-paths.mjs",
+      "sha256": "19bddcde95884056e5414737d2e62de7c6ecd5aab2317c8dcbe8778e83ec3118"
+    },
+    {
+      "path": "apps/desktop/scripts/desktop-release-environment.d.mts",
+      "sha256": "3716f3a7a778b3f04c5fd1f1cd279dc7bbb4f5898f56622da197b35dc2d5ce5f"
+    },
+    {
+      "path": "apps/desktop/scripts/desktop-release-environment.mjs",
+      "sha256": "3ca5688bbded6799eb08cf09f04323f94ff6e93bdaeb11db88b8ccd78a47d5be"
+    },
+    {
+      "path": "apps/desktop/scripts/desktop-upload-plan.ts",
+      "sha256": "bf4552f139e593fcf4f92f83a1825598c9556f08d1144b04913aec9a54c905c6"
+    },
+    {
+      "path": "apps/desktop/scripts/dev.ts",
+      "sha256": "809489f422d44cd3dea295eaf33db250050ee5eb2dc8ba51c2fc39d44ed551c6"
+    },
+    {
+      "path": "apps/desktop/scripts/development-project.ts",
+      "sha256": "3cc00a3ae9d5ca8136b4999fb129484b8b43a1421af8f02e98f0ea273909f4dc"
+    },
+    {
+      "path": "apps/desktop/scripts/installer.nsh",
+      "sha256": "1c498b75887b34fb6b7022b3e1bd13c5204b4102e78ee49d3beba43157bd4558"
+    },
+    {
+      "path": "apps/desktop/scripts/macos-runtime.ts",
+      "sha256": "dba86ca53f2768f89e412c39c35d94672037296bd8b6ba401a5d86ce1297227d"
+    },
+    {
+      "path": "apps/desktop/scripts/notarize-macos-disk-images.d.mts",
+      "sha256": "ebb6a94a21e95f65d90e967d09cc6f888484088635f4793a9db79b85e1044f2f"
+    },
+    {
+      "path": "apps/desktop/scripts/notarize-macos-disk-images.mjs",
+      "sha256": "6c48005ac53a0e10d055df192359e7a3073a09951a5305c3e0df081d0faa4c7c"
+    },
+    {
+      "path": "apps/desktop/scripts/package-macos.ts",
+      "sha256": "bc68d9f426a7894885ae25a2559b0d8968dd914c04863a84a6b8ba5af123ddb8"
+    },
+    {
+      "path": "apps/desktop/scripts/package-target.ts",
+      "sha256": "5a4d70bb6b1c83c29da1e465865c457a9dc98d1b8527a28f05f444c4f87e33d4"
+    },
+    {
+      "path": "apps/desktop/scripts/prepare-dsh.ts",
+      "sha256": "fc63a297b59b686116d884f275db664076c0a875a68922db67925f6c2341864b"
+    },
+    {
+      "path": "apps/desktop/scripts/prepare-package-set.ts",
+      "sha256": "5be1e643ae70bea41615430c1a291168ffc66377dc181e86e622f7d58dc9f955"
+    },
+    {
+      "path": "apps/desktop/scripts/prepare-runtime.ts",
+      "sha256": "ef153c754b630772023b0745d0b04c97f12b995d1654bedd76eb9c890f530fb3"
+    },
+    {
+      "path": "apps/desktop/scripts/runtime-file-policy.ts",
+      "sha256": "1fbfa0742c61720b002d397404b2b8bd9c3de047c37caf154b6efd2e031a995f"
+    },
+    {
+      "path": "apps/desktop/scripts/smoke-runtime.ts",
+      "sha256": "8f20c7005500cede07e8064f0d9c5a937aff4f1ca24297b5198e5c3585eff6cb"
+    },
+    {
+      "path": "apps/desktop/scripts/smoke-windows.ps1",
+      "sha256": "ce70dfbf63eee7ce9e4f3be369c0739a753ab1227b8ff084e342593d9c52cd9c"
+    },
+    {
+      "path": "apps/desktop/scripts/upload-target.ts",
+      "sha256": "867f2c24bf2be30c6a1d6b5e214c8f60fef078f8fad019aa81d5ddea04e384d3"
+    },
+    {
+      "path": "apps/desktop/scripts/verify-macos-signature.d.mts",
+      "sha256": "022d742da841a64d3dd77289c8421ddc0acb4d5e1b3b16ba39fa8c22adf5986e"
+    },
+    {
+      "path": "apps/desktop/scripts/verify-macos-signature.mjs",
+      "sha256": "98903e0738edfcbcb9bb9a99ae4b00b68a4a6684001f19671c7c8f7253906a81"
+    },
+    {
+      "path": "apps/desktop/scripts/windows-sign.cmd",
+      "sha256": "c7a32d3e9b0d836637e5fa1da1232a37d239b705f2717fe64754522bd0a2ec77"
+    },
+    {
+      "path": "apps/desktop/scripts/windows-sign.d.mts",
+      "sha256": "1736e8ae3f53f1449c4fe32e12b010148354b1f2241cbced7a4d4be3003ce6f0"
+    },
+    {
+      "path": "apps/desktop/scripts/windows-sign.mjs",
+      "sha256": "035fdef185d0bfe995adcbfacd0ace936cc0d823d2d5bb288943731fc19ba93b"
+    },
+    {
+      "path": "apps/desktop/src/backend-controller.ts",
+      "sha256": "a102b7253ff2b785d67051e0a59e16c712cf83b8c00be5722930da6407d96bf0"
+    },
+    {
+      "path": "apps/desktop/src/core-package-set.ts",
+      "sha256": "554f786f2b8dfe5f12a517fcd263c08f4a89d0b3833ebcabdda743ed1ac96a2c"
+    },
+    {
+      "path": "apps/desktop/src/host-process.ts",
+      "sha256": "724f9a0db679ab3964d7d6bacc55caf0d84a4ffb0077eb5835642575b8df3ad5"
+    },
+    {
+      "path": "apps/desktop/src/host-protocol.ts",
+      "sha256": "ef608222e30a4976d3d93e9f0e7fcc004161b346fa8b0cd005a370dc44824065"
+    },
+    {
+      "path": "apps/desktop/src/ipc.ts",
+      "sha256": "bc6405286b5de9f098b908cb4761b6b4166dd12ce1db8ac5ff94e72a10b06e44"
+    },
+    {
+      "path": "apps/desktop/src/locale.ts",
+      "sha256": "49a9fd9264740f56acf861ec53af5e49f23462c4f7f4a0ae51301b47a95b8a4a"
+    },
+    {
+      "path": "apps/desktop/src/login-item.ts",
+      "sha256": "ffc2f8a7acacfc56ca2e015188c42aa41b3e745b9244f49a4b5b472b9712788c"
+    },
+    {
+      "path": "apps/desktop/src/main.ts",
+      "sha256": "c8ba2de4df3a165133b7c3d4f720c78500d584908b917c9e4f9300283a8fc1ef"
+    },
+    {
+      "path": "apps/desktop/src/owned-directory.ts",
+      "sha256": "3184bb6bc1c751a68092f7c12050ac3d673a87d53b6fc4d252c6f33c700200d4"
+    },
+    {
+      "path": "apps/desktop/src/paths.ts",
+      "sha256": "817506a51c9c46c217768e3d06c3f33a44346250437a02813e7e8418c7b54a9e"
+    },
+    {
+      "path": "apps/desktop/src/preload-app.ts",
+      "sha256": "e029a5460b329846a51d740529f747942a5c909f699265aedc672b93189a9b93"
+    },
+    {
+      "path": "apps/desktop/src/preload.ts",
+      "sha256": "b5e90bcd1a0af670e03c71b3b3cd0d09389cd32d254a1535a2d215ba839b2af6"
+    },
+    {
+      "path": "apps/desktop/src/profile-packages.ts",
+      "sha256": "b52fc201a8e6eb6aa8d7d186810392c5e30c048dacd12c3722dfc405cab754c9"
+    },
+    {
+      "path": "apps/desktop/src/project-manager.ts",
+      "sha256": "ba5da1f39879460879bc210c3d6d40bc4c591973e872a6d3857e1276a393ca46"
+    },
+    {
+      "path": "apps/desktop/src/release.ts",
+      "sha256": "ab4c40200893effa8e3ea0840c43630ba10403242f90ecccba49ae9a11c82140"
+    },
+    {
+      "path": "apps/desktop/src/runtime-tree.ts",
+      "sha256": "03db695634899c421086f39aacfa2ef9a26412d97f81f71e9679e06dd6b81601"
+    },
+    {
+      "path": "apps/desktop/src/shell-behavior.ts",
+      "sha256": "ce599da150c30f10a59039097829c38b9abc420da9f8ea608b1bf98c11fc3c09"
+    },
+    {
+      "path": "apps/desktop/src/shell-preferences.ts",
+      "sha256": "38ee3d96f8af72226be0d0e724819e30ed9b0fe026de26b2ab06fde6b143dd99"
+    },
+    {
+      "path": "apps/desktop/src/single-instance.ts",
+      "sha256": "dc6a6e263a6fdedc3f1cfacb97eb6f60dd5b04ad5d3b02daae4640f2e30a5150"
+    },
+    {
+      "path": "apps/desktop/src/startup-document.ts",
+      "sha256": "9e5d458e22855b86c52c782a6a7069f4e38ad67d3eb586808218fde0235eae19"
+    },
+    {
+      "path": "apps/desktop/src/startup-error.ts",
+      "sha256": "ba75b42f56dd8352eecd7ad94841cb32142cebcdab864c8e4c04452788a47378"
+    },
+    {
+      "path": "apps/desktop/src/update-coordinator.ts",
+      "sha256": "a8acaa00a5c1780a57419ff5db38f46bcc62a7cacdd32655944c4f0fc3acfb0e"
+    },
+    {
+      "path": "apps/desktop/tests/backend-controller.spec.ts",
+      "sha256": "9ac4e18bc93977741cbbc4760af71de9dfe60d68d39ed57d29c2fad61c96a0fa"
+    },
+    {
+      "path": "apps/desktop/tests/core-package-set.spec.ts",
+      "sha256": "b232f76e59a54d1d988ad9f8b2608cd96c50d3ca508e17ad685b109f0e5492ca"
+    },
+    {
+      "path": "apps/desktop/tests/desktop-auto-update-environment.spec.ts",
+      "sha256": "04095e12953f6697339eff7e94b7f3698130f52f52cae83cef71b9e41ea952c9"
+    },
+    {
+      "path": "apps/desktop/tests/desktop-build-paths.spec.ts",
+      "sha256": "8883312479f72f49c0d7b4d4245e3e88b8ef788d201fc58b497bf693fd2b3d65"
+    },
+    {
+      "path": "apps/desktop/tests/desktop-upload-plan.spec.ts",
+      "sha256": "dc5164d388d3f636c9922ae52e1a5c00441f47fc26d6583cbc237bb63e00ceba"
+    },
+    {
+      "path": "apps/desktop/tests/development-project.spec.ts",
+      "sha256": "a210a99d9ac9be7a9d96bbc4c9bdcb0f6f5a4a39ef990476f534bd96e000ac06"
+    },
+    {
+      "path": "apps/desktop/tests/expected/native-menu-darwin-zh.json",
+      "sha256": "8e82117c3f979c62989c500c982fd9b18ed335b8c9bc3bda6e22fcd4ab9be3fb"
+    },
+    {
+      "path": "apps/desktop/tests/expected/native-menu-development-en.json",
+      "sha256": "07a848f623ebadd917d2b6872d4411f3956f45970d631eb54eccc16a68aa54b2"
+    },
+    {
+      "path": "apps/desktop/tests/expected/native-menu-win32-zh.json",
+      "sha256": "63ad63f6690ccf2dca27f614dc186af5948d49e5245b731289b5b01889a42cc9"
+    },
+    {
+      "path": "apps/desktop/tests/expected/native-tray-en.json",
+      "sha256": "65c4f0c0d0c49de85b40541eec05b39629396818d3ea7628368c0a57938764f1"
+    },
+    {
+      "path": "apps/desktop/tests/expected/startup-en-profile.txt",
+      "sha256": "98156cf79fdc0e589485f54dd68267eb6db1842a68bdebfd0f6bec923226cbd5"
+    },
+    {
+      "path": "apps/desktop/tests/expected/startup-en-restart.txt",
+      "sha256": "e647c5fdd5a3c44f2fb30442d04728091f199abd347153c43185a0926bdd6132"
+    },
+    {
+      "path": "apps/desktop/tests/expected/startup-zh-CN-profile.txt",
+      "sha256": "b44c0d43a5284e7551447094584992d8ea8f501fc1ca6002e05da1b9bbc87a0d"
+    },
+    {
+      "path": "apps/desktop/tests/expected/startup-zh-CN-restart.txt",
+      "sha256": "252def988ddc435c1a5d57aaf5b333426c365d58bf1c44c8f135e3144480ec97"
+    },
+    {
+      "path": "apps/desktop/tests/fixtures/installer-cleanup-smoke.nsi",
+      "sha256": "f33333bd817f33cc56ac69c04202c50377d49ed79c58cc949da30b84c2b6cf10"
+    },
+    {
+      "path": "apps/desktop/tests/fixtures/installer-write-failure-smoke.nsi",
+      "sha256": "c96b2c3bab76c4a20306937d9953da114258677794281606a87a35a70e4ad5fe"
+    },
+    {
+      "path": "apps/desktop/tests/fixtures/owned-directory-smoke.mjs",
+      "sha256": "40bd5976a4263932bdeaf35b57db930cfb44d45f1fce843edd27cf03cb913f7d"
+    },
+    {
+      "path": "apps/desktop/tests/fixtures/runtime-payload-smoke.mjs",
+      "sha256": "750985366088a5586e4fe8253c3bc0cd7c42761252c38d814f6aac5cd07c17dc"
+    },
+    {
+      "path": "apps/desktop/tests/host-process.spec.ts",
+      "sha256": "12d8c3266ced584c92d4558f2d58bfee5800dcf846dd6c686707b62fb3cd0b75"
+    },
+    {
+      "path": "apps/desktop/tests/host-protocol.spec.ts",
+      "sha256": "ce36dcae0f14c86138258fa759b26921c6eef0d3f557b3f4835dfa64d06d43aa"
+    },
+    {
+      "path": "apps/desktop/tests/locale.spec.ts",
+      "sha256": "04ef28c76ee7f5b51261cfff8ef51442704eba9b679cf5f69a6155fb7cadd02c"
+    },
+    {
+      "path": "apps/desktop/tests/login-item.spec.ts",
+      "sha256": "8fbdbb0afc543731e2215a8303013930ff4dfb37b5d16780abd2c54e64af59ed"
+    },
+    {
+      "path": "apps/desktop/tests/macos-notarized-application.spec.ts",
+      "sha256": "99b9ef170644b328298d39a16121588794f440d3ed723b991f6987cf3a0aefa0"
+    },
+    {
+      "path": "apps/desktop/tests/macos-runtime.spec.ts",
+      "sha256": "dad896184d93a49f951a4a8f7192edaed65f8781efbd3bf19827f4b22d16db43"
+    },
+    {
+      "path": "apps/desktop/tests/macos-signature.spec.ts",
+      "sha256": "5f14c1fc0afa5f00fe1321ecea8aadae57fca2e84bf6b6742d06fe811eba5d40"
+    },
+    {
+      "path": "apps/desktop/tests/macos-signing-walk.spec.ts",
+      "sha256": "0ebda0f8b58341e059e3b62d1c8ec7ce9330f9fe485a15d55067ab7b8a18fea9"
+    },
+    {
+      "path": "apps/desktop/tests/main-startup.spec.ts",
+      "sha256": "2bdbca7b760685f71ef13870030762ec9dbe38e52c3f29deaea5a07766079f4a"
+    },
+    {
+      "path": "apps/desktop/tests/owned-directory.spec.ts",
+      "sha256": "6820dcbc0a101ae66d802f506e478052254ddda72e955464dba078b8756b0791"
+    },
+    {
+      "path": "apps/desktop/tests/package-macos.spec.ts",
+      "sha256": "b313d97dd9cdfec044c3ba75cb7ce68ac61fc08e107fb8f101f121159334408a"
+    },
+    {
+      "path": "apps/desktop/tests/package-target.spec.ts",
+      "sha256": "3ea010a7723f020fb40d0c8d7c9a61829e077f7cb5b863a88e2d9ccb9472d10a"
+    },
+    {
+      "path": "apps/desktop/tests/plugin-manager.spec.ts",
+      "sha256": "99fa03db9a036f9e7a5fb657b094e2e4732860ac77339e1c785b24244073eb8e"
+    },
+    {
+      "path": "apps/desktop/tests/plugin-pnpm.spec.ts",
+      "sha256": "9aceef4f4df6903fac6f504be785867a107f370dc3bec13055272202af133d14"
+    },
+    {
+      "path": "apps/desktop/tests/preload-app.spec.ts",
+      "sha256": "9fbb3f702bf538de96b4654f4c1d47c91a10906cda37486ebdbb4cdfd833f1c3"
+    },
+    {
+      "path": "apps/desktop/tests/prepare-package-set.spec.ts",
+      "sha256": "5d1f16fdf1592807fac8c296e35098ddbe629f58edb9ccb44b2ee5b9ad5a22fa"
+    },
+    {
+      "path": "apps/desktop/tests/profile-packages.spec.ts",
+      "sha256": "56501d3a7e38d92d7d1fb9353c6a21406d8e9d884284e3788bcf8d2f09016e0a"
+    },
+    {
+      "path": "apps/desktop/tests/project-manager.spec.ts",
+      "sha256": "25f0aff1e7bd6eee5a4f207c5b66d27bd26267c015cf0dd17de2476e85814e7e"
+    },
+    {
+      "path": "apps/desktop/tests/runtime-file-policy.spec.ts",
+      "sha256": "ac6817b9cd9e9003ec677b69c64855d89e2efa4003758219c602bb59284fdcde"
+    },
+    {
+      "path": "apps/desktop/tests/runtime-fixture.ts",
+      "sha256": "47526b95e61b7b58f9873600ef054280c64bb63d94efc9a277dbeb0eac823ccd"
+    },
+    {
+      "path": "apps/desktop/tests/runtime-tree-read-failure.spec.ts",
+      "sha256": "e549181a73d2e3a7dfe20a499ecbb12688ee5d64eed36ad6e78221f5655fb024"
+    },
+    {
+      "path": "apps/desktop/tests/runtime-tree.spec.ts",
+      "sha256": "8cc134f27fac216843a409c026aeaefd102d2541b03987ff9353e75aff222e1e"
+    },
+    {
+      "path": "apps/desktop/tests/shell-behavior.spec.ts",
+      "sha256": "3d0fda2f2447dbf1906c4e2eca1a0e70ce9f8f19eeca09f49403b7c3ac1ae35e"
+    },
+    {
+      "path": "apps/desktop/tests/shell-preferences.spec.ts",
+      "sha256": "d079cc197b4f8f6b73c9bc03b9291ec6d1d90d2b96d68e50ad228a335e7c78eb"
+    },
+    {
+      "path": "apps/desktop/tests/single-instance.spec.ts",
+      "sha256": "763eb83b7e2c5082ab1ee31c2a21916f636a3921de0d7fad6485de9a849bd97b"
+    },
+    {
+      "path": "apps/desktop/tests/startup-renderer.spec.ts",
+      "sha256": "b9d6526251907f9a4b95bad5807deb5c7127d79a9969a132eda3340ac45f113b"
+    },
+    {
+      "path": "apps/desktop/tests/update-coordinator.spec.ts",
+      "sha256": "89b3765e1c24ade007d168604dad27841af54a70597c92a24946292c37904c2b"
+    },
+    {
+      "path": "apps/desktop/tests/windows-sign.spec.ts",
+      "sha256": "320604b1a506dc847ddee84592bdb90ff7082260086266feb00e867a7e166d9d"
+    },
+    {
+      "path": "apps/desktop/tsconfig.json",
+      "sha256": "a9c6d65de293fd2a4880678a6add6c31237a82fb29cf01a732965a61ab7445ce"
+    },
+    {
+      "path": "apps/desktop/tsdown.config.ts",
+      "sha256": "608301e280d32488912bce4434e62bd49cbf81af0fa2fd2311d998f1929e38b4"
+    }
+  ],
+  "builtMainSha256": "93b6db73562d1604889d74ba9f4e16cb9490145f6732a3eda67c611bb622ba0f",
+  "launcher": "pnpm run start:desktop",
+  "interaction": "Main inspector invokes real Electron MenuItem.click and BrowserWindow.close; second Electron process exercises the native single-instance event",
+  "osLoginRegistrationWritten": false,
+  "realModelTested": false,
+  "limitations": [
+    "Unpackaged Windows development app only",
+    "No actual OS login or macOS execution",
+    "Tray coordinates and resource lifetime observed; no physical tray mouse input",
+    "No signed installer or update replacement exercised",
+    "Existing development CSP warning and a control-stream network error during Host shutdown were observed"
+  ],
+  "initial": {
+    "pid": 51240,
+    "node": "24.18.1",
+    "electron": "44.0.0",
+    "packaged": false,
+    "windows": [
+      {
+        "id": 1,
+        "visible": true,
+        "url": "dsh-app://app/index.html"
+      }
+    ],
+    "menu": [
+      {
+        "id": "desktop-close-to-tray",
+        "label": "关闭窗口时隐藏到托盘",
+        "checked": false,
+        "enabled": true
+      },
+      {
+        "id": "desktop-launch-at-login",
+        "label": "登录系统时启动（仅打包应用可用）",
+        "checked": false,
+        "enabled": false
+      }
+    ]
+  },
+  "host": {
+    "pid": 47288,
+    "node": "22.22.1",
+    "electron": null
+  },
+  "enabledTrays": [
+    {
+      "destroyed": false,
+      "bounds": {
+        "x": 1268,
+        "y": 1019,
+        "width": 32,
+        "height": 49
+      }
+    }
+  ],
+  "hidden": {
+    "pid": 51240,
+    "node": "24.18.1",
+    "electron": "44.0.0",
+    "packaged": false,
+    "windows": [
+      {
+        "id": 1,
+        "visible": false,
+        "url": "dsh-app://app/index.html"
+      }
+    ],
+    "menu": [
+      {
+        "id": "desktop-close-to-tray",
+        "label": "关闭窗口时隐藏到托盘",
+        "checked": true,
+        "enabled": true
+      },
+      {
+        "id": "desktop-launch-at-login",
+        "label": "登录系统时启动（仅打包应用可用）",
+        "checked": false,
+        "enabled": false
+      }
+    ]
+  },
+  "secondInstanceExit": 0,
+  "restored": {
+    "pid": 51240,
+    "node": "24.18.1",
+    "electron": "44.0.0",
+    "packaged": false,
+    "windows": [
+      {
+        "id": 1,
+        "visible": true,
+        "url": "dsh-app://app/index.html"
+      }
+    ],
+    "menu": [
+      {
+        "id": "desktop-close-to-tray",
+        "label": "关闭窗口时隐藏到托盘",
+        "checked": true,
+        "enabled": true
+      },
+      {
+        "id": "desktop-launch-at-login",
+        "label": "登录系统时启动（仅打包应用可用）",
+        "checked": false,
+        "enabled": false
+      }
+    ]
+  },
+  "disabled": {
+    "pid": 51240,
+    "node": "24.18.1",
+    "electron": "44.0.0",
+    "packaged": false,
+    "windows": [
+      {
+        "id": 1,
+        "visible": true,
+        "url": "dsh-app://app/index.html"
+      }
+    ],
+    "menu": [
+      {
+        "id": "desktop-close-to-tray",
+        "label": "关闭窗口时隐藏到托盘",
+        "checked": false,
+        "enabled": true
+      },
+      {
+        "id": "desktop-launch-at-login",
+        "label": "登录系统时启动（仅打包应用可用）",
+        "checked": false,
+        "enabled": false
+      }
+    ]
+  },
+  "disabledTrays": [
+    {
+      "destroyed": true,
+      "bounds": null
+    }
+  ],
+  "preferenceDocument": {
+    "schemaVersion": 1,
+    "closeToTray": false
+  },
+  "trayClickRestore": {
+    "status": "PASS",
+    "method": "emit click on actual native Tray wrapper through inspector"
+  },
+  "shutdown": {
+    "status": "PASS",
+    "method": "native application menu quit with close-to-tray enabled",
+    "launcherExitCode": 0,
+    "remainingShellAndHostProcesses": 0,
+    "remainingOwnedProcesses": 0,
+    "processInventory": "Host Win32_Process query: no Electron or Node command line in the isolated worktree remained"
+  },
+  "harnessCorrections": [
+    "Native MenuItem.click toggles its checkbox before the template callback; do not toggle twice",
+    "Runtime.queryObjects includes an uninitialized Tray wrapper; native instances carry their event listener state",
+    "Second-instance activation failed across sandbox and host; the unchanged smoke passed with both processes on host"
+  ]
+}

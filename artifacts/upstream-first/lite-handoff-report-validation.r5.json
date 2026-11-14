@@ -1,0 +1,66 @@
+{
+  "status": "PASS",
+  "scope": "Report bindings and audit for the lite-handoff increment: the gen-59 follow-up closing the two ledger-named handoff defects beside the §72 duplicate UI state machine debt (the handoff turn previously fabricated a message/completed reply — LiteLoop stopping at the marker with no terminal event left send()'s else branch echoing the user prompt back through conversation.lastOrNull(), the echo surviving relaunches through the seeded journal replay; and LiteFold's pendingHandoff was write-only — a live fold carrying the sticky marker for its remaining life, every later normal turn misjournaling handoff/requested while turn/completed never appeared, restarts replaying the sticky flag, the banner reading a parallel lastHandoff field never cleared in-life and lost after a restart ending at the marker): the fold face — LiteFold clearing pendingHandoff at the next prompt/accepted (the new turn superseding the previous turn's pending handoff, the marker held exactly from the marker to the next accepted prompt, handoff conformance following the fold), the discriminant face — send() gaining the folded.pendingHandoff != null first arm (a handoff turn recording zero beyond its own marker: the journal exactly prompt/accepted then handoff/requested, the same family and shape as gen-58's provider and network error fixes, the fabricated message/completed echo retired), and the banner face — LiteChatScreen reading the state projection's pendingHandoff with the parallel lastHandoff field deleted (the single source of truth: visible mid-turn from the driver fold, visible after a restart ending at the marker through the seeded fold's first frame, cleared when the next turn starts); the rejections recorded honestly (exposing the driver-local handed-off marker as the discriminant — the fold is per-turn reliable and is the journal replay plane; clearing at message/completed or turn/completed — a handoff turn carries neither, the supersede point at the next prompt pinned by the conformance sequence; keeping a constructor-time lastHandoff seeding — two states to align with its own clearing rule; a new journal tag — the sixteen-tag closed set stays; a driver-side terminal event after the marker — the loop contract pins stopping at the marker, the turn did not complete it transferred); the test faces pin the closure matrix (LiteFoldTest 6→7: the supersede-direction case beside the marker-keeping fold; LiteChatViewModelTest 13→15: the two old handoff pins strengthened to the state.pendingHandoff assertion with the conversation=[user row] and journal tag-sequence checks, the new handoff-then-normal-turn full journal sequence, and the §67 restart banner pin; the driver side untouched); the observed-not-fixed defects single-listed honestly (the turn/cancelled arm's same-family fabrication — unreachable while no cancel path is exposed; the main-repo TS/Swift sister fold's write-only semantics needing mirrored fixture cases, listed outside this worktree); the gates honestly recorded from log content: typecheck EXIT 0 and lint Found 0 warnings and 0 errors on 3861 files (90 rules, 20 threads, 137.8s — both chained rounds carrying no exit trailer — the zero exits rode the invoking shell, recorded beside the logs), test:docs 17 (188.37s) and doc-sync 37 passed 0 failed 0 skipped (307.40s, zero regeneration diff — the post-round git status matching the pre-round snapshot file for file), traceability 6/6 with the §31 open-list closure rewrite at 1459 chars and candidateEvidence 18 (LiteFold.kt, LiteFoldTest.kt and LiteChatScreen.kt joining the row) and the §67 family row at 637 chars with candidateEvidence 8 while §33 and §32 stay at their gen-57 and gen-54 sealed 900/11 and 1134/14, pairing 943 pairs all consistent (the note trio 2026-10-17-lite-handoff-defects with its dictionary written ahead, the 942→943 reconciliation honestly recorded), the serial double audit round green at 87 files / 1073 tests on both passes over the curated list reused verbatim from .artifacts/lite-assembly-g2-audit-file-list.txt (87 lines, the gen-54 precedent lineage, neither sealed log carrying an exit trailer), gate0 PASS in both byte-identical forms (1938 paths / 129 components / 81 sections / 1983 lines — honestly recorded unchanged from the captured UPSTREAM_DELTA.json, not the live tree); the android acceptance: the scanner-env gradle round BUILD SUCCESSFUL in 55s with 75 actionable tasks of which 16 executed and 59 up-to-date — the honestly recorded fold-fix rebuild form (:app:compileDebugKotlin, :app:packageDebug and :app:assembleDebug executed with the fold-fix changes compiled and packaged in this round; the androidTest face recompiled against the new app classes yet repackaged byte-identically — :app:compileDebugAndroidTestKotlin executed while :app:packageDebugAndroidTest and :app:assembleDebugAndroidTest rode UP-TO-DATE; :core:compileKotlin, :core:compileTestKotlin and :core:test UP-TO-DATE; this round's task graph never reaches :app:assembleRelease) — with the androidTest APK IDENTICAL against the lite-resume record's sealed bytes (the live digest holding at be946900, the androidTest source set unchanged this generation, the honest new evidence shape beside the historical dual-DRIFT forms) and the debug APK DRIFT (032fe726→4fd30209, cross-checked live, this generation's capture becoming the new baseline) and the core XML aggregate reading 83 suites / 542 tests — the reconciliation over gen-58's 539 at +3 (the handoff cases with LiteChatViewModelTest 15/0 and LiteFoldTest 7/0) — beside the contract half at 4 suites / 37 tests (aggregate JSON keys named skips — .artifacts/lite-handoff-g3-core-results.json); no connected round ran this generation, honestly recorded (the androidTest source set unchanged and the IDENTICAL APK corroborating — no new instrumentation case to run); and the adjudicated single-set ruling on the adapter's measured three-source miss stop-point (the gen-53 dwfq-b1ce6281-1 precedent form): the prepare oracle derives the measured seventy-seven replaced prior build outputs — all android (one APK, one jar, ten classes, sixty-two XML reports, three binary outputs) — the adapter's generator-side measurement splits them into one chain-resolvable key (the recompiled LiteFoldTest.class at the deterministic bytes older records hold — this generation's fallback shape the recompiled-classes form of gen-53, gen-55, gen-56, gen-57 and gen-58, honestly recorded) and seventy-six first-emission keys no archive holds (the debug APK's sealed 032fe726 bytes ride no older archive — the androidTest APK's sealed be946900 bytes ride no derivation at all because the live digest still holds them — beside the repacked jar, the nine first-emission LiteChatViewModelTest and LiteFoldTest class members and the sixty-two XML reports and three binary outputs sealed only by the prior record itself — the ninth consecutive generation of the same class: gen-51 ninety-four, gen-52 seventy-three, gen-53 sixty-seven, gen-54 sixty-seven, gen-55 sixty-eight, gen-56 sixty-eight, gen-57 seventy, gen-58 seventy-four, gen-59 seventy-six), so the advance installs the liteResumeReplacedBuildOutputs exactly-seventy-six build-output exemption on the demoted lite-resume block, derived and emitted at advance run time from the record, the chain archives and the disk — never transcribed — equal to the seventy-seven-key derivation minus the one fallback key, the two source-side ledger miss keys resolving through the new before archive at their HEAD bytes (no UnrecoverableInputs set born), and every prior generation's set — the gen-58 litePresetReplacedBuildOutputs seventy-four beside the gen-57 liteHttpReplacedBuildOutputs seventy, the gen-56 liteFactsReplacedBuildOutputs sixty-eight, the gen-55 liteAssemblyReplacedBuildOutputs sixty-eight, the gen-54 litePermissionReplacedBuildOutputs sixty-seven, the gen-53 liteToolsReplacedBuildOutputs sixty-seven, the gen-52 litePersonaReplacedBuildOutputs seventy-three, the gen-51 liteToolReplacedBuildOutputs ninety-four plus liteToolUnrecoverableInputs two, the gen-32 desktopPackageReplacedBuildOutputs six, the gen-33 tornRepairIntentReplacedBuildOutputs three, the gen-48 clientMutationReplacedBuildOutputs two and the gen-46 durableReceiptsReplacedBuildOutputs three — stays exactly as sealed at HEAD; the turn/cancelled same-family fabrication arm, the TS/Swift sister-fold fixture mirrors, the seeded live driver-fold smoothing for the first live turn, the dormant RelayClient migration-or-retirement decision, the attribution-header decision, the tool-descriptors packaging with the HOST_DECLARED namespace (the gen-60 candidate), the approval ask tier (§38), the tool-call result round-trip (P2) and the §54 network matrix device-side verification all stay open — so no whole-section PASS is granted; full Upstream-First objective remains in progress",
+  "gate0": {
+    "validation": "PASS",
+    "gate0": "PASS",
+    "paths": 1938,
+    "components": 129,
+    "specificationCoverage": {
+      "status": "PASS",
+      "numberedSections": 81,
+      "nonEmptySourceLines": 1983,
+      "acceptanceProven": false
+    }
+  },
+  "sourceRecord": {
+    "path": "artifacts/upstream-first/lite-handoff-source.json",
+    "sha256": "a5d37b5952bd05188f779285e4f0263c5732ec2befba57d5a24d018ffa4e5001"
+  },
+  "generator": {
+    "path": "artifacts/upstream-first/write-reports.mjs",
+    "sha256": "ff54928945be47ae2c024be8ca875ddf3496f874867d6fb2e8857723891f8bb7"
+  },
+  "binding": {
+    "path": "artifacts/upstream-first/lite-handoff-binding.json",
+    "sha256": "5dfd58715aca2a8689f571f5623c9229d1a2d07b115232453b834103581195bb"
+  },
+  "helpers": [
+    {
+      "path": ".artifacts/advance-lite-handoff-reports.mjs",
+      "sha256": "49491889b5a3f992ffffac2084879ef9a73896a7f1df0d7704db9c124963f2db"
+    },
+    {
+      "path": ".artifacts/capture-lite-handoff-validation.mjs",
+      "sha256": "645b89a3bb36bdc48aa2b638af09968a59399c625c2e38d77d951162ef51a4ab"
+    }
+  ],
+  "reports": [
+    {
+      "path": "IMPLEMENTATION_STATUS.md",
+      "sha256": "88b806508aa13cc8094acf4f5036e23e98127a6713896b4b0197f99210622677"
+    },
+    {
+      "path": "artifacts/upstream-first/evidence.json",
+      "sha256": "5fd6523e8ad8d050cb89bc0f8e4343c73e095374ca1f62cb34c5781e54616bb9"
+    }
+  ],
+  "checks": [
+    {
+      "path": ".artifacts/lite-handoff-binding.log",
+      "sha256": "d2f36351db9983e1b9c6db682817fb197f66718ab764f6e282ca81a31833c456"
+    },
+    {
+      "path": ".artifacts/lite-handoff-audit-final.log",
+      "sha256": "4cd41f7b5146d68993404579a3711e106e990a5585af942f12fc42adbb317599"
+    },
+    {
+      "path": ".artifacts/lite-handoff-gate0-final.log",
+      "sha256": "505d74ef938f5d34d85490d37e0176ba804d93272fcf465ce2544a02c56b3f90"
+    },
+    {
+      "path": ".artifacts/lite-handoff-report-generation.log",
+      "sha256": "fe010532f71a6341467ae5719b29ac19470895de1d481156335b8f70a3273ed5"
+    }
+  ]
+}

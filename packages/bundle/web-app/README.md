@@ -112,6 +112,8 @@ The bundle is one patch layer of five files plus one runtime glue plugin: `cordi
 
 The `skill-office` row mounts the [Office skills](../../skill/skill-office/README.md) from their packaged assets in every profile. Desktop with a nonempty `DSH_PRIMARY_RUNTIME` also mounts the bundled dependency-query row and selects `pythonEnvironment: 'workspace-dependencies'`; other profiles, and Desktop without a primary runtime, select `pythonEnvironment: 'user'` and leave the dependency-query row disabled. The [Desktop application](../../../apps/desktop/README.md#bundled-workspace-dependencies) owns resource packaging.
 
+The composition mounts [Host discovery](../../api/host-description/README.md) within the existing authenticated API for persistent Host identity, independent versions, and live capabilities, declaring the `http` and `websocket` carriers.
+
 ### Patch semantics
 
 A patch replaces the targeted row's whole `config`, so each web row restates every key it owns: the persona prefix template and the `session-query-sqlite` values on the base rows, then `insert` adds the web host rows, transport, and browser roster. The `webserver`, `web-runtime`, and `connection` rows inject the `webStartup` provider and read their invocation values directly; Connection composes its accepted authorities from `ctx.webStartup.trustedHosts`, and the Host/Origin fence accepts the listener's bind IP independently of that list. The bundle inherits native tool execution; a [PTC overlay](../../../apps/cli/config/examples/ptc.yml) changes the deployment executor. The per-agent tool rows the base mounts process-wide are disabled here and the preset roster takes over; the reasoning for each host-plane versus preset-plane decision is inline in the patch.

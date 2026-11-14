@@ -1,0 +1,20 @@
+[
+  {
+    "launcher": "direct",
+    "exitCode": 0,
+    "stdout": "{\"security\":{\"integrityRid\":8192,\"elevationType\":3,\"elevated\":false,\"restricted\":true,\"appContainer\":false,\"inJob\":true},\"junction\":{\"status\":\"PASS\"},\"execPath\":\"C:\\\\Program Files\\\\nodejs\\\\node.exe\"}\n",
+    "stderr": ""
+  },
+  {
+    "launcher": "repository",
+    "exitCode": 0,
+    "stdout": "{\"security\":{\"integrityRid\":8192,\"elevationType\":3,\"elevated\":false,\"restricted\":true,\"appContainer\":false,\"inJob\":true},\"junction\":{\"status\":\"PASS\"},\"execPath\":\"C:\\\\Program Files\\\\nodejs\\\\node.exe\"}\n",
+    "stderr": "dsh: initialized profile sdk at C:\\Users\\11585\\AppData\\Local\\Temp\\dsh-link-security-ks5kolvr\\home\\profiles\\sdk\n"
+  },
+  {
+    "launcher": "installed",
+    "exitCode": 0,
+    "stdout": "{\"security\":{\"integrityRid\":8192,\"elevationType\":3,\"elevated\":false,\"restricted\":true,\"appContainer\":false,\"inJob\":true},\"junction\":{\"status\":\"FAIL\",\"code\":\"EPERM\"},\"execPath\":\"C:\\\\Program Files\\\\nodejs\\\\node.exe\"}\n",
+    "stderr": ""
+  }
+]

@@ -1,0 +1,22 @@
+# Bilingual-pair consistency record for 2026-10-21-in-turn-tool-round-continuation.md (docs/i18n/README.md): per heading
+# section, a hash of its English and Chinese blocks outside code blocks and generated regions.
+# After editing either side, bring the other along and re-record with:
+#   pnpm run verify-translation-pairing --write .agents/notes/implemented/architecture/2026-10-21-in-turn-tool-round-continuation.md
+/agent-note-lite-turns-continue-over-their-own-tool-output:
+  en: c511485a830f30af
+  zh: 0381f5057b32fb61
+/agent-note-lite-turns-continue-over-their-own-tool-output/problem:
+  en: 23fb941a9dd71c42
+  zh: c57a91302fe3e154
+/agent-note-lite-turns-continue-over-their-own-tool-output/decision:
+  en: cc93877119fd5167
+  zh: b26b4a9ed0401518
+/agent-note-lite-turns-continue-over-their-own-tool-output/alternatives-considered:
+  en: 2d79a18cc7b278c0
+  zh: 3d4d8ab521108f4a
+/agent-note-lite-turns-continue-over-their-own-tool-output/consequences:
+  en: d3ce84f1db0ddc8b
+  zh: ef9310dcb5cdd6b9
+/agent-note-lite-turns-continue-over-their-own-tool-output/open-follow-ups:
+  en: bc821b2ef743e6f2
+  zh: fb6a43cb27672733

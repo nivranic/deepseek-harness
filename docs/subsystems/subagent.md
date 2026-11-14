@@ -8,6 +8,10 @@ The unified activation API manages local conversations and external executions. 
 
 Every backend uses startActivation. Capability flags validate request options; prepareContinuable selects local Agent creation, while start selects one external execution. The model-facing tool uses parent delivery. Workflow and code mode consumers can await caller results without injecting another parent message. Historical children with unavailable descriptors remain discoverable as `mode: 'unknown'` without granting continuation capabilities; the [package README](../../packages/subagent/subagent/README.md) defines catalog persistence.
 
+The `subagentCatalog` projection exposes `SubagentCatalogEntry[]` in parent event order through Session observations and client snapshots. Each entry contains the child id, creation time, mode, and mode-dependent label; fork-inherited catalog facts are excluded. [The subagent package](../../packages/subagent/subagent/README.md) owns catalog creation and persistence semantics.
+
+`subagentPromptReceipts` is a Host-only projection of accepted browser request identities and their original message ids. It folds the child-owned suffix of existing inbox and user-message events, persists through the projection checkpoint mechanism and has no wire view. [Prompt retry semantics](../../packages/subagent/subagent/README.md) remain owned by the subagent package.
+
 Optional `cwd` selects the child's initial directory; relative paths resolve against the parent's current effective directory. Omitting it captures that directory at admission. Local child Sessions retain the parent's original project, and cold resume retains their logged directory state.
 
 ```ts type-equiv
@@ -137,6 +141,18 @@ interface ResolvedSubagentStartRequest extends SubagentStartRequest {
 
 Spawn alone supports an independent `agentPreset`; omission and fork inherit the parent's active composition. The [child preset rules](../../packages/subagent/subagent/README.md#restoring-child-composition) define explicit selection, event ordering, and historical restoration.
 
+`SubagentRuntime.interrupt(targetSessionId, authority)` is the one public stop: it authorizes synchronously, issues `Agent.cancel(cause, { keepInbox: true })` on the live target, and returns without awaiting quiescence. The Activation, its unclaimed pending inbox work, and published descendants are untouched; work already claimed into the interrupted turn is not requeued. Once the interrupted driver is idle, a waking send resumes the parked FIFO queue. An absent target — unknown, one-shot, or already settled — and a manager-less composition are accepted no-ops. For a live target, a mismatched parent address or caller outside its live ancestry rejects with `UNAUTHORIZED`; stale ancestor objects and self-targeting ancestor requests reject before target lookup.
+
+`SubagentInterruptTurnRequest` carries `parentSessionId`, `childSessionId`, `mode: 'continuable'` and the observed `turnStartSeq` or null. `subagents.interruptTurnByParent` checks that target against `subagentTiming.active.startSeq`; missing active sequence data cannot authorize a Client fallback on a Host advertising `subagent.interrupt-turn.v1`. The [interrupt decision](../../.agents/notes/archived/feature/2026-08-06-continuable-subagent-interrupt.md) owns authorization, no-op outcomes and legacy behavior.
+
+Every Activation owns its `AgentHandle` and an `ownedChildren: Set<SessionId>`; because one Session has at most one live Activation, the child Session id identifies the live child without another runtime-incarnation reference. Starting a child or submitting parent-originated work registers the child in a continuation-managed parent's set before the child can run, and that parent cannot settle while the set is non-empty. A top-level or other non-continuation Agent has no Activation and stays outside the waiting graph. Child release happens only after the child has no active Agent work, its Inbox is empty, every child of that child is disposed, the best-effort final session flush settles, and the child's `AgentHandle` completes disposal.
+
+Final settlement awaits `ctx.sessions.flush(session)` but ignores its participation boolean because an arbitrary listener cannot prove that a persistence backend stored the state. Rejection is logged without failing the Activation, and the manager still disposes the handle and releases ownership; the persisted child state may then be missing or stale on a later resume. Manager unload invokes an internal manager-wide drain that closes admission and disposes every live forest; `drainContinuableDescendants(parents)` closes admission only below exact live host-owned Agents and disposes their continuable descendants while unrelated forests remain live. Both await already-admitted materializations in their scope, propagate cancellation top-down, release handles child-first, and await every selected branch despite individual failures. Durable child Sessions survive that process-local teardown.
+
+When a resident Activation settles, the manager delivers one notice to the child's durable direct parent describing how that epoch ended and carrying its final assistant content. That delivery is unconditional for every child whose id a caller received, happens before the ownership release that would let the parent be judged settled, and reaches a resident parent through the same waking Agent delivery as an Agent message. A parent whose own lineage is already tearing down receives it without a wake, because waking an idle Agent starts a turn rather than queueing work. Its origin is a distinct kind so a transcript never presents a runtime account as something the child wrote.
+
+The provider participates only in preparing the initial creation spec, where `spawn` and `fork` differ. Its returned spec carries only detached provider-specific creation inputs — the optional parent-history seed — and no Agent, `AgentHandle`, prompt delivery, result, disposal, or resume operation. Cold resume does not dispatch through a provider at all: the manager folds the generic descriptor, calls `ctx.agents.resume()` through the same activation-owner scope, and submits the waiting turn.
+
 A local child has a durable Session and at most one live activation. The manager reserves identity and capacity, prepares the child through its backend, and owns input admission, cold resume, and child-first disposal. The activation result settles after resource release and completion notification. Disposal reports cleanup failure separately without replacing a captured result. Structured capture closes input for that activation; a later cold resume does not inherit the output schema.
 
 ```ts type-equiv
@@ -244,10 +260,15 @@ interface SubagentSendMessageOptions {
  * invoking it. `ancestor` carries an exact live Agent in the target's creation ancestry.
  */
 type SubagentInterruptAuthority =
-  | { readonly kind: 'user' }
+  | {
+    readonly kind: 'user'
+    /** Optional durable direct parent required by parent-addressed operations. */
+    readonly parentSessionId?: SessionId
+    /** Omission keeps current-turn interruption; null or a stale sequence cannot cancel later work. */
+    readonly turnStartSeq?: number | null
+  }
   | { readonly kind: 'ancestor'; readonly agent: Agent }
 ```
-
 ## Durable enumeration
 
 The parent-owned `subagentCatalog` projection lists all local children and parent-delivery external children. Caller-delivery external executions leave membership and result collection to their caller; local workflow children remain discoverable after completion. External entries carry `mode: 'external'` and cannot open a child Session or accept follow-ups. Catalog entries record membership at creation without execution status. `list_agents` exposes the root and reachable continuable descendants with `running` or `inactive` activity; see the [control tool](../../packages/subagent/tool-subagent-control/README.md#list_agents).
@@ -415,8 +436,6 @@ type SubagentDescendantListEntry = SubagentListEntry & {
   readonly path?: string
 }
 ```
-
-
 
 <!-- BEGIN GENERATED cordis-surface (gen-cordis-catalog.ts) — do not edit between markers -->
 
@@ -596,6 +615,24 @@ listDescendants(rootSessionId: SessionId, signal?: AbortSignal): Promise<Subagen
  *   otherwise `gateway/internal`.
  */
 @Remote({ name: 'interruptByUser', resources: { session: childSessionId => childSessionId } }) interruptByUser(childSessionId: SessionId): SubagentInterruptReceipt
+
+/**
+ * Interrupt the current child turn under its durable direct parent.
+ * @param childSessionId - durable child Session.
+ * @param parentSessionId - durable direct creator.
+ * @param mode - continuable child control mode.
+ * @returns cancellation admission acknowledgement.
+ * @throws {RemoteError} invalid input, parent mismatch, or an internal failure.
+ */
+@Remote({ name: 'interruptByParent', resources: { session: childSessionId => childSessionId } }) interruptByParent( childSessionId: SessionId, parentSessionId: SessionId, mode: 'continuable', ): SubagentInterruptReceipt
+
+/**
+ * Stop an observed child turn under its durable direct parent.
+ * @param request - child address and observed turn/start sequence, or null for an idle child.
+ * @returns acceptance for a cancelled, stale, idle, absent, or completed target.
+ * @throws {RemoteError} invalid input, parent mismatch, or unavailable turn projection.
+ */
+@Remote({ name: 'interruptTurnByParent', resources: { session: request => request.childSessionId } }) interruptTurnByParent(request: SubagentInterruptTurnRequest): SubagentInterruptReceipt
 
 /**
  * Register a provider under its name. Registration is effect-scoped and HMR

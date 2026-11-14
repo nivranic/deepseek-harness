@@ -1,0 +1,66 @@
+{
+  "status": "PASS",
+  "scope": "Report bindings and audit for the android follow lane increment: the section 25 persisted follow window lifts from the gen-21 core-level close to the installed state — the new lane apps/web/tests/android-follow-window-persistence.e2e.ts (on the cursor-resume skeleton) pairs a device against a real Host, opens a seeded Session, fills an unsent prompt draft, loads one older history page (first follow request with no cursor), appends exactly three records and flushes while the follow stream is still open, force-stops the process via driver.kill(), restarts the same installation gated by assertRestored first, and proves the reopened request carries the persisted cursor, the Host omits the covered tail and returns exactly the three appended records with the first at cursor + 1, the merged window keeps the older page contiguous across the whole retained range (windowWithRetry with attempts 1; the single timed-out retry absorbs the restored process's top-down whole-window scroll latency — the driver per-request 40-second timer can drop that slow response while the server-side operation still completes, not a product defect), the unsent draft survives, zero business mutations reach the Host, and the screenshot lands as .artifacts/screenshots/android-follow-window/restarted.png against the six-line golden; the acceptance APKs were rebuilt and installed on emulator-5554 under -PdshNativeAcceptance with the scanner env (pm path verified by the .nativeacceptance application id) in the same gradle round as :app:assembleDebug, :app:assembleDebugAndroidTest and :core:test, whose core tasks ran UP-TO-DATE because no Kotlin source changed this generation (the XML reports still aggregate 77 suites / 477 tests with zero failures/errors/skips); the lane went three consecutive green runs after the retry repair and the lint fix, with the three earlier 40-second assertSessionWindow timeouts honestly preserved as diagnostic observations (WIP evidence at .artifacts/android-follow-lane-WIP.md, narrated in .artifacts/android-follow-lane-iteration-notes.log) and the persistJournalWindow main-thread-IO suspicion evaluated and rejected on evidence (recorded in the note's alternatives section); the serial audit double round went 43 files / 618 tests green on both first passes with no -r1 log, typecheck and lint both clean (TYPECHECK_EXIT=0, LINT_EXIT=0), doc-quick, doc-sync and gate0 pass, and traceability section 25 closes the install-state lane mention with three new candidate evidence paths; the physical-network interruption, foreground-push recovery, physical devices, deep links and share routing stay open; full Upstream-First objective remains in progress",
+  "gate0": {
+    "validation": "PASS",
+    "gate0": "PASS",
+    "paths": 1938,
+    "components": 129,
+    "specificationCoverage": {
+      "status": "PASS",
+      "numberedSections": 81,
+      "nonEmptySourceLines": 1983,
+      "acceptanceProven": false
+    }
+  },
+  "sourceRecord": {
+    "path": "artifacts/upstream-first/android-follow-lane-source.json",
+    "sha256": "576f0172d61cf23fbba0ed16a7e62b6f14d69be3898751ab4daeb3ebc23bfdee"
+  },
+  "generator": {
+    "path": "artifacts/upstream-first/write-reports.mjs",
+    "sha256": "29453fe6cc56cfcf9b4a2e3feffaea8854acbafa76c6c3a2d53c979f8d297a9a"
+  },
+  "binding": {
+    "path": "artifacts/upstream-first/android-follow-lane-binding.json",
+    "sha256": "3f352bb77c9291c0fc813d470fef7519d6e02702169cf9669f7745e6e5f85e9a"
+  },
+  "helpers": [
+    {
+      "path": ".artifacts/advance-android-follow-lane-reports.mjs",
+      "sha256": "65af1ff945a6c21d12d4d062c55b05ddfc102313a1f633b844b9f8b8b1bbb454"
+    },
+    {
+      "path": ".artifacts/capture-android-follow-lane-validation.mjs",
+      "sha256": "54547932cb3f8cd82a86606effe17190fd21ee7967bdb1e538d8ebb0f86c538f"
+    }
+  ],
+  "reports": [
+    {
+      "path": "IMPLEMENTATION_STATUS.md",
+      "sha256": "b4971c3d3303b93cc87c2b8579b8b302f90a16898d5c86d60bd9f7b0d7c5902d"
+    },
+    {
+      "path": "artifacts/upstream-first/evidence.json",
+      "sha256": "f9593f5209b6c7748e6812737602bd6ecec8169c291f69b52668c818508c8274"
+    }
+  ],
+  "checks": [
+    {
+      "path": ".artifacts/android-follow-lane-binding.log",
+      "sha256": "6c1f012d2fd81d615c743f2640cf975b15339a9d4a134fc0e2c19667a8fc4d16"
+    },
+    {
+      "path": ".artifacts/android-follow-lane-audit-final.log",
+      "sha256": "338ffe1388de6ed5682daa0829e5de955d15d042926b0c4ebe596e81be5e27a5"
+    },
+    {
+      "path": ".artifacts/android-follow-lane-gate0-final.log",
+      "sha256": "505d74ef938f5d34d85490d37e0176ba804d93272fcf465ce2544a02c56b3f90"
+    },
+    {
+      "path": ".artifacts/android-follow-lane-report-generation.log",
+      "sha256": "fe010532f71a6341467ae5719b29ac19470895de1d481156335b8f70a3273ed5"
+    }
+  ]
+}

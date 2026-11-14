@@ -1,0 +1,64 @@
+{
+  "status": "PASS",
+  "scope": "Report bindings and audit for HTTP rejection semantics and caller cancellation precedence; full Upstream-First objective remains in progress",
+  "gate0": {
+    "validation": "PASS",
+    "gate0": "PASS",
+    "paths": 1938,
+    "components": 129
+  },
+  "sourceRecord": {
+    "path": "artifacts/upstream-first/http-failure-semantics-source.json",
+    "sha256": "7a32dca6814904e3ff5fdf25110ef048fff1d0b0d4fe0db09400ff35d283f4b1"
+  },
+  "generator": {
+    "path": "artifacts/upstream-first/write-reports.mjs",
+    "sha256": "ff858a7913f28e3d53499025821e43b2d93de04ece24eb58d683f7c9ca6699ef"
+  },
+  "binding": {
+    "path": "artifacts/upstream-first/http-failure-semantics-binding.json",
+    "sha256": "8c03484b1a7a8b55486d30197b37b88406f847c5ac38f696c6172131d7058d1a"
+  },
+  "helpers": [
+    {
+      "path": ".artifacts/advance-http-failure-semantics-reports.mjs",
+      "sha256": "50f8ce02946d77465357b641c42f1038b963c124805398aab4413ae3c3962b4d"
+    },
+    {
+      "path": ".artifacts/capture-http-failure-semantics-validation.mjs",
+      "sha256": "03bf843113cf326e810766a9d5999a46a3440cab81e38615ec6e54afaa8da316"
+    }
+  ],
+  "reports": [
+    {
+      "path": "IMPLEMENTATION_STATUS.md",
+      "sha256": "7af57b3b29d2679c7498097a246382179bf8f870b48fa5d4703fb38a60527741"
+    },
+    {
+      "path": "artifacts/upstream-first/evidence.json",
+      "sha256": "f9c6d125173f9df4203821267bba75f92efadabd50a0eae4e87f893e2b87faf1"
+    }
+  ],
+  "checks": [
+    {
+      "path": ".artifacts/http-failure-semantics-binding.log",
+      "sha256": "c20e1b0c8f7e3638ce95c10f24bff114804eff511db0c54147a81a5d6f6c12de"
+    },
+    {
+      "path": ".artifacts/http-failure-semantics-audit-tests.log",
+      "sha256": "6cea5905b04c518e90d02503dc53db33f5a7213c1d7e88669d9908f5315991e3"
+    },
+    {
+      "path": ".artifacts/http-failure-semantics-gate0.log",
+      "sha256": "4b5af3121a7e7caff0e1b6288bdaa7cfef9988842ae06bf02dc0a74852426043"
+    },
+    {
+      "path": ".artifacts/http-failure-semantics-report-diff-check.log",
+      "sha256": "e3b0c44298fc1c149afbf4c8996fb92427ae41e4649b934ca495991b7852b855"
+    },
+    {
+      "path": ".artifacts/http-failure-semantics-report-generation.log",
+      "sha256": "5867d1d51cd43a59428de2e7fffa15847d7153b11f3b61ecf812224ee2dd2099"
+    }
+  ]
+}

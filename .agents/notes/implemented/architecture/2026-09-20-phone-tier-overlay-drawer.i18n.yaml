@@ -1,0 +1,22 @@
+# Bilingual-pair consistency record for 2026-09-20-phone-tier-overlay-drawer.md (docs/i18n/README.md): per heading
+# section, a hash of its English and Chinese blocks outside code blocks and generated regions.
+# After editing either side, bring the other along and re-record with:
+#   pnpm run verify-translation-pairing --write .agents/notes/implemented/architecture/2026-09-20-phone-tier-overlay-drawer.md
+/agent-note-phone-tier-renders-the-sidebar-as-an-overlay-drawer:
+  en: 82ad7492aa250fec
+  zh: ecdeebbec8e6db39
+/agent-note-phone-tier-renders-the-sidebar-as-an-overlay-drawer/problem:
+  en: ffbed4357e6c2639
+  zh: 8e7f021482e77042
+/agent-note-phone-tier-renders-the-sidebar-as-an-overlay-drawer/current-upstream-boundary:
+  en: ba1e5d9fad04cf6d
+  zh: 52f74651131384e2
+/agent-note-phone-tier-renders-the-sidebar-as-an-overlay-drawer/decision:
+  en: 2cd04251f7b8df83
+  zh: f75dc39f81697ee1
+/agent-note-phone-tier-renders-the-sidebar-as-an-overlay-drawer/alternatives-considered:
+  en: f4e4ff948809f40a
+  zh: fc49b88a414e31cb
+/agent-note-phone-tier-renders-the-sidebar-as-an-overlay-drawer/consequences:
+  en: dd245f9ddfdd392c
+  zh: c1b4da9c49dddf8f

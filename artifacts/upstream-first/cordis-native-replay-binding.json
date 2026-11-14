@@ -1,0 +1,16 @@
+{
+  "status": "PASS",
+  "controls": 3,
+  "sourceRecord": {
+    "path": "artifacts/upstream-first/cordis-native-replay-source.json",
+    "sha256": "812d0acaaa25d3fd9c551bec01f7dbfd4bcdae02e82aa04a31c3f16c055e3a1d"
+  },
+  "generator": {
+    "path": "artifacts/upstream-first/write-reports.mjs",
+    "sha256": "05bb94cbec90ae924b9110f357e2ae170d782d8b46dc4426d0768b342baed3de"
+  },
+  "helper": {
+    "path": ".artifacts/check-cordis-native-replay-binding.mjs",
+    "sha256": "1c8cdf22d0d5a4fdaeed432bc5d87d37cfd1e74cedb367c22187a5d12ee90095"
+  }
+}

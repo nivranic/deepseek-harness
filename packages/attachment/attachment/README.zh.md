@@ -68,11 +68,11 @@ kind: "package-reference"
 - **读取时校验。** 读取会把不可变对象与传入引用比对，无需查询 Session。可选的显示名称和规范化前尺寸作为调用方提交的显示信息原样返回；存储字节不校验这两个字段。
 - **角色无关的图片块。** `dsh-llm` 中的 `ImageBlock` 内容块携带 `ImageAttachmentRef`；提供方适配器按路由显式选定的目标尺寸与字节目标把引用解析为确定性请求版本，执行文件系统则可以把不可变宿主对象映射为模型可读的进程路径。
 - **按错误码路由。** `AttachmentError` 继承无依赖包 `dsh-error` 中的 `HarnessError`，因此工具结果保留其 `name` 与 `code`；消费方用 `isAttachmentError` 识别错误（它按错误码匹配，跨重复安装也有效），并按 `code` 路由。
-- **文件原样，图片规范化。**`saveFile` 提交已有字节数组，`saveFileStream` 以背压和取消语义提交有界分块，`readFileStream` 校验并返回有界分块，`fileHostPath` 定位存储对象供按需读取投影；两种文件写入路径都不设准入限制。图片路径保留其独立的规范化、限额与请求版本流水线。`dsh-llm` 中的 `FileBlock` 内容块承载 `FileAttachmentRef`，请求组装会为每条路由将其投影为确定性的句柄文本。
+- **文件原样，图片规范化。**`saveFile` 提交已有字节数组，`saveFileStream` 以背压和取消语义提交有界分块，`readFileStream` 校验并返回有界分块，`fileHostPath` 定位存储对象供按需读取投影；两种文件写入路径都不设准入限制。`ensureFileByDigest` 按摘要解析已存储对象，重新校验其字节并发布调用方显示名别名，使 Host 已存储的上传无需重收字节即可重新暂存。图片路径保留其独立的规范化、限额与请求版本流水线。`dsh-llm` 中的 `FileBlock` 内容块承载 `FileAttachmentRef`，请求组装会为每条路由将其投影为确定性的句柄文本。
 
 ### 服务操作
 
-服务族运行同一条准入与存储流程：每个入口都强制执行源批次限制与规范 base64，在发布任何成员前准备提供方无关的规范化附件，再按输入顺序持久提交而不产生部分结果。Host 提示词消费方把有序文本、编码图片和已经解析的文件与图片引用交给 `ctx.attachments.admitPromptContent()`；该方法持久化编码图片，让引用原样通过，并把每张图片计入单条消息的图片数量与总字节上限，已存储的图片按存储它的那次上传的字节数计入。编码协议适配器调用 `ctx.attachments.admitEncodedFile()`，由该方法检查规范 base64 后委托给 `saveFile`；适配器通过 `ctx.attachments.isAttachmentError()` 识别附件错误。通用文件调用方可以用 `saveFile` 提交已有字节，或用 `saveFileStream` 提交有界异步字节源；两者返回相同的持久引用，`readFileStream` 则在有界读取过程中校验摘要与长度。`readImageRequest` 派生确定性的路由尺寸变体，其身份包含附件 id、变换版本、目标尺寸、字节目标及编码参数。纯函数导出 `requestImageDimensions` 与 `longEdgeDimensions` 按总像素预算或精确长边计算保持宽高比的尺寸，使路由与请求定价共享同一套几何计算。`imageHostPath` 只向需要把该位置映射到执行环境的受信任同进程消费方暴露实现拥有的宿主位置。调用方组合有序批次，而实现负责管理压缩并发、缓存与 singleflight。读取、流式写入和投影保留调用方的取消语义。失败带有稳定且机器可读的错误码，运行时即可识别可由调用方修正的准入子集，让每个协议适配器映射自己的词汇；各操作的确切约定见 [`src/index.ts`](src/index.ts) 与 [`src/error.ts`](src/error.ts)。
+服务族运行同一条准入与存储流程：每个入口都强制执行源批次限制与规范 base64，在发布任何成员前准备提供方无关的规范化附件，再按输入顺序持久提交而不产生部分结果。Host 提示词消费方把有序文本、编码图片以及已解析的文件或暂存图片引用交给 `ctx.attachments.admitPromptContent()`。内联与暂存图片共享张数及原始字节总量限制，重复出现也计入总量；该方法在存储任何内联图片前检查这些总量。受信任的暂存准入数据提供规范化前的字节数，该数值可能不同于规范化引用中的字节数。该方法持久化内联图片，保留已有附件引用，并按输入顺序返回持久图片块。编码协议适配器调用 `ctx.attachments.admitEncodedFile()`，由该方法检查规范 base64 后委托给 `saveFile`；适配器通过 `ctx.attachments.isAttachmentError()` 识别附件错误。通用文件调用方可以用 `saveFile` 提交已有字节，或用 `saveFileStream` 提交有界异步字节源；两者返回相同的持久引用，`readFileStream` 则在有界读取过程中校验摘要与长度。`readImageRequest` 派生确定性的路由尺寸变体，其身份包含附件 id、变换版本、目标尺寸、字节目标及编码参数。纯函数导出 `requestImageDimensions` 与 `longEdgeDimensions` 按总像素预算或精确长边计算保持宽高比的尺寸，使路由与请求定价共享同一套几何计算。`imageHostPath` 只向需要把该位置映射到执行环境的受信任同进程消费方暴露实现拥有的宿主位置。调用方组合有序批次，而实现负责管理压缩并发、缓存与 singleflight。读取、流式写入和投影保留调用方的取消语义。失败带有稳定且机器可读的错误码，运行时即可识别可由调用方修正的准入子集，让每个协议适配器映射自己的词汇；各操作的确切约定见 [`src/index.ts`](src/index.ts) 与 [`src/error.ts`](src/error.ts)。
 
 ### 源码地图
 

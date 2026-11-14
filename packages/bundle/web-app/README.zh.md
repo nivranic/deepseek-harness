@@ -13,7 +13,7 @@ kind: "package-bundle"
 
 ## 概述
 
-运行 `dsh --profile web`，获得浏览器内的聊天、模型与设置管理以及会话历史，并与其他 dsh 表层共用同一套模型访问、工具与安全默认值。启动时会打印带 token 的 URL，通常还会在默认浏览器中打开；SSH 会话和 `--no-open` 需要手动打开。你可以更改端口、允许额外 authority、绑定一个具体的本机 IP，并用自己提供的证书直接提供 HTTPS；通配地址会被拒绝。跨机访问使用剥离前缀代理后公告的 HTTP(S) URL、监听器 TLS，或非 loopback 绑定上的明文 HTTP。一次性的命令行任务应使用 headless 配置。
+运行 `dsh --profile web`，打开提供聊天、模型与设置管理以及会话历史的交互式浏览器 GUI。它使用与其他 dsh 表层相同的模型访问、工具与安全默认值。启动时会打印带认证信息的 URL，通常还会在默认浏览器中打开；SSH 会话和 `--no-open` 会保留该 URL，供你手动打开。你可以更改端口并允许额外主机。需要在浏览器中交互式工作时选择本包；一次性的命令行任务应使用 `dsh-headless`。 运行 `dsh --profile web`，获得浏览器内的聊天、模型与设置管理以及会话历史，并与其他 dsh 表层共用同一套模型访问、工具与安全默认值。启动时会打印带 token 的 URL，通常还会在默认浏览器中打开；SSH 会话和 `--no-open` 需要手动打开。你可以更改端口、允许额外 authority、绑定一个具体的本机 IP，并用自己提供的证书直接提供 HTTPS；通配地址会被拒绝。跨机访问使用剥离前缀代理后公告的 HTTP(S) URL、监听器 TLS，或非 loopback 绑定上的明文 HTTP。一次性的命令行任务应使用 headless 配置。
 
 ## 目录
 
@@ -111,6 +111,8 @@ dsh --profile web --no-open --host "$(hostname -i | awk '{print $1}')" --public-
 此 bundle 由一层五个文件的补丁和一个运行时胶水插件组成：`cordis.patch.yml` 承载宿主行和 preset 注册表，每个 `presets/<id>.patch.yml` 插入一条随发行版交付的 preset 声明，按 `dsh.bundle.patch` 列出的顺序应用。存储栈与投影缓存来自 `dsh-base`；Web 叠加层的工作区和消息反馈条目消费共享的 `storageDomain` 服务。补丁重述 base 有意省略的界面专用值，插入 Web 专用宿主条目和浏览器插件列表，再将 Agent 层移到预设后面。胶水插件负责 dist 服务、公告应用 URL、明文 HTTP 暴露警告和 bash 变量。WebApp 负责启动 URL 发布与浏览器交接；[Token 认证插件](../../host/authentication-token/README.zh.md)贡献带签名的入口 URL。`office-kit` 条目为宿主消费者挂载一个延迟创建引擎的 [Office 转换提供方](../../document/office-kit/README.zh.md)，使用此 bundle 的 Desktop 组合也共享该提供方，转换后的文件保存在 `$DSH_HOME/office-kit/outputs`。`standard` 和 `ptc` 预设在所有 profile 中挂载 [Office 工具](../../document/tool-office/README.zh.md)，无论是否安装 Kit，并在加载 Office 技能后声明它们；`minimal` 预设不挂载它们。转换服务的 Remote 方法负责预览读取授权，Document Preview 负责 Office 查看器和客户端缓存。
 
 `skill-office` 行在所有 profile 中从包内 assets 挂载 [Office 技能](../../skill/skill-office/README.zh.md)。`DSH_PRIMARY_RUNTIME` 非空的 Desktop 还挂载内置依赖查询行，并选择 `pythonEnvironment: 'workspace-dependencies'`；其他 profile 以及没有主运行时的 Desktop 选择 `pythonEnvironment: 'user'`，并禁用依赖查询行。资源打包由 [Desktop 应用](../../../apps/desktop/README.zh.md#bundled-workspace-dependencies)负责。
+
+组合在既有认证 API 中挂载 [Host 发现](../../api/host-description/README.zh.md)，以读取持久 Host 身份、独立版本和活跃能力，并声明 `http` 与 `websocket` 载体。
 
 ### patch 语义
 

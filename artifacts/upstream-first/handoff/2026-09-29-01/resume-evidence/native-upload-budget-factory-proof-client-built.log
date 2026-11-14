@@ -1,0 +1,40 @@
+The plugin "vite-tsconfig-paths" is detected. Vite now supports tsconfig paths resolution natively via the resolve.tsconfigPaths option. You can remove the plugin and set resolve.tsconfigPaths: true in your Vite config instead.
+
+ RUN  v4.1.8 E:/Mix/project/deepseek-harness/.worktrees/upstream-first
+
+ ❯ apps/web/tests/native-remote-isolation.e2e.ts (2 tests | 2 failed) 11573ms
+   × keeps normal-profile native RPC and streams in the accepting listener scope with root listener = true 7037ms
+   × keeps normal-profile native RPC and streams in the accepting listener scope with root listener = false 4535ms
+
+⎯⎯⎯⎯⎯⎯⎯ Failed Tests 2 ⎯⎯⎯⎯⎯⎯⎯
+
+ FAIL  apps/web/tests/native-remote-isolation.e2e.ts > keeps normal-profile native RPC and streams in the accepting listener scope with root listener = true
+TypeError: Cannot read properties of undefined (reading 'catch')
+ ❯ apps/web/tests/native-remote-isolation.e2e.ts:151:62
+    149|   finally {
+    150|     for (const client of clients.reverse()) await client.close().catch…
+    151|     for (const fiber of fibers.reverse()) await fiber.dispose().catch(…
+       |                                                              ^
+    152|     await scaffold.close().catch((error: unknown) => { failures.push(e…
+    153|   }
+
+⎯⎯⎯⎯⎯⎯⎯⎯⎯⎯⎯⎯⎯⎯⎯⎯⎯⎯⎯⎯⎯⎯⎯⎯[1/2]⎯
+
+ FAIL  apps/web/tests/native-remote-isolation.e2e.ts > keeps normal-profile native RPC and streams in the accepting listener scope with root listener = false
+TypeError: Cannot read properties of undefined (reading 'catch')
+ ❯ apps/web/tests/native-remote-isolation.e2e.ts:151:62
+    149|   finally {
+    150|     for (const client of clients.reverse()) await client.close().catch…
+    151|     for (const fiber of fibers.reverse()) await fiber.dispose().catch(…
+       |                                                              ^
+    152|     await scaffold.close().catch((error: unknown) => { failures.push(e…
+    153|   }
+
+⎯⎯⎯⎯⎯⎯⎯⎯⎯⎯⎯⎯⎯⎯⎯⎯⎯⎯⎯⎯⎯⎯⎯⎯[2/2]⎯
+
+
+ Test Files  1 failed (1)
+      Tests  2 failed (2)
+   Start at  06:51:40
+   Duration  16.80s (transform 1.78s, setup 0ms, import 4.82s, tests 11.57s, environment 0ms)
+

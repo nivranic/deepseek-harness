@@ -1,0 +1,66 @@
+{
+  "status": "PASS",
+  "scope": "Report bindings and audit for the revision-stamping increment: the section 42 sourceRevision publisher-side stamp wiring delivered as machine-checked facts — the diagnostics snapshot already read DSH_BUILD_REVISION ?? 'source-tree' with no launcher ever stamping it, so packaged applications inevitably reported source-tree; the survey's three corrections (package-target.ts as the release driver, the asar:true resources riding extraResources outside the archive, the signing material blocking only the section 56 signing acceptance) and the four rulings (the value source resolving the explicit env with 40-character validation then git rev-parse HEAD's full 40 characters cross-checked against the client build record with divergence failing loud; the landing point at prepare-dsh writing build-revision.json into DSH_OUTPUT_ROOT before writeDesktopRuntime — inside the desktop-runtime.json integrity inventory, riding extraResources into every product, landing in the macOS signing-exemption tree, changing zero electron-builder/main.ts/host-diagnostics lines; the desktop-host read in main() before runDesktopHost — setting the value only when not explicitly inherited, failing loud on corrupt JSON, doing nothing when absent in dev; the acceptance as the unsigned Windows path end to end) — executed as two parallel lanes green (lane A: the new build-revision.ts with DESKTOP_BUILD_REVISION_FILE, the dependency-injected resolveDesktopBuildRevision and writeDesktopBuildRevisionStamp, the fail-fast prepare-dsh resolve and the stamp write before writeDesktopRuntime with nine new cases plus the host-process passthrough assertion, 271/271 as 261 existing plus 10 new; lane B: the applyBuildRevisionStamp export with ENOENT zero-action and three loud distinct failure forms, the one-line main() call and four new cases at 4/4; the tsconfig.host.json tests include line accepted per the existing apps/cli|desktop tests convention), with the real-tree smoke catching the REPOSITORY_ROOT missing-.. real bug and the main session's two HEAD-defect root-cause repairs recorded honestly (the 76f51dd4ae client purity-gate red from four packages' undeclared dsh-client-locale/client value imports fixed through the four dsh.client.external declarations, and the Windows GNU tar drive-colon rsh misparse fixed through tarPlatformFlags plus the shared packedManifestObject helper; the stash probe pinning clean HEAD failing the same way) plus the packaging environment facts (DSH_DESKTOP_APP_ID required, the npmmirror mirrors working around the direct GitHub download timeout) and the merged vitest multi-path invocation swallowing the desktop-host spec characterized through the single-file run and the repo-wide list; the packaging acceptance chain green end to end (prepare:desktop EXIT 0 with the stamp sealed into the desktop-runtime.json inventory at {build-revision.json, 56 bytes, sha256 aa442fc2…}, package:desktop:win:x64:unsigned EXIT 0 with the win-unpacked artifact stamp equal to HEAD e589a1fb84's full 40 characters, the in-product manifest recording the same sha256, and the NSIS deepseek-harness-0.1.5-rc.2-win-x64.exe plus blockmap produced); the audit reused gen-40's rebuilt 87-file curated lineage directly with zero friction (the desktop, desktop-host and scripts specs being host faces staying off the client lineage); the documentation evidence keeps the two-file split — doc-quick 17 gates in 49.73s green on its first invocation in its own docs log and doc-sync 36 passed 0 failed 0 skipped in 180.79s in its own docsync log as the first-pass green run with the cascade-repair round exempt (the four client package.json lines and the tsconfig.host.json include line are not catalog/graphs inputs) — with the serial double audit round green at 87 files / 1073 tests on both passes with every count asserted from log content, gate0 in both forms, the traceability node --test 6/6 with the section 42 remaining rewritten to the delivery narration at 1359 characters with candidateEvidence 7 to 10 and the section 56 remaining gaining the wiring sentence at 717 characters with evidence 6 to 7, the integration run 36 files with 271 passed | 1 skipped (272), and the lint round sealed in its honestly recorded chained single-trailer form (the build:lib:host plus typecheck:contracts-ready chain with the host-build and tsc client command lines, then the lint chain with the tsx scripts/run-oxlint.ts . command line, one EXIT_CODE=0 trailer for the whole chain, Found 0 warnings and 0 errors in 99.7s on 3854 files, no labelled trailer in the log); the same-round gradle acceptance round (scanner env with -PdshNativeAcceptance over :app:assembleDebug :app:assembleDebugAndroidTest :core:test, BUILD SUCCESSFUL in 1m 1s) replayed WARM with 1 executed of 70 actionable tasks and 69 up-to-date — :core:test reached the graph and stayed UP-TO-DATE, so the still-standing XML reports stay the aggregate's authority — because nothing under apps/android changed this generation (no Kotlin, no Swift, no device lane ran and the emulator stayed off), the empty-derived byte proof compares both APKs byte-identically against the provider-metadata-outlet record's builtFiles entries (.artifacts/revision-stamping-apk-bytes.log — the seventh consecutive byte-identical generation), the still-standing XML reports aggregate 77 suites / 477 tests with zero failures/errors/skips (.artifacts/revision-stamping-core-results.json), and the prepare-side unresolved scan derived TWENTY-ONE replaced prior build outputs (7696 files, 0 reused, 7696 written — the Option A derivation, the gen-40 precedent: the packaging acceptance's client rebuild re-emitted bundle outputs for eleven packages with every old byte covered by the before archives on the historicalRecords chain, so the drift resolves through the newest-history fallback) so the new record's own derivation stays out of the generator and the cumulative allowlist keeps its nine inherited keys while every prior generation's own set stays unchanged — the first run's placeholder empty allowlist having been correctly rejected by the oracle assertion before any archive write with the rerun backfilling the measured 21-key set (the two-step method); relayMetadata is still the only class of the five without a producer (blocked on section 23), the section 56 signing/notarization/update-source acceptance stays open on its materials, and the CI coverage gap for the client tsdown face (the 76f51dd4ae-introduced value imports no gate or CI job builds, exposed by this generation's packaging acceptance) stays an open channel, so no whole-section PASS is granted; full Upstream-First objective remains in progress",
+  "gate0": {
+    "validation": "PASS",
+    "gate0": "PASS",
+    "paths": 1938,
+    "components": 129,
+    "specificationCoverage": {
+      "status": "PASS",
+      "numberedSections": 81,
+      "nonEmptySourceLines": 1983,
+      "acceptanceProven": false
+    }
+  },
+  "sourceRecord": {
+    "path": "artifacts/upstream-first/revision-stamping-source.json",
+    "sha256": "7d7c9e2075c04a75cfdf9e7880c7c5c2d26c3e00e9e965187b6d7309d750ed63"
+  },
+  "generator": {
+    "path": "artifacts/upstream-first/write-reports.mjs",
+    "sha256": "1dd9f30926f80ff11a1d4ede4ec8c6bc184bf8f3c509b1506bbd380f888dcc2f"
+  },
+  "binding": {
+    "path": "artifacts/upstream-first/revision-stamping-binding.json",
+    "sha256": "eabdc579f5aacca6e8f7469a0bf2eabd92483852edbd41c73284146640ddfdbd"
+  },
+  "helpers": [
+    {
+      "path": ".artifacts/advance-revision-stamping-reports.mjs",
+      "sha256": "4bf1bd44cb8ee3c7847afd4974653ef4de095760abce622d6a041a1403de9367"
+    },
+    {
+      "path": ".artifacts/capture-revision-stamping-validation.mjs",
+      "sha256": "168e91a23b71feb718f2b19f37219d9a87ba2d77def6ee058e5d42a761bb2cc5"
+    }
+  ],
+  "reports": [
+    {
+      "path": "IMPLEMENTATION_STATUS.md",
+      "sha256": "02a22ccdf8d835fa3fb48d8b3a440d99a326e923510c0592258b4d5de5dbdb55"
+    },
+    {
+      "path": "artifacts/upstream-first/evidence.json",
+      "sha256": "a0257c5ae06ee7972402785ae7670941c34776c374979f53344fd7f21eee7937"
+    }
+  ],
+  "checks": [
+    {
+      "path": ".artifacts/revision-stamping-binding.log",
+      "sha256": "e19977dee3140198f10708e987d0ed7f709383a801cdc217d839ee35a850eb29"
+    },
+    {
+      "path": ".artifacts/revision-stamping-audit-final.log",
+      "sha256": "d753924af32a57e8e443a0191f2c4ea1a714de98daca10009290063913479daa"
+    },
+    {
+      "path": ".artifacts/revision-stamping-gate0-final.log",
+      "sha256": "505d74ef938f5d34d85490d37e0176ba804d93272fcf465ce2544a02c56b3f90"
+    },
+    {
+      "path": ".artifacts/revision-stamping-report-generation.log",
+      "sha256": "fe010532f71a6341467ae5719b29ac19470895de1d481156335b8f70a3273ed5"
+    }
+  ]
+}

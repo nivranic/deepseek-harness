@@ -1,0 +1,11 @@
+<?xml version="1.0" encoding="utf-8"?>
+<!-- The §54 network matrix's on-device rounds drive the production Lite
+     transport against a loopback listener inside the instrumentation
+     process. Cleartext is permitted to the loopback addresses only — the
+     release face never carries this configuration. -->
+<network-security-config>
+    <domain-config cleartextTrafficPermitted="true">
+        <domain includeSubdomains="false">127.0.0.1</domain>
+        <domain includeSubdomains="false">localhost</domain>
+    </domain-config>
+</network-security-config>

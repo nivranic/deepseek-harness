@@ -1,0 +1,4 @@
+{
+  "absent": { "create": 0, "rename": 0, "fork": 0, "archive": 1, "creator": 0, "mutations": 0 },
+  "restored": { "create": 1, "rename": 1, "fork": 1, "archive": 1, "creator": 1, "mutations": 1 }
+}

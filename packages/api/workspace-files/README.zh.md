@@ -36,6 +36,8 @@ kind: "package-reference"
 | `search({ query, excludedPaths, includeHidden, respectGitignore })` | `WorkspaceFileSearchResult { matches, truncated, incomplete }` | 工作区任意位置中名称或相对路径包含查询的条目 |
 | `changes(path)` | `WorkspaceFileWatchFrame` 流 | 订阅就绪确认，随后为单个文件或目录直接子项的失效通知 |
 
+`./capabilities` 中的 `WORKSPACE_FILES_REMOTE_CAPABILITIES` 独立声明 stat、列目录、文本分页、字节窗口、完整读取、关联文件读取和变更观察。Host 通过现有 Typert 绑定声明这些操作集；API Remotes 在派发前要求具体操作所属的能力。API 支持不授予文件系统访问权限。 设备权限遵循第 21 节表格：每个操作集都声明 `view`。 缺少已声明权限的设备角色在派发前被拒绝；匿名调用不受影响。
+
 ### 寻址与路径
 
 `read`、`readBytes` 与 `stat` 接受绝对路径或相对于所选 Session 工作区根的路径。组合文件系统决定路径是否可读；本服务不额外要求文件读取限定于工作区。`readBytes` 携带 `options.baseFile` 时，从基准文件所在目录解析相对目标 `path`，基准文件或目标文件位于工作区外时同样适用。基准文件本身接受绝对路径或工作区相对路径。两个文件执行相同的普通文件检查；目标为空、绝对路径、URL 或含 NUL 时拒绝。文件结果报告文件系统执行环境中的绝对路径。`list` 仍限定于工作区，并以相对于该根的路径报告被列举目录。`changes` 使用相同的路径解析：文件监听沿用文件读取权限，目录监听仍限定于工作区。
@@ -93,7 +95,7 @@ kind: "package-reference"
 
 `session/<sessionId>/<path>` 地址携带授权 Session，以及相对或绝对路径；前导斜杠保留，例如 `dsh-resource://file/session/s//etc/hosts`。Host 原样接收路径，负责解析与权限检查；Client 不需要 Session `cwd`。`absolute/<path>` 仍可解析，但没有授权 Session，以 `workspace-file/unknown-workspace` 失败，不借用当前或 Tab Session。不支持的地址以 `workspace-file/unsupported-address` 失败。语法由 [workspace-path](../../util/workspace-path/README.zh.md) 定义；Resource 泛型层只认地址和 `signal`。
 
-提供方等到 Host 的 `ready` 帧后才发首次 `stat`，读取期间将变更排队，随后将跟随者绑定到 `stat.absolutePath`。排队与实时变更都按该 Host 返回路径匹配。新版本或消失通知会重新 stat，同时更新路径、版本和字节大小；重复版本被忽略。stat 失败后仍跟随地址，后续目标变化可使其恢复。如果监听在 ready 前结束，包括 `watch-unsupported`，未取消的提供方仍执行一次 stat 并产出结果。帧是 `RemoteResult` 值，编程异常不被捕获。
+提供方只在 Host 声明 `workspace-files.stat.v1` 时注册。每份已准入的 Host 快照拥有自己的注册；替换会取消在途读取、移除旧元数据并重新打开仍被持有的资源。保留的提供方和迟到结果不能作用于替代 Host。缺少 `workspace-files.changes.v1` 时，每个资源只产生一次 stat 结果，不开启变更流。有变更能力时，提供方等到 Host 的 `ready` 帧后才发首次 `stat`，读取期间将变更排队，随后将跟随者绑定到 `stat.absolutePath`。排队与实时变更都按该 Host 返回路径匹配。新版本或消失通知会重新 stat，同时更新路径、版本和字节大小；重复版本被忽略。stat 失败后仍跟随地址，后续目标变化可使其恢复。如果监听在 ready 前结束，包括 `watch-unsupported`，未取消的提供方仍执行一次 stat 并产出结果。帧是 `RemoteResult` 值，编程异常不被捕获。
 
 每个 Session 加请求路径对应一条受监督的 `changes` 流，同一目标的消费方共享该流。跟随者按反斜杠归一为斜杠的绝对路径匹配。载体掉线由 Gateway 监督器重连，新 ready 帧触发重新 stat；Host 结束或终态失败的流会结束其跟随者，最后的元数据仍可读取，直到重新打开。最后一个跟随者离开时释放流，后继流等待该释放完成，插件拆除等待所有在途关闭。提供者声明 `ResourceProtocolMap.file`；文本预览声明其 Sidebar 行号导航参数。
 

@@ -29,3 +29,22 @@ export type CommandId = Branded<'CommandId'>
 export function CommandId(id: string): CommandId {
   return id as CommandId
 }
+
+/**
+ * Opaque client-minted retry identity for one command submission. When
+ * carried, the settled execution's `command/done` event records it as a
+ * durable receipt: a resend of that id — in this Host process or after a
+ * restart — replays the logged execution without re-running the handler.
+ */
+export type CommandMutationId = Branded<'command-mutation-id'>
+
+/**
+ * Brand a string as a {@link CommandMutationId}.
+ * @param id - the client-minted retry identity; the executor validates it at
+ *   its wire boundary (non-empty, no leading/trailing whitespace, at most
+ *   128 characters).
+ * @returns the same string, branded; no validation is performed.
+ */
+export function CommandMutationId(id: string): CommandMutationId {
+  return id as CommandMutationId
+}

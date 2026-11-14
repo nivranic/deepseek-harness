@@ -1,0 +1,24 @@
+{
+  "turn": 1,
+  "step": 1,
+  "message": {
+    "id": "m-assist-1",
+    "role": "assistant",
+    "content": [
+      {
+        "type": "text",
+        "text": "已完成：登录页液态玻璃样式落地。"
+      }
+    ],
+    "source": {
+      "kind": "model",
+      "provider": "deepseek",
+      "model": "deepseek-chat"
+    }
+  },
+  "usage": {
+    "inputTokens": 120,
+    "outputTokens": 36,
+    "totalTokens": 156
+  }
+}

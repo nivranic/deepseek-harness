@@ -9,7 +9,7 @@ English | [中文](README.zh.md)
 
 ## Summary
 
-Session telemetry lets deployments send ordered copies of session activity for reporting while preserving the canonical session log. Deployments choose one reporting backend and can redact each outbound copy before delivery; without redaction rules, captured data leaves the process unchanged. The handoff is non-blocking, so reporting does not delay session processing. Delivery is best effort, and queued records may be lost if the process crashes.
+Session telemetry lets deployments send ordered copies of session activity for reporting while preserving the canonical session log. Deployments choose one reporting backend and can redact each outbound copy before delivery; without redaction rules, captured data leaves the process unchanged. The handoff is non-blocking, so reporting does not delay session processing. The section 44 consent record switches five telemetry data kinds independently, each defaulting to off. Delivery is best effort, and queued records may be lost if the process crashes.
 
 ## Table of Contents
 
@@ -46,6 +46,12 @@ Ledger records carry `sourceEvent` with the owning Session id and a copied event
 <a id="the-sharing-disclosure"></a>
 
 Every backend discloses its deployment mode through `sharing`: `full`, `feedback-only`, or `disabled`. A backend may additionally restrict eligible Sessions. This property is not a delivery receipt; handoff is a non-blocking enqueue, and batching, retry, and loss policy belong to the backend SDK.
+
+### Per-kind consent
+
+<a id="per-kind-consent"></a>
+
+Backends also expose `consent`: the section 44 record with one boolean per telemetry data kind — `sessionTelemetry`, `providerMetadata`, `relayMetadata`, `deviceTrustMetadata`, and `crashDiagnostics`. Every kind defaults to off and there is no master switch; a deployment opts in per kind through backend config, and the kind names plus the `telemetry-consent` namespace name ship from this package (`TELEMETRY_DATA_KINDS`, `TELEMETRY_CONSENT_NAMESPACE`) as the vocabulary's one source. When a backend consumes the user-settings seam, that config is the namespace's composition-layer seed: the user layer wins and changes take effect at restart. `telemetryKindAllowed(consent, kind)` is the check a producer runs before one of these kinds leaves the process, while `sharing` remains the upload policy. The OpenTelemetry backend enforces the `sessionTelemetry` kind: with it off (the default) the backend constructs no SDK pipeline and feedback stays local.
 
 ### Redacting records
 

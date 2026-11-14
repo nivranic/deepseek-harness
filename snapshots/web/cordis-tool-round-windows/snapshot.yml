@@ -1,0 +1,9 @@
+version: 1
+scenario: cordis-tool-round-windows
+profile: web
+composition: web-cordis-windows
+recording: live
+platform: pwsh
+header:
+  class: web-cordis-windows
+  pin: true

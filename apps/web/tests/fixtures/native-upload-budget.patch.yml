@@ -1,0 +1,19 @@
+- insert:
+    - id: native-remote
+      name: '@deepseek-ai/dsh-api-native-remote'
+      config:
+        host: '127.0.0.1'
+        port: 0
+        maxConnections: 16
+        maxRequestBodyBytes: 2048
+        maxWebSocketMessageBytes: 1048576
+        maxStreamsPerConnection: 32
+        requestTimeoutMs: 30000
+        headersTimeoutMs: 10000
+        handshakeTimeoutMs: 10000
+        websocketHeartbeatIntervalMs: 2000
+        certificateLifetimeDays: 365
+        certificateRenewBeforeDays: 30
+- id: workspace-files
+  config:
+    maxLines: 1000

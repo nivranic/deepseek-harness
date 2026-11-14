@@ -18,7 +18,7 @@ import { pathToFileURL } from 'node:url'
 import { resolveLinuxNodePtyAddon, resolveWindowsNodePtyAddons } from './executable-native-pty.ts'
 import { officeSidecarArchives, runtimeNpmArchive, OFFICE_ASSET_IGNORES } from './build-exe-for-python-sdk-office.ts'
 import { syncPythonRuntimeProduct } from './build-exe-for-python-sdk-resources.ts'
-import { deduplicateStagedWorkspacePackages, materializeStagedLinks } from './build-exe-for-python-sdk-staging.ts'
+import { deduplicateStagedWorkspacePackages, materializeStagedLinks, relocateStagedBuildApprovals } from './build-exe-for-python-sdk-staging.ts'
 import primaryLock from './primary-runtime/lock.json' with { type: 'json' }
 
 const root = resolve(import.meta.dirname, '..')
@@ -319,8 +319,12 @@ class SingleExeBuild {
       `--config.pnpmfile=${join(root, 'scripts/python-runtime-deploy.pnpmfile.mjs')}`,
       '--config.link-workspace-packages=true',
       '--config.hoist-workspace-packages=false',
+      '--ignore-scripts',
       this.staging,
     ])
+    if (this.cli.dryRun) console.log('build-exe-for-python-sdk: [dry-run] relocate reviewed local build approvals into deployment')
+    else await relocateStagedBuildApprovals(this.staging, root)
+    await this.runPnpm('build deployed dependencies', ['--dir', this.staging, 'rebuild'])
     await this.materializeStagedLinks()
     if (this.cli.dryRun) {
       for (const name of DEPLOY_ONLY_DOCS) console.log(`build-exe-for-python-sdk: [dry-run] rm -f ${join(this.staging, name)}`)
@@ -346,13 +350,15 @@ class SingleExeBuild {
   /** Add the executable entry and pkg assets to the staged manifest. */
   async injectPkgConfig(): Promise<void> {
     const sourceModules = join(root, 'node_modules').replaceAll('\\', '/')
+    const staging = this.staging.replaceAll('\\', '/')
     const patch = { bin: ENTRY_BIN, pkg: { assets: ASSET_GLOBS, ignore: [
-      ...OFFICE_ASSET_IGNORES,
-      ...PUBLISHED_PAYLOAD_IGNORES,
+      // pkg's matcher does not traverse hidden checkout directories through a globstar.
+      ...[...OFFICE_ASSET_IGNORES, ...PUBLISHED_PAYLOAD_IGNORES,
+        '**/*.map', '**/*.d.ts', '**/*.d.mts', '**/*.d.cts',
+      ].map(pattern => `${staging}/${pattern}`),
       `${sourceModules}/**`, `${sourceModules}/.pnpm/**`,
       ...['packages', 'apps', 'vendor', 'native', 'scripts'].map(directory => `${join(root, directory).replaceAll('\\', '/')}/**`),
       `${root.replaceAll('\\', '/')}/tsconfig*.json`,
-      '**/*.map', '**/*.d.ts', '**/*.d.mts', '**/*.d.cts',
     ] } }
     const manifestPath = join(this.staging, 'package.json')
     if (this.cli.dryRun) {
@@ -584,12 +590,14 @@ class SingleExeBuild {
       return
     }
     console.log(`build-exe-for-python-sdk: ${label}: ${printable}`)
+    const environment = Object.fromEntries(Object.entries(process.env)
+      .filter(([key]) => key.toLowerCase() !== 'pnpm_config_verify_deps_before_run'))
     await new Promise<void>((resolvePromise, reject) => {
       const child = spawn(command, args, {
         cwd: root,
         stdio: 'inherit',
-        // Artifact builds must not mutate or validate a developer's Git hooks.
-        env: { ...process.env, CI: 'true' },
+        // pnpm 11 can replay production deploy settings and remove build tools before `exec pkg`.
+        env: { ...environment, CI: 'true', pnpm_config_verify_deps_before_run: 'false' },
       })
       child.once('error', (error) => {
         reject(new Error(`build-exe-for-python-sdk: ${label} failed to spawn: ${error.message} (${printable})`))

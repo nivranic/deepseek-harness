@@ -1,0 +1,16 @@
+{
+  "status": "PASS",
+  "controls": 3,
+  "sourceRecord": {
+    "path": "artifacts/upstream-first/android-view-location-source.json",
+    "sha256": "ca2a06ceda38ff9743583845ef47f9c7f0e6b81951ffbf48bd5950633a4d3fd9"
+  },
+  "generator": {
+    "path": "artifacts/upstream-first/write-reports.mjs",
+    "sha256": "b55ad8cae1871e3710ba20484c247f18e0b99111e20f8c7d45a0057502d266e3"
+  },
+  "helper": {
+    "path": ".artifacts/check-android-view-location-binding.mjs",
+    "sha256": "78a20de067820b3918a4ed46b717fa5c46e762344fd96787f9b0b37f0b5b6ee1"
+  }
+}

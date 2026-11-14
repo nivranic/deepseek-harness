@@ -1,0 +1,7 @@
+{
+  "listening": false,
+  "bindError": "EADDRINUSE listen",
+  "hostName": "Studio Desk",
+  "allowRemoteApproval": false,
+  "deviceCount": 2
+}

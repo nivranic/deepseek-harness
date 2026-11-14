@@ -76,6 +76,9 @@ const SAFE_HOST_DEPENDENCY_EXPORTS = {
 
 /** Runtime exports that require every consumer to resolve the provider's shared peer instance. */
 const PEER_REQUIRED_HOST_EXPORTS = {
+  // Gateway admission must use the installed carrier's Peer scopes and Device Trust's role permissions.
+  '@deepseek-ai/dsh-client-connection': ['Peer'],
+  '@deepseek-ai/dsh-api-device-trust': ['DEVICE_ROLE_PERMISSIONS'],
   // Profile settings must match the installed Node provider's configuration schema.
   '@deepseek-ai/dsh-ptc-runtime-node/configuration': ['resolvePersistentExecution'],
   // CUA mounts the installed provider and shares executor error classes with PTC.
@@ -102,7 +105,7 @@ const PEER_REQUIRED_HOST_EXPORTS = {
   // Imported titles follow the installed title service's normalization.
   '@deepseek-ai/dsh-session-title': ['normalizeSessionTitle'],
   // Error classes have instance identity; CUA and Liveshare throw the registry's own copy so `instanceof` against it matches.
-  '@deepseek-ai/dsh-tools': ['defineTool', 'ToolArgsError', 'ToolContextUnavailableError'],
+  '@deepseek-ai/dsh-tools': ['defineTool', 'ToolArgsError', 'ToolContextUnavailableError', 'ToolDeclarationUnavailableError'],
   // Readers recognize a deadline's TimeoutReason only by `instanceof` against their own copy.
   '@deepseek-ai/dsh-timeout': ['deadline', 'timeoutOf'],
   // Imported web tool results must render exactly like the installed web tools' results and cards.

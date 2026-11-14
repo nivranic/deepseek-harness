@@ -26,7 +26,10 @@ kind: "package-group"
 
 | 包 | 职责 | ctx key |
 |---|---|---|
+| [`host-description/`](host-description/README.zh.md) | 提供认证后的 Host 身份、独立版本与活跃能力描述。 | `ctx.hostDescription` / `ctx.remote.host` |
 | [`remotes/`](remotes/README.zh.md) | 决定 Client 可以消费哪些 Host 能力与事件。 | — |
+| [`gateway/`](gateway/README.zh.md) | 承载类型化一元调用、多路复用流与转发的 Host 事件。 | `ctx.typertGateway` / `ctx.remote` |
+| [`native-remote/`](native-remote/README.zh.md) | 按需启用的 TLS 监听器，固定 Host 身份并经 Gateway 执行签名设备准入。 | `ctx.nativeRemote` |
 | [`gateway/`](gateway/README.zh.md) | 承载类型化一元调用、带 Client 上行的多路复用流，以及转发的 Host 事件。 | `ctx.typertGateway` / `ctx.remote` |
 | [`remote-access/`](remote-access/README.zh.md) | 决定非 owner Peer 可以调用哪些 Remote 方法，过滤列表结果，并为每个 Peer 推送其访问快照。 | `ctx.remoteAccess` / `ctx.remote.remoteAccess` |
 | [`job-controller/`](job-controller/README.zh.md) | 把一个后台任务的观测 record 流式送到 Client。 | `ctx.jobController` / `ctx.remote.job` |

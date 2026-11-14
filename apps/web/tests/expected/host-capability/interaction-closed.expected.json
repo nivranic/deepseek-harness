@@ -1,0 +1,62 @@
+{
+  "outcomes": [
+    "allowed-once",
+    "rejected"
+  ],
+  "losingResult": "interaction-closed",
+  "reconnects": 0,
+  "interactions": [
+    [
+      {
+        "type": "approval",
+        "status": "pending",
+        "revision": 1,
+        "requiredPermission": "approval.respond"
+      },
+      {
+        "type": "approval",
+        "status": "pending",
+        "revision": 1,
+        "requiredPermission": "approval.respond"
+      },
+      {
+        "type": "approval",
+        "status": "pending",
+        "revision": 1,
+        "requiredPermission": "approval.respond"
+      },
+      {
+        "type": "approval",
+        "status": "resolved",
+        "revision": 2,
+        "requiredPermission": "approval.respond"
+      }
+    ],
+    [
+      {
+        "type": "approval",
+        "status": "pending",
+        "revision": 1,
+        "requiredPermission": "approval.respond"
+      },
+      {
+        "type": "approval",
+        "status": "resolved",
+        "revision": 2,
+        "requiredPermission": "approval.respond"
+      },
+      {
+        "type": "approval",
+        "status": "pending",
+        "revision": 1,
+        "requiredPermission": "approval.respond"
+      }
+    ]
+  ],
+  "rejectedReplies": [
+    "revision-conflict",
+    "gateway/input-invalid",
+    "gateway/input-invalid"
+  ],
+  "revisionReconnects": 1
+}

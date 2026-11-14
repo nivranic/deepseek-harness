@@ -1,0 +1,16 @@
+{
+  "status": "PASS",
+  "controls": 3,
+  "sourceRecord": {
+    "path": "artifacts/upstream-first/file-ui-capabilities-source.json",
+    "sha256": "28fe0c5bbad518b4c58798879905fc01f61c20be3c35b8373be893d5be959bc8"
+  },
+  "generator": {
+    "path": "artifacts/upstream-first/write-reports.mjs",
+    "sha256": "bdc4394ea6b39d8212815de897604a88c923f94af972b563b7f4d612e56a0f99"
+  },
+  "helper": {
+    "path": ".artifacts/check-file-ui-capabilities-binding.mjs",
+    "sha256": "9837ae6a5e295aee5f02ee928c1523e161b4a95c1a7baa273e63f7fd54bda844"
+  }
+}

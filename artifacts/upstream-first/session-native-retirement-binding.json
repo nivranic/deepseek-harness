@@ -1,0 +1,16 @@
+{
+  "status": "PASS",
+  "controls": 3,
+  "sourceRecord": {
+    "path": "artifacts/upstream-first/session-native-retirement-source.json",
+    "sha256": "d7eef30cbac05e9d7e99a4c86ea283c7f9fca26cc198b541adab98e7944bab08"
+  },
+  "generator": {
+    "path": "artifacts/upstream-first/write-reports.mjs",
+    "sha256": "4d82928d3d742386e385ebf7a8b355014502670711515c667052c6e777d48cbd"
+  },
+  "helper": {
+    "path": ".artifacts/check-session-native-retirement-binding.mjs",
+    "sha256": "400d0543ff56c6f42f0a61223e8aaf8722e07e2a7163ac9d8efa65e32b4ecf64"
+  }
+}

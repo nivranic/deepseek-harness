@@ -1,0 +1,66 @@
+{
+  "status": "PASS",
+  "scope": "Report bindings and audit for the live-model-e2e increment: the gen-74 §31 multi-round real-model e2e lane (the NativeGatewayDriver liteRound op in the :core test source set assembling the request face from the classpath-bundled APK-frozen documents and driving LiteLoopDriver over the real LiteHTTPProvider with the on-device calculator executor, the apps/web/tests double-gated scenario, the shared helper's optional per-request timeoutMs and the ledger §31 rewrite): NativeGatewayDriver.kt gaining the liteRound op beside the toolDescriptors precedent — bundled(lite-preset-descriptors/lite-tool-schemas+lite-device-tool-schemas/lite-tool-declarations+tool-descriptors) assembling the preset, the frozen host/device schema union and the declaration union from the driver's own classpath (the same frozen bytes a standalone Lite session ships), the mounted calculator executor with the other names fail-soft refusing, the answer folding state only (presetId/systemPrompt/toolSchemaNames/conversation/toolCalls/lastTurnEnd/errors/pendingHandoff — the credential riding the private stdin pipe, never the output); android-gateway-driver.ts gaining the optional per-request timeoutMs on next/request with the 15_000 default unchanged (a real model round outlives the fixed wait; every existing caller keeps the default); android-lite-live-round.e2e.ts carrying the double-gated owner-local scenario (it.skipIf DEEPSEEK_API_KEY || DSH_ANDROID_JAVA — the repo e2e credential convention plus the android-tool-catalog driver gate, CI setting neither) with the bundled-preset fidelity assertions, the multi-round closure proof riding the gen-65 loop invariant (>=2 assistant rows on a completed turn proving the continuation request replaying the assistant tool_calls row and the per-id role:tool rows was served by the real API), the >=1 completed calculator call, the value tolerance (the result exactly 391 or the final text containing it — never verbatim model prose), lastTurnEnd completed, errors empty and no handoff; the two rejected alternatives honestly recorded (the assumeTrue JUnit round growing the 85/609 JVM count and leaving the repo e2e convention, the provider counting wrapper adding a face the production path never had); the honest keyless boundary (no real-model round claimed on this keyless machine — the mechanical stub verification 12/12 and the helper path 6/6 carrying the lane, the owner-local-pending form narrated in the prose and the note); the gates honestly recorded from log content: typecheck EXIT 0 (the build:lib:host chain — the host face alone building, no client-face emit) and lint Found 0 warnings and 0 errors on 3863 files (90 rules, 20 threads, 78.8s — 3862→3863 with the new e2e scenario the one counted TypeScript source added) in its repaired-rerun form (the first round failing on the new scenario's eight member-delimiter-style errors before the main session switched the inline type-member separators to semicolons, the failed round's log overwritten by the rerun, honestly narrated), the docs lane green on its first round (17 passed in 118.65s with doc-sync 37 passed in 229.23s, zero regeneration diff, the pre/post git status snapshots byte-identical), pairing 958 pairs all consistent in its honest direct-round form (the standalone verify-translation-pairing check with its own EXIT_CODE=0 trailer — the 957→958 reconciliation riding the prose; the docs-lane pairing gates still riding both halves of the combined g1 docs log; the note trio 2026-10-23-live-model-e2e, testing class), the serial double audit round green at 87 files / 1073 tests on both passes (both sealed logs carrying the EXIT_CODE=0 trailer of the honestly executed round) over the curated list reused verbatim from .artifacts/lite-assembly-g2-audit-file-list.txt (87 lines, the gen-54 precedent lineage), gate0 PASS in both byte-identical forms (1938 paths / 129 components / 81 sections / 1983 lines — honestly recorded unchanged from the captured UPSTREAM_DELTA.json, not the live tree); the ledger round rode the main session's rebuild with no separate TAP log sealed this generation (the capture's structural pins carrying the rebuilt ledger's measured forms — 81 sections, §31 appending the gen-74 closure narration at 6831/22 with the e2e scenario path beside the preserved gen-51..73 narrations, §33 keeping its gen-72 dual-record form at 1641/11, §32 keeping its gen-70 sealed 6041/25, §23 its gen-61 429/2 and §67 its gen-59 637/8 — and the prose carrying the 6/6 narration, honestly recorded); the android acceptance: the scanner-env gradle round BUILD SUCCESSFUL with 82 actionable tasks of which 2 executed and 80 up-to-date in the sealed log's 9s — the honest all-cache-hit verification form (only the two verification halves :app:verifyLiteAssetSources and :app:verifyScannerResources executing while everything else rode UP-TO-DATE — the implementation round before having recompiled the driver and re-ran the whole :core:test suite at the unchanged 85 suites / 609 tests in its own BUILD SUCCESSFUL 38s / 3-executed round, honestly narrated beside the sealed log and never transcribed as the sealed round's bytes) — with the measured IDENTICAL form against the facts-export record's sealed builtFiles entries (BOTH APK faces replaying byte-identically at the record's sealed 2c73cbb2/995eeb31 bytes — zero production and zero androidTest input change, the natural reproduction; prior apk records: 2, cross-checked live; the sealed g3 lane log honestly recording its own older-record riding-lineage comparison at 31a910c5→2c73cbb2 and dd8baae6→995eeb31) and the core XML aggregate reading 85 suites / 609 tests (the aggregate unchanged — the op is driver plumbing, not a JUnit test, SupportExportTest at its ten, LiteHTTPProviderTest at its eleven on the g3 watch face) beside the contract half at 4 suites / 37 tests; and the adjudicated single-set ruling on the adapter's measured stop-point (the gen-53 dwfq-b1ce6281-1 precedent form): the prepare oracle derives the measured seventy replaced prior build outputs — the sixty-one re-emitted XML reports beside the eight recompiled NativeGatewayDriver classes and the one binary results file of the implementation round's :core:test re-run, with NEITHER APK face rebuilt — the adapter's generator-side measurement finding eight chain-resolvable keys (the eight driver classes at their stable lineage bytes held by the older archives — the driver unchanged gen-69 through gen-73) and a sixty-two-key miss set (the sixty-one re-emitted XML reports and the one binary results file, each sealed only by the facts-export record itself — the twenty-fourth consecutive generation of the same class: gen-51 ninety-four, gen-52 seventy-three, gen-53 sixty-seven, gen-54 sixty-seven, gen-55 sixty-eight, gen-56 sixty-eight, gen-57 seventy, gen-58 seventy-four, gen-59 seventy-six, gen-60 sixty-seven, gen-61 sixty-seven, gen-62 sixty-six, gen-63 eighty-five, gen-64 sixty-six, gen-65 sixty-six, gen-66 sixty-six, gen-67 sixty-six, gen-68 sixty-six, gen-69 sixty-four, gen-70 one, gen-71 two, gen-72 one, gen-73 sixty-four, gen-74 sixty-two), so the advance installs the factsExportReplacedBuildOutputs sixty-two-key build-output exemption on the demoted facts-export block, derived and emitted at advance run time from the record, the chain archives and the disk — never transcribed — equal to the seventy-key derivation minus the eight fallback keys, the source-side tracked miss keys resolving through the new before archive at their HEAD bytes (no UnrecoverableInputs set born), the gen-73 SKELETON_RESET trio carrying over verbatim for the same two gen-72 reset keys, and every prior generation's set — the gen-73 attributionUaReplacedBuildOutputs sixty-four beside the gen-72 presetStaleReplacedBuildOutputs one, the gen-71 catalogRefreshUiReplacedBuildOutputs two, the gen-70 liveCatalogE2eReplacedBuildOutputs one, the gen-69 liteReadersReplacedBuildOutputs sixty-four, the gen-68 liteIntakeReplacedBuildOutputs sixty-six, the gen-67 liteUrlfetchReplacedBuildOutputs sixty-six, the gen-66 liteRoundsReplacedBuildOutputs sixty-six, the gen-65 liteCatalogReplacedBuildOutputs sixty-six, the gen-64 liteHistoryReplacedBuildOutputs sixty-six, the gen-63 liteExecutorsReplacedBuildOutputs eighty-five, the gen-62 relayRetireReplacedBuildOutputs sixty-six, the gen-61 liteDeclarationsReplacedBuildOutputs sixty-seven, the gen-60 liteHandoffReplacedBuildOutputs sixty-seven, the gen-59 liteResumeReplacedBuildOutputs seventy-six, the gen-58 litePresetReplacedBuildOutputs seventy-four, the gen-57 liteHttpReplacedBuildOutputs seventy, the gen-56 liteFactsReplacedBuildOutputs sixty-eight, the gen-55 liteAssemblyReplacedBuildOutputs sixty-eight, the gen-54 litePermissionReplacedBuildOutputs sixty-seven, the gen-53 liteToolsReplacedBuildOutputs sixty-seven, the gen-52 litePersonaReplacedBuildOutputs seventy-three, the gen-51 liteToolReplacedBuildOutputs ninety-four plus liteToolUnrecoverableInputs two, the gen-32 desktopPackageReplacedBuildOutputs six, the gen-33 tornRepairIntentReplacedBuildOutputs three, the gen-48 clientMutationReplacedBuildOutputs two and the gen-46 durableReceiptsReplacedBuildOutputs three — stays exactly as sealed at HEAD; the remaining open channels (the owner run with both gates set — the real-model round itself, the tool-row journal persistence with its chapter-64 split-two decision, the approval ask tier, the §54 device-side network verification, the real OTA-upgrade-path e2e and the CI synchronize gap) all stay open — so no whole-section PASS is granted; full Upstream-First objective remains in progress",
+  "gate0": {
+    "validation": "PASS",
+    "gate0": "PASS",
+    "paths": 1938,
+    "components": 129,
+    "specificationCoverage": {
+      "status": "PASS",
+      "numberedSections": 81,
+      "nonEmptySourceLines": 1983,
+      "acceptanceProven": false
+    }
+  },
+  "sourceRecord": {
+    "path": "artifacts/upstream-first/live-model-e2e-source.json",
+    "sha256": "5f8e415b9137636dc553976bb9eeef63e1cc74ece766eda5ea2bb5a7097eafd6"
+  },
+  "generator": {
+    "path": "artifacts/upstream-first/write-reports.mjs",
+    "sha256": "93874559d0c389283f5d63d57eb3d746bcb105366bd4b75e6d51ec61413cbe4a"
+  },
+  "binding": {
+    "path": "artifacts/upstream-first/live-model-e2e-binding.json",
+    "sha256": "5612951b4e90f5db63a871ae9f1d88691f821ab36cf309c583b62b4206c53d35"
+  },
+  "helpers": [
+    {
+      "path": ".artifacts/advance-live-model-e2e-reports.mjs",
+      "sha256": "2dd20d704efcc5fb8972a26935917367b9b7019a4d668a5dcf996fc8e11cde04"
+    },
+    {
+      "path": ".artifacts/capture-live-model-e2e-validation.mjs",
+      "sha256": "5ad272e3d852106bc0a0712dcc09ad20f8e1513e160d11d983056a115329ac04"
+    }
+  ],
+  "reports": [
+    {
+      "path": "IMPLEMENTATION_STATUS.md",
+      "sha256": "7804a18acdabfc7fa60341808b3989e03caa1ee6b7a6255b57d82c66d101dee1"
+    },
+    {
+      "path": "artifacts/upstream-first/evidence.json",
+      "sha256": "59c13785f7fe5ee00492a9f6690b0ebf93b764e5a93ee784c81cdc676ce8ae93"
+    }
+  ],
+  "checks": [
+    {
+      "path": ".artifacts/live-model-e2e-binding.log",
+      "sha256": "d989ade10bb3fa4b37d486e9b286b2472be7023211d20f50cca5ee98ab6f0f18"
+    },
+    {
+      "path": ".artifacts/live-model-e2e-audit-final.log",
+      "sha256": "3e00eea432c8d2be082f1d13bc138648693b0c6023bb5465a9663ea609450d8e"
+    },
+    {
+      "path": ".artifacts/live-model-e2e-gate0-final.log",
+      "sha256": "505d74ef938f5d34d85490d37e0176ba804d93272fcf465ce2544a02c56b3f90"
+    },
+    {
+      "path": ".artifacts/live-model-e2e-report-generation.log",
+      "sha256": "fe010532f71a6341467ae5719b29ac19470895de1d481156335b8f70a3273ed5"
+    }
+  ]
+}

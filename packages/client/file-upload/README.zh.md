@@ -1,5 +1,5 @@
 ---
-description: "按 Session 寻址上传浏览器文件，提供流式接收、进度、取消和供后续 prompt 使用的暂存凭证。"
+description: "按 Session 寻址暂存文件与图片，提供浏览器流式接收、进度、取消和供后续 prompt 使用的凭证。"
 kind: "package-reference"
 ---
 
@@ -9,7 +9,7 @@ kind: "package-reference"
 
 ## 概述
 
-本包让浏览器功能为一个 Session 存储 `Blob`、精确字节或 `ReadableStream<Uint8Array>`，并取得供后续 prompt 使用的不透明凭证。普通服务页面发送 Blob 和 stream 请求体时，不会在页面线程聚合全部字节；Host 位于其他执行上下文中的页面会在 Cordis 启动前提供 Fetch 形式的载体。调用方可以观察已消费字节并取消活动操作。stream 请求体只能消费一次，跨 Worker 边界时会转移所有权。图片上传会暂存一张规整后的 prompt 图片，供后续 prompt 凭证引用。
+为一个 Session 存储文件或规范化图片，取得供后续 prompt 使用的不透明凭证。浏览器文件调用方可以发送 `Blob`、精确字节或 `ReadableStream<Uint8Array>`，观察进度并取消活动工作。普通服务页面流式发送请求体，不在页面线程聚合字节；Host 位于其他位置的页面提供自己的载体。图片调用方使用编码 Remote 暂存。凭证仅保留在接收方 Host 进程和 Session 内，被接受的消息则保留持久附件引用。 本包让浏览器功能为一个 Session 存储 `Blob`、精确字节或 `ReadableStream<Uint8Array>`，并取得供后续 prompt 使用的不透明凭证。普通服务页面发送 Blob 和 stream 请求体时，不会在页面线程聚合全部字节；Host 位于其他执行上下文中的页面会在 Cordis 启动前提供 Fetch 形式的载体。调用方可以观察已消费字节并取消活动操作。stream 请求体只能消费一次，跨 Worker 边界时会转移所有权。图片上传会暂存一张规整后的 prompt 图片，供后续 prompt 凭证引用。
 
 ## 目录
 
@@ -26,6 +26,14 @@ kind: "package-reference"
 ## 使用本包
 
 在注入 `fileUpload` 的消费方之前挂载本包，再调用 `ctx.fileUpload.upload(sessionId, body, name, signal, onProgress)`；prompt 图片则调用 `ctx.fileUpload.uploadImage(sessionId, blob, mediaType, name, signal, onProgress)`。Session 标识同时用于寻址原始路由和生成的 Remote 兜底；调用方不组装这两种请求。
+
+Host 还通过 `image-upload.stage.v1` 接受 `fileUploads/uploadImage({ data, mediaType, name? })`，要求 `prompt.send` 权限。它通过附件服务校验并规范化规范 base64 图片输入，返回 `receiptId` 和规范化后的 `image` 引用。prompt 以 `file` 部分提交回执；Host 恢复其存储的图片类型。回执发布前取消会拒绝上传，但已存储的字节可能保留。这一编码 Remote 操作独立于浏览器文件传输。
+
+Host 还通过 `file-upload.dedupe.v1` 接受 `fileUploads/uploadDedupe({ digest, name? })`，要求 `prompt.send` 权限。摘要只负责定位对象：Host 在应答前重新校验存储字节，为净化后的显示名发布别名，并返回全新 `receiptId` 与持久 `file` 引用。对象缺失或损坏以 `FILE_DIGEST_NOT_KNOWN` 拒绝，调用方据此回退完整上传；格式非法的摘要以 `FILE_DIGEST_INVALID` 拒绝。
+
+浏览器 Client 对可重读主体应用同一探测：本页已成功上传过其摘要的 `Blob` 或精确字节输入先经 `uploadDedupe` 寻址，命中时完全不经过载体；`FILE_DIGEST_NOT_KNOWN` 精确回退一次完整上传，其余拒绝原样返回。一次性流不计算摘要，始终走流式载体。摘要计算以有界分块把可重读主体再多读一遍，去重上传不报告字节进度，因为没有任何字节被传输。
+
+文件暂存要求当前 Host 声明 `file-upload.stage.v1`。Client 在读取字节或启动任一载体前捕获连接；连接替换或服务卸载会取消活动工作，拒绝迟到的回执与进度。能力支持不授予权限，不撤销已完成的 Host 上传，也不使重试具备幂等性。消费方决定是否保留浏览器持有的草稿供用户显式重试。 设备权限遵循第 21 节表格：暂存声明 `prompt.send`，因为上传参与后续 prompt 的组装。 缺少已声明权限的设备角色在派发前被拒绝；匿名调用不受影响。
 
 ```yaml
 - id: file-upload
@@ -44,7 +52,7 @@ kind: "package-reference"
 
 Client 插件提供 `ctx.fileUpload`。其 `upload()` 方法接收所属 Session 标识，组装原始路由请求，并为精确字节调用生成的 Remote。提供方只读取一次可选的 Cordis 启动前 `__DSH_FILE_UPLOAD__` 钩子。没有该钩子时，每个 Blob 或 stream 请求拥有一个短期 Worker，并在完成、失败或取消后释放。存在该钩子时，服务通过页面自己提供的 Fetch 载体发送请求体；Web Worker runtime 会通过请求帧转移 stream 请求体，再以带背压的分片形式交给 Host HTTP bridge。
 
-Host 插件提供 `ctx.fileUploads`。它拥有经过认证的流式路由、编码 Remote 兜底、命令凭证解析器与暂存凭证生命周期；编码准入、附件错误识别与字节存储仍由 `ctx.attachments` 提供。带 `mediaType` 查询参数的原始上传最多读取部署配置的单张图片与单条消息图片字节上限中较小的一个，并通过 `ctx.attachments.saveImages` 存储图片；该凭证记录上传的字节数，在 prompt 准入时解析为这张图片，这些字节计入单条消息的图片总字节上限；命令只接受文件凭证。取消的图片上传不会取得凭证：存储开始前取消不存储任何内容，已开始存储的图片会保留。Host 调用方传入具有运行时所属上下文的 Agent；凭证表以该 Agent 的准确 Session 对象为键。Session Controller 注册可恢复休眠普通 Agent 的解析器，并在 prompt 准入时消费凭证。Prompt 投递通过可释放事务持有每个凭证绑定。成功投递提交事务前，释放会恢复原绑定；提交后，队列或历史观察会退休该凭证。
+Host 插件提供 `ctx.fileUploads`。它拥有经过认证的流式路由、编码 Remote 兜底、命令凭证解析器与暂存凭证生命周期；编码准入、附件错误识别与字节存储仍由 `ctx.attachments` 提供。文件与图片凭证表以接收方 Agent 的 Session 对象为键，两类凭证不能相互替代。图片凭证私下保留源编码字节数，使 prompt 准入能将暂存图片与内联图片合并计入原始字节预算。规范化图片元数据不公开也不替代该计数。Session Controller 注册可恢复休眠普通 Agent 的解析器，并在 prompt 准入时消费凭证。Prompt 投递通过可释放事务持有每个凭证绑定。成功投递提交事务前，释放会恢复原绑定；提交后，队列或历史观察会退休该凭证。 Host 插件提供 `ctx.fileUploads`。它拥有经过认证的流式路由、编码 Remote 兜底、命令凭证解析器与暂存凭证生命周期；编码准入、附件错误识别与字节存储仍由 `ctx.attachments` 提供。带 `mediaType` 查询参数的原始上传最多读取部署配置的单张图片与单条消息图片字节上限中较小的一个，并通过 `ctx.attachments.saveImages` 存储图片；该凭证记录上传的字节数，在 prompt 准入时解析为这张图片，这些字节计入单条消息的图片总字节上限；命令只接受文件凭证。取消的图片上传不会取得凭证：存储开始前取消不存储任何内容，已开始存储的图片会保留。Host 调用方传入具有运行时所属上下文的 Agent；凭证表以该 Agent 的准确 Session 对象为键。Session Controller 注册可恢复休眠普通 Agent 的解析器，并在 prompt 准入时消费凭证。Prompt 投递通过可释放事务持有每个凭证绑定。成功投递提交事务前，释放会恢复原绑定；提交后，队列或历史观察会退休该凭证。
 
 | 文件 | 职责 |
 |---|---|
@@ -85,6 +93,7 @@ Host 插件提供 `ctx.fileUploads`。它拥有经过认证的流式路由、编
 
 以下限制适用于传输操作本身。
 
+- **未发送凭证仅保留在进程中**：Host 重启或所属 Session 销毁会使凭证失效。移除本地草稿不删除已存字节。图片暂存在发布凭证前取消，仍可能留下不可变字节；本服务不提供存储回滚或垃圾回收。
 - **上传不能断点续传**：失败或取消后的重试会从第一个字节开始。
 - **stream 请求体只能使用一次**：转移 `ReadableStream` 会锁定调用方的对象，因此重试必须重新创建 stream。
 - **stream 进度没有总量**：stream API 不携带字节长度，因此调用方只能收到已消费字节数。

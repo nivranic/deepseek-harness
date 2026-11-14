@@ -1,0 +1,16 @@
+{
+  "status": "PASS",
+  "controls": 3,
+  "sourceRecord": {
+    "path": "artifacts/upstream-first/android-follow-outage-source.json",
+    "sha256": "6346cf76845e44111ba1c6e0f23e08856c8fec96756d347ab337495e4c5e3d01"
+  },
+  "generator": {
+    "path": "artifacts/upstream-first/write-reports.mjs",
+    "sha256": "bdeccc7e922b66b8ad4f7e7e8b942f8c2e1c06db16e84171a692a503088edff3"
+  },
+  "helper": {
+    "path": ".artifacts/check-android-follow-outage-binding.mjs",
+    "sha256": "f92e0be1c989d77eba8e98c47536626211078300b4192645a5a22b397b68fe12"
+  }
+}

@@ -1,0 +1,16 @@
+{
+  "status": "PASS",
+  "controls": 3,
+  "sourceRecord": {
+    "path": "artifacts/upstream-first/settings-entry-source.json",
+    "sha256": "6d0b52123281aa41a0fdbae38d379b69a26271c03133c684e758ed72d08632fe"
+  },
+  "generator": {
+    "path": "artifacts/upstream-first/write-reports.mjs",
+    "sha256": "791c450d376e5430b6e3d4ad5d8364f49b53117fdbf7601f4488ed961410c4ed"
+  },
+  "helper": {
+    "path": ".artifacts/check-settings-entry-binding.mjs",
+    "sha256": "3891e0f96cf03f830b92ca1236ed9596ee41071ea577196e8c55a5f554d2b58e"
+  }
+}

@@ -1,0 +1,16 @@
+{
+  "status": "PASS",
+  "controls": 3,
+  "sourceRecord": {
+    "path": "artifacts/upstream-first/device-identity-confirmation-source.json",
+    "sha256": "86846d726cd5835bc18ee7b5cd47997fadcdd1a1dcad6d39ea169915b8382120"
+  },
+  "generator": {
+    "path": "artifacts/upstream-first/write-reports.mjs",
+    "sha256": "5d78cc996d5a08cee9f1c7acad877d497e3c012e623ee63d5a4e513133168d0e"
+  },
+  "helper": {
+    "path": ".artifacts/check-device-identity-confirmation-binding.mjs",
+    "sha256": "4eb14f0400024f9a27aa7bf1e2f15965eefe83e172cdd2b523fc7bded35d625d"
+  }
+}

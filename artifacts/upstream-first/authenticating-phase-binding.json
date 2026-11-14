@@ -1,0 +1,16 @@
+{
+  "status": "PASS",
+  "controls": 3,
+  "sourceRecord": {
+    "path": "artifacts/upstream-first/authenticating-phase-source.json",
+    "sha256": "fdd771dff05723de3f41f1de2106b95482a8d14466e4419470ac7069eaf61a02"
+  },
+  "generator": {
+    "path": "artifacts/upstream-first/write-reports.mjs",
+    "sha256": "484f12445b7cd53e34f813069eabf63dedf37622aa3fcf9d30bfd058d2fb6fb6"
+  },
+  "helper": {
+    "path": ".artifacts/check-authenticating-phase-binding.mjs",
+    "sha256": "10296abd05f8775e07273cd79f75edb9c2a44e9e32431415074097e4533d0b4a"
+  }
+}

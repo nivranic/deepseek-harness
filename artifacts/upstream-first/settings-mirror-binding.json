@@ -1,0 +1,16 @@
+{
+  "status": "PASS",
+  "controls": 3,
+  "sourceRecord": {
+    "path": "artifacts/upstream-first/settings-mirror-source.json",
+    "sha256": "ca668bf88a87eed51a67507da815c160995da670e0772004cd256a0247af17b1"
+  },
+  "generator": {
+    "path": "artifacts/upstream-first/write-reports.mjs",
+    "sha256": "6b774c3eb6eb1c0b73ff6baa0a405f4576c665bf701923c44510374ba4999df2"
+  },
+  "helper": {
+    "path": ".artifacts/check-settings-mirror-binding.mjs",
+    "sha256": "51362c7b511e3b022e7b038f4931f9badcbd01e62d7a6f0c0eb5fffe20dfe244"
+  }
+}

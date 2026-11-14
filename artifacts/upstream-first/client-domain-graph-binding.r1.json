@@ -1,0 +1,16 @@
+{
+  "status": "PASS",
+  "controls": 3,
+  "sourceRecord": {
+    "path": "artifacts/upstream-first/client-domain-graph-source.json",
+    "sha256": "5d77117e724baf40efc85b04a3e2d3d050f1682c8aa3094c2de23014ca3d779c"
+  },
+  "generator": {
+    "path": "artifacts/upstream-first/write-reports.mjs",
+    "sha256": "8336647b2bcd524be796c3ccd7f18b915f27e6db5ba267a31d8574b77f42e0d9"
+  },
+  "helper": {
+    "path": ".artifacts/check-client-domain-graph-binding.mjs",
+    "sha256": "1b35449c39ae63a84d8ea6ac98fd1ad9ec76cfa06270cfeb903ce60f15039c3d"
+  }
+}

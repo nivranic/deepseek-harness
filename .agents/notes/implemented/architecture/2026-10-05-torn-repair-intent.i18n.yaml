@@ -1,0 +1,22 @@
+# Bilingual-pair consistency record for 2026-10-05-torn-repair-intent.md (docs/i18n/README.md): per heading
+# section, a hash of its English and Chinese blocks outside code blocks and generated regions.
+# After editing either side, bring the other along and re-record with:
+#   pnpm run verify-translation-pairing --write .agents/notes/implemented/architecture/2026-10-05-torn-repair-intent.md
+/agent-note-a-crash-durable-repair-intent-closes-the-torn-tail-rewrite-window:
+  en: 7ca05a90b8d51bf0
+  zh: c28f376a8f98d5a7
+/agent-note-a-crash-durable-repair-intent-closes-the-torn-tail-rewrite-window/problem:
+  en: 83cdb59dd2776c9f
+  zh: b04cf9688298c357
+/agent-note-a-crash-durable-repair-intent-closes-the-torn-tail-rewrite-window/decision:
+  en: 8f816e2bbbc96479
+  zh: bf98b3bf33793d4a
+/agent-note-a-crash-durable-repair-intent-closes-the-torn-tail-rewrite-window/alternatives-considered:
+  en: 2bdb80c0a32583bf
+  zh: 1cb7ef88b0db9066
+/agent-note-a-crash-durable-repair-intent-closes-the-torn-tail-rewrite-window/consequences:
+  en: 518849c897740b45
+  zh: 4602fa005669808e
+/agent-note-a-crash-durable-repair-intent-closes-the-torn-tail-rewrite-window/open-follow-ups:
+  en: 6d2047c7c053ce9a
+  zh: 6546cc8c4bfa27e1

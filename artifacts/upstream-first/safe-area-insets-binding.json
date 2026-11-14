@@ -1,0 +1,16 @@
+{
+  "status": "PASS",
+  "controls": 3,
+  "sourceRecord": {
+    "path": "artifacts/upstream-first/safe-area-insets-source.json",
+    "sha256": "e972b02e6ec8e4e1e29a34f75e676d4a0feb0714a9c1c969243ad223c2ae9d9a"
+  },
+  "generator": {
+    "path": "artifacts/upstream-first/write-reports.mjs",
+    "sha256": "4e773c9bc994220622e91179f25b8a58110f8f203602a292e3c52d9b4fac89b1"
+  },
+  "helper": {
+    "path": ".artifacts/check-safe-area-insets-binding.mjs",
+    "sha256": "7d2b7f530fde3599b2f60894d88f9ee9512dc64e0276819c41a4e7f6bd07d779"
+  }
+}

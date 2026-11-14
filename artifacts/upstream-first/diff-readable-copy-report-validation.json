@@ -1,0 +1,70 @@
+{
+  "status": "PASS",
+  "scope": "Report bindings and audit for the Diff readability and copy; the remaining specification sections stay open; full Upstream-First objective remains in progress",
+  "gate0": {
+    "validation": "PASS",
+    "gate0": "PASS",
+    "paths": 1938,
+    "components": 129,
+    "specificationCoverage": {
+      "status": "PASS",
+      "numberedSections": 81,
+      "nonEmptySourceLines": 1983,
+      "acceptanceProven": false
+    }
+  },
+  "sourceRecord": {
+    "path": "artifacts/upstream-first/diff-readable-copy-source.json",
+    "sha256": "9b72709cd8dd4e05dc512e911423ed5580e7e69c6e3e6872f43903ac57898b9c"
+  },
+  "generator": {
+    "path": "artifacts/upstream-first/write-reports.mjs",
+    "sha256": "54bdd43883fcae8308b2e682331fd881abb5ed3e70628c16c68e6fc4e2238081"
+  },
+  "binding": {
+    "path": "artifacts/upstream-first/diff-readable-copy-binding.json",
+    "sha256": "d714656b4dc4d53df576a5aa7d90c32e2e79f44b1c0e45857b7a7860935162eb"
+  },
+  "helpers": [
+    {
+      "path": ".artifacts/advance-diff-readable-copy-reports.mjs",
+      "sha256": "bf05675d7373d66e75283210ca0bfa60085174e573fcff15dd3b7dbbebc55efc"
+    },
+    {
+      "path": ".artifacts/capture-diff-readable-copy-validation.mjs",
+      "sha256": "d84fbce800c46ccf1b14c4a79a2effd8e97477bdc22242db66743d978b5d9840"
+    }
+  ],
+  "reports": [
+    {
+      "path": "IMPLEMENTATION_STATUS.md",
+      "sha256": "a9ef22d2f6dc16ebabcddee7a8a7fdbb4dc7bf62940fe10d4a887ebbf05a5a07"
+    },
+    {
+      "path": "artifacts/upstream-first/evidence.json",
+      "sha256": "694c2e5c0820ecef9ff93fc0b742bb992c775af16e30f6d0567f5d1d972fc3a4"
+    }
+  ],
+  "checks": [
+    {
+      "path": ".artifacts/diff-readable-copy-binding.log",
+      "sha256": "34324d900fe0bc47c22059a1ae15ced95994e67040eadf2ecf7cc663261895cc"
+    },
+    {
+      "path": ".artifacts/diff-readable-copy-audit-tests.log",
+      "sha256": "de7386c4dc0eef00f1835036c31066fed95fc1038a9a9f9f9282a29babb71016"
+    },
+    {
+      "path": ".artifacts/diff-readable-copy-gate0.log",
+      "sha256": "5427f71ff5b67b500b327d785dcaf84a7af2c6edd24b1833c4c7d83ad2cf37c8"
+    },
+    {
+      "path": ".artifacts/diff-readable-copy-report-diff-check.log",
+      "sha256": "e3b0c44298fc1c149afbf4c8996fb92427ae41e4649b934ca495991b7852b855"
+    },
+    {
+      "path": ".artifacts/diff-readable-copy-report-generation.log",
+      "sha256": "5867d1d51cd43a59428de2e7fffa15847d7153b11f3b61ecf812224ee2dd2099"
+    }
+  ]
+}

@@ -19,6 +19,11 @@ import SessionStore, {
 import type { Agent } from '@deepseek-ai/dsh-agent'
 import {
   SessionTelemetryCoordinator,
+  TELEMETRY_CONSENT_NAMESPACE,
+  TELEMETRY_CONSENT_OFF,
+  TELEMETRY_DATA_KINDS,
+  resolveTelemetryConsent,
+  telemetryKindAllowed,
   type SessionTelemetrySink,
   type SessionTelemetryCapture,
   type SessionTelemetryRecord,
@@ -776,5 +781,51 @@ describe('SessionTelemetryCoordinator lifecycle and containment', () => {
       step: 2,
     })
     expect(record.body).toEqual({ name, message })
+  })
+})
+
+describe('section 44 telemetry consent vocabulary', () => {
+  it('defaults every data kind to off in a frozen record', () => {
+    expect(TELEMETRY_CONSENT_OFF).toEqual({
+      sessionTelemetry: false,
+      providerMetadata: false,
+      relayMetadata: false,
+      deviceTrustMetadata: false,
+      crashDiagnostics: false,
+    })
+    expect(Object.isFrozen(TELEMETRY_CONSENT_OFF)).toBe(true)
+  })
+
+  it('gates each kind independently on strict true', () => {
+    const consent = { sessionTelemetry: true, crashDiagnostics: true }
+    expect(telemetryKindAllowed(consent, 'sessionTelemetry')).toBe(true)
+    expect(telemetryKindAllowed(consent, 'crashDiagnostics')).toBe(true)
+    expect(telemetryKindAllowed(consent, 'providerMetadata')).toBe(false)
+    expect(telemetryKindAllowed(consent, 'relayMetadata')).toBe(false)
+    expect(telemetryKindAllowed(consent, 'deviceTrustMetadata')).toBe(false)
+  })
+
+  it('resolves absent config to the all-off default', () => {
+    expect(resolveTelemetryConsent(undefined)).toEqual(TELEMETRY_CONSENT_OFF)
+    expect(resolveTelemetryConsent({})).toEqual(TELEMETRY_CONSENT_OFF)
+  })
+
+  it('resolves a partial record per kind and keeps explicit opt-outs disabled', () => {
+    expect(resolveTelemetryConsent({ relayMetadata: true })).toEqual({
+      ...TELEMETRY_CONSENT_OFF,
+      relayMetadata: true,
+    })
+    expect(resolveTelemetryConsent({ sessionTelemetry: false, providerMetadata: false })).toEqual(TELEMETRY_CONSENT_OFF)
+  })
+
+  it('names the settings namespace and lists exactly the five kinds once each', () => {
+    expect(TELEMETRY_CONSENT_NAMESPACE).toBe('telemetry-consent')
+    expect([...TELEMETRY_DATA_KINDS].sort()).toEqual([
+      'crashDiagnostics',
+      'deviceTrustMetadata',
+      'providerMetadata',
+      'relayMetadata',
+      'sessionTelemetry',
+    ])
   })
 })

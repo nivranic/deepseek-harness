@@ -1,0 +1,18 @@
+<?xml version="1.0" encoding="UTF-8"?>
+<testsuite name="ai.deepseek.dsh.gateway.NativeGatewayProtocolTest" tests="12" skipped="0" failures="0" errors="0" timestamp="2026-09-27T22:57:03.196Z" hostname="WADEPRUDENCE" time="0.155">
+  <properties/>
+  <testcase name="Host Session writer version does not become client protocol version()" classname="ai.deepseek.dsh.gateway.NativeGatewayProtocolTest" time="0.0"/>
+  <testcase name="rejects expired legacy and malformed pairing before network()" classname="ai.deepseek.dsh.gateway.NativeGatewayProtocolTest" time="0.004"/>
+  <testcase name="accepts the operator payload and all current roles()" classname="ai.deepseek.dsh.gateway.NativeGatewayProtocolTest" time="0.001"/>
+  <testcase name="legacy credentials require re-pair without being deleted()" classname="ai.deepseek.dsh.gateway.NativeGatewayProtocolTest" time="0.002"/>
+  <testcase name="rejects corrupt current credentials before creating transport()" classname="ai.deepseek.dsh.gateway.NativeGatewayProtocolTest" time="0.0"/>
+  <testcase name="preserves structured RPC and mux failures()" classname="ai.deepseek.dsh.gateway.NativeGatewayProtocolTest" time="0.004"/>
+  <testcase name="only pairing redemption can omit a device()" classname="ai.deepseek.dsh.gateway.NativeGatewayProtocolTest" time="0.0"/>
+  <testcase name="rejects incompatible negotiation and malformed advertised capabilities()" classname="ai.deepseek.dsh.gateway.NativeGatewayProtocolTest" time="0.001"/>
+  <testcase name="signs each dispatch and places events proof inside reserved args only()" classname="ai.deepseek.dsh.gateway.NativeGatewayProtocolTest" time="0.012"/>
+  <testcase name="native credential format survives encrypted store roundtrip()" classname="ai.deepseek.dsh.gateway.NativeGatewayProtocolTest" time="0.118"/>
+  <testcase name="rejects malformed mux frames and mismatched RPC correlation()" classname="ai.deepseek.dsh.gateway.NativeGatewayProtocolTest" time="0.002"/>
+  <testcase name="rejects unsafe endpoints and keeps explicit port and IPv6()" classname="ai.deepseek.dsh.gateway.NativeGatewayProtocolTest" time="0.001"/>
+  <system-out><![CDATA[]]></system-out>
+  <system-err><![CDATA[]]></system-err>
+</testsuite>

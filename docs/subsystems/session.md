@@ -836,7 +836,7 @@ The backends that consume this contract are on [persistence.md](persistence.md).
 
 `ModelCatalog` is the Host-generation model directory returned by `session/modelCatalog`: it carries the deployment default, routable provider ids, successful provider groups, and isolated provider failures. It is not derived from one Session and remains separate from Session projections.
 
-`SessionOpenWorkspacePathRequest` carries an absolute or workspace-resolved `path`; optional `action: "reveal"` selects file-manager navigation instead of default-application opening. `SessionOpenWorkspacePathValue` confirms that the Host accepted the native handoff. A Session-aware Client resolves relative paths against its current Session cwd when known; the controller hands the path to the opener unchanged and reports invalid requests, cancellation, and opener failures through the Session Remote error vocabulary.
+`SessionOpenWorkspacePathRequest` carries a path authorized and resolved by a Host service; optional `action: "reveal"` selects file-manager navigation. `SessionOpenWorkspacePathValue` acknowledges the native handoff. These types serve Host-local calls, not the Session Remote namespace. Client native actions use recorded file coordinates through the [declared-file service](../../packages/client/ui-deliverables/README.md), which owns Session authorization and filesystem-to-Host path validation.
 
 The optional `application` selects a registered file handler without changing the system default; `workspacePathApplications({ path })` returns current handlers, names, icons, and default selection after Host path verification.
 
@@ -967,6 +967,14 @@ workspaceDesktop(): { name: string; available: boolean; fileManager: 'finder' | 
 @Remote('rename') rename(request: SessionRenameRequest): Promise<SessionRenameValue>
 
 /**
+ * Rename one Session only against the title revision captured before editing;
+ * an identical user-pinned title returns its original acceptance.
+ * @param request - Session identity, proposed title, and durable editing baseline.
+ * @returns the accepted title and its original durable event sequence.
+ */
+@Remote('renameAt') renameAt(request: SessionRenameAtRequest): Promise<SessionRenameValue>
+
+/**
  * Fork one cold-readable exact event prefix into a new Session. An omitted
  * boundary selects the latest completed-turn prefix; an open cut receives
  * synthetic fork closers.
@@ -1003,6 +1011,14 @@ workspaceDesktop(): { name: string; available: boolean; fileManager: 'finder' | 
  * @returns acknowledgement that cancellation was requested.
  */
 @Remote('cancel') cancel(request: SessionCancelRequest): SessionCancelValue
+
+/**
+ * Cancel one observed Agent turn without arming cancellation for later
+ * work; a stale, absent, or completed target is an accepted no-op.
+ * @param request - Session and observed turn/start sequence, or null for no observed turn.
+ * @returns acceptance whether the target is cancelled or already inactive.
+ */
+@Remote('cancelTurn') cancelTurn(request: SessionCancelTurnRequest): SessionCancelValue
 
 /**
  * Read one cold-safe, message-aligned Session history page.

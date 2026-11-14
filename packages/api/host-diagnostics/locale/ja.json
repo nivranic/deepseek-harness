@@ -1,0 +1,4 @@
+{
+  "meta.title": "Host 診断 API",
+  "meta.description": "Host の準備状態を報告し、機密情報を除去した診断情報を収集します。"
+}

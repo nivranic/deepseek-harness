@@ -525,6 +525,9 @@ describe.skipIf(MODE === 'record')('web e2e: document preview through Files', ()
 
   beforeAll(async () => {
     outsideRoot = await mkdtemp(join(tmpdir(), 'dsh-preview-outside-'))
+    scaffold = await launchWebScaffold({ replayFixture: FIXTURE, paceMs: 5, compareReplaySession: false, extraOverlayPath: PAGING_PATCH })
+    const executablePath = process.env.DSH_PLAYWRIGHT_EXECUTABLE_PATH
+    browser = await chromium.launch(executablePath === undefined ? {} : { executablePath })
     if (STUB_OPENER) {
       // Exercise the built Host through its actual OS command, replacing only the desktop application.
       nativeRoot = await mkdtemp(join(tmpdir(), 'dsh-preview-native-'))
@@ -680,6 +683,7 @@ else process.exit(1);
       writeFile(join(cwd, 'local.css'), '#local-result { color: rgb(12, 34, 56); }'),
       writeFile(outsideScript, 'document.getElementById("outside-result").textContent="OUTSIDE_JS_OK";'),
       writeFile(join(cwd, 'tiny.png'), TINY_PNG),
+      writeFile(join(cwd, 'photo.unknown'), TINY_PNG),
       writeFile(join(cwd, 'preview-images', 'local image.png'), TINY_PNG),
       writeFile(join(cwd, 'large.svg'), [
         '<svg xmlns="http://www.w3.org/2000/svg" width="1200" height="1600" viewBox="0 0 1200 1600">',
@@ -1292,7 +1296,13 @@ else process.exit(1);
       }
     })).toEqual({ scrollTop, scrollportBelowBanner: true, firstLineAbove: true })
     await page.context().grantPermissions(['clipboard-read', 'clipboard-write'], { origin: new URL(page.url()).origin })
+    // Establish the OS clipboard representation from known source; Windows
+    // converts LF to CRLF even without the product's Copy implementation.
+    await page.evaluate(text => navigator.clipboard.writeText(text), codeLines.join('\n'))
+    const expectedClipboard = await page.evaluate(() => navigator.clipboard.readText())
     await page.evaluate(() => navigator.clipboard.writeText(''))
+    await codeBlock.getByRole('button', { name: 'Copy', exact: true }).click()
+    await expect.poll(() => page.evaluate(() => navigator.clipboard.readText())).toBe(expectedClipboard)
     const copyCode = codeBlock.getByRole('button', { name: 'Copy', exact: true })
     expect(await codeBlock.getByRole('button').count()).toBe(1)
     expect(await copyCode.textContent()).toBe('')
@@ -1467,6 +1477,14 @@ else process.exit(1);
     expect(await viewer.count()).toBe(0)
     const fallback = (await plainLines.allTextContents()).map(line => line.trim())
     expect(fallback).toEqual(['UNKNOWN_SUFFIX', 'Plain fallback.'])
+    sections.push(['## Unknown suffix', '', `- Viewer: ${await viewer.innerText()}`, `- Text: ${fallback.join(' | ')}`].join('\n'))
+    await openFile('photo.unknown')
+    await expect.poll(() => viewer.innerText()).toBe('Image')
+    const inferredImage = preview.getByRole('img', { name: 'Image preview: photo.unknown', exact: true })
+    await inferredImage.waitFor({ state: 'visible', timeout: 15_000 })
+    expect(await inferredImage.evaluate(node => (node as HTMLImageElement).naturalWidth)).toBe(1)
+    await successShot(page, 'inferred-image')
+    sections.push(['## Unknown image suffix', '', `- Viewer: ${await viewer.innerText()}`, '- Decoded image width: 1'].join('\n'))
     sections.push(['## Unknown suffix', '', `- Viewer menu hidden: ${String(await viewer.count() === 0)}`, `- Text: ${fallback.join(' | ')}`].join('\n'))
 
     await filesTab.click()

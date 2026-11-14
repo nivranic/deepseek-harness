@@ -1,0 +1,16 @@
+{
+  "status": "PASS",
+  "controls": 3,
+  "sourceRecord": {
+    "path": "artifacts/upstream-first/lite-tools-source.json",
+    "sha256": "2af54d41d82dc8b4b0c0e99b656c922b6be5f8dfadd0c10f6ab78b94ed85c53a"
+  },
+  "generator": {
+    "path": "artifacts/upstream-first/write-reports.mjs",
+    "sha256": "01479b8289bb48aa0532a9d444fa120c0ca7da8c1dc6d7117daf7708d20561c3"
+  },
+  "helper": {
+    "path": ".artifacts/check-lite-tools-binding.mjs",
+    "sha256": "556a6b6133180cfb4ba6735ee782a490699a40c111b5104b0a6ec9673b737757"
+  }
+}

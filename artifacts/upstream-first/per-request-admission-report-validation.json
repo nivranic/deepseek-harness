@@ -1,0 +1,70 @@
+{
+  "status": "PASS",
+  "scope": "Report bindings and audit for the per-request device admission; capability-declaration adoption, nonce-ledger hardening, and the remaining specification sections stay open; full Upstream-First objective remains in progress",
+  "gate0": {
+    "validation": "PASS",
+    "gate0": "PASS",
+    "paths": 1938,
+    "components": 129,
+    "specificationCoverage": {
+      "status": "PASS",
+      "numberedSections": 81,
+      "nonEmptySourceLines": 1983,
+      "acceptanceProven": false
+    }
+  },
+  "sourceRecord": {
+    "path": "artifacts/upstream-first/per-request-admission-source.json",
+    "sha256": "e5d6303ed72abb51749fc67dbd33be155b5d6cfc44981dd9944b755ac8187ac4"
+  },
+  "generator": {
+    "path": "artifacts/upstream-first/write-reports.mjs",
+    "sha256": "d896c28ef7235bcdeb8eee5f37181e059e037e9c8fb55e0ba549e6c28727e422"
+  },
+  "binding": {
+    "path": "artifacts/upstream-first/per-request-admission-binding.json",
+    "sha256": "797572b9f431fd617265430806b765a887607f7189804e1bffb6b5429d028ab8"
+  },
+  "helpers": [
+    {
+      "path": ".artifacts/advance-per-request-admission-reports.mjs",
+      "sha256": "c61e2423a7c7e59d59a2cebe40124fb80e65901c7bac4f0bfbd1729bef9d6005"
+    },
+    {
+      "path": ".artifacts/capture-per-request-admission-validation.mjs",
+      "sha256": "4c70d792d2dbe35812d3781a4e53b5c006f6f986ffa8f24523101fb764063237"
+    }
+  ],
+  "reports": [
+    {
+      "path": "IMPLEMENTATION_STATUS.md",
+      "sha256": "ca5c5442591bc1ca06c8702cab280d8937b2083f327c660698d47bf8a3f5dcdf"
+    },
+    {
+      "path": "artifacts/upstream-first/evidence.json",
+      "sha256": "2f527d0b44e9d209aa7f9fa2fa784a30a6578f57039be81de1f3ae79851954cf"
+    }
+  ],
+  "checks": [
+    {
+      "path": ".artifacts/per-request-admission-binding.log",
+      "sha256": "bf53f24b16d5850eb24a9c0f3f59d74dbae6790186fbec14c2c1b3ee68d783b7"
+    },
+    {
+      "path": ".artifacts/per-request-admission-audit-tests.log",
+      "sha256": "8dc020cd18d875d94f3583ac2e0796f377dbf956f3acae64d7a649b39fa63528"
+    },
+    {
+      "path": ".artifacts/per-request-admission-gate0.log",
+      "sha256": "505d74ef938f5d34d85490d37e0176ba804d93272fcf465ce2544a02c56b3f90"
+    },
+    {
+      "path": ".artifacts/per-request-admission-report-diff-check.log",
+      "sha256": "e3b0c44298fc1c149afbf4c8996fb92427ae41e4649b934ca495991b7852b855"
+    },
+    {
+      "path": ".artifacts/per-request-admission-report-generation.log",
+      "sha256": "fe010532f71a6341467ae5719b29ac19470895de1d481156335b8f70a3273ed5"
+    }
+  ]
+}

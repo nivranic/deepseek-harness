@@ -1,0 +1,22 @@
+# Bilingual-pair consistency record for 2026-09-30-upload-dedupe-receipt.md (docs/i18n/README.md): per heading
+# section, a hash of its English and Chinese blocks outside code blocks and generated regions.
+# After editing either side, bring the other along and re-record with:
+#   pnpm run verify-translation-pairing --write .agents/notes/implemented/architecture/2026-09-30-upload-dedupe-receipt.md
+/agent-note-upload-deduplication-restages-stored-files-by-digest-without-re-receiving-bytes:
+  en: 1062d99db215eb59
+  zh: 2e6107ef63da1548
+/agent-note-upload-deduplication-restages-stored-files-by-digest-without-re-receiving-bytes/problem:
+  en: f81cc6c1325b0842
+  zh: 2e4f722212517f5c
+/agent-note-upload-deduplication-restages-stored-files-by-digest-without-re-receiving-bytes/decision:
+  en: 4a4802858bdfa375
+  zh: b34f73f6be91270c
+/agent-note-upload-deduplication-restages-stored-files-by-digest-without-re-receiving-bytes/alternatives-considered:
+  en: ce824e381d117f31
+  zh: 03532ede85162cd0
+/agent-note-upload-deduplication-restages-stored-files-by-digest-without-re-receiving-bytes/consequences:
+  en: 665fe1a036e0d09a
+  zh: 461860b2b4ebba9a
+/agent-note-upload-deduplication-restages-stored-files-by-digest-without-re-receiving-bytes/open-work:
+  en: 426f2da539e30367
+  zh: 24aa12bfc7cb9348

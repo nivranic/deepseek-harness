@@ -1,0 +1,12 @@
+{
+  "status": "PASS",
+  "sha256": "4f313ad5a779b497e239654bc6cb3734dbe32210c72adf11286637606f764e80",
+  "target": "artifacts/upstream-first/original-specification.md",
+  "recoveredFrom": "E:/DevTools/codex/sessions/2026/09/14/rollout-2026-09-14T23-23-58-01a0a084-9501-7fe3-8be0-434a574812e1.jsonl",
+  "logLine": 18,
+  "field": "aggregated_output",
+  "outputTransform": "lf/trim=1/bom=false",
+  "originalPathStillRequired": false,
+  "sourceOfHash": "UPSTREAM_DELTA.json#/specification/sha256",
+  "byteCount": 40658
+}

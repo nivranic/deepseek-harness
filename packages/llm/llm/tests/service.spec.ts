@@ -1,4 +1,4 @@
-import { describe, expect, it } from 'vitest'
+import { describe, expect, it, onTestFinished } from 'vitest'
 import { Context } from '@deepseek-ai/cordis'
 import type { AttachmentId } from '@deepseek-ai/dsh-attachment/types'
 import { brandString } from '@deepseek-ai/dsh-brand'
@@ -29,6 +29,16 @@ import type {
   SystemPromptUpdate,
 } from '@deepseek-ai/dsh-llm'
 
+it('advertises directory and discovery independently of installed adapters', async () => {
+  const ctx = new Context()
+  const fiber = ctx.plugin(LlmRuntime)
+  onTestFinished(async () => { await fiber.dispose() })
+  await fiber.await()
+  expect(ctx.llm.typertRemote.capabilities).toEqual([
+    { id: 'llm.providers.v1', methods: ['listProviders', 'listConfigurableProviders'], requiredPermission: 'view' },
+    { id: 'llm.discover-models.v1', methods: ['discoverModels'], requiredPermission: 'view' },
+  ])
+})
 import type { ContextFormed } from '@deepseek-ai/dsh-llm'
 declare module '@deepseek-ai/dsh-llm' {
   interface MessageSourceMap {

@@ -1,0 +1,70 @@
+{
+  "status": "PASS",
+  "scope": "Report bindings and audit for the Retargetable connection endpoint; the remaining specification sections stay open; full Upstream-First objective remains in progress",
+  "gate0": {
+    "validation": "PASS",
+    "gate0": "PASS",
+    "paths": 1938,
+    "components": 129,
+    "specificationCoverage": {
+      "status": "PASS",
+      "numberedSections": 81,
+      "nonEmptySourceLines": 1983,
+      "acceptanceProven": false
+    }
+  },
+  "sourceRecord": {
+    "path": "artifacts/upstream-first/retargetable-endpoint-source.json",
+    "sha256": "b83a5c047dbe4685bdff79c8365ec32b7c93a28ca857b0cdc005a0b9b01c6ba6"
+  },
+  "generator": {
+    "path": "artifacts/upstream-first/write-reports.mjs",
+    "sha256": "55dc2534853feedae1732b38d06345c55fbf43ab8448e07ccb2372c1e7764137"
+  },
+  "binding": {
+    "path": "artifacts/upstream-first/retargetable-endpoint-binding.json",
+    "sha256": "4704a0235f5b550e82c751466d128ebbf5f34df22ae8829d06d97fda525949df"
+  },
+  "helpers": [
+    {
+      "path": ".artifacts/advance-retargetable-endpoint-reports.mjs",
+      "sha256": "654333a42c83e560024725e748409d0937a22de666ba2157406d2fd5354affb5"
+    },
+    {
+      "path": ".artifacts/capture-retargetable-endpoint-validation.mjs",
+      "sha256": "6fb7b1e4f87763ffb9e83956a22fe972e06485dd2a303678aefee486fafbac37"
+    }
+  ],
+  "reports": [
+    {
+      "path": "IMPLEMENTATION_STATUS.md",
+      "sha256": "9ce9bc7cd1f5212a0720d6de3362fd21e18501c2b362027188a40fd7eda22e16"
+    },
+    {
+      "path": "artifacts/upstream-first/evidence.json",
+      "sha256": "311bbd04f0a9ff4bd4f6cadfdca1b5829e9de11b98b66e00db62fbf7a214ed86"
+    }
+  ],
+  "checks": [
+    {
+      "path": ".artifacts/retargetable-endpoint-binding.log",
+      "sha256": "79299180c3489fe9707cf6af826e52c6a4a13599cebee79750daa3308febe227"
+    },
+    {
+      "path": ".artifacts/retargetable-endpoint-audit-tests.log",
+      "sha256": "cc5df1f5cf4da0e65baf8dd127059cec447944668db0bb1e5081ff05d4131f7c"
+    },
+    {
+      "path": ".artifacts/retargetable-endpoint-gate0.log",
+      "sha256": "505d74ef938f5d34d85490d37e0176ba804d93272fcf465ce2544a02c56b3f90"
+    },
+    {
+      "path": ".artifacts/retargetable-endpoint-report-diff-check.log",
+      "sha256": "e3b0c44298fc1c149afbf4c8996fb92427ae41e4649b934ca495991b7852b855"
+    },
+    {
+      "path": ".artifacts/retargetable-endpoint-report-generation.log",
+      "sha256": "304142619dca56563615e738a3fe21961ef9d5f37153092c05036c5ec94afca9"
+    }
+  ]
+}

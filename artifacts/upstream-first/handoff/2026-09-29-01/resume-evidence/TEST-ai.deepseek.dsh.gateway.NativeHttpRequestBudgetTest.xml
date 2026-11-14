@@ -1,0 +1,9 @@
+<?xml version="1.0" encoding="UTF-8"?>
+<testsuite name="ai.deepseek.dsh.gateway.NativeHttpRequestBudgetTest" tests="3" skipped="0" failures="0" errors="0" timestamp="2026-09-27T22:57:09.003Z" hostname="WADEPRUDENCE" time="0.002">
+  <properties/>
+  <testcase name="missing nonnumeric fractional nonfinite and unsafe limits reject without fallback()" classname="ai.deepseek.dsh.gateway.NativeHttpRequestBudgetTest" time="0.0"/>
+  <testcase name="inclusive limit measures UTF-8 bytes and reports the local overflow counts()" classname="ai.deepseek.dsh.gateway.NativeHttpRequestBudgetTest" time="0.0"/>
+  <testcase name="positive safe integers accept extension fields without truncation()" classname="ai.deepseek.dsh.gateway.NativeHttpRequestBudgetTest" time="0.0"/>
+  <system-out><![CDATA[]]></system-out>
+  <system-err><![CDATA[]]></system-err>
+</testsuite>

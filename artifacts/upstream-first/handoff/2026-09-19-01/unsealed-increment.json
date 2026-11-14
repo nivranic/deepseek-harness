@@ -1,0 +1,343 @@
+{
+  "schemaVersion": 1,
+  "status": "IN_PROGRESS",
+  "key": "remoteErrorEnvelopeSchema",
+  "predecessor": {
+    "path": "artifacts/upstream-first/remote-validation-details-source.json",
+    "bytes": 1048292,
+    "sha256": "d3ebb0fda88dc60acef6ba1eb429d542e2683d9b0d54e57b78cf7a8b960a51fc"
+  },
+  "archive": {
+    "path": ".artifacts/remote-error-envelope-schema-before/archive.json",
+    "bytes": 1719406,
+    "sha256": "fb58a4c50f04b256d39e71aa1c97bc03b4b9813e51b40e611d3b9b08d15c3a14",
+    "files": 5461
+  },
+  "changed": [
+    {
+      "path": ".agents/notes/implemented/architecture/2026-07-27-compiler-independent-typert-model.i18n.yaml",
+      "bytes": 562,
+      "sha256": "55158ab3d26a2bb647ae2bd3ddc19ce34c75d3fd9dee3dfe2841338bfb8ff66c",
+      "archivedPath": ".artifacts/remote-error-envelope-schema-before/.agents/notes/implemented/architecture/2026-07-27-compiler-independent-typert-model.i18n.yaml",
+      "archivedSha256": "0ba61ce2470436892e9120f9e6523c00ac8f0cd283a8d2a972d1857ed910cce9"
+    },
+    {
+      "path": ".agents/notes/implemented/architecture/2026-07-27-compiler-independent-typert-model.md",
+      "bytes": 11274,
+      "sha256": "c216d796da992a9e92a8fe2988095fdf9d04d87d4b34a3c5e3c04a945b37d5da",
+      "archivedPath": ".artifacts/remote-error-envelope-schema-before/.agents/notes/implemented/architecture/2026-07-27-compiler-independent-typert-model.md",
+      "archivedSha256": "a9d7e5e06ce32f1351f851c82ba495a7fb53e14c56e59c66168c237fce44b8a8"
+    },
+    {
+      "path": ".agents/notes/implemented/architecture/2026-07-27-compiler-independent-typert-model.zh.md",
+      "bytes": 9711,
+      "sha256": "443af63a06610e28a88ad2a6e3f7cbbae251b3db599959331584a4f6e80ee43b",
+      "archivedPath": ".artifacts/remote-error-envelope-schema-before/.agents/notes/implemented/architecture/2026-07-27-compiler-independent-typert-model.zh.md",
+      "archivedSha256": "b6676c857dc403204af73971ad92253cc718c20f2034938e957144314fd9be4f"
+    },
+    {
+      "path": ".agents/notes/implemented/architecture/2026-08-28-ctx-remote-failure-vocabulary.i18n.yaml",
+      "bytes": 550,
+      "sha256": "aa237059bd490d0f53ee85fe4d4ac98f8e2d8778f6b720cbea97958ffe6c8867",
+      "archivedPath": ".artifacts/remote-error-envelope-schema-before/.agents/notes/implemented/architecture/2026-08-28-ctx-remote-failure-vocabulary.i18n.yaml",
+      "archivedSha256": "0986c3292f4e05ec4dd2d21dbbabb7e30275346f4825e83ea38df3b27f2eda7f"
+    },
+    {
+      "path": ".agents/notes/implemented/architecture/2026-08-28-ctx-remote-failure-vocabulary.md",
+      "bytes": 18180,
+      "sha256": "f80e6ee6a6470b8b2a2b204b98e11ca9716132ff67572a5813e459b33ef62e52",
+      "archivedPath": ".artifacts/remote-error-envelope-schema-before/.agents/notes/implemented/architecture/2026-08-28-ctx-remote-failure-vocabulary.md",
+      "archivedSha256": "496d92837dd02800a5f8e716eaf985e9b9f92dc5007ce4c2444784beb51abe58"
+    },
+    {
+      "path": ".agents/notes/implemented/architecture/2026-08-28-ctx-remote-failure-vocabulary.zh.md",
+      "bytes": 15958,
+      "sha256": "24a7789d6e7aeb89233fae3f97b5cc24248f3d11ad43a899bd45166df4e1b49c",
+      "archivedPath": ".artifacts/remote-error-envelope-schema-before/.agents/notes/implemented/architecture/2026-08-28-ctx-remote-failure-vocabulary.zh.md",
+      "archivedSha256": "ced639c2fc26a96fd956b87bb1421fe59e621f66d4c5fb4ebb526aafc711097f"
+    },
+    {
+      "path": "package.json",
+      "bytes": 14508,
+      "sha256": "6c6aba1dc40ad1ed4bc0f1467b5d180a94c8cdcf6c1ea419d5a1ab3889e69d61",
+      "archivedPath": ".artifacts/remote-error-envelope-schema-before/package.json",
+      "archivedSha256": "af0b44a3bc0fa7b87b2919feddbf64f40a2c41e89278cfe668e9a71f13eabd0f"
+    },
+    {
+      "path": "packages/typert/generator/README.i18n.yaml",
+      "bytes": 435,
+      "sha256": "2b9777b23831e30c990ccea914a9fc51828c06fa88fbf3da8f47ab4ba8f04101",
+      "archivedPath": ".artifacts/remote-error-envelope-schema-before/packages/typert/generator/README.i18n.yaml",
+      "archivedSha256": "9ccc6de789c95c0050ef6076573ba586e8e267ca7c2f3a79039d0bf0978aa558"
+    },
+    {
+      "path": "packages/typert/generator/README.md",
+      "bytes": 11806,
+      "sha256": "d3a4b7676cbfd66bb871e217aa6d1a941ed8d74c8f3d49e9d4b89e2994f83c4a",
+      "archivedPath": ".artifacts/remote-error-envelope-schema-before/packages/typert/generator/README.md",
+      "archivedSha256": "8726c82a8afd820ce1df1695c3bfc6ba838ce7965f35fb66d55df4f720c4d876"
+    },
+    {
+      "path": "packages/typert/generator/README.zh.md",
+      "bytes": 10734,
+      "sha256": "22b7e2fcb0fbe14f0f52fff76140a03d186a647741101d8d536d298b6145546a",
+      "archivedPath": ".artifacts/remote-error-envelope-schema-before/packages/typert/generator/README.zh.md",
+      "archivedSha256": "5e95eb0f9a6208f59b039daa15a4315d7ca533888aa613cdfc884b708c971e15"
+    },
+    {
+      "path": "packages/typert/generator/src/emitter.ts",
+      "bytes": 38792,
+      "sha256": "625316080d31b6b62b0747eaf0d697349eff6b57aae4e90c9b5f40d65610656c",
+      "archivedPath": ".artifacts/remote-error-envelope-schema-before/packages/typert/generator/src/emitter.ts",
+      "archivedSha256": "88055b56446e6fb09a9c92da6ef423fa83f9e5603675243ee5e4baced527e205"
+    },
+    {
+      "path": "packages/typert/generator/src/index.ts",
+      "bytes": 794,
+      "sha256": "cd79c6fe32f9f0ce489ef490604250af3dadecd77a93718508bbd4b21cdd37cf",
+      "archivedPath": ".artifacts/remote-error-envelope-schema-before/packages/typert/generator/src/index.ts",
+      "archivedSha256": "6df26c4656a49922b48660354201af14364e112567eaee5921669302f12f0846"
+    },
+    {
+      "path": "packages/typert/generator/tests/remote-errors.spec.ts",
+      "bytes": 10481,
+      "sha256": "cca79627d39a222d05035a89559a4cc4103bba4991181bd67bda822370e43d44",
+      "archivedPath": ".artifacts/remote-error-envelope-schema-before/packages/typert/generator/tests/remote-errors.spec.ts",
+      "archivedSha256": "7e00e07e57397a08fd0840fd95b809c28a35119f1c5a6c11946582a3cde09ee0"
+    },
+    {
+      "path": "packages/typert/protocol/README.i18n.yaml",
+      "bytes": 434,
+      "sha256": "3c5f5d4267d1e42498e4286374221018d9e7b0b1d1f6bf89a21938fc7660c17f",
+      "archivedPath": ".artifacts/remote-error-envelope-schema-before/packages/typert/protocol/README.i18n.yaml",
+      "archivedSha256": "95ef223c1ecdb6114c9c9340db3282c036ad18c7d70a1f6b1e0c806a36a97abc"
+    },
+    {
+      "path": "packages/typert/protocol/README.md",
+      "bytes": 11808,
+      "sha256": "db3049a2aea9756edf0933a8be9fd86cab4d73da89caa5c480eccf2c0a97fe0b",
+      "archivedPath": ".artifacts/remote-error-envelope-schema-before/packages/typert/protocol/README.md",
+      "archivedSha256": "779beb65c14c645b2b280a33043d09cdd366ffcd9bf2790e63836562c7333a4c"
+    },
+    {
+      "path": "packages/typert/protocol/README.zh.md",
+      "bytes": 10850,
+      "sha256": "b2cd2d0d342ea284a206b4cef712ac897c7b02ef1b82c81d744989706134ebbd",
+      "archivedPath": ".artifacts/remote-error-envelope-schema-before/packages/typert/protocol/README.zh.md",
+      "archivedSha256": "01af0c6cecde51c2adadea92125df95b2ba2886b1ca9120b4b25106f009576eb"
+    },
+    {
+      "path": "packages/typert/protocol/package.json",
+      "bytes": 1193,
+      "sha256": "3c1a8eaf48faff6aaa118a9743628b00676d1d5b3ba950ce5902dcfc4ddec62b",
+      "archivedPath": ".artifacts/remote-error-envelope-schema-before/packages/typert/protocol/package.json",
+      "archivedSha256": "da9ae441f457c6ea084c0c584917d42e8dccb3e620341a70453cf8cc6c4b051a"
+    },
+    {
+      "path": "pnpm-lock.yaml",
+      "bytes": 873026,
+      "sha256": "513730d743512bda6a5d6089699b94632150055f016ae054a4ee0d047d67ce1c",
+      "archivedPath": ".artifacts/remote-error-envelope-schema-before/pnpm-lock.yaml",
+      "archivedSha256": "7677b225aa30349061dbff0a7cc1d18094f29c55c13ebc43b90722ae0354e770"
+    },
+    {
+      "path": "scripts/run-gates.spec.ts",
+      "bytes": 39490,
+      "sha256": "07e2aba99f30f73b25df344926cece2ffdf2bd3a230cdd15f90acde80ef8e5cc",
+      "archivedPath": ".artifacts/remote-error-envelope-schema-before/scripts/run-gates.spec.ts",
+      "archivedSha256": "9e4824ff0eaa94da4069431367725ad0299e2cefda7ac055fff2de89faac1572"
+    },
+    {
+      "path": "scripts/run-gates.ts",
+      "bytes": 66770,
+      "sha256": "c17f5660367da81b03fd7d074334d20d75a76269d41640a6cff547a1cc90d35f",
+      "archivedPath": ".artifacts/remote-error-envelope-schema-before/scripts/run-gates.ts",
+      "archivedSha256": "6c61bec7b7f5dd48b87e23ed44490fe6d83eb4eb62ad09f75e8d429b1665c304"
+    },
+    {
+      "path": "scripts/verify-remote-error-model.ts",
+      "bytes": 3872,
+      "sha256": "5d1dbef8c9498b3d8aae8e37c0f3f92041b0dbfec9f112476d30ddbe02e1fd8c",
+      "archivedPath": ".artifacts/remote-error-envelope-schema-before/scripts/verify-remote-error-model.ts",
+      "archivedSha256": "c5502beee6febd3bffaecce80997eae4c94b7bcb84aa639451bc58f3decc55bb"
+    }
+  ],
+  "additions": [
+    {
+      "path": "scripts/gen-remote-error-envelope.ts",
+      "bytes": 5242,
+      "sha256": "8c14a86c3e4206e85f5deb592f05155a98918e1878e90015da65ca63fcf6cef1"
+    },
+    {
+      "path": "scripts/gen-remote-error-envelope.spec.ts",
+      "bytes": 4623,
+      "sha256": "8fa54a633533dff07a5088759ace7e2b279156c0a87aba8f98f5d41e0158a58d"
+    },
+    {
+      "path": "packages/typert/protocol/remote-errors.schema.json",
+      "bytes": 73812,
+      "sha256": "769edf6581fa0085f3e7b945ff249401ea91a5845786251a75483414a53318cf"
+    }
+  ],
+  "evidence": [
+    {
+      "path": ".artifacts/capture-remote-error-envelope-schema-emission.mts",
+      "bytes": 762,
+      "sha256": "786e79f934cc90f35dc04df70796be6350439605ad0bc464d9db59042b426f2a"
+    },
+    {
+      "path": ".artifacts/check-remote-error-envelope-schema-gate.mjs",
+      "bytes": 2454,
+      "sha256": "28704612bd655eb517852265582cf31d2f1bb0a85acd9c34fed7f9e840fa6d3c"
+    },
+    {
+      "path": ".artifacts/document-remote-error-envelope-schema.mjs",
+      "bytes": 6823,
+      "sha256": "c611e7f43221696fb5fd5cb5097a8a83b275a6ddcd40abf0bcbb048022e9100c"
+    },
+    {
+      "path": ".artifacts/prepare-remote-error-envelope-schema.mjs",
+      "bytes": 1852,
+      "sha256": "ddbefe11dddbcca46d98cb1d17dabc03064b4eeb4e0956a47dcb06b2d5aedafe"
+    },
+    {
+      "path": ".artifacts/remote-error-envelope-schema-built-validation.json",
+      "bytes": 160,
+      "sha256": "e550bcb9febab79ec0dd3cbdcb44d51545211842d5b05a624828199baa6d962d"
+    },
+    {
+      "path": ".artifacts/remote-error-envelope-schema-built.log",
+      "bytes": 80,
+      "sha256": "ed3eeacf7f9f6ff10da692601c0197da6e5ce75b95262de868c36afbc012a7e7"
+    },
+    {
+      "path": ".artifacts/remote-error-envelope-schema-dependency-host.log",
+      "bytes": 1598,
+      "sha256": "7c06d585eb95ba1f7d113c1428f0b06e4f1d63a2ab43682d90b24bd720d28ca0"
+    },
+    {
+      "path": ".artifacts/remote-error-envelope-schema-dependency.log",
+      "bytes": 1646,
+      "sha256": "60c3c3014472b4f13b3908ddbcd21c1db57aabdd773cb4a1a5de9155e4509c93"
+    },
+    {
+      "path": ".artifacts/remote-error-envelope-schema-doc-sync.log",
+      "bytes": 3106,
+      "sha256": "131c712cdd575e09abd9bd909f86296876365a651265f207e13c2d4c8e71e5e9"
+    },
+    {
+      "path": ".artifacts/remote-error-envelope-schema-emission-source.log",
+      "bytes": 50,
+      "sha256": "6c32de6501418c499b8066b7e10c16fd4dfd72c3b316040de48baa23852b06ec"
+    },
+    {
+      "path": ".artifacts/remote-error-envelope-schema-emitter-source.json",
+      "bytes": 464,
+      "sha256": "0a5f49a4b2e32998969724080837fc7c0acebd3782cc6d5a2ec9a3f6d5ccec1c"
+    },
+    {
+      "path": ".artifacts/remote-error-envelope-schema-generation-command.log",
+      "bytes": 10828,
+      "sha256": "5956a0731b26e2221aeaadbcb1b438ecb9e20145cf54baf3a13babee34e15faa"
+    },
+    {
+      "path": ".artifacts/remote-error-envelope-schema-generation.log",
+      "bytes": 100,
+      "sha256": "8a5528c78e7966d335140a55e8c466fc91278ed29dd8f38f352ce6c1121bc7e4"
+    },
+    {
+      "path": ".artifacts/remote-error-envelope-schema-lint.log",
+      "bytes": 0,
+      "sha256": "e3b0c44298fc1c149afbf4c8996fb92427ae41e4649b934ca495991b7852b855"
+    },
+    {
+      "path": ".artifacts/remote-error-envelope-schema-lock-generated.yaml",
+      "bytes": 872833,
+      "sha256": "8284816d3cc172050e770f24eb3df2c0880423082e87c9d6dfe8f9dc475f0a96"
+    },
+    {
+      "path": ".artifacts/remote-error-envelope-schema-lock-with-validator.yaml",
+      "bytes": 873136,
+      "sha256": "3455d4a0349261b65cf67a3c40c7274732c961882fd3594cb1d50f98f67d1d5b"
+    },
+    {
+      "path": ".artifacts/remote-error-envelope-schema-negative-controls.log",
+      "bytes": 134,
+      "sha256": "f3d10cb311b5d49628ce4369382a0319fe39f0602e8f247416632333e7fd5337"
+    },
+    {
+      "path": ".artifacts/remote-error-envelope-schema-pack-final.log",
+      "bytes": 585,
+      "sha256": "5f5a2d082117f0547c94a8fec5f8ebf818fc12e03e7c5da35f31189ea15325ed"
+    },
+    {
+      "path": ".artifacts/remote-error-envelope-schema-pack-validation.json",
+      "bytes": 534,
+      "sha256": "f4d97ed08db898d85e0eda9a7dccda066851f4773ac1962b56bd00dc30042b37"
+    },
+    {
+      "path": ".artifacts/remote-error-envelope-schema-pack-validation.log",
+      "bytes": 550,
+      "sha256": "5b851449328fe486b1350c519e33231aa33d46cfb4d44e4dafc709cd0f02510a"
+    },
+    {
+      "path": ".artifacts/remote-error-envelope-schema-pack.log",
+      "bytes": 72,
+      "sha256": "c19c069d0e82a941bf894fcd27424756188bb887842f9542add49e72c43f728d"
+    },
+    {
+      "path": ".artifacts/remote-error-envelope-schema-pairing.log",
+      "bytes": 508,
+      "sha256": "5839a8b4105d63e94210619d442a2a4567265951904ae72c699e38f0ee8c8fc6"
+    },
+    {
+      "path": ".artifacts/remote-error-envelope-schema-tests.log",
+      "bytes": 955,
+      "sha256": "2a1fc718d5a0680697b4d57280477f65e532623a473c284ff6dfd5a032bae9d6"
+    },
+    {
+      "path": ".artifacts/remote-error-envelope-schema-types-host.log",
+      "bytes": 0,
+      "sha256": "e3b0c44298fc1c149afbf4c8996fb92427ae41e4649b934ca495991b7852b855"
+    },
+    {
+      "path": ".artifacts/remote-error-envelope-schema-types.log",
+      "bytes": 2070,
+      "sha256": "feda27d468eea1986667f658ec9b90dc1e591d1ba03a4bec02d21608b2a85fe2"
+    },
+    {
+      "path": ".artifacts/remote-error-envelope-schema-validator-dependency.log",
+      "bytes": 1843,
+      "sha256": "35308ff92d1b5ec0176d30d56d586650340545c2b13ecc1826441e2a37dea813"
+    },
+    {
+      "path": ".artifacts/verify-remote-error-envelope-schema-built.mjs",
+      "bytes": 1678,
+      "sha256": "e53931eb1847845eab9fafe41a219bf9f3c065d4b4a24c0ca21b657f56b17197"
+    },
+    {
+      "path": ".artifacts/verify-remote-error-envelope-schema-pack.mjs",
+      "bytes": 3612,
+      "sha256": "efee44659352f6ab5b23561e31e140e76904ee2c45b05a575624d9da4c31805f"
+    },
+    {
+      "path": ".artifacts/remote-error-envelope-schema-pack/deepseek-ai-dsh-typert-protocol-0.1.5-rc.2.tgz",
+      "bytes": 32359,
+      "sha256": "f3927592ff3316eecf9053d59c3039b0f78851b63eb3945d86a1744947f7b299"
+    }
+  ],
+  "missingAtCapture": [
+    {
+      "path": ".artifacts/capture-remote-error-envelope-schema.mjs",
+      "exists": false
+    },
+    {
+      "path": ".artifacts/advance-remote-error-envelope-schema-reports.mjs",
+      "exists": false
+    },
+    {
+      "path": "artifacts/upstream-first/remote-error-envelope-schema-source.json",
+      "exists": false
+    }
+  ]
+}

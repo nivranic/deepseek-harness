@@ -1,0 +1,66 @@
+{
+  "status": "PASS",
+  "scope": "Report bindings and audit for the lite-tools increment: the §32 model-face closure \"Lite request-face tools array injection\" (the dependency-ordered next brick after gen-50's declaration face and gen-51's persona — without the model seeing any tool the §31 permission policy has nothing to act on) resting on the design that the projection is the existing generator's third output — scripts/gen-tool-catalog.ts joining the descriptors-side supportsLite===true filter with schemas() by name (a Lite declared name missing its schema failing loud) and rendering packages/core/tools/lite-tool-schemas.json (each row exactly name/description/parameters, sorted by name, the --check idempotence byte-verifying all three artifacts under the same verify-tool-catalog doc-sync leaf, the count staying 37) — with the same-name conflict check failing loud in the Lite name domain only (the cross-package bash/pwsh same-name variants out of it), Kotlin carrying zero schema text of its own, and BARE/empty-table behavior byte-identical with the status quo; Android consumes the projection through the :contract LiteToolSchema mirror (hand-written JsonElement parsing failing loud, copyLiteToolSchemas following the copyToolDescriptors shape) with the cross-file mirror test (the projection name set ⊆ tool-descriptors supportsLite id set), the :core LiteToolSchemaCatalog dual-source enumeration (HOST_PROJECTED/BARE) and the LiteHTTPProvider toolSchemas constructor parameter conditionally putting the OpenAI function-form tools array after messages only when non-empty, with tools construction state leaving LiteProviding/LiteChat/LiteLoop/fold/journal untouched; the first gradle round honestly recorded the two assumeTrue skips before the projection landed and the integration rerun turned both mirror tests real (BUILD SUCCESSFUL in 37s with 17 actionable tasks of which 6 executed and 11 up-to-date, the XML authority at LiteToolSchemaTest 8/0 skip and LiteToolSchemaCatalogTest 5/0 skip); the ledger rewrote the §32 row to the declaration-and-model face with candidateEvidence 9 led second by lite-tool-schemas.json and the stale §33-pending phrase cleared (traceability 6/6, the rebuild at the unchanged 81/1983) with the note trio 2026-10-14-lite-tool-schemas-request-projection paired ahead of the doc-sync round (.artifacts/lite-tools-note-pairing.log); the gates: typecheck EXIT 0 and lint clean (Found 0 warnings and 0 errors, Finished in 76.9s on 3861 files) in their separate chained logs, the spec rounds 1 file / 7 tests and 13 files / 406 tests with both generator spec lanes present (the new scripts spec at 7, the pre-existing core/tools spec at 14, zero regression), the generator two-run and idempotence rounds, the lane-scoped lint (2 files, 0/0) and typecheck (single-trailer) rounds, test:docs 17 in 56.14s and doc-sync 37 passed 0 failed 0 skipped in 190.27s with zero regeneration diff (the new projection riding the existing verify-tool-catalog gate beside the Lite preset catalog gate), traceability 6/6, and the serial double audit round green at 87 files / 1073 tests on both passes over gen-40's curated lineage at its gen-40 name with the two passes' file sets line-compared identical; gate0 PASS in both byte-identical forms (1938 paths / 129 components / 81 sections — honestly recorded unchanged from the captured UPSTREAM_DELTA.json, not the live tree); the android acceptance is recorded honestly: the scanner-env gradle round came back BUILD SUCCESSFUL in 23s with 73 actionable tasks of which 6 executed and 67 up-to-date (exactly the one generation-new :core:copyLiteToolSchemas task more than gen-51, riding UP-TO-DATE because the integration rerun staged the projection first) — with the androidTest APK IDENTICAL against the lite-persona record's sealed bytes (bbe7a3af cross-checked live) and the debug APK DRIFT at d7a1bdaa→55694f8f (the honest native-change signal, cross-checked live, this generation's capture becoming the new baseline) and the core XML aggregate reading 80 suites / 505 tests including the new LiteToolSchemaCatalogTest mirror suite and the LiteHTTPProviderTest tools case beside the contract half at 4 suites / 37 tests (.artifacts/lite-tools-g3-core-results.json; gen-51 sealed 79/499 and 3/29); the byte-proof follows the measured dual form (.artifacts/lite-tools-g3-apk-bytes.log, prior apk records: 2), and the prepare oracle derived the measured seventy-four replaced prior build outputs — all android (core 72 + app 1 + contract 1) with zero post-assert exemptions (validatePriorSeal collision-free; the two-run oracle converging with the | tee masking pitfall judged by the log line) — with the adapter's generator-side measurement splitting them into one chain-resolvable key (the LiteStreamParsingTest class byte resolving through the newest-history fallback) and seventy-three first-emission keys no archive holds (the gen-51 rounds' own emissions — the d7a1bdaa debug APK, the repacked jars, the recompiled LiteHTTPProviderTest classes, the core XML and binary reports — sealed only by the lite-persona record, zero exact hits across all two hundred forty-nine on-disk archive manifests, untracked) — so per the escalated single-set ruling (the dwfq-d294994b-1 lineage) the advance installs the litePersonaReplacedBuildOutputs exactly-seventy-three build-output exemption on the demoted lite-persona block, derived and emitted at advance run time from the record, the chain archives and the disk — never transcribed — equal to the seventy-four-key derivation minus the single fallback key, rebuilt by the advance on any voided rerun; beyond that adjudicated set no second-order drift exists uncovered (zero sourceFiles misses, so no UnrecoverableInputs set and no lite-tools set at all), and every prior generation's set — the gen-51 liteToolReplacedBuildOutputs ninety-four beside liteToolUnrecoverableInputs two, the gen-32 desktopPackageReplacedBuildOutputs six, the gen-33 tornRepairIntentReplacedBuildOutputs three, the gen-48 clientMutationReplacedBuildOutputs two and the gen-46 durableReceiptsReplacedBuildOutputs three — stays exactly as sealed at HEAD as sealed history; the tool-call loop handling, the §31 tool permission policy, runtimeMode=lite exposure, the app-layer assets packaging, the preset selection UI, the Android/Host tool name alignment, the multi-release interop matrix, the relayMetadata blockage on section 23, the section 56 materials, the admitEncodedImages manual ruling, the client tsdown CI coverage gap and the Linux/lib forms all stay open — so no whole-section PASS is granted; full Upstream-First objective remains in progress",
+  "gate0": {
+    "validation": "PASS",
+    "gate0": "PASS",
+    "paths": 1938,
+    "components": 129,
+    "specificationCoverage": {
+      "status": "PASS",
+      "numberedSections": 81,
+      "nonEmptySourceLines": 1983,
+      "acceptanceProven": false
+    }
+  },
+  "sourceRecord": {
+    "path": "artifacts/upstream-first/lite-tools-source.json",
+    "sha256": "2af54d41d82dc8b4b0c0e99b656c922b6be5f8dfadd0c10f6ab78b94ed85c53a"
+  },
+  "generator": {
+    "path": "artifacts/upstream-first/write-reports.mjs",
+    "sha256": "01479b8289bb48aa0532a9d444fa120c0ca7da8c1dc6d7117daf7708d20561c3"
+  },
+  "binding": {
+    "path": "artifacts/upstream-first/lite-tools-binding.json",
+    "sha256": "1f70231217cd7d8742f44d2fac69ad03462382dc52a955bfcbb6877dca89e215"
+  },
+  "helpers": [
+    {
+      "path": ".artifacts/advance-lite-tools-reports.mjs",
+      "sha256": "4e3db88eb8daf170b367bc15e7306219355b7cc656c8c278ab66be7ee1b75677"
+    },
+    {
+      "path": ".artifacts/capture-lite-tools-validation.mjs",
+      "sha256": "2660284c845b5f7da2098c2d728e5c29a04fa1dcefff18d9ed904812ce5ad95d"
+    }
+  ],
+  "reports": [
+    {
+      "path": "IMPLEMENTATION_STATUS.md",
+      "sha256": "096c5413cf7735146075a4a47f7df412b95163a29b97a44c00c7c94da0274d4d"
+    },
+    {
+      "path": "artifacts/upstream-first/evidence.json",
+      "sha256": "8e7b24a01dbc1077a2b9a8d8dc2aae9943c781c7d26d3fab54767668a0baba87"
+    }
+  ],
+  "checks": [
+    {
+      "path": ".artifacts/lite-tools-binding.log",
+      "sha256": "915a83e0cd8860898ba4f3d5fb545f9f6559f48d307ca5581a4aa7d474f6f757"
+    },
+    {
+      "path": ".artifacts/lite-tools-audit-final.log",
+      "sha256": "d21aa1072282e87dc775c8d415ccbe69ee63923a268cb434084b3dad5ed1afe3"
+    },
+    {
+      "path": ".artifacts/lite-tools-gate0-final.log",
+      "sha256": "7e00efd82bd2a2b91b03ca80537dcc4af46cd09eb318ff58520cb2d7d7d8a48a"
+    },
+    {
+      "path": ".artifacts/lite-tools-report-generation.log",
+      "sha256": "fe010532f71a6341467ae5719b29ac19470895de1d481156335b8f70a3273ed5"
+    }
+  ]
+}

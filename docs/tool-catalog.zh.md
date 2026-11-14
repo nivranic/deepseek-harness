@@ -11,6 +11,8 @@
 
 范围：`packages/*/tool-*` 下已发布的产品工具，每个工具均使用其**默认**配置启动；但如果某个 Config 字段是**必填项**且没有默认值，生成器就必须作出选择，对应包的说明会记录本页展示的是哪个分支。注册的工具**名称**可以是加载时配置，例如 `tool-subagent` 的 `toolName`，因此部署可能以不同名称或额外名称提供某个包；如果存在随产品发布的别名，对应包的说明会予以记录。`examples/` 中的演示工具（例如 `echo`）不在范围内，这与 Cordis 目录仅涵盖包的范围一致。
 
+同一次采集还将 Host 声明写入 `packages/core/tools/tool-descriptors.json`，并将 Lite 模型 schema 写入 `packages/core/tools/lite-tool-schemas.json`。[API 适配器](../packages/api/remotes/README.zh.md#use-this-package)通过 `tools/list` 暴露当前 Host 声明。Host 声明字段与下方的模型 schema 分别维护。
+
 <a id="tool-package-map"></a>
 
 ## 工具包映射

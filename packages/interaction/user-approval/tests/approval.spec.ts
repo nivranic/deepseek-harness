@@ -88,6 +88,26 @@ describe('ApprovalService.request', () => {
     expect(Object.keys(appended[0]?.data ?? {}).sort()).toEqual(['id', 'toolName'])
   })
 
+  it('keeps the risk tier and structured escalation facts in the asked audit event', async () => {
+    const ctx = await mounted()
+    const { agent, appended } = fakeAgent(ctx)
+
+    const outcome = await ctx.approval.request(requestOf(agent, {
+      callId: brandString<ToolCallId>('call-7'),
+      reason: 'escalate sandbox to danger-full-access: need system access',
+      risk: 'high',
+      escalation: { requestedMode: 'danger-full-access', effectiveMode: 'workspace-write' },
+    }))
+
+    expect(outcome).toBe('unavailable')
+    expect(appended[0]?.data).toMatchObject({
+      toolName: 'echo',
+      callId: 'call-7',
+      risk: 'high',
+      escalation: { requestedMode: 'danger-full-access', effectiveMode: 'workspace-write' },
+    })
+  })
+
   it('borrows the exact readonly request for scoped dispatch and audit', async () => {
     const ctx = await mounted()
     const { agent, appended } = fakeAgent(ctx)

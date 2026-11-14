@@ -27,6 +27,8 @@ kind: "package-reference"
 
 需要检查注册表或程序侧动态包生命周期时挂载此插件。浏览器生命周期消费者还需要 Client runner 和 UI 包。内置 Creator 流程使用已安装 bundle，不使用此定义注册表。
 
+Remote 贡献项分别为清单、Host 激活、Client 源码、模型请求确认、用户运行结算、Stop、Undefine、inspect 清单与响应、渲染与 guard 报告、调用声明独立的 `dynamic-cordis.*.v1` 能力。Client 在派发前检查精确操作声明。这些声明保留 Session 归属、精确激活检查和人工批准，不授予执行权限，也不使变更可以安全重放。 设备权限遵循第 21 节表格：清单、Client 源码与 inspect 清单及响应握手声明 `view`；Host 激活、请求确认、用户运行结算、Stop、Undefine、失败报告与调用声明 `prompt.send`。 缺少已声明权限的设备角色在派发前被拒绝；匿名调用不受影响。
+
 ### 最小配置
 
 ```yaml

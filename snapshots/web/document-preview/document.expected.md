@@ -113,6 +113,10 @@
 - Viewer menu hidden: true
 - Text: UNKNOWN_SUFFIX | Plain fallback.
 
+## Unknown image suffix
+
+- Viewer: Image
+- Decoded image width: 1
 ## Unviewable binary
 
 - State: unsupported

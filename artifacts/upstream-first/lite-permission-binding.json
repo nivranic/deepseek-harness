@@ -1,0 +1,16 @@
+{
+  "status": "PASS",
+  "controls": 3,
+  "sourceRecord": {
+    "path": "artifacts/upstream-first/lite-permission-source.json",
+    "sha256": "15cc178223acde84f45b3ce4e8ec41cecd3d3a2f6dbcc6f207e5099cb30c2100"
+  },
+  "generator": {
+    "path": "artifacts/upstream-first/write-reports.mjs",
+    "sha256": "1bd2611f8f9a48c80601ed5996256206d4c1279e640fd4ceca642cae85b45c5f"
+  },
+  "helper": {
+    "path": ".artifacts/check-lite-permission-binding.mjs",
+    "sha256": "4903eef62dad44b34fd2bd1df809ee055d52574422f0f94c609fe00479637b86"
+  }
+}

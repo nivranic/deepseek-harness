@@ -1,0 +1,16 @@
+# Bilingual-pair consistency record for host-diagnostics.md (docs/i18n/README.md): per heading
+# section, a hash of its English and Chinese blocks outside code blocks and generated regions.
+# After editing either side, bring the other along and re-record with:
+#   pnpm run verify-translation-pairing --write docs/subsystems/host-diagnostics.md
+/host-diagnostics:
+  en: 9fcd3a13cfcacacb
+  zh: 9d30a69ae66a3a79
+/host-diagnostics/health-and-readiness:
+  en: 66fef92c8f253759
+  zh: 6a385504efc126b2
+/host-diagnostics/sanitized-payload:
+  en: 83e9037d05e91017
+  zh: 7d65609f083e5721
+/host-diagnostics/support-bundle:
+  en: 663518347e1f30c3
+  zh: 7e4b1172891db4f9

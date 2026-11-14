@@ -1,0 +1,22 @@
+# Bilingual-pair consistency record for 2026-10-19-paired-host-tool-catalog-pull.md (docs/i18n/README.md): per heading
+# section, a hash of its English and Chinese blocks outside code blocks and generated regions.
+# After editing either side, bring the other along and re-record with:
+#   pnpm run verify-translation-pairing --write .agents/notes/implemented/architecture/2026-10-19-paired-host-tool-catalog-pull.md
+/agent-note-the-paired-shell-pulls-the-host-s-live-tool-catalog:
+  en: 7d8dd3222a9ffa5c
+  zh: 7efcd580a0a4ce0e
+/agent-note-the-paired-shell-pulls-the-host-s-live-tool-catalog/problem:
+  en: 3885e233a082a5a7
+  zh: 5592d3ea5f8fe0bc
+/agent-note-the-paired-shell-pulls-the-host-s-live-tool-catalog/decision:
+  en: c6afe1adfe6df783
+  zh: b28eb74837f67a3d
+/agent-note-the-paired-shell-pulls-the-host-s-live-tool-catalog/alternatives-considered:
+  en: 370d0ad303d34733
+  zh: 06188eb5050d4863
+/agent-note-the-paired-shell-pulls-the-host-s-live-tool-catalog/consequences:
+  en: 5d3cc331ffc0eb6f
+  zh: 5e29be454fd84bc1
+/agent-note-the-paired-shell-pulls-the-host-s-live-tool-catalog/open-follow-ups:
+  en: e0d84bbf5556f47e
+  zh: 4bb723bce3a02e22

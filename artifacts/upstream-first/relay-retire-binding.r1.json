@@ -1,0 +1,16 @@
+{
+  "status": "PASS",
+  "controls": 3,
+  "sourceRecord": {
+    "path": "artifacts/upstream-first/relay-retire-source.json",
+    "sha256": "2b9ee01af3e2cf99cae85fb8e76041fe5331944e075f05bf25b2995071b554c3"
+  },
+  "generator": {
+    "path": "artifacts/upstream-first/write-reports.mjs",
+    "sha256": "23f68f1e56d770f4762173325c22698c6d26ab572455f5fa230e62388f834de5"
+  },
+  "helper": {
+    "path": ".artifacts/check-relay-retire-binding.mjs",
+    "sha256": "90a482f6d1bb02c8e75ae4a877e053ccc0670b426bf8a1425861c6273e359283"
+  }
+}

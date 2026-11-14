@@ -1,0 +1,14 @@
+{
+ "kind": "session",
+ "sessionId": "s-42",
+ "maxMessages": 50,
+ "body": {
+  "request": {
+   "address": {
+    "kind": "session",
+    "sessionId": "s-42"
+   },
+   "maxMessages": 50
+  }
+ }
+}

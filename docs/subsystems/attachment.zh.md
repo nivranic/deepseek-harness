@@ -2,9 +2,9 @@
 
 [English](attachment.md) | 中文
 
-附件 seam 将二进制图片和通用文件的所有权与会话日志分离。生产方把字节交给 [`ctx.attachments`](#ctxattachments--attachmentstore-abstract-seam)；只有对象完成持久化后，该服务才会发布不可变的内容寻址引用。会话事件和模型可见的附件块包含该引用及其元数据，绝不包含浏览器对象 URL、宿主临时路径、提供方 URL 或 base64 数据。独立的 [`ctx.fileUploads`](#ctxfileuploads--fileuploads) 服务把浏览器文件传输与暂存凭证绑定到接收方 Agent。
+附件 seam 将二进制图片和通用文件的所有权与会话日志分离。生产方把字节交给 [`ctx.attachments`](#ctxattachments--attachmentstore-abstract-seam)；只有对象完成持久化后，该服务才会发布不可变的内容寻址引用。会话事件和模型可见的附件块包含该引用及其元数据，绝不包含浏览器对象 URL、宿主临时路径、提供方 URL 或 base64 数据。独立的 [`ctx.fileUploads`](#ctxfileuploads--fileuploads) 服务把文件与图片上传以及暂存凭证绑定到接收方 Agent。
 
-未发送的浏览器草稿可以保留在内存中，原生客户端也可以将其暂存于操作系统临时存储。浏览器通用文件取得暂存 prompt 凭证前会完成持久化。宿主接受用户消息后，会先把消息中的图片移到 `<DSH_HOME>/attachments/v1` 下，再追加用户事件。结构化模型图片输出遵循同样的先持久化、后追加事件规则。
+未发送的浏览器草稿可以保留在内存中，原生客户端也可以将其暂存于操作系统临时存储。暂存文件与规范化图片在取得 prompt 凭证前完成持久化。内联图片在 prompt 准入期间持久化；每张被接受的图片均先存入 `<DSH_HOME>/attachments/v1`，再追加用户事件。结构化模型图片输出遵循同样的先持久化、后追加事件规则。
 
 来源：[`packages/attachment/attachment/src/types.ts`](../../packages/attachment/attachment/src/types.ts)
 
@@ -173,7 +173,7 @@ interface RequestImageAttachment {
 }
 ```
 
-`saveImage()` 准备并原子提交提供方无关的规范化附件，然后直接返回 `ImageAttachmentRef`。`saveImages()` 在发布批次前为每个成员各准备一次经过验证的附件，因此校验拒绝不会留下部分对象，发布也不会重复解码或选择质量。`admitPromptContent()` 在上传凭证解析后接收完整且有序的 Host prompt，把 base64 图片上传替换为持久引用，让持久文件引用和已存储的图片原样通过，并把每张图片计入单条消息的图片数量与总字节上限，已存储的图片按其上传的字节数计入。`admitEncodedImages()` 支持其他 wire 入口，把张数、聚合字节和有序批量准入交给 `saveImages()`。`admitEncodedFile()` 让编码协议适配器使用服务拥有的规范 base64 准入，`isAttachmentError()` 让这些适配器无需导入实现辅助函数即可识别稳定的附件错误。`readImage()` 把规范化对象与传入的完整引用比对，无需查询 Session 历史，随后返回该引用与字节。访问规则由调用 API 负责；Session Controller 使用存储范围的[图片访问规则](../../.agents/notes/implemented/architecture/2026-10-23-store-scoped-image-reads.zh.md)。`imageHostPath()` 只公开提供方所持对象的宿主位置，不判断当前工具执行环境能否读取它。`readImageRequest()` 按确切的路由目标尺寸和编码字节目标派生并缓存确定性请求版本。该版本包含编码字节和元数据，不包含执行环境路径。新条目在发布前完整解码，缓存命中只做有界元数据探测。调用方需要有序批次时，对单数方法使用 `Promise.all`。本地实现按需编码首选候选、合并相同请求身份的并发任务、允许每个等待方单独取消、没有等待方时停止共享任务，并通过实例级限流器限制全部变换，默认同时执行两项。该服务不规定保留策略：恢复和 fork 后的会话可能共享对象，因此基于引用的垃圾回收会延期实现，不与单个会话的删除绑定。
+`saveImage()` 准备并原子提交提供方无关的规范化附件，然后直接返回 `ImageAttachmentRef`。`saveImages()` 在发布批次前为每个成员各准备一次经过验证的附件，因此校验拒绝不会留下部分对象，发布也不会重复解码或选择质量。`admitPromptContent()` 在文件与图片凭证解析后接收完整且有序的 Host prompt。暂存与内联图片的每次出现共享张数及原始字节限制，在任何内联写入前完成检查；暂存大小取自 Host 保留的上传元数据，而非规范化引用。该方法把内联 base64 替换为持久引用，将暂存图片转换为相同的持久图片部分，并保留文件引用。`admitEncodedImages()` 支持其他 wire 入口，把张数、聚合字节和有序批量准入交给 `saveImages()`。`admitEncodedFile()` 让编码协议适配器使用服务拥有的规范 base64 准入，`isAttachmentError()` 让这些适配器无需导入实现辅助函数即可识别稳定的附件错误。`readImage()` 校验来自已授权会话路径的规范化附件。`imageHostPath()` 只公开提供方所持对象的宿主位置，不判断当前工具执行环境能否读取它。`readImageRequest()` 按确切路由的像素和字节预算派生并缓存确定性请求版本。该版本包含编码字节和元数据，不包含执行环境路径。新条目在发布前完整解码，缓存命中只做有界元数据探测。调用方需要有序批次时，对单数方法使用 `Promise.all`。本地实现按需编码首选候选、合并相同请求身份的并发任务、允许每个等待方单独取消、没有等待方时停止共享任务，并通过实例级限流器限制全部变换，默认同时执行两项。该服务不规定保留策略：恢复和 fork 后的会话可能共享对象，因此基于引用的垃圾回收会延期实现，不与单个会话的删除绑定。 `saveImage()` 准备并原子提交提供方无关的规范化附件，然后直接返回 `ImageAttachmentRef`。`saveImages()` 在发布批次前为每个成员各准备一次经过验证的附件，因此校验拒绝不会留下部分对象，发布也不会重复解码或选择质量。`admitPromptContent()` 在上传凭证解析后接收完整且有序的 Host prompt，把 base64 图片上传替换为持久引用，让持久文件引用和已存储的图片原样通过，并把每张图片计入单条消息的图片数量与总字节上限，已存储的图片按其上传的字节数计入。`admitEncodedImages()` 支持其他 wire 入口，把张数、聚合字节和有序批量准入交给 `saveImages()`。`admitEncodedFile()` 让编码协议适配器使用服务拥有的规范 base64 准入，`isAttachmentError()` 让这些适配器无需导入实现辅助函数即可识别稳定的附件错误。`readImage()` 把规范化对象与传入的完整引用比对，无需查询 Session 历史，随后返回该引用与字节。访问规则由调用 API 负责；Session Controller 使用存储范围的[图片访问规则](../../.agents/notes/implemented/architecture/2026-10-23-store-scoped-image-reads.zh.md)。`imageHostPath()` 只公开提供方所持对象的宿主位置，不判断当前工具执行环境能否读取它。`readImageRequest()` 按确切的路由目标尺寸和编码字节目标派生并缓存确定性请求版本。该版本包含编码字节和元数据，不包含执行环境路径。新条目在发布前完整解码，缓存命中只做有界元数据探测。调用方需要有序批次时，对单数方法使用 `Promise.all`。本地实现按需编码首选候选、合并相同请求身份的并发任务、允许每个等待方单独取消、没有等待方时停止共享任务，并通过实例级限流器限制全部变换，默认同时执行两项。该服务不规定保留策略：恢复和 fork 后的会话可能共享对象，因此基于引用的垃圾回收会延期实现，不与单个会话的删除绑定。
 
 <!-- BEGIN GENERATED cordis-surface (gen-cordis-catalog.ts) — do not edit between markers -->
 
@@ -260,6 +260,18 @@ abstract readImage(ref: ImageAttachmentRef, signal?: AbortSignal): Promise<Store
 imageHostPath(ref: ImageAttachmentRef): string | undefined
 
 /**
+ * Resolve one already-stored file object by digest and publish the alias for
+ * the caller's display name. The digest only locates the object: the stored
+ * bytes are re-verified before any reference is returned. Backends without
+ * object lookup keep this default miss so callers fall back to a full upload.
+ * @param digest - lowercase hex SHA-256 of the exact file bytes.
+ * @param name - optional display name sanitized into the stored leaf name.
+ * @returns the durable reference for the verified object, or undefined when
+ * no intact stored object matches.
+ */
+ensureFileByDigest(digest: string, name?: string): Promise<FileAttachmentRef | undefined>
+
+/**
  * Durably commit one file byte-for-byte before its owning session event is
  * appended. Files carry no admission limits: any byte content and length is
  * accepted, and the stored object is the exact submitted bytes. Backends
@@ -330,6 +342,28 @@ registerAgentResolver(resolve: AgentResolver): () => void
  * @returns the staged receipt and durable file reference.
  */
 @Remote('upload') async upload(agent: Agent, request: EncodedFileUploadRequest, signal: AbortSignal): Promise<FileUploadValue>
+
+/**
+ * Normalize one encoded image and stage its reference for the receiving Session.
+ * Cancellation prevents a receipt; bytes already stored remain content-addressed.
+ * @param agent - receiving Agent resolved from the Remote Agent scope.
+ * @param request - canonical base64 image, declared media type, and optional display name.
+ * @param signal - cancellation checked before storage and receipt publication.
+ * @returns the Session-owned receipt and normalized image reference.
+ */
+@Remote('uploadImage') async uploadImage(agent: Agent, request: EncodedImageUploadRequest, signal: AbortSignal): Promise<ImageUploadValue>
+
+/**
+ * Stage one already-stored file by digest without re-receiving its bytes.
+ * The digest only locates the object: the Host re-verifies the stored bytes
+ * before issuing a receipt. A missing or corrupt object refuses with
+ * `FILE_DIGEST_NOT_KNOWN` so the caller falls back to a full upload.
+ * @param agent - receiving Agent resolved from the Remote Agent scope.
+ * @param request - lowercase hex digest of the exact bytes and optional display name.
+ * @param signal - caller cancellation before the receipt is staged.
+ * @returns the staged receipt and the durable file reference.
+ */
+@Remote('uploadDedupe') async uploadDedupe(agent: Agent, request: EncodedFileDedupeRequest, signal: AbortSignal): Promise<FileUploadValue>
 
 /**
  * Persist raw chunks for one Session without aggregating the upload.

@@ -1,0 +1,70 @@
+{
+  "status": "PASS",
+  "scope": "Report bindings and audit for the Link access audit; the §48 link-access takeover decision and the remaining specification sections stay open; full Upstream-First objective remains in progress",
+  "gate0": {
+    "validation": "PASS",
+    "gate0": "PASS",
+    "paths": 1938,
+    "components": 129,
+    "specificationCoverage": {
+      "status": "PASS",
+      "numberedSections": 81,
+      "nonEmptySourceLines": 1983,
+      "acceptanceProven": false
+    }
+  },
+  "sourceRecord": {
+    "path": "artifacts/upstream-first/link-access-audit-source.json",
+    "sha256": "bb1b8368e1bfdb120bc64074217d50e640894f84d74b86fb2109464fec315986"
+  },
+  "generator": {
+    "path": "artifacts/upstream-first/write-reports.mjs",
+    "sha256": "e041a72a4859a362a2cb909ea06a04da4711b12782f26f0ec694d9199f39206b"
+  },
+  "binding": {
+    "path": "artifacts/upstream-first/link-access-audit-binding.json",
+    "sha256": "2244ba51bc244577dce568b3b89537bd4e7d78430bf46ccb18b28b16112c6b1b"
+  },
+  "helpers": [
+    {
+      "path": ".artifacts/advance-link-access-audit-reports.mjs",
+      "sha256": "852f990a52504d665ed57b146489bc522c9347f86db79d82ebfef9b6a84de7f0"
+    },
+    {
+      "path": ".artifacts/capture-link-access-audit-validation.mjs",
+      "sha256": "cbb9c3687dc29ad875fb43a080f8d9896dc511bd76202ba3101f6627a6fba837"
+    }
+  ],
+  "reports": [
+    {
+      "path": "IMPLEMENTATION_STATUS.md",
+      "sha256": "bbbf4dc8c82b686baaca89e0af70a8fc6659c55a78bbfea514f0bd58f51fa80e"
+    },
+    {
+      "path": "artifacts/upstream-first/evidence.json",
+      "sha256": "f6b38e2388c77cc724ee5908f0cd7865ddd5f10c47eb4a2ce2ef463d7173f0a4"
+    }
+  ],
+  "checks": [
+    {
+      "path": ".artifacts/link-access-audit-binding.log",
+      "sha256": "a456bc3474fa6c0e8a57525cec29efe160a54427a7433390f22d08dd5820cd85"
+    },
+    {
+      "path": ".artifacts/link-access-audit-audit-tests.log",
+      "sha256": "4dbd56fd50aa69f367f8c1e41a5d99323c9525aac0dcf50b237775a62a3b2b17"
+    },
+    {
+      "path": ".artifacts/link-access-audit-gate0.log",
+      "sha256": "505d74ef938f5d34d85490d37e0176ba804d93272fcf465ce2544a02c56b3f90"
+    },
+    {
+      "path": ".artifacts/link-access-audit-report-diff-check.log",
+      "sha256": "e3b0c44298fc1c149afbf4c8996fb92427ae41e4649b934ca495991b7852b855"
+    },
+    {
+      "path": ".artifacts/link-access-audit-report-generation.log",
+      "sha256": "fe010532f71a6341467ae5719b29ac19470895de1d481156335b8f70a3273ed5"
+    }
+  ]
+}

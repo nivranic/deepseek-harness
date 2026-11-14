@@ -1,0 +1,16 @@
+{
+  "status": "PASS",
+  "controls": 3,
+  "sourceRecord": {
+    "path": "artifacts/upstream-first/apple-model-catalog-source.json",
+    "sha256": "86f77a7e29afe8c6669069610921a0be7c4712a7f9b52efb542b447ec352a6af"
+  },
+  "generator": {
+    "path": "artifacts/upstream-first/write-reports.mjs",
+    "sha256": "d8b0d1d65da8114b0eceb1778c85e5ad167562b832a21ffd1ee4e63b4b6c8f9e"
+  },
+  "helper": {
+    "path": ".artifacts/check-apple-model-catalog-binding.mjs",
+    "sha256": "5a7ffcdad57457ed085399963408109333c56d4d04fed0390473f99b2c163db8"
+  }
+}

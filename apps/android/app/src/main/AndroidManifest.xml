@@ -1,0 +1,44 @@
+<?xml version="1.0" encoding="utf-8"?>
+<manifest xmlns:android="http://schemas.android.com/apk/res/android">
+    <uses-permission android:name="android.permission.INTERNET" />
+    <uses-permission android:name="android.permission.POST_NOTIFICATIONS" />
+    <application
+        android:name=".CompanionApplication"
+        android:allowBackup="false"
+        android:label="${dshApplicationLabel}"
+        android:supportsRtl="true"
+        android:theme="@style/Theme.DshCompanion">
+        <meta-data android:name="ai.deepseek.dsh.distributionChannel" android:value="${dshProductChannel}" />
+        <meta-data android:name="ai.deepseek.dsh.scannerSource" android:value="${dshScannerSource}" />
+        <meta-data android:name="ai.deepseek.dsh.applicationSource" android:value="${dshApplicationSource}" />
+        <meta-data android:name="ai.deepseek.dsh.applicationTree" android:value="${dshApplicationTree}" />
+        <provider
+            android:name="androidx.core.content.FileProvider"
+            android:authorities="${applicationId}.native-camera"
+            android:exported="false"
+            android:grantUriPermissions="true">
+            <meta-data android:name="android.support.FILE_PROVIDER_PATHS" android:resource="@xml/native_camera_paths" />
+        </provider>
+        <activity
+            android:name=".MainActivity"
+            android:launchMode="singleTask"
+            android:exported="true">
+            <intent-filter>
+                <action android:name="android.intent.action.MAIN" />
+                <category android:name="android.intent.category.LAUNCHER" />
+            </intent-filter>
+            <intent-filter>
+                <action android:name="android.intent.action.SEND" />
+                <action android:name="android.intent.action.SEND_MULTIPLE" />
+                <category android:name="android.intent.category.DEFAULT" />
+                <data android:mimeType="*/*" />
+            </intent-filter>
+            <intent-filter>
+                <action android:name="android.intent.action.VIEW" />
+                <category android:name="android.intent.category.DEFAULT" />
+                <category android:name="android.intent.category.BROWSABLE" />
+                <data android:scheme="dsh-companion" android:host="session-view" android:pathPrefix="/dsh-session-view.v1." />
+            </intent-filter>
+        </activity>
+    </application>
+</manifest>

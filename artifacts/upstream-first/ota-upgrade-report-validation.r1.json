@@ -1,0 +1,66 @@
+{
+  "status": "PASS",
+  "scope": "Report bindings and audit for the ota-upgrade increment: the gen-78 real OTA upgrade-path qualification (gen-71's open follow-up closing the last §31 live channel): two arg-gated connected classes riding a lane-built fixture APK pair — the seed phase (LiteUpgradeSeedNativeTest, dshUpgradeLane=seed; Assume refusing the missing argument keeps the no-argument round a clean skip) storing a real probe-preset selection through the real config face's picker on the fixture older APK (the same tree with one probe entry added to the frozen preset projection — vanished-preset, the gen-71 injected id, verified inside the packaged asset at 870201b0 — an explicit selection, never the null default, saved through the Keystore-sealed store and re-read to pin the stored id), the projection restored to its committed bytes before the current APK rebuilt in the same stamped form (cdceeb79, the probe verified absent), adb install -r over the seeded state — the real replace-install, data and Keystore entries surviving — and the verify phase (LiteUpgradeVerifyNativeTest, dshUpgradeLane=verify, never wiping persisted state) reading the surviving residue back through the real store (not a write from its own process), holding the stale line to name both the stored dropped id and the carried minimal, no conversation over the failed identity, and recovering through the in-face reselection (minimal picked, store healed) — OK beside OK on the windowed emulator lane; the three rejected alternatives honestly recorded (the versionCode-bumped fixture pair — the upgrade must ride real replace-install semantics, not a version-gate; the historical dropped-preset replay — the stored residue must come from this lane's own real selection, not a prior era's id; extending the injected connected case — the upgrade path needs the real face's picker and store, not the injection seam); the gates honestly recorded from log content: typecheck EXIT 0 (the build:lib:host chain) and lint Found 0 warnings and 0 errors on 3863 files (90 rules, 20 threads, 56.9s — 3863→3863 unchanged, zero TypeScript sources touched), the docs lane split green (doc-quick 17 passed in 42.34s on the correct pnpm-run invocation form — an earlier direct-tsx attempt failing on the missing npm_execpath honestly recorded as an invocation artifact, not a gate failure — with doc-sync 37 passed in 142.41s and zero regeneration diff), pairing 963 pairs all consistent in its honest direct-round form (the standalone verify-translation-pairing check with its own EXIT_CODE=0 trailer — the 962→963 reconciliation riding the prose; the note trio 2026-10-26-ota-upgrade-path, testing class), the serial double audit round green at 87 files / 1073 tests on both passes over the curated list reused verbatim from the gen-54 lineage, gate0 PASS in both byte-identical forms (1938 paths / 129 components / 81 sections / 1983 lines — honestly recorded unchanged from the captured UPSTREAM_DELTA.json, not the live tree); the ledger §31 rewrite appending the gen-78 closure narration (81 sections kept; §31 at 11411/28 with the two lane test classes as the new evidence paths beside the preserved gen-51..77 narrations, the open list staying gone: §33 keeping its gen-72 dual-record form at 1641/11, §32 keeping its gen-70 sealed 6041/25, §23 its gen-61 429/2 and §67 its gen-59 637/8 — honestly recorded); the android acceptance: the scanner-env gradle round BUILD SUCCESSFUL in 2s with 17 actionable tasks all UP-TO-DATE — the zero-JVM-source-change replay form (:core:test and :contract:test riding the cached gen-77 aggregates at 86 suites / 616 tests — LiteNetworkMatrixTest steady at 3, LiteChatViewModelTest steady at 21 — beside the contract half at 4 suites / 37 tests) with the measured double-DRIFT form against the network-matrix record's sealed builtFiles entries (the stamped debug APK rebuilt past the record's sealed 3bc0b9cc bytes to the cdceeb79 baseline — zero source change, the stamped manifest rebasing the debug face; the androidTest APK rebuilt past its sealed ff8d2d46 bytes to f96be094 carrying the two lane test classes; prior apk records: 2, cross-checked live; the sealed g3 lane log honestly recording its own older-record riding-lineage comparison at 31a910c5→f96be094 and dd8baae6→cdceeb79) and the full connected round honestly recorded (the lane classes' no-argument skips beside 105 finished tests with eight non-lane failures each re-qualified in its designed form: the notification lifecycle class per-method isolated invocations 5/5 after force-stop and pm clear, the process-exit history class on the stamped build 2/2, the startup and picker transients green on the clean windowed rerun — the taxonomy log carrying the raw rounds); and the adjudicated single-set ruling (the gen-53 dwfq-b1ce6281-1 precedent form): the prepare oracle derives the measured TWO replaced prior build outputs — both APK faces first-emission (the stamped debug baseline beside the androidTest face carrying the two lane test classes), with ZERO jar, ZERO recompiled prior classes, ZERO re-emitted XML and ZERO binary outputs (:core:test rode UP-TO-DATE at the steady aggregate) and ZERO chain-resolvable fallback keys (each sealed only by the network-matrix record itself — the second zero-fallback derivation in the recorded lineage after gen-76A's seventy-one, the twenty-ninth consecutive generation of the first-emission class: gen-51 ninety-four through gen-77 sixty-five as listed in the span), so the advance installs the networkMatrixReplacedBuildOutputs two-key build-output exemption on the demoted network-matrix block, derived and emitted at advance run time from the record, the chain archives and the disk — never transcribed — equal to the two-key derivation minus the zero fallback keys, the source-side tracked keys (the regenerated traceability pair — the builder script beside the rebuilt ledger json) resolving through the new before archive at their HEAD bytes (no UnrecoverableInputs set born), the gen-73 SKELETON_RESET trio carrying over verbatim for the same two gen-72 reset keys, and every prior generation's set — the gen-77 resumeFeedReplacedBuildOutputs sixty-five beside the gen-76B toolJournalReplacedBuildOutputs seventy-one, the gen-76A approvalAskReplacedBuildOutputs seventy-one and the rest as sealed — stays exactly as sealed at HEAD; the remaining open channels (the external ledger rows of the physical rig, the Phase 8 secure outbound relay and the CI synchronize gap) all stay open — so no whole-section PASS is granted; full Upstream-First objective remains in progress",
+  "gate0": {
+    "validation": "PASS",
+    "gate0": "PASS",
+    "paths": 1938,
+    "components": 129,
+    "specificationCoverage": {
+      "status": "PASS",
+      "numberedSections": 81,
+      "nonEmptySourceLines": 1983,
+      "acceptanceProven": false
+    }
+  },
+  "sourceRecord": {
+    "path": "artifacts/upstream-first/ota-upgrade-source.json",
+    "sha256": "3c40e88647ef6fc61f2763d4afeee1e450057774217718b1f45aebd2721b78fe"
+  },
+  "generator": {
+    "path": "artifacts/upstream-first/write-reports.mjs",
+    "sha256": "849a95d49c53ce34cfe9ebc77a2d6768ad9f90c96b637bf2982b6ce9f857e5e6"
+  },
+  "binding": {
+    "path": "artifacts/upstream-first/ota-upgrade-binding.json",
+    "sha256": "8d3d993c7719a898cfcc1fd87399bf0c7292df7b877ec1c43d479877fbb1ad93"
+  },
+  "helpers": [
+    {
+      "path": ".artifacts/advance-ota-upgrade-reports.mjs",
+      "sha256": "0c691d9b8871a24420cde2571d372442902b98199a6919fc4ab004ee5549bab0"
+    },
+    {
+      "path": ".artifacts/capture-ota-upgrade-validation.mjs",
+      "sha256": "07806bf77be07e2486f41ea6546d113d9ad0e8c69d07f5b346a97aee9ca4777c"
+    }
+  ],
+  "reports": [
+    {
+      "path": "IMPLEMENTATION_STATUS.md",
+      "sha256": "0ad38d5576d09a73a360a6c3154267bf1c733673bee42daee8c88bd20ef35f1b"
+    },
+    {
+      "path": "artifacts/upstream-first/evidence.json",
+      "sha256": "8f25dc22121e757ff80b7ff5912cab96de4eb8bc3d51c1240dbb76045c23ca97"
+    }
+  ],
+  "checks": [
+    {
+      "path": ".artifacts/ota-upgrade-binding.log",
+      "sha256": "92beae566b56104855f773c6e800a1d1593a6995db1c7165aa5d4ae3a797478e"
+    },
+    {
+      "path": ".artifacts/ota-upgrade-audit-final.log",
+      "sha256": "8557695ceff561b113137b4cf0a29841865d6ebd941e11337238607f21eeff40"
+    },
+    {
+      "path": ".artifacts/ota-upgrade-gate0-final.log",
+      "sha256": "505d74ef938f5d34d85490d37e0176ba804d93272fcf465ce2544a02c56b3f90"
+    },
+    {
+      "path": ".artifacts/ota-upgrade-report-generation.log",
+      "sha256": "971046fc019ee2463fae4dea1706adc8de52d0963be830db57b4ea40ea55c07b"
+    }
+  ]
+}

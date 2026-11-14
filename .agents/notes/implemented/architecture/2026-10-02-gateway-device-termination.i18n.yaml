@@ -1,0 +1,22 @@
+# Bilingual-pair consistency record for 2026-10-02-gateway-device-termination.md (docs/i18n/README.md): per heading
+# section, a hash of its English and Chinese blocks outside code blocks and generated regions.
+# After editing either side, bring the other along and re-record with:
+#   pnpm run verify-translation-pairing --write .agents/notes/implemented/architecture/2026-10-02-gateway-device-termination.md
+/agent-note-host-side-device-carrier-termination-29:
+  en: cba6f40219eda4db
+  zh: 04a6b45cd20b6706
+/agent-note-host-side-device-carrier-termination-29/problem:
+  en: 18e607a42b1623f1
+  zh: 01ebe4a3d19b42ea
+/agent-note-host-side-device-carrier-termination-29/decision:
+  en: 04d7124d260f4313
+  zh: 8ae24abcc517e15a
+/agent-note-host-side-device-carrier-termination-29/alternatives-considered:
+  en: e912cffa00b4cef4
+  zh: 6edbfb9ea736bd52
+/agent-note-host-side-device-carrier-termination-29/consequences:
+  en: 9ba2a9eaa885df13
+  zh: b4e322ab7a55bd59
+/agent-note-host-side-device-carrier-termination-29/open-work:
+  en: 87750a561a9f685e
+  zh: d0ad84642a401ea9

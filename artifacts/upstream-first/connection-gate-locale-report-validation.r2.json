@@ -1,0 +1,66 @@
+{
+  "status": "PASS",
+  "scope": "Report bindings and audit for the connection-gate-locale increment: the section 18 multi-language matrix and closed error semantics delivered as machine-checked facts — the spec pinning selected the §18 remaining open sentence (all eleven ConnectionState members landed with UX and every gate string already present, so the real gap sat at the consumer: ConversationRoot built its dictionary key by the runtime template t(`connection.gate.${state}`), leaving the union and the dictionaries with zero binding — a new state missing its key would compile cleanly and render the raw key at runtime, and no test asserted either dictionary carried the full key set); the implementation exports CONNECTION_GATE_KEYS from ConversationRoot — one literal connection.gate.<state> string per non-ready member — validated by satisfies Record<Exclude<ConnectionState, 'ready'>, …> so a union member without an entry fails typechecking, the renderer reads the map instead of interpolating, the lane walks Object.keys of the exported map (the single source of truth anchor) asserting both the zh key-set source of truth and the en dictionary non-empty per key (compile-time plus runtime closure), and the cross-package type-only ConnectionState import rides the ConversationSession.tsx precedent; the lanes ran green with the new case plus its neighborhood at 7 and the ui-conversation full package at 36 files / 465 tests zero-regression, the traceability section 18 remaining rewrites at 1271 to 1439 characters with candidateEvidence 20 to 22 adding ConversationRoot.tsx and the note (node --test 6/6), the note trio lands, and the documentation evidence keeps the two-file split — doc-quick 17 gates in its own docs log and doc-sync 36 passed 0 failed 0 skipped in 357.48s in its own docsync log, both green on their first pass — with the audit client spec list grown to 86 files by the new lane under the client full-suite semantics and the serial double round green at 86 files / 1062 tests on both passes with every count asserted from log content (the gen-34 lesson), gate0 in both forms, and the lint round sealed in its honestly recorded chained single-trailer form (the build:lib:host host build then lint:contracts-ready with the tsx scripts/run-oxlint.ts . command line, one EXIT_CODE=0 trailer for the whole chain, Found 0 warnings and 0 errors, no labelled trailer in the log); the same-round gradle acceptance round (scanner env with -PdshNativeAcceptance, BUILD SUCCESSFUL in 1m 5s) replayed WARM with 1 executed of 67 actionable tasks and 66 up-to-date because nothing under apps/android changed this generation (no device lane ran and the emulator stayed off; the round's graph reaches neither :core:test nor :app:assembleRelease), the empty-derived byte proof compares both APKs byte-identically against the diagnostics-source-revision record's builtFiles entries (.artifacts/connection-gate-locale-apk-bytes.log), the still-standing XML reports aggregate 77 suites / 477 tests with zero failures/errors/skips (.artifacts/connection-gate-locale-core-results.json), and the prepare-side unresolved scan derived ZERO replaced prior build outputs (7638 files, 0 reused, 7638 written — the lib drift pre-computation found all 3687 prior entries byte-identical because this generation regenerates no catalog) so the new record's own derivation stays empty and the generator gains no connection-gate-locale replaced-build-output set while every prior generation's own set (including the adjudicated four-key approvalFactsCompleteReplacedBuildOutputs set with its filter and guard, the gen-32 round-1 repair's atomicDurabilitySupersededSources six-key set with its companion single-key desktopPackageReplacedBuildOutputs set, and the gen-34 three-key tornRepairIntentReplacedBuildOutputs set riding the HEAD content) stays unchanged; the cross-release multi-version interop matrix and the device-facing matrix classes stay open; full Upstream-First objective remains in progress",
+  "gate0": {
+    "validation": "PASS",
+    "gate0": "PASS",
+    "paths": 1938,
+    "components": 129,
+    "specificationCoverage": {
+      "status": "PASS",
+      "numberedSections": 81,
+      "nonEmptySourceLines": 1983,
+      "acceptanceProven": false
+    }
+  },
+  "sourceRecord": {
+    "path": "artifacts/upstream-first/connection-gate-locale-source.json",
+    "sha256": "ea19c0465148fe76a8580f9d78c70692653507a5c0771b2821de568298cd3767"
+  },
+  "generator": {
+    "path": "artifacts/upstream-first/write-reports.mjs",
+    "sha256": "c2831cbad4da8592a9950ac338b1b17318869be05620545185a6cb67bad2c1ba"
+  },
+  "binding": {
+    "path": "artifacts/upstream-first/connection-gate-locale-binding.json",
+    "sha256": "c6bb756b372abbba37d394a10e3d73f8e71b10a2e14e48c102db665e780b5ca9"
+  },
+  "helpers": [
+    {
+      "path": ".artifacts/advance-connection-gate-locale-reports.mjs",
+      "sha256": "1efbd0467eda3c3767e93c8c7fb1c7a109624724ce4d1c7fb8aff1f56f6a7527"
+    },
+    {
+      "path": ".artifacts/capture-connection-gate-locale-validation.mjs",
+      "sha256": "f79e63f68c3607d16a14ec5822a2e9116b9b8728c5508ed205d9ea8300194691"
+    }
+  ],
+  "reports": [
+    {
+      "path": "IMPLEMENTATION_STATUS.md",
+      "sha256": "fa48ebbc3292d9122af6448390c0ea8abeb990cf46c030bf37519cbc4fd54012"
+    },
+    {
+      "path": "artifacts/upstream-first/evidence.json",
+      "sha256": "94ad7c1a054a98cfa3dac992458f9b4014dbb3c4de94e63ff7ab9f145eb24873"
+    }
+  ],
+  "checks": [
+    {
+      "path": ".artifacts/connection-gate-locale-binding.log",
+      "sha256": "755157731c1ded93bdb4cc8ac2207d1e45f0926d5e0ba30c65ebbcac34a3fcb5"
+    },
+    {
+      "path": ".artifacts/connection-gate-locale-audit-final.log",
+      "sha256": "52d3ca06bb373b64085015f6c012085894ea8589a8eb7e0fac738f48daffcd5b"
+    },
+    {
+      "path": ".artifacts/connection-gate-locale-gate0-final.log",
+      "sha256": "505d74ef938f5d34d85490d37e0176ba804d93272fcf465ce2544a02c56b3f90"
+    },
+    {
+      "path": ".artifacts/connection-gate-locale-report-generation.log",
+      "sha256": "fe010532f71a6341467ae5719b29ac19470895de1d481156335b8f70a3273ed5"
+    }
+  ]
+}

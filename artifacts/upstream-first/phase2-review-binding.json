@@ -1,0 +1,35 @@
+{
+  "status": "PASS",
+  "cases": [
+    {
+      "path": "artifacts/upstream-first/sdk-claude-review-source.json",
+      "status": "PASS",
+      "rejected": "SDK Claude review record changed"
+    },
+    {
+      "path": "packages/sdk/server/tests/server.spec.ts",
+      "status": "PASS",
+      "rejected": "SDK Claude review sourceFiles changed after validation"
+    },
+    {
+      "path": ".artifacts/claude-cli-review.log",
+      "status": "PASS",
+      "rejected": "SDK Claude review logs changed after validation"
+    },
+    {
+      "path": "artifacts/upstream-first/junction-steps-source.json",
+      "status": "PASS",
+      "rejected": "Junction steps record changed"
+    },
+    {
+      "path": "artifacts/upstream-first/junction-steps.json",
+      "status": "PASS",
+      "rejected": "Junction steps receipts changed after validation"
+    },
+    {
+      "path": ".artifacts/junction-steps-installed-runtime.log",
+      "status": "PASS",
+      "rejected": "Junction steps logs changed after validation"
+    }
+  ]
+}

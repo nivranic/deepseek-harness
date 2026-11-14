@@ -1,0 +1,16 @@
+{
+  "status": "PASS",
+  "controls": 3,
+  "sourceRecord": {
+    "path": "artifacts/upstream-first/running-location-source.json",
+    "sha256": "3060ad2039d33f1e7c851d35e8c9fabed75c0f4782a7eb4fd6f4bd831b87791f"
+  },
+  "generator": {
+    "path": "artifacts/upstream-first/write-reports.mjs",
+    "sha256": "addf602788fb944b7479b27a59ddcaa2c9ea1c2928765f015f28d100ec27c3f7"
+  },
+  "helper": {
+    "path": ".artifacts/check-running-location-binding.mjs",
+    "sha256": "a42ff3e89a2aceea065c8fde81d5d6b954351b785171711d951a7de6fc045c72"
+  }
+}

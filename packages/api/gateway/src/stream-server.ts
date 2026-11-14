@@ -25,7 +25,14 @@ export type RemoteStreamOpener = (
   peer: PeerScope,
   control: AbortController,
   window: RemoteUplinkWindow,
+  connection?: RemoteStreamConnectionHandle,
 ) => Promise<AsyncIterable<unknown>>
+
+/** Physical mux carrier; terminating it ends every logical stream without revoking authority. */
+export interface RemoteStreamConnectionHandle {
+  /** Destroy the transport without a WebSocket close handshake. */
+  terminate(): void
+}
 
 /** The opener one socket uses: its Peer is fixed at upgrade time. */
 type BoundStreamOpener = (
@@ -49,6 +56,10 @@ export interface RemoteStreamMuxServerOptions {
   readonly streamInboxBytes: number
   /** Whether accepted connections negotiate the `permessage-deflate` extension. */
   readonly compression: boolean
+  /** Maximum complete incoming message bytes; omission retains the WebSocket library's limit. */
+  readonly maxPayloadBytes?: number
+  /** Maximum live logical streams per socket; omission leaves the stream count unbounded. */
+  readonly maxStreamsPerConnection?: number
 }
 
 /** Own the no-server WebSocket acceptor and every active logical stream. */
@@ -57,6 +68,7 @@ export class RemoteStreamMuxServer {
   private readonly heartbeatIntervalMs: number
   private readonly streamInboxBytes: number
   private readonly compression: boolean
+  private readonly maxStreamsPerConnection: number | undefined
   private readonly connections = new Set<Promise<void>>()
   private readonly missedHeartbeats = new WeakMap<WebSocket, number>()
   private heartbeatTimer: NodeJS.Timeout | undefined
@@ -74,8 +86,10 @@ export class RemoteStreamMuxServer {
     this.heartbeatIntervalMs = options.heartbeatIntervalMs
     this.streamInboxBytes = options.streamInboxBytes
     this.compression = options.compression
+    this.maxStreamsPerConnection = options.maxStreamsPerConnection
     this.server = new WebSocketServer({
       noServer: true,
+      ...options.maxPayloadBytes === undefined ? {} : { maxPayload: options.maxPayloadBytes },
       // `ws` ignores its own `threshold` option while context takeover is
       // enabled, so the mux decides per frame in send().
       perMessageDeflate: options.compression ? { zlibDeflateOptions: { level: 1 } } : false,
@@ -98,10 +112,11 @@ export class RemoteStreamMuxServer {
       const alive = (): void => { this.missedHeartbeats.set(websocket, 0) }
       alive()
       this.startHeartbeat()
+      const handle: RemoteStreamConnectionHandle = { terminate: () => { websocket.terminate() } }
       const bound: BoundStreamOpener = (endpoint, payload, uplink, control, window) =>
-        this.open(endpoint, payload, uplink, peer, control, window)
+        this.open(endpoint, payload, uplink, peer, control, window, handle)
       const connection = new RemoteStreamMuxConnection(
-        websocket, bound, this.failure, this.streamInboxBytes, this.compression, alive,
+        websocket, bound, this.failure, this.streamInboxBytes, this.compression, alive, this.maxStreamsPerConnection,
       )
       const done = connection.run().catch((error: unknown) => {
         console.error('[api-gateway] Remote stream connection failed:', error)
@@ -169,6 +184,7 @@ class RemoteStreamMuxConnection {
     private readonly streamInboxBytes: number,
     private readonly compression: boolean,
     private readonly alive: () => void,
+    private readonly maxStreams: number | undefined,
   ) {}
 
   /**
@@ -206,8 +222,8 @@ class RemoteStreamMuxConnection {
   /**
    * Dispatch one frame. `item`, `end`, and `cancel` for a stream this connection
    * no longer owns are dropped: a finished stream leaves the table while the
-   * Client's in-flight frames are still arriving. A duplicate `open` is the one
-   * protocol violation that closes the socket.
+   * Client's in-flight frames are still arriving. Duplicate opens and a
+   * configured stream-count limit violation close the socket.
    */
   private receive(text: string): void {
     const message = parseRemoteStreamClientMessage(text)
@@ -239,6 +255,9 @@ class RemoteStreamMuxConnection {
   private openStream(message: Extract<RemoteStreamClientMessage, { readonly type: 'open' }>): void {
     if (this.streams.has(message.streamId)) {
       throw new Error(`api gateway: duplicate Remote stream id ${JSON.stringify(message.streamId)}`)
+    }
+    if (this.maxStreams !== undefined && this.streams.size >= this.maxStreams) {
+      throw new Error('api gateway: Remote stream limit reached')
     }
     const abort = new AbortController()
     // Created before the opener resolves so items the Client sends right

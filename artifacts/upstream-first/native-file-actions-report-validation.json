@@ -1,0 +1,72 @@
+{
+  "status": "PASS",
+  "scope": "Report bindings and audit for Declared-file native Remote admission, generation cancellation and shared timeout dependency identity; full Upstream-First objective remains in progress",
+  "gate0": {
+    "validation": "PASS",
+    "gate0": "PASS",
+    "paths": 1938,
+    "components": 129
+  },
+  "sourceRecord": {
+    "path": "artifacts/upstream-first/native-file-actions-source.json",
+    "sha256": "e49220253ad579f12108e8cde042e25664b980f8b565b47d2f37f798b1a4ed40"
+  },
+  "generator": {
+    "path": "artifacts/upstream-first/write-reports.mjs",
+    "sha256": "d54aeaeebb393d21feeed6f07111f50ed0039dfcc0a5c076ed8ade13fbcfee2e"
+  },
+  "binding": {
+    "path": "artifacts/upstream-first/native-file-actions-binding.json",
+    "sha256": "cf66b78413c775aff87c82c8e97a4c2d91743deae51c7165c12dc1615af6f6e3"
+  },
+  "helpers": [
+    {
+      "path": ".artifacts/advance-native-file-actions-reports.mjs",
+      "sha256": "8277828aee99470bf2a47d82e5949282c89d823c931dc312c96027914be851f8"
+    },
+    {
+      "path": ".artifacts/repair-native-file-history.mjs",
+      "sha256": "53254baeb8e983174dbbda60ca837c3130f99279f5e5092b386fe3b3c9bd9df5"
+    },
+    {
+      "path": ".artifacts/capture-native-file-actions-validation.mjs",
+      "sha256": "2316036214b6ada1f621c82d77dc10065447a8a3660d88bd946436c36a33b225"
+    }
+  ],
+  "historicalCorrection": {
+    "path": ".artifacts/native-file-actions-report-history-repair.json",
+    "sha256": "f370a4d80bce1eabedfd409f014c82f8149f9d54bc216ec5836855eeacfbdb13"
+  },
+  "reports": [
+    {
+      "path": "IMPLEMENTATION_STATUS.md",
+      "sha256": "73934931385b163d81f8618ee9500d688bedf6defab9fd11d1ffe14fc90185aa"
+    },
+    {
+      "path": "artifacts/upstream-first/evidence.json",
+      "sha256": "c1f41e85253f6061366439852fb4b29356df59c92fb8b071e07ee7dc275d7be4"
+    }
+  ],
+  "checks": [
+    {
+      "path": ".artifacts/native-file-actions-binding.log",
+      "sha256": "6610b0aaa602251f7e2915b782285bc64200f57044ded27a7dd63a166dda4126"
+    },
+    {
+      "path": ".artifacts/native-file-actions-audit-tests.log",
+      "sha256": "93ea150a0a0e99df34222f122ca1352a55bf9509458d0904e91710a2c4256782"
+    },
+    {
+      "path": ".artifacts/native-file-actions-gate0.log",
+      "sha256": "4b5af3121a7e7caff0e1b6288bdaa7cfef9988842ae06bf02dc0a74852426043"
+    },
+    {
+      "path": ".artifacts/native-file-actions-report-diff-check.log",
+      "sha256": "e3b0c44298fc1c149afbf4c8996fb92427ae41e4649b934ca495991b7852b855"
+    },
+    {
+      "path": ".artifacts/native-file-actions-report-generation.log",
+      "sha256": "5867d1d51cd43a59428de2e7fffa15847d7153b11f3b61ecf812224ee2dd2099"
+    }
+  ]
+}

@@ -22,6 +22,11 @@ export function apply(ctx: Context) {
       path: { type: 'string', required: true, description: 'Absolute path' },
       limit: { type: 'number' },                     // optional by default
     },
+    version: 1,                                      // host-only declaration surface
+    risk: 'low',
+    permissions: [],
+    supportsLite: false,
+    supportsRemote: true,
     output: {
       schema: { type: 'string' },
       render: (_args, value) => [{ type: 'text', text: value }],

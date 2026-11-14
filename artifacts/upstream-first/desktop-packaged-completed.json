@@ -1,0 +1,55 @@
+{
+  "schemaVersion": 1,
+  "status": "FAIL",
+  "scope": "Official unsigned Windows Desktop from packaged resources with isolated data; no installer or OS login registration",
+  "observedAt": "2026-09-15T18:45:32.086Z",
+  "earlierReceipt": {
+    "path": "artifacts/upstream-first/desktop-packaged-acceptance.json",
+    "sha256": "c37554b68c7cdaca868ee170e90182c295553dde7fd9f0b3cb35fb10ed2c3775"
+  },
+  "observationCorrection": "Earlier probe expected /plugins; actual upstream plugin window is /plugin-manager.html. Prior successful actions and failure receipt remain unchanged.",
+  "exeSha256": "0f9aa369b704e08ba66f5f8d3443504f9fc83c29dd6ff453d6eac22afa676709",
+  "shellPid": 53928,
+  "hostPid": 55076,
+  "checks": {
+    "themes": true,
+    "tray": true,
+    "secondInstance": true,
+    "restoredPreferences": true,
+    "pluginManager": true
+  },
+  "osLoginRegistrationWritten": false,
+  "realModelTested": false,
+  "installerExecuted": false,
+  "limitations": [
+    "Unsigned unpacked application; installer not executed",
+    "No update, OS login, real model, macOS or full visual matrix",
+    "Native tray object/menu callbacks observed; no physical tray mouse input",
+    "Launcher hides initial window; app activate callback restores visibility"
+  ],
+  "plugin": {
+    "url": "dsh-app://shell/plugin-manager.html",
+    "results": [
+      {
+        "phase": "ready"
+      },
+      [],
+      "桌面插件\n\n插件只安装到桌面端自己的 node_modules，并由内置 pnpm 管理。\n\n刷新\nnpm 包\n安装\n\n已安装\n\n还没有安装桌面插件。"
+    ]
+  },
+  "screenshot": "artifacts/upstream-first/desktop-packaged-plugins.png",
+  "beforeQuit": {
+    "windows": [
+      {
+        "url": "dsh-app://shell/plugin-manager.html",
+        "visible": true
+      },
+      {
+        "url": "dsh-app://app/index.html",
+        "visible": true
+      }
+    ],
+    "loginChecked": false
+  },
+  "error": "Expected values to be strictly equal:\n\n2 !== 1\n"
+}

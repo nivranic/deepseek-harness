@@ -26,6 +26,8 @@ The first-generation client loader (`createClientLoader`) hand-wrote both layers
 
 ### Package membership and module requests
 
+The active Loader-resolved host module identifies its resource-owning package. A managed executable proxy records the original module URL for each exported subpath; Client Modules follows that exact export to the original manifest instead of copying `dsh.client` and relative resource paths into the proxy. Malformed maps, ambiguous matches, missing owners, and cycles fail composition. The [profile decision](2026-08-05-profile-plugin-bundles.md) owns proxy creation and installation lookup.
+
 The [client shell layering note](2026-08-15-client-shells-and-dynamic-packages.md) defines the current static and dynamic package sets and the import rules between them. The loading machinery treats every `dsh.client` package as a host-graph row with one ordinary `lib/client.js` factory bundle and optional compiler-generated `lib/client.<name>.js` chunks. Its declaration carries Cordis `inject` edges, synchronous module-table `external` requests, and the optional `immediately` prefetch mark; the composing app owns only the mounted roster.
 
 The web kernel remains framework-free and imports no dynamic package value. Modules is itself a dynamic row, but the host parser delivers its factory before the Vite main module. The HTML-installed `__ModuleLoader__` facade uses that factory to construct the module system when the kernel calls `create()`. Every other dynamic row belongs to an application combo script; static React, Cordis, and UI library identities come from the shell seed.
@@ -72,6 +74,7 @@ Why is the roster yml rows and not a scan? Because which plugins compose into a 
 
 Stylesheet metadata and renderer ownership follow the [module metadata decision](2026-11-05-client-module-metadata.md); module loading retains the producer without evaluating it.
 
+The optional Web route always registers in a child plugin that injects `webServer`. Service availability alone does not authorize a property read in the parent plugin's context. The child owns route disposal and replacement while the parent retains its graph, so either service load order works and Shell carriers do not depend on a Web server.
 ### Live graph reconciliation
 
 The modules controller owns exactly the Loader entries created from the boot manifest. Full Host snapshots update its module descriptors and reconcile those entries; other Loader contributors retain ownership. New modules arrive through single-resource URLs because replaying a startup batch could register an existing factory twice. Removal uses Loader deletion, then drains the captured fiber before removing unused module records. Declared and observed transitive requests keep shared modules alive. Factory revision tracking is independent of entry activation because a download or materialization can finish without creating an entry. Graph updates invalidate stale factories and failed arrival targets without managed entries, notifying resource consumers before any consumer imports its dependencies; rebuilt frames also reconcile entries missing after import failures.

@@ -53,7 +53,7 @@ kind: "package-reference"
 
 ### 平台机制
 
-平台工具不经 shell 调用：macOS 上由系统 JXA 宿主运行一段 `osascript -l JavaScript` 脚本，先安装携带标准编辑快捷键的菜单，再打开 `NSOpenPanel`。应用激活请求通过主操作队列在面板的模态事件循环内执行；在循环启动前同步请求激活，可能使面板保持未激活状态。原生面板的 ⌘C/⌘V/⌘A/⌘X 由该菜单解析，而非由获得焦点的输入框解析——AppleScript 的 `choose folder` 对话框没有菜单，无法提供这一点。Linux 使用 Zenity 并以 KDialog 回退；调用方的中止信号会终止原生进程。Windows 在 spawn 的子进程中打开现代 `IFileOpenDialog`——由 koffi 在子进程主线程上驱动的 COM 会话，采用宿主接受的最佳线程 DPI 感知（优先 per-monitor-v2），中止时向对话框线程投递 `WM_CLOSE`。在 `Show` 之前，子进程立即通过 `keybd_event` 合成一次 Alt 按键，让对话框即使由后台宿主进程 spawn 也能激活为前台窗口。
+平台工具不经 shell 调用：macOS 使用 `osascript`，Linux 使用 Zenity 并以 KDialog 回退；调用方的中止信号会终止原生进程。Windows 在 spawn 的子进程中打开现代 `IFileOpenDialog`——由 koffi 在子进程主线程上驱动的 COM 会话，采用宿主接受的最佳线程 DPI 感知（优先 per-monitor-v2），中止时向对话框线程投递 `WM_CLOSE`。在 `Show` 之前，子进程立即通过 `keybd_event` 合成一次 Alt 按键，让对话框即使由后台宿主进程 spawn 也能激活为前台窗口。选中路径的 UTF-16 分配在转换成功或抛错时都由 `CoTaskMemFree` 释放；调用展开时还会释放 shell item、对话框和 COM apartment。 平台工具不经 shell 调用：macOS 上由系统 JXA 宿主运行一段 `osascript -l JavaScript` 脚本，先安装携带标准编辑快捷键的菜单，再打开 `NSOpenPanel`。应用激活请求通过主操作队列在面板的模态事件循环内执行；在循环启动前同步请求激活，可能使面板保持未激活状态。原生面板的 ⌘C/⌘V/⌘A/⌘X 由该菜单解析，而非由获得焦点的输入框解析——AppleScript 的 `choose folder` 对话框没有菜单，无法提供这一点。Linux 使用 Zenity 并以 KDialog 回退；调用方的中止信号会终止原生进程。Windows 在 spawn 的子进程中打开现代 `IFileOpenDialog`——由 koffi 在子进程主线程上驱动的 COM 会话，采用宿主接受的最佳线程 DPI 感知（优先 per-monitor-v2），中止时向对话框线程投递 `WM_CLOSE`。在 `Show` 之前，子进程立即通过 `keybd_event` 合成一次 Alt 按键，让对话框即使由后台宿主进程 spawn 也能激活为前台窗口。
 
 ### 源码地图
 

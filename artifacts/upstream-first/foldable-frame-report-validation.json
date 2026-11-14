@@ -1,0 +1,70 @@
+{
+  "status": "PASS",
+  "scope": "Report bindings and audit for the Foldable and rotation closure; the remaining specification sections stay open; full Upstream-First objective remains in progress",
+  "gate0": {
+    "validation": "PASS",
+    "gate0": "PASS",
+    "paths": 1938,
+    "components": 129,
+    "specificationCoverage": {
+      "status": "PASS",
+      "numberedSections": 81,
+      "nonEmptySourceLines": 1983,
+      "acceptanceProven": false
+    }
+  },
+  "sourceRecord": {
+    "path": "artifacts/upstream-first/foldable-frame-source.json",
+    "sha256": "73785fd13c40174bdcb581deb7464ed661685caa841fbfc32df5b05548317031"
+  },
+  "generator": {
+    "path": "artifacts/upstream-first/write-reports.mjs",
+    "sha256": "819cca6aa38d9d17dde78a3b45b24099676380d458ee5d847db8d918ca7484e2"
+  },
+  "binding": {
+    "path": "artifacts/upstream-first/foldable-frame-binding.json",
+    "sha256": "e25df3eb54ec3eec875ced714bb483c5f545c8b24d20e1c5dda0e30560b5e8a5"
+  },
+  "helpers": [
+    {
+      "path": ".artifacts/advance-foldable-frame-reports.mjs",
+      "sha256": "c44ef92ffa8df80e2d947de63143d067b44fb62fe03938cfa74442a330e997ac"
+    },
+    {
+      "path": ".artifacts/capture-foldable-frame-validation.mjs",
+      "sha256": "b1aafa30d475a22839e370444dfab1a9b38e5bcb74aeb67d92137b0501a6e793"
+    }
+  ],
+  "reports": [
+    {
+      "path": "IMPLEMENTATION_STATUS.md",
+      "sha256": "a57e3377f97ba76e3448a8108ffa6b45991eb8bf91b8be5905d51fe0e75d85fb"
+    },
+    {
+      "path": "artifacts/upstream-first/evidence.json",
+      "sha256": "ebf41f619f6f7d27dc34c874637930f206fd47e81e0953b65dd901ca6fa61dac"
+    }
+  ],
+  "checks": [
+    {
+      "path": ".artifacts/foldable-frame-binding.log",
+      "sha256": "579c780c60133ba4933d25b836312bfd0a03bd9e609f0072d9ca6821b4164620"
+    },
+    {
+      "path": ".artifacts/foldable-frame-audit-tests.log",
+      "sha256": "613eebebe99764f5687dabd2741b4b543f3b1d9ef5ce7d70d679f7eeae2fc21b"
+    },
+    {
+      "path": ".artifacts/foldable-frame-gate0.log",
+      "sha256": "505d74ef938f5d34d85490d37e0176ba804d93272fcf465ce2544a02c56b3f90"
+    },
+    {
+      "path": ".artifacts/foldable-frame-report-diff-check.log",
+      "sha256": "e3b0c44298fc1c149afbf4c8996fb92427ae41e4649b934ca495991b7852b855"
+    },
+    {
+      "path": ".artifacts/foldable-frame-report-generation.log",
+      "sha256": "fe010532f71a6341467ae5719b29ac19470895de1d481156335b8f70a3273ed5"
+    }
+  ]
+}

@@ -1,0 +1,19 @@
+# Bilingual-pair consistency record for 2026-10-26-ota-upgrade-path.md (docs/i18n/README.md): per heading
+# section, a hash of its English and Chinese blocks outside code blocks and generated regions.
+# After editing either side, bring the other along and re-record with:
+#   pnpm run verify-translation-pairing --write .agents/notes/implemented/testing/2026-10-26-ota-upgrade-path.md
+/agent-note-a-real-replace-install-upgrade-qualifies-the-dropped-preset-path-end-to-end:
+  en: 3ba23b96aa2b2812
+  zh: 08a0e45e8fae22be
+/agent-note-a-real-replace-install-upgrade-qualifies-the-dropped-preset-path-end-to-end/problem:
+  en: 3be8b168c7c214f9
+  zh: 08b263002aaba070
+/agent-note-a-real-replace-install-upgrade-qualifies-the-dropped-preset-path-end-to-end/decision:
+  en: cf24a2c111321188
+  zh: b52db22f1199519b
+/agent-note-a-real-replace-install-upgrade-qualifies-the-dropped-preset-path-end-to-end/alternatives-considered:
+  en: 41c02c54a2767b78
+  zh: 1f6317bb83f59fdc
+/agent-note-a-real-replace-install-upgrade-qualifies-the-dropped-preset-path-end-to-end/consequences:
+  en: 23ef503b91337c4e
+  zh: 8dfd7920145cc768

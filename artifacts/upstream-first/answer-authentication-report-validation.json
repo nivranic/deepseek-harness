@@ -1,0 +1,64 @@
+{
+  "status": "PASS",
+  "scope": "Report bindings and audit for Completed Question answer authentication recovery; full Upstream-First objective remains in progress",
+  "gate0": {
+    "validation": "PASS",
+    "gate0": "PASS",
+    "paths": 1938,
+    "components": 129
+  },
+  "sourceRecord": {
+    "path": "artifacts/upstream-first/answer-authentication-source.json",
+    "sha256": "0ee76bac7a3c6383054486bb821a2b3db68b9665a57155b5fc3623a1db581589"
+  },
+  "generator": {
+    "path": "artifacts/upstream-first/write-reports.mjs",
+    "sha256": "3985f118abed5c619c86d4fe8070ec7752f7d1a5577c089114bc68c38698cf81"
+  },
+  "binding": {
+    "path": "artifacts/upstream-first/answer-authentication-binding.json",
+    "sha256": "f052126924b4d21fa4b730a8efce11b6fa2bee473cc1aca7f5321b1e86464bcb"
+  },
+  "helpers": [
+    {
+      "path": ".artifacts/advance-answer-authentication-reports.mjs",
+      "sha256": "4a43578a90cb344c4026ec046800ac2866cd66dfc50ca530aa99ad7ff27ee9f0"
+    },
+    {
+      "path": ".artifacts/capture-answer-authentication-validation.mjs",
+      "sha256": "2dd6837897e83d7138a28eca3e88c4045c8f74024e7928ffe968e04047a7c01e"
+    }
+  ],
+  "reports": [
+    {
+      "path": "IMPLEMENTATION_STATUS.md",
+      "sha256": "26a5fc8532a583b708c1cb17f6991237ef2e8a13a0793b850f298ddbd327fa58"
+    },
+    {
+      "path": "artifacts/upstream-first/evidence.json",
+      "sha256": "5d4d6b7e2ceab82e6a8fb3adb4d60885e5e164373aede08649c2de1e7286ed7c"
+    }
+  ],
+  "checks": [
+    {
+      "path": ".artifacts/answer-authentication-binding.log",
+      "sha256": "925a744f97458d9bc58461a9d7cc4c33b5ebd41d26085715ffd14939801a20a6"
+    },
+    {
+      "path": ".artifacts/answer-authentication-audit-tests.log",
+      "sha256": "47d81447e04aa82e256d4064ec6958dee3fda44463321b673672edceb468505d"
+    },
+    {
+      "path": ".artifacts/answer-authentication-gate0.log",
+      "sha256": "4b5af3121a7e7caff0e1b6288bdaa7cfef9988842ae06bf02dc0a74852426043"
+    },
+    {
+      "path": ".artifacts/answer-authentication-report-diff-check.log",
+      "sha256": "e3b0c44298fc1c149afbf4c8996fb92427ae41e4649b934ca495991b7852b855"
+    },
+    {
+      "path": ".artifacts/answer-authentication-report-generation.log",
+      "sha256": "5867d1d51cd43a59428de2e7fffa15847d7153b11f3b61ecf812224ee2dd2099"
+    }
+  ]
+}

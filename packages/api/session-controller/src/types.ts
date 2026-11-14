@@ -26,6 +26,8 @@ declare module '@deepseek-ai/dsh-session-projection/types' {
      * it, so a list row would repeat one host-wide fact.
      */
     imageLimits: SessionProjectionSummaryExcluded<ImageAttachmentLimits>
+    /** Target for cancellation that cannot affect a later turn. */
+    activeTurnStart: number | null
   }
 }
 
@@ -184,33 +186,53 @@ declare module '@deepseek-ai/dsh-typert-protocol' {
     'session/observation-ended': Record<string, never>
     /** No state arrived before the deadline; a timeout after a state returns its value instead. */
     'session/wait-timeout': Record<string, never>
+    /** Provider credentials are unavailable for the requested Session operation. */
     'session/provider-credentials-unavailable': Record<string, never>
+    /** The selected provider exposes no usable model catalog. */
     'session/provider-models-unavailable': { readonly provider: string }
+    /** The requested provider and model are unavailable; select an available model. */
     'session/model-unavailable': { readonly provider: string; readonly model: string }
+    /** The requested working directory conflicts with the existing Session. */
     'session/conflict': {
       readonly sessionId: SessionId
       readonly requestedCwd: string
       readonly existingCwd?: string
     }
+    /** The Session projection snapshot is unavailable. */
     'session/projections-unavailable': Record<string, never>
+    /** Another writer holds the Session, preventing this operation from acquiring it. */
     'session/writer-held': { readonly sessionId: SessionId }
+    /** The Agent cannot accept this operation in its current state or at this address. */
     'session/agent-busy': { readonly reason: string }
+    /** The supplied time zone is not a supported IANA time zone. */
     'session/invalid-time-zone': { readonly value: string }
+    /** The Session could not be attached to the requested Workspace. */
     'session/workspace-attach-failed': { readonly sessionId: SessionId; readonly workspaceId: string }
+    /** The requested preset conflicts with the existing Session's preset. */
     'agent-preset/conflict': {
       readonly sessionId: SessionId
       readonly requestedPreset: string
     }
+    /** A prompt attachment is invalid or unavailable for this Session. */
     'session/attachment-invalid': { readonly reason: string }
+    /** The addressed inbox item is no longer pending. */
     'session/queue-item-not-found': { readonly itemId: MessageId }
+    /** The current turn no longer accepts the queued item as steering. */
     'session/steer-unavailable': { readonly itemId: MessageId }
+    /** The requested Session title fails title validation. */
     'session/title-invalid': { readonly sessionId: SessionId }
+    /** A changed Session title revision rejects the requested rename. */
+    'session/revision-conflict': { readonly sessionId: SessionId }
+    /** The addressed Session cannot be forked in its current state. */
     'session/fork-unavailable': { readonly sessionId: SessionId }
+    /** The source Session must be opened and migrated before it can be forked. */
     'session/migration-required': { readonly sessionId: SessionId }
+    /** No subagent is available at the supplied parent and child address. */
     'subagent/not-found': {
       readonly parentSessionId: SessionId
       readonly childSessionId: SessionId
     }
+    /** The addressed subagent descriptor cannot be read from the durable catalog. */
     'subagent/catalog-diagnostic': {
       readonly parentSessionId: SessionId
       readonly childSessionId: SessionId
@@ -300,6 +322,12 @@ export interface SessionRenameRequest {
   readonly title: string
 }
 
+/** Conditional rename using the title event revision captured before editing. */
+export interface SessionRenameAtRequest extends SessionRenameRequest {
+  /** Durable title event seq, or null when no title has been accepted. */
+  readonly expectedRevision: number | null
+}
+
 /** Normalized title and the durable event position that committed it. */
 export interface SessionRenameValue {
   readonly title: string
@@ -365,6 +393,12 @@ export interface SessionUpdateQueueValue {
 /** Active-turn cancellation request. */
 export interface SessionCancelRequest {
   readonly sessionId: SessionId
+}
+
+/** Cancel the observed turn only; null records that the Client observed no open turn. */
+export interface SessionCancelTurnRequest {
+  readonly sessionId: SessionId
+  readonly turnStartSeq: number | null
 }
 
 /** Receipt after cancellation is admitted to the live Agent. */

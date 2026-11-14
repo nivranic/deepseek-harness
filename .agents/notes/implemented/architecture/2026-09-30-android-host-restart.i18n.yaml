@@ -1,0 +1,19 @@
+# Bilingual-pair consistency record for 2026-09-30-android-host-restart.md (docs/i18n/README.md): per heading
+# section, a hash of its English and Chinese blocks outside code blocks and generated regions.
+# After editing either side, bring the other along and re-record with:
+#   pnpm run verify-translation-pairing --write .agents/notes/implemented/architecture/2026-09-30-android-host-restart.md
+/agent-note-a-real-host-restart-invalidates-staged-upload-receipts-while-durable-identity-and-bytes-survive:
+  en: 6967092cd2a4313f
+  zh: efc61b4f2bce9668
+/agent-note-a-real-host-restart-invalidates-staged-upload-receipts-while-durable-identity-and-bytes-survive/problem:
+  en: 80896e4211e5d8de
+  zh: aa7ad26857d5026c
+/agent-note-a-real-host-restart-invalidates-staged-upload-receipts-while-durable-identity-and-bytes-survive/decision:
+  en: 6938c2e432306db0
+  zh: bab03db83946eaac
+/agent-note-a-real-host-restart-invalidates-staged-upload-receipts-while-durable-identity-and-bytes-survive/alternatives-considered:
+  en: fcf9a577816cafde
+  zh: 1880c10d0bc89142
+/agent-note-a-real-host-restart-invalidates-staged-upload-receipts-while-durable-identity-and-bytes-survive/consequences:
+  en: ccba103f6b82705f
+  zh: 7b345585087d7fa4

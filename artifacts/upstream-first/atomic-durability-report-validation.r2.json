@@ -1,0 +1,66 @@
+{
+  "status": "PASS",
+  "scope": "Report bindings and audit for the atomic-durability increment: the section 46 settings-and-credentials persistence channel — the parallel read-only survey of every persistent write path measured the JSONL session store as already satisfying the full requirement set (chained adjacent generations enforced at to=from+1, tmp-wx plus fsync with isolated-worker verification and POSIX link never overwriting, historical source generations never deleted, torn-tail prefix recovery, cross-process session.lock), leaving the shared dsh-atomic-write primitive's missing fsync (settings.yaml and .credentials.yaml could roll back on power loss mid-write) and the credentials flat-layout migration's in-place rewrite of the sole secret copy as the real gaps, with the session-query-sqlite derived-table reset, the storage-sqlite version-mismatch refusal and the JSONL repair truncation window honestly left open; the implementation mirrors the storage-json crash-safe primitive in writeFileAtomic (exclusive-create open, handle writeFile, handle sync, close, rename keeping the Windows transient bounded retry, then POSIX parent-directory fsync behind a win32 guard with the same v8 ignore block, the module and function JSDoc rewritten with the TODO and out-of-scope sentences deleted) and retains the flat original at <file>.migration-v0.bak (0600, dirMode 0700) through the same durable writer before the sole copy is replaced, re-migration rewriting the same backup bytes and a second boot leaving it untouched; the lanes (atomic-write's two new cases — the durabilityOrder [sync, rename] ordering case and the pre-rename EIO fsync failure case leaving the old content intact with no .tmp residue; the credentials migration case retaining the flat original byte-for-byte at the owner-only mode with a second boot leaving it untouched) ran green with the settings lock-race injection seam honestly migrated to the open-handle writeFile seam and the two oxlint unnecessary-assertion removals after one mid-round LINT_EXIT=1; both README pairs flip their durability contract sentences with the pairings re-recorded, the traceability section 46 remaining rewrites at 77 to 625 characters with candidateEvidence 2 to 4 (node --test 6/6), the note trio lands, and the documentation evidence keeps the two-file split — doc-quick 17 gates in its own docs log and doc-sync 36 passed 0 failed in 331.83s in its own docsync log (the first two runs failed the site-checks gate on its 5-second budget — the gen-29 archived flake's same load-induced form — diagnosed by an isolated 69/69 doc-gate rerun and sealed by a third-round whole-gate rerun on an idle machine) — with the audit serial double round green at the unchanged 85 files / 1061 tests (the touched packages are not client spec-list members), gate0 in both forms, and the repo-wide build-plus-lint round sealed in its honestly recorded chained single-trailer form (build:lib:host carrying tsc -b chained with && into lint:contracts-ready, LINT_EXIT=0, Found 0 warnings and 0 errors); the same-round gradle acceptance round (scanner env with -PdshNativeAcceptance, BUILD SUCCESSFUL in 33s) replayed WARM with 2 executed of 89 actionable tasks and 87 up-to-date because nothing under apps/android changed this generation (no device lane ran and the emulator stayed off), the empty-derived byte proof compares both APKs byte-identically against the approval-ask-risk record's builtFiles entries (.artifacts/atomic-durability-apk-bytes.log), the still-valid XML reports aggregate 77 suites / 477 tests with zero failures/errors/skips (.artifacts/atomic-durability-core-results.json), and the prepare-side unresolved scan derived ZERO replaced prior build outputs (7598 files, 0 replaced — this generation ran no catalog regeneration and no client bundle rebuilt anything) so the new record's own derivation stays empty and the generator gains no atomic-durability replaced-build-output set (the round-1 chain repair's atomicDurabilitySupersededSources six-key set is the superseded-source class adjudicated for the ancient desktop-package, helper-fixes and fixture-observation entries — nothing rebuilt on the source plane — and its companion single-key desktopPackageReplacedBuildOutputs set covers the untracked apps/desktop/lib output the sealed types-lint host build rewrote) while every prior generation's own set (including the adjudicated four-key approvalFactsCompleteReplacedBuildOutputs set with its filter and guard) rides unchanged; the three adjudicated-open §46 items stay open; full Upstream-First objective remains in progress",
+  "gate0": {
+    "validation": "PASS",
+    "gate0": "PASS",
+    "paths": 1938,
+    "components": 129,
+    "specificationCoverage": {
+      "status": "PASS",
+      "numberedSections": 81,
+      "nonEmptySourceLines": 1983,
+      "acceptanceProven": false
+    }
+  },
+  "sourceRecord": {
+    "path": "artifacts/upstream-first/atomic-durability-source.json",
+    "sha256": "a3bea1098f518213631f5e4f78166a99d946f53e98780568015176eaaa495358"
+  },
+  "generator": {
+    "path": "artifacts/upstream-first/write-reports.mjs",
+    "sha256": "e4e6d0400fa6673c948465452fd6056f5547861ebd7420d2721734b29e5375d4"
+  },
+  "binding": {
+    "path": "artifacts/upstream-first/atomic-durability-binding.json",
+    "sha256": "6991082655c111c73267f62572c2f6f119bbd9aa11a61cfbe3750332ecb0300e"
+  },
+  "helpers": [
+    {
+      "path": ".artifacts/advance-atomic-durability-reports.mjs",
+      "sha256": "9fe0e9dfab4b5cd90277d6f5f8f0b7dfa3b1b3cde934c331214fe970493f0574"
+    },
+    {
+      "path": ".artifacts/capture-atomic-durability-validation.mjs",
+      "sha256": "702b0dd31fcb1af3ed2a787803834a74d6c10b8a86b0f74986d787de67ac82b4"
+    }
+  ],
+  "reports": [
+    {
+      "path": "IMPLEMENTATION_STATUS.md",
+      "sha256": "471a80ec4c608641232ce9d7521a7686d5b9cec3ff10a3495126fb9d4e5726ba"
+    },
+    {
+      "path": "artifacts/upstream-first/evidence.json",
+      "sha256": "744859b6b5f9f5d545e3c514aa492baf6ab9f533d1eccfef67a538db75e512c0"
+    }
+  ],
+  "checks": [
+    {
+      "path": ".artifacts/atomic-durability-binding.log",
+      "sha256": "e60622af5c5e7c6b578db1775a2c021c18ba03db40b53917e56de320edd6b9d8"
+    },
+    {
+      "path": ".artifacts/atomic-durability-audit-final.log",
+      "sha256": "d5bd674ad5a91df398362b87a76c03dfed6d4e84cdfa220784991fe592bf774d"
+    },
+    {
+      "path": ".artifacts/atomic-durability-gate0-final.log",
+      "sha256": "7e00efd82bd2a2b91b03ca80537dcc4af46cd09eb318ff58520cb2d7d7d8a48a"
+    },
+    {
+      "path": ".artifacts/atomic-durability-report-generation.log",
+      "sha256": "fe010532f71a6341467ae5719b29ac19470895de1d481156335b8f70a3273ed5"
+    }
+  ]
+}

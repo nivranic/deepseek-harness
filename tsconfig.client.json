@@ -53,7 +53,10 @@
   "exclude": [
     "packages/client/*/tests/**/*.host.spec.ts",
     "packages/client/*/tests/**/*.host.e2e.ts",
-    "packages/client/*/tests/**/*.host.ts"
+    "packages/client/*/tests/**/*.host.ts",
+    "packages/api/native-remote/**",
+    "scripts/gen-lite-preset-catalog.ts",
+    "scripts/gen-lite-preset-catalog.spec.ts"
   ],
   "references": [
     { "path": "./packages/experimental/client-ui-action-cards" },
@@ -164,6 +167,11 @@
     { "path": "./packages/client/ui-theme/tsconfig.client.json" },
     { "path": "./packages/client/ui-settings/tsconfig.client.json" },
     { "path": "./packages/client/ui-settings-general/tsconfig.client.json" },
+    { "path": "./packages/client/ui-settings-devices" },
+    { "path": "./packages/client/ui-settings-hosts" },
+    { "path": "./packages/client/ui-settings-host-status" },
+    { "path": "./packages/client/ui-settings-telemetry" },
+    { "path": "./packages/client/ui-view-handoff" },
     { "path": "./packages/client/ui-settings-models" },
     { "path": "./packages/client/ui-plugin-manager/tsconfig.client.json" },
     { "path": "./packages/client/ui-plugin-market" },

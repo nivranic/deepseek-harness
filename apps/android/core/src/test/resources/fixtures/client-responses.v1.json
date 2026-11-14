@@ -1,0 +1,530 @@
+{
+  "schemaVersion": 1,
+  "requestRpcId": "fixture-rpc",
+  "cases": [
+    {
+      "id": "rpc-value",
+      "kind": "rpc",
+      "body": "{\"type\":\"server-response\",\"rpcId\":\"fixture-rpc\",\"result\":{\"ok\":true,\"value\":{\"answer\":[null,true,3,\"你好\"]}}}",
+      "outcome": "value",
+      "value": {
+        "answer": [
+          null,
+          true,
+          3,
+          "你好"
+        ]
+      }
+    },
+    {
+      "id": "rpc-value-null",
+      "kind": "rpc",
+      "body": "{\"type\":\"server-response\",\"rpcId\":\"fixture-rpc\",\"result\":{\"ok\":true,\"value\":null}}",
+      "outcome": "value",
+      "value": null
+    },
+    {
+      "id": "rpc-value-false",
+      "kind": "rpc",
+      "body": "{\"type\":\"server-response\",\"rpcId\":\"fixture-rpc\",\"result\":{\"ok\":true,\"value\":false}}",
+      "outcome": "value",
+      "value": false
+    },
+    {
+      "id": "rpc-value-number",
+      "kind": "rpc",
+      "body": "{\"type\":\"server-response\",\"rpcId\":\"fixture-rpc\",\"result\":{\"ok\":true,\"value\":1.5}}",
+      "outcome": "value",
+      "value": 1.5
+    },
+    {
+      "id": "rpc-value-string",
+      "kind": "rpc",
+      "body": "{\"type\":\"server-response\",\"rpcId\":\"fixture-rpc\",\"result\":{\"ok\":true,\"value\":\"hello\"}}",
+      "outcome": "value",
+      "value": "hello"
+    },
+    {
+      "id": "rpc-value-array",
+      "kind": "rpc",
+      "body": "{\"type\":\"server-response\",\"rpcId\":\"fixture-rpc\",\"result\":{\"ok\":true,\"value\":[1,2]}}",
+      "outcome": "value",
+      "value": [
+        1,
+        2
+      ]
+    },
+    {
+      "id": "rpc-void",
+      "kind": "rpc",
+      "body": "{\"type\":\"server-response\",\"rpcId\":\"fixture-rpc\",\"result\":{\"ok\":true}}",
+      "outcome": "void"
+    },
+    {
+      "id": "rpc-additive",
+      "kind": "rpc",
+      "body": "{\"type\":\"server-response\",\"rpcId\":\"fixture-rpc\",\"result\":{\"ok\":true,\"value\":{\"answer\":[null,true,3,\"你好\"]},\"futureResult\":{\"nested\":true}},\"futureField\":true}",
+      "outcome": "value",
+      "value": {
+        "answer": [
+          null,
+          true,
+          3,
+          "你好"
+        ]
+      }
+    },
+    {
+      "id": "rpc-refused",
+      "kind": "rpc",
+      "body": "{\"type\":\"server-response\",\"rpcId\":\"fixture-rpc\",\"result\":{\"ok\":false,\"error\":{\"code\":\"fixture-refused\",\"message\":\"fixture refusal\",\"details\":{\"futureDetail\":[true,null]}}}}",
+      "outcome": "refused",
+      "code": "fixture-refused",
+      "message": "fixture refusal"
+    },
+    {
+      "id": "rpc-error-additive",
+      "kind": "rpc",
+      "body": "{\"type\":\"server-response\",\"rpcId\":\"fixture-rpc\",\"result\":{\"ok\":false,\"error\":{\"code\":\"fixture-refused\",\"message\":\"fixture refusal\",\"details\":{\"futureDetail\":[true,null]},\"futureError\":true}}}",
+      "outcome": "refused",
+      "code": "fixture-refused",
+      "message": "fixture refusal"
+    },
+    {
+      "id": "rpc-root-null",
+      "kind": "rpc",
+      "body": "null",
+      "outcome": "bad-wire"
+    },
+    {
+      "id": "rpc-root-array",
+      "kind": "rpc",
+      "body": "[]",
+      "outcome": "bad-wire"
+    },
+    {
+      "id": "rpc-root-string",
+      "kind": "rpc",
+      "body": "\"response\"",
+      "outcome": "bad-wire"
+    },
+    {
+      "id": "rpc-root-number",
+      "kind": "rpc",
+      "body": "1",
+      "outcome": "bad-wire"
+    },
+    {
+      "id": "rpc-root-boolean",
+      "kind": "rpc",
+      "body": "true",
+      "outcome": "bad-wire"
+    },
+    {
+      "id": "rpc-root-empty",
+      "kind": "rpc",
+      "body": "{}",
+      "outcome": "bad-wire"
+    },
+    {
+      "id": "rpc-missing-type",
+      "kind": "rpc",
+      "body": "{\"rpcId\":\"fixture-rpc\",\"result\":{\"ok\":true,\"value\":{\"answer\":[null,true,3,\"你好\"]}}}",
+      "outcome": "bad-wire"
+    },
+    {
+      "id": "rpc-missing-rpcId",
+      "kind": "rpc",
+      "body": "{\"type\":\"server-response\",\"result\":{\"ok\":true,\"value\":{\"answer\":[null,true,3,\"你好\"]}}}",
+      "outcome": "bad-wire"
+    },
+    {
+      "id": "rpc-missing-result",
+      "kind": "rpc",
+      "body": "{\"type\":\"server-response\",\"rpcId\":\"fixture-rpc\"}",
+      "outcome": "bad-wire"
+    },
+    {
+      "id": "rpc-type-value",
+      "kind": "rpc",
+      "body": "{\"type\":\"client-request\",\"rpcId\":\"fixture-rpc\",\"result\":{\"ok\":true,\"value\":{\"answer\":[null,true,3,\"你好\"]}}}",
+      "outcome": "bad-wire"
+    },
+    {
+      "id": "rpc-type-number",
+      "kind": "rpc",
+      "body": "{\"type\":1,\"rpcId\":\"fixture-rpc\",\"result\":{\"ok\":true,\"value\":{\"answer\":[null,true,3,\"你好\"]}}}",
+      "outcome": "bad-wire"
+    },
+    {
+      "id": "rpc-rpcId-mismatch",
+      "kind": "rpc",
+      "body": "{\"type\":\"server-response\",\"rpcId\":\"other-rpc\",\"result\":{\"ok\":true,\"value\":{\"answer\":[null,true,3,\"你好\"]}}}",
+      "outcome": "bad-wire"
+    },
+    {
+      "id": "rpc-rpcId-empty",
+      "kind": "rpc",
+      "body": "{\"type\":\"server-response\",\"rpcId\":\"\",\"result\":{\"ok\":true,\"value\":{\"answer\":[null,true,3,\"你好\"]}}}",
+      "outcome": "bad-wire"
+    },
+    {
+      "id": "rpc-rpcId-number",
+      "kind": "rpc",
+      "body": "{\"type\":\"server-response\",\"rpcId\":1,\"result\":{\"ok\":true,\"value\":{\"answer\":[null,true,3,\"你好\"]}}}",
+      "outcome": "bad-wire"
+    },
+    {
+      "id": "rpc-result-null",
+      "kind": "rpc",
+      "body": "{\"type\":\"server-response\",\"rpcId\":\"fixture-rpc\",\"result\":null}",
+      "outcome": "bad-wire"
+    },
+    {
+      "id": "rpc-result-array",
+      "kind": "rpc",
+      "body": "{\"type\":\"server-response\",\"rpcId\":\"fixture-rpc\",\"result\":[]}",
+      "outcome": "bad-wire"
+    },
+    {
+      "id": "rpc-missing-ok",
+      "kind": "rpc",
+      "body": "{\"type\":\"server-response\",\"rpcId\":\"fixture-rpc\",\"result\":{\"value\":1}}",
+      "outcome": "bad-wire"
+    },
+    {
+      "id": "rpc-string-ok",
+      "kind": "rpc",
+      "body": "{\"type\":\"server-response\",\"rpcId\":\"fixture-rpc\",\"result\":{\"ok\":\"true\",\"value\":1}}",
+      "outcome": "bad-wire"
+    },
+    {
+      "id": "rpc-numeric-ok",
+      "kind": "rpc",
+      "body": "{\"type\":\"server-response\",\"rpcId\":\"fixture-rpc\",\"result\":{\"ok\":1,\"value\":1}}",
+      "outcome": "bad-wire"
+    },
+    {
+      "id": "rpc-null-ok",
+      "kind": "rpc",
+      "body": "{\"type\":\"server-response\",\"rpcId\":\"fixture-rpc\",\"result\":{\"ok\":null}}",
+      "outcome": "bad-wire"
+    },
+    {
+      "id": "rpc-success-error",
+      "kind": "rpc",
+      "body": "{\"type\":\"server-response\",\"rpcId\":\"fixture-rpc\",\"result\":{\"ok\":true,\"error\":{\"code\":\"fixture-refused\",\"message\":\"fixture refusal\",\"details\":{\"futureDetail\":[true,null]}}}}",
+      "outcome": "bad-wire"
+    },
+    {
+      "id": "rpc-success-null-error",
+      "kind": "rpc",
+      "body": "{\"type\":\"server-response\",\"rpcId\":\"fixture-rpc\",\"result\":{\"ok\":true,\"error\":null}}",
+      "outcome": "bad-wire"
+    },
+    {
+      "id": "rpc-failure-value",
+      "kind": "rpc",
+      "body": "{\"type\":\"server-response\",\"rpcId\":\"fixture-rpc\",\"result\":{\"ok\":false,\"value\":1,\"error\":{\"code\":\"fixture-refused\",\"message\":\"fixture refusal\",\"details\":{\"futureDetail\":[true,null]}}}}",
+      "outcome": "bad-wire"
+    },
+    {
+      "id": "rpc-failure-null-value",
+      "kind": "rpc",
+      "body": "{\"type\":\"server-response\",\"rpcId\":\"fixture-rpc\",\"result\":{\"ok\":false,\"value\":null,\"error\":{\"code\":\"fixture-refused\",\"message\":\"fixture refusal\",\"details\":{\"futureDetail\":[true,null]}}}}",
+      "outcome": "bad-wire"
+    },
+    {
+      "id": "rpc-failure-missing-error",
+      "kind": "rpc",
+      "body": "{\"type\":\"server-response\",\"rpcId\":\"fixture-rpc\",\"result\":{\"ok\":false}}",
+      "outcome": "bad-wire"
+    },
+    {
+      "id": "rpc-failure-null-error",
+      "kind": "rpc",
+      "body": "{\"type\":\"server-response\",\"rpcId\":\"fixture-rpc\",\"result\":{\"ok\":false,\"error\":null}}",
+      "outcome": "bad-wire"
+    },
+    {
+      "id": "rpc-error-missing-code",
+      "kind": "rpc",
+      "body": "{\"type\":\"server-response\",\"rpcId\":\"fixture-rpc\",\"result\":{\"ok\":false,\"error\":{\"message\":\"fixture refusal\",\"details\":{\"futureDetail\":[true,null]}}}}",
+      "outcome": "bad-wire"
+    },
+    {
+      "id": "rpc-error-missing-message",
+      "kind": "rpc",
+      "body": "{\"type\":\"server-response\",\"rpcId\":\"fixture-rpc\",\"result\":{\"ok\":false,\"error\":{\"code\":\"fixture-refused\",\"details\":{\"futureDetail\":[true,null]}}}}",
+      "outcome": "bad-wire"
+    },
+    {
+      "id": "rpc-error-missing-details",
+      "kind": "rpc",
+      "body": "{\"type\":\"server-response\",\"rpcId\":\"fixture-rpc\",\"result\":{\"ok\":false,\"error\":{\"code\":\"fixture-refused\",\"message\":\"fixture refusal\"}}}",
+      "outcome": "bad-wire"
+    },
+    {
+      "id": "rpc-error-invalid-code-int",
+      "kind": "rpc",
+      "body": "{\"type\":\"server-response\",\"rpcId\":\"fixture-rpc\",\"result\":{\"ok\":false,\"error\":{\"code\":1,\"message\":\"fixture refusal\",\"details\":{\"futureDetail\":[true,null]}}}}",
+      "outcome": "bad-wire"
+    },
+    {
+      "id": "rpc-error-invalid-message-NoneType",
+      "kind": "rpc",
+      "body": "{\"type\":\"server-response\",\"rpcId\":\"fixture-rpc\",\"result\":{\"ok\":false,\"error\":{\"code\":\"fixture-refused\",\"message\":null,\"details\":{\"futureDetail\":[true,null]}}}}",
+      "outcome": "bad-wire"
+    },
+    {
+      "id": "rpc-error-invalid-details-NoneType",
+      "kind": "rpc",
+      "body": "{\"type\":\"server-response\",\"rpcId\":\"fixture-rpc\",\"result\":{\"ok\":false,\"error\":{\"code\":\"fixture-refused\",\"message\":\"fixture refusal\",\"details\":null}}}",
+      "outcome": "bad-wire"
+    },
+    {
+      "id": "rpc-error-invalid-details-list",
+      "kind": "rpc",
+      "body": "{\"type\":\"server-response\",\"rpcId\":\"fixture-rpc\",\"result\":{\"ok\":false,\"error\":{\"code\":\"fixture-refused\",\"message\":\"fixture refusal\",\"details\":[]}}}",
+      "outcome": "bad-wire"
+    },
+    {
+      "id": "rpc-error-invalid-details-str",
+      "kind": "rpc",
+      "body": "{\"type\":\"server-response\",\"rpcId\":\"fixture-rpc\",\"result\":{\"ok\":false,\"error\":{\"code\":\"fixture-refused\",\"message\":\"fixture refusal\",\"details\":\"text\"}}}",
+      "outcome": "bad-wire"
+    },
+    {
+      "id": "rpc-invalid-json",
+      "kind": "rpc",
+      "body": "{",
+      "outcome": "bad-wire"
+    },
+    {
+      "id": "stream-object",
+      "kind": "stream",
+      "body": "{\"k\":\"v\",\"v\":{\"unknown/event\":true}}",
+      "outcome": "value",
+      "value": {
+        "unknown/event": true
+      }
+    },
+    {
+      "id": "stream-null",
+      "kind": "stream",
+      "body": "{\"k\":\"v\",\"v\":null}",
+      "outcome": "value",
+      "value": null
+    },
+    {
+      "id": "stream-false",
+      "kind": "stream",
+      "body": "{\"k\":\"v\",\"v\":false}",
+      "outcome": "value",
+      "value": false
+    },
+    {
+      "id": "stream-number",
+      "kind": "stream",
+      "body": "{\"k\":\"v\",\"v\":1.5}",
+      "outcome": "value",
+      "value": 1.5
+    },
+    {
+      "id": "stream-string",
+      "kind": "stream",
+      "body": "{\"k\":\"v\",\"v\":\"你好\"}",
+      "outcome": "value",
+      "value": "你好"
+    },
+    {
+      "id": "stream-array",
+      "kind": "stream",
+      "body": "{\"k\":\"v\",\"v\":[null,true]}",
+      "outcome": "value",
+      "value": [
+        null,
+        true
+      ]
+    },
+    {
+      "id": "stream-void",
+      "kind": "stream",
+      "body": "{\"k\":\"v\"}",
+      "outcome": "void"
+    },
+    {
+      "id": "stream-additive",
+      "kind": "stream",
+      "body": "{\"k\":\"v\",\"v\":1,\"futureField\":{\"new\":true}}",
+      "outcome": "value",
+      "value": 1
+    },
+    {
+      "id": "stream-refused",
+      "kind": "stream",
+      "body": "{\"k\":\"e\",\"c\":\"fixture-refused\",\"m\":\"fixture refusal\",\"d\":{\"futureDetail\":[true,null]}}",
+      "outcome": "refused",
+      "code": "fixture-refused",
+      "message": "fixture refusal"
+    },
+    {
+      "id": "stream-error-additive",
+      "kind": "stream",
+      "body": "{\"k\":\"e\",\"c\":\"fixture-refused\",\"m\":\"fixture refusal\",\"d\":{\"futureDetail\":[true,null]},\"futureField\":true}",
+      "outcome": "refused",
+      "code": "fixture-refused",
+      "message": "fixture refusal"
+    },
+    {
+      "id": "stream-root-null",
+      "kind": "stream",
+      "body": "null",
+      "outcome": "bad-wire"
+    },
+    {
+      "id": "stream-root-array",
+      "kind": "stream",
+      "body": "[]",
+      "outcome": "bad-wire"
+    },
+    {
+      "id": "stream-root-string",
+      "kind": "stream",
+      "body": "\"frame\"",
+      "outcome": "bad-wire"
+    },
+    {
+      "id": "stream-root-number",
+      "kind": "stream",
+      "body": "1",
+      "outcome": "bad-wire"
+    },
+    {
+      "id": "stream-root-boolean",
+      "kind": "stream",
+      "body": "true",
+      "outcome": "bad-wire"
+    },
+    {
+      "id": "stream-root-empty",
+      "kind": "stream",
+      "body": "{}",
+      "outcome": "bad-wire"
+    },
+    {
+      "id": "stream-root-unknown",
+      "kind": "stream",
+      "body": "{\"k\":\"future\",\"v\":1}",
+      "outcome": "bad-wire"
+    },
+    {
+      "id": "stream-root-numeric-kind",
+      "kind": "stream",
+      "body": "{\"k\":1,\"v\":1}",
+      "outcome": "bad-wire"
+    },
+    {
+      "id": "stream-error-missing-c",
+      "kind": "stream",
+      "body": "{\"k\":\"e\",\"m\":\"fixture refusal\",\"d\":{\"futureDetail\":[true,null]}}",
+      "outcome": "bad-wire"
+    },
+    {
+      "id": "stream-error-missing-m",
+      "kind": "stream",
+      "body": "{\"k\":\"e\",\"c\":\"fixture-refused\",\"d\":{\"futureDetail\":[true,null]}}",
+      "outcome": "bad-wire"
+    },
+    {
+      "id": "stream-error-missing-d",
+      "kind": "stream",
+      "body": "{\"k\":\"e\",\"c\":\"fixture-refused\",\"m\":\"fixture refusal\"}",
+      "outcome": "bad-wire"
+    },
+    {
+      "id": "stream-error-invalid-c-int",
+      "kind": "stream",
+      "body": "{\"k\":\"e\",\"c\":1,\"m\":\"fixture refusal\",\"d\":{\"futureDetail\":[true,null]}}",
+      "outcome": "bad-wire"
+    },
+    {
+      "id": "stream-error-invalid-m-NoneType",
+      "kind": "stream",
+      "body": "{\"k\":\"e\",\"c\":\"fixture-refused\",\"m\":null,\"d\":{\"futureDetail\":[true,null]}}",
+      "outcome": "bad-wire"
+    },
+    {
+      "id": "stream-error-invalid-d-NoneType",
+      "kind": "stream",
+      "body": "{\"k\":\"e\",\"c\":\"fixture-refused\",\"m\":\"fixture refusal\",\"d\":null}",
+      "outcome": "bad-wire"
+    },
+    {
+      "id": "stream-error-invalid-d-list",
+      "kind": "stream",
+      "body": "{\"k\":\"e\",\"c\":\"fixture-refused\",\"m\":\"fixture refusal\",\"d\":[]}",
+      "outcome": "bad-wire"
+    },
+    {
+      "id": "stream-value-cross-c",
+      "kind": "stream",
+      "body": "{\"k\":\"v\",\"v\":1,\"c\":null}",
+      "outcome": "bad-wire"
+    },
+    {
+      "id": "stream-value-cross-m",
+      "kind": "stream",
+      "body": "{\"k\":\"v\",\"v\":1,\"m\":null}",
+      "outcome": "bad-wire"
+    },
+    {
+      "id": "stream-value-cross-d",
+      "kind": "stream",
+      "body": "{\"k\":\"v\",\"v\":1,\"d\":null}",
+      "outcome": "bad-wire"
+    },
+    {
+      "id": "stream-error-cross-value-None",
+      "kind": "stream",
+      "body": "{\"k\":\"e\",\"c\":\"fixture-refused\",\"m\":\"fixture refusal\",\"d\":{\"futureDetail\":[true,null]},\"v\":null}",
+      "outcome": "bad-wire"
+    },
+    {
+      "id": "stream-error-cross-value-1",
+      "kind": "stream",
+      "body": "{\"k\":\"e\",\"c\":\"fixture-refused\",\"m\":\"fixture refusal\",\"d\":{\"futureDetail\":[true,null]},\"v\":1}",
+      "outcome": "bad-wire"
+    },
+    {
+      "id": "stream-invalid-json",
+      "kind": "stream",
+      "body": "{",
+      "outcome": "bad-wire"
+    },
+    {
+      "id": "rpc-number-overflow",
+      "kind": "rpc",
+      "body": "{\"type\":\"server-response\",\"rpcId\":\"fixture-rpc\",\"result\":{\"ok\":true,\"value\":1e999}}",
+      "outcome": "bad-wire"
+    },
+    {
+      "id": "rpc-number-negative-zero",
+      "kind": "rpc",
+      "body": "{\"type\":\"server-response\",\"rpcId\":\"fixture-rpc\",\"result\":{\"ok\":true,\"value\":-0}}",
+      "outcome": "bad-wire"
+    },
+    {
+      "id": "stream-number-overflow",
+      "kind": "stream",
+      "body": "{\"k\":\"v\",\"v\":1e999}",
+      "outcome": "bad-wire"
+    },
+    {
+      "id": "stream-number-negative-zero",
+      "kind": "stream",
+      "body": "{\"k\":\"v\",\"v\":-0}",
+      "outcome": "bad-wire"
+    }
+  ]
+}

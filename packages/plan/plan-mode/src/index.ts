@@ -236,6 +236,7 @@ export class PlanModeController extends Service {
         definitionId: brandString<CommandDefinitionId>('@deepseek-ai/dsh-plan-mode'),
         name: 'plan',
         description: 'Enter or leave plan mode',
+        risk: 'low' as const,
         input: { hint: '[off|message]', attachments: true },
         handler: ({ agent, rawInput, attachments }) => {
           const message = rawInput.trim()
@@ -282,6 +283,11 @@ export class PlanModeController extends Service {
     ctx.tools.register(defineTool({
       name: EXIT_PLAN_MODE,
       description: EXIT_DESCRIPTION,
+      version: 1,
+      risk: 'low',
+      permissions: ['question.respond'],
+      supportsLite: false,
+      supportsRemote: true,
       parameters: {
         plan: { type: 'string', required: true, description: 'The complete plan, as markdown, starting with a # heading that names it.' },
       },

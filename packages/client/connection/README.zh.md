@@ -25,6 +25,8 @@ kind: "package-reference"
 <a id="use-this-package"></a>
 ## 使用本包
 
+Host 入口导出 `createRpcFetchHandler(channel, handler)` 和 `bridgeConnectionHttp(req, res, handler, peer, maxRequestBodyBytes?)`，供 Native Remote 等组合载体使用。载体提供 Peer、认证和请求大小限制；这些 helper 复用 Connection 的 RPC 帧与 HTTP 缓冲，不授予本地浏览器权限。普通 RPC channel 注册仍将 `/api` 保留给 Gateway。
+
 `./client` 导入在 Node 中选择独立的 `lib/client.node.js` ESM bundle，在浏览器中选择 `lib/client.browser.js` loader factory。Web Host 仍以逻辑 URL `/plugins/.../client.js` 提供浏览器导出。非页面 Cordis 树应导入 Client 入口；独立的包根入口是 Host 入口。
 
 静态桌面页面可以通过 `__DSH_TRANSPORT__.streamBaseUrl` 提供其所拥有 Host 的 HTTP origin。Gateway 将该 origin 用于 WebSocket，HTTP 传输仍独立选择。桌面载体负责认证；仅设置 origin 不会授予访问权限。

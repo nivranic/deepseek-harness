@@ -1,0 +1,25 @@
+# Bilingual-pair consistency record for 2026-09-28-android-view-deep-links.md (docs/i18n/README.md): per heading
+# section, a hash of its English and Chinese blocks outside code blocks and generated regions.
+# After editing either side, bring the other along and re-record with:
+#   pnpm run verify-translation-pairing --write .agents/notes/implemented/architecture/2026-09-28-android-view-deep-links.md
+/agent-note-android-viewing-position-links-bind-one-navigation-attempt-to-the-selected-trusted-host:
+  en: 55bac9b04c05ffc8
+  zh: 19baba48308ea777
+/agent-note-android-viewing-position-links-bind-one-navigation-attempt-to-the-selected-trusted-host/problem:
+  en: d3fd73233e4f1538
+  zh: 1c159e441360cabf
+/agent-note-android-viewing-position-links-bind-one-navigation-attempt-to-the-selected-trusted-host/decision:
+  en: 6b6e08ad8db07750
+  zh: 18777c1a1fef8261
+/agent-note-android-viewing-position-links-bind-one-navigation-attempt-to-the-selected-trusted-host/admission-and-query-ownership:
+  en: 62a71277512ea152
+  zh: 0eb089c9f4a491e9
+/agent-note-android-viewing-position-links-bind-one-navigation-attempt-to-the-selected-trusted-host/navigation-and-restoration:
+  en: 695cb6e479dc9816
+  zh: e0273c53b0a79c9d
+/agent-note-android-viewing-position-links-bind-one-navigation-attempt-to-the-selected-trusted-host/alternatives-considered:
+  en: 34375893d5f2dc56
+  zh: 86917f9c72b4d2bf
+/agent-note-android-viewing-position-links-bind-one-navigation-attempt-to-the-selected-trusted-host/consequences:
+  en: ec43d9d9faef6a54
+  zh: 2e2bce73d9b4044b

@@ -1,0 +1,12 @@
+{
+  "groups": [
+    {
+      "id": "g",
+      "name": 5,
+      "models": [
+        { "id": "m", "name": false, "reasoning": "not-an-object" }
+      ]
+    }
+  ],
+  "default": { "provider": 9, "model": null }
+}

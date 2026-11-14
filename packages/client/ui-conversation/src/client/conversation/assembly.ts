@@ -4,7 +4,8 @@ import type { ImageAttachmentRef } from '@deepseek-ai/dsh-attachment'
 import type {
   ISessions, SessionBinding, SessionEventSource, SessionEventWindow,
 } from '@deepseek-ai/dsh-api-session-controller/client'
-import type { SessionEvent, SessionId } from '@deepseek-ai/dsh-session/types'
+import { SessionId, type SessionEvent } from '@deepseek-ai/dsh-session/types'
+import { createConversationStore } from '../stores.ts'
 import { WeakMapWithValues } from '@deepseek-ai/dsh-util-values'
 import {
   createSnapshotStore, type ObservableSnapshot, type SnapshotStore,
@@ -196,6 +197,8 @@ class BoundConversation implements ConversationBinding {
 interface BindingRecord {
   readonly source: SessionBinding
   readonly binding: BoundConversation
+  presentation?: ReturnType<ReturnType<typeof createConversationStore>['create']>
+  pendingView?: { view: string; focus: string }
   disposeScope: () => void
 }
 
@@ -213,6 +216,23 @@ export class UiConversation extends Service {
   readonly interactions: ConversationInteractionRegistry
   private readonly bindings = new WeakMapWithValues<SessionBinding, BindingRecord>()
   private readonly images: HistoricalImageCache
+  private readonly presentationFactory = createConversationStore()
+  /** Shared shell store; header, body, and navigation use one instance per exact Session binding. */
+  readonly presentationStore: ReturnType<typeof createConversationStore> = {
+    ...this.presentationFactory,
+    create: (scopeKey) => {
+      if (scopeKey === undefined) throw new Error('Conversation presentation requires a Session scope')
+      const owner = this.sessions.binding(SessionId(scopeKey))
+      if (owner === undefined) throw new Error('Conversation presentation requires a retained Session')
+      const record = this.recordOf(owner)
+      record.presentation ??= this.presentationFactory.create(scopeKey)
+      if (record.pendingView !== undefined) {
+        record.presentation.actions.openView(record.pendingView.view, record.pendingView.focus)
+        delete record.pendingView
+      }
+      return record.presentation
+    },
+  }
 
   /**
    * @param ctx - owning Client context.
@@ -258,6 +278,10 @@ export class UiConversation extends Service {
    * @throws if the Session is unknown or its binding is no longer current.
    */
   binding(source: SessionBinding | SessionId): ConversationBinding {
+    return this.recordOf(source).binding
+  }
+
+  private recordOf(source: SessionBinding | SessionId): BindingRecord {
     const sessionId = typeof source === 'string' ? source : source.sessionId
     const owner = typeof source === 'string' ? this.sessions.binding(source) : source
     if (owner === undefined) throw new Error(`uiConversation.binding: unknown session "${sessionId}"`)
@@ -265,7 +289,7 @@ export class UiConversation extends Service {
       throw new Error(`uiConversation.binding: inactive session "${sessionId}"`)
     }
     const current = this.bindings.get(owner)
-    if (current !== undefined) return current.binding
+    if (current !== undefined) return current
     const binding = new BoundConversation(
       owner.eventSource,
       new ConversationNodeAssembler(this.events, this.views, this.groups),
@@ -277,7 +301,24 @@ export class UiConversation extends Service {
       'ui-conversation binding',
     )
     record.disposeScope = () => { void disposeScope() }
-    return binding
+    return record
+  }
+
+  /**
+   * Select a registered View and submit its one-shot focus request in an exact retained Session.
+   * @param owner - current Session binding retained by the caller.
+   * @param view - registered Conversation View target.
+   * @param focus - target-owned focus identity.
+   * @throws when the binding is stale or the target is unavailable.
+   */
+  openView(owner: SessionBinding, view: string, focus: string): void {
+    if (!this.views.entries().some(definition => definition.target === view)) {
+      throw new Error(`Conversation View "${view}" is unavailable`)
+    }
+    const record = this.recordOf(owner)
+    record.binding.activate(view)
+    if (record.presentation === undefined) record.pendingView = { view, focus }
+    else record.presentation.actions.openView(view, focus)
   }
 
   /**

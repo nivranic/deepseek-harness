@@ -44,7 +44,7 @@ export class GoalService extends TypertRemoteService {
 
 生成会把方法变为服务命名空间下的 wire 端点；Client 通过 `ctx.remote` 以类型化方法调用它（见 [API Gateway 参考](../../../docs/api-gateway.zh.md)）。方法把 `signal: AbortSignal` 声明为最后一个参数即可选择协作式取消——该信号是注入的，绝不会成为 JSON 参数或查找字段。
 
-一元方法可以直接返回 `Uint8Array`，也可以将其放在嵌套对象、数组、元组、可选字段、联合类型和递归类型中。生成器提供可选的结果 codec `encode()` 和 `decode()`：编码仅访问类型可能包含字节的子树，解码则校验还原后的值；Client 声明在每个字节位置使用 `Uint8Array<ArrayBuffer>`，同时保留其他字段类型。纯 JSON 结果不经 Host 字节识别或 Client 解析直接传递。参数、事件与流条目仍仅支持 JSON；不支持运行时对象循环。
+`bindTypertRemote` 与 `TypertRemoteService` 在 `namespace` 之外接受显式的 `capabilities` 声明。每个带版本的 id 都列出该 owner 必须导出的方法。[Gateway](../../api/gateway/README.zh.md)读取其当前可用性；声明不授予调用方权限，也不从名称推断能力。 一元方法可以直接返回 `Uint8Array`，也可以将其放在嵌套对象、数组、元组、可选字段、联合类型和递归类型中。生成器提供可选的结果 codec `encode()` 和 `decode()`：编码仅访问类型可能包含字节的子树，解码则校验还原后的值；Client 声明在每个字节位置使用 `Uint8Array<ArrayBuffer>`，同时保留其他字段类型。纯 JSON 结果不经 Host 字节识别或 Client 解析直接传递。参数、事件与流条目仍仅支持 JSON；不支持运行时对象循环。
 
 流方法（`@Remote({ mode: 'stream' })`）返回 `Iterable`、`AsyncIterable` 或 `RemoteStream<Out, In>`。`In` 声明 Client 可以在同一条逻辑流上回送的项；方法通过 `this.ctx.invocation.uplink<In>()` 读取它们，描述符携带其 codec。`RemoteInvocation` 还给出接收服务 `service`、发起调用的 `peer`（其载体指明的 `PeerScope`）与载体 `signal`；非 Remote 调用派生的 Context 上 `ctx.invocation` 为 `undefined`：树中第一个 `bindTypertRemote()` 绑定（每个 `TypertRemoteService` 构造函数都会建立一个）在根上注册该 accessor。Cordis 的跨副本 `Context.is()` 可识别传给构建产物 Service 的源码 Context，因此混合源码／构建组合仍保留此 accessor 和调用局部的 principal。生成的 Client 流方法返回 `RemoteStreamHandle<Out, In>`：在下行迭代之外提供 `send`、`end` 与 `dispose` 的句柄。上行项在 Host 逐项校验，因为它们来自浏览器；下行项是 Host 方法产出的值，原样透传。
 
@@ -75,6 +75,7 @@ Client Context 解析保持同步。`typertOwnedValue(value, release)` 把不抛
 ```text
 declare module '@deepseek-ai/dsh-typert-protocol' {
   interface RemoteErrorDetailsMap {
+    /** The requested Goal is unavailable. */
     'goal/not-found': { readonly goalId: string }
   }
 }
@@ -82,6 +83,14 @@ throw new RemoteError('goal/not-found', `goal "${id}" does not exist`, { goalId:
 ```
 
 拥有方在失败点直接抛出；没有任何包再写错误类家族或出口映射函数。调用方按 `code` 判别——绝不用 `instanceof`——且 `code` 分支无需 cast 即收窄 `details`，因为 `RemoteFailure` 就是 `RemoteError` 实例按码判别的 union。需要识别跨模块或跨 realm 类副本传来的失败时，基础设施调用 `remoteErrorOf(value)`，它读结构标记而不是原型链。`RemoteError` 继承 [`@deepseek-ai/dsh-error`](../../util/error/README.zh.md) 的 `HarnessError`，因此工具体抛出它时，`tool/result` 会记录 `name: 'RemoteError'` 及其 Remote `code`。
+
+导出的[已知错误码 JSON Schema](remote-error-codes.schema.json) 列出本包构建对应的有限仓库词汇，保留各拥有方的 JSDoc 语义和源声明。使用 `pnpm run gen-remote-error-codes` 再生成；`verify-remote-error-codes`、`test:docs` 和 `doc-sync` 拒绝过期产物、重复拥有方、缺少说明的码与无界声明。它只识别错误码字符串：TypeScript details 注解不是用于 payload 验证的 JSON Schema。来自新版 Host 或外部插件的未知码仍是不透明诊断；保留 code、message 和 details，不据此推断恢复策略或权限。码属于该 schema 不表示对应能力已经挂载。
+
+[Remote 失败 JSON Schema](remote-errors.schema.json)验证 `code`、`message` 与对象 `details`。已知码选择生成的详情 schema；未知码保留不透明的对象诊断，非法的已知码不能使用该兜底分支。输入验证接受扩展字段，不修改原始诊断。通过 `pnpm run gen-remote-error-envelope` 重新生成；`doc-sync` 中的 `verify-remote-error-envelope` 校验独立清单、解析后的详情根、跨面一致性和产物新鲜度。参见[生成器 API](../generator/README.zh.md#analyzing-a-workspace-statically)。当前转换器省略元组元素数量约束，因此元组详情会使生成失败。消费方需要支持 `not` 的完整 draft-2020-12 验证器；Zod 的 JSON Schema 反向转换不支持该关键字。
+
+`classifyRemoteFailureCode(code)`——对已捕获的值使用 `classifyRemoteFailure(error)`——把错误码映射到全部 Client 共享的封闭 `RemoteFailureClass` 呈现语义：`authentication`、`permission`、`host-state`、`compatibility`、`carrier-invalid`、`transport`、`conflict`、`unavailable`、`invalid-input` 与 `unknown`。分类只收录已有跨 Client 一致含义的码；可合并扩展的词汇表有意把其余的码（包括所有未来码）留在 `unknown`，按不透明诊断呈现，不推断恢复动作或权限。仓库 `verify-remote-error-envelope` 门禁拒绝引用未声明码的分类。
+
+`gateway/bad-request` 可携带 `RemoteValidationIssue` 条目，字段为 `code`、`message` 与 `path`（字符串键或数字索引）。拥有方通过 `remoteValidationIssues` 从验证器结果复制这些字段；symbol 路径键转为诊断字符串。验证器专用元数据和输入值被省略。诊断文字仍由拥有方提供，此辅助函数不对消息脱敏。
 
 ### 在 Client 侧接收转发的 Host 事件
 
@@ -126,6 +135,9 @@ Host 装配以转发给消费方的 Cordis 事件扩展 `TypertRemoteEventSelect
 | [`src/remote-access.ts`](src/remote-access.ts) | 基于 `TypertResourceMap` 的 `RemoteAccessResource`、`RemoteAccessResourceKind` 与 `RemoteAccessResourceOf` |
 | [`src/json-value.ts`](src/json-value.ts) | 各载体共享的无损 JSON 校验 `isRemoteJsonValue` 与 `isRemoteUplinkItem` |
 | [`src/remote-error.ts`](src/remote-error.ts) | `RemoteError` 与结构式识别函数 `remoteErrorOf` |
+| [`src/failure-classes.ts`](src/failure-classes.ts) | `RemoteFailureClass`、`classifyRemoteFailure*` 与经清单校验的分类映射 |
+| [`src/types.ts`](src/types.ts) | 协议映射、`RemoteErrorDetailsMap`、`RemoteResult`、`InvocationDescriptor`、编解码器、提供方约定、注册表接口、`TypertClientRemote` |
+| — | 不发布运行时不变量伴生入口；decorator 只保留私有不可变声明，binding 也是冻结值，没有可供交叉核对的独立事件流。 |
 | [`src/remote-info.ts`](src/remote-info.ts) | 纯惰性 info factory 与直接方法类型守卫 |
 | [`src/types.ts`](src/types.ts) | 协议映射、`RemoteErrorDetailsMap`、`RemoteResult`、`RemoteStream`、`RemoteStreamHandle`、`PrincipalMap`、`Principal`、`PeerScope`、`RemoteInvocation`、`InvocationDescriptor`、编解码器、提供方约定、注册表接口、`TypertClientRemote` |
 

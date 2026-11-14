@@ -1,0 +1,16 @@
+{
+  "status": "PASS",
+  "controls": 3,
+  "sourceRecord": {
+    "path": "artifacts/upstream-first/lite-handoff-source.json",
+    "sha256": "a5d37b5952bd05188f779285e4f0263c5732ec2befba57d5a24d018ffa4e5001"
+  },
+  "generator": {
+    "path": "artifacts/upstream-first/write-reports.mjs",
+    "sha256": "ff54928945be47ae2c024be8ca875ddf3496f874867d6fb2e8857723891f8bb7"
+  },
+  "helper": {
+    "path": ".artifacts/check-lite-handoff-binding.mjs",
+    "sha256": "1f3b5736ea081ac289848d656e3d584d7bd3547d949758cde81d379271ae6a61"
+  }
+}

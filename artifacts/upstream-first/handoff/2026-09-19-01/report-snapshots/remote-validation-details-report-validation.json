@@ -1,0 +1,70 @@
+{
+  "status": "PASS",
+  "scope": "Report bindings and audit for Remote validation details emission with explicit portability limitations; full closed semantics and phases remain unproven; full Upstream-First objective remains in progress",
+  "gate0": {
+    "validation": "PASS",
+    "gate0": "PASS",
+    "paths": 1938,
+    "components": 129,
+    "specificationCoverage": {
+      "status": "PASS",
+      "numberedSections": 81,
+      "nonEmptySourceLines": 1983,
+      "acceptanceProven": false
+    }
+  },
+  "sourceRecord": {
+    "path": "artifacts/upstream-first/remote-validation-details-source.json",
+    "sha256": "d3ebb0fda88dc60acef6ba1eb429d542e2683d9b0d54e57b78cf7a8b960a51fc"
+  },
+  "generator": {
+    "path": "artifacts/upstream-first/write-reports.mjs",
+    "sha256": "7718395bc1876466ec28c92dd9a87e3bccb2d71d41bdcc2f70b13640b7f73c77"
+  },
+  "binding": {
+    "path": "artifacts/upstream-first/remote-validation-details-binding.json",
+    "sha256": "9d45d0eeb817301927da892e80a30cb6dcfbeea60681a50ba829752b619eaff7"
+  },
+  "helpers": [
+    {
+      "path": ".artifacts/advance-remote-validation-details-reports.mjs",
+      "sha256": "75f09f93c673124ed2e99c74178cc6ab7d5a80a77ef8750cb2309a0987e70a1b"
+    },
+    {
+      "path": ".artifacts/capture-remote-validation-details-validation.mjs",
+      "sha256": "99a3ca3fbf695ea189ec54f5d69374da35128982c12f62e1b6006d0ed9609772"
+    }
+  ],
+  "reports": [
+    {
+      "path": "IMPLEMENTATION_STATUS.md",
+      "sha256": "3dcba893049e267d3a4e079604aa34ed5ba3ef6c3c6dbfc92d7b5d7da636810a"
+    },
+    {
+      "path": "artifacts/upstream-first/evidence.json",
+      "sha256": "05e86c9a1cd15508db8adfd4eb6023947745d5aee18929380f72584af7fa3d76"
+    }
+  ],
+  "checks": [
+    {
+      "path": ".artifacts/remote-validation-details-binding.log",
+      "sha256": "558afcef1f4da2707795a7b4abe53e7e9ea975e37c01b2c048184fa0bb54527b"
+    },
+    {
+      "path": ".artifacts/remote-validation-details-audit-tests.log",
+      "sha256": "c38b2172728f9d14e9a957debc49275f954114da62e8e24b0007d7ce906b8dfa"
+    },
+    {
+      "path": ".artifacts/remote-validation-details-gate0.log",
+      "sha256": "5427f71ff5b67b500b327d785dcaf84a7af2c6edd24b1833c4c7d83ad2cf37c8"
+    },
+    {
+      "path": ".artifacts/remote-validation-details-report-diff-check.log",
+      "sha256": "e3b0c44298fc1c149afbf4c8996fb92427ae41e4649b934ca495991b7852b855"
+    },
+    {
+      "path": ".artifacts/remote-validation-details-report-generation.log",
+      "sha256": "c273e9b2ea848b174d99eceb30f46ec680fa13222de0ee885f4d5a89750d5625"
+    }
+  ]
+}

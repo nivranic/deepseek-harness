@@ -10,7 +10,7 @@ Desktop analytics follows the [product collection policy](../../client/product-a
 
 ## Summary
 
-`@deepseek-ai/dsh-api-session-controller` owns the Host `ctx.sessionController` service and the generated Client `session`, `skills`, and `fileReferences` Remote namespaces. It serves Session lifecycle and history, the Host-generation model catalog, human background-job kill, workspace-path opening, user-invocable skill discovery, and Agent-scoped file references. Use it through API Gateway when a Client needs operations addressed by a Session.
+`@deepseek-ai/dsh-api-session-controller` owns the Host `ctx.sessionController` service and the generated Client `session`, `skills`, and `fileReferences` Remote namespaces. It serves Session lifecycle and history, the Host-generation model catalog, user-invocable skill discovery, and Agent-scoped file references. Use it through API Gateway when a Client needs operations addressed by a Session.
 
 ## Table of Contents
 
@@ -22,10 +22,30 @@ Desktop analytics follows the [product collection policy](../../client/product-a
 - [Known Limitations and Deferred Work](#known-limitations-and-deferred-work)
 - [Dev Note](#dev-note)
 
+The file-reference adapter declares `file-reference.list.v1`; the skill directory declares `skill.catalog.v1`. These operation sets describe discovery APIs independently of file viewers, Session candidates, and skill invocation. Mounted providers and permission checks still determine each operation result.
+
 -----
 
 <a id="use-this-package"></a>
 ## Use this package
+
+A fork whose child-title update fails rejects with the original rename `RemoteError`; the already published child remains addressable.
+
+A fork carrying a `clientMutationId` records one durable `session/forked` receipt in the source Session log after its child is published; a retransmission of the same identity replays that recorded child instead of minting a second one, including after a Host restart restores the source from storage. Receipts are keyed per Session: a fork child may inherit ancestor receipts inside its seeded prefix, but a retransmission addressed to it scans only its own events. Recording resolves the source's live Agent, so a cold source resumes once; a subagent-owned source stays behind the subagent ownership fence and still returns its child, with the receipt skipped and a warning logged.
+
+The independent `session.search.v1` and `session.attachment.v1` capabilities admit content search and durable image reads. API Gateway rejects an unadvertised operation before carrier dispatch and cancels pending reads with their Connection generation. Attachment authorization still requires a reference in the addressed Session log.
+
+Client child directories read the parent Session's `subagentCatalog` projection. Discovery uses Session projection transport and does not require a separate subagent listing Remote or capability.
+
+`session.rename-at.v1` exposes `renameAt(SessionRenameAtRequest)` with `sessionId`, raw `title`, and `expectedRevision` (title event seq or null). The title owner rejects a changed baseline with `session/revision-conflict`, except that an identical normalized user-pinned title returns its original acceptance. `ISession.prepareRename()` captures that revision before editing and retains it on retries; missing projection data fails without sending. Hosts without the capability and direct `rename()` calls retain unconditional rename semantics. This is conditional mutation safety, not a durable mutation-id receipt ledger.
+
+The Client control stream waits for an admitted Host advertising `session.control.v1` before opening; the event journal similarly requires `session.follow.v1`. Journal reconnection retains the published history until a capable generation supplies its replacement snapshot. Capability absence leaves it dormant until a capable generation arrives; disposal cancels that wait and releases its observer. The shared `./capabilities` declaration is used by Host advertisement and Client operation admission.
+
+This owner declares `session.follow.v1` (follow and page), `session.control.v1` (control, prompt, queue update, and cancel), `session.list.v1` (list), `session.manage.v1` (create, rename, and fork), `model.catalog.v1` (catalog), and `model.select.v1` (selection). Every capability declares its device permission: read-only sets (follow, list, search, catalog, file-reference and skill listings) require `view`; conversation-mutating sets (control, cancel-turn, rename-at, manage, attachment, model selection) require `prompt.send` — a device role without the declared permission is refused before dispatch, while anonymous callers are unaffected. [Host discovery](../host-description/README.md) reports these operation sets while their Remote definitions are available; their presence does not promise mutation retry safety.
+
+The additional `session.cancel-turn.v1` capability exposes `cancelTurn({ sessionId, turnStartSeq })`. The Host cancels only when `turnStartSeq` equals the current `activeTurnStart` projection; a stale target or explicit null is an accepted no-op. The Client captures this target per click and reports unavailable state rather than guessing before the projection arrives. Hosts without this capability use the legacy current-activity `cancel` operation, which does not promise delayed-retry safety. Neither operation resumes a cold Agent, and targeted cancellation retains pending inbox work.
+
+For continuable children, `subagent.interrupt-turn.v1` selects `subagents.interruptTurnByParent`. The Client captures `subagentTiming.active.startSeq` on each click, or null for a known idle projection. Missing timing or a missing active target fails before dispatch; it cannot fall back to a less specific operation on a Host advertising addressed interruption. A Host without that capability uses the legacy parent-addressed interrupt. The Host remains responsible for parent authority and target matching.
 
 Prompt retries use the request identity in the first committed inbox insertion, including after the message is claimed or removed. Admission checks again after asynchronous attachment preparation, so concurrent retries accept one input. Acceptance acknowledges insertion, not execution or completion.
 

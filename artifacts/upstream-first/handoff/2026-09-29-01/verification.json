@@ -1,0 +1,9 @@
+{
+  "status": "PASS",
+  "checks": 476,
+  "live": true,
+  "productTestsRun": false,
+  "tamperRejected": true,
+  "productDiffUnchanged": true,
+  "productDirtyPathsUnchanged": true
+}

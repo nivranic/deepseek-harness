@@ -1,0 +1,70 @@
+{
+  "status": "PASS",
+  "scope": "Report bindings and audit for Compiler-independent Remote error graphs and source/built parity; full closed semantics and phases remain unproven; full Upstream-First objective remains in progress",
+  "gate0": {
+    "validation": "PASS",
+    "gate0": "PASS",
+    "paths": 1938,
+    "components": 129,
+    "specificationCoverage": {
+      "status": "PASS",
+      "numberedSections": 81,
+      "nonEmptySourceLines": 1983,
+      "acceptanceProven": false
+    }
+  },
+  "sourceRecord": {
+    "path": "artifacts/upstream-first/error-type-model-source.json",
+    "sha256": "6408c70211a5747655a37d5d0c42ce36d2c2b18a91de63f411c47e3ff7a3109f"
+  },
+  "generator": {
+    "path": "artifacts/upstream-first/write-reports.mjs",
+    "sha256": "4f33ead54e60527c447e22be33a222ef9bd1b3b3f5492de0af4be95c5571607e"
+  },
+  "binding": {
+    "path": "artifacts/upstream-first/error-type-model-binding.json",
+    "sha256": "2a66cbc7b210d16e27106737cd257482b60736751196f38bcddd56fefd7ec4e8"
+  },
+  "helpers": [
+    {
+      "path": ".artifacts/advance-error-type-model-reports.mjs",
+      "sha256": "757180c3f1b1f7e6e1999e7337edfc4365a782ad368db4c686fd7f5ef80430fb"
+    },
+    {
+      "path": ".artifacts/capture-error-type-model-validation.mjs",
+      "sha256": "c1f65ff1241dac255d1fc28eb3f5bb7b3eeed7a86b1c7e478e8a12ad060829f9"
+    }
+  ],
+  "reports": [
+    {
+      "path": "IMPLEMENTATION_STATUS.md",
+      "sha256": "6db1dea955b6240a98a15acbca28f2f042169ddfa2c724800ac79787d7b2ca54"
+    },
+    {
+      "path": "artifacts/upstream-first/evidence.json",
+      "sha256": "f49ff0d91aea0ee9224dcc587f7b94df6d7aa784248aaa1818d00e19ab12cc0e"
+    }
+  ],
+  "checks": [
+    {
+      "path": ".artifacts/error-type-model-binding.log",
+      "sha256": "5d3b63140c9ece0c9cdc35eafeefc65d7b163ec4ebb209d35eb416f5ba500e3e"
+    },
+    {
+      "path": ".artifacts/error-type-model-audit-tests.log",
+      "sha256": "59c42982a28333225b319617fd36add967dba55d6f546a3031551a93e4fb806a"
+    },
+    {
+      "path": ".artifacts/error-type-model-gate0.log",
+      "sha256": "5427f71ff5b67b500b327d785dcaf84a7af2c6edd24b1833c4c7d83ad2cf37c8"
+    },
+    {
+      "path": ".artifacts/error-type-model-report-diff-check.log",
+      "sha256": "e3b0c44298fc1c149afbf4c8996fb92427ae41e4649b934ca495991b7852b855"
+    },
+    {
+      "path": ".artifacts/error-type-model-report-generation.log",
+      "sha256": "c273e9b2ea848b174d99eceb30f46ec680fa13222de0ee885f4d5a89750d5625"
+    }
+  ]
+}

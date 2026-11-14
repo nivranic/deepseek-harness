@@ -1,0 +1,22 @@
+# Bilingual-pair consistency record for 2026-10-03-active-host-switch.md (docs/i18n/README.md): per heading
+# section, a hash of its English and Chinese blocks outside code blocks and generated regions.
+# After editing either side, bring the other along and re-record with:
+#   pnpm run verify-translation-pairing --write .agents/notes/implemented/architecture/2026-10-03-active-host-switch.md
+/agent-note-section-28-host-switch-window-evidence-lanes:
+  en: f9ed2bc0a4345975
+  zh: 4a1efcc8725c13cc
+/agent-note-section-28-host-switch-window-evidence-lanes/problem:
+  en: 8074dce0b6548cdc
+  zh: 51b5a3ecaec5aa1a
+/agent-note-section-28-host-switch-window-evidence-lanes/decision:
+  en: 81c2e2d02542ac9b
+  zh: 584721ad494e6247
+/agent-note-section-28-host-switch-window-evidence-lanes/alternatives-considered:
+  en: dffcebb1aab1c25a
+  zh: 316cd8cb1afda908
+/agent-note-section-28-host-switch-window-evidence-lanes/consequences:
+  en: 3fb493123268dc89
+  zh: a712401ded76ba13
+/agent-note-section-28-host-switch-window-evidence-lanes/open-work:
+  en: e127eeae0d4447cb
+  zh: fddd609f27b4ce24

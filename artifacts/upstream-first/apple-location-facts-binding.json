@@ -1,0 +1,16 @@
+{
+  "status": "PASS",
+  "controls": 3,
+  "sourceRecord": {
+    "path": "artifacts/upstream-first/apple-location-facts-source.json",
+    "sha256": "4aecac99c2e569ff4b1542d325fe1ad88291355a6f421da4fd7c2d2e5450b2d0"
+  },
+  "generator": {
+    "path": "artifacts/upstream-first/write-reports.mjs",
+    "sha256": "b0232b002a99895a3214731fea02f8b83a1db26d7d8df9814693758d444768de"
+  },
+  "helper": {
+    "path": ".artifacts/check-apple-location-facts-binding.mjs",
+    "sha256": "d1b545b05f48c623501d6a3b46d7db0d05948636a29f8abcd38ddd358ecf640f"
+  }
+}

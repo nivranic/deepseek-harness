@@ -1,0 +1,16 @@
+{
+  "status": "PASS",
+  "controls": 3,
+  "sourceRecord": {
+    "path": "artifacts/upstream-first/android-resource-adoption-source.json",
+    "sha256": "49ec7b03475ef455fbf831ffaf3c99059e5e401f0775a06a417dbb7bb293cc61"
+  },
+  "generator": {
+    "path": "artifacts/upstream-first/write-reports.mjs",
+    "sha256": "9b0559906ff4dcc3b21a9c9e735bcef4a379b3c01e39638f790c1ecad674e147"
+  },
+  "helper": {
+    "path": ".artifacts/check-android-resource-adoption-binding.mjs",
+    "sha256": "8e6635541b2975452fb73b1005baa6ab98b9a5774f40d20e8765ae6b212489c9"
+  }
+}

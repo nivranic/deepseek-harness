@@ -1,0 +1,22 @@
+[
+  {
+    "expected": 2147483647,
+    "actual": 2147483647,
+    "match": true
+  },
+  {
+    "expected": 2147483648,
+    "actual": 2147483648,
+    "match": true
+  },
+  {
+    "expected": 3221225786,
+    "actual": 3221225786,
+    "match": true
+  },
+  {
+    "expected": 4294967295,
+    "actual": 4294967295,
+    "match": true
+  }
+]

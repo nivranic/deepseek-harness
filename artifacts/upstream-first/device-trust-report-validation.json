@@ -1,0 +1,70 @@
+{
+  "status": "PASS",
+  "scope": "Report bindings and audit for the device-trust seam; durable grant storage, role-mapped permission checks, and the remaining specification sections stay open; full Upstream-First objective remains in progress",
+  "gate0": {
+    "validation": "PASS",
+    "gate0": "PASS",
+    "paths": 1938,
+    "components": 129,
+    "specificationCoverage": {
+      "status": "PASS",
+      "numberedSections": 81,
+      "nonEmptySourceLines": 1983,
+      "acceptanceProven": false
+    }
+  },
+  "sourceRecord": {
+    "path": "artifacts/upstream-first/device-trust-source.json",
+    "sha256": "0c75ffed8ba7e6f725dff1bf83999f965e24851275c672b4808fed6ab0b985f4"
+  },
+  "generator": {
+    "path": "artifacts/upstream-first/write-reports.mjs",
+    "sha256": "7b866d77948e0ae9e2154df9aadb55e396424a922d93a311724ea0828faf50ce"
+  },
+  "binding": {
+    "path": "artifacts/upstream-first/device-trust-binding.json",
+    "sha256": "45c30485f1eb8674fa514545b08911abc50d02dd085704d53b962ba3086b4a7e"
+  },
+  "helpers": [
+    {
+      "path": ".artifacts/advance-device-trust-reports.mjs",
+      "sha256": "9b3da8845819157c16e3b53a7645107859b8ec057a6cfea62d0eb4eeb46c6122"
+    },
+    {
+      "path": ".artifacts/capture-device-trust-validation.mjs",
+      "sha256": "f4eea9ffb5d60d4b9e036885b95aa2f9e5b39e30196fce43b2f92cf3d07883e0"
+    }
+  ],
+  "reports": [
+    {
+      "path": "IMPLEMENTATION_STATUS.md",
+      "sha256": "82f56fea108859dc905fd64193fb6bd0e9cf7f7b03ec2ab4c08f150da5cc812e"
+    },
+    {
+      "path": "artifacts/upstream-first/evidence.json",
+      "sha256": "95a3d6724cfb976122e9e85d4660279dc10c63810d997246f99bb778d06a3688"
+    }
+  ],
+  "checks": [
+    {
+      "path": ".artifacts/device-trust-binding.log",
+      "sha256": "ffd2399f7282c54faf0a0b1c8b463fd5bb2e0e52f4c5014db1cd4825221b2b69"
+    },
+    {
+      "path": ".artifacts/device-trust-audit-tests.log",
+      "sha256": "8a939982a62013985de81a639df3f608ab0a61e791d0bf095e04cc04c8639deb"
+    },
+    {
+      "path": ".artifacts/device-trust-gate0.log",
+      "sha256": "505d74ef938f5d34d85490d37e0176ba804d93272fcf465ce2544a02c56b3f90"
+    },
+    {
+      "path": ".artifacts/device-trust-report-diff-check.log",
+      "sha256": "e3b0c44298fc1c149afbf4c8996fb92427ae41e4649b934ca495991b7852b855"
+    },
+    {
+      "path": ".artifacts/device-trust-report-generation.log",
+      "sha256": "fe010532f71a6341467ae5719b29ac19470895de1d481156335b8f70a3273ed5"
+    }
+  ]
+}

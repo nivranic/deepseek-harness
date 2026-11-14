@@ -32,6 +32,10 @@
     },
     "./src/*": "./src/*",
     "./package.json": "./package.json",
+    "./capabilities": {
+      "types": "./lib/types/capabilities.d.ts",
+      "default": "./lib/types/capabilities.js"
+    },
     "./locale/*.json": "./locale/*.json"
   },
   "files": [

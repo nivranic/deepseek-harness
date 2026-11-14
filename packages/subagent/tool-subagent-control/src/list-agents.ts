@@ -44,6 +44,11 @@ function project(
 export function registerListAgents(ctx: Context): ToolDefinition {
   const definition = defineTool({
     name: 'list_agents',
+    version: 1,
+    risk: 'low',
+    permissions: [],
+    supportsLite: false,
+    supportsRemote: true,
     description:
       'List your entire subagent tree: the root agent and all reachable continuable descendants, including yourself. '
       + 'Rows carry names, descriptions, and status. A descendant\'s name is its path from the root, such as reviewer/checker. '

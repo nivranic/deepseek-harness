@@ -1,0 +1,64 @@
+{
+  "status": "PASS",
+  "scope": "Report bindings and audit for Authentication documentation scope and unchanged runtime evidence; full Upstream-First objective remains in progress",
+  "gate0": {
+    "validation": "PASS",
+    "gate0": "PASS",
+    "paths": 1938,
+    "components": 129
+  },
+  "sourceRecord": {
+    "path": "artifacts/upstream-first/authentication-scope-source.json",
+    "sha256": "602d3c50c7da1abf7d5f303a158a10db00c34500af49af349c307eda3184ff71"
+  },
+  "generator": {
+    "path": "artifacts/upstream-first/write-reports.mjs",
+    "sha256": "530c0da34f4ef86e55f243825fd38a048168ff9a63bb5971c9e78b22ff3197b1"
+  },
+  "binding": {
+    "path": "artifacts/upstream-first/authentication-scope-binding.json",
+    "sha256": "854eaaa5602fda7dcbcab31b626984c554b9b21ae67e541fded9c2a5016953bb"
+  },
+  "helpers": [
+    {
+      "path": ".artifacts/finalize-authentication-scope.mjs",
+      "sha256": "9eaadad73ac329cdf5347a9b9cd4a6dfb3dd332a7b81e6c31489783e46451f89"
+    },
+    {
+      "path": ".artifacts/capture-authentication-scope-validation.mjs",
+      "sha256": "93e782e72c5c5da2e378146863913ed73374a58045dda177622abab6886e7417"
+    }
+  ],
+  "reports": [
+    {
+      "path": "IMPLEMENTATION_STATUS.md",
+      "sha256": "3a1631d42886fbdb0ce47d47789aa40e2e58e9d53b0b87097d1497cfa128c131"
+    },
+    {
+      "path": "artifacts/upstream-first/evidence.json",
+      "sha256": "22ff9be485edc941bf46389ae2c82f815e6ed7cba814a410fa9eeaba6dceee90"
+    }
+  ],
+  "checks": [
+    {
+      "path": ".artifacts/authentication-scope-binding.log",
+      "sha256": "9f1951abea06fa98524863772962211a18dd22ef31a13d6cf14037ce7d801d71"
+    },
+    {
+      "path": ".artifacts/authentication-scope-audit-tests.log",
+      "sha256": "45f96d3afb56c1a9ad7fd39d6e5bd25cd9582702bf2b1a2cc84f5ab85cd24fc1"
+    },
+    {
+      "path": ".artifacts/authentication-scope-gate0.log",
+      "sha256": "4b5af3121a7e7caff0e1b6288bdaa7cfef9988842ae06bf02dc0a74852426043"
+    },
+    {
+      "path": ".artifacts/authentication-scope-report-diff-check.log",
+      "sha256": "e3b0c44298fc1c149afbf4c8996fb92427ae41e4649b934ca495991b7852b855"
+    },
+    {
+      "path": ".artifacts/authentication-scope-report-generation.log",
+      "sha256": "5867d1d51cd43a59428de2e7fffa15847d7153b11f3b61ecf812224ee2dd2099"
+    }
+  ]
+}

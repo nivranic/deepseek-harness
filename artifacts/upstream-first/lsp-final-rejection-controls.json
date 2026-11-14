@@ -1,0 +1,41 @@
+{
+  "status": "PASS",
+  "cases": [
+    {
+      "name": "fixed-wait",
+      "status": "PASS",
+      "mutationRejected": true,
+      "testExitCode": 1,
+      "source": "packages/lsp/lsp-stdio/tests/instance.spec.ts",
+      "originalSha256": "b2c56cc4dbf33fe3fb4c1bf1ffcec226230a198c0ed6582633b615c2c5379147",
+      "mutatedSha256": "6cada001da199aa6680185fb99b8632ec8bcdd2486ee1b4687faca8187fb23f2",
+      "log": ".artifacts/lsp-final-control-fixed-wait.log",
+      "command": [
+        "C:\\Program Files\\nodejs\\node.exe",
+        "node_modules/vitest/vitest.mjs",
+        "run",
+        "packages/lsp/lsp-stdio/tests/instance.spec.ts",
+        "-t",
+        "resolves the cancel grace"
+      ]
+    },
+    {
+      "name": "stdin-event",
+      "status": "PASS",
+      "mutationRejected": true,
+      "testExitCode": 1,
+      "source": "packages/lsp/lsp-stdio/src/connection.ts",
+      "originalSha256": "ebe55e1377409f03dfb863d4d0dd10826b847bfe08febb97082163f833251284",
+      "mutatedSha256": "e99a90a516569569436af28d6123b3efbeba649d01021636466b0aff493cf142",
+      "log": ".artifacts/lsp-final-control-stdin-event.log",
+      "command": [
+        "C:\\Program Files\\nodejs\\node.exe",
+        "node_modules/vitest/vitest.mjs",
+        "run",
+        "packages/lsp/lsp-stdio/tests/connection.spec.ts",
+        "-t",
+        "rejects all requests on a stdin error"
+      ]
+    }
+  ]
+}

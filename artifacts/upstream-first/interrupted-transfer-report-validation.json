@@ -1,0 +1,70 @@
+{
+  "status": "PASS",
+  "scope": "Report bindings and audit for the Interrupted transfer recovery; the remaining specification sections stay open; full Upstream-First objective remains in progress",
+  "gate0": {
+    "validation": "PASS",
+    "gate0": "PASS",
+    "paths": 1938,
+    "components": 129,
+    "specificationCoverage": {
+      "status": "PASS",
+      "numberedSections": 81,
+      "nonEmptySourceLines": 1983,
+      "acceptanceProven": false
+    }
+  },
+  "sourceRecord": {
+    "path": "artifacts/upstream-first/interrupted-transfer-source.json",
+    "sha256": "243af43ad9065b0424afbfa90c0c26370e7968796d3db80751356f8458fae684"
+  },
+  "generator": {
+    "path": "artifacts/upstream-first/write-reports.mjs",
+    "sha256": "823b14f68fb473f67d37b48e9165a07044c0e18406f1afc3e231141e496562a6"
+  },
+  "binding": {
+    "path": "artifacts/upstream-first/interrupted-transfer-binding.json",
+    "sha256": "0b6c0e54fd92c2fa0060ff43ccd1c84a3650d31538a35aeb75c942773ebff4f2"
+  },
+  "helpers": [
+    {
+      "path": ".artifacts/advance-interrupted-transfer-reports.mjs",
+      "sha256": "714374ca912f4bf584f0cf17437830322a7824d155707de09c8a04b0775eca2a"
+    },
+    {
+      "path": ".artifacts/capture-interrupted-transfer-validation.mjs",
+      "sha256": "6a20ca52efb27a4220874bfe2c8bb4e77d1410ce842ee85fcf13ea1e62d6644d"
+    }
+  ],
+  "reports": [
+    {
+      "path": "IMPLEMENTATION_STATUS.md",
+      "sha256": "f24315c5f893b7fd50a13f49ef67e8946e6caa481aa0a83986fd423def9d587e"
+    },
+    {
+      "path": "artifacts/upstream-first/evidence.json",
+      "sha256": "37964c627f759f2a3950ca955fb4764b5be3ee6280d74d3f6ff600605cb2e2e3"
+    }
+  ],
+  "checks": [
+    {
+      "path": ".artifacts/interrupted-transfer-binding.log",
+      "sha256": "a5f30363a8b77a6e55057edce53aac0d19c6e33491d32eb9732ed947c57497e9"
+    },
+    {
+      "path": ".artifacts/interrupted-transfer-audit-tests.log",
+      "sha256": "e138f8294b5f8e17b006dad3003d8054c93b1bb2dca0ebd1e4007915ba90d1f5"
+    },
+    {
+      "path": ".artifacts/interrupted-transfer-gate0.log",
+      "sha256": "505d74ef938f5d34d85490d37e0176ba804d93272fcf465ce2544a02c56b3f90"
+    },
+    {
+      "path": ".artifacts/interrupted-transfer-report-diff-check.log",
+      "sha256": "e3b0c44298fc1c149afbf4c8996fb92427ae41e4649b934ca495991b7852b855"
+    },
+    {
+      "path": ".artifacts/interrupted-transfer-report-generation.log",
+      "sha256": "fe010532f71a6341467ae5719b29ac19470895de1d481156335b8f70a3273ed5"
+    }
+  ]
+}

@@ -1,0 +1,19 @@
+{
+  "initial": {
+    "creations": 0,
+    "picker": 0,
+    "message": "This Host cannot currently create sessions"
+  },
+  "absent": {
+    "creations": 1,
+    "picker": 0,
+    "menu": 0,
+    "draft": "Draft before workspace capability withdrawal"
+  },
+  "restored": {
+    "creations": 1,
+    "picker": 1,
+    "menu": 0,
+    "draft": "Draft before workspace capability withdrawal"
+  }
+}

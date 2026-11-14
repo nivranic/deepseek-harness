@@ -1,0 +1,16 @@
+{
+  "status": "PASS",
+  "controls": 3,
+  "sourceRecord": {
+    "path": "artifacts/upstream-first/specification-traceability-source.json",
+    "sha256": "f9b255d8446fc221304686cd1549dd9da08a93a5628fcaf93a7297117faab8be"
+  },
+  "generator": {
+    "path": "artifacts/upstream-first/write-reports.mjs",
+    "sha256": "64101572ef684033ac2d4c5ec394cb87404a5c85a4fe64c2f1d3369a7cc8a921"
+  },
+  "helper": {
+    "path": ".artifacts/check-specification-traceability-binding.mjs",
+    "sha256": "79b10f3fbed279c0e14390d409d42924bbfdcfeb2dbc702f442c99e61f430e46"
+  }
+}

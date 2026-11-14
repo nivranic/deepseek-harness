@@ -1,0 +1,16 @@
+{
+  "status": "PASS",
+  "controls": 3,
+  "sourceRecord": {
+    "path": "artifacts/upstream-first/device-revoked-state-source.json",
+    "sha256": "847d5a365bbed0e42db39c822f163f4798de7af09dd944482b51084fc9331490"
+  },
+  "generator": {
+    "path": "artifacts/upstream-first/write-reports.mjs",
+    "sha256": "35a73ce4cda5000efb2f8332f3e552502f5a2bdd1e7510e68c66e888e830d047"
+  },
+  "helper": {
+    "path": ".artifacts/check-device-revoked-state-binding.mjs",
+    "sha256": "72eb2bdbfaa6d824bf44b781afcde0cae8d95f0dee3178aea2c039be0f987f45"
+  }
+}

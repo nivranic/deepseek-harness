@@ -541,7 +541,7 @@ describe('session.list projections column', () => {
     const row = response.value.items.find(item => item.sessionId === session.id)
     expect(row?.projections?.kind).toBe('sequenced')
     expect(Object.keys(row?.projections?.values ?? {})).toEqual([...ctx.sessionProjections.summaryKeys()])
-    expect(Object.keys(row?.projections?.values ?? {})).toEqual(['conversationContinuation', 'sessionListMetadata'])
+    expect(Object.keys(row?.projections?.values ?? {})).toEqual(['activeTurnStart', 'conversationContinuation', 'sessionListMetadata'])
     expect(row?.projections?.values.conversationContinuation).toBeNull()
   })
 
@@ -803,6 +803,7 @@ describe('Session control projection frames', () => {
       },
       {
         type: 'projection', sessionId: session.id, seq: 1, changes: [
+          { key: 'activeTurnStart', val: 1 },
           { key: 'sessionListMetadata', val: { blank: false, lastPromptAt: 100 } },
         ],
       },

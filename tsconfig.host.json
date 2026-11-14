@@ -8,6 +8,14 @@
     "rewriteRelativeImportExtensions": false
   },
   "include": [
+    "apps/web/tests/android-*.e2e.ts",
+    "apps/web/tests/android-gateway-driver.ts",
+    "apps/web/tests/android-companion-ui-driver.ts",
+    "apps/web/tests/android-host-restart.fixture.ts",
+    "apps/web/tests/native-remote-question.e2e.ts",
+    "apps/web/tests/native-remote-isolation.e2e.ts",
+    "apps/web/tests/native-remote-support.ts",
+    "apps/web/tests/native-gateway-observer.ts",
     "snapshots/session/headless.snapshot.ts",
     "apps/web/tests/home-whale.e2e.ts",
     "apps/web/tests/sidebar-drawer.e2e.ts",
@@ -37,6 +45,7 @@
     "apps/web/tests/diff-context.e2e.ts",
     "apps/web/tests/search-empty-include.e2e.ts",
     "apps/web/tests/code-card-layout.e2e.ts",
+    "apps/web/tests/checkpoint-order.snapshot.ts",
     "apps/web/tests/code-language.snapshot.ts",
     "apps/web/tests/scaffold.ts",
     "apps/web/tests/clock.e2e.ts",
@@ -121,6 +130,7 @@
     "apps/web/tests/icon-skin.e2e.ts",
     "apps/web/tests/draft-initialization.e2e.ts",
     "apps/web/tests/settings-chrome.e2e.ts",
+    "apps/web/tests/settings-telemetry.e2e.ts",
     "apps/web/tests/session-log-upload.e2e.ts",
     "apps/web/tests/caption-overlays.e2e.ts",
     "apps/web/tests/settings-appearance.e2e.ts",
@@ -269,13 +279,45 @@
     "packages/llm/llm-pi-ai/scripts/**/*.ts",
     "scripts/**/*.ts",
     "website/**/*.ts",
-    "website/.vitepress/**/*.ts"
+    "website/.vitepress/**/*.ts",
+    "apps/web/tests/validation-details.e2e.ts",
+    "apps/web/tests/host-description.e2e.ts",
+    "apps/web/tests/file-capabilities.e2e.ts",
+    "apps/web/tests/preset-capabilities.e2e.ts",
+    "apps/web/tests/commands-capabilities.e2e.ts",
+    "apps/web/tests/goal-capabilities.e2e.ts",
+    "apps/web/tests/subagent-capabilities.e2e.ts",
+    "apps/web/tests/feedback-capabilities.e2e.ts",
+    "apps/web/tests/file-upload-capabilities.e2e.ts",
+    "apps/web/tests/file-upload-dedupe.e2e.ts",
+    "apps/web/tests/plugin-inventory-capabilities.e2e.ts",
+    "apps/web/tests/dynamic-cordis-capabilities.e2e.ts",
+    "apps/web/tests/interaction-closed.e2e.ts",
+    "apps/web/tests/interaction-cancel.e2e.ts",
+    "apps/web/tests/interaction-expiry.e2e.ts",
+    "apps/web/tests/host-restart.e2e.ts",
+    "apps/web/tests/host-restart.fixture.ts",
+    "apps/web/tests/tool-reused-id.snapshot.ts",
+    "apps/web/tests/question-retry.snapshot.ts",
+    "apps/web/tests/tool-reused-id.fixture.ts",
+    "apps/web/tests/prompt-idempotency.e2e.ts",
+    "apps/web/tests/transport-failure.e2e.ts",
+    "apps/web/tests/cancel-target.e2e.ts",
+    "apps/web/tests/rename-revision.e2e.ts",
+    "apps/web/tests/fixture-home-paths.ts",
+    "apps/web/tests/fixture-home-paths.spec.ts",
+    "apps/web/tests/hosts-settings.e2e.ts",
+    "apps/web/tests/view-handoff.e2e.ts",
+    "apps/web/tests/native-follow-contract.e2e.ts",
+    "apps/web/tests/device-interaction-reply.e2e.ts",
+    "apps/web/tests/diff-preview.e2e.ts"
   ],
   // Under packages/client and benchmarks, a test file names the face it covers:
   // `*.client.*` belongs to the Client aggregate, `*.host.spec.ts` to this one. The two
   // suffixes are mutually exclusive, so each aggregate excludes the other's
   // and the package test glob above needs no per-file entry.
   "exclude": [
+    // The Android tool catalog still requires the Lite catalog migration.
     "apps/desktop/tests/keyboard.spec.ts",
     "packages/client/*/src/**",
     "benchmarks/**/*.client.ts",
@@ -288,7 +330,11 @@
     "scripts/*.client.spec.ts",
     "scripts/client-bundle-css.spec.ts",
     "packages/typert/generator/tests/fixtures/**",
-    "scripts/client-bundle-purity.spec.ts"
+    "scripts/client-bundle-purity.spec.ts",
+    "apps/web/tests/dynamic-cordis-capabilities.e2e.ts",
+    "apps/web/tests/file-capabilities.e2e.ts",
+    "apps/web/tests/preset-capabilities.e2e.ts",
+    "apps/web/tests/subagent-capabilities.e2e.ts"
   ],
   "references": [
     { "path": "./packages/experimental/action-cards" },
@@ -618,6 +664,10 @@
     { "path": "./apps/cli" },
     { "path": "./apps/plugin-market-generator" },
     { "path": "./apps/desktop-host" },
-    { "path": "./apps/desktop/tsconfig.host.json" }
+    { "path": "./apps/desktop/tsconfig.host.json" },
+    { "path": "./packages/api/host-description" },
+    { "path": "./packages/api/native-remote" },
+    { "path": "./packages/api/device-trust/tsconfig.host.json" },
+    { "path": "./packages/api/host-diagnostics/tsconfig.host.json" }
   ]
 }

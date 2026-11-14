@@ -1,0 +1,16 @@
+{
+  "status": "PASS",
+  "controls": 3,
+  "sourceRecord": {
+    "path": "artifacts/upstream-first/diff-readable-copy-source.json",
+    "sha256": "9b72709cd8dd4e05dc512e911423ed5580e7e69c6e3e6872f43903ac57898b9c"
+  },
+  "generator": {
+    "path": "artifacts/upstream-first/write-reports.mjs",
+    "sha256": "54bdd43883fcae8308b2e682331fd881abb5ed3e70628c16c68e6fc4e2238081"
+  },
+  "helper": {
+    "path": ".artifacts/check-diff-readable-copy-binding.mjs",
+    "sha256": "7a06700df5673f052628ec7cffc77e397b1d1d49015fbe7cf9a0f0494550a963"
+  }
+}

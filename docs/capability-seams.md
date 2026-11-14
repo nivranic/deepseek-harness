@@ -284,6 +284,17 @@ flowchart LR
   svc_claudeCodeMods["ctx.claudeCodeMods<br/>Claude Code mods bridge"]
   pkg_inspector["inspector"]
   svc_inspector["ctx.inspector<br/>Cross-realm runtime inspection"]
+  pkg_api_host_description["api-host-description"]
+  svc_hostDescription["ctx.hostDescription<br/>Host discovery"]
+  pkg_api_remotes["api-remotes"]
+  svc_toolCatalog["ctx.toolCatalog<br/>Host tool catalog"]
+  pkg_api_device_trust["api-device-trust"]
+  svc_deviceTrust["ctx.deviceTrust<br/>Device trust seam"]
+  pkg_web_app["web-app"]
+  pkg_api_native_remote["api-native-remote"]
+  svc_nativeRemote["ctx.nativeRemote<br/>Native TLS access"]
+  pkg_api_host_diagnostics["api-host-diagnostics"]
+  svc_hostDiagnostics["ctx.hostDiagnostics<br/>Host diagnostics seam"]
   pkg_jobs["jobs"]
   svc_jobs["ctx.jobs<br/>Background job registry"]
   pkg_jobs_local["jobs-local"]
@@ -305,7 +316,6 @@ flowchart LR
   svc_webServer["ctx.webServer<br/>HTTP route registration"]
   pkg_client_modules["client-modules"]
   pkg_client_hmr["client-hmr"]
-  pkg_web_app["web-app"]
   svc_webApp["ctx.webApp<br/>Served Web GUI"]
   pkg_harness_dev_context["harness-dev-context"]
   svc_clientModules["ctx.clientModules<br/>Client plugin graph host"]
@@ -329,9 +339,14 @@ flowchart LR
   pkg_agent_loop --> svc_agentLoop
   pkg_agent_preset_registry --> svc_agentPresets
   pkg_agent_team --> svc_agentTeams
+  pkg_api_device_trust --> svc_deviceTrust
   pkg_api_gateway --> svc_typertGateway
+  pkg_api_host_description --> svc_hostDescription
+  pkg_api_host_diagnostics --> svc_hostDiagnostics
   pkg_api_job_controller --> svc_jobController
+  pkg_api_native_remote --> svc_nativeRemote
   pkg_api_remote_access --> svc_remoteAccess
+  pkg_api_remotes --> svc_toolCatalog
   pkg_api_session_controller --> svc_sessionController
   pkg_api_session_controller --> svc_sessionFileReferences
   pkg_api_session_controller --> svc_sessionSkillCatalog
@@ -532,6 +547,7 @@ flowchart LR
   svc_cuaPrograms --> pkg_cua_mcp
   svc_deepseekAccount --> pkg_llm_deepseek
   svc_deepseekLlmApiExtensions --> pkg_llm_deepseek
+  svc_deviceTrust --> pkg_web_app
   svc_directoryPicker --> pkg_api_workspace_controller
   svc_dynamicCordisRunner --> pkg_tool_cordis
   svc_fileReferences --> pkg_api_session_controller
@@ -542,6 +558,8 @@ flowchart LR
   svc_fs --> pkg_tool_fs
   svc_headlessStartup --> pkg_headless
   svc_hmr --> pkg_app_boot
+  svc_hostDescription --> pkg_api_remotes
+  svc_hostDiagnostics --> pkg_web_app
   svc_jobs --> pkg_api_job_controller
   svc_jobs --> pkg_tool_bash
   svc_jobs --> pkg_tool_jobs
@@ -767,6 +785,11 @@ flowchart LR
 | `ctx.agentTeams` | `core` | [`agent-team`](../packages/team/agent-team) | - | [`tool-agent-team`](../packages/team/tool-agent-team) | - | Owns the shared task DAG for a subagent tree; tool-agent-team contributes task controls. |
 | `ctx.claudeCodeMods` | `core` | [`experimental-claude-code-mods`](../packages/experimental/claude-code-mods) | - | - | - | Loads mods that defineMod plugins add, raises their hook chains from harness extension points, and draws the band above the prompt over its Remote. |
 | `ctx.inspector` | `core` | `inspector` | - | - | - | Owns the Worker-hosted CDP target and the transport-independent Host and Client observation and Cordis-tree query API. |
+| `ctx.hostDescription` | `core` | [`api-host-description`](../packages/api/host-description) | - | [`api-remotes`](../packages/api/remotes) | - | Reports persistent Host identity, independent version fields, and explicit capabilities from live Remote bindings through the existing authenticated API. |
+| `ctx.toolCatalog` | `core` | [`api-remotes`](../packages/api/remotes) | - | - | - | Reads complete Host declarations from global tools and retained preset scopes through the authenticated tools/list API. |
+| `ctx.deviceTrust` | `seam` | [`api-device-trust`](../packages/api/device-trust) | - | [`web-app`](../packages/bundle/web-app) | - | The gateway-owned device-facing access seam: one-time pairing issuance, device grants, and revocation over Typert Remote; permission execution stays with the interaction-reply seam. |
+| `ctx.nativeRemote` | `core` | [`api-native-remote`](../packages/api/native-remote) | - | - | - | Owns the opt-in TLS listener, pinned Host identity, and bounded carriers for signed device Peers. |
+| `ctx.hostDiagnostics` | `seam` | [`api-host-diagnostics`](../packages/api/host-diagnostics) | - | [`web-app`](../packages/bundle/web-app) | - | The section 41 health/readiness snapshot and the section 42 sanitized cross-platform diagnostics payload over Typert Remote; presence-based probes name the composed owner per component. |
 | `ctx.jobs` | `seam` | [`jobs`](../packages/jobs/jobs) | [`jobs-local`](../packages/jobs/jobs-local) | [`tool-bash`](../packages/shell/tool-bash), [`tool-pwsh`](../packages/shell/tool-pwsh), [`tool-terminal`](../packages/experimental/tool-terminal), [`tool-jobs`](../packages/jobs/tool-jobs), [`api-job-controller`](../packages/api/job-controller) | - | Producers (background bash/pwsh and PTY sends) register running work; record-declaring jobs additionally stream raw output for non-consuming observers; tool-jobs is the model-facing controller that reads, lists, and kills it; jobs-local is the process-local registry. |
 | `ctx.web` | `seam` | [`web`](../packages/web/web) | [`web-search-deepseek`](../packages/web/web-search-deepseek), [`web-deepseek-api`](../packages/web/web-deepseek-api), [`web-fetch-http`](../packages/web/web-fetch-http) | [`tool-web`](../packages/web/tool-web) | - | Search and fetch providers register into one ctx.web seam; tool-web owns the stable model-facing names. |
 | `ctx.spillStore` | `seam` | [`spill`](../packages/spill/spill) | [`spill-local`](../packages/spill/spill-local) | [`spill-policy`](../packages/spill/spill-policy) | - | The backend saves oversized tool text and returns a model-facing locator plus retrieval hint; spill-policy is the tools/post-execute consumer that decides when to spill. |
