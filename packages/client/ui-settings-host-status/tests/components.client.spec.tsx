@@ -1,6 +1,6 @@
 // @vitest-environment jsdom
 import type { GlobalStandardProps } from '@deepseek-ai/dsh-client-ui-slots'
-import { cleanup, fireEvent, render, screen, waitFor, within } from '@testing-library/react'
+import { act, cleanup, fireEvent, render, screen, waitFor, within } from '@testing-library/react'
 import { afterEach, describe, expect, it } from 'vitest'
 import type { HealthComponent, HealthSnapshot } from '@deepseek-ai/dsh-api-host-diagnostics/client'
 import { HOST_STATUS_COMPONENTS, HostStatusSection } from '../src/client/HostStatusSection.tsx'
@@ -37,6 +37,20 @@ function withComponent(name: HostStatusComponentName, component: HealthComponent
 }
 
 describe('HostStatusSection', () => {
+  it.each([false, true])('discards a pending health result after unmount, rejected=%s', async (reject) => {
+    const pending = Promise.withResolvers<HealthSnapshot>()
+    const started = Promise.withResolvers<undefined>()
+    const view = render(<HostStatusSection {...sectionProps(() => { started.resolve(undefined); return pending.promise })} />)
+    await started.promise
+    view.unmount()
+    await act(async () => {
+      if (reject) pending.reject(new Error('disconnected'))
+      else pending.resolve(greenSnapshot())
+      await pending.promise.catch(() => undefined)
+    })
+    expect(view.container.textContent).toBe('')
+  })
+
   it('renders the six all-green rows under a ready verdict, with each detail passed through', async () => {
     const { container } = render(<HostStatusSection {...sectionProps(() => Promise.resolve(greenSnapshot()))} />)
     await waitFor(() => { expect(container.querySelector('[data-host-ready="true"]')).not.toBeNull() })

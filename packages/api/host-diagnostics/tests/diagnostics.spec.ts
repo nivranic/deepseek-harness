@@ -3,7 +3,7 @@ import { existsSync, mkdtempSync, readFileSync, rmSync, writeFileSync } from 'no
 import { tmpdir } from 'node:os'
 import { join } from 'node:path'
 import { Context } from '@deepseek-ai/cordis'
-import { afterAll, describe, expect, it } from 'vitest'
+import { afterAll, describe, expect, it, onTestFinished } from 'vitest'
 import type { Agent } from '@deepseek-ai/dsh-agent'
 import type { SessionTelemetryRecord, TelemetryConsent } from '@deepseek-ai/dsh-session-telemetry'
 import { sessionFormatV0ToV1 } from '@deepseek-ai/dsh-session-format-v0-to-v1'
@@ -14,6 +14,7 @@ import { HostDiagnosticsService, buildSupportBundle, sessionHeadersBundleEntry, 
 import type { SessionHeaderRow, SettingsExportRow } from '../src/index.ts'
 import type { DiagnosticsErrorFact } from '../src/index.ts'
 import { MAX_CRASH_FACTS, MAX_LAST_ERROR_FACTS } from '../src/recorder.ts'
+import { sanitizeSupportBundleEntry } from '../src/support-bundle.ts'
 
 const descriptor = (): HostDescriptor => ({
   hostId: 'host-1' as HostDescriptor['hostId'],
@@ -42,6 +43,64 @@ afterAll(() => {
 
 /** A pid far outside any live process's range, so the boot scan reads it as a dead run. */
 const DEAD_PID = 4_194_303
+
+it.each(['{', '{}', '[null,false,{"pid":-1,"runStartedAt":0},{"pid":1,"runStartedAt":1e400}]'])
+('discards unusable crash history %s', async (raw) => {
+  const home = freshHome()
+  writeFileSync(join(home, 'diagnostics-crash-log.json'), raw)
+  const b = boot(undefined, home)
+  onTestFinished(() => b.ctx.fiber.dispose())
+  expect((await b.service.describe()).crash).toEqual([])
+})
+
+it('records a marker without a live pid as an unclean shutdown', async () => {
+  const home = freshHome()
+  writeFileSync(join(home, 'diagnostics-crash.marker'), JSON.stringify({ pid: 0, runStartedAt: 123 }))
+  const b = boot(undefined, home)
+  onTestFinished(() => b.ctx.fiber.dispose())
+  expect((await b.service.describe()).crash).toEqual([{ pid: 0, runStartedAt: 123 }])
+})
+
+it('contains a non-Error inventory rejection and projects disposed plugin facts', async () => {
+  let rejected = true
+  const b = bench((ctx) => {
+    ctx.provide('loader', {})
+    ctx.provide('pluginInventory', { list: async () => {
+      if (rejected) throw 'inventory unavailable'
+      return { entries: [{ moduleName: 'fixture', enabled: false, fiberPhase: null }] }
+    } } as never)
+  })
+  onTestFinished(() => b.ctx.fiber.dispose())
+  expect((await b.service.health()).pluginState).toEqual({ state: 'degraded', detail: 'pluginInventory read failed (Error)' })
+  rejected = false
+  expect((await b.service.describe()).plugins).toEqual([{ moduleName: 'fixture', enabled: false, fiberPhase: 'disposed' }])
+})
+
+it('rejects empty paths, non-object entries, and nested non-JSON values', () => {
+  expect(() => sanitizeSupportBundleEntry('diagnostics', '', {})).toThrow(/non-empty/u)
+  for (const content of [null, [], 'text', 1, true]) {
+    expect(() => sanitizeSupportBundleEntry('diagnostics', 'entry.json', content)).toThrow(/JSON object/u)
+  }
+  expect(() => sanitizeSupportBundleEntry('diagnostics', 'entry.json', { nested: undefined })).toThrow(/non-JSON value/u)
+})
+
+it('rejects missing manifest entries and an unordered manifest', () => {
+  const bundle = buildSupportBundle([
+    { kind: 'diagnostics', path: 'a.json', content: {} },
+    { kind: 'diagnostics', path: 'b.json', content: {} },
+  ])
+  expect(() => { validateSupportBundle({ ...bundle, manifest: [{ ...bundle.manifest[0]!, path: 'missing.json' }, bundle.manifest[1]!] }) })
+    .toThrow(/missing entry/u)
+  expect(() => { validateSupportBundle({ ...bundle, manifest: [...bundle.manifest].reverse() }) }).toThrow(/not sorted/u)
+  expect(() => { validateSupportBundle({ ...bundle, manifest: [bundle.manifest[0]!, bundle.manifest[0]!] }) }).toThrow(/chained checksum/u)
+})
+
+it('preserves stable order for equal session and settings sort keys', () => {
+  const session = { id: 'same', createdAt: 1, isSeeded: false, revision: '1' }
+  expect(sessionHeadersBundleEntry([session, session]).content).toEqual({ sessions: [session, session] })
+  const settings: SettingsExportRow = { ns: 'same', revision: 1, applies: 'live', value: {}, redacted: [] }
+  expect(settingsExportBundleEntry([settings, settings]).content).toEqual({ namespaces: [settings, settings] })
+})
 
 function freshHome(): string {
   const home = mkdtempSync(join(tmpdir(), 'dsh-diagnostics-home-'))

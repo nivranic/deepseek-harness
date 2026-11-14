@@ -123,7 +123,7 @@ export function HandoffAction(props: HandoffActionProps): React.JSX.Element | nu
         onClick={share}
         aria-haspopup="dialog"
         aria-expanded={open}
-        title={dress === 'idle' ? t('action') : dress === 'copied' ? t('copied') : `${t('copyFailed')}\n${link ?? ''}`}
+        title={dress === 'idle' ? t('action') : dress === 'copied' ? t('copied') : `${t('copyFailed')}\n${link}`}
       >
         <IconShareOutlineRegular size={14} />
         <span className={css.label}>{dress === 'copied' ? t('copied') : t('action')}</span>

@@ -173,12 +173,8 @@ export class SavedHostsStore {
     const target = direction === 'up' ? index - 1 : index + 1
     if (index < 0 || target < 0 || target >= this.rows.length) return false
     const rows = [...this.rows]
-    const moving = rows[index]
-    const neighbor = rows[target]
-    // Both indices are inside the roster after the guard; the check only narrows the indexed access.
-    if (moving === undefined || neighbor === undefined) return false
-    rows[index] = neighbor
-    rows[target] = moving
+    const moving = rows.splice(index, 1)
+    rows.splice(target, 0, ...moving)
     this.rows = rows.map((row, position) => ({ ...row, order: position }))
     this.persist()
     this.changed()
@@ -251,10 +247,9 @@ function readStorage(storage: Storage, key: string): string | undefined {
 }
 
 /** Storage denial and exhausted quota leave the live in-memory selection usable. */
-function writeStorage(storage: Storage, key: string, value: string | undefined): void {
-  const write = value === undefined ? () => { storage.removeItem(key) } : () => { storage.setItem(key, value) }
+function writeStorage(storage: Storage, key: string, value: string): void {
   try {
-    write()
+    storage.setItem(key, value)
   } catch (_error) {
     // Browser storage is optional; its permission and quota failures are not connection failures.
   }

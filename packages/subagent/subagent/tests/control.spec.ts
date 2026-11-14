@@ -335,4 +335,21 @@ describe('subagent interrupt Remote', () => {
       expect.objectContaining({ code: 'gateway/internal', message: 'subagent interrupt failed', details: {} }),
     )
   })
+
+  it.each([
+    ['UNAUTHORIZED', 'subagent/unauthorized'],
+    ['CONTINUATION_UNAVAILABLE', 'subagent/delivery-unavailable'],
+    ['NO_PROVIDER', 'gateway/internal'],
+  ] as const)('maps an interrupt failure %s to %s', async (reason, code) => {
+    const { ctx, subagents } = await bench()
+    try {
+      const cause = new SubagentError('refused', reason)
+      vi.spyOn(subagents, 'interrupt').mockImplementation(() => { throw cause })
+      expect(() => subagents.interruptTurnByParent({
+        childSessionId: CHILD, parentSessionId: PARENT, mode: 'continuable', turnStartSeq: 7,
+      })).toThrow(expect.objectContaining({ code, cause }))
+    } finally {
+      await ctx.fiber.dispose()
+    }
+  })
 })

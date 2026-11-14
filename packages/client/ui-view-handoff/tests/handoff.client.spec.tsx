@@ -1,7 +1,7 @@
 // @vitest-environment jsdom
 /** §26 view-location handoff: capture-side link copy and receive-side one-shot open. */
 import { act, cleanup, fireEvent, render, screen } from '@testing-library/react'
-import { afterEach, beforeEach, describe, expect, it, vi } from 'vitest'
+import { afterEach, beforeEach, describe, expect, it, onTestFinished, vi } from 'vitest'
 import { bindSnapshotSelector, makeTranslate } from '@deepseek-ai/dsh-client-test-runtime'
 import { SessionId, SessionSeq } from '@deepseek-ai/dsh-session/types'
 import { createSnapshotStore } from '@deepseek-ai/dsh-client-store'
@@ -10,6 +10,8 @@ import type { ConversationSnapshot, ConversationViewSnapshotStore, TurnLocation 
 import type { HostId } from '@deepseek-ai/dsh-api-remotes/client'
 import { EMPTY_CHAT_SNAPSHOT } from '@deepseek-ai/dsh-client-ui-chat/src/client/contract/snapshot.ts'
 import { HandoffAction, type HandoffActionInjected, type HandoffActionProps } from '../src/client/HandoffAction.tsx'
+import { HandoffNotice } from '../src/client/HandoffNotice.tsx'
+import type { HandoffFailureKind } from '../src/client/view-location.ts'
 import { VIEW_HANDOFF_FRAGMENT, type HandoffAdmission } from '../src/client/controller.ts'
 import { en } from '../src/client/locales.ts'
 import type {} from '../src/client/index.ts'
@@ -56,6 +58,44 @@ beforeEach(() => { document.documentElement.lang = 'en' })
 afterEach(() => { cleanup() })
 
 describe('view-handoff capture side', () => {
+  it('leaves the popover closed when capture admission expires before a click', () => {
+    const copy = vi.fn(async () => true)
+    mountAction({ admitted: true, lastTurnSeq: 41, encode: () => undefined, copy })
+    const button = screen.getByRole('button', { name: en.action })
+    fireEvent.keyDown(button, { key: 'Escape' })
+    fireEvent.click(button)
+    expect(screen.queryByRole('dialog')).toBeNull()
+    expect(copy).not.toHaveBeenCalled()
+  })
+
+  it('restores the action label when its copied feedback timer settles', async () => {
+    vi.useFakeTimers()
+    onTestFinished(() => { vi.useRealTimers() })
+    mountAction({ admitted: true, lastTurnSeq: 41 })
+    const button = screen.getByRole('button', { name: en.action })
+    fireEvent.keyDown(button, { key: 'Enter' })
+    await act(async () => { fireEvent.click(button) })
+    expect(screen.getByText(en.copied)).toBeDefined()
+    act(() => { vi.runAllTimers() })
+    expect(button.title).toBe(en.action)
+  })
+
+  it('renders a pending receive failure and dismisses it after the toast settles', () => {
+    vi.useFakeTimers()
+    onTestFinished(() => { vi.useRealTimers() })
+    const failure = createSnapshotStore<HandoffFailureKind | undefined>(undefined)
+    const dismiss = vi.fn(() => { failure.set(undefined) })
+    const view = render(<HandoffNotice
+      {...({} as GlobalStandardProps)} useFailure={bindSnapshotSelector(failure)} dismiss={dismiss} t={t}
+    />)
+    expect(view.container.textContent).toBe('')
+    act(() => { failure.set('openFailed') })
+    expect(screen.getByText(en.openFailed)).toBeDefined()
+    act(() => { vi.runAllTimers() })
+    expect(dismiss).toHaveBeenCalledOnce()
+    expect(screen.queryByText(en.openFailed)).toBeNull()
+  })
+
   it('stays hidden before admission or without a Turn anchor', () => {
     const { container, rerender } = mountAction({ admitted: false, lastTurnSeq: 41 })
     expect(container.firstChild).toBeNull()

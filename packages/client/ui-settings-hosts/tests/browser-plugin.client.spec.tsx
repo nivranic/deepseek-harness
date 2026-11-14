@@ -26,6 +26,18 @@ function faceOf(slots: SlotRegistry): HostsSettingsSectionInjected {
   return slots.entries('settings.section')[0]!.inject!() as HostsSettingsSectionInjected & Record<string, unknown>
 }
 
+it('reads an admitted identity without a page origin and formats its connection time', async () => {
+  const b = await bench()
+  onTestFinished(() => { vi.unstubAllGlobals() })
+  vi.stubGlobal('location', undefined)
+  await b.ctx.plugin({ inject, apply })
+  const face = faceOf(b.slots)
+  expect(resolveSlotLabel(b.slots.entries('settings.section')[0]!.options.label)).toBe('Hosts')
+  await vi.waitFor(() => { expect(face.hooks.currentHostId.getSnapshot()).toBe(b.descriptor.hostId) })
+  expect(face.hooks.savedHosts.getSnapshot()).toEqual([])
+  expect(face.formatTime(Date.UTC(2026, 5, 15, 12))).toContain('2026')
+})
+
 it('owns local bookmarks and identifies the current Host without transport selection', async () => {
   const b = await bench()
   b.storage.set('dsh-saved-hosts.v1', JSON.stringify([{
@@ -51,6 +63,19 @@ it('owns local bookmarks and identifies the current Host without transport selec
   await fiber.dispose()
   expect(b.listeners.size).toBe(0)
   expect(b.slots.entries('settings.section')).toHaveLength(0)
+})
+
+it('persists manual movement through the registered settings action', async () => {
+  const b = await bench()
+  b.storage.set('dsh-saved-hosts.v1', JSON.stringify([{ hostId: 'other', displayName: 'Other Host',
+    platform: 'linux', origin: 'https://other.example', lastConnectedAt: 1 }]))
+  await b.ctx.plugin({ inject, apply })
+  const face = faceOf(b.slots)
+  await vi.waitFor(() => { expect(face.hooks.currentHostId.getSnapshot()).toBe(b.descriptor.hostId) })
+  face.move(b.descriptor.hostId, 'down')
+  expect(face.hooks.savedHosts.getSnapshot().map(row => row.hostId)).toEqual(['other', b.descriptor.hostId])
+  const persisted = JSON.parse(b.storage.get('dsh-saved-hosts.v1')!) as Array<{ hostId: string; order: number }>
+  expect(persisted.map(row => [row.hostId, row.order])).toEqual([['other', 0], [b.descriptor.hostId, 1]])
 })
 
 it('keeps bookmarks after discovery failure and ignores a superseded description', async () => {

@@ -26,7 +26,7 @@ declare module '@deepseek-ai/dsh-typert-protocol' {
 }
 
 const GUEST: Principal = { kind: 'test-guest', guest: 'subagent-controls' }
-const ACTIONS = ['subagents/prompt', 'subagents/interruptByUser'] as const
+const ACTIONS = ['subagents/prompt', 'subagents/interruptByUser', 'subagents/interruptByParent', 'subagents/interruptTurnByParent'] as const
 const cleanups: Array<() => Promise<void>> = []
 afterEach(async () => {
   for (const cleanup of cleanups.splice(0).reverse()) await cleanup()
@@ -63,7 +63,9 @@ async function harness() {
   await ctx.plugin(TypertGatewayService)
   const bindings: RemoteAccessBinding[] = []
   ctx.remoteAccess.registerPolicy('test-guest', { bindings: () => bindings })
-  const call = (method: 'prompt' | 'interruptByUser', principal: Principal = GUEST, image = false) => {
+  const turnStartSeq = ctx.sessionProjections.snapshot(child.session, ['subagentTiming']).values.subagentTiming?.active?.startSeq
+  expect(turnStartSeq).toBeDefined()
+  const call = (method: 'prompt' | 'interruptByUser' | 'interruptByParent' | 'interruptTurnByParent', principal: Principal = GUEST, image = false) => {
     const peer: PeerScope = {
       id: 'subagent-access-peer' as PeerId, ctx, principal, interactions: 'answer',
       signal: new AbortController().signal, dispose: async () => {},
@@ -73,14 +75,16 @@ async function harness() {
       args: method === 'prompt' ? { request: {
         requestId: 'access-follow-up', childSessionId: child.id, delivery: 'queue',
         content: image ? [{ type: 'image', mediaType: 'image/png', data: 'aGk=' }] : [{ type: 'text', text: 'follow-up' }],
-      } } : { childSessionId: child.id },
+      } } : method === 'interruptByUser' ? { childSessionId: child.id }
+        : method === 'interruptByParent' ? { childSessionId: child.id, parentSessionId: parent.id, mode: 'continuable' }
+          : { request: { childSessionId: child.id, parentSessionId: parent.id, mode: 'continuable', turnStartSeq } },
     })
   }
   return { ctx, parent, child, bindings, call }
 }
 
 describe('subagent target Session access', () => {
-  it.each(['prompt', 'interruptByUser'] as const)('requires the target permission for %s', async (method) => {
+  it.each(['prompt', 'interruptByUser', 'interruptByParent', 'interruptTurnByParent'] as const)('requires the target permission for %s', async (method) => {
     const { ctx, parent, child, bindings, call } = await harness()
     const attachments = vi.spyOn(ctx.attachments, 'admitPromptContent')
     const observe = vi.spyOn(ctx.sessionQuery, 'observeSession')

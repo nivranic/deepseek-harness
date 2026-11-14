@@ -1,6 +1,6 @@
 // @vitest-environment jsdom
 import type { GlobalStandardProps } from '@deepseek-ai/dsh-client-ui-slots'
-import { cleanup, fireEvent, render, screen, waitFor, within } from '@testing-library/react'
+import { act, cleanup, fireEvent, render, screen, waitFor, within } from '@testing-library/react'
 import { afterEach, describe, expect, it, vi } from 'vitest'
 import { RemoteError } from '@deepseek-ai/dsh-client-test-runtime'
 import { DevicesSettingsSection } from '../src/client/DevicesSettingsSection.tsx'
@@ -74,6 +74,63 @@ async function renderReady(face: DevicesSettingsSectionInjected = inject()): Pro
 }
 
 describe('DevicesSettingsSection', () => {
+  it.each([
+    ['gateway/permission-denied', 'permission'],
+    ['gateway/protocol-unsupported', 'compatibility'],
+    ['session/revision-conflict', 'conflict'],
+    ['gateway/host-not-ready', 'host-state'],
+    ['gateway/stream-invalid', 'carrier-invalid'],
+    ['gateway/connection-unavailable', 'transport'],
+  ] as const)('localizes a refused roster read carrying %s', async (code, category) => {
+    const failure = { isDSHRemoteError: true, code, message: 'refused', details: {} }
+    render(<DevicesSettingsSection {...props(inject({ list: vi.fn().mockRejectedValue(failure) }))} />)
+    expect((await screen.findByRole('alert')).textContent).toContain(en[`failure.${category}`])
+  })
+
+  it('renders a non-Error diagnostic and reports a refused single-device revocation', async () => {
+    render(<DevicesSettingsSection {...props(inject({ list: vi.fn().mockRejectedValue('offline') }))} />)
+    expect((await screen.findByRole('alert')).textContent).toContain('offline')
+    cleanup()
+    const face = inject({ revoke: vi.fn().mockRejectedValue(new Error('revocation failed')) })
+    await renderReady(face)
+    const row = within(screen.getByText('Pixel 9').closest('li')!)
+    fireEvent.click(row.getByRole('button', { name: en.revoke }))
+    fireEvent.click(row.getByRole('button', { name: en.revokeConfirmAction }))
+    expect((await row.findByRole('alert')).textContent).toContain('revocation failed')
+    expect(face.list).toHaveBeenCalledTimes(1)
+  })
+
+  it('cancels local drafts and submits a rename only for the Enter key', async () => {
+    const face = inject()
+    await renderReady(face)
+    fireEvent.click(screen.getAllByRole('button', { name: en.rename })[0]!)
+    fireEvent.change(screen.getByRole('textbox', { name: en.rename }), { target: { value: 'Draft' } })
+    fireEvent.click(screen.getByRole('button', { name: en.renameCancelled }))
+    expect(face.rename).not.toHaveBeenCalled()
+    fireEvent.click(screen.getAllByRole('button', { name: en.rename })[0]!)
+    const input = screen.getByRole<HTMLInputElement>('textbox', { name: en.rename })
+    expect(input.value).toBe('Pixel 9')
+    fireEvent.keyDown(input, { key: 'a' })
+    expect(face.rename).not.toHaveBeenCalled()
+    fireEvent.keyDown(input, { key: 'Enter' })
+    await waitFor(() => { expect(face.rename).toHaveBeenCalledWith('d-observer', 'Pixel 9') })
+    fireEvent.click(screen.getByRole('button', { name: en.revokeAll }))
+    fireEvent.click(screen.getByRole('button', { name: en.revokeAllCancelled }))
+    expect(face.revokeAll).not.toHaveBeenCalled()
+  })
+
+  it('opens and closes native pairing and presents issuance failures through the section', async () => {
+    const create = vi.fn().mockRejectedValue(new Error('issuance failed'))
+    await renderReady(inject({ pairing: { create } }))
+    fireEvent.click(screen.getByRole('button', { name: en['pairing.add'] }))
+    fireEvent.click(screen.getByRole('button', { name: en['pairing.close'] }))
+    expect(screen.queryByRole('textbox', { name: en['pairing.address'] })).toBeNull()
+    fireEvent.click(screen.getByRole('button', { name: en['pairing.add'] }))
+    fireEvent.change(screen.getByRole('textbox', { name: en['pairing.address'] }), { target: { value: 'https://host.test' } })
+    await act(async () => { fireEvent.click(screen.getByRole('button', { name: en['pairing.generate'] })) })
+    expect((await screen.findByRole('alert')).textContent).toContain('issuance failed')
+  })
+
   it('renders one row per grant with role, platform, timing and fingerprint', async () => {
     await renderReady()
     expect(screen.getByText('MacBook')).toBeDefined()

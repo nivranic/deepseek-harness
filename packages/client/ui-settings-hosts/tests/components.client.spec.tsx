@@ -71,6 +71,25 @@ function bench(rows = ROWS, selected?: HostId) {
 }
 
 describe('HostsSettingsSection', () => {
+  it('cancels rename drafts, ignores other keys, and saves Enter before moving a row up', () => {
+    const h = bench()
+    render(<HostsSettingsSection {...h.props} />)
+    const begin = (): void => { fireEvent.click(document.querySelector<HTMLElement>('[data-host-id="work"] [data-host-rename]')!) }
+    begin()
+    fireEvent.change(screen.getByRole('textbox', { name: en.rename }), { target: { value: 'Draft' } })
+    fireEvent.click(screen.getByRole('button', { name: en.renameCancelled }))
+    expect(h.face.rename).not.toHaveBeenCalled()
+    begin()
+    const input = screen.getByRole('textbox', { name: en.rename })
+    fireEvent.keyDown(input, { key: 'a' })
+    expect(h.face.rename).not.toHaveBeenCalled()
+    fireEvent.change(input, { target: { value: 'Desk' } })
+    fireEvent.keyDown(input, { key: 'Enter' })
+    expect(h.face.rename).toHaveBeenCalledWith('work', 'Desk')
+    fireEvent.click(document.querySelector<HTMLElement>('[data-host-id="local"] [data-host-move-up]')!)
+    expect(h.face.move).toHaveBeenCalledWith('local', 'up')
+  })
+
   it('presents identity, timing, and only routable Host actions', () => {
     const h = bench()
     render(<HostsSettingsSection {...h.props} />)

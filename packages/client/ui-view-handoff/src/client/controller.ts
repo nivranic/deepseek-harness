@@ -108,7 +108,6 @@ export class ViewHandoffController {
   private waitForAdmission(): Promise<Extract<HandoffAdmission, { status: 'ready' }> & { signal: AbortSignal }> {
     return new Promise((resolve, reject) => {
       const signal = this.lifetime.signal
-      let stop: () => void = () => {}
       const check = (): void => {
         const state = this.admission.getSnapshot()
         if (!signal.aborted && state.status === 'waiting') return
@@ -118,7 +117,7 @@ export class ViewHandoffController {
         else if (state.status === 'ready') resolve({ ...state, signal: this.generation.signal })
         else reject(new HandoffFailure('unavailable'))
       }
-      stop = this.admission.subscribe(check)
+      const stop = this.admission.subscribe(check)
       signal.addEventListener('abort', check, { once: true })
       check()
     })

@@ -1,13 +1,14 @@
 // @vitest-environment jsdom
 import { Context, Service } from '@deepseek-ai/cordis'
 import { afterEach, describe, expect, it, onTestFinished, vi } from 'vitest'
-import { cleanup } from '@testing-library/react'
+import { cleanup, render, screen } from '@testing-library/react'
+import type { ComponentType } from 'react'
 import { LocaleRuntime } from '@deepseek-ai/dsh-client-locale/client'
 import { SlotRegistry } from '@deepseek-ai/dsh-client-ui-renderer/client'
-import { resolveSlotLabel } from '@deepseek-ai/dsh-client-ui-slots'
+import { resolveSlotLabel, type GlobalStandardProps } from '@deepseek-ai/dsh-client-ui-slots'
 import { RemoteError, usePinnedBrowserLanguages } from '@deepseek-ai/dsh-client-test-runtime'
 import { apply, inject } from '../src/client/index.ts'
-import type { DevicesSettingsSectionInjected } from '../src/client/DevicesSettingsSection.tsx'
+import type { DevicesSettingsSectionInjected, DevicesSettingsSectionProps } from '../src/client/DevicesSettingsSection.tsx'
 import { apply as hostApply } from '../src/index.ts'
 import type { NativeRemoteInfo, DeviceRole, HostDescriptor, HostId, RemoteResult } from '@deepseek-ai/dsh-api-remotes/client'
 
@@ -84,6 +85,25 @@ function declare(slots: SlotRegistry): () => void {
     children: { 'settings.section': { kind: 'list', scope: 'root' } },
   } as never, () => null)
 }
+
+it('withdraws admission when discovery throws and retains the active generation read failure', async () => {
+  const b = await bench()
+  declare(b.slots)
+  await b.ctx.plugin({ inject: [...inject], apply })
+  await vi.waitFor(() => { expect(b.slots.entries('settings.section')).toHaveLength(1) })
+  const face = b.slots.entries('settings.section')[0]!.inject!() as DevicesSettingsSectionInjected & Record<string, unknown>
+  const failure = new Error('active transport failure')
+  b.list.mockRejectedValueOnce(failure)
+  await expect(face.list()).rejects.toBe(failure)
+  expect(face.formatTime(Date.UTC(2026, 5, 15, 12))).toContain('2026')
+  const Section = b.slots.entries('settings.section')[0]!.component as ComponentType<DevicesSettingsSectionProps>
+  render(<Section {...({} as GlobalStandardProps)} {...face} t={b.locale.bind(NS)} close={() => {}} />)
+  expect(await screen.findByText(b.locale.bind(NS)('empty'))).toBeDefined()
+  b.describe.mockRejectedValueOnce(new Error('discovery failed'))
+  b.replace()
+  await vi.waitFor(() => { expect(b.slots.entries('settings.section')).toHaveLength(0) })
+  expect(b.describe).toHaveBeenCalledTimes(2)
+})
 
 describe('ui-settings-devices browser plugin', () => {
   it('combines authenticated Host facts and issuance after validating the native address', async () => {

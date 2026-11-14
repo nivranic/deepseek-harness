@@ -3,7 +3,7 @@ import { describe, expect, it, onTestFinished, vi } from 'vitest'
 import { createSnapshotStore } from '@deepseek-ai/dsh-client-store'
 import type { ConnectionGeneration } from '@deepseek-ai/dsh-client-connection/client'
 import type { HostDescriptor, HostId } from '@deepseek-ai/dsh-api-remotes/client'
-import type { RemoteResult } from '@deepseek-ai/dsh-typert-protocol'
+import { RemoteError, type RemoteResult } from '@deepseek-ai/dsh-typert-protocol'
 import { SessionId, SessionSeq } from '@deepseek-ai/dsh-session/types'
 import { ViewHandoffController } from '../src/client/controller.ts'
 import { decodeSessionViewLocation, encodeSessionViewLocation, HandoffFailure } from '../src/client/view-location.ts'
@@ -28,6 +28,11 @@ function bench(hash = `#dsh-view=${encodeSessionViewLocation(VIEW)}`) {
 }
 
 describe('view link encoding', () => {
+  it('rejects non-ASCII capture data and base64 that decodes to invalid JSON', () => {
+    expect(() => encodeSessionViewLocation({ ...VIEW, sessionId: SessionId('会话') })).toThrow(HandoffFailure)
+    expect(() => decodeSessionViewLocation(`dsh-session-view.v1.${btoa('{').replaceAll('=', '')}`)).toThrow(HandoffFailure)
+  })
+
   it('round-trips the existing v1 payload', () => {
     expect(decodeSessionViewLocation(encodeSessionViewLocation(VIEW))).toEqual(VIEW)
   })
@@ -52,6 +57,33 @@ describe('view link encoding', () => {
 })
 
 describe('view handoff lifecycle', () => {
+  it('uses the browser clipboard by default and refuses capture before discovery', async () => {
+    const generations = createSnapshotStore<ConnectionGeneration | undefined>(undefined)
+    const writeText = vi.fn(async (_text: string) => {})
+    vi.stubGlobal('navigator', { clipboard: { writeText } })
+    vi.stubGlobal('location', { origin: 'https://host.example', pathname: '/app', hash: '' })
+    const controller = new ViewHandoffController(generations, async () => ({ ok: true, value: HOST }), async () => {})
+    onTestFinished(() => { controller.dispose(); vi.unstubAllGlobals() })
+    expect(controller.encode(VIEW.sessionId, VIEW.anchorSeq)).toBeUndefined()
+    expect(controller.failure.getSnapshot()).toBe('unavailable')
+    await expect(controller.copy('link')).resolves.toBe(true)
+    expect(writeText).toHaveBeenCalledWith('link')
+  })
+
+  it('discards a thrown stale discovery and reports a returned refusal for the active generation', async () => {
+    const h = bench('')
+    const old = Promise.withResolvers<RemoteResult<HostDescriptor>>()
+    h.describeHost.mockReturnValueOnce(old.promise)
+    h.connect()
+    h.connect(2)
+    old.reject(new Error('old generation'))
+    await old.promise.catch(() => undefined)
+    await vi.waitFor(() => { expect(h.controller.admission.getSnapshot()).toEqual({ status: 'ready', hostId: HOST.hostId }) })
+    h.describeHost.mockResolvedValueOnce({ ok: false, error: new RemoteError('gateway/connection-unavailable', 'offline', { endpoint: 'host/describe' }) })
+    h.connect(3)
+    await vi.waitFor(() => { expect(h.controller.admission.getSnapshot()).toEqual({ status: 'failed' }) })
+  })
+
   it('waits for authenticated discovery, opens once, and captures the admitted Host', async () => {
     const h = bench()
     const described = Promise.withResolvers<RemoteResult<HostDescriptor>>()

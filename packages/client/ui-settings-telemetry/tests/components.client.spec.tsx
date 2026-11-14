@@ -1,5 +1,5 @@
 // @vitest-environment jsdom
-import { cleanup, fireEvent, render, screen, waitFor, within } from '@testing-library/react'
+import { act, cleanup, fireEvent, render, screen, waitFor, within } from '@testing-library/react'
 import { afterEach, describe, expect, it } from 'vitest'
 import { bindSnapshotSelector } from '@deepseek-ai/dsh-client-test-runtime'
 import type { ConfigFormSnapshot } from '@deepseek-ai/dsh-client-ui-settings/client'
@@ -86,6 +86,20 @@ function sectionProps(scope: FakeConsentScope): TelemetrySettingsSectionProps {
     useConsent: bindSnapshotSelector(scope),
   }
 }
+
+it('keeps concurrent consent writes independently pending until their settlements', async () => {
+  const scope = new FakeConsentScope(OFF)
+  render(<TelemetrySettingsSection {...sectionProps(scope)} />)
+  const first = screen.getByRole<HTMLButtonElement>('switch', { name: en['kind.sessionTelemetry'] })
+  const second = screen.getByRole<HTMLButtonElement>('switch', { name: en['kind.crashDiagnostics'] })
+  fireEvent.click(first)
+  fireEvent.click(second)
+  expect(first.disabled).toBe(true)
+  expect(second.disabled).toBe(true)
+  await act(async () => { scope.settleWrites() })
+  await waitFor(() => { expect(first.disabled).toBe(false); expect(second.disabled).toBe(false) })
+  expect(scope.writes).toEqual([['sessionTelemetry', true], ['crashDiagnostics', true]])
+})
 
 const switchState = (name: string): { checked: string; disabled: boolean } => {
   const control = screen.getByRole('switch', { name }) as HTMLButtonElement

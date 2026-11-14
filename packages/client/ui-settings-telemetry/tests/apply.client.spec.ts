@@ -2,6 +2,7 @@
 import { Context } from '@deepseek-ai/cordis'
 import { expect, it, onTestFinished, vi } from 'vitest'
 import { SlotRegistry } from '@deepseek-ai/dsh-client-ui-renderer/client'
+import { resolveSlotLabel } from '@deepseek-ai/dsh-client-ui-slots'
 import { LocaleRuntime } from '@deepseek-ai/dsh-client-locale/client'
 import { RemoteError, TestRemote } from '@deepseek-ai/dsh-client-test-runtime'
 import { apply as settingsApply, inject as settingsInject } from '@deepseek-ai/dsh-client-ui-settings/client'
@@ -38,6 +39,7 @@ it('follows the backend entry, writes only one nested consent field, and retains
   remote.emit('settings/document-updated', [view.ns, view.revision])
   await vi.waitFor(() => { expect(slots.entries('settings.section')).toHaveLength(1) })
   const entry = slots.entries('settings.section')[0]!
+  expect(resolveSlotLabel(entry.options.label)).toBeTruthy()
   const face = entry.inject!() as TelemetrySettingsSectionInjected & Record<string, unknown>
   expect(face.hooks.consent.getSnapshot()).toMatchObject({ status: 'ready', revision: 3 })
   view = { ...view, revision: 4, value: { mode: 'FEEDBACK_ONLY', consent: { sessionTelemetry: true, crashDiagnostics: true } } }

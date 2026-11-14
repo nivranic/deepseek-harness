@@ -109,6 +109,28 @@ function message(text: string) {
 }
 
 describe('Session Controller access', () => {
+  it('authorizes addressed cancellation on its target Session and preserves a later turn', async () => {
+    const { ctx, shared, hidden } = await harness()
+    await ctx.plugin(TypertGatewayService)
+    guestPolicy(ctx, {
+      role: { name: 'test:turn-canceller', resource: 'session', actions: ['session/cancelTurn'] },
+      resource: { kind: 'session', id: SHARED },
+    })
+    const cancel = vi.spyOn(shared, 'cancel').mockReturnValue()
+    const hiddenCancel = vi.spyOn(hidden, 'cancel')
+    const first = shared.session.append('turn/start', { turn: 1 })
+    const request = { sessionId: SHARED, turnStartSeq: first.seq }
+    await expect(guestCall(ctx, 'cancelTurn', { request: { ...request, sessionId: PRIVATE } }))
+      .rejects.toMatchObject({ code: 'remote-access/denied' })
+    expect(hiddenCancel).not.toHaveBeenCalled()
+    await expect(guestCall(ctx, 'cancelTurn', { request })).resolves.toEqual({ accepted: true })
+    expect(cancel).toHaveBeenCalledExactlyOnceWith({ kind: 'user' }, { keepInbox: true })
+    shared.session.append('turn/end', { turn: 1, reason: { kind: 'completed' } })
+    shared.session.append('turn/start', { turn: 2 })
+    await expect(guestCall(ctx, 'cancelTurn', { request })).resolves.toEqual({ accepted: true })
+    expect(cancel).toHaveBeenCalledTimes(1)
+  })
+
   it('owns the Session resource kind and its default resolver', async () => {
     const { ctx } = await harness()
     expect(() => ctx.typert.resources.register('session', { field: 'sessionId' })).toThrow(/already registered/)
