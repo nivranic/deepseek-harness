@@ -28,6 +28,9 @@ function props(
   home?: string,
   owners?: ToolCallOwnerProps[],
 ): ToolTreeProps {
+  const data = { get: () => undefined, source: () => ({ getSnapshot: () => undefined, subscribe: () => () => {} }) }
+  const step = { turn: 1, step: 1, start: undefined, end: undefined, status: 'open' as const, data }
+  const turn = { turn: 1, start: undefined, end: undefined, status: 'open' as const, steps: [step], data }
   const snapshot = {} as SessionSnapshot
   const useSession = ((selector: (value: SessionSnapshot) => unknown) => selector(snapshot)) as ToolTreeProps['useSession']
   const renderSlot = ((_key: string, owner: ToolCallOwnerProps, options?: { fallback?: React.ReactNode }) => {
@@ -45,7 +48,7 @@ function props(
       id: block.callId,
       target: 'chat',
       anchorSeq: 'seq' in block ? block.seq : 0,
-      location: { kind: 'session' },
+      location: { kind: 'step', turn, step },
       visibility: 'visible',
       data: { root: block },
     },
@@ -175,7 +178,7 @@ describe('ToolCallTree', () => {
     const inspect = owners[0]?.inspect
     expect(inspect).toBeDefined()
     inspect?.()
-    expect(treeProps.inspectCall).toHaveBeenCalledExactlyOnceWith('running')
+    expect(treeProps.inspectCall).toHaveBeenCalledExactlyOnceWith('running', { turn: 1, step: 1 })
   })
 
   it('abbreviates a POSIX home path in the generic tool summary', () => {

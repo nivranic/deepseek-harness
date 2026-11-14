@@ -28,7 +28,8 @@ function contribution(
 ): TrajectoryConversationViewNode {
   return {
     key, kind: key, id: key, target: 'trajectory', anchorSeq,
-    location: { kind: 'session' },
+    location: data.kind === 'tool' && !('kind' in data.root)
+      ? stepLocation(data.root.turn, data.root.step) : { kind: 'session' },
     data,
   }
 }
@@ -233,7 +234,7 @@ describe('TrajectorySnapshotBuilder', () => {
     expect(snapshot.requests.map(request => request.purpose === 'assistant'
       ? request.prompt?.system
       : undefined)).toEqual(['base prompt', 'exact prompt'])
-    expect(snapshot.callSchemas.get('call-edit')).toEqual(exactPrompt.tools[0])
+    expect(snapshot.callSchemas.get('[1,2,"call-edit"]')).toEqual(exactPrompt.tools[0])
   })
 
   it('applies session boundaries and turn errors with linear request indexes', () => {

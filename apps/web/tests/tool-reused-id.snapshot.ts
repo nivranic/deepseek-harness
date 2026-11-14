@@ -3,15 +3,17 @@ import { spawn } from 'node:child_process'
 import { mkdir, mkdtemp, readFile, rm, writeFile } from 'node:fs/promises'
 import { tmpdir } from 'node:os'
 import { join } from 'node:path'
-import { createRequire } from 'node:module'
-import { fileURLToPath, pathToFileURL } from 'node:url'
+import { fileURLToPath } from 'node:url'
 import { chromium, type Browser } from 'playwright'
 import { expect, it } from 'vitest'
 import { Context } from '@deepseek-ai/cordis'
-import { SessionId, type SessionEvent } from '@deepseek-ai/dsh-session'
+import { entryListSchema } from '@deepseek-ai/cordis-plugin-include'
+import yaml from 'js-yaml'
+import { resolveExampleLaunch } from '@deepseek-ai/dsh-loader-smoke'
+import { SESSION_FORMAT_VERSION, SessionId, type SessionEvent } from '@deepseek-ai/dsh-session'
 import * as JsonlSessionPersistence from '@deepseek-ai/dsh-session-persistence-jsonl'
-import { captureExpectedWorkspaceSnapshot, captureWorkspaceSnapshot, normalizeSessionSnapshots } from '@deepseek-ai/dsh-session-snapshot'
-import { fixtureUserPrompts, normalizeWebSessionVolatiles, selectedSessionFixture } from './scaffold.ts'
+import { captureExpectedWorkspaceSnapshot, captureWorkspaceSnapshot, normalizeSessionSnapshots, parseSnapshotManifest, writesCurrentSessionFixtures } from '@deepseek-ai/dsh-session-snapshot'
+import { fixtureUserPrompts, isolatedStandardPresetPatch, normalizeWebSessionVolatiles, recordedSessionFixturePath, selectedSessionFixture, stableWebSessionFixture, webSnapshotMode } from './scaffold.ts'
 import { connectFreshWorkspace, REPO_ROOT, writeComposerDraft } from './support.ts'
 
 const scenario = fileURLToPath(new URL('../../../snapshots/web/tool-reused-id', import.meta.url))
@@ -37,20 +39,19 @@ it.skipIf(process.env.DSH_SNAPSHOT === 'record').each([
   const workspace = join(root, 'workspace')
   await mkdir(workspace)
   const patch = join(root, 'scenario.patch.yml')
-  await writeFile(patch, JSON.stringify([
+  await writeFile(patch, yaml.dump([
     { id: 'webserver', config: { host: '127.0.0.1', port: 0 } },
     { id: 'web-runtime', config: { openBrowser: false, printUrl: false, surfaceContext: true } },
     { id: 'llm-deepseek', disabled: true },
+    { id: 'llm-deepseek-account', disabled: true },
     { id: 'agent-default-model', config: { provider: 'deepseek-official', model: 'deepseek-v4-flash' } },
-    { id: 'agent-instructions', disabled: true },
+    isolatedStandardPresetPatch(root),
     { id: 'session-title-llm', disabled: true },
     { id: 'session-telemetry-otel', disabled: true },
+    { id: 'session-log-deepseek', config: { enabled: false } },
     { id: 'open-in-app', disabled: true },
     { id: 'ui-open-in-app', disabled: true },
-    { id: 'agent-presets', config: { default: 'standard', includeUserRoot: false } },
-    { id: 'skill-filesystem', config: {
-      dshHome: join(root, 'skills'), agentsHome: join(root, 'agents'), bundledSkillDir: join(root, 'bundled'), watch: false,
-    } },
+    { id: 'agent-preset-registry', config: { default: 'standard' } },
     { id: 'directory-picker', disabled: true },
     { insert: [
       { id: 'replay-picker', name: '@deepseek-ai/dsh-host-directory-picker-browse' },
@@ -58,15 +59,18 @@ it.skipIf(process.env.DSH_SNAPSHOT === 'record').each([
       { id: 'tool-replay-fixture', name: new URL('./tool-reused-id.fixture.ts', import.meta.url).href,
         config: { file: fixture, browserApproval: loss !== 'none', finalTurn: 4 } },
     ] },
-  ]))
-  const child = spawn(process.execPath, [
-    '--import', pathToFileURL(createRequire(import.meta.url).resolve('tsx/esm')).href,
-    join(REPO_ROOT, 'apps/cli/src/bin.ts'), '--profile', 'web', '--patch', patch,
-  ], {
-    cwd: workspace, stdio: ['ignore', 'pipe', 'pipe', 'ipc'], windowsHide: true,
-    env: { ...process.env, DSH_HOME: home, DEEPSEEK_API_KEY: '', DEEPSEEK_BASE_URL: '',
+  ], { schema: entryListSchema }))
+  const launch = resolveExampleLaunch({
+    srcBin: join(REPO_ROOT, 'apps/cli/src/bin.ts'),
+    sourceImport: 'tsx/esm', tsconfigPath: join(REPO_ROOT, 'tsconfig.json'),
+    configArgs: ['--profile', 'web', '--patch', patch],
+    env: { DSH_HOME: home, DEEPSEEK_API_KEY: '', DEEPSEEK_BASE_URL: '',
       DSH_AGENTS_HOME: join(root, 'agents'), DSH_BUNDLED_SKILL_DIR: join(root, 'bundled'),
-      NODE_OPTIONS: '', TSX_TSCONFIG_PATH: join(REPO_ROOT, 'tsconfig.json') },
+      NODE_OPTIONS: '' },
+  })
+  const child = spawn(launch.command, launch.args, {
+    cwd: workspace, stdio: ['ignore', 'pipe', 'pipe', 'ipc'], windowsHide: true,
+    env: { ...process.env, ...launch.env },
   })
   const messages: HostMessage[] = []
   const failures: unknown[] = []
@@ -83,12 +87,18 @@ it.skipIf(process.env.DSH_SNAPSHOT === 'record').each([
   const reloadReplyReady = Promise.withResolvers<undefined>()
   const releaseReply = Promise.withResolvers<undefined>()
   try {
-    await expect.poll(() => messages.some(message => message.kind === 'ready'), { timeout: 60_000 }).toBe(true)
+    await expect.poll(() => {
+      if (child.exitCode !== null || child.signalCode !== null) throw new Error(`Web Host exited before readiness: ${output}`)
+      const failure = messages.find(message => message.kind === 'failure')
+      if (failure !== undefined) throw new Error(failure.error)
+      return messages.some(message => message.kind === 'ready')
+    }, { timeout: 60_000 }).toBe(true)
     const executablePath = process.env.DSH_PLAYWRIGHT_EXECUTABLE_PATH
     browser = await chromium.launch(executablePath === undefined ? {} : { executablePath })
     const page = await browser.newPage({ viewport: { width: 1440, height: 1000 }, locale: 'en-US' })
-    const replies: { clientId: string; eventId: string; interactionRevision: number; outcome: unknown }[] = []
-    const readyFrames: { clientId: string; pendingInteractionIds: string[] }[] = []
+    const replies: { clientId: string; eventId: string; outcome: unknown }[] = []
+    const readyFrames: { clientId: string }[] = []
+    const deliveries: { clientId: string; eventId: string }[] = []
     let approvalClicks = 0
     if (loss !== 'none') {
       await page.routeWebSocket('**/api/remote.mux', (socket) => {
@@ -96,9 +106,12 @@ it.skipIf(process.env.DSH_SNAPSHOT === 'record').each([
         server.onMessage((message) => {
           const frame = JSON.parse(message.toString()) as {
             type?: string
-            value?: { type?: string; clientId: string; pendingInteractionIds: string[] }
+            value?: { type?: string; clientId: string; eventId: string }
           }
           if (frame.type === 'item' && frame.value?.type === 'ready') readyFrames.push(frame.value)
+          if (frame.type === 'item' && frame.value?.type === 'waterfall') {
+            deliveries.push({ clientId: readyFrames.at(-1)!.clientId, eventId: frame.value.eventId })
+          }
           socket.send(message)
         })
       })
@@ -123,8 +136,17 @@ it.skipIf(process.env.DSH_SNAPSHOT === 'record').each([
       if (message.text().includes('received more than one start Match')) failures.push(new Error(message.text()))
     })
     await page.goto(messages.find(message => message.kind === 'ready')!.url!, { waitUntil: 'load' })
+    const catalogResponse = await page.request.post(new URL('/api/tools/list', page.url()).href, { data: {
+      type: 'client-request', rpcId: 'recorded-tool-catalog', method: 'tools/list', payload: { args: {} },
+    } })
+    const catalogBody: unknown = await catalogResponse.json()
+    const expectedCatalogTools: unknown = expect.arrayContaining([
+      { id: 'write', version: 1, risk: 'moderate', permissions: [], supportsLite: false, supportsRemote: true },
+      { id: 'web_search', version: 1, risk: 'moderate', permissions: [], supportsLite: true, supportsRemote: true },
+    ])
+    expect(catalogBody, JSON.stringify(catalogBody)).toMatchObject({ result: { ok: true, value: { tools: expectedCatalogTools } } })
     await connectFreshWorkspace(page, workspace)
-    const expected = await readFile(fixture, 'utf8')
+    let expected = await readFile(fixture, 'utf8')
     const prompts = fixtureUserPrompts(expected)
     expect(prompts).toHaveLength(4)
     const presets = ['read-only', 'danger-full-access', 'workspace-write', 'read-only']
@@ -155,6 +177,13 @@ it.skipIf(process.env.DSH_SNAPSHOT === 'record').each([
             await panel.getByRole('button', { name: 'Allow once', exact: true }).click()
             approvalClicks++
           }
+        } else if (beforeHost) {
+          await expect.poll(() => readyFrames.length, { timeout: 30_000 }).toBe(2)
+          await panel.waitFor({ timeout: 30_000 })
+          expect(replies).toHaveLength(1)
+          expect(messages.some(message => message.kind === 'turn/end' && message.turn === 4)).toBe(false)
+          await panel.getByRole('button', { name: 'Allow once', exact: true }).click()
+          approvalClicks++
         }
       }
       await expect.poll(() => {
@@ -166,8 +195,10 @@ it.skipIf(process.env.DSH_SNAPSHOT === 'record').each([
     if (loss !== 'none') {
       await expect.poll(() => readyFrames.length, { timeout: 30_000 }).toBe(2)
       expect(replies).toHaveLength(beforeHost ? 2 : 1)
-      expect(approvalClicks).toBe(reload && beforeHost ? 2 : 1)
-      expect(readyFrames[1]!.pendingInteractionIds).toEqual(beforeHost ? [replies[0]!.eventId] : [])
+      expect(approvalClicks).toBe(beforeHost ? 2 : 1)
+      expect(deliveries).toEqual((beforeHost ? [0, 1] : [0]).map(index => ({
+        clientId: readyFrames[index]!.clientId, eventId: replies[0]!.eventId,
+      })))
       if (beforeHost) {
         expect(replies[1]).toEqual({ ...replies[0], clientId: replies[1]!.clientId })
         expect(replies[1]!.clientId).not.toBe(replies[0]!.clientId)
@@ -197,6 +228,12 @@ it.skipIf(process.env.DSH_SNAPSHOT === 'record').each([
     }
     if (sessionWorkspace === undefined) throw new Error('replayed Session has no workspace')
     expect(sessionWorkspace).toBe(join(workspace, 'workspace'))
+    const manifestPath = join(scenario, 'snapshot.yml')
+    const manifest = parseSnapshotManifest(await readFile(manifestPath, 'utf8'), manifestPath)
+    if (webSnapshotMode() === 'refresh' && loss === 'none' && writesCurrentSessionFixtures(manifest, 'refresh')) {
+      expected = stableWebSessionFixture(actual, SessionId(sessionId), expected, sessionWorkspace, home)
+      await writeFile(recordedSessionFixturePath(fixture, SESSION_FORMAT_VERSION), expected)
+    }
     const normalizedActual = normalizeSessionSnapshots(
       [normalizeWebSessionVolatiles(actual)], { sessionIds: [sessionId], cwd: sessionWorkspace },
     )[0]
@@ -218,6 +255,9 @@ it.skipIf(process.env.DSH_SNAPSHOT === 'record').each([
       const processToggle = page.locator('[data-turn-process="4"][aria-expanded="false"]')
       if (await processToggle.count() > 0) await processToggle.click()
       const tool = page.locator('[data-chat-flow-kind="tool-call"] [data-tool="write"]').nth(step - 1)
+      const group = tool.locator('xpath=ancestor::*[@data-chat-group-key][1]')
+      const groupToggle = group.locator('button[data-process-activity][aria-expanded="false"]')
+      if (await groupToggle.count() > 0) await groupToggle.click()
       const collapsed = tool.locator('[aria-expanded="false"]')
       if (await collapsed.count() > 0) await collapsed.first().click()
       await tool.getByRole('button', { name: 'Inspect', exact: true }).click()

@@ -33,7 +33,7 @@ import type {
 import type {
   AssistantMetricDetail, TrajectoryCellKind, TrajectoryCellProps, TrajectorySourceBlock,
 } from './trajectory-record.ts'
-import { formatElapsedSeconds, trajectoryRecordId } from './trajectory-record.ts'
+import { formatElapsedSeconds, trajectoryCallFocus, trajectoryRecordId } from './trajectory-record.ts'
 import {
   groupTrajectoryVirtualRows, trajectoryVirtualRecordKey,
 } from './trajectory-virtual-rows.ts'
@@ -2441,7 +2441,10 @@ export function TrajectoryTable({
   }
 
   const openCallSummary = (callId: string) => {
-    const target = allRecords.find(record => record.cell.callId === callId)
+    const location = selected?.cell.callLocation
+    if (location === undefined) return
+    const target = allRecords.find(record => record.cell.callId === callId
+      && record.cell.callLocation?.turn === location.turn && record.cell.callLocation.step === location.step)
     if (target !== undefined) openRecordSummary(target)
   }
 
@@ -2453,7 +2456,9 @@ export function TrajectoryTable({
   openRecordSummaryRef.current = openRecordSummary
   useEffect(() => {
     if (inspectCallId === null) return
-    const target = flattenRecords(turns).find(record => record.cell.callId === inspectCallId)
+    const target = flattenRecords(turns).find(record => record.cell.callId !== undefined
+      && record.cell.callLocation !== undefined
+      && trajectoryCallFocus(record.cell.callId, record.cell.callLocation) === inspectCallId)
     if (target === undefined) return
     openRecordSummaryRef.current(target)
     pendingScrollRecordId.current = trajectoryRecordId(target.cell)

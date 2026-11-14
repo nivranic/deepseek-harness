@@ -172,6 +172,103 @@ function fallbackDefinition(start: () => string): ConversationNodeDefinition<str
 }
 
 describe('ConversationNodeAssembler', () => {
+  describe('Step-local identities', () => {
+    const definition: ConversationNodeDefinition<readonly number[]> = {
+      kind: 'step-local',
+      identityScope: 'step',
+      target: 'test',
+      match: event => event.type === 'tool/call' || event.type === 'tool/ptc-dispatch'
+        ? { id: 'reused', role: event.type === 'tool/call' ? 'start' : 'update' }
+        : null,
+      start: (_context, match) => [match.event.seq],
+      update: (context, match) => [...context.state, match.event.seq],
+      buildViewNode: context => node(context, {
+        id: context.id,
+        seqs: context.matches.map(match => match.event.seq),
+        locations: context.matches.map(match => match.location.kind === 'step'
+          ? [match.location.turn.turn, match.location.step.step] : match.location.kind),
+      }),
+    }
+    const create = () => new ConversationNodeAssembler(
+      new TestEventDefinitions([definition]), new TestViewDefinitions([testView()]),
+    )
+    const event = (seq: number, type: string, data: unknown = {}) => input(at(SessionSeq(seq), type, data))
+    const values = (assembler: ConversationNodeAssembler) => [...testSnapshot(assembler)?.nodes.values() ?? []]
+      .sort((left, right) => left.id.localeCompare(right.id))
+      .map(value => value.data)
+
+    it('keeps repeated ids separate across Steps and Turns through replace, append and prepend', () => {
+      const events = [
+        event(1, 'turn/start', { turn: 1 }),
+        event(2, 'step/start', { turn: 1, step: 1 }),
+        event(3, 'tool/call', { turn: 1, step: 1 }),
+        event(4, 'tool/ptc-dispatch'),
+        event(5, 'step/end', { turn: 1, step: 1 }),
+        event(6, 'step/start', { turn: 1, step: 2 }),
+        event(7, 'tool/call', { turn: 1, step: 2 }),
+        event(8, 'tool/ptc-dispatch'),
+        event(9, 'step/end', { turn: 1, step: 2 }),
+        event(10, 'turn/end', { turn: 1 }),
+        event(11, 'turn/start', { turn: 2 }),
+        event(12, 'step/start', { turn: 2, step: 1 }),
+        event(13, 'tool/call', { turn: 2, step: 1 }),
+      ]
+      const expected = [
+        { id: '[1,1,"reused"]', seqs: [3, 4], locations: [[1, 1], [1, 1]] },
+        { id: '[1,2,"reused"]', seqs: [7, 8], locations: [[1, 2], [1, 2]] },
+        { id: '[2,1,"reused"]', seqs: [13], locations: [[2, 1]] },
+      ]
+      for (const mode of ['replace', 'append', 'prepend'] as const) {
+        const assembler = create()
+        if (mode === 'replace') assembler.replaceWindow(events, false)
+        if (mode === 'append') {
+          assembler.replaceWindow([], false)
+          for (const entry of events) assembler.append(entry)
+        }
+        if (mode === 'prepend') {
+          assembler.replaceWindow(events.slice(7), true)
+          assembler.prepend(events.slice(0, 7), false)
+        }
+        assembler.flush()
+        expect(values(assembler), mode).toEqual(expected)
+      }
+    })
+
+    it('defers an unlocated prefix until a closing boundary supplies its Step', () => {
+      const assembler = create()
+      assembler.replaceWindow([event(4, 'tool/ptc-dispatch')], true)
+      assembler.flush()
+      expect(values(assembler)).toEqual([])
+      assembler.append(event(5, 'step/end', { turn: 1, step: 1 }))
+      assembler.flush()
+      expect(values(assembler)).toEqual([
+        { id: '[1,1,"reused"]', seqs: [4], locations: [[1, 1]] },
+      ])
+      assembler.prepend([event(3, 'tool/call', { turn: 1, step: 1 })], false)
+      assembler.flush()
+      expect(values(assembler)).toEqual([
+        { id: '[1,1,"reused"]', seqs: [3, 4], locations: [[1, 1], [1, 1]] },
+      ])
+    })
+
+    it.each([
+      ['step/start', { turn: 1, step: 2 }],
+      ['turn/start', { turn: 2 }],
+      ['turn/end', { turn: 1 }],
+      ['session/marker', { turn: null }],
+    ])('does not locate an earlier prefix across %s', (type, data) => {
+      const assembler = create()
+      assembler.replaceWindow([
+        event(4, 'tool/ptc-dispatch'), event(5, type, data),
+        event(6, 'tool/call', { turn: 2, step: 2 }),
+      ], true)
+      assembler.flush()
+      expect(values(assembler)).toEqual([
+        { id: '[2,2,"reused"]', seqs: [6], locations: [[2, 2]] },
+      ])
+    })
+  })
+
   it('indexes each appended input once and schedules each Context once per flush', () => {
     const updates = vi.fn()
     const definitions: ConversationNodeDefinition<{ count: number }>[] = ['copy', 'mutable'].map(kind => ({

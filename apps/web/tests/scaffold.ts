@@ -33,8 +33,8 @@ import { expect } from 'vitest'
 import { captureFixtureHomePaths, realizeFixtureHomePaths } from './fixture-home-paths.ts'
 import { Context } from '@deepseek-ai/cordis'
 import { DSH_LAUNCH_ENVIRONMENT_KEY, type LaunchEnvironmentSnapshot } from '@deepseek-ai/dsh-launch-environment'
-import Loader from '@deepseek-ai/cordis-plugin-loader'
-import { entryListSchema, type PatchOptions } from '@deepseek-ai/cordis-plugin-include'
+import Loader, { type EntryOptions } from '@deepseek-ai/cordis-plugin-loader'
+import { applyEntryPatches, entryListSchema, type PatchOptions } from '@deepseek-ai/cordis-plugin-include'
 import yaml from 'js-yaml'
 import {
   captureExpectedWorkspaceSnapshot,
@@ -101,6 +101,27 @@ let builtAppBoot: AppBoot | undefined
 function appBoot(): AppBoot {
   builtAppBoot ??= requireBuilt('@deepseek-ai/dsh-app-boot') as AppBoot
   return builtAppBoot
+}
+
+/**
+ * Isolate the shipped standard preset's instruction and skill inputs for recorded subprocess replays.
+ * @param root - Scenario-owned temporary root for filesystem skill discovery.
+ * @returns A preset declaration override preserving the shipped plugin entries and Loader expressions.
+ */
+export function isolatedStandardPresetPatch(root: string): PatchOptions {
+  const { composeEntries, loadOverlayPatches } = appBoot()
+  const file = join(REPO_ROOT, 'packages/bundle/web-app/presets/standard.patch.yml')
+  const entries = composeEntries([loadOverlayPatches('Web snapshot', file)])
+  const config = entries.find(entry => entry.id === 'preset-standard')?.config as { plugins: EntryOptions[] } | undefined
+  if (config === undefined) throw new Error('Web snapshot requires the shipped standard preset')
+  const plugins = applyEntryPatches(config.plugins, [
+    { id: 'agent-instructions', disabled: true },
+    { id: 'tool-skill', disabled: true },
+    { id: 'skill-filesystem', config: {
+      dshHome: join(root, 'skills'), agentsHome: join(root, 'agents'), bundledSkillDir: join(root, 'bundled'), watch: false,
+    } },
+  ], (message) => { throw new Error(message) })
+  return { id: 'preset-standard', config: { ...config, plugins } }
 }
 
 // Host-side web e2e cannot import a browser package: doing so would pull that
@@ -1174,23 +1195,33 @@ export function normalizeWebSessionVolatiles(log: string, workspaceCwd?: string)
   }).join('\n')
 }
 
-function stableSessionFixture(
-  session: Session,
+/**
+ * Stabilize a complete Web Session for versioned fixture write-back.
+ * @param log - Persisted or live Session JSONL, including its header.
+ * @param sessionId - Runtime Session identity.
+ * @param existing - Selected prior generation used to preserve stable identities.
+ * @param workspaceCwd - Session workspace path.
+ * @param harnessHome - Isolated home whose paths become fixture tokens.
+ * @returns current-format fixture text without volatile paths or opaque identities.
+ */
+export function stableWebSessionFixture(
+  log: string,
+  sessionId: SessionId,
   existing: string,
   workspaceCwd: string,
   harnessHome: string,
 ): string {
   const prepared = prepareSessionSnapshotFixtureForComparison(
-    captureFixtureHomePaths(normalizeWebSessionVolatiles(rawSessionLog(session), workspaceCwd), harnessHome),
+    captureFixtureHomePaths(normalizeWebSessionVolatiles(log, workspaceCwd), harnessHome),
   )
   const stabilized = existing === ''
     ? prepared
     : stabilizeRefreshLog(prepared, existing, [], {
-      sessionIds: [String(session.id)],
+      sessionIds: [String(sessionId)],
       cwd: workspaceCwd,
     })
   const fresh = scrubSessionSnapshot(stabilized)
-    .split(session.id).join('{{session:1}}')
+    .split(sessionId).join('{{session:1}}')
   const stable = redactSessionSnapshotIds(stabilizeFixtureMessageIds([fresh], [existing]))[0]
   if (stable === undefined) throw new Error('session harvest produced no stabilized fixture')
   return stable
@@ -1224,7 +1255,7 @@ async function assertReplaySession(
   if (sessionCwd === undefined) throw new Error(`${fixturePath}: replayed session has no cwd`)
   const actual = rawSessionLog(session)
   if (mode === 'refresh' && writesCurrentSessionFixtures(manifest, mode)) {
-    expected = stableSessionFixture(session, expected, sessionCwd, harnessHome)
+    expected = stableWebSessionFixture(actual, session.id, expected, sessionCwd, harnessHome)
     expectedPath = recordedSessionFixturePath(fixturePath, session.header.version)
     await writeFile(expectedPath, expected)
   }
@@ -1279,8 +1310,9 @@ export async function recordFixture(scaffold: WebScaffold, sessionId: SessionId,
   const target = recordedSessionFixturePath(fixturePath, agent.session.header.version)
   const existingPath = existsSync(target) ? target : fixturePath
   const existing = existsSync(existingPath) ? await readFile(existingPath, 'utf8') : ''
-  await writeFile(target, stableSessionFixture(
-    agent.session,
+  await writeFile(target, stableWebSessionFixture(
+    rawSessionLog(agent.session),
+    agent.session.id,
     existing,
     scaffold.workspaceCwd,
     scaffold.harnessHome,

@@ -1508,6 +1508,9 @@ describe('TrajectoryView state', () => {
       }],
     }, 'hidden-child'],
   ])('reveals a hidden resident %s call for cross-view inspection', (_kind, target, focus) => {
+    const data = { get: () => undefined, source: () => ({ getSnapshot: () => undefined, subscribe: () => () => {} }) }
+    const step = { turn: 1, step: 1, start: undefined, end: undefined, status: 'closed' as const, data }
+    const turn = { turn: 1, start: undefined, end: undefined, status: 'closed' as const, steps: [step], data }
     const nodes: LegacyConversationSlice['nodes'] = [
       { kind: 'user', seq: 1, time: 1, content: [], source: null },
       {
@@ -1528,9 +1531,11 @@ describe('TrajectoryView state', () => {
     render(
       <TrajectoryView
         {...standaloneProps([])}
-        {...standaloneHistory(historySnapshot(nodes))}
+        {...standaloneHistory(historySnapshot(nodes, {
+          eventLocations: new Map([[target.seq, { kind: 'step', turn, step }]]),
+        }))}
         {...standaloneDuration()}
-        viewRequest={{ view: 'trajectory', focus }}
+        viewRequest={{ view: 'trajectory', focus: JSON.stringify([1, 1, focus]) }}
         completeViewRequest={completeViewRequest}
       />,
     )

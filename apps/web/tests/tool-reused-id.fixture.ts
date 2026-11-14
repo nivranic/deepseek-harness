@@ -35,7 +35,9 @@ export function apply(ctx: Context, config: Config): void {
   if (!config.browserApproval) ctx.on('approval/request', () => Promise.resolve('allowed-once'), { prepend: true })
   ctx.on('session/event', (session, event) => {
     if (event.type !== 'turn/end') return
-    void ctx.agents.get(session.id)!.whenIdle().then(async () => {
+    const agent = ctx.agents.get(session.id)
+    if (agent === undefined) throw new Error('Replay turn ended without a live Agent')
+    void agent.whenIdle().then(async () => {
       await ctx.sessions.flush(session)
       if (event.data.turn === config.finalTurn) replay.assertConsumed()
       process.send?.({ kind: 'turn/end', turn: event.data.turn, sessionId: session.id })
@@ -44,8 +46,10 @@ export function apply(ctx: Context, config: Config): void {
     })
   })
   void ctx.loader.await().then(async () => {
-    await ctx.settings.mutate('ui-onboarding', [{ op: 'set', path: ['welcomeNoticeVersion'], value: '2026-08-13.1' }])
+    await ctx.settings.mutate('ui-settings-general', [{ op: 'set', path: ['welcomeNoticeVersion'], value: '2026-09-28.1' }])
     // Credential-bearing startup URLs stay on the parent's private IPC channel.
     process.send?.({ kind: 'ready', url: ctx.connection.authenticatedUrl(`http://127.0.0.1:${ctx.webServer.port}`) })
+  }).catch((error: unknown) => {
+    process.send?.({ kind: 'failure', error: String(error) })
   })
 }
