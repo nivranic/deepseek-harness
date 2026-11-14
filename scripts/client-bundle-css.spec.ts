@@ -197,6 +197,25 @@ async function loadImport(plugin: BundlePlugin, context: PluginContext, source: 
 }
 
 describe('client bundle CSS Modules', () => {
+  it.each([
+    ['dsh-css-modules-inline', 'Fixture.module.css', './Fixture.module.css'],
+    ['dsh-css-global-inline', 'theme.css', './theme.css'],
+    ['dsh-css-text-inline', 'theme.css', './theme.css?inline'],
+  ] as const)('loads source CSS through %s despite emitted output residue', async (name, file, specifier) => {
+    const root = await assetPackage({
+      [`src/client/${file}`]: '.fresh { color: red; }',
+      [`lib/types/client/${file}`]: '.stale { color: blue; }',
+    })
+    const context = recordingContext()
+
+    const output = await loadImport(browserPlugins(root)(name), context, specifier, join(root, 'lib/types/client/index.js'))
+
+    expect(context.watched).toEqual([join(root, 'src/client', file)])
+    const css = stylesheetText(output, reference => reference)
+    expect(css).toContain('color:red')
+    expect(css).not.toContain('color:blue')
+  })
+
   it('registers the source stylesheet as a watch dependency', async () => {
     const root = await assetPackage({})
     const stylesheet = join(root, 'Fixture.module.css')
@@ -249,7 +268,10 @@ describe('client bundle global CSS', () => {
 
 describe('client bundle package asset imports', () => {
   it('emits an imported asset once per build and exports its revisioned URL', async () => {
-    const root = await assetPackage({ 'src/client/assets/icons/whale@2x.png': WHALE })
+    const root = await assetPackage({
+      'src/client/assets/icons/whale@2x.png': WHALE,
+      'lib/types/client/assets/icons/whale@2x.png': Uint8Array.of(0),
+    })
     const plugin = browserPlugins(root)('dsh-package-asset')
     const { resolveId, load } = hooks(plugin)
     const asset = join(root, 'src/client/assets/icons/whale@2x.png')

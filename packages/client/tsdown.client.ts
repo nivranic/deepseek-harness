@@ -1254,11 +1254,10 @@ const SOURCE_MARKER = `${sep}src${sep}`
 /** Trailing sourcemap reference tsc appends to every emitted module. */
 const SOURCEMAP_COMMENT = /\n\/\/# sourceMappingURL=.*\s*$/
 
-/** Resolve an emitted JS asset import against its source-tree counterpart. */
+/** Assets imported from lib/types resolve to the corresponding source-tree path. */
 function sourceAssetPath(source: string, importer: string): string {
   if (!source.startsWith('.') && !isAbsolute(source)) return createRequire(importer).resolve(source)
   const emitted = resolvePath(dirname(importer), source)
-  if (existsSync(emitted)) return emitted
   const boundary = emitted.indexOf(TYPES_MARKER)
   if (boundary < 0) return emitted
   return resolvePath(emitted.slice(0, boundary), 'src', emitted.slice(boundary + TYPES_MARKER.length))
