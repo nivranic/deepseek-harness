@@ -1,0 +1,2302 @@
+{
+  "formatVersion": 1,
+  "status": "IN_PROGRESS",
+  "capturedAt": "2026-10-31T04:30:30.782Z",
+  "candidateRef": "refs/heads/dev",
+  "upstreamRef": "refs/remotes/audit-upstream/master",
+  "sourceIdentityEvidence": ".artifacts/upstream-first-review/baseline.json",
+  "classifications": [
+    "Adopt",
+    "Adapt",
+    "Keep",
+    "Migrate",
+    "Delete",
+    "Experimental"
+  ],
+  "capabilities": [
+    {
+      "name": "Official Desktop ownership and build ordering",
+      "classification": "Adopt",
+      "status": "IN_PROGRESS",
+      "owners": ["apps/desktop", "apps/desktop-host", "tsdown.config.ts"],
+      "evidence": "UPSTREAM_DELTA.md",
+      "remaining": "Restore the upstream sequential Desktop bundle position and verify the built application; no modification to official app source is required for the identified workspace-order regression."
+    },
+    {
+      "name": "Personal Desktop distribution",
+      "classification": "Adapt",
+      "status": "IN_PROGRESS",
+      "owners": ["apps/desktop-user", "scripts/build-desktop-exe.ts", "scripts/build-desktop-release.ts"],
+      "evidence": "ARCHITECTURE_DECISIONS.md",
+      "remaining": "Keep the approved thin shell, isolate home/product/process/install identities, preserve existing shared data, and verify both assembled entry paths."
+    },
+    {
+      "name": "Encrypted paired-device carrier",
+      "classification": "Adapt",
+      "status": "IN_PROGRESS",
+      "owners": ["packages/remote/link-access", "packages/remote/link-client", "packages/api/link-controller"],
+      "evidence": "SECURITY_STATUS.md",
+      "remaining": "Preserve official Typert dispatch and local Web fences; complete negotiation, permission, replay and native pin enforcement."
+    },
+    {
+      "name": "Device Trust",
+      "classification": "Adapt",
+      "status": "IN_PROGRESS",
+      "owners": ["packages/remote/device-trust", "packages/remote/link-settings"],
+      "evidence": "SECURITY_STATUS.md",
+      "remaining": "Retain durable one-time pairing and exact-once revocation notification; reconcile role policy and verify re-key, reinstall and in-flight races."
+    },
+    {
+      "name": "Native companion contract projections",
+      "classification": "Adapt",
+      "status": "IN_PROGRESS",
+      "owners": ["packages/remote/link-contracts", "apps/apple", "apps/android"],
+      "evidence": "COMPATIBILITY_MATRIX.md",
+      "remaining": "Keep generated models tied to authoritative Host events; current fold checks do not establish version negotiation, Swift compilation or device acceptance."
+    },
+    {
+      "name": "Phone layout and Client loading",
+      "classification": "Adopt",
+      "status": "IN_PROGRESS",
+      "owners": ["packages/client/ui-layout", "packages/client/connection", "packages/client/modules"],
+      "evidence": "UPSTREAM_DELTA.md",
+      "remaining": "Adopt complete official drawer/module-runtime changes with their consumers; verify specified viewport, focus, input and network states."
+    },
+    {
+      "name": "Snapshot execution handoff",
+      "classification": "Migrate",
+      "status": "FAIL",
+      "owners": ["packages/api/session-controller", "apps/apple", "apps/android"],
+      "evidence": "UPSTREAM_DELTA.md",
+      "remaining": "Separate an explicitly authorized Lite-to-Full import/execution operation from view-only handoff; preserve original Host/Session/revision for ordinary view transfer and define idempotent admission."
+    },
+    {
+      "name": "Smoke-only overlay suppression",
+      "classification": "Delete",
+      "status": "IN_PROGRESS",
+      "owners": ["packages/client/web"],
+      "evidence": ".artifacts/upstream-first-review/smoke-overlays-after.log",
+      "remaining": "The global suppression is removed and all 13 boot tests pass; real browser and installed Desktop evidence remains open."
+    },
+    {
+      "name": "Shared Host Session and credential authority",
+      "classification": "Keep",
+      "status": "IN_PROGRESS",
+      "owners": ["packages/core/session", "packages/session", "packages/settings", "packages/credentials"],
+      "evidence": "UPSTREAM_DELTA.md",
+      "remaining": "Do not introduce a second Session parser or credential schema; adopt official fiber-policy changes with Cordis and resolve the credential shutdown finding with deterministic evidence."
+    },
+    {
+      "name": "Full Mobile Host and runtime migration",
+      "classification": "Experimental",
+      "status": "DEFERRED",
+      "owners": ["apps/apple", "apps/android"],
+      "evidence": "IMPLEMENTATION_STATUS.md",
+      "remaining": "Do not present full runtime migration or Full Mobile execution as accepted Companion/Lite behavior."
+    }
+  ],
+  "ownershipReviewPolicy": "Capability dispositions are current review decisions, not acceptance. Every unreviewed path owner below remains open; a disposition does not imply sourceReviewComplete or Gate 0 PASS.",
+  "owners": [
+    {
+      "owner": ".agents/notes",
+      "classification": null,
+      "status": "IN_PROGRESS",
+      "sourceReviewComplete": false,
+      "changedPaths": [
+        ".agents/notes/implemented/architecture/2026-08-17-desktop-surface-electron-scheme-bridge.i18n.yaml",
+        ".agents/notes/implemented/architecture/2026-08-17-desktop-surface-electron-scheme-bridge.md",
+        ".agents/notes/implemented/architecture/2026-08-17-desktop-surface-electron-scheme-bridge.zh.md",
+        ".agents/notes/implemented/architecture/2026-08-20-desktop-close-tray-preference.i18n.yaml",
+        ".agents/notes/implemented/architecture/2026-08-20-desktop-close-tray-preference.md",
+        ".agents/notes/implemented/architecture/2026-08-20-desktop-close-tray-preference.zh.md",
+        ".agents/notes/implemented/architecture/2026-08-30-android-compose-app.i18n.yaml",
+        ".agents/notes/implemented/architecture/2026-08-30-android-compose-app.md",
+        ".agents/notes/implemented/architecture/2026-08-30-android-compose-app.zh.md",
+        ".agents/notes/implemented/architecture/2026-08-30-android-kotlin-skeleton.i18n.yaml",
+        ".agents/notes/implemented/architecture/2026-08-30-android-kotlin-skeleton.md",
+        ".agents/notes/implemented/architecture/2026-08-30-android-kotlin-skeleton.zh.md",
+        ".agents/notes/implemented/architecture/2026-08-30-android-wire-client.i18n.yaml",
+        ".agents/notes/implemented/architecture/2026-08-30-android-wire-client.md",
+        ".agents/notes/implemented/architecture/2026-08-30-android-wire-client.zh.md",
+        ".agents/notes/implemented/architecture/2026-08-30-carrier-session-slice-e2e.i18n.yaml",
+        ".agents/notes/implemented/architecture/2026-08-30-carrier-session-slice-e2e.md",
+        ".agents/notes/implemented/architecture/2026-08-30-carrier-session-slice-e2e.zh.md",
+        ".agents/notes/implemented/architecture/2026-08-30-companion-files-view.i18n.yaml",
+        ".agents/notes/implemented/architecture/2026-08-30-companion-files-view.md",
+        ".agents/notes/implemented/architecture/2026-08-30-companion-files-view.zh.md",
+        ".agents/notes/implemented/architecture/2026-08-30-companion-subagent-surface.i18n.yaml",
+        ".agents/notes/implemented/architecture/2026-08-30-companion-subagent-surface.md",
+        ".agents/notes/implemented/architecture/2026-08-30-companion-subagent-surface.zh.md",
+        ".agents/notes/implemented/architecture/2026-08-30-companion-tool-trajectory.i18n.yaml",
+        ".agents/notes/implemented/architecture/2026-08-30-companion-tool-trajectory.md",
+        ".agents/notes/implemented/architecture/2026-08-30-companion-tool-trajectory.zh.md",
+        ".agents/notes/implemented/architecture/2026-08-30-companion-ui-layer.i18n.yaml",
+        ".agents/notes/implemented/architecture/2026-08-30-companion-ui-layer.md",
+        ".agents/notes/implemented/architecture/2026-08-30-companion-ui-layer.zh.md",
+        ".agents/notes/implemented/architecture/2026-08-30-domain-state-conformance.i18n.yaml",
+        ".agents/notes/implemented/architecture/2026-08-30-domain-state-conformance.md",
+        ".agents/notes/implemented/architecture/2026-08-30-domain-state-conformance.zh.md",
+        ".agents/notes/implemented/architecture/2026-08-30-fold-structured-image-refs.i18n.yaml",
+        ".agents/notes/implemented/architecture/2026-08-30-fold-structured-image-refs.md",
+        ".agents/notes/implemented/architecture/2026-08-30-fold-structured-image-refs.zh.md",
+        ".agents/notes/implemented/architecture/2026-08-30-link-attachment-surface.i18n.yaml",
+        ".agents/notes/implemented/architecture/2026-08-30-link-attachment-surface.md",
+        ".agents/notes/implemented/architecture/2026-08-30-link-attachment-surface.zh.md",
+        ".agents/notes/implemented/architecture/2026-08-30-lite-behavior-spec.i18n.yaml",
+        ".agents/notes/implemented/architecture/2026-08-30-lite-behavior-spec.md",
+        ".agents/notes/implemented/architecture/2026-08-30-lite-behavior-spec.zh.md",
+        ".agents/notes/implemented/architecture/2026-08-30-lite-chat-ui-skeleton.i18n.yaml",
+        ".agents/notes/implemented/architecture/2026-08-30-lite-chat-ui-skeleton.md",
+        ".agents/notes/implemented/architecture/2026-08-30-lite-chat-ui-skeleton.zh.md",
+        ".agents/notes/implemented/architecture/2026-08-30-lite-loop-driver.i18n.yaml",
+        ".agents/notes/implemented/architecture/2026-08-30-lite-loop-driver.md",
+        ".agents/notes/implemented/architecture/2026-08-30-lite-loop-driver.zh.md",
+        ".agents/notes/implemented/architecture/2026-08-30-lite-persistence.i18n.yaml",
+        ".agents/notes/implemented/architecture/2026-08-30-lite-persistence.md",
+        ".agents/notes/implemented/architecture/2026-08-30-lite-persistence.zh.md",
+        ".agents/notes/implemented/architecture/2026-08-30-lite-provider-adapter.i18n.yaml",
+        ".agents/notes/implemented/architecture/2026-08-30-lite-provider-adapter.md",
+        ".agents/notes/implemented/architecture/2026-08-30-lite-provider-adapter.zh.md",
+        ".agents/notes/implemented/architecture/2026-08-30-lite-tool-call-assembly.i18n.yaml",
+        ".agents/notes/implemented/architecture/2026-08-30-lite-tool-call-assembly.md",
+        ".agents/notes/implemented/architecture/2026-08-30-lite-tool-call-assembly.zh.md",
+        ".agents/notes/implemented/architecture/2026-08-30-macos-swift-lane.i18n.yaml",
+        ".agents/notes/implemented/architecture/2026-08-30-macos-swift-lane.md",
+        ".agents/notes/implemented/architecture/2026-08-30-macos-swift-lane.zh.md",
+        ".agents/notes/implemented/architecture/2026-08-30-remote-host-settings-and-admin-surface.i18n.yaml",
+        ".agents/notes/implemented/architecture/2026-08-30-remote-host-settings-and-admin-surface.md",
+        ".agents/notes/implemented/architecture/2026-08-30-remote-host-settings-and-admin-surface.zh.md",
+        ".agents/notes/implemented/architecture/2026-08-30-remote-link-access-vertical-slice.i18n.yaml",
+        ".agents/notes/implemented/architecture/2026-08-30-remote-link-access-vertical-slice.md",
+        ".agents/notes/implemented/architecture/2026-08-30-remote-link-access-vertical-slice.zh.md",
+        ".agents/notes/implemented/architecture/2026-08-30-remote-phase1-client-surface-and-contracts.i18n.yaml",
+        ".agents/notes/implemented/architecture/2026-08-30-remote-phase1-client-surface-and-contracts.md",
+        ".agents/notes/implemented/architecture/2026-08-30-remote-phase1-client-surface-and-contracts.zh.md",
+        ".agents/notes/implemented/architecture/2026-08-30-session-event-link-contracts.i18n.yaml",
+        ".agents/notes/implemented/architecture/2026-08-30-session-event-link-contracts.md",
+        ".agents/notes/implemented/architecture/2026-08-30-session-event-link-contracts.zh.md",
+        ".agents/notes/implemented/architecture/2026-08-30-shared-apple-remote-core.i18n.yaml",
+        ".agents/notes/implemented/architecture/2026-08-30-shared-apple-remote-core.md",
+        ".agents/notes/implemented/architecture/2026-08-30-shared-apple-remote-core.zh.md",
+        ".agents/notes/implemented/architecture/2026-08-30-swift-lite-skeleton.i18n.yaml",
+        ".agents/notes/implemented/architecture/2026-08-30-swift-lite-skeleton.md",
+        ".agents/notes/implemented/architecture/2026-08-30-swift-lite-skeleton.zh.md",
+        ".agents/notes/implemented/architecture/2026-08-30-workspace-files-endpoints.i18n.yaml",
+        ".agents/notes/implemented/architecture/2026-08-30-workspace-files-endpoints.md",
+        ".agents/notes/implemented/architecture/2026-08-30-workspace-files-endpoints.zh.md",
+        ".agents/notes/implemented/architecture/2026-08-30-xcode-app-shells.i18n.yaml",
+        ".agents/notes/implemented/architecture/2026-08-30-xcode-app-shells.md",
+        ".agents/notes/implemented/architecture/2026-08-30-xcode-app-shells.zh.md",
+        ".agents/notes/implemented/architecture/2026-08-31-android-apple-artifact-pane.i18n.yaml",
+        ".agents/notes/implemented/architecture/2026-08-31-android-apple-artifact-pane.md",
+        ".agents/notes/implemented/architecture/2026-08-31-android-apple-artifact-pane.zh.md",
+        ".agents/notes/implemented/architecture/2026-08-31-android-apple-diff-viewer.i18n.yaml",
+        ".agents/notes/implemented/architecture/2026-08-31-android-apple-diff-viewer.md",
+        ".agents/notes/implemented/architecture/2026-08-31-android-apple-diff-viewer.zh.md",
+        ".agents/notes/implemented/architecture/2026-08-31-android-apple-push-chain.i18n.yaml",
+        ".agents/notes/implemented/architecture/2026-08-31-android-apple-push-chain.md",
+        ".agents/notes/implemented/architecture/2026-08-31-android-apple-push-chain.zh.md",
+        ".agents/notes/implemented/architecture/2026-08-31-android-file-viewer.i18n.yaml",
+        ".agents/notes/implemented/architecture/2026-08-31-android-file-viewer.md",
+        ".agents/notes/implemented/architecture/2026-08-31-android-file-viewer.zh.md",
+        ".agents/notes/implemented/architecture/2026-08-31-android-keystore-seal.i18n.yaml",
+        ".agents/notes/implemented/architecture/2026-08-31-android-keystore-seal.md",
+        ".agents/notes/implemented/architecture/2026-08-31-android-keystore-seal.zh.md",
+        ".agents/notes/implemented/architecture/2026-08-31-android-lite-chat-surface.i18n.yaml",
+        ".agents/notes/implemented/architecture/2026-08-31-android-lite-chat-surface.md",
+        ".agents/notes/implemented/architecture/2026-08-31-android-lite-chat-surface.zh.md",
+        ".agents/notes/implemented/architecture/2026-08-31-android-lite-fold-foundation.i18n.yaml",
+        ".agents/notes/implemented/architecture/2026-08-31-android-lite-fold-foundation.md",
+        ".agents/notes/implemented/architecture/2026-08-31-android-lite-fold-foundation.zh.md",
+        ".agents/notes/implemented/architecture/2026-08-31-android-lite-http-provider.i18n.yaml",
+        ".agents/notes/implemented/architecture/2026-08-31-android-lite-http-provider.md",
+        ".agents/notes/implemented/architecture/2026-08-31-android-lite-http-provider.zh.md",
+        ".agents/notes/implemented/architecture/2026-08-31-android-lite-live-projection.i18n.yaml",
+        ".agents/notes/implemented/architecture/2026-08-31-android-lite-live-projection.md",
+        ".agents/notes/implemented/architecture/2026-08-31-android-lite-live-projection.zh.md",
+        ".agents/notes/implemented/architecture/2026-08-31-android-lite-loop-driver.i18n.yaml",
+        ".agents/notes/implemented/architecture/2026-08-31-android-lite-loop-driver.md",
+        ".agents/notes/implemented/architecture/2026-08-31-android-lite-loop-driver.zh.md",
+        ".agents/notes/implemented/architecture/2026-08-31-android-lite-persistence.i18n.yaml",
+        ".agents/notes/implemented/architecture/2026-08-31-android-lite-persistence.md",
+        ".agents/notes/implemented/architecture/2026-08-31-android-lite-persistence.zh.md",
+        ".agents/notes/implemented/architecture/2026-08-31-android-lite-tool-registry.i18n.yaml",
+        ".agents/notes/implemented/architecture/2026-08-31-android-lite-tool-registry.md",
+        ".agents/notes/implemented/architecture/2026-08-31-android-lite-tool-registry.zh.md",
+        ".agents/notes/implemented/architecture/2026-08-31-android-notification-grant.i18n.yaml",
+        ".agents/notes/implemented/architecture/2026-08-31-android-notification-grant.md",
+        ".agents/notes/implemented/architecture/2026-08-31-android-notification-grant.zh.md",
+        ".agents/notes/implemented/architecture/2026-08-31-android-stateflow-projections.i18n.yaml",
+        ".agents/notes/implemented/architecture/2026-08-31-android-stateflow-projections.md",
+        ".agents/notes/implemented/architecture/2026-08-31-android-stateflow-projections.zh.md",
+        ".agents/notes/implemented/architecture/2026-08-31-artifact-binary-input.i18n.yaml",
+        ".agents/notes/implemented/architecture/2026-08-31-artifact-binary-input.md",
+        ".agents/notes/implemented/architecture/2026-08-31-artifact-binary-input.zh.md",
+        ".agents/notes/implemented/architecture/2026-08-31-artifact-paged-reads.i18n.yaml",
+        ".agents/notes/implemented/architecture/2026-08-31-artifact-paged-reads.md",
+        ".agents/notes/implemented/architecture/2026-08-31-artifact-paged-reads.zh.md",
+        ".agents/notes/implemented/architecture/2026-08-31-artifact-read-surface.i18n.yaml",
+        ".agents/notes/implemented/architecture/2026-08-31-artifact-read-surface.md",
+        ".agents/notes/implemented/architecture/2026-08-31-artifact-read-surface.zh.md",
+        ".agents/notes/implemented/architecture/2026-08-31-endpoint-persistence.i18n.yaml",
+        ".agents/notes/implemented/architecture/2026-08-31-endpoint-persistence.md",
+        ".agents/notes/implemented/architecture/2026-08-31-endpoint-persistence.zh.md",
+        ".agents/notes/implemented/architecture/2026-08-31-host-artifact-producer.i18n.yaml",
+        ".agents/notes/implemented/architecture/2026-08-31-host-artifact-producer.md",
+        ".agents/notes/implemented/architecture/2026-08-31-host-artifact-producer.zh.md",
+        ".agents/notes/implemented/architecture/2026-08-31-host-artifact-vocabulary.i18n.yaml",
+        ".agents/notes/implemented/architecture/2026-08-31-host-artifact-vocabulary.md",
+        ".agents/notes/implemented/architecture/2026-08-31-host-artifact-vocabulary.zh.md",
+        ".agents/notes/implemented/architecture/2026-08-31-lite-artifact-content-reading.i18n.yaml",
+        ".agents/notes/implemented/architecture/2026-08-31-lite-artifact-content-reading.md",
+        ".agents/notes/implemented/architecture/2026-08-31-lite-artifact-content-reading.zh.md",
+        ".agents/notes/implemented/architecture/2026-08-31-macos-direct-host.i18n.yaml",
+        ".agents/notes/implemented/architecture/2026-08-31-macos-direct-host.md",
+        ".agents/notes/implemented/architecture/2026-08-31-macos-direct-host.zh.md",
+        ".agents/notes/implemented/architecture/2026-08-31-relay-presence.i18n.yaml",
+        ".agents/notes/implemented/architecture/2026-08-31-relay-presence.md",
+        ".agents/notes/implemented/architecture/2026-08-31-relay-presence.zh.md",
+        ".agents/notes/implemented/architecture/2026-08-31-relay-rendezvous-foundation.i18n.yaml",
+        ".agents/notes/implemented/architecture/2026-08-31-relay-rendezvous-foundation.md",
+        ".agents/notes/implemented/architecture/2026-08-31-relay-rendezvous-foundation.zh.md",
+        ".agents/notes/implemented/architecture/2026-08-31-relay-streaming-delivery.i18n.yaml",
+        ".agents/notes/implemented/architecture/2026-08-31-relay-streaming-delivery.md",
+        ".agents/notes/implemented/architecture/2026-08-31-relay-streaming-delivery.zh.md",
+        ".agents/notes/implemented/architecture/2026-09-01-artifact-retention.i18n.yaml",
+        ".agents/notes/implemented/architecture/2026-09-01-artifact-retention.md",
+        ".agents/notes/implemented/architecture/2026-09-01-artifact-retention.zh.md",
+        ".agents/notes/implemented/architecture/2026-09-01-handoff-l1.i18n.yaml",
+        ".agents/notes/implemented/architecture/2026-09-01-handoff-l1.md",
+        ".agents/notes/implemented/architecture/2026-09-01-handoff-l1.zh.md",
+        ".agents/notes/implemented/architecture/2026-09-01-relay-noise-transport.i18n.yaml",
+        ".agents/notes/implemented/architecture/2026-09-01-relay-noise-transport.md",
+        ".agents/notes/implemented/architecture/2026-09-01-relay-noise-transport.zh.md",
+        ".agents/notes/implemented/bug-fix/2026-08-19-electron-exe-node-children.i18n.yaml",
+        ".agents/notes/implemented/bug-fix/2026-08-19-electron-exe-node-children.md",
+        ".agents/notes/implemented/bug-fix/2026-08-19-electron-exe-node-children.zh.md",
+        ".agents/notes/implemented/bug-fix/2026-08-19-win32-dialog-result-reader-fatal.i18n.yaml",
+        ".agents/notes/implemented/bug-fix/2026-08-19-win32-dialog-result-reader-fatal.md",
+        ".agents/notes/implemented/bug-fix/2026-08-19-win32-dialog-result-reader-fatal.zh.md",
+        ".agents/notes/implemented/bug-fix/2026-08-21-desktop-first-launch-latency.i18n.yaml",
+        ".agents/notes/implemented/bug-fix/2026-08-21-desktop-first-launch-latency.md",
+        ".agents/notes/implemented/bug-fix/2026-08-21-desktop-first-launch-latency.zh.md",
+        ".agents/notes/implemented/bug-fix/2026-08-29-desktop-exe-boot-closure.i18n.yaml",
+        ".agents/notes/implemented/bug-fix/2026-08-29-desktop-exe-boot-closure.md",
+        ".agents/notes/implemented/bug-fix/2026-08-29-desktop-exe-boot-closure.zh.md",
+        ".agents/notes/implemented/feature/2026-10-14-built-in-plugin-feature-previews.i18n.yaml",
+        ".agents/notes/implemented/feature/2026-10-14-built-in-plugin-feature-previews.md",
+        ".agents/notes/implemented/feature/2026-10-14-built-in-plugin-feature-previews.zh.md",
+        ".agents/notes/proposed/feature/2026-10-28-native-desktop-update-manager.i18n.yaml",
+        ".agents/notes/proposed/feature/2026-10-28-native-desktop-update-manager.md",
+        ".agents/notes/proposed/feature/2026-10-28-native-desktop-update-manager.zh.md"
+      ]
+    },
+    {
+      "owner": ".github/workflows",
+      "classification": null,
+      "status": "IN_PROGRESS",
+      "sourceReviewComplete": false,
+      "changedPaths": [
+        ".github/workflows/android-kotlin.yml",
+        ".github/workflows/apple-swift.yml"
+      ]
+    },
+    {
+      "owner": ".gitignore",
+      "classification": null,
+      "status": "IN_PROGRESS",
+      "sourceReviewComplete": false,
+      "changedPaths": [
+        ".gitignore"
+      ]
+    },
+    {
+      "owner": "AGENTS.md",
+      "classification": null,
+      "status": "IN_PROGRESS",
+      "sourceReviewComplete": false,
+      "changedPaths": [
+        "AGENTS.md"
+      ]
+    },
+    {
+      "owner": "THIRD_PARTY_NOTICES.md",
+      "classification": null,
+      "status": "IN_PROGRESS",
+      "sourceReviewComplete": false,
+      "changedPaths": [
+        "THIRD_PARTY_NOTICES.md"
+      ]
+    },
+    {
+      "owner": "apps/android",
+      "classification": null,
+      "status": "IN_PROGRESS",
+      "sourceReviewComplete": false,
+      "changedPaths": [
+        "apps/android/.gitignore",
+        "apps/android/README.i18n.yaml",
+        "apps/android/README.md",
+        "apps/android/README.zh.md",
+        "apps/android/app/build.gradle.kts",
+        "apps/android/app/src/main/AndroidManifest.xml",
+        "apps/android/app/src/main/kotlin/ai/deepseek/dsh/companion/AndroidKeystoreCipher.kt",
+        "apps/android/app/src/main/kotlin/ai/deepseek/dsh/companion/LiteChatScreen.kt",
+        "apps/android/app/src/main/kotlin/ai/deepseek/dsh/companion/MainActivity.kt",
+        "apps/android/app/src/main/kotlin/ai/deepseek/dsh/companion/NotificationGrantController.kt",
+        "apps/android/app/src/main/kotlin/ai/deepseek/dsh/companion/PushNotifications.kt",
+        "apps/android/app/src/main/res/values/themes.xml",
+        "apps/android/build.gradle.kts",
+        "apps/android/core/build.gradle.kts",
+        "apps/android/core/src/main/kotlin/ai/deepseek/dsh/companion/CompanionModels.kt",
+        "apps/android/core/src/main/kotlin/ai/deepseek/dsh/companion/CompanionPush.kt",
+        "apps/android/core/src/main/kotlin/ai/deepseek/dsh/companion/DomainFold.kt",
+        "apps/android/core/src/main/kotlin/ai/deepseek/dsh/companion/FileChanges.kt",
+        "apps/android/core/src/main/kotlin/ai/deepseek/dsh/companion/Handoff.kt",
+        "apps/android/core/src/main/kotlin/ai/deepseek/dsh/companion/LiteArtifactReading.kt",
+        "apps/android/core/src/main/kotlin/ai/deepseek/dsh/companion/LiteChat.kt",
+        "apps/android/core/src/main/kotlin/ai/deepseek/dsh/companion/LiteFold.kt",
+        "apps/android/core/src/main/kotlin/ai/deepseek/dsh/companion/LiteHTTPProvider.kt",
+        "apps/android/core/src/main/kotlin/ai/deepseek/dsh/companion/LiteLoop.kt",
+        "apps/android/core/src/main/kotlin/ai/deepseek/dsh/companion/LiteStores.kt",
+        "apps/android/core/src/main/kotlin/ai/deepseek/dsh/companion/LiteToolRegistry.kt",
+        "apps/android/core/src/main/kotlin/ai/deepseek/dsh/companion/NeumorphicTokens.kt",
+        "apps/android/core/src/main/kotlin/ai/deepseek/dsh/companion/NotificationGrant.kt",
+        "apps/android/core/src/main/kotlin/ai/deepseek/dsh/companion/RelayClient.kt",
+        "apps/android/core/src/main/kotlin/ai/deepseek/dsh/companion/RelayRendezvous.kt",
+        "apps/android/core/src/main/kotlin/ai/deepseek/dsh/companion/WireDriving.kt",
+        "apps/android/core/src/main/kotlin/ai/deepseek/dsh/link/LinkClient.kt",
+        "apps/android/core/src/main/kotlin/ai/deepseek/dsh/link/LinkContracts.kt",
+        "apps/android/core/src/main/kotlin/ai/deepseek/dsh/link/LinkCredentials.kt",
+        "apps/android/core/src/main/kotlin/ai/deepseek/dsh/link/LinkPayloadParsing.kt",
+        "apps/android/core/src/main/kotlin/ai/deepseek/dsh/link/LinkPinning.kt",
+        "apps/android/core/src/main/kotlin/ai/deepseek/dsh/link/LinkSigning.kt",
+        "apps/android/core/src/main/kotlin/ai/deepseek/dsh/link/LinkWire.kt",
+        "apps/android/core/src/main/kotlin/ai/deepseek/dsh/link/Noise.kt",
+        "apps/android/core/src/test/kotlin/ai/deepseek/dsh/companion/ArtifactFoldTest.kt",
+        "apps/android/core/src/test/kotlin/ai/deepseek/dsh/companion/CompanionModelTest.kt",
+        "apps/android/core/src/test/kotlin/ai/deepseek/dsh/companion/CompanionPushTest.kt",
+        "apps/android/core/src/test/kotlin/ai/deepseek/dsh/companion/ConformanceTest.kt",
+        "apps/android/core/src/test/kotlin/ai/deepseek/dsh/companion/FileChangeTest.kt",
+        "apps/android/core/src/test/kotlin/ai/deepseek/dsh/companion/HandoffTest.kt",
+        "apps/android/core/src/test/kotlin/ai/deepseek/dsh/companion/LiteArtifactReadingTest.kt",
+        "apps/android/core/src/test/kotlin/ai/deepseek/dsh/companion/LiteChatViewModelTest.kt",
+        "apps/android/core/src/test/kotlin/ai/deepseek/dsh/companion/LiteFoldTest.kt",
+        "apps/android/core/src/test/kotlin/ai/deepseek/dsh/companion/LiteHTTPProviderTest.kt",
+        "apps/android/core/src/test/kotlin/ai/deepseek/dsh/companion/LiteLoopDriverTest.kt",
+        "apps/android/core/src/test/kotlin/ai/deepseek/dsh/companion/LiteStoresTest.kt",
+        "apps/android/core/src/test/kotlin/ai/deepseek/dsh/companion/LiteToolRegistryTest.kt",
+        "apps/android/core/src/test/kotlin/ai/deepseek/dsh/companion/NotificationGrantTest.kt",
+        "apps/android/core/src/test/kotlin/ai/deepseek/dsh/companion/RelayNoiseTest.kt",
+        "apps/android/core/src/test/kotlin/ai/deepseek/dsh/companion/RelayRendezvousTest.kt",
+        "apps/android/core/src/test/kotlin/ai/deepseek/dsh/link/LinkClientTest.kt",
+        "apps/android/core/src/test/kotlin/ai/deepseek/dsh/link/LinkPinningTest.kt",
+        "apps/android/core/src/test/kotlin/ai/deepseek/dsh/link/LinkSigningTest.kt",
+        "apps/android/core/src/test/kotlin/ai/deepseek/dsh/link/LinkWireTest.kt",
+        "apps/android/core/src/test/resources/certificates/pin-fixture.der",
+        "apps/android/core/src/test/resources/conformance/artifacts.json",
+        "apps/android/core/src/test/resources/conformance/basic-turn.json",
+        "apps/android/core/src/test/resources/conformance/image-attachment.json",
+        "apps/android/core/src/test/resources/conformance/plan-todo-goal.json",
+        "apps/android/core/src/test/resources/conformance/tool-trajectory.json",
+        "apps/android/core/src/test/resources/fixtures/admin-status.json",
+        "apps/android/core/src/test/resources/fixtures/artifact-read.json",
+        "apps/android/core/src/test/resources/fixtures/attachment-read.json",
+        "apps/android/core/src/test/resources/fixtures/carrier-status.json",
+        "apps/android/core/src/test/resources/fixtures/chunkrow-text-chunks.json",
+        "apps/android/core/src/test/resources/fixtures/chunkrow-tool-call-chunks.json",
+        "apps/android/core/src/test/resources/fixtures/device-record.json",
+        "apps/android/core/src/test/resources/fixtures/event-artifact-created.json",
+        "apps/android/core/src/test/resources/fixtures/event-artifact-status.json",
+        "apps/android/core/src/test/resources/fixtures/event-assistant-attempt.json",
+        "apps/android/core/src/test/resources/fixtures/event-assistant-chunk.json",
+        "apps/android/core/src/test/resources/fixtures/event-assistant-message.json",
+        "apps/android/core/src/test/resources/fixtures/event-goal-change.json",
+        "apps/android/core/src/test/resources/fixtures/event-plan-mode.json",
+        "apps/android/core/src/test/resources/fixtures/event-step-start.json",
+        "apps/android/core/src/test/resources/fixtures/event-todo-write.json",
+        "apps/android/core/src/test/resources/fixtures/event-tool-call.json",
+        "apps/android/core/src/test/resources/fixtures/event-tool-result.json",
+        "apps/android/core/src/test/resources/fixtures/event-turn-end.json",
+        "apps/android/core/src/test/resources/fixtures/event-turn-start.json",
+        "apps/android/core/src/test/resources/fixtures/event-user-message.json",
+        "apps/android/core/src/test/resources/fixtures/file-list.json",
+        "apps/android/core/src/test/resources/fixtures/file-read.json",
+        "apps/android/core/src/test/resources/fixtures/handoff-artifact-ref.json",
+        "apps/android/core/src/test/resources/fixtures/handoff-context-row.json",
+        "apps/android/core/src/test/resources/fixtures/handoff-sender.json",
+        "apps/android/core/src/test/resources/fixtures/handoff-snapshot.json",
+        "apps/android/core/src/test/resources/fixtures/handoff-todo.json",
+        "apps/android/core/src/test/resources/fixtures/handoff-value.json",
+        "apps/android/core/src/test/resources/fixtures/host-description.json",
+        "apps/android/core/src/test/resources/fixtures/image-attachment-ref.json",
+        "apps/android/core/src/test/resources/fixtures/pair-response.json",
+        "apps/android/core/src/test/resources/fixtures/pairing-payload.json",
+        "apps/android/core/src/test/resources/fixtures/prompt-image-part.json",
+        "apps/android/core/src/test/resources/fixtures/relay-noise-vectors.json",
+        "apps/android/core/src/test/resources/fixtures/subagent-catalog.json",
+        "apps/android/core/src/test/resources/fixtures/subagent-entry.json",
+        "apps/android/core/src/test/resources/lite-conformance/cancel-preserves-prefix.json",
+        "apps/android/core/src/test/resources/lite-conformance/handoff-request.json",
+        "apps/android/core/src/test/resources/lite-conformance/plan-todo-artifact.json",
+        "apps/android/core/src/test/resources/lite-conformance/prompt-and-streaming.json",
+        "apps/android/core/src/test/resources/lite-conformance/provider-and-network-errors.json",
+        "apps/android/core/src/test/resources/lite-conformance/tool-call-and-result.json",
+        "apps/android/gradle.properties",
+        "apps/android/settings.gradle.kts"
+      ]
+    },
+    {
+      "owner": "apps/apple",
+      "classification": null,
+      "status": "IN_PROGRESS",
+      "sourceReviewComplete": false,
+      "changedPaths": [
+        "apps/apple/.gitignore",
+        "apps/apple/Hosts/HostSurface.swift",
+        "apps/apple/Hosts/macOSHostApp.swift",
+        "apps/apple/Package.swift",
+        "apps/apple/README.i18n.yaml",
+        "apps/apple/README.md",
+        "apps/apple/README.zh.md",
+        "apps/apple/Shells/iOSApp.swift",
+        "apps/apple/Shells/macOSApp.swift",
+        "apps/apple/Sources/CompanionUI/ArtifactsView.swift",
+        "apps/apple/Sources/CompanionUI/CompanionPush.swift",
+        "apps/apple/Sources/CompanionUI/CompanionRootView.swift",
+        "apps/apple/Sources/CompanionUI/CompanionTheme.swift",
+        "apps/apple/Sources/CompanionUI/CompanionWire.swift",
+        "apps/apple/Sources/CompanionUI/FileChange.swift",
+        "apps/apple/Sources/CompanionUI/FilesView.swift",
+        "apps/apple/Sources/CompanionUI/FilesViewModel.swift",
+        "apps/apple/Sources/CompanionUI/HostPairingView.swift",
+        "apps/apple/Sources/CompanionUI/InteractionInboxView.swift",
+        "apps/apple/Sources/CompanionUI/InteractionViewModel.swift",
+        "apps/apple/Sources/CompanionUI/PlanTodoGoalStore.swift",
+        "apps/apple/Sources/CompanionUI/PlanTodoGoalView.swift",
+        "apps/apple/Sources/CompanionUI/RemoteSessionViewModel.swift",
+        "apps/apple/Sources/CompanionUI/SessionFold.swift",
+        "apps/apple/Sources/CompanionUI/SessionViews.swift",
+        "apps/apple/Sources/CompanionUI/SubagentsView.swift",
+        "apps/apple/Sources/CompanionUI/SubagentsViewModel.swift",
+        "apps/apple/Sources/CompanionUI/ThemeSurfaces.swift",
+        "apps/apple/Sources/CompanionUI/ToolsView.swift",
+        "apps/apple/Sources/LiteRuntime/LiteArtifactReading.swift",
+        "apps/apple/Sources/LiteRuntime/LiteChatView.swift",
+        "apps/apple/Sources/LiteRuntime/LiteEvent.swift",
+        "apps/apple/Sources/LiteRuntime/LiteFold.swift",
+        "apps/apple/Sources/LiteRuntime/LiteLoop.swift",
+        "apps/apple/Sources/LiteRuntime/LiteProvider.swift",
+        "apps/apple/Sources/LiteRuntime/LiteStores.swift",
+        "apps/apple/Sources/LiteRuntime/LiteToolRegistry.swift",
+        "apps/apple/Sources/SharedAppleRemoteCore/LinkClient.swift",
+        "apps/apple/Sources/SharedAppleRemoteCore/LinkContracts.swift",
+        "apps/apple/Sources/SharedAppleRemoteCore/LinkCredentials.swift",
+        "apps/apple/Sources/SharedAppleRemoteCore/LinkKeychain.swift",
+        "apps/apple/Sources/SharedAppleRemoteCore/LinkPinning.swift",
+        "apps/apple/Sources/SharedAppleRemoteCore/LinkSigning.swift",
+        "apps/apple/Sources/SharedAppleRemoteCore/LinkWire.swift",
+        "apps/apple/Sources/SharedAppleRemoteCore/Noise.swift",
+        "apps/apple/Sources/SharedAppleRemoteCore/RelayClient.swift",
+        "apps/apple/Sources/SharedAppleRemoteCore/RelayRendezvous.swift",
+        "apps/apple/Sources/SharedAppleRemoteCore/SessionHandoff.swift",
+        "apps/apple/Tests/CompanionUITests/CompanionUITests.swift",
+        "apps/apple/Tests/CompanionUITests/Fixtures/conformance/artifacts.json",
+        "apps/apple/Tests/CompanionUITests/Fixtures/conformance/basic-turn.json",
+        "apps/apple/Tests/CompanionUITests/Fixtures/conformance/image-attachment.json",
+        "apps/apple/Tests/CompanionUITests/Fixtures/conformance/plan-todo-goal.json",
+        "apps/apple/Tests/CompanionUITests/Fixtures/conformance/tool-trajectory.json",
+        "apps/apple/Tests/LiteRuntimeTests/Fixtures/lite-conformance/cancel-preserves-prefix.json",
+        "apps/apple/Tests/LiteRuntimeTests/Fixtures/lite-conformance/handoff-request.json",
+        "apps/apple/Tests/LiteRuntimeTests/Fixtures/lite-conformance/plan-todo-artifact.json",
+        "apps/apple/Tests/LiteRuntimeTests/Fixtures/lite-conformance/prompt-and-streaming.json",
+        "apps/apple/Tests/LiteRuntimeTests/Fixtures/lite-conformance/provider-and-network-errors.json",
+        "apps/apple/Tests/LiteRuntimeTests/Fixtures/lite-conformance/tool-call-and-result.json",
+        "apps/apple/Tests/LiteRuntimeTests/LiteRuntimeTests.swift",
+        "apps/apple/Tests/SharedAppleRemoteCoreTests/FixtureDecodingTests.swift",
+        "apps/apple/Tests/SharedAppleRemoteCoreTests/Fixtures/admin-status.json",
+        "apps/apple/Tests/SharedAppleRemoteCoreTests/Fixtures/artifact-read.json",
+        "apps/apple/Tests/SharedAppleRemoteCoreTests/Fixtures/attachment-read.json",
+        "apps/apple/Tests/SharedAppleRemoteCoreTests/Fixtures/carrier-status.json",
+        "apps/apple/Tests/SharedAppleRemoteCoreTests/Fixtures/chunkrow-text-chunks.json",
+        "apps/apple/Tests/SharedAppleRemoteCoreTests/Fixtures/chunkrow-tool-call-chunks.json",
+        "apps/apple/Tests/SharedAppleRemoteCoreTests/Fixtures/conformance/artifacts.json",
+        "apps/apple/Tests/SharedAppleRemoteCoreTests/Fixtures/conformance/basic-turn.json",
+        "apps/apple/Tests/SharedAppleRemoteCoreTests/Fixtures/conformance/image-attachment.json",
+        "apps/apple/Tests/SharedAppleRemoteCoreTests/Fixtures/conformance/plan-todo-goal.json",
+        "apps/apple/Tests/SharedAppleRemoteCoreTests/Fixtures/conformance/tool-trajectory.json",
+        "apps/apple/Tests/SharedAppleRemoteCoreTests/Fixtures/device-record.json",
+        "apps/apple/Tests/SharedAppleRemoteCoreTests/Fixtures/event-artifact-created.json",
+        "apps/apple/Tests/SharedAppleRemoteCoreTests/Fixtures/event-artifact-status.json",
+        "apps/apple/Tests/SharedAppleRemoteCoreTests/Fixtures/event-assistant-attempt.json",
+        "apps/apple/Tests/SharedAppleRemoteCoreTests/Fixtures/event-assistant-chunk.json",
+        "apps/apple/Tests/SharedAppleRemoteCoreTests/Fixtures/event-assistant-message.json",
+        "apps/apple/Tests/SharedAppleRemoteCoreTests/Fixtures/event-goal-change.json",
+        "apps/apple/Tests/SharedAppleRemoteCoreTests/Fixtures/event-plan-mode.json",
+        "apps/apple/Tests/SharedAppleRemoteCoreTests/Fixtures/event-step-start.json",
+        "apps/apple/Tests/SharedAppleRemoteCoreTests/Fixtures/event-todo-write.json",
+        "apps/apple/Tests/SharedAppleRemoteCoreTests/Fixtures/event-tool-call.json",
+        "apps/apple/Tests/SharedAppleRemoteCoreTests/Fixtures/event-tool-result.json",
+        "apps/apple/Tests/SharedAppleRemoteCoreTests/Fixtures/event-turn-end.json",
+        "apps/apple/Tests/SharedAppleRemoteCoreTests/Fixtures/event-turn-start.json",
+        "apps/apple/Tests/SharedAppleRemoteCoreTests/Fixtures/event-user-message.json",
+        "apps/apple/Tests/SharedAppleRemoteCoreTests/Fixtures/file-list.json",
+        "apps/apple/Tests/SharedAppleRemoteCoreTests/Fixtures/file-read.json",
+        "apps/apple/Tests/SharedAppleRemoteCoreTests/Fixtures/handoff-artifact-ref.json",
+        "apps/apple/Tests/SharedAppleRemoteCoreTests/Fixtures/handoff-context-row.json",
+        "apps/apple/Tests/SharedAppleRemoteCoreTests/Fixtures/handoff-sender.json",
+        "apps/apple/Tests/SharedAppleRemoteCoreTests/Fixtures/handoff-snapshot.json",
+        "apps/apple/Tests/SharedAppleRemoteCoreTests/Fixtures/handoff-todo.json",
+        "apps/apple/Tests/SharedAppleRemoteCoreTests/Fixtures/handoff-value.json",
+        "apps/apple/Tests/SharedAppleRemoteCoreTests/Fixtures/host-description.json",
+        "apps/apple/Tests/SharedAppleRemoteCoreTests/Fixtures/image-attachment-ref.json",
+        "apps/apple/Tests/SharedAppleRemoteCoreTests/Fixtures/pair-response.json",
+        "apps/apple/Tests/SharedAppleRemoteCoreTests/Fixtures/pairing-payload.json",
+        "apps/apple/Tests/SharedAppleRemoteCoreTests/Fixtures/prompt-image-part.json",
+        "apps/apple/Tests/SharedAppleRemoteCoreTests/Fixtures/relay-noise-vectors.json",
+        "apps/apple/Tests/SharedAppleRemoteCoreTests/Fixtures/subagent-catalog.json",
+        "apps/apple/Tests/SharedAppleRemoteCoreTests/Fixtures/subagent-entry.json",
+        "apps/apple/Tests/SharedAppleRemoteCoreTests/RelayClientTests.swift",
+        "apps/apple/Tests/SharedAppleRemoteCoreTests/RelayRendezvousTests.swift",
+        "apps/apple/Tests/SharedAppleRemoteCoreTests/SessionHandoffTests.swift",
+        "apps/apple/project.yml"
+      ]
+    },
+    {
+      "owner": "apps/cli",
+      "classification": null,
+      "status": "IN_PROGRESS",
+      "sourceReviewComplete": false,
+      "changedPaths": [
+        "apps/cli/composition.md",
+        "apps/cli/package.json",
+        "apps/cli/tests/desktop-composition.e2e.ts",
+        "apps/cli/tests/link-session-slice.e2e.ts",
+        "apps/cli/tests/profiles/headless/team-snapshot.patch.yml",
+        "apps/cli/tsconfig.json",
+        "apps/cli/tsdown.config.ts"
+      ]
+    },
+    {
+      "owner": "apps/desktop-user",
+      "classification": null,
+      "status": "IN_PROGRESS",
+      "sourceReviewComplete": false,
+      "changedPaths": [
+        "apps/desktop-user/.env.macos.example",
+        "apps/desktop-user/.env.windows.example",
+        "apps/desktop-user/README.i18n.yaml",
+        "apps/desktop-user/README.md",
+        "apps/desktop-user/README.zh.md",
+        "apps/desktop-user/cli/dsh",
+        "apps/desktop-user/cli/dsh.cmd",
+        "apps/desktop-user/cli/link-entry.c",
+        "apps/desktop-user/config/macos-packaging/macos-signing.env.example",
+        "apps/desktop-user/config/macos-packaging/production.env.example",
+        "apps/desktop-user/config/macos-packaging/test.env.example",
+        "apps/desktop-user/config/windows-packaging/production.env.example",
+        "apps/desktop-user/config/windows-packaging/test.env.example",
+        "apps/desktop-user/config/windows-packaging/windows-signing.env.example",
+        "apps/desktop-user/docs/diagnostics/README.i18n.yaml",
+        "apps/desktop-user/docs/diagnostics/README.md",
+        "apps/desktop-user/docs/diagnostics/README.zh.md",
+        "apps/desktop-user/electron-builder.config.d.mts",
+        "apps/desktop-user/electron-builder.config.mjs",
+        "apps/desktop-user/installer/assets/brand-2x.png",
+        "apps/desktop-user/installer/assets/brand-dark-2x.png",
+        "apps/desktop-user/installer/assets/brand-dark.png",
+        "apps/desktop-user/installer/assets/brand.png",
+        "apps/desktop-user/installer/assets/uninstaller-sidebar.png",
+        "apps/desktop-user/installer/directory-report.h",
+        "apps/desktop-user/installer/drawing.nsh",
+        "apps/desktop-user/installer/extract-progress.h",
+        "apps/desktop-user/installer/extract-report.h",
+        "apps/desktop-user/installer/extract.h",
+        "apps/desktop-user/installer/lifecycle.nsh",
+        "apps/desktop-user/installer/locales/de_DE.json",
+        "apps/desktop-user/installer/locales/en_US.json",
+        "apps/desktop-user/installer/locales/es_ES.json",
+        "apps/desktop-user/installer/locales/fr_FR.json",
+        "apps/desktop-user/installer/locales/ja_JP.json",
+        "apps/desktop-user/installer/locales/pt_BR.json",
+        "apps/desktop-user/installer/locales/ru_RU.json",
+        "apps/desktop-user/installer/locales/zh_CN.json",
+        "apps/desktop-user/installer/pages.nsh",
+        "apps/desktop-user/installer/path.nsh",
+        "apps/desktop-user/installer/progress.h",
+        "apps/desktop-user/installer/theme.nsh",
+        "apps/desktop-user/installer/uninstall-data.h",
+        "apps/desktop-user/installer/uninstall.nsh",
+        "apps/desktop-user/installer/window-frame.cpp",
+        "apps/desktop-user/package.json",
+        "apps/desktop-user/packaging/README.i18n.yaml",
+        "apps/desktop-user/packaging/README.md",
+        "apps/desktop-user/packaging/README.zh.md",
+        "apps/desktop-user/publishing/README.i18n.yaml",
+        "apps/desktop-user/publishing/README.md",
+        "apps/desktop-user/publishing/README.zh.md",
+        "apps/desktop-user/publishing/ci/README.i18n.yaml",
+        "apps/desktop-user/publishing/ci/README.md",
+        "apps/desktop-user/publishing/ci/README.zh.md",
+        "apps/desktop-user/renderer/assets/welcome-brand.svg",
+        "apps/desktop-user/renderer/assets/window-material.css",
+        "apps/desktop-user/renderer/mandatory-update-frame.js",
+        "apps/desktop-user/renderer/mandatory-update.css",
+        "apps/desktop-user/renderer/mandatory-update.html",
+        "apps/desktop-user/renderer/mandatory-update.js",
+        "apps/desktop-user/renderer/policy-login-loading.html",
+        "apps/desktop-user/renderer/shell-theme.js",
+        "apps/desktop-user/renderer/update-close.svg",
+        "apps/desktop-user/renderer/update-dialog.css",
+        "apps/desktop-user/renderer/update-dialog.html",
+        "apps/desktop-user/renderer/update-dialog.js",
+        "apps/desktop-user/renderer/welcome.css",
+        "apps/desktop-user/renderer/welcome.html",
+        "apps/desktop-user/resources/icon-macos.png",
+        "apps/desktop-user/resources/icon-macos.svg",
+        "apps/desktop-user/resources/icon-windows.png",
+        "apps/desktop-user/resources/icon-windows.svg",
+        "apps/desktop-user/resources/icon.png",
+        "apps/desktop-user/resources/icon.svg",
+        "apps/desktop-user/resources/tray-icon.png",
+        "apps/desktop-user/resources/tray-windows.ico",
+        "apps/desktop-user/scripts/build-installed-update-worker.mjs",
+        "apps/desktop-user/scripts/command-path.ps1",
+        "apps/desktop-user/scripts/cos-operation.ts",
+        "apps/desktop-user/scripts/desktop-auto-update-environment.d.mts",
+        "apps/desktop-user/scripts/desktop-auto-update-environment.mjs",
+        "apps/desktop-user/scripts/desktop-build-commit.d.mts",
+        "apps/desktop-user/scripts/desktop-build-commit.mjs",
+        "apps/desktop-user/scripts/desktop-build-paths.d.mts",
+        "apps/desktop-user/scripts/desktop-build-paths.mjs",
+        "apps/desktop-user/scripts/desktop-build-version-discovery.ts",
+        "apps/desktop-user/scripts/desktop-build-version.d.mts",
+        "apps/desktop-user/scripts/desktop-build-version.mjs",
+        "apps/desktop-user/scripts/desktop-bundle-imports.d.mts",
+        "apps/desktop-user/scripts/desktop-bundle-imports.mjs",
+        "apps/desktop-user/scripts/desktop-ci-version.d.mts",
+        "apps/desktop-user/scripts/desktop-ci-version.mjs",
+        "apps/desktop-user/scripts/desktop-cos.ts",
+        "apps/desktop-user/scripts/desktop-edgeone.ts",
+        "apps/desktop-user/scripts/desktop-package-environment.d.mts",
+        "apps/desktop-user/scripts/desktop-package-environment.mjs",
+        "apps/desktop-user/scripts/desktop-policy-environment.d.mts",
+        "apps/desktop-user/scripts/desktop-policy-environment.mjs",
+        "apps/desktop-user/scripts/desktop-publication-failure.ts",
+        "apps/desktop-user/scripts/desktop-publication-summary.ts",
+        "apps/desktop-user/scripts/desktop-publish-config.ts",
+        "apps/desktop-user/scripts/desktop-publish-cos.ts",
+        "apps/desktop-user/scripts/desktop-publish-qualification.d.mts",
+        "apps/desktop-user/scripts/desktop-publish-qualification.mjs",
+        "apps/desktop-user/scripts/desktop-publish-record.ts",
+        "apps/desktop-user/scripts/desktop-publish-route.ts",
+        "apps/desktop-user/scripts/desktop-publish-tag.ts",
+        "apps/desktop-user/scripts/desktop-publish-targets.ts",
+        "apps/desktop-user/scripts/desktop-publish.ts",
+        "apps/desktop-user/scripts/desktop-release-environment.d.mts",
+        "apps/desktop-user/scripts/desktop-release-environment.mjs",
+        "apps/desktop-user/scripts/desktop-release-store.ts",
+        "apps/desktop-user/scripts/desktop-release-tag.ts",
+        "apps/desktop-user/scripts/desktop-rollback.ts",
+        "apps/desktop-user/scripts/desktop-toolchain-preflight.ts",
+        "apps/desktop-user/scripts/desktop-upload-plan.ts",
+        "apps/desktop-user/scripts/desktop-upload-run.ts",
+        "apps/desktop-user/scripts/dev.ts",
+        "apps/desktop-user/scripts/development-app.ts",
+        "apps/desktop-user/scripts/development-project.ts",
+        "apps/desktop-user/scripts/electron-builder-config.d.mts",
+        "apps/desktop-user/scripts/electron-builder-config.mjs",
+        "apps/desktop-user/scripts/flock-entry.ts",
+        "apps/desktop-user/scripts/installed-update-builder.ts",
+        "apps/desktop-user/scripts/installed-update-cos.ts",
+        "apps/desktop-user/scripts/installed-update-distribution.ts",
+        "apps/desktop-user/scripts/installed-update-identity.d.mts",
+        "apps/desktop-user/scripts/installed-update-identity.mjs",
+        "apps/desktop-user/scripts/installed-update-network.ps1",
+        "apps/desktop-user/scripts/installed-update-package-content.ts",
+        "apps/desktop-user/scripts/installed-update-packaging.ts",
+        "apps/desktop-user/scripts/installed-update-publication.ts",
+        "apps/desktop-user/scripts/installed-update-qualification.ts",
+        "apps/desktop-user/scripts/installed-update-signature.d.mts",
+        "apps/desktop-user/scripts/installed-update-signature.mjs",
+        "apps/desktop-user/scripts/installer-directories.nsh",
+        "apps/desktop-user/scripts/installer-locales.d.mts",
+        "apps/desktop-user/scripts/installer-locales.mjs",
+        "apps/desktop-user/scripts/installer.nsh",
+        "apps/desktop-user/scripts/jit-entitlements.plist",
+        "apps/desktop-user/scripts/logged-notarytool.d.mts",
+        "apps/desktop-user/scripts/logged-notarytool.mjs",
+        "apps/desktop-user/scripts/macos-app-update-config.d.mts",
+        "apps/desktop-user/scripts/macos-app-update-config.mjs",
+        "apps/desktop-user/scripts/macos-cache-policy.ts",
+        "apps/desktop-user/scripts/macos-entitlements.plist",
+        "apps/desktop-user/scripts/macos-notarization-proxy.ts",
+        "apps/desktop-user/scripts/macos-package-settings.d.mts",
+        "apps/desktop-user/scripts/macos-package-settings.mjs",
+        "apps/desktop-user/scripts/macos-runner-service.sh",
+        "apps/desktop-user/scripts/macos-runtime.ts",
+        "apps/desktop-user/scripts/macos-signature-cache-directory.d.mts",
+        "apps/desktop-user/scripts/macos-signature-cache-directory.mjs",
+        "apps/desktop-user/scripts/macos-signature-cache.ts",
+        "apps/desktop-user/scripts/macos-signing-keychain.d.mts",
+        "apps/desktop-user/scripts/macos-signing-keychain.mjs",
+        "apps/desktop-user/scripts/manage-windows-signature-cache.mjs",
+        "apps/desktop-user/scripts/node-bin/node",
+        "apps/desktop-user/scripts/node-bin/node.cmd",
+        "apps/desktop-user/scripts/node-x64-entitlements.plist",
+        "apps/desktop-user/scripts/notarize-macos-disk-images.d.mts",
+        "apps/desktop-user/scripts/notarize-macos-disk-images.mjs",
+        "apps/desktop-user/scripts/notarize-macos.d.mts",
+        "apps/desktop-user/scripts/notarize-macos.mjs",
+        "apps/desktop-user/scripts/pack-local-packages.ts",
+        "apps/desktop-user/scripts/package-installed-update.ts",
+        "apps/desktop-user/scripts/package-macos.ts",
+        "apps/desktop-user/scripts/package-target.ts",
+        "apps/desktop-user/scripts/packaging-run.d.mts",
+        "apps/desktop-user/scripts/packaging-run.mjs",
+        "apps/desktop-user/scripts/packaging-step.d.mts",
+        "apps/desktop-user/scripts/packaging-step.mjs",
+        "apps/desktop-user/scripts/preflight-desktop-publish-local.d.mts",
+        "apps/desktop-user/scripts/preflight-desktop-publish-local.mjs",
+        "apps/desktop-user/scripts/preflight-desktop-publish.d.mts",
+        "apps/desktop-user/scripts/preflight-desktop-publish.mjs",
+        "apps/desktop-user/scripts/prepare-cli.ts",
+        "apps/desktop-user/scripts/prepare-command-link.ts",
+        "apps/desktop-user/scripts/prepare-dsh.ts",
+        "apps/desktop-user/scripts/prepare-installed-update-application.ts",
+        "apps/desktop-user/scripts/prepare-installed-update-bootstrap.ts",
+        "apps/desktop-user/scripts/prepare-installed-update-network.ts",
+        "apps/desktop-user/scripts/prepare-installed-update-runtime.ts",
+        "apps/desktop-user/scripts/prepare-installed-update.ts",
+        "apps/desktop-user/scripts/prepare-macos-ci.mjs",
+        "apps/desktop-user/scripts/prepare-package-set.ts",
+        "apps/desktop-user/scripts/prepare-primary-runtime.ts",
+        "apps/desktop-user/scripts/prepare-runtime-manifests.ts",
+        "apps/desktop-user/scripts/prepare-runtime-patches.ts",
+        "apps/desktop-user/scripts/prepare-runtime.ts",
+        "apps/desktop-user/scripts/prepare-windows-ci.d.mts",
+        "apps/desktop-user/scripts/prepare-windows-ci.mjs",
+        "apps/desktop-user/scripts/prepare-windows-installer.ps1",
+        "apps/desktop-user/scripts/publish-desktop-ci.ts",
+        "apps/desktop-user/scripts/publish-installed-update.ts",
+        "apps/desktop-user/scripts/read-desktop-app-key.mjs",
+        "apps/desktop-user/scripts/render-tray-icon.ts",
+        "apps/desktop-user/scripts/resolve-desktop-publish-ci.ts",
+        "apps/desktop-user/scripts/resolve-retained-desktop-publish-ci.ts",
+        "apps/desktop-user/scripts/retain-desktop-ci.ts",
+        "apps/desktop-user/scripts/rollback-desktop-channel.ts",
+        "apps/desktop-user/scripts/run-windows-runner-network-process.ps1",
+        "apps/desktop-user/scripts/run-windows-runner-task.ps1",
+        "apps/desktop-user/scripts/runtime-file-policy.ts",
+        "apps/desktop-user/scripts/runtime-patch-policy.ts",
+        "apps/desktop-user/scripts/setup-macos-packaging.mjs",
+        "apps/desktop-user/scripts/setup-windows-packaging.ps1",
+        "apps/desktop-user/scripts/sign-primary-runtime.ts",
+        "apps/desktop-user/scripts/smoke-installer-directories.ps1",
+        "apps/desktop-user/scripts/smoke-packaged-runtime.ts",
+        "apps/desktop-user/scripts/smoke-prepared-runtime.ts",
+        "apps/desktop-user/scripts/smoke-runtime.ts",
+        "apps/desktop-user/scripts/smoke-windows.ps1",
+        "apps/desktop-user/scripts/start-macos-packaging-runner.sh",
+        "apps/desktop-user/scripts/start-windows-packaging-runner.ps1",
+        "apps/desktop-user/scripts/test-host-updates.ts",
+        "apps/desktop-user/scripts/test-local-updater.mjs",
+        "apps/desktop-user/scripts/test-signed-updates.mjs",
+        "apps/desktop-user/scripts/test-windows-installer.mjs",
+        "apps/desktop-user/scripts/test-windows-update-signature.mjs",
+        "apps/desktop-user/scripts/test-workspace-updates.ts",
+        "apps/desktop-user/scripts/upload-target.ts",
+        "apps/desktop-user/scripts/upload-with-credentials.ps1",
+        "apps/desktop-user/scripts/verify-installed-update-package.ts",
+        "apps/desktop-user/scripts/verify-macos-signature.d.mts",
+        "apps/desktop-user/scripts/verify-macos-signature.mjs",
+        "apps/desktop-user/scripts/verify-published-windows.ps1",
+        "apps/desktop-user/scripts/verify-retained-desktop.ts",
+        "apps/desktop-user/scripts/verify-runtime-archive.ts",
+        "apps/desktop-user/scripts/windows-asar-unpack.d.mts",
+        "apps/desktop-user/scripts/windows-asar-unpack.mjs",
+        "apps/desktop-user/scripts/windows-build-workspace.d.mts",
+        "apps/desktop-user/scripts/windows-build-workspace.mjs",
+        "apps/desktop-user/scripts/windows-directory-installer.d.mts",
+        "apps/desktop-user/scripts/windows-directory-installer.mjs",
+        "apps/desktop-user/scripts/windows-package-settings.d.mts",
+        "apps/desktop-user/scripts/windows-package-settings.mjs",
+        "apps/desktop-user/scripts/windows-packaging-priority.ps1",
+        "apps/desktop-user/scripts/windows-runner-launcher.cs",
+        "apps/desktop-user/scripts/windows-runner-network.ps1",
+        "apps/desktop-user/scripts/windows-runner-task.ps1",
+        "apps/desktop-user/scripts/windows-runtime-signature.d.mts",
+        "apps/desktop-user/scripts/windows-runtime-signature.mjs",
+        "apps/desktop-user/scripts/windows-sign.cmd",
+        "apps/desktop-user/scripts/windows-sign.d.mts",
+        "apps/desktop-user/scripts/windows-sign.mjs",
+        "apps/desktop-user/scripts/windows-signature-batch.d.mts",
+        "apps/desktop-user/scripts/windows-signature-batch.mjs",
+        "apps/desktop-user/scripts/windows-signature-cache-directory.d.mts",
+        "apps/desktop-user/scripts/windows-signature-cache-directory.mjs",
+        "apps/desktop-user/scripts/windows-signature-cache-directory.ps1",
+        "apps/desktop-user/scripts/windows-signature-cache.d.mts",
+        "apps/desktop-user/scripts/windows-signature-cache.mjs",
+        "apps/desktop-user/scripts/windows-signing-preflight.ts",
+        "apps/desktop-user/scripts/windows-signing-stage.d.mts",
+        "apps/desktop-user/scripts/windows-signing-stage.mjs",
+        "apps/desktop-user/scripts/windows-signing-state.d.mts",
+        "apps/desktop-user/scripts/windows-signing-state.mjs",
+        "apps/desktop-user/scripts/windows-timestamp.d.mts",
+        "apps/desktop-user/scripts/windows-timestamp.mjs",
+        "apps/desktop-user/scripts/windows-token-identity.ts",
+        "apps/desktop-user/scripts/windows-token-public-key.cs",
+        "apps/desktop-user/scripts/windows-token-public-key.ps1",
+        "apps/desktop-user/src/account-backend.ts",
+        "apps/desktop-user/src/backend-controller.ts",
+        "apps/desktop-user/src/background-notice.ts",
+        "apps/desktop-user/src/browser-guests.ts",
+        "apps/desktop-user/src/client-metadata.ts",
+        "apps/desktop-user/src/client/WelcomePage.tsx",
+        "apps/desktop-user/src/client/styles.d.ts",
+        "apps/desktop-user/src/client/welcome.tsx",
+        "apps/desktop-user/src/command-installation.ts",
+        "apps/desktop-user/src/command-management.ts",
+        "apps/desktop-user/src/command-manager-entry.ts",
+        "apps/desktop-user/src/core-package-set.ts",
+        "apps/desktop-user/src/crash-report.ts",
+        "apps/desktop-user/src/device-info.ts",
+        "apps/desktop-user/src/directory-picker.ts",
+        "apps/desktop-user/src/duration-env.ts",
+        "apps/desktop-user/src/fatal-recovery.ts",
+        "apps/desktop-user/src/file-drag-files.ts",
+        "apps/desktop-user/src/file-drag.ts",
+        "apps/desktop-user/src/host-process.ts",
+        "apps/desktop-user/src/host-protocol.ts",
+        "apps/desktop-user/src/ipc.ts",
+        "apps/desktop-user/src/keybindings.ts",
+        "apps/desktop-user/src/keyboard.ts",
+        "apps/desktop-user/src/locale-cache.ts",
+        "apps/desktop-user/src/locale.ts",
+        "apps/desktop-user/src/login-shell-environment.ts",
+        "apps/desktop-user/src/main.ts",
+        "apps/desktop-user/src/mandatory-update-ipc.ts",
+        "apps/desktop-user/src/mandatory-update-policy.ts",
+        "apps/desktop-user/src/mandatory-update-window.ts",
+        "apps/desktop-user/src/microphone-permissions.ts",
+        "apps/desktop-user/src/node-environment.ts",
+        "apps/desktop-user/src/operation-history.ts",
+        "apps/desktop-user/src/operation-journal.ts",
+        "apps/desktop-user/src/operation-report-job.ts",
+        "apps/desktop-user/src/operation-report-worker.ts",
+        "apps/desktop-user/src/operation-report.ts",
+        "apps/desktop-user/src/owned-directory.ts",
+        "apps/desktop-user/src/paths.ts",
+        "apps/desktop-user/src/platform-ipc.ts",
+        "apps/desktop-user/src/platform-view.ts",
+        "apps/desktop-user/src/policy-test-auth.ts",
+        "apps/desktop-user/src/preload-app.ts",
+        "apps/desktop-user/src/preload-browser.ts",
+        "apps/desktop-user/src/preload-mandatory-overlay.ts",
+        "apps/desktop-user/src/preload-mandatory.ts",
+        "apps/desktop-user/src/preload-menu.ts",
+        "apps/desktop-user/src/preload-platform-account.ts",
+        "apps/desktop-user/src/preload-platform.ts",
+        "apps/desktop-user/src/preload-theme.ts",
+        "apps/desktop-user/src/preload-update-dialog.ts",
+        "apps/desktop-user/src/preload-welcome.ts",
+        "apps/desktop-user/src/preload-windows.ts",
+        "apps/desktop-user/src/project-manager.ts",
+        "apps/desktop-user/src/quit-confirmation.ts",
+        "apps/desktop-user/src/release.ts",
+        "apps/desktop-user/src/runtime-tree.ts",
+        "apps/desktop-user/src/scheme.ts",
+        "apps/desktop-user/src/settings.ts",
+        "apps/desktop-user/src/single-instance.ts",
+        "apps/desktop-user/src/startup-error.ts",
+        "apps/desktop-user/src/tray.ts",
+        "apps/desktop-user/src/update-attention.ts",
+        "apps/desktop-user/src/update-channel.ts",
+        "apps/desktop-user/src/update-coordinator.ts",
+        "apps/desktop-user/src/update-dialog.ts",
+        "apps/desktop-user/src/update-error.ts",
+        "apps/desktop-user/src/update-http-executor.ts",
+        "apps/desktop-user/src/update-journal.ts",
+        "apps/desktop-user/src/update-overlay.ts",
+        "apps/desktop-user/src/update-presentation.ts",
+        "apps/desktop-user/src/update-schedule.ts",
+        "apps/desktop-user/src/update-window.ts",
+        "apps/desktop-user/src/web-document.ts",
+        "apps/desktop-user/src/welcome-api.ts",
+        "apps/desktop-user/src/welcome-backend.ts",
+        "apps/desktop-user/src/welcome-window.ts",
+        "apps/desktop-user/src/windows-layout.ts",
+        "apps/desktop-user/tsconfig.client.json",
+        "apps/desktop-user/tsconfig.host.json",
+        "apps/desktop-user/tsconfig.json",
+        "apps/desktop-user/tsdown.config.ts",
+        "apps/desktop-user/windows-signing/README.i18n.yaml",
+        "apps/desktop-user/windows-signing/README.md",
+        "apps/desktop-user/windows-signing/README.zh.md"
+      ]
+    },
+    {
+      "owner": "apps/desktop",
+      "classification": null,
+      "status": "IN_PROGRESS",
+      "sourceReviewComplete": false,
+      "changedPaths": [
+        "apps/desktop/installer/strings.nsh"
+      ]
+    },
+    {
+      "owner": "apps/relay",
+      "classification": null,
+      "status": "IN_PROGRESS",
+      "sourceReviewComplete": false,
+      "changedPaths": [
+        "apps/relay/README.i18n.yaml",
+        "apps/relay/README.md",
+        "apps/relay/README.zh.md",
+        "apps/relay/client.mjs",
+        "apps/relay/gen-relay-vectors.mjs",
+        "apps/relay/noise.mjs",
+        "apps/relay/selftest.mjs",
+        "apps/relay/server.mjs",
+        "apps/relay/vectors/relay-noise-vectors.json"
+      ]
+    },
+    {
+      "owner": "docs/capability-seams.i18n.yaml",
+      "classification": null,
+      "status": "IN_PROGRESS",
+      "sourceReviewComplete": false,
+      "changedPaths": [
+        "docs/capability-seams.i18n.yaml"
+      ]
+    },
+    {
+      "owner": "docs/capability-seams.md",
+      "classification": null,
+      "status": "IN_PROGRESS",
+      "sourceReviewComplete": false,
+      "changedPaths": [
+        "docs/capability-seams.md"
+      ]
+    },
+    {
+      "owner": "docs/capability-seams.zh.md",
+      "classification": null,
+      "status": "IN_PROGRESS",
+      "sourceReviewComplete": false,
+      "changedPaths": [
+        "docs/capability-seams.zh.md"
+      ]
+    },
+    {
+      "owner": "docs/config-catalog.md",
+      "classification": null,
+      "status": "IN_PROGRESS",
+      "sourceReviewComplete": false,
+      "changedPaths": [
+        "docs/config-catalog.md"
+      ]
+    },
+    {
+      "owner": "docs/config-catalog.zh.md",
+      "classification": null,
+      "status": "IN_PROGRESS",
+      "sourceReviewComplete": false,
+      "changedPaths": [
+        "docs/config-catalog.zh.md"
+      ]
+    },
+    {
+      "owner": "docs/event-producer-consumer.md",
+      "classification": null,
+      "status": "IN_PROGRESS",
+      "sourceReviewComplete": false,
+      "changedPaths": [
+        "docs/event-producer-consumer.md"
+      ]
+    },
+    {
+      "owner": "docs/event-producer-consumer.zh.md",
+      "classification": null,
+      "status": "IN_PROGRESS",
+      "sourceReviewComplete": false,
+      "changedPaths": [
+        "docs/event-producer-consumer.zh.md"
+      ]
+    },
+    {
+      "owner": "docs/persistence-catalog.i18n.yaml",
+      "classification": null,
+      "status": "IN_PROGRESS",
+      "sourceReviewComplete": false,
+      "changedPaths": [
+        "docs/persistence-catalog.i18n.yaml"
+      ]
+    },
+    {
+      "owner": "docs/persistence-catalog.md",
+      "classification": null,
+      "status": "IN_PROGRESS",
+      "sourceReviewComplete": false,
+      "changedPaths": [
+        "docs/persistence-catalog.md"
+      ]
+    },
+    {
+      "owner": "docs/persistence-catalog.zh.md",
+      "classification": null,
+      "status": "IN_PROGRESS",
+      "sourceReviewComplete": false,
+      "changedPaths": [
+        "docs/persistence-catalog.zh.md"
+      ]
+    },
+    {
+      "owner": "docs/persistence-changes",
+      "classification": null,
+      "status": "IN_PROGRESS",
+      "sourceReviewComplete": false,
+      "changedPaths": [
+        "docs/persistence-changes/2026-10-29-artifact-events.i18n.yaml",
+        "docs/persistence-changes/2026-10-29-artifact-events.md",
+        "docs/persistence-changes/2026-10-29-artifact-events.schema.json",
+        "docs/persistence-changes/2026-10-29-artifact-events.zh.md",
+        "docs/persistence-changes/historical-formats/README.i18n.yaml",
+        "docs/persistence-changes/historical-formats/README.md",
+        "docs/persistence-changes/historical-formats/README.zh.md"
+      ]
+    },
+    {
+      "owner": "docs/persistence-schema.json",
+      "classification": null,
+      "status": "IN_PROGRESS",
+      "sourceReviewComplete": false,
+      "changedPaths": [
+        "docs/persistence-schema.json"
+      ]
+    },
+    {
+      "owner": "docs/subsystems",
+      "classification": null,
+      "status": "IN_PROGRESS",
+      "sourceReviewComplete": false,
+      "changedPaths": [
+        "docs/subsystems/README.i18n.yaml",
+        "docs/subsystems/README.md",
+        "docs/subsystems/README.zh.md",
+        "docs/subsystems/attachment.md",
+        "docs/subsystems/attachment.zh.md",
+        "docs/subsystems/client-modules.md",
+        "docs/subsystems/client-modules.zh.md",
+        "docs/subsystems/core.md",
+        "docs/subsystems/core.zh.md",
+        "docs/subsystems/ptc-runtime.md",
+        "docs/subsystems/ptc-runtime.zh.md",
+        "docs/subsystems/remote-link.i18n.yaml",
+        "docs/subsystems/remote-link.md",
+        "docs/subsystems/remote-link.zh.md",
+        "docs/subsystems/sandbox.i18n.yaml",
+        "docs/subsystems/sandbox.md",
+        "docs/subsystems/sandbox.zh.md",
+        "docs/subsystems/session.md",
+        "docs/subsystems/session.zh.md",
+        "docs/subsystems/web-server.md",
+        "docs/subsystems/web-server.zh.md"
+      ]
+    },
+    {
+      "owner": "docs/tool-catalog.i18n.yaml",
+      "classification": null,
+      "status": "IN_PROGRESS",
+      "sourceReviewComplete": false,
+      "changedPaths": [
+        "docs/tool-catalog.i18n.yaml"
+      ]
+    },
+    {
+      "owner": "docs/tool-catalog.md",
+      "classification": null,
+      "status": "IN_PROGRESS",
+      "sourceReviewComplete": false,
+      "changedPaths": [
+        "docs/tool-catalog.md"
+      ]
+    },
+    {
+      "owner": "docs/tool-catalog.zh.md",
+      "classification": null,
+      "status": "IN_PROGRESS",
+      "sourceReviewComplete": false,
+      "changedPaths": [
+        "docs/tool-catalog.zh.md"
+      ]
+    },
+    {
+      "owner": "package.json",
+      "classification": null,
+      "status": "IN_PROGRESS",
+      "sourceReviewComplete": false,
+      "changedPaths": [
+        "package.json"
+      ]
+    },
+    {
+      "owner": "packages/README.i18n.yaml",
+      "classification": null,
+      "status": "IN_PROGRESS",
+      "sourceReviewComplete": false,
+      "changedPaths": [
+        "packages/README.i18n.yaml"
+      ]
+    },
+    {
+      "owner": "packages/README.md",
+      "classification": null,
+      "status": "IN_PROGRESS",
+      "sourceReviewComplete": false,
+      "changedPaths": [
+        "packages/README.md"
+      ]
+    },
+    {
+      "owner": "packages/README.zh.md",
+      "classification": null,
+      "status": "IN_PROGRESS",
+      "sourceReviewComplete": false,
+      "changedPaths": [
+        "packages/README.zh.md"
+      ]
+    },
+    {
+      "owner": "packages/api/README.i18n.yaml",
+      "classification": null,
+      "status": "IN_PROGRESS",
+      "sourceReviewComplete": false,
+      "changedPaths": [
+        "packages/api/README.i18n.yaml"
+      ]
+    },
+    {
+      "owner": "packages/api/README.md",
+      "classification": null,
+      "status": "IN_PROGRESS",
+      "sourceReviewComplete": false,
+      "changedPaths": [
+        "packages/api/README.md"
+      ]
+    },
+    {
+      "owner": "packages/api/README.zh.md",
+      "classification": null,
+      "status": "IN_PROGRESS",
+      "sourceReviewComplete": false,
+      "changedPaths": [
+        "packages/api/README.zh.md"
+      ]
+    },
+    {
+      "owner": "packages/api/link-controller",
+      "classification": null,
+      "status": "IN_PROGRESS",
+      "sourceReviewComplete": false,
+      "changedPaths": [
+        "packages/api/link-controller/README.i18n.yaml",
+        "packages/api/link-controller/README.md",
+        "packages/api/link-controller/README.zh.md",
+        "packages/api/link-controller/package.json",
+        "packages/api/link-controller/src/index.ts",
+        "packages/api/link-controller/src/invariant.ts",
+        "packages/api/link-controller/src/types.ts",
+        "packages/api/link-controller/tests/invariant.spec.ts",
+        "packages/api/link-controller/tests/link-controller.host.spec.ts",
+        "packages/api/link-controller/tsconfig.json"
+      ]
+    },
+    {
+      "owner": "packages/api/remotes",
+      "classification": null,
+      "status": "IN_PROGRESS",
+      "sourceReviewComplete": false,
+      "changedPaths": [
+        "packages/api/remotes/package.json",
+        "packages/api/remotes/src/client/index.ts",
+        "packages/api/remotes/tsconfig.client.json"
+      ]
+    },
+    {
+      "owner": "packages/api/session-controller",
+      "classification": null,
+      "status": "IN_PROGRESS",
+      "sourceReviewComplete": false,
+      "changedPaths": [
+        "packages/api/session-controller/README.i18n.yaml",
+        "packages/api/session-controller/README.md",
+        "packages/api/session-controller/README.zh.md",
+        "packages/api/session-controller/package.json",
+        "packages/api/session-controller/src/client/contract/session.ts",
+        "packages/api/session-controller/src/client/sessions/session.ts",
+        "packages/api/session-controller/src/commands.ts",
+        "packages/api/session-controller/src/index.ts",
+        "packages/api/session-controller/src/types.ts",
+        "packages/api/session-controller/tests/commands-artifact.host.spec.ts",
+        "packages/api/session-controller/tests/commands-handoff.host.spec.ts",
+        "packages/api/session-controller/tsconfig.host.json"
+      ]
+    },
+    {
+      "owner": "packages/api/workspace-controller",
+      "classification": null,
+      "status": "IN_PROGRESS",
+      "sourceReviewComplete": false,
+      "changedPaths": [
+        "packages/api/workspace-controller/README.i18n.yaml",
+        "packages/api/workspace-controller/README.md",
+        "packages/api/workspace-controller/README.zh.md",
+        "packages/api/workspace-controller/package.json",
+        "packages/api/workspace-controller/src/index.ts",
+        "packages/api/workspace-controller/src/types.ts"
+      ]
+    },
+    {
+      "owner": "packages/artifact/README.i18n.yaml",
+      "classification": null,
+      "status": "IN_PROGRESS",
+      "sourceReviewComplete": false,
+      "changedPaths": [
+        "packages/artifact/README.i18n.yaml"
+      ]
+    },
+    {
+      "owner": "packages/artifact/README.md",
+      "classification": null,
+      "status": "IN_PROGRESS",
+      "sourceReviewComplete": false,
+      "changedPaths": [
+        "packages/artifact/README.md"
+      ]
+    },
+    {
+      "owner": "packages/artifact/README.zh.md",
+      "classification": null,
+      "status": "IN_PROGRESS",
+      "sourceReviewComplete": false,
+      "changedPaths": [
+        "packages/artifact/README.zh.md"
+      ]
+    },
+    {
+      "owner": "packages/artifact/artifact-local",
+      "classification": null,
+      "status": "IN_PROGRESS",
+      "sourceReviewComplete": false,
+      "changedPaths": [
+        "packages/artifact/artifact-local/README.i18n.yaml",
+        "packages/artifact/artifact-local/README.md",
+        "packages/artifact/artifact-local/README.zh.md",
+        "packages/artifact/artifact-local/package.json",
+        "packages/artifact/artifact-local/src/index.ts",
+        "packages/artifact/artifact-local/tests/artifact-local.spec.ts",
+        "packages/artifact/artifact-local/tsconfig.json"
+      ]
+    },
+    {
+      "owner": "packages/artifact/artifact",
+      "classification": null,
+      "status": "IN_PROGRESS",
+      "sourceReviewComplete": false,
+      "changedPaths": [
+        "packages/artifact/artifact/README.i18n.yaml",
+        "packages/artifact/artifact/README.md",
+        "packages/artifact/artifact/README.zh.md",
+        "packages/artifact/artifact/package.json",
+        "packages/artifact/artifact/src/index.ts",
+        "packages/artifact/artifact/src/invariant.ts",
+        "packages/artifact/artifact/src/types.ts",
+        "packages/artifact/artifact/tests/artifact-tool.spec.ts",
+        "packages/artifact/artifact/tests/artifact.spec.ts",
+        "packages/artifact/artifact/tests/invariant.spec.ts",
+        "packages/artifact/artifact/tsconfig.json"
+      ]
+    },
+    {
+      "owner": "packages/bundle/base",
+      "classification": null,
+      "status": "IN_PROGRESS",
+      "sourceReviewComplete": false,
+      "changedPaths": [
+        "packages/bundle/base/cordis.patch.yml",
+        "packages/bundle/base/package.json"
+      ]
+    },
+    {
+      "owner": "packages/bundle/desktop-app",
+      "classification": null,
+      "status": "IN_PROGRESS",
+      "sourceReviewComplete": false,
+      "changedPaths": [
+        "packages/bundle/desktop-app/README.i18n.yaml",
+        "packages/bundle/desktop-app/README.md",
+        "packages/bundle/desktop-app/README.zh.md",
+        "packages/bundle/desktop-app/cordis.patch.yml",
+        "packages/bundle/desktop-app/package.json",
+        "packages/bundle/desktop-app/src/index.ts",
+        "packages/bundle/desktop-app/src/invariant.ts",
+        "packages/bundle/desktop-app/tests/desktop-app.spec.ts",
+        "packages/bundle/desktop-app/tsconfig.json"
+      ]
+    },
+    {
+      "owner": "packages/bundle/web-app",
+      "classification": null,
+      "status": "IN_PROGRESS",
+      "sourceReviewComplete": false,
+      "changedPaths": [
+        "packages/bundle/web-app/cordis.patch.yml",
+        "packages/bundle/web-app/package.json"
+      ]
+    },
+    {
+      "owner": "packages/client/connection",
+      "classification": null,
+      "status": "IN_PROGRESS",
+      "sourceReviewComplete": false,
+      "changedPaths": [
+        "packages/client/connection/src/rpc-host.ts",
+        "packages/client/connection/tests/node-half.host.spec.ts"
+      ]
+    },
+    {
+      "owner": "packages/client/modules",
+      "classification": null,
+      "status": "IN_PROGRESS",
+      "sourceReviewComplete": false,
+      "changedPaths": [
+        "packages/client/modules/src/client/index.ts",
+        "packages/client/modules/src/client/manifest.ts",
+        "packages/client/modules/src/index.ts",
+        "packages/client/modules/tests/manifest.client.spec.ts",
+        "packages/client/modules/tests/node-half.client.spec.ts"
+      ]
+    },
+    {
+      "owner": "packages/client/ui-conversation",
+      "classification": null,
+      "status": "IN_PROGRESS",
+      "sourceReviewComplete": false,
+      "changedPaths": [
+        "packages/client/ui-conversation/tests/conversation-registry.client.spec.ts"
+      ]
+    },
+    {
+      "owner": "packages/client/ui-deepseek-model-label-1017",
+      "classification": null,
+      "status": "IN_PROGRESS",
+      "sourceReviewComplete": false,
+      "changedPaths": [
+        "packages/client/ui-deepseek-model-label-1017/README.i18n.yaml",
+        "packages/client/ui-deepseek-model-label-1017/README.md",
+        "packages/client/ui-deepseek-model-label-1017/README.zh.md",
+        "packages/client/ui-deepseek-model-label-1017/package.json",
+        "packages/client/ui-deepseek-model-label-1017/src/client/DeepSeekModelLabel.module.css",
+        "packages/client/ui-deepseek-model-label-1017/src/client/DeepSeekModelLabel.tsx",
+        "packages/client/ui-deepseek-model-label-1017/src/client/index.ts",
+        "packages/client/ui-deepseek-model-label-1017/src/client/locales.ts",
+        "packages/client/ui-deepseek-model-label-1017/src/css-modules.d.ts",
+        "packages/client/ui-deepseek-model-label-1017/src/index.ts",
+        "packages/client/ui-deepseek-model-label-1017/tests/label.client.spec.tsx",
+        "packages/client/ui-deepseek-model-label-1017/tsconfig.json",
+        "packages/client/ui-deepseek-model-label-1017/tsdown.config.ts"
+      ]
+    },
+    {
+      "owner": "packages/client/ui-desktop",
+      "classification": null,
+      "status": "IN_PROGRESS",
+      "sourceReviewComplete": false,
+      "changedPaths": [
+        "packages/client/ui-desktop/README.i18n.yaml",
+        "packages/client/ui-desktop/README.md",
+        "packages/client/ui-desktop/README.zh.md",
+        "packages/client/ui-desktop/package.json",
+        "packages/client/ui-desktop/src/client/CloseActionRow.module.css",
+        "packages/client/ui-desktop/src/client/CloseActionRow.tsx",
+        "packages/client/ui-desktop/src/client/DeviceNameRow.tsx",
+        "packages/client/ui-desktop/src/client/LaunchAtLoginRow.tsx",
+        "packages/client/ui-desktop/src/client/RemoteDevicesRow.module.css",
+        "packages/client/ui-desktop/src/client/RemoteDevicesRow.tsx",
+        "packages/client/ui-desktop/src/client/RemoteToggleRow.tsx",
+        "packages/client/ui-desktop/src/client/index.ts",
+        "packages/client/ui-desktop/src/client/locales.ts",
+        "packages/client/ui-desktop/src/css-modules.d.ts",
+        "packages/client/ui-desktop/src/desktop-settings.ts",
+        "packages/client/ui-desktop/src/index.ts",
+        "packages/client/ui-desktop/src/invariant.ts",
+        "packages/client/ui-desktop/src/remote-settings.ts",
+        "packages/client/ui-desktop/tests/apply.client.spec.ts",
+        "packages/client/ui-desktop/tests/components.client.spec.tsx",
+        "packages/client/ui-desktop/tests/desktop-settings.host.spec.ts",
+        "packages/client/ui-desktop/tests/invariant.client.spec.ts",
+        "packages/client/ui-desktop/tests/locales.client.spec.ts",
+        "packages/client/ui-desktop/tests/remote-rows.client.spec.tsx",
+        "packages/client/ui-desktop/tsconfig.client.json",
+        "packages/client/ui-desktop/tsconfig.host.json",
+        "packages/client/ui-desktop/tsconfig.json",
+        "packages/client/ui-desktop/tsdown.config.ts"
+      ]
+    },
+    {
+      "owner": "packages/client/ui-plugin-manager",
+      "classification": null,
+      "status": "IN_PROGRESS",
+      "sourceReviewComplete": false,
+      "changedPaths": [
+        "packages/client/ui-plugin-manager/src/client/assets.d.ts",
+        "packages/client/ui-plugin-manager/src/client/assets/badge-skill-preview.svg",
+        "packages/client/ui-plugin-manager/src/client/assets/badge-skill-preview.zh.svg",
+        "packages/client/ui-plugin-manager/src/client/assets/voice-input-preview.svg",
+        "packages/client/ui-plugin-manager/src/client/assets/voice-input-preview.zh.svg"
+      ]
+    },
+    {
+      "owner": "packages/client/ui-settings-account",
+      "classification": null,
+      "status": "IN_PROGRESS",
+      "sourceReviewComplete": false,
+      "changedPaths": [
+        "packages/client/ui-settings-account/src/client/assets.d.ts"
+      ]
+    },
+    {
+      "owner": "packages/client/ui-settings-general",
+      "classification": null,
+      "status": "IN_PROGRESS",
+      "sourceReviewComplete": false,
+      "changedPaths": [
+        "packages/client/ui-settings-general/package.json",
+        "packages/client/ui-settings-general/src/client/AboutSection.module.css",
+        "packages/client/ui-settings-general/src/client/AboutSection.tsx",
+        "packages/client/ui-settings-general/src/client/SettingsRoot.tsx",
+        "packages/client/ui-settings-general/src/client/index.ts",
+        "packages/client/ui-settings-general/src/client/locales.ts",
+        "packages/client/ui-settings-general/tests/apply.client.spec.ts",
+        "packages/client/ui-settings-general/tests/components.client.spec.tsx",
+        "packages/client/ui-settings-general/tests/settings-root.client.spec.tsx",
+        "packages/client/ui-settings-general/tests/shell.client.spec.ts"
+      ]
+    },
+    {
+      "owner": "packages/client/web",
+      "classification": null,
+      "status": "IN_PROGRESS",
+      "sourceReviewComplete": false,
+      "changedPaths": [
+        "packages/client/web/src/boot.ts",
+        "packages/client/web/tests/boot.client.spec.ts"
+      ]
+    },
+    {
+      "owner": "packages/code-runtime/README.i18n.yaml",
+      "classification": null,
+      "status": "IN_PROGRESS",
+      "sourceReviewComplete": false,
+      "changedPaths": [
+        "packages/code-runtime/README.i18n.yaml"
+      ]
+    },
+    {
+      "owner": "packages/code-runtime/README.md",
+      "classification": null,
+      "status": "IN_PROGRESS",
+      "sourceReviewComplete": false,
+      "changedPaths": [
+        "packages/code-runtime/README.md"
+      ]
+    },
+    {
+      "owner": "packages/code-runtime/README.zh.md",
+      "classification": null,
+      "status": "IN_PROGRESS",
+      "sourceReviewComplete": false,
+      "changedPaths": [
+        "packages/code-runtime/README.zh.md"
+      ]
+    },
+    {
+      "owner": "packages/code-runtime/code-runtime-python",
+      "classification": null,
+      "status": "IN_PROGRESS",
+      "sourceReviewComplete": false,
+      "changedPaths": [
+        "packages/code-runtime/code-runtime-python/README.i18n.yaml",
+        "packages/code-runtime/code-runtime-python/README.md",
+        "packages/code-runtime/code-runtime-python/README.zh.md",
+        "packages/code-runtime/code-runtime-python/package.json",
+        "packages/code-runtime/code-runtime-python/py/protocol.py",
+        "packages/code-runtime/code-runtime-python/src/index.ts",
+        "packages/code-runtime/code-runtime-python/src/invariant.ts",
+        "packages/code-runtime/code-runtime-python/src/protocol.ts",
+        "packages/code-runtime/code-runtime-python/tests/protocol-mirror.e2e.ts",
+        "packages/code-runtime/code-runtime-python/tests/protocol.spec.ts",
+        "packages/code-runtime/code-runtime-python/tsconfig.json",
+        "packages/code-runtime/code-runtime-python/tsdown.config.ts"
+      ]
+    },
+    {
+      "owner": "packages/code-runtime/code-runtime-worker-thread",
+      "classification": null,
+      "status": "IN_PROGRESS",
+      "sourceReviewComplete": false,
+      "changedPaths": [
+        "packages/code-runtime/code-runtime-worker-thread/README.i18n.yaml",
+        "packages/code-runtime/code-runtime-worker-thread/README.md",
+        "packages/code-runtime/code-runtime-worker-thread/README.zh.md",
+        "packages/code-runtime/code-runtime-worker-thread/package.json",
+        "packages/code-runtime/code-runtime-worker-thread/src/bootstrap.ts",
+        "packages/code-runtime/code-runtime-worker-thread/src/index.ts",
+        "packages/code-runtime/code-runtime-worker-thread/src/invariant.ts",
+        "packages/code-runtime/code-runtime-worker-thread/src/output-json.ts",
+        "packages/code-runtime/code-runtime-worker-thread/src/protocol.ts",
+        "packages/code-runtime/code-runtime-worker-thread/src/worker-json.ts",
+        "packages/code-runtime/code-runtime-worker-thread/src/worker.ts",
+        "packages/code-runtime/code-runtime-worker-thread/tests/bootstrap.spec.ts",
+        "packages/code-runtime/code-runtime-worker-thread/tests/built-lib.e2e.ts",
+        "packages/code-runtime/code-runtime-worker-thread/tests/output-json.spec.ts",
+        "packages/code-runtime/code-runtime-worker-thread/tests/runtime.spec.ts",
+        "packages/code-runtime/code-runtime-worker-thread/tests/source-worker.compat.spec.ts",
+        "packages/code-runtime/code-runtime-worker-thread/tests/worker-json.spec.ts",
+        "packages/code-runtime/code-runtime-worker-thread/tsconfig.json",
+        "packages/code-runtime/code-runtime-worker-thread/tsdown.config.ts"
+      ]
+    },
+    {
+      "owner": "packages/code-runtime/code-runtime",
+      "classification": null,
+      "status": "IN_PROGRESS",
+      "sourceReviewComplete": false,
+      "changedPaths": [
+        "packages/code-runtime/code-runtime/README.i18n.yaml",
+        "packages/code-runtime/code-runtime/README.md",
+        "packages/code-runtime/code-runtime/README.zh.md",
+        "packages/code-runtime/code-runtime/package.json",
+        "packages/code-runtime/code-runtime/src/index.ts",
+        "packages/code-runtime/code-runtime/src/invariant.ts",
+        "packages/code-runtime/code-runtime/src/types.ts",
+        "packages/code-runtime/code-runtime/tests/reserved.spec.ts",
+        "packages/code-runtime/code-runtime/tests/service.spec.ts",
+        "packages/code-runtime/code-runtime/tsconfig.json"
+      ]
+    },
+    {
+      "owner": "packages/core/session",
+      "classification": null,
+      "status": "IN_PROGRESS",
+      "sourceReviewComplete": false,
+      "changedPaths": [
+        "packages/core/session/src/known-event-types.ts"
+      ]
+    },
+    {
+      "owner": "packages/experimental/client-ui-cot-translation",
+      "classification": null,
+      "status": "IN_PROGRESS",
+      "sourceReviewComplete": false,
+      "changedPaths": [
+        "packages/experimental/client-ui-cot-translation/src/index.ts"
+      ]
+    },
+    {
+      "owner": "packages/experimental/liveshare",
+      "classification": null,
+      "status": "IN_PROGRESS",
+      "sourceReviewComplete": false,
+      "changedPaths": [
+        "packages/experimental/liveshare/src/endpoint-classification.ts"
+      ]
+    },
+    {
+      "owner": "packages/extensions/cordis-client-runner",
+      "classification": null,
+      "status": "IN_PROGRESS",
+      "sourceReviewComplete": false,
+      "changedPaths": [
+        "packages/extensions/cordis-client-runner/src/client/api-catalog.ts",
+        "packages/extensions/cordis-client-runner/src/client/slot-catalog.ts"
+      ]
+    },
+    {
+      "owner": "packages/extensions/tool-cordis",
+      "classification": null,
+      "status": "IN_PROGRESS",
+      "sourceReviewComplete": false,
+      "changedPaths": [
+        "packages/extensions/tool-cordis/src/api-catalog.ts"
+      ]
+    },
+    {
+      "owner": "packages/host/directory-picker-auto",
+      "classification": null,
+      "status": "IN_PROGRESS",
+      "sourceReviewComplete": false,
+      "changedPaths": [
+        "packages/host/directory-picker-auto/package.json",
+        "packages/host/directory-picker-auto/src/index.ts",
+        "packages/host/directory-picker-auto/tests/loader-composition.spec.ts",
+        "packages/host/directory-picker-auto/tsconfig.json"
+      ]
+    },
+    {
+      "owner": "packages/host/directory-picker-native",
+      "classification": null,
+      "status": "IN_PROGRESS",
+      "sourceReviewComplete": false,
+      "changedPaths": [
+        "packages/host/directory-picker-native/README.i18n.yaml",
+        "packages/host/directory-picker-native/README.md",
+        "packages/host/directory-picker-native/README.zh.md",
+        "packages/host/directory-picker-native/package.json",
+        "packages/host/directory-picker-native/src/win32-dialog-bindings.ts",
+        "packages/host/directory-picker-native/src/win32-dialog-host.ts",
+        "packages/host/directory-picker-native/tests/win32-dialog-bindings.spec.ts",
+        "packages/host/directory-picker-native/tsconfig.json"
+      ]
+    },
+    {
+      "owner": "packages/host/electron-ipc",
+      "classification": null,
+      "status": "IN_PROGRESS",
+      "sourceReviewComplete": false,
+      "changedPaths": [
+        "packages/host/electron-ipc/README.i18n.yaml",
+        "packages/host/electron-ipc/README.md",
+        "packages/host/electron-ipc/README.zh.md",
+        "packages/host/electron-ipc/package.json",
+        "packages/host/electron-ipc/src/index.ts",
+        "packages/host/electron-ipc/src/invariant.ts",
+        "packages/host/electron-ipc/tests/electron-ipc.spec.ts",
+        "packages/host/electron-ipc/tsconfig.json"
+      ]
+    },
+    {
+      "owner": "packages/host/webserver",
+      "classification": null,
+      "status": "IN_PROGRESS",
+      "sourceReviewComplete": false,
+      "changedPaths": [
+        "packages/host/webserver/README.i18n.yaml",
+        "packages/host/webserver/README.md",
+        "packages/host/webserver/README.zh.md",
+        "packages/host/webserver/src/index.ts"
+      ]
+    },
+    {
+      "owner": "packages/preset/agent-preset",
+      "classification": null,
+      "status": "IN_PROGRESS",
+      "sourceReviewComplete": false,
+      "changedPaths": [
+        "packages/preset/agent-preset/skills/cordis-composition-reference/references/packages.md"
+      ]
+    },
+    {
+      "owner": "packages/remote/README.i18n.yaml",
+      "classification": null,
+      "status": "IN_PROGRESS",
+      "sourceReviewComplete": false,
+      "changedPaths": [
+        "packages/remote/README.i18n.yaml"
+      ]
+    },
+    {
+      "owner": "packages/remote/README.md",
+      "classification": null,
+      "status": "IN_PROGRESS",
+      "sourceReviewComplete": false,
+      "changedPaths": [
+        "packages/remote/README.md"
+      ]
+    },
+    {
+      "owner": "packages/remote/README.zh.md",
+      "classification": null,
+      "status": "IN_PROGRESS",
+      "sourceReviewComplete": false,
+      "changedPaths": [
+        "packages/remote/README.zh.md"
+      ]
+    },
+    {
+      "owner": "packages/remote/device-trust",
+      "classification": null,
+      "status": "IN_PROGRESS",
+      "sourceReviewComplete": false,
+      "changedPaths": [
+        "packages/remote/device-trust/README.i18n.yaml",
+        "packages/remote/device-trust/README.md",
+        "packages/remote/device-trust/README.zh.md",
+        "packages/remote/device-trust/package.json",
+        "packages/remote/device-trust/src/index.ts",
+        "packages/remote/device-trust/src/invariant.ts",
+        "packages/remote/device-trust/src/schema.ts",
+        "packages/remote/device-trust/tests/device-trust.spec.ts",
+        "packages/remote/device-trust/tsconfig.json"
+      ]
+    },
+    {
+      "owner": "packages/remote/link-access",
+      "classification": null,
+      "status": "IN_PROGRESS",
+      "sourceReviewComplete": false,
+      "changedPaths": [
+        "packages/remote/link-access/README.i18n.yaml",
+        "packages/remote/link-access/README.md",
+        "packages/remote/link-access/README.zh.md",
+        "packages/remote/link-access/package.json",
+        "packages/remote/link-access/src/index.ts",
+        "packages/remote/link-access/src/invariant.ts",
+        "packages/remote/link-access/src/protocol.ts",
+        "packages/remote/link-access/src/tls.ts",
+        "packages/remote/link-access/tests/carrier.spec.ts",
+        "packages/remote/link-access/tests/link-harness.ts",
+        "packages/remote/link-access/tests/protocol.spec.ts",
+        "packages/remote/link-access/tests/tls.spec.ts",
+        "packages/remote/link-access/tsconfig.json"
+      ]
+    },
+    {
+      "owner": "packages/remote/link-client",
+      "classification": null,
+      "status": "IN_PROGRESS",
+      "sourceReviewComplete": false,
+      "changedPaths": [
+        "packages/remote/link-client/README.i18n.yaml",
+        "packages/remote/link-client/README.md",
+        "packages/remote/link-client/README.zh.md",
+        "packages/remote/link-client/package.json",
+        "packages/remote/link-client/src/index.ts",
+        "packages/remote/link-client/src/invariant.ts",
+        "packages/remote/link-client/tests/link-client.spec.ts",
+        "packages/remote/link-client/tsconfig.json"
+      ]
+    },
+    {
+      "owner": "packages/remote/link-contracts",
+      "classification": null,
+      "status": "IN_PROGRESS",
+      "sourceReviewComplete": false,
+      "changedPaths": [
+        "packages/remote/link-contracts/README.i18n.yaml",
+        "packages/remote/link-contracts/README.md",
+        "packages/remote/link-contracts/README.zh.md",
+        "packages/remote/link-contracts/generated/LinkContracts.kt",
+        "packages/remote/link-contracts/generated/LinkContracts.swift",
+        "packages/remote/link-contracts/generated/conformance/artifacts.json",
+        "packages/remote/link-contracts/generated/conformance/basic-turn.json",
+        "packages/remote/link-contracts/generated/conformance/image-attachment.json",
+        "packages/remote/link-contracts/generated/conformance/plan-todo-goal.json",
+        "packages/remote/link-contracts/generated/conformance/tool-trajectory.json",
+        "packages/remote/link-contracts/generated/fixtures/admin-status.json",
+        "packages/remote/link-contracts/generated/fixtures/artifact-read.json",
+        "packages/remote/link-contracts/generated/fixtures/attachment-read.json",
+        "packages/remote/link-contracts/generated/fixtures/carrier-status.json",
+        "packages/remote/link-contracts/generated/fixtures/chunkrow-text-chunks.json",
+        "packages/remote/link-contracts/generated/fixtures/chunkrow-tool-call-chunks.json",
+        "packages/remote/link-contracts/generated/fixtures/device-record.json",
+        "packages/remote/link-contracts/generated/fixtures/event-artifact-created.json",
+        "packages/remote/link-contracts/generated/fixtures/event-artifact-status.json",
+        "packages/remote/link-contracts/generated/fixtures/event-assistant-attempt.json",
+        "packages/remote/link-contracts/generated/fixtures/event-assistant-chunk.json",
+        "packages/remote/link-contracts/generated/fixtures/event-assistant-message.json",
+        "packages/remote/link-contracts/generated/fixtures/event-goal-change.json",
+        "packages/remote/link-contracts/generated/fixtures/event-plan-mode.json",
+        "packages/remote/link-contracts/generated/fixtures/event-step-start.json",
+        "packages/remote/link-contracts/generated/fixtures/event-todo-write.json",
+        "packages/remote/link-contracts/generated/fixtures/event-tool-call.json",
+        "packages/remote/link-contracts/generated/fixtures/event-tool-result.json",
+        "packages/remote/link-contracts/generated/fixtures/event-turn-end.json",
+        "packages/remote/link-contracts/generated/fixtures/event-turn-start.json",
+        "packages/remote/link-contracts/generated/fixtures/event-user-message.json",
+        "packages/remote/link-contracts/generated/fixtures/file-list.json",
+        "packages/remote/link-contracts/generated/fixtures/file-read.json",
+        "packages/remote/link-contracts/generated/fixtures/handoff-artifact-ref.json",
+        "packages/remote/link-contracts/generated/fixtures/handoff-context-row.json",
+        "packages/remote/link-contracts/generated/fixtures/handoff-sender.json",
+        "packages/remote/link-contracts/generated/fixtures/handoff-snapshot.json",
+        "packages/remote/link-contracts/generated/fixtures/handoff-todo.json",
+        "packages/remote/link-contracts/generated/fixtures/handoff-value.json",
+        "packages/remote/link-contracts/generated/fixtures/host-description.json",
+        "packages/remote/link-contracts/generated/fixtures/image-attachment-ref.json",
+        "packages/remote/link-contracts/generated/fixtures/pair-response.json",
+        "packages/remote/link-contracts/generated/fixtures/pairing-payload.json",
+        "packages/remote/link-contracts/generated/fixtures/prompt-image-part.json",
+        "packages/remote/link-contracts/generated/fixtures/subagent-catalog.json",
+        "packages/remote/link-contracts/generated/fixtures/subagent-entry.json",
+        "packages/remote/link-contracts/generated/link-contracts.manifest.json",
+        "packages/remote/link-contracts/generated/lite-conformance/cancel-preserves-prefix.json",
+        "packages/remote/link-contracts/generated/lite-conformance/handoff-request.json",
+        "packages/remote/link-contracts/generated/lite-conformance/plan-todo-artifact.json",
+        "packages/remote/link-contracts/generated/lite-conformance/prompt-and-streaming.json",
+        "packages/remote/link-contracts/generated/lite-conformance/provider-and-network-errors.json",
+        "packages/remote/link-contracts/generated/lite-conformance/tool-call-and-result.json",
+        "packages/remote/link-contracts/package.json",
+        "packages/remote/link-contracts/src/companion-fold.ts",
+        "packages/remote/link-contracts/src/companion-scenarios.ts",
+        "packages/remote/link-contracts/src/generate.ts",
+        "packages/remote/link-contracts/src/index.ts",
+        "packages/remote/link-contracts/src/invariant.ts",
+        "packages/remote/link-contracts/src/lite-spec.ts",
+        "packages/remote/link-contracts/tests/invariant.spec.ts",
+        "packages/remote/link-contracts/tests/link-contracts.spec.ts",
+        "packages/remote/link-contracts/tsconfig.json"
+      ]
+    },
+    {
+      "owner": "packages/remote/link-settings",
+      "classification": null,
+      "status": "IN_PROGRESS",
+      "sourceReviewComplete": false,
+      "changedPaths": [
+        "packages/remote/link-settings/README.i18n.yaml",
+        "packages/remote/link-settings/README.md",
+        "packages/remote/link-settings/README.zh.md",
+        "packages/remote/link-settings/package.json",
+        "packages/remote/link-settings/src/index.ts",
+        "packages/remote/link-settings/src/invariant.ts",
+        "packages/remote/link-settings/tests/link-settings.spec.ts",
+        "packages/remote/link-settings/tsconfig.json"
+      ]
+    },
+    {
+      "owner": "packages/runtime-diagnostics/README.i18n.yaml",
+      "classification": null,
+      "status": "IN_PROGRESS",
+      "sourceReviewComplete": false,
+      "changedPaths": [
+        "packages/runtime-diagnostics/README.i18n.yaml"
+      ]
+    },
+    {
+      "owner": "packages/runtime-diagnostics/README.md",
+      "classification": null,
+      "status": "IN_PROGRESS",
+      "sourceReviewComplete": false,
+      "changedPaths": [
+        "packages/runtime-diagnostics/README.md"
+      ]
+    },
+    {
+      "owner": "packages/runtime-diagnostics/README.zh.md",
+      "classification": null,
+      "status": "IN_PROGRESS",
+      "sourceReviewComplete": false,
+      "changedPaths": [
+        "packages/runtime-diagnostics/README.zh.md"
+      ]
+    },
+    {
+      "owner": "packages/runtime-diagnostics/invariants",
+      "classification": null,
+      "status": "IN_PROGRESS",
+      "sourceReviewComplete": false,
+      "changedPaths": [
+        "packages/runtime-diagnostics/invariants/README.i18n.yaml",
+        "packages/runtime-diagnostics/invariants/README.md",
+        "packages/runtime-diagnostics/invariants/README.zh.md",
+        "packages/runtime-diagnostics/invariants/package.json",
+        "packages/runtime-diagnostics/invariants/src/index.ts",
+        "packages/runtime-diagnostics/invariants/src/invariant.ts",
+        "packages/runtime-diagnostics/invariants/tests/service.spec.ts",
+        "packages/runtime-diagnostics/invariants/tsconfig.json"
+      ]
+    },
+    {
+      "owner": "packages/sandbox/sandbox-local",
+      "classification": null,
+      "status": "IN_PROGRESS",
+      "sourceReviewComplete": false,
+      "changedPaths": [
+        "packages/sandbox/sandbox-local/README.i18n.yaml",
+        "packages/sandbox/sandbox-local/README.md",
+        "packages/sandbox/sandbox-local/README.zh.md",
+        "packages/sandbox/sandbox-local/package.json",
+        "packages/sandbox/sandbox-local/src/index.ts",
+        "packages/sandbox/sandbox-local/tests/local.spec.ts",
+        "packages/sandbox/sandbox-local/tsconfig.json"
+      ]
+    },
+    {
+      "owner": "packages/sandbox/sandbox-windows-acl",
+      "classification": null,
+      "status": "IN_PROGRESS",
+      "sourceReviewComplete": false,
+      "changedPaths": [
+        "packages/sandbox/sandbox-windows-acl/README.i18n.yaml",
+        "packages/sandbox/sandbox-windows-acl/README.md",
+        "packages/sandbox/sandbox-windows-acl/README.zh.md",
+        "packages/sandbox/sandbox-windows-acl/src/runner.ts",
+        "packages/sandbox/sandbox-windows-acl/tests/runner.spec.ts"
+      ]
+    },
+    {
+      "owner": "packages/sandbox/sandbox",
+      "classification": null,
+      "status": "IN_PROGRESS",
+      "sourceReviewComplete": false,
+      "changedPaths": [
+        "packages/sandbox/sandbox/src/index.ts"
+      ]
+    },
+    {
+      "owner": "packages/shell/bash-local",
+      "classification": null,
+      "status": "IN_PROGRESS",
+      "sourceReviewComplete": false,
+      "changedPaths": [
+        "packages/shell/bash-local/src/index.ts"
+      ]
+    },
+    {
+      "owner": "packages/shell/bash-sandbox",
+      "classification": null,
+      "status": "IN_PROGRESS",
+      "sourceReviewComplete": false,
+      "changedPaths": [
+        "packages/shell/bash-sandbox/src/index.ts"
+      ]
+    },
+    {
+      "owner": "packages/shell/pwsh-local",
+      "classification": null,
+      "status": "IN_PROGRESS",
+      "sourceReviewComplete": false,
+      "changedPaths": [
+        "packages/shell/pwsh-local/src/index.ts"
+      ]
+    },
+    {
+      "owner": "packages/shell/pwsh-sandbox",
+      "classification": null,
+      "status": "IN_PROGRESS",
+      "sourceReviewComplete": false,
+      "changedPaths": [
+        "packages/shell/pwsh-sandbox/src/index.ts",
+        "packages/shell/pwsh-sandbox/tests/sandbox.spec.ts"
+      ]
+    },
+    {
+      "owner": "packages/skill/skill-office",
+      "classification": null,
+      "status": "IN_PROGRESS",
+      "sourceReviewComplete": false,
+      "changedPaths": [
+        "packages/skill/skill-office/tests/visual-intent.e2e.ts"
+      ]
+    },
+    {
+      "owner": "packages/test-support/client-runtime",
+      "classification": null,
+      "status": "IN_PROGRESS",
+      "sourceReviewComplete": false,
+      "changedPaths": [
+        "packages/test-support/client-runtime/src/sessions.ts"
+      ]
+    },
+    {
+      "owner": "packages/util/README.i18n.yaml",
+      "classification": null,
+      "status": "IN_PROGRESS",
+      "sourceReviewComplete": false,
+      "changedPaths": [
+        "packages/util/README.i18n.yaml"
+      ]
+    },
+    {
+      "owner": "packages/util/README.md",
+      "classification": null,
+      "status": "IN_PROGRESS",
+      "sourceReviewComplete": false,
+      "changedPaths": [
+        "packages/util/README.md"
+      ]
+    },
+    {
+      "owner": "packages/util/README.zh.md",
+      "classification": null,
+      "status": "IN_PROGRESS",
+      "sourceReviewComplete": false,
+      "changedPaths": [
+        "packages/util/README.zh.md"
+      ]
+    },
+    {
+      "owner": "packages/util/atomic-write",
+      "classification": null,
+      "status": "IN_PROGRESS",
+      "sourceReviewComplete": false,
+      "changedPaths": [
+        "packages/util/atomic-write/src/index.ts"
+      ]
+    },
+    {
+      "owner": "packages/util/node-spawn",
+      "classification": null,
+      "status": "IN_PROGRESS",
+      "sourceReviewComplete": false,
+      "changedPaths": [
+        "packages/util/node-spawn/README.i18n.yaml",
+        "packages/util/node-spawn/README.md",
+        "packages/util/node-spawn/README.zh.md",
+        "packages/util/node-spawn/package.json",
+        "packages/util/node-spawn/src/index.d.ts",
+        "packages/util/node-spawn/src/index.d.ts.map",
+        "packages/util/node-spawn/src/index.js",
+        "packages/util/node-spawn/src/index.js.map",
+        "packages/util/node-spawn/src/index.ts",
+        "packages/util/node-spawn/src/invariant.ts",
+        "packages/util/node-spawn/tests/invariant.spec.ts",
+        "packages/util/node-spawn/tests/node-spawn.spec.ts",
+        "packages/util/node-spawn/tsconfig.json"
+      ]
+    },
+    {
+      "owner": "packages/workflow/workflow-worker-thread",
+      "classification": null,
+      "status": "IN_PROGRESS",
+      "sourceReviewComplete": false,
+      "changedPaths": [
+        "packages/workflow/workflow-worker-thread/README.i18n.yaml",
+        "packages/workflow/workflow-worker-thread/README.md",
+        "packages/workflow/workflow-worker-thread/README.zh.md",
+        "packages/workflow/workflow-worker-thread/package.json",
+        "packages/workflow/workflow-worker-thread/src/host.ts",
+        "packages/workflow/workflow-worker-thread/src/index.ts",
+        "packages/workflow/workflow-worker-thread/src/invariant.ts",
+        "packages/workflow/workflow-worker-thread/src/meta.ts",
+        "packages/workflow/workflow-worker-thread/src/protocol.ts",
+        "packages/workflow/workflow-worker-thread/src/realm.ts",
+        "packages/workflow/workflow-worker-thread/src/runtime.ts",
+        "packages/workflow/workflow-worker-thread/src/session.ts",
+        "packages/workflow/workflow-worker-thread/src/types.ts",
+        "packages/workflow/workflow-worker-thread/src/worker.ts",
+        "packages/workflow/workflow-worker-thread/tests/built-worker.e2e.ts",
+        "packages/workflow/workflow-worker-thread/tests/integration.spec.ts",
+        "packages/workflow/workflow-worker-thread/tests/meta.spec.ts",
+        "packages/workflow/workflow-worker-thread/tests/realm.spec.ts",
+        "packages/workflow/workflow-worker-thread/tests/session.spec.ts",
+        "packages/workflow/workflow-worker-thread/tests/source-worker.compat.spec.ts",
+        "packages/workflow/workflow-worker-thread/tests/workflow-worker-thread.e2e.ts",
+        "packages/workflow/workflow-worker-thread/tests/workflow-worker-thread.spec.ts",
+        "packages/workflow/workflow-worker-thread/tsconfig.json",
+        "packages/workflow/workflow-worker-thread/tsdown.config.ts"
+      ]
+    },
+    {
+      "owner": "pnpm-lock.yaml",
+      "classification": null,
+      "status": "IN_PROGRESS",
+      "sourceReviewComplete": false,
+      "changedPaths": [
+        "pnpm-lock.yaml"
+      ]
+    },
+    {
+      "owner": "pnpm-workspace.yaml",
+      "classification": null,
+      "status": "IN_PROGRESS",
+      "sourceReviewComplete": false,
+      "changedPaths": [
+        "pnpm-workspace.yaml"
+      ]
+    },
+    {
+      "owner": "scripts/build-desktop-exe.ts",
+      "classification": null,
+      "status": "IN_PROGRESS",
+      "sourceReviewComplete": false,
+      "changedPaths": [
+        "scripts/build-desktop-exe.ts"
+      ]
+    },
+    {
+      "owner": "scripts/build-desktop-release.ts",
+      "classification": null,
+      "status": "IN_PROGRESS",
+      "sourceReviewComplete": false,
+      "changedPaths": [
+        "scripts/build-desktop-release.ts"
+      ]
+    },
+    {
+      "owner": "scripts/check-workspace-constraints.ts",
+      "classification": null,
+      "status": "IN_PROGRESS",
+      "sourceReviewComplete": false,
+      "changedPaths": [
+        "scripts/check-workspace-constraints.ts"
+      ]
+    },
+    {
+      "owner": "scripts/cordis-config-files.ts",
+      "classification": null,
+      "status": "IN_PROGRESS",
+      "sourceReviewComplete": false,
+      "changedPaths": [
+        "scripts/cordis-config-files.ts"
+      ]
+    },
+    {
+      "owner": "scripts/gen-cordis-catalog.ts",
+      "classification": null,
+      "status": "IN_PROGRESS",
+      "sourceReviewComplete": false,
+      "changedPaths": [
+        "scripts/gen-cordis-catalog.ts"
+      ]
+    },
+    {
+      "owner": "scripts/gen-doc-graphs.ts",
+      "classification": null,
+      "status": "IN_PROGRESS",
+      "sourceReviewComplete": false,
+      "changedPaths": [
+        "scripts/gen-doc-graphs.ts"
+      ]
+    },
+    {
+      "owner": "scripts/gen-link-contracts.ts",
+      "classification": null,
+      "status": "IN_PROGRESS",
+      "sourceReviewComplete": false,
+      "changedPaths": [
+        "scripts/gen-link-contracts.ts"
+      ]
+    },
+    {
+      "owner": "scripts/gen-tool-catalog.ts",
+      "classification": null,
+      "status": "IN_PROGRESS",
+      "sourceReviewComplete": false,
+      "changedPaths": [
+        "scripts/gen-tool-catalog.ts"
+      ]
+    },
+    {
+      "owner": "scripts/run-gates.ts",
+      "classification": null,
+      "status": "IN_PROGRESS",
+      "sourceReviewComplete": false,
+      "changedPaths": [
+        "scripts/run-gates.ts"
+      ]
+    },
+    {
+      "owner": "scripts/translation-pairing.ts",
+      "classification": null,
+      "status": "IN_PROGRESS",
+      "sourceReviewComplete": false,
+      "changedPaths": [
+        "scripts/translation-pairing.ts"
+      ]
+    },
+    {
+      "owner": "scripts/verify-cordis-config.spec.ts",
+      "classification": null,
+      "status": "IN_PROGRESS",
+      "sourceReviewComplete": false,
+      "changedPaths": [
+        "scripts/verify-cordis-config.spec.ts"
+      ]
+    },
+    {
+      "owner": "scripts/verify-cordis-config.ts",
+      "classification": null,
+      "status": "IN_PROGRESS",
+      "sourceReviewComplete": false,
+      "changedPaths": [
+        "scripts/verify-cordis-config.ts"
+      ]
+    },
+    {
+      "owner": "scripts/verify-link-contracts.ts",
+      "classification": null,
+      "status": "IN_PROGRESS",
+      "sourceReviewComplete": false,
+      "changedPaths": [
+        "scripts/verify-link-contracts.ts"
+      ]
+    },
+    {
+      "owner": "scripts/verify-package-readme-model-experience.ts",
+      "classification": null,
+      "status": "IN_PROGRESS",
+      "sourceReviewComplete": false,
+      "changedPaths": [
+        "scripts/verify-package-readme-model-experience.ts"
+      ]
+    },
+    {
+      "owner": "scripts/verify-repository-references.ts",
+      "classification": null,
+      "status": "IN_PROGRESS",
+      "sourceReviewComplete": false,
+      "changedPaths": [
+        "scripts/verify-repository-references.ts"
+      ]
+    },
+    {
+      "owner": "snapshots/session",
+      "classification": null,
+      "status": "IN_PROGRESS",
+      "sourceReviewComplete": false,
+      "changedPaths": [
+        "snapshots/session/cua-native/consent-fixture.mjs",
+        "snapshots/session/team-targets/cordis.snapshot.yml",
+        "snapshots/session/team-targets/cordis.yml"
+      ]
+    },
+    {
+      "owner": "tsconfig.base.json",
+      "classification": null,
+      "status": "IN_PROGRESS",
+      "sourceReviewComplete": false,
+      "changedPaths": [
+        "tsconfig.base.json"
+      ]
+    },
+    {
+      "owner": "tsconfig.client.json",
+      "classification": null,
+      "status": "IN_PROGRESS",
+      "sourceReviewComplete": false,
+      "changedPaths": [
+        "tsconfig.client.json"
+      ]
+    },
+    {
+      "owner": "tsconfig.host.json",
+      "classification": null,
+      "status": "IN_PROGRESS",
+      "sourceReviewComplete": false,
+      "changedPaths": [
+        "tsconfig.host.json"
+      ]
+    },
+    {
+      "owner": "tsdown.config.ts",
+      "classification": null,
+      "status": "IN_PROGRESS",
+      "sourceReviewComplete": false,
+      "changedPaths": [
+        "tsdown.config.ts"
+      ]
+    },
+    {
+      "owner": "vendor/hmr",
+      "classification": null,
+      "status": "IN_PROGRESS",
+      "sourceReviewComplete": false,
+      "changedPaths": [
+        "vendor/hmr/src/index.ts"
+      ]
+    }
+  ]
+}
