@@ -1,7 +1,7 @@
 // Web e2e scenario: the composer's independent Stop interrupts a running
 // continuable child. The child holds its model turn open through a replay
 // hang entry; the browser proves Send and Stop coexist regardless of the
-// creator's list availability, the subagents/interruptByUser
+// creator's list availability, the subagents/interruptTurnByParent
 // (never session.cancel) transport, the parked follow-up, and the FIFO resume
 // on a waking send.
 //
@@ -236,8 +236,10 @@ describe.skipIf(MODE === 'record')('web e2e: composer interrupt for a running co
       )
 
       const aborted = waitForAbortedTurn(scaffold, childId)
+      // The Session stop path addresses a subagent through the Host-advertised
+      // targeted interruption capability, not interruptByUser.
       const interruptResponse = page.waitForResponse(response =>
-        new URL(response.url()).pathname === '/api/subagents/interruptByUser')
+        new URL(response.url()).pathname === '/api/subagents/interruptTurnByParent')
       await stop.click()
       expect(((await (await interruptResponse).json()) as {
         result: { ok: boolean; value?: { accepted: boolean } }
@@ -261,7 +263,7 @@ describe.skipIf(MODE === 'record')('web e2e: composer interrupt for a running co
     }
   }, 60_000)
 
-  it('interrupts through subagents/interruptByUser, parks the follow-up, and resumes it FIFO', async () => {
+  it('interrupts through subagents/interruptTurnByParent, parks the follow-up, and resumes it FIFO', async () => {
     onTestFailed(() => saveFailureShot(page, 'web-e2e-subagent-interrupt-flow'))
     const warningStart = tripwire.warnings.length
     await page.reload({ waitUntil: 'load' })
@@ -271,13 +273,11 @@ describe.skipIf(MODE === 'record')('web e2e: composer interrupt for a running co
       .getByRole('button').first().click()
     await page.getByRole('button', { name: /1 subagent/ }).click()
     await page.getByRole('treeitem', { name: new RegExp(LABEL) }).press('Enter')
-    // A live continuable child advertises the ordinary steer-all gesture, so
-    // that placeholder is the composer's accessible name in this window. It
-    // changes back as the queue drains, so later interactions address the
-    // stable composer node instead.
-    await page.getByRole('textbox', { name: 'Cmd/Ctrl+Enter steers all queued messages' })
-      .waitFor({ timeout: 15_000 })
+    // A live continuable child with an empty queue shows the ordinary
+    // composer placeholder; the steer-all hint only surfaces once messages
+    // are queued, so interactions here address the stable composer node.
     const input = page.locator('[data-composer-input]').first()
+    await input.waitFor({ timeout: 15_000 })
     expect(await input.isDisabled()).toBe(false)
 
     // Queue a follow-up through Send while independent Stop remains available.
@@ -331,7 +331,7 @@ describe.skipIf(MODE === 'record')('web e2e: composer interrupt for a running co
     const stop = page.getByRole('button', { name: 'Stop generating' })
     expect(await stop.count()).toBe(1)
     const interruptResponse = page.waitForResponse(response =>
-      new URL(response.url()).pathname === '/api/subagents/interruptByUser')
+      new URL(response.url()).pathname === '/api/subagents/interruptTurnByParent')
     await stop.click()
     expect(((await (await interruptResponse).json()) as {
       result: { ok: boolean; value?: { accepted: boolean } }

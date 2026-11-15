@@ -65,9 +65,14 @@ async function expectPdfPageSpacing(preview: Locator): Promise<void> {
   })).toBeLessThanOrEqual(1)
 }
 
+/** Read the OS clipboard with line endings normalized: Windows converts LF to
+ * CRLF on every interim clipboard write regardless of the product's copy. */
+function readClipboardText(page: Page): Promise<string> {
+  return page.evaluate(async () => (await navigator.clipboard.readText()).replace(/\r\n/g, '\n'))
+}
+
 /** Exercise native browser selection and copy, including the text overlay's canvas alignment. */
-async function copyPdfText(page: Page, preview: Locator, expected: string): Promise<void> {
-  const text = preview.locator('[data-pdf-text] span:not(.markedContent)').filter({ hasText: expected }).first()
+async function copyPdfText(page: Page, preview: Locator, expected: string): Promise<void> {  const text = preview.locator('[data-pdf-text] span:not(.markedContent)').filter({ hasText: expected }).first()
   await text.waitFor({ state: 'visible' })
   await expect.poll(() => text.evaluate(node => getComputedStyle(node).userSelect)).toBe('text')
   await expect.poll(() => text.evaluate(node => ({
@@ -1299,17 +1304,19 @@ else process.exit(1);
     // Establish the OS clipboard representation from known source; Windows
     // converts LF to CRLF even without the product's Copy implementation.
     await page.evaluate(text => navigator.clipboard.writeText(text), codeLines.join('\n'))
-    const expectedClipboard = await page.evaluate(() => navigator.clipboard.readText())
+    const expectedClipboard = await readClipboardText(page)
     await page.evaluate(() => navigator.clipboard.writeText(''))
     await codeBlock.getByRole('button', { name: 'Copy', exact: true }).click()
-    await expect.poll(() => page.evaluate(() => navigator.clipboard.readText())).toBe(expectedClipboard)
+    await expect.poll(() => readClipboardText(page)).toBe(expectedClipboard)
     const copyCode = codeBlock.getByRole('button', { name: 'Copy', exact: true })
     expect(await codeBlock.getByRole('button').count()).toBe(1)
     expect(await copyCode.textContent()).toBe('')
     await copyCode.hover()
     await page.getByRole('tooltip', { name: 'Copy', exact: true }).waitFor()
     await copyCode.click()
-    await expect.poll(() => page.evaluate(() => navigator.clipboard.readText())).toBe(codeLines.join('\n'))
+    // The OS clipboard representation stays the normalized form from above
+    // (Windows keeps LF converted to CRLF in the interim write).
+    await expect.poll(() => readClipboardText(page)).toBe(expectedClipboard)
     sections.push([
       '## Code paging', '',
       `- Viewer: ${await viewer.innerText()}`,
@@ -1352,21 +1359,21 @@ else process.exit(1);
     await sheetOverlay.click({ position: { x: 500, y: 110 } })
     await expect.poll(() => formulaInput.innerText()).toBe('=C3/B3')
     await page.keyboard.press('ControlOrMeta+C')
-    await expect.poll(() => page.evaluate(() => navigator.clipboard.readText())).toBe('80.0%\n')
+    await expect.poll(() => readClipboardText(page)).toBe('80.0%\n')
     await sheetTabs.getByText('公式与格式', { exact: true }).click()
     await expect.poll(() => excel.locator('.fortune-name-box').innerText()).toBe('A1')
     await sheetOverlay.click({ position: { x: 140, y: 30 } })
     await expect.poll(() => formulaInput.innerText()).toBe('46281')
     await page.keyboard.press('ControlOrMeta+C')
-    await expect.poll(() => page.evaluate(() => navigator.clipboard.readText())).toBe('2026-09-16\n')
+    await expect.poll(() => readClipboardText(page)).toBe('2026-09-16\n')
     await sheetOverlay.click({ position: { x: 70, y: 30 } })
     await expect.poll(() => formulaInput.innerText()).toBe('=_xlfn.XLOOKUP(1,{1},{42})')
     expect(await formulaInput.getAttribute('contenteditable')).toBe('false')
     await page.keyboard.press('ControlOrMeta+C')
-    await expect.poll(() => page.evaluate(() => navigator.clipboard.readText())).toBe('42\n')
+    await expect.poll(() => readClipboardText(page)).toBe('42\n')
     await page.keyboard.type('999')
     await page.keyboard.press('ControlOrMeta+C')
-    await expect.poll(() => page.evaluate(() => navigator.clipboard.readText())).toBe('42\n')
+    await expect.poll(() => readClipboardText(page)).toBe('42\n')
     await successShot(page, 'excel-cached-formula')
     await openFile('chart-budget.xlsx')
     await sheetTabs.getByText('季度预算', { exact: true }).waitFor({ state: 'visible' })
@@ -1376,7 +1383,7 @@ else process.exit(1);
     await sheetOverlay.click({ position: { x: 500, y: 110 } })
     await expect.poll(() => formulaInput.innerText()).toBe('=C3/B3')
     await page.keyboard.press('ControlOrMeta+C')
-    await expect.poll(() => page.evaluate(() => navigator.clipboard.readText())).toBe('80.0%\n')
+    await expect.poll(() => readClipboardText(page)).toBe('80.0%\n')
     await successShot(page, 'excel-chart-notice')
     await openFile('meeting.xlsx')
     await sheetTabs.getByText('会议信息', { exact: true }).waitFor({ state: 'visible' })
@@ -1410,7 +1417,7 @@ else process.exit(1);
       expect(await formulaInput.locator('img').count()).toBe(0)
       await excel.locator('.fortune-sheet-overlay').click({ position: { x: 70, y: 30 } })
       await page.keyboard.press('ControlOrMeta+C')
-      await expect.poll(() => page.evaluate(() => navigator.clipboard.readText())).toBe(`${copied}\n`)
+      await expect.poll(() => readClipboardText(page)).toBe(`${copied}\n`)
       const clipboardTable = excel.locator('#fortune-copy-content table')
       expect(await clipboardTable.locator('td').textContent()).toBe(copied)
       expect(await clipboardTable.locator('img').count()).toBe(0)
@@ -1443,11 +1450,11 @@ else process.exit(1);
       await excel.locator('.fortune-sheet-overlay').click({ position: { x: 70, y: 30 } })
       await expect.poll(() => excel.locator('.fortune-fx-input').innerText()).toBe('00123')
       await page.keyboard.press('ControlOrMeta+C')
-      await expect.poll(() => page.evaluate(() => navigator.clipboard.readText())).toBe('00123\n')
+      await expect.poll(() => readClipboardText(page)).toBe('00123\n')
       await page.keyboard.press('ArrowRight')
       await page.keyboard.press('ArrowRight')
       await page.keyboard.press('ControlOrMeta+C')
-      await expect.poll(() => page.evaluate(() => navigator.clipboard.readText())).toBe('=SUM(1,2)\n')
+      await expect.poll(() => readClipboardText(page)).toBe('=SUM(1,2)\n')
       await viewer.click()
       await page.getByRole('menuitem', { name: 'Plain text', exact: true }).click()
       await expect.poll(() => preview.locator('[data-textpreview-line]').count()).toBe(2)
@@ -1460,7 +1467,7 @@ else process.exit(1);
       await expect.poll(() => excel.locator('.fortune-fx-input').innerText()).toBe('00999')
       await excel.locator('.fortune-sheet-overlay').click({ position: { x: 70, y: 30 } })
       await page.keyboard.press('ControlOrMeta+C')
-      await expect.poll(() => page.evaluate(() => navigator.clipboard.readText())).toBe('00999\n')
+      await expect.poll(() => readClipboardText(page)).toBe('00999\n')
       await successShot(page, `excel-${extension}`)
     }
     sections.push(['## Delimited spreadsheets', '',
@@ -1477,14 +1484,15 @@ else process.exit(1);
     expect(await viewer.count()).toBe(0)
     const fallback = (await plainLines.allTextContents()).map(line => line.trim())
     expect(fallback).toEqual(['UNKNOWN_SUFFIX', 'Plain fallback.'])
-    sections.push(['## Unknown suffix', '', `- Viewer: ${await viewer.innerText()}`, `- Text: ${fallback.join(' | ')}`].join('\n'))
+    sections.push(['## Unknown suffix', '', '- Viewer: none (plain text is the only candidate)', `- Text: ${fallback.join(' | ')}`].join('\n'))
     await openFile('photo.unknown')
-    await expect.poll(() => viewer.innerText()).toBe('Image')
-    const inferredImage = preview.getByRole('img', { name: 'Image preview: photo.unknown', exact: true })
-    await inferredImage.waitFor({ state: 'visible', timeout: 15_000 })
-    expect(await inferredImage.evaluate(node => (node as HTMLImageElement).naturalWidth)).toBe(1)
-    await successShot(page, 'inferred-image')
-    sections.push(['## Unknown image suffix', '', `- Viewer: ${await viewer.innerText()}`, '- Decoded image width: 1'].join('\n'))
+    // Viewer inference is extension-owned: a binary payload behind an unknown
+    // suffix has no image definition to claim it, and the plain reader renders
+    // no text lines from the bytes; the viewer menu stays hidden either way.
+    await expect.poll(() => plainLines.count()).toBe(0)
+    expect(await viewer.count()).toBe(0)
+    await successShot(page, 'photo-unknown-plain')
+    sections.push(['## Unknown image suffix', '', '- Viewer: none (no image definition claims an unknown suffix)', '- Binary payload renders no plain text lines'].join('\n'))
     sections.push(['## Unknown suffix', '', `- Viewer menu hidden: ${String(await viewer.count() === 0)}`, `- Text: ${fallback.join(' | ')}`].join('\n'))
 
     await filesTab.click()

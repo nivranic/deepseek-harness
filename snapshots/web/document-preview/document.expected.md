@@ -110,13 +110,19 @@
 
 ## Unknown suffix
 
-- Viewer menu hidden: true
+- Viewer: none (plain text is the only candidate)
 - Text: UNKNOWN_SUFFIX | Plain fallback.
 
 ## Unknown image suffix
 
-- Viewer: Image
-- Decoded image width: 1
+- Viewer: none (no image definition claims an unknown suffix)
+- Binary payload renders no plain text lines
+
+## Unknown suffix
+
+- Viewer menu hidden: true
+- Text: UNKNOWN_SUFFIX | Plain fallback.
+
 ## Unviewable binary
 
 - State: unsupported

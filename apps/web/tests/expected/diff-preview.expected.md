@@ -1,13 +1,6 @@
-# Unified Diff preview
+# Patch preview through Files
 
-- Second file headers: preamble without source line numbers
-- Removed / added rows: 1-old / 1+new; distinct theme backgrounds
-- Hunk header: elevated background
-- TypeScript additions: multiple shared-theme syntax colors
-- Python grammar: lazy load updates the existing Diff rows
-- Phone viewport: unified rows and copy action inside the viewport
-- Split view: paired old/new halves with per-side gutters; toggles back to unified
-- Open file: addressed Session source and unknown-suffix binary preview
-- Copy diff: original patch with prefixes, headers and no display gutters
-- Paging: 64 -> 101 loaded rows; fewer than 64 rows mounted through the virtual scrollport
-- Copy loaded diff: first 64 lines only; complete copy after paging
+- Full patch: every header, hunk, removed and added line as file text
+- Copy: the raw patch bytes with no preview chrome
+- Paging: 64 budgeted lines, then the complete 101 through the pager
+- Paged copy: the whole file after paging

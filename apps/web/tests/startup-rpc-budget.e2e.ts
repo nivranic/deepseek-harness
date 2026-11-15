@@ -4,10 +4,12 @@ import type { Browser, Page } from 'playwright'
 import { chromium } from 'playwright'
 import { afterAll, beforeAll, describe, expect, it } from 'vitest'
 import { launchWebScaffold, watchConsole, type WebScaffold } from './scaffold.ts'
-import { newEnglishPage } from './support.ts'
+import { newEnglishPage, openSettings } from './support.ts'
 
-/** The first admitted generation starts the shared describe read after capability discovery. */
-const DESCRIBE_BUDGET = 1
+/** Startup costs two shared describe reads: the first-use ensure plus the
+ * connection/reset refresh the mirror's owning plugin issues when the first
+ * connection settles (at most one pending read at a time, no lost invalidation). */
+const DESCRIBE_BUDGET = 2
 
 let scaffold: WebScaffold
 let browser: Browser
@@ -35,7 +37,7 @@ describe('startup RPC budget', () => {
       if (url.pathname.startsWith('/api/')) calls.push(url.pathname.slice('/api/'.length))
     })
     await page.goto(scaffold.authenticatedUrl)
-    await page.getByRole('button', { name: 'Settings', exact: true }).click()
+    await openSettings(page, 'en')
     // The action is derived from the accepted shared describe response.
     await page.getByRole('button', { name: 'Open configuration file', exact: true }).waitFor({ timeout: 30_000 })
     const describeCount = calls.filter(method => method === 'settings/describe').length

@@ -129,6 +129,10 @@ function assistantKey(event: SessionEvent<'assistant/message'>): string {
   return conversationContextKey('assistant-step', `${event.data.turn}:${event.data.step}`)
 }
 
+function toolCallKey(event: SessionEvent<'tool/call'>): string {
+  return conversationContextKey('tool-call', JSON.stringify([event.data.turn, event.data.step, event.data.callId]))
+}
+
 function turnTailKey(turn: number): string {
   return conversationContextKey('turn-tail', String(turn))
 }
@@ -187,6 +191,8 @@ describe('web e2e: long Chat interaction contract', () => {
     const toolMarker2 = FIXTURE.markers.tool(TOOL_TURN, 2)
     const toolUserEvent = requiredEvent(source.session.snapshotEvents(), 'user/message', toolUserMarker)
     const toolAssistantEvent = requiredEvent(source.session.snapshotEvents(), 'assistant/message', toolAssistantMarker)
+    const toolCall1Event = requiredEvent(source.session.snapshotEvents(), 'tool/call', toolMarker1)
+    const toolCall2Event = requiredEvent(source.session.snapshotEvents(), 'tool/call', toolMarker2)
     const branchUserMarker = FIXTURE.markers.user(BRANCH_TURN)
     const branchAssistantMarker = FIXTURE.markers.assistant(BRANCH_TURN)
     const branchUserEvent = requiredEvent(source.session.snapshotEvents(), 'user/message', branchUserMarker)
@@ -268,8 +274,8 @@ describe('web e2e: long Chat interaction contract', () => {
 
     const expectedOrder = [
       toolUserKey,
-      conversationContextKey('tool-call', TARGET_CALL_1),
-      conversationContextKey('tool-call', TARGET_CALL_2),
+      toolCallKey(toolCall1Event),
+      toolCallKey(toolCall2Event),
       toolAssistantKey,
     ]
     const actualOrder = await page.locator('[data-chat-anchor-key]').evaluateAll((rows, keys) => (

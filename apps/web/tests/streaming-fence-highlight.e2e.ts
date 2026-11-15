@@ -161,6 +161,10 @@ describe.skipIf(MODE === 'record')('web e2e: streaming code-fence highlighting',
     expect(midTree.lines).toHaveLength(3)
     expect(midTree.lines.flat().map(span => span.style)).toContain('color: var(--shiki-token-keyword);')
 
+    // The handoff action settles from the async host-describe admission; wait
+    // for its final presence so a slow discovery cannot freeze the banner in
+    // the pre-admission shape the stability loop would otherwise accept.
+    await page.getByRole('button', { name: 'Continue on another device' }).waitFor({ timeout: 15_000 })
     const aria = await captureStableAria(page, '[class*="centerCol"]', scaffold.workspaceCwd)
     await compareOrRefreshGolden(
       MID_EXPECTED,

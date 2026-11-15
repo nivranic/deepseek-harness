@@ -1,8 +1,9 @@
-/** Unified Diff rendering and raw patch copying through the shipped file preview. */
+/** Patch files open through the shipped Files text/code preview: full text
+ * content, paging through the workspace-files line budget, and raw copies. */
 import { mkdir, writeFile } from 'node:fs/promises'
 import { join } from 'node:path'
 import { fileURLToPath } from 'node:url'
-import { chromium, type Browser, type Locator, type Page } from 'playwright'
+import { chromium, type Browser, type Page } from 'playwright'
 import { afterAll, beforeAll, describe, expect, it, onTestFailed } from 'vitest'
 import { compareOrRefreshGolden, launchWebScaffold, watchConsole, webSnapshotMode, type WebScaffold } from './scaffold.ts'
 import { connectFreshWorkspace, newEnglishPage, saveFailureShot } from './support.ts'
@@ -18,6 +19,11 @@ const PATCH = [
   'diff --git a/archive.unknown b/archive.unknown', 'Binary files a/archive.unknown and b/archive.unknown differ',
   'diff --git a/main.py b/main.py', '--- a/main.py', '+++ b/main.py', '@@ -1 +1 @@', '-print("before")', '+print("after")',
 ].join('\n')
+
+/** Source lines of the paging fixture: one hunk header plus 100 unchanged lines. */
+const PAGED_LINES = ['@@ -1,100 +1,100 @@', ...Array.from({ length: 100 }, (_, index) => ` unchanged line ${index + 1}`)]
+/** The overlay caps one workspace-files read at 64 lines. */
+const PAGE_LINES = 64
 
 describe.skipIf(MODE === 'record')('web e2e: unified Diff preview', () => {
   let scaffold: WebScaffold
@@ -52,102 +58,66 @@ describe.skipIf(MODE === 'record')('web e2e: unified Diff preview', () => {
     await page.getByText('LIGHTHOUSE', { exact: true }).waitFor({ timeout: 15_000 })
     const cwd = scaffold.ctx.agents.get(id)?.session.header.cwd
     if (cwd === undefined) throw new Error('Diff scenario has no Session workspace')
-    const pagedLines = ['@@ -1,100 +1,100 @@', ...Array.from({ length: 100 }, (_, index) => ` unchanged line ${index + 1}`)]
     await writeFile(join(cwd, 'changes.diff'), PATCH)
-    await writeFile(join(cwd, 'paged.patch'), pagedLines.join('\n'))
+    await writeFile(join(cwd, 'paged.patch'), PAGED_LINES.join('\n'))
     await writeFile(join(cwd, 'two.ts'), 'const after = 2')
     await writeFile(join(cwd, 'archive.unknown'), Buffer.from([0x50, 0x4b, 0x03, 0x04]))
     await page.locator('[data-sidebar-right-expand]').click()
     const column = page.locator('[data-rightbar-col]')
+    // The expanded right sidebar opens on its Start tab; the Files tree is a
+    // dock tab opened through the Start tab's guide entry.
+    await column.locator('[data-sidebar-right-guide-entry="files"]').click()
     await column.locator('[data-files-state="tree"]').waitFor()
     await column.locator('[data-files-reload]').click()
     await column.locator('[data-files-entry="file"]').getByRole('button', { name: 'changes.diff', exact: true }).click()
-    const preview = column.locator('[data-diff-preview]')
-    await expect.poll(() => preview.locator('[data-diff-row]').count()).toBe(19)
-    const rows = await preview.locator('[data-diff-row]').evaluateAll(nodes => nodes.map(node => ({
-      type: node.getAttribute('data-diff-row'), text: node.textContent,
-      background: getComputedStyle(node).backgroundColor,
-    })))
-    expect(rows.slice(5, 8).map(row => row.type)).toEqual(['preamble', 'preamble', 'preamble'])
-    expect(rows[6]?.text?.trim()).toBe('--- a/two.ts')
-    expect(rows[7]?.text?.trim()).toBe('+++ b/two.ts')
-    expect(rows[3]?.text).toBe('1-old')
-    expect(rows[4]?.text).toBe('1+new')
-    expect(rows[2]?.background).not.toBe('rgba(0, 0, 0, 0)')
-    expect(rows[3]?.background).not.toBe('rgba(0, 0, 0, 0)')
-    expect(rows[4]?.background).not.toBe(rows[3]?.background)
-    const syntaxColors = await preview.locator('[data-diff-index="10"] span[style]').evaluateAll(nodes =>
-      [...new Set(nodes.map(node => getComputedStyle(node).color))])
-    expect(syntaxColors.length).toBeGreaterThan(1)
-    await expect.poll(() => preview.locator('[data-diff-index="18"] span[style]').evaluateAll(nodes =>
-      new Set(nodes.map(node => getComputedStyle(node).color)).size)).toBeGreaterThan(1)
+    const preview = column.locator('[data-textpreview-body]')
+    const lines = preview.locator('[data-code-preview] .line')
+    await expect.poll(() => lines.allTextContents(), { timeout: 15_000 }).toEqual(PATCH.split('\n'))
+    // The code renderer decorates patch structure: file headers and hunk
+    // markers carry meta classes, removed and added lines carry markers.
+    // CSS-module class names are hash-prefixed, so match the logical suffix.
+    const decorated = await lines.evaluateAll(nodes => nodes
+      .filter(node => node.querySelector('span[class*="_diffMarker"]') !== null)
+      .map(node => node.textContent))
+    expect(decorated).toEqual(['-old', '+new', '-const before = 1', '+const after = 2', '-print("before")', '+print("after")'])
+    const metaLines = await lines.evaluateAll(nodes => nodes
+      .filter(node => [...node.classList].some(cls => cls.includes('_diffMeta') || cls.includes('_diffHunk')))
+      .map(node => node.textContent))
+    expect(metaLines).toContain('--- a/one.ts')
+    expect(metaLines).toContain('+++ b/one.ts')
+    expect(metaLines).toContain('@@ -1 +1 @@')
     await page.context().grantPermissions(['clipboard-read', 'clipboard-write'], { origin: new URL(page.url()).origin })
-    const copyPatch = async (button: Locator, text: string): Promise<void> => {
-      // Windows clipboard text normalizes line endings independently of the product.
-      await page.evaluate(value => navigator.clipboard.writeText(value), text)
-      const expected = await page.evaluate(() => navigator.clipboard.readText())
-      await page.evaluate(() => navigator.clipboard.writeText(''))
-      await button.click()
-      await expect.poll(() => page.evaluate(() => navigator.clipboard.readText())).toBe(expected)
-    }
-    await copyPatch(preview.getByRole('button', { name: 'Copy diff', exact: true }), PATCH)
+    // Windows clipboard text normalizes line endings independently of the product.
+    await page.evaluate(value => navigator.clipboard.writeText(value), PATCH)
+    const expectedPatch = await page.evaluate(() => navigator.clipboard.readText())
+    await page.evaluate(() => navigator.clipboard.writeText(''))
+    await preview.getByRole('button', { name: 'Copy', exact: true }).click()
+    await expect.poll(() => page.evaluate(() => navigator.clipboard.readText())).toBe(expectedPatch)
     await mkdir(SHOTS, { recursive: true })
     await page.screenshot({ path: `${SHOTS}/desktop-${MODE}-${process.pid}.png`, fullPage: true })
-    await page.setViewportSize({ width: 375, height: 812 })
-    await preview.waitFor({ state: 'visible' })
-    const copyButton = await preview.getByRole('button', { name: 'Copied', exact: true }).boundingBox()
-    expect(copyButton).not.toBeNull()
-    expect(copyButton!.x).toBeGreaterThanOrEqual(0)
-    expect(copyButton!.x + copyButton!.width).toBeLessThanOrEqual(375)
-    expect(await preview.locator('[data-diff-scrollport]').count()).toBe(1)
-    await page.screenshot({ path: `${SHOTS}/phone-${MODE}-${process.pid}.png`, fullPage: true })
-    await page.setViewportSize({ width: 1680, height: 1000 })
-    await expect.poll(() => preview.getAttribute('data-diff-view')).toBe('unified')
-    await preview.getByRole('button', { name: 'Split view', exact: true }).click()
-    await expect.poll(() => preview.getAttribute('data-diff-view')).toBe('split')
-    const removedHalf = preview.locator('[data-diff-side-kind="del"]')
-    const addedHalf = preview.locator('[data-diff-side-kind="add"]')
-    await expect.poll(() => removedHalf.count()).toBeGreaterThan(0)
-    expect(await removedHalf.first().textContent()).toBe('1-old')
-    expect(await addedHalf.first().textContent()).toBe('1+new')
-    expect(await removedHalf.first().evaluate(node => node.getBoundingClientRect().right
-      <= (node.parentElement?.children[1] as HTMLElement).getBoundingClientRect().left)).toBe(true)
-    await preview.getByRole('button', { name: 'Unified view', exact: true }).click()
-    await expect.poll(() => preview.getAttribute('data-diff-view')).toBe('unified')
-    const sourceLink = preview.getByRole('button', { name: 'Open file two.ts', exact: true })
-    await page.keyboard.press('Tab')
-    await sourceLink.focus()
-    expect(await sourceLink.evaluate(node => getComputedStyle(node).boxShadow)).not.toBe('none')
-    await sourceLink.press('Enter')
-    await expect.poll(() => column.locator('[data-code-preview] .shiki').textContent()).toBe('const after = 2')
-    const diffTab = column.locator('[data-dockkit-tab]').filter({ has: page.getByText('changes.diff', { exact: true }) })
-    await diffTab.click()
-    await preview.getByRole('button', { name: 'Open file archive.unknown', exact: true }).click()
-    await expect.poll(() => column.locator('[data-binary-preview]').getAttribute('data-binary-bytes')).toBe('4')
     await column.locator('[data-dockkit-tab]').filter({ has: page.getByText('Files', { exact: true }) }).click()
     await column.locator('[data-files-entry="file"]').getByRole('button', { name: 'paged.patch', exact: true }).click()
-    await expect.poll(() => preview.getAttribute('data-diff-total-rows')).toBe('64')
-    await copyPatch(preview.getByRole('button', { name: 'Copy loaded diff', exact: true }), pagedLines.slice(0, 64).join('\n'))
-    await preview.locator('[data-diff-scrollport]').evaluate((node) => { node.scrollTop = node.scrollHeight })
-    await expect.poll(() => preview.getAttribute('data-diff-eof'), { timeout: 15_000 }).toBe('true')
-    await expect.poll(() => preview.getAttribute('data-diff-total-rows')).toBe('101')
-    expect(await preview.locator('[data-diff-row]').count()).toBeLessThan(64)
-    await copyPatch(preview.getByRole('button', { name: 'Copy diff', exact: true }), pagedLines.join('\n'))
+    const pagedPreview = column.locator('[data-textpreview-body]')
+    const pagedLines = pagedPreview.locator('[data-code-preview] .line')
+    await expect.poll(() => pagedLines.count(), { timeout: 15_000 }).toBe(PAGE_LINES)
+    expect(await pagedLines.allTextContents()).toEqual(PAGED_LINES.slice(0, PAGE_LINES))
+    await expect.poll(() => pagedPreview.locator('[data-textpreview-more]').isEnabled()).toBe(true)
+    await pagedPreview.locator('[data-textpreview-more]').click()
+    await expect.poll(() => pagedLines.allTextContents(), { timeout: 15_000 }).toEqual(PAGED_LINES)
+    await expect.poll(() => pagedPreview.locator('[data-textpreview-more]').count()).toBe(0)
+    await page.evaluate(value => navigator.clipboard.writeText(value), PAGED_LINES.join('\n'))
+    const expectedPaged = await page.evaluate(() => navigator.clipboard.readText())
+    await page.evaluate(() => navigator.clipboard.writeText(''))
+    await pagedPreview.getByRole('button', { name: 'Copy', exact: true }).click()
+    await expect.poll(() => page.evaluate(() => navigator.clipboard.readText())).toBe(expectedPaged)
     expect(tripwire.pageErrors).toEqual([])
     expect(tripwire.warnings).toEqual([])
     await compareOrRefreshGolden(EXPECTED, [
-      '# Unified Diff preview', '',
-      '- Second file headers: preamble without source line numbers',
-      '- Removed / added rows: 1-old / 1+new; distinct theme backgrounds',
-      '- Hunk header: elevated background',
-      '- TypeScript additions: multiple shared-theme syntax colors',
-      '- Python grammar: lazy load updates the existing Diff rows',
-      '- Phone viewport: unified rows and copy action inside the viewport',
-      '- Split view: paired old/new halves with per-side gutters; toggles back to unified',
-      '- Open file: addressed Session source and unknown-suffix binary preview',
-      '- Copy diff: original patch with prefixes, headers and no display gutters',
-      '- Paging: 64 -> 101 loaded rows; fewer than 64 rows mounted through the virtual scrollport',
-      '- Copy loaded diff: first 64 lines only; complete copy after paging',
+      '# Patch preview through Files', '',
+      '- Full patch: every header, hunk, removed and added line as file text',
+      '- Copy: the raw patch bytes with no preview chrome',
+      '- Paging: 64 budgeted lines, then the complete 101 through the pager',
+      '- Paged copy: the whole file after paging',
     ].join('\n'), MODE)
   })
 })

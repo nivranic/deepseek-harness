@@ -519,7 +519,7 @@ describe('web e2e: lifecycle & chrome (workspace flow / reload / dark mode)', ()
       await recoveryPage.context().setOffline(true)
       await expect.poll(() => recoveryPage.evaluate(() => navigator.onLine)).toBe(false)
       const offline = recoveryPage.getByRole('button', {
-        name: 'Offline, reconnect now', exact: true,
+        name: 'Disconnected, reconnect now', exact: true,
       })
       await offline.waitFor({ timeout: 2_000 })
       await recoveryPage.clock.fastForward(60_000)
@@ -576,7 +576,7 @@ describe('web e2e: lifecycle & chrome (workspace flow / reload / dark mode)', ()
         return { background: actual.backgroundColor, color: actual.color }
       })).toEqual(expectedColors)
       expect(await indicator.locator('svg').count()).toBe(1)
-      expect(await indicator.getAttribute('title')).toBe('Reconnecting automatically, reconnect now')
+      expect(await indicator.getAttribute('aria-label')).toBe('Reconnecting, reconnect now')
       rejectConnections = false
       await recoveryPage.clock.fastForward(10_000)
       await expect.poll(() => sockets.length).toBe(10)
