@@ -8,6 +8,7 @@ import { apply as applyConnection, inject as connectionInject } from '@deepseek-
 import TypertRegistry from '@deepseek-ai/dsh-typert-registry'
 import { Remote, bindTypertRemote } from '@deepseek-ai/dsh-typert-protocol'
 import TypertGatewayService from '@deepseek-ai/dsh-api-gateway'
+import RemoteAccessService from '@deepseek-ai/dsh-api-remote-access'
 import DeviceTrustStore from '@deepseek-ai/dsh-device-trust'
 import LinkAccessService from '@deepseek-ai/dsh-link-access'
 import type { LinkPairingPayload } from '@deepseek-ai/dsh-link-access/protocol'
@@ -76,6 +77,7 @@ async function mount(): Promise<ClientHarness> {
     } as never)
     await ctx.plugin({ inject: [...connectionInject], apply: applyConnection })
     await ctx.plugin(TypertRegistry)
+    await ctx.plugin(RemoteAccessService)
     await ctx.plugin(TypertGatewayService)
     await ctx.plugin(ClientProbeService)
     await ctx.plugin(DeviceTrustStore, { path: ':memory:' })
@@ -140,7 +142,7 @@ describe('LinkClient', () => {
     const business = await client.call('probe/fail', {})
       .catch((error: unknown) => error as LinkError) as LinkError
     expect(business).toBeInstanceOf(LinkError)
-    expect(business.code).toBe('internal')
+    expect(business.code).toBe('gateway/internal')
     expect(business.message).toContain('probe business failure')
 
     const revokedPairing = await harness.service.createPairing()
@@ -181,7 +183,7 @@ describe('LinkClient', () => {
       (error: unknown) => error as LinkError,
     )
     expect(failure).toBeInstanceOf(LinkError)
-    expect(failure.code).toBe('internal')
+    expect(failure.code).toBe('gateway/arguments-invalid')
   })
 
   it('resumes a stream after reconnect from its cursor', async () => {

@@ -136,32 +136,29 @@ describe('bootstrap failure rendering', () => {
   })
 })
 
-describe('smoke-mode overlay hiding', () => {
-  const SMOKE_RULE = '[role="presentation"]{display:none!important}'
-
-  it('hides dialog overlays when the entry URL carries the smoke flag', () => {
+describe('overlay visibility', () => {
+  it.each(['/', '/?dsh-smoke=0', '/?dsh-smoke=1'])('preserves overlays and page styles at %s', async (url) => {
     const original = window.location.href
-    window.history.replaceState(null, '', '/?dsh-smoke=1')
+    const styles = [...document.head.querySelectorAll('style')]
+    const container = document.createElement('div')
+    const overlay = document.createElement('div')
+    overlay.setAttribute('role', 'presentation')
+    document.body.append(container, overlay)
+    window.history.replaceState(null, '', url)
+    const entry = new AppWebEntry(container)
     try {
-      const container = document.createElement('div')
-      document.body.append(container)
-      new AppWebEntry(container)
-      const rules = [...document.head.querySelectorAll('style')].map(el => el.textContent)
-      expect(rules).toContain(SMOKE_RULE)
+      expect(getComputedStyle(overlay).display).not.toBe('none')
+      expect([...document.head.querySelectorAll('style')]).toEqual(styles)
+      await entry.dispose()
+      expect(getComputedStyle(overlay).display).not.toBe('none')
+      expect([...document.head.querySelectorAll('style')]).toEqual(styles)
     } finally {
+      await entry.dispose()
       window.history.replaceState(null, '', original)
-      for (const el of [...document.head.querySelectorAll('style')]) {
-        if (el.textContent === SMOKE_RULE) el.remove()
+      for (const style of document.head.querySelectorAll('style')) {
+        if (!styles.includes(style)) style.remove()
       }
     }
-  })
-
-  it('adds no style without the flag', () => {
-    const container = document.createElement('div')
-    document.body.append(container)
-    new AppWebEntry(container)
-    const rules = [...document.head.querySelectorAll('style')].map(el => el.textContent)
-    expect(rules).not.toContain(SMOKE_RULE)
   })
 })
 

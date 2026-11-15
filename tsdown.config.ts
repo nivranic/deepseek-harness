@@ -22,7 +22,7 @@ export default defineConfig(({ env }) => {
   const client = isBuildFaceClient(env?.DSH_BUILD_FACE)
   const packages = workspacePackageGlobs(globSync(['vendor/*/package.json', 'packages/*/*/package.json'], { cwd: import.meta.dirname }))
   return {
-    workspace: [...packages, 'apps/cli', 'apps/desktop', ...client ? [] : ['apps/desktop-host']],
+    workspace: [...packages, 'apps/cli', ...client ? [] : ['apps/desktop-host', 'apps/desktop-user']],
     // `protocol` is the link wire vocabulary shipped beside the carrier entry
     // (packages without one simply have no match in the glob).
     entry: client ? '' : ['lib/types/{index,invariant,startup,protocol}.js'],

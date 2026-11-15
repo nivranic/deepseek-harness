@@ -253,6 +253,7 @@ export const EVENT_SCOPE_PAGE: Record<string, string> = {
   'authorization': 'credentials.md',
   'credentials': 'credentials.md',
   'deepseek-account': 'credentials.md',
+  'device-trust': 'remote-link.md',
   'domain': 'storage.md',
   'forge': 'forge.md',
   'fs': 'filesystem.md',

@@ -63,6 +63,59 @@ class ConformanceTest {
             state.items.last().text,
         )
     }
+
+    @Test
+    fun toolResultsPairByMessageToolCallIdWithFlatContent() {
+        val (records, _) = parseScenario(
+            """
+            {"records":[
+              {"type":"event","event":{"type":"tool/call","seq":1,"data":{
+                "turn":1,"step":1,"callId":"call-1","name":"write","arguments":"{}"}}},
+              {"type":"event","event":{"type":"tool/call","seq":2,"data":{
+                "turn":1,"step":1,"callId":"call-2","name":"test","arguments":"{}"}}},
+              {"type":"event","event":{"type":"tool/result","seq":3,"data":{
+                "turn":1,"step":1,"message":{"id":"m-2","role":"tool","toolCallId":"call-2",
+                  "content":[{"type":"text","text":"failed"}],"source":{"kind":"tool","callId":"call-2"}},
+                "error":{"name":"ToolError","code":"EXIT_1"}}}},
+              {"type":"event","event":{"type":"tool/result","seq":4,"data":{
+                "turn":1,"step":1,"message":{"id":"m-x","role":"tool","toolCallId":"call-x",
+                  "content":[{"type":"text","text":"orphan"}],"source":{"kind":"tool","callId":"call-x"}}}}},
+              {"type":"event","event":{"type":"tool/result","seq":5,"data":{
+                "turn":1,"step":1,"message":{"id":"m-1","role":"tool","toolCallId":"call-1",
+                  "content":[{"type":"text","text":"done"}],"source":{"kind":"tool","callId":"call-1"}}}}}
+            ]}
+            """.trimIndent(),
+        )
+        val state = foldDomain(records)
+        assertEquals(listOf("call-1", "call-2"), state.toolCalls.map { it.id })
+        assertEquals(listOf("completed", "failed"), state.toolCalls.map { it.phase })
+        assertEquals(listOf("done", "failed"), state.toolCalls.map { it.resultText })
+        assertEquals("done", state.items.last().text)
+    }
+
+    @Test
+    fun assistantAttemptsRenderPackedAndRawTextWithoutReasoningOrToolChunks() {
+        val (records, _) = parseScenario(
+            """
+            {"records":[
+              {"type":"event","event":{"type":"assistant/attempt","seq":1,"data":{
+                "turn":1,"step":1,"stream":[
+                  {"type":"text-chunks","time0":1000,"index":0,"dt":[1],"texts":["Hello"," "]},
+                  {"type":"reasoning-chunks","time0":1002,"index":0,"dt":[],"texts":["hidden reasoning"]},
+                  {"type":"chunk","time":1003,"chunk":{"type":"text-delta","text":"world"}},
+                  {"type":"chunk","time":1004,"chunk":{"type":"reasoning-delta","text":"hidden reasoning"}},
+                  {"type":"tool-call-chunks","time0":1005,"index":0,"dt":[],"id":"call-1","args":["{}"]},
+                  {"type":"chunk","time":1006,"chunk":{"type":"tool-call-delta","text":"hidden tool"}},
+                  {"type":"text-chunks","time0":1007,"index":0,"dt":[],"texts":["!"]}
+                ]}}},
+              {"type":"event","event":{"type":"assistant/chunk","seq":2,"data":{
+                "turn":1,"step":1,"chunk":{"type":"text-delta","text":"removed event"}}}}
+            ]}
+            """.trimIndent(),
+        )
+        val state = foldDomain(records)
+        assertEquals(listOf("Hello world!", ""), state.items.map { it.text })
+    }
 }
 
 /** The generated vocabulary carries the wire tags verbatim; a drift here

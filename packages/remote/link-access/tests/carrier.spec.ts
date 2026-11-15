@@ -3,12 +3,14 @@ import { createHash, createPublicKey, generateKeyPairSync, sign as edSign } from
 import { mkdtemp } from 'node:fs/promises'
 import { tmpdir } from 'node:os'
 import { join } from 'node:path'
+import type { IncomingMessage, ServerResponse } from 'node:http'
 import { request as httpsRequest } from 'node:https'
-import { afterAll, beforeAll, describe, expect, it } from 'vitest'
+import { afterAll, beforeAll, describe, expect, it, vi } from 'vitest'
 import { Context as RootContext } from '@deepseek-ai/cordis'
 import { apply as applyConnection, inject as connectionInject } from '@deepseek-ai/dsh-client-connection'
 import TypertRegistry from '@deepseek-ai/dsh-typert-registry'
 import TypertGatewayService from '@deepseek-ai/dsh-api-gateway'
+import RemoteAccessService from '@deepseek-ai/dsh-api-remote-access'
 import DeviceTrustStore from '@deepseek-ai/dsh-device-trust'
 import LinkAccessService from '../src/index.ts'
 import { linkSigningInput } from '../src/protocol.ts'
@@ -134,6 +136,108 @@ describe('link-access carrier', () => {
     const record = (await harness.service.trustedDevices()).find(candidate => candidate.deviceId === revoked.deviceId)
     await harness.service.revokeDevice(record!.deviceId)
     expect((await signedRpc(harness.endpoint, revoked, 'probe/echo', { value: 'x' })).status).toBe(401)
+  })
+
+  it.each(['carrier', 'store'] as const)('disconnects an open stream when its device is revoked through the %s', async (owner) => {
+    const revoked = await pairDevice(harness, `stream-${owner}`)
+    const record = (await harness.service.trustedDevices()).find(candidate => candidate.deviceId === revoked.deviceId)!
+    const target = '/link/stream/probe/linger'
+    const body = JSON.stringify({ args: {} })
+    const timestamp = String(Date.now())
+    const digest = createHash('sha256').update(body).digest('hex')
+    const signature = edSign(null, Buffer.from(linkSigningInput(timestamp, 'POST', target, digest)), revoked.privateKey).toString('base64')
+    const url = new URL(harness.endpoint)
+    const opened = Promise.withResolvers<undefined>()
+    const closed = Promise.withResolvers<undefined>()
+    const lines: string[] = []
+    let disconnected = false
+    const request = httpsRequest({
+      host: url.hostname,
+      port: url.port,
+      path: target,
+      method: 'POST',
+      rejectUnauthorized: false,
+      headers: {
+        'x-dsh-device-id': revoked.deviceId,
+        'x-dsh-timestamp': timestamp,
+        'x-dsh-signature': signature,
+        'content-type': 'application/json',
+      },
+    }, (response) => {
+      response.setEncoding('utf8')
+      response.on('data', (chunk: string) => {
+        lines.push(chunk)
+        opened.resolve(undefined)
+      })
+      response.on('close', () => { disconnected = true })
+      response.on('error', () => { disconnected = true })
+    })
+    request.on('error', (error) => { opened.reject(error) })
+    request.on('close', () => { closed.resolve(undefined) })
+    request.end(body)
+    try {
+      await opened.promise
+      if (owner === 'store') {
+        await harness.ctx.get('deviceTrust')!.revoke(record.deviceId)
+      } else {
+        await harness.service.revokeDevice(record.deviceId)
+      }
+      await expect.poll(() => disconnected).toBe(true)
+      expect(lines.join('')).toBe('{"k":"v","v":"open"}\n')
+      expect((await signedRpc(harness.endpoint, device, 'probe/echo', { value: 'still-authorized' })).status).toBe(200)
+      expect((await signedRpc(harness.endpoint, revoked, 'probe/echo', { value: 'refused' })).status).toBe(401)
+    } finally {
+      request.destroy()
+      await closed.promise
+    }
+  })
+
+  it.each(['unary', 'stream'] as const)('does not admit a %s request revoked during authentication', async (kind) => {
+    const revoked = await pairDevice(harness, `auth-${kind}`)
+    const store = harness.ctx.get('deviceTrust')!
+    const originalDevice = store.device.bind(store)
+    const captured = Promise.withResolvers<undefined>()
+    const release = Promise.withResolvers<undefined>()
+    const handled = Promise.withResolvers<undefined>()
+    let paused = false
+    const lookup = vi.spyOn(store, 'device').mockImplementation(async (deviceId) => {
+      const record = await originalDevice(deviceId)
+      if (deviceId === revoked.deviceId && !paused) {
+        paused = true
+        captured.resolve(undefined)
+        await release.promise
+      }
+      return record
+    })
+    // Observe actual route completion so a negative dispatch assertion cannot outrun it.
+    const handle = Reflect.get(harness.service, 'handle') as (req: IncomingMessage, res: ServerResponse) => Promise<void>
+    Reflect.set(harness.service, 'handle', async (req: IncomingMessage, res: ServerResponse) => {
+      try {
+        await handle.call(harness.service, req, res)
+      } finally {
+        if (req.headers['x-dsh-device-id'] === revoked.deviceId) handled.resolve(undefined)
+      }
+    })
+    const probe = harness.ctx.get('probe') as { readonly calls: readonly string[] }
+    const calls = [...probe.calls]
+    const request = (kind === 'unary'
+      ? signedRpc(harness.endpoint, revoked, 'probe/echo', { value: 'revoked-during-auth' })
+      : issueSigned(harness.endpoint, revoked, '/link/stream/probe/ticks', 'POST', '{"args":{"count":1}}'))
+      .then(value => ({ value }), (error: unknown) => ({ error }))
+    try {
+      await captured.promise
+      await store.revoke(revoked.deviceId as Parameters<DeviceTrustStore['revoke']>[0])
+      expect(await request).toHaveProperty('error')
+      release.resolve(undefined)
+      await handled.promise
+      expect(probe.calls).toEqual(calls)
+    } finally {
+      release.resolve(undefined)
+      await handled.promise
+      lookup.mockRestore()
+      Reflect.set(harness.service, 'handle', handle)
+      await request
+    }
   })
 
   it('records last-seen for an active device at most once per interval', async () => {
@@ -390,6 +494,7 @@ describe('link-access carrier lifecycle', () => {
       provideCredentials(ctx)
       await ctx.plugin({ inject: [...connectionInject], apply: applyConnection })
       await ctx.plugin(TypertRegistry)
+      await ctx.plugin(RemoteAccessService)
       await ctx.plugin(TypertGatewayService)
       await ctx.plugin(DeviceTrustStore, { path: ':memory:' })
       await ctx.plugin(LinkAccessService, { dshHome })

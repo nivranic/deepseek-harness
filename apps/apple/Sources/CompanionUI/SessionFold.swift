@@ -232,18 +232,16 @@ public struct CompanionSessionFold {
         case "tool/result":
             if let payload = ContractCodec.decode(LinkToolResultData.self, from: data) {
                 Self.collectImages(payload.message.content, into: &state.images)
-            }
-            if let payload = ContractCodec.decode(LinkToolResultData.self, from: data),
-               let callId = payload.message.content.first?.toolCallId,
-               let index = state.toolCalls.firstIndex(where: { $0.id == callId }) {
-                state.toolCalls[index] = CompanionDomainState.ToolCall(
-                    id: state.toolCalls[index].id,
-                    seq: state.toolCalls[index].seq,
-                    name: state.toolCalls[index].name,
-                    arguments: state.toolCalls[index].arguments,
-                    phase: payload.error == nil ? .completed : .failed,
-                    resultText: Self.blockText(payload.message.content)
-                )
+                if let index = state.toolCalls.firstIndex(where: { $0.id == payload.message.toolCallId }) {
+                    state.toolCalls[index] = CompanionDomainState.ToolCall(
+                        id: state.toolCalls[index].id,
+                        seq: state.toolCalls[index].seq,
+                        name: state.toolCalls[index].name,
+                        arguments: state.toolCalls[index].arguments,
+                        phase: payload.error == nil ? .completed : .failed,
+                        resultText: Self.blockText(payload.message.content)
+                    )
+                }
             }
         case "artifact/created":
             if let payload = Self.artifactCreated(data) {
@@ -285,9 +283,13 @@ public struct CompanionSessionFold {
         case "user/message":
             guard let payload = ContractCodec.decode(LinkUserMessageData.self, from: data) else { return "" }
             return blockText(payload.content)
-        case "assistant/chunk":
-            guard let payload = ContractCodec.decode(LinkAssistantChunkData.self, from: data) else { return "" }
-            return payload.chunk.text ?? ""
+        case "assistant/attempt":
+            guard let payload = ContractCodec.decode(LinkAssistantAttemptData.self, from: data) else { return "" }
+            return payload.stream.map { record -> String in
+                if record.type == "text-chunks" { return (record.texts ?? []).joined() }
+                if record.type == "chunk", record.chunk?.type == "text-delta" { return record.chunk?.text ?? "" }
+                return ""
+            }.joined()
         case "assistant/message":
             guard let payload = ContractCodec.decode(LinkAssistantMessageData.self, from: data) else { return "" }
             let base = blockText(payload.message.content)
@@ -368,8 +370,7 @@ public struct CompanionSessionFold {
         }
     }
 
-    /// Collect image references from a content-block list, nesting like
-    /// `blockText` and skipping ids already collected.
+    /// Collect image references from flat content blocks, skipping ids already collected.
     static func collectImages(_ blocks: [LinkContentBlock], into images: inout [CompanionDomainState.ImageRef]) {
         for block in blocks {
             if let ref = block.attachment {
@@ -382,20 +383,16 @@ public struct CompanionSessionFold {
                         name: (ref.name?.isEmpty == false) ? ref.name : nil
                     ))
                 }
-            } else if let nested = block.content {
-                collectImages(nested, into: &images)
             }
         }
     }
 
-    /// Visible text of a content-block list: text and reasoning blocks carry
-    /// it; image blocks render their reference metadata; tool-result blocks
-    /// carry it one level deeper.
+    /// Visible text of flat content blocks: text and reasoning blocks carry
+    /// it; image blocks render their reference metadata.
     static func blockText(_ blocks: [LinkContentBlock]) -> String {
         blocks.map { block -> String in
             if let text = block.text { return text }
             if let attachment = block.attachment { return Self.imageSummary(attachment) }
-            if let nested = block.content { return blockText(nested) }
             return ""
         }
         .filter { !$0.isEmpty }

@@ -51,8 +51,8 @@
         "seq": 4,
         "time": 1759017600004,
         "data": {
-          "turn": 1,
-          "step": 1,
+          "type": "text-chunks",
+          "time0": 1759017600004,
           "index": 0,
           "dt": [
             4,
@@ -89,6 +89,17 @@
               "model": "deepseek-chat"
             }
           },
+          "stream": [
+            {
+              "type": "text-chunks",
+              "time0": 1759017600005,
+              "index": 0,
+              "dt": [],
+              "texts": [
+                "已完成：登录页液态玻璃样式落地。"
+              ]
+            }
+          ],
           "usage": {
             "inputTokens": 120,
             "outputTokens": 36,

@@ -1,0 +1,75 @@
+{
+  "records": [
+    {
+      "type": "event",
+      "event": {
+        "type": "assistant/attempt",
+        "seq": 1,
+        "time": 1759017600001,
+        "data": {
+          "turn": 1,
+          "step": 1,
+          "stream": [
+            {
+              "type": "text-chunks",
+              "time0": 1759017600001,
+              "index": 0,
+              "dt": [],
+              "texts": [
+                "保留"
+              ]
+            },
+            {
+              "type": "reasoning-chunks",
+              "time0": 1759017600002,
+              "index": 1,
+              "dt": [],
+              "texts": [
+                "不显示推理"
+              ]
+            },
+            {
+              "type": "chunk",
+              "time": 1759017600003,
+              "chunk": {
+                "type": "text-delta",
+                "index": 0,
+                "text": "部分输出"
+              }
+            },
+            {
+              "type": "chunk",
+              "time": 1759017600004,
+              "chunk": {
+                "type": "finish",
+                "reason": {
+                  "kind": "aborted",
+                  "failure": {
+                    "message": "aborted",
+                    "code": "ABORTED"
+                  }
+                }
+              }
+            }
+          ]
+        }
+      }
+    }
+  ],
+  "expected": {
+    "cursor": 1,
+    "items": [
+      {
+        "seq": 1,
+        "kind": "assistant/attempt",
+        "text": "保留部分输出"
+      }
+    ],
+    "planActive": false,
+    "todos": [],
+    "goals": [],
+    "toolCalls": [],
+    "images": [],
+    "artifacts": []
+  }
+}

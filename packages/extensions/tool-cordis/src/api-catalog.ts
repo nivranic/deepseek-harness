@@ -2021,7 +2021,7 @@ export const SERVICE_API: readonly ServiceApiEntry[] = [
       },
       {
         signature: 'async revokeDevice(deviceId: DeviceId): Promise<PairedDevice | undefined>',
-        description: 'Revoke one paired device; its next request is refused.',
+        description: 'Revoke one paired device, terminate its active requests, and refuse subsequent requests.',
         parameters: [{ name: 'deviceId', description: 'identity of the device to revoke.' }],
         returns: 'the device record after revocation, or `undefined` when unknown.',
       },
@@ -2055,7 +2055,7 @@ export const SERVICE_API: readonly ServiceApiEntry[] = [
       },
       {
         signature: '@Remote async revokeDevice(deviceId: string): Promise<LinkDeviceValue | undefined>',
-        description: 'Revoke one paired device; its next request is refused.',
+        description: 'Revoke one paired device, terminate its active requests, and refuse subsequent requests.',
         parameters: [{ name: 'deviceId', description: 'identity of the device to revoke.' }],
         returns: 'the device row after revocation, or `undefined` when unknown.',
         throws: ['RemoteError when the id is empty or no link carrier is mounted.'],
@@ -5133,6 +5133,14 @@ export const EVENT_API: readonly EventApiEntry[] = [
     summary: 'Local grant removal has completed.',
     description: 'Local grant removal has completed.',
     parameters: [],
+  },
+  {
+    name: 'device-trust/revoked',
+    mode: 'emit',
+    signature: '\'device-trust/revoked\'(deviceId: DeviceId): void',
+    summary: 'A committed device revocation; carriers stop serving that device\'s active requests.',
+    description: 'A committed device revocation; carriers stop serving that device\'s active requests.',
+    parameters: [{ name: 'deviceId', description: 'the device whose authorization ended.' }],
   },
   {
     name: 'domain/changed',

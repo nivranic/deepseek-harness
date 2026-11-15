@@ -41,7 +41,7 @@ Mount the store wherever the link carrier runs; it registers `ctx.deviceTrust` a
 
 ### Observable behavior
 
-`createPairing(ttlSeconds)` issues a 256-bit one-time code; `consumePairing` deletes the code row before registering the device, so a second consumer fails whether the calls race or follow one another, and an expired code burns on first use. `revoke` keeps the record for audit while `touch` records `lastSeenAt` only for trusted devices. A database stamped with another layout version rejects outright — no migration, pre-release stance.
+`createPairing(ttlSeconds)` issues a 256-bit one-time code; `consumePairing` deletes the code row before registering the device, so a second consumer fails whether the calls race or follow one another, and an expired code burns on first use. `revoke` keeps the record for audit and emits `device-trust/revoked` once so carriers stop serving the device's active requests; `touch` records `lastSeenAt` only for trusted devices. A database stamped with another layout version rejects outright — no migration, pre-release stance.
 
 -----
 

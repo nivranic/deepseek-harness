@@ -124,8 +124,8 @@ final class RemoteSessionViewModelTests: XCTestCase {
                 "records": .array([
                     eventEntry(1, "turn/start", ["turn": .number(1)]),
                     chunkEntry(2, "chunkrow/text-chunks", [
-                        "turn": .number(1), "step": .number(1), "index": .number(0),
-                        "dt": .array([.number(2)]),
+                        "type": .string("text-chunks"), "time0": .number(1_759_017_600_002),
+                        "index": .number(0), "dt": .array([.number(2)]),
                         "texts": .array([.string("你"), .string("好")]),
                     ]),
                     eventEntry(3, "plan/mode", ["active": .bool(true)]),
@@ -144,6 +144,7 @@ final class RemoteSessionViewModelTests: XCTestCase {
                                 "model": .string("deepseek-chat"),
                             ]),
                         ]),
+                        "stream": .array([]),
                         "usage": jsonObject([
                             "inputTokens": .number(120),
                             "outputTokens": .number(36),
@@ -242,12 +243,9 @@ final class RemoteSessionViewModelTests: XCTestCase {
                 "turn": .number(1), "step": .number(1),
                 "message": jsonObject([
                     "id": .string("m-1"),
-                    "role": .string("user"),
-                    "content": .array([jsonObject([
-                        "type": .string("tool-result"),
-                        "toolCallId": .string("call-1"),
-                        "content": .array([jsonObject(["type": .string("text"), "text": .string("已写入 42 行。")])]),
-                    ])]),
+                    "role": .string("tool"),
+                    "toolCallId": .string("call-1"),
+                    "content": .array([jsonObject(["type": .string("text"), "text": .string("已写入 42 行。")])]),
                     "source": jsonObject(["kind": .string("tool"), "callId": .string("call-1")]),
                 ]),
             ]),
@@ -255,12 +253,9 @@ final class RemoteSessionViewModelTests: XCTestCase {
                 "turn": .number(1), "step": .number(1),
                 "message": jsonObject([
                     "id": .string("m-2"),
-                    "role": .string("user"),
-                    "content": .array([jsonObject([
-                        "type": .string("tool-result"),
-                        "toolCallId": .string("call-2"),
-                        "content": .array([jsonObject(["type": .string("text"), "text": .string("2 个断言失败")])]),
-                    ])]),
+                    "role": .string("tool"),
+                    "toolCallId": .string("call-2"),
+                    "content": .array([jsonObject(["type": .string("text"), "text": .string("2 个断言失败")])]),
                     "source": jsonObject(["kind": .string("tool"), "callId": .string("call-2")]),
                 ]),
                 "error": jsonObject(["name": .string("AssertionError"), "code": .string("EXIT_1")]),
@@ -270,12 +265,9 @@ final class RemoteSessionViewModelTests: XCTestCase {
                 "turn": .number(1), "step": .number(1),
                 "message": jsonObject([
                     "id": .string("m-3"),
-                    "role": .string("user"),
-                    "content": .array([jsonObject([
-                        "type": .string("tool-result"),
-                        "toolCallId": .string("call-x"),
-                        "content": .array([jsonObject(["type": .string("text"), "text": .string("孤儿结果")])]),
-                    ])]),
+                    "role": .string("tool"),
+                    "toolCallId": .string("call-x"),
+                    "content": .array([jsonObject(["type": .string("text"), "text": .string("孤儿结果")])]),
                     "source": jsonObject(["kind": .string("tool"), "callId": .string("call-x")]),
                 ]),
             ]),
@@ -770,6 +762,61 @@ final class CompanionFoldConformanceTests: XCTestCase {
         }
     }
 
+    func testToolResultsPairByMessageToolCallIdWithFlatContent() {
+        var fold = CompanionSessionFold()
+        fold.ingest(toolCallEntry(1, "call-1", "write", "{}"))
+        fold.ingest(toolCallEntry(2, "call-2", "test", "{}"))
+        fold.ingest(toolResultEntry(3, "call-2", failed: true))
+        fold.ingest(toolResultEntry(4, "call-x"))
+        fold.ingest(toolResultEntry(5, "call-1"))
+        XCTAssertEqual(fold.state.toolCalls.map(\.id), ["call-1", "call-2"])
+        XCTAssertEqual(fold.state.toolCalls.map(\.phase), [.completed, .failed])
+        XCTAssertEqual(fold.state.toolCalls.map(\.resultText), ["完成", "完成"])
+        XCTAssertEqual(fold.state.items.last?.text, "完成")
+    }
+
+    func testAssistantAttemptsRenderPackedAndRawTextWithoutReasoningOrToolChunks() {
+        var fold = CompanionSessionFold()
+        fold.ingest(eventEntry(1, "assistant/attempt", [
+            "turn": .number(1), "step": .number(1),
+            "stream": .array([
+                jsonObject([
+                    "type": .string("text-chunks"), "time0": .number(1000),
+                    "index": .number(0), "dt": .array([.number(1)]),
+                    "texts": .array([.string("你"), .string("好")]),
+                ]),
+                jsonObject([
+                    "type": .string("chunk"), "time": .number(1001),
+                    "chunk": jsonObject(["type": .string("text-delta"), "index": .number(0), "text": .string("，构建")]),
+                ]),
+                jsonObject([
+                    "type": .string("chunk"), "time": .number(1001),
+                    "chunk": jsonObject(["type": .string("finish"), "reason": jsonObject(["kind": .string("aborted")])]),
+                ]),
+                jsonObject([
+                    "type": .string("reasoning-chunks"), "time0": .number(1002),
+                    "index": .number(0), "dt": .array([]),
+                    "texts": .array([.string("hidden reasoning")]),
+                ]),
+                jsonObject([
+                    "type": .string("tool-call-chunks"), "time0": .number(1003),
+                    "index": .number(0), "dt": .array([]),
+                    "id": .string("call-1"), "args": .array([.string("{}")]),
+                ]),
+                jsonObject([
+                    "type": .string("text-chunks"), "time0": .number(1004),
+                    "index": .number(0), "dt": .array([]),
+                    "texts": .array([.string("！")]),
+                ]),
+            ]),
+        ]))
+        fold.ingest(eventEntry(2, "assistant/chunk", [
+            "turn": .number(1), "step": .number(1),
+            "chunk": jsonObject(["type": .string("text-delta"), "text": .string("removed event")]),
+        ]))
+        XCTAssertEqual(fold.state.items.map(\.text), ["你好，构建！", ""])
+    }
+
     func testResetReturnsTheFoldToEmpty() {
         var fold = CompanionSessionFold()
         fold.ingest(eventEntry(1, "turn/start", ["turn": .number(1)]))
@@ -823,17 +870,14 @@ func toolResultEntry(_ seq: Double, _ callId: String, failed: Bool = false) -> W
         "turn": .number(1), "step": .number(1),
         "message": jsonObject([
             "id": .string("m-\(callId)"),
-            "role": .string("user"),
-            "content": .array([jsonObject([
-                "type": .string("tool-result"),
-                "toolCallId": .string(callId),
-                "content": .array([jsonObject(["type": .string("text"), "text": .string("完成")])]),
-            ])]),
+            "role": .string("tool"),
+            "toolCallId": .string(callId),
+            "content": .array([jsonObject(["type": .string("text"), "text": .string("完成")])]),
             "source": jsonObject(["kind": .string("tool"), "callId": .string(callId)]),
         ]),
     ]
     if failed {
-        data["error"] = jsonObject(["name": .string("ToolError")])
+        data["error"] = jsonObject(["name": .string("ToolError"), "code": .string("EXIT_1")])
     }
     return eventEntry(seq, "tool/result", data)
 }

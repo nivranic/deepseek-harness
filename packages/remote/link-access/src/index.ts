@@ -6,8 +6,8 @@
  * RPC through the Connection shared `/api` fetch handler and Remote streams
  * through `typertGateway.wireStream` as NDJSON, the same adapter pair the
  * desktop carrier uses. The carrier owns no session, workspace, or approval
- * state; revoking a device in the trust store cuts its authorization on the
- * next request.
+ * state; revoking a device in the trust store terminates its active requests
+ * and refuses subsequent ones.
  * @module @deepseek-ai/dsh-link-access
  */
 
@@ -175,6 +175,7 @@ export class LinkAccessService extends Service {
    */
   private readonly peer: PeerScope
   private readonly lastTouch = new Map<DeviceId, number>()
+  private readonly deviceResponses = new Map<DeviceId, Set<ServerResponse>>()
   private carrierPromise: Promise<CarrierState> | undefined
   private carrierObserved: Promise<CarrierState | undefined> = Promise.resolve(undefined)
   private carrierQueue: Promise<void> = Promise.resolve()
@@ -201,6 +202,9 @@ export class LinkAccessService extends Service {
     this.bindHome = resolved.dshHome
     this.sharedFetch = ctx.connection.createSharedFetchHandler('/api')
     this.peer = ctx.connection.createPeer({ principal: { kind: 'owner' } })
+    ctx.on('device-trust/revoked', (deviceId) => {
+      for (const response of this.deviceResponses.get(deviceId) ?? []) response.destroy()
+    })
     if (resolved.enabled) void this.beginCarrier()
     ctx.effect(() => async () => {
       await this.setCarrierEnabled(false)
@@ -318,7 +322,7 @@ export class LinkAccessService extends Service {
   }
 
   /**
-   * Revoke one paired device; its next request is refused.
+   * Revoke one paired device, terminate its active requests, and refuse subsequent requests.
    * @param deviceId - identity of the device to revoke.
    * @returns the device record after revocation, or `undefined` when unknown.
    */
@@ -388,6 +392,17 @@ export class LinkAccessService extends Service {
   }
 
   private async handle(req: IncomingMessage, res: ServerResponse): Promise<void> {
+    const header = req.headers[LINK_DEVICE_ID_HEADER]
+    if (typeof header === 'string') {
+      const deviceId = header as DeviceId
+      const responses = this.deviceResponses.get(deviceId) ?? new Set<ServerResponse>()
+      this.deviceResponses.set(deviceId, responses)
+      responses.add(res)
+      res.once('close', () => {
+        responses.delete(res)
+        if (responses.size === 0) this.deviceResponses.delete(deviceId)
+      })
+    }
     /* v8 ignore next -- node:http always sets url on server requests. */
     const pathname = new URL(req.url ?? '/', 'https://dsh.link').pathname
     try {
@@ -460,6 +475,7 @@ export class LinkAccessService extends Service {
     const body = await readBody(req, res, LINK_PROTOCOL_BODY_LIMIT_BYTES)
     if (body === undefined) return
     const device = await this.authenticate(req, body)
+    if (res.destroyed) return
     if ('status' in device) {
       respondRejection(res, device)
       return
@@ -472,6 +488,7 @@ export class LinkAccessService extends Service {
     const body = await readBody(req, res, this.maxRequestBodyBytes)
     if (body === undefined) return
     const device = await this.authenticate(req, body)
+    if (res.destroyed) return
     if ('status' in device) {
       respondRejection(res, device)
       return
@@ -509,6 +526,7 @@ export class LinkAccessService extends Service {
     const body = await readBody(req, res, LINK_PROTOCOL_BODY_LIMIT_BYTES)
     if (body === undefined) return
     const device = await this.authenticate(req, body)
+    if (res.destroyed) return
     if ('status' in device) {
       respondRejection(res, device)
       return

@@ -212,15 +212,21 @@ public struct LinkUserMessageData: Codable {
     public let content: [LinkContentBlock]
     public let source: LinkMessageSource
 }
+public struct LinkRawStreamChunk: Codable {
+    public let type: String
+    public let text: String?
+}
 public struct LinkStreamRecord: Codable {
     public let type: String
-    public let time0: Double
-    public let index: Double
-    public let dt: [Double]
+    public let time0: Double?
+    public let index: Double?
+    public let dt: [Double]?
     public let texts: [String]?
     public let id: String?
     public let name: String?
     public let args: [String]?
+    public let time: Double?
+    public let chunk: LinkRawStreamChunk?
 }
 public struct LinkAssistantAttemptData: Codable {
     public let turn: Double

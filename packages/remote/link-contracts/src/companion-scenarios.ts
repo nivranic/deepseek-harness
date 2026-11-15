@@ -60,6 +60,21 @@ export const LINK_DOMAIN_SCENARIOS: readonly CompanionScenario[] = [
     ],
   },
   {
+    id: 'assistant-attempt',
+    records: [
+      event(1, 'assistant/attempt', {
+        turn: 1,
+        step: 1,
+        stream: [
+          { type: 'text-chunks', time0: 1_759_017_600_001, index: 0, dt: [], texts: ['保留'] },
+          { type: 'reasoning-chunks', time0: 1_759_017_600_002, index: 1, dt: [], texts: ['不显示推理'] },
+          { type: 'chunk', time: 1_759_017_600_003, chunk: { type: 'text-delta', index: 0, text: '部分输出' } },
+          { type: 'chunk', time: 1_759_017_600_004, chunk: { type: 'finish', reason: { kind: 'aborted', failure: { message: 'aborted', code: 'ABORTED' } } } },
+        ],
+      }),
+    ],
+  },
+  {
     id: 'image-attachment',
     records: [
       event(1, 'turn/start', { turn: 1 }),

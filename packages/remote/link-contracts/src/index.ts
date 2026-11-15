@@ -400,17 +400,27 @@ export const LINK_CONTRACT_TYPES: readonly ContractType[] = [
     ],
   },
   {
+    name: 'LinkRawStreamChunk',
+    shape: 'object',
+    fields: [
+      { name: 'type', kind: 'string' },
+      { name: 'text', kind: 'string', optional: true },
+    ],
+  },
+  {
     name: 'LinkStreamRecord',
     shape: 'object',
     fields: [
       { name: 'type', kind: 'string' },
-      { name: 'time0', kind: 'number' },
-      { name: 'index', kind: 'number' },
-      { name: 'dt', kind: 'number-array' },
+      { name: 'time0', kind: 'number', optional: true },
+      { name: 'index', kind: 'number', optional: true },
+      { name: 'dt', kind: 'number-array', optional: true },
       { name: 'texts', kind: 'string-array', optional: true },
       { name: 'id', kind: 'string', optional: true },
       { name: 'name', kind: 'string', optional: true },
       { name: 'args', kind: 'string-array', optional: true },
+      { name: 'time', kind: 'number', optional: true },
+      { name: 'chunk', kind: 'object', ref: 'LinkRawStreamChunk', optional: true },
     ],
   },
   {

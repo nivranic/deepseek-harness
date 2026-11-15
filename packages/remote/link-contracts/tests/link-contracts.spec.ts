@@ -77,7 +77,7 @@ describe('link contract fixtures', () => {
     })
     expect(byId.get('event-goal-change')).toMatchObject({ operation: 'create', goal: { phase: 'active', revision: 1 } })
     expect(byId.get('event-tool-result')).toMatchObject({
-      message: { content: [{ type: 'tool-result', toolCallId: 'call-1' }] },
+      message: { role: 'tool', toolCallId: 'call-1', content: [{ type: 'text', text: '已写入 42 行。' }] },
     })
   })
 })
@@ -167,6 +167,9 @@ describe('companion domain-state fold', () => {
     ])
     expect(basic.planActive).toBe(false)
     expect(basic.toolCalls).toEqual([])
+
+    const attempt = byId.get('assistant-attempt')!
+    expect(attempt.items).toEqual([{ seq: 1, kind: 'assistant/attempt', text: '保留部分输出' }])
 
     const pane = byId.get('plan-todo-goal')!
     expect(pane.planActive).toBe(false)

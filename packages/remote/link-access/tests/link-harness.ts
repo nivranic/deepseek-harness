@@ -12,6 +12,7 @@ import { apply as applyConnection, inject as connectionInject } from '@deepseek-
 import TypertRegistry from '@deepseek-ai/dsh-typert-registry'
 import { Remote, bindTypertRemote } from '@deepseek-ai/dsh-typert-protocol'
 import TypertGatewayService from '@deepseek-ai/dsh-api-gateway'
+import RemoteAccessService from '@deepseek-ai/dsh-api-remote-access'
 import DeviceTrustStore from '@deepseek-ai/dsh-device-trust'
 import LinkAccessService from '../src/index.ts'
 import { linkSigningInput, type LinkEndpointInput } from '../src/protocol.ts'
@@ -164,6 +165,7 @@ export async function mountComposition(
     provideCredentials(ctx)
     await ctx.plugin({ inject: [...connectionInject], apply: applyConnection })
     await ctx.plugin(TypertRegistry)
+    await ctx.plugin(RemoteAccessService)
     await ctx.plugin(TypertGatewayService)
     await ctx.plugin(ProbeService)
     await ctx.plugin(DeviceTrustStore, { path: ':memory:' })

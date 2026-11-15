@@ -9,7 +9,7 @@ kind: "package-reference"
 
 ## 概述
 
-`dsh-link-access` 是原生远程访问载体：一个 TLS 监听器，对已配对设备做认证（带时间窗的 Ed25519 请求签名，对照[设备信任存储](../device-trust/README.zh.md)），执行带角色门控的远程端点 Allowlist 与独立的远程审批开关，并分发到现有 Typert 网关面——单次 RPC 走 Connection 共享 `/api` 处理器，Remote 流以 NDJSON 走 `typertGateway.wireStream`，与桌面载体同一对适配器。载体不拥有任何 Session、Workspace 或审批状态：吊销设备在其下一个请求生效。远程访问默认关闭。
+`dsh-link-access` 是原生远程访问载体：一个 TLS 监听器，对已配对设备做认证（带时间窗的 Ed25519 请求签名，对照[设备信任存储](../device-trust/README.zh.md)），执行带角色门控的远程端点 Allowlist 与独立的远程审批开关，并分发到现有 Typert 网关面——单次 RPC 走 Connection 共享 `/api` 处理器，Remote 流以 NDJSON 走 `typertGateway.wireStream`，与桌面载体同一对适配器。载体不拥有任何 Session、Workspace 或审批状态：吊销设备会终止其活动请求，并拒绝后续请求。远程访问默认关闭。
 
 ## 目录
 

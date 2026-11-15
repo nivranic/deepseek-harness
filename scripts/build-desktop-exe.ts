@@ -9,17 +9,13 @@
 
 import { spawn } from 'node:child_process'
 import { cpSync, existsSync, mkdirSync, readFileSync, realpathSync, rmSync } from 'node:fs'
-import { mkdir, readdir, readFile, rm, unlink, writeFile } from 'node:fs/promises'
+import { mkdtemp, readdir, readFile, rm, unlink, writeFile } from 'node:fs/promises'
 import { tmpdir } from 'node:os'
 import { dirname, join, resolve, sep } from 'node:path'
 import { fileURLToPath } from 'node:url'
 import { officialClientBuildEnvironment, readClientBuildRecord } from './client-build-environment.ts'
 
 const root = resolve(dirname(fileURLToPath(import.meta.url)), '..')
-// The stage lives OUTSIDE the repository tree: inside it, electron-builder's
-// package-manager detection walks up to the pnpm workspace root and runs
-// `pnpm install --production` there instead of packing the staged closure.
-const STAGE_DIR = join(tmpdir(), 'dsh-desktop-stage')
 const OUT_DIR = join(root, 'dist-desktop', 'out')
 const DESKTOP_APP = '@deepseek-ai/dsh-desktop-user'
 
@@ -80,10 +76,9 @@ async function main(): Promise<void> {
     'the Electron runtime',
   )
   const electronVersion = electronManifest.version
+  // Outside the repository, electron-builder cannot mistake the stage for the workspace root.
+  const STAGE_DIR = await mkdtemp(join(tmpdir(), 'dsh-desktop-user-stage-'))
 
-  // Fresh stage: the deployed closure replaces any previous attempt whole.
-  await rm(STAGE_DIR, { recursive: true, force: true })
-  await mkdir(dirname(STAGE_DIR), { recursive: true })
   console.log(`build-desktop-exe: deploying the ${DESKTOP_APP} production closure to ${STAGE_DIR}`)
   const deployCode = await run('pnpm', ['deploy', '--legacy', `--filter=${DESKTOP_APP}`, '--prod', STAGE_DIR], root, {
     npm_config_verify_deps_before_run: 'false',
@@ -145,8 +140,8 @@ async function main(): Promise<void> {
   // mirror environments for constrained networks. The config lands in the
   // stage so its output directory stays absolute.
   const builderConfig = [
-    'appId: com.deepseek.dsh',
-    'productName: DeepSeek Harness',
+    'appId: com.deepseek.dsh.personal',
+    'productName: DeepSeek Harness Personal',
     'publish: null',
     // node-pty ships N-API prebuilds that load under Electron unchanged; a
     // node-gyp rebuild would demand a native toolchain the packaging host
@@ -190,6 +185,7 @@ async function main(): Promise<void> {
     false,
   )
   if (builderCode !== 0) fail(`electron-builder exited ${String(builderCode)}`)
+  await rm(STAGE_DIR, { recursive: true, force: true })
   console.log(`build-desktop-exe: artifacts in ${OUT_DIR}`)
 }
 

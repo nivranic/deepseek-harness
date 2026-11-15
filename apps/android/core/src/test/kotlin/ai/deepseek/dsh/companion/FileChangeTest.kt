@@ -21,9 +21,9 @@ private fun toolCallEvent(seq: Int, callId: String, name: String, arguments: Str
     )
 
 private fun toolResultEvent(seq: Int, callId: String, failed: Boolean = false): WireValue {
-    val error = if (failed) ""","error":{"name":"ToolError"}""" else ""
+    val error = if (failed) ""","error":{"name":"ToolError","code":"EXIT_1"}""" else ""
     return wireOf(
-        """{"type":"event","event":{"type":"tool/result","seq":$seq,"time":1759017600000,"data":{"turn":1,"step":1,"message":{"id":"m-$callId","role":"user","content":[{"type":"tool-result","toolCallId":"$callId","content":[{"type":"text","text":"完成"}]}],"source":{"kind":"tool","callId":"$callId"}}$error}}}""",
+        """{"type":"event","event":{"type":"tool/result","seq":$seq,"time":1759017600000,"data":{"turn":1,"step":1,"message":{"id":"m-$callId","role":"tool","toolCallId":"$callId","content":[{"type":"text","text":"完成"}],"source":{"kind":"tool","callId":"$callId"}}$error}}}""",
     )
 }
 

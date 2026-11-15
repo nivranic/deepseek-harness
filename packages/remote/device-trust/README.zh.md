@@ -41,7 +41,7 @@ kind: "package-reference"
 
 ### 可观察行为
 
-`createPairing(ttlSeconds)` 签发 256 位一次性配对码；`consumePairing` 先删除配对码行再注册设备，因此无论两次调用并发还是先后，第二个消费者都会失败，过期配对码首次使用即作废。`revoke` 保留记录以备审计，`touch` 只为受信设备记录 `lastSeenAt`。盖有其他布局版本戳的数据库直接拒绝——不做迁移，预发布立场。
+`createPairing(ttlSeconds)` 签发 256 位一次性配对码；`consumePairing` 先删除配对码行再注册设备，因此无论两次调用并发还是先后，第二个消费者都会失败，过期配对码首次使用即作废。`revoke` 保留记录以备审计，并仅发出一次 `device-trust/revoked`，让载体停止服务该设备的活动请求；`touch` 只为受信设备记录 `lastSeenAt`。盖有其他布局版本戳的数据库直接拒绝——不做迁移，预发布立场。
 
 -----
 

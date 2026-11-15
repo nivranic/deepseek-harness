@@ -31,6 +31,8 @@ Static application pages install `__DSH_BOOT_READY__` before the entry runs. The
 
 The shell base styles apply automatic CJK/Latin spacing to ordinary content in supporting browsers. Semantic code and terminal, diff, read, and search output containers retain literal source spacing and column alignment; browsers without `text-autospace` support ignore both declarations.
 
+Boot does not hide application overlays for capture URLs. First-run notices, menus, and dialogs remain visible during smoke captures without consuming their acknowledgement state.
+
 Web and Desktop mathematical rendering requires WOFF2 support. The [Web build](../../../apps/web/katex-fonts.ts) retains every KaTeX font face in WOFF2 and omits WOFF/TTF fallbacks; a face without WOFF2 rejects the build. Font glyphs, weights, styles, and layout rules are preserved.
 
 ### What boot looks like

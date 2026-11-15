@@ -109,6 +109,15 @@ declare module '@deepseek-ai/cordis' {
     /** The Host's paired-device trust store. */
     deviceTrust: DeviceTrustStore
   }
+
+  interface Events {
+    /**
+     * A committed device revocation; carriers stop serving that device's active requests.
+     * @param deviceId - the device whose authorization ended.
+     * @mode emit
+     */
+    'device-trust/revoked'(deviceId: DeviceId): void
+  }
 }
 
 /**
@@ -250,8 +259,9 @@ export class DeviceTrustStore extends Service {
    */
   async revoke(deviceId: DeviceId): Promise<PairedDevice | undefined> {
     const db = await this.ready
-    db.prepare('UPDATE devices SET revoked_at = ? WHERE device_id = ? AND revoked_at IS NULL')
+    const result = db.prepare('UPDATE devices SET revoked_at = ? WHERE device_id = ? AND revoked_at IS NULL')
       .run(internals.now(), deviceId)
+    if (result.changes > 0) this.ctx.emit('device-trust/revoked', deviceId)
     return this.device(deviceId)
   }
 

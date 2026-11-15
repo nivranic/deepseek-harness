@@ -19,7 +19,9 @@
 
 import { app, BrowserWindow, Menu, nativeImage, powerMonitor, protocol, screen, Tray } from 'electron'
 import { dirname, join } from 'node:path'
+import { homedir } from 'node:os'
 import { open, readdir, stat, writeFile } from 'node:fs/promises'
+import { resolvePersonalDshHome } from './paths.ts'
 import type { Context } from '@deepseek-ai/cordis'
 import type { DesktopGateway } from '@deepseek-ai/dsh-host-electron-ipc'
 import type {} from '@deepseek-ai/dsh-settings'
@@ -50,6 +52,9 @@ interface DesktopSettings {
 // userData directory path; pin a filesystem-safe app name before any path is
 // derived from it.
 app.name = 'deepseek-harness-desktop'
+
+// Select the personal data root before importing the profile boot graph.
+process.env.DSH_HOME = resolvePersonalDshHome(homedir(), process.env.DSH_DESKTOP_USER_HOME)
 
 /**
  * Page-cache warmup for the packaged install: cold-launch file I/O — not CPU
@@ -360,16 +365,6 @@ async function startGateway(): Promise<DesktopGateway> {
 }
 
 /**
- * The entry URL of the real page; smoke mode rides the query, not an
- * inter-process call: the shell hides blocking overlays itself, because a
- * main-process renderer round-trip mid-boot stalls the plugin load.
- */
-function entryUrl(): string {
-  const smoke = process.env.DSH_DESKTOP_SMOKE_SHOT
-  return smoke === undefined || smoke === '' ? ENTRY_URL : `${ENTRY_URL}?dsh-smoke=1`
-}
-
-/**
  * Create the application window: prelude first, the gateway-backed entry page
  * when it can answer. `gatewayReady` never rejects — a boot failure surfaces
  * through fail-loud, which owns the process exit while the prelude page stays
@@ -414,7 +409,7 @@ function createWindow(gatewayReady: Promise<unknown>): BrowserWindow {
   })
   void window.loadURL(PRELUDE_URL)
   void gatewayReady.then(() => {
-    if (!window.isDestroyed()) void window.loadURL(entryUrl())
+    if (!window.isDestroyed()) void window.loadURL(ENTRY_URL)
   })
   return window
 }
@@ -489,7 +484,7 @@ if (!app.requestSingleInstanceLock()) {
     clearMenuBar()
     // Windows derives notification origin from the AppUserModelId; pin one so
     // the closed-to-tray balloon names the app, not the exe path.
-    app.setAppUserModelId('com.deepseek-ai.dsh-desktop')
+    app.setAppUserModelId('com.deepseek.dsh.personal')
     protocol.handle(DSH_SCHEME, request => gatewayReady.then(gateway => gateway.handle(request)))
     // The window waits — bounded to 1.2s — for the install warmup (warm
     // launches finish in ~100ms; an eviction-cold read of everything,

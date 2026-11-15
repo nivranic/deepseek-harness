@@ -114,7 +114,7 @@ export class LinkController extends TypertRemoteService {
   }
 
   /**
-   * Revoke one paired device; its next request is refused.
+   * Revoke one paired device, terminate its active requests, and refuse subsequent requests.
    * @param deviceId - identity of the device to revoke.
    * @returns the device row after revocation, or `undefined` when unknown.
    * @throws RemoteError when the id is empty or no link carrier is mounted.

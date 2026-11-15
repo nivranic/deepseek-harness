@@ -1,42 +1,24 @@
-/**
- * One-shot desktop release build: dependency resync → workspace build → exe
- * packaging → fixed-location install → packaged-app smoke → desktop shortcut →
- * final resync. One command, artifacts under dist-desktop/out:
- *
- *   node --import tsx/esm scripts/build-desktop-release.ts
- *
- * Wraps the individual steps (scripts/build-desktop-exe.ts among them) without
- * duplicating them. The leading resync repairs the dependency-status drift a
- * merge or a previous packaging run leaves behind — without it the next
- * pnpm-wrapped command attempts `pnpm install --production` in the repository
- * root. The trailing resync cures the same drift the packaging run itself
- * introduces (`pnpm deploy` dirties the root status fingerprint). The
- * pre-clean kills a still-running packaged app, whose exe file would otherwise
- * lock the output directory and fail the builder's empty-dir step. The fixed
- * install at F:\deepseek-harness plus the desktop shortcut pointing into it
- * keep working across rebuilds: the output directory is emptied every run,
- * the install location and exe name never change.
- * @module build-desktop-release
- */
+/** Build and install the personal Desktop only; its data, executable and install identity stay separate from official Desktop. */
 
 import { spawn, spawnSync } from 'node:child_process'
 import { closeSync, existsSync, openSync, readFileSync, readdirSync, rmSync, statSync } from 'node:fs'
+import { homedir } from 'node:os'
 import { dirname, join, resolve } from 'node:path'
 import { fileURLToPath } from 'node:url'
 
 const root = resolve(dirname(fileURLToPath(import.meta.url)), '..')
-const APP_PROCESS = 'DeepSeek Harness.exe'
+const APP_PROCESS = 'DeepSeek Harness Personal.exe'
 const OUT_DIR = join(root, 'dist-desktop', 'out')
 const WIN_UNPACKED = join(OUT_DIR, 'win-unpacked')
 const APP_EXE = join(WIN_UNPACKED, APP_PROCESS)
 const SMOKE_SHOT = join(root, 'dist-desktop', 'smoke.png')
 const SMOKE_LOG = join(root, 'dist-desktop', 'smoke.log')
 
-// Fixed per-user install on a data drive, off the system disk; robocopy
-// creates the directory on first use.
-const STABLE_DIR = 'F:\\deepseek-harness'
+// Stable per-user installation, independent of the checkout and data directory.
+// Robocopy creates the directory on first use.
+const STABLE_DIR = join(process.env.LOCALAPPDATA ?? join(homedir(), 'AppData', 'Local'), 'Programs', 'DeepSeek Harness Personal')
 const STABLE_EXE = join(STABLE_DIR, APP_PROCESS)
-const SHORTCUT_NAME = 'DeepSeek Harness.lnk'
+const SHORTCUT_NAME = 'DeepSeek Harness Personal.lnk'
 
 // Constrained-network defaults; an explicit environment value always wins.
 process.env.ELECTRON_MIRROR ??= 'https://npmmirror.com/mirrors/electron/'
@@ -81,12 +63,20 @@ function run(
   })
 }
 
-/** Kill a still-running packaged app so its exe file stops locking the output. */
+const psLiteral = (value: string): string => `'${value.replaceAll("'", "''")}'`
+
+/** Stop only executables owned by this personal installation or packaging output. */
 function killRunningApp(): void {
   if (process.platform !== 'win32') return
-  const result = spawnSync('taskkill', ['/F', '/IM', APP_PROCESS], { shell: true, stdio: 'ignore' })
-  // 128 is "no such process" — the ordinary nothing-running case.
-  if (result.status === 0) log(`closed a running ${APP_PROCESS} before rebuilding`)
+  const script = [
+    '$ErrorActionPreference = "Stop"',
+    `$targets = @(${psLiteral(APP_EXE)}, ${psLiteral(STABLE_EXE)})`,
+    `Get-CimInstance Win32_Process -Filter ${psLiteral(`Name = '${APP_PROCESS}'`)} | Where-Object { $targets -contains $_.ExecutablePath } | ForEach-Object { Stop-Process -Id $_.ProcessId -Force; Write-Output $_.ProcessId }`,
+  ].join('; ')
+  const result = spawnSync('pwsh', ['-NoProfile', '-Command', script], { encoding: 'utf8' })
+  if (result.error !== undefined) fail(`cannot query the personal Desktop processes: ${result.error.message}`)
+  if (result.status !== 0) fail(`cannot close the personal Desktop: ${result.stderr.trim()}`)
+  if (result.stdout.trim() !== '') log(`closed the personal Desktop processes ${result.stdout.trim().replaceAll(/\s+/g, ', ')}`)
 }
 
 /** Empty the output directory; a locked leftover means the build cannot start. */
@@ -128,9 +118,6 @@ function syncStableInstall(): void {
  */
 function ensureDesktopShortcut(): void {
   if (process.platform !== 'win32') return
-  // PowerShell single-quoted literal: no interpolation, embedded quotes doubled.
-  const psLiteral = (value: string): string => `'${value.replaceAll("'", "''")}'`
-  // One argv element through spawn (no shell quoting on the Node side).
   const script = [
     '$desktop = [Environment]::GetFolderPath("Desktop")',
     '$shell = New-Object -ComObject WScript.Shell',
@@ -141,7 +128,7 @@ function ensureDesktopShortcut(): void {
     'Write-Output $desktop',
   ].join('; ')
   const result = spawnSync(
-    'powershell',
+    'pwsh',
     ['-NoProfile', '-ExecutionPolicy', 'Bypass', '-Command', script],
     { encoding: 'utf8' },
   )
@@ -198,7 +185,7 @@ async function smoke(): Promise<void> {
       if (attempt >= 2) fail(String(error))
       log('smoke: retrying once after a cool-down')
       // A timeout leaves the app running; free its files before relaunching.
-      spawnSync('taskkill', ['/F', '/IM', APP_PROCESS], { shell: true, stdio: 'ignore' })
+      killRunningApp()
       await new Promise((resolveTick) => { setTimeout(resolveTick, 15_000) })
     }
   }

@@ -214,15 +214,21 @@ data class LinkUserMessageData(
     val content: List<LinkContentBlock>,
     val source: LinkMessageSource,
 )
+data class LinkRawStreamChunk(
+    val type: String,
+    val text: String? = null,
+)
 data class LinkStreamRecord(
     val type: String,
-    val time0: Double,
-    val index: Double,
-    val dt: List<Double>,
+    val time0: Double? = null,
+    val index: Double? = null,
+    val dt: List<Double>? = null,
     val texts: List<String>? = null,
     val id: String? = null,
     val name: String? = null,
     val args: List<String>? = null,
+    val time: Double? = null,
+    val chunk: LinkRawStreamChunk? = null,
 )
 data class LinkAssistantAttemptData(
     val turn: Double,

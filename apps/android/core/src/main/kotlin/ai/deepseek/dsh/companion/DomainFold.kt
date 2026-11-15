@@ -182,10 +182,22 @@ internal fun renderEvent(tag: String, data: JsonObject?): String {
         )
         "step/start", "step/end", "session/end-seed" -> ""
         "user/message" -> blockText(data["content"]?.jsonArray ?: JsonArray(emptyList()))
-        "assistant/chunk" -> {
-            val chunk = data["chunk"] as? JsonObject
-            val text = (chunk?.get("text") as? JsonPrimitive)?.takeIf { it.isString }?.content
-            if (!text.isNullOrEmpty()) text else ""
+        "assistant/attempt" -> {
+            val stream = data["stream"] as? JsonArray ?: JsonArray(emptyList())
+            stream.joinToString("") { element ->
+                val record = element as? JsonObject ?: return@joinToString ""
+                when (record.stringField("type")) {
+                    "text-chunks" -> {
+                        val texts = record["texts"] as? JsonArray ?: JsonArray(emptyList())
+                        texts.joinToString("") { (it as? JsonPrimitive)?.contentOrNullSafe ?: "" }
+                    }
+                    "chunk" -> {
+                        val chunk = record["chunk"] as? JsonObject
+                        if (chunk?.stringField("type") == "text-delta") chunk.stringField("text") ?: "" else ""
+                    }
+                    else -> ""
+                }
+            }
         }
         "assistant/message" -> {
             val message = data["message"] as? JsonObject
@@ -337,8 +349,7 @@ private fun foldRecords(state: FoldAccumulator, records: JsonArray) {
             "tool/result" -> {
                 val message = data?.get("message") as? JsonObject ?: continue
                 collectImages(message["content"]?.jsonArray ?: JsonArray(emptyList()), state.images)
-                val first = message["content"]?.jsonArray?.firstOrNull() as? JsonObject
-                val callId = (first?.get("toolCallId") as? JsonPrimitive)?.takeIf { it.isString }?.content
+                val callId = message.stringField("toolCallId")
                 val index = if (callId == null) -1 else state.toolCalls.indexOfFirst { it.id == callId }
                 if (index == -1) continue
                 val target = state.toolCalls[index]

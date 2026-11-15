@@ -159,7 +159,7 @@ async createPairing(): Promise<LinkPairingPayload>
 async trustedDevices(): Promise<readonly PairedDevice[]>
 
 /**
- * Revoke one paired device; its next request is refused.
+ * Revoke one paired device, terminate its active requests, and refuse subsequent requests.
  * @param deviceId - identity of the device to revoke.
  * @returns the device record after revocation, or `undefined` when unknown.
  */
@@ -200,7 +200,7 @@ Host service backing the generated `ctx.remote.link` namespace. Every method rea
 @Remote async devices(): Promise<LinkDeviceValue[]>
 
 /**
- * Revoke one paired device; its next request is refused.
+ * Revoke one paired device, terminate its active requests, and refuse subsequent requests.
  * @param deviceId - identity of the device to revoke.
  * @returns the device row after revocation, or `undefined` when unknown.
  * @throws RemoteError when the id is empty or no link carrier is mounted.
@@ -217,4 +217,25 @@ Source: [`packages/api/link-controller/src/index.ts`](../../packages/api/link-co
 The remote settings bridge: applies the entry's live configuration to the link-access carrier on mount and after every settings-form write.
 
 Source: [`packages/remote/link-settings/src/index.ts`](../../packages/remote/link-settings/src/index.ts)
+
+<a id="device-trust-events"></a>
+
+### `device-trust/*` events
+
+<a id="device-trustrevoked--emit"></a>
+
+#### `device-trust/revoked` — emit
+
+A committed device revocation; carriers stop serving that device's active requests.
+
+```ts cordis-catalog
+/**
+ * A committed device revocation; carriers stop serving that device's active requests.
+ * @param deviceId - the device whose authorization ended.
+ * @mode emit
+ */
+'device-trust/revoked'(deviceId: DeviceId): void
+```
+
+Source: [`packages/remote/device-trust/src/index.ts`](../../packages/remote/device-trust/src/index.ts)
 <!-- END GENERATED cordis-surface -->

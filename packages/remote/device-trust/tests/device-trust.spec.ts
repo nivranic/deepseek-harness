@@ -135,11 +135,15 @@ describe('DeviceTrustStore', () => {
       { name: 'Phone', publicKeySpki: devicePublicKey() },
       'controller',
     )
+    const revokedIds: string[] = []
+    ctx.on('device-trust/revoked', (deviceId) => { revokedIds.push(deviceId) })
     vi.spyOn(internals, 'now').mockReturnValue(3_000)
     const revoked = await store.revoke(device.deviceId)
     expect(revoked?.revokedAt).toBe(3_000)
+    expect(revokedIds).toEqual([device.deviceId])
     vi.spyOn(internals, 'now').mockReturnValue(4_000)
     await expect(store.revoke(device.deviceId)).resolves.toMatchObject({ revokedAt: 3_000 })
+    expect(revokedIds).toEqual([device.deviceId])
     await ctx.fiber.dispose()
   })
 

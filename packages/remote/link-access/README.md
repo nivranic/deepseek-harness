@@ -9,7 +9,7 @@ English | [中文](README.zh.md)
 
 ## Summary
 
-`dsh-link-access` is the Native Remote Access carrier: a TLS listener that authenticates paired devices (timestamp-windowed Ed25519 request signatures against the [device trust store](../device-trust/README.md)), enforces a role-gated remote endpoint allowlist with an independent remote-approval switch, and dispatches onto the existing Typert gateway surface — unary RPC through the Connection shared `/api` handler and Remote streams through `typertGateway.wireStream` as NDJSON, the same adapter pair the desktop carrier uses. The carrier owns no session, workspace, or approval state: revoking a device cuts its authorization on the next request. Remote access ships disabled by default.
+`dsh-link-access` is the Native Remote Access carrier: a TLS listener that authenticates paired devices (timestamp-windowed Ed25519 request signatures against the [device trust store](../device-trust/README.md)), enforces a role-gated remote endpoint allowlist with an independent remote-approval switch, and dispatches onto the existing Typert gateway surface — unary RPC through the Connection shared `/api` handler and Remote streams through `typertGateway.wireStream` as NDJSON, the same adapter pair the desktop carrier uses. The carrier owns no session, workspace, or approval state: revoking a device terminates its active requests and refuses subsequent ones. Remote access ships disabled by default.
 
 ## Table of Contents
 

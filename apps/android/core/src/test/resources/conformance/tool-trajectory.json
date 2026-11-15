@@ -41,17 +41,12 @@
           "step": 1,
           "message": {
             "id": "m-tool-1",
-            "role": "user",
+            "role": "tool",
+            "toolCallId": "call-1",
             "content": [
               {
-                "type": "tool-result",
-                "toolCallId": "call-1",
-                "content": [
-                  {
-                    "type": "text",
-                    "text": "已写入 42 行。"
-                  }
-                ]
+                "type": "text",
+                "text": "已写入 42 行。"
               }
             ],
             "source": {
@@ -73,17 +68,12 @@
           "step": 1,
           "message": {
             "id": "m-tool-x",
-            "role": "user",
+            "role": "tool",
+            "toolCallId": "call-x",
             "content": [
               {
-                "type": "tool-result",
-                "toolCallId": "call-x",
-                "content": [
-                  {
-                    "type": "text",
-                    "text": "孤儿结果"
-                  }
-                ]
+                "type": "text",
+                "text": "孤儿结果"
               }
             ],
             "source": {
@@ -105,23 +95,19 @@
           "step": 1,
           "message": {
             "id": "m-tool-2",
-            "role": "user",
+            "role": "tool",
+            "toolCallId": "call-2",
             "content": [
               {
-                "type": "tool-result",
-                "toolCallId": "call-2",
-                "content": [
-                  {
-                    "type": "text",
-                    "text": "2 个断言失败"
-                  }
-                ]
+                "type": "text",
+                "text": "2 个断言失败"
               }
             ],
             "source": {
               "kind": "tool",
               "callId": "call-2"
-            }
+            },
+            "isError": true
           },
           "error": {
             "name": "AssertionError",
