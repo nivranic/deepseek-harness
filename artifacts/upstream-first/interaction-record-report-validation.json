@@ -1,0 +1,45 @@
+{
+  "status": "PASS",
+  "gate0": {
+    "validation": "PASS",
+    "gate0": "PASS",
+    "paths": 1938,
+    "components": 129
+  },
+  "sourceRecord": {
+    "path": "artifacts/upstream-first/interaction-record-source.json",
+    "sha256": "d3408e85222ee4fe6d4d0666b925f493964f36f55b0773ce3591972aaa90569e"
+  },
+  "generator": {
+    "path": "artifacts/upstream-first/write-reports.mjs",
+    "sha256": "c332caf677622c21cb56b668115ec8048a860595d505be03525f90946ddc3f13"
+  },
+  "reports": [
+    {
+      "path": "IMPLEMENTATION_STATUS.md",
+      "sha256": "996693c52e0f9bee1d8938ca62a17efbb28959896c3e40e140739feb6b440768"
+    },
+    {
+      "path": "artifacts/upstream-first/evidence.json",
+      "sha256": "ab6519bfef7ddc2380c997a9be8fc167616db99cbb098429c082c2a447c388ce"
+    }
+  ],
+  "checks": [
+    {
+      "path": ".artifacts/interaction-record-binding.log",
+      "sha256": "60129ffc3bcad5e03e91698b3afdf33f9b6cd45981bc06a39ff576620357011d"
+    },
+    {
+      "path": ".artifacts/interaction-record-audit-tests.log",
+      "sha256": "75eb77b2d38076b4b6210fcafd6781655b3a09ab5e0922aad7c57d11af542a83"
+    },
+    {
+      "path": ".artifacts/interaction-record-gate0.log",
+      "sha256": "4b5af3121a7e7caff0e1b6288bdaa7cfef9988842ae06bf02dc0a74852426043"
+    },
+    {
+      "path": ".artifacts/interaction-record-diff-check.log",
+      "sha256": "e3b0c44298fc1c149afbf4c8996fb92427ae41e4649b934ca495991b7852b855"
+    }
+  ]
+}

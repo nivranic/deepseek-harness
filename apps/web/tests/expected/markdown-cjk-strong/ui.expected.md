@@ -1,5 +1,6 @@
 - banner:
   - navigation "Session hierarchy": CJK strong emphasis
+  - button "Continue on another device"
   - button "More actions"
   - button "Open right sidebar"
   - tablist:

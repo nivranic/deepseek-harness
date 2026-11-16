@@ -1,0 +1,301 @@
+{
+  "schemaVersion": 1,
+  "files": [
+    {
+      "path": ".artifacts/android-push-foreground-cursor-investigation.json",
+      "sha256": "85cadc4359e7b11473f3f46f4d7d3b12837425e1632b4e20a86cd10c6f41b457",
+      "bytes": 3557,
+      "snapshot": "resume-evidence/android-push-foreground-cursor-investigation.json"
+    },
+    {
+      "path": ".artifacts/authorized-attachment-receipt-recovery-ci-status.json",
+      "sha256": "600972f9cbaa50ffb519e48a5c056dd7e506d8692cb16685fffff14c06ec992e",
+      "bytes": 283,
+      "snapshot": "resume-evidence/authorized-attachment-receipt-recovery-ci-status.json"
+    },
+    {
+      "path": ".artifacts/authorized-attachment-receipt-recovery-publication.json",
+      "sha256": "4bee2c5a1f70fd8aee47874cc4a446bc784de30356045885928cbe7155efdf47",
+      "bytes": 253,
+      "snapshot": "resume-evidence/authorized-attachment-receipt-recovery-publication.json"
+    },
+    {
+      "path": ".artifacts/check-authorized-attachment-receipt-recovery-ci.py",
+      "sha256": "2f6fa475c3fd395625557327da643e7323cd00ed9a31c6441f5c72a97c36e4a2",
+      "bytes": 1514,
+      "snapshot": "resume-evidence/check-authorized-attachment-receipt-recovery-ci.py"
+    },
+    {
+      "path": ".artifacts/dispatch-authorized-attachment-receipt-recovery-ci.py",
+      "sha256": "8b688a685cf87b1644b162241d2563da5e7ad4751e3bfce889ed2ed061638ad0",
+      "bytes": 2813,
+      "snapshot": "resume-evidence/dispatch-authorized-attachment-receipt-recovery-ci.py"
+    },
+    {
+      "path": ".artifacts/native-upload-budget-android-initial.log",
+      "sha256": "d452287d29c52589fc9a70f19d44b4a60dd09e4d728812bd25b97d13e2ea3395",
+      "bytes": 5194,
+      "snapshot": "resume-evidence/native-upload-budget-android-initial.log"
+    },
+    {
+      "path": ".artifacts/native-upload-budget-baseline-cleanup-clarification.md",
+      "sha256": "6f5b2fcec73bb326c9411d17b0fc73c616117e66e21b0321d56fb3ad903a3b35",
+      "bytes": 2330,
+      "snapshot": "resume-evidence/native-upload-budget-baseline-cleanup-clarification.md"
+    },
+    {
+      "path": ".artifacts/native-upload-budget-before/archive.json",
+      "sha256": "a239e9736694a7e9e531f121ee440d806a042842d7549847e1cf4b306a533c5b",
+      "bytes": 2172245,
+      "snapshot": "resume-evidence/native-upload-budget-before-archive.json"
+    },
+    {
+      "path": ".artifacts/native-upload-budget-client-emissions/manifest.json",
+      "sha256": "3617dfd53eecce7887f7a5115b2ab0cdd79a22d079d23d7e8007417bed576b9f",
+      "bytes": 174344,
+      "snapshot": "resume-evidence/native-upload-budget-client-emissions-manifest.json"
+    },
+    {
+      "path": ".artifacts/native-upload-budget-core-results-initial.json",
+      "sha256": "4d8cfe4a700769f204308a8c45b1153707a8ec39199972b44fdbda812c5971b0",
+      "bytes": 2249,
+      "snapshot": "resume-evidence/native-upload-budget-core-results-initial.json"
+    },
+    {
+      "path": ".artifacts/native-upload-budget-core-results.json",
+      "sha256": "88d7690ada1c9fe3d47006dbc301ffeddc76e41eaad321f9c9c1dca13c49e1c5",
+      "bytes": 2173,
+      "snapshot": "resume-evidence/native-upload-budget-core-results.json"
+    },
+    {
+      "path": ".artifacts/native-upload-budget-doc-catalog.log",
+      "sha256": "ff69de118f4648d92fd2ecbae74aa38071c005545994be31e39f5341526092e9",
+      "bytes": 857,
+      "snapshot": "resume-evidence/native-upload-budget-doc-catalog.log"
+    },
+    {
+      "path": ".artifacts/native-upload-budget-e2e-lint-initial.log",
+      "sha256": "bc88db45b23e876f6682d93c66c7b9d610656e279cf03bd720beaca23df4c3f2",
+      "bytes": 518,
+      "snapshot": "resume-evidence/native-upload-budget-e2e-lint-initial.log"
+    },
+    {
+      "path": ".artifacts/native-upload-budget-e2e-oxlint-fixed.log",
+      "sha256": "e3b0c44298fc1c149afbf4c8996fb92427ae41e4649b934ca495991b7852b855",
+      "bytes": 0,
+      "snapshot": "resume-evidence/native-upload-budget-e2e-oxlint-fixed.log"
+    },
+    {
+      "path": ".artifacts/native-upload-budget-e2e-oxlint-ledger.log",
+      "sha256": "e3b0c44298fc1c149afbf4c8996fb92427ae41e4649b934ca495991b7852b855",
+      "bytes": 0,
+      "snapshot": "resume-evidence/native-upload-budget-e2e-oxlint-ledger.log"
+    },
+    {
+      "path": ".artifacts/native-upload-budget-e2e-oxlint-sandbox.log",
+      "sha256": "f15811216103964dc6ed76b741c2525703a9036f1c9b1e1ea4a78bbf3017c970",
+      "bytes": 857,
+      "snapshot": "resume-evidence/native-upload-budget-e2e-oxlint-sandbox.log"
+    },
+    {
+      "path": ".artifacts/native-upload-budget-e2e-oxlint.log",
+      "sha256": "87401acd830514bc2285eb84ed8b7fbe7998c8dec3c27fbe3032af9305d1e0c9",
+      "bytes": 141,
+      "snapshot": "resume-evidence/native-upload-budget-e2e-oxlint.log"
+    },
+    {
+      "path": ".artifacts/native-upload-budget-factory-build.log",
+      "sha256": "2e0f877a50f2f62503a3941e287cf78f6350998ec094b03268b0d640db26b404",
+      "bytes": 184651,
+      "snapshot": "resume-evidence/native-upload-budget-factory-build.log"
+    },
+    {
+      "path": ".artifacts/native-upload-budget-factory-client-build-fixed.log",
+      "sha256": "8ea953f4761975c4d4c7db316c6f8172a96282fc4c32212bbba4c5a5608698ca",
+      "bytes": 154431,
+      "snapshot": "resume-evidence/native-upload-budget-factory-client-build-fixed.log"
+    },
+    {
+      "path": ".artifacts/native-upload-budget-factory-client-build.log",
+      "sha256": "8922ac56d9358c01f2d46b025075486a703265c8753fd52e6d3c8a26cd086275",
+      "bytes": 274265,
+      "snapshot": "resume-evidence/native-upload-budget-factory-client-build.log"
+    },
+    {
+      "path": ".artifacts/native-upload-budget-factory-duplicate-scope.log",
+      "sha256": "efda43b0367adcf76bd1559ff56907c53857129a49c9200646134673bd8c3814",
+      "bytes": 953,
+      "snapshot": "resume-evidence/native-upload-budget-factory-duplicate-scope.log"
+    },
+    {
+      "path": ".artifacts/native-upload-budget-factory-eslint.log",
+      "sha256": "bc88db45b23e876f6682d93c66c7b9d610656e279cf03bd720beaca23df4c3f2",
+      "bytes": 518,
+      "snapshot": "resume-evidence/native-upload-budget-factory-eslint.log"
+    },
+    {
+      "path": ".artifacts/native-upload-budget-factory-oxlint.log",
+      "sha256": "e3b0c44298fc1c149afbf4c8996fb92427ae41e4649b934ca495991b7852b855",
+      "bytes": 0,
+      "snapshot": "resume-evidence/native-upload-budget-factory-oxlint.log"
+    },
+    {
+      "path": ".artifacts/native-upload-budget-factory-proof-built.log",
+      "sha256": "e67d6b9bb4d5185f0e28e111e67630fc3692579ea79eeb8b191f5841b7164ede",
+      "bytes": 2868,
+      "snapshot": "resume-evidence/native-upload-budget-factory-proof-built.log"
+    },
+    {
+      "path": ".artifacts/native-upload-budget-factory-proof-cleanup-fixed.log",
+      "sha256": "932af39c3cfcdd9adba03148ba1ec4b2f696ff46df67780490ab818f871581e3",
+      "bytes": 481,
+      "snapshot": "resume-evidence/native-upload-budget-factory-proof-cleanup-fixed.log"
+    },
+    {
+      "path": ".artifacts/native-upload-budget-factory-proof-client-built.log",
+      "sha256": "baca473d2174648fada6e70aef85d4d11efa6dc6fa765aae2357bdcd50968523",
+      "bytes": 2320,
+      "snapshot": "resume-evidence/native-upload-budget-factory-proof-client-built.log"
+    },
+    {
+      "path": ".artifacts/native-upload-budget-factory-proof.log",
+      "sha256": "8ae373691028f46638517540a539176c5845eb49b93f87a41f7313586974a9f7",
+      "bytes": 2868,
+      "snapshot": "resume-evidence/native-upload-budget-factory-proof.log"
+    },
+    {
+      "path": ".artifacts/native-upload-budget-factory-unit.log",
+      "sha256": "18c337b88fe617ba90796738d836e6fc81c0c83e3801b4c755bbd6234bb39795",
+      "bytes": 943,
+      "snapshot": "resume-evidence/native-upload-budget-factory-unit.log"
+    },
+    {
+      "path": ".artifacts/native-upload-budget-host-build.log",
+      "sha256": "620a5806de173c2f2251fb09d5adac607af493804c2905b2b119b6c144157bf8",
+      "bytes": 181817,
+      "snapshot": "resume-evidence/native-upload-budget-host-build.log"
+    },
+    {
+      "path": ".artifacts/native-upload-budget-host-proof.log",
+      "sha256": "33ba2491d83bdaea486774349132a5ae9fcb860f54df9eda353a23aba1f5d87b",
+      "bytes": 305,
+      "snapshot": "resume-evidence/native-upload-budget-host-proof.log"
+    },
+    {
+      "path": ".artifacts/native-upload-budget-host-unit.log",
+      "sha256": "d5e81b34c98404332ebb678be5a4d252da833b41a27d4f202fa7a97ce646b933",
+      "bytes": 941,
+      "snapshot": "resume-evidence/native-upload-budget-host-unit.log"
+    },
+    {
+      "path": ".artifacts/native-upload-budget-plan.md",
+      "sha256": "f3ca7bb9237dffbd15690ea6c9ba2d4ab0524b67be3059a35d4a3d668d4c346f",
+      "bytes": 28142,
+      "snapshot": "resume-evidence/native-upload-budget-plan.md"
+    },
+    {
+      "path": ".artifacts/native-upload-budget-prepare.log",
+      "sha256": "71166cb20ae20a9b9b6257bfdcf7853620b640c5c1cb96f5f2cd0fbaa5f5d6ea",
+      "bytes": 42,
+      "snapshot": "resume-evidence/native-upload-budget-prepare.log"
+    },
+    {
+      "path": ".artifacts/native-upload-budget-scope-feasibility.config.ts",
+      "sha256": "3fb48244589abb3cdd7fe88a613e52c10ee7c0039ce546749690364aeb6a5634",
+      "bytes": 501,
+      "snapshot": "resume-evidence/native-upload-budget-scope-feasibility.config.ts"
+    },
+    {
+      "path": ".artifacts/native-upload-budget-scope-feasibility.evidence.log",
+      "sha256": "2b4dc0f6a4f01027b058a66f9ef49ad41d05534467599f733e7a6e233feed2da",
+      "bytes": 661,
+      "snapshot": "resume-evidence/native-upload-budget-scope-feasibility.evidence.log"
+    },
+    {
+      "path": ".artifacts/native-upload-budget-scope-feasibility.run.log",
+      "sha256": "9e78f783e45124a1162a2fac4398bf8a00a68ff8a88ac74e76a53e83fedb605e",
+      "bytes": 1484,
+      "snapshot": "resume-evidence/native-upload-budget-scope-feasibility.run.log"
+    },
+    {
+      "path": ".artifacts/native-upload-budget-scope-feasibility.spec.ts",
+      "sha256": "3278ea6631e59b89c95c77e12b4bc934b71d70913f29ed577b9fc10a0abd0030",
+      "bytes": 8359,
+      "snapshot": "resume-evidence/native-upload-budget-scope-feasibility.spec.ts"
+    },
+    {
+      "path": ".artifacts/prepare-native-upload-budget.mjs",
+      "sha256": "4808078a44a50a4f9e97eb184f5879bc7fcf49b9aea8b95f15505a5aea1fb083",
+      "bytes": 12173,
+      "snapshot": "resume-evidence/prepare-native-upload-budget.mjs"
+    },
+    {
+      "path": ".artifacts/preserve-native-upload-budget-client-emissions.py",
+      "sha256": "17aed1f87151a9e6fd04f3062034716d8556de8759194476fc5969d201e5eb63",
+      "bytes": 3231,
+      "snapshot": "resume-evidence/preserve-native-upload-budget-client-emissions.py"
+    },
+    {
+      "path": ".artifacts/read-native-upload-budget-core-results.py",
+      "sha256": "fb78dde31ddb3e8dd976760e9c828782b26b951606313f7e886511c272bbc883",
+      "bytes": 1168,
+      "snapshot": "resume-evidence/read-native-upload-budget-core-results.py"
+    },
+    {
+      "path": ".artifacts/verify-native-upload-budget-prepare-draft.mjs",
+      "sha256": "758056150cd2f21bfee48a4974a49753fb2736d84834204d19cd347abd91a6a7",
+      "bytes": 6474,
+      "snapshot": "resume-evidence/verify-native-upload-budget-prepare-draft.mjs"
+    },
+    {
+      "path": "apps/android/core/build/test-results/test/TEST-ai.deepseek.dsh.companion.CompanionHostControllerTest.xml",
+      "sha256": "ec3e6f89bf60830caa59d4a398686b8a9e12a7898974a96458af24a0341ccfea",
+      "bytes": 1825,
+      "snapshot": "resume-evidence/TEST-ai.deepseek.dsh.companion.CompanionHostControllerTest.xml"
+    },
+    {
+      "path": "apps/android/core/build/test-results/test/TEST-ai.deepseek.dsh.companion.NativeFileAttachmentsModelTest.xml",
+      "sha256": "c6e69056bcf034ca480324f3b3a88ae11206b4a990c45e35cd885031d6348215",
+      "bytes": 2413,
+      "snapshot": "resume-evidence/TEST-ai.deepseek.dsh.companion.NativeFileAttachmentsModelTest.xml"
+    },
+    {
+      "path": "apps/android/core/build/test-results/test/TEST-ai.deepseek.dsh.companion.NativeShareAttachmentsModelTest.xml",
+      "sha256": "130c97d33ecf7d11116f519d029ad6e4a0c25470f877db31000bf60d8f3da5ef",
+      "bytes": 2503,
+      "snapshot": "resume-evidence/TEST-ai.deepseek.dsh.companion.NativeShareAttachmentsModelTest.xml"
+    },
+    {
+      "path": "apps/android/core/build/test-results/test/TEST-ai.deepseek.dsh.gateway.NativeGatewayDiagnosticsTest.xml",
+      "sha256": "79f85a0ec4ffa56587cd77c466f39b6d43954985153ac367fd9f08e2623b8331",
+      "bytes": 1255,
+      "snapshot": "resume-evidence/TEST-ai.deepseek.dsh.gateway.NativeGatewayDiagnosticsTest.xml"
+    },
+    {
+      "path": "apps/android/core/build/test-results/test/TEST-ai.deepseek.dsh.gateway.NativeGatewayProtocolTest.xml",
+      "sha256": "ca8edf1694edfc9936980fda106b8b9341c256a3236cfa909aa88179dced8e49",
+      "bytes": 2227,
+      "snapshot": "resume-evidence/TEST-ai.deepseek.dsh.gateway.NativeGatewayProtocolTest.xml"
+    },
+    {
+      "path": "apps/android/core/build/test-results/test/TEST-ai.deepseek.dsh.gateway.NativeGatewayUploadBudgetTest.xml",
+      "sha256": "3cad63feaa59a665ce630f1d603bbda8fd0e43afcf674a520b3c613e094f426e",
+      "bytes": 1693,
+      "snapshot": "resume-evidence/TEST-ai.deepseek.dsh.gateway.NativeGatewayUploadBudgetTest.xml"
+    },
+    {
+      "path": "apps/android/core/build/test-results/test/TEST-ai.deepseek.dsh.gateway.NativeHttpRequestBudgetTest.xml",
+      "sha256": "78b5cd987631d44886e732558d50cfea84bfac506339292e07ee675fecb25cc3",
+      "bytes": 865,
+      "snapshot": "resume-evidence/TEST-ai.deepseek.dsh.gateway.NativeHttpRequestBudgetTest.xml"
+    }
+  ],
+  "qualification": "Hashes preserve observed bytes, not proof that an unfinished run passed.",
+  "notPackaged": [
+    "complete .artifacts history and before archive bytes",
+    "APK/AAR binaries",
+    "node_modules",
+    "Gradle and Android SDK",
+    "credentials and emulator state"
+  ]
+}

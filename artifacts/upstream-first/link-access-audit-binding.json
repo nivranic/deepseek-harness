@@ -1,0 +1,16 @@
+{
+  "status": "PASS",
+  "controls": 3,
+  "sourceRecord": {
+    "path": "artifacts/upstream-first/android-refusal-lane-source.json",
+    "sha256": "2348ab38cbe55f9565c6471edad68e51f161fe2d2b356c3cec4d819bc260e898"
+  },
+  "generator": {
+    "path": "artifacts/upstream-first/write-reports.mjs",
+    "sha256": "e041a72a4859a362a2cb909ea06a04da4711b12782f26f0ec694d9199f39206b"
+  },
+  "helper": {
+    "path": ".artifacts/check-android-refusal-lane-binding.mjs",
+    "sha256": "e2bf1c98200ed9a63b12f381c5418b095ce022a8367eda730df537f38a373d1e"
+  }
+}

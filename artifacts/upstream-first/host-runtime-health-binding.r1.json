@@ -1,0 +1,16 @@
+{
+  "status": "PASS",
+  "controls": 3,
+  "sourceRecord": {
+    "path": "artifacts/upstream-first/host-runtime-health-source.json",
+    "sha256": "465543fddf9c5e4e4a97be961c626e2457441c3c3685ccad2947b856df6adfca"
+  },
+  "generator": {
+    "path": "artifacts/upstream-first/write-reports.mjs",
+    "sha256": "ff94188b2b53830fffdd8e15222008acf6ccad1aa45ab3440d1d9c2bcd0f27b7"
+  },
+  "helper": {
+    "path": ".artifacts/check-host-runtime-health-binding.mjs",
+    "sha256": "c792280a74c23470a43fde8d14236d6fdc980c6e9f698831ca04fa2dbdac0436"
+  }
+}

@@ -1,0 +1,70 @@
+{
+  "status": "PASS",
+  "scope": "Report bindings and audit for the Settings-export entry; the remaining specification sections stay open; full Upstream-First objective remains in progress",
+  "gate0": {
+    "validation": "PASS",
+    "gate0": "PASS",
+    "paths": 1938,
+    "components": 129,
+    "specificationCoverage": {
+      "status": "PASS",
+      "numberedSections": 81,
+      "nonEmptySourceLines": 1983,
+      "acceptanceProven": false
+    }
+  },
+  "sourceRecord": {
+    "path": "artifacts/upstream-first/settings-entry-source.json",
+    "sha256": "6d0b52123281aa41a0fdbae38d379b69a26271c03133c684e758ed72d08632fe"
+  },
+  "generator": {
+    "path": "artifacts/upstream-first/write-reports.mjs",
+    "sha256": "791c450d376e5430b6e3d4ad5d8364f49b53117fdbf7601f4488ed961410c4ed"
+  },
+  "binding": {
+    "path": "artifacts/upstream-first/settings-entry-binding.json",
+    "sha256": "44a52a0e8dda9b1e2a78b609209b96dc1d51515610c28bab8df6992134f934f0"
+  },
+  "helpers": [
+    {
+      "path": ".artifacts/advance-settings-entry-reports.mjs",
+      "sha256": "c16a4bc796f02451e97bbd346410ff973344bf9fe599deef9d5bfd3575722476"
+    },
+    {
+      "path": ".artifacts/capture-settings-entry-validation.mjs",
+      "sha256": "c9868428b886ef02db0b26ac5ec36684c36c93c73af449178cf3c201ef7548f7"
+    }
+  ],
+  "reports": [
+    {
+      "path": "IMPLEMENTATION_STATUS.md",
+      "sha256": "7343d38cc933c71735d184492e11bf645c18eb3919569b58b740aff9e5f5fd97"
+    },
+    {
+      "path": "artifacts/upstream-first/evidence.json",
+      "sha256": "76a6eb355947f33e8fd6f6c0811229991c65b9d5a3b776bea77a56cdb85f543b"
+    }
+  ],
+  "checks": [
+    {
+      "path": ".artifacts/settings-entry-binding.log",
+      "sha256": "3eaa073c4e65706074fa373a04ee09c99c262768e185f871c4231a40a85c379c"
+    },
+    {
+      "path": ".artifacts/settings-entry-audit-tests.log",
+      "sha256": "6d45af871432747d91d136a86197697b2f6cf03df228c68278214555325811c2"
+    },
+    {
+      "path": ".artifacts/settings-entry-gate0.log",
+      "sha256": "505d74ef938f5d34d85490d37e0176ba804d93272fcf465ce2544a02c56b3f90"
+    },
+    {
+      "path": ".artifacts/settings-entry-report-diff-check.log",
+      "sha256": "e3b0c44298fc1c149afbf4c8996fb92427ae41e4649b934ca495991b7852b855"
+    },
+    {
+      "path": ".artifacts/settings-entry-report-generation.log",
+      "sha256": "fe010532f71a6341467ae5719b29ac19470895de1d481156335b8f70a3273ed5"
+    }
+  ]
+}

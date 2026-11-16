@@ -1,0 +1,2038 @@
+{
+  "schemaVersion": 1,
+  "reports": [
+    {
+      "path": "IMPLEMENTATION_STATUS.md",
+      "bytes": 178121,
+      "sha256": "3dcba893049e267d3a4e079604aa34ed5ba3ef6c3c6dbfc92d7b5d7da636810a",
+      "copy": "report-snapshots/IMPLEMENTATION_STATUS.md"
+    },
+    {
+      "path": "UPSTREAM_BASELINE.md",
+      "bytes": 3398,
+      "sha256": "ab2ef62c6fe41bc1d1ad3ec985e852958465ebf720db2c18da595c72b6587017",
+      "copy": "report-snapshots/UPSTREAM_BASELINE.md"
+    },
+    {
+      "path": "UPSTREAM_DELTA.md",
+      "bytes": 26473,
+      "sha256": "2925860a7cbb832b909570d9b43b48afe9604260a0e2d80bde7b3a3b40009dee",
+      "copy": "report-snapshots/UPSTREAM_DELTA.md"
+    },
+    {
+      "path": "UPSTREAM_DELTA.json",
+      "bytes": 7915805,
+      "sha256": "eeb03d12100fa4d453c675df475dec149733e4984662c4b8ccf5ffad814eb138",
+      "copy": "report-snapshots/UPSTREAM_DELTA.json"
+    },
+    {
+      "path": "ARCHITECTURE_DECISIONS.md",
+      "bytes": 970,
+      "sha256": "463536005ca195746f313f6ebc051a907316eca31e1dee7ad38abcdccf4a13e6",
+      "copy": "report-snapshots/ARCHITECTURE_DECISIONS.md"
+    },
+    {
+      "path": "CUSTOM_CAPABILITY_INVENTORY.json",
+      "bytes": 319656,
+      "sha256": "7a6e8b6ea4808637bf21d18c6b7bd001066af2a7f5274ac6d4c01d21fafe6c95",
+      "copy": "report-snapshots/CUSTOM_CAPABILITY_INVENTORY.json"
+    },
+    {
+      "path": "COMPATIBILITY_MATRIX.md",
+      "bytes": 1779,
+      "sha256": "6acb4cd1c049ae317e072c4fb9b4f2a251d4d78b331163b6a9e6f31067b7e011",
+      "copy": "report-snapshots/COMPATIBILITY_MATRIX.md"
+    },
+    {
+      "path": "SECURITY_STATUS.md",
+      "bytes": 1136,
+      "sha256": "4dd51df9532d7679cbb9e22d37e6eeb2ca3b51e65c05bf35a6ef2fa5b7d05f79",
+      "copy": "report-snapshots/SECURITY_STATUS.md"
+    },
+    {
+      "path": "PLATFORM_VERIFICATION.md",
+      "bytes": 2087,
+      "sha256": "8b2af3fed4eb3991e75f1a99c4f3caf3a2e5a9aff569cf76f2552c140db45e58",
+      "copy": "report-snapshots/PLATFORM_VERIFICATION.md"
+    },
+    {
+      "path": "RELEASE_STATUS.md",
+      "bytes": 1092,
+      "sha256": "5ec39d62481c99eef7fea575f10a39ba0dd39440820e01d768c0096909c46900",
+      "copy": "report-snapshots/RELEASE_STATUS.md"
+    },
+    {
+      "path": "artifacts/upstream-first/evidence.json",
+      "bytes": 655102,
+      "sha256": "05e86c9a1cd15508db8adfd4eb6023947745d5aee18929380f72584af7fa3d76",
+      "copy": "report-snapshots/evidence.json"
+    },
+    {
+      "path": "artifacts/upstream-first/specification-traceability.json",
+      "bytes": 227825,
+      "sha256": "8cb6426c076aaed7f52a797c9fdd2b95a9ae53df41cd56eb79869fa08d210dd0",
+      "copy": "report-snapshots/specification-traceability.json"
+    },
+    {
+      "path": "artifacts/upstream-first/remote-validation-details-report-validation.json",
+      "bytes": 2552,
+      "sha256": "c1c44b12b55f482b041d092ea5584544b28e01968ff21fb16b4caa257f78b0e9",
+      "copy": "report-snapshots/remote-validation-details-report-validation.json"
+    }
+  ],
+  "sourceRecords": [
+    {
+      "path": "artifacts/upstream-first/answer-authentication-source.json",
+      "bytes": 418472,
+      "sha256": "0ee76bac7a3c6383054486bb821a2b3db68b9665a57155b5fc3623a1db581589",
+      "capturedAt": "2026-09-17T02:15:10.444Z",
+      "scope": "Verify in-memory completed Question answer recovery after actual Host HTTP401, authentication exchange and manual reconnect",
+      "sourceFiles": 730,
+      "builtFiles": 1607
+    },
+    {
+      "path": "artifacts/upstream-first/application-negotiation-source.json",
+      "bytes": 28811,
+      "sha256": "d2463ae04414c808028e1cae4a0a104bfe633d860700178bcc5cd4fbc263d7bc",
+      "capturedAt": "2026-09-16T06:52:41.323Z",
+      "scope": "Host/Client protocol 2/1 negotiation with generation-owned encoding and frozen v1 API-bundle interoperability",
+      "sourceFiles": 99,
+      "builtFiles": 30
+    },
+    {
+      "path": "artifacts/upstream-first/authenticating-phase-source.json",
+      "bytes": 421928,
+      "sha256": "fdd771dff05723de3f41f1de2106b95482a8d14466e4419470ac7069eaf61a02",
+      "capturedAt": "2026-09-17T02:55:53.457Z",
+      "scope": "Expose authenticating on initial and replacement Host access checks through Connection-owned progress, without queuing reconnect-time business operations",
+      "sourceFiles": 730,
+      "builtFiles": 1607
+    },
+    {
+      "path": "artifacts/upstream-first/authentication-resolution-source.json",
+      "bytes": 426761,
+      "sha256": "c8dda20dcb6a6ee17583704d97aa4952307ccb38b100bd2a0052d06f024a5ea8",
+      "capturedAt": "2026-09-17T02:32:06.229Z",
+      "scope": "Resolve retained interaction answers during authentication suspension after Host acceptance, another Client winning, or another Client cancelling Approval/Question",
+      "sourceFiles": 730,
+      "builtFiles": 1607
+    },
+    {
+      "path": "artifacts/upstream-first/authentication-scope-source.json",
+      "bytes": 414983,
+      "sha256": "602d3c50c7da1abf7d5f303a158a10db00c34500af49af349c307eda3184ff71",
+      "capturedAt": "2026-09-16T23:35:34.875Z",
+      "scope": "Scope authentication non-replay claims to Prompts and preserve Gateway ownership of completed interaction-answer retry",
+      "sourceFiles": 721,
+      "builtFiles": 1607
+    },
+    {
+      "path": "artifacts/upstream-first/authentication-source.json",
+      "bytes": 418212,
+      "sha256": "d6d1728bcb7f801da23ec603fc8533042f32320372430d0c6dde08f6453405b6",
+      "capturedAt": "2026-09-16T23:31:40.437Z",
+      "scope": "HTTP 401 invalidates only the request generation, suspends retries and requires explicit browser authentication and resubmission",
+      "sourceFiles": 721,
+      "builtFiles": 1607
+    },
+    {
+      "path": "artifacts/upstream-first/cancel-target-source.json",
+      "bytes": 324615,
+      "sha256": "a291cd2fdabd3520df79e8603ce5cec3b935b484f8f3d5beee24c2aecff75280",
+      "capturedAt": "2026-09-16T17:08:20.737Z",
+      "scope": "Capability-admitted cancellation bound to the observed durable turn/start sequence",
+      "sourceFiles": 634,
+      "builtFiles": 1132
+    },
+    {
+      "path": "artifacts/upstream-first/checkpoint-order-source.json",
+      "bytes": 15035,
+      "sha256": "3d9f773cc1c69f04b2278de0cb327186d53325f60892e637f494d7af8f45ba9b",
+      "capturedAt": "2026-09-15T19:35:13.440Z",
+      "scope": "Projection checkpoint capture order, queued domain durability prerequisites, and recorded Web Session regression",
+      "sourceFiles": 24,
+      "builtFiles": null
+    },
+    {
+      "path": "artifacts/upstream-first/cli-argv-source.json",
+      "bytes": 28579,
+      "sha256": "1351bffa2940c203f116ad6fce17bf53367990cbbd0e06f06124c71a660dfc77",
+      "capturedAt": "2026-09-14T23:06:54.514230+00:00",
+      "scope": "Literal Windows CLI argv and matching rebuilt runtime/wheels; installed plugin integration remains failed",
+      "sourceFiles": 75,
+      "builtFiles": null
+    },
+    {
+      "path": "artifacts/upstream-first/client-admission-source.json",
+      "bytes": 36733,
+      "sha256": "f7f4852aac550f1587770e60b91d2c45a13aa406cb7083ab2b9958774529d4e6",
+      "capturedAt": "2026-09-16T05:47:37.066Z",
+      "scope": "Mandatory application Host discovery, exact-generation admission, Connection-owned cancellation, fail-closed reconnect, and public Client declarations",
+      "sourceFiles": 95,
+      "builtFiles": 30
+    },
+    {
+      "path": "artifacts/upstream-first/codex-fixture-source.json",
+      "bytes": 9115,
+      "sha256": "cae4ba87b59734cd977cc1dfccbae1620a686831c47fbe51d3577a7cbc7613ff",
+      "capturedAt": "2026-09-15T17:11:08.507Z",
+      "scope": "Codex test fixture command completion, call attribution, and real pinned CLI commands against a local Responses server on Windows x64",
+      "sourceFiles": 6,
+      "builtFiles": null
+    },
+    {
+      "path": "artifacts/upstream-first/commands-capability-source.json",
+      "bytes": 706962,
+      "sha256": "782c73e6cea508bac10094618ddd8cb4af2746245486ab1e44bbd09c16f03fc0",
+      "capturedAt": "2026-09-17T21:48:49.598Z",
+      "scope": "Independent Commands capabilities and generation-owned Client discovery and execution",
+      "sourceFiles": 1413,
+      "builtFiles": 2224
+    },
+    {
+      "path": "artifacts/upstream-first/connection-failure-source.json",
+      "bytes": 426715,
+      "sha256": "208bd5b9648924a5a73dc24569344c93a4b49059c8b75a68473578671a752e32",
+      "capturedAt": "2026-09-16T23:16:17.862Z",
+      "scope": "Terminal Host discovery classification, fail-closed admission and localized recovery UI through the existing Connection scheduler",
+      "sourceFiles": 716,
+      "builtFiles": 1607
+    },
+    {
+      "path": "artifacts/upstream-first/connection-phases-source.json",
+      "bytes": 420663,
+      "sha256": "68c2b82793bb48f62073d56d9fdeaafca6dfcc53e72fcf4d7f08449e43bac855",
+      "capturedAt": "2026-09-17T02:02:37.246Z",
+      "scope": "Explicit connecting, ready, offline and reconnecting phases on the existing Connection controller, admission and localized Settings controls",
+      "sourceFiles": 730,
+      "builtFiles": 1607
+    },
+    {
+      "path": "artifacts/upstream-first/cordis-native-replay-source.json",
+      "bytes": 849353,
+      "sha256": "812d0acaaa25d3fd9c551bec01f7dbfd4bcdae02e82aa04a31c3f16c055e3a1d",
+      "capturedAt": "2026-09-18T19:37:18.244Z",
+      "scope": "Windows-native Dynamic Cordis recorded-model replay with distinct PowerShell header ownership and unchanged POSIX fixtures",
+      "sourceFiles": 1743,
+      "builtFiles": 2758
+    },
+    {
+      "path": "artifacts/upstream-first/desktop-context-source.json",
+      "bytes": 28687,
+      "sha256": "a76b0e3858d5e0c5dbaf5dfb4fe65e8a4d4668f7c41a5afac7605afb870d47c8",
+      "capturedAt": "2026-09-15T13:45:14.310Z",
+      "scope": "Windows official development Desktop; standard preset, scoped complete persona and restoration; scripted model only",
+      "sourceFiles": 98,
+      "builtFiles": null
+    },
+    {
+      "path": "artifacts/upstream-first/desktop-execution-source.json",
+      "bytes": 25428,
+      "sha256": "c521dbdf2b2a2f90222439d43fd5e3e619eb891eaa19cd6dcede686fe162f239",
+      "capturedAt": "2026-09-15T13:04:26.060Z",
+      "scope": "Windows official development Desktop standard Session; actual confined PowerShell and process-tree cancellation, scripted model only",
+      "sourceFiles": 83,
+      "builtFiles": null
+    },
+    {
+      "path": "artifacts/upstream-first/desktop-import-source.json",
+      "bytes": 27618,
+      "sha256": "2b419f3857b95925aa200f2d32aac3e34e9c6afb79c73f80611686a1a4fba21b",
+      "capturedAt": "2026-09-14T22:22:40.683738+00:00",
+      "scope": "Explicit legacy Desktop close-behavior import in the official Shell; OS login stays authoritative",
+      "sourceFiles": 116,
+      "builtFiles": null
+    },
+    {
+      "path": "artifacts/upstream-first/desktop-package-source.json",
+      "bytes": 48091,
+      "sha256": "add7c3e5142f62e9d5524c485b1e951fabb25b4bad01442378a4a42aced5032d",
+      "capturedAt": "2026-09-15T18:51:37.585Z",
+      "scope": "Current Windows Desktop native payload fix, official unsigned NSIS build and actual unpacked Electron application",
+      "sourceFiles": 163,
+      "builtFiles": 10
+    },
+    {
+      "path": "artifacts/upstream-first/desktop-smoke-source.json",
+      "bytes": 9365,
+      "sha256": "922f190c9fd87bd93a58902d1d7bf7d98ed6d7fb8a6de90b86a8670f9e12c47b",
+      "capturedAt": null,
+      "scope": null,
+      "sourceFiles": null,
+      "builtFiles": null
+    },
+    {
+      "path": "artifacts/upstream-first/desktop-tray-source.json",
+      "bytes": 17333,
+      "sha256": "64b3b62e0d8c3605a2c4c11518b7546feeff048cd42f8a3a7fa7cebba30432c0",
+      "capturedAt": null,
+      "scope": null,
+      "sourceFiles": null,
+      "builtFiles": null
+    },
+    {
+      "path": "artifacts/upstream-first/directory-capabilities-source.json",
+      "bytes": 470722,
+      "sha256": "cebc79a026d42bd9989f7ddccbbbb685b37b6515d7825aa162ce8ef9d75e2083",
+      "capturedAt": "2026-09-17T15:10:36.957Z",
+      "scope": "Backend-owned Directory Picker capabilities, connection-bound interactions and Gateway stream generation recovery",
+      "sourceFiles": 902,
+      "builtFiles": 1667
+    },
+    {
+      "path": "artifacts/upstream-first/dynamic-cordis-runtime-source.json",
+      "bytes": 852036,
+      "sha256": "a935a078717bd94ed8740e7d42a241e0cbe4465f28fdcff9925d27d700cd49c3",
+      "capturedAt": "2026-09-18T16:54:08.915Z",
+      "scope": "Dynamic Cordis independent operation admission and Client runtime Connection withdrawal; UI and browser acceptance pending",
+      "sourceFiles": 1725,
+      "builtFiles": 2758
+    },
+    {
+      "path": "artifacts/upstream-first/dynamic-cordis-ui-source.json",
+      "bytes": 853891,
+      "sha256": "b41313ade4557d0609112df25fd72a4d9a43a518235fb2ffd53b5e8043897653",
+      "capturedAt": "2026-09-18T19:19:48.816Z",
+      "scope": "Dynamic Cordis operation-aware UI and Connection-owned inventory/panel/completion; real Host/browser recovery; recorded replay retains prompt-pin failure",
+      "sourceFiles": 1735,
+      "builtFiles": 2758
+    },
+    {
+      "path": "artifacts/upstream-first/error-code-schema-accuracy-source.json",
+      "bytes": 899577,
+      "sha256": "e0fd14a01132db75b5e9fc3aac5f89c922add6afc142951c07801f3018db9dac",
+      "capturedAt": "2026-09-19T01:50:31.634Z",
+      "scope": "Correct result-invalid semantics to the actual iterable check and bind historical scheduler evidence to its unchanged archived bytes",
+      "sourceFiles": 1817,
+      "builtFiles": 2951
+    },
+    {
+      "path": "artifacts/upstream-first/error-code-schema-source.json",
+      "bytes": 902769,
+      "sha256": "8bae5f8f00b704ec5e8174291be173ddd182975a8e472f0338cb08630fa241e7",
+      "capturedAt": "2026-09-19T01:38:31.054Z",
+      "scope": "Publish a finite known Remote error-code recognition schema from unique owner declarations with semantic prose and executable freshness/rejection gates",
+      "sourceFiles": 1817,
+      "builtFiles": 2951
+    },
+    {
+      "path": "artifacts/upstream-first/error-type-model-source.json",
+      "bytes": 917201,
+      "sha256": "6408c70211a5747655a37d5d0c42ce36d2c2b18a91de63f411c47e3ff7a3109f",
+      "capturedAt": "2026-09-19T02:38:47.251Z",
+      "scope": "Extract every selected Remote error and authored details graph through independent Host and Client compiler faces, with inventory verification and built API parity",
+      "sourceFiles": 1870,
+      "builtFiles": 2984
+    },
+    {
+      "path": "artifacts/upstream-first/feedback-capability-source.json",
+      "bytes": 789506,
+      "sha256": "01511ad85af721c86674984cf81423b2fbf7a8fe78e4d2362ee8f89af87c4cb1",
+      "capturedAt": "2026-09-18T13:51:49.666Z",
+      "scope": "Independent Feedback operation capabilities and generation-owned message and Session feedback",
+      "sourceFiles": 1582,
+      "builtFiles": 2534
+    },
+    {
+      "path": "artifacts/upstream-first/file-capabilities-source.json",
+      "bytes": 465926,
+      "sha256": "66757dbfa0f9878ddde5326578ea74ac732a312a84239a63d108fb9afeffc1b5",
+      "capturedAt": "2026-09-17T15:44:57.061Z",
+      "scope": "Workspace Files operation declarations and generation-owned metadata resources with optional observations",
+      "sourceFiles": 919,
+      "builtFiles": 1670
+    },
+    {
+      "path": "artifacts/upstream-first/file-ui-capabilities-source.json",
+      "bytes": 553595,
+      "sha256": "28fe0c5bbad518b4c58798879905fc01f61c20be3c35b8373be893d5be959bc8",
+      "capturedAt": "2026-09-17T16:27:57.026Z",
+      "scope": "Capability-admitted file tree and document renderers with registration-owned content and live viewer availability",
+      "sourceFiles": 1044,
+      "builtFiles": 1673
+    },
+    {
+      "path": "artifacts/upstream-first/file-upload-capability-source.json",
+      "bytes": 814417,
+      "sha256": "eb27600f131627d7e08c665347b284018acbb958255b76d3f897f78546971740",
+      "capturedAt": "2026-09-18T15:18:36.246Z",
+      "scope": "File staging capability admission and generation-owned uploads, receipts and native picker callbacks",
+      "sourceFiles": 1632,
+      "builtFiles": 2620
+    },
+    {
+      "path": "artifacts/upstream-first/fixture-observation-source.json",
+      "bytes": 9216,
+      "sha256": "5fe3c169b2b06aac89cb7370d7e0bd7cabe8f07a1e774d067db27e134b51c25c",
+      "capturedAt": "2026-09-15T15:40:08.085Z",
+      "scope": "Three reviewed downstream test-observation fixes and supported-entry source review; associated product sources and vendor code unchanged",
+      "sourceFiles": 6,
+      "builtFiles": null
+    },
+    {
+      "path": "artifacts/upstream-first/goal-capability-source.json",
+      "bytes": 727788,
+      "sha256": "d77cb0ae71e5f38f78c6f28ab654b660eee2178d2273ba138bb58304128ce816",
+      "capturedAt": "2026-09-17T22:18:22.109Z",
+      "scope": "Independent Goal operation capabilities and generation-owned Goal dock authority",
+      "sourceFiles": 1462,
+      "builtFiles": 2304
+    },
+    {
+      "path": "artifacts/upstream-first/helper-fixes-source.json",
+      "bytes": 11935,
+      "sha256": "a91762aaf4ac7d7c71eff1616828357871e629ca3803a4a45f8e7389cec54a6e",
+      "capturedAt": "2026-09-15T14:07:40.530Z",
+      "scope": "Atomic writer-lock release inspection and linear lexical-path suffix removal; no new byte API or changed address grammar",
+      "sourceFiles": 22,
+      "builtFiles": null
+    },
+    {
+      "path": "artifacts/upstream-first/host-description-source.json",
+      "bytes": 33070,
+      "sha256": "2f3f15d244fdfb785f38418e34efe6b2958aba45577a48147fe37fd3454f5818",
+      "capturedAt": "2026-09-16T04:17:08.535Z",
+      "scope": "Authenticated Host discovery, persistent identity, explicit live Remote capabilities, and Windows NodeNext consumer verification",
+      "sourceFiles": 80,
+      "builtFiles": 19
+    },
+    {
+      "path": "artifacts/upstream-first/host-readiness-source.json",
+      "bytes": 417367,
+      "sha256": "58dc1af5d85e27a262822c70797899d7f6f15fb41b16b027dd9674fd5ab762f5",
+      "capturedAt": "2026-09-17T01:34:13.487Z",
+      "scope": "Publish delayed Host readiness at the existing warning or deadline, with localized waiting/retry UI and same-generation or automatic recovery",
+      "sourceFiles": 721,
+      "builtFiles": 1607
+    },
+    {
+      "path": "artifacts/upstream-first/host-restart-source.json",
+      "bytes": 336319,
+      "sha256": "fcc0453452b8015aa8947c6647f3e0d5919380ec9b29a9bb8a830158aa6570ff",
+      "capturedAt": "2026-09-16T19:29:14.699Z",
+      "scope": "Real dsh Web Host process restart: interrupted Session repair, original browser authentication, retained draft, closed stale Approval and explicit continuation",
+      "sourceFiles": 657,
+      "builtFiles": 1191
+    },
+    {
+      "path": "artifacts/upstream-first/http-failure-semantics-source.json",
+      "bytes": 421634,
+      "sha256": "7a32dca6814904e3ff5fdf25110ef048fff1d0b0d4fe0db09400ff35d283f4b1",
+      "capturedAt": "2026-09-17T03:27:42.709Z",
+      "scope": "Preserve HTTP rejection status and normalize Gateway request failures without confusing authentication-triggered generation loss with caller cancellation",
+      "sourceFiles": 734,
+      "builtFiles": 1607
+    },
+    {
+      "path": "artifacts/upstream-first/interaction-cancel-source.json",
+      "bytes": 339716,
+      "sha256": "f6dff6b8b16ee65bd9be409caa044b56f8adcf8a3ba6b757008564346d5b5774",
+      "capturedAt": "2026-09-16T22:24:42.869Z",
+      "scope": "Approval and Question turn cancellation before initial answer delivery or during automatic retry, followed by a new interaction",
+      "sourceFiles": 689,
+      "builtFiles": 1191
+    },
+    {
+      "path": "artifacts/upstream-first/interaction-closed-source.json",
+      "bytes": 314265,
+      "sha256": "247b121d2922f989bf631f065824af178b6bd8d1ec9ddd6a9bb8f9abd312fe1a",
+      "capturedAt": "2026-09-16T15:51:16.901Z",
+      "scope": "Explicit interaction-closed for stale Remote event replies and continued Client connection after a competing answer",
+      "sourceFiles": 610,
+      "builtFiles": 1126
+    },
+    {
+      "path": "artifacts/upstream-first/interaction-expiry-source.json",
+      "bytes": 334189,
+      "sha256": "cf3a80384c963c87ef4f446b6cbfcb06421ae59fd288bb542ba4db99773f62c9",
+      "capturedAt": "2026-09-16T18:53:33.708Z",
+      "scope": "Optional Host-owned per-kind interaction expiry, retained across reconnect and enforced before late reply or replay",
+      "sourceFiles": 649,
+      "builtFiles": 1191
+    },
+    {
+      "path": "artifacts/upstream-first/interaction-record-source.json",
+      "bytes": 317271,
+      "sha256": "d3408e85222ee4fe6d4d0666b925f493964f36f55b0773ce3591972aaa90569e",
+      "capturedAt": "2026-09-16T16:19:34.684Z",
+      "scope": "Host-owned interaction metadata over protocol 2 with exact protocol-1 frames and reconnect-stable identity",
+      "sourceFiles": 610,
+      "builtFiles": 1128
+    },
+    {
+      "path": "artifacts/upstream-first/interaction-reload-source.json",
+      "bytes": 346059,
+      "sha256": "37cec8af7faf0a4876ecb05b0563cd325f657381170a9857ecfcafaa6d94e157",
+      "capturedAt": "2026-09-16T22:39:54.016Z",
+      "scope": "Cookie-authenticated page reload during unaccepted and accepted Approval/Question answers with complete recorded Session comparison",
+      "sourceFiles": 689,
+      "builtFiles": 1191
+    },
+    {
+      "path": "artifacts/upstream-first/interaction-reply-errors-source.json",
+      "bytes": 893268,
+      "sha256": "bb47dac721709b2e67766259988e15a27b0e2526f89c89f48c92aae423e871b4",
+      "capturedAt": "2026-09-19T00:33:05.275Z",
+      "scope": "Preserve structured interaction-result refusals and suspend unsupported-protocol replies until explicit reconnect and a fresh answer",
+      "sourceFiles": 1804,
+      "builtFiles": 2938
+    },
+    {
+      "path": "artifacts/upstream-first/interaction-reply-scope-source.json",
+      "bytes": 853695,
+      "sha256": "dc295c13a38d7c056e48ceb1196b024a3cef74cd9e210acb1dcf76afb001903f",
+      "capturedAt": "2026-09-18T20:58:24.466Z",
+      "scope": "Bind retained interaction replies to application-discovered Host identity and protect replacement answers from stale acknowledgements",
+      "sourceFiles": 1753,
+      "builtFiles": 2758
+    },
+    {
+      "path": "artifacts/upstream-first/interaction-retry-source.json",
+      "bytes": 340420,
+      "sha256": "23118243681d8ab6caaef073da4b9f3d865ea168bb89b6441f90ebccdb50cf15",
+      "capturedAt": "2026-09-16T21:51:52.440Z",
+      "scope": "Client in-memory retry of completed pending interaction answers after HTTP loss, reconciled against Host ready snapshots",
+      "sourceFiles": 682,
+      "builtFiles": 1191
+    },
+    {
+      "path": "artifacts/upstream-first/interaction-revision-source.json",
+      "bytes": 332573,
+      "sha256": "809b62601758043f3adaf21b348b32ee78f11b25f4e95960d484bb02bbfb1ace",
+      "capturedAt": "2026-09-16T18:25:23.820Z",
+      "scope": "Protocol-2 interaction reply revision validation tied to the active delivery codec, with real Client generation recovery",
+      "sourceFiles": 646,
+      "builtFiles": 1191
+    },
+    {
+      "path": "artifacts/upstream-first/invalid-stream-errors-source.json",
+      "bytes": 899832,
+      "sha256": "ba8ba493b434d5cf8b98812f0c18759315c7862728e22625a2202aad46a11eb0",
+      "capturedAt": "2026-09-19T01:00:52.370Z",
+      "scope": "Separate invalid stream data from carrier loss, suspend automatic negotiation and localize explicit recovery without losing composer drafts",
+      "sourceFiles": 1810,
+      "builtFiles": 2938
+    },
+    {
+      "path": "artifacts/upstream-first/junction-steps-source.json",
+      "bytes": 3784,
+      "sha256": "3226815819cc108692ce03d2814c91af30b4c78885ba15711892f53a35b5e0f0",
+      "capturedAt": "2026-09-15T17:29:33.095Z",
+      "scope": "Diagnostic native junction API tracing for the historical same-byte Windows runtime; not current-source packaging acceptance",
+      "sourceFiles": null,
+      "builtFiles": null
+    },
+    {
+      "path": "artifacts/upstream-first/lsp-observation-source.json",
+      "bytes": 9613,
+      "sha256": "2a8931dcab314cb682735c200686433a4688910c0afda6c72cd2ac7f86e7afeb",
+      "capturedAt": "2026-09-15T16:53:13.638Z",
+      "scope": "LSP scripted-server cancellation and live-child stdin failure observations; test-only migration",
+      "sourceFiles": 6,
+      "builtFiles": null
+    },
+    {
+      "path": "artifacts/upstream-first/model-capability-source.json",
+      "bytes": 42056,
+      "sha256": "c3abb02be10d4c027f077a2939eb362e9cdd8911b45cf66723caca077c7f33ff",
+      "capturedAt": "2026-09-16T07:34:23.904Z",
+      "scope": "Model selection capability admission and generation-bound popup teardown",
+      "sourceFiles": 123,
+      "builtFiles": 67
+    },
+    {
+      "path": "artifacts/upstream-first/models-capabilities-source.json",
+      "bytes": 443668,
+      "sha256": "b594ec94eaaa664b5ef571484a5cdb2937288831c0e509e84843595bc177c7ab",
+      "capturedAt": "2026-09-17T08:35:29.949Z",
+      "scope": "LLM and credential owner capabilities, Models entry admission and generation-bound editors",
+      "sourceFiles": 824,
+      "builtFiles": 1620
+    },
+    {
+      "path": "artifacts/upstream-first/native-file-actions-source.json",
+      "bytes": 664613,
+      "sha256": "e49220253ad579f12108e8cde042e25664b980f8b565b47d2f37f798b1a4ed40",
+      "capturedAt": "2026-09-17T19:31:06.948Z",
+      "scope": "Declared-file native Remote admission, generation cancellation and shared timeout dependency identity",
+      "sourceFiles": 1350,
+      "builtFiles": 1984
+    },
+    {
+      "path": "artifacts/upstream-first/packaged-runtime-source.json",
+      "bytes": 15349,
+      "sha256": "de2a2166993d5f68ecf0e692838f2979f8fd2d3e5411fe34256493955799e9fb",
+      "capturedAt": "2026-09-14T19:47:02.310370+00:00",
+      "scope": "Windows packaged runtime source and artifacts before further Phase 2 work",
+      "sourceFiles": 55,
+      "builtFiles": null
+    },
+    {
+      "path": "artifacts/upstream-first/picker-source.json",
+      "bytes": 13012,
+      "sha256": "aae67546f7a02662ab38f492a3e102c328b347e5a2f12dd8650e315ebbbc826e",
+      "capturedAt": "2026-09-15T15:22:42.476Z",
+      "scope": "Adopt upstream pointer-width Koffi UTF-16 decoding and always free the COM path if decoding throws; current Windows Desktop picker acceptance",
+      "sourceFiles": 22,
+      "builtFiles": null
+    },
+    {
+      "path": "artifacts/upstream-first/plugin-inventory-capability-source.json",
+      "bytes": 820949,
+      "sha256": "35edf3b072c20d2a6564468c118adca1c4a0fa56c6f6f4841fea7981958204ef",
+      "capturedAt": "2026-09-18T15:57:34.954Z",
+      "scope": "Read-only plugin inventory capability and Connection-owned Settings tab registrations and reads",
+      "sourceFiles": 1657,
+      "builtFiles": 2659
+    },
+    {
+      "path": "artifacts/upstream-first/preset-capabilities-source.json",
+      "bytes": 428174,
+      "sha256": "743e20d408715aab935b27fff77b1874e52a93cc22871325b7ca56d2a6862276",
+      "capturedAt": "2026-09-17T06:53:27.155Z",
+      "scope": "Owner-declared Agent Preset catalog, selection and management admission with capability-driven entry registration and generation-bound transient state",
+      "sourceFiles": 743,
+      "builtFiles": 1610
+    },
+    {
+      "path": "artifacts/upstream-first/preset-reload-source.json",
+      "bytes": 340703,
+      "sha256": "4ad4737d1ee5dfb19b87b8300828e07149aba50447847734b90e0a814d0305c1",
+      "capturedAt": "2026-09-16T22:57:43.992Z",
+      "scope": "Question recovery waits for preset metadata; confirms the observed raw-id label is transient and identifies the missing connection-state distinctions",
+      "sourceFiles": 691,
+      "builtFiles": 1191
+    },
+    {
+      "path": "artifacts/upstream-first/profile-composition-source.json",
+      "bytes": 11375,
+      "sha256": "59f4ca5851df8b759b11eda44275b09c6f2baf9bd8efb55d218208a53d7e1e87",
+      "capturedAt": "2026-09-15T16:16:25.798Z",
+      "scope": "Source-only shipped CLI/Desktop composition and Host/preset validation through the existing Cordis gate; no runtime or vendor changes",
+      "sourceFiles": 6,
+      "builtFiles": null
+    },
+    {
+      "path": "artifacts/upstream-first/prompt-idempotency-source.json",
+      "bytes": 316816,
+      "sha256": "1665f87fb28c7844a37bf3b2df538373d5ee2b5b8ff940e7b41cf14debf66010",
+      "capturedAt": "2026-09-16T16:36:17.411Z",
+      "scope": "Prompt retry acceptance reuses durable inbox insertions and rechecks after asynchronous attachment admission",
+      "sourceFiles": 619,
+      "builtFiles": 1128
+    },
+    {
+      "path": "artifacts/upstream-first/protocol-envelope-source.json",
+      "bytes": 29222,
+      "sha256": "3796e4c2e5fba3065890a6575f5ea5b4fcd36d7f3586269bb01326035ae127d0",
+      "capturedAt": "2026-09-16T06:26:26.862Z",
+      "scope": "Gateway request protocol codecs and rejection before unary, stream, and reserved-event dispatch; application negotiation remains pending",
+      "sourceFiles": 100,
+      "builtFiles": 32
+    },
+    {
+      "path": "artifacts/upstream-first/question-restart-source.json",
+      "bytes": 333078,
+      "sha256": "acd3c4335091893045fadad6fe9c4ec1b9f180721b3c93e5526a2ebce11d153b",
+      "capturedAt": "2026-09-16T19:39:14.286Z",
+      "scope": "Approval and Question actual-process restart with preserved browser state, old replies rejected before and during a new pending invocation, and a fresh answer on the recovered Connection",
+      "sourceFiles": 657,
+      "builtFiles": 1191
+    },
+    {
+      "path": "artifacts/upstream-first/question-retry-source.json",
+      "bytes": 343923,
+      "sha256": "610a0c745687e08854c29b48e32e9a23cfc2a0382b551bac80e30eae3b4bc70f",
+      "capturedAt": "2026-09-16T22:10:06.003Z",
+      "scope": "Recorded Question recovery under request loss, acknowledgement loss and a different winning Client answer",
+      "sourceFiles": 688,
+      "builtFiles": 1191
+    },
+    {
+      "path": "artifacts/upstream-first/readonly-schema-source.json",
+      "bytes": 917169,
+      "sha256": "19373b95366aac6bc7d73cdffa4b4c73ce20a6e0ec811c900b2ad0fd2d5f11ee",
+      "capturedAt": "2026-09-19T03:07:39.602Z",
+      "scope": "Support authored readonly arrays and tuples in the existing Zod emitter, retaining invalid-element rejection and explicit unsupported projections",
+      "sourceFiles": 1870,
+      "builtFiles": 2984
+    },
+    {
+      "path": "artifacts/upstream-first/recovery-final-source.json",
+      "bytes": 12803,
+      "sha256": "99f01f0c5b0b1095f85dcf7d82191387908ea7b5f040e6f868ef1ecc54da2ecf",
+      "capturedAt": "2026-09-14T20:13:26.808360+00:00",
+      "scope": "Profile empty junction recovery and optional Web carrier lifecycle in the source launcher",
+      "sourceFiles": 55,
+      "builtFiles": null
+    },
+    {
+      "path": "artifacts/upstream-first/recovery-source.json",
+      "bytes": 10991,
+      "sha256": "5db28b0dcc73ead5eb34c6a7a70c9c59cef86a23b083bf3b128dfcb7e8780ebe",
+      "capturedAt": "2026-09-14T20:08:46.066226+00:00",
+      "scope": "Profile empty junction recovery and optional Web carrier lifecycle in the source launcher",
+      "sourceFiles": 55,
+      "builtFiles": null
+    },
+    {
+      "path": "artifacts/upstream-first/reference-discovery-source.json",
+      "bytes": 652361,
+      "sha256": "d9bb795c2b36c51ca7217fdf561f7fbf653490686d4b0260fca4da3a9d82fb91",
+      "capturedAt": "2026-09-17T18:26:56.727Z",
+      "scope": "Independent Host admission and generation-safe file, Session and skill reference discovery",
+      "sourceFiles": 1338,
+      "builtFiles": 1975
+    },
+    {
+      "path": "artifacts/upstream-first/reference-previews-source.json",
+      "bytes": 599040,
+      "sha256": "369c6d7223ccd8989d5b0f442e070de539ca07f729a31389b9cc121e6b6c4332",
+      "capturedAt": "2026-09-17T17:18:07.224Z",
+      "scope": "Current-viewer admission for composer and sent-message file and skill reference previews",
+      "sourceFiles": 1228,
+      "builtFiles": 1767
+    },
+    {
+      "path": "artifacts/upstream-first/remote-error-propagation-source.json",
+      "bytes": 900809,
+      "sha256": "031a0aa01febde9c7ccab0dffe0c800fe6a12837418b967364367f2ac55923bd",
+      "capturedAt": "2026-09-19T00:09:59.435Z",
+      "scope": "Preserve structured Remote failures through shared Client callbacks and command catalog waits; retain unknown-code recovery and repair deferred menu refresh for an equivalent trigger hit",
+      "sourceFiles": 1803,
+      "builtFiles": 2938
+    },
+    {
+      "path": "artifacts/upstream-first/remote-validation-details-source.json",
+      "bytes": 1048292,
+      "sha256": "d3ebb0fda88dc60acef6ba1eb429d542e2683d9b0d54e57b78cf7a8b960a51fc",
+      "capturedAt": "2026-09-19T04:14:16.302Z",
+      "scope": "Portable validation diagnostics from actual Remote owners and independent compiler-resolved JSON error details, with real Host response snapshots and cross-face schema comparison",
+      "sourceFiles": 1875,
+      "builtFiles": 3009
+    },
+    {
+      "path": "artifacts/upstream-first/rename-revision-source.json",
+      "bytes": 336168,
+      "sha256": "ca1a2a0a749c5024a0950a6b8af8edd361a7a1dd7889fa3f72e156eb7d0c66eb",
+      "capturedAt": "2026-09-16T18:07:09.696Z",
+      "scope": "Conditional Session title edits bound to the opening durable title revision, with localized conflict retention",
+      "sourceFiles": 646,
+      "builtFiles": 1189
+    },
+    {
+      "path": "artifacts/upstream-first/sdk-claude-review-source.json",
+      "bytes": 4797,
+      "sha256": "f64b5813a70da4d45d07e647bf26f00db758b92faed2d3de08b40471bbcb1e13",
+      "capturedAt": "2026-09-15T17:27:22.569Z",
+      "scope": "Read-only review of legacy SDK request-wait and Claude teardown timeout changes against current upstream",
+      "sourceFiles": 9,
+      "builtFiles": null
+    },
+    {
+      "path": "artifacts/upstream-first/session-capability-source.json",
+      "bytes": 186047,
+      "sha256": "f7c3b57555033c87575c5e5df3e33ec280144eab06893031d8d10c67c0734a94",
+      "capturedAt": "2026-09-16T08:54:22.060Z",
+      "scope": "Session capability operation admission, dormant control stream, and draft-preserving conversation controls",
+      "sourceFiles": 358,
+      "builtFiles": 627
+    },
+    {
+      "path": "artifacts/upstream-first/session-extra-capabilities-source.json",
+      "bytes": 669091,
+      "sha256": "650438a07315226e4c33356f347d05fc9e430678faf000ddb8b812e8cb577d7d",
+      "capturedAt": "2026-09-17T20:09:37.192Z",
+      "scope": "Independent Session search and attachment admission with generation-safe Workspace content results",
+      "sourceFiles": 1354,
+      "builtFiles": 2052
+    },
+    {
+      "path": "artifacts/upstream-first/session-follow-source.json",
+      "bytes": 211026,
+      "sha256": "65a06d64ffab4543b6f7d442c6cf4ceaf03649819cc93bcef4cfa78a853b593f",
+      "capturedAt": "2026-09-16T10:30:58.811Z",
+      "scope": "Session follow capability wait, cancellation and published-history recovery at the Client transport layer",
+      "sourceFiles": 434,
+      "builtFiles": 736
+    },
+    {
+      "path": "artifacts/upstream-first/session-follow-ui-source.json",
+      "bytes": 314511,
+      "sha256": "66615d36f68a4dbea3d623c0b67bcad3853cafbcd00a0a449b6e81516359aaa9",
+      "capturedAt": "2026-09-16T10:51:26.571Z",
+      "scope": "Conversation follow-capability notice and Chat/Trajectory remote pagination with real-browser history catch-up",
+      "sourceFiles": 604,
+      "builtFiles": 1126
+    },
+    {
+      "path": "artifacts/upstream-first/session-native-retirement-source.json",
+      "bytes": 691275,
+      "sha256": "d7eef30cbac05e9d7e99a4c86ea283c7f9fca26cc198b541adab98e7944bab08",
+      "capturedAt": "2026-09-17T21:10:33.809Z",
+      "scope": "Retirement of unused Session native Remote endpoints while retaining declared-file Host integration",
+      "sourceFiles": 1381,
+      "builtFiles": 2154
+    },
+    {
+      "path": "artifacts/upstream-first/settings-capabilities-source.json",
+      "bytes": 426914,
+      "sha256": "924eade3181bb1e3a595e3e5d1a955885135d136abf15a5dd2e5d4952a299423",
+      "capturedAt": "2026-09-17T07:14:14.097Z",
+      "scope": "Settings-owned operation capabilities and independent Preset preference/directory UI admission",
+      "sourceFiles": 751,
+      "builtFiles": 1614
+    },
+    {
+      "path": "artifacts/upstream-first/settings-generation-repair-source.json",
+      "bytes": 681880,
+      "sha256": "abf72b68c97ae76b9d9a0797afcef963d93cccd2c04513bb0c80afbc5edba6c3",
+      "capturedAt": "2026-09-17T20:39:48.657Z",
+      "scope": "Immediate Settings generation withdrawal, Host-bound permission saves and explicit Settings test fixtures",
+      "sourceFiles": 1376,
+      "builtFiles": 2111
+    },
+    {
+      "path": "artifacts/upstream-first/settings-mirror-source.json",
+      "bytes": 438490,
+      "sha256": "ca668bf88a87eed51a67507da815c160995da670e0772004cd256a0247af17b1",
+      "capturedAt": "2026-09-17T07:59:28.279Z",
+      "scope": "Shared Settings mirror capability admission, generation-bound namespace writes and document actions",
+      "sourceFiles": 810,
+      "builtFiles": 1615
+    },
+    {
+      "path": "artifacts/upstream-first/sidebar-management-source.json",
+      "bytes": 187665,
+      "sha256": "c0c30a8ae3644dcad9fbd94afbef82fb95f061a773aea8f450c089a4e5bc924d",
+      "capturedAt": "2026-09-16T09:22:07.341Z",
+      "scope": "Sidebar New Session shortcuts follow the admitted session.manage.v1 capability",
+      "sourceFiles": 379,
+      "builtFiles": 650
+    },
+    {
+      "path": "artifacts/upstream-first/specification-traceability-source.json",
+      "bytes": 849274,
+      "sha256": "f9b255d8446fc221304686cd1549dd9da08a93a5628fcaf93a7297117faab8be",
+      "capturedAt": "2026-09-18T20:19:34.729Z",
+      "scope": "Exact recovered specification, complete source-line traceability intake and closed status vocabulary; no claim of requirement acceptance",
+      "sourceFiles": 1753,
+      "builtFiles": 2758
+    },
+    {
+      "path": "artifacts/upstream-first/storage-owner-source.json",
+      "bytes": 21861,
+      "sha256": "aab7510e9a4a57c0f3209b42d196c11225f141c26de799ae812530b320870993",
+      "capturedAt": "2026-09-15T20:18:19.068Z",
+      "scope": "Backend owner-before-unit teardown, initialization quiescence, aggregated cleanup failures, and recorded Web checkpoint drainage",
+      "sourceFiles": 53,
+      "builtFiles": 4
+    },
+    {
+      "path": "artifacts/upstream-first/subagent-capability-source.json",
+      "bytes": 769416,
+      "sha256": "7532b547dc33b7affbd42dbd7c82626d91282bc36fa82888315b9e1dfc07845b",
+      "capturedAt": "2026-09-17T23:24:02.462Z",
+      "scope": "Independent Subagent capabilities and generation-owned catalogs, prompting and interruption",
+      "sourceFiles": 1532,
+      "builtFiles": 2448
+    },
+    {
+      "path": "artifacts/upstream-first/subagent-header-source.json",
+      "bytes": 759690,
+      "sha256": "15d2cf72dcc831e5f22aa3020b1ab33c7ef3bc58c0469318a19e7b0eba5eadc5",
+      "capturedAt": "2026-09-17T23:33:24.382Z",
+      "scope": "Subagent breadcrumb fallback without duplicated ordinary Session titles",
+      "sourceFiles": 1532,
+      "builtFiles": 2448
+    },
+    {
+      "path": "artifacts/upstream-first/subagent-interrupt-target-source.json",
+      "bytes": 858723,
+      "sha256": "a6870291366de280ea870eb8630085e98f22e3d08273d47ae5b0b87bed5813da",
+      "capturedAt": "2026-09-18T22:34:58.297Z",
+      "scope": "Parent-addressed subagent interruption bound to the observed child turn, with capability-selected Client dispatch and legacy current-turn behavior retained explicitly",
+      "sourceFiles": 1765,
+      "builtFiles": 2762
+    },
+    {
+      "path": "artifacts/upstream-first/subagent-prompt-idempotency-source.json",
+      "bytes": 857532,
+      "sha256": "304345ce238e9a0d6de3052cc4038d88dd0fdca482fa542d7779cb7af143f0dc",
+      "capturedAt": "2026-09-18T21:41:58.236Z",
+      "scope": "Recognize accepted child Prompt request identities across concurrent delivery, inbox removal, child settlement and fresh runtime; preserve exact parent authority and fork ownership",
+      "sourceFiles": 1761,
+      "builtFiles": 2762
+    },
+    {
+      "path": "artifacts/upstream-first/tool-inspect-source.json",
+      "bytes": 338236,
+      "sha256": "ecf562bb48bf18f8eda49244d6bd20b42531978cca6c89bcdfc028c48c6917a7",
+      "capturedAt": "2026-09-16T21:09:56.905Z",
+      "scope": "Step-scoped Chat Inspect handoff, resident-history focus and inspector navigation; recorded-session acceptance remains outstanding",
+      "sourceFiles": 670,
+      "builtFiles": 1191
+    },
+    {
+      "path": "artifacts/upstream-first/tool-ledger-source.json",
+      "bytes": 337686,
+      "sha256": "c0c31d35e0140eb3e1d1b34879e47ae75aeb86cb8726444d25de23478b600033",
+      "capturedAt": "2026-09-16T20:51:35.154Z",
+      "scope": "Step-scoped Trajectory ledger pairing, timing, schema and record identity; Inspect navigation and recorded-session acceptance remain incomplete",
+      "sourceFiles": 670,
+      "builtFiles": 1191
+    },
+    {
+      "path": "artifacts/upstream-first/tool-occurrence-source.json",
+      "bytes": 333279,
+      "sha256": "84c79365e7a79a7c9c14ceb429049d693f0ce5219ef2a3c3bb83de40bbb95acb",
+      "capturedAt": "2026-09-16T19:50:21.168Z",
+      "scope": "Confirmed Client Tool identity defect across model steps and turns; reproducer only, product fix remains incomplete",
+      "sourceFiles": 663,
+      "builtFiles": 1191
+    },
+    {
+      "path": "artifacts/upstream-first/tool-replay-source.json",
+      "bytes": 340303,
+      "sha256": "0239b5a431acee44ffe5db01bd24bf248142cce1dbe39e641a27e52d0f71c9b0",
+      "capturedAt": "2026-09-16T21:27:55.064Z",
+      "scope": "Recorded same-id Tool acceptance through shipped dsh Web profile, persisted Session and independent workspace oracle",
+      "sourceFiles": 682,
+      "builtFiles": 1191
+    },
+    {
+      "path": "artifacts/upstream-first/tool-scope-source.json",
+      "bytes": 336435,
+      "sha256": "8f53b9440690d522f0e6b7ad0d854075c1dbd0834febfb660262e33524b6cb4c",
+      "capturedAt": "2026-09-16T20:31:03.746Z",
+      "scope": "Step-scoped Tool lifecycle assembly in Chat and Trajectory; complete Tool presentation remains in progress",
+      "sourceFiles": 670,
+      "builtFiles": 1191
+    },
+    {
+      "path": "artifacts/upstream-first/transcript-file-previews-source.json",
+      "bytes": 643026,
+      "sha256": "ff75bbbba53dc6a67061c66177b1438c14c0aa50b5ff2624c9e50a6f314cf24d",
+      "capturedAt": "2026-09-17T17:46:28.404Z",
+      "scope": "Current-viewer admission for Tool paths, produced-file chips, explicit-delivery previews and closing prose",
+      "sourceFiles": 1316,
+      "builtFiles": 1936
+    },
+    {
+      "path": "artifacts/upstream-first/transport-failure-semantics-source.json",
+      "bytes": 863059,
+      "sha256": "453268d6a07920647888c1a77d06af2e844b3219b6cc71bbd40d7a22815eb55d",
+      "capturedAt": "2026-09-18T23:14:37.717Z",
+      "scope": "Identified unary request/body interruptions and exhausted logical-stream carriers share the existing Gateway transport error; cancellation, business and decoding failures remain distinct",
+      "sourceFiles": 1795,
+      "builtFiles": 2762
+    },
+    {
+      "path": "artifacts/upstream-first/upload-home-replay-source.json",
+      "bytes": 850295,
+      "sha256": "727eeaf072aeae3771c6b5f418946322c6e9d665ca66cb80419973341c6a24ba",
+      "capturedAt": "2026-09-18T19:58:08.802Z",
+      "scope": "Complete Windows upload replay using JSON-aware expected home-path realization and typed fixture capture; unchanged recorded fixtures and shared normalizer",
+      "sourceFiles": 1746,
+      "builtFiles": 2758
+    },
+    {
+      "path": "artifacts/upstream-first/web-injection-source.json",
+      "bytes": 6657,
+      "sha256": "2fb3984b5da9b157971c84b6c115ccde14de714588cf8796309368aa9b243656",
+      "capturedAt": "2026-09-14T23:29:32.345Z",
+      "scope": "Linear shared HTML opening-tag lookup; incremental source and built public library validation",
+      "sourceFiles": 8,
+      "builtFiles": null
+    },
+    {
+      "path": "artifacts/upstream-first/web-search-capabilities-source.json",
+      "bytes": 445735,
+      "sha256": "9720c6daeaaeb45c77012fa8155c4453f27a1cb6e99a9ceaafb45d1df6b55435",
+      "capturedAt": "2026-09-17T09:16:45.935Z",
+      "scope": "Web-search credential capability controls and generation-safe staged plugin-card saves",
+      "sourceFiles": 854,
+      "builtFiles": 1621
+    },
+    {
+      "path": "artifacts/upstream-first/windows-runtime-review-source.json",
+      "bytes": 15266,
+      "sha256": "c764013e5a0bda4d12006bf13fa3486ceeef844b41b30de3247c09c7e6af7688",
+      "capturedAt": "2026-09-15T14:40:29.813Z",
+      "scope": "Retain current upstream Windows Job owner; native library and test-Host execution, plus independent installed-runtime diagnosis",
+      "sourceFiles": 30,
+      "builtFiles": null
+    },
+    {
+      "path": "artifacts/upstream-first/windows-wheel-source.json",
+      "bytes": 26701,
+      "sha256": "afdc79b23b06b5d06f19ae37fc0c91216d5074229fcb6a2ca46701f304c148db",
+      "capturedAt": "2026-09-14T21:43:06.686214+00:00",
+      "scope": "Windows Python entry, UTF-8 smoke, profile plugin root allowance, current packaged Web and installed-wheel qualification",
+      "sourceFiles": 70,
+      "builtFiles": null
+    },
+    {
+      "path": "artifacts/upstream-first/workspace-admission-source.json",
+      "bytes": 316495,
+      "sha256": "f66a33de759439b5595a47b8d1e612d1d69a59d403c8dfd072fa0ea940e3bb93",
+      "capturedAt": "2026-09-16T11:20:08.395Z",
+      "scope": "Workspace-to-Session admission before navigation and draft transfer, startup recovery, and shared RemoteStream admitted-Host readiness",
+      "sourceFiles": 605,
+      "builtFiles": 1126
+    },
+    {
+      "path": "artifacts/upstream-first/workspace-capabilities-source.json",
+      "bytes": 457899,
+      "sha256": "20b396539706dc39d2d1b6ef3da2e63d1997edd67404bf15ee8116b27fec40d3",
+      "capturedAt": "2026-09-17T10:11:03.834Z",
+      "scope": "Workspace capability ownership, connection-bound projection and management controls",
+      "sourceFiles": 877,
+      "builtFiles": 1665
+    },
+    {
+      "path": "artifacts/upstream-first/workspace-management-source.json",
+      "bytes": 214207,
+      "sha256": "dcf26815c6c94d63ff3579bae3d43aa38c7cd45e0ec5a9e85af1bbdbdef50175",
+      "capturedAt": "2026-09-16T10:12:16.327Z",
+      "scope": "Workspace row create/rename/fork and preset Session creator capability admission",
+      "sourceFiles": 434,
+      "builtFiles": 736
+    }
+  ],
+  "ignoredArtifactDirectories": [
+    {
+      "path": ".artifacts/answer-authentication-before",
+      "archiveManifest": {
+        "path": ".artifacts/answer-authentication-before/archive.json",
+        "bytes": 712499,
+        "sha256": "770d5777907aa40ce899827f8d94bc3d1a85cd86e12e8bf206eab90ea9feea5e"
+      }
+    },
+    {
+      "path": ".artifacts/authenticating-phase-before",
+      "archiveManifest": {
+        "path": ".artifacts/authenticating-phase-before/archive.json",
+        "bytes": 724998,
+        "sha256": "7176a2a39bc2796f3f744bfbb6d7dbe9cda18f84f3b1f283ff89618cf22f87f1"
+      }
+    },
+    {
+      "path": ".artifacts/authentication-before",
+      "archiveManifest": {
+        "path": ".artifacts/authentication-before/archive.json",
+        "bytes": 708572,
+        "sha256": "77de27753cde22b401e6d233dc9ad0e715ffcd49ae88cb174cb4740db6f04f25"
+      }
+    },
+    {
+      "path": ".artifacts/authentication-resolution-before",
+      "archiveManifest": {
+        "path": ".artifacts/authentication-resolution-before/archive.json",
+        "bytes": 725035,
+        "sha256": "625c190df8f1dec36190fca9aadde6d019687e75cb1c56be5e07e49989f3d907"
+      }
+    },
+    {
+      "path": ".artifacts/authentication-scope-before",
+      "archiveManifest": {
+        "path": ".artifacts/authentication-scope-before/archive.json",
+        "bytes": 708861,
+        "sha256": "bd2c0ff39bfa8564c9bee83fa5259594beae6407a3dda3419562f9085540f4d3"
+      }
+    },
+    {
+      "path": ".artifacts/cancel-target-before",
+      "archiveManifest": {
+        "path": ".artifacts/cancel-target-before/archive.json",
+        "bytes": 525224,
+        "sha256": "528df96e69545abe349e47b294eb9f444f30403f27504bb0ddc02652bf7aa6fb"
+      }
+    },
+    {
+      "path": ".artifacts/cancel-target-browser"
+    },
+    {
+      "path": ".artifacts/capability-model-before",
+      "archiveManifest": {
+        "path": ".artifacts/capability-model-before/archive.json",
+        "bytes": 38712,
+        "sha256": "f1184ebf4c577edadf9b8d26be6cfb4a113ed2ee6215295c2224bb76f36bf812"
+      }
+    },
+    {
+      "path": ".artifacts/capability-model-command-before",
+      "archiveManifest": {
+        "path": ".artifacts/capability-model-command-before/archive.json",
+        "bytes": 1387,
+        "sha256": "8d0b148ea4e8b3c2b051e6d0ebcc1be53904eb4e07b64628b403b92c6adc0ab0"
+      }
+    },
+    {
+      "path": ".artifacts/client-admission-before",
+      "archiveManifest": {
+        "path": ".artifacts/client-admission-before/archive.json",
+        "bytes": 27851,
+        "sha256": "61d2ad4e9876464b5730e0dbe14cc1f2fb2b1fcd205d2bfb6ae5d603d3135e81"
+      }
+    },
+    {
+      "path": ".artifacts/client-admission-client-emit-residue"
+    },
+    {
+      "path": ".artifacts/client-admission-consumers-before",
+      "archiveManifest": {
+        "path": ".artifacts/client-admission-consumers-before/archive.json",
+        "bytes": 1363,
+        "sha256": "62782755bab5c08fa43fcc1076fcd57befae69c13c2e1ca86bd89dc55073809c"
+      }
+    },
+    {
+      "path": ".artifacts/client-admission-type-consumer-residue"
+    },
+    {
+      "path": ".artifacts/commands-capability-before",
+      "archiveManifest": {
+        "path": ".artifacts/commands-capability-before/archive.json",
+        "bytes": 1068755,
+        "sha256": "83b1c1d352850fd42ba96e681c2932d953530a53dd4fb6c2becaee0a2d47b2e8"
+      }
+    },
+    {
+      "path": ".artifacts/commands-capability-browser"
+    },
+    {
+      "path": ".artifacts/commands-capability-emitted-residue"
+    },
+    {
+      "path": ".artifacts/connection-failure-before",
+      "archiveManifest": {
+        "path": ".artifacts/connection-failure-before/archive.json",
+        "bytes": 576812,
+        "sha256": "41ce08b76ec8648f6638c326cb9c5f5b22de874883267ca1c62c5cea0c1e2651"
+      }
+    },
+    {
+      "path": ".artifacts/connection-phases-before",
+      "archiveManifest": {
+        "path": ".artifacts/connection-phases-before/archive.json",
+        "bytes": 701562,
+        "sha256": "f57b1d3c8b4fa092ea3e5d2929ef5a74f8ce3050cf03321acfe253f620a8ef92"
+      }
+    },
+    {
+      "path": ".artifacts/cordis-native-replay-before",
+      "archiveManifest": {
+        "path": ".artifacts/cordis-native-replay-before/archive.json",
+        "bytes": 1342413,
+        "sha256": "20607f8c5a42ea22634029f02d2ffde8765c4cd95c1d658b88de1f0fdf4c92ad"
+      }
+    },
+    {
+      "path": ".artifacts/desktop-before-context",
+      "archiveManifest": {
+        "path": ".artifacts/desktop-before-context/archive.json",
+        "bytes": 1162,
+        "sha256": "21a7f04562a5a82e49c48a9de1027dcae356350bff62bc39afaf4e52e61b0e77"
+      }
+    },
+    {
+      "path": ".artifacts/desktop-before-helper-fixes",
+      "archiveManifest": {
+        "path": ".artifacts/desktop-before-helper-fixes/archive.json",
+        "bytes": 5015,
+        "sha256": "7b769cea54dffd5050d7eaa658e48fb049ff2b7272ab63414d7fb5e83cc9c974"
+      }
+    },
+    {
+      "path": ".artifacts/desktop-before-payload-fix",
+      "archiveManifest": {
+        "path": ".artifacts/desktop-before-payload-fix/archive.json",
+        "bytes": 3861,
+        "sha256": "2e6171afdf606a1677a01dd5da8db87996904749ce9257e9def0de270c518380"
+      }
+    },
+    {
+      "path": ".artifacts/desktop-context-home-9cPdpt"
+    },
+    {
+      "path": ".artifacts/desktop-execution-home"
+    },
+    {
+      "path": ".artifacts/desktop-execution2-home"
+    },
+    {
+      "path": ".artifacts/desktop-home"
+    },
+    {
+      "path": ".artifacts/desktop-import-home"
+    },
+    {
+      "path": ".artifacts/desktop-package-candidate-inputs"
+    },
+    {
+      "path": ".artifacts/desktop-pre-package",
+      "archiveManifest": {
+        "path": ".artifacts/desktop-pre-package/archive.json",
+        "bytes": 13696,
+        "sha256": "773bea9aac7550e41936d29321dd5c8238d17b2b163bca2a57e2358ceebd632a"
+      }
+    },
+    {
+      "path": ".artifacts/directory-capabilities-before",
+      "archiveManifest": {
+        "path": ".artifacts/directory-capabilities-before/archive.json",
+        "bytes": 775558,
+        "sha256": "903ee8c777d12ce149f685a7a854356f27a95270e3b34152244863ec889f857c"
+      }
+    },
+    {
+      "path": ".artifacts/directory-capabilities-browser"
+    },
+    {
+      "path": ".artifacts/dynamic-cordis-capability-before",
+      "archiveManifest": {
+        "path": ".artifacts/dynamic-cordis-capability-before/archive.json",
+        "bytes": 1330321,
+        "sha256": "9747ac883804c692b4a5c2f0ce5388817f7d4f7cc7acda2abe263920fc4e774d"
+      }
+    },
+    {
+      "path": ".artifacts/dynamic-cordis-ui-before",
+      "archiveManifest": {
+        "path": ".artifacts/dynamic-cordis-ui-before/archive.json",
+        "bytes": 1324888,
+        "sha256": "de76b68f62fb87069b7953882ccb9b1e9f29ad0dd26301d4273b17c446f238a4"
+      }
+    },
+    {
+      "path": ".artifacts/dynamic-cordis-ui-browser"
+    },
+    {
+      "path": ".artifacts/dynamic-cordis-ui-extra-before",
+      "archiveManifest": {
+        "path": ".artifacts/dynamic-cordis-ui-extra-before/archive.json",
+        "bytes": 1996,
+        "sha256": "b39373ba7e92ce0986500300cb8b97516d2bef0bacb2a09e9e2deb65cb93b300"
+      }
+    },
+    {
+      "path": ".artifacts/electron-cache"
+    },
+    {
+      "path": ".artifacts/error-code-schema-accuracy-before",
+      "archiveManifest": {
+        "path": ".artifacts/error-code-schema-accuracy-before/archive.json",
+        "bytes": 1457208,
+        "sha256": "4475ae0be16a9c66ab8dcb653acdafdaf14672a95a6b52e6f7fb9f7be2308678"
+      }
+    },
+    {
+      "path": ".artifacts/error-code-schema-accuracy-pack"
+    },
+    {
+      "path": ".artifacts/error-code-schema-before",
+      "archiveManifest": {
+        "path": ".artifacts/error-code-schema-before/archive.json",
+        "bytes": 1414205,
+        "sha256": "f7047600439216856290f41c6559cb50d326d639771f88359982cbbf34aded38"
+      }
+    },
+    {
+      "path": ".artifacts/error-code-schema-pack"
+    },
+    {
+      "path": ".artifacts/error-code-schema-pack-final"
+    },
+    {
+      "path": ".artifacts/error-type-model-before",
+      "archiveManifest": {
+        "path": ".artifacts/error-type-model-before/archive.json",
+        "bytes": 1424957,
+        "sha256": "4ede76f25cf3e91e11fa2fc808f4ebe3702eea7478272bb2ee2d4c1c322694de"
+      }
+    },
+    {
+      "path": ".artifacts/feedback-capability-before",
+      "archiveManifest": {
+        "path": ".artifacts/feedback-capability-before/archive.json",
+        "bytes": 1198205,
+        "sha256": "4bb7177fd9e47a37e369d9d113057cd5df160b2fe8b3813abed22d110126c998"
+      }
+    },
+    {
+      "path": ".artifacts/feedback-capability-browser"
+    },
+    {
+      "path": ".artifacts/file-capabilities-before",
+      "archiveManifest": {
+        "path": ".artifacts/file-capabilities-before/archive.json",
+        "bytes": 772618,
+        "sha256": "a019a753f8768f637c675da003f13faa65d5d3a2c610283b8aff5c9715949323"
+      }
+    },
+    {
+      "path": ".artifacts/file-capabilities-browser"
+    },
+    {
+      "path": ".artifacts/file-ui-capabilities-before",
+      "archiveManifest": {
+        "path": ".artifacts/file-ui-capabilities-before/archive.json",
+        "bytes": 784086,
+        "sha256": "49b4062878fd9a27654af8b7e2551577a03985b2a982c4ce1f1c3f4042c914d7"
+      }
+    },
+    {
+      "path": ".artifacts/file-ui-capabilities-browser"
+    },
+    {
+      "path": ".artifacts/file-ui-misclassified-emission",
+      "archiveManifest": {
+        "path": ".artifacts/file-ui-misclassified-emission/archive.json",
+        "bytes": 523782,
+        "sha256": "2560fdc0d07d08832276b1792349b31a115f58b51a093c3b7d908ecd88733b3b"
+      }
+    },
+    {
+      "path": ".artifacts/file-upload-capability-before",
+      "archiveManifest": {
+        "path": ".artifacts/file-upload-capability-before/archive.json",
+        "bytes": 1243459,
+        "sha256": "cc83f8126dfaedf3ffbc7db9f4f9a03c322449d5a42beb22911ad67841f44c77"
+      }
+    },
+    {
+      "path": ".artifacts/file-upload-capability-browser"
+    },
+    {
+      "path": ".artifacts/file-upload-capability-extra-before",
+      "archiveManifest": {
+        "path": ".artifacts/file-upload-capability-extra-before/archive.json",
+        "bytes": 21945,
+        "sha256": "f842f0d8c47ba36188dfb711347173e0b76caedc889d513c940daf050958a530"
+      }
+    },
+    {
+      "path": ".artifacts/file-upload-capability-ts-emit-residue"
+    },
+    {
+      "path": ".artifacts/goal-capability-before",
+      "archiveManifest": {
+        "path": ".artifacts/goal-capability-before/archive.json",
+        "bytes": 1085603,
+        "sha256": "45c44ff28ed7fbf46517cdcac0a1b5011bfcf9d0fc8e71cc4c3b351d7648bed5"
+      }
+    },
+    {
+      "path": ".artifacts/goal-capability-browser"
+    },
+    {
+      "path": ".artifacts/goal-capability-legacy-browser-before",
+      "archiveManifest": {
+        "path": ".artifacts/goal-capability-legacy-browser-before/archive.json",
+        "bytes": 291,
+        "sha256": "7758912bc433236a9dd7a650e47a57d591e603c3cc871c4a928db2618a512216"
+      }
+    },
+    {
+      "path": ".artifacts/helper-built-workspace-s9CWQP"
+    },
+    {
+      "path": ".artifacts/host-description-before",
+      "archiveManifest": {
+        "path": ".artifacts/host-description-before/archive.json",
+        "bytes": 16742,
+        "sha256": "43a949f34ce3242fbbbab528cacd7c9f0d5e626dbbc14b8fc434b0381e3eb78c"
+      }
+    },
+    {
+      "path": ".artifacts/host-description-client-emit-residue"
+    },
+    {
+      "path": ".artifacts/host-description-composition-before",
+      "archiveManifest": {
+        "path": ".artifacts/host-description-composition-before/archive.json",
+        "bytes": 3032,
+        "sha256": "791afd462831f68b7bc1f7f30993f25703bbce7c8c51bc8510c72eb2b929d99f"
+      }
+    },
+    {
+      "path": ".artifacts/host-description-control-inputs"
+    },
+    {
+      "path": ".artifacts/host-description-document-before",
+      "archiveManifest": {
+        "path": ".artifacts/host-description-document-before/archive.json",
+        "bytes": 1766,
+        "sha256": "52ef4a0797fa8e0d913ac1fcc10ab9cd77304a9c722d5b93422e49dbbed680f6"
+      }
+    },
+    {
+      "path": ".artifacts/host-readiness-before",
+      "archiveManifest": {
+        "path": ".artifacts/host-readiness-before/archive.json",
+        "bytes": 694809,
+        "sha256": "9dc29eb62e6c1caa9ea1a10eb50373245e06a88a56fa46b64539aa742e9a5ff2"
+      }
+    },
+    {
+      "path": ".artifacts/host-restart-before",
+      "archiveManifest": {
+        "path": ".artifacts/host-restart-before/archive.json",
+        "bytes": 547723,
+        "sha256": "3dd6fe194748717604edd2cdf68840995da061569e29957183c74ad17c8bf62e"
+      }
+    },
+    {
+      "path": ".artifacts/host-restart-browser"
+    },
+    {
+      "path": ".artifacts/http-failure-semantics-before",
+      "archiveManifest": {
+        "path": ".artifacts/http-failure-semantics-before/archive.json",
+        "bytes": 719394,
+        "sha256": "97b4c556fdbc104970adefb705a2aa229166a334b1258b9cee5c61e1db41f22c"
+      }
+    },
+    {
+      "path": ".artifacts/installed-wheel-sandbox"
+    },
+    {
+      "path": ".artifacts/interaction-cancel-before",
+      "archiveManifest": {
+        "path": ".artifacts/interaction-cancel-before/archive.json",
+        "bytes": 578004,
+        "sha256": "00a842d3c89430f69bdf41ce82604a59dd103d684b4b1a70ce80de81a2804bb8"
+      }
+    },
+    {
+      "path": ".artifacts/interaction-cancel-browser"
+    },
+    {
+      "path": ".artifacts/interaction-closed-before",
+      "archiveManifest": {
+        "path": ".artifacts/interaction-closed-before/archive.json",
+        "bytes": 528679,
+        "sha256": "f99dc2a212e28c24401b9ade98193eaf6e838312dc1d54473ce4d9334e95645f"
+      }
+    },
+    {
+      "path": ".artifacts/interaction-closed-browser"
+    },
+    {
+      "path": ".artifacts/interaction-expiry-before",
+      "archiveManifest": {
+        "path": ".artifacts/interaction-expiry-before/archive.json",
+        "bytes": 557936,
+        "sha256": "8fa9ebddad2119e63b400be82e4c3934cbe2ff9bd3907482a0393019e7a3d90a"
+      }
+    },
+    {
+      "path": ".artifacts/interaction-expiry-browser"
+    },
+    {
+      "path": ".artifacts/interaction-record-before",
+      "archiveManifest": {
+        "path": ".artifacts/interaction-record-before/archive.json",
+        "bytes": 528975,
+        "sha256": "81ff1a0dc6536cc7a3c6bf38f02ea9fc0345c50cb8b46366a2c2a781de740cd5"
+      }
+    },
+    {
+      "path": ".artifacts/interaction-record-browser"
+    },
+    {
+      "path": ".artifacts/interaction-reload-before",
+      "archiveManifest": {
+        "path": ".artifacts/interaction-reload-before/archive.json",
+        "bytes": 574574,
+        "sha256": "2de2f3650ced0e941bd5deebd6c2074b40661571f9746501c2483c28db995713"
+      }
+    },
+    {
+      "path": ".artifacts/interaction-reply-errors-before",
+      "archiveManifest": {
+        "path": ".artifacts/interaction-reply-errors-before/archive.json",
+        "bytes": 1443383,
+        "sha256": "d3b1a0ab1996f08515fe5ef25e34484429c19f754e3c376b2c7e6ee328b71e39"
+      }
+    },
+    {
+      "path": ".artifacts/interaction-reply-errors-browser"
+    },
+    {
+      "path": ".artifacts/interaction-reply-scope-before",
+      "archiveManifest": {
+        "path": ".artifacts/interaction-reply-scope-before/archive.json",
+        "bytes": 1359710,
+        "sha256": "63520d8508045dc77c60bbaf9615115c9759b72c6e2d98125d7ba9fb3937eea6"
+      }
+    },
+    {
+      "path": ".artifacts/interaction-retry-before",
+      "archiveManifest": {
+        "path": ".artifacts/interaction-retry-before/archive.json",
+        "bytes": 570611,
+        "sha256": "b4427cc8bc0d61e7f0c28dbb1eb76fdc00f57c02deadb6b6fd5f79dee5a93a90"
+      }
+    },
+    {
+      "path": ".artifacts/interaction-revision-before",
+      "archiveManifest": {
+        "path": ".artifacts/interaction-revision-before/archive.json",
+        "bytes": 561306,
+        "sha256": "ccded255b0f1ae74be229745d6fdde74e0a80a0454ca993f6f83123b22b99564"
+      }
+    },
+    {
+      "path": ".artifacts/interaction-revision-browser"
+    },
+    {
+      "path": ".artifacts/invalid-stream-errors-before",
+      "archiveManifest": {
+        "path": ".artifacts/invalid-stream-errors-before/archive.json",
+        "bytes": 1427692,
+        "sha256": "8cdc66773c59b0afc08e8a78728345a8ea7c748a51415665670727452428f4ab"
+      }
+    },
+    {
+      "path": ".artifacts/invalid-stream-errors-browser"
+    },
+    {
+      "path": ".artifacts/model-capability-browser"
+    },
+    {
+      "path": ".artifacts/models-capabilities-before",
+      "archiveManifest": {
+        "path": ".artifacts/models-capabilities-before/archive.json",
+        "bytes": 735415,
+        "sha256": "c6382592e56d507bc989fd4c6ae35bb8880b2f7b1286637f274e2fb4ea574e3a"
+      }
+    },
+    {
+      "path": ".artifacts/models-capabilities-browser"
+    },
+    {
+      "path": ".artifacts/module-manifest-coverage"
+    },
+    {
+      "path": ".artifacts/native-file-actions-before",
+      "archiveManifest": {
+        "path": ".artifacts/native-file-actions-before/archive.json",
+        "bytes": 995371,
+        "sha256": "d14006992cfeaf9d07b141545d27d3b1ec37f1501d3f6850f28487aeb9d7f05f"
+      }
+    },
+    {
+      "path": ".artifacts/native-file-actions-browser"
+    },
+    {
+      "path": ".artifacts/negotiation-application-before",
+      "archiveManifest": {
+        "path": ".artifacts/negotiation-application-before/archive.json",
+        "bytes": 35570,
+        "sha256": "adecfb401e633ab78056425f64a39998618fe981365c888f1b9fb694001c288f"
+      }
+    },
+    {
+      "path": ".artifacts/negotiation-retired-protocol"
+    },
+    {
+      "path": ".artifacts/packaged-before-plugin-argv"
+    },
+    {
+      "path": ".artifacts/packaged-before-plugin-root"
+    },
+    {
+      "path": ".artifacts/packaged-before-recovery"
+    },
+    {
+      "path": ".artifacts/picker-desktop-home-8JwGsu"
+    },
+    {
+      "path": ".artifacts/playwright-browsers"
+    },
+    {
+      "path": ".artifacts/plugin-inventory-capability-before",
+      "archiveManifest": {
+        "path": ".artifacts/plugin-inventory-capability-before/archive.json",
+        "bytes": 1306440,
+        "sha256": "6e42cf63da4efbdecc7c8525df924cd7a7805157a454f01526f11a89f0b6bbe0"
+      }
+    },
+    {
+      "path": ".artifacts/plugin-inventory-capability-browser"
+    },
+    {
+      "path": ".artifacts/pnpm-profile-probe"
+    },
+    {
+      "path": ".artifacts/pnpm11-shim"
+    },
+    {
+      "path": ".artifacts/preset-capabilities-accidental-emits"
+    },
+    {
+      "path": ".artifacts/preset-capabilities-before",
+      "archiveManifest": {
+        "path": ".artifacts/preset-capabilities-before/archive.json",
+        "bytes": 712182,
+        "sha256": "24ce9077a24e34696008ea8c143d8a2e30639bd171facc1a32fed658cbf797fc"
+      }
+    },
+    {
+      "path": ".artifacts/preset-capabilities-browser"
+    },
+    {
+      "path": ".artifacts/preset-reload-before",
+      "archiveManifest": {
+        "path": ".artifacts/preset-reload-before/archive.json",
+        "bytes": 575676,
+        "sha256": "e9f57493a5cce67c8740290e2c148078f194a7e428f606a4829cb11f7042842b"
+      }
+    },
+    {
+      "path": ".artifacts/prompt-idempotency-before",
+      "archiveManifest": {
+        "path": ".artifacts/prompt-idempotency-before/archive.json",
+        "bytes": 530482,
+        "sha256": "80fc750c2eb231e2a08d9b12f1bfeb07af2a2eb3e271567d821f64e0bd5e094a"
+      }
+    },
+    {
+      "path": ".artifacts/prompt-idempotency-browser"
+    },
+    {
+      "path": ".artifacts/protocol-negotiation-before",
+      "archiveManifest": {
+        "path": ".artifacts/protocol-negotiation-before/archive.json",
+        "bytes": 36718,
+        "sha256": "7dac688dd84913121325dd6e68f4823cde3d3e925b22c36a4c2757cbe384b14d"
+      }
+    },
+    {
+      "path": ".artifacts/python-tests"
+    },
+    {
+      "path": ".artifacts/python-wheels"
+    },
+    {
+      "path": ".artifacts/python-wheels-argv"
+    },
+    {
+      "path": ".artifacts/python-wheels-final"
+    },
+    {
+      "path": ".artifacts/question-restart-before",
+      "archiveManifest": {
+        "path": ".artifacts/question-restart-before/archive.json",
+        "bytes": 557328,
+        "sha256": "e8155abb86a15dae38730b5cd3b40c07a2680dab4d66a38b0784018986495d54"
+      }
+    },
+    {
+      "path": ".artifacts/question-restart-browser"
+    },
+    {
+      "path": ".artifacts/question-retry-before",
+      "archiveManifest": {
+        "path": ".artifacts/question-retry-before/archive.json",
+        "bytes": 565298,
+        "sha256": "43f7883c6a96e82221e8e8fae600195c8901d2a7cc6902431e9d347655747d20"
+      }
+    },
+    {
+      "path": ".artifacts/readonly-schema-before",
+      "archiveManifest": {
+        "path": ".artifacts/readonly-schema-before/archive.json",
+        "bytes": 1429570,
+        "sha256": "2e920679f16cfc6ebed734b637d730679a1194ce273026ef2699c6f839f38b37"
+      }
+    },
+    {
+      "path": ".artifacts/reference-discovery-before",
+      "archiveManifest": {
+        "path": ".artifacts/reference-discovery-before/archive.json",
+        "bytes": 978120,
+        "sha256": "37686757b78a5ce00a29ec309d78b10fcb30a01ff47aa403ccbbfdd8fe9f2b41"
+      }
+    },
+    {
+      "path": ".artifacts/reference-discovery-browser"
+    },
+    {
+      "path": ".artifacts/reference-previews-before",
+      "archiveManifest": {
+        "path": ".artifacts/reference-previews-before/archive.json",
+        "bytes": 821696,
+        "sha256": "7da3a2152be5a614a93491751707fb9ecc0e2826db1963678f0d3f6a4c982f06"
+      }
+    },
+    {
+      "path": ".artifacts/reference-previews-browser"
+    },
+    {
+      "path": ".artifacts/remote-error-envelope-schema-before",
+      "archiveManifest": {
+        "path": ".artifacts/remote-error-envelope-schema-before/archive.json",
+        "bytes": 1719406,
+        "sha256": "fb58a4c50f04b256d39e71aa1c97bc03b4b9813e51b40e611d3b9b08d15c3a14"
+      }
+    },
+    {
+      "path": ".artifacts/remote-error-envelope-schema-consumer"
+    },
+    {
+      "path": ".artifacts/remote-error-envelope-schema-pack"
+    },
+    {
+      "path": ".artifacts/remote-error-propagation-before",
+      "archiveManifest": {
+        "path": ".artifacts/remote-error-propagation-before/archive.json",
+        "bytes": 1380048,
+        "sha256": "49834acc4a79dcdff1f80b0281c6bc4a642383ca3004545d0ca44b95c9606a0b"
+      }
+    },
+    {
+      "path": ".artifacts/remote-error-propagation-browser"
+    },
+    {
+      "path": ".artifacts/remote-validation-details-before",
+      "archiveManifest": {
+        "path": ".artifacts/remote-validation-details-before/archive.json",
+        "bytes": 1480387,
+        "sha256": "6c38212240842aa5edaa8a3a1d2808b26ec0ed294ac55670a4accc0e9cc91233"
+      }
+    },
+    {
+      "path": ".artifacts/remote-validation-details-emit-residue"
+    },
+    {
+      "path": ".artifacts/rename-revision-before",
+      "archiveManifest": {
+        "path": ".artifacts/rename-revision-before/archive.json",
+        "bytes": 537279,
+        "sha256": "777b297ca4a950a2a64a4db050f4f6e4f05c013a148e0e5d0cce726ef25e3de0"
+      }
+    },
+    {
+      "path": ".artifacts/rename-revision-browser"
+    },
+    {
+      "path": ".artifacts/screenshots"
+    },
+    {
+      "path": ".artifacts/session-capability-before",
+      "archiveManifest": {
+        "path": ".artifacts/session-capability-before/archive.json",
+        "bytes": 54021,
+        "sha256": "fc9444b6d4196ab66be4e7a3c9989ed42cfe8ea867c38056461ec0bad95b17e9"
+      }
+    },
+    {
+      "path": ".artifacts/session-capability-browser"
+    },
+    {
+      "path": ".artifacts/session-capability-ui-before",
+      "archiveManifest": {
+        "path": ".artifacts/session-capability-ui-before/archive.json",
+        "bytes": 2306,
+        "sha256": "81f2e2b997b17ad4647a80a1e59506d9394b3676c1ba655d0807624622590c06"
+      }
+    },
+    {
+      "path": ".artifacts/session-extra-capabilities-before",
+      "archiveManifest": {
+        "path": ".artifacts/session-extra-capabilities-before/archive.json",
+        "bytes": 1024561,
+        "sha256": "a280f3654f99859958799a4561159dfd13109415313b1da9f8c6358dd71084bb"
+      }
+    },
+    {
+      "path": ".artifacts/session-extra-capabilities-browser"
+    },
+    {
+      "path": ".artifacts/session-follow-before",
+      "archiveManifest": {
+        "path": ".artifacts/session-follow-before/archive.json",
+        "bytes": 351169,
+        "sha256": "c5f7550ea95479a1c6c1cfec8a88b004ee0836264ebda0aa48881f1c2772a6a4"
+      }
+    },
+    {
+      "path": ".artifacts/session-follow-ui-before",
+      "archiveManifest": {
+        "path": ".artifacts/session-follow-ui-before/archive.json",
+        "bytes": 402432,
+        "sha256": "07ea13ca6baee3945b98bb19ea33bb6cfa6381d736d90759816ac2d5d319fa3e"
+      }
+    },
+    {
+      "path": ".artifacts/session-follow-ui-browser"
+    },
+    {
+      "path": ".artifacts/session-management-before",
+      "archiveManifest": {
+        "path": ".artifacts/session-management-before/archive.json",
+        "bytes": 320655,
+        "sha256": "69b2bc840aa31060a735b71d050db9b77446f24e61a49b04ca7ad00c73ac7597"
+      }
+    },
+    {
+      "path": ".artifacts/session-management-browser"
+    },
+    {
+      "path": ".artifacts/session-native-retirement-before",
+      "archiveManifest": {
+        "path": ".artifacts/session-native-retirement-before/archive.json",
+        "bytes": 1067048,
+        "sha256": "9576549f369a652f5473cee052238dcb0d475dbc90722a071aa20b2391e1b694"
+      }
+    },
+    {
+      "path": ".artifacts/session-native-retirement-browser"
+    },
+    {
+      "path": ".artifacts/session-native-retirement-notes-before",
+      "archiveManifest": {
+        "path": ".artifacts/session-native-retirement-notes-before/archive.json",
+        "bytes": 1136,
+        "sha256": "9709146ee19eddf28d9ac4cf51f61214bf2ca854c0b75e82c62c4aee3d4ffeb8"
+      }
+    },
+    {
+      "path": ".artifacts/settings-capabilities-before",
+      "archiveManifest": {
+        "path": ".artifacts/settings-capabilities-before/archive.json",
+        "bytes": 717461,
+        "sha256": "39921141f919268bc9aa68ac2707d4cdc37177ef0710293e397a617897ef6a42"
+      }
+    },
+    {
+      "path": ".artifacts/settings-generation-repair-before",
+      "archiveManifest": {
+        "path": ".artifacts/settings-generation-repair-before/archive.json",
+        "bytes": 1048025,
+        "sha256": "90d9162ed175d330e8244e9aac8facf19c8106091f6242438784a96122388dfa"
+      }
+    },
+    {
+      "path": ".artifacts/settings-generation-repair-browser"
+    },
+    {
+      "path": ".artifacts/settings-mirror-before",
+      "archiveManifest": {
+        "path": ".artifacts/settings-mirror-before/archive.json",
+        "bytes": 707171,
+        "sha256": "7d5b581f2d26570b7f1c4da13814f3c76cdac7632981674a02f3c13a6c48a931"
+      }
+    },
+    {
+      "path": ".artifacts/settings-probe-IgONud"
+    },
+    {
+      "path": ".artifacts/specification-traceability-before",
+      "archiveManifest": {
+        "path": ".artifacts/specification-traceability-before/archive.json",
+        "bytes": 2458,
+        "sha256": "aaa09c4492203ec2e19ae2fe88ce111702b6db7ea1285b79ef2bbc42fed812bb"
+      }
+    },
+    {
+      "path": ".artifacts/specification-traceability-extra-before",
+      "archiveManifest": {
+        "path": ".artifacts/specification-traceability-extra-before/archive.json",
+        "bytes": 315,
+        "sha256": "f9c6f53d7394ed4627b102f592a7ca3456d4040a5c314d7f92c6a82b221115f9"
+      }
+    },
+    {
+      "path": ".artifacts/storage-owner-before",
+      "archiveManifest": {
+        "path": ".artifacts/storage-owner-before/archive.json",
+        "bytes": 9165,
+        "sha256": "af5bb641be01cb162ebb6b30371564b69be835bfe471d69869c2e1f6356f6690"
+      }
+    },
+    {
+      "path": ".artifacts/subagent-capability-before",
+      "archiveManifest": {
+        "path": ".artifacts/subagent-capability-before/archive.json",
+        "bytes": 1141629,
+        "sha256": "ff29a06be9c4299039c60686e1690474289c16015107b7e83bb88bb19da01343"
+      }
+    },
+    {
+      "path": ".artifacts/subagent-capability-browser"
+    },
+    {
+      "path": ".artifacts/subagent-capability-extra-before",
+      "archiveManifest": {
+        "path": ".artifacts/subagent-capability-extra-before/archive.json",
+        "bytes": 40,
+        "sha256": "b6429e7d08029a34589e9c8956ef86dffab2fb6dd9ee37c08d5e9204e14cdbe6"
+      }
+    },
+    {
+      "path": ".artifacts/subagent-header-before",
+      "archiveManifest": {
+        "path": ".artifacts/subagent-header-before/archive.json",
+        "bytes": 1169765,
+        "sha256": "12ba2fb17586c477ab497c48d28aa24a853d09b4692be336d3ed8eb05273e19d"
+      }
+    },
+    {
+      "path": ".artifacts/subagent-interrupt-target-before",
+      "archiveManifest": {
+        "path": ".artifacts/subagent-interrupt-target-before/archive.json",
+        "bytes": 1372853,
+        "sha256": "d6bd6965ee3bcdd7ecde23825e5edc1c686b2183d12fe4648f7d76f7483acb0e"
+      }
+    },
+    {
+      "path": ".artifacts/subagent-prompt-idempotency-before",
+      "archiveManifest": {
+        "path": ".artifacts/subagent-prompt-idempotency-before/archive.json",
+        "bytes": 1378611,
+        "sha256": "8041900ce241f26923333e85b5828eec2192af990523c9edaf973f41abb3cf62"
+      }
+    },
+    {
+      "path": ".artifacts/tool-inspect-before",
+      "archiveManifest": {
+        "path": ".artifacts/tool-inspect-before/archive.json",
+        "bytes": 555190,
+        "sha256": "fced36de98492f8661dc28840114fdab1ad9a9a70585e731a4763be1a324bf1d"
+      }
+    },
+    {
+      "path": ".artifacts/tool-inspect-browser"
+    },
+    {
+      "path": ".artifacts/tool-ledger-before",
+      "archiveManifest": {
+        "path": ".artifacts/tool-ledger-before/archive.json",
+        "bytes": 552746,
+        "sha256": "528f5e9fe1e9c377d35ed70b2116a89266837efc18d90f82d9b2e2e3981852a3"
+      }
+    },
+    {
+      "path": ".artifacts/tool-ledger-browser"
+    },
+    {
+      "path": ".artifacts/tool-occurrence-before",
+      "archiveManifest": {
+        "path": ".artifacts/tool-occurrence-before/archive.json",
+        "bytes": 556700,
+        "sha256": "2e5ec2849b7ffa8b7fae5d0cb173d73cf031d655d5d6e1614c6e701dc7138fa5"
+      }
+    },
+    {
+      "path": ".artifacts/tool-replay-before",
+      "archiveManifest": {
+        "path": ".artifacts/tool-replay-before/archive.json",
+        "bytes": 555580,
+        "sha256": "9958ddb21305994ba6ca597ae5a8d1060fa49247d3a8db600f970b0fd438f77e"
+      }
+    },
+    {
+      "path": ".artifacts/tool-replay-restart-browser"
+    },
+    {
+      "path": ".artifacts/tool-scope-before",
+      "archiveManifest": {
+        "path": ".artifacts/tool-scope-before/archive.json",
+        "bytes": 550661,
+        "sha256": "ed51ceb174b4ad3658f7eac674c8b75b1ba5bd858acffe16f1340acc615733d2"
+      }
+    },
+    {
+      "path": ".artifacts/tool-scope-browser"
+    },
+    {
+      "path": ".artifacts/transcript-file-previews-before",
+      "archiveManifest": {
+        "path": ".artifacts/transcript-file-previews-before/archive.json",
+        "bytes": 916073,
+        "sha256": "9798245e527bbfc37e82c0bc7a2b1c31960081ae382e1a2b4948aba6dc0e0411"
+      }
+    },
+    {
+      "path": ".artifacts/transcript-file-previews-browser"
+    },
+    {
+      "path": ".artifacts/transport-failure-semantics-before",
+      "archiveManifest": {
+        "path": ".artifacts/transport-failure-semantics-before/archive.json",
+        "bytes": 1390167,
+        "sha256": "4b1e39c7be51d0f1556349a731167c16eeab531f0bec6c264c91482b152869eb"
+      }
+    },
+    {
+      "path": ".artifacts/transport-failure-semantics-browser"
+    },
+    {
+      "path": ".artifacts/transport-failure-semantics-compiler-output"
+    },
+    {
+      "path": ".artifacts/upload-home-replay-before",
+      "archiveManifest": {
+        "path": ".artifacts/upload-home-replay-before/archive.json",
+        "bytes": 1336523,
+        "sha256": "c1d298bf817f2a59d7d733083c6d1a3cba30e3f7da5f8c45c15bb288d65bc104"
+      }
+    },
+    {
+      "path": ".artifacts/uv-cache"
+    },
+    {
+      "path": ".artifacts/web-search-capabilities-before",
+      "archiveManifest": {
+        "path": ".artifacts/web-search-capabilities-before/archive.json",
+        "bytes": 751835,
+        "sha256": "a62cc8b7d47957abcd9ee637d9359bb07f2c29b8eb5ebf9e756300d29837b9c5"
+      }
+    },
+    {
+      "path": ".artifacts/web-search-capabilities-browser"
+    },
+    {
+      "path": ".artifacts/workspace-admission-before",
+      "archiveManifest": {
+        "path": ".artifacts/workspace-admission-before/archive.json",
+        "bytes": 529081,
+        "sha256": "1a53a2abd5087a8ef7100ce471d5bfc4878ee86fe88915822c9ee1594568b22b"
+      }
+    },
+    {
+      "path": ".artifacts/workspace-admission-browser"
+    },
+    {
+      "path": ".artifacts/workspace-capabilities-accidental-emits"
+    },
+    {
+      "path": ".artifacts/workspace-capabilities-before",
+      "archiveManifest": {
+        "path": ".artifacts/workspace-capabilities-before/archive.json",
+        "bytes": 755768,
+        "sha256": "a7af024c2daf5dfe917ae96fb9c2b043b6f0289eacf6ca50ab1cdf71ae8ece42"
+      }
+    },
+    {
+      "path": ".artifacts/workspace-capabilities-browser"
+    },
+    {
+      "path": ".artifacts/workspace-management-before",
+      "archiveManifest": {
+        "path": ".artifacts/workspace-management-before/archive.json",
+        "bytes": 330301,
+        "sha256": "4efa9ab38b1e1a92902e5fba76ac56acf3e61f2237c98cc6d080d873820187f4"
+      }
+    },
+    {
+      "path": ".artifacts/workspace-management-browser"
+    }
+  ],
+  "ignoredDirectoriesRecursivelyHashed": false,
+  "note": "The index and tracked patch are not a portable backup. Keep untracked files and all referenced ignored evidence. Historical archive copies are required by report bindings."
+}

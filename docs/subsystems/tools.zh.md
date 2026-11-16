@@ -8,7 +8,7 @@
 
 ## `ToolDefinition` — 一个已注册的工具
 
-由一个 `ToolSchema`（面向模型的字段）、必需的规范输出声明、`execute` 函数、仅供宿主使用的调度器元数据、可选的最终内容回调和可选 UI 展示函数组成。注册表持有这些定义，循环通过它们分派调用。注册表的 `schemas()` 通过显式允许列表构建面向模型的 `ToolSchema[]`；`output`/`execute`/`projectContent`/`finalizeContent`/`timeoutMs`/`isConcurrencySafe`/`presentCall`/`presentResult` 绝不能泄漏到模型请求中。
+`ToolDefinition` 将面向模型的 `ToolSchema` 字段与必需的规范输出声明、执行、调度器元数据、内容投影和最终内容回调、UI 展示函数及 Host 声明组合。注册表持有定义，循环通过它们分派调用。`schemas()` 仅选择面向模型的字段。`descriptors(scope?)` 将 `version`、`risk`、`permissions`、`supportsLite` 与 `supportsRemote` 投影为 Client 安全的目录条目。
 
 ```ts type-equiv
 /** Tool-owned canonical output contract used after the body returns a JSON value. */
@@ -27,6 +27,30 @@ interface ToolOutputDefinition {
 interface ToolDefinition extends ToolSchema {
   /** Mandatory canonical output declaration. */
   readonly output: ToolOutputDefinition
+  /**
+   * Descriptor schema version of this tool's host-only declaration
+   * (specification §32), a positive integer starting at 1; it advances only
+   * when the declaration semantics change, never for tool-behavior fixes.
+   * Catalog reads require complete declarations for every reported tool.
+   */
+  readonly version?: number
+  /** Host-assessed risk tier (specification §32); see {@link ToolRisk}. */
+  readonly risk?: ToolRisk
+  /**
+   * Extra Remote permissions a device-identified caller needs to COMPLETE one
+   * call of this tool (specification §32), drawn from the Remote capability
+   * permission vocabulary; empty means the call claims nothing beyond the
+   * permission that dispatched the driving prompt.
+   */
+  readonly permissions?: readonly RemoteCapabilityPermission[]
+  /**
+   * Whether a Lite companion may execute this tool locally instead of handing
+   * back to the full runtime (specification §32): the Host declares it, a
+   * client never guesses. False keeps the handoff path.
+   */
+  readonly supportsLite?: boolean
+  /** Whether this tool is reachable and Host-executed when a session runs on the Remote face. */
+  readonly supportsRemote?: boolean
   /**
    * Run one accepted call and return only its canonical lossless-JSON value.
    * Async work must observe or forward `exec.signal` and settle only after its
@@ -104,6 +128,36 @@ interface ToolDefinition extends ToolSchema {
 ```
 
 `execute` 接收 `args: unknown`——原始的 `ToolDefinition` 自行校验输入。第一方工具不需要手写校验；它们使用 `defineTool`，由后者代为校验并收窄参数类型、根据 `output.schema` 推导函数体返回类型，并为两个输出投影器提供类型约束。`finalizeContent` 特意接收不可变的执行对象而非类型化参数，因为无效输入和外层流水线失败也会到达该回调；它可以施加工具自有的内容限制，同时保留 `isError`、规范值、结构化错误身份、延迟上下文与展示元数据。
+
+## 仅供宿主使用的工具声明与描述符投影
+
+Host 声明每个工具的描述符版本、副作用风险等级、额外 Remote 权限、本地 Lite 支持与 Remote 执行支持。`ToolRisk`、`ToolDescriptor` 与 `ToolDescriptorList` 由 `@deepseek-ai/dsh-tools/types` 导出。[工具注册表](../../packages/core/tools/README.zh.md#use-this-package) 定义目录完整性与执行器传输的纳入规则。
+
+[API 适配器](../../packages/api/remotes/README.zh.md#use-this-package) 通过 `tools/list` 暴露当前声明。生成器将随产品发布的声明收割到 [`tool-descriptors.json`](../../packages/core/tools/tool-descriptors.json)，将 Lite 模型 schema 收割到 [`lite-tool-schemas.json`](../../packages/core/tools/lite-tool-schemas.json)。执行器传输与 MCP 工具携带由其生产者持有的声明。
+
+```ts type-equiv
+/** Host-assessed risk tier derived from a tool's side effects. */
+type ToolRisk = 'low' | 'moderate' | 'high' | 'critical'
+```
+
+```ts type-equiv
+/** Complete declaration consumed by remote and bundled Lite catalogs. */
+interface ToolDescriptor {
+  readonly id: string
+  readonly version: number
+  readonly risk: ToolRisk
+  readonly permissions: readonly RemoteCapabilityPermission[]
+  readonly supportsLite: boolean
+  readonly supportsRemote: boolean
+}
+```
+
+```ts type-equiv
+/** A complete id-sorted catalog whose visibility grants no execution permission. */
+interface ToolDescriptorList {
+  readonly tools: readonly ToolDescriptor[]
+}
+```
 
 ## 统一的 JSON 值 schema DSL
 
@@ -284,6 +338,8 @@ interface ToolBatchResult {
 ```ts type-equiv
 /** A plugin owns argument parsing, dispatch, scheduling, cancellation, and logging. */
 interface ToolExecutor {
+  /** Executor-owned model-call transports included in Host catalogs alongside registered capabilities. */
+  readonly transportDefinitions?: readonly ToolDefinition[]
   /** Guidance registered and disposed with this executor; absent means no executor-owned sections. */
   readonly sections?: readonly ToolPromptSection[]
   /**
@@ -645,6 +701,23 @@ type ObjectJsonSchema = JsonSchemaNode & { type: 'object' }
 
 Generated from source by `scripts/gen-cordis-catalog.ts` (verified fresh by `pnpm run verify-cordis-catalog` in doc-sync; regenerate with `pnpm run gen-cordis-catalog`) — the language sides differ only in locale-specific paired document paths. Signature blocks use a `ts cordis-catalog` fence and keep the original source JSDoc; dispatch modes are defined in the [primer](../cordis-primer.zh.md#dispatch-modes), and the framework-inherited `ctx` API lives in [cordis-api/inherited.md](../cordis-api/inherited.md).
 
+<a id="ctxtoolcatalog--toolcataloggateway"></a>
+
+### `ctx.toolCatalog` — `ToolCatalogGateway`
+
+Read-only adapter over the ordinary tool registry and retained preset revisions.
+
+```ts cordis-catalog
+/**
+ * Read current global and declared preset tools without creating an Agent.
+ * @returns One complete id-sorted declaration per tool name.
+ * @throws RemoteError when a declaration is incomplete, compositions disagree, or a preset cannot be retained.
+ */
+@Remote async list(): Promise<ToolDescriptorList>
+```
+
+Source: [`packages/api/remotes/src/tool-catalog.ts`](../../packages/api/remotes/src/tool-catalog.ts)
+
 <a id="ctxtools--toolsservice"></a>
 
 ### `ctx.tools` — `ToolsService`
@@ -725,6 +798,15 @@ schemas(scope?: ScopeKey, toolSet?: ResolvedToolSet): ToolSchema[]
  * @returns the effect disposer. Unloading leaves the selection unavailable until it is replaced.
  */
 setExecutor(executor: ToolExecutor): () => void
+
+/**
+ * Read complete Host declarations from the selected capability and executor scopes.
+ * @param scope - Agent or preset scope; omitted reads the root composition.
+ * @returns Frozen id-sorted descriptors, including executor-owned transports.
+ * @throws ToolDeclarationUnavailableError when any visible tool lacks required metadata.
+ * @throws ToolExecutorUnavailableError when this scope has no active executor.
+ */
+descriptors(scope?: ScopeKey): readonly ToolDescriptor[]
 
 /**
  * Delegate a raw call batch to its Agent's provider or the deployment default.

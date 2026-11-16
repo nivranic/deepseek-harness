@@ -1,0 +1,22 @@
+# Bilingual-pair consistency record for 2026-10-08-durable-mutation-receipts.md (docs/i18n/README.md): per heading
+# section, a hash of its English and Chinese blocks outside code blocks and generated regions.
+# After editing either side, bring the other along and re-record with:
+#   pnpm run verify-translation-pairing --write .agents/notes/implemented/architecture/2026-10-08-durable-mutation-receipts.md
+/agent-note-fork-and-command-execute-receipts-become-durable-session-facts:
+  en: e1920efd95e9cbb8
+  zh: 1d7aa84b771abe1d
+/agent-note-fork-and-command-execute-receipts-become-durable-session-facts/problem:
+  en: d2cec3f534216997
+  zh: a77d5e1fbab0e21a
+/agent-note-fork-and-command-execute-receipts-become-durable-session-facts/decision:
+  en: 886591c1430f2b56
+  zh: f4c8a72b39b8f859
+/agent-note-fork-and-command-execute-receipts-become-durable-session-facts/alternatives-considered:
+  en: 3409ce75cbcc1903
+  zh: 6985f0c5584a50d1
+/agent-note-fork-and-command-execute-receipts-become-durable-session-facts/consequences:
+  en: 5304709300687584
+  zh: 5c9bd6526975e555
+/agent-note-fork-and-command-execute-receipts-become-durable-session-facts/open-follow-ups:
+  en: 61d5d670ce738144
+  zh: 1c637511151039e9

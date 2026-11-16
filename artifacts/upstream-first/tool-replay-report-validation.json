@@ -1,0 +1,50 @@
+{
+  "status": "PASS",
+  "scope": "Report bindings and audit; Recorded same-id Session replay and independent workspace oracle pass; full Upstream-First objective remains in progress",
+  "gate0": {
+    "validation": "PASS",
+    "gate0": "PASS",
+    "paths": 1938,
+    "components": 129
+  },
+  "sourceRecord": {
+    "path": "artifacts/upstream-first/tool-replay-source.json",
+    "sha256": "0239b5a431acee44ffe5db01bd24bf248142cce1dbe39e641a27e52d0f71c9b0"
+  },
+  "generator": {
+    "path": "artifacts/upstream-first/write-reports.mjs",
+    "sha256": "8cf778f29ffee864e0ce1aa622be01510d8e37b430f177aff7bc8d40aea9d736"
+  },
+  "binding": {
+    "path": "artifacts/upstream-first/tool-replay-binding.json",
+    "sha256": "8d920953a03928c098048e7d4d923dab24fde071e2b1b6ca7cb6869932923ddd"
+  },
+  "reports": [
+    {
+      "path": "IMPLEMENTATION_STATUS.md",
+      "sha256": "41c750a876041dd3d7d825948782daa87bb62a854528552a02e14c038b79d867"
+    },
+    {
+      "path": "artifacts/upstream-first/evidence.json",
+      "sha256": "f7cc935571cc1ed3fba05350c3512acf5eac611d476c2985b25945388fb1027b"
+    }
+  ],
+  "checks": [
+    {
+      "path": ".artifacts/tool-replay-binding.log",
+      "sha256": "dc85704199aa86ea1582f5912575194ce4e4da4eac64e697fdea0396c512ee21"
+    },
+    {
+      "path": ".artifacts/tool-replay-audit-tests.log",
+      "sha256": "c094069f8edc994a4659a62b593cee0b9b42af851a47b2e7eaefc438975f84fc"
+    },
+    {
+      "path": ".artifacts/tool-replay-gate0.log",
+      "sha256": "4b5af3121a7e7caff0e1b6288bdaa7cfef9988842ae06bf02dc0a74852426043"
+    },
+    {
+      "path": ".artifacts/tool-replay-report-diff-check.log",
+      "sha256": "e3b0c44298fc1c149afbf4c8996fb92427ae41e4649b934ca495991b7852b855"
+    }
+  ]
+}

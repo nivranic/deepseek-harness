@@ -15,6 +15,7 @@ import type { CommandInvocation, CommandResult } from '@deepseek-ai/dsh-commands
 import type { Session } from '@deepseek-ai/dsh-session'
 import { getOrCreateAnonymousUserId } from '@deepseek-ai/dsh-anonymous-user-id'
 import { TypertRemoteService, Remote } from '@deepseek-ai/dsh-typert-protocol'
+import { SESSION_FEEDBACK_REMOTE_CAPABILITIES } from './capabilities.ts'
 import type {
   FeedbackCategory,
   FeedbackRecord,
@@ -90,7 +91,7 @@ export class SessionFeedbackService extends TypertRemoteService {
    * @param ctx - Host context carrying the live Session store.
    */
   constructor(ctx: Context) {
-    super(ctx, 'sessionFeedback')
+    super(ctx, 'sessionFeedback', { capabilities: SESSION_FEEDBACK_REMOTE_CAPABILITIES })
   }
 
   /**
@@ -121,6 +122,7 @@ export function apply(ctx: Context): void {
     definitionId: brandString<CommandDefinitionId>('@deepseek-ai/dsh-command-feedback'),
     name: 'feedback',
     description: 'Record feedback about this session',
+    risk: 'low' as const,
     input: { hint: '<text>' },
     recordInput: false,
     handler: executeFeedbackCommand,

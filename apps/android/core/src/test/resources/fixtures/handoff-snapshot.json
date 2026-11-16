@@ -1,0 +1,31 @@
+{
+  "sourceSessionId": "lite-7f3a",
+  "sourceRuntime": "lite",
+  "requestedCapability": "run_tests",
+  "recentContext": [
+    {
+      "role": "user",
+      "text": "帮我跑一遍测试"
+    }
+  ],
+  "planActive": true,
+  "todo": [
+    {
+      "content": "在宿主继续执行测试",
+      "status": "pending"
+    }
+  ],
+  "artifactRefs": [
+    {
+      "id": "art-lite-1",
+      "kind": "report",
+      "title": "本机报告",
+      "status": "ready"
+    }
+  ],
+  "provenance": {
+    "deviceId": "dev-phone",
+    "platform": "ios",
+    "at": 1782000000000
+  }
+}

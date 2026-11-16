@@ -31,6 +31,58 @@ const DESCRIPTOR: KvUnitDescriptor = {
  */
 export function runKvBackendContract(label: string, create: () => Promise<KvBackendContractHarness>) {
   describe(`kv backend contract: ${label}`, () => {
+    it('drains owner work accepted before backend close and shares concurrent teardown', async () => {
+      const harness = await create()
+      const ready = Promise.withResolvers<undefined>()
+      let ownerCalls = 0
+      const unit = await harness.backend.kv!.open(DESCRIPTOR, async () => {
+        ownerCalls += 1
+        await accepted
+        await unit.close()
+      })
+      const accepted = ready.promise.then(() => unit.putRecord('alpha', 'late', { durable: true }))
+      const closing = harness.backend.close()
+      const repeated = harness.backend.close()
+      const settled = Promise.all([accepted, closing, repeated])
+      ready.resolve(undefined)
+      try {
+        await settled
+        expect(ownerCalls).toBe(1)
+        await expect(unit.loadAll()).rejects.toMatchObject({ code: 'closed' })
+        const reopened = await harness.reopen()
+        try {
+          const persisted = await reopened.kv!.open(DESCRIPTOR)
+          expect((await persisted.loadAll()).tables['alpha']).toEqual({ late: { durable: true } })
+        } finally {
+          await reopened.close()
+        }
+      } finally {
+        await Promise.allSettled([accepted, closing, repeated])
+      }
+    })
+
+    it('withdraws the owner callback when its unit closes independently', async () => {
+      const { backend } = await create()
+      let ownerCalls = 0
+      const unit = await backend.kv!.open(DESCRIPTOR, async () => { ownerCalls += 1 })
+      await unit.close()
+      await backend.close()
+      expect(ownerCalls).toBe(0)
+    })
+
+    it('closes every unit and reports every failed owner after teardown', async () => {
+      const { backend } = await create()
+      const first = new Error('first owner failed')
+      const second = new Error('second owner failed')
+      const a = await backend.kv!.open(DESCRIPTOR, async () => { throw first })
+      const b = await backend.kv!.open({ ...DESCRIPTOR, name: 'second_unit' }, async () => { throw second })
+      const result = backend.close()
+      await expect(result).rejects.toMatchObject({ errors: [first, second] })
+      await expect(a.loadAll()).rejects.toMatchObject({ code: 'closed' })
+      await expect(b.loadAll()).rejects.toMatchObject({ code: 'closed' })
+      await expect(backend.close()).rejects.toMatchObject({ errors: [first, second] })
+    })
+
     it('opens a missing unit as empty and serves loadAll immediately', async () => {
       const { backend } = await create()
       const unit = await backend.kv!.open(DESCRIPTOR)

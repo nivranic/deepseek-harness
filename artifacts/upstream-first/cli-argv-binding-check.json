@@ -1,0 +1,20 @@
+{
+  "status": "PASS",
+  "cases": [
+    {
+      "path": "artifacts/upstream-first/cli-argv-source.json",
+      "status": "PASS",
+      "rejected": "(CLI argv source record changed|historicalRecords changed after validation: artifacts\\/upstream-first\\/cli-argv-source.json)"
+    },
+    {
+      "path": "apps/cli/src/plugin.ts",
+      "status": "PASS",
+      "rejected": "sourceFiles changed after validation: apps\\/cli\\/src\\/plugin.ts"
+    },
+    {
+      "path": "artifacts/upstream-first/installed-wheel-argv-temp-smoke.json",
+      "status": "PASS",
+      "rejected": "receipts changed after validation: artifacts\\/upstream-first\\/installed-wheel-argv-temp-smoke.json"
+    }
+  ]
+}

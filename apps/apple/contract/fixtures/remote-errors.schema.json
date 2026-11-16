@@ -1,0 +1,6504 @@
+{
+  "$id": "urn:deepseek-harness:remote-errors",
+  "$schema": "https://json-schema.org/draft/2020-12/schema",
+  "anyOf": [
+    {
+      "additionalProperties": {},
+      "description": "A browser-supplied zone is neither UTC nor a canonical IANA name.",
+      "properties": {
+        "code": {
+          "const": "subagent/invalid-time-zone",
+          "type": "string"
+        },
+        "details": {
+          "properties": {
+            "value": {
+              "readOnly": true,
+              "type": "string"
+            }
+          },
+          "required": [
+            "value"
+          ],
+          "type": "object"
+        },
+        "message": {
+          "type": "string"
+        }
+      },
+      "required": [
+        "code",
+        "message",
+        "details"
+      ],
+      "type": "object"
+    },
+    {
+      "additionalProperties": {},
+      "description": "A bundle's detail document or image exists but cannot be read: `too-large` beyond a size limit, `network` when the npm file CDNs cannot be reached, `invalid` for a malformed locale file or `meta.detail`, or a named file that does not exist. Bundle files come from local directories and public CDNs, which never answer `denied`.",
+      "properties": {
+        "code": {
+          "const": "plugin-manager/detail-unavailable",
+          "type": "string"
+        },
+        "details": {
+          "properties": {
+            "reason": {
+              "anyOf": [
+                {
+                  "const": "denied",
+                  "type": "string"
+                },
+                {
+                  "const": "git-unavailable",
+                  "type": "string"
+                },
+                {
+                  "const": "invalid",
+                  "type": "string"
+                },
+                {
+                  "const": "network",
+                  "type": "string"
+                },
+                {
+                  "const": "too-large",
+                  "type": "string"
+                }
+              ],
+              "readOnly": true
+            }
+          },
+          "required": [
+            "reason"
+          ],
+          "type": "object"
+        },
+        "message": {
+          "type": "string"
+        }
+      },
+      "required": [
+        "code",
+        "message",
+        "details"
+      ],
+      "type": "object"
+    },
+    {
+      "additionalProperties": {},
+      "description": "A carrier frame violates the Remote protocol.",
+      "properties": {
+        "code": {
+          "const": "gateway/protocol",
+          "type": "string"
+        },
+        "details": {
+          "properties": {
+            "endpoint": {
+              "description": "Canonical `<namespace>/<method>` endpoint.",
+              "readOnly": true,
+              "type": "string"
+            },
+            "field": {
+              "description": "Affected wire field when the failure is field-specific.",
+              "readOnly": true,
+              "type": "string"
+            }
+          },
+          "required": [
+            "endpoint"
+          ],
+          "type": "object"
+        },
+        "message": {
+          "type": "string"
+        }
+      },
+      "required": [
+        "code",
+        "message",
+        "details"
+      ],
+      "type": "object"
+    },
+    {
+      "additionalProperties": {},
+      "description": "A changed Session title revision rejects the requested rename.",
+      "properties": {
+        "code": {
+          "const": "session/revision-conflict",
+          "type": "string"
+        },
+        "details": {
+          "properties": {
+            "sessionId": {
+              "readOnly": true,
+              "type": "string"
+            }
+          },
+          "required": [
+            "sessionId"
+          ],
+          "type": "object"
+        },
+        "message": {
+          "type": "string"
+        }
+      },
+      "required": [
+        "code",
+        "message",
+        "details"
+      ],
+      "type": "object"
+    },
+    {
+      "additionalProperties": {},
+      "description": "A child of that name is already there.",
+      "properties": {
+        "code": {
+          "const": "directory-picker/exists",
+          "type": "string"
+        },
+        "details": {
+          "properties": {
+            "path": {
+              "readOnly": true,
+              "type": "string"
+            }
+          },
+          "required": [
+            "path"
+          ],
+          "type": "object"
+        },
+        "message": {
+          "type": "string"
+        }
+      },
+      "required": [
+        "code",
+        "message",
+        "details"
+      ],
+      "type": "object"
+    },
+    {
+      "additionalProperties": {},
+      "description": "A chosen commit after the first lacks the commit listed before it as its first parent, so two ends cannot name the run.",
+      "properties": {
+        "code": {
+          "const": "forgePanel/commits-not-linear",
+          "type": "string"
+        },
+        "details": {
+          "additionalProperties": {
+            "not": {}
+          },
+          "propertyNames": {
+            "type": "string"
+          },
+          "type": "object"
+        },
+        "message": {
+          "type": "string"
+        }
+      },
+      "required": [
+        "code",
+        "message",
+        "details"
+      ],
+      "type": "object"
+    },
+    {
+      "additionalProperties": {},
+      "description": "A chosen commit is no longer among the listed commits of the branch or change request, or the commits are out of order.",
+      "properties": {
+        "code": {
+          "const": "forgePanel/commits-missing",
+          "type": "string"
+        },
+        "details": {
+          "additionalProperties": {
+            "not": {}
+          },
+          "propertyNames": {
+            "type": "string"
+          },
+          "type": "object"
+        },
+        "message": {
+          "type": "string"
+        }
+      },
+      "required": [
+        "code",
+        "message",
+        "details"
+      ],
+      "type": "object"
+    },
+    {
+      "additionalProperties": {},
+      "description": "A creation or publish check named no Session.",
+      "properties": {
+        "code": {
+          "const": "liveshareShares/missing-session-id",
+          "type": "string"
+        },
+        "details": {
+          "additionalProperties": {
+            "not": {}
+          },
+          "propertyNames": {
+            "type": "string"
+          },
+          "type": "object"
+        },
+        "message": {
+          "type": "string"
+        }
+      },
+      "required": [
+        "code",
+        "message",
+        "details"
+      ],
+      "type": "object"
+    },
+    {
+      "additionalProperties": {},
+      "description": "A delivery or run reached a `session` target that the Workspace registry lists as archived.",
+      "properties": {
+        "code": {
+          "const": "schedule/target-archived",
+          "type": "string"
+        },
+        "details": {
+          "properties": {
+            "sessionId": {
+              "readOnly": true,
+              "type": "string"
+            }
+          },
+          "required": [
+            "sessionId"
+          ],
+          "type": "object"
+        },
+        "message": {
+          "type": "string"
+        }
+      },
+      "required": [
+        "code",
+        "message",
+        "details"
+      ],
+      "type": "object"
+    },
+    {
+      "additionalProperties": {},
+      "description": "A detail document exists but cannot be read: `too-large` beyond a size limit, `network` when a source cannot be reached, `denied` when Git refuses the repository with the user's credentials, `git-unavailable` when the repository must be cloned and Git cannot run, `invalid` for a malformed locale file or `meta.detail`, or a named file that does not exist.",
+      "properties": {
+        "code": {
+          "const": "plugin-market/detail-unavailable",
+          "type": "string"
+        },
+        "details": {
+          "properties": {
+            "reason": {
+              "anyOf": [
+                {
+                  "const": "denied",
+                  "type": "string"
+                },
+                {
+                  "const": "git-unavailable",
+                  "type": "string"
+                },
+                {
+                  "const": "invalid",
+                  "type": "string"
+                },
+                {
+                  "const": "network",
+                  "type": "string"
+                },
+                {
+                  "const": "too-large",
+                  "type": "string"
+                }
+              ],
+              "readOnly": true
+            }
+          },
+          "required": [
+            "reason"
+          ],
+          "type": "object"
+        },
+        "message": {
+          "type": "string"
+        }
+      },
+      "required": [
+        "code",
+        "message",
+        "details"
+      ],
+      "type": "object"
+    },
+    {
+      "additionalProperties": {},
+      "description": "A draft provider interrogation refused or failed.",
+      "properties": {
+        "code": {
+          "const": "llm/model-discovery-rejected",
+          "type": "string"
+        },
+        "details": {
+          "properties": {
+            "baseURL": {
+              "readOnly": true,
+              "type": "string"
+            },
+            "settingsNs": {
+              "readOnly": true,
+              "type": "string"
+            }
+          },
+          "required": [
+            "settingsNs"
+          ],
+          "type": "object"
+        },
+        "message": {
+          "type": "string"
+        }
+      },
+      "required": [
+        "code",
+        "message",
+        "details"
+      ],
+      "type": "object"
+    },
+    {
+      "additionalProperties": {},
+      "description": "A lookup provider failed while resolving a wire identity.",
+      "properties": {
+        "code": {
+          "const": "gateway/lookup-failed",
+          "type": "string"
+        },
+        "details": {
+          "properties": {
+            "endpoint": {
+              "description": "Canonical `<namespace>/<method>` endpoint.",
+              "readOnly": true,
+              "type": "string"
+            },
+            "field": {
+              "description": "Affected wire field when the failure is field-specific.",
+              "readOnly": true,
+              "type": "string"
+            }
+          },
+          "required": [
+            "endpoint"
+          ],
+          "type": "object"
+        },
+        "message": {
+          "type": "string"
+        }
+      },
+      "required": [
+        "code",
+        "message",
+        "details"
+      ],
+      "type": "object"
+    },
+    {
+      "additionalProperties": {},
+      "description": "A lookup provider found no object for the supplied identity.",
+      "properties": {
+        "code": {
+          "const": "gateway/lookup-not-found",
+          "type": "string"
+        },
+        "details": {
+          "properties": {
+            "endpoint": {
+              "description": "Canonical `<namespace>/<method>` endpoint.",
+              "readOnly": true,
+              "type": "string"
+            },
+            "field": {
+              "description": "Affected wire field when the failure is field-specific.",
+              "readOnly": true,
+              "type": "string"
+            }
+          },
+          "required": [
+            "endpoint"
+          ],
+          "type": "object"
+        },
+        "message": {
+          "type": "string"
+        }
+      },
+      "required": [
+        "code",
+        "message",
+        "details"
+      ],
+      "type": "object"
+    },
+    {
+      "additionalProperties": {},
+      "description": "A method result fails its declared output codec or stream mode.",
+      "properties": {
+        "code": {
+          "const": "gateway/result-invalid",
+          "type": "string"
+        },
+        "details": {
+          "properties": {
+            "endpoint": {
+              "description": "Canonical `<namespace>/<method>` endpoint.",
+              "readOnly": true,
+              "type": "string"
+            },
+            "field": {
+              "description": "Affected wire field when the failure is field-specific.",
+              "readOnly": true,
+              "type": "string"
+            }
+          },
+          "required": [
+            "endpoint"
+          ],
+          "type": "object"
+        },
+        "message": {
+          "type": "string"
+        }
+      },
+      "required": [
+        "code",
+        "message",
+        "details"
+      ],
+      "type": "object"
+    },
+    {
+      "additionalProperties": {},
+      "description": "A permission update named neither the tier nor the fork switch.",
+      "properties": {
+        "code": {
+          "const": "liveshareShares/missing-permission",
+          "type": "string"
+        },
+        "details": {
+          "additionalProperties": {
+            "not": {}
+          },
+          "propertyNames": {
+            "type": "string"
+          },
+          "type": "object"
+        },
+        "message": {
+          "type": "string"
+        }
+      },
+      "required": [
+        "code",
+        "message",
+        "details"
+      ],
+      "type": "object"
+    },
+    {
+      "additionalProperties": {},
+      "description": "A prompt attachment is invalid or unavailable for this Session.",
+      "properties": {
+        "code": {
+          "const": "session/attachment-invalid",
+          "type": "string"
+        },
+        "details": {
+          "properties": {
+            "reason": {
+              "readOnly": true,
+              "type": "string"
+            }
+          },
+          "required": [
+            "reason"
+          ],
+          "type": "object"
+        },
+        "message": {
+          "type": "string"
+        }
+      },
+      "required": [
+        "code",
+        "message",
+        "details"
+      ],
+      "type": "object"
+    },
+    {
+      "additionalProperties": {},
+      "description": "A search page request is out of range; `field` names the offending query field.",
+      "properties": {
+        "code": {
+          "const": "plugin-market/invalid-query",
+          "type": "string"
+        },
+        "details": {
+          "properties": {
+            "field": {
+              "readOnly": true,
+              "type": "string"
+            },
+            "reason": {
+              "readOnly": true,
+              "type": "string"
+            }
+          },
+          "required": [
+            "field",
+            "reason"
+          ],
+          "type": "object"
+        },
+        "message": {
+          "type": "string"
+        }
+      },
+      "required": [
+        "code",
+        "message",
+        "details"
+      ],
+      "type": "object"
+    },
+    {
+      "additionalProperties": {},
+      "description": "A share-writing request named no share.",
+      "properties": {
+        "code": {
+          "const": "liveshareShares/missing-share-id",
+          "type": "string"
+        },
+        "details": {
+          "additionalProperties": {
+            "not": {}
+          },
+          "propertyNames": {
+            "type": "string"
+          },
+          "type": "object"
+        },
+        "message": {
+          "type": "string"
+        }
+      },
+      "required": [
+        "code",
+        "message",
+        "details"
+      ],
+      "type": "object"
+    },
+    {
+      "additionalProperties": {},
+      "description": "A source method's signature cannot be dispatched as a Remote method.",
+      "properties": {
+        "code": {
+          "const": "gateway/signature-invalid",
+          "type": "string"
+        },
+        "details": {
+          "properties": {
+            "endpoint": {
+              "description": "Canonical `<namespace>/<method>` endpoint.",
+              "readOnly": true,
+              "type": "string"
+            },
+            "field": {
+              "description": "Affected wire field when the failure is field-specific.",
+              "readOnly": true,
+              "type": "string"
+            }
+          },
+          "required": [
+            "endpoint"
+          ],
+          "type": "object"
+        },
+        "message": {
+          "type": "string"
+        }
+      },
+      "required": [
+        "code",
+        "message",
+        "details"
+      ],
+      "type": "object"
+    },
+    {
+      "additionalProperties": {},
+      "description": "A source Session belongs to a different Workspace than the share's other sources.",
+      "properties": {
+        "code": {
+          "const": "liveshareShares/session-workspace-mismatch",
+          "type": "string"
+        },
+        "details": {
+          "properties": {
+            "sessionId": {
+              "readOnly": true,
+              "type": "string"
+            },
+            "workspaceId": {
+              "readOnly": true,
+              "type": "string"
+            }
+          },
+          "required": [
+            "sessionId",
+            "workspaceId"
+          ],
+          "type": "object"
+        },
+        "message": {
+          "type": "string"
+        }
+      },
+      "required": [
+        "code",
+        "message",
+        "details"
+      ],
+      "type": "object"
+    },
+    {
+      "additionalProperties": {},
+      "description": "A source Session belongs to no Workspace.",
+      "properties": {
+        "code": {
+          "const": "liveshareShares/session-workspace-unknown",
+          "type": "string"
+        },
+        "details": {
+          "properties": {
+            "sessionId": {
+              "readOnly": true,
+              "type": "string"
+            }
+          },
+          "required": [
+            "sessionId"
+          ],
+          "type": "object"
+        },
+        "message": {
+          "type": "string"
+        }
+      },
+      "required": [
+        "code",
+        "message",
+        "details"
+      ],
+      "type": "object"
+    },
+    {
+      "additionalProperties": {},
+      "description": "A submitted capability names a plugin that offers no viewer endpoints.",
+      "properties": {
+        "code": {
+          "const": "liveshareShares/unknown-plugin",
+          "type": "string"
+        },
+        "details": {
+          "properties": {
+            "plugin": {
+              "readOnly": true,
+              "type": "string"
+            }
+          },
+          "required": [
+            "plugin"
+          ],
+          "type": "object"
+        },
+        "message": {
+          "type": "string"
+        }
+      },
+      "required": [
+        "code",
+        "message",
+        "details"
+      ],
+      "type": "object"
+    },
+    {
+      "additionalProperties": {},
+      "description": "A submitted policy names an endpoint the platform catalog does not offer.",
+      "properties": {
+        "code": {
+          "const": "liveshareShares/endpoint-not-offered",
+          "type": "string"
+        },
+        "details": {
+          "properties": {
+            "endpoint": {
+              "readOnly": true,
+              "type": "string"
+            },
+            "plugin": {
+              "readOnly": true,
+              "type": "string"
+            }
+          },
+          "required": [
+            "plugin",
+            "endpoint"
+          ],
+          "type": "object"
+        },
+        "message": {
+          "type": "string"
+        }
+      },
+      "required": [
+        "code",
+        "message",
+        "details"
+      ],
+      "type": "object"
+    },
+    {
+      "additionalProperties": {},
+      "description": "A turn of the Session has started, or its worktree was created, so its worktree request can no longer change.",
+      "properties": {
+        "code": {
+          "const": "forgePanel/session-started",
+          "type": "string"
+        },
+        "details": {
+          "additionalProperties": {
+            "not": {}
+          },
+          "propertyNames": {
+            "type": "string"
+          },
+          "type": "object"
+        },
+        "message": {
+          "type": "string"
+        }
+      },
+      "required": [
+        "code",
+        "message",
+        "details"
+      ],
+      "type": "object"
+    },
+    {
+      "additionalProperties": {},
+      "description": "A visible tool lacks the metadata required by a catalog reader.",
+      "properties": {
+        "code": {
+          "const": "tool-catalog/declaration-unavailable",
+          "type": "string"
+        },
+        "details": {
+          "properties": {
+            "tool": {
+              "readOnly": true,
+              "type": "string"
+            }
+          },
+          "required": [
+            "tool"
+          ],
+          "type": "object"
+        },
+        "message": {
+          "type": "string"
+        }
+      },
+      "required": [
+        "code",
+        "message",
+        "details"
+      ],
+      "type": "object"
+    },
+    {
+      "additionalProperties": {},
+      "description": "A wait observation ended before a stopping state; the caller should reread.",
+      "properties": {
+        "code": {
+          "const": "session/observation-ended",
+          "type": "string"
+        },
+        "details": {
+          "additionalProperties": {
+            "not": {}
+          },
+          "propertyNames": {
+            "type": "string"
+          },
+          "type": "object"
+        },
+        "message": {
+          "type": "string"
+        }
+      },
+      "required": [
+        "code",
+        "message",
+        "details"
+      ],
+      "type": "object"
+    },
+    {
+      "additionalProperties": {},
+      "description": "A wire argument or uplink item fails the endpoint's input codec.",
+      "properties": {
+        "code": {
+          "const": "gateway/input-invalid",
+          "type": "string"
+        },
+        "details": {
+          "properties": {
+            "endpoint": {
+              "description": "Canonical `<namespace>/<method>` endpoint.",
+              "readOnly": true,
+              "type": "string"
+            },
+            "field": {
+              "description": "Affected wire field when the failure is field-specific.",
+              "readOnly": true,
+              "type": "string"
+            }
+          },
+          "required": [
+            "endpoint"
+          ],
+          "type": "object"
+        },
+        "message": {
+          "type": "string"
+        }
+      },
+      "required": [
+        "code",
+        "message",
+        "details"
+      ],
+      "type": "object"
+    },
+    {
+      "additionalProperties": {},
+      "description": "An `absolute` address has no Session to authorize its Host call. Raised by the Client provider; the Host never emits it. Session addresses are resolved by the Host without a Client Session summary.",
+      "properties": {
+        "code": {
+          "const": "workspace-file/unknown-workspace",
+          "type": "string"
+        },
+        "details": {
+          "properties": {
+            "address": {
+              "readOnly": true,
+              "type": "string"
+            }
+          },
+          "required": [
+            "address"
+          ],
+          "type": "object"
+        },
+        "message": {
+          "type": "string"
+        }
+      },
+      "required": [
+        "code",
+        "message",
+        "details"
+      ],
+      "type": "object"
+    },
+    {
+      "additionalProperties": {},
+      "description": "An addition named no usable Session id.",
+      "properties": {
+        "code": {
+          "const": "liveshareShares/missing-session-ids",
+          "type": "string"
+        },
+        "details": {
+          "additionalProperties": {
+            "not": {}
+          },
+          "propertyNames": {
+            "type": "string"
+          },
+          "type": "object"
+        },
+        "message": {
+          "type": "string"
+        }
+      },
+      "required": [
+        "code",
+        "message",
+        "details"
+      ],
+      "type": "object"
+    },
+    {
+      "additionalProperties": {},
+      "description": "An index URL is not http(s), or carries credentials or a fragment.",
+      "properties": {
+        "code": {
+          "const": "plugin-market/invalid-index-url",
+          "type": "string"
+        },
+        "details": {
+          "properties": {
+            "reason": {
+              "readOnly": true,
+              "type": "string"
+            },
+            "url": {
+              "readOnly": true,
+              "type": "string"
+            }
+          },
+          "required": [
+            "url",
+            "reason"
+          ],
+          "type": "object"
+        },
+        "message": {
+          "type": "string"
+        }
+      },
+      "required": [
+        "code",
+        "message",
+        "details"
+      ],
+      "type": "object"
+    },
+    {
+      "additionalProperties": {},
+      "description": "An interaction answer does not match the pending revision; the answer is not accepted.",
+      "properties": {
+        "code": {
+          "const": "revision-conflict",
+          "type": "string"
+        },
+        "details": {
+          "properties": {
+            "eventId": {
+              "readOnly": true,
+              "type": "string"
+            },
+            "expectedRevision": {
+              "readOnly": true,
+              "type": "number"
+            },
+            "receivedRevision": {
+              "readOnly": true,
+              "type": "number"
+            }
+          },
+          "required": [
+            "eventId",
+            "expectedRevision",
+            "receivedRevision"
+          ],
+          "type": "object"
+        },
+        "message": {
+          "type": "string"
+        }
+      },
+      "required": [
+        "code",
+        "message",
+        "details"
+      ],
+      "type": "object"
+    },
+    {
+      "additionalProperties": {},
+      "description": "Another running host owns the owner state, so this host refuses to change the shares.",
+      "properties": {
+        "code": {
+          "const": "liveshareShares/owner-state-held",
+          "type": "string"
+        },
+        "details": {
+          "additionalProperties": {
+            "not": {}
+          },
+          "propertyNames": {
+            "type": "string"
+          },
+          "type": "object"
+        },
+        "message": {
+          "type": "string"
+        }
+      },
+      "required": [
+        "code",
+        "message",
+        "details"
+      ],
+      "type": "object"
+    },
+    {
+      "additionalProperties": {},
+      "description": "Another Workspace already uses the requested name.",
+      "properties": {
+        "code": {
+          "const": "workspace/name-conflict",
+          "type": "string"
+        },
+        "details": {
+          "properties": {
+            "name": {
+              "readOnly": true,
+              "type": "string"
+            }
+          },
+          "required": [
+            "name"
+          ],
+          "type": "object"
+        },
+        "message": {
+          "type": "string"
+        }
+      },
+      "required": [
+        "code",
+        "message",
+        "details"
+      ],
+      "type": "object"
+    },
+    {
+      "additionalProperties": {},
+      "description": "Another writer holds the Session, preventing this operation from acquiring it.",
+      "properties": {
+        "code": {
+          "const": "session/writer-held",
+          "type": "string"
+        },
+        "details": {
+          "properties": {
+            "sessionId": {
+              "readOnly": true,
+              "type": "string"
+            }
+          },
+          "required": [
+            "sessionId"
+          ],
+          "type": "object"
+        },
+        "message": {
+          "type": "string"
+        }
+      },
+      "required": [
+        "code",
+        "message",
+        "details"
+      ],
+      "type": "object"
+    },
+    {
+      "additionalProperties": {},
+      "description": "Audio encoding or intake limits prevented transcription.",
+      "properties": {
+        "code": {
+          "const": "speech/invalid-audio",
+          "type": "string"
+        },
+        "details": {
+          "properties": {
+            "reason": {
+              "readOnly": true,
+              "type": "string"
+            }
+          },
+          "required": [
+            "reason"
+          ],
+          "type": "object"
+        },
+        "message": {
+          "type": "string"
+        }
+      },
+      "required": [
+        "code",
+        "message",
+        "details"
+      ],
+      "type": "object"
+    },
+    {
+      "additionalProperties": {},
+      "description": "Buffered Client uplink data exceeded the logical stream's byte limit.",
+      "properties": {
+        "code": {
+          "const": "gateway/uplink-overflow",
+          "type": "string"
+        },
+        "details": {
+          "properties": {
+            "endpoint": {
+              "description": "Canonical `<namespace>/<method>` endpoint.",
+              "readOnly": true,
+              "type": "string"
+            },
+            "field": {
+              "description": "Affected wire field when the failure is field-specific.",
+              "readOnly": true,
+              "type": "string"
+            }
+          },
+          "required": [
+            "endpoint"
+          ],
+          "type": "object"
+        },
+        "message": {
+          "type": "string"
+        }
+      },
+      "required": [
+        "code",
+        "message",
+        "details"
+      ],
+      "type": "object"
+    },
+    {
+      "additionalProperties": {},
+      "description": "Carrier, dispatch, or unclassified Host failure.",
+      "properties": {
+        "code": {
+          "const": "gateway/internal",
+          "type": "string"
+        },
+        "details": {
+          "properties": {},
+          "type": "object"
+        },
+        "message": {
+          "type": "string"
+        }
+      },
+      "required": [
+        "code",
+        "message",
+        "details"
+      ],
+      "type": "object"
+    },
+    {
+      "additionalProperties": {},
+      "description": "Client terminal failure preserved through the Remote stream supervisor.",
+      "properties": {
+        "code": {
+          "const": "terminal/view",
+          "type": "string"
+        },
+        "details": {
+          "properties": {
+            "issue": {
+              "anyOf": [
+                {
+                  "const": "attachmentEnded",
+                  "type": "string"
+                },
+                {
+                  "const": "inputFull",
+                  "type": "string"
+                },
+                {
+                  "const": "invalidOutput",
+                  "type": "string"
+                },
+                {
+                  "const": "missingTerminal",
+                  "type": "string"
+                },
+                {
+                  "const": "terminalLimit",
+                  "type": "string"
+                }
+              ],
+              "readOnly": true
+            }
+          },
+          "required": [
+            "issue"
+          ],
+          "type": "object"
+        },
+        "message": {
+          "type": "string"
+        }
+      },
+      "required": [
+        "code",
+        "message",
+        "details"
+      ],
+      "type": "object"
+    },
+    {
+      "additionalProperties": {},
+      "description": "Complete checks could not be loaded; the polling preview remains available.",
+      "properties": {
+        "code": {
+          "const": "forgePanel/checks-failed",
+          "type": "string"
+        },
+        "details": {
+          "additionalProperties": {
+            "not": {}
+          },
+          "propertyNames": {
+            "type": "string"
+          },
+          "type": "object"
+        },
+        "message": {
+          "type": "string"
+        }
+      },
+      "required": [
+        "code",
+        "message",
+        "details"
+      ],
+      "type": "object"
+    },
+    {
+      "additionalProperties": {},
+      "description": "Creating a share requires a verified owner credential at the effective Relay.",
+      "properties": {
+        "code": {
+          "const": "liveshareShares/owner-login-required",
+          "type": "string"
+        },
+        "details": {
+          "properties": {
+            "identity": {
+              "properties": {
+                "avatarUrl": {
+                  "description": "Provider-issued avatar URL the credential carried, when it carried one.",
+                  "readOnly": true,
+                  "type": "string"
+                },
+                "claim": {
+                  "description": "Automatic claim result, present once this host has run a claim pass.",
+                  "properties": {
+                    "claimed": {
+                      "description": "Shares the Relay bound to this identity.",
+                      "readOnly": true,
+                      "type": "number"
+                    },
+                    "skipped": {
+                      "description": "Shares already bound to this identity, so the Relay left them untouched.",
+                      "readOnly": true,
+                      "type": "number"
+                    }
+                  },
+                  "readOnly": true,
+                  "required": [
+                    "claimed",
+                    "skipped"
+                  ],
+                  "type": "object"
+                },
+                "displayName": {
+                  "description": "Provider display name, when the credential carries one.",
+                  "readOnly": true,
+                  "type": "string"
+                },
+                "expiresAt": {
+                  "description": "ISO expiry of the credential currently held.",
+                  "readOnly": true,
+                  "type": "string"
+                },
+                "relay": {
+                  "description": "Relay base URL the credential is bound to. A host keeps one credential per Relay address and never presents it to another, so a viewer of this field compares it with the active address.",
+                  "readOnly": true,
+                  "type": "string"
+                },
+                "renewed": {
+                  "description": "True when this report followed a renewal that pushed the expiry out.",
+                  "readOnly": true,
+                  "type": "boolean"
+                },
+                "state": {
+                  "anyOf": [
+                    {
+                      "const": "expired",
+                      "type": "string"
+                    },
+                    {
+                      "const": "relay-unsupported",
+                      "type": "string"
+                    },
+                    {
+                      "const": "unverified",
+                      "type": "string"
+                    },
+                    {
+                      "const": "verified",
+                      "type": "string"
+                    }
+                  ],
+                  "readOnly": true
+                },
+                "subjectId": {
+                  "description": "Verified subject id, which a client may show as the identity label.",
+                  "readOnly": true,
+                  "type": "string"
+                }
+              },
+              "readOnly": true,
+              "required": [
+                "state",
+                "relay"
+              ],
+              "type": "object"
+            }
+          },
+          "required": [
+            "identity"
+          ],
+          "type": "object"
+        },
+        "message": {
+          "type": "string"
+        }
+      },
+      "required": [
+        "code",
+        "message",
+        "details"
+      ],
+      "type": "object"
+    },
+    {
+      "additionalProperties": {},
+      "description": "Current compositions publish incompatible declarations for one name.",
+      "properties": {
+        "code": {
+          "const": "tool-catalog/conflict",
+          "type": "string"
+        },
+        "details": {
+          "properties": {
+            "tool": {
+              "readOnly": true,
+              "type": "string"
+            }
+          },
+          "required": [
+            "tool"
+          ],
+          "type": "object"
+        },
+        "message": {
+          "type": "string"
+        }
+      },
+      "required": [
+        "code",
+        "message",
+        "details"
+      ],
+      "type": "object"
+    },
+    {
+      "additionalProperties": {},
+      "description": "Every seam refusal that is not a stale write: an unregistered or malformed namespace, a read-only provider, schema validation, storage.",
+      "properties": {
+        "code": {
+          "const": "settings/rejected",
+          "type": "string"
+        },
+        "details": {
+          "properties": {
+            "ns": {
+              "readOnly": true,
+              "type": "string"
+            }
+          },
+          "required": [
+            "ns"
+          ],
+          "type": "object"
+        },
+        "message": {
+          "type": "string"
+        }
+      },
+      "required": [
+        "code",
+        "message",
+        "details"
+      ],
+      "type": "object"
+    },
+    {
+      "additionalProperties": {},
+      "description": "Filter configuration could not be read completely; no comparison ran. Correct Git settings or the output limit before retrying.",
+      "properties": {
+        "code": {
+          "const": "forgePanel/filter-config-failed",
+          "type": "string"
+        },
+        "details": {
+          "additionalProperties": {
+            "not": {}
+          },
+          "propertyNames": {
+            "type": "string"
+          },
+          "type": "object"
+        },
+        "message": {
+          "type": "string"
+        }
+      },
+      "required": [
+        "code",
+        "message",
+        "details"
+      ],
+      "type": "object"
+    },
+    {
+      "additionalProperties": {},
+      "description": "HEAD shares no history with the base branch chosen for the `branch` scope, or with none chosen, no remote names a default branch that HEAD shares history with and the checkout is not a worktree the Session created.",
+      "properties": {
+        "code": {
+          "const": "forgePanel/no-fork-point",
+          "type": "string"
+        },
+        "details": {
+          "additionalProperties": {
+            "not": {}
+          },
+          "propertyNames": {
+            "type": "string"
+          },
+          "type": "object"
+        },
+        "message": {
+          "type": "string"
+        }
+      },
+      "required": [
+        "code",
+        "message",
+        "details"
+      ],
+      "type": "object"
+    },
+    {
+      "additionalProperties": {},
+      "description": "Image admission or model image-capability refusal.",
+      "properties": {
+        "code": {
+          "const": "subagent/attachment-invalid",
+          "type": "string"
+        },
+        "details": {
+          "properties": {
+            "reason": {
+              "readOnly": true,
+              "type": "string"
+            }
+          },
+          "required": [
+            "reason"
+          ],
+          "type": "object"
+        },
+        "message": {
+          "type": "string"
+        }
+      },
+      "required": [
+        "code",
+        "message",
+        "details"
+      ],
+      "type": "object"
+    },
+    {
+      "additionalProperties": {},
+      "description": "Index sources cannot be saved without the settings service and this service's profile entry.",
+      "properties": {
+        "code": {
+          "const": "plugin-market/settings-unavailable",
+          "type": "string"
+        },
+        "details": {
+          "additionalProperties": {
+            "not": {}
+          },
+          "propertyNames": {
+            "type": "string"
+          },
+          "type": "object"
+        },
+        "message": {
+          "type": "string"
+        }
+      },
+      "required": [
+        "code",
+        "message",
+        "details"
+      ],
+      "type": "object"
+    },
+    {
+      "additionalProperties": {},
+      "description": "Input or resize was refused without invalidating the output attachment.",
+      "properties": {
+        "code": {
+          "const": "terminal/control-unavailable",
+          "type": "string"
+        },
+        "details": {
+          "properties": {
+            "reason": {
+              "anyOf": [
+                {
+                  "const": "not-running",
+                  "type": "string"
+                },
+                {
+                  "const": "read-only",
+                  "type": "string"
+                }
+              ],
+              "readOnly": true
+            }
+          },
+          "required": [
+            "reason"
+          ],
+          "type": "object"
+        },
+        "message": {
+          "type": "string"
+        }
+      },
+      "required": [
+        "code",
+        "message",
+        "details"
+      ],
+      "type": "object"
+    },
+    {
+      "additionalProperties": {},
+      "description": "More than one live provider claims the requested endpoint.",
+      "properties": {
+        "code": {
+          "const": "gateway/ambiguous-endpoint",
+          "type": "string"
+        },
+        "details": {
+          "properties": {
+            "endpoint": {
+              "description": "Canonical `<namespace>/<method>` endpoint.",
+              "readOnly": true,
+              "type": "string"
+            },
+            "field": {
+              "description": "Affected wire field when the failure is field-specific.",
+              "readOnly": true,
+              "type": "string"
+            }
+          },
+          "required": [
+            "endpoint"
+          ],
+          "type": "object"
+        },
+        "message": {
+          "type": "string"
+        }
+      },
+      "required": [
+        "code",
+        "message",
+        "details"
+      ],
+      "type": "object"
+    },
+    {
+      "additionalProperties": {},
+      "description": "Named arguments do not match the endpoint's declared parameters.",
+      "properties": {
+        "code": {
+          "const": "gateway/arguments-invalid",
+          "type": "string"
+        },
+        "details": {
+          "properties": {
+            "endpoint": {
+              "description": "Canonical `<namespace>/<method>` endpoint.",
+              "readOnly": true,
+              "type": "string"
+            },
+            "field": {
+              "description": "Affected wire field when the failure is field-specific.",
+              "readOnly": true,
+              "type": "string"
+            }
+          },
+          "required": [
+            "endpoint"
+          ],
+          "type": "object"
+        },
+        "message": {
+          "type": "string"
+        }
+      },
+      "required": [
+        "code",
+        "message",
+        "details"
+      ],
+      "type": "object"
+    },
+    {
+      "additionalProperties": {},
+      "description": "No declaration supplies the requested identity.",
+      "properties": {
+        "code": {
+          "const": "agent-preset/not-found",
+          "type": "string"
+        },
+        "details": {
+          "properties": {
+            "agentPreset": {
+              "readOnly": true,
+              "type": "string"
+            },
+            "available": {
+              "items": {
+                "type": "string"
+              },
+              "readOnly": true,
+              "type": "array"
+            }
+          },
+          "required": [
+            "agentPreset",
+            "available"
+          ],
+          "type": "object"
+        },
+        "message": {
+          "type": "string"
+        }
+      },
+      "required": [
+        "code",
+        "message",
+        "details"
+      ],
+      "type": "object"
+    },
+    {
+      "additionalProperties": {},
+      "description": "No entry exists at that path inside the workspace.",
+      "properties": {
+        "code": {
+          "const": "workspace-file/not-found",
+          "type": "string"
+        },
+        "details": {
+          "properties": {
+            "path": {
+              "readOnly": true,
+              "type": "string"
+            }
+          },
+          "required": [
+            "path"
+          ],
+          "type": "object"
+        },
+        "message": {
+          "type": "string"
+        }
+      },
+      "required": [
+        "code",
+        "message",
+        "details"
+      ],
+      "type": "object"
+    },
+    {
+      "additionalProperties": {},
+      "description": "No lens with the requested identity is registered, as after its plugin unloaded.",
+      "properties": {
+        "code": {
+          "const": "forgePanel/lens-missing",
+          "type": "string"
+        },
+        "details": {
+          "additionalProperties": {
+            "not": {}
+          },
+          "propertyNames": {
+            "type": "string"
+          },
+          "type": "object"
+        },
+        "message": {
+          "type": "string"
+        }
+      },
+      "required": [
+        "code",
+        "message",
+        "details"
+      ],
+      "type": "object"
+    },
+    {
+      "additionalProperties": {},
+      "description": "No live generated definition or source declaration exposes this endpoint.",
+      "properties": {
+        "code": {
+          "const": "gateway/definition-unavailable",
+          "type": "string"
+        },
+        "details": {
+          "properties": {
+            "endpoint": {
+              "description": "Canonical `<namespace>/<method>` endpoint.",
+              "readOnly": true,
+              "type": "string"
+            },
+            "field": {
+              "description": "Affected wire field when the failure is field-specific.",
+              "readOnly": true,
+              "type": "string"
+            }
+          },
+          "required": [
+            "endpoint"
+          ],
+          "type": "object"
+        },
+        "message": {
+          "type": "string"
+        }
+      },
+      "required": [
+        "code",
+        "message",
+        "details"
+      ],
+      "type": "object"
+    },
+    {
+      "additionalProperties": {},
+      "description": "No Liveshare server address is saved, so the request has nowhere to publish or probe.",
+      "properties": {
+        "code": {
+          "const": "liveshareShares/relay-url-required",
+          "type": "string"
+        },
+        "details": {
+          "additionalProperties": {
+            "not": {}
+          },
+          "propertyNames": {
+            "type": "string"
+          },
+          "type": "object"
+        },
+        "message": {
+          "type": "string"
+        }
+      },
+      "required": [
+        "code",
+        "message",
+        "details"
+      ],
+      "type": "object"
+    },
+    {
+      "additionalProperties": {},
+      "description": "No message of the Session waits after a failed or stopped attempt to create its worktree.",
+      "properties": {
+        "code": {
+          "const": "forgePanel/not-waiting",
+          "type": "string"
+        },
+        "details": {
+          "additionalProperties": {
+            "not": {}
+          },
+          "propertyNames": {
+            "type": "string"
+          },
+          "type": "object"
+        },
+        "message": {
+          "type": "string"
+        }
+      },
+      "required": [
+        "code",
+        "message",
+        "details"
+      ],
+      "type": "object"
+    },
+    {
+      "additionalProperties": {},
+      "description": "No registered provider serves the change request URL.",
+      "properties": {
+        "code": {
+          "const": "forgePanel/unrecognized-url",
+          "type": "string"
+        },
+        "details": {
+          "additionalProperties": {
+            "not": {}
+          },
+          "propertyNames": {
+            "type": "string"
+          },
+          "type": "object"
+        },
+        "message": {
+          "type": "string"
+        }
+      },
+      "required": [
+        "code",
+        "message",
+        "details"
+      ],
+      "type": "object"
+    },
+    {
+      "additionalProperties": {},
+      "description": "No registration carries that Workspace identity.",
+      "properties": {
+        "code": {
+          "const": "workspace/not-found",
+          "type": "string"
+        },
+        "details": {
+          "properties": {
+            "workspaceId": {
+              "readOnly": true,
+              "type": "string"
+            }
+          },
+          "required": [
+            "workspaceId"
+          ],
+          "type": "object"
+        },
+        "message": {
+          "type": "string"
+        }
+      },
+      "required": [
+        "code",
+        "message",
+        "details"
+      ],
+      "type": "object"
+    },
+    {
+      "additionalProperties": {},
+      "description": "No share this host publishes carries the requested id.",
+      "properties": {
+        "code": {
+          "const": "liveshareShares/share-not-found",
+          "type": "string"
+        },
+        "details": {
+          "properties": {
+            "shareId": {
+              "readOnly": true,
+              "type": "string"
+            }
+          },
+          "required": [
+            "shareId"
+          ],
+          "type": "object"
+        },
+        "message": {
+          "type": "string"
+        }
+      },
+      "required": [
+        "code",
+        "message",
+        "details"
+      ],
+      "type": "object"
+    },
+    {
+      "additionalProperties": {},
+      "description": "No state arrived before the deadline; a timeout after a state returns its value instead.",
+      "properties": {
+        "code": {
+          "const": "session/wait-timeout",
+          "type": "string"
+        },
+        "details": {
+          "additionalProperties": {
+            "not": {}
+          },
+          "propertyNames": {
+            "type": "string"
+          },
+          "type": "object"
+        },
+        "message": {
+          "type": "string"
+        }
+      },
+      "required": [
+        "code",
+        "message",
+        "details"
+      ],
+      "type": "object"
+    },
+    {
+      "additionalProperties": {},
+      "description": "No subagent is available at the supplied parent and child address.",
+      "properties": {
+        "code": {
+          "const": "subagent/not-found",
+          "type": "string"
+        },
+        "details": {
+          "properties": {
+            "childSessionId": {
+              "readOnly": true,
+              "type": "string"
+            },
+            "parentSessionId": {
+              "readOnly": true,
+              "type": "string"
+            }
+          },
+          "required": [
+            "parentSessionId",
+            "childSessionId"
+          ],
+          "type": "object"
+        },
+        "message": {
+          "type": "string"
+        }
+      },
+      "required": [
+        "code",
+        "message",
+        "details"
+      ],
+      "type": "object"
+    },
+    {
+      "additionalProperties": {},
+      "description": "No worktree service is mounted.",
+      "properties": {
+        "code": {
+          "const": "forgePanel/worktrees-unavailable",
+          "type": "string"
+        },
+        "details": {
+          "additionalProperties": {
+            "not": {}
+          },
+          "propertyNames": {
+            "type": "string"
+          },
+          "type": "object"
+        },
+        "message": {
+          "type": "string"
+        }
+      },
+      "required": [
+        "code",
+        "message",
+        "details"
+      ],
+      "type": "object"
+    },
+    {
+      "additionalProperties": {},
+      "description": "Only the owner may import; every other principal is refused.",
+      "properties": {
+        "code": {
+          "const": "deepseekChatImport/owner-only",
+          "type": "string"
+        },
+        "details": {
+          "properties": {},
+          "type": "object"
+        },
+        "message": {
+          "type": "string"
+        }
+      },
+      "required": [
+        "code",
+        "message",
+        "details"
+      ],
+      "type": "object"
+    },
+    {
+      "additionalProperties": {},
+      "description": "Owner-side business validation refused the request; `issues` carries portable diagnostics when a codec produced them.",
+      "properties": {
+        "code": {
+          "const": "gateway/bad-request",
+          "type": "string"
+        },
+        "details": {
+          "properties": {
+            "issues": {
+              "items": {
+                "properties": {
+                  "code": {
+                    "description": "Validator diagnostic code; this is distinct from the Remote failure code.",
+                    "readOnly": true,
+                    "type": "string"
+                  },
+                  "message": {
+                    "description": "Human-readable diagnostic supplied by the validating owner.",
+                    "readOnly": true,
+                    "type": "string"
+                  },
+                  "path": {
+                    "description": "Object keys and array indices; symbol keys use their diagnostic string.",
+                    "items": {
+                      "type": [
+                        "string",
+                        "number"
+                      ]
+                    },
+                    "readOnly": true,
+                    "type": "array"
+                  }
+                },
+                "required": [
+                  "code",
+                  "message",
+                  "path"
+                ],
+                "type": "object"
+              },
+              "readOnly": true,
+              "type": "array"
+            }
+          },
+          "type": "object"
+        },
+        "message": {
+          "type": "string"
+        }
+      },
+      "required": [
+        "code",
+        "message",
+        "details"
+      ],
+      "type": "object"
+    },
+    {
+      "additionalProperties": {},
+      "description": "Provider credentials are unavailable for the requested Session operation.",
+      "properties": {
+        "code": {
+          "const": "session/provider-credentials-unavailable",
+          "type": "string"
+        },
+        "details": {
+          "additionalProperties": {
+            "not": {}
+          },
+          "propertyNames": {
+            "type": "string"
+          },
+          "type": "object"
+        },
+        "message": {
+          "type": "string"
+        }
+      },
+      "required": [
+        "code",
+        "message",
+        "details"
+      ],
+      "type": "object"
+    },
+    {
+      "additionalProperties": {},
+      "description": "Provider or input failure, without original text or response details.",
+      "properties": {
+        "code": {
+          "const": "cotTranslation/failed",
+          "type": "string"
+        },
+        "details": {
+          "additionalProperties": {
+            "not": {}
+          },
+          "propertyNames": {
+            "type": "string"
+          },
+          "type": "object"
+        },
+        "message": {
+          "type": "string"
+        }
+      },
+      "required": [
+        "code",
+        "message",
+        "details"
+      ],
+      "type": "object"
+    },
+    {
+      "additionalProperties": {},
+      "description": "Reading state could not be updated; the previous value remains visible.",
+      "properties": {
+        "code": {
+          "const": "session-status/unavailable",
+          "type": "string"
+        },
+        "details": {
+          "properties": {},
+          "type": "object"
+        },
+        "message": {
+          "type": "string"
+        }
+      },
+      "required": [
+        "code",
+        "message",
+        "details"
+      ],
+      "type": "object"
+    },
+    {
+      "additionalProperties": {},
+      "description": "Received stream data failed validation; event-generation failure suspends automatic reconnect until explicit recovery.",
+      "properties": {
+        "code": {
+          "const": "gateway/stream-invalid",
+          "type": "string"
+        },
+        "details": {
+          "properties": {
+            "stream": {
+              "readOnly": true,
+              "type": "string"
+            }
+          },
+          "required": [
+            "stream"
+          ],
+          "type": "object"
+        },
+        "message": {
+          "type": "string"
+        }
+      },
+      "required": [
+        "code",
+        "message",
+        "details"
+      ],
+      "type": "object"
+    },
+    {
+      "additionalProperties": {},
+      "description": "Retained screens and pending allocations consume the Session's terminal quota.",
+      "properties": {
+        "code": {
+          "const": "terminal/limit-reached",
+          "type": "string"
+        },
+        "details": {
+          "properties": {
+            "limit": {
+              "readOnly": true,
+              "type": "number"
+            }
+          },
+          "required": [
+            "limit"
+          ],
+          "type": "object"
+        },
+        "message": {
+          "type": "string"
+        }
+      },
+      "required": [
+        "code",
+        "message",
+        "details"
+      ],
+      "type": "object"
+    },
+    {
+      "additionalProperties": {},
+      "description": "Search cannot run: missing subprocess, launch/execution failure, or configured timeout.",
+      "properties": {
+        "code": {
+          "const": "workspace-file/search-failed",
+          "type": "string"
+        },
+        "details": {
+          "additionalProperties": {
+            "not": {}
+          },
+          "propertyNames": {
+            "type": "string"
+          },
+          "type": "object"
+        },
+        "message": {
+          "type": "string"
+        }
+      },
+      "required": [
+        "code",
+        "message",
+        "details"
+      ],
+      "type": "object"
+    },
+    {
+      "additionalProperties": {},
+      "description": "The address is not a `dsh-resource://file/` address in a scope the provider recognizes: `session/<sessionId>/<path>` or `absolute/<absolute path>`. Raised by the Client provider; the Host never emits it.",
+      "properties": {
+        "code": {
+          "const": "workspace-file/unsupported-address",
+          "type": "string"
+        },
+        "details": {
+          "properties": {
+            "address": {
+              "readOnly": true,
+              "type": "string"
+            }
+          },
+          "required": [
+            "address"
+          ],
+          "type": "object"
+        },
+        "message": {
+          "type": "string"
+        }
+      },
+      "required": [
+        "code",
+        "message",
+        "details"
+      ],
+      "type": "object"
+    },
+    {
+      "additionalProperties": {},
+      "description": "The addressed child cannot take a continuation.",
+      "properties": {
+        "code": {
+          "const": "subagent/not-resumable",
+          "type": "string"
+        },
+        "details": {
+          "properties": {
+            "childSessionId": {
+              "readOnly": true,
+              "type": "string"
+            }
+          },
+          "required": [
+            "childSessionId"
+          ],
+          "type": "object"
+        },
+        "message": {
+          "type": "string"
+        }
+      },
+      "required": [
+        "code",
+        "message",
+        "details"
+      ],
+      "type": "object"
+    },
+    {
+      "additionalProperties": {},
+      "description": "The addressed device grant does not exist.",
+      "properties": {
+        "code": {
+          "const": "device/not-found",
+          "type": "string"
+        },
+        "details": {
+          "properties": {
+            "deviceId": {
+              "readOnly": true,
+              "type": "string"
+            }
+          },
+          "required": [
+            "deviceId"
+          ],
+          "type": "object"
+        },
+        "message": {
+          "type": "string"
+        }
+      },
+      "required": [
+        "code",
+        "message",
+        "details"
+      ],
+      "type": "object"
+    },
+    {
+      "additionalProperties": {},
+      "description": "The addressed device grant was already revoked.",
+      "properties": {
+        "code": {
+          "const": "device/already-revoked",
+          "type": "string"
+        },
+        "details": {
+          "properties": {
+            "deviceId": {
+              "readOnly": true,
+              "type": "string"
+            },
+            "revokedAt": {
+              "readOnly": true,
+              "type": "number"
+            }
+          },
+          "required": [
+            "deviceId",
+            "revokedAt"
+          ],
+          "type": "object"
+        },
+        "message": {
+          "type": "string"
+        }
+      },
+      "required": [
+        "code",
+        "message",
+        "details"
+      ],
+      "type": "object"
+    },
+    {
+      "additionalProperties": {},
+      "description": "The addressed inbox item is no longer pending.",
+      "properties": {
+        "code": {
+          "const": "session/queue-item-not-found",
+          "type": "string"
+        },
+        "details": {
+          "properties": {
+            "itemId": {
+              "readOnly": true,
+              "type": "string"
+            }
+          },
+          "required": [
+            "itemId"
+          ],
+          "type": "object"
+        },
+        "message": {
+          "type": "string"
+        }
+      },
+      "required": [
+        "code",
+        "message",
+        "details"
+      ],
+      "type": "object"
+    },
+    {
+      "additionalProperties": {},
+      "description": "The addressed Session cannot be forked in its current state.",
+      "properties": {
+        "code": {
+          "const": "session/fork-unavailable",
+          "type": "string"
+        },
+        "details": {
+          "properties": {
+            "sessionId": {
+              "readOnly": true,
+              "type": "string"
+            }
+          },
+          "required": [
+            "sessionId"
+          ],
+          "type": "object"
+        },
+        "message": {
+          "type": "string"
+        }
+      },
+      "required": [
+        "code",
+        "message",
+        "details"
+      ],
+      "type": "object"
+    },
+    {
+      "additionalProperties": {},
+      "description": "The addressed subagent descriptor cannot be read from the durable catalog.",
+      "properties": {
+        "code": {
+          "const": "subagent/catalog-diagnostic",
+          "type": "string"
+        },
+        "details": {
+          "properties": {
+            "childSessionId": {
+              "readOnly": true,
+              "type": "string"
+            },
+            "parentSessionId": {
+              "readOnly": true,
+              "type": "string"
+            },
+            "reason": {
+              "anyOf": [
+                {
+                  "const": "corrupt",
+                  "type": "string"
+                },
+                {
+                  "const": "unavailable",
+                  "type": "string"
+                },
+                {
+                  "const": "unsupported",
+                  "type": "string"
+                }
+              ],
+              "readOnly": true
+            }
+          },
+          "required": [
+            "parentSessionId",
+            "childSessionId",
+            "reason"
+          ],
+          "type": "object"
+        },
+        "message": {
+          "type": "string"
+        }
+      },
+      "required": [
+        "code",
+        "message",
+        "details"
+      ],
+      "type": "object"
+    },
+    {
+      "additionalProperties": {},
+      "description": "The admitted Host lacks a capability required by discovery or the requested operation.",
+      "properties": {
+        "code": {
+          "const": "host/capability-unavailable",
+          "type": "string"
+        },
+        "details": {
+          "properties": {
+            "capability": {
+              "readOnly": true,
+              "type": "string"
+            }
+          },
+          "required": [
+            "capability"
+          ],
+          "type": "object"
+        },
+        "message": {
+          "type": "string"
+        }
+      },
+      "required": [
+        "code",
+        "message",
+        "details"
+      ],
+      "type": "object"
+    },
+    {
+      "additionalProperties": {},
+      "description": "The Agent cannot accept this operation in its current state or at this address.",
+      "properties": {
+        "code": {
+          "const": "session/agent-busy",
+          "type": "string"
+        },
+        "details": {
+          "properties": {
+            "reason": {
+              "readOnly": true,
+              "type": "string"
+            }
+          },
+          "required": [
+            "reason"
+          ],
+          "type": "object"
+        },
+        "message": {
+          "type": "string"
+        }
+      },
+      "required": [
+        "code",
+        "message",
+        "details"
+      ],
+      "type": "object"
+    },
+    {
+      "additionalProperties": {},
+      "description": "The base branch chosen for the `branch` scope does not exist, as after the branch was deleted.",
+      "properties": {
+        "code": {
+          "const": "forgePanel/base-missing",
+          "type": "string"
+        },
+        "details": {
+          "additionalProperties": {
+            "not": {}
+          },
+          "propertyNames": {
+            "type": "string"
+          },
+          "type": "object"
+        },
+        "message": {
+          "type": "string"
+        }
+      },
+      "required": [
+        "code",
+        "message",
+        "details"
+      ],
+      "type": "object"
+    },
+    {
+      "additionalProperties": {},
+      "description": "The bounded replay ledger cannot admit another nonce until existing receipts expire.",
+      "properties": {
+        "code": {
+          "const": "device/admission-capacity",
+          "type": "string"
+        },
+        "details": {
+          "properties": {
+            "deviceId": {
+              "readOnly": true,
+              "type": "string"
+            },
+            "limit": {
+              "readOnly": true,
+              "type": "number"
+            },
+            "retryAt": {
+              "readOnly": true,
+              "type": "number"
+            }
+          },
+          "required": [
+            "deviceId",
+            "limit",
+            "retryAt"
+          ],
+          "type": "object"
+        },
+        "message": {
+          "type": "string"
+        }
+      },
+      "required": [
+        "code",
+        "message",
+        "details"
+      ],
+      "type": "object"
+    },
+    {
+      "additionalProperties": {},
+      "description": "The call was cancelled by the carrier signal or the backend.",
+      "properties": {
+        "code": {
+          "const": "gateway/cancelled",
+          "type": "string"
+        },
+        "details": {
+          "properties": {},
+          "type": "object"
+        },
+        "message": {
+          "type": "string"
+        }
+      },
+      "required": [
+        "code",
+        "message",
+        "details"
+      ],
+      "type": "object"
+    },
+    {
+      "additionalProperties": {},
+      "description": "The calling Peer was disposed before the operation could be admitted.",
+      "properties": {
+        "code": {
+          "const": "gateway/peer-disposed",
+          "type": "string"
+        },
+        "details": {
+          "properties": {
+            "endpoint": {
+              "description": "Canonical `<namespace>/<method>` endpoint.",
+              "readOnly": true,
+              "type": "string"
+            },
+            "field": {
+              "description": "Affected wire field when the failure is field-specific.",
+              "readOnly": true,
+              "type": "string"
+            }
+          },
+          "required": [
+            "endpoint"
+          ],
+          "type": "object"
+        },
+        "message": {
+          "type": "string"
+        }
+      },
+      "required": [
+        "code",
+        "message",
+        "details"
+      ],
+      "type": "object"
+    },
+    {
+      "additionalProperties": {},
+      "description": "The change request's head is no longer the commit the request named: the head the user confirmed for a merge, the head displayed for complete checks, the head of the latest status for a diff, or the head of the displayed diff for review threads and viewed marks. A diff, review, or viewed mark read the host refuses polls the change request again at once, so a later status names the current head.",
+      "properties": {
+        "code": {
+          "const": "forgePanel/stale-head",
+          "type": "string"
+        },
+        "details": {
+          "additionalProperties": {
+            "not": {}
+          },
+          "propertyNames": {
+            "type": "string"
+          },
+          "type": "object"
+        },
+        "message": {
+          "type": "string"
+        }
+      },
+      "required": [
+        "code",
+        "message",
+        "details"
+      ],
+      "type": "object"
+    },
+    {
+      "additionalProperties": {},
+      "description": "The child cannot admit the requested Prompt or addressed interruption with its current runtime state.",
+      "properties": {
+        "code": {
+          "const": "subagent/delivery-unavailable",
+          "type": "string"
+        },
+        "details": {
+          "properties": {
+            "childSessionId": {
+              "readOnly": true,
+              "type": "string"
+            }
+          },
+          "required": [
+            "childSessionId"
+          ],
+          "type": "object"
+        },
+        "message": {
+          "type": "string"
+        }
+      },
+      "required": [
+        "code",
+        "message",
+        "details"
+      ],
+      "type": "object"
+    },
+    {
+      "additionalProperties": {},
+      "description": "The Client connection is not ready to admit this operation; reconnect does not automatically resubmit it.",
+      "properties": {
+        "code": {
+          "const": "gateway/connection-unavailable",
+          "type": "string"
+        },
+        "details": {
+          "properties": {
+            "endpoint": {
+              "description": "Canonical `<namespace>/<method>` endpoint.",
+              "readOnly": true,
+              "type": "string"
+            },
+            "field": {
+              "description": "Affected wire field when the failure is field-specific.",
+              "readOnly": true,
+              "type": "string"
+            }
+          },
+          "required": [
+            "endpoint"
+          ],
+          "type": "object"
+        },
+        "message": {
+          "type": "string"
+        }
+      },
+      "required": [
+        "code",
+        "message",
+        "details"
+      ],
+      "type": "object"
+    },
+    {
+      "additionalProperties": {},
+      "description": "The code host did not confirm whether it applied the change, which must be checked there before trying again.",
+      "properties": {
+        "code": {
+          "const": "forgePanel/action-unknown",
+          "type": "string"
+        },
+        "details": {
+          "additionalProperties": {
+            "not": {}
+          },
+          "propertyNames": {
+            "type": "string"
+          },
+          "type": "object"
+        },
+        "message": {
+          "type": "string"
+        }
+      },
+      "required": [
+        "code",
+        "message",
+        "details"
+      ],
+      "type": "object"
+    },
+    {
+      "additionalProperties": {},
+      "description": "The code host did not list the accounts a review can be requested from; the message says why.",
+      "properties": {
+        "code": {
+          "const": "forgePanel/reviewers-failed",
+          "type": "string"
+        },
+        "details": {
+          "additionalProperties": {
+            "not": {}
+          },
+          "propertyNames": {
+            "type": "string"
+          },
+          "type": "object"
+        },
+        "message": {
+          "type": "string"
+        }
+      },
+      "required": [
+        "code",
+        "message",
+        "details"
+      ],
+      "type": "object"
+    },
+    {
+      "additionalProperties": {},
+      "description": "The code host did not provide the change request's diff or file, or its status has not been read yet; the message says why.",
+      "properties": {
+        "code": {
+          "const": "forgePanel/diff-failed",
+          "type": "string"
+        },
+        "details": {
+          "additionalProperties": {
+            "not": {}
+          },
+          "propertyNames": {
+            "type": "string"
+          },
+          "type": "object"
+        },
+        "message": {
+          "type": "string"
+        }
+      },
+      "required": [
+        "code",
+        "message",
+        "details"
+      ],
+      "type": "object"
+    },
+    {
+      "additionalProperties": {},
+      "description": "The code host did not provide the change request's review threads, or its status has not been read yet; the message says why.",
+      "properties": {
+        "code": {
+          "const": "forgePanel/review-failed",
+          "type": "string"
+        },
+        "details": {
+          "additionalProperties": {
+            "not": {}
+          },
+          "propertyNames": {
+            "type": "string"
+          },
+          "type": "object"
+        },
+        "message": {
+          "type": "string"
+        }
+      },
+      "required": [
+        "code",
+        "message",
+        "details"
+      ],
+      "type": "object"
+    },
+    {
+      "additionalProperties": {},
+      "description": "The code host did not provide the signed-in user's viewed marks on the change request's files; the message says why.",
+      "properties": {
+        "code": {
+          "const": "forgePanel/viewed-failed",
+          "type": "string"
+        },
+        "details": {
+          "additionalProperties": {
+            "not": {}
+          },
+          "propertyNames": {
+            "type": "string"
+          },
+          "type": "object"
+        },
+        "message": {
+          "type": "string"
+        }
+      },
+      "required": [
+        "code",
+        "message",
+        "details"
+      ],
+      "type": "object"
+    },
+    {
+      "additionalProperties": {},
+      "description": "The code host refused the change or could not be reached; the message gives the host's reason.",
+      "properties": {
+        "code": {
+          "const": "forgePanel/action-failed",
+          "type": "string"
+        },
+        "details": {
+          "additionalProperties": {
+            "not": {}
+          },
+          "propertyNames": {
+            "type": "string"
+          },
+          "type": "object"
+        },
+        "message": {
+          "type": "string"
+        }
+      },
+      "required": [
+        "code",
+        "message",
+        "details"
+      ],
+      "type": "object"
+    },
+    {
+      "additionalProperties": {},
+      "description": "The code host's provider cannot read review threads, so the changes view shows none.",
+      "properties": {
+        "code": {
+          "const": "forgePanel/review-unsupported",
+          "type": "string"
+        },
+        "details": {
+          "additionalProperties": {
+            "not": {}
+          },
+          "propertyNames": {
+            "type": "string"
+          },
+          "type": "object"
+        },
+        "message": {
+          "type": "string"
+        }
+      },
+      "required": [
+        "code",
+        "message",
+        "details"
+      ],
+      "type": "object"
+    },
+    {
+      "additionalProperties": {},
+      "description": "The composition mounts no Workspace registry, so source placement cannot be checked.",
+      "properties": {
+        "code": {
+          "const": "liveshareShares/workspace-unavailable",
+          "type": "string"
+        },
+        "details": {
+          "additionalProperties": {
+            "not": {}
+          },
+          "propertyNames": {
+            "type": "string"
+          },
+          "type": "object"
+        },
+        "message": {
+          "type": "string"
+        }
+      },
+      "required": [
+        "code",
+        "message",
+        "details"
+      ],
+      "type": "object"
+    },
+    {
+      "additionalProperties": {},
+      "description": "The content read so far is not decodable UTF-8 text, or the page carries NUL bytes.",
+      "properties": {
+        "code": {
+          "const": "workspace-file/not-text",
+          "type": "string"
+        },
+        "details": {
+          "properties": {
+            "path": {
+              "readOnly": true,
+              "type": "string"
+            }
+          },
+          "required": [
+            "path"
+          ],
+          "type": "object"
+        },
+        "message": {
+          "type": "string"
+        }
+      },
+      "required": [
+        "code",
+        "message",
+        "details"
+      ],
+      "type": "object"
+    },
+    {
+      "additionalProperties": {},
+      "description": "The current turn no longer accepts the queued item as steering.",
+      "properties": {
+        "code": {
+          "const": "session/steer-unavailable",
+          "type": "string"
+        },
+        "details": {
+          "properties": {
+            "itemId": {
+              "readOnly": true,
+              "type": "string"
+            }
+          },
+          "required": [
+            "itemId"
+          ],
+          "type": "object"
+        },
+        "message": {
+          "type": "string"
+        }
+      },
+      "required": [
+        "code",
+        "message",
+        "details"
+      ],
+      "type": "object"
+    },
+    {
+      "additionalProperties": {},
+      "description": "The declared method has no callable implementation on its live receiver.",
+      "properties": {
+        "code": {
+          "const": "gateway/method-unavailable",
+          "type": "string"
+        },
+        "details": {
+          "properties": {
+            "endpoint": {
+              "description": "Canonical `<namespace>/<method>` endpoint.",
+              "readOnly": true,
+              "type": "string"
+            },
+            "field": {
+              "description": "Affected wire field when the failure is field-specific.",
+              "readOnly": true,
+              "type": "string"
+            }
+          },
+          "required": [
+            "endpoint"
+          ],
+          "type": "object"
+        },
+        "message": {
+          "type": "string"
+        }
+      },
+      "required": [
+        "code",
+        "message",
+        "details"
+      ],
+      "type": "object"
+    },
+    {
+      "additionalProperties": {},
+      "description": "The directory listing or watch path resolves outside the Session's workspace root.",
+      "properties": {
+        "code": {
+          "const": "workspace-file/outside-workspace",
+          "type": "string"
+        },
+        "details": {
+          "properties": {
+            "path": {
+              "readOnly": true,
+              "type": "string"
+            }
+          },
+          "required": [
+            "path"
+          ],
+          "type": "object"
+        },
+        "message": {
+          "type": "string"
+        }
+      },
+      "required": [
+        "code",
+        "message",
+        "details"
+      ],
+      "type": "object"
+    },
+    {
+      "additionalProperties": {},
+      "description": "The display language is not a BCP 47 language id.",
+      "properties": {
+        "code": {
+          "const": "plugin-manager/invalid-language",
+          "type": "string"
+        },
+        "details": {
+          "properties": {
+            "language": {
+              "readOnly": true,
+              "type": "string"
+            }
+          },
+          "required": [
+            "language"
+          ],
+          "type": "object"
+        },
+        "message": {
+          "type": "string"
+        }
+      },
+      "required": [
+        "code",
+        "message",
+        "details"
+      ],
+      "type": "object"
+    },
+    {
+      "additionalProperties": {},
+      "description": "The effective Relay predates owner identity binding, so a verified credential cannot help.",
+      "properties": {
+        "code": {
+          "const": "liveshareShares/relay-upgrade-required",
+          "type": "string"
+        },
+        "details": {
+          "properties": {
+            "identity": {
+              "properties": {
+                "avatarUrl": {
+                  "description": "Provider-issued avatar URL the credential carried, when it carried one.",
+                  "readOnly": true,
+                  "type": "string"
+                },
+                "claim": {
+                  "description": "Automatic claim result, present once this host has run a claim pass.",
+                  "properties": {
+                    "claimed": {
+                      "description": "Shares the Relay bound to this identity.",
+                      "readOnly": true,
+                      "type": "number"
+                    },
+                    "skipped": {
+                      "description": "Shares already bound to this identity, so the Relay left them untouched.",
+                      "readOnly": true,
+                      "type": "number"
+                    }
+                  },
+                  "readOnly": true,
+                  "required": [
+                    "claimed",
+                    "skipped"
+                  ],
+                  "type": "object"
+                },
+                "displayName": {
+                  "description": "Provider display name, when the credential carries one.",
+                  "readOnly": true,
+                  "type": "string"
+                },
+                "expiresAt": {
+                  "description": "ISO expiry of the credential currently held.",
+                  "readOnly": true,
+                  "type": "string"
+                },
+                "relay": {
+                  "description": "Relay base URL the credential is bound to. A host keeps one credential per Relay address and never presents it to another, so a viewer of this field compares it with the active address.",
+                  "readOnly": true,
+                  "type": "string"
+                },
+                "renewed": {
+                  "description": "True when this report followed a renewal that pushed the expiry out.",
+                  "readOnly": true,
+                  "type": "boolean"
+                },
+                "state": {
+                  "anyOf": [
+                    {
+                      "const": "expired",
+                      "type": "string"
+                    },
+                    {
+                      "const": "relay-unsupported",
+                      "type": "string"
+                    },
+                    {
+                      "const": "unverified",
+                      "type": "string"
+                    },
+                    {
+                      "const": "verified",
+                      "type": "string"
+                    }
+                  ],
+                  "readOnly": true
+                },
+                "subjectId": {
+                  "description": "Verified subject id, which a client may show as the identity label.",
+                  "readOnly": true,
+                  "type": "string"
+                }
+              },
+              "readOnly": true,
+              "required": [
+                "state",
+                "relay"
+              ],
+              "type": "object"
+            }
+          },
+          "required": [
+            "identity"
+          ],
+          "type": "object"
+        },
+        "message": {
+          "type": "string"
+        }
+      },
+      "required": [
+        "code",
+        "message",
+        "details"
+      ],
+      "type": "object"
+    },
+    {
+      "additionalProperties": {},
+      "description": "The endpoint's service or forwarded event source is unavailable.",
+      "properties": {
+        "code": {
+          "const": "gateway/service-unavailable",
+          "type": "string"
+        },
+        "details": {
+          "properties": {
+            "endpoint": {
+              "description": "Canonical `<namespace>/<method>` endpoint.",
+              "readOnly": true,
+              "type": "string"
+            },
+            "field": {
+              "description": "Affected wire field when the failure is field-specific.",
+              "readOnly": true,
+              "type": "string"
+            }
+          },
+          "required": [
+            "endpoint"
+          ],
+          "type": "object"
+        },
+        "message": {
+          "type": "string"
+        }
+      },
+      "required": [
+        "code",
+        "message",
+        "details"
+      ],
+      "type": "object"
+    },
+    {
+      "additionalProperties": {},
+      "description": "The fetched document is not valid format-1 JSON; `path` names the offending JSON value.",
+      "properties": {
+        "code": {
+          "const": "plugin-market/invalid-index",
+          "type": "string"
+        },
+        "details": {
+          "properties": {
+            "path": {
+              "readOnly": true,
+              "type": "string"
+            },
+            "reason": {
+              "readOnly": true,
+              "type": "string"
+            },
+            "url": {
+              "readOnly": true,
+              "type": "string"
+            }
+          },
+          "required": [
+            "url",
+            "path",
+            "reason"
+          ],
+          "type": "object"
+        },
+        "message": {
+          "type": "string"
+        }
+      },
+      "required": [
+        "code",
+        "message",
+        "details"
+      ],
+      "type": "object"
+    },
+    {
+      "additionalProperties": {},
+      "description": "The files the view shows are no longer the files the panel reads, so the view reads them again before asking.",
+      "properties": {
+        "code": {
+          "const": "forgePanel/lens-stale",
+          "type": "string"
+        },
+        "details": {
+          "additionalProperties": {
+            "not": {}
+          },
+          "propertyNames": {
+            "type": "string"
+          },
+          "type": "object"
+        },
+        "message": {
+          "type": "string"
+        }
+      },
+      "required": [
+        "code",
+        "message",
+        "details"
+      ],
+      "type": "object"
+    },
+    {
+      "additionalProperties": {},
+      "description": "The filesystem provider cannot initialize a watch for this target.",
+      "properties": {
+        "code": {
+          "const": "workspace-file/watch-unsupported",
+          "type": "string"
+        },
+        "details": {
+          "properties": {
+            "path": {
+              "readOnly": true,
+              "type": "string"
+            }
+          },
+          "required": [
+            "path"
+          ],
+          "type": "object"
+        },
+        "message": {
+          "type": "string"
+        }
+      },
+      "required": [
+        "code",
+        "message",
+        "details"
+      ],
+      "type": "object"
+    },
+    {
+      "additionalProperties": {},
+      "description": "The Host cannot complete the requested preparation operation.",
+      "properties": {
+        "code": {
+          "const": "gateway/preparation-unavailable",
+          "type": "string"
+        },
+        "details": {
+          "properties": {
+            "endpoint": {
+              "description": "Canonical `<namespace>/<method>` endpoint.",
+              "readOnly": true,
+              "type": "string"
+            },
+            "field": {
+              "description": "Affected wire field when the failure is field-specific.",
+              "readOnly": true,
+              "type": "string"
+            }
+          },
+          "required": [
+            "endpoint"
+          ],
+          "type": "object"
+        },
+        "message": {
+          "type": "string"
+        }
+      },
+      "required": [
+        "code",
+        "message",
+        "details"
+      ],
+      "type": "object"
+    },
+    {
+      "additionalProperties": {},
+      "description": "The Host Context adapter failed while resolving the requested receiver.",
+      "properties": {
+        "code": {
+          "const": "gateway/context-failed",
+          "type": "string"
+        },
+        "details": {
+          "properties": {
+            "endpoint": {
+              "description": "Canonical `<namespace>/<method>` endpoint.",
+              "readOnly": true,
+              "type": "string"
+            },
+            "field": {
+              "description": "Affected wire field when the failure is field-specific.",
+              "readOnly": true,
+              "type": "string"
+            }
+          },
+          "required": [
+            "endpoint"
+          ],
+          "type": "object"
+        },
+        "message": {
+          "type": "string"
+        }
+      },
+      "required": [
+        "code",
+        "message",
+        "details"
+      ],
+      "type": "object"
+    },
+    {
+      "additionalProperties": {},
+      "description": "The Host Context adapter found no receiver for the supplied identity.",
+      "properties": {
+        "code": {
+          "const": "gateway/context-not-found",
+          "type": "string"
+        },
+        "details": {
+          "properties": {
+            "endpoint": {
+              "description": "Canonical `<namespace>/<method>` endpoint.",
+              "readOnly": true,
+              "type": "string"
+            },
+            "field": {
+              "description": "Affected wire field when the failure is field-specific.",
+              "readOnly": true,
+              "type": "string"
+            }
+          },
+          "required": [
+            "endpoint"
+          ],
+          "type": "object"
+        },
+        "message": {
+          "type": "string"
+        }
+      },
+      "required": [
+        "code",
+        "message",
+        "details"
+      ],
+      "type": "object"
+    },
+    {
+      "additionalProperties": {},
+      "description": "The Host Context adapter required by this endpoint is not registered.",
+      "properties": {
+        "code": {
+          "const": "gateway/context-unavailable",
+          "type": "string"
+        },
+        "details": {
+          "properties": {
+            "endpoint": {
+              "description": "Canonical `<namespace>/<method>` endpoint.",
+              "readOnly": true,
+              "type": "string"
+            },
+            "field": {
+              "description": "Affected wire field when the failure is field-specific.",
+              "readOnly": true,
+              "type": "string"
+            }
+          },
+          "required": [
+            "endpoint"
+          ],
+          "type": "object"
+        },
+        "message": {
+          "type": "string"
+        }
+      },
+      "required": [
+        "code",
+        "message",
+        "details"
+      ],
+      "type": "object"
+    },
+    {
+      "additionalProperties": {},
+      "description": "The Host deadline elapsed before the pending interaction was settled.",
+      "properties": {
+        "code": {
+          "const": "interaction-expired",
+          "type": "string"
+        },
+        "details": {
+          "properties": {
+            "eventId": {
+              "readOnly": true,
+              "type": "string"
+            }
+          },
+          "required": [
+            "eventId"
+          ],
+          "type": "object"
+        },
+        "message": {
+          "type": "string"
+        }
+      },
+      "required": [
+        "code",
+        "message",
+        "details"
+      ],
+      "type": "object"
+    },
+    {
+      "additionalProperties": {},
+      "description": "The HTTP carrier returned 401; authenticate with the Host before explicitly retrying the operation.",
+      "properties": {
+        "code": {
+          "const": "gateway/authentication-required",
+          "type": "string"
+        },
+        "details": {
+          "properties": {
+            "endpoint": {
+              "description": "Canonical `<namespace>/<method>` endpoint.",
+              "readOnly": true,
+              "type": "string"
+            },
+            "httpStatus": {
+              "description": "Actual response status, independent of the normalized failure code.",
+              "readOnly": true,
+              "type": "number"
+            }
+          },
+          "required": [
+            "endpoint",
+            "httpStatus"
+          ],
+          "type": "object"
+        },
+        "message": {
+          "type": "string"
+        }
+      },
+      "required": [
+        "code",
+        "message",
+        "details"
+      ],
+      "type": "object"
+    },
+    {
+      "additionalProperties": {},
+      "description": "The HTTP carrier returned 403, or a device-identified request was refused; the refusal does not establish that a device was revoked.",
+      "properties": {
+        "code": {
+          "const": "gateway/permission-denied",
+          "type": "string"
+        },
+        "details": {
+          "anyOf": [
+            {
+              "properties": {
+                "endpoint": {
+                  "description": "Canonical `<namespace>/<method>` endpoint.",
+                  "readOnly": true,
+                  "type": "string"
+                },
+                "httpStatus": {
+                  "description": "Actual response status, independent of the normalized failure code.",
+                  "readOnly": true,
+                  "type": "number"
+                }
+              },
+              "required": [
+                "endpoint",
+                "httpStatus"
+              ],
+              "type": "object"
+            },
+            {
+              "properties": {
+                "endpoint": {
+                  "readOnly": true,
+                  "type": "string"
+                },
+                "reason": {
+                  "const": "device-identity",
+                  "readOnly": true,
+                  "type": "string"
+                }
+              },
+              "required": [
+                "endpoint",
+                "reason"
+              ],
+              "type": "object"
+            },
+            {
+              "properties": {
+                "endpoint": {
+                  "readOnly": true,
+                  "type": "string"
+                },
+                "reason": {
+                  "const": "undeclared",
+                  "readOnly": true,
+                  "type": "string"
+                },
+                "role": {
+                  "readOnly": true,
+                  "type": "string"
+                }
+              },
+              "required": [
+                "endpoint",
+                "role",
+                "reason"
+              ],
+              "type": "object"
+            },
+            {
+              "properties": {
+                "endpoint": {
+                  "readOnly": true,
+                  "type": "string"
+                },
+                "required": {
+                  "readOnly": true,
+                  "type": "string"
+                },
+                "role": {
+                  "readOnly": true,
+                  "type": "string"
+                }
+              },
+              "required": [
+                "endpoint",
+                "role",
+                "required"
+              ],
+              "type": "object"
+            }
+          ]
+        },
+        "message": {
+          "type": "string"
+        }
+      },
+      "required": [
+        "code",
+        "message",
+        "details"
+      ],
+      "type": "object"
+    },
+    {
+      "additionalProperties": {},
+      "description": "The HTTP carrier returned 503 for this request; it does not invalidate an otherwise ready generation.",
+      "properties": {
+        "code": {
+          "const": "gateway/host-not-ready",
+          "type": "string"
+        },
+        "details": {
+          "properties": {
+            "endpoint": {
+              "description": "Canonical `<namespace>/<method>` endpoint.",
+              "readOnly": true,
+              "type": "string"
+            },
+            "httpStatus": {
+              "description": "Actual response status, independent of the normalized failure code.",
+              "readOnly": true,
+              "type": "number"
+            }
+          },
+          "required": [
+            "endpoint",
+            "httpStatus"
+          ],
+          "type": "object"
+        },
+        "message": {
+          "type": "string"
+        }
+      },
+      "required": [
+        "code",
+        "message",
+        "details"
+      ],
+      "type": "object"
+    },
+    {
+      "additionalProperties": {},
+      "description": "The id is unusable, already taken, or its composition cannot be installed.",
+      "properties": {
+        "code": {
+          "const": "agent-preset/invalid",
+          "type": "string"
+        },
+        "details": {
+          "properties": {
+            "agentPreset": {
+              "readOnly": true,
+              "type": "string"
+            },
+            "reason": {
+              "readOnly": true,
+              "type": "string"
+            }
+          },
+          "required": [
+            "agentPreset",
+            "reason"
+          ],
+          "type": "object"
+        },
+        "message": {
+          "type": "string"
+        }
+      },
+      "required": [
+        "code",
+        "message",
+        "details"
+      ],
+      "type": "object"
+    },
+    {
+      "additionalProperties": {},
+      "description": "The index could not be fetched: network failure, timeout, redirect, non-2xx status, or a body over the size limit.",
+      "properties": {
+        "code": {
+          "const": "plugin-market/fetch-failed",
+          "type": "string"
+        },
+        "details": {
+          "properties": {
+            "reason": {
+              "readOnly": true,
+              "type": "string"
+            },
+            "url": {
+              "readOnly": true,
+              "type": "string"
+            }
+          },
+          "required": [
+            "url",
+            "reason"
+          ],
+          "type": "object"
+        },
+        "message": {
+          "type": "string"
+        }
+      },
+      "required": [
+        "code",
+        "message",
+        "details"
+      ],
+      "type": "object"
+    },
+    {
+      "additionalProperties": {},
+      "description": "The index lists no such plugin or version.",
+      "properties": {
+        "code": {
+          "const": "plugin-market/unknown-plugin",
+          "type": "string"
+        },
+        "details": {
+          "properties": {
+            "name": {
+              "readOnly": true,
+              "type": "string"
+            },
+            "version": {
+              "readOnly": true,
+              "type": "string"
+            }
+          },
+          "required": [
+            "name",
+            "version"
+          ],
+          "type": "object"
+        },
+        "message": {
+          "type": "string"
+        }
+      },
+      "required": [
+        "code",
+        "message",
+        "details"
+      ],
+      "type": "object"
+    },
+    {
+      "additionalProperties": {},
+      "description": "The lens failed, ran past `lensTimeoutMs`, read more than `maxLensReadBytes`, or answered over `maxCachedLensBytes`; the message says which.",
+      "properties": {
+        "code": {
+          "const": "forgePanel/lens-failed",
+          "type": "string"
+        },
+        "details": {
+          "additionalProperties": {
+            "not": {}
+          },
+          "propertyNames": {
+            "type": "string"
+          },
+          "type": "object"
+        },
+        "message": {
+          "type": "string"
+        }
+      },
+      "required": [
+        "code",
+        "message",
+        "details"
+      ],
+      "type": "object"
+    },
+    {
+      "additionalProperties": {},
+      "description": "The live provider disagrees with the endpoint's declared service or namespace.",
+      "properties": {
+        "code": {
+          "const": "gateway/provider-mismatch",
+          "type": "string"
+        },
+        "details": {
+          "properties": {
+            "endpoint": {
+              "description": "Canonical `<namespace>/<method>` endpoint.",
+              "readOnly": true,
+              "type": "string"
+            },
+            "field": {
+              "description": "Affected wire field when the failure is field-specific.",
+              "readOnly": true,
+              "type": "string"
+            }
+          },
+          "required": [
+            "endpoint"
+          ],
+          "type": "object"
+        },
+        "message": {
+          "type": "string"
+        }
+      },
+      "required": [
+        "code",
+        "message",
+        "details"
+      ],
+      "type": "object"
+    },
+    {
+      "additionalProperties": {},
+      "description": "The lookup provider required by a parameter is not registered.",
+      "properties": {
+        "code": {
+          "const": "gateway/lookup-unavailable",
+          "type": "string"
+        },
+        "details": {
+          "properties": {
+            "endpoint": {
+              "description": "Canonical `<namespace>/<method>` endpoint.",
+              "readOnly": true,
+              "type": "string"
+            },
+            "field": {
+              "description": "Affected wire field when the failure is field-specific.",
+              "readOnly": true,
+              "type": "string"
+            }
+          },
+          "required": [
+            "endpoint"
+          ],
+          "type": "object"
+        },
+        "message": {
+          "type": "string"
+        }
+      },
+      "required": [
+        "code",
+        "message",
+        "details"
+      ],
+      "type": "object"
+    },
+    {
+      "additionalProperties": {},
+      "description": "The named Session does not exist; produced by every layer that resolves a SessionId.",
+      "properties": {
+        "code": {
+          "const": "session/not-found",
+          "type": "string"
+        },
+        "details": {
+          "properties": {
+            "sessionId": {
+              "readOnly": true,
+              "type": "string"
+            }
+          },
+          "required": [
+            "sessionId"
+          ],
+          "type": "object"
+        },
+        "message": {
+          "type": "string"
+        }
+      },
+      "required": [
+        "code",
+        "message",
+        "details"
+      ],
+      "type": "object"
+    },
+    {
+      "additionalProperties": {},
+      "description": "The non-owner principal lacks access, the resources are invalid, or its policy failed.",
+      "properties": {
+        "code": {
+          "const": "remote-access/denied",
+          "type": "string"
+        },
+        "details": {
+          "properties": {
+            "action": {
+              "description": "Canonical `<namespace>/<method>` endpoint of the refused call.",
+              "readOnly": true,
+              "type": "string"
+            },
+            "reason": {
+              "description": "A condition's or `explain()`'s reason, `no-allow`, or `policy-failed`; the Gateway refuses a call whose resources are invalid with `resource-invalid` before `decide()` is asked.",
+              "readOnly": true,
+              "type": "string"
+            }
+          },
+          "required": [
+            "action",
+            "reason"
+          ],
+          "type": "object"
+        },
+        "message": {
+          "type": "string"
+        }
+      },
+      "required": [
+        "code",
+        "message",
+        "details"
+      ],
+      "type": "object"
+    },
+    {
+      "additionalProperties": {},
+      "description": "The owner state file could not be written; the previous record is still in force.",
+      "properties": {
+        "code": {
+          "const": "liveshareShares/owner-state-unavailable",
+          "type": "string"
+        },
+        "details": {
+          "additionalProperties": {
+            "not": {}
+          },
+          "propertyNames": {
+            "type": "string"
+          },
+          "type": "object"
+        },
+        "message": {
+          "type": "string"
+        }
+      },
+      "required": [
+        "code",
+        "message",
+        "details"
+      ],
+      "type": "object"
+    },
+    {
+      "additionalProperties": {},
+      "description": "The parent is not fully qualified, the name is not one segment, or creation failed.",
+      "properties": {
+        "code": {
+          "const": "directory-picker/create-failed",
+          "type": "string"
+        },
+        "details": {
+          "properties": {
+            "path": {
+              "readOnly": true,
+              "type": "string"
+            }
+          },
+          "required": [
+            "path"
+          ],
+          "type": "object"
+        },
+        "message": {
+          "type": "string"
+        }
+      },
+      "required": [
+        "code",
+        "message",
+        "details"
+      ],
+      "type": "object"
+    },
+    {
+      "additionalProperties": {},
+      "description": "The patch, the untracked file list, or the file exceeds `maxDiffBytes`, or the code host or its provider refuses a change request's diff or file over a size limit.",
+      "properties": {
+        "code": {
+          "const": "forgePanel/diff-too-large",
+          "type": "string"
+        },
+        "details": {
+          "additionalProperties": {
+            "not": {}
+          },
+          "propertyNames": {
+            "type": "string"
+          },
+          "type": "object"
+        },
+        "message": {
+          "type": "string"
+        }
+      },
+      "required": [
+        "code",
+        "message",
+        "details"
+      ],
+      "type": "object"
+    },
+    {
+      "additionalProperties": {},
+      "description": "The path is not a directory, so it has no children to list.",
+      "properties": {
+        "code": {
+          "const": "workspace-file/not-directory",
+          "type": "string"
+        },
+        "details": {
+          "properties": {
+            "kind": {
+              "anyOf": [
+                {
+                  "const": "file",
+                  "type": "string"
+                },
+                {
+                  "const": "other",
+                  "type": "string"
+                },
+                {
+                  "const": "symlink",
+                  "type": "string"
+                }
+              ],
+              "readOnly": true
+            },
+            "path": {
+              "readOnly": true,
+              "type": "string"
+            }
+          },
+          "required": [
+            "path",
+            "kind"
+          ],
+          "type": "object"
+        },
+        "message": {
+          "type": "string"
+        }
+      },
+      "required": [
+        "code",
+        "message",
+        "details"
+      ],
+      "type": "object"
+    },
+    {
+      "additionalProperties": {},
+      "description": "The path is not a regular file, so it has no text to read.",
+      "properties": {
+        "code": {
+          "const": "workspace-file/not-regular-file",
+          "type": "string"
+        },
+        "details": {
+          "properties": {
+            "kind": {
+              "anyOf": [
+                {
+                  "const": "directory",
+                  "type": "string"
+                },
+                {
+                  "const": "other",
+                  "type": "string"
+                },
+                {
+                  "const": "symlink",
+                  "type": "string"
+                }
+              ],
+              "readOnly": true
+            },
+            "path": {
+              "readOnly": true,
+              "type": "string"
+            }
+          },
+          "required": [
+            "path",
+            "kind"
+          ],
+          "type": "object"
+        },
+        "message": {
+          "type": "string"
+        }
+      },
+      "required": [
+        "code",
+        "message",
+        "details"
+      ],
+      "type": "object"
+    },
+    {
+      "additionalProperties": {},
+      "description": "The Peer cannot participate in interactions or the reply belongs to another Peer.",
+      "properties": {
+        "code": {
+          "const": "gateway/interactions-forbidden",
+          "type": "string"
+        },
+        "details": {
+          "properties": {
+            "endpoint": {
+              "description": "Canonical `<namespace>/<method>` endpoint.",
+              "readOnly": true,
+              "type": "string"
+            },
+            "field": {
+              "description": "Affected wire field when the failure is field-specific.",
+              "readOnly": true,
+              "type": "string"
+            }
+          },
+          "required": [
+            "endpoint"
+          ],
+          "type": "object"
+        },
+        "message": {
+          "type": "string"
+        }
+      },
+      "required": [
+        "code",
+        "message",
+        "details"
+      ],
+      "type": "object"
+    },
+    {
+      "additionalProperties": {},
+      "description": "The posted Relay address is neither null nor a string, or does not normalize.",
+      "properties": {
+        "code": {
+          "const": "liveshareShares/invalid-relay-url",
+          "type": "string"
+        },
+        "details": {
+          "additionalProperties": {
+            "not": {}
+          },
+          "propertyNames": {
+            "type": "string"
+          },
+          "type": "object"
+        },
+        "message": {
+          "type": "string"
+        }
+      },
+      "required": [
+        "code",
+        "message",
+        "details"
+      ],
+      "type": "object"
+    },
+    {
+      "additionalProperties": {},
+      "description": "The presented code expired before redemption.",
+      "properties": {
+        "code": {
+          "const": "device/pairing-expired",
+          "type": "string"
+        },
+        "details": {
+          "properties": {
+            "code": {
+              "readOnly": true,
+              "type": "string"
+            },
+            "expiresAt": {
+              "readOnly": true,
+              "type": "number"
+            }
+          },
+          "required": [
+            "code",
+            "expiresAt"
+          ],
+          "type": "object"
+        },
+        "message": {
+          "type": "string"
+        }
+      },
+      "required": [
+        "code",
+        "message",
+        "details"
+      ],
+      "type": "object"
+    },
+    {
+      "additionalProperties": {},
+      "description": "The presented code is unknown or was already redeemed.",
+      "properties": {
+        "code": {
+          "const": "device/pairing-invalid",
+          "type": "string"
+        },
+        "details": {
+          "properties": {
+            "code": {
+              "readOnly": true,
+              "type": "string"
+            }
+          },
+          "required": [
+            "code"
+          ],
+          "type": "object"
+        },
+        "message": {
+          "type": "string"
+        }
+      },
+      "required": [
+        "code",
+        "message",
+        "details"
+      ],
+      "type": "object"
+    },
+    {
+      "additionalProperties": {},
+      "description": "The presented public key is not a base64 Ed25519 SPKI DER.",
+      "properties": {
+        "code": {
+          "const": "device/key-invalid",
+          "type": "string"
+        },
+        "details": {
+          "properties": {
+            "reason": {
+              "readOnly": true,
+              "type": "string"
+            }
+          },
+          "required": [
+            "reason"
+          ],
+          "type": "object"
+        },
+        "message": {
+          "type": "string"
+        }
+      },
+      "required": [
+        "code",
+        "message",
+        "details"
+      ],
+      "type": "object"
+    },
+    {
+      "additionalProperties": {},
+      "description": "The profile lists no such bundle, or its directory cannot be resolved.",
+      "properties": {
+        "code": {
+          "const": "plugin-manager/unknown-bundle",
+          "type": "string"
+        },
+        "details": {
+          "properties": {
+            "name": {
+              "readOnly": true,
+              "type": "string"
+            }
+          },
+          "required": [
+            "name"
+          ],
+          "type": "object"
+        },
+        "message": {
+          "type": "string"
+        }
+      },
+      "required": [
+        "code",
+        "message",
+        "details"
+      ],
+      "type": "object"
+    },
+    {
+      "additionalProperties": {},
+      "description": "The provider refused a valid credential write, for example because the stored document no longer parses. The details name only the reference, never the value.",
+      "properties": {
+        "code": {
+          "const": "credential/rejected",
+          "type": "string"
+        },
+        "details": {
+          "properties": {
+            "ref": {
+              "readOnly": true,
+              "type": "string"
+            }
+          },
+          "required": [
+            "ref"
+          ],
+          "type": "object"
+        },
+        "message": {
+          "type": "string"
+        }
+      },
+      "required": [
+        "code",
+        "message",
+        "details"
+      ],
+      "type": "object"
+    },
+    {
+      "additionalProperties": {},
+      "description": "The Relay did not accept the registration this host attempted.",
+      "properties": {
+        "code": {
+          "const": "liveshareShares/relay-unavailable",
+          "type": "string"
+        },
+        "details": {
+          "properties": {
+            "reason": {
+              "readOnly": true,
+              "type": "string"
+            },
+            "relay": {
+              "readOnly": true,
+              "type": "string"
+            }
+          },
+          "required": [
+            "relay"
+          ],
+          "type": "object"
+        },
+        "message": {
+          "type": "string"
+        }
+      },
+      "required": [
+        "code",
+        "message",
+        "details"
+      ],
+      "type": "object"
+    },
+    {
+      "additionalProperties": {},
+      "description": "The Relay's audit trail could not be read; `body` carries a relay answer unchanged.",
+      "properties": {
+        "code": {
+          "const": "liveshareShares/audit-unavailable",
+          "type": "string"
+        },
+        "details": {
+          "properties": {
+            "body": {
+              "readOnly": true,
+              "type": "string"
+            },
+            "contentType": {
+              "readOnly": true,
+              "type": "string"
+            },
+            "relay": {
+              "readOnly": true,
+              "type": "string"
+            },
+            "status": {
+              "readOnly": true,
+              "type": "number"
+            }
+          },
+          "required": [
+            "relay"
+          ],
+          "type": "object"
+        },
+        "message": {
+          "type": "string"
+        }
+      },
+      "required": [
+        "code",
+        "message",
+        "details"
+      ],
+      "type": "object"
+    },
+    {
+      "additionalProperties": {},
+      "description": "The removed worktree could not be checked out again; the message gives the reason.",
+      "properties": {
+        "code": {
+          "const": "forgePanel/restore-failed",
+          "type": "string"
+        },
+        "details": {
+          "additionalProperties": {
+            "not": {}
+          },
+          "propertyNames": {
+            "type": "string"
+          },
+          "type": "object"
+        },
+        "message": {
+          "type": "string"
+        }
+      },
+      "required": [
+        "code",
+        "message",
+        "details"
+      ],
+      "type": "object"
+    },
+    {
+      "additionalProperties": {},
+      "description": "The request transport was interrupted, a logical stream exhausted carrier retries, or an otherwise unclassified HTTP failure occurred; mutation acceptance may be unknown.",
+      "properties": {
+        "code": {
+          "const": "gateway/transport-interrupted",
+          "type": "string"
+        },
+        "details": {
+          "anyOf": [
+            {
+              "properties": {
+                "endpoint": {
+                  "readOnly": true,
+                  "type": "string"
+                },
+                "httpStatus": {
+                  "readOnly": true,
+                  "type": "number"
+                }
+              },
+              "required": [
+                "endpoint"
+              ],
+              "type": "object"
+            },
+            {
+              "properties": {
+                "stream": {
+                  "readOnly": true,
+                  "type": "string"
+                }
+              },
+              "required": [
+                "stream"
+              ],
+              "type": "object"
+            }
+          ]
+        },
+        "message": {
+          "type": "string"
+        }
+      },
+      "required": [
+        "code",
+        "message",
+        "details"
+      ],
+      "type": "object"
+    },
+    {
+      "additionalProperties": {},
+      "description": "The requested access mode is not one this build stores.",
+      "properties": {
+        "code": {
+          "const": "liveshareShares/invalid-access-mode",
+          "type": "string"
+        },
+        "details": {
+          "additionalProperties": {
+            "not": {}
+          },
+          "propertyNames": {
+            "type": "string"
+          },
+          "type": "object"
+        },
+        "message": {
+          "type": "string"
+        }
+      },
+      "required": [
+        "code",
+        "message",
+        "details"
+      ],
+      "type": "object"
+    },
+    {
+      "additionalProperties": {},
+      "description": "The requested base branch name is empty.",
+      "properties": {
+        "code": {
+          "const": "forgePanel/invalid-branch",
+          "type": "string"
+        },
+        "details": {
+          "additionalProperties": {
+            "not": {}
+          },
+          "propertyNames": {
+            "type": "string"
+          },
+          "type": "object"
+        },
+        "message": {
+          "type": "string"
+        }
+      },
+      "required": [
+        "code",
+        "message",
+        "details"
+      ],
+      "type": "object"
+    },
+    {
+      "additionalProperties": {},
+      "description": "The requested directory cannot back a Workspace.",
+      "properties": {
+        "code": {
+          "const": "workspace/invalid-path",
+          "type": "string"
+        },
+        "details": {
+          "properties": {
+            "path": {
+              "readOnly": true,
+              "type": "string"
+            }
+          },
+          "required": [
+            "path"
+          ],
+          "type": "object"
+        },
+        "message": {
+          "type": "string"
+        }
+      },
+      "required": [
+        "code",
+        "message",
+        "details"
+      ],
+      "type": "object"
+    },
+    {
+      "additionalProperties": {},
+      "description": "The requested fork switch is not a boolean.",
+      "properties": {
+        "code": {
+          "const": "liveshareShares/invalid-allows-fork",
+          "type": "string"
+        },
+        "details": {
+          "additionalProperties": {
+            "not": {}
+          },
+          "propertyNames": {
+            "type": "string"
+          },
+          "type": "object"
+        },
+        "message": {
+          "type": "string"
+        }
+      },
+      "required": [
+        "code",
+        "message",
+        "details"
+      ],
+      "type": "object"
+    },
+    {
+      "additionalProperties": {},
+      "description": "The requested forwarded invocation cannot be answered through this caller.",
+      "properties": {
+        "code": {
+          "const": "gateway/invocation-unavailable",
+          "type": "string"
+        },
+        "details": {
+          "properties": {
+            "endpoint": {
+              "description": "Canonical `<namespace>/<method>` endpoint.",
+              "readOnly": true,
+              "type": "string"
+            },
+            "field": {
+              "description": "Affected wire field when the failure is field-specific.",
+              "readOnly": true,
+              "type": "string"
+            }
+          },
+          "required": [
+            "endpoint"
+          ],
+          "type": "object"
+        },
+        "message": {
+          "type": "string"
+        }
+      },
+      "required": [
+        "code",
+        "message",
+        "details"
+      ],
+      "type": "object"
+    },
+    {
+      "additionalProperties": {},
+      "description": "The requested lifetime is not a positive safe-integer count of minutes within the ceiling.",
+      "properties": {
+        "code": {
+          "const": "liveshareShares/invalid-ttl",
+          "type": "string"
+        },
+        "details": {
+          "additionalProperties": {
+            "not": {}
+          },
+          "propertyNames": {
+            "type": "string"
+          },
+          "type": "object"
+        },
+        "message": {
+          "type": "string"
+        }
+      },
+      "required": [
+        "code",
+        "message",
+        "details"
+      ],
+      "type": "object"
+    },
+    {
+      "additionalProperties": {},
+      "description": "The requested page exceeds the configured byte cap; nothing is returned.",
+      "properties": {
+        "code": {
+          "const": "workspace-file/too-large",
+          "type": "string"
+        },
+        "details": {
+          "properties": {
+            "limit": {
+              "readOnly": true,
+              "type": "number"
+            },
+            "path": {
+              "readOnly": true,
+              "type": "string"
+            }
+          },
+          "required": [
+            "path",
+            "limit"
+          ],
+          "type": "object"
+        },
+        "message": {
+          "type": "string"
+        }
+      },
+      "required": [
+        "code",
+        "message",
+        "details"
+      ],
+      "type": "object"
+    },
+    {
+      "additionalProperties": {},
+      "description": "The requested preset conflicts with the existing Session's preset.",
+      "properties": {
+        "code": {
+          "const": "agent-preset/conflict",
+          "type": "string"
+        },
+        "details": {
+          "properties": {
+            "requestedPreset": {
+              "readOnly": true,
+              "type": "string"
+            },
+            "sessionId": {
+              "readOnly": true,
+              "type": "string"
+            }
+          },
+          "required": [
+            "sessionId",
+            "requestedPreset"
+          ],
+          "type": "object"
+        },
+        "message": {
+          "type": "string"
+        }
+      },
+      "required": [
+        "code",
+        "message",
+        "details"
+      ],
+      "type": "object"
+    },
+    {
+      "additionalProperties": {},
+      "description": "The requested provider and model are unavailable; select an available model.",
+      "properties": {
+        "code": {
+          "const": "session/model-unavailable",
+          "type": "string"
+        },
+        "details": {
+          "properties": {
+            "model": {
+              "readOnly": true,
+              "type": "string"
+            },
+            "provider": {
+              "readOnly": true,
+              "type": "string"
+            }
+          },
+          "required": [
+            "provider",
+            "model"
+          ],
+          "type": "object"
+        },
+        "message": {
+          "type": "string"
+        }
+      },
+      "required": [
+        "code",
+        "message",
+        "details"
+      ],
+      "type": "object"
+    },
+    {
+      "additionalProperties": {},
+      "description": "The requested Relay address is not a usable base URL.",
+      "properties": {
+        "code": {
+          "const": "liveshareShares/invalid-relay",
+          "type": "string"
+        },
+        "details": {
+          "properties": {
+            "relay": {
+              "readOnly": true,
+              "type": "string"
+            }
+          },
+          "required": [
+            "relay"
+          ],
+          "type": "object"
+        },
+        "message": {
+          "type": "string"
+        }
+      },
+      "required": [
+        "code",
+        "message",
+        "details"
+      ],
+      "type": "object"
+    },
+    {
+      "additionalProperties": {},
+      "description": "The requested Session does not exist.",
+      "properties": {
+        "code": {
+          "const": "session-status/not-found",
+          "type": "string"
+        },
+        "details": {
+          "properties": {
+            "sessionId": {
+              "readOnly": true,
+              "type": "string"
+            }
+          },
+          "required": [
+            "sessionId"
+          ],
+          "type": "object"
+        },
+        "message": {
+          "type": "string"
+        }
+      },
+      "required": [
+        "code",
+        "message",
+        "details"
+      ],
+      "type": "object"
+    },
+    {
+      "additionalProperties": {},
+      "description": "The requested Session title fails title validation.",
+      "properties": {
+        "code": {
+          "const": "session/title-invalid",
+          "type": "string"
+        },
+        "details": {
+          "properties": {
+            "sessionId": {
+              "readOnly": true,
+              "type": "string"
+            }
+          },
+          "required": [
+            "sessionId"
+          ],
+          "type": "object"
+        },
+        "message": {
+          "type": "string"
+        }
+      },
+      "required": [
+        "code",
+        "message",
+        "details"
+      ],
+      "type": "object"
+    },
+    {
+      "additionalProperties": {},
+      "description": "The requested tier is not one this build drives.",
+      "properties": {
+        "code": {
+          "const": "liveshareShares/invalid-session-mode",
+          "type": "string"
+        },
+        "details": {
+          "additionalProperties": {
+            "not": {}
+          },
+          "propertyNames": {
+            "type": "string"
+          },
+          "type": "object"
+        },
+        "message": {
+          "type": "string"
+        }
+      },
+      "required": [
+        "code",
+        "message",
+        "details"
+      ],
+      "type": "object"
+    },
+    {
+      "additionalProperties": {},
+      "description": "The requested working directory conflicts with the existing Session.",
+      "properties": {
+        "code": {
+          "const": "session/conflict",
+          "type": "string"
+        },
+        "details": {
+          "properties": {
+            "existingCwd": {
+              "readOnly": true,
+              "type": "string"
+            },
+            "requestedCwd": {
+              "readOnly": true,
+              "type": "string"
+            },
+            "sessionId": {
+              "readOnly": true,
+              "type": "string"
+            }
+          },
+          "required": [
+            "sessionId",
+            "requestedCwd"
+          ],
+          "type": "object"
+        },
+        "message": {
+          "type": "string"
+        }
+      },
+      "required": [
+        "code",
+        "message",
+        "details"
+      ],
+      "type": "object"
+    },
+    {
+      "additionalProperties": {},
+      "description": "The resource URL does not identify a plan invocation.",
+      "properties": {
+        "code": {
+          "const": "plan/invalid-address",
+          "type": "string"
+        },
+        "details": {
+          "additionalProperties": {
+            "not": {}
+          },
+          "propertyNames": {
+            "type": "string"
+          },
+          "type": "object"
+        },
+        "message": {
+          "type": "string"
+        }
+      },
+      "required": [
+        "code",
+        "message",
+        "details"
+      ],
+      "type": "object"
+    },
+    {
+      "additionalProperties": {},
+      "description": "The Schedule request failed validation before it was stored.",
+      "properties": {
+        "code": {
+          "const": "schedule/input-invalid",
+          "type": "string"
+        },
+        "details": {
+          "properties": {
+            "code": {
+              "anyOf": [
+                {
+                  "const": "frequency_too_high",
+                  "type": "string"
+                },
+                {
+                  "const": "invalid_prompt",
+                  "type": "string"
+                },
+                {
+                  "const": "invalid_rule",
+                  "type": "string"
+                },
+                {
+                  "const": "invalid_selector",
+                  "type": "string"
+                },
+                {
+                  "const": "invalid_time_zone",
+                  "type": "string"
+                },
+                {
+                  "const": "not_future",
+                  "type": "string"
+                },
+                {
+                  "const": "subagent_session",
+                  "type": "string"
+                },
+                {
+                  "const": "time_out_of_range",
+                  "type": "string"
+                }
+              ],
+              "readOnly": true
+            }
+          },
+          "required": [
+            "code"
+          ],
+          "type": "object"
+        },
+        "message": {
+          "type": "string"
+        }
+      },
+      "required": [
+        "code",
+        "message",
+        "details"
+      ],
+      "type": "object"
+    },
+    {
+      "additionalProperties": {},
+      "description": "The selected provider exposes no usable model catalog.",
+      "properties": {
+        "code": {
+          "const": "session/provider-models-unavailable",
+          "type": "string"
+        },
+        "details": {
+          "properties": {
+            "provider": {
+              "readOnly": true,
+              "type": "string"
+            }
+          },
+          "required": [
+            "provider"
+          ],
+          "type": "object"
+        },
+        "message": {
+          "type": "string"
+        }
+      },
+      "required": [
+        "code",
+        "message",
+        "details"
+      ],
+      "type": "object"
+    },
+    {
+      "additionalProperties": {},
+      "description": "The selected provider rejected transcription.",
+      "properties": {
+        "code": {
+          "const": "speech/transcription-failed",
+          "type": "string"
+        },
+        "details": {
+          "properties": {
+            "reason": {
+              "readOnly": true,
+              "type": "string"
+            }
+          },
+          "required": [
+            "reason"
+          ],
+          "type": "object"
+        },
+        "message": {
+          "type": "string"
+        }
+      },
+      "required": [
+        "code",
+        "message",
+        "details"
+      ],
+      "type": "object"
+    },
+    {
+      "additionalProperties": {},
+      "description": "The service's Remote binding is malformed or disagrees with its registration.",
+      "properties": {
+        "code": {
+          "const": "gateway/binding-invalid",
+          "type": "string"
+        },
+        "details": {
+          "properties": {
+            "endpoint": {
+              "description": "Canonical `<namespace>/<method>` endpoint.",
+              "readOnly": true,
+              "type": "string"
+            },
+            "field": {
+              "description": "Affected wire field when the failure is field-specific.",
+              "readOnly": true,
+              "type": "string"
+            }
+          },
+          "required": [
+            "endpoint"
+          ],
+          "type": "object"
+        },
+        "message": {
+          "type": "string"
+        }
+      },
+      "required": [
+        "code",
+        "message",
+        "details"
+      ],
+      "type": "object"
+    },
+    {
+      "additionalProperties": {},
+      "description": "The Session could not be attached to the requested Workspace.",
+      "properties": {
+        "code": {
+          "const": "session/workspace-attach-failed",
+          "type": "string"
+        },
+        "details": {
+          "properties": {
+            "sessionId": {
+              "readOnly": true,
+              "type": "string"
+            },
+            "workspaceId": {
+              "readOnly": true,
+              "type": "string"
+            }
+          },
+          "required": [
+            "sessionId",
+            "workspaceId"
+          ],
+          "type": "object"
+        },
+        "message": {
+          "type": "string"
+        }
+      },
+      "required": [
+        "code",
+        "message",
+        "details"
+      ],
+      "type": "object"
+    },
+    {
+      "additionalProperties": {},
+      "description": "The Session has no created worktree to restore or leave.",
+      "properties": {
+        "code": {
+          "const": "forgePanel/no-worktree",
+          "type": "string"
+        },
+        "details": {
+          "additionalProperties": {
+            "not": {}
+          },
+          "propertyNames": {
+            "type": "string"
+          },
+          "type": "object"
+        },
+        "message": {
+          "type": "string"
+        }
+      },
+      "required": [
+        "code",
+        "message",
+        "details"
+      ],
+      "type": "object"
+    },
+    {
+      "additionalProperties": {},
+      "description": "The Session has no readable plan for this invocation.",
+      "properties": {
+        "code": {
+          "const": "plan/not-found",
+          "type": "string"
+        },
+        "details": {
+          "additionalProperties": {
+            "not": {}
+          },
+          "propertyNames": {
+            "type": "string"
+          },
+          "type": "object"
+        },
+        "message": {
+          "type": "string"
+        }
+      },
+      "required": [
+        "code",
+        "message",
+        "details"
+      ],
+      "type": "object"
+    },
+    {
+      "additionalProperties": {},
+      "description": "The Session history read failed.",
+      "properties": {
+        "code": {
+          "const": "plan/read-failed",
+          "type": "string"
+        },
+        "details": {
+          "additionalProperties": {
+            "not": {}
+          },
+          "propertyNames": {
+            "type": "string"
+          },
+          "type": "object"
+        },
+        "message": {
+          "type": "string"
+        }
+      },
+      "required": [
+        "code",
+        "message",
+        "details"
+      ],
+      "type": "object"
+    },
+    {
+      "additionalProperties": {},
+      "description": "The Session or its anchor is not in the Workspace's manual order.",
+      "properties": {
+        "code": {
+          "const": "workspace/move-invalid",
+          "type": "string"
+        },
+        "details": {
+          "properties": {
+            "beforeSessionId": {
+              "readOnly": true,
+              "type": "string"
+            },
+            "sessionId": {
+              "readOnly": true,
+              "type": "string"
+            },
+            "workspaceId": {
+              "readOnly": true,
+              "type": "string"
+            }
+          },
+          "required": [
+            "workspaceId",
+            "sessionId"
+          ],
+          "type": "object"
+        },
+        "message": {
+          "type": "string"
+        }
+      },
+      "required": [
+        "code",
+        "message",
+        "details"
+      ],
+      "type": "object"
+    },
+    {
+      "additionalProperties": {},
+      "description": "The Session projection snapshot is unavailable.",
+      "properties": {
+        "code": {
+          "const": "session/projections-unavailable",
+          "type": "string"
+        },
+        "details": {
+          "additionalProperties": {
+            "not": {}
+          },
+          "propertyNames": {
+            "type": "string"
+          },
+          "type": "object"
+        },
+        "message": {
+          "type": "string"
+        }
+      },
+      "required": [
+        "code",
+        "message",
+        "details"
+      ],
+      "type": "object"
+    },
+    {
+      "additionalProperties": {},
+      "description": "The Session still has running work — its own turn, a subagent, a background job, or an active schedule — so archiving was refused without a write; `activity` names what must stop first.",
+      "properties": {
+        "code": {
+          "const": "workspace/session-active",
+          "type": "string"
+        },
+        "details": {
+          "properties": {
+            "activity": {
+              "items": {
+                "properties": {
+                  "items": {
+                    "description": "Active items of the family; absent for a family without per-item identity (`turn`).",
+                    "items": {
+                      "properties": {
+                        "id": {
+                          "description": "Family-specific identity: a session id, a job id, or a schedule id.",
+                          "readOnly": true,
+                          "type": "string"
+                        },
+                        "label": {
+                          "description": "Display label when the family carries one (a job label, a subagent label).",
+                          "readOnly": true,
+                          "type": "string"
+                        }
+                      },
+                      "required": [
+                        "id"
+                      ],
+                      "type": "object"
+                    },
+                    "readOnly": true,
+                    "type": "array"
+                  },
+                  "kind": {
+                    "anyOf": [
+                      {
+                        "const": "job",
+                        "type": "string"
+                      },
+                      {
+                        "const": "schedule",
+                        "type": "string"
+                      },
+                      {
+                        "const": "subagent",
+                        "type": "string"
+                      },
+                      {
+                        "const": "turn",
+                        "type": "string"
+                      }
+                    ],
+                    "readOnly": true
+                  }
+                },
+                "required": [
+                  "kind"
+                ],
+                "type": "object"
+              },
+              "readOnly": true,
+              "type": "array"
+            },
+            "sessionId": {
+              "readOnly": true,
+              "type": "string"
+            }
+          },
+          "required": [
+            "sessionId",
+            "activity"
+          ],
+          "type": "object"
+        },
+        "message": {
+          "type": "string"
+        }
+      },
+      "required": [
+        "code",
+        "message",
+        "details"
+      ],
+      "type": "object"
+    },
+    {
+      "additionalProperties": {},
+      "description": "The Session's Agent is not loaded or has other work, so its checkout cannot change now.",
+      "properties": {
+        "code": {
+          "const": "forgePanel/session-busy",
+          "type": "string"
+        },
+        "details": {
+          "additionalProperties": {
+            "not": {}
+          },
+          "propertyNames": {
+            "type": "string"
+          },
+          "type": "object"
+        },
+        "message": {
+          "type": "string"
+        }
+      },
+      "required": [
+        "code",
+        "message",
+        "details"
+      ],
+      "type": "object"
+    },
+    {
+      "additionalProperties": {},
+      "description": "The session's conversation has started, so its composition is fixed.",
+      "properties": {
+        "code": {
+          "const": "agent-preset/locked",
+          "type": "string"
+        },
+        "details": {
+          "properties": {
+            "agentPreset": {
+              "readOnly": true,
+              "type": "string"
+            },
+            "sessionId": {
+              "readOnly": true,
+              "type": "string"
+            }
+          },
+          "required": [
+            "sessionId",
+            "agentPreset"
+          ],
+          "type": "object"
+        },
+        "message": {
+          "type": "string"
+        }
+      },
+      "required": [
+        "code",
+        "message",
+        "details"
+      ],
+      "type": "object"
+    },
+    {
+      "additionalProperties": {},
+      "description": "The Session's directory is not inside a Git checkout, so it has no local changes.",
+      "properties": {
+        "code": {
+          "const": "forgePanel/not-a-checkout",
+          "type": "string"
+        },
+        "details": {
+          "additionalProperties": {
+            "not": {}
+          },
+          "propertyNames": {
+            "type": "string"
+          },
+          "type": "object"
+        },
+        "message": {
+          "type": "string"
+        }
+      },
+      "required": [
+        "code",
+        "message",
+        "details"
+      ],
+      "type": "object"
+    },
+    {
+      "additionalProperties": {},
+      "description": "The session's job list no longer carries a killable row under that id.",
+      "properties": {
+        "code": {
+          "const": "job/not-found",
+          "type": "string"
+        },
+        "details": {
+          "properties": {
+            "jobId": {
+              "readOnly": true,
+              "type": "string"
+            },
+            "sessionId": {
+              "readOnly": true,
+              "type": "string"
+            }
+          },
+          "required": [
+            "sessionId",
+            "jobId"
+          ],
+          "type": "object"
+        },
+        "message": {
+          "type": "string"
+        }
+      },
+      "required": [
+        "code",
+        "message",
+        "details"
+      ],
+      "type": "object"
+    },
+    {
+      "additionalProperties": {},
+      "description": "The signed admission timestamp fell outside the acceptance window.",
+      "properties": {
+        "code": {
+          "const": "device/admission-expired",
+          "type": "string"
+        },
+        "details": {
+          "properties": {
+            "admissionWindowMs": {
+              "readOnly": true,
+              "type": "number"
+            },
+            "deviceId": {
+              "readOnly": true,
+              "type": "string"
+            },
+            "timestamp": {
+              "readOnly": true,
+              "type": "number"
+            }
+          },
+          "required": [
+            "deviceId",
+            "timestamp",
+            "admissionWindowMs"
+          ],
+          "type": "object"
+        },
+        "message": {
+          "type": "string"
+        }
+      },
+      "required": [
+        "code",
+        "message",
+        "details"
+      ],
+      "type": "object"
+    },
+    {
+      "additionalProperties": {},
+      "description": "The source Session must be opened and migrated before it can be forked.",
+      "properties": {
+        "code": {
+          "const": "session/migration-required",
+          "type": "string"
+        },
+        "details": {
+          "properties": {
+            "sessionId": {
+              "readOnly": true,
+              "type": "string"
+            }
+          },
+          "required": [
+            "sessionId"
+          ],
+          "type": "object"
+        },
+        "message": {
+          "type": "string"
+        }
+      },
+      "required": [
+        "code",
+        "message",
+        "details"
+      ],
+      "type": "object"
+    },
+    {
+      "additionalProperties": {},
+      "description": "The source was authorized, but its conversion failed.",
+      "properties": {
+        "code": {
+          "const": "document-render/failed",
+          "type": "string"
+        },
+        "details": {
+          "properties": {
+            "reason": {
+              "anyOf": [
+                {
+                  "const": "busy",
+                  "type": "string"
+                },
+                {
+                  "const": "failed",
+                  "type": "string"
+                },
+                {
+                  "const": "input-too-large",
+                  "type": "string"
+                },
+                {
+                  "const": "invalid-document",
+                  "type": "string"
+                },
+                {
+                  "const": "invalid-output",
+                  "type": "string"
+                },
+                {
+                  "const": "invalid-request",
+                  "type": "string"
+                },
+                {
+                  "const": "output-too-large",
+                  "type": "string"
+                },
+                {
+                  "const": "source-changed",
+                  "type": "string"
+                },
+                {
+                  "const": "timeout",
+                  "type": "string"
+                },
+                {
+                  "const": "unavailable",
+                  "type": "string"
+                },
+                {
+                  "const": "unsupported-format",
+                  "type": "string"
+                }
+              ],
+              "readOnly": true
+            }
+          },
+          "required": [
+            "reason"
+          ],
+          "type": "object"
+        },
+        "message": {
+          "type": "string"
+        }
+      },
+      "required": [
+        "code",
+        "message",
+        "details"
+      ],
+      "type": "object"
+    },
+    {
+      "additionalProperties": {},
+      "description": "The stored revision moved after the caller read it. Its own outcome rather than an invalid request: the caller must re-read and re-apply.",
+      "properties": {
+        "code": {
+          "const": "settings/conflict",
+          "type": "string"
+        },
+        "details": {
+          "properties": {
+            "actual": {
+              "readOnly": true,
+              "type": "number"
+            },
+            "expected": {
+              "readOnly": true,
+              "type": "number"
+            },
+            "ns": {
+              "readOnly": true,
+              "type": "string"
+            }
+          },
+          "required": [
+            "ns",
+            "expected",
+            "actual"
+          ],
+          "type": "object"
+        },
+        "message": {
+          "type": "string"
+        }
+      },
+      "required": [
+        "code",
+        "message",
+        "details"
+      ],
+      "type": "object"
+    },
+    {
+      "additionalProperties": {},
+      "description": "The submitted capability selection is not a list of plugin groups.",
+      "properties": {
+        "code": {
+          "const": "liveshareShares/invalid-capabilities",
+          "type": "string"
+        },
+        "details": {
+          "additionalProperties": {
+            "not": {}
+          },
+          "propertyNames": {
+            "type": "string"
+          },
+          "type": "object"
+        },
+        "message": {
+          "type": "string"
+        }
+      },
+      "required": [
+        "code",
+        "message",
+        "details"
+      ],
+      "type": "object"
+    },
+    {
+      "additionalProperties": {},
+      "description": "The supplied address or live subagent-tree identity could not be verified.",
+      "properties": {
+        "code": {
+          "const": "subagent/unauthorized",
+          "type": "string"
+        },
+        "details": {
+          "properties": {
+            "childSessionId": {
+              "readOnly": true,
+              "type": "string"
+            }
+          },
+          "required": [
+            "childSessionId"
+          ],
+          "type": "object"
+        },
+        "message": {
+          "type": "string"
+        }
+      },
+      "required": [
+        "code",
+        "message",
+        "details"
+      ],
+      "type": "object"
+    },
+    {
+      "additionalProperties": {},
+      "description": "The supplied or negotiated API protocol is unsupported; update the application before reconnecting.",
+      "properties": {
+        "code": {
+          "const": "gateway/protocol-unsupported",
+          "type": "string"
+        },
+        "details": {
+          "properties": {
+            "endpoint": {
+              "readOnly": true,
+              "type": "string"
+            },
+            "supportedApiProtocolVersions": {
+              "items": {
+                "type": "number"
+              },
+              "readOnly": true,
+              "type": "array"
+            }
+          },
+          "required": [
+            "endpoint",
+            "supportedApiProtocolVersions"
+          ],
+          "type": "object"
+        },
+        "message": {
+          "type": "string"
+        }
+      },
+      "required": [
+        "code",
+        "message",
+        "details"
+      ],
+      "type": "object"
+    },
+    {
+      "additionalProperties": {},
+      "description": "The supplied time zone is not a supported IANA time zone.",
+      "properties": {
+        "code": {
+          "const": "session/invalid-time-zone",
+          "type": "string"
+        },
+        "details": {
+          "properties": {
+            "value": {
+              "readOnly": true,
+              "type": "string"
+            }
+          },
+          "required": [
+            "value"
+          ],
+          "type": "object"
+        },
+        "message": {
+          "type": "string"
+        }
+      },
+      "required": [
+        "code",
+        "message",
+        "details"
+      ],
+      "type": "object"
+    },
+    {
+      "additionalProperties": {},
+      "description": "The target is not fully qualified, or the backend cannot list it.",
+      "properties": {
+        "code": {
+          "const": "directory-picker/unreadable",
+          "type": "string"
+        },
+        "details": {
+          "properties": {
+            "path": {
+              "readOnly": true,
+              "type": "string"
+            }
+          },
+          "required": [
+            "path"
+          ],
+          "type": "object"
+        },
+        "message": {
+          "type": "string"
+        }
+      },
+      "required": [
+        "code",
+        "message",
+        "details"
+      ],
+      "type": "object"
+    },
+    {
+      "additionalProperties": {},
+      "description": "The terminal identity is missing or has begun process cleanup.",
+      "properties": {
+        "code": {
+          "const": "terminal/unavailable",
+          "type": "string"
+        },
+        "details": {
+          "additionalProperties": {
+            "not": {}
+          },
+          "propertyNames": {
+            "type": "string"
+          },
+          "type": "object"
+        },
+        "message": {
+          "type": "string"
+        }
+      },
+      "required": [
+        "code",
+        "message",
+        "details"
+      ],
+      "type": "object"
+    },
+    {
+      "additionalProperties": {},
+      "description": "The timestamp is below the durable replay floor, or the nonce was already consumed.",
+      "properties": {
+        "code": {
+          "const": "device/replay-detected",
+          "type": "string"
+        },
+        "details": {
+          "properties": {
+            "deviceId": {
+              "readOnly": true,
+              "type": "string"
+            },
+            "reason": {
+              "anyOf": [
+                {
+                  "const": "nonce-reuse",
+                  "type": "string"
+                },
+                {
+                  "const": "timestamp-regressed",
+                  "type": "string"
+                }
+              ],
+              "readOnly": true
+            }
+          },
+          "required": [
+            "deviceId",
+            "reason"
+          ],
+          "type": "object"
+        },
+        "message": {
+          "type": "string"
+        }
+      },
+      "required": [
+        "code",
+        "message",
+        "details"
+      ],
+      "type": "object"
+    },
+    {
+      "additionalProperties": {},
+      "description": "The URL is not a visible binding of the Session that a provider serves, so the panel does not act on it.",
+      "properties": {
+        "code": {
+          "const": "forgePanel/not-bound",
+          "type": "string"
+        },
+        "details": {
+          "additionalProperties": {
+            "not": {}
+          },
+          "propertyNames": {
+            "type": "string"
+          },
+          "type": "object"
+        },
+        "message": {
+          "type": "string"
+        }
+      },
+      "required": [
+        "code",
+        "message",
+        "details"
+      ],
+      "type": "object"
+    },
+    {
+      "additionalProperties": {},
+      "description": "The URL is not one of the configured index sources.",
+      "properties": {
+        "code": {
+          "const": "plugin-market/unknown-index",
+          "type": "string"
+        },
+        "details": {
+          "properties": {
+            "url": {
+              "readOnly": true,
+              "type": "string"
+            }
+          },
+          "required": [
+            "url"
+          ],
+          "type": "object"
+        },
+        "message": {
+          "type": "string"
+        }
+      },
+      "required": [
+        "code",
+        "message",
+        "details"
+      ],
+      "type": "object"
+    },
+    {
+      "additionalProperties": {},
+      "description": "The verb needs an interaction the composed backend does not serve.",
+      "properties": {
+        "code": {
+          "const": "directory-picker/unavailable",
+          "type": "string"
+        },
+        "details": {
+          "properties": {
+            "capability": {
+              "readOnly": true,
+              "type": "string"
+            }
+          },
+          "required": [
+            "capability"
+          ],
+          "type": "object"
+        },
+        "message": {
+          "type": "string"
+        }
+      },
+      "required": [
+        "code",
+        "message",
+        "details"
+      ],
+      "type": "object"
+    },
+    {
+      "additionalProperties": {},
+      "description": "This delivery can no longer accept an answer; it does not identify which Client settled the interaction.",
+      "properties": {
+        "code": {
+          "const": "interaction-closed",
+          "type": "string"
+        },
+        "details": {
+          "properties": {
+            "eventId": {
+              "readOnly": true,
+              "type": "string"
+            }
+          },
+          "required": [
+            "eventId"
+          ],
+          "type": "object"
+        },
+        "message": {
+          "type": "string"
+        }
+      },
+      "required": [
+        "code",
+        "message",
+        "details"
+      ],
+      "type": "object"
+    },
+    {
+      "additionalProperties": true,
+      "properties": {
+        "code": {
+          "not": {
+            "enum": [
+              "agent-preset/conflict",
+              "agent-preset/invalid",
+              "agent-preset/locked",
+              "agent-preset/not-found",
+              "cotTranslation/failed",
+              "credential/rejected",
+              "deepseekChatImport/owner-only",
+              "device/admission-capacity",
+              "device/admission-expired",
+              "device/already-revoked",
+              "device/key-invalid",
+              "device/not-found",
+              "device/pairing-expired",
+              "device/pairing-invalid",
+              "device/replay-detected",
+              "directory-picker/create-failed",
+              "directory-picker/exists",
+              "directory-picker/unavailable",
+              "directory-picker/unreadable",
+              "document-render/failed",
+              "forgePanel/action-failed",
+              "forgePanel/action-unknown",
+              "forgePanel/base-missing",
+              "forgePanel/checks-failed",
+              "forgePanel/commits-missing",
+              "forgePanel/commits-not-linear",
+              "forgePanel/diff-failed",
+              "forgePanel/diff-too-large",
+              "forgePanel/filter-config-failed",
+              "forgePanel/invalid-branch",
+              "forgePanel/lens-failed",
+              "forgePanel/lens-missing",
+              "forgePanel/lens-stale",
+              "forgePanel/no-fork-point",
+              "forgePanel/no-worktree",
+              "forgePanel/not-a-checkout",
+              "forgePanel/not-bound",
+              "forgePanel/not-waiting",
+              "forgePanel/restore-failed",
+              "forgePanel/review-failed",
+              "forgePanel/review-unsupported",
+              "forgePanel/reviewers-failed",
+              "forgePanel/session-busy",
+              "forgePanel/session-started",
+              "forgePanel/stale-head",
+              "forgePanel/unrecognized-url",
+              "forgePanel/viewed-failed",
+              "forgePanel/worktrees-unavailable",
+              "gateway/ambiguous-endpoint",
+              "gateway/arguments-invalid",
+              "gateway/authentication-required",
+              "gateway/bad-request",
+              "gateway/binding-invalid",
+              "gateway/cancelled",
+              "gateway/connection-unavailable",
+              "gateway/context-failed",
+              "gateway/context-not-found",
+              "gateway/context-unavailable",
+              "gateway/definition-unavailable",
+              "gateway/host-not-ready",
+              "gateway/input-invalid",
+              "gateway/interactions-forbidden",
+              "gateway/internal",
+              "gateway/invocation-unavailable",
+              "gateway/lookup-failed",
+              "gateway/lookup-not-found",
+              "gateway/lookup-unavailable",
+              "gateway/method-unavailable",
+              "gateway/peer-disposed",
+              "gateway/permission-denied",
+              "gateway/preparation-unavailable",
+              "gateway/protocol",
+              "gateway/protocol-unsupported",
+              "gateway/provider-mismatch",
+              "gateway/result-invalid",
+              "gateway/service-unavailable",
+              "gateway/signature-invalid",
+              "gateway/stream-invalid",
+              "gateway/transport-interrupted",
+              "gateway/uplink-overflow",
+              "host/capability-unavailable",
+              "interaction-closed",
+              "interaction-expired",
+              "job/not-found",
+              "liveshareShares/audit-unavailable",
+              "liveshareShares/endpoint-not-offered",
+              "liveshareShares/invalid-access-mode",
+              "liveshareShares/invalid-allows-fork",
+              "liveshareShares/invalid-capabilities",
+              "liveshareShares/invalid-relay",
+              "liveshareShares/invalid-relay-url",
+              "liveshareShares/invalid-session-mode",
+              "liveshareShares/invalid-ttl",
+              "liveshareShares/missing-permission",
+              "liveshareShares/missing-session-id",
+              "liveshareShares/missing-session-ids",
+              "liveshareShares/missing-share-id",
+              "liveshareShares/owner-login-required",
+              "liveshareShares/owner-state-held",
+              "liveshareShares/owner-state-unavailable",
+              "liveshareShares/relay-unavailable",
+              "liveshareShares/relay-upgrade-required",
+              "liveshareShares/relay-url-required",
+              "liveshareShares/session-workspace-mismatch",
+              "liveshareShares/session-workspace-unknown",
+              "liveshareShares/share-not-found",
+              "liveshareShares/unknown-plugin",
+              "liveshareShares/workspace-unavailable",
+              "llm/model-discovery-rejected",
+              "plan/invalid-address",
+              "plan/not-found",
+              "plan/read-failed",
+              "plugin-manager/detail-unavailable",
+              "plugin-manager/invalid-language",
+              "plugin-manager/unknown-bundle",
+              "plugin-market/detail-unavailable",
+              "plugin-market/fetch-failed",
+              "plugin-market/invalid-index",
+              "plugin-market/invalid-index-url",
+              "plugin-market/invalid-query",
+              "plugin-market/settings-unavailable",
+              "plugin-market/unknown-index",
+              "plugin-market/unknown-plugin",
+              "remote-access/denied",
+              "revision-conflict",
+              "schedule/input-invalid",
+              "schedule/target-archived",
+              "session-status/not-found",
+              "session-status/unavailable",
+              "session/agent-busy",
+              "session/attachment-invalid",
+              "session/conflict",
+              "session/fork-unavailable",
+              "session/invalid-time-zone",
+              "session/migration-required",
+              "session/model-unavailable",
+              "session/not-found",
+              "session/observation-ended",
+              "session/projections-unavailable",
+              "session/provider-credentials-unavailable",
+              "session/provider-models-unavailable",
+              "session/queue-item-not-found",
+              "session/revision-conflict",
+              "session/steer-unavailable",
+              "session/title-invalid",
+              "session/wait-timeout",
+              "session/workspace-attach-failed",
+              "session/writer-held",
+              "settings/conflict",
+              "settings/rejected",
+              "speech/invalid-audio",
+              "speech/transcription-failed",
+              "subagent/attachment-invalid",
+              "subagent/catalog-diagnostic",
+              "subagent/delivery-unavailable",
+              "subagent/invalid-time-zone",
+              "subagent/not-found",
+              "subagent/not-resumable",
+              "subagent/unauthorized",
+              "terminal/control-unavailable",
+              "terminal/limit-reached",
+              "terminal/unavailable",
+              "terminal/view",
+              "tool-catalog/conflict",
+              "tool-catalog/declaration-unavailable",
+              "workspace-file/not-directory",
+              "workspace-file/not-found",
+              "workspace-file/not-regular-file",
+              "workspace-file/not-text",
+              "workspace-file/outside-workspace",
+              "workspace-file/search-failed",
+              "workspace-file/too-large",
+              "workspace-file/unknown-workspace",
+              "workspace-file/unsupported-address",
+              "workspace-file/watch-unsupported",
+              "workspace/invalid-path",
+              "workspace/move-invalid",
+              "workspace/name-conflict",
+              "workspace/not-found",
+              "workspace/session-active"
+            ]
+          },
+          "type": "string"
+        },
+        "details": {
+          "additionalProperties": true,
+          "type": "object"
+        },
+        "message": {
+          "type": "string"
+        }
+      },
+      "required": [
+        "code",
+        "message",
+        "details"
+      ],
+      "title": "Opaque unknown Remote failure",
+      "type": "object"
+    }
+  ],
+  "description": "Validates known code details and preserves unknown codes as opaque diagnostics. Acceptance does not imply capability, permission, recovery policy or protocol compatibility. Additional fields are accepted; validators must not discard the original diagnostic.",
+  "title": "DeepSeek Harness Remote failure envelope"
+}

@@ -14,6 +14,7 @@ import { createHash } from 'node:crypto'
 import { lstatSync, readFileSync, writeFileSync } from 'node:fs'
 import { resolve } from 'node:path'
 import ts from 'typescript'
+import { isFrozenHandoffEvidence } from './handoff-evidence.ts'
 
 /** Source areas every inventory gate must find, so a narrowed scan cannot pass silently. */
 const AREAS = ['packages/', 'apps/', 'scripts/', 'website/'] as const
@@ -57,6 +58,7 @@ export function isInventorySource(file: string): boolean {
   return SOURCE_EXTENSIONS.test(file)
     && !file.startsWith('vendor/')
     && !file.startsWith('.agents/notes/archived/')
+    && !isFrozenHandoffEvidence(file)
 }
 
 /**

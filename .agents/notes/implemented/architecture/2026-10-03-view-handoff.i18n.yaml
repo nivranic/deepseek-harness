@@ -1,0 +1,22 @@
+# Bilingual-pair consistency record for 2026-10-03-view-handoff.md (docs/i18n/README.md): per heading
+# section, a hash of its English and Chinese blocks outside code blocks and generated regions.
+# After editing either side, bring the other along and re-record with:
+#   pnpm run verify-translation-pairing --write .agents/notes/implemented/architecture/2026-10-03-view-handoff.md
+/agent-note-section-26-web-view-handoff-generation-and-receive-side:
+  en: 439514331f696e48
+  zh: 4014ad253b56d4aa
+/agent-note-section-26-web-view-handoff-generation-and-receive-side/problem:
+  en: 7a03cdd2b65b7a56
+  zh: 637f002f074ef070
+/agent-note-section-26-web-view-handoff-generation-and-receive-side/decision:
+  en: 1aa4a84a9aee59a7
+  zh: 1cb91f98489edd06
+/agent-note-section-26-web-view-handoff-generation-and-receive-side/alternatives-considered:
+  en: c99877983bf4e086
+  zh: fbb97d056954b839
+/agent-note-section-26-web-view-handoff-generation-and-receive-side/consequences:
+  en: f7f168e959751b4f
+  zh: c40cd8e5a5f13b19
+/agent-note-section-26-web-view-handoff-generation-and-receive-side/open-work:
+  en: adcfbc656800b7da
+  zh: ac7394a1c1d659ff

@@ -1,8 +1,7 @@
 /**
- * Resources of Remote access control: the built-in identity-less `global`
- * resource and one resource per identity of a kind declared in
- * `TypertResourceMap`. Resources are independent: access to one resource
- * implies no access to any other.
+ * Resources of Remote access control: identity-less `global` and `host`,
+ * and identities of kinds declared in `TypertResourceMap`. A `host` binding
+ * explicitly grants its actions across resources; other bindings remain independent.
  * @module @deepseek-ai/dsh-typert-protocol/remote-access
  */
 
@@ -16,23 +15,23 @@ import type {
   TypertResourceMap,
 } from './types.ts'
 
-/** One resource kind: the built-in `global` kind or a declared kind. */
-export type RemoteAccessResourceKind = 'global' | TypertResourceKind
+/** One resource kind: a built-in kind or a declared kind. */
+export type RemoteAccessResourceKind = 'global' | 'host' | TypertResourceKind
 
 /**
- * One resource a call or forwarded event touches: `global`, or one identity
- * of a declared kind. Identities are wire values, read before any lookup
- * resolves or validates them.
+ * A binding target or a resource touched by a call or forwarded event.
+ * `host` is an explicit Host-wide binding target; `global` names operations
+ * without a domain resource. Domain identities are wire values read before lookup.
  */
 export type RemoteAccessResource =
   | { readonly kind: 'global' }
+  | { readonly kind: 'host' }
   | {
     [Kind in TypertResourceKind]: { readonly kind: Kind; readonly id: TypertResourceId<TypertResourceMap[Kind]> }
   }[TypertResourceKind]
 
 /**
- * The resource variant of one kind: `{ kind: 'global' }` for `global`, else
- * that kind with its identity.
+ * The resource variant of one kind; built-in kinds carry no identity.
  * @template K - the resource kind to select.
  */
 export type RemoteAccessResourceOf<K extends RemoteAccessResourceKind> = Extract<RemoteAccessResource, { readonly kind: K }>

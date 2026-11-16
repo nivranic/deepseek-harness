@@ -1,0 +1,16 @@
+{
+  "status": "PASS",
+  "controls": 3,
+  "sourceRecord": {
+    "path": "artifacts/upstream-first/application-negotiation-source.json",
+    "sha256": "d2463ae04414c808028e1cae4a0a104bfe633d860700178bcc5cd4fbc263d7bc"
+  },
+  "generator": {
+    "path": "artifacts/upstream-first/write-reports.mjs",
+    "sha256": "408bc91f86c6646d14fe81e5def807408d4e386afc6e07403b622d4d435c9747"
+  },
+  "helper": {
+    "path": ".artifacts/check-application-negotiation-binding-final.mjs",
+    "sha256": "71fa606190164038156d09b85244cb36a8ed599b5f50f215c68b1bfb343703ca"
+  }
+}

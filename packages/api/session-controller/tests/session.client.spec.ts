@@ -706,7 +706,7 @@ describe('prompt and cancel errors', () => {
       },
     ])
     // Positional parameters cross the wire as positional args.
-    expect(mock.log.calls('subagents/interruptByUser').map(call => call.args)).toEqual([[SID]])
+    expect(mock.log.calls('subagents/interruptByParent').map(call => call.args)).toEqual([[SID, PARENT, 'continuable']])
     expect(mock.log.requests('session/prompt')).toEqual([])
     expect(mock.log.requests('session/cancel')).toEqual([])
     // A successful interrupt leaves no stop error behind.
@@ -751,7 +751,7 @@ describe('prompt and cancel errors', () => {
 
   it('lands an interrupt business failure in promptError with op=stop', async ({ mock, start }) => {
     const session = await sessionBench(mock, start, SID, { address: CHILD })
-    mock.remote.subagents.interruptByUser.mockResolvedValue(err(new RemoteError('remote-access/denied', 'nope', { action: 'subagents/interruptByUser', reason: 'no-allow' })))
+    mock.remote.subagents.interruptByParent.mockResolvedValue(err(new RemoteError('remote-access/denied', 'nope', { action: 'subagents/interruptByParent', reason: 'no-allow' })))
     await session.open()
     const cancelled = await session.cancel()
     expect(cancelled).toMatchObject({ ok: false, error: { code: 'remote-access/denied' } })
@@ -791,7 +791,7 @@ describe('prompt and cancel errors', () => {
     expect(prompted).toMatchObject({ ok: false, error: { code: 'subagent/not-resumable' } })
     expect(cancelled).toEqual({ ok: true, value: { accepted: true } })
     expect(mock.log.requests('subagents/prompt')).toMatchObject([{ childSessionId: SID }])
-    expect(mock.log.calls('subagents/interruptByUser').map(call => call.args)).toEqual([[SID]])
+    expect(mock.log.calls('subagents/interruptByParent').map(call => call.args)).toEqual([[SID, PARENT, 'continuable']])
     expect(mock.log.requests(FOLLOW)).toEqual([
       { address: { kind: 'subagent', ...CHILD, mode: 'one-shot' }, activate: true, assistantStream: true, maxMessages: 500, turnWindow: { minMessages: 50, minTurns: 2 } },
     ])
@@ -929,6 +929,7 @@ describe('prompt and cancel errors', () => {
     const client = await start()
     // The Gateway-only assembly has no commands contribution; this facade test supplies its unary dependency.
     const session = new Session(SID, {
+      host: mock.remote.host,
       session: client.ctx.remote.session,
       subagents: client.ctx.remote.subagents,
       commands: mock.remote.commands,

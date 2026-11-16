@@ -1,0 +1,17 @@
+<?xml version="1.0" encoding="UTF-8"?>
+<testsuite name="ai.deepseek.dsh.companion.NativeFileAttachmentsModelTest" tests="11" skipped="0" failures="0" errors="0" timestamp="2026-09-27T22:56:58.594Z" hostname="WADEPRUDENCE" time="0.199">
+  <properties/>
+  <testcase name="cancelled selection and a retired Host ignore unopened source callbacks()" classname="ai.deepseek.dsh.companion.NativeFileAttachmentsModelTest" time="0.06"/>
+  <testcase name="retirement waits for cancellation resistant RPC cleanup and drops its late receipt()" classname="ai.deepseek.dsh.companion.NativeFileAttachmentsModelTest" time="0.06"/>
+  <testcase name="encoded metadata limit and attachment count refuse before another Host upload()" classname="ai.deepseek.dsh.companion.NativeFileAttachmentsModelTest" time="0.012"/>
+  <testcase name="durable file blocks render a searchable filename and size including empty content()" classname="ai.deepseek.dsh.companion.NativeFileAttachmentsModelTest" time="0.008"/>
+  <testcase name="complete request budget refusal closes the source and preserves pending intent and the newer draft()" classname="ai.deepseek.dsh.companion.NativeFileAttachmentsModelTest" time="0.007"/>
+  <testcase name="selection consumes one source and retains canonical bytes as a draft receipt without prompting()" classname="ai.deepseek.dsh.companion.NativeFileAttachmentsModelTest" time="0.013"/>
+  <testcase name="budget wire failures preserve their existing failure category and all unsent input()" classname="ai.deepseek.dsh.companion.NativeFileAttachmentsModelTest" time="0.012"/>
+  <testcase name="empty files are uploaded but one byte over the content limit closes locally without a call()" classname="ai.deepseek.dsh.companion.NativeFileAttachmentsModelTest" time="0.005"/>
+  <testcase name="the local 512 KiB source ceiling rejects before transport can offer any larger allowance()" classname="ai.deepseek.dsh.companion.NativeFileAttachmentsModelTest" time="0.006"/>
+  <testcase name="a picker cannot regain authority after leaving and reopening the same Session()" classname="ai.deepseek.dsh.companion.NativeFileAttachmentsModelTest" time="0.005"/>
+  <testcase name="invalid receipt metadata never enters the draft()" classname="ai.deepseek.dsh.companion.NativeFileAttachmentsModelTest" time="0.006"/>
+  <system-out><![CDATA[]]></system-out>
+  <system-err><![CDATA[]]></system-err>
+</testsuite>

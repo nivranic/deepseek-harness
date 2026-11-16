@@ -1,0 +1,22 @@
+# Bilingual-pair consistency record for 2026-10-05-connection-gate-locale.md (docs/i18n/README.md): per heading
+# section, a hash of its English and Chinese blocks outside code blocks and generated regions.
+# After editing either side, bring the other along and re-record with:
+#   pnpm run verify-translation-pairing --write .agents/notes/implemented/architecture/2026-10-05-connection-gate-locale.md
+/agent-note-the-connection-gate-locale-matrix-is-closed-by-construction:
+  en: f5493e0f172c1c7a
+  zh: 6146a01bf705af66
+/agent-note-the-connection-gate-locale-matrix-is-closed-by-construction/problem:
+  en: 776120343b306550
+  zh: a631f182c5fcc36c
+/agent-note-the-connection-gate-locale-matrix-is-closed-by-construction/decision:
+  en: 8c3ee7febe03e827
+  zh: cf1074b9d615db72
+/agent-note-the-connection-gate-locale-matrix-is-closed-by-construction/alternatives-considered:
+  en: 62ed92d8d72157ff
+  zh: d315c39aff7c251b
+/agent-note-the-connection-gate-locale-matrix-is-closed-by-construction/consequences:
+  en: 450eb1fc111eb292
+  zh: bba99abb0f640511
+/agent-note-the-connection-gate-locale-matrix-is-closed-by-construction/open-follow-ups:
+  en: 50ff71f1366ea87a
+  zh: 948a698cdab2fc4b

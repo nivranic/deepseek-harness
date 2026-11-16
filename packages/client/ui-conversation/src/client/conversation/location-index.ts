@@ -185,6 +185,8 @@ export class ConversationLocationIndex {
   private coordinates = new Map<number, Coordinates>()
   private seqsByTurn = new Map<number, Set<number>>()
   private readonly stepsByTurn = new Map<number, Map<number, StepLocation>>()
+  private readonly stepHints = new Map<number, { readonly turn: number; readonly step: number }>()
+  private readonly unlocatedTail = new Map<number, number | undefined>()
   private timeline: ConversationTimelineSnapshot = { turnOrder: [], turns: new Map() }
   private readonly turnDataStores = new Map<number, MutableLocationDataStore>()
   private readonly stepDataStores = new Map<string, MutableLocationDataStore>()
@@ -275,6 +277,41 @@ export class ConversationLocationIndex {
    */
   locationOf(event: SessionEventLike): ConversationLocation {
     return this.coordinates.get(event.seq)?.location ?? SESSION_LOCATION
+  }
+
+  /**
+   * Resolve a Step identity, including a paged prefix enclosed by later evidence.
+   * @param event - indexed event requiring Step-local identity.
+   * @returns its Step Location, or undefined until enclosing history is available.
+   */
+  stepLocationOf(event: SessionEventLike): Extract<ConversationLocation, { kind: 'step' }> | undefined {
+    const direct = this.locationOf(event)
+    if (direct.kind === 'step') return direct
+    const hint = this.stepHints.get(event.seq)
+    if (hint === undefined) return undefined
+    const turn = this.timeline.turns.get(hint.turn)
+    const step = this.stepsByTurn.get(hint.turn)?.get(hint.step)
+    return turn === undefined || step === undefined ? undefined : { kind: 'step', turn, step }
+  }
+
+  private indexStepHint(event: SessionEventLike): void {
+    if (event.type === 'turn/start' || event.type === 'turn/end'
+      || event.type === 'step/start' || payloadCoordinates(event).session === true) {
+      this.unlocatedTail.clear()
+      return
+    }
+    const coordinates = this.coordinates.get(event.seq)
+    if (coordinates?.turn !== undefined && coordinates.step !== undefined) {
+      for (const [seq, turn] of this.unlocatedTail) {
+        if (turn === undefined || turn === coordinates.turn) {
+          this.stepHints.set(seq, { turn: coordinates.turn, step: coordinates.step })
+          this.indexTurnSeq(coordinates.turn, seq)
+        }
+      }
+      this.unlocatedTail.clear()
+    } else {
+      this.unlocatedTail.set(event.seq, coordinates?.turn)
+    }
   }
 
   /**
@@ -423,13 +460,17 @@ export class ConversationLocationIndex {
     }
     this.currentTurn = currentTurn
     this.currentStep = currentStep
+    this.stepHints.clear()
+    this.unlocatedTail.clear()
+    for (const { event } of entries) this.indexStepHint(event)
 
     const changed = new Set<number>()
     for (const { event } of entries) {
+      const hint = this.stepHints.get(event.seq)
       if (!sameLocation(
         previousCoordinates.get(event.seq)?.location,
         this.coordinates.get(event.seq)?.location,
-      )) {
+      ) || (hint !== undefined && previousTurns.get(hint.turn) !== this.timeline.turns.get(hint.turn))) {
         changed.add(event.seq)
       }
     }
@@ -519,7 +560,7 @@ export class ConversationLocationIndex {
       const previous = coordinates.location
       const next = this.resolve(seq)
       coordinates.location = next
-      if (!sameLocation(previous, next)) changed.add(seq)
+      if (!sameLocation(previous, next) || (turn !== previousTurn && this.stepHints.has(seq))) changed.add(seq)
     }
 
     if (event.type === 'step/end' && this.currentTurn === event.data.turn && this.currentStep === event.data.step) {
@@ -529,6 +570,7 @@ export class ConversationLocationIndex {
       this.currentTurn = undefined
       this.currentStep = undefined
     }
+    this.indexStepHint(event)
     return changed
   }
 
@@ -540,6 +582,7 @@ export class ConversationLocationIndex {
     const explicit = payloadCoordinates(event)
     if (explicit.session === true) {
       this.coordinates.set(event.seq, { location: SESSION_LOCATION })
+      this.unlocatedTail.clear()
       return
     }
     if (explicit.turn !== undefined) {
@@ -557,6 +600,7 @@ export class ConversationLocationIndex {
     this.coordinates.set(event.seq, coordinates)
     if (turn !== undefined) this.indexTurnSeq(turn, event.seq)
     coordinates.location = this.resolve(event.seq)
+    this.indexStepHint(event)
   }
 
   /**
@@ -572,6 +616,8 @@ export class ConversationLocationIndex {
         if (seqs?.size === 0) this.seqsByTurn.delete(turn)
       }
       this.coordinates.delete(event.seq)
+      this.stepHints.delete(event.seq)
+      this.unlocatedTail.delete(event.seq)
     }
   }
 

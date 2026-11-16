@@ -1,0 +1,11 @@
+<?xml version="1.0" encoding="UTF-8"?>
+<testsuite name="ai.deepseek.dsh.gateway.NativeGatewayDiagnosticsTest" tests="5" skipped="0" failures="0" errors="0" timestamp="2026-09-27T22:56:58.886Z" hostname="WADEPRUDENCE" time="4.305">
+  <properties/>
+  <testcase name="missing operation capabilities refuse before HTTP or mux dispatch and refresh changes availability()" classname="ai.deepseek.dsh.gateway.NativeGatewayDiagnosticsTest" time="1.525"/>
+  <testcase name="registered mux subscriptions are distinct from HTTP callbacks and settle on close()" classname="ai.deepseek.dsh.gateway.NativeGatewayDiagnosticsTest" time="0.715"/>
+  <testcase name="close while description waits leaves retirement authoritative()" classname="ai.deepseek.dsh.gateway.NativeGatewayDiagnosticsTest" time="0.711"/>
+  <testcase name="snapshot is pure and retains only allowlisted facts after failed refresh()" classname="ai.deepseek.dsh.gateway.NativeGatewayDiagnosticsTest" time="0.675"/>
+  <testcase name="cancellation records its category and late response cannot revive a retired client()" classname="ai.deepseek.dsh.gateway.NativeGatewayDiagnosticsTest" time="0.678"/>
+  <system-out><![CDATA[]]></system-out>
+  <system-err><![CDATA[]]></system-err>
+</testsuite>

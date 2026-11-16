@@ -1,0 +1,70 @@
+{
+  "status": "PASS",
+  "scope": "Report bindings and audit for Android same-process Push foreground recovery and granted-permission notification entry in sections 50 and 64; the remaining specification sections stay open; full Upstream-First objective remains in progress",
+  "gate0": {
+    "validation": "PASS",
+    "gate0": "PASS",
+    "paths": 1938,
+    "components": 129,
+    "specificationCoverage": {
+      "status": "PASS",
+      "numberedSections": 81,
+      "nonEmptySourceLines": 1983,
+      "acceptanceProven": false
+    }
+  },
+  "sourceRecord": {
+    "path": "artifacts/upstream-first/android-push-foreground-source.json",
+    "sha256": "d3c115bab9e34ee5eb17ccef7bfd2fde7e14465e0372f5c3777125ddcb7e6fe3"
+  },
+  "generator": {
+    "path": "artifacts/upstream-first/write-reports.mjs",
+    "sha256": "f6cc2ef730daa6ee34d43e92090b90da6b1bffa74a635fdf4958ec91a3136b5b"
+  },
+  "binding": {
+    "path": "artifacts/upstream-first/android-push-foreground-binding.json",
+    "sha256": "c1347c9ebf9197537389bc2c655dfcc21528bf40cd3b4a705004e24571cbdb78"
+  },
+  "helpers": [
+    {
+      "path": ".artifacts/advance-android-push-foreground-reports.mjs",
+      "sha256": "40efb9691d8bf88e6688f0c4f487f102d79503f4c349b69676d3ff403d7c8d05"
+    },
+    {
+      "path": ".artifacts/capture-android-push-foreground-validation.mjs",
+      "sha256": "c6e5b2d4e28d981a3b0d6aff452086115192f912a2bf62b4f7734a65a2b1aebc"
+    }
+  ],
+  "reports": [
+    {
+      "path": "IMPLEMENTATION_STATUS.md",
+      "sha256": "24afae07f8d9f7dfdae9f2b43ee4b31285d3d8bb13d6c4363b6b78b63bbe7a8d"
+    },
+    {
+      "path": "artifacts/upstream-first/evidence.json",
+      "sha256": "ea7a830fee78571a7c59aa194a85a67b5d739282f633eaa699090047eca27b57"
+    }
+  ],
+  "checks": [
+    {
+      "path": ".artifacts/android-push-foreground-binding.log",
+      "sha256": "f1d979a401888199c1e4cfba6e2955dbe4166e38a9211fd2ac77ac143d467c3b"
+    },
+    {
+      "path": ".artifacts/android-push-foreground-audit-tests.log",
+      "sha256": "d0f2f16705a418e1ee8af6babae374e481034f873c40bfa5029b4fa164508ffe"
+    },
+    {
+      "path": ".artifacts/android-push-foreground-gate0-report.log",
+      "sha256": "5427f71ff5b67b500b327d785dcaf84a7af2c6edd24b1833c4c7d83ad2cf37c8"
+    },
+    {
+      "path": ".artifacts/android-push-foreground-report-diff-check.log",
+      "sha256": "e3b0c44298fc1c149afbf4c8996fb92427ae41e4649b934ca495991b7852b855"
+    },
+    {
+      "path": ".artifacts/android-push-foreground-report-generation.log",
+      "sha256": "5867d1d51cd43a59428de2e7fffa15847d7153b11f3b61ecf812224ee2dd2099"
+    }
+  ]
+}

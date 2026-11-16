@@ -226,9 +226,9 @@ interface Config {
 
 ## 会话目录与工具约定
 
-`dsh-tool-skill` 在存活会话中第一个观察到可用 skill 或发现不完整的 `agent/pre-step` 注入初始的持久 user-role `<system-reminder>`。目录只包含已排序的 skill `name` 和规范化、经 XML 转义的 `description`；不包含正文、路径、来源、提供方或路由提示。发现通过 `SkillLookupOptions` 转发该步骤的 abort signal。`catalogDescriptionMaxLength` 是消费方用于 description 上限的配置，默认值为 `500`，整数最小值为 `3`。
+`dsh-tool-skill` 在工具可见的存活会话中，首次完整发现模型可调用 skill 时注入初始的持久 user-role `<system-reminder>`。目录包含按名称排序的 skill `name` 及规范化、经 XML 转义的 `description`。发现通过 `SkillLookupOptions` 转发该步骤的 abort signal。`catalogDescriptionMaxLength` 限制描述长度，默认值为 `500`，整数最小值为 `3`。
 
-在后续每个模型步骤之前，消费方都会应用精确的工具可见性，并将条目与完整性同会话日志中最新一条可识别且仍可见的目录消息比较。观测变化时，会向 pre-step 决策提供一条持久的替换目录；删除所有 skill 时会追加显式的空替换。发现不完整时会发布可用子集，并附带警告和可选的 `incomplete: true` 来源元数据；缺少该标记表示完整。恢复后即使条目未变也会重新发布目录。如果压缩（compaction）隐藏了所有历史目录消息，下一次观测会重新建立当前目录；完整的空视图在从未发布目录时不发送任何内容。这些目录消息属于会话历史，而非 World State。
+在后续每个模型步骤之前，消费方都会应用精确的工具可见性，并将已确认的条目同最新一条可识别且仍可见的目录消息比较。发现不完整时暂缓发布并保留上次目录，由 registry 重试。完整观测发生变化时，会向 pre-step 决策提供持久替换目录。确认删除全部 skill 时追加空替换。如果压缩隐藏了全部历史目录，下一次完整且非空的观测会重新建立目录。这些目录消息属于 Session 历史。
 
 面向模型的 `skill({ name })` 工具校验 kebab-case 名称，在与调用策略无关的目录中查找摘要，并在加载前通过 `isModelInvocable` 拒绝无权访问的 skill；随后它根据调用方 agent 的 cwd 重新读取完整定义，并在返回内容前再次检查策略。该工具将无法解析的 skill 报告为未知或已不可用，并返回包含 `<skill_content name="...">`、`<skill_resources>` 和 `<skill_instructions>` 的工具结果。`resourceBase` 仅按需解析显式引用的脚本、参考资料和资产；加载结果不枚举 skill 目录。因此，仅修改正文会改变后续工具调用，而不会生成目录消息或改写先前工具结果。
 

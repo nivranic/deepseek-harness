@@ -1,0 +1,16 @@
+{
+  "status": "PASS",
+  "controls": 3,
+  "sourceRecord": {
+    "path": "artifacts/upstream-first/android-prompt-retry-source.json",
+    "sha256": "0e9a255df560757c472393be88867db10410f2cf88a469a706c68b04e8a8a6e6"
+  },
+  "generator": {
+    "path": "artifacts/upstream-first/write-reports.mjs",
+    "sha256": "9a20f32f99545227c274b5a04a6554a679b6a48c81419b699d53cacfc82250b3"
+  },
+  "helper": {
+    "path": ".artifacts/check-android-prompt-retry-binding.mjs",
+    "sha256": "80395a6dae9fcb95838b7895b7a7ec3cf0e55d425d67a0f598b1a147f79a0a6e"
+  }
+}

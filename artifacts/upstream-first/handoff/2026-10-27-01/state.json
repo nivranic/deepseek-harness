@@ -1,0 +1,16 @@
+{
+  "schemaVersion": 1,
+  "handoffId": "2026-10-27-01",
+  "predecessorHandoff": "2026-09-29-01",
+  "capturedAt": "2026-10-27T15:07:50+08:00",
+  "timezone": "Asia/Hong_Kong",
+  "goalStatus": "paused",
+  "goalStatusBasis": "User requested this handoff to transfer the goal to another agent; the long-running objective itself remains active per the user directive quoted in HANDOFF.md §1.",
+  "head": "5819fc0e03",
+  "headSubject": "feat(session-log-export): deterministic archives with HTTP byte-range resume on /api/session.export",
+  "branch": "agents/upstream-first",
+  "pushState": "5819fc0e03 pushed to origin/agents/upstream-first (gen-81, receipt 85/89, CI synchronize gap 31 consecutive)",
+  "worktreeStatus": "clean except the never-touch telemetry directories (.glm-router/, .mimosa/ and their nested copies), per §3 red lines",
+  "activeWork": "gen-82 surveyed and designed (companion runtime-health collection for the §41-44 family), implementation not started; full design with verified file:line anchors in HANDOFF.md §5",
+  "packageKind": "lightweight clean-tree handoff: no uncommitted source to capture, so this package carries the document and metadata only (the 2026-09-29-01 package remains the reference for full capture machinery)"
+}

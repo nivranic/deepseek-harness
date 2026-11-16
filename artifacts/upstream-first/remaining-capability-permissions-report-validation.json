@@ -1,0 +1,70 @@
+{
+  "status": "PASS",
+  "scope": "Report bindings and audit for the remaining capability permissions; the declaration arc is closed and the remaining specification sections stay open; full Upstream-First objective remains in progress",
+  "gate0": {
+    "validation": "PASS",
+    "gate0": "PASS",
+    "paths": 1938,
+    "components": 129,
+    "specificationCoverage": {
+      "status": "PASS",
+      "numberedSections": 81,
+      "nonEmptySourceLines": 1983,
+      "acceptanceProven": false
+    }
+  },
+  "sourceRecord": {
+    "path": "artifacts/upstream-first/remaining-capability-permissions-source.json",
+    "sha256": "54a71eed619158d7bfea7d3a43e6dbb409afeee5f0bcefb3832799ea67f1721e"
+  },
+  "generator": {
+    "path": "artifacts/upstream-first/write-reports.mjs",
+    "sha256": "eaa3e2c38d69219bc1dd8c8101d26a493c5faf80eee42d8653beb37c90806a8e"
+  },
+  "binding": {
+    "path": "artifacts/upstream-first/remaining-capability-permissions-binding.json",
+    "sha256": "b242a78dfc1babe3485b810157a4455da2f328d0f712ed40b0d128706536351c"
+  },
+  "helpers": [
+    {
+      "path": ".artifacts/advance-remaining-capability-permissions-reports.mjs",
+      "sha256": "b74102a5a69099ec7f9d329f63dd07662c03ffff7d97f19800bbb636290636b2"
+    },
+    {
+      "path": ".artifacts/capture-remaining-capability-permissions-validation.mjs",
+      "sha256": "bcf92d2496ed3f75ec4fa64412ed5cfbefb2975e1cbf67ad83381fa436c38005"
+    }
+  ],
+  "reports": [
+    {
+      "path": "IMPLEMENTATION_STATUS.md",
+      "sha256": "765520967c629ad23ffda5383a671648136527b368c02ef0eb646303f6cb07ab"
+    },
+    {
+      "path": "artifacts/upstream-first/evidence.json",
+      "sha256": "edd06954dd0afd22321600dffb401b0e35c2cd7213480b591f3e9e4e5a57f7a9"
+    }
+  ],
+  "checks": [
+    {
+      "path": ".artifacts/remaining-capability-permissions-binding.log",
+      "sha256": "34dd3b48e3edf93ab910616e1152931ee893af129ace06270f407275a6a9c183"
+    },
+    {
+      "path": ".artifacts/remaining-capability-permissions-audit-tests.log",
+      "sha256": "950dddad010e7cd54af08f159004898abd5a8376be3d4a634a912c89b058cfd3"
+    },
+    {
+      "path": ".artifacts/remaining-capability-permissions-gate0.log",
+      "sha256": "505d74ef938f5d34d85490d37e0176ba804d93272fcf465ce2544a02c56b3f90"
+    },
+    {
+      "path": ".artifacts/remaining-capability-permissions-report-diff-check.log",
+      "sha256": "e3b0c44298fc1c149afbf4c8996fb92427ae41e4649b934ca495991b7852b855"
+    },
+    {
+      "path": ".artifacts/remaining-capability-permissions-report-generation.log",
+      "sha256": "fe010532f71a6341467ae5719b29ac19470895de1d481156335b8f70a3273ed5"
+    }
+  ]
+}

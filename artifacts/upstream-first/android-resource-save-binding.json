@@ -1,0 +1,16 @@
+{
+  "status": "PASS",
+  "controls": 3,
+  "sourceRecord": {
+    "path": "artifacts/upstream-first/android-resource-save-source.json",
+    "sha256": "90a367b768c1b6f543a6a2602a56c86bb7bf25a5d4611b135516b70645108f01"
+  },
+  "generator": {
+    "path": "artifacts/upstream-first/write-reports.mjs",
+    "sha256": "6e8ff22550653aff225e72495a6211c62923d382f649f8162a5f8c769b1d3774"
+  },
+  "helper": {
+    "path": ".artifacts/check-android-resource-save-binding.mjs",
+    "sha256": "a5f1e4e9b5d0e7c78b35a2609a18ea93db7ab2af180368ec919b90d22ceecca1"
+  }
+}

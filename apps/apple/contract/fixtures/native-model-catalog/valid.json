@@ -1,0 +1,25 @@
+{
+  "groups": [
+    {
+      "id": "deepseek-official",
+      "name": "DeepSeek 官方",
+      "models": [
+        { "id": "deepseek-v4-flash", "name": "DeepSeek-V4-Flash" },
+        {
+          "id": "deepseek-v4-flash-vision-exp",
+          "name": "DeepSeek-V4-Flash-Vision-Exp",
+          "reasoning": {
+            "efforts": [
+              { "id": "off", "name": "关闭" },
+              { "id": "max", "name": "最高" },
+              { "id": "low" }
+            ],
+            "defaultEffort": "high"
+          }
+        }
+      ]
+    },
+    { "id": "custom-group" }
+  ],
+  "default": { "provider": "deepseek-official", "model": "deepseek-v4-flash" }
+}

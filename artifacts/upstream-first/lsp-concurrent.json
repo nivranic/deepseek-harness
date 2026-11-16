@@ -1,0 +1,46 @@
+{
+  "status": "PASS",
+  "overlapped": true,
+  "runs": [
+    {
+      "name": "full",
+      "status": "PASS",
+      "command": [
+        "C:\\Program Files\\nodejs\\node.exe",
+        "node_modules/vitest/vitest.mjs",
+        "run",
+        "packages/lsp/lsp-stdio/tests/instance.spec.ts",
+        "packages/lsp/lsp-stdio/tests/connection.spec.ts"
+      ],
+      "log": ".artifacts/lsp-concurrent-final-host-full.log",
+      "passed": 46,
+      "skipped": 0,
+      "started": 1789490869046,
+      "ended": 1789490882222,
+      "exitCode": 0,
+      "signal": null,
+      "timedOut": false
+    },
+    {
+      "name": "focused",
+      "status": "PASS",
+      "command": [
+        "C:\\Program Files\\nodejs\\node.exe",
+        "node_modules/vitest/vitest.mjs",
+        "run",
+        "packages/lsp/lsp-stdio/tests/instance.spec.ts",
+        "packages/lsp/lsp-stdio/tests/connection.spec.ts",
+        "-t",
+        "cancels an in-flight|terminates the instance when the server ignores|resolves the cancel grace|non-Error abort reason|rejects all requests on a stdin error"
+      ],
+      "log": ".artifacts/lsp-concurrent-final-host-focused.log",
+      "passed": 6,
+      "skipped": 40,
+      "started": 1789490869069,
+      "ended": 1789490874914,
+      "exitCode": 0,
+      "signal": null,
+      "timedOut": false
+    }
+  ]
+}

@@ -41,6 +41,11 @@ function tool(name: string, reply = `ran:${name}`): ToolDefinition {
   return {
     name,
     description: `tool ${name}`,
+    version: 1,
+    risk: 'low',
+    permissions: [],
+    supportsLite: false,
+    supportsRemote: false,
     parameters: { type: 'object', properties: {} },
     output: {
       schema: { type: 'string' },

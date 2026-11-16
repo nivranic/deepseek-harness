@@ -1,0 +1,16 @@
+{
+  "status": "PASS",
+  "controls": 3,
+  "sourceRecord": {
+    "path": "artifacts/upstream-first/prompt-idempotency-source.json",
+    "sha256": "1665f87fb28c7844a37bf3b2df538373d5ee2b5b8ff940e7b41cf14debf66010"
+  },
+  "generator": {
+    "path": "artifacts/upstream-first/write-reports.mjs",
+    "sha256": "9d1b0014a2a7ce565beb1377aa0929cbc0bbb97ad75b1a0ff56c4b2094425294"
+  },
+  "helper": {
+    "path": ".artifacts/check-prompt-idempotency-binding.mjs",
+    "sha256": "0808b8a6d78f9c0e080cc410771f0f168cec0cb893fcb159bcc7de9566d06757"
+  }
+}

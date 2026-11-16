@@ -1,0 +1,8 @@
+{
+  "k": "e",
+  "c": "session-not-found",
+  "m": "Session not found.",
+  "d": {
+    "sessionId": "session-missing"
+  }
+}

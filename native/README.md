@@ -4,6 +4,8 @@ English | [中文](README.zh.md)
 
 Native source and public packages maintained with DeepSeek Harness. The [`system/` workspace](system/README.md) owns the Landlock launcher and POSIX flock binding, their platform packages, and the [release procedure](system/docs/release.md).
 
+The [support scanner](support-scanner/README.md) owns the independent Go admission library and Android build tooling. Its source verification and artifact receipts remain separate from Node package release.
+
 ## Workspace and release boundary
 
 `system/` and its packages belong to the repository's root pnpm workspace and lockfile. Harness consumers use the current workspace entry package during development and CI, so a launcher contract change and its consumer update can land and be tested together.

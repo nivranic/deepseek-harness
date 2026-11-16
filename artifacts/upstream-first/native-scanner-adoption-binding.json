@@ -1,0 +1,16 @@
+{
+  "status": "PASS",
+  "controls": 3,
+  "sourceRecord": {
+    "path": "artifacts/upstream-first/native-scanner-adoption-source.json",
+    "sha256": "ce7caa28ab47b4c13f9ba38ab8fcbf931e7c0ea7243a3a4d6abfe999d6dda091"
+  },
+  "generator": {
+    "path": "artifacts/upstream-first/write-reports.mjs",
+    "sha256": "5689cca5e85e6b20e0153b57a216a7f45e7a343f50719055b4a34914df9ecc50"
+  },
+  "helper": {
+    "path": ".artifacts/check-native-scanner-adoption-binding.mjs",
+    "sha256": "3a6f096329e5a2d5535a765e1758a968fb50be8a548741641d42b707cc64d22b"
+  }
+}

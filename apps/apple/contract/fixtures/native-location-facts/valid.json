@@ -1,0 +1,9 @@
+{
+  "host": { "name": "Work PC", "hostId": "work-1" },
+  "cwd": "E:\\Mix\\project\\deepseek-harness",
+  "journal": [
+    { "event": { "type": "permission/preset", "data": { "preset": "workspace-write" } } },
+    { "event": { "type": "permission/preset", "data": { "preset": "read-only" } } }
+  ],
+  "connectionState": "reconnecting"
+}

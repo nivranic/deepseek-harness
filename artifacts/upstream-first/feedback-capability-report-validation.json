@@ -1,0 +1,64 @@
+{
+  "status": "PASS",
+  "scope": "Report bindings and audit for Independent Feedback operation capabilities and generation-owned message and Session feedback; full Upstream-First objective remains in progress",
+  "gate0": {
+    "validation": "PASS",
+    "gate0": "PASS",
+    "paths": 1938,
+    "components": 129
+  },
+  "sourceRecord": {
+    "path": "artifacts/upstream-first/feedback-capability-source.json",
+    "sha256": "01511ad85af721c86674984cf81423b2fbf7a8fe78e4d2362ee8f89af87c4cb1"
+  },
+  "generator": {
+    "path": "artifacts/upstream-first/write-reports.mjs",
+    "sha256": "5e35d3a857424fccad7739825b6cc5c04daa6c6b2e2f36c9c91871d33bb1c86d"
+  },
+  "binding": {
+    "path": "artifacts/upstream-first/feedback-capability-binding.json",
+    "sha256": "e84f2960d4438180ef85b2d03cbc471186456662ffd802435a8386d33e39a833"
+  },
+  "helpers": [
+    {
+      "path": ".artifacts/advance-feedback-capability-reports.mjs",
+      "sha256": "bb832395ba9f91a7db6bea0c5ea226ba4b2c1721a632174997a44bca1a791008"
+    },
+    {
+      "path": ".artifacts/capture-feedback-capability-validation.mjs",
+      "sha256": "4bed97b6d2c9acefea2e8c9e1bdda2977a3fd03f86aa10ccdad6180cca5a1ff6"
+    }
+  ],
+  "reports": [
+    {
+      "path": "IMPLEMENTATION_STATUS.md",
+      "sha256": "a0671d9d25d9598901883f0155b403684f4a33c53d034288af82dd63c8cda440"
+    },
+    {
+      "path": "artifacts/upstream-first/evidence.json",
+      "sha256": "a45dbfe7b51755398d8ca8917b35fb696a566fa2d0a5b75b5d6189edc745afee"
+    }
+  ],
+  "checks": [
+    {
+      "path": ".artifacts/feedback-capability-binding.log",
+      "sha256": "7cbeb029ebc5263c7af957c1c3432ea3f5e807f3f129ba0ac8bd90555a32b05c"
+    },
+    {
+      "path": ".artifacts/feedback-capability-audit-tests.log",
+      "sha256": "1861ba09433cf41cb4f478eb27755bb847f1508b9aa2e1d08af146172b66853f"
+    },
+    {
+      "path": ".artifacts/feedback-capability-gate0.log",
+      "sha256": "4b5af3121a7e7caff0e1b6288bdaa7cfef9988842ae06bf02dc0a74852426043"
+    },
+    {
+      "path": ".artifacts/feedback-capability-report-diff-check.log",
+      "sha256": "e3b0c44298fc1c149afbf4c8996fb92427ae41e4649b934ca495991b7852b855"
+    },
+    {
+      "path": ".artifacts/feedback-capability-report-generation.log",
+      "sha256": "5867d1d51cd43a59428de2e7fffa15847d7153b11f3b61ecf812224ee2dd2099"
+    }
+  ]
+}

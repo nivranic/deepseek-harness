@@ -78,6 +78,8 @@ The hub is a pure registration table with two faces, designed so backends and da
 
 [`src/backend.ts`](src/backend.ts) is the normative contract for backend implementers; the shared conformance suite in `tests/contract.ts` checks whole-unit behavior on both shipped backends. A backend owns exactly one medium and exposes optional data-shape facets; `kv` is the only facet. Opening a unit yields a handle for opaque JSON values whose atomicity and durability follow the selected layout. Unit and table names must match `UNIT_NAME_RE`. Whole-unit keys stay opaque; JSON per-record keys become path-safe file segments. The caller orders concurrent writes. Reads accept the current or declared `compatibleVersions`; unsupported unit stamps reject `version-mismatch`, while unsupported JSON per-record documents read as absent. Mutations atomically stamp the current version with their data; a missing-key delete does not restamp. Domains own value conversion, and backend implementers must preserve these semantics; see [domain versioning](../../../docs/subsystems/storage.md#domain-versioning) for mixed values, failure recovery, and upgrades.
 
+A unit owner can register its teardown with `kv.open`. Backend close drains that owner before closing its unit, including work waiting to reach the backend. The shared [`closeOwnedKvUnits`](src/close-units.ts) helper retains every cleanup failure and releases the medium only after all owners and units settle. See the [teardown decision](../../../.agents/notes/implemented/bug-fix/2026-09-16-storage-owner-teardown.md).
+
 ### Source map
 
 | File | Role |

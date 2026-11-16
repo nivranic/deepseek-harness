@@ -1,0 +1,64 @@
+{
+  "status": "PASS",
+  "scope": "Report bindings and audit for pending interaction answer retry; full Upstream-First objective remains in progress",
+  "gate0": {
+    "validation": "PASS",
+    "gate0": "PASS",
+    "paths": 1938,
+    "components": 129
+  },
+  "sourceRecord": {
+    "path": "artifacts/upstream-first/interaction-retry-source.json",
+    "sha256": "23118243681d8ab6caaef073da4b9f3d865ea168bb89b6441f90ebccdb50cf15"
+  },
+  "generator": {
+    "path": "artifacts/upstream-first/write-reports.mjs",
+    "sha256": "95ca50b4716947c3b5f5ea7df9b9d7088e05ed546f3e905287416ad183291474"
+  },
+  "binding": {
+    "path": "artifacts/upstream-first/interaction-retry-binding.json",
+    "sha256": "b7d301b3d47ea90efac61a5b94e5354e4e1e3b22bbc57074e8e455ea1a04268f"
+  },
+  "helpers": [
+    {
+      "path": ".artifacts/advance-interaction-retry-reports.mjs",
+      "sha256": "79f0adf87614f7c74d787a95e4ae872a4e3eeef3ea75a69103fe441b2c9ee5d7"
+    },
+    {
+      "path": ".artifacts/capture-interaction-retry-validation.mjs",
+      "sha256": "b34e70e1145859e5a8e8c36b44c88210ce1a93859181be6feaeeb1357069a3de"
+    }
+  ],
+  "reports": [
+    {
+      "path": "IMPLEMENTATION_STATUS.md",
+      "sha256": "0960ca81c2869b135ea743055b6979b459880614c5b0ca1cddf24b54fb44e001"
+    },
+    {
+      "path": "artifacts/upstream-first/evidence.json",
+      "sha256": "d215ce88220cd6eeb0729389da31068f1a7e968b40f00b2716a2f8a589e3149a"
+    }
+  ],
+  "checks": [
+    {
+      "path": ".artifacts/interaction-retry-binding.log",
+      "sha256": "cc0f58bc9083c5e085e38f8c7ff23504d08d907f07d0f2f87a3835b5d4620924"
+    },
+    {
+      "path": ".artifacts/interaction-retry-audit-tests.log",
+      "sha256": "e75dfbda840c1daa90d95c0f2bb135ad09e23775b75b330f7c7f74e39426f96e"
+    },
+    {
+      "path": ".artifacts/interaction-retry-gate0.log",
+      "sha256": "4b5af3121a7e7caff0e1b6288bdaa7cfef9988842ae06bf02dc0a74852426043"
+    },
+    {
+      "path": ".artifacts/interaction-retry-report-diff-check.log",
+      "sha256": "e3b0c44298fc1c149afbf4c8996fb92427ae41e4649b934ca495991b7852b855"
+    },
+    {
+      "path": ".artifacts/interaction-retry-report-generation.log",
+      "sha256": "5867d1d51cd43a59428de2e7fffa15847d7153b11f3b61ecf812224ee2dd2099"
+    }
+  ]
+}

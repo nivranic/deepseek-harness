@@ -1,0 +1,16 @@
+{
+  "status": "PASS",
+  "controls": 3,
+  "sourceRecord": {
+    "path": "artifacts/upstream-first/approval-ask-source.json",
+    "sha256": "797fb0fcc8e94aec3226ee1cb58a94f749a50ed13501eb7ee2c08929883ccd6b"
+  },
+  "generator": {
+    "path": "artifacts/upstream-first/write-reports.mjs",
+    "sha256": "1e8dee072fffd3350ccd372d7eb86ceacf35dc7a4ce3ea9abbc50eade33fdc07"
+  },
+  "helper": {
+    "path": ".artifacts/check-approval-ask-binding.mjs",
+    "sha256": "1701e835956bd8443ba52d21eb42bf02d268087d4fcf6ffd1dfdfc1efe2eb998"
+  }
+}

@@ -1,0 +1,38 @@
+{
+  "scope": "Read-only launch-chain diagnosis with generated link fixtures",
+  "cases": [
+    {
+      "launcher": "node",
+      "exitCode": 0,
+      "stderr": "",
+      "probe": {
+        "pid": 7196,
+        "exitCode": 1,
+        "stderr": "Traceback (most recent call last):\r\n  File \"E:\\Mix\\project\\deepseek-harness\\.worktrees\\upstream-first\\.artifacts\\read-token-comparison.py\", line 30, in <module>\r\n    'flags':{str(kind):w.DWORD.from_buffer(info(kind)).value for kind in [18,20,21,23,24,27,29]}}\r\n                       ^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^\r\nValueError: Buffer size too small (1 instead of at least 4 bytes)\r\n",
+        "security": null
+      }
+    },
+    {
+      "launcher": "repository",
+      "exitCode": 0,
+      "stderr": "dsh: initialized profile sdk at C:\\Users\\11585\\AppData\\Local\\Temp\\dsh-installed-native-links-s5qorops\\home\\profiles\\sdk\n",
+      "probe": {
+        "pid": 42948,
+        "exitCode": 1,
+        "stderr": "Traceback (most recent call last):\r\n  File \"E:\\Mix\\project\\deepseek-harness\\.worktrees\\upstream-first\\.artifacts\\read-token-comparison.py\", line 30, in <module>\r\n    'flags':{str(kind):w.DWORD.from_buffer(info(kind)).value for kind in [18,20,21,23,24,27,29]}}\r\n                       ^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^\r\nValueError: Buffer size too small (1 instead of at least 4 bytes)\r\n",
+        "security": null
+      }
+    },
+    {
+      "launcher": "installed",
+      "exitCode": 0,
+      "stderr": "",
+      "probe": {
+        "pid": 28352,
+        "exitCode": 1,
+        "stderr": "Traceback (most recent call last):\r\n  File \"E:\\Mix\\project\\deepseek-harness\\.worktrees\\upstream-first\\.artifacts\\read-token-comparison.py\", line 30, in <module>\r\n    'flags':{str(kind):w.DWORD.from_buffer(info(kind)).value for kind in [18,20,21,23,24,27,29]}}\r\n                       ^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^\r\nValueError: Buffer size too small (1 instead of at least 4 bytes)\r\n",
+        "security": null
+      }
+    }
+  ]
+}

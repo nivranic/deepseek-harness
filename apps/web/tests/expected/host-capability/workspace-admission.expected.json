@@ -1,0 +1,18 @@
+{
+  "initial": {
+    "creations": 1,
+    "picker": 1
+  },
+  "absent": {
+    "creations": 1,
+    "picker": 1,
+    "menu": 0,
+    "draft": "Draft before workspace capability withdrawal"
+  },
+  "restored": {
+    "creations": 2,
+    "picker": 1,
+    "menu": 0,
+    "draft": "Draft before workspace capability withdrawal"
+  }
+}

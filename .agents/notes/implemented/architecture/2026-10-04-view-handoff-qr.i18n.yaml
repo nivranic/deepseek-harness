@@ -1,0 +1,22 @@
+# Bilingual-pair consistency record for 2026-10-04-view-handoff-qr.md (docs/i18n/README.md): per heading
+# section, a hash of its English and Chinese blocks outside code blocks and generated regions.
+# After editing either side, bring the other along and re-record with:
+#   pnpm run verify-translation-pairing --write .agents/notes/implemented/architecture/2026-10-04-view-handoff-qr.md
+/agent-note-web-handoff-action-renders-the-view-location-link-as-a-qr-code:
+  en: e5abbbfc85af4f91
+  zh: 95cedd4b41049346
+/agent-note-web-handoff-action-renders-the-view-location-link-as-a-qr-code/problem:
+  en: adf06847535cf341
+  zh: 1b63e2ac68b7c823
+/agent-note-web-handoff-action-renders-the-view-location-link-as-a-qr-code/decision:
+  en: 4c08be559b15adff
+  zh: ca7ba4e98103857c
+/agent-note-web-handoff-action-renders-the-view-location-link-as-a-qr-code/alternatives-considered:
+  en: acbe3e94674abf7f
+  zh: b5e38c56b4c39ea2
+/agent-note-web-handoff-action-renders-the-view-location-link-as-a-qr-code/consequences:
+  en: 592fdb7e0257f101
+  zh: be4f0a8bdf9063f3
+/agent-note-web-handoff-action-renders-the-view-location-link-as-a-qr-code/open-follow-ups:
+  en: f9de9c132fd1a87b
+  zh: 37dcf0d5ca2e9271

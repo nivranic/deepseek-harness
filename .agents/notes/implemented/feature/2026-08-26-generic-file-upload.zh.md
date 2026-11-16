@@ -45,6 +45,8 @@ Status: implemented
 - 从菜单选择弹窗命令不会提交 composer 的整套内容。附件保持可见，直到用户提交命令行或移除附件。
 - 声明、存储缺失、未知凭证与图片限制拒绝发生在处理器运行前。生产方语法拒绝和图片准入后的取消可能留下无引用的内容寻址对象，由后续附件垃圾回收处理。
 
+Prompt 的接受结果由现有用户来源的 `rpcId` 标识。Session Controller 检查当前 inbox 与持久化 inbox 插入记录，因此网络重试不会重新加入已领取或显式移除的消息。异步附件准入结束后，它在同步插入 inbox 前立即重复检查。Session 日志充当接受凭据，无需第二个变更注册表；插入前失败的准入可以沿用同一身份重试。并发附件准备仍可能产生无引用的内容寻址对象，但只有一条 Prompt 进入 inbox。
+
 ## 测试
 
 单元与集成覆盖原样与流式存储、文件名清洗、声明为 2.19 GiB 的请求通过流式 bridge 且不发生总量缓冲、原始字节与 RPC wire 准入、Blob 与可转移 `ReadableStream` 载体、后台上传并发上限、进度与取消、跨 Session 上传常驻、命令通过文件凭证提交且不再次读取字节、read-only 与 workspace-write 权限下的 native 和 PTC 投影、上传暂存、有序 queue 与 steer 提交、队列转 steer、pending 回显退休与失败恢复、active plan 和 goal 的附件入口、`/plan` 与 `/goal` 混合附件、子代理拒绝、composer 与 Chat 附件布局，以及 Trajectory 文件摘要。keyless `file-upload-round` 快照记录浏览器上传、模型读取文件与答案呈现。

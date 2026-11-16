@@ -1,0 +1,127 @@
+{
+  "schemaVersion": 1,
+  "status": "PASS",
+  "baseSha": "c291e7961a515f6d7af9304e7fd1d257929aef26",
+  "checkedAt": "2026-09-15T18:50:11.744Z",
+  "candidateManifest": {
+    "path": ".artifacts/desktop-package-candidate-inputs/manifest.json",
+    "sha256": "ce3a086babcfe14d9c475ea82302aab24bcadec0a71644592e223358c0940c02",
+    "bytes": 55560
+  },
+  "sourceSnapshotFiles": 163,
+  "sourcePatchUnchanged": true,
+  "asarCopies": [
+    {
+      "path": "apps/desktop/lib/main.js",
+      "sha256": "6a6a059e31024e0090a8ec17eb4d9f4eaf322c7ec885f50ad8b1c81659ddba9b",
+      "bytes": 205637
+    },
+    {
+      "path": "apps/desktop/lib/preload-app.cjs",
+      "sha256": "87788b6e3f75279de7c4931a9ffe063740df2002db600d2ea1dffb0fda765777",
+      "bytes": 1905
+    },
+    {
+      "path": "apps/desktop/lib/preload.cjs",
+      "sha256": "596c0ba3b325ef17202118b5e272162bc8419359f9aa14a6e38793c480e0e1fe",
+      "bytes": 2538
+    },
+    {
+      "path": "apps/desktop/renderer/plugin-manager.css",
+      "sha256": "c1ab4b6d85866488b9dc0a3d567ba0384cc811422cdfdfcb39315e041f979704",
+      "bytes": 1363
+    },
+    {
+      "path": "apps/desktop/renderer/plugin-manager.html",
+      "sha256": "329aeafcaa09fa8dfbd4b1a9e6f8ccb7df66177f8f7023e1f52d64ad61dfd2d7",
+      "bytes": 1497
+    },
+    {
+      "path": "apps/desktop/renderer/plugin-manager.js",
+      "sha256": "62decc7d611270f6288139262856d89227a48fc2a4b59cf37470120db8c90040",
+      "bytes": 5077
+    },
+    {
+      "path": "apps/desktop/renderer/startup.css",
+      "sha256": "83d221d4686dc05edcc2d1bc9b8807b62ae2525c5202f3b95bf60362f70d958d",
+      "bytes": 1525
+    },
+    {
+      "path": "apps/desktop/renderer/startup.html",
+      "sha256": "0076664202606a62340eb49d23729096911547e2591d7ab4a1925cfff73cb9da",
+      "bytes": 995
+    },
+    {
+      "path": "apps/desktop/renderer/startup.js",
+      "sha256": "783a335de0401584b4149c9f19e78f8280db169e39dd08e1c4d243c0bbe172eb",
+      "bytes": 2618
+    },
+    {
+      "path": "apps/desktop/resources/tray-icon.png",
+      "sha256": "0cbd9779acbe7a222001643672f748f046133b55d912c69083b339b240175ec9",
+      "bytes": 1112
+    }
+  ],
+  "artifacts": [
+    {
+      "path": "apps/desktop/.desktop-build/targets/win-x64/unsigned-artifacts/deepseek-harness-0.1.5-rc.2-win-x64.exe",
+      "sha256": "d55a864c72d917a6aa2d6401c0598223a5db46e0115a7d5cc2c88aa77df931b6",
+      "bytes": 180277356
+    },
+    {
+      "path": "apps/desktop/.desktop-build/targets/win-x64/unsigned-artifacts/deepseek-harness-0.1.5-rc.2-win-x64.exe.blockmap",
+      "sha256": "3c176b31bdaaf24f9911c90bd748c8c486073e290416bb7476223725bbc69dd7",
+      "bytes": 188153
+    },
+    {
+      "path": "apps/desktop/.desktop-build/targets/win-x64/unsigned-artifacts/win-unpacked/DeepSeek Harness.exe",
+      "sha256": "0f9aa369b704e08ba66f5f8d3443504f9fc83c29dd6ff453d6eac22afa676709",
+      "bytes": 244440576
+    },
+    {
+      "path": "apps/desktop/.desktop-build/targets/win-x64/unsigned-artifacts/win-unpacked/resources/app.asar",
+      "sha256": "026d4547922b40816aa43105771de4be2e71422dd70816603a7c79b183dd4ca9",
+      "bytes": 2481693
+    },
+    {
+      "path": "apps/desktop/.desktop-build/targets/win-x64/unsigned-artifacts/win-unpacked/resources/dsh/desktop-runtime.json",
+      "sha256": "09b411a16d9b535c115ee5598a36f41cca72c58ef5bfae2107ea02cd08b49808",
+      "bytes": 2551430
+    },
+    {
+      "path": "apps/desktop/.desktop-build/targets/win-x64/unsigned-artifacts/win-unpacked/resources/runtime/node/node.exe",
+      "sha256": "c6335d08331c23d68b9f2b18adb102002d76ef150b47248e954c507e0d033664",
+      "bytes": 92299080
+    },
+    {
+      "path": "apps/desktop/.desktop-build/targets/win-x64/unsigned-artifacts/win-unpacked/resources/runtime/pnpm/bin/pnpm.mjs",
+      "sha256": "ff3224d46b47fbb24a7e9fe15fededef7e00892d07d4e376b6762d4899906bfd",
+      "bytes": 1464
+    }
+  ],
+  "release": {
+    "schemaVersion": 1,
+    "version": "0.1.5-rc.2",
+    "hostProtocolVersion": 3,
+    "nodeVersion": "24.17.0",
+    "pnpmVersion": "11.7.0"
+  },
+  "nativeRuntimeIntegrity": true,
+  "packagingExitCode": 0,
+  "packagedApplicationExitCode": 0,
+  "observedProcessesGone": true,
+  "unsigned": true,
+  "checks": [
+    "Candidate patch and captured source bytes match",
+    "ASAR contains matching built Shell and renderer",
+    "Official runtime-tree integrity verification",
+    "Real payload and Host lease smoke present",
+    "Actual app and observed children exited",
+    "Installer and app signatures are NotSigned"
+  ],
+  "limitations": [
+    "Installer was produced but not installed",
+    "Signing, update, OS login, macOS and real model not verified",
+    "Observed unpacked application uses current candidate; older SEA/wheel records remain historical"
+  ]
+}

@@ -101,6 +101,7 @@ export const inject = [
   'typert',
   'remote',
   'remote.commands',
+  'remote.host',
   'remote.session',
   'remote.subagents',
 ]
@@ -133,6 +134,7 @@ export function apply(ctx: Context): void {
     if (connection.generation.getSnapshot() === undefined) return
     // A ready control baseline may arrive before Cordis delivers connection/reset.
     sessions.handleConnected()
+    void sessions.refreshHostAdmission()
     control.restart()
     control.start()
   }

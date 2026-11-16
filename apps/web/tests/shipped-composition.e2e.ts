@@ -655,6 +655,7 @@ it('assembles the shipped Web transport, catalog, guidance, and defaults', async
       name: 'feedback',
       description: 'Record feedback about this session',
       input: { hint: '<text>' },
+      risk: 'low',
     })
   } finally {
     await commandHandle.dispose()

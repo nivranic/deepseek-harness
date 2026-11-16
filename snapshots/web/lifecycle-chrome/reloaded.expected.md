@@ -1,6 +1,7 @@
 - banner:
   - navigation "Session hierarchy": Reply with the single word
   - text: Standard mode
+  - button "Continue on another device"
   - button "More actions"
   - button "Open right sidebar"
   - tablist:

@@ -1,0 +1,38 @@
+[
+  {
+    "stage": "absent",
+    "files": 0,
+    "sessions": 0,
+    "skills": 0
+  },
+  {
+    "stage": "files",
+    "files": 1,
+    "sessions": 0,
+    "skills": 0
+  },
+  {
+    "stage": "sessions",
+    "files": 0,
+    "sessions": 1,
+    "skills": 0
+  },
+  {
+    "stage": "withdrawn",
+    "files": 0,
+    "sessions": 0,
+    "skills": 0
+  },
+  {
+    "stage": "skills",
+    "files": 0,
+    "sessions": 0,
+    "skills": 1
+  },
+  {
+    "stage": "restored",
+    "files": 1,
+    "sessions": 1,
+    "skills": 0
+  }
+]

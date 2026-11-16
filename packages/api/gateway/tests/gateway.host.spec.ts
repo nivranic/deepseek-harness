@@ -1292,7 +1292,7 @@ describe('TypertGatewayService', () => {
         if (signal.aborted) resolve()
         else signal.addEventListener('abort', () => { resolve() }, { once: true })
       })
-    })(), { home: '/home/fixture' })
+    })(), { home: '/home/fixture', platform: 'fixture' })
     const carrier = new AbortController()
     const events = (await ctx.typertGateway.wireStream.open(
       '$events', { args: {} }, (async function* () {})(), connection.browserPeer, carrier.signal,
@@ -1300,7 +1300,7 @@ describe('TypertGatewayService', () => {
     const opening = await events.next()
     expect(opening).toMatchObject({
       done: false,
-      value: { type: 'ready', host: { home: '/home/fixture' } },
+      value: { type: 'ready', host: { home: '/home/fixture', platform: 'fixture' } },
     })
     if (opening.done) throw new Error('Remote event stream ended before ready')
     const clientId: unknown = Reflect.get(opening.value as object, 'clientId')

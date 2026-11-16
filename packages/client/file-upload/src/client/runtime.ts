@@ -6,9 +6,12 @@ import { bytesToBase64 } from '@deepseek-ai/dsh-util-crypto'
 import { RemoteError } from '@deepseek-ai/dsh-typert-protocol'
 import type { RemoteResult } from '@deepseek-ai/dsh-typert-protocol'
 import type { SessionId } from '@deepseek-ai/dsh-session/types'
+import type { ConnectionHandle } from '@deepseek-ai/dsh-client-connection/client'
+import type {} from '@deepseek-ai/dsh-api-gateway/client'
+import { sha256 } from '@noble/hashes/sha2.js'
 import { FILE_UPLOAD_ROUTE } from '../protocol.ts'
 import type {
-  ClientFileUploadHooks, EncodedFileUploadRequest, FileUploadFetch, FileUploadValue, ImageUploadValue,
+  ClientFileUploadHooks, EncodedFileDedupeRequest, EncodedFileUploadRequest, FileUploadFetch, FileUploadValue, ImageUploadValue,
 } from '../types.ts'
 import type { FileUploadBody, FileUploadService } from './contract.ts'
 
@@ -27,11 +30,19 @@ interface FileUploadResponse {
 }
 
 interface FileUploadRemoteContext extends Context {
-  readonly remote: {
+  readonly remote: Context['remote'] & {
+    readonly host: {
+      describe(): Promise<RemoteResult<{ readonly capabilities: readonly string[] }>>
+    }
     readonly fileUploads: {
       upload(
         sessionId: SessionId,
         request: EncodedFileUploadRequest,
+        signal?: AbortSignal,
+      ): Promise<RemoteResult<FileUploadValue>>
+      uploadDedupe(
+        sessionId: SessionId,
+        request: EncodedFileDedupeRequest,
         signal?: AbortSignal,
       ): Promise<RemoteResult<FileUploadValue>>
     }
@@ -163,12 +174,26 @@ interface FileUploadTransport {
 /** Cordis service that owns one background carrier per upload operation. */
 export class FileUploadRuntime extends Service implements FileUploadService {
   private readonly transport: FileUploadTransport
+  private lifetime = new AbortController()
+  private readonly uploadedDigests = new Set<string>()
 
   /** @param ctx - providing Client context. */
   constructor(ctx: Context) {
     super(ctx, 'fileUpload')
     const hook = (globalThis as ClientFileUploadGlobal).__DSH_FILE_UPLOAD__
     this.transport = hook === undefined ? workerTransport() : customTransport(hook.fetch)
+    const connection = ctx.get('connection') as ConnectionHandle | undefined
+    ctx.effect(() => {
+      const stop = connection?.generation.subscribe(() => {
+        this.lifetime.abort(this.connectionChanged())
+        this.lifetime = new AbortController()
+      })
+      return () => {
+        stop?.()
+        this.lifetime.abort(this.connectionChanged())
+        this.uploadedDigests.clear()
+      }
+    }, 'file-upload: active upload lifetime')
   }
 
   /**
@@ -195,6 +220,37 @@ export class FileUploadRuntime extends Service implements FileUploadService {
     name?: string,
     signal?: AbortSignal,
     onProgress?: (progress: { readonly loaded: number; readonly total?: number }) => void,
+  ): Promise<RemoteResult<FileUploadValue>> {
+    return this.withConnection(async (activeSignal, capabilities) => {
+      if (!(data instanceof ReadableStream) && capabilities.includes('file-upload.dedupe.v1')) {
+        const digest = await digestBody(data, activeSignal)
+        if (this.uploadedDigests.has(digest)) {
+          const remembered = await (this.ctx as FileUploadRemoteContext).remote.fileUploads.uploadDedupe(
+            sessionId, { digest, ...(name === undefined ? {} : { name }) }, activeSignal,
+          )
+          activeSignal.throwIfAborted()
+          if (remembered.ok) return remembered
+          const { code, details } = remembered.error as {
+            readonly code: string
+            readonly details: { readonly reason?: unknown }
+          }
+          if (code !== 'session/attachment-invalid' || details.reason !== 'FILE_DIGEST_NOT_KNOWN') return remembered
+        }
+        const uploaded = await this.carryFile(sessionId, data, name, activeSignal, onProgress)
+        activeSignal.throwIfAborted()
+        if (uploaded.ok) this.uploadedDigests.add(digest)
+        return uploaded
+      }
+      return this.carryFile(sessionId, data, name, activeSignal, onProgress)
+    }, 'file-upload.stage.v1', signal)
+  }
+
+  private async carryFile(
+    sessionId: SessionId,
+    data: Blob | Uint8Array | ReadableStream<Uint8Array>,
+    name: string | undefined,
+    signal: AbortSignal,
+    onProgress: ((progress: { readonly loaded: number; readonly total?: number }) => void) | undefined,
   ): Promise<RemoteResult<FileUploadValue>> {
     if (!(data instanceof Uint8Array)) {
       const query = new URLSearchParams({ sessionId })
@@ -229,30 +285,76 @@ export class FileUploadRuntime extends Service implements FileUploadService {
     signal?: AbortSignal,
     onProgress?: (progress: { readonly loaded: number; readonly total?: number }) => void,
   ): Promise<RemoteResult<ImageUploadValue>> {
-    const query = new URLSearchParams({ sessionId, mediaType })
-    if (name !== undefined) query.set('name', name)
-    return parseUploadResult(await this.postRaw(query, data, signal, onProgress), imageUploadValue)
+    return this.withConnection(async (activeSignal) => {
+      const query = new URLSearchParams({ sessionId, mediaType })
+      if (name !== undefined) query.set('name', name)
+      return parseUploadResult(await this.postRaw(query, data, activeSignal, onProgress), imageUploadValue)
+    }, 'image-upload.stage.v1', signal)
+  }
+
+  private connectionChanged(): RemoteError<'gateway/connection-unavailable'> {
+    return new RemoteError('gateway/connection-unavailable', 'Upload connection is unavailable; retry explicitly', {
+      endpoint: 'session/uploadFileBinary',
+    })
+  }
+
+  private async withConnection<T>(
+    operation: (signal: AbortSignal, capabilities: readonly string[]) => Promise<T>,
+    capability: string,
+    signal: AbortSignal | undefined,
+  ): Promise<T> {
+    const connection = this.ctx.get('connection') as ConnectionHandle
+    if (connection.generation.getSnapshot() === undefined) throw this.connectionChanged()
+    const activeSignal = signal === undefined ? this.lifetime.signal : AbortSignal.any([signal, this.lifetime.signal])
+    activeSignal.throwIfAborted()
+    const described = await (this.ctx as FileUploadRemoteContext).remote.host.describe()
+    activeSignal.throwIfAborted()
+    if (!described.ok) throw described.error
+    if (!described.value.capabilities.includes(capability)) {
+      throw new RemoteError('host/capability-unavailable', 'Host does not support this upload operation', { capability })
+    }
+    const result = await operation(activeSignal, described.value.capabilities)
+    activeSignal.throwIfAborted()
+    return result
   }
 
   /** Post one raw body to the upload route; a non-200 status is a transport failure. */
   private async postRaw(
     query: URLSearchParams,
     body: FileUploadBody,
-    signal: AbortSignal | undefined,
+    signal: AbortSignal,
     onProgress: ((progress: { readonly loaded: number; readonly total?: number }) => void) | undefined,
   ): Promise<string> {
     const response = await this.post({
       path: `${FILE_UPLOAD_ROUTE}?${query.toString()}`,
       body,
       headers: { 'content-type': 'application/octet-stream' },
-      ...(signal === undefined ? {} : { signal }),
-      ...(onProgress === undefined ? {} : { onProgress }),
+      signal,
+      ...(onProgress === undefined ? {} : { onProgress: (progress: { readonly loaded: number; readonly total?: number }) => {
+        if (!signal.aborted) onProgress(progress)
+      } }),
     })
     if (response.status !== 200) {
       throw new Error(`file upload transport failed with HTTP ${String(response.status)}`)
     }
     return response.body
   }
+}
+
+const DIGEST_CHUNK_BYTES = 1 << 20
+
+/** Hash a re-readable upload without retaining an additional whole-file buffer. */
+async function digestBody(data: Blob | Uint8Array, signal: AbortSignal): Promise<string> {
+  const hash = sha256.create()
+  if (data instanceof Uint8Array) hash.update(data)
+  else {
+    for (let offset = 0; offset < data.size; offset += DIGEST_CHUNK_BYTES) {
+      signal.throwIfAborted()
+      hash.update(new Uint8Array(await data.slice(offset, offset + DIGEST_CHUNK_BYTES).arrayBuffer()))
+    }
+  }
+  signal.throwIfAborted()
+  return Array.from(hash.digest(), byte => byte.toString(16).padStart(2, '0')).join('')
 }
 
 function customTransport(customFetch: FileUploadFetch): FileUploadTransport {

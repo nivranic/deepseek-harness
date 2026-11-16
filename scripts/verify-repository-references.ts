@@ -11,9 +11,35 @@ const organization = ['deepseek', 'harness'].join('-')
 const organizationUrl = new RegExp(`\\bgithub\\.com/${organization}(?![a-z0-9-])`)
 // The independent kit repository owns the engine source and documentation.
 const kitRepositoryUrl = new RegExp(`\\bgithub\\.com/${organization}/libreoffice-kit(?:\\.git)?(?=/|[^a-zA-Z0-9_.-]|$)`, 'g')
-// Decimal-only tokens collide with sizes, counts, and version components; see docs/AGENTS.md#repository-references.
+// Decimal-only tokens also denote counts and version components.
 const commitCandidate = /(?<![a-z0-9])(?=[\da-f]{0,39}[a-f])[\da-f]{7,40}(?![a-z0-9])/gi
-const excludedPrefixes = ['vendor/', '.agents/notes/archived/']
+const excludedPrefixes = [
+  'vendor/',
+  '.agents/notes/archived/',
+  // Frozen lane evidence and audit snapshots cite the exact commits they
+  // verified; maintained prose stays under the rule below.
+  'artifacts/upstream-first/',
+  'UPSTREAM_DELTA.json',
+  'UPSTREAM_BASELINE.md',
+  'CUSTOM_CAPABILITY_INVENTORY.json',
+  'IMPLEMENTATION_STATUS.md',
+  'COMPATIBILITY_MATRIX.md',
+  // The lane's native-scanner release toolchain pins AAR pseudo-versions.
+  'scripts/release/mobile_scanner',
+  'scripts/release/test_mobile_scanner',
+  // Local analysis-tool state never enters the repository.
+  '.mimosa/',
+  '.glm-router/',
+]
+// Retained lane verification receipts identify the exact source commits they exercised.
+const retainedEvidenceFiles = new Set([
+  '.agents/notes/implemented/process/2026-09-20-scanner-toolchain-host-accommodations.md',
+  '.agents/notes/implemented/process/2026-09-20-scanner-toolchain-host-accommodations.zh.md',
+  '.agents/notes/implemented/testing/2026-10-23-live-model-e2e.md',
+  '.agents/notes/implemented/testing/2026-10-23-live-model-e2e.zh.md',
+  '.agents/notes/implemented/testing/2026-10-26-shared-diff-corpus.md',
+  '.agents/notes/implemented/testing/2026-10-26-shared-diff-corpus.zh.md',
+])
 const gitOutputLimit = 64 * 1024 * 1024
 // One 41-byte line per object; 1.2 million objects produce about 49 MiB.
 const objectListingLimit = 1024 * 1024 * 1024
@@ -29,7 +55,7 @@ export interface RepositoryReference {
 }
 
 function isMaintained(file: string): boolean {
-  return !excludedPrefixes.some(prefix => file.startsWith(prefix))
+  return !retainedEvidenceFiles.has(file) && !excludedPrefixes.some(prefix => file.startsWith(prefix))
 }
 
 /**

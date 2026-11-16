@@ -25,6 +25,10 @@ The package carries browser-to-Host Remote calls, exact Fetch responses, and con
 <a id="use-this-package"></a>
 ## Use this package
 
+The Host entry exports `createRpcFetchHandler(channel, handler)` and `bridgeConnectionHttp(req, res, handler, peer, maxRequestBodyBytes?)` for composed carriers such as Native Remote. The carrier supplies its Peer, authentication, and request-size limit; these helpers reuse Connection's RPC framing and HTTP buffering without granting local browser authority. Ordinary RPC channel registration still reserves `/api` for Gateway.
+
+Invalid RPC envelopes return `gateway/bad-request`. Each validation issue contains its diagnostic code, message, and field path, with symbol path components represented as strings.
+
 The `./client` import selects the standalone `lib/client.node.js` ESM bundle in Node and the `lib/client.browser.js` loader factory in browsers. The Web Host still serves the browser export at the logical `/plugins/.../client.js` URL. Import the Client entry for a non-page Cordis tree; the separate package root is the Host entry.
 
 A static desktop page can provide `__DSH_TRANSPORT__.streamBaseUrl` for the HTTP origin of its owned Host. The Gateway uses that origin for its WebSocket while HTTP transport remains independently selected. The desktop carrier owns authentication; setting the origin alone grants no access.

@@ -116,6 +116,11 @@ export function apply(ctx: Context, config: Config = {}): void {
   })
   ctx.tools.register(defineTool({
     name: 'team_task_create',
+    version: 1,
+    risk: 'moderate',
+    permissions: [],
+    supportsLite: false,
+    supportsRemote: true,
     description: 'Create one unowned pending task on the shared Team task board.',
     parameters: {
       subject: { type: 'string', required: true, description: 'Concise task title.' },
@@ -142,6 +147,11 @@ export function apply(ctx: Context, config: Config = {}): void {
 
   ctx.tools.register(defineTool({
     name: 'team_task_list',
+    version: 1,
+    risk: 'low',
+    permissions: [],
+    supportsLite: false,
+    supportsRemote: true,
     description: 'List shared tasks, including readiness, owner, revision, blockers, and write-scope warnings.',
     parameters: {
       status: {
@@ -183,6 +193,11 @@ export function apply(ctx: Context, config: Config = {}): void {
 
   ctx.tools.register(defineTool({
     name: 'team_task_get',
+    version: 1,
+    risk: 'low',
+    permissions: [],
+    supportsLite: false,
+    supportsRemote: true,
     description: 'Read the complete latest value of one shared task before changing or executing it.',
     parameters: {
       task_id: { type: 'string', required: true, description: 'Shared task id.' },
@@ -199,6 +214,11 @@ export function apply(ctx: Context, config: Config = {}): void {
 
   ctx.tools.register(defineTool({
     name: 'team_task_update',
+    version: 1,
+    risk: 'moderate',
+    permissions: [],
+    supportsLite: false,
+    supportsRemote: true,
     description: 'Compare-and-set a shared task action using the latest revision from team_task_get or team_task_list.',
     parameters: {
       task_id: { type: 'string', required: true, description: 'Shared task id.' },

@@ -1,0 +1,16 @@
+{
+  "observations": [
+    { "stage": "ready", "editable": true, "stop": 1 },
+    { "stage": "refused", "editable": true, "stop": 1 },
+    { "stage": "reconnected", "editable": true, "stop": 1 },
+    { "stage": "idle", "editable": true, "stop": 0 }
+  ],
+  "catalogFromProjection": true,
+  "retainedDraft": true,
+  "refusedPromptHasNoInboxMutation": true,
+  "promptRequests": 1,
+  "interruptRequests": 1,
+  "observedTurnAddressed": true,
+  "childTurnAborted": true,
+  "noAutomaticReplay": true
+}

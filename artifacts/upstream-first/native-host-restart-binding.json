@@ -1,0 +1,16 @@
+{
+  "status": "PASS",
+  "controls": 3,
+  "sourceRecord": {
+    "path": "artifacts/upstream-first/native-host-restart-source.json",
+    "sha256": "e68eaf546cc826e6734bdc7f13191b2a27d50df503aebda8e33077ba19ece834"
+  },
+  "generator": {
+    "path": "artifacts/upstream-first/write-reports.mjs",
+    "sha256": "5ee0ef237d1e98f146ed1423b315a4021b2fb042dd09ef69353eaed3bfe69fea"
+  },
+  "helper": {
+    "path": ".artifacts/check-native-host-restart-binding.mjs",
+    "sha256": "ccda63b02da368084d956d2ee6a20fa807c9959d5c9532add2e455dc2b41bcec"
+  }
+}

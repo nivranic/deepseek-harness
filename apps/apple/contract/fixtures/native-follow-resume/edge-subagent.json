@@ -1,0 +1,18 @@
+{
+ "kind": "subagent",
+ "parentSessionId": "p-1",
+ "childSessionId": "c-9",
+ "mode": "unknown",
+ "maxMessages": 50,
+ "body": {
+  "request": {
+   "address": {
+    "kind": "subagent",
+    "parentSessionId": "p-1",
+    "childSessionId": "c-9",
+    "mode": "unknown"
+   },
+   "maxMessages": 50
+  }
+ }
+}

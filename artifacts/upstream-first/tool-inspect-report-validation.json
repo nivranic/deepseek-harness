@@ -1,0 +1,50 @@
+{
+  "status": "PASS",
+  "scope": "Report bindings and audit; Step-scoped Inspect passes, recorded-session regression remains outstanding",
+  "gate0": {
+    "validation": "PASS",
+    "gate0": "PASS",
+    "paths": 1938,
+    "components": 129
+  },
+  "sourceRecord": {
+    "path": "artifacts/upstream-first/tool-inspect-source.json",
+    "sha256": "ecf562bb48bf18f8eda49244d6bd20b42531978cca6c89bcdfc028c48c6917a7"
+  },
+  "generator": {
+    "path": "artifacts/upstream-first/write-reports.mjs",
+    "sha256": "6efb464472342984d74fb73e28d5110fb0babf750dc11fda8f4f69f3b14397a8"
+  },
+  "binding": {
+    "path": "artifacts/upstream-first/tool-inspect-binding.json",
+    "sha256": "6b7e5958b52f74ed33548a3719cfeb7639f9220bb1f96a7f635bb3578f405eac"
+  },
+  "reports": [
+    {
+      "path": "IMPLEMENTATION_STATUS.md",
+      "sha256": "10be3c3316cc6374ac4591570b68a018d219923727edb33250d240164e15542b"
+    },
+    {
+      "path": "artifacts/upstream-first/evidence.json",
+      "sha256": "e25533853ee0c65216b95340d75317fe97ea9e6ceab47c5a3aa0c2472bc1c418"
+    }
+  ],
+  "checks": [
+    {
+      "path": ".artifacts/tool-inspect-binding.log",
+      "sha256": "2a88bdc80e2ad6808248e065b0e78f4c40093f97953389573db97fc8b7b66f7f"
+    },
+    {
+      "path": ".artifacts/tool-inspect-audit-tests.log",
+      "sha256": "1c394e9a2545b3b45e440d4a5ff4d6e3889697b0ea02b32691fa2c786a02eb1f"
+    },
+    {
+      "path": ".artifacts/tool-inspect-gate0.log",
+      "sha256": "4b5af3121a7e7caff0e1b6288bdaa7cfef9988842ae06bf02dc0a74852426043"
+    },
+    {
+      "path": ".artifacts/tool-inspect-report-diff-check.log",
+      "sha256": "e3b0c44298fc1c149afbf4c8996fb92427ae41e4649b934ca495991b7852b855"
+    }
+  ]
+}

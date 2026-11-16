@@ -99,16 +99,21 @@ describe('approveEscalation', () => {
     ...over,
   })
 
-  it('grants: returns the requested mode, asking through the approver with the audit reason', async () => {
-    const seen: { reason?: string }[] = []
-    const granted = await approveEscalation(req(), ingredients({ approver: approver('allowed-once', r => seen.push(r as { reason?: string })) }))
-    expect(granted).toBe('workspace-write')
-    expect(seen[0]?.reason).toBe('escalate sandbox to workspace-write: the user asked to write in the workspace')
+  it.each([
+    ['workspace-write', 'moderate'],
+    ['danger-full-access', 'high'],
+  ] as const)('grants %s with its audit reason, risk and modes', async (mode, risk) => {
+    const seen: unknown[] = []
+    const granted = await approveEscalation(req({ requestedMode: mode }), ingredients({ approver: approver('allowed-once', r => seen.push(r)) }))
+    expect(granted).toBe(mode)
     expect(seen[0]).toMatchObject({
+      reason: `escalate sandbox to ${mode}: the user asked to write in the workspace`,
+      risk,
+      escalation: { requestedMode: mode, effectiveMode: 'read-only' },
       displayReason: {
-        en: 'Allow this operation with workspace-write permissions: the user asked to write in the workspace',
-        zh: '允许本次操作使用 workspace-write 权限：the user asked to write in the workspace',
-        ja: 'workspace-write 権限でこの操作を許可します：the user asked to write in the workspace',
+        en: `Allow this operation with ${mode} permissions: the user asked to write in the workspace`,
+        zh: `允许本次操作使用 ${mode} 权限：the user asked to write in the workspace`,
+        ja: `${mode} 権限でこの操作を許可します：the user asked to write in the workspace`,
       },
     })
   })

@@ -1,0 +1,11 @@
+{
+  "locale": "zh-CN",
+  "kind": "interaction",
+  "label": "重新连接中",
+  "action": "连接中断，正在重试，点击立即重连",
+  "automaticAttempts": 1,
+  "manualReconnects": 1,
+  "replacementSockets": 2,
+  "draftPreserved": true,
+  "prompts": 0
+}

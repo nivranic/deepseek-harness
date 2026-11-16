@@ -1,0 +1,22 @@
+# Bilingual-pair consistency record for 2026-10-22-catalog-refresh-ui.md (docs/i18n/README.md): per heading
+# section, a hash of its English and Chinese blocks outside code blocks and generated regions.
+# After editing either side, bring the other along and re-record with:
+#   pnpm run verify-translation-pairing --write .agents/notes/implemented/architecture/2026-10-22-catalog-refresh-ui.md
+/agent-note-the-lite-face-refreshes-the-shared-catalog-observation-in-face:
+  en: c84d626d587de02c
+  zh: 12f6ac2c1ec52824
+/agent-note-the-lite-face-refreshes-the-shared-catalog-observation-in-face/problem:
+  en: eb2251cee176e065
+  zh: 4b23476056ece6d9
+/agent-note-the-lite-face-refreshes-the-shared-catalog-observation-in-face/decision:
+  en: 49fc2311e8d38958
+  zh: 84b1645afb8b00f5
+/agent-note-the-lite-face-refreshes-the-shared-catalog-observation-in-face/alternatives-considered:
+  en: 70d6fa43cb9231a8
+  zh: 8d8e45af90eb4e3c
+/agent-note-the-lite-face-refreshes-the-shared-catalog-observation-in-face/consequences:
+  en: 0e080b5c1d19242c
+  zh: 6e87f91aad919046
+/agent-note-the-lite-face-refreshes-the-shared-catalog-observation-in-face/open-follow-ups:
+  en: c22d8e48a6c3b345
+  zh: 5685b0ff269eb0ad

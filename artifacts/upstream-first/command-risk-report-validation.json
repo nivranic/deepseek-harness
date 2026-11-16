@@ -1,0 +1,70 @@
+{
+  "status": "PASS",
+  "scope": "Report bindings and audit for the Command risk tiers; the remaining specification sections stay open; full Upstream-First objective remains in progress",
+  "gate0": {
+    "validation": "PASS",
+    "gate0": "PASS",
+    "paths": 1938,
+    "components": 129,
+    "specificationCoverage": {
+      "status": "PASS",
+      "numberedSections": 81,
+      "nonEmptySourceLines": 1983,
+      "acceptanceProven": false
+    }
+  },
+  "sourceRecord": {
+    "path": "artifacts/upstream-first/command-risk-source.json",
+    "sha256": "10f4df2f4c2c282a61f2ad93e64e9b728ee857a40497153cbe1c483ab502fb53"
+  },
+  "generator": {
+    "path": "artifacts/upstream-first/write-reports.mjs",
+    "sha256": "2abe0acb8bba34654022855435c9c6c5afdd081052716262dcca0c76f1bf031f"
+  },
+  "binding": {
+    "path": "artifacts/upstream-first/command-risk-binding.json",
+    "sha256": "b601bbb653b43a70f7824f97d41e9933fc03e78dcc88f5bebd6294a9f1ca680d"
+  },
+  "helpers": [
+    {
+      "path": ".artifacts/advance-command-risk-reports.mjs",
+      "sha256": "2c845396cbab70d96f3baabc46c458531583cb0450f8418146c6a77f5ddd8c7b"
+    },
+    {
+      "path": ".artifacts/capture-command-risk-validation.mjs",
+      "sha256": "e3d7872e726971e353bfbeed166114fba5a1ee15be272d4b15bf349d60fb24ef"
+    }
+  ],
+  "reports": [
+    {
+      "path": "IMPLEMENTATION_STATUS.md",
+      "sha256": "e0c42767bd3fd1583003e04869a87b91ed81830d21c7bd5c110ca620e1b326f8"
+    },
+    {
+      "path": "artifacts/upstream-first/evidence.json",
+      "sha256": "5960f45d8d878f6c0a06cd4a3214572d59e4facfcc83fa0e1b0f6f759c2f9bd3"
+    }
+  ],
+  "checks": [
+    {
+      "path": ".artifacts/command-risk-binding.log",
+      "sha256": "50ee3c9742709a3b0fc5a490b481966333adcfefc97a385d0685fa478a16c425"
+    },
+    {
+      "path": ".artifacts/command-risk-audit-tests.log",
+      "sha256": "f08707b88122053a4fb6203757a90e2ab347247deeb30766bd55b526b28622de"
+    },
+    {
+      "path": ".artifacts/command-risk-gate0.log",
+      "sha256": "505d74ef938f5d34d85490d37e0176ba804d93272fcf465ce2544a02c56b3f90"
+    },
+    {
+      "path": ".artifacts/command-risk-report-diff-check.log",
+      "sha256": "e3b0c44298fc1c149afbf4c8996fb92427ae41e4649b934ca495991b7852b855"
+    },
+    {
+      "path": ".artifacts/command-risk-report-generation.log",
+      "sha256": "fe010532f71a6341467ae5719b29ac19470895de1d481156335b8f70a3273ed5"
+    }
+  ]
+}

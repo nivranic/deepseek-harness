@@ -39,6 +39,11 @@ export function apply(ctx: Context, config: Config = {}): void {
   ctx.tools.register(defineTool({
     name: 'ask_user_question',
     description,
+    version: 1,
+    risk: 'low',
+    permissions: ['question.respond'],
+    supportsLite: false,
+    supportsRemote: true,
     parameters: {
       questions: {
         type: 'array',

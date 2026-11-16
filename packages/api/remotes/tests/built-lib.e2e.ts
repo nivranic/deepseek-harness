@@ -1,6 +1,7 @@
 import { execFile } from 'node:child_process'
 import { existsSync } from 'node:fs'
-import { join, resolve } from 'node:path'
+import { mkdtemp, rm, writeFile } from 'node:fs/promises'
+import { dirname, join, resolve } from 'node:path'
 import { fileURLToPath, pathToFileURL } from 'node:url'
 import { describe, expect, it } from 'vitest'
 
@@ -19,6 +20,8 @@ const requiredArtifacts = [
   'packages/client/connection/lib/index.js',
   'packages/host/authentication-token/lib/index.js',
   'packages/api/remotes/lib/client.js',
+  'packages/api/host-description/lib/index.js',
+  'packages/api/host-description/lib/typert.host.js',
   'packages/core/agent/lib/index.js',
   'packages/core/session/lib/index.js',
   'packages/util/brand/lib/index.js',
@@ -33,6 +36,33 @@ const requiredArtifacts = [
 ].every(path => existsSync(artifact(path)))
 
 describe.skipIf(!requiredArtifacts)('Goal Remote built LIB chain', () => {
+  it('exposes Host discovery and Remote failures to a standalone NodeNext consumer', async () => {
+    const consumer = await mkdtemp(join(packageDir, '.types-consumer-'))
+    try {
+      await writeFile(join(consumer, 'index.mts'), [
+        "import type { ClientRemote, HostDescriptor, RemoteResult, RemoteErrorCode } from '../lib/types/client/index.js'",
+        "import type { ToolDescriptorList } from '@deepseek-ai/dsh-tools/types'",
+        'const describe = (remote: ClientRemote): Promise<RemoteResult<HostDescriptor>> => remote.host.describe()',
+        'const tools = (remote: ClientRemote): Promise<RemoteResult<ToolDescriptorList>> => remote.tools.list()',
+        "const unsupported: RemoteErrorCode = 'gateway/protocol-unsupported'",
+        'void describe; void tools; void unsupported;',
+      ].join('\n') + '\n')
+      await writeFile(join(consumer, 'tsconfig.json'), JSON.stringify({
+        compilerOptions: { module: 'NodeNext', moduleResolution: 'NodeNext', target: 'ES2024', strict: true, noEmit: true, skipLibCheck: true },
+        files: ['index.mts'],
+      }))
+      const result = await new Promise<{ error: Error | null; output: string }>((done) => {
+        execFile(process.execPath, [artifact('node_modules/typescript/bin/tsc'), '-p', consumer, '--pretty', 'false'], {
+          cwd: packageDir, encoding: 'utf8', timeout: 30_000,
+        }, (error, stdout, stderr) => { done({ error, output: stdout + stderr }) })
+      })
+      expect(result.error, result.output).toBeNull()
+    } finally {
+      expect(resolve(dirname(consumer))).toBe(resolve(packageDir))
+      await rm(consumer, { recursive: true, force: true })
+    }
+  })
+
   it('runs root and Agent-scoped calls through generated bundles and real HTTP', async () => {
     const urls = Object.fromEntries(Object.entries({
       agent: 'packages/core/agent/lib/index.js',
@@ -48,6 +78,8 @@ describe.skipIf(!requiredArtifacts)('Goal Remote built LIB chain', () => {
       registryClient: 'packages/typert/registry/lib/client.browser.js',
       registryHost: 'packages/typert/registry/lib/index.js',
       remotesClient: 'packages/api/remotes/lib/client.js',
+      hostDescription: 'packages/api/host-description/lib/index.js',
+      hostDescriptionTypert: 'packages/api/host-description/lib/typert.host.js',
       session: 'packages/core/session/lib/index.js',
       sessionProjections: 'packages/session/session-projection/lib/index.js',
     }).map(([key, path]) => [key, artifactUrl(path)]))
@@ -68,6 +100,9 @@ describe.skipIf(!requiredArtifacts)('Goal Remote built LIB chain', () => {
       const { default: TypertRegistry } = await import(urls.registryHost)
       const { Session } = await import(urls.session)
       const { brandString } = await import(urls.brand)
+
+      const { HostDescriptionGateway } = await import(urls.hostDescription)
+      const { TYPERT: hostDescriptionTypert } = await import(urls.hostDescriptionTypert)
 
       const routes = []
       const credentialRecords = new Map()
@@ -97,6 +132,16 @@ describe.skipIf(!requiredArtifacts)('Goal Remote built LIB chain', () => {
       await host.plugin(TypertRemoteService)
       await host.plugin(GoalService)
       host.typert.register(TYPERT)
+      host.typert.register(hostDescriptionTypert)
+      await host.plugin({
+        inject: ['typertGateway'],
+        apply(ctx) {
+          new HostDescriptionGateway(ctx, {
+            hostId: '4bf2b376-39e8-4a02-8d94-daf34f8ed6fb', displayName: 'Built fixture',
+            productVersion: '0.0.0-fixture', transports: ['http'],
+          })
+        },
+      })
 
       const makeAgent = rawId => {
         const session = new Session(brandString(rawId))
@@ -201,6 +246,7 @@ describe.skipIf(!requiredArtifacts)('Goal Remote built LIB chain', () => {
           identity: candidate => 'builtAgentId' in candidate ? candidate.builtAgentId : undefined,
         })
 
+        const description = await client.remote.host.describe()
         const invalidResult = await client.remote.goals.create(rootAgent.id, { objective: 1 })
         // Every generated method resolves to the RemoteResult envelope; the
         // business values below are what the assertions pin.
@@ -213,6 +259,7 @@ describe.skipIf(!requiredArtifacts)('Goal Remote built LIB chain', () => {
         const agentContext = client.extend({ builtAgentId: scopedAgent.id })
         const scopedResult = await agentContext.remote.goals.create({ objective: 'scoped goal', maxGoalRounds: 3 })
         const result = {
+          description,
           unauthorizedStatus,
           invalidResult,
           rootResult: rootResult.value,
@@ -254,6 +301,7 @@ describe.skipIf(!requiredArtifacts)('Goal Remote built LIB chain', () => {
       scopedEvents: number
     }
     expect(output).toMatchObject({
+      description: { ok: true, value: { displayName: 'Built fixture', apiProtocolVersion: 1 } },
       unauthorizedStatus: 401,
       invalidResult: { ok: false, error: { code: 'gateway/input-invalid' } },
       rootResult: { ref: { revision: 1 } },

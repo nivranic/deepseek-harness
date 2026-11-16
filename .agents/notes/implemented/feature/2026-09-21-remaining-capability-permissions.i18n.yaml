@@ -1,0 +1,19 @@
+# Bilingual-pair consistency record for 2026-09-21-remaining-capability-permissions.md (docs/i18n/README.md): per heading
+# section, a hash of its English and Chinese blocks outside code blocks and generated regions.
+# After editing either side, bring the other along and re-record with:
+#   pnpm run verify-translation-pairing --write .agents/notes/implemented/feature/2026-09-21-remaining-capability-permissions.md
+/agent-note-the-remaining-owners-declare-their-device-permissions:
+  en: f30b33b380b5e48c
+  zh: 345207be287c409a
+/agent-note-the-remaining-owners-declare-their-device-permissions/problem:
+  en: 0ccc462ce7f461f0
+  zh: dad67a8f757c670f
+/agent-note-the-remaining-owners-declare-their-device-permissions/decision:
+  en: 43c65dd41d868084
+  zh: dc725db2a2e5c408
+/agent-note-the-remaining-owners-declare-their-device-permissions/alternatives-considered:
+  en: e35280aa050eb13c
+  zh: 1eff66cbc7ef9357
+/agent-note-the-remaining-owners-declare-their-device-permissions/consequences:
+  en: 789935154c0924db
+  zh: 89003d5d5479d59c

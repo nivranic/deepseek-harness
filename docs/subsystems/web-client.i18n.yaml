@@ -30,8 +30,8 @@
   en: a254278432416473
   zh: 567c2d3c6a20b304
 /web-client-architecture/reconnection:
-  en: 478f461e261b1ca5
-  zh: 626791d04656faee
+  en: 7fd2f7eba28ca149
+  zh: 5b29545c9680ff72
 /web-client-architecture/reading-reminders:
   en: 59427b3b5d8d633c
   zh: 864e0ea121534aa3
@@ -47,3 +47,6 @@
 /web-client-architecture/package-boundaries:
   en: 085622c76f4d5b06
   zh: 12ef92771b4d9a4a
+/web-client-architecture/native-delivery-actions:
+  en: e8a1f40360ea354b
+  zh: f2e68e95d2484606

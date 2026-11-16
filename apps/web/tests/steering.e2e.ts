@@ -89,7 +89,8 @@ describe('web e2e: mid-turn steering lands durably and visibly', () => {
       ...(MODE === 'record' ? {} : { replayFixture: FIXTURE, paceMs: REPLAY_PACE_MS, compareReplaySession: true }),
     })
     scaffold.ctx.on('session/event', (_session, event) => { sessionEvents.push(event) })
-    browser = await chromium.launch()
+    const executablePath = process.env.DSH_PLAYWRIGHT_EXECUTABLE_PATH
+    browser = await chromium.launch(executablePath === undefined ? {} : { executablePath })
     page = await newEnglishPage(browser)
     await pinBrowserClock(page)
     tripwire = watchConsole(page)
@@ -273,7 +274,8 @@ describe.skipIf(MODE === 'record')('web e2e: retained steering and a post-stop m
         }
       }
     }, { prepend: true })
-    browser = await chromium.launch()
+    const executablePath = process.env.DSH_PLAYWRIGHT_EXECUTABLE_PATH
+    browser = await chromium.launch(executablePath === undefined ? {} : { executablePath })
     page = await newEnglishPage(browser)
     await pinBrowserClock(page)
     tripwire = watchConsole(page)
@@ -386,7 +388,8 @@ describe.each(['reconnect', 'delayed-inbox'] as const)('web e2e: composer shortc
   beforeAll(async () => {
     scaffold = await launchWebScaffold({ replayFixture: FIXTURE, paceMs: REPLAY_PACE_MS, compareReplaySession: false })
     scaffold.ctx.on('session/event', (_session, event) => { sessionEvents.push(event) })
-    browser = await chromium.launch()
+    const executablePath = process.env.DSH_PLAYWRIGHT_EXECUTABLE_PATH
+    browser = await chromium.launch(executablePath === undefined ? {} : { executablePath })
     page = await newEnglishPage(browser)
     await page.routeWebSocket('**/api/remote.mux', (route) => {
       remoteSocket = route
@@ -498,7 +501,8 @@ describe('web e2e: composer shortcut follows the swapped busy behavior', () => {
   beforeAll(async () => {
     scaffold = await launchWebScaffold({ replayFixture: FIXTURE, paceMs: REPLAY_PACE_MS, compareReplaySession: false })
     scaffold.ctx.on('session/event', (_session, event) => { sessionEvents.push(event) })
-    browser = await chromium.launch()
+    const executablePath = process.env.DSH_PLAYWRIGHT_EXECUTABLE_PATH
+    browser = await chromium.launch(executablePath === undefined ? {} : { executablePath })
     page = await newEnglishPage(browser)
     tripwire = watchConsole(page)
     await page.goto(scaffold.authenticatedUrl, { waitUntil: 'load' })
@@ -578,7 +582,8 @@ describe('web e2e: empty-draft Cmd+Enter steers the whole queue', () => {
       }
     }, { prepend: true })
     scaffold.ctx.on('session/event', (_session, event) => { sessionEvents.push(event) })
-    browser = await chromium.launch()
+    const executablePath = process.env.DSH_PLAYWRIGHT_EXECUTABLE_PATH
+    browser = await chromium.launch(executablePath === undefined ? {} : { executablePath })
     page = await newEnglishPage(browser)
     await pinBrowserClock(page)
     tripwire = watchConsole(page)

@@ -9,7 +9,7 @@ kind: "package-library"
 
 ## 概述
 
-会话遥测让部署方发送会话活动的有序副本用于上报，同时保留权威会话日志。部署方选择一个上报后端，并可在投递前脱敏每个外发副本；如果没有脱敏规则，捕获的数据将原样离开进程。交接以非阻塞方式完成，因此上报不会延迟会话处理。投递采用尽力而为方式；如果进程崩溃，队列中的记录可能丢失。
+会话遥测让部署方发送会话活动的有序副本用于上报，同时保留权威会话日志。部署方选择一个上报后端，并可在投递前脱敏每个外发副本；如果没有脱敏规则，捕获的数据将原样离开进程。交接以非阻塞方式完成，因此上报不会延迟会话处理。第 44 节的同意记录独立切换五个遥测数据类别，每个类别默认关闭。投递采用尽力而为方式；如果进程崩溃，队列中的记录可能丢失。
 
 ## 目录
 
@@ -46,6 +46,12 @@ ledger 记录携带 `sourceEvent`，其中包含所属 Session id 和不含 `dat
 <a id="the-sharing-disclosure"></a>
 
 每个后端通过 `sharing` 披露部署模式：`full`、`feedback-only` 或 `disabled`。后端还可限制符合条件的会话。该属性不是投递回执；交接是非阻塞入队，批处理、重试与丢失策略属于后端 SDK。
+
+### 分类型同意
+
+<a id="per-kind-consent"></a>
+
+后端同时暴露 `consent`：第 44 节的分类型同意记录，每个遥测数据类别一个布尔值——`sessionTelemetry`、`providerMetadata`、`relayMetadata`、`deviceTrustMetadata` 与 `crashDiagnostics`。每个类别默认关闭，没有总开关；部署在后端配置中按类别开启，类别名与 `telemetry-consent` 命名空间名由本包导出（`TELEMETRY_DATA_KINDS`、`TELEMETRY_CONSENT_NAMESPACE`），是词汇的唯一来源。后端接入 user-settings seam 时，该配置是命名空间的组合层种子：user 层优先，变更在重启后生效。`telemetryKindAllowed(consent, kind)` 是生产者在某一类别数据离开进程前调用的判断，`sharing` 仍然是上传策略。OpenTelemetry 后端已强制执行 `sessionTelemetry` 类：关闭（默认）时不构建 SDK 管线、反馈留在本地。
 
 ### 脱敏记录
 

@@ -266,6 +266,18 @@ describe('loadWin32DialogBindings over the fake COM world', () => {
     expect(world.uninitialized).toBe(1)
   })
 
+  it('frees the COM path and releases its owners when string decoding throws', async () => {
+    const world = comWorld()
+    const failure = new Error('path conversion failed')
+    installFakeKoffi(world, { decodeString: () => { throw failure } })
+    const bindings = await (await loadBindingsModule()).loadWin32DialogBindings()
+
+    expect(() => runFolderDialog(bindings, 'Pick', vi.fn())).toThrow(failure)
+    expect(world.freed).toEqual([0x3300n])
+    expect(world.released).toEqual(['item', 'dialog'])
+    expect(world.uninitialized).toBe(1)
+  })
+
   it('cascades DPI contexts to the first the host accepts', async () => {
     const world = comWorld({ supportedDpiContexts: [-3] })
     installFakeKoffi(world)

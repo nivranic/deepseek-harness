@@ -75,6 +75,12 @@ function splice(html: string, at: number, markup: string): string {
   return `${html.slice(0, at)}${markup}${html.slice(at)}`
 }
 
+/** Locate the first opening tag without rescanning unterminated attribute text. */
+function openingTagEnd(html: string, placement: IndexInjectionPlacement): number {
+  const prefix = (placement === 'head' ? /<head(?:\s|>)/i : /<body(?:\s|>)/i).exec(html)
+  return prefix === null ? -1 : html.indexOf('>', prefix.index + prefix[0].length - 1)
+}
+
 /**
  * Tail script settling the boot-readiness deferred (`__DSH_BOOT_READY__`):
  * the client entry awaits its `.promise` before reading any injected state.
@@ -89,6 +95,7 @@ const READY_MARKUP = '<script>(globalThis.__DSH_BOOT_READY__ ??= Promise.withRes
  * Render rows into an index.html body: head rows immediately after the
  * opening head tag, body rows immediately after the opening body tag, each
  * group in table order, and the boot-readiness tail after the last body row.
+ * Opening-tag lookup is linear even when repeated tag prefixes lack `>`.
  * @param html - the raw index.html body.
  * @param rows - the collected injection table.
  * @returns the html with every row rendered.
@@ -104,16 +111,16 @@ export function renderIndexInjections(html: string, rows: readonly IndexInjectio
   body += READY_MARKUP
   let out = html
   if (head !== '') {
-    const open = /<head(?:\s[^>]*)?>/i.exec(out)
+    const end = openingTagEnd(out, 'head')
     // Headless fixture pages may lack <head>; prepending keeps the rows ahead
     // of every document script.
-    out = open === null ? `${head}${out}` : splice(out, open.index + open[0].length, head)
+    out = end === -1 ? `${head}${out}` : splice(out, end + 1, head)
   }
   if (body !== '') {
-    const open = /<body(?:\s[^>]*)?>/i.exec(out)
+    const end = openingTagEnd(out, 'body')
     // Body-less fragments receive the rows at the end, where the HTML parser
     // has already synthesized a body.
-    out = open === null ? `${out}${body}` : splice(out, open.index + open[0].length, body)
+    out = end === -1 ? `${out}${body}` : splice(out, end + 1, body)
   }
   return out
 }

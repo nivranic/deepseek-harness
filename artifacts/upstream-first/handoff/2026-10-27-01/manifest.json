@@ -1,0 +1,10 @@
+{
+  "schemaVersion": 1,
+  "handoffId": "2026-10-27-01",
+  "files": [
+    { "path": "HANDOFF.md", "sha256": "243a4e985dfd10a42ac0dd3357dcdd7746278e569e9be8179fbe82e781b46047", "role": "handoff document (self-contained, Chinese)" },
+    { "path": "state.json", "sha256": "self", "role": "capture-time state snapshot" },
+    { "path": "manifest.json", "sha256": "self", "role": "this manifest" },
+    { "path": "verification.json", "sha256": "self", "role": "hash and state verification record" }
+  ]
+}

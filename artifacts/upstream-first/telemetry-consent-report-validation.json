@@ -1,0 +1,70 @@
+{
+  "status": "PASS",
+  "scope": "Report bindings and audit for the Telemetry consent; the remaining specification sections stay open; full Upstream-First objective remains in progress",
+  "gate0": {
+    "validation": "PASS",
+    "gate0": "PASS",
+    "paths": 1938,
+    "components": 129,
+    "specificationCoverage": {
+      "status": "PASS",
+      "numberedSections": 81,
+      "nonEmptySourceLines": 1983,
+      "acceptanceProven": false
+    }
+  },
+  "sourceRecord": {
+    "path": "artifacts/upstream-first/telemetry-consent-source.json",
+    "sha256": "44c32adfb071cf7d2bc72c4b73fdcd98ad5efafaba5abb46c541e988fde920ef"
+  },
+  "generator": {
+    "path": "artifacts/upstream-first/write-reports.mjs",
+    "sha256": "60882ac3777588c6acf5dcf6bab942502e2f0edf6ffe287386a911c883030644"
+  },
+  "binding": {
+    "path": "artifacts/upstream-first/telemetry-consent-binding.json",
+    "sha256": "e39adf8a154113fb2d09d84a93251d11685c3f9b884dc44e1be8a2dd5a0dfbc7"
+  },
+  "helpers": [
+    {
+      "path": ".artifacts/advance-telemetry-consent-reports.mjs",
+      "sha256": "fbc8f944325e6ee7433e39324481d17b3165ae7d3fdf43a2aee8e33e4493eb1d"
+    },
+    {
+      "path": ".artifacts/capture-telemetry-consent-validation.mjs",
+      "sha256": "a4e553a5982e78108647fa14f7185c55efad3cf10f46e4ed1b30e7ea8b3f8940"
+    }
+  ],
+  "reports": [
+    {
+      "path": "IMPLEMENTATION_STATUS.md",
+      "sha256": "6a4c56e50581a71f162c1cf86c29883abd3bffaa7c5b93c3cd626658fb65098a"
+    },
+    {
+      "path": "artifacts/upstream-first/evidence.json",
+      "sha256": "79d53fb42b292f5ae8d7d39180266c71d2a4507e1e944e34ac30a909362fd801"
+    }
+  ],
+  "checks": [
+    {
+      "path": ".artifacts/telemetry-consent-binding.log",
+      "sha256": "aecf441863032aa3475eca39bffbd1366b27b3b60c0bab4e5891c2c799d0345f"
+    },
+    {
+      "path": ".artifacts/telemetry-consent-audit-tests.log",
+      "sha256": "2cfc14ee02af8607f38af78127cff2908c6b368fb55f7bec147e50ce634b464e"
+    },
+    {
+      "path": ".artifacts/telemetry-consent-gate0.log",
+      "sha256": "505d74ef938f5d34d85490d37e0176ba804d93272fcf465ce2544a02c56b3f90"
+    },
+    {
+      "path": ".artifacts/telemetry-consent-report-diff-check.log",
+      "sha256": "e3b0c44298fc1c149afbf4c8996fb92427ae41e4649b934ca495991b7852b855"
+    },
+    {
+      "path": ".artifacts/telemetry-consent-report-generation.log",
+      "sha256": "fe010532f71a6341467ae5719b29ac19470895de1d481156335b8f70a3273ed5"
+    }
+  ]
+}

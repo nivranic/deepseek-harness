@@ -1,0 +1,64 @@
+{
+  "status": "PASS",
+  "scope": "Report bindings and audit for Dynamic Cordis operation-aware UI and real Host/browser recovery; recorded replay prompt pin still failing; full Upstream-First objective remains in progress",
+  "gate0": {
+    "validation": "PASS",
+    "gate0": "PASS",
+    "paths": 1938,
+    "components": 129
+  },
+  "sourceRecord": {
+    "path": "artifacts/upstream-first/dynamic-cordis-ui-source.json",
+    "sha256": "b41313ade4557d0609112df25fd72a4d9a43a518235fb2ffd53b5e8043897653"
+  },
+  "generator": {
+    "path": "artifacts/upstream-first/write-reports.mjs",
+    "sha256": "c4cc1a1e58ce39ed6ab489b7458eb50d53408832bc50ad45dc76275cbdf2c9a7"
+  },
+  "binding": {
+    "path": "artifacts/upstream-first/dynamic-cordis-ui-binding.json",
+    "sha256": "963eab8275756e67dc3b46ce7893c224f4dc0c0b2b69c2ad2916cfa453c230c2"
+  },
+  "helpers": [
+    {
+      "path": ".artifacts/advance-dynamic-cordis-ui-reports.mjs",
+      "sha256": "086d8e2bd538c2958ef58e50840a78b52f847194e9fa124f0f57d70caffd7dc2"
+    },
+    {
+      "path": ".artifacts/capture-dynamic-cordis-ui-validation.mjs",
+      "sha256": "6a42438e1fce007cdb593f76968483010b219b9ebc3ef38cd9af368ece893ee6"
+    }
+  ],
+  "reports": [
+    {
+      "path": "IMPLEMENTATION_STATUS.md",
+      "sha256": "27c2eee9d4c51b682736358326fcaf34b5ccbda6dddbead734a6ceabd7cf1db7"
+    },
+    {
+      "path": "artifacts/upstream-first/evidence.json",
+      "sha256": "f7b884b387c2ec9c7482cd523de2910a1e629819cbf978e91bac379f3104e335"
+    }
+  ],
+  "checks": [
+    {
+      "path": ".artifacts/dynamic-cordis-ui-binding.log",
+      "sha256": "3c550e79532a204269b21132a8ca2b83a13f84e4eb2307f840f807139b46d1c7"
+    },
+    {
+      "path": ".artifacts/dynamic-cordis-ui-audit-tests.log",
+      "sha256": "204c663ea51205138d97b0820b236c82c6b950f87ea58a0c7ddf3c782ca4261f"
+    },
+    {
+      "path": ".artifacts/dynamic-cordis-ui-gate0.log",
+      "sha256": "4b5af3121a7e7caff0e1b6288bdaa7cfef9988842ae06bf02dc0a74852426043"
+    },
+    {
+      "path": ".artifacts/dynamic-cordis-ui-report-diff-check.log",
+      "sha256": "e3b0c44298fc1c149afbf4c8996fb92427ae41e4649b934ca495991b7852b855"
+    },
+    {
+      "path": ".artifacts/dynamic-cordis-ui-report-generation.log",
+      "sha256": "fee38423682f6d1f2e0a50aabd65d5aa82ca06f4423805940cb852603041bf6a"
+    }
+  ]
+}

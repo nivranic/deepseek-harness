@@ -1,0 +1,53 @@
+{
+  "_comment": "App-owned device tool declarations (specification §32): the Android-local Lite tool ids with no Host counterpart, shipped as reviewable source and never downloaded. The build bundles this document beside the Host's tool-descriptors.json projection and the runtime unions the two, so one id may live in only one document — web_search stays out because the Host projection already declares it.",
+  "tools": [
+    {
+      "id": "url_fetch",
+      "version": 1,
+      "risk": "moderate",
+      "permissions": [],
+      "supportsLite": true,
+      "supportsRemote": true
+    },
+    {
+      "id": "image_inspect",
+      "version": 1,
+      "risk": "low",
+      "permissions": [],
+      "supportsLite": true,
+      "supportsRemote": true
+    },
+    {
+      "id": "attachment_read",
+      "version": 1,
+      "risk": "low",
+      "permissions": [],
+      "supportsLite": true,
+      "supportsRemote": true
+    },
+    {
+      "id": "artifact_create",
+      "version": 1,
+      "risk": "moderate",
+      "permissions": [],
+      "supportsLite": true,
+      "supportsRemote": true
+    },
+    {
+      "id": "calculator",
+      "version": 1,
+      "risk": "low",
+      "permissions": [],
+      "supportsLite": true,
+      "supportsRemote": true
+    },
+    {
+      "id": "run_tests",
+      "version": 1,
+      "risk": "high",
+      "permissions": [],
+      "supportsLite": false,
+      "supportsRemote": true
+    }
+  ]
+}

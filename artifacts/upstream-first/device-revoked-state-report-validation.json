@@ -1,0 +1,70 @@
+{
+  "status": "PASS",
+  "scope": "Report bindings and audit for the device-revoked Connection state; the section 18 multi-version matrix, closed error semantics, and change identity confirmation stay open; full Upstream-First objective remains in progress",
+  "gate0": {
+    "validation": "PASS",
+    "gate0": "PASS",
+    "paths": 1938,
+    "components": 129,
+    "specificationCoverage": {
+      "status": "PASS",
+      "numberedSections": 81,
+      "nonEmptySourceLines": 1983,
+      "acceptanceProven": false
+    }
+  },
+  "sourceRecord": {
+    "path": "artifacts/upstream-first/device-revoked-state-source.json",
+    "sha256": "847d5a365bbed0e42db39c822f163f4798de7af09dd944482b51084fc9331490"
+  },
+  "generator": {
+    "path": "artifacts/upstream-first/write-reports.mjs",
+    "sha256": "35a73ce4cda5000efb2f8332f3e552502f5a2bdd1e7510e68c66e888e830d047"
+  },
+  "binding": {
+    "path": "artifacts/upstream-first/device-revoked-state-binding.json",
+    "sha256": "fc700783064c847dd04b8a7f83fa0c3e910102d443d9a179ceac2c8e85d3e4c4"
+  },
+  "helpers": [
+    {
+      "path": ".artifacts/advance-device-revoked-state-reports.mjs",
+      "sha256": "c2c7adf03e75858e89751f6f129cc20771aeb11c9bd27666e443144a23a0be42"
+    },
+    {
+      "path": ".artifacts/capture-device-revoked-state-validation.mjs",
+      "sha256": "99b5d6285537b90307a5d4b22f0a832164c6bbf9178aaf56b97f7b08e0a024d3"
+    }
+  ],
+  "reports": [
+    {
+      "path": "IMPLEMENTATION_STATUS.md",
+      "sha256": "fd225363f31b55c7658f391b0bae9e82c1c91651aa724b6106c23e6a8cb5df08"
+    },
+    {
+      "path": "artifacts/upstream-first/evidence.json",
+      "sha256": "aae4f35a7cf8846d6b316b5736afe6110ba40188fac4192fd311c11bf8db972d"
+    }
+  ],
+  "checks": [
+    {
+      "path": ".artifacts/device-revoked-state-binding.log",
+      "sha256": "51938d12e119023b07abed4b6bd3923eb523ce38fec1e3234c25c12a01d891ef"
+    },
+    {
+      "path": ".artifacts/device-revoked-state-audit-tests.log",
+      "sha256": "65e059ebbf1eee8bc9ce2bf10d9f13c8d59df1ac6ec4f106b79c5fdee882a11a"
+    },
+    {
+      "path": ".artifacts/device-revoked-state-gate0.log",
+      "sha256": "505d74ef938f5d34d85490d37e0176ba804d93272fcf465ce2544a02c56b3f90"
+    },
+    {
+      "path": ".artifacts/device-revoked-state-report-diff-check.log",
+      "sha256": "e3b0c44298fc1c149afbf4c8996fb92427ae41e4649b934ca495991b7852b855"
+    },
+    {
+      "path": ".artifacts/device-revoked-state-report-generation.log",
+      "sha256": "fe010532f71a6341467ae5719b29ac19470895de1d481156335b8f70a3273ed5"
+    }
+  ]
+}

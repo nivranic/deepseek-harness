@@ -1,0 +1,540 @@
+{
+  "schemaVersion": 1,
+  "handoffId": "2026-09-29-01",
+  "files": [
+    {
+      "path": "capture.py",
+      "sha256": "dd76b93b3573227643c2cb72d8a2ef000f416945473f2649e827e053e32263e3",
+      "bytes": 8520
+    },
+    {
+      "path": "changes.json",
+      "sha256": "038428fdbc42ea8eb3d43b0d255862f65b5d4b88036862a0927c7d61a32d0fc1",
+      "bytes": 69155
+    },
+    {
+      "path": "evidence-index.json",
+      "sha256": "04c6530a2a11cbccffe7cb6e9164b22fdfa9536be42c52315a40c2fe7ab7ae21",
+      "bytes": 13780
+    },
+    {
+      "path": "HANDOFF.md",
+      "sha256": "e39b079c7f58a1acdac90c95243b93a0b3e86e3fdba688951f87de86b2504d98",
+      "bytes": 26068
+    },
+    {
+      "path": "original-specification.md",
+      "sha256": "4f313ad5a779b497e239654bc6cb3734dbe32210c72adf11286637606f764e80",
+      "bytes": 40658
+    },
+    {
+      "path": "previous-LATEST.json",
+      "sha256": "021780edb6c620f296ba393e71171fb5a19de4fca844c64f0ccfa0cc07ca9208",
+      "bytes": 516
+    },
+    {
+      "path": "report-snapshots/evidence.json",
+      "sha256": "b494c92207e283b3776808419b94076264a140ccffd7ae33848400df4eca22d3",
+      "bytes": 1699466
+    },
+    {
+      "path": "report-snapshots/IMPLEMENTATION_STATUS.md",
+      "sha256": "ab7757f33f5841b878b91a6fb8dfae206bb356e012682402fa644fd3d2d7f2e5",
+      "bytes": 330336
+    },
+    {
+      "path": "report-snapshots/specification-traceability.json",
+      "sha256": "36567be455ece9393e281646ecbf7fe26ce00689c96959352c246fe92bd48baf",
+      "bytes": 321695
+    },
+    {
+      "path": "resume-evidence/android-push-foreground-cursor-investigation.json",
+      "sha256": "85cadc4359e7b11473f3f46f4d7d3b12837425e1632b4e20a86cd10c6f41b457",
+      "bytes": 3557
+    },
+    {
+      "path": "resume-evidence/authorized-attachment-receipt-recovery-ci-status.json",
+      "sha256": "600972f9cbaa50ffb519e48a5c056dd7e506d8692cb16685fffff14c06ec992e",
+      "bytes": 283
+    },
+    {
+      "path": "resume-evidence/authorized-attachment-receipt-recovery-publication.json",
+      "sha256": "4bee2c5a1f70fd8aee47874cc4a446bc784de30356045885928cbe7155efdf47",
+      "bytes": 253
+    },
+    {
+      "path": "resume-evidence/check-authorized-attachment-receipt-recovery-ci.py",
+      "sha256": "2f6fa475c3fd395625557327da643e7323cd00ed9a31c6441f5c72a97c36e4a2",
+      "bytes": 1514
+    },
+    {
+      "path": "resume-evidence/dispatch-authorized-attachment-receipt-recovery-ci.py",
+      "sha256": "8b688a685cf87b1644b162241d2563da5e7ad4751e3bfce889ed2ed061638ad0",
+      "bytes": 2813
+    },
+    {
+      "path": "resume-evidence/native-upload-budget-android-initial.log",
+      "sha256": "d452287d29c52589fc9a70f19d44b4a60dd09e4d728812bd25b97d13e2ea3395",
+      "bytes": 5194
+    },
+    {
+      "path": "resume-evidence/native-upload-budget-baseline-cleanup-clarification.md",
+      "sha256": "6f5b2fcec73bb326c9411d17b0fc73c616117e66e21b0321d56fb3ad903a3b35",
+      "bytes": 2330
+    },
+    {
+      "path": "resume-evidence/native-upload-budget-before-archive.json",
+      "sha256": "a239e9736694a7e9e531f121ee440d806a042842d7549847e1cf4b306a533c5b",
+      "bytes": 2172245
+    },
+    {
+      "path": "resume-evidence/native-upload-budget-client-emissions-manifest.json",
+      "sha256": "3617dfd53eecce7887f7a5115b2ab0cdd79a22d079d23d7e8007417bed576b9f",
+      "bytes": 174344
+    },
+    {
+      "path": "resume-evidence/native-upload-budget-core-results-initial.json",
+      "sha256": "4d8cfe4a700769f204308a8c45b1153707a8ec39199972b44fdbda812c5971b0",
+      "bytes": 2249
+    },
+    {
+      "path": "resume-evidence/native-upload-budget-core-results.json",
+      "sha256": "88d7690ada1c9fe3d47006dbc301ffeddc76e41eaad321f9c9c1dca13c49e1c5",
+      "bytes": 2173
+    },
+    {
+      "path": "resume-evidence/native-upload-budget-doc-catalog.log",
+      "sha256": "ff69de118f4648d92fd2ecbae74aa38071c005545994be31e39f5341526092e9",
+      "bytes": 857
+    },
+    {
+      "path": "resume-evidence/native-upload-budget-e2e-lint-initial.log",
+      "sha256": "bc88db45b23e876f6682d93c66c7b9d610656e279cf03bd720beaca23df4c3f2",
+      "bytes": 518
+    },
+    {
+      "path": "resume-evidence/native-upload-budget-e2e-oxlint-fixed.log",
+      "sha256": "e3b0c44298fc1c149afbf4c8996fb92427ae41e4649b934ca495991b7852b855",
+      "bytes": 0
+    },
+    {
+      "path": "resume-evidence/native-upload-budget-e2e-oxlint-ledger.log",
+      "sha256": "e3b0c44298fc1c149afbf4c8996fb92427ae41e4649b934ca495991b7852b855",
+      "bytes": 0
+    },
+    {
+      "path": "resume-evidence/native-upload-budget-e2e-oxlint-sandbox.log",
+      "sha256": "f15811216103964dc6ed76b741c2525703a9036f1c9b1e1ea4a78bbf3017c970",
+      "bytes": 857
+    },
+    {
+      "path": "resume-evidence/native-upload-budget-e2e-oxlint.log",
+      "sha256": "87401acd830514bc2285eb84ed8b7fbe7998c8dec3c27fbe3032af9305d1e0c9",
+      "bytes": 141
+    },
+    {
+      "path": "resume-evidence/native-upload-budget-factory-build.log",
+      "sha256": "2e0f877a50f2f62503a3941e287cf78f6350998ec094b03268b0d640db26b404",
+      "bytes": 184651
+    },
+    {
+      "path": "resume-evidence/native-upload-budget-factory-client-build-fixed.log",
+      "sha256": "8ea953f4761975c4d4c7db316c6f8172a96282fc4c32212bbba4c5a5608698ca",
+      "bytes": 154431
+    },
+    {
+      "path": "resume-evidence/native-upload-budget-factory-client-build.log",
+      "sha256": "8922ac56d9358c01f2d46b025075486a703265c8753fd52e6d3c8a26cd086275",
+      "bytes": 274265
+    },
+    {
+      "path": "resume-evidence/native-upload-budget-factory-duplicate-scope.log",
+      "sha256": "efda43b0367adcf76bd1559ff56907c53857129a49c9200646134673bd8c3814",
+      "bytes": 953
+    },
+    {
+      "path": "resume-evidence/native-upload-budget-factory-eslint.log",
+      "sha256": "bc88db45b23e876f6682d93c66c7b9d610656e279cf03bd720beaca23df4c3f2",
+      "bytes": 518
+    },
+    {
+      "path": "resume-evidence/native-upload-budget-factory-oxlint.log",
+      "sha256": "e3b0c44298fc1c149afbf4c8996fb92427ae41e4649b934ca495991b7852b855",
+      "bytes": 0
+    },
+    {
+      "path": "resume-evidence/native-upload-budget-factory-proof-built.log",
+      "sha256": "e67d6b9bb4d5185f0e28e111e67630fc3692579ea79eeb8b191f5841b7164ede",
+      "bytes": 2868
+    },
+    {
+      "path": "resume-evidence/native-upload-budget-factory-proof-cleanup-fixed.log",
+      "sha256": "932af39c3cfcdd9adba03148ba1ec4b2f696ff46df67780490ab818f871581e3",
+      "bytes": 481
+    },
+    {
+      "path": "resume-evidence/native-upload-budget-factory-proof-client-built.log",
+      "sha256": "baca473d2174648fada6e70aef85d4d11efa6dc6fa765aae2357bdcd50968523",
+      "bytes": 2320
+    },
+    {
+      "path": "resume-evidence/native-upload-budget-factory-proof.log",
+      "sha256": "8ae373691028f46638517540a539176c5845eb49b93f87a41f7313586974a9f7",
+      "bytes": 2868
+    },
+    {
+      "path": "resume-evidence/native-upload-budget-factory-unit.log",
+      "sha256": "18c337b88fe617ba90796738d836e6fc81c0c83e3801b4c755bbd6234bb39795",
+      "bytes": 943
+    },
+    {
+      "path": "resume-evidence/native-upload-budget-host-build.log",
+      "sha256": "620a5806de173c2f2251fb09d5adac607af493804c2905b2b119b6c144157bf8",
+      "bytes": 181817
+    },
+    {
+      "path": "resume-evidence/native-upload-budget-host-proof.log",
+      "sha256": "33ba2491d83bdaea486774349132a5ae9fcb860f54df9eda353a23aba1f5d87b",
+      "bytes": 305
+    },
+    {
+      "path": "resume-evidence/native-upload-budget-host-unit.log",
+      "sha256": "d5e81b34c98404332ebb678be5a4d252da833b41a27d4f202fa7a97ce646b933",
+      "bytes": 941
+    },
+    {
+      "path": "resume-evidence/native-upload-budget-plan.md",
+      "sha256": "f3ca7bb9237dffbd15690ea6c9ba2d4ab0524b67be3059a35d4a3d668d4c346f",
+      "bytes": 28142
+    },
+    {
+      "path": "resume-evidence/native-upload-budget-prepare.log",
+      "sha256": "71166cb20ae20a9b9b6257bfdcf7853620b640c5c1cb96f5f2cd0fbaa5f5d6ea",
+      "bytes": 42
+    },
+    {
+      "path": "resume-evidence/native-upload-budget-scope-feasibility.config.ts",
+      "sha256": "3fb48244589abb3cdd7fe88a613e52c10ee7c0039ce546749690364aeb6a5634",
+      "bytes": 501
+    },
+    {
+      "path": "resume-evidence/native-upload-budget-scope-feasibility.evidence.log",
+      "sha256": "2b4dc0f6a4f01027b058a66f9ef49ad41d05534467599f733e7a6e233feed2da",
+      "bytes": 661
+    },
+    {
+      "path": "resume-evidence/native-upload-budget-scope-feasibility.run.log",
+      "sha256": "9e78f783e45124a1162a2fac4398bf8a00a68ff8a88ac74e76a53e83fedb605e",
+      "bytes": 1484
+    },
+    {
+      "path": "resume-evidence/native-upload-budget-scope-feasibility.spec.ts",
+      "sha256": "3278ea6631e59b89c95c77e12b4bc934b71d70913f29ed577b9fc10a0abd0030",
+      "bytes": 8359
+    },
+    {
+      "path": "resume-evidence/prepare-native-upload-budget.mjs",
+      "sha256": "4808078a44a50a4f9e97eb184f5879bc7fcf49b9aea8b95f15505a5aea1fb083",
+      "bytes": 12173
+    },
+    {
+      "path": "resume-evidence/preserve-native-upload-budget-client-emissions.py",
+      "sha256": "17aed1f87151a9e6fd04f3062034716d8556de8759194476fc5969d201e5eb63",
+      "bytes": 3231
+    },
+    {
+      "path": "resume-evidence/read-native-upload-budget-core-results.py",
+      "sha256": "fb78dde31ddb3e8dd976760e9c828782b26b951606313f7e886511c272bbc883",
+      "bytes": 1168
+    },
+    {
+      "path": "resume-evidence/TEST-ai.deepseek.dsh.companion.CompanionHostControllerTest.xml",
+      "sha256": "ec3e6f89bf60830caa59d4a398686b8a9e12a7898974a96458af24a0341ccfea",
+      "bytes": 1825
+    },
+    {
+      "path": "resume-evidence/TEST-ai.deepseek.dsh.companion.NativeFileAttachmentsModelTest.xml",
+      "sha256": "c6e69056bcf034ca480324f3b3a88ae11206b4a990c45e35cd885031d6348215",
+      "bytes": 2413
+    },
+    {
+      "path": "resume-evidence/TEST-ai.deepseek.dsh.companion.NativeShareAttachmentsModelTest.xml",
+      "sha256": "130c97d33ecf7d11116f519d029ad6e4a0c25470f877db31000bf60d8f3da5ef",
+      "bytes": 2503
+    },
+    {
+      "path": "resume-evidence/TEST-ai.deepseek.dsh.gateway.NativeGatewayDiagnosticsTest.xml",
+      "sha256": "79f85a0ec4ffa56587cd77c466f39b6d43954985153ac367fd9f08e2623b8331",
+      "bytes": 1255
+    },
+    {
+      "path": "resume-evidence/TEST-ai.deepseek.dsh.gateway.NativeGatewayProtocolTest.xml",
+      "sha256": "ca8edf1694edfc9936980fda106b8b9341c256a3236cfa909aa88179dced8e49",
+      "bytes": 2227
+    },
+    {
+      "path": "resume-evidence/TEST-ai.deepseek.dsh.gateway.NativeGatewayUploadBudgetTest.xml",
+      "sha256": "3cad63feaa59a665ce630f1d603bbda8fd0e43afcf674a520b3c613e094f426e",
+      "bytes": 1693
+    },
+    {
+      "path": "resume-evidence/TEST-ai.deepseek.dsh.gateway.NativeHttpRequestBudgetTest.xml",
+      "sha256": "78b5cd987631d44886e732558d50cfea84bfac506339292e07ee675fecb25cc3",
+      "bytes": 865
+    },
+    {
+      "path": "resume-evidence/verify-native-upload-budget-prepare-draft.mjs",
+      "sha256": "758056150cd2f21bfee48a4974a49753fb2736d84834204d19cd347abd91a6a7",
+      "bytes": 6474
+    },
+    {
+      "path": "seal-handoff.py",
+      "sha256": "ffe90229826ed94b4bc521b752ff63eeb48ef1be0db84a7efd9db751e323c3d5",
+      "bytes": 1785
+    },
+    {
+      "path": "state.json",
+      "sha256": "8002526fca76e0315ffe76de1cdb8d185036b71e5cf641e33fba06b6b56a0563",
+      "bytes": 2740
+    },
+    {
+      "path": "tracked.patch",
+      "sha256": "da695e3e6b27874dc8911598229d114b9d579e1748c80c689e342ecc689a56d0",
+      "bytes": 103728
+    },
+    {
+      "path": "uncommitted-files/.agents/notes/implemented/architecture/2026-09-27-android-file-attachments.md",
+      "sha256": "63ba12598c313867afbb349923076f263d5a630264a5c6a6b0a75fea8571aa04",
+      "bytes": 7933
+    },
+    {
+      "path": "uncommitted-files/.agents/notes/implemented/architecture/2026-09-27-android-file-attachments.zh.md",
+      "sha256": "2a5c532e33ffcc8f44a63ee8517153807dbcd4385a018b452e4afa1eac55fda8",
+      "bytes": 6965
+    },
+    {
+      "path": "uncommitted-files/.agents/notes/implemented/architecture/2026-09-27-android-photo-attachments.md",
+      "sha256": "58ea01643903a9555ff27a364e178f03a3b3674a7db83dd9791adfc7a7553f67",
+      "bytes": 8997
+    },
+    {
+      "path": "uncommitted-files/.agents/notes/implemented/architecture/2026-09-27-android-photo-attachments.zh.md",
+      "sha256": "4083715832908ce0098ff1767fb079d6b6baa0e746b5640d7e9100135187ea93",
+      "bytes": 7958
+    },
+    {
+      "path": "uncommitted-files/.agents/notes/implemented/architecture/2026-09-28-android-share-intake.md",
+      "sha256": "708b3733962a4bbbed9da7a59976cab73c63d91000133e1974fa1fa8e7135ca5",
+      "bytes": 11343
+    },
+    {
+      "path": "uncommitted-files/.agents/notes/implemented/architecture/2026-09-28-android-share-intake.zh.md",
+      "sha256": "648738d8ef9da40a302380503d8d7ca3cccc0e3355ffb6f7affaecd9a91a1c9c",
+      "bytes": 10040
+    },
+    {
+      "path": "uncommitted-files/.agents/notes/proposed/architecture/2026-09-28-native-http-upload-budget.md",
+      "sha256": "1d9fdd5f779d80d54c04b06db796a48ac665134558c7846ab22dd128b60d6055",
+      "bytes": 6285
+    },
+    {
+      "path": "uncommitted-files/.agents/notes/proposed/architecture/2026-09-28-native-http-upload-budget.zh.md",
+      "sha256": "e4b4303594c14496a740d9ec81d101b2f3904ae492200a367647ec2752939648",
+      "bytes": 5697
+    },
+    {
+      "path": "uncommitted-files/apps/android/app/src/androidTest/kotlin/ai/deepseek/dsh/companion/NativeCompanionAcceptanceTest.kt",
+      "sha256": "633dd2b341a09d73ee84a81a871f5c4065014e15d10baf572f85db5fe66ee65f",
+      "bytes": 123401
+    },
+    {
+      "path": "uncommitted-files/apps/android/app/src/main/kotlin/ai/deepseek/dsh/companion/HostCapabilityDetails.kt",
+      "sha256": "6b989ae4d2a391a2280aa9e658c661d1a3b057a259ac265300c425400bca7da4",
+      "bytes": 6224
+    },
+    {
+      "path": "uncommitted-files/apps/android/app/src/main/kotlin/ai/deepseek/dsh/companion/MainActivity.kt",
+      "sha256": "bbf96daaaf3c946e00b8e135cfac1ccd5a4400db969b4d975a4369d5df30c249",
+      "bytes": 67997
+    },
+    {
+      "path": "uncommitted-files/apps/android/app/src/main/kotlin/ai/deepseek/dsh/companion/NativeShareCard.kt",
+      "sha256": "b9555660536ba71255de0bba415686d0146f798b1ad38b39e6254c111fc533a7",
+      "bytes": 9432
+    },
+    {
+      "path": "uncommitted-files/apps/android/app/src/main/res/values/native_companion.xml",
+      "sha256": "7889dff1cd7d1d0011abfd7509a65e8c8246af1ac14006b3b6f8f2346ac3d8d3",
+      "bytes": 15852
+    },
+    {
+      "path": "uncommitted-files/apps/android/core/src/main/kotlin/ai/deepseek/dsh/companion/NativeFileAttachmentsModel.kt",
+      "sha256": "8bccb565cba3d50138dfbc6f031828db73fff049334053e5c056570c02a99d58",
+      "bytes": 24049
+    },
+    {
+      "path": "uncommitted-files/apps/android/core/src/main/kotlin/ai/deepseek/dsh/gateway/NativeGatewayClient.kt",
+      "sha256": "e8bc2108efec39f0ce84d649af761a2f55f146f4b96518a3cee137d7adcf00c4",
+      "bytes": 18928
+    },
+    {
+      "path": "uncommitted-files/apps/android/core/src/main/kotlin/ai/deepseek/dsh/gateway/NativeGatewayDiagnostics.kt",
+      "sha256": "10a01836b4a2b3e30c7ecedcfb71a1b99cfe791abedf185f2fd1fe84ee83503f",
+      "bytes": 3542
+    },
+    {
+      "path": "uncommitted-files/apps/android/core/src/main/kotlin/ai/deepseek/dsh/gateway/NativeHttpRequestBudget.kt",
+      "sha256": "3e0e77532e403a91c17ac72f0695fa75c48ec2e3d56a3ed9b0f3d2a17b2d14fe",
+      "bytes": 1191
+    },
+    {
+      "path": "uncommitted-files/apps/android/core/src/test/kotlin/ai/deepseek/dsh/companion/NativeFileAttachmentsModelTest.kt",
+      "sha256": "c27d0412fecef2ad8050bfddbeff9f7c934970771e3d57915c6bf3066b54c7d4",
+      "bytes": 13179
+    },
+    {
+      "path": "uncommitted-files/apps/android/core/src/test/kotlin/ai/deepseek/dsh/companion/NativeShareAttachmentsModelTest.kt",
+      "sha256": "353dd3781f95e894e9d85b5794c63378e66d9cfd1e801ce99a1154391cd39832",
+      "bytes": 14301
+    },
+    {
+      "path": "uncommitted-files/apps/android/core/src/test/kotlin/ai/deepseek/dsh/gateway/NativeGatewayUploadBudgetTest.kt",
+      "sha256": "a79ce2b1ca3f42d85c77aa4b8a4bf107acefbbb249447eaaa82a59ed8eafd295",
+      "bytes": 18807
+    },
+    {
+      "path": "uncommitted-files/apps/android/core/src/test/kotlin/ai/deepseek/dsh/gateway/NativeHttpRequestBudgetTest.kt",
+      "sha256": "d418fe75b7c0bc32ed25100a3046bc26e6064c90ae9558230d92ae7261cfc56b",
+      "bytes": 2369
+    },
+    {
+      "path": "uncommitted-files/apps/android/README.md",
+      "sha256": "50c2a750c3793870389510c9feeeb8a625e8cbbbac0a4c950bdfdafc91890918",
+      "bytes": 26274
+    },
+    {
+      "path": "uncommitted-files/apps/android/README.zh.md",
+      "sha256": "82b06292ee8f7274a0b029d2c896ece494b8717dc4ba16ae8acadea287894ff7",
+      "bytes": 22864
+    },
+    {
+      "path": "uncommitted-files/apps/web/tests/android-native-upload-budget.e2e.ts",
+      "sha256": "469c6446715c995edd6d3b3e83de897963d977fdf7f2af0c89bef158cf006ae0",
+      "bytes": 13478
+    },
+    {
+      "path": "uncommitted-files/apps/web/tests/expected/android-native-upload-budget.expected.md",
+      "sha256": "fd042a6e121d4a17e20fd637622a66ee6ad08354fe1f7ac17990ddb9dfd512d0",
+      "bytes": 1071
+    },
+    {
+      "path": "uncommitted-files/apps/web/tests/fixtures/native-upload-budget.patch.yml",
+      "sha256": "4b8933c1a049da70f1f1c543c1cd9b5806f1868c340efdcc106ec7d6d37ea448",
+      "bytes": 546
+    },
+    {
+      "path": "uncommitted-files/apps/web/tests/native-remote-isolation.e2e.ts",
+      "sha256": "cef59aca6ea78788d89e8d964d2a4324125d8a6f1992628124d03f0f5fb148b2",
+      "bytes": 13416
+    },
+    {
+      "path": "uncommitted-files/apps/web/tsconfig.json",
+      "sha256": "95c5737fc232fe1afb7609f0d6347beeb9e878f09d828344b824cd920107076b",
+      "bytes": 5908
+    },
+    {
+      "path": "uncommitted-files/docs/subsystems/typert.md",
+      "sha256": "d249c92af9cf804d9e6691fd72192ff098af8423298d5aafe1d69390c39001fb",
+      "bytes": 25348
+    },
+    {
+      "path": "uncommitted-files/docs/subsystems/typert.zh.md",
+      "sha256": "b1c4ca7dbc05473567aa35dd6fa806cd77dc68b215cf73a6232683f4a1562198",
+      "bytes": 24953
+    },
+    {
+      "path": "uncommitted-files/packages/api/gateway/README.md",
+      "sha256": "fbd964d902957d3f01a8e84928f765bbcc29918bba39b3e25141b0fd0b3283e0",
+      "bytes": 28860
+    },
+    {
+      "path": "uncommitted-files/packages/api/gateway/README.zh.md",
+      "sha256": "dd45edf6b73b09937411c557b90e69b01260ab0d18c085a2da07c1b1573918ba",
+      "bytes": 25887
+    },
+    {
+      "path": "uncommitted-files/packages/api/gateway/src/index.ts",
+      "sha256": "a09d15cdcf67ba05f20acb7f239444558677e48eca92097384720f5c8c86e1b9",
+      "bytes": 65228
+    },
+    {
+      "path": "uncommitted-files/packages/api/gateway/src/types.ts",
+      "sha256": "1877a8f119e3ddf40f325f58152f675949e7cb8ffbe57231d3f6309c8e142e08",
+      "bytes": 7696
+    },
+    {
+      "path": "uncommitted-files/packages/api/gateway/tests/gateway-stream.host.spec.ts",
+      "sha256": "4e29296886400edcd978b3e9be52b622b701b6bc7c46ba31fc92a7be7a02838b",
+      "bytes": 93348
+    },
+    {
+      "path": "uncommitted-files/packages/api/gateway/tests/gateway.host.spec.ts",
+      "sha256": "046c0700872728d6798f1ca086a155fff11fb7ef49e67af34b33bbcb500c55b0",
+      "bytes": 75370
+    },
+    {
+      "path": "uncommitted-files/packages/api/native-remote/README.md",
+      "sha256": "5e145fed63f75465e47daec613b9922a9ad57123612d687311feb05754d54657",
+      "bytes": 6773
+    },
+    {
+      "path": "uncommitted-files/packages/api/native-remote/README.zh.md",
+      "sha256": "ebb69b3a75a91fca1a28181c51ecfb4907d3628c7e0ba5a68eaffd83e7c04a90",
+      "bytes": 6010
+    },
+    {
+      "path": "uncommitted-files/packages/api/native-remote/src/capabilities.ts",
+      "sha256": "43d3914b274130f5877cb0d02901d5e7ce4a5675ec4f6b5d7f210512a979e815",
+      "bytes": 553
+    },
+    {
+      "path": "uncommitted-files/packages/api/native-remote/src/index.ts",
+      "sha256": "e6f5a7c8927e2b29fcead72ddbf28b9bbe96b53290fd25a7a40440de648e3980",
+      "bytes": 8300
+    },
+    {
+      "path": "uncommitted-files/packages/api/native-remote/src/types.ts",
+      "sha256": "b6f8bc1005609ffe4e9441faa3ade17f1129f4d276b7edb3c6ee976b0144db2f",
+      "bytes": 2173
+    },
+    {
+      "path": "uncommitted-files/packages/api/native-remote/tests/transport.host.spec.ts",
+      "sha256": "ab8a311e46216d48a2047b30c0f1b1dca95ec7ac4f7a309b5aa383f4f750b893",
+      "bytes": 20356
+    },
+    {
+      "path": "uncommitted-files/scripts/gen-cordis-catalog.ts",
+      "sha256": "bc7e595a7b3a5ee6766149e54d941f0e70e1ea294cd64540895b1243baab2857",
+      "bytes": 63091
+    },
+    {
+      "path": "uncommitted-files/scripts/type-equiv.manifest.json",
+      "sha256": "a3bf23f01863f8b2257baf46d3ceb99791f8a8379ec58a9bf95b6592272e7803",
+      "bytes": 68964
+    },
+    {
+      "path": "uncommitted-files/tsconfig.host.json",
+      "sha256": "dc23b7a709ed9e8033f991c0c09b77d9af7ba93cfc602cd1c85af6584ba9e6d4",
+      "bytes": 20424
+    },
+    {
+      "path": "verify.mjs",
+      "sha256": "16bec32509b9a62fdd4a5165679ff5732ce16a0e271d5a4e187a1b9e4432b031",
+      "bytes": 4934
+    }
+  ],
+  "excludedSelfReferences": [
+    "manifest.json",
+    "verification.json"
+  ]
+}

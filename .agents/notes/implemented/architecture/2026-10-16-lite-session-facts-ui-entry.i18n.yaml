@@ -1,0 +1,22 @@
+# Bilingual-pair consistency record for 2026-10-16-lite-session-facts-ui-entry.md (docs/i18n/README.md): per heading
+# section, a hash of its English and Chinese blocks outside code blocks and generated regions.
+# After editing either side, bring the other along and re-record with:
+#   pnpm run verify-translation-pairing --write .agents/notes/implemented/architecture/2026-10-16-lite-session-facts-ui-entry.md
+/agent-note-lite-sessions-disclose-their-facts-and-the-app-shell-mounts-a-lite-entry:
+  en: 5e88cfa6ca8c0d20
+  zh: 7b34ee60175e4d12
+/agent-note-lite-sessions-disclose-their-facts-and-the-app-shell-mounts-a-lite-entry/problem:
+  en: d9e465e12d8250ea
+  zh: 907257c43623f942
+/agent-note-lite-sessions-disclose-their-facts-and-the-app-shell-mounts-a-lite-entry/decision:
+  en: 975f16cfec46e40b
+  zh: cfb3989964a09148
+/agent-note-lite-sessions-disclose-their-facts-and-the-app-shell-mounts-a-lite-entry/alternatives-considered:
+  en: d14c9b4a60efab19
+  zh: ab6048bb721a4c91
+/agent-note-lite-sessions-disclose-their-facts-and-the-app-shell-mounts-a-lite-entry/consequences:
+  en: d597a35e7dc502ea
+  zh: b640d03401668330
+/agent-note-lite-sessions-disclose-their-facts-and-the-app-shell-mounts-a-lite-entry/open-follow-ups:
+  en: b8e2dc8b889afad8
+  zh: 7c974c25bfbf7b6f

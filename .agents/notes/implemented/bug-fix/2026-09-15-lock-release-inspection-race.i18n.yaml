@@ -1,0 +1,19 @@
+# Bilingual-pair consistency record for 2026-09-15-lock-release-inspection-race.md (docs/i18n/README.md): per heading
+# section, a hash of its English and Chinese blocks outside code blocks and generated regions.
+# After editing either side, bring the other along and re-record with:
+#   pnpm run verify-translation-pairing --write .agents/notes/implemented/bug-fix/2026-09-15-lock-release-inspection-race.md
+/agent-note-retry-a-lock-released-during-inspection:
+  en: 414505f7973f6c6a
+  zh: 9a9c471797529f56
+/agent-note-retry-a-lock-released-during-inspection/problem:
+  en: bd01292c8775594c
+  zh: 395ee97df89a5b8f
+/agent-note-retry-a-lock-released-during-inspection/decision:
+  en: 4d903984200c9386
+  zh: 64c25aa0e94a1673
+/agent-note-retry-a-lock-released-during-inspection/alternatives-considered:
+  en: ea7f8bdee4cdfbb8
+  zh: ace5d4a2545b6866
+/agent-note-retry-a-lock-released-during-inspection/consequences:
+  en: e8062762d2ff2d7d
+  zh: 4c2f68359519902a

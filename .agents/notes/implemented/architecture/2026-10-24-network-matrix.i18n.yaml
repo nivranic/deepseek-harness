@@ -1,0 +1,19 @@
+# Bilingual-pair consistency record for 2026-10-24-network-matrix.md (docs/i18n/README.md): per heading
+# section, a hash of its English and Chinese blocks outside code blocks and generated regions.
+# After editing either side, bring the other along and re-record with:
+#   pnpm run verify-translation-pairing --write .agents/notes/implemented/architecture/2026-10-24-network-matrix.md
+/agent-note-the-54-network-matrix-s-in-harness-and-device-side-rounds-over-the-production-lite-transport:
+  en: 8ea504192ec926db
+  zh: 5efd0553608d8a5a
+/agent-note-the-54-network-matrix-s-in-harness-and-device-side-rounds-over-the-production-lite-transport/problem:
+  en: 35724ec50f315cc6
+  zh: 78d7f388117b659b
+/agent-note-the-54-network-matrix-s-in-harness-and-device-side-rounds-over-the-production-lite-transport/decision:
+  en: a6955400edb64fed
+  zh: 506917ac49379822
+/agent-note-the-54-network-matrix-s-in-harness-and-device-side-rounds-over-the-production-lite-transport/alternatives-considered:
+  en: 17122b899e199e62
+  zh: 3519e5db23294f9d
+/agent-note-the-54-network-matrix-s-in-harness-and-device-side-rounds-over-the-production-lite-transport/consequences:
+  en: 84f9b9436798c72d
+  zh: c86b486b6b8ea1d4

@@ -1,0 +1,16 @@
+{
+  "status": "PASS",
+  "controls": 3,
+  "sourceRecord": {
+    "path": "artifacts/upstream-first/remote-failure-classes-source.json",
+    "sha256": "f0af7754304c0e2f40594ba6430ef123ba83439a8736fb05aceebbb369a1fd4a"
+  },
+  "generator": {
+    "path": "artifacts/upstream-first/write-reports.mjs",
+    "sha256": "5a0c7b7f80221a40d48113b79a03836dffe432fac20adb5e673fd0316edfe6bf"
+  },
+  "helper": {
+    "path": ".artifacts/check-remote-failure-classes-binding.mjs",
+    "sha256": "68f3173954d0b365c4eb840404876ac971fef2dd15e639200702729e6264bf12"
+  }
+}

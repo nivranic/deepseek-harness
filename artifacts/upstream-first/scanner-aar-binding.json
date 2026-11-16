@@ -1,0 +1,16 @@
+{
+  "status": "PASS",
+  "controls": 3,
+  "sourceRecord": {
+    "path": "artifacts/upstream-first/scanner-aar-source.json",
+    "sha256": "9656f6bd9ca839df1bb7cc743410b201f2dc28e91c02fc9f16d54df14059da92"
+  },
+  "generator": {
+    "path": "artifacts/upstream-first/write-reports.mjs",
+    "sha256": "95aa07eb825897f78d3234252b1a00a4d2b5e64e8111380bdcf07baccf8bdc22"
+  },
+  "helper": {
+    "path": ".artifacts/check-scanner-aar-binding.mjs",
+    "sha256": "544d4128f6b7384f4abdb4d7cf60779d7773ca4354b10419e0b82fe36abbfe28"
+  }
+}

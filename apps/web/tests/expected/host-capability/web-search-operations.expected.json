@@ -1,0 +1,12 @@
+{
+  "credentialDescriptionRead": true,
+  "ordinarySettingsPersisted": true,
+  "readOnlyCredentialDisabled": true,
+  "providerChangeDiscardedDraft": true,
+  "refusedDraftRetained": true,
+  "reconnectDidNotReplay": true,
+  "explicitKeyPersisted": true,
+  "noSecretInSettingsOrUi": true,
+  "generations": 3,
+  "credentialWrites": ["/api/credentials/set", "/api/credentials/set"]
+}

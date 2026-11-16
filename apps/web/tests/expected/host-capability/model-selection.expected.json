@@ -1,0 +1,12 @@
+{
+  "true": {
+    "modelControls": 1,
+    "modelCommands": 1,
+    "modelCatalogRead": true
+  },
+  "false": {
+    "modelControls": 1,
+    "modelCommands": 1,
+    "modelCatalogRead": true
+  }
+}

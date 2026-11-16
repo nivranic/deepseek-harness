@@ -1,0 +1,28 @@
+# Bilingual-pair consistency record for 2026-11-13-device-peer-attribution.md (docs/i18n/README.md): per heading
+# section, a hash of its English and Chinese blocks outside code blocks and generated regions.
+# After editing either side, bring the other along and re-record with:
+#   pnpm run verify-translation-pairing --write docs/persistence-changes/2026-11-13-device-peer-attribution.md
+/:
+  en: 3d5a424ae7d7e46b
+  zh: c22a8e4a62d8cc1a
+/2026-11-13-device-peer-attribution:
+  en: f2b026e9c3bc1e89
+  zh: 30c9dc517a17ac49
+/2026-11-13-device-peer-attribution/summary:
+  en: 11a5a53470f38a3b
+  zh: a4b0a97982d912dd
+/2026-11-13-device-peer-attribution/table-of-contents:
+  en: 6cf314a069ceb451
+  zh: 9adff678e9ecab3b
+/2026-11-13-device-peer-attribution/declaration:
+  en: 6907136f28e48c90
+  zh: 02f8298485f3d8e7
+/2026-11-13-device-peer-attribution/compatibility:
+  en: 3b0659f6743d5580
+  zh: 678edd371b39b384
+/2026-11-13-device-peer-attribution/verification:
+  en: 5b48e09d37ff2ac6
+  zh: 317acd73f7945f08
+/2026-11-13-device-peer-attribution/dev-note:
+  en: b75c8458928b72b9
+  zh: 003ba4e17b4b5269

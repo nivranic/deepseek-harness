@@ -868,6 +868,8 @@ function docSyncLeafGates(options: {
     pnpmScript('config-catalog', 'verify-config-catalog', { label: 'config catalog' }),
     pnpmScript('plugin-packages', 'verify-plugin-packages', { label: 'skill plugin package list' }),
     pnpmScript('dependency-catalog', 'verify-dependency-catalog', { label: 'npm dependency catalog', quick: true }),
+    pnpmScript('remote-error-codes', 'verify-remote-error-codes', { label: 'Remote error codes', quick: true }),
+    pnpmScript('remote-error-envelope', 'verify-remote-error-envelope', { label: 'Remote error envelope' }),
     pnpmScript('persistence-catalog', 'verify-persistence-catalog', { label: 'persistence catalog' }),
     pnpmScript('persistence-changes', 'verify-persistence-changes', { label: 'persistence type history' }),
     pnpmScript('persistence-releases', 'verify-persistence-releases', { label: 'released persistence history' }),

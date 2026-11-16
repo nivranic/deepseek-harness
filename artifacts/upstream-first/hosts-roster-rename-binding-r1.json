@@ -1,0 +1,16 @@
+{
+  "status": "PASS",
+  "controls": 3,
+  "sourceRecord": {
+    "path": "artifacts/upstream-first/hosts-roster-rename-source.json",
+    "sha256": "34fafe867f3a4bccc7b84e4113422644937f6ae76295b671a7a9bee069a43995"
+  },
+  "generator": {
+    "path": "artifacts/upstream-first/write-reports.mjs",
+    "sha256": "a05a522ba507e1682dc256779f6e3f0fe4f2b9a2db51346f92f5d65c5da89ea2"
+  },
+  "helper": {
+    "path": ".artifacts/check-hosts-roster-rename-binding.mjs",
+    "sha256": "8048fe22c3b30652d3eaa9bb03095c2b2ca10266e0673a01b2d80452f6ae74a7"
+  }
+}

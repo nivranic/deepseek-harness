@@ -2,7 +2,7 @@
 
 import { Context, Service } from '@deepseek-ai/cordis'
 import type { WebRoute } from '@deepseek-ai/dsh-host-webserver'
-import type { PeerScope, Principal } from '@deepseek-ai/dsh-typert-protocol'
+import { remoteValidationIssues, type PeerScope, type Principal } from '@deepseek-ai/dsh-typert-protocol'
 import type { ConnectionInteractions } from './connect-protocol.ts'
 import { brandString } from '@deepseek-ai/dsh-brand'
 import type { ClientRequest, RpcId as RpcIdType } from './rpc.ts'
@@ -192,7 +192,7 @@ export class HostConnectionService extends Service implements HostConnectionHand
     handler: ConnectionRpcHandler,
   ): () => Promise<void> {
     assertChannel(channel)
-    const fetchHandler = rpcFetchHandler(channel, handler)
+    const fetchHandler = createRpcFetchHandler(channel, handler)
     const route: WebRoute = {
       kind: 'prefix',
       path: channel,
@@ -220,7 +220,7 @@ export class HostConnectionService extends Service implements HostConnectionHand
     }
     const interceptor: ConnectionRpcInterceptor = {
       matches,
-      fetchHandler: rpcFetchHandler(channel, handler),
+      fetchHandler: createRpcFetchHandler(channel, handler),
     }
     return owner.effect(() => {
       if (this.interceptors.has(channel)) {
@@ -234,10 +234,17 @@ export class HostConnectionService extends Service implements HostConnectionHand
   }
 }
 
-function rpcFetchHandler(
+/**
+ * Decode unary RPC envelopes for a carrier that supplies its admitted Peer.
+ * @param channel - absolute single-segment channel path, such as `/api`.
+ * @param handler - dispatcher receiving the carrier's Peer and cancellation signal.
+ * @returns buffered Fetch handler; the carrier owns authentication and body-size limits.
+ */
+export function createRpcFetchHandler(
   channel: string,
   handler: ConnectionRpcHandler,
 ): ConnectionFetchHandler {
+  if (!CHANNEL_PATTERN.test(channel)) throw new Error(`connection: invalid RPC channel ${JSON.stringify(channel)}`)
   return {
     requestBodyMode: () => 'buffered',
     async fetch(request: Request, peer: PeerScope): Promise<Response> {
@@ -260,7 +267,7 @@ function rpcFetchHandler(
 
       const envelope = clientRequestSchema.safeParse(body)
       if (!envelope.success) {
-        return invalidEnvelopeResponse(body, envelope.error.issues)
+        return invalidEnvelopeResponse(body, remoteValidationIssues(envelope.error.issues))
       }
       const message: ClientRequest = envelope.data
       if (message.method !== endpoint) {

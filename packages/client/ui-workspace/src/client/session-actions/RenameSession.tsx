@@ -1,5 +1,6 @@
 /** Rename dialog shared by Session menus, shortcuts, and title double-clicks. */
-import { useRef, useState } from 'react'
+import { useEffect, useRef, useState } from 'react'
+import { remoteErrorOf } from '@deepseek-ai/dsh-typert-protocol'
 import { Button, Modal } from '@deepseek-ai/dsh-client-ui-primitives'
 import type {
   SessionRenameDialogInjected, SessionRenameDialogProps, SessionRenameTarget,
@@ -15,14 +16,14 @@ import css from '../rows/WorkspaceBrowser.module.css'
  * @param props - the request hook, its settlement, the rename hop, and the locale seat.
  * @returns the open dialog, or null.
  */
-export function SessionRenameDialog({ useRenameRequest, settleSessionRename, renameSession, t }: SessionRenameDialogProps) {
+export function SessionRenameDialog({ useRenameRequest, settleSessionRename, prepareRename, t }: SessionRenameDialogProps) {
   const request = useRenameRequest(pending => pending)
   if (request === null) return null
   return (
     <RenameForm
       key={request.sessionId}
       request={request}
-      renameSession={renameSession}
+      prepareRename={prepareRename}
       onSettle={settleSessionRename}
       t={t}
     />
@@ -30,19 +31,32 @@ export function SessionRenameDialog({ useRenameRequest, settleSessionRename, ren
 }
 
 /** One request's dialog: the draft seeds from the request on mount; in-flight and error state die with it. */
-function RenameForm({ request, renameSession, onSettle, t }: {
+function RenameForm({ request, prepareRename, onSettle, t }: {
   request: SessionRenameTarget
-  renameSession: SessionRenameDialogInjected['renameSession']
+  prepareRename: SessionRenameDialogInjected['prepareRename']
   onSettle: () => void
   t: SessionRenameDialogProps['t']
 }) {
   const [draft, setDraft] = useState(request.currentTitle)
   const [renaming, setRenaming] = useState(false)
-  const [error, setError] = useState<string | null>(null)
+  const [error, setError] = useState<Error | null>(null)
+  const [operation, setOperation] = useState<{
+    submit: (title: string) => Promise<void>
+    signal: AbortSignal
+  } | null>(null)
+  useEffect(() => {
+    const control = new AbortController()
+    void prepareRename(request.sessionId, control.signal).then((submit) => {
+      if (!control.signal.aborted) setOperation({ submit, signal: control.signal })
+    }, (reason: unknown) => {
+      if (!control.signal.aborted) setError(reason instanceof Error ? reason : new Error(String(reason)))
+    })
+    return () => { control.abort() }
+  }, [prepareRename, request.sessionId])
   // IME composition: Enter that commits a composition must not submit.
   const composingRef = useRef(false)
   const trimmed = draft.trim()
-  const blocked = renaming || trimmed === ''
+  const blocked = renaming || trimmed === '' || operation === null
   const close = () => {
     if (renaming) return
     onSettle()
@@ -51,12 +65,14 @@ function RenameForm({ request, renameSession, onSettle, t }: {
     if (blocked) return
     setRenaming(true)
     setError(null)
-    renameSession(request.sessionId, trimmed).then(() => {
+    operation.submit(trimmed).then(() => {
+      if (operation.signal.aborted) return
       setRenaming(false)
       onSettle()
     }).catch((reason: unknown) => {
+      if (operation.signal.aborted) return
       setRenaming(false)
-      setError(reason instanceof Error ? reason.message : String(reason))
+      setError(reason instanceof Error ? reason : new Error(String(reason)))
     })
   }
   return (
@@ -89,7 +105,9 @@ function RenameForm({ request, renameSession, onSettle, t }: {
           }
         }}
       />
-      {error !== null && <div className={css.renameError} role="alert">{error}</div>}
+      {error !== null && <div className={css.renameError} role="alert">{remoteErrorOf(error)?.code === 'session/revision-conflict'
+        ? t('rename.session.conflict')
+        : error.message}</div>}
     </Modal>
   )
 }

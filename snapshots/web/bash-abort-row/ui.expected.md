@@ -1,5 +1,6 @@
 - banner:
   - navigation "Session hierarchy": "Run two shell commands: wait"
+  - button "Continue on another device"
   - button "More actions"
   - button "Open right sidebar"
   - tablist:

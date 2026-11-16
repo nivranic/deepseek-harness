@@ -1,7 +1,8 @@
 /** Repository-wide ownership and storage invariants for the recorded-session corpus. */
 
 import { existsSync } from 'node:fs'
-import { lstat, readFile, readdir, realpath } from 'node:fs/promises'
+import { lstat, mkdir, mkdtemp, readFile, readdir, realpath, rm, writeFile } from 'node:fs/promises'
+import { tmpdir } from 'node:os'
 import { basename, dirname, join, relative, resolve } from 'node:path'
 import { expect, it } from 'vitest'
 import {
@@ -23,11 +24,14 @@ const repoRoot = resolve(import.meta.dirname, '..')
 const corpusRoot = join(repoRoot, 'snapshots')
 const profiles = ['acp', 'sdk', 'session', 'web'] as const
 const snapshotAdapters = [
+  'apps/web/tests/checkpoint-order.snapshot.ts',
   'apps/web/tests/code-language.snapshot.ts',
   'apps/web/tests/message-feedback-protocol.snapshot.ts',
   'apps/web/tests/minimal-preset.snapshot.ts',
   'apps/web/tests/preset-migration.snapshot.ts',
+  'apps/web/tests/question-retry.snapshot.ts',
   'apps/web/tests/subagent-fork-schedule.snapshot.ts',
+  'apps/web/tests/tool-reused-id.snapshot.ts',
   'snapshots/acp/acp.snapshot.ts',
   'snapshots/sdk/sdk.snapshot.ts',
   'snapshots/session/headless.snapshot.ts',
@@ -85,26 +89,42 @@ function referencedScenario(owner: Scenario, source: string): string {
   return source.includes('/') ? source : `${owner.profile}/${source}`
 }
 
-async function snapshotNamedTests(): Promise<string[]> {
+async function snapshotNamedTests(root: string): Promise<string[]> {
   const files: string[] = []
   const visit = async (directory: string, relativeDir: string): Promise<void> => {
     for (const entry of await readdir(directory, { withFileTypes: true })) {
       if (entry.isDirectory()) {
-        if (['dist', 'lib', 'node_modules'].includes(entry.name)) continue
+        if (['dist', 'lib', 'node_modules', '.pytest_cache', '__pycache__'].includes(entry.name)) continue
         await visit(join(directory, entry.name), join(relativeDir, entry.name))
       } else if (entry.isFile() && /\.snapshot\.tsx?$/u.test(entry.name)) {
         files.push(join(relativeDir, entry.name).split(/[/\\]/u).join('/'))
       }
     }
   }
-  for (const root of ['apps', 'native', 'packages', 'python', 'scripts', 'snapshots', 'website']) {
-    await visit(join(repoRoot, root), root)
+  for (const directory of ['apps', 'native', 'packages', 'python', 'scripts', 'snapshots', 'website']) {
+    await visit(join(root, directory), directory)
   }
   return files.sort()
 }
 
 it('reserves the snapshot test suffix for recorded-session adapters', async () => {
-  expect(await snapshotNamedTests()).toEqual([...snapshotAdapters])
+  expect(await snapshotNamedTests(repoRoot)).toEqual([...snapshotAdapters])
+})
+
+it('finds source adapters without scanning Python cache files', async () => {
+  const root = await mkdtemp(join(tmpdir(), 'dsh-snapshot-inventory-'))
+  try {
+    for (const directory of ['apps', 'native', 'packages', 'python', 'scripts', 'snapshots', 'website']) {
+      await mkdir(join(root, directory))
+    }
+    for (const directory of ['python/sdk/.pytest_cache', 'python/sdk/__pycache__', 'python/sdk/tests']) {
+      await mkdir(join(root, directory), { recursive: true })
+      await writeFile(join(root, directory, 'unexpected.snapshot.ts'), '')
+    }
+    expect(await snapshotNamedTests(root)).toEqual(['python/sdk/tests/unexpected.snapshot.ts'])
+  } finally {
+    await rm(root, { recursive: true, force: true })
+  }
 })
 
 it('keeps every recorded session owned, pinned, redacted, and header-scrubbed', async () => {

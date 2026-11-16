@@ -87,6 +87,8 @@ Windows 在整个运行期间常驻托盘图标。悬停提示为产品名，单
 
 <a id="key-technical-decisions"></a>
 
+共享的 [Host 发现](../../packages/api/host-description/README.zh.md)报告持久 Host 身份与当前 Remote 能力。Desktop 使用同一身份文件，并将载体配置为仅 `desktop-pipe`；描述结果不宣称存在 Web 监听器。
+
 ## 关键技术决策
 
 设计师原稿位于 `resources/icon.png` 和 `resources/icon.svg`；平台适配保留鲸鱼与渐变，分别位于 `resources/icon-windows.*` 和 `resources/icon-macos.*`。将各平台 SVG 导出为透明的 1024×1024 PNG。electron-builder 为 Windows 应用、安装程序和卸载程序生成多尺寸 ICO（[Windows 图标要求](https://learn.microsoft.com/en-us/windows/apps/design/iconography/app-icon-construction)）。安装页面在两种主题下使用匹配的图案；卸载程序的欢迎和完成页共用 `installer/assets/uninstaller-sidebar.png`，准备阶段将其转换为 164×314 BMP。
@@ -169,6 +171,8 @@ Windows 使用 40 DIP 顶栏，保留原生窗口按钮，颜色随应用调色�
 
 macOS 上自定义菜单保留 Electron 的标准 Window 菜单及应用隐藏命令，包括 Minimize（⌘M）和 Hide（⌘H）。其 Edit 菜单复制 Electron 的默认菜单，把 Paste and Match Style 绑定到 ⇧⌘V，并保留 Electron 默认的 ⌥⇧⌘V 作为隐藏别名；Substitutions 和 Speech 标题取自桌面端语言包，其余条目保留 Electron 的英文标签。Linux 保留应用菜单和 Edit 菜单。
 
+本地 Host 在可复用的工具指导之后、工作目录后缀之前添加模型可见的 Desktop 场景说明。它标识应用窗口和托管 Session 的机器，不表示能够读取屏幕，也不表示所有工具都在该机器上执行。普通 preset persona 保留此节，完整 persona 则抑制它。提示词服务重载会恢复注册，Host Context 销毁会移除注册。[Desktop 上下文决策](../../.agents/notes/implemented/architecture/2026-09-15-desktop-model-context.zh.md)记录其理由。
+
 ### 运行时与插件激活
 
 签名资源中的 `resources/app.asar/dsh/desktop-runtime.json` 绑定 shell 版本、Electron 的 Node 版本、平台、架构、共享包版本和最终文件清单。启动读取元数据，并检查共享包记录。发布 schema、shell 版本、目标兼容性和文件完整性在打包时验证。只有出现打包校验与实际 Host 诊断无法充分解释的具体安装故障，才重新引入启动时的发布信息比较。首次启动不会把核心包复制到 profile 存储或通过 pnpm 安装核心包。
@@ -188,6 +192,17 @@ Desktop 的致命故障通过原生恢复对话框提供退出、重启、禁用
 macOS 和 Linux 从图形界面启动的程序只继承会话管理器提供的环境，不包含 shell 启动文件导出的变量。第一个 Host 启动之前，Desktop 以 `<shell> -ilc` 运行一次账户的登录 shell（取自用户数据库，不看 `$SHELL`），读取定界符之间的 `env -0` 输出，使 `~/.zprofile` 和 `~/.zshrc`（或该 shell 的对应文件）对 Host、agent shell、终端和 profile 配置生效。读取与 profile 准备并行进行。读取进程没有终端输入，并设置 `DISABLE_AUTO_UPDATE=true`、`ZSH_TMUX_AUTOSTARTED=true` 和 `ZSH_TMUX_AUTOSTART=false`，避免 oh-my-zsh 和 tmux 插件阻塞。shell 的值覆盖继承的值，但 `PWD`、`OLDPWD`、`SHLVL`、`_`、上述读取变量以及启动方自有的 `DSH_*` 和 `ELECTRON_*` 除外；Desktop 在读取之前已按 `DSH_HOME` 等变量解析路径，因此 Host 保持相同的值。读取在结束定界符出现时完成，因此启动文件启动的后台进程可以继续运行，其输出被丢弃。候选 shell 无法启动、以非零状态退出、没有输出定界内容或超过 `DSH_DESKTOP_LOGIN_SHELL_TIMEOUT_MS`（1000 到 2147483647 的整数毫秒，默认 `10000`；超时会结束其进程组）时，Desktop 记录一条警告，并依次尝试 `/bin/zsh`、`/bin/bash` 和 `/bin/sh`；全部失败时 Host 使用继承的环境。读取命令使用 POSIX 语法，因此 csh、tcsh 或 nushell 等账户 shell 会失败，Host 改为获得第一个系统 shell 的启动文件所设置的环境。读取期间退出 Desktop 会结束正在运行的读取进程组。每个应用进程只读取一次，因此修改 shell 启动文件后需要退出并重新打开 Desktop。Windows 从图形界面启动的程序已经从注册表继承用户和系统环境变量，因此 Windows 跳过这一步。
 
 <a id="develop"></a>
+
+<a id="tray-and-login-startup"></a>
+## 托盘与登录启动
+
+Windows 应用菜单提供**关闭窗口时隐藏到托盘**，macOS 提供对应的菜单栏选项，默认关闭。启用后，关闭主窗口会保持 Host 运行；托盘可恢复窗口或退出应用。再次启动应用也会恢复原窗口。禁用该选项会先显示窗口，再移除托盘。如果托盘创建失败，关闭窗口仍遵循平台的普通行为。显式退出始终停止 Host。
+
+**登录系统时启动**仅在 Windows 和 macOS 打包应用中可用。操作系统拥有其启用状态；应用读取该状态，仅在用户选择菜单项后修改注册。macOS 审批要求或系统拒绝会显示错误，不会宣称已启用。登录启动只有在托盘可恢复窗口时才隐藏窗口。开发模式不能注册登录启动。
+
+Shell 拥有 `$DSH_HOME/desktop/preferences.json`，其中包含 `schemaVersion: 1` 和 `closeToTray`。它串行执行原子替换，退出时等待已接受的写入。文件缺失时使用默认值；文档格式错误或版本不受支持时启动失败，文件不会被重写。Host 设置和应用渲染进程 IPC 不拥有这些偏好。[Shell 偏好决策](../../.agents/notes/implemented/architecture/2026-09-15-desktop-shell-preferences.zh.md) 记录了归属和验证限制。
+
+**导入旧版桌面设置…**读取手动选择且不超过 1 MiB 的 JSON/YAML 文件。它接受包含 `desktop` 节的无版本文档或 `formatVersion: 1`；省略的 `closeAction` 和 `launchAtLogin` 使用旧版默认值 `tray` 和 `false`。预览显示当前与待导入的关闭行为及旧登录偏好。确认后仅导入关闭行为，请单独检查**登录系统时启动**。原文件保持不变；源文件变化、输入不受支持或托盘/持久化失败时保留当前偏好。默认选择取消，可通过关闭行为菜单撤销导入。
 
 ## 开发
 
@@ -358,6 +373,9 @@ UI 切换期间，选择器显示待应用选项和加载指示；失败时恢�
 
 后台强更安装确认请求 Windows 任务栏提醒或 macOS 信息级 Dock 弹跳，并在每轮就绪时尝试一次无声通知，不还原窗口或抢焦点。点击通知只返回当前确认界面。回到前台、安装、策略解除和退出时清理提醒。系统权限和专注模式可能抑制通知；仍需完成 Windows 与 macOS 安装包通知验收。
 
+打包前，内置 Node 会通过带有外部插件的真实 Host，验证原生模块执行、Session 写入互斥与释放，以及匹配的前端。[原生 smoke 决策](../../.agents/notes/implemented/bug-fix/2026-09-16-desktop-native-runtime-smoke.zh.md)定义了被检查的操作。
+
+未压缩产物包含 Electron、物化后的 dsh 生产依赖树、上游 Node.js 与 pnpm，以及壳应用。安装包大小与文件系统占用不同；发布验收需要测量两者，以及 profile 插件存储和首次启动耗时。此布局用更多应用内文件换取消除用户机器上的核心包安装过程。
 ### 本地 updater 验证
 
 常规更新 HTTP 请求具有逐连接的无活动截止时间：`60000` 毫秒内未收到响应头或后续响应字节会使操作失败。`DSH_DESKTOP_UPDATE_HTTP_IDLE_TIMEOUT_MS` 接受 `1000` 至 `2147483647` 的整数进行调整；活跃下载没有总时长限制。下载失败保留重试提示，并要求用户再次操作。

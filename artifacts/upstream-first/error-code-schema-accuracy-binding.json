@@ -1,0 +1,16 @@
+{
+  "status": "PASS",
+  "controls": 3,
+  "sourceRecord": {
+    "path": "artifacts/upstream-first/error-code-schema-accuracy-source.json",
+    "sha256": "e0fd14a01132db75b5e9fc3aac5f89c922add6afc142951c07801f3018db9dac"
+  },
+  "generator": {
+    "path": "artifacts/upstream-first/write-reports.mjs",
+    "sha256": "4cd41656dbcf576fcbd2904bb678d7bc0ffda1327100cf41b1a6b4a697fe9fc1"
+  },
+  "helper": {
+    "path": ".artifacts/check-error-code-schema-accuracy-binding.mjs",
+    "sha256": "f9332b9e2dc365deec5e409c7c3b135feaf47691bcc957074b2e9666f916b160"
+  }
+}

@@ -1,0 +1,19 @@
+# Bilingual-pair consistency record for 2026-09-21-protocol-interop-matrix.md (docs/i18n/README.md): per heading
+# section, a hash of its English and Chinese blocks outside code blocks and generated regions.
+# After editing either side, bring the other along and re-record with:
+#   pnpm run verify-translation-pairing --write .agents/notes/implemented/testing/2026-09-21-protocol-interop-matrix.md
+/agent-note-the-protocol-version-interop-matrix-is-pinned-as-one-test:
+  en: 803f0765f40cdd11
+  zh: 95fc579b1cf1a581
+/agent-note-the-protocol-version-interop-matrix-is-pinned-as-one-test/problem:
+  en: a6a9c996e70d7815
+  zh: d1a5bf5c24025b40
+/agent-note-the-protocol-version-interop-matrix-is-pinned-as-one-test/decision:
+  en: b947defe2ca3629a
+  zh: 7b715d3600698398
+/agent-note-the-protocol-version-interop-matrix-is-pinned-as-one-test/alternatives-considered:
+  en: 4122c253c0e95df2
+  zh: a2af946ea00d9f75
+/agent-note-the-protocol-version-interop-matrix-is-pinned-as-one-test/consequences:
+  en: 402f79e023fd358d
+  zh: e434a465b9e3427a

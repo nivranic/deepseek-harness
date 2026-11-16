@@ -19,6 +19,8 @@ Host 上的 Remote 方法此前无法得知本次调用代表谁，也无法按�
 
 ## 决策
 
+[设备 Peer 决策](2026-11-13-device-peer-host-bindings.zh.md)为设备角色增加显式 Host 级 binding；`global` 与领域资源 binding 保持各自独立的含义。
+
 ### 范围
 
 | 部分 | 内容 |

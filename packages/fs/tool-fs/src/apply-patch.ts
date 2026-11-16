@@ -25,6 +25,11 @@ export function applyApplyPatchTool(ctx: Context, sandbox: FsSandboxController):
   })
   ctx.tools.register(defineTool({
     name: 'apply_patch',
+    version: 1,
+    risk: 'moderate',
+    permissions: [],
+    supportsLite: false,
+    supportsRemote: true,
     description: 'Create, update, delete, or move UTF-8 text files with one patch; '
       + 'prefer it over multiple edit calls when a change spans several files or separated regions.',
     parameters: {

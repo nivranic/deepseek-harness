@@ -185,6 +185,11 @@ export class FixtureSession implements SessionFace {
   rename(): never {
     throw new Error(`test session "${this.sessionId}": rename is not stubbed — supply it on the fixture's session face`)
   }
+
+  /** @returns never. Supply the editor's captured submitter on the fixture's session face. */
+  prepareRename(): never {
+    throw new Error(`test session "${this.sessionId}": prepareRename is not stubbed — supply it on the fixture's session face`)
+  }
 }
 
 /** Catalog fixture data remains available across live Client generations. */

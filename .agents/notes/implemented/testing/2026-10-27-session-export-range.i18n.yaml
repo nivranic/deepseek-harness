@@ -1,0 +1,19 @@
+# Bilingual-pair consistency record for 2026-10-27-session-export-range.md (docs/i18n/README.md): per heading
+# section, a hash of its English and Chinese blocks outside code blocks and generated regions.
+# After editing either side, bring the other along and re-record with:
+#   pnpm run verify-translation-pairing --write .agents/notes/implemented/testing/2026-10-27-session-export-range.md
+/agent-note-deterministic-session-export-archives-answer-http-range-resumes:
+  en: 790c4a52eae6c2cc
+  zh: 7f0900d81de4a43d
+/agent-note-deterministic-session-export-archives-answer-http-range-resumes/problem:
+  en: f7d671a4c1d941f8
+  zh: 599141fd1e667e47
+/agent-note-deterministic-session-export-archives-answer-http-range-resumes/decision:
+  en: 1bd89d526e299e94
+  zh: 168467799b5d0cef
+/agent-note-deterministic-session-export-archives-answer-http-range-resumes/alternatives-considered:
+  en: e404afffdf2e45ac
+  zh: 058e6155b6d3dcbd
+/agent-note-deterministic-session-export-archives-answer-http-range-resumes/consequences:
+  en: bb9ce846b722ee87
+  zh: 1ca389babc01bdc4

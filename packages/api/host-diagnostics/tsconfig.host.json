@@ -1,0 +1,52 @@
+{
+  "extends": "../../../tsconfig.base.json",
+  "compilerOptions": {
+    "rootDir": "src",
+    "outDir": "lib/types",
+    "tsBuildInfoFile": "lib/tsconfig.host.tsbuildinfo"
+  },
+  "files": [
+    "src/capabilities.ts",
+    "src/client.ts",
+    "src/index.ts",
+    "src/recorder.ts",
+    "src/redact.ts",
+    "src/support-bundle.ts",
+    "src/types.ts"
+  ],
+  "references": [
+    {
+      "path": "../../../vendor/cordis"
+    },
+    {
+      "path": "../../session/session-format-v0-to-v1"
+    },
+    {
+      "path": "../../session/session-format-v1-to-v2"
+    },
+    {
+      "path": "../../session/session-format-v2-to-v3"
+    },
+    {
+      "path": "../../session/session-telemetry"
+    },
+    {
+      "path": "../../typert/protocol"
+    },
+    {
+      "path": "../../util/values"
+    },
+    {
+      "path": "../gateway/tsconfig.host.json"
+    },
+    {
+      "path": "../host-description"
+    },
+    {
+      "path": "../../core/agent"
+    },
+    {
+      "path": "../../util/home-paths"
+    }
+  ]
+}

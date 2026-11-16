@@ -272,6 +272,15 @@ const SENTENCE_MODEL_EXPERIENCE: Readonly<Record<string, SentenceContract>> = {
   'packages/web/web': { kind: 'indirect', reason: 'The provider registry delegates model rendering to dsh-tool-web.' },
   'packages/web/web-fetch-http': { kind: 'indirect', reason: 'The provider backend delegates model rendering to dsh-tool-web.' },
   'packages/workflow/workflow': { kind: 'indirect', reason: 'The service delegates parent and child model rendering to its consumer and engine.' },
+  'packages/api/device-trust': { kind: 'none', reason: 'The pairing ceremony and admission are control state and register no prompt, tool, or session event.' },
+  'packages/api/host-description': { kind: 'none', reason: 'The package returns Host metadata to Clients and adds no model input.' },
+  'packages/api/host-diagnostics': { kind: 'none', reason: 'The package answers health and diagnostics reads and registers no prompt, tool, or session event.' },
+  'packages/api/native-remote': { kind: 'none', reason: 'The carrier transports existing Gateway operations and registers no prompt, tool, or Session event.' },
+  'packages/client/ui-settings-devices': { kind: 'none', reason: 'The browser-side settings projection registers nothing model-facing.' },
+  'packages/client/ui-settings-host-status': { kind: 'none', reason: 'The browser-side settings projection registers nothing model-facing.' },
+  'packages/client/ui-settings-hosts': { kind: 'none', reason: 'The browser-side Host-roster projection registers nothing model-facing.' },
+  'packages/client/ui-settings-telemetry': { kind: 'none', reason: 'The browser-side settings projection registers nothing model-facing.' },
+  'packages/client/ui-view-handoff': { kind: 'none', reason: 'The action and receiver are browser chrome; nothing reaches a model request.' },
 }
 
 interface Failure {

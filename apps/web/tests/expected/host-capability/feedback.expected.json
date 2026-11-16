@@ -1,0 +1,22 @@
+{
+  "unsentDraftRetainedAcrossReconnect": true,
+  "refusalHasNoPersistedFeedback": true,
+  "draftRetainedAfterRefusal": true,
+  "composerDraftRetained": true,
+  "submittingDraftRetainedAcrossReconnect": true,
+  "replacementFeedbackDraftRetained": true,
+  "lateSuccessAcknowledged": true,
+  "cancelledPuts": 0,
+  "events": [
+    "feedback/message-put",
+    "feedback/message-delete",
+    "feedback/record"
+  ],
+  "mutations": [
+    "/api/messageFeedback/put",
+    "/api/messageFeedback/put",
+    "/api/messageFeedback/delete",
+    "/api/sessionFeedback/record"
+  ],
+  "noMutationReplay": true
+}

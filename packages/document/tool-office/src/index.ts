@@ -166,6 +166,11 @@ export function apply(ctx: Context, config: Config): void {
     || agent.session.requestHeader()?.tools?.some(tool => OFFICE_TOOL_NAMES.includes(tool.name)) === true
   ctx.tools.register(defineTool({
     name: 'office_render',
+    version: 1,
+    risk: 'low',
+    permissions: [],
+    supportsLite: false,
+    supportsRemote: true,
     description: 'Render document pages, slides, or worksheet areas as images you can view.',
     parameters: RENDER_PARAMETERS,
     output: {
@@ -194,6 +199,11 @@ export function apply(ctx: Context, config: Config): void {
   }), { when })
   ctx.tools.register(defineTool({
     name: 'office_convert',
+    version: 1,
+    risk: 'moderate',
+    permissions: [],
+    supportsLite: false,
+    supportsRemote: true,
     description: 'Convert a document to another format. Return a temporary file to copy to its destination with the shell.',
     parameters: CONVERT_PARAMETERS,
     output: fileOutput('convert', OUTPUT_FORMATS),
@@ -209,6 +219,11 @@ export function apply(ctx: Context, config: Config): void {
   }), { when })
   ctx.tools.register(defineTool({
     name: 'office_recalculate',
+    version: 1,
+    risk: 'moderate',
+    permissions: [],
+    supportsLite: false,
+    supportsRemote: true,
     description: 'Recalculate spreadsheet formulas. Return a temporary workbook to copy to its destination with the shell.',
     parameters: RECALCULATE_PARAMETERS,
     output: fileOutput('recalculate', RECALCULATION_FORMATS),

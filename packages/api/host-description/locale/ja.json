@@ -1,0 +1,4 @@
+{
+  "meta.title": "Host 検出 API",
+  "meta.description": "Host の識別情報、プロトコルバージョン、利用可能な機能を提供します。"
+}

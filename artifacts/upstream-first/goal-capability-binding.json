@@ -1,0 +1,16 @@
+{
+  "status": "PASS",
+  "controls": 3,
+  "sourceRecord": {
+    "path": "artifacts/upstream-first/goal-capability-source.json",
+    "sha256": "d77cb0ae71e5f38f78c6f28ab654b660eee2178d2273ba138bb58304128ce816"
+  },
+  "generator": {
+    "path": "artifacts/upstream-first/write-reports.mjs",
+    "sha256": "3470e37aa5221ceee6dd2fa23ad3187edeca6d8b32d2a443a1c25ad8d222f040"
+  },
+  "helper": {
+    "path": ".artifacts/check-goal-capability-binding.mjs",
+    "sha256": "daec3776bd83b2ac3fa9f6fc476fbf5226ce33796121cc7d1cbf2d25bd5d9d93"
+  }
+}

@@ -207,6 +207,11 @@ export async function apply(ctx: Context, config: Config): Promise<void> {
       : ' Omit `provider`, `model`, and `reasoning_effort` to use child defaults, falling back to compatible parent values.'
     const definition = defineTool({
       name: toolName,
+      version: 1,
+      risk: 'high',
+      permissions: [],
+      supportsLite: false,
+      supportsRemote: true,
       description: wording.description
         + ' This tool starts an independently managed subagent and immediately returns its name. If you are still online when it finishes, the runtime automatically delivers its completion notice. The notice includes the final answer unless the child sent you a message just before finishing.'
         + (subagentProvider.prepareContinuable !== undefined

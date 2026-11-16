@@ -1,0 +1,60 @@
+{
+  "status": "OPEN_UNCLASSIFIED",
+  "failingTest": "Android resumes a covered retained Session cursor",
+  "failingStage": "resumed-window / assertSessionWindow",
+  "missingEvidence": "The original matcher omitted the driver operation, exception class and stack frames. The original run cannot distinguish the window wait, sequence assertion, scrolling and visibility.",
+  "change": "The driver now reports those four stages and safe numeric/enum window diagnostics; no timeout, sequence, scroll or visibility assertion changed.",
+  "result": "The full seven-file topology and a bounded five-sample investigation did not reproduce the original failure. These passes do not establish a cause, environmental classification or fix.",
+  "deliveryScope": "Push production changes affect only its observation owner and notification consumer. Session observation and journal production sources are unchanged. Direct Push acceptance remains separate from this open cursor reliability investigation.",
+  "nextRequiredWork": "Classify the next cursor failure using the preserved diagnostics, or establish a controlled reproduction before changing its owner. Do not close this investigation merely because subsequent runs pass.",
+  "evidence": [
+    {
+      "path": ".artifacts/android-push-foreground-native-regression.log",
+      "sha256": "cc0244352433b38b13201ace24e56614a322f84a521080e2674afe0f0648b38b",
+      "status": "FAILED",
+      "result": "7 files: 1 failed, 6 passed; 9 cases: 1 failed, 8 passed"
+    },
+    {
+      "path": ".artifacts/android-push-foreground-cursor-diagnostic.log",
+      "sha256": "4d187378aa179f982b2b7ece9c270a19a01792a6283566db310246c984352b81",
+      "status": "NOT_REPRODUCED",
+      "result": "1 passed, 1 skipped; original failing internal operation was unavailable"
+    },
+    {
+      "path": ".artifacts/android-push-foreground-regression-diagnostic.log",
+      "sha256": "f8418f8d08ca9cf6ea194c273c88717c633076c3ce0b590b0094b422928480c3",
+      "status": "NOT_REPRODUCED",
+      "result": "7 files and 9 cases passed with safe failure diagnostics"
+    },
+    {
+      "path": ".artifacts/android-push-foreground-cursor-sample-1.log",
+      "sha256": "b6a821d513739a180a362dc892053e9f3d9c41c6e4174874f51b0b72b79d1e88",
+      "status": "NOT_REPRODUCED",
+      "result": "1 passed, 1 skipped; bounded diagnostic sampling, not a stability claim"
+    },
+    {
+      "path": ".artifacts/android-push-foreground-cursor-sample-2.log",
+      "sha256": "057518853ffc209178ba5f651a60ff1f09189c5840db50be68b79b41779f58ac",
+      "status": "NOT_REPRODUCED",
+      "result": "1 passed, 1 skipped; bounded diagnostic sampling, not a stability claim"
+    },
+    {
+      "path": ".artifacts/android-push-foreground-cursor-sample-3.log",
+      "sha256": "8f3e2b1aa15cb6349932043b0ba5810c69e1bfc6935f50bd3b9c1b9f0fa47b42",
+      "status": "NOT_REPRODUCED",
+      "result": "1 passed, 1 skipped; bounded diagnostic sampling, not a stability claim"
+    },
+    {
+      "path": ".artifacts/android-push-foreground-cursor-sample-4.log",
+      "sha256": "f7ba4bd30401433182d121dcd638e9a041b637f6b16ae2c0894289a925dcaec7",
+      "status": "NOT_REPRODUCED",
+      "result": "1 passed, 1 skipped; bounded diagnostic sampling, not a stability claim"
+    },
+    {
+      "path": ".artifacts/android-push-foreground-cursor-sample-5.log",
+      "sha256": "342510e368e335bb5d562b153cc0afb7aa0c2e61c239f1bbf05c472555447787",
+      "status": "NOT_REPRODUCED",
+      "result": "1 passed, 1 skipped; bounded diagnostic sampling, not a stability claim"
+    }
+  ]
+}

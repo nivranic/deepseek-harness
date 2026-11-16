@@ -1,0 +1,49 @@
+# Agent Note: 原生设备通过现有 Gateway 上的独立 TLS 入口接入
+
+Status: implemented
+
+[English](2026-09-25-native-remote-connection-source.md) | 中文
+
+## 问题
+
+本地 Web 的 Cookie 与 Host/Origin 检查不能认证原生设备。若放松浏览器防护来复用监听器，就会把网络可达性当作本地浏览器权限。独立 Link 分派器则会复制 Gateway 的权限及交互归属。[接管决策](2026-09-20-link-access-takeover-audit.zh.md)因此要求在开放原生访问前提供加密 Connection 入口。
+
+## 决策
+
+[设备 Peer 决策](2026-11-13-device-peer-host-bindings.zh.md)规定独立设备 principal，以及共享 Remote Access policy 上显式的 Host 级角色 binding。
+
+[原生 Remote](../../../../packages/api/native-remote/README.zh.md) 是按需启用的 Host 插件，要求显式配置接口及资源限制。它只通过 TLS 1.2 或更新版本提供 Connection RPC envelope 与 Gateway mux。入口拒绝浏览器 Origin 和 Fetch Metadata 头，不提供浏览器资源、Cookie 权限、CORS 或本地精确 Fetch 路由。既有本地 Web 认证继续由 Connection 负责。
+
+Gateway 负责设备适配器。除现有的一次性配对兑换外，每次一元操作及逻辑流都要求新的设备证明。能力权限与设备回复归属检查保留在分派器中。物理 mux 连接不授予业务权限。设备业务流在等待准入前订阅撤销，并保留到迭代器关闭，避免迟到的准入注册已撤销流，也防止授权失效后继续投递缓冲值。
+
+凭据 provider 负责 `api-native-remote/tls-identity` grant。入口以维护中的 `@peculiar/x509` 库生成自签名 P-256 证书，在开始监听前持久化，并在启动时使用同一私钥续期。原生客户端在发送 HTTP 字节前，通过带外分发的小写 SHA-256 SPKI 指纹确认 Host。这样身份不依赖变化的 IP 地址或证书续期。存储材料无效或不匹配时启动拒绝，不静默替换已配对身份。
+
+库的解析器与 ASN.1 声明必须解析到同一 schema registry。限定版本的 pnpm override 使 `@peculiar/x509@2.1.0` 使用与当前解析出的声明包一致的 `@peculiar/asn1-schema@2.11.1`。不同的解析器实例会丢失 `SubjectPublicKeyInfo` 元数据。库或其声明包变化时需重新评估该覆盖。编译后的依赖在普通 Node 和仓库仅启用 ESM 的 TypeScript 启动方式下可用，不需要启用 CommonJS 转换 hook。
+
+设置页的配对 Consumer 读取已认证监听元数据并调用现有 Device Trust 签发器。签发前按实际监听端口校验操作者输入的 HTTPS origin，将所选角色固定到授权。版本化二维码载荷只含公开 Host 身份和短期一次性码，不含私钥或持久 bearer token。组件生命周期与连接代际检查阻止关闭或切换 Host 后的迟到签发重新出现；过期和输入编辑清除展示。浏览器存储和诊断不持有码。原生元数据要求 device.admin，能力声明本身不授予权限。
+
+Settings 通过 document-body portal 渲染弹层，与持有触发按钮的侧栏分离，避免手机抽屉的可见性和变换隐藏配对控件。手机宽度下导航使用横向滚动行，内容保留纵向滚动以触达二维码详情和复制操作。真实浏览器缩放与隐藏祖先组件回归验证该归属。
+
+[Kotlin core Consumer](../../../../apps/android/README.zh.md) 通过既有 `WireDriving` 抽象使用此入口。它在发送 HTTP 字节前核验 TLS 指纹，独立于 Session writer 协商 API 2，将设备证明放在普通参数旁，保留事件流则放在参数内部。Host 身份、授予角色与公钥指纹必须匹配后才保存凭据；兑换后的核验失败保留原有本地身份，但可能留下需要操作员撤销的 Host grant。凭据格式标记防止把旧 Link 身份当作当前授权。一个 mux 持有有界逻辑流队列，并随客户端关闭；重连生成新的证明与流代际。Android 外壳通过 Keystore 加密 Host 目录选择该客户端。交互修订号和结构化答案保持 Host 的所有权；以 Session 为范围的文件分页拒绝版本变化。HTTP RPC 使用新连接，传输结果不确定时绝不重试已签名修改；共享 mux 保留长连接。这会让每次 RPC 多一次 TLS 握手，以避免空闲 keep-alive 连接导致人类回复丢失。
+
+观察流恢复使用共享失败分类，不会重试所有异常。只有传输和暂时性 Host 状态故障可以重新打开只读 Session、Workspace 及交互流；永久或未知拒绝会停止，等待显式操作。证书失败保留原因，避免退化为普通重连循环。回复仍是显式修改，不自动重试。Android 进程重启后打开 Keystore 加密授权，无需再次兑换即可发出有效签名请求；应用凭据与测试驱动的生命周期独立。
+
+Android 重新配对把模型生命周期与进程传输生命周期分开。停止 `CompanionModelSet` 时等待其请求和观察结束，不取消 Host 任务。替代凭据在内存中验证后才原子替换加密文件；不支持原子替换时失败，不原地覆盖。文件提交与传输采纳不可取消，避免 Activity 重建后恢复的身份与进程持有的身份不同。ViewModel 对齐已提交代际并创建新的模型。提交前失败或取消的尝试保留原身份；Host 可能保留已兑换的授权，需操作员撤销。
+
+Android 凭据解密只读取既有 Keystore 密钥。恢复时创建密钥无法解开缺失密钥加密的密文，还会在读取被拒绝时修改存储。因此，格式损坏、密文篡改和密钥缺失都会保留加密文件。[已保存 Host 目录决策](2026-09-26-android-saved-host-catalog.zh.md)拥有显式备份重建、缺失目录导入及多 Host 选择。显式恢复或保存通过验证的替代身份可以初始化缺失密钥，不会静默删除无法访问的既有密钥或撤销 Host 授权。
+
+Session 列表读取公开封闭的状态类型。显式读取在模型拥有的请求生命周期内串行执行，取消后回到空闲，失败时保留固定分类与原始 Gateway envelope。UI 在保留已加载列表的同时显示失败和显式重试控件；替换配对身份仍会创建新的模型。诊断使用类型化分类，不把异常消息复制到测试输出。列表失败不会触发业务修改，也不会在尚未打开 Session 时启用输入区。
+
+Android 输入由连接的模型共享，而非页签的 Compose 状态持有。Session 标识隔离草稿，交互标识与修订号隔离 Question 答案。同一草稿意图在显式重试时沿用同一个请求 id；明确成功确认只清除对应版本，保留请求期间的新编辑。请求失败或取消时保留输入。Host 取消、已关闭交互快照或新修订会移除过期答案。重新配对创建全新模型，不会采纳另一身份的输入。显式提交由模型作用域持有，交互卡片使用稳定键，错误提示重组和页签销毁不会取消等待确认的请求；连接模型退役仍会取消并等待请求退出。[加密输入决策](2026-09-26-android-encrypted-input-checkpoints.zh.md)把输入保留扩展到进程退出，拥有主体隔离、保存顺序和显式恢复。取消重新配对会恢复同一主体保存的输入与查看位置。
+
+## 备选方案
+
+- **让 Mobile 使用本地 Web Cookie 或放松 Origin 检查。** 否决：这会改变本地浏览器权限，也没有认证设备密钥。
+- **恢复退役的 Link 服务器。** 否决：既有 Gateway 已负责参数校验、权限、流和回复。
+- **点击时清空输入，或仅在 composable 中保存。** 否决：确认丢失或页签销毁会丢失用户输入。自动重试变更也会掩盖结果不确定性；显式重试保留 prompt 的 Host 去重 id。
+- **手写 ASN.1 或要求 OpenSSL 可执行文件。** 否决：维护中的 JavaScript 库能在受支持 Node 主机上生成证书，无需额外安装平台工具。
+- **仅以公共 CA 主机名作为 Host 身份。** 在本地原生配对中否决：部署地址可能变化，而既有原生固定指纹模型识别 Host 密钥。TLS 仍负责加密，指纹负责认证对端。
+
+## 后果
+
+Host 入口可经普通 profile 组合挂载，出厂默认配置不开放网络监听器。测试覆盖身份持久化与并发创建、不换密钥的续期、无效存储身份、错误指纹、未签名请求、重放、权限不足、浏览器请求头拒绝、请求限制和关闭。Gateway 测试覆盖准入期间及业务流迭代期间的撤销。录制的 Host 场景通过 JVM 和隔离安装的 Compose 应用验证 Android 配对、结构化 Question 回复、Session 投影及两页 UTF-8 读取。验收应用使用独立存储，通过私有 ADB socket 接收配对数据。[资源决策](2026-09-27-android-current-resource-reading.zh.md)拥有当前文件与交付读取，[查看位置决策](2026-09-26-android-native-view-location.zh.md)拥有 Handoff。[诊断决策](2026-09-27-android-native-gateway-diagnostics.zh.md)拥有原生支持观察。Swift 采用、Relay/发现集成和真机验收仍是独立工作，旧夹具通过不能证明这些能力。证书续期要求在过期前重启监听器。

@@ -1,0 +1,14 @@
+{
+  "turn": 1,
+  "step": 1,
+  "index": 0,
+  "dt": [
+    5
+  ],
+  "id": "call-1",
+  "name": "write_file",
+  "args": [
+    "{\"path\"",
+    ":[\"Log"
+  ]
+}

@@ -53,6 +53,29 @@ const completed: SubagentResult = {
 }
 
 describe('external subagent activations', () => {
+  it('accepts an addressed interrupt without cancelling an unverifiable external turn', async () => {
+    const backend = execution()
+    backend.cleanup.resolve(undefined)
+    const cancelled = vi.fn()
+    const fixture = await setup(async ({ signal }) => {
+      signal.addEventListener('abort', cancelled, { once: true })
+      return backend.run
+    })
+    const activation = await fixture.start()
+    try {
+      expect(fixture.ctx.subagents.interruptTurnByParent({
+        childSessionId: activation.childId, parentSessionId: fixture.parent.id,
+        mode: 'continuable', turnStartSeq: 7,
+      })).toEqual({ accepted: true })
+      expect(cancelled).not.toHaveBeenCalled()
+      expect(backend.dispose).not.toHaveBeenCalled()
+    } finally {
+      backend.result.resolve(completed)
+      await activation.result
+      await fixture.ctx.fiber.dispose()
+    }
+  })
+
   it('keeps startup cancellation attached until unpublished resources finish cleanup', async () => {
     const entered = Promise.withResolvers<AbortSignal>()
     const cancelled = Promise.withResolvers<undefined>()

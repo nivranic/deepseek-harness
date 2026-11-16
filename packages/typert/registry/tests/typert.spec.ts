@@ -497,6 +497,10 @@ describe('TypertRegistry', () => {
     expect(() => ctx.typert.resources.register(reserved as TypertResourceKind, { field: 'globalId' }))
       .toThrow('resource kind "global" is reserved for the built-in global resource')
     expect(ctx.typert.resources.get('global')).toBeUndefined()
+    const host: string = 'host'
+    expect(() => ctx.typert.resources.register(host as TypertResourceKind, { field: 'hostId' }))
+      .toThrow('resource kind "host" is reserved for Host-wide bindings')
+    expect(ctx.typert.resources.get('host')).toBeUndefined()
     expect(changes).toEqual([])
   })
 

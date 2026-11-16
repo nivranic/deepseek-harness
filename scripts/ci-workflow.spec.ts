@@ -15,7 +15,7 @@ const runnerPrivatePnpmDestination = /^\$\{\{ runner\.temp \}\}\/setup-pnpm-\$\{
 const nativeWindowsPnpmDestination = '${{ runner.temp }}/setup-pnpm-js-${{ github.run_id }}-${{ github.run_attempt }}-${{ github.job }}'
 
 describe('CI workflow', () => {
-  it('keeps at most eleven worker jobs active across PR workflows while Python runtime targets follow the SDK suite', () => {
+  it('keeps at most twelve worker jobs active across PR workflows while Python runtime targets follow the SDK suite', () => {
     const ci = loadWorkflow('.github/workflows/ci.yml')
     const ciWindows = loadWorkflow('.github/workflows/ci-windows.yml')
     const ciPython = loadWorkflow('.github/workflows/ci-python.yml')
@@ -96,8 +96,9 @@ describe('CI workflow', () => {
     // self-hosted failover pool is still admitted only up to its own limit.
     const beforeSdk = ordinaryJobs.length + compatibilityLimit + windowsActive + 1
     const afterSdk = ordinaryJobs.length + compatibilityLimit + windowsActive + Math.max(1, targets.split(',').length)
-    expect(beforeSdk).toBeLessThanOrEqual(11)
-    expect(afterSdk).toBeLessThanOrEqual(11)
+    // The Swift contract mirror adds one macOS worker to the eleven-worker inventory.
+    expect(beforeSdk).toBeLessThanOrEqual(12)
+    expect(afterSdk).toBeLessThanOrEqual(12)
   })
 
   it('keeps required PR verdicts covering runtime and publisher jobs', () => {
@@ -128,10 +129,43 @@ describe('CI workflow', () => {
       'publisher-isolated',
       'python-runtime',
       'python-sdk',
+      'swift-contract',
       'windows-build',
       'windows-native-tests',
       'windows-publisher',
     ])
+  })
+
+  it('checks the Swift contract mirror in the required PR verdict', () => {
+    const workflow = loadWorkflow('.github/workflows/ci.yml')
+    const swift = workflowJob(workflow, 'swift-contract')
+    expect(swift['runs-on']).toBe('macos-15')
+    expect(swift['continue-on-error']).not.toBe(true)
+    expect(swift.steps).toContainEqual(expect.objectContaining({
+      run: 'swift --version\nswift run dsh-contract-check\n',
+      'working-directory': 'apps/apple/contract',
+    }))
+    expect(workflowJob(workflow, 'all-checks-passed').needs).toContain('swift-contract')
+  })
+
+  it.each([
+    ['ci.yml', 'DSH_CI_FAILOVER_LINUX', 'ubuntu-24.04', 'dsh-ubuntu-24-04-16core', ['node-24', 'node-24-coverage', 'node-24-lint', 'node-24-consumers']],
+    ['ci-windows.yml', 'DSH_CI_FAILOVER_WINDOWS', 'windows-2025', 'dsh-windows-2025-16core', ['windows-publisher', 'windows-build', 'windows-coverage', 'windows-native-tests']],
+  ] as const)('%s can route required workers to standard GitHub-hosted runners', (file, variable, hosted, larger, jobs) => {
+    const workflow = loadWorkflow('.github/workflows/' + file)
+    for (const name of jobs) {
+      const job = workflowJob(workflow, name)
+      for (const author of ['maintainer', 'dependabot[bot]']) {
+        for (const mode of ['github', '', 'unexpected']) {
+          const context = {
+            vars: { [variable]: mode },
+            github: { event: { pull_request: { user: { login: author } } } },
+          }
+          expect(evaluateRunsOn(job['runs-on'], context), `${name} mode=${mode} author=${author}`)
+            .toBe(mode === 'github' ? hosted : larger)
+        }
+      }
+    }
   })
 
   it('retains aggregate diagnostics in required builds and protected publication', () => {

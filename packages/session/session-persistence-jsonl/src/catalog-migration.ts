@@ -11,6 +11,7 @@ import { parseGenerationLogFilename } from './format.ts'
 import type { JsonlCompression } from './format.ts'
 import { JsonlGenerationSourceChangedError, readDecodedJsonlSource } from './generation.ts'
 import type { JsonlPhysicalIdentity } from './generation.ts'
+import { repairIntentRevision } from './repair-intent.ts'
 
 /** Per-parent supplemental facts and the source checks required before serving or publishing them. */
 interface PreparedCatalogFacts {
@@ -36,13 +37,14 @@ export async function prepareCatalogFacts(
 ): Promise<PreparedCatalogFacts> {
   const facts: SessionFormatJsonObject[] = []
   const failures: { path: string; error: unknown }[] = []
-  const witnesses: { path: string; identity: JsonlPhysicalIdentity }[] = []
+  const witnesses: { path: string; identity: JsonlPhysicalIdentity; recoveryRevision: string | undefined }[] = []
   for (const source of sources) {
     signal.throwIfAborted()
     const version = parseGenerationLogFilename(basename(source.path), compression)
     if (version === undefined) throw new SessionFormatUnsupportedMigrationError(`unrecognized historical child generation ${source.path}`)
-    const witness: { path: string; identity: JsonlPhysicalIdentity } = {
+    const witness: { path: string; identity: JsonlPhysicalIdentity; recoveryRevision: string | undefined } = {
       path: source.path, identity: await stat(source.path, { bigint: true }),
+      recoveryRevision: compression === 'zstd' ? await repairIntentRevision(source.path) : undefined,
     }
     witnesses.push(witness)
     const unavailable = { childId: source.header.id, childCreatedAt: source.header.createdAt,
@@ -61,6 +63,7 @@ export async function prepareCatalogFacts(
       continue
     }
     witness.identity = restored.identity
+    witness.recoveryRevision = restored.recoveryRevision
     const header = restored.artifact.header
     if (header.id !== source.header.id || header.createdAt !== source.header.createdAt
       || header.parentSession !== parentId || header.origin !== 'subagent'
@@ -86,6 +89,9 @@ export async function prepareCatalogFacts(
         if (current.dev !== witness.identity.dev || current.ino !== witness.identity.ino
           || current.size !== witness.identity.size || current.mtimeNs !== witness.identity.mtimeNs
           || current.ctimeNs !== witness.identity.ctimeNs) throw new JsonlGenerationSourceChangedError(witness.path)
+        if (compression === 'zstd' && await repairIntentRevision(witness.path) !== witness.recoveryRevision) {
+          throw new JsonlGenerationSourceChangedError(`${witness.path}.repair-intent`)
+        }
       }
     },
   }

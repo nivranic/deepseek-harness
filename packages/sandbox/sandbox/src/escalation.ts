@@ -158,6 +158,10 @@ export interface EscalationApprover<A = object, C = string> {
     toolName: string
     callId: C
     reason: string
+    /** Host-assessed risk of the requested mode. */
+    risk: 'moderate' | 'high'
+    /** Requested and effective modes recorded with the approval. */
+    escalation: { requestedMode: SandboxMode; effectiveMode: SandboxMode }
     displayReason?: { readonly en: string; readonly [locale: string]: string }
     signal?: AbortSignal
   }): Promise<EscalationOutcome>
@@ -237,6 +241,8 @@ export async function approveEscalation<A, C>(request: EscalationRequest, approv
     toolName: approval.toolName,
     callId: approval.callId,
     reason: `escalate sandbox to ${mode}: ${justification}`,
+    risk: mode === 'danger-full-access' ? 'high' : 'moderate',
+    escalation: { requestedMode: mode as SandboxMode, effectiveMode },
     displayReason: escalationDisplayReason(mode, justification),
     ...approval.signal ? { signal: approval.signal } : {},
   })

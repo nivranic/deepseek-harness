@@ -1,0 +1,22 @@
+# Bilingual-pair consistency record for 2026-10-14-lite-tool-schemas-request-projection.md (docs/i18n/README.md): per heading
+# section, a hash of its English and Chinese blocks outside code blocks and generated regions.
+# After editing either side, bring the other along and re-record with:
+#   pnpm run verify-translation-pairing --write .agents/notes/implemented/architecture/2026-10-14-lite-tool-schemas-request-projection.md
+/agent-note-lite-advertises-tools-to-the-model-through-a-projected-schema-catalog:
+  en: 74519dbf248e2e30
+  zh: 8c4540f55b3727fa
+/agent-note-lite-advertises-tools-to-the-model-through-a-projected-schema-catalog/problem:
+  en: 19bfceb9e4e743ec
+  zh: 12d287853ac344dd
+/agent-note-lite-advertises-tools-to-the-model-through-a-projected-schema-catalog/decision:
+  en: 33ad3b5e5a57c754
+  zh: 64f4d9a34b4a0f52
+/agent-note-lite-advertises-tools-to-the-model-through-a-projected-schema-catalog/alternatives-considered:
+  en: cd7a08de579ff0b3
+  zh: c1de36159345e69e
+/agent-note-lite-advertises-tools-to-the-model-through-a-projected-schema-catalog/consequences:
+  en: 61a546a6b3ee9dac
+  zh: eb0ec3d5d15ae886
+/agent-note-lite-advertises-tools-to-the-model-through-a-projected-schema-catalog/open-follow-ups:
+  en: d8955232259a3ca0
+  zh: 7650a2b1a0a81b43

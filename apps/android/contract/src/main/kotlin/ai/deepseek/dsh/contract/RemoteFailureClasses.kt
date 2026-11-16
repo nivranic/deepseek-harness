@@ -1,0 +1,57 @@
+package ai.deepseek.dsh.contract
+
+/**
+ * Codes with agreed cross-Client semantics, mirrored from
+ * REMOTE_FAILURE_CLASSES in @deepseek-ai/dsh-typert-protocol. The vocabulary
+ * is merge-extensible: codes without an entry deliberately resolve to
+ * [RemoteFailureClass.UNKNOWN] and must stay presentable as opaque
+ * diagnostics. The repository test asserts this mirror equals the generated
+ * projection of the TypeScript authority and references only codes the
+ * published envelope schema declares.
+ */
+object RemoteFailureClasses {
+
+    /** Mirror of the TypeScript authority; kept exact by EnvelopeSchemaTest. */
+    val BY_CODE: Map<String, RemoteFailureClass> = mapOf(
+        "gateway/authentication-required" to RemoteFailureClass.AUTHENTICATION,
+        "device/admission-expired" to RemoteFailureClass.AUTHENTICATION,
+        "device/replay-detected" to RemoteFailureClass.AUTHENTICATION,
+        "device/admission-capacity" to RemoteFailureClass.HOST_STATE,
+        "device/key-invalid" to RemoteFailureClass.AUTHENTICATION,
+        "device/not-found" to RemoteFailureClass.UNAVAILABLE,
+        "device/already-revoked" to RemoteFailureClass.CONFLICT,
+        "gateway/permission-denied" to RemoteFailureClass.PERMISSION,
+        "remote-access/denied" to RemoteFailureClass.PERMISSION,
+        "gateway/interactions-forbidden" to RemoteFailureClass.PERMISSION,
+        "subagent/unauthorized" to RemoteFailureClass.PERMISSION,
+        "gateway/host-not-ready" to RemoteFailureClass.HOST_STATE,
+        "gateway/protocol-unsupported" to RemoteFailureClass.COMPATIBILITY,
+        "host/capability-unavailable" to RemoteFailureClass.COMPATIBILITY,
+        "gateway/preparation-unavailable" to RemoteFailureClass.CARRIER_INVALID,
+        "gateway/stream-invalid" to RemoteFailureClass.CARRIER_INVALID,
+        "gateway/transport-interrupted" to RemoteFailureClass.TRANSPORT,
+        "gateway/connection-unavailable" to RemoteFailureClass.TRANSPORT,
+        "revision-conflict" to RemoteFailureClass.CONFLICT,
+        "session/revision-conflict" to RemoteFailureClass.CONFLICT,
+        "session/not-found" to RemoteFailureClass.UNAVAILABLE,
+        "session/queue-item-not-found" to RemoteFailureClass.UNAVAILABLE,
+        "subagent/not-found" to RemoteFailureClass.UNAVAILABLE,
+        "agent-preset/not-found" to RemoteFailureClass.UNAVAILABLE,
+        "workspace/not-found" to RemoteFailureClass.UNAVAILABLE,
+        "workspace-file/not-found" to RemoteFailureClass.UNAVAILABLE,
+        "workspace-file/not-regular-file" to RemoteFailureClass.UNAVAILABLE,
+        "workspace-file/not-directory" to RemoteFailureClass.UNAVAILABLE,
+        "session/attachment-invalid" to RemoteFailureClass.INVALID_INPUT,
+        "subagent/attachment-invalid" to RemoteFailureClass.INVALID_INPUT,
+        "session/title-invalid" to RemoteFailureClass.INVALID_INPUT,
+        "agent-preset/invalid" to RemoteFailureClass.INVALID_INPUT,
+        "workspace/invalid-path" to RemoteFailureClass.INVALID_INPUT,
+    )
+
+    /**
+     * Classify one Remote failure code for presentation.
+     * @param code code carried by a Remote failure envelope, known or unknown.
+     * @returns the agreed class; UNKNOWN for codes without shared semantics.
+     */
+    fun classify(code: String): RemoteFailureClass = BY_CODE[code] ?: RemoteFailureClass.UNKNOWN
+}

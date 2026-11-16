@@ -20,7 +20,22 @@ import { t, tZh } from './locale.client.ts'
 
 const deriveTrajectoryLayout = (
   input: Parameters<typeof deriveTrajectoryLayoutWithLocale>[0],
-) => deriveTrajectoryLayoutWithLocale(input, t)
+) => {
+  const eventLocations = new Map(input.eventLocations)
+  let location: ConversationLocation | undefined
+  const data = { get: () => undefined, source: () => ({ getSnapshot: () => undefined, subscribe: () => () => {} }) }
+  for (const node of input.nodes) {
+    if (node.kind === 'assistant') {
+      const step = { turn: node.turn, step: node.step, start: undefined, end: undefined, status: 'closed' as const, data }
+      const turn = { turn: node.turn, start: undefined, end: undefined, status: 'closed' as const, steps: [step], data }
+      location = { kind: 'step', turn, step }
+    }
+    if (node.kind === 'tool-result' && location !== undefined && !eventLocations.has(node.seq)) {
+      eventLocations.set(node.seq, location)
+    }
+  }
+  return deriveTrajectoryLayoutWithLocale({ ...input, eventLocations }, t)
+}
 
 const appendTrajectoryPartialLayout = (
   turns: Parameters<typeof appendTrajectoryPartialLayoutWithLocale>[0],

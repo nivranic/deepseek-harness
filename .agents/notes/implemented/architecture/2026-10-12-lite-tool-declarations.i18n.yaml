@@ -1,0 +1,22 @@
+# Bilingual-pair consistency record for 2026-10-12-lite-tool-declarations.md (docs/i18n/README.md): per heading
+# section, a hash of its English and Chinese blocks outside code blocks and generated regions.
+# After editing either side, bring the other along and re-record with:
+#   pnpm run verify-translation-pairing --write .agents/notes/implemented/architecture/2026-10-12-lite-tool-declarations.md
+/agent-note-lite-tool-declarations-end-mobile-guessing-for-tool-capability:
+  en: ce1729b6ef29cc7b
+  zh: 47a0b3b9ada7e38c
+/agent-note-lite-tool-declarations-end-mobile-guessing-for-tool-capability/problem:
+  en: 7c0dcca0c3b79060
+  zh: 6b7c040c428b03c4
+/agent-note-lite-tool-declarations-end-mobile-guessing-for-tool-capability/decision:
+  en: 4b39bb1bd83e929f
+  zh: 0862d062da998d87
+/agent-note-lite-tool-declarations-end-mobile-guessing-for-tool-capability/alternatives-considered:
+  en: eb6bf5bfc2196835
+  zh: 866ff9777aa42819
+/agent-note-lite-tool-declarations-end-mobile-guessing-for-tool-capability/consequences:
+  en: 9e44ad31676abfb1
+  zh: 8881ada0f65125ba
+/agent-note-lite-tool-declarations-end-mobile-guessing-for-tool-capability/open-follow-ups:
+  en: 54109c5afdc32e4d
+  zh: 0890b3985233e73c

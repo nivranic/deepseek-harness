@@ -1,0 +1,22 @@
+# Bilingual-pair consistency record for 2026-09-17-terminal-host-discovery.md (docs/i18n/README.md): per heading
+# section, a hash of its English and Chinese blocks outside code blocks and generated regions.
+# After editing either side, bring the other along and re-record with:
+#   pnpm run verify-translation-pairing --write .agents/notes/implemented/bug-fix/2026-09-17-terminal-host-discovery.md
+/agent-note-terminal-host-discovery-failures:
+  en: 6e190c8ac891fe09
+  zh: bdd839780e6264aa
+/agent-note-terminal-host-discovery-failures/problem:
+  en: be5a2d66d61d7611
+  zh: 1dec9080c97c64ef
+/agent-note-terminal-host-discovery-failures/decision:
+  en: e518bc140dee7e15
+  zh: 68311ba432abd838
+/agent-note-terminal-host-discovery-failures/alternatives-considered:
+  en: 9bec25851fdf0151
+  zh: 9da850d1ef5069ae
+/agent-note-terminal-host-discovery-failures/consequences:
+  en: 67f8542df5a92b9b
+  zh: 281fe1049e994e48
+/agent-note-terminal-host-discovery-failures/testing:
+  en: 577f694fc8bf6f87
+  zh: 9ba0ad7739b9d7b6

@@ -1,0 +1,30 @@
+{
+  "status": "PASS",
+  "cases": [
+    {
+      "path": "artifacts/upstream-first/picker-source.json",
+      "status": "PASS",
+      "rejected": "Picker source record changed"
+    },
+    {
+      "path": "packages/host/directory-picker-native/src/win32-dialog-bindings.ts",
+      "status": "PASS",
+      "rejected": "Picker sourceFiles changed after validation"
+    },
+    {
+      "path": "packages/host/directory-picker-native/lib/worker.cjs",
+      "status": "PASS",
+      "rejected": "Picker artifacts changed after validation"
+    },
+    {
+      "path": "artifacts/upstream-first/picker-abort-result.json",
+      "status": "PASS",
+      "rejected": "Picker receipts changed after validation"
+    },
+    {
+      "path": "artifacts/upstream-first/picker-abort-native.png",
+      "status": "PASS",
+      "rejected": "Picker screenshots changed after validation"
+    }
+  ]
+}

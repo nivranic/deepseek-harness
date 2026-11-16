@@ -8,6 +8,7 @@ import type { SessionId } from '@deepseek-ai/dsh-session/types'
 import { WorkspaceCommands } from './commands.ts'
 import { DirectoryPickerController } from './directory-picker.ts'
 import { WorkspaceFeed, workspaceView } from './feed.ts'
+import { WORKSPACE_REMOTE_CAPABILITIES } from './capabilities.ts'
 import { defaultWorkspaceDirectory, validateDocumentsDirectory } from './default-directory.ts'
 import type {
   WorkspaceArchiveSessionRequest,
@@ -69,7 +70,7 @@ export class WorkspaceController extends TypertRemoteService {
    * @param config - first-use directory policy.
    */
   constructor(ctx: Context, config: Config = {}) {
-    super(ctx, 'workspaceController', { namespace: 'workspace' })
+    super(ctx, 'workspaceController', { namespace: 'workspace', capabilities: WORKSPACE_REMOTE_CAPABILITIES })
     ctx.typert.resources.register('workspace', { field: 'workspaceId' })
     this.config = WorkspaceController.Config(config)
     if (this.config.documentsDirectory !== undefined) validateDocumentsDirectory(this.config.documentsDirectory)

@@ -1,0 +1,70 @@
+{
+  "status": "PASS",
+  "scope": "Report bindings and audit for the Running-location device naming; the remaining specification sections stay open; full Upstream-First objective remains in progress",
+  "gate0": {
+    "validation": "PASS",
+    "gate0": "PASS",
+    "paths": 1938,
+    "components": 129,
+    "specificationCoverage": {
+      "status": "PASS",
+      "numberedSections": 81,
+      "nonEmptySourceLines": 1983,
+      "acceptanceProven": false
+    }
+  },
+  "sourceRecord": {
+    "path": "artifacts/upstream-first/host-naming-source.json",
+    "sha256": "b6c144d363f2287f27fdcd6bde911f43fa39fd2a0c7344ee70413cc606de939e"
+  },
+  "generator": {
+    "path": "artifacts/upstream-first/write-reports.mjs",
+    "sha256": "1a65a53072bce25c3c1a93efc275a40e3c843b1f19aa5fd9c8151b2df32f2478"
+  },
+  "binding": {
+    "path": "artifacts/upstream-first/host-naming-binding.json",
+    "sha256": "6331a82f81884858a532a4490420bf5eae2042eec978dd33a568bf1bc4fe12e6"
+  },
+  "helpers": [
+    {
+      "path": ".artifacts/advance-host-naming-reports.mjs",
+      "sha256": "d9c9de8543bfe65946e4c1aa44ce37e674c027080b38f6403e13ee689862c416"
+    },
+    {
+      "path": ".artifacts/capture-host-naming-validation.mjs",
+      "sha256": "9252bfa53462ce40389bf5e188419971ba903476daab0904a9316ea825af38f7"
+    }
+  ],
+  "reports": [
+    {
+      "path": "IMPLEMENTATION_STATUS.md",
+      "sha256": "efd23dc065e7139437cea1956288c8d39c6b38236ced0ee497b9e095540004a0"
+    },
+    {
+      "path": "artifacts/upstream-first/evidence.json",
+      "sha256": "8425da7388306fe749c6873c35e0940780fdb4fc9ad28be5389a8414ba952f70"
+    }
+  ],
+  "checks": [
+    {
+      "path": ".artifacts/host-naming-binding.log",
+      "sha256": "5368a828ff4833410db806d029c9e96e65c255f368408a08140f6d3c9338b1a4"
+    },
+    {
+      "path": ".artifacts/host-naming-audit-tests.log",
+      "sha256": "fa8f9e32caa010ab283cc1e5f7da381ff43470d42235498ab87001e4c8f46ada"
+    },
+    {
+      "path": ".artifacts/host-naming-gate0.log",
+      "sha256": "505d74ef938f5d34d85490d37e0176ba804d93272fcf465ce2544a02c56b3f90"
+    },
+    {
+      "path": ".artifacts/host-naming-report-diff-check.log",
+      "sha256": "e3b0c44298fc1c149afbf4c8996fb92427ae41e4649b934ca495991b7852b855"
+    },
+    {
+      "path": ".artifacts/host-naming-report-generation.log",
+      "sha256": "fe010532f71a6341467ae5719b29ac19470895de1d481156335b8f70a3273ed5"
+    }
+  ]
+}

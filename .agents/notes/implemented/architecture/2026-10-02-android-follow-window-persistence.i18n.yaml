@@ -1,0 +1,22 @@
+# Bilingual-pair consistency record for 2026-10-02-android-follow-window-persistence.md (docs/i18n/README.md): per heading
+# section, a hash of its English and Chinese blocks outside code blocks and generated regions.
+# After editing either side, bring the other along and re-record with:
+#   pnpm run verify-translation-pairing --write .agents/notes/implemented/architecture/2026-10-02-android-follow-window-persistence.md
+/agent-note-android-persisted-follow-window-across-process-restarts-25:
+  en: 05465a0070ca4ef8
+  zh: a456124a2560bceb
+/agent-note-android-persisted-follow-window-across-process-restarts-25/problem:
+  en: 89a551d7a51ecd3d
+  zh: dd0209fe0f453e45
+/agent-note-android-persisted-follow-window-across-process-restarts-25/decision:
+  en: bbf985a6fc966384
+  zh: 93b3bb10ce6d793a
+/agent-note-android-persisted-follow-window-across-process-restarts-25/alternatives-considered:
+  en: fd002ea10b38a94e
+  zh: 3ffc10a198ba51c5
+/agent-note-android-persisted-follow-window-across-process-restarts-25/consequences:
+  en: 0bb4ac18f5cb126d
+  zh: ae449a0bf34ef3f6
+/agent-note-android-persisted-follow-window-across-process-restarts-25/open-work:
+  en: 0f0c3b2f9f3db43a
+  zh: ad8e8922180ad898

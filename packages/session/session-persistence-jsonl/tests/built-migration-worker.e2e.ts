@@ -10,6 +10,60 @@ const built = ['lib/index.js', 'lib/worker.cjs']
   .every(path => existsSync(join(packageRoot, path)))
 
 describe.skipIf(!built)('built migration verifier (plain node)', () => {
+  it('publishes V3 recovery records through the bundled codec and verifier', async () => {
+    const script = `
+      import { mkdir, mkdtemp, readFile, rm, writeFile } from 'node:fs/promises'
+      import { tmpdir } from 'node:os'
+      import { join } from 'node:path'
+      import { zstdCompressSync, constants } from 'node:zlib'
+      import { Context } from '@deepseek-ai/cordis'
+      import { SESSION_FORMAT_VERSION } from '@deepseek-ai/dsh-session'
+      import * as JsonlSessionPersistence from '@deepseek-ai/dsh-session-persistence-jsonl'
+      const root = await mkdtemp(join(tmpdir(), 'dsh-built-recovery-'))
+      const id = 'built-recovery'
+      const directory = join(root, '_no-cwd', id)
+      const source = join(directory, 'session.v3.jsonl.zstd')
+      const intentPath = source + '.repair-intent'
+      const ctx = new Context()
+      const line = value => JSON.stringify(value) + '\\n'
+      const frame = value => zstdCompressSync(Buffer.from(line(value)), { params: { [constants.ZSTD_c_checksumFlag]: 1 } })
+      const first = { type: 'turn/start', seq: 0, time: 2, data: { turn: 1 } }
+      const recovered = { type: 'turn/end', seq: 1, time: 3, data: { turn: 1, reason: { kind: 'completed' } } }
+      const original = Buffer.concat([
+        frame({ type: 'session', version: 3, id, createdAt: 1, delegationDepth: 0, isSeeded: false }), frame(first),
+      ])
+      const intent = line({ version: 1, id, truncateTo: original.length, events: [recovered] })
+      try {
+        await mkdir(directory, { recursive: true })
+        await writeFile(source, original)
+        await writeFile(intentPath, intent)
+        await ctx.plugin(JsonlSessionPersistence, { root, compression: 'zstd' })
+        const reader = await ctx.sessionPersistence.open(id, 'read')
+        let events
+        try { events = (await reader.read()).events } finally { await reader.close() }
+        const writer = await ctx.sessionPersistence.open(id, 'write')
+        await writer.close()
+        console.log(JSON.stringify({
+          sequences: events.map(event => event.seq),
+          sourceRetained: (await readFile(source)).equals(original),
+          intentRetained: (await readFile(intentPath, 'utf8')) === intent,
+          published: (await readFile(join(directory, 'session.v' + SESSION_FORMAT_VERSION + '.jsonl.zstd'))).length > 0,
+        }))
+      } finally {
+        await ctx.fiber.dispose()
+        await rm(root, { recursive: true, force: true })
+      }
+    `
+    const { exitCode, stdout, stderr, timedOut, signal } = await execa(process.execPath, ['--input-type=module', '-e', script], {
+      cwd: packageRoot, env: { NODE_PATH: undefined, NODE_OPTIONS: undefined },
+      stdin: 'ignore', timeout: 30_000, killSignal: 'SIGKILL', reject: false,
+    })
+    expect(timedOut).toBe(false)
+    expect(signal).toBeUndefined()
+    expect(exitCode, stderr).toBe(0)
+    expect(JSON.parse(stdout.trim())).toEqual({ sequences: [0, 1], sourceRetained: true, intentRetained: true, published: true })
+  })
+
   it('publishes history and verifies it without runtime workspace imports', async () => {
     const script = `
       import { copyFile, mkdir, mkdtemp, readFile, rm, writeFile } from 'node:fs/promises'

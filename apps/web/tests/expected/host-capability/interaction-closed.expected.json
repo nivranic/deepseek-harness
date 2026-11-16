@@ -1,0 +1,17 @@
+{
+  "rejectedReplies": [
+    "gateway/internal",
+    "gateway/internal",
+    "gateway/internal"
+  ],
+  "outcomes": [
+    "allowed-once",
+    "rejected"
+  ],
+  "losingResult": "accepted-no-op",
+  "reconnects": [0, 0],
+  "interactions": [
+    ["approval/request", "approval/request", "cancel"],
+    ["approval/request", "cancel", "approval/request"]
+  ]
+}

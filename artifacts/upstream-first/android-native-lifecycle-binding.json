@@ -1,0 +1,16 @@
+{
+  "status": "PASS",
+  "controls": 3,
+  "sourceRecord": {
+    "path": "artifacts/upstream-first/android-native-lifecycle-source.json",
+    "sha256": "5d2f965db1b3cbe1d153f14a0ce055b6bf7f56f2ea5c185477de6e8b4ed18c2d"
+  },
+  "generator": {
+    "path": "artifacts/upstream-first/write-reports.mjs",
+    "sha256": "7746df8c571b483aa00fb74230f476c8953e5189cdf7948c521534354f507f82"
+  },
+  "helper": {
+    "path": ".artifacts/check-android-native-lifecycle-binding.mjs",
+    "sha256": "d114f145e8adb5a49e94aac0ce0e0ea822af6d5ba4d0465e09b0e1b83c3cbbe5"
+  }
+}

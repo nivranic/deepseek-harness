@@ -1,0 +1,16 @@
+{
+  "status": "PASS",
+  "controls": 3,
+  "sourceRecord": {
+    "path": "artifacts/upstream-first/revision-stamping-source.json",
+    "sha256": "c87d10b1120a6312de153c6f13055af82938f60b1261daf6aa933e88bfcfec67"
+  },
+  "generator": {
+    "path": "artifacts/upstream-first/write-reports.mjs",
+    "sha256": "51d4ed4c218141f959a20211ff7ffa25d785223c0dff54f9c79acde5f901247b"
+  },
+  "helper": {
+    "path": ".artifacts/check-revision-stamping-binding.mjs",
+    "sha256": "8018c1f56bb6b784e2b514f0c3541772a76e1489271e4822cdfd516c4571a468"
+  }
+}

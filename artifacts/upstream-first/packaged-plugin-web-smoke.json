@@ -1,0 +1,78 @@
+{
+  "schemaVersion": 1,
+  "status": "PASS",
+  "scope": "Windows packaged dsh web outside checkout with an isolated home",
+  "realModelTested": false,
+  "installedWheelTested": false,
+  "helperSourceSha": "16482eec880f40bb472c9328acf5a8819bc988f9",
+  "lifecycle": "Shipped web profile plus a test-only file marker emitting SIGTERM, as in the upstream Windows built-bin fixture",
+  "isolatedRoot": "C:\\Users\\11585\\AppData\\Local\\Temp\\dsh-upstream-packaged-i9fx_biq",
+  "executableSha256": "d5f74e68e97da5cdf77e88be05b9bce53a5eaff4da527ce2d170292b1390be0c",
+  "executableBytes": 240814592,
+  "pid": 54176,
+  "http": {
+    "authentication": "PASS",
+    "frontend": "PASS",
+    "scriptCount": 2,
+    "pluginCount": 53,
+    "batchCount": 2,
+    "sessionRpc": "PASS"
+  },
+  "browser": {
+    "status": "PASS",
+    "firstRunNoticeDismissed": true,
+    "providerConfigurationDeferred": true,
+    "pageErrors": [],
+    "bootEntries": 53,
+    "settingsOpened": true,
+    "darkTheme": true,
+    "buttonsAfterSettings": [
+      "DSH Local Build0.1.5-rc.2-c291e79-dirty",
+      "",
+      "New Session",
+      "",
+      "",
+      "",
+      "Settings",
+      "General",
+      "Models",
+      "Plugins",
+      "Agent presets",
+      "Open configuration file",
+      "Close",
+      "Workspace Write",
+      "English",
+      "Light",
+      "Dark",
+      "System",
+      "",
+      "",
+      "Compact",
+      "Queue",
+      "Choose workspace",
+      "",
+      ""
+    ],
+    "headingsAfterSettings": [],
+    "dialogsAfterSettings": [
+      {
+        "label": null,
+        "labelledby": ":r0:",
+        "text": "Settings\nGeneral\nModels\nPlugins\nAgent presets\nOpen configuration file\nClose\nPermission\nChoose the default permission mode for new sessions\nWorkspace Write\nLanguage\nEnglish\nAppearance\nLight\nDark\nSystem\nFont size\nOnly affects conversation content\n14\npx\nConversation display\nControls process content in completed turns\nCompact\nSend behavior while busy\nWhat Enter and the Send button do while the agent is running; Cmd/Ctrl+Enter uses the other behavior\nQueue"
+      }
+    ],
+    "lightTheme": true,
+    "settingsClosed": true
+  },
+  "stage": "select-dark",
+  "screenshot": {
+    "path": "artifacts/upstream-first/packaged-plugin-web-settings.png",
+    "sha256": "fe4ec7a44fc8332d3ccd83468dfd9d8cb6af83a990e1ac0c442fe868e72ff0bd"
+  },
+  "shutdown": {
+    "exitCode": 0,
+    "forced": false,
+    "disposed": true
+  },
+  "diagnostics": []
+}

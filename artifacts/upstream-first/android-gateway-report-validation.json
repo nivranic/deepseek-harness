@@ -1,0 +1,70 @@
+{
+  "status": "PASS",
+  "scope": "Report bindings and audit for the Android Gateway core; the remaining specification sections stay open; full Upstream-First objective remains in progress",
+  "gate0": {
+    "validation": "PASS",
+    "gate0": "PASS",
+    "paths": 1938,
+    "components": 129,
+    "specificationCoverage": {
+      "status": "PASS",
+      "numberedSections": 81,
+      "nonEmptySourceLines": 1983,
+      "acceptanceProven": false
+    }
+  },
+  "sourceRecord": {
+    "path": "artifacts/upstream-first/android-gateway-source.json",
+    "sha256": "cce103b875986d3d82cbf9b28a89f50162bf5ad7d3ea44ae69981397c9c75552"
+  },
+  "generator": {
+    "path": "artifacts/upstream-first/write-reports.mjs",
+    "sha256": "a34371238f272f0dd10ed3b6783bc82e457fd0cd69833ac29daff08785cdcbe2"
+  },
+  "binding": {
+    "path": "artifacts/upstream-first/android-gateway-binding.json",
+    "sha256": "21032883c26c7c80d56ac5e23a6c3c4dc75634c22275f0f75ef86bbaf7656ec1"
+  },
+  "helpers": [
+    {
+      "path": ".artifacts/advance-android-gateway-reports.mjs",
+      "sha256": "8d1dae365ed7951e4b04032b7b845d8acd460d6c2ec4a2e4cc79257f9ab5c09e"
+    },
+    {
+      "path": ".artifacts/capture-android-gateway-validation.mjs",
+      "sha256": "56c3dd6199b63b26ff7a817641af7d46eca77f4daad3de4a6aca82495f47aaca"
+    }
+  ],
+  "reports": [
+    {
+      "path": "IMPLEMENTATION_STATUS.md",
+      "sha256": "d27a4d7219110fc72c70f5f191838e0c0200c9df195c577fd6fa79199baf3842"
+    },
+    {
+      "path": "artifacts/upstream-first/evidence.json",
+      "sha256": "b956f68a3fa142a5bda8225b1de5ee3fdea6291dc51ca776b9e5791681853805"
+    }
+  ],
+  "checks": [
+    {
+      "path": ".artifacts/android-gateway-binding.log",
+      "sha256": "55f9f4bc75475eb1ea38652dfb0d39192a4a536e198962b04281f9180a9b3c35"
+    },
+    {
+      "path": ".artifacts/android-gateway-audit-tests.log",
+      "sha256": "ac42a4da29860695da6e422a9edb972bb3e4b17f169ce5469bb75939ebfb8ff6"
+    },
+    {
+      "path": ".artifacts/android-gateway-gate0.log",
+      "sha256": "5427f71ff5b67b500b327d785dcaf84a7af2c6edd24b1833c4c7d83ad2cf37c8"
+    },
+    {
+      "path": ".artifacts/android-gateway-report-diff-check.log",
+      "sha256": "e3b0c44298fc1c149afbf4c8996fb92427ae41e4649b934ca495991b7852b855"
+    },
+    {
+      "path": ".artifacts/android-gateway-report-generation.log",
+      "sha256": "5867d1d51cd43a59428de2e7fffa15847d7153b11f3b61ecf812224ee2dd2099"
+    }
+  ]
+}

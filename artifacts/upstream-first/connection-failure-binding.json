@@ -1,0 +1,16 @@
+{
+  "status": "PASS",
+  "controls": 3,
+  "sourceRecord": {
+    "path": "artifacts/upstream-first/connection-failure-source.json",
+    "sha256": "208bd5b9648924a5a73dc24569344c93a4b49059c8b75a68473578671a752e32"
+  },
+  "generator": {
+    "path": "artifacts/upstream-first/write-reports.mjs",
+    "sha256": "ec4867b3f8066cddb6fe152c65ae32bffcf361e38c3b98c62df23da94e81a553"
+  },
+  "helper": {
+    "path": ".artifacts/check-connection-failure-binding.mjs",
+    "sha256": "c550ebdacb177edfbc9583c545cd25a70f19a507343d5fedfeee6802400d7bed"
+  }
+}

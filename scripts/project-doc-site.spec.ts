@@ -11,6 +11,7 @@ import type { Nodes } from 'mdast'
 import { afterAll, afterEach, beforeAll, describe, expect, it } from 'vitest'
 import { cleanDocSiteOutput, docSiteBuildOptions } from '../website/build.ts'
 import { docsPages, landingLink, routeLink, sectionSpec, type DocsPage } from '../website/docs.ts'
+import { COVERAGE_TEST_TIMEOUT_ENV, parseCoverageTestTimeout } from './coverage-partitions.ts'
 import {
   addProjectionFrontmatter, emitRawMarkdownPages, llmsTxt, projectedPageContent, publishableImage,
   rawMarkdownFiles, rawMarkdownPageContent, rawMarkdownRoute, resolveRepositoryRef, rewriteMarkdown,
@@ -18,6 +19,7 @@ import {
 
 const roots: string[] = []
 const repositoryRoot = resolve(import.meta.dirname, '..')
+const fullManifestTimeout = parseCoverageTestTimeout(process.env[COVERAGE_TEST_TIMEOUT_ENV]) ?? 60_000
 
 function unexpectedWebsiteMarkdown(files: readonly string[]): string[] {
   return files.filter(file => file.endsWith('.md') && file !== 'website/AGENTS.md').sort()
@@ -157,10 +159,19 @@ describe('publishableImage', () => {
     const outside = mkdtempSync(join(tmpdir(), 'dsh-doc-site-outside-'))
     roots.push(outside)
     writeFileSync(join(outside, 'secret.png'), 'not really a png\n')
-    symlinkSync(join(outside, 'secret.png'), join(root, 'packages/linked.png'))
-
-    expect(publishableImage(join(root, 'packages/linked.png'), realpathSync(root))).toBeUndefined()
-    expect(publishableImage(join(outside, 'secret.png'), realpathSync(root))).toBeUndefined()
+    const link = join(root, 'packages/linked')
+    // Windows junctions exercise the same realpath escape without requiring
+    // the privileged file-symlink operation; other hosts retain that case.
+    const windows = process.platform === 'win32'
+    symlinkSync(windows ? outside : join(outside, 'secret.png'), link, windows ? 'junction' : 'file')
+    try {
+      const image = windows ? join(link, 'secret.png') : link
+      expect(realpathSync(image)).toBe(realpathSync(join(outside, 'secret.png')))
+      expect(publishableImage(image, realpathSync(root))).toBeUndefined()
+      expect(publishableImage(join(outside, 'secret.png'), realpathSync(root))).toBeUndefined()
+    } finally {
+      unlinkSync(link)
+    }
   })
 
   it('refuses a directory', () => {
@@ -757,12 +768,11 @@ describe('rawMarkdownFiles', () => {
 describe('raw Markdown projection of the published manifest', () => {
   let mirror: string
 
-  // Coverage instrumentation on a loaded CI runner stretches the full-manifest
-  // emission and the 181-file link walk past vitest's 5s default.
+  // Full-manifest generation and link checks use the configured coverage lane budget.
   beforeAll(() => {
     mirror = mkdtempSync(join(tmpdir(), 'dsh-doc-mirror-real-'))
     emitRawMarkdownPages(mirror, { pages: docsPages, repoRoot: repositoryRoot, repositoryRef: 'master' })
-  }, 60_000)
+  }, fullManifestTimeout)
 
   afterAll(() => {
     rmSync(mirror, { recursive: true, force: true })
@@ -782,7 +792,7 @@ describe('raw Markdown projection of the published manifest', () => {
     }
   })
 
-  it('resolves every relative link inside the emitted tree', { timeout: 60_000 }, () => {
+  it('resolves every relative link inside the emitted tree', { timeout: fullManifestTimeout }, () => {
     // Raw pages are read outside the site, so a relative target that only the
     // rendered site serves would strand every agent following it.
     const broken: string[] = []

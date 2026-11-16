@@ -1,0 +1,16 @@
+{
+  "status": "PASS",
+  "controls": 3,
+  "sourceRecord": {
+    "path": "artifacts/upstream-first/diagnostics-recorder-source.json",
+    "sha256": "5c64642e7b9a164883b54d27e84fa7c6ada5659f716cc3977d96dc661efc3615"
+  },
+  "generator": {
+    "path": "artifacts/upstream-first/write-reports.mjs",
+    "sha256": "3b81e95966bd145751f011957dc4af5d32b5bcee10aa12545ac8c129794ecf22"
+  },
+  "helper": {
+    "path": ".artifacts/check-diagnostics-recorder-binding.mjs",
+    "sha256": "4c250886c8e8ddc185c5dd171f0a139de3b224d7424cf76a1b6baed802410fec"
+  }
+}

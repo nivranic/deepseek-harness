@@ -1,0 +1,17 @@
+[
+  {
+    "launcher": "installed-exe",
+    "exitCode": 0,
+    "output": "dsh: initialized profile sdk at C:\\Users\\11585\\AppData\\Local\\Temp\\dsh-link-launchers-naz8hz7m\\home\\profiles\\sdk\n{\"root\":\"C:\\\\Users\\\\11585\\\\AppData\\\\Local\\\\Temp\\\\dsh-child-link-GqCmaQ\",\"execPath\":\"C:\\\\Program Files\\\\nodejs\\\\node.exe\",\"outcomes\":[{\"type\":\"junction\",\"status\":\"FAIL\",\"code\":\"EPERM\",\"exists\":false},{\"type\":\"dir\",\"status\":\"FAIL\",\"code\":\"EPERM\",\"exists\":false},{\"type\":\"junction\",\"status\":\"FAIL\",\"code\":\"EPERM\",\"exists\":false}]}\n"
+  },
+  {
+    "launcher": "python-main",
+    "exitCode": 0,
+    "output": "{\"root\":\"C:\\\\Users\\\\11585\\\\AppData\\\\Local\\\\Temp\\\\dsh-child-link-BFHHbS\",\"execPath\":\"C:\\\\Program Files\\\\nodejs\\\\node.exe\",\"outcomes\":[{\"type\":\"junction\",\"status\":\"FAIL\",\"code\":\"EPERM\",\"exists\":false},{\"type\":\"dir\",\"status\":\"FAIL\",\"code\":\"EPERM\",\"exists\":false},{\"type\":\"junction\",\"status\":\"FAIL\",\"code\":\"EPERM\",\"exists\":false}]}\n"
+  },
+  {
+    "launcher": "python-node",
+    "exitCode": 0,
+    "output": "{\"root\":\"C:\\\\Users\\\\11585\\\\AppData\\\\Local\\\\Temp\\\\dsh-child-link-Jm2UsZ\",\"execPath\":\"C:\\\\Program Files\\\\nodejs\\\\node.exe\",\"outcomes\":[{\"type\":\"junction\",\"status\":\"PASS\"},{\"type\":\"dir\",\"status\":\"FAIL\",\"code\":\"EPERM\",\"exists\":false},{\"type\":\"junction\",\"status\":\"PASS\"}]}\n"
+  }
+]

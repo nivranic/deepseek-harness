@@ -1,0 +1,16 @@
+{
+  "status": "PASS",
+  "controls": 3,
+  "sourceRecord": {
+    "path": "artifacts/upstream-first/retargetable-endpoint-source.json",
+    "sha256": "b83a5c047dbe4685bdff79c8365ec32b7c93a28ca857b0cdc005a0b9b01c6ba6"
+  },
+  "generator": {
+    "path": "artifacts/upstream-first/write-reports.mjs",
+    "sha256": "55dc2534853feedae1732b38d06345c55fbf43ab8448e07ccb2372c1e7764137"
+  },
+  "helper": {
+    "path": ".artifacts/check-retargetable-endpoint-binding.mjs",
+    "sha256": "487b7055e558e522d4a11289e9cdb705bf94626f23e92d22fe5773ff1752cc13"
+  }
+}

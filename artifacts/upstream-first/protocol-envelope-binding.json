@@ -1,0 +1,21 @@
+{
+  "status": "PASS",
+  "controls": 3,
+  "sourceRecord": {
+    "path": "artifacts/upstream-first/protocol-envelope-source.json",
+    "sha256": "3796e4c2e5fba3065890a6575f5ea5b4fcd36d7f3586269bb01326035ae127d0"
+  },
+  "generator": {
+    "path": "artifacts/upstream-first/write-reports.mjs",
+    "sha256": "e31bddbef9809585ee3f370d5d1f09f0a422d700c57e78b41ab57c733a922b81"
+  },
+  "helper": {
+    "path": ".artifacts/check-protocol-envelope-binding.mjs",
+    "sha256": "837bb3a907feff6466f032cbcf14a191f93c9f46e205a8237abec161c3da92b4"
+  },
+  "cases": [
+    "packages/api/gateway/src/protocol.ts",
+    "packages/api/gateway/lib/types/protocol.js",
+    ".artifacts/protocol-negotiation-before/packages/api/gateway/src/index.ts"
+  ]
+}

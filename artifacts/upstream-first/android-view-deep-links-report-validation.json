@@ -1,0 +1,70 @@
+{
+  "status": "PASS",
+  "scope": "Report bindings and audit for Android VIEW navigation for the selected trusted Host and durable Session anchor; the remaining specification sections stay open; full Upstream-First objective remains in progress",
+  "gate0": {
+    "validation": "PASS",
+    "gate0": "PASS",
+    "paths": 1938,
+    "components": 129,
+    "specificationCoverage": {
+      "status": "PASS",
+      "numberedSections": 81,
+      "nonEmptySourceLines": 1983,
+      "acceptanceProven": false
+    }
+  },
+  "sourceRecord": {
+    "path": "artifacts/upstream-first/android-view-deep-links-source.json",
+    "sha256": "679a9823dc7a4d06c5e966725cbf61ba5fd4cc210645e493076ae77efa177bdc"
+  },
+  "generator": {
+    "path": "artifacts/upstream-first/write-reports.mjs",
+    "sha256": "6dbd7cdf812e34b83f23f1af810f5d7fe3d27baea5b0622ad992d40c6c49f648"
+  },
+  "binding": {
+    "path": "artifacts/upstream-first/android-view-deep-links-binding.json",
+    "sha256": "60b52254887f2a4dcacf9508b52675f36c9fb4733d9918452e7c2947efb540f4"
+  },
+  "helpers": [
+    {
+      "path": ".artifacts/advance-android-view-deep-links-reports.mjs",
+      "sha256": "f723e1171519c7849692c859ea01d6bff13bbdafb5d62e25029b3087c26dcdbb"
+    },
+    {
+      "path": ".artifacts/capture-android-view-deep-links-validation.mjs",
+      "sha256": "1aec8c8ee4391b56171412725adf5dbd3c636b38c44eebba9535ac3455ade7fe"
+    }
+  ],
+  "reports": [
+    {
+      "path": "IMPLEMENTATION_STATUS.md",
+      "sha256": "27b0e505f27498bddd0ced3e797551714e0fb3f9e5dde672ea886b48a2201c07"
+    },
+    {
+      "path": "artifacts/upstream-first/evidence.json",
+      "sha256": "0c70a797181f7a8aea6743bc970c3d1875f245800033c51ffcbfa417a1c361a8"
+    }
+  ],
+  "checks": [
+    {
+      "path": ".artifacts/android-view-deep-links-binding.log",
+      "sha256": "ff041d6eefb479f881baa0ed10ea2ec651420d159b63d95a6b8b6fef951fdec3"
+    },
+    {
+      "path": ".artifacts/android-view-deep-links-audit-tests.log",
+      "sha256": "e3f033fa7b238f61da557ffc8f3dda5535e76b2799b057336e6e731c3237de58"
+    },
+    {
+      "path": ".artifacts/android-view-deep-links-gate0-report.log",
+      "sha256": "5427f71ff5b67b500b327d785dcaf84a7af2c6edd24b1833c4c7d83ad2cf37c8"
+    },
+    {
+      "path": ".artifacts/android-view-deep-links-report-diff-check.log",
+      "sha256": "e3b0c44298fc1c149afbf4c8996fb92427ae41e4649b934ca495991b7852b855"
+    },
+    {
+      "path": ".artifacts/android-view-deep-links-report-generation.log",
+      "sha256": "5867d1d51cd43a59428de2e7fffa15847d7153b11f3b61ecf812224ee2dd2099"
+    }
+  ]
+}

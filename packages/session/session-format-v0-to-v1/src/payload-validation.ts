@@ -35,6 +35,12 @@ export function assertReleasedPayloadSemantics(event: SessionFormatEvent, versio
       nonEmptyString(data['toolName'], `${label} toolName`)
       if (data['callId'] !== undefined) nonEmptyString(data['callId'], `${label} callId`)
       if (data['reason'] !== undefined) stringValue(data['reason'], `${label} reason`)
+      if (data['risk'] !== undefined) literalValue(data['risk'], ['low', 'moderate', 'high', 'critical'], `${label} risk`)
+      if (data['escalation'] !== undefined) {
+        const escalation = exactRecord(data['escalation'], `${label} escalation`, ['requestedMode', 'effectiveMode'])
+        literalValue(escalation['requestedMode'], ['read-only', 'workspace-write', 'danger-full-access'], `${label} escalation requestedMode`)
+        literalValue(escalation['effectiveMode'], ['read-only', 'workspace-write', 'danger-full-access'], `${label} escalation effectiveMode`)
+      }
       return
     case 'approval/decided':
       nonEmptyString(data['id'], `${label} id`)
@@ -59,11 +65,13 @@ export function assertReleasedPayloadSemantics(event: SessionFormatEvent, versio
       literalValue(data['kind'], ['success', 'error'], `${label} kind`)
       if (data['text'] !== undefined) stringValue(data['text'], `${label} text`)
       if (data['sourceEventSeq'] !== undefined) earlierSeq(data['sourceEventSeq'], event.seq, `${label} sourceEventSeq`)
+      if (data['clientMutationId'] !== undefined) nonEmptyString(data['clientMutationId'], `${label} clientMutationId`)
       return
     case 'command/run': {
       nonEmptyString(data['commandId'], `${label} commandId`)
       nonEmptyString(data['name'], `${label} name`)
       if (data['args'] !== undefined) stringValue(data['args'], `${label} args`)
+      if (data['clientMutationId'] !== undefined) nonEmptyString(data['clientMutationId'], `${label} clientMutationId`)
       const source = exactRecord(data['source'], `${label} source`, ['kind'])
       literalValue(source['kind'], ['user'], `${label} source kind`)
       return

@@ -1,0 +1,25 @@
+{
+  "status": "PASS",
+  "cases": [
+    {
+      "path": "artifacts/upstream-first/web-injection-source.json",
+      "status": "PASS",
+      "rejected": "Web injection source record changed"
+    },
+    {
+      "path": "packages/host/webserver/src/injections.ts",
+      "status": "PASS",
+      "rejected": "Web injection sourceFiles changed after validation: packages\\/host\\/webserver\\/src\\/injections.ts"
+    },
+    {
+      "path": "packages/host/webserver/lib/index.js",
+      "status": "PASS",
+      "rejected": "Web injection artifacts changed after validation: packages\\/host\\/webserver\\/lib\\/index.js"
+    },
+    {
+      "path": "artifacts/upstream-first/web-injection-built-smoke.json",
+      "status": "PASS",
+      "rejected": "Web injection receipts changed after validation: artifacts\\/upstream-first\\/web-injection-built-smoke.json"
+    }
+  ]
+}

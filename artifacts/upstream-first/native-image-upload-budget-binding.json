@@ -1,0 +1,16 @@
+{
+  "status": "PASS",
+  "controls": 3,
+  "sourceRecord": {
+    "path": "artifacts/upstream-first/native-image-upload-budget-source.json",
+    "sha256": "4133a4d26cd688bca371993cb90dcb7f2a7a19f80a88b8cc60acaa16b2201dda"
+  },
+  "generator": {
+    "path": "artifacts/upstream-first/write-reports.mjs",
+    "sha256": "4d51b38c0782ccbcffa2cb595510cdfc6bcc6af362e48d70b2b42caf1616d4bc"
+  },
+  "helper": {
+    "path": ".artifacts/check-native-image-upload-budget-binding.mjs",
+    "sha256": "e0a3fef07d67cecdfdbbd2a8378bf51bdaad72c8bf3ad6f94bbd0646b6e330e7"
+  }
+}

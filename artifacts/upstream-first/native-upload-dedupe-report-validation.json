@@ -1,0 +1,70 @@
+{
+  "status": "PASS",
+  "scope": "Report bindings and audit for the native upload dedupe increment: digest-based re-staging of stored upload bytes, per-process companion digest memory with exactly one full-upload fallback and the SIGKILL-restart e2e asserting zero stored-object rewrites with a replaced receipt; the remaining specification sections stay open; full Upstream-First objective remains in progress",
+  "gate0": {
+    "validation": "PASS",
+    "gate0": "PASS",
+    "paths": 1938,
+    "components": 129,
+    "specificationCoverage": {
+      "status": "PASS",
+      "numberedSections": 81,
+      "nonEmptySourceLines": 1983,
+      "acceptanceProven": false
+    }
+  },
+  "sourceRecord": {
+    "path": "artifacts/upstream-first/native-upload-dedupe-source.json",
+    "sha256": "876e7455c24f67c0e02e46f98e64d695cd97464e85d2feb867845905a0f1a73d"
+  },
+  "generator": {
+    "path": "artifacts/upstream-first/write-reports.mjs",
+    "sha256": "c8f4c002b369a9b0cf921841c8f7f024fc69d53b4040788a8c05218de2531809"
+  },
+  "binding": {
+    "path": "artifacts/upstream-first/native-upload-dedupe-binding.json",
+    "sha256": "913523dbd29c654d3e78a7febe44c69c0af9aa133869e2a522482d57f3556887"
+  },
+  "helpers": [
+    {
+      "path": ".artifacts/advance-native-upload-dedupe-reports.mjs",
+      "sha256": "05551f98de3adddc8050eea4dfb42e34015cc7e248d8c128ef1388cbaebedb6c"
+    },
+    {
+      "path": ".artifacts/capture-native-upload-dedupe-validation.mjs",
+      "sha256": "c8aaba1039562dbadfbd6ecddb871046390fb3b06638204bb80875ed8ff99a3f"
+    }
+  ],
+  "reports": [
+    {
+      "path": "IMPLEMENTATION_STATUS.md",
+      "sha256": "c303cdef54e0560cb5feb1ba8f34411e2c289c6574bfacdee3278df0cf6b7ba9"
+    },
+    {
+      "path": "artifacts/upstream-first/evidence.json",
+      "sha256": "f59691c703bd540ff884c9a29fef0a053508520db194b18936264a50120d7745"
+    }
+  ],
+  "checks": [
+    {
+      "path": ".artifacts/native-upload-dedupe-binding.log",
+      "sha256": "9ae1f5003a07a562b1495ed5a9867fabc2ab0a22b726b81d9adbbf6b2804aea9"
+    },
+    {
+      "path": ".artifacts/native-upload-dedupe-audit-final.log",
+      "sha256": "45bbe3dcb6cb1e641c6baac009625d33d97fcaa7426040c47858fa396f58ea9e"
+    },
+    {
+      "path": ".artifacts/native-upload-dedupe-gate0-final.log",
+      "sha256": "505d74ef938f5d34d85490d37e0176ba804d93272fcf465ce2544a02c56b3f90"
+    },
+    {
+      "path": ".artifacts/native-upload-dedupe-report-diff-check.log",
+      "sha256": "e3b0c44298fc1c149afbf4c8996fb92427ae41e4649b934ca495991b7852b855"
+    },
+    {
+      "path": ".artifacts/native-upload-dedupe-report-generation.log",
+      "sha256": "6616630463c8eb3ffd69d218e03ffc25be7852a2f9e639de6ae42558801b921d"
+    }
+  ]
+}

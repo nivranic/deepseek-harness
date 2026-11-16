@@ -79,7 +79,13 @@ export interface SubagentMemberNames {
  * invoking it. `ancestor` carries an exact live Agent in the target's creation ancestry.
  */
 export type SubagentInterruptAuthority =
-  | { readonly kind: 'user' }
+  | {
+    readonly kind: 'user'
+    /** Optional durable direct parent required by parent-addressed operations. */
+    readonly parentSessionId?: SessionId
+    /** Omission keeps current-turn interruption; null or a stale sequence cannot cancel later work. */
+    readonly turnStartSeq?: number | null
+  }
   | { readonly kind: 'ancestor'; readonly agent: Agent }
 
 /** Options for one model-authored message within a subagent tree. */

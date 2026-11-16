@@ -25,7 +25,7 @@ Chat and Trajectory may recognize the same durable event family, but each keeps 
 
 Each Session keeps a monotonic set of active targets. Creating or reading a target source does not activate it. The shell explicitly activates its persisted or newly selected View, while another consumer activates a target through its first source subscription. First activation creates that target's builder and calls `replace()` once from the current target-indexed Contexts. Later flushes call `apply()` for every active target, and unsubscription does not remove one.
 
-The shell owns View selection and resolves the registered preferred View or Chat fallback before rendering when a binding is created or selected as current, and after View-roster changes. The assembler receives only the resolved target id and does not select Chat or another default target. A third-party View participates through the same selection and activation operations. A View Definition may expose `toolCallFocus(callId)`; the shell supplies Inspect only for a visible target that declares this capability, and the target maps the call id to its own focus identity.
+The shell owns View selection and resolves the registered preferred View or Chat fallback before rendering when a binding is created or selected as current, and after View-roster changes. The assembler receives only the resolved target id and does not select Chat or another default target. A third-party View participates through the same selection and activation operations. A View Definition may expose `toolCallFocus(callId, location)`, receiving the call's owning Turn and Step. The shell supplies Inspect only for a visible target that declares this capability, and the target maps the call and location to its own focus identity.
 
 <a id="group-definitions"></a>
 ## Group Definitions
@@ -54,6 +54,8 @@ The Group store validates the whole submitted result before installation: root G
 Renderers switch on the two reference kinds and choose components in the owning View, not through a renderer field in group data. Root Node references and referenced group members form the complete render list; unreferenced target Nodes remain stored but do not render. The group body reads members separately from summary data. Presentation modes must retain component types, keys, and member parents; changing data membership may legitimately remount a moved member. The framework does not interpret part completeness, segmentation, or presentation policies.
 
 ## Replayable event families
+
+Definitions whose business ids are unique only within a model Step declare `identityScope: 'step'`. The assembler qualifies their ids with the durable Turn/Step enclosure, including a paged prefix anchored by a following coordinate before the next opening boundary. Unlocated claimed events wait without publishing a provisional Node. Session-wide identity remains the default; matchers still read only their own event. The [identity decision](../../.agents/notes/implemented/architecture/2026-08-09-client-conversation-node-assembly.md) owns the pagination rationale.
 
 Choose one stable business id before writing the Definition. Every event that contributes to the same Node must carry that id or derive it independently from its own payload; the client must never assign an update to “the latest unfinished” Context.
 

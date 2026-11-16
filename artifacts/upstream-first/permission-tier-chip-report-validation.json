@@ -1,0 +1,70 @@
+{
+  "status": "PASS",
+  "scope": "Report bindings and audit for the Running-location permission tier; the remaining specification sections stay open; full Upstream-First objective remains in progress",
+  "gate0": {
+    "validation": "PASS",
+    "gate0": "PASS",
+    "paths": 1938,
+    "components": 129,
+    "specificationCoverage": {
+      "status": "PASS",
+      "numberedSections": 81,
+      "nonEmptySourceLines": 1983,
+      "acceptanceProven": false
+    }
+  },
+  "sourceRecord": {
+    "path": "artifacts/upstream-first/permission-tier-chip-source.json",
+    "sha256": "c8cb34f81f23cd0b035ffe0f0f9c1c9f74fe60365761bea8a9671f7fdff580a8"
+  },
+  "generator": {
+    "path": "artifacts/upstream-first/write-reports.mjs",
+    "sha256": "c7967a0a7d935df8f5f19a1d1d4c5659365cbb448587e1732dc3856574a5e9a3"
+  },
+  "binding": {
+    "path": "artifacts/upstream-first/permission-tier-chip-binding.json",
+    "sha256": "e88c53eb1f6e547bcdf4a4029cc1a5ee702732d0246a0c9bcb917f8a877d9ebe"
+  },
+  "helpers": [
+    {
+      "path": ".artifacts/advance-permission-tier-chip-reports.mjs",
+      "sha256": "04b8c73ddbb3f3ae26c31183936511cfb5f538e01ee1c5d47dea2063c1f1cc44"
+    },
+    {
+      "path": ".artifacts/capture-permission-tier-chip-validation.mjs",
+      "sha256": "d715d381cf35e40a4fe2e8ed33e77ee9e0657fdebc7280a86cf79a980f119f9f"
+    }
+  ],
+  "reports": [
+    {
+      "path": "IMPLEMENTATION_STATUS.md",
+      "sha256": "498d0d1428e5a645653c4425b1d9ee8e58982baeaa0aa71259337ba44ac2c216"
+    },
+    {
+      "path": "artifacts/upstream-first/evidence.json",
+      "sha256": "f2e535c39e1845ebd3473eac30dd3e18ba9d2f5d7f4ab8b73414b932dce3e9d3"
+    }
+  ],
+  "checks": [
+    {
+      "path": ".artifacts/permission-tier-chip-binding.log",
+      "sha256": "173257f5ad4bb60a5d11a7b747b797d9d130646d96d2523b1981ce9959d50e62"
+    },
+    {
+      "path": ".artifacts/permission-tier-chip-audit-tests.log",
+      "sha256": "7cc83752bc8bbbe93a4b8499db55626cb6a6b9288722bbe46509e831ce406758"
+    },
+    {
+      "path": ".artifacts/permission-tier-chip-gate0.log",
+      "sha256": "505d74ef938f5d34d85490d37e0176ba804d93272fcf465ce2544a02c56b3f90"
+    },
+    {
+      "path": ".artifacts/permission-tier-chip-report-diff-check.log",
+      "sha256": "e3b0c44298fc1c149afbf4c8996fb92427ae41e4649b934ca495991b7852b855"
+    },
+    {
+      "path": ".artifacts/permission-tier-chip-report-generation.log",
+      "sha256": "fe010532f71a6341467ae5719b29ac19470895de1d481156335b8f70a3273ed5"
+    }
+  ]
+}

@@ -7,7 +7,7 @@
 
 import { AttachmentError } from '@deepseek-ai/dsh-attachment'
 import type { SessionId } from '@deepseek-ai/dsh-session'
-import { RemoteError } from '@deepseek-ai/dsh-typert-protocol'
+import { RemoteError, remoteValidationIssues } from '@deepseek-ai/dsh-typert-protocol'
 import { z } from 'zod'
 import { SubagentError } from './error.ts'
 
@@ -20,6 +20,13 @@ const CONTROL_ID_SCHEMAS = {
   'subagent.interrupt': z.object({
     childSessionId: SESSION_ID_SCHEMA,
   }),
+  'subagent.interrupt-turn': z.object({
+    parentSessionId: SESSION_ID_SCHEMA,
+    childSessionId: SESSION_ID_SCHEMA,
+    mode: z.literal('continuable'),
+    turnStartSeq: z.number().int().nonnegative().max(Number.MAX_SAFE_INTEGER)
+      .refine(value => !Object.is(value, -0)).nullable(),
+  }),
 } as const
 
 /**
@@ -27,7 +34,7 @@ const CONTROL_ID_SCHEMAS = {
  * branded-string codecs.
  * @param method - method name carried in the failure message.
  * @param payload - decoded control fields to validate.
- * @throws {RemoteError} `gateway/bad-request` with the original Zod issues.
+ * @throws {RemoteError} `gateway/bad-request` with portable validation diagnostics.
  */
 export function validateControlRequest(
   method: keyof typeof CONTROL_ID_SCHEMAS,
@@ -35,7 +42,7 @@ export function validateControlRequest(
 ): void {
   const parsed = CONTROL_ID_SCHEMAS[method].safeParse(payload)
   if (!parsed.success) {
-    throw new RemoteError('gateway/bad-request', `invalid payload for ${method}`, { issues: parsed.error.issues })
+    throw new RemoteError('gateway/bad-request', `invalid payload for ${method}`, { issues: remoteValidationIssues(parsed.error.issues) })
   }
 }
 

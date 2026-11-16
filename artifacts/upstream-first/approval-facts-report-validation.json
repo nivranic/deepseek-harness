@@ -1,0 +1,70 @@
+{
+  "status": "PASS",
+  "scope": "Report bindings and audit for the Approval fact surface; the remaining specification sections stay open; full Upstream-First objective remains in progress",
+  "gate0": {
+    "validation": "PASS",
+    "gate0": "PASS",
+    "paths": 1938,
+    "components": 129,
+    "specificationCoverage": {
+      "status": "PASS",
+      "numberedSections": 81,
+      "nonEmptySourceLines": 1983,
+      "acceptanceProven": false
+    }
+  },
+  "sourceRecord": {
+    "path": "artifacts/upstream-first/approval-facts-source.json",
+    "sha256": "895d01a1a967b38a09ea0e07299cd456cfea1636decbeeb44269eec8632409f6"
+  },
+  "generator": {
+    "path": "artifacts/upstream-first/write-reports.mjs",
+    "sha256": "f7107e8bf6a26f45583ea62b03ea273df9412d0293bbbea927f41e5319be3750"
+  },
+  "binding": {
+    "path": "artifacts/upstream-first/approval-facts-binding.json",
+    "sha256": "2b75f9363dcbb2ae1287ae508dadf90fc147a48d0db4bcd68c1475810673bb0d"
+  },
+  "helpers": [
+    {
+      "path": ".artifacts/advance-approval-facts-reports.mjs",
+      "sha256": "cd7e7b145e16a80196bd1fa3682e50ef4b67bf46d55209326ba69c3153c504e0"
+    },
+    {
+      "path": ".artifacts/capture-approval-facts-validation.mjs",
+      "sha256": "e77848ef99a9057160d87f00bafb959547d54502efe0c216609ddb479da31f62"
+    }
+  ],
+  "reports": [
+    {
+      "path": "IMPLEMENTATION_STATUS.md",
+      "sha256": "c88d349038c4d2d84beb32c80c433833075209962e50706dbcb918e679b4eda5"
+    },
+    {
+      "path": "artifacts/upstream-first/evidence.json",
+      "sha256": "af2836539c06d015bfd7cec7485081f55c8db818019f7554e6f8b9138599967a"
+    }
+  ],
+  "checks": [
+    {
+      "path": ".artifacts/approval-facts-binding.log",
+      "sha256": "4d3a1b571bb78ab8a7f1a839cdfff146386c131aa139669b1e602665363ce3db"
+    },
+    {
+      "path": ".artifacts/approval-facts-audit-tests.log",
+      "sha256": "3c4ec69773bb3249808a9a3b1a15faf2c7190592ce65a588e3f3b30b3dc2f638"
+    },
+    {
+      "path": ".artifacts/approval-facts-gate0.log",
+      "sha256": "505d74ef938f5d34d85490d37e0176ba804d93272fcf465ce2544a02c56b3f90"
+    },
+    {
+      "path": ".artifacts/approval-facts-report-diff-check.log",
+      "sha256": "e3b0c44298fc1c149afbf4c8996fb92427ae41e4649b934ca495991b7852b855"
+    },
+    {
+      "path": ".artifacts/approval-facts-report-generation.log",
+      "sha256": "32bce446ec607e1c4f1b4c87b0b5f972ef988447cd2eba022bdcefd0e105d936"
+    }
+  ]
+}

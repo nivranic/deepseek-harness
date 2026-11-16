@@ -15,7 +15,7 @@ import {
   compareOrRefreshGolden, fixtureUserPrompts,
   launchWebScaffold, readPersistedEvents, watchConsole, webSnapshotMode, type WebScaffold,
 } from './scaffold.ts'
-import { connectFreshWorkspace, newEnglishPage, saveFailureShot } from './support.ts'
+import { connectFreshWorkspace, newEnglishPage, openSettings, saveFailureShot } from './support.ts'
 
 const SNAPSHOT_DIR = fileURLToPath(new URL('../../../snapshots/web/feedback-release', import.meta.url))
 // Both routes borrow the same settled turn; this manifest references its owner.
@@ -132,6 +132,17 @@ describe.each(MODE === 'record' ? ['deepseek-official'] : ['deepseek-official', 
     tripwire = watchConsole(page)
     await page.goto(scaffold.authenticatedUrl, { waitUntil: 'load' })
     await page.waitForSelector('[class*="frame"]', { timeout: 30_000 })
+    await openSettings(page, 'en')
+    const settings = page.getByRole('dialog', { name: 'Settings', exact: true })
+    await settings.getByRole('button', { name: 'Telemetry', exact: true }).click()
+    const [consentResponse] = await Promise.all([
+      page.waitForResponse(response => response.url().endsWith('/api/settings/mutate')),
+      settings.getByRole('switch', { name: 'Session telemetry', exact: true }).click(),
+    ])
+    expect(await consentResponse.json()).toMatchObject({ result: { ok: true } })
+    expect(scaffold.ctx.sessionTelemetry.consent.sessionTelemetry).toBe(true)
+    await page.keyboard.press('Escape')
+    await settings.waitFor({ state: 'hidden' })
     await connectFreshWorkspace(page, scaffold.workspaceCwd)
   }, 120_000)
 

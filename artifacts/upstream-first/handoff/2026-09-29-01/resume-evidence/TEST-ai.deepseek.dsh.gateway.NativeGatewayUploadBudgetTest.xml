@@ -1,0 +1,13 @@
+<?xml version="1.0" encoding="UTF-8"?>
+<testsuite name="ai.deepseek.dsh.gateway.NativeGatewayUploadBudgetTest" tests="7" skipped="0" failures="0" errors="0" timestamp="2026-09-27T22:57:03.352Z" hostname="WADEPRUDENCE" time="5.649">
+  <properties/>
+  <testcase name="arguments below 2048 bytes still reject when the complete request exceeds the discovered budget()" classname="ai.deepseek.dsh.gateway.NativeGatewayUploadBudgetTest" time="0.641"/>
+  <testcase name="each explicit upload queries a fresh budget and signs the exact UTF-8 body at the inclusive limit()" classname="ai.deepseek.dsh.gateway.NativeGatewayUploadBudgetTest" time="0.882"/>
+  <testcase name="image and prompt operations do not query the file budget and a Host upload refusal is not retried()" classname="ai.deepseek.dsh.gateway.NativeGatewayUploadBudgetTest" time="0.687"/>
+  <testcase name="public Host selection retires a held budget query before using the other Host allowance()" classname="ai.deepseek.dsh.gateway.NativeGatewayUploadBudgetTest" time="1.344"/>
+  <testcase name="malformed refused and unavailable budget replies never reuse an earlier allowance()" classname="ai.deepseek.dsh.gateway.NativeGatewayUploadBudgetTest" time="0.706"/>
+  <testcase name="cancelled budget queries settle without sending their waiting file()" classname="ai.deepseek.dsh.gateway.NativeGatewayUploadBudgetTest" time="0.615"/>
+  <testcase name="missing or unknown budget capabilities prevent queries and file POSTs through direct wire calls()" classname="ai.deepseek.dsh.gateway.NativeGatewayUploadBudgetTest" time="0.774"/>
+  <system-out><![CDATA[]]></system-out>
+  <system-err><![CDATA[]]></system-err>
+</testsuite>

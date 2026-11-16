@@ -18,6 +18,9 @@ overrides:
   'extract-zip>yauzl': '3.4.0'
   '@deepseek-ai/cosmokit': 'link:vendor/cosmokit'
   '@deepseek-ai/schemastery': 'link:vendor/schemastery'
+  # X509's parser and ASN.1 declarations must share one schema registry.
+  # Match the resolved ASN.1 declaration packages to retain SubjectPublicKeyInfo metadata.
+  '@peculiar/x509@2.1.0>@peculiar/asn1-schema': '2.11.1'
 
 peerDependencyRules:
   allowedVersions:

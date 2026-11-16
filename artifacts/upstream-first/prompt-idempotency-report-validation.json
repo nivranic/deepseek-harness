@@ -1,0 +1,45 @@
+{
+  "status": "PASS",
+  "gate0": {
+    "validation": "PASS",
+    "gate0": "PASS",
+    "paths": 1938,
+    "components": 129
+  },
+  "sourceRecord": {
+    "path": "artifacts/upstream-first/prompt-idempotency-source.json",
+    "sha256": "1665f87fb28c7844a37bf3b2df538373d5ee2b5b8ff940e7b41cf14debf66010"
+  },
+  "generator": {
+    "path": "artifacts/upstream-first/write-reports.mjs",
+    "sha256": "9d1b0014a2a7ce565beb1377aa0929cbc0bbb97ad75b1a0ff56c4b2094425294"
+  },
+  "reports": [
+    {
+      "path": "IMPLEMENTATION_STATUS.md",
+      "sha256": "eeb6a8d443f288ea9fa08f2ef85ffc75951092165b851beb1026520408940b7c"
+    },
+    {
+      "path": "artifacts/upstream-first/evidence.json",
+      "sha256": "59f30f6039ec2686488f487e92d2046615f91847d5508fba151ef591e97c4fd3"
+    }
+  ],
+  "checks": [
+    {
+      "path": ".artifacts/prompt-idempotency-binding.log",
+      "sha256": "10e36b826fbf8b31834509085659ad73fea6ed175cfeca7c661517592b50ecdb"
+    },
+    {
+      "path": ".artifacts/prompt-idempotency-audit-tests.log",
+      "sha256": "d4dc854d8fd107fa6a52fb11d103aef344b8d0ff7eb0f5cffd8359b786859113"
+    },
+    {
+      "path": ".artifacts/prompt-idempotency-gate0.log",
+      "sha256": "4b5af3121a7e7caff0e1b6288bdaa7cfef9988842ae06bf02dc0a74852426043"
+    },
+    {
+      "path": ".artifacts/prompt-idempotency-diff-check.log",
+      "sha256": "e3b0c44298fc1c149afbf4c8996fb92427ae41e4649b934ca495991b7852b855"
+    }
+  ]
+}

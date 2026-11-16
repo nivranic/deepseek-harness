@@ -1,0 +1,22 @@
+# Bilingual-pair consistency record for 2026-10-22-attribution-ua.md (docs/i18n/README.md): per heading
+# section, a hash of its English and Chinese blocks outside code blocks and generated regions.
+# After editing either side, bring the other along and re-record with:
+#   pnpm run verify-translation-pairing --write .agents/notes/implemented/architecture/2026-10-22-attribution-ua.md
+/agent-note-the-companion-s-provider-requests-carry-a-static-user-agent-the-33-re-projection-and-combination-items-close-as-recorded-decisions:
+  en: df91ad5e14766adb
+  zh: 102b0400dd2ec9a3
+/agent-note-the-companion-s-provider-requests-carry-a-static-user-agent-the-33-re-projection-and-combination-items-close-as-recorded-decisions/problem:
+  en: 4db290abdc094a47
+  zh: b52de267e824a34a
+/agent-note-the-companion-s-provider-requests-carry-a-static-user-agent-the-33-re-projection-and-combination-items-close-as-recorded-decisions/decision:
+  en: 2bdb04b18d20d0d2
+  zh: 09c5264a509398c0
+/agent-note-the-companion-s-provider-requests-carry-a-static-user-agent-the-33-re-projection-and-combination-items-close-as-recorded-decisions/alternatives-considered:
+  en: 82970f6563830a7a
+  zh: 87f196401550c3e0
+/agent-note-the-companion-s-provider-requests-carry-a-static-user-agent-the-33-re-projection-and-combination-items-close-as-recorded-decisions/consequences:
+  en: b47fc415fda8991a
+  zh: e79ba8e9a185c09d
+/agent-note-the-companion-s-provider-requests-carry-a-static-user-agent-the-33-re-projection-and-combination-items-close-as-recorded-decisions/open-follow-ups:
+  en: 8c3cb5b378d49e64
+  zh: ec06b1c0d5819176

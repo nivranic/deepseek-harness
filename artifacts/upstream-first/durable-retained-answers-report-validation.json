@@ -1,0 +1,70 @@
+{
+  "status": "PASS",
+  "scope": "Report bindings and audit for the Durable retained answers; the remaining specification sections stay open; full Upstream-First objective remains in progress",
+  "gate0": {
+    "validation": "PASS",
+    "gate0": "PASS",
+    "paths": 1938,
+    "components": 129,
+    "specificationCoverage": {
+      "status": "PASS",
+      "numberedSections": 81,
+      "nonEmptySourceLines": 1983,
+      "acceptanceProven": false
+    }
+  },
+  "sourceRecord": {
+    "path": "artifacts/upstream-first/durable-retained-answers-source.json",
+    "sha256": "d47e701b323ea8ee6bf485484c093e720cc28eed7efaa474c59a4c08fe21952b"
+  },
+  "generator": {
+    "path": "artifacts/upstream-first/write-reports.mjs",
+    "sha256": "d8238feefca0b8d78bbadaa9066ca5166ea639d823012a3d2fa856d0a7d7596d"
+  },
+  "binding": {
+    "path": "artifacts/upstream-first/durable-retained-answers-binding.json",
+    "sha256": "4a2c0a1394cd89daa22b3c4abc9ccb15644ee7f699019e4353c4bf18d48c24a6"
+  },
+  "helpers": [
+    {
+      "path": ".artifacts/advance-durable-retained-answers-reports.mjs",
+      "sha256": "057fbc2a07fd372eb171619301051ebec771088b544a4ffaf2325284698b20ae"
+    },
+    {
+      "path": ".artifacts/capture-durable-retained-answers-validation.mjs",
+      "sha256": "9d0f9cdbd4ba2f30614dcbe8e314a69d1c779f416dedd54e0f10204c30d59ba8"
+    }
+  ],
+  "reports": [
+    {
+      "path": "IMPLEMENTATION_STATUS.md",
+      "sha256": "33e802a2698d2b912c1cbc9312fb71fb3bea76d20b5b17aeec59da2d71ad1fd3"
+    },
+    {
+      "path": "artifacts/upstream-first/evidence.json",
+      "sha256": "ad7e3e355d54d157e8a2f4004929c8cd843079a4891b94932db85418318b5730"
+    }
+  ],
+  "checks": [
+    {
+      "path": ".artifacts/durable-retained-answers-binding.log",
+      "sha256": "41a7072cf30f1ad4ada742390b2d6209aaf340af5dba699aae150a53e63d11e5"
+    },
+    {
+      "path": ".artifacts/durable-retained-answers-audit-tests.log",
+      "sha256": "461795cd87c766a69d58074b0207684ee8b592cae1cf26ed5089b7819cbd299d"
+    },
+    {
+      "path": ".artifacts/durable-retained-answers-gate0.log",
+      "sha256": "505d74ef938f5d34d85490d37e0176ba804d93272fcf465ce2544a02c56b3f90"
+    },
+    {
+      "path": ".artifacts/durable-retained-answers-report-diff-check.log",
+      "sha256": "e3b0c44298fc1c149afbf4c8996fb92427ae41e4649b934ca495991b7852b855"
+    },
+    {
+      "path": ".artifacts/durable-retained-answers-report-generation.log",
+      "sha256": "304142619dca56563615e738a3fe21961ef9d5f37153092c05036c5ec94afca9"
+    }
+  ]
+}

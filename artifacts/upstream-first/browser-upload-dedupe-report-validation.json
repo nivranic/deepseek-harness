@@ -1,0 +1,70 @@
+{
+  "status": "PASS",
+  "scope": "Report bindings and audit for the browser upload dedupe increment: page-level remembered digests probe uploadDedupe before any carrier with exactly one full-upload fallback on FILE_DIGEST_NOT_KNOWN, refusal passthrough without silent re-upload and hashing gated on the advertised capability; the remaining specification sections stay open; full Upstream-First objective remains in progress",
+  "gate0": {
+    "validation": "PASS",
+    "gate0": "PASS",
+    "paths": 1938,
+    "components": 129,
+    "specificationCoverage": {
+      "status": "PASS",
+      "numberedSections": 81,
+      "nonEmptySourceLines": 1983,
+      "acceptanceProven": false
+    }
+  },
+  "sourceRecord": {
+    "path": "artifacts/upstream-first/browser-upload-dedupe-source.json",
+    "sha256": "e1fe55bec67255b741575538af32e9fb51b2328d389e2e5e14c5afa556ee1c6a"
+  },
+  "generator": {
+    "path": "artifacts/upstream-first/write-reports.mjs",
+    "sha256": "4da0e66e29b951ce1de9303f037829c8ccd970e0df7c964da3a4176354e9e2f3"
+  },
+  "binding": {
+    "path": "artifacts/upstream-first/browser-upload-dedupe-binding.json",
+    "sha256": "8406e8dbe8d9b5ece23db42559e38f73dc201e137a732532c5f18b1a0289aec5"
+  },
+  "helpers": [
+    {
+      "path": ".artifacts/advance-browser-upload-dedupe-reports.mjs",
+      "sha256": "ef2160ebb22b0799e080928c863b64efc3342792b0f209cd29d14b83c55aff41"
+    },
+    {
+      "path": ".artifacts/capture-browser-upload-dedupe-validation.mjs",
+      "sha256": "54d9ba822b2ae86e7a00110bc5ecf5e87160bb5c56fd945a51b3335500f60b18"
+    }
+  ],
+  "reports": [
+    {
+      "path": "IMPLEMENTATION_STATUS.md",
+      "sha256": "db06b1180388588efbbeb4c671ad346dfd70db64b9189fc2fcf803e2a74e087a"
+    },
+    {
+      "path": "artifacts/upstream-first/evidence.json",
+      "sha256": "ddb57d4ebb33730dd60f577b18e648a8ce2e6f2137a70f5008e65757f16916e7"
+    }
+  ],
+  "checks": [
+    {
+      "path": ".artifacts/browser-upload-dedupe-binding.log",
+      "sha256": "c1927416287f236b47f708f2c80cdbfaf47f6c8e2d3bbaf62d617a5158e1d517"
+    },
+    {
+      "path": ".artifacts/browser-upload-dedupe-audit-final.log",
+      "sha256": "297283bce727bf94f53fed0271ed419a2f41e1159571165bafc47f6771aa2fd6"
+    },
+    {
+      "path": ".artifacts/browser-upload-dedupe-gate0-final.log",
+      "sha256": "505d74ef938f5d34d85490d37e0176ba804d93272fcf465ce2544a02c56b3f90"
+    },
+    {
+      "path": ".artifacts/browser-upload-dedupe-report-diff-check.log",
+      "sha256": "e3b0c44298fc1c149afbf4c8996fb92427ae41e4649b934ca495991b7852b855"
+    },
+    {
+      "path": ".artifacts/browser-upload-dedupe-report-generation.log",
+      "sha256": "fe010532f71a6341467ae5719b29ac19470895de1d481156335b8f70a3273ed5"
+    }
+  ]
+}

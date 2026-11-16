@@ -323,6 +323,11 @@ export function applyGlobTool(ctx: Context, caps: GlobToolCaps): void {
     description: 'Find files, not directories, whose paths match a glob pattern, including hidden and ignored files. '
       + `Returns up to ${caps.maxResults} paths in modification-time order; a larger result ${overCapDescription} `
       + 'and reports where the complete list was saved.',
+    version: 1,
+    risk: 'low',
+    permissions: [],
+    supportsLite: false,
+    supportsRemote: true,
     parameters: {
       pattern: {
         type: 'string',

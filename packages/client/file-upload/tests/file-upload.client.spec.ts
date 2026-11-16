@@ -1,10 +1,11 @@
 import { Context } from '@deepseek-ai/cordis'
 import type { SessionId } from '@deepseek-ai/dsh-session/types'
-import { afterEach, describe, expect, it, vi } from 'vitest'
+import { afterEach, describe, expect, it, onTestFinished, vi } from 'vitest'
+import { RemoteError, type RemoteResult } from '@deepseek-ai/dsh-typert-protocol'
 import { apply } from '../src/client/index.ts'
 import { fileUploadWorker, FileUploadRuntime } from '../src/client/runtime.ts'
 import type { FileUploadBody } from '../src/client/contract.ts'
-import type { ClientFileUploadHooks } from '../src/types.ts'
+import type { ClientFileUploadHooks, EncodedFileDedupeRequest, FileUploadValue } from '../src/types.ts'
 
 interface UploadGlobal {
   __DSH_FILE_UPLOAD__?: ClientFileUploadHooks
@@ -374,19 +375,39 @@ describe('Session-addressed file upload', () => {
 
   async function scopedService(options: {
     readonly remote?: ReturnType<typeof vi.fn>
+    readonly dedupe?: (
+      sessionId: SessionId, request: EncodedFileDedupeRequest, signal?: AbortSignal,
+    ) => Promise<RemoteResult<FileUploadValue>>
+    readonly capabilities?: readonly string[]
   } = {}) {
     const ctx = new Context()
-    const remote = options.remote ?? vi.fn(() => Promise.resolve({
+    const accepted: RemoteResult<FileUploadValue> = {
       ok: true,
       value: {
-        receiptId: 'remote-receipt',
-        file: { attachmentId: 'remote-file', name: 'file', bytes: 3 },
+        receiptId: 'remote-receipt' as FileUploadValue['receiptId'],
+        file: { attachmentId: 'remote-file' as FileUploadValue['file']['attachmentId'], name: 'file', bytes: 3 },
       },
+    }
+    const remote = options.remote ?? vi.fn(async () => accepted)
+    const dedupe = vi.fn<NonNullable<typeof options.dedupe>>(options.dedupe ?? (async () => accepted))
+    const describe = vi.fn<() => Promise<RemoteResult<{ readonly capabilities: readonly string[] }>>>(async () => ({
+      ok: true as const,
+      value: { capabilities: options.capabilities ?? ['file-upload.stage.v1', 'image-upload.stage.v1'] },
     }))
-    ctx.provide('remote', { fileUploads: { upload: remote } } as never)
+    let generation: { id: number; host: { home: string } } | undefined = { id: 1, host: { home: '/fixture' } }
+    const listeners = new Set<() => void>()
+    ctx.provide('remote', { host: { describe }, fileUploads: { upload: remote, uploadDedupe: dedupe } } as never)
+    ctx.provide('connection', { generation: {
+      getSnapshot: () => generation,
+      subscribe: (listener: () => void) => { listeners.add(listener); return () => { listeners.delete(listener) } },
+    } } as never)
     const fiber = ctx.plugin(FileUploadRuntime)
+    onTestFinished(() => fiber.dispose())
     await fiber
-    return { ctx, fiber, remote, service: ctx.fileUpload }
+    return { ctx, fiber, remote, dedupe, describe, service: ctx.fileUpload, replaceGeneration(connected = true) {
+      generation = connected ? { id: (generation?.id ?? 0) + 1, host: { home: '/fixture' } } : undefined
+      for (const listener of listeners) listener()
+    } }
   }
 
   it('assembles the scoped streaming request and parses progress and receipt fields', async () => {
@@ -420,9 +441,9 @@ describe('Session-addressed file upload', () => {
         method: 'POST',
         headers: { 'content-type': 'application/octet-stream' },
         body: file,
-        signal,
       }),
     )
+    expect(fetch.mock.calls[0]![1].signal).toBeInstanceOf(AbortSignal)
     await fiber.dispose()
   })
 
@@ -440,10 +461,139 @@ describe('Session-addressed file upload', () => {
     await expect(service.upload(SESSION_ID, Uint8Array.of(1)))
       .resolves.toMatchObject({ ok: true })
     expect(remote.mock.calls).toEqual([
-      [SESSION_ID, { data: 'AAAA', name: 'bytes.bin' }, undefined],
-      [SESSION_ID, { data: 'AQ==' }, undefined],
+      [SESSION_ID, { data: 'AAAA', name: 'bytes.bin' }, expect.any(AbortSignal)],
+      [SESSION_ID, { data: 'AQ==' }, expect.any(AbortSignal)],
     ])
     await fiber.dispose()
+  })
+
+  const DEDUPE_CAPABILITIES = ['file-upload.stage.v1', 'file-upload.dedupe.v1']
+
+  it('re-stages remembered bytes from a Blob without transferring or reporting progress', async () => {
+    const b = await scopedService({ capabilities: DEDUPE_CAPABILITIES })
+    const bytes = Uint8Array.of(1, 2, 3)
+    await b.service.upload(SESSION_ID, bytes, 'first.bin')
+    const progress = vi.fn()
+    await expect(b.service.upload(SESSION_ID, new Blob([bytes]), 'alias.bin', undefined, progress)).resolves.toMatchObject({ ok: true })
+    expect(b.remote).toHaveBeenCalledOnce()
+    expect(b.dedupe).toHaveBeenCalledWith(SESSION_ID, {
+      digest: '039058c6f2c0cb492c533b0a4d14ef77cc0f78abccced5287d84a1a2011cfb81', name: 'alias.bin',
+    }, expect.any(AbortSignal))
+    expect(progress).not.toHaveBeenCalled()
+    b.replaceGeneration()
+    await b.service.upload(SESSION_ID, bytes)
+    expect(b.dedupe).toHaveBeenCalledTimes(2)
+    expect(b.dedupe.mock.calls[1]![1]).toEqual({ digest: b.dedupe.mock.calls[0]![1].digest })
+  })
+
+  it.each([
+    ['session/attachment-invalid', 'FILE_DIGEST_NOT_KNOWN', 2],
+    ['session/attachment-invalid', 'FILE_DIGEST_INVALID', 1],
+    ['gateway/internal', 'FILE_DIGEST_NOT_KNOWN', 1],
+  ] as const)('handles the %s / %s dedupe refusal with %i full uploads', async (code, reason, transfers) => {
+    const error = code === 'session/attachment-invalid'
+      ? new RemoteError('session/attachment-invalid', 'probe refused', { reason })
+      : new RemoteError('gateway/internal', 'probe refused', {})
+    const dedupe = vi.fn(async () => ({ ok: false as const, error }))
+    const b = await scopedService({ capabilities: DEDUPE_CAPABILITIES, dedupe })
+    const bytes = Uint8Array.of(3)
+    await b.service.upload(SESSION_ID, bytes)
+    const result = await b.service.upload(SESSION_ID, bytes)
+    expect(b.remote).toHaveBeenCalledTimes(transfers)
+    expect(dedupe).toHaveBeenCalledOnce()
+    if (transfers === 1) expect(result).toEqual({ ok: false, error })
+    else expect(result.ok).toBe(true)
+  })
+
+  it('keeps digest memory inside one runtime and records only successful uploads', async () => {
+    const b = await scopedService({ capabilities: DEDUPE_CAPABILITIES })
+    const bytes = Uint8Array.of(4)
+    b.remote.mockResolvedValueOnce({ ok: false, error: new RemoteError('gateway/internal', 'write failed', {}) })
+    await b.service.upload(SESSION_ID, bytes)
+    await b.service.upload(SESSION_ID, bytes)
+    expect(b.remote).toHaveBeenCalledTimes(2)
+    expect(b.dedupe).not.toHaveBeenCalled()
+    const fresh = await scopedService({ capabilities: DEDUPE_CAPABILITIES })
+    await fresh.service.upload(SESSION_ID, bytes)
+    expect(fresh.remote).toHaveBeenCalledOnce()
+    expect(fresh.dedupe).not.toHaveBeenCalled()
+  })
+
+  it('hashes Blobs in bounded chunks and leaves one-shot streams on the full carrier', async () => {
+    ;(globalThis as UploadGlobal).__DSH_FILE_UPLOAD__ = {
+      fetch: async () => new Response(JSON.stringify({ ok: true, value: {
+        receiptId: 'receipt', file: { attachmentId: 'file', name: 'blob', bytes: 2_097_154 },
+      } })),
+    }
+    const b = await scopedService({ capabilities: DEDUPE_CAPABILITIES })
+    const blob = new Blob([new Uint8Array(2_097_154)])
+    const slices = vi.spyOn(blob, 'slice')
+    await b.service.upload(SESSION_ID, blob)
+    expect(slices.mock.calls).toEqual([[0, 1_048_576], [1_048_576, 2_097_152], [2_097_152, 3_145_728]])
+    const stream = new ReadableStream<Uint8Array>({ start(controller) { controller.close() } })
+    await b.service.upload(SESSION_ID, stream)
+    expect(b.dedupe).not.toHaveBeenCalled()
+  })
+
+  it('refuses unsupported staging and an absent generation before sending bytes', async () => {
+    const b = await scopedService({ capabilities: [] })
+    await expect(b.service.upload(SESSION_ID, Uint8Array.of(1))).rejects.toMatchObject({ code: 'host/capability-unavailable' })
+    b.replaceGeneration(false)
+    await expect(b.service.upload(SESSION_ID, Uint8Array.of(1))).rejects.toMatchObject({ code: 'gateway/connection-unavailable' })
+    expect(b.remote).not.toHaveBeenCalled()
+    expect(b.describe).toHaveBeenCalledOnce()
+  })
+
+  it('rejects an already-cancelled caller before discovery', async () => {
+    const b = await scopedService()
+    const controller = new AbortController()
+    controller.abort(new Error('caller cancelled'))
+    await expect(b.service.upload(SESSION_ID, Uint8Array.of(1), undefined, controller.signal)).rejects.toThrow('caller cancelled')
+    expect(b.describe).not.toHaveBeenCalled()
+  })
+
+  it('returns a discovery refusal before dispatching an upload', async () => {
+    const b = await scopedService()
+    const error = new RemoteError('gateway/internal', 'discovery failed', {})
+    b.describe.mockResolvedValueOnce({ ok: false, error })
+    await expect(b.service.upload(SESSION_ID, Uint8Array.of(1))).rejects.toBe(error)
+    expect(b.remote).not.toHaveBeenCalled()
+  })
+
+  it.each(['replacement', 'disposal'] as const)('rejects a late receipt and progress after %s', async (ending) => {
+    const b = await scopedService()
+    const response = Promise.withResolvers<{ status: number; body: string }>()
+    const post = vi.spyOn(b.service as FileUploadRuntime, 'post').mockImplementation((request) => {
+      request.onProgress?.({ loaded: 1, total: 2 })
+      return response.promise
+    })
+    const progress = vi.fn()
+    const upload = b.service.upload(SESSION_ID, new Blob(['ok']), 'file', undefined, progress)
+    await vi.waitFor(() => { expect(post).toHaveBeenCalledOnce() })
+    if (ending === 'replacement') b.replaceGeneration()
+    else await b.fiber.dispose()
+    post.mock.calls[0]![0].onProgress?.({ loaded: 2, total: 2 })
+    response.resolve({ status: 200, body: JSON.stringify({ ok: true, value: {
+      receiptId: 'late', file: { attachmentId: 'file', name: 'file', bytes: 2 },
+    } }) })
+    await expect(upload).rejects.toMatchObject({ code: 'gateway/connection-unavailable' })
+    expect(progress.mock.calls).toEqual([[{ loaded: 1, total: 2 }]])
+  })
+
+  it('cancels hashing before a late Blob read can start a carrier', async () => {
+    const b = await scopedService({ capabilities: DEDUPE_CAPABILITIES })
+    const pending = Promise.withResolvers<ArrayBuffer>()
+    const chunk = new Blob([Uint8Array.of(1)])
+    vi.spyOn(chunk, 'arrayBuffer').mockReturnValue(pending.promise)
+    const blob = new Blob([Uint8Array.of(1)])
+    const slice = vi.spyOn(blob, 'slice').mockReturnValue(chunk)
+    const upload = b.service.upload(SESSION_ID, blob)
+    await vi.waitFor(() => { expect(slice).toHaveBeenCalledOnce() })
+    b.replaceGeneration()
+    pending.resolve(new ArrayBuffer(1))
+    await expect(upload).rejects.toMatchObject({ code: 'gateway/connection-unavailable' })
+    expect(b.remote).not.toHaveBeenCalled()
+    expect(b.dedupe).not.toHaveBeenCalled()
   })
 
   it('rejects malformed background results', async () => {

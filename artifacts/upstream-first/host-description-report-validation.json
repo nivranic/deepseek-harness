@@ -1,0 +1,53 @@
+{
+  "sourceRecord": {
+    "path": "artifacts/upstream-first/host-description-source.json",
+    "sha256": "2f3f15d244fdfb785f38418e34efe6b2958aba45577a48147fe37fd3454f5818"
+  },
+  "binding": {
+    "path": "artifacts/upstream-first/host-description-binding.json",
+    "sha256": "70ab643154dcb68c37a38143ced632bc1081a19f99173bccb0605907b7767df3"
+  },
+  "helper": {
+    "path": ".artifacts/check-host-description-binding.mjs",
+    "sha256": "8be6c48e9d982428e7400378f6b8c81dfd079e8c9e3aaf814d8c729c0239c02a"
+  },
+  "logs": [
+    {
+      "path": ".artifacts/host-description-binding-run.log",
+      "sha256": "0a72dc409b8f74c5728aa112363234a1520539ccfacf3d127996b28eebb7a52a"
+    },
+    {
+      "path": ".artifacts/host-description-audit-tests.log",
+      "sha256": "ead7ca306f065b561f54089ebc0816c5a680e4291779ca4a4cac5a2f0eced35a"
+    },
+    {
+      "path": ".artifacts/host-description-gate0.log",
+      "sha256": "4b5af3121a7e7caff0e1b6288bdaa7cfef9988842ae06bf02dc0a74852426043"
+    },
+    {
+      "path": ".artifacts/host-description-report-docs.log",
+      "sha256": "68ccd067151566a012df0d6abefdc8b0e2d80ab1b6fb52d517d7af55142a1211"
+    }
+  ],
+  "checks": [
+    {
+      "status": "PASS",
+      "command": "node .artifacts/check-host-description-binding.mjs",
+      "controls": 5
+    },
+    {
+      "status": "PASS",
+      "command": "node --test artifacts/upstream-first/verify-audit.test.mjs",
+      "tests": 13
+    },
+    {
+      "status": "PASS",
+      "command": "node artifacts/upstream-first/verify-audit.mjs --require-gate0"
+    },
+    {
+      "status": "PASS",
+      "command": "pnpm run test:docs",
+      "gates": 16
+    }
+  ]
+}

@@ -1,0 +1,16 @@
+{
+  "status": "PASS",
+  "controls": 3,
+  "sourceRecord": {
+    "path": "artifacts/upstream-first/model-steer-source.json",
+    "sha256": "cfbb79b92481c68c6fa3d898dc0587d7b9f8fb0973eacef9da6941f8aa407138"
+  },
+  "generator": {
+    "path": "artifacts/upstream-first/write-reports.mjs",
+    "sha256": "8ca7482f68476c4e1db2507dd04c08ba31b892ffcc6666cbbce97e9f08a2bc50"
+  },
+  "helper": {
+    "path": ".artifacts/check-model-steer-binding.mjs",
+    "sha256": "a1773ee4741996ca5fff6a37f1c464540ad56a5f321997345c140b5ae67c5f1b"
+  }
+}

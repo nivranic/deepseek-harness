@@ -1,0 +1,50 @@
+{
+  "status": "PASS",
+  "scope": "Report bindings and audit; Step-scoped ledger passes, Inspect navigation and recorded-session regression remain outstanding",
+  "gate0": {
+    "validation": "PASS",
+    "gate0": "PASS",
+    "paths": 1938,
+    "components": 129
+  },
+  "sourceRecord": {
+    "path": "artifacts/upstream-first/tool-ledger-source.json",
+    "sha256": "c0c31d35e0140eb3e1d1b34879e47ae75aeb86cb8726444d25de23478b600033"
+  },
+  "generator": {
+    "path": "artifacts/upstream-first/write-reports.mjs",
+    "sha256": "a082aeb7a675be612698b30cb09f41a86eb056607a7d589761c147746940bf3e"
+  },
+  "binding": {
+    "path": "artifacts/upstream-first/tool-ledger-binding.json",
+    "sha256": "dd2335a1eb29b17931f10b1963fef802c34f29834847ca34b7d51769dc576a35"
+  },
+  "reports": [
+    {
+      "path": "IMPLEMENTATION_STATUS.md",
+      "sha256": "aeff20d97c77f7c28aaa8bd037a8efb76857eade47c825202f7172fcce6e4d5e"
+    },
+    {
+      "path": "artifacts/upstream-first/evidence.json",
+      "sha256": "114d9aa48b42a60241fec03c80bd0604087b4aa5fcce90573e94bd3066c3f980"
+    }
+  ],
+  "checks": [
+    {
+      "path": ".artifacts/tool-ledger-binding.log",
+      "sha256": "a8b8fd80af3888fbdbfb23ecbbb5679a67e317960933b8f391311960c70082be"
+    },
+    {
+      "path": ".artifacts/tool-ledger-audit-tests.log",
+      "sha256": "fdb13f4ff3136794a2a8ae934093ebe21880797669a0845f3a150b65791d4a8e"
+    },
+    {
+      "path": ".artifacts/tool-ledger-gate0.log",
+      "sha256": "4b5af3121a7e7caff0e1b6288bdaa7cfef9988842ae06bf02dc0a74852426043"
+    },
+    {
+      "path": ".artifacts/tool-ledger-report-diff-check.log",
+      "sha256": "e3b0c44298fc1c149afbf4c8996fb92427ae41e4649b934ca495991b7852b855"
+    }
+  ]
+}

@@ -1,0 +1,22 @@
+# Bilingual-pair consistency record for 2026-10-16-lite-http-okhttp-config-face.md (docs/i18n/README.md): per heading
+# section, a hash of its English and Chinese blocks outside code blocks and generated regions.
+# After editing either side, bring the other along and re-record with:
+#   pnpm run verify-translation-pairing --write .agents/notes/implemented/architecture/2026-10-16-lite-http-okhttp-config-face.md
+/agent-note-lite-speaks-okhttp-on-device-and-its-entry-configures-the-provider:
+  en: 2d422373057d6286
+  zh: 970f94e01a44278d
+/agent-note-lite-speaks-okhttp-on-device-and-its-entry-configures-the-provider/problem:
+  en: ad2328cc10ef1ff0
+  zh: 3bfe628d05bd1d1a
+/agent-note-lite-speaks-okhttp-on-device-and-its-entry-configures-the-provider/decision:
+  en: 2e30974e258a04c1
+  zh: cd836e07b0fa13c3
+/agent-note-lite-speaks-okhttp-on-device-and-its-entry-configures-the-provider/alternatives-considered:
+  en: 22e73b494de95456
+  zh: 71b5305bddb5772c
+/agent-note-lite-speaks-okhttp-on-device-and-its-entry-configures-the-provider/consequences:
+  en: 55b72def892e530e
+  zh: 347074359639d98b
+/agent-note-lite-speaks-okhttp-on-device-and-its-entry-configures-the-provider/open-follow-ups:
+  en: a0a8b4b990307a9e
+  zh: 6119a5f729299c34

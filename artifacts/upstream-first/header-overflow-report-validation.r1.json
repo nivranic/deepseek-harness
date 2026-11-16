@@ -1,0 +1,66 @@
+{
+  "status": "PASS",
+  "scope": "Report bindings and audit for the header overflow increment: the section 10 phone-bar wireframe 's ⋮ overflow affordance — the section's last open item, which the phone-top-bar increment had left open on a \"toolbar collection\" that a survey of all 81 specification sections proves is a ledger self-made referent (no section defines ⋮ entries), so aggregating the two existing header secondary lists (actions = agent-preset/jobs/schedule, utilities = everything beyond the running-location chip = open-in-app) is the only reading with a real control inventory, recorded as a design ruling in the note trio — is delivered as the strict header's own phone-tier layout decision rather than a new seat: ConversationSessionHeader switches through usePhoneTier() (a matchMedia max-width 599.5px subscription, the same tier every existing phone-only affordance uses, defaulting to the wide tier when matchMedia is absent to protect node e2e) between the wide tier's inline markup — byte-identical to before — and the HeaderOverflowMenu rendering (packages/client/ui-conversation/src/client/skeleton/HeaderOverflowMenu.tsx with HeaderOverflowMenu.module.css), mounting both lists exactly once in one container; the running-location chip stays in the bar (section 10's mandatory prominence plus the wireframe's inline Host ●), the single-seat corner occupant stays untouched, and the trigger sits at the utilities row end beside the chip; the panel follows the ScheduleCatalogAction recipe (useAnchoredPosition plus useDismissOnOutsidePointer plus Escape close-and-refocus plus createPortal) with a localized empty line while neither list renders anything; the new hand-drawn IconOverflowVertical16 glyph enters the ui-primitives icon set and the session.overflow.aria/empty bilingual keys land in locales; the lane packages/client/ui-conversation/tests/header-overflow.client.spec.tsx mounts the real ConversationSessionHeader with a controllable matchMedia stub (matches flips refresh through act) in five cases — the wide-tier invariance, the phone-tier aggregation (chip and corner stay in the bar, both lists live only in the portaled panel, the bar keeps no second copy), Escape close-and-refocus, the empty-state naming and the live tier-flip follow — with the lane's two honest reworks recorded (the first version's parse error: an act wrapper needs an async it; the second version's empty-state case bug: split into two cases) and two consecutive green runs; the sealed types-lint round is the post-fix rerun (the first round's 3 TypeScript errors from the slots type name misused as the re-export alias ConversationSessionHeaderProps plus 4 cascading lint unsafe errors from the client-locale zh named-export misuse are honestly recorded in .artifacts/header-overflow-iteration-notes.log after the rerun overwrote the failed output), typecheck and lint both clean (TYPECHECK_EXIT=0, LINT_EXIT=0, zero outer wrapper), the audit client list widened 45/621 to 46/626 with the serial double round green on both first passes and no -r1 log (the list assembly's first version mis-anchored and was fixed on review — EQUAL_MINUS_INSERT), doc-quick, doc-sync (the README pair and the note trio carry re-recorded pairing hashes) and gate0 pass, and traceability section 10 rewrites the overflow remaining sentence with candidateEvidence 2 to 5 (node --test 6/6); the snapshot stance follows the phone-top-bar precedent (the phone-tier tier gate is invisible to desktop-tier snapshots); the same-round gradle acceptance round (scanner env with -PdshNativeAcceptance, BUILD SUCCESSFUL) executed exactly one task (:app:verifyScannerResources) with every build task UP-TO-DATE because nothing under apps/android changed this generation — no device lane ran and the emulator stayed off, so the empty-derived byte proof compares both APKs byte-identically against the active-host-switch record's (gen-25) builtFiles entries, the prepare-side unresolved scan derived an empty replaced-build-output allowlist (7519 files, 0 replaced) and the generator gained no new replaced set, and the still-valid XML reports aggregate 77 suites / 477 tests with zero failures/errors/skips; the full size/theme/state/accessibility matrix and iOS/Android real-device input, background and native-attachment acceptance stay open; full Upstream-First objective remains in progress",
+  "gate0": {
+    "validation": "PASS",
+    "gate0": "PASS",
+    "paths": 1938,
+    "components": 129,
+    "specificationCoverage": {
+      "status": "PASS",
+      "numberedSections": 81,
+      "nonEmptySourceLines": 1983,
+      "acceptanceProven": false
+    }
+  },
+  "sourceRecord": {
+    "path": "artifacts/upstream-first/header-overflow-source.json",
+    "sha256": "51b2bc3b2a8095ee18b9acc6c799b9707e5df34a2b3479abe9cc8a4b42c2d8d8"
+  },
+  "generator": {
+    "path": "artifacts/upstream-first/write-reports.mjs",
+    "sha256": "860e63183eb2592a234df4e198b5e58a22c1cc228f3364f747327757e65efedd"
+  },
+  "binding": {
+    "path": "artifacts/upstream-first/header-overflow-binding.json",
+    "sha256": "9374926e25f32810c3cd06dbf6c655a19ec6cf9df9f0928e233b4c1a001106ab"
+  },
+  "helpers": [
+    {
+      "path": ".artifacts/advance-header-overflow-reports.mjs",
+      "sha256": "13129fc5379060b99009d8ccf5857c4bf8906edec17a6374e4276f87f7bf577f"
+    },
+    {
+      "path": ".artifacts/capture-header-overflow-validation.mjs",
+      "sha256": "3698b983903ae9cd303ae3fc84e79a021269ea4d96c0abbd34b811093b8e1bca"
+    }
+  ],
+  "reports": [
+    {
+      "path": "IMPLEMENTATION_STATUS.md",
+      "sha256": "f8d4d34f4f2b7df41fa4301bc80d9f6f49bf341643e3f966ffe8b6cce2f91c15"
+    },
+    {
+      "path": "artifacts/upstream-first/evidence.json",
+      "sha256": "ea661fe9df4246bdbde9d93b4e9cf14509c4bf2bbf647224183cc3e8c38e55e5"
+    }
+  ],
+  "checks": [
+    {
+      "path": ".artifacts/header-overflow-binding.log",
+      "sha256": "9a9672b2c60b584ad42531100b38edbfdd4f877e7fa9ee296a48c8894660fc04"
+    },
+    {
+      "path": ".artifacts/header-overflow-audit-final.log",
+      "sha256": "32cc4c2d4d145a06595a80637baa8836e7d5da408372517d09b15ece523d520b"
+    },
+    {
+      "path": ".artifacts/header-overflow-gate0-final.log",
+      "sha256": "62f40a480943257252f46658f4305400abce18fa99d44e39988c0b6968133b44"
+    },
+    {
+      "path": ".artifacts/header-overflow-report-generation.log",
+      "sha256": "fe010532f71a6341467ae5719b29ac19470895de1d481156335b8f70a3273ed5"
+    }
+  ]
+}

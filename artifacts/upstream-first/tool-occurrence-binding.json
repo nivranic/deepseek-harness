@@ -1,0 +1,16 @@
+{
+  "status": "PASS",
+  "controls": 3,
+  "sourceRecord": {
+    "path": "artifacts/upstream-first/tool-occurrence-source.json",
+    "sha256": "84c79365e7a79a7c9c14ceb429049d693f0ce5219ef2a3c3bb83de40bbb95acb"
+  },
+  "generator": {
+    "path": "artifacts/upstream-first/write-reports.mjs",
+    "sha256": "712ef0d773ed81423a672750673b6e62bc115e6e37fe737e31113923dbf4eb67"
+  },
+  "helper": {
+    "path": ".artifacts/check-tool-occurrence-binding.mjs",
+    "sha256": "1429035ba7e0f987ef0b321ade2d6f9eb006ced828a53e70e70f39ab7e15bb60"
+  }
+}

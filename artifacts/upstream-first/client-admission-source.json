@@ -1,0 +1,1005 @@
+{
+  "schemaVersion": 1,
+  "baseSha": "c291e7961a515f6d7af9304e7fd1d257929aef26",
+  "capturedAt": "2026-09-16T05:47:37.066Z",
+  "scope": "Mandatory application Host discovery, exact-generation admission, Connection-owned cancellation, fail-closed reconnect, and public Client declarations",
+  "sourceFiles": [
+    {
+      "path": ".agents/notes/implemented/architecture/2026-08-02-typert-remote-method-calls.i18n.yaml",
+      "sha256": "5d799f5f2bef5fc9807a96ecf24d2abef6f4ee7ae75f87690f20b7b0e51108ae",
+      "bytes": 541
+    },
+    {
+      "path": ".agents/notes/implemented/architecture/2026-08-02-typert-remote-method-calls.md",
+      "sha256": "a170b53aafd150827dc2a4737ca0b9b835b40d9481310e87b091f67be24a9de3",
+      "bytes": 52856
+    },
+    {
+      "path": ".agents/notes/implemented/architecture/2026-08-02-typert-remote-method-calls.zh.md",
+      "sha256": "7441fc25517fd6fda399c3413d07f409b3c3a43d764d496dc450e2a7a6538790",
+      "bytes": 47002
+    },
+    {
+      "path": ".agents/notes/implemented/architecture/2026-09-16-host-description-and-capabilities.i18n.yaml",
+      "sha256": "c3568c7c6cb2fced592f66ed207a0f53d6b288086d8c3e5f21a604d92f087b55",
+      "bytes": 562
+    },
+    {
+      "path": ".agents/notes/implemented/architecture/2026-09-16-host-description-and-capabilities.md",
+      "sha256": "8e13bc5c641176d244c862c2e111d7497a7b5916ae0fbb16a19727b563b260a7",
+      "bytes": 4653
+    },
+    {
+      "path": ".agents/notes/implemented/architecture/2026-09-16-host-description-and-capabilities.zh.md",
+      "sha256": "6b29fbde41ebb28ddf7feab35edb602fc35257f65b13b2a8f8856bd4c6e484df",
+      "bytes": 3989
+    },
+    {
+      "path": ".agents/notes/implemented/process/2026-06-17-ts-build-config.i18n.yaml",
+      "sha256": "967096667d4cddb80229953f0554316db1615b58795cddcfcd838da6c6a9798e",
+      "bytes": 503
+    },
+    {
+      "path": ".agents/notes/implemented/process/2026-06-17-ts-build-config.md",
+      "sha256": "5596a6de408ce0d1e42eae6c092984532282053e3a3ee350e0dca13e7b463f08",
+      "bytes": 8439
+    },
+    {
+      "path": ".agents/notes/implemented/process/2026-06-17-ts-build-config.zh.md",
+      "sha256": "738cba4bebf887a2cf26c37259482de32cb7082f8b0479995fc0ea09941a039a",
+      "bytes": 7943
+    },
+    {
+      "path": "apps/desktop-host/config/desktop.cordis.patch.yml",
+      "sha256": "ba50a9c28cbf49780d3585fc559587a8e4f1011d3035da88932d08eff25bfdaa",
+      "bytes": 761
+    },
+    {
+      "path": "apps/desktop/README.i18n.yaml",
+      "sha256": "50ad58496773e3ef50afaa52e31cb30a0a5e1dca27a52ddcf326983b5b20b295",
+      "bytes": 422
+    },
+    {
+      "path": "apps/desktop/README.md",
+      "sha256": "a5e6c188bce765f239e7a641ab8405bc454a32afc383462bed7fb697bfe93b1b",
+      "bytes": 29574
+    },
+    {
+      "path": "apps/desktop/README.zh.md",
+      "sha256": "abdc4ba84bb3184af5ae53f371a2f0aed23109a2d23ca3be399605c844b56a21",
+      "bytes": 26671
+    },
+    {
+      "path": "apps/web/tests/host-description.e2e.ts",
+      "sha256": "2220d83e9941fc595d6ade9e5d4672a328c2a44cec460d7d40aed0cc6e4bfc4a",
+      "bytes": 4763
+    },
+    {
+      "path": "apps/web/tsconfig.json",
+      "sha256": "e17a7e69dc18235fa47279e2e87c8033b4281629caf401bc62b87f4a9638c1ca",
+      "bytes": 4517
+    },
+    {
+      "path": "docs/capability-seams.i18n.yaml",
+      "sha256": "29f0a27a35e0276d851c26f2185beb9709a38d5dfeec4c7ede35d69c9d5735af",
+      "bytes": 444
+    },
+    {
+      "path": "docs/capability-seams.md",
+      "sha256": "fd5a9760ce228408ac22f222fad5abb9801e01395a476d43d337ed1383bdc884",
+      "bytes": 49750
+    },
+    {
+      "path": "docs/capability-seams.zh.md",
+      "sha256": "a0b04de60255e61b5004b97792ff60c35373db8496a8e28fd540b0cc5d9e7025",
+      "bytes": 49513
+    },
+    {
+      "path": "docs/config-catalog.i18n.yaml",
+      "sha256": "0441c8fe930e45a642bfb9d76359ff58067cc2dbebd1af4162b27283ccb721b6",
+      "bytes": 438
+    },
+    {
+      "path": "docs/config-catalog.md",
+      "sha256": "c8df0885e60ad6f36a151eacf929e4b6caefc6dc51bfab07a5feb7f38664b4de",
+      "bytes": 156647
+    },
+    {
+      "path": "docs/config-catalog.zh.md",
+      "sha256": "84800d71519c6bc00e871a4b622edf9e28f74006d299cf504fe9b5e88fda8bb0",
+      "bytes": 157288
+    },
+    {
+      "path": "docs/subsystems/typert.i18n.yaml",
+      "sha256": "b99e78756096e552a4a13da2379e262c8ded83f06d927b1ca880f7c3f9f53e86",
+      "bytes": 425
+    },
+    {
+      "path": "docs/subsystems/typert.md",
+      "sha256": "9d2607c31d2aafc5c502ab551cb449183e2dbdd67dac135e0bf0aca1af34e23a",
+      "bytes": 18737
+    },
+    {
+      "path": "docs/subsystems/typert.zh.md",
+      "sha256": "6ece7e6a6c4caff79017957608d457efb329fe4ff1fcf1fe4ae03d419a1afe90",
+      "bytes": 18530
+    },
+    {
+      "path": "packages/api/README.i18n.yaml",
+      "sha256": "b304fa468ac35f036c4899999d0977a2736d99d6dec4380866ac0b4a41640d99",
+      "bytes": 422
+    },
+    {
+      "path": "packages/api/README.md",
+      "sha256": "a5e8128e7c80ed5afc99e4471c9196958bebf25485b2dc347382da945cd0b74f",
+      "bytes": 3708
+    },
+    {
+      "path": "packages/api/README.zh.md",
+      "sha256": "e2ab523576c6c553f8a583197490272d4b6d8f68a2c17b2320bae43b05bfb76a",
+      "bytes": 3393
+    },
+    {
+      "path": "packages/api/gateway/README.i18n.yaml",
+      "sha256": "10e1273d7833bd4a0136ff2bd644c05f2002a9b66a7123ef804b8104a663dd69",
+      "bytes": 430
+    },
+    {
+      "path": "packages/api/gateway/README.md",
+      "sha256": "6e1ec4e56964a02aacbefce3fd51a8bbd61d2005b8ccabcc80dcfa7bed045144",
+      "bytes": 14317
+    },
+    {
+      "path": "packages/api/gateway/README.zh.md",
+      "sha256": "a8947d2040c7036090cd10e715723db155eac65c4c6a27f814513c8b19760b09",
+      "bytes": 13219
+    },
+    {
+      "path": "packages/api/gateway/src/client/index.ts",
+      "sha256": "9a64dc112f4ed9e4705ba254c8deed90316f75e2186169ae46fd368929cde8ba",
+      "bytes": 32098
+    },
+    {
+      "path": "packages/api/gateway/src/client/preparation.ts",
+      "sha256": "8509979969ad02adc9a8e1863a247d52e034eadb3244117eca81f069e1168ae9",
+      "bytes": 5606
+    },
+    {
+      "path": "packages/api/gateway/src/client/remote-events.ts",
+      "sha256": "6bb1cbfb0fe39c43c36c801768f3c33f19f4c859fe69f86146fbe610b03164d0",
+      "bytes": 12811
+    },
+    {
+      "path": "packages/api/gateway/src/index.ts",
+      "sha256": "e5d8511059bf6672c917ba8085af044f7a4c59628b3db5a5f342b0db383019b9",
+      "bytes": 47370
+    },
+    {
+      "path": "packages/api/gateway/src/remote-error-codes.ts",
+      "sha256": "8e9eccaa391dea36c6c3c4af910457aa1ae3b9b6410f56f14d3148205dcf5e20",
+      "bytes": 1731
+    },
+    {
+      "path": "packages/api/gateway/src/types.ts",
+      "sha256": "d744f7ca1c7c30ec107574875f579124eb7bc45502e02d996b67559541557378",
+      "bytes": 6655
+    },
+    {
+      "path": "packages/api/gateway/tests/gateway.client.spec.ts",
+      "sha256": "d6177734e3e86ef4839d1406ad49d2a6de38acf8e9fee2d717a84868c1126b0d",
+      "bytes": 105130
+    },
+    {
+      "path": "packages/api/gateway/tests/gateway.host.spec.ts",
+      "sha256": "9959fe03653355c850ad490ec9c6b8e09d057ce1558f45f3fd040bf345b7d709",
+      "bytes": 52237
+    },
+    {
+      "path": "packages/api/gateway/tests/preparation.client.spec.ts",
+      "sha256": "8aed1b7c5660b4405e24f63fc0d383a5bcee6574a33430fa9938bca7bb60b964",
+      "bytes": 9233
+    },
+    {
+      "path": "packages/api/gateway/tsconfig.client.json",
+      "sha256": "267287c3f60bf1236e82f462fb5d2e648fc62fce11a0a50ca0c9712ed79ba59f",
+      "bytes": 798
+    },
+    {
+      "path": "packages/api/host-description/README.i18n.yaml",
+      "sha256": "19e891a6bcea4c018a084505e22f29b51c4efb9e31109409f4762ba7faa11874",
+      "bytes": 439
+    },
+    {
+      "path": "packages/api/host-description/README.md",
+      "sha256": "b32b41cde7cfc20c1875b9bed2c853b03f33b3f2f9cf8c66d46920a144cdcf0f",
+      "bytes": 5090
+    },
+    {
+      "path": "packages/api/host-description/README.zh.md",
+      "sha256": "332c4d36c54aa73fabd88468c996a487cbba2f4f0030e90957b561abb1432876",
+      "bytes": 4570
+    },
+    {
+      "path": "packages/api/host-description/package.json",
+      "sha256": "c4fdcb7ab7a120cfcb9c2a21e7dd454f4bdd223fdf3aaef8e68a806f8d0117c6",
+      "bytes": 2068
+    },
+    {
+      "path": "packages/api/host-description/src/identity.ts",
+      "sha256": "a760ea895ff2ba213614c84fd906f444824c0c2fca6041c8cd3f5605169ee2a4",
+      "bytes": 1917
+    },
+    {
+      "path": "packages/api/host-description/src/index.ts",
+      "sha256": "ce0a59732a2915da549b549441571af6ec5fbe952eae42e8421b0d04f1ac4f31",
+      "bytes": 3866
+    },
+    {
+      "path": "packages/api/host-description/src/protocol.ts",
+      "sha256": "4c5271c472bf2253f1b318192585c77199aab625f64ddba897e3961c0bae8904",
+      "bytes": 214
+    },
+    {
+      "path": "packages/api/host-description/src/types.ts",
+      "sha256": "45b7e9fb38bb214fc59c711a03a0073ca6cd18037ef4bd98dc565de42e2d268a",
+      "bytes": 1681
+    },
+    {
+      "path": "packages/api/host-description/src/version.ts",
+      "sha256": "56a1dee78a6a486ab5d23028e0c922821af127f29ac6a8bb5340e6166fc3d473",
+      "bytes": 604
+    },
+    {
+      "path": "packages/api/host-description/tests/expected/host-description.json",
+      "sha256": "36479b439c0a2aaa5221b4114d2d93da2dfcb215869f3aa66bf8023d8afc899e",
+      "bytes": 331
+    },
+    {
+      "path": "packages/api/host-description/tests/host-description.spec.ts",
+      "sha256": "69dd256257270ae9c25c42551f047ca2f0a6a27407f07800940ee4481ad0e560",
+      "bytes": 3457
+    },
+    {
+      "path": "packages/api/host-description/tests/identity.spec.ts",
+      "sha256": "04b284d4549337d815e27f40a0a10f9989791fe45c5d44b91842f6a5985df15b",
+      "bytes": 1925
+    },
+    {
+      "path": "packages/api/host-description/tsconfig.json",
+      "sha256": "c4db1870a24519e896e8ad2ea1bb7731967cd907512ee25c509b77f215050ec5",
+      "bytes": 541
+    },
+    {
+      "path": "packages/api/remotes/README.i18n.yaml",
+      "sha256": "d3f41bb5065f363daafbc34c3b6415c18e4c54c9570e9efb7ead2be5b806dcd0",
+      "bytes": 430
+    },
+    {
+      "path": "packages/api/remotes/README.md",
+      "sha256": "16dfa874083f7f1d59d52097fa159707c79fea8d8377a047e9fcaf7db91409b8",
+      "bytes": 10162
+    },
+    {
+      "path": "packages/api/remotes/README.zh.md",
+      "sha256": "3d01536a4d1c3334669c1008bbd928e38b0f8a711a84be21d25586124160dbf9",
+      "bytes": 9164
+    },
+    {
+      "path": "packages/api/remotes/package.json",
+      "sha256": "8dba0c436aa598898a5415cb55c8407d5642d6a436c386444897197765efbf38",
+      "bytes": 2962
+    },
+    {
+      "path": "packages/api/remotes/src/client/host-preparation.ts",
+      "sha256": "0762481835f16fda13cb527a2e67217461f1bd9272744f3cf14a92d8cdc29e4c",
+      "bytes": 3068
+    },
+    {
+      "path": "packages/api/remotes/src/client/index.ts",
+      "sha256": "c18d982c7551239f8e98c49562e0d700dacc897683169e896edfb6faee9029b1",
+      "bytes": 8640
+    },
+    {
+      "path": "packages/api/remotes/tests/built-lib.e2e.ts",
+      "sha256": "8f6432c446a569bd4ae1272cd7277ece7e47ca1b93d75385e17d84e37af5f8d4",
+      "bytes": 13560
+    },
+    {
+      "path": "packages/api/remotes/tests/host-preparation.client.spec.ts",
+      "sha256": "51903b315f958a06b0c22839203c2a9e10bfe615074617a6196e7b0724b5b5ed",
+      "bytes": 5267
+    },
+    {
+      "path": "packages/api/remotes/tsconfig.client.json",
+      "sha256": "6dae79de1d73a900ff11f5fedf7353d55f60f3c02aa4cbec1a9786d2cf156b50",
+      "bytes": 1820
+    },
+    {
+      "path": "packages/api/session-controller/README.i18n.yaml",
+      "sha256": "48a01ab05a5e453ea154a465145ad54d215e92c0d0216fcad487ebee0f8bd186",
+      "bytes": 441
+    },
+    {
+      "path": "packages/api/session-controller/README.md",
+      "sha256": "afabb8485732d5bc94eb31ce96412428be04d7ad6cff80de7d81226af59baea5",
+      "bytes": 11443
+    },
+    {
+      "path": "packages/api/session-controller/README.zh.md",
+      "sha256": "f66eed546bf510250ab767dce3f861dd457fe770b3bd5385f44da6a228a6d83e",
+      "bytes": 10761
+    },
+    {
+      "path": "packages/api/session-controller/src/index.ts",
+      "sha256": "9669b2ce867a0a8f434080e24216c25fd6954a6e3919ecb98ce52538011b1a85",
+      "bytes": 16285
+    },
+    {
+      "path": "packages/bundle/web-app/README.i18n.yaml",
+      "sha256": "52a6a09280c6c7efdbd8ce7d2880f38f29728e0f826643c05254d305e0f215f0",
+      "bytes": 433
+    },
+    {
+      "path": "packages/bundle/web-app/README.md",
+      "sha256": "32921ddfa39c27db42ae7a492367d513ee68d3c0c884ebd56ade19c88c0a4e22",
+      "bytes": 10870
+    },
+    {
+      "path": "packages/bundle/web-app/README.zh.md",
+      "sha256": "55c4159a50cbd2a004caae7f4abed4b390f50743bcad41627b1d50b563836a88",
+      "bytes": 10117
+    },
+    {
+      "path": "packages/bundle/web-app/cordis.patch.yml",
+      "sha256": "d025b8c8fc67ac892463e66d788e35640efa2875deb6eda1ee1a1568e1412a35",
+      "bytes": 18813
+    },
+    {
+      "path": "packages/bundle/web-app/package.json",
+      "sha256": "df5589bd8a38186a8d33c0bff3b300758398cec6e6279011dc67c501a31d08c9",
+      "bytes": 6278
+    },
+    {
+      "path": "packages/client/connection/src/client/fixture.ts",
+      "sha256": "39d6e1e1d908ff07b5a3243a5b8fc8dd64a7865390c736c58171009e64b4b14f",
+      "bytes": 169034
+    },
+    {
+      "path": "packages/client/tsdown.client.ts",
+      "sha256": "6e2091e1eddcbd2a5ff5c2c0d246c236ba2405ceeaaebc2700cb023fc8140dfc",
+      "bytes": 29690
+    },
+    {
+      "path": "packages/extensions/cordis-client-runner/src/client/api-catalog.ts",
+      "sha256": "98f39163eced52f1346adea05a31017af3388d2ffa08839dea670a62678e648b",
+      "bytes": 59937
+    },
+    {
+      "path": "packages/extensions/tool-cordis/src/api-catalog.ts",
+      "sha256": "4c7a4de8aed1da02bb44021207d02001e5a7dd128b63ccbe1218d3b8d1d0b5d1",
+      "bytes": 474824
+    },
+    {
+      "path": "packages/typert/generator/README.i18n.yaml",
+      "sha256": "b0195e036f228783eb6685894083fd176671beb333ba089ee8d85d08a58a2ef4",
+      "bytes": 435
+    },
+    {
+      "path": "packages/typert/generator/README.md",
+      "sha256": "1010c7dc32e74ec06f9791a07334e85f66f4d99d425cf2e177c954b05fba62b3",
+      "bytes": 10191
+    },
+    {
+      "path": "packages/typert/generator/README.zh.md",
+      "sha256": "6702b4236f2eb3ccd2943e05554df041893aee302101c26fce526040d507b2f0",
+      "bytes": 9312
+    },
+    {
+      "path": "packages/typert/generator/src/analyzer.ts",
+      "sha256": "70d2c3ddf9ff02068c763031197216016c78e753826cfed91f13b9f6c88c41bc",
+      "bytes": 140179
+    },
+    {
+      "path": "packages/typert/generator/tests/fixtures/remote-model/typert-protocol.d.ts",
+      "sha256": "8b1a479d23a21756de36a322c6b44bf3fe5b7d797bd9324f290f83e5f163eccc",
+      "bytes": 2651
+    },
+    {
+      "path": "packages/typert/generator/tests/remote-model.spec.ts",
+      "sha256": "a997bedd776a84f196f9a11e1e4fee7060f6bfe5f1bb06e3a578cac626cf7ab1",
+      "bytes": 34204
+    },
+    {
+      "path": "packages/typert/protocol/README.i18n.yaml",
+      "sha256": "acf024a4d7fbce55aa33fd21a4ca8d8e83dfb4944d0653a04d995a5247d0db3b",
+      "bytes": 434
+    },
+    {
+      "path": "packages/typert/protocol/README.md",
+      "sha256": "ccecfa255c81f684108a4d7ae9491f1b9621b91602282ab5d7aee28ec7d32b23",
+      "bytes": 9786
+    },
+    {
+      "path": "packages/typert/protocol/README.zh.md",
+      "sha256": "9cd11b8b11dbc344d3271114638d60a90d0ccf10130cfd9a21aa1e86ffda5aaa",
+      "bytes": 8993
+    },
+    {
+      "path": "packages/typert/protocol/src/index.ts",
+      "sha256": "c77a0605ab76db9365cb7b5ab7fe702a36fb1ffcf7fe76c201df42262b9b3be0",
+      "bytes": 13201
+    },
+    {
+      "path": "packages/typert/protocol/tests/protocol.spec.ts",
+      "sha256": "0acb5573b300a474489d4a4f148458f6315cc6c3240e0d9b4553dd56dbe19c7e",
+      "bytes": 15175
+    },
+    {
+      "path": "pnpm-lock.yaml",
+      "sha256": "311acf1539ed3c5a3cf39c405ac8a02ebcfef46844d855ed2e0e398a8e2ae085",
+      "bytes": 870281
+    },
+    {
+      "path": "scripts/client-bundle-purity.spec.ts",
+      "sha256": "8ecc3af18c35026cd9941f8176f4ebc049518759a256fc9bc9f046cab1577b93",
+      "bytes": 12991
+    },
+    {
+      "path": "scripts/gen-cordis-catalog.ts",
+      "sha256": "5fe2c9509865fafe3ef1f2cc10897a2c33f7d76f559ce4a3023b96235467a242",
+      "bytes": 61429
+    },
+    {
+      "path": "scripts/gen-doc-graphs.ts",
+      "sha256": "b921e8d88f74358e87f117d9124c480278c0300b9c7a0fef925f3293b6809a4b",
+      "bytes": 71091
+    },
+    {
+      "path": "scripts/type-equiv.manifest.json",
+      "sha256": "0dfdff4e5fda4348d238fc0a8211c2e17e06cc61ada96ff5bd6ed59a49f0f908",
+      "bytes": 65687
+    },
+    {
+      "path": "scripts/verify-node-next-types.ts",
+      "sha256": "5651fd66b03ccf88a3963002435669748d8b225ae35156e9b0c11a10e70b6074",
+      "bytes": 6779
+    },
+    {
+      "path": "scripts/verify-package-readme-model-experience.ts",
+      "sha256": "500c68ff7b464ae13ef3a70b79e873caecae4a55e39fda76aa15b6e4cf1bf5e8",
+      "bytes": 43976
+    },
+    {
+      "path": "tsconfig.base.json",
+      "sha256": "1ccc1bc5cb081e1b6f6fafbd87e820a96b280e1a91c161e9abd3d1aff23e583a",
+      "bytes": 39330
+    },
+    {
+      "path": "tsconfig.host.json",
+      "sha256": "27262ce6c816f703d762e653389d14f730c4492be341a0dc14e3ddbf862dea0f",
+      "bytes": 17858
+    }
+  ],
+  "builtFiles": [
+    {
+      "path": "packages/api/gateway/lib/client.js",
+      "sha256": "12ef6f005f384366a820754718a1cd60cd840d7fd4de4ca3a69975bdcf26aec3",
+      "bytes": 79702
+    },
+    {
+      "path": "packages/api/gateway/lib/index.js",
+      "sha256": "84854e65a75d4f84477b485aa72b284f9ff4e816a8147581da62b8e6c1b481fe",
+      "bytes": 50147
+    },
+    {
+      "path": "packages/api/gateway/lib/types/client/index.d.ts",
+      "sha256": "578831c98cc26aa863f1a87b6f1faedefa197e304441263349759807ade65c97",
+      "bytes": 4457
+    },
+    {
+      "path": "packages/api/gateway/lib/types/client/preparation.d.ts",
+      "sha256": "c7940b17c21859590e3f044d3c0e0df231626bbe5676d8275c5795e9238909f6",
+      "bytes": 2229
+    },
+    {
+      "path": "packages/api/gateway/lib/types/client/remote-events.d.ts",
+      "sha256": "30db061477778da75fea1fc60aaa7cc0253ec70a201f4315901775ce378c67e1",
+      "bytes": 2512
+    },
+    {
+      "path": "packages/api/gateway/lib/types/remote-error-codes.d.ts",
+      "sha256": "d1422fb1b89a9f943fc80b47d09a0718fcb1f17a2df1662933f297f152f826ec",
+      "bytes": 1886
+    },
+    {
+      "path": "packages/api/host-description/lib/index.js",
+      "sha256": "d29e260001fc72ae586a6f1160c034c1f659d21a2a6d4067f3833dda7b94b508",
+      "bytes": 7917
+    },
+    {
+      "path": "packages/api/host-description/lib/tsconfig.tsbuildinfo",
+      "sha256": "d054d77c9a2b08438fbf2010232c84b28e8fc59a6e4325462beef6b1df8dcb81",
+      "bytes": 66170
+    },
+    {
+      "path": "packages/api/host-description/lib/typert.host.d.ts",
+      "sha256": "5e2d26ee86d0fe170dac8cd3f5854e67bdea334c57f40a5766ace57b8304c17d",
+      "bytes": 123
+    },
+    {
+      "path": "packages/api/host-description/lib/typert.host.js",
+      "sha256": "85d51839505568e969a59c1c623c99f348acec914f1c8b9d1bedd176e27df794",
+      "bytes": 3522
+    },
+    {
+      "path": "packages/api/host-description/lib/typert.remote-client.d.ts",
+      "sha256": "bdbb7ffa862b283ed33471c3e89f7836aa1c1d4ad3c0989070066d8bbf873333",
+      "bytes": 765
+    },
+    {
+      "path": "packages/api/host-description/lib/typert.remote-client.js",
+      "sha256": "b0724489371c30851ce9456d55f7b30e7591524e399ab4cd19af3715c6488b23",
+      "bytes": 1453
+    },
+    {
+      "path": "packages/api/host-description/lib/types/identity.d.ts",
+      "sha256": "9d9d45e5ff648e4196e156097b2bf37a1b4de56462d5922572b629309971772d",
+      "bytes": 634
+    },
+    {
+      "path": "packages/api/host-description/lib/types/identity.js",
+      "sha256": "f319c5a72649208787dadd75d1c548eb8331ab96768fc1073c7fbb05e83bba13",
+      "bytes": 1912
+    },
+    {
+      "path": "packages/api/host-description/lib/types/index.d.ts",
+      "sha256": "a1149b23518ad7fda57e5ad592a95f6f7bee974d87d2a0e8275aa64a3f9be4e2",
+      "bytes": 2623
+    },
+    {
+      "path": "packages/api/host-description/lib/types/index.js",
+      "sha256": "8b285774d041551642eb42b49cb1700da61797b08f963f10d4fd5838b991d34d",
+      "bytes": 6034
+    },
+    {
+      "path": "packages/api/host-description/lib/types/protocol.d.ts",
+      "sha256": "b7797befb7c706a532acc655813256a3a8aea529dca430098d4c0068fea9d509",
+      "bytes": 260
+    },
+    {
+      "path": "packages/api/host-description/lib/types/protocol.js",
+      "sha256": "4b0d0d582b8432d002616be6da8972db92f1cee21b7bf56e752f1ddefcebb994",
+      "bytes": 250
+    },
+    {
+      "path": "packages/api/host-description/lib/types/types.d.ts",
+      "sha256": "ce3c9a29ae0728275816562f775258fd3f217541b9fb789604b087df50e10e0a",
+      "bytes": 1770
+    },
+    {
+      "path": "packages/api/host-description/lib/types/types.js",
+      "sha256": "35d332e6f474f0fcf900697c292199234513828b2ef04d63470900fc5a42b383",
+      "bytes": 130
+    },
+    {
+      "path": "packages/api/host-description/lib/types/version.d.ts",
+      "sha256": "c249f2d8abe87aaa2742d6ffdd72f1a4bfed517b2030d3db6fbb6e512f7ff82a",
+      "bytes": 329
+    },
+    {
+      "path": "packages/api/host-description/lib/types/version.js",
+      "sha256": "f35758e686be87ae62f0b6b2eee9dd812e21fe5ab27c16bee528b3f49d323cf9",
+      "bytes": 622
+    },
+    {
+      "path": "packages/api/remotes/lib/client.js",
+      "sha256": "1dece6f36785b00e27d8f08e15be972522b54b0dc9f7874d7d1561860ee7f00f",
+      "bytes": 334561
+    },
+    {
+      "path": "packages/api/remotes/lib/types/client/host-preparation.d.ts",
+      "sha256": "6c2295872dbf51cdb46a22a950411366f73f232d1d0855b7cc2a52217e7e40e0",
+      "bytes": 1369
+    },
+    {
+      "path": "packages/api/remotes/lib/types/client/index.d.ts",
+      "sha256": "adaf855d635ca118c1e3b0fb4402b062475d4a684f206f947e0c0fbb0f291761",
+      "bytes": 5198
+    },
+    {
+      "path": "packages/api/session-controller/lib/index.js",
+      "sha256": "63f517e1f06edb1a39ce4e3995d38012b9493517056232d6b2a88be4de3ce4de",
+      "bytes": 113923
+    },
+    {
+      "path": "packages/client/connection/lib/client.js",
+      "sha256": "0d3b759269484575558e6ffec0424a6454967cdb5d6eee17b706cce54d6754d4",
+      "bytes": 222670
+    },
+    {
+      "path": "packages/extensions/cordis-client-runner/lib/client.js",
+      "sha256": "94ce60cf7f41141d1e0c1c10b17fea28213369f5afeb4a31b4446919335dbfb6",
+      "bytes": 263064
+    },
+    {
+      "path": "packages/typert/generator/lib/index.js",
+      "sha256": "bfac432cefc8ff68af045915644904080f9d060abdbf8b91afd1d2abe771abf5",
+      "bytes": 198904
+    },
+    {
+      "path": "packages/typert/protocol/lib/index.js",
+      "sha256": "58c8a13aaab9869389cd614d00b9dae7517ae7f97ba6abf31cad8a4b5f8be0e3",
+      "bytes": 8762
+    }
+  ],
+  "logs": [
+    {
+      "path": ".artifacts/client-admission-browser-install-local.log",
+      "sha256": "a44eea98d67bd1d1be165fb5868a5158b59c9d923688b27cfa7a31eeaa5ea4c1",
+      "bytes": 2528
+    },
+    {
+      "path": ".artifacts/client-admission-browser-install-node.log",
+      "sha256": "4892ca552f9d566d4da8e2bc20ea34eeae63aaaca9711779ae91f3ba6a58108d",
+      "bytes": 811
+    },
+    {
+      "path": ".artifacts/client-admission-browser-install.log",
+      "sha256": "d71674c0bee49d2f6432cf5b4d557a7f4ddacd369de8c59712dc03d373dd5d6c",
+      "bytes": 2598
+    },
+    {
+      "path": ".artifacts/client-admission-browser-test-lint.log",
+      "sha256": "e3b0c44298fc1c149afbf4c8996fb92427ae41e4649b934ca495991b7852b855",
+      "bytes": 0
+    },
+    {
+      "path": ".artifacts/client-admission-built-remotes-v2.log",
+      "sha256": "b45a9bb0aefb335a7cae8852f9dd3a17bfecdd6a042527939671c604d5bdba9e",
+      "bytes": 2862
+    },
+    {
+      "path": ".artifacts/client-admission-built-remotes-v3.log",
+      "sha256": "97b3b9af4f216e869c6a617f20763576542339b9d45a56d8cf119e556f0a1dbd",
+      "bytes": 2193
+    },
+    {
+      "path": ".artifacts/client-admission-built-remotes-v4.log",
+      "sha256": "a64ee5d1da320e2a56061384927ac17c103fff9df66bf698239a56a06c31ea9a",
+      "bytes": 480
+    },
+    {
+      "path": ".artifacts/client-admission-built-remotes.log",
+      "sha256": "f40f0288809dec0b90f40851171226e095d722be41a3c1d73d42402b753175d0",
+      "bytes": 2261
+    },
+    {
+      "path": ".artifacts/client-admission-client-build-v2.log",
+      "sha256": "fc6f00707b148af4900fd0afa49213f9d0c65bf927194798abdc2d926b01d7d4",
+      "bytes": 136423
+    },
+    {
+      "path": ".artifacts/client-admission-client-build-v3.log",
+      "sha256": "208552f96c8f46971f27dbe7e5f1befb939e82751a042d02ff9e35d01016958c",
+      "bytes": 154546
+    },
+    {
+      "path": ".artifacts/client-admission-client-build.log",
+      "sha256": "554f99996568fb2f72a7eaa14f71877354bb77db273c52c0367e7b1cc9f3682e",
+      "bytes": 11770
+    },
+    {
+      "path": ".artifacts/client-admission-config-generation.log",
+      "sha256": "178d356da975aa15580008883ce9695f4b9ef198638b9d4e7f4f95a7233412b6",
+      "bytes": 88
+    },
+    {
+      "path": ".artifacts/client-admission-config-pairing.log",
+      "sha256": "908d31d4aa4b29c46879534ce6a9365a0c421bf2c3cb5911ab24c91e571246df",
+      "bytes": 235
+    },
+    {
+      "path": ".artifacts/client-admission-doc-sync.log",
+      "sha256": "c879768ac83d84a93750ca3e0996b6e7d978d96542b5067294a852924fb8011b",
+      "bytes": 4529
+    },
+    {
+      "path": ".artifacts/client-admission-emit-cleanup.log",
+      "sha256": "b0828524b7a1ec1a198dd94a06aa22680ba9b773ff047288a118975ae2955759",
+      "bytes": 291
+    },
+    {
+      "path": ".artifacts/client-admission-existing-gateway.log",
+      "sha256": "8239b01895abafc4fb66a2e1ea71e1a618424c991bf2ce96e819cd68e8453db6",
+      "bytes": 5833
+    },
+    {
+      "path": ".artifacts/client-admission-final-built-remotes.log",
+      "sha256": "6de330c067baeaff0cc6b84e0a5cf14c3623121fa3f51fbc04d3a75697ffad5c",
+      "bytes": 480
+    },
+    {
+      "path": ".artifacts/client-admission-final-bundles.log",
+      "sha256": "8f70519cde590364f7afd7fd2f59b0f746047d2c3fbff3e6407a88f27d19ba46",
+      "bytes": 5812
+    },
+    {
+      "path": ".artifacts/client-admission-final-client-build.log",
+      "sha256": "27ebbe8e4f910f0be38871d7a808f4ae2bfbb490782b1f34ecedc3584e1a324e",
+      "bytes": 159259
+    },
+    {
+      "path": ".artifacts/client-admission-final-declarations.log",
+      "sha256": "e3b0c44298fc1c149afbf4c8996fb92427ae41e4649b934ca495991b7852b855",
+      "bytes": 0
+    },
+    {
+      "path": ".artifacts/client-admission-final-doc-sync.log",
+      "sha256": "82444f6c7e03fb674be0e77a1f5350e1937ff00ba621536bc79a352642ab9beb",
+      "bytes": 2955
+    },
+    {
+      "path": ".artifacts/client-admission-final-inspect-build.log",
+      "sha256": "e3b0c44298fc1c149afbf4c8996fb92427ae41e4649b934ca495991b7852b855",
+      "bytes": 0
+    },
+    {
+      "path": ".artifacts/client-admission-final-inspect-generation.log",
+      "sha256": "b2780db424e4a4721192d0394b70da43d6f19a9059f1208173d6a5206c242d8b",
+      "bytes": 147
+    },
+    {
+      "path": ".artifacts/client-admission-final-lint.log",
+      "sha256": "4ff89f87d8ebc62934944bc257bbc1e93faa3c3cda652fb6e55a67c202a6233f",
+      "bytes": 31
+    },
+    {
+      "path": ".artifacts/client-admission-final-pairing.log",
+      "sha256": "3fd43b067aaf391943b6e9d4212569f9af5cca53bb6ca3d92aecbaf4be82cda9",
+      "bytes": 251
+    },
+    {
+      "path": ".artifacts/client-admission-final-source-tests.log",
+      "sha256": "3632d0fad474640a6b710d6a22359a8c219e84aabc7d45b90dfbb36563d09d67",
+      "bytes": 943
+    },
+    {
+      "path": ".artifacts/client-admission-final-tests.log",
+      "sha256": "d7bfb5595d87d3de5de96c3bd38959654368347a7cf821656b100d9f0fd6768c",
+      "bytes": 943
+    },
+    {
+      "path": ".artifacts/client-admission-final-web-v2.log",
+      "sha256": "3f8fbdd8c019414f7c60ed2504667c33c783e7210e1ef994738cccd68ae5161b",
+      "bytes": 481
+    },
+    {
+      "path": ".artifacts/client-admission-final-web.log",
+      "sha256": "c79f44191e8226c579407d67466cbe782fe766a4fead8489097385fe1062682e",
+      "bytes": 481
+    },
+    {
+      "path": ".artifacts/client-admission-focused-lint.log",
+      "sha256": "e3b0c44298fc1c149afbf4c8996fb92427ae41e4649b934ca495991b7852b855",
+      "bytes": 0
+    },
+    {
+      "path": ".artifacts/client-admission-gateway-pairing-v2.log",
+      "sha256": "5225bbe5e78e06a2ed6511919d41f5cdd4fda9ec7e7fcbdb85f6fa1758a1e740",
+      "bytes": 251
+    },
+    {
+      "path": ".artifacts/client-admission-gateway-tests.log",
+      "sha256": "f94b81c533501bb876ba27901570361358ce5b1b4c9e11ee75b2792bb4980c53",
+      "bytes": 6177
+    },
+    {
+      "path": ".artifacts/client-admission-host-build.log",
+      "sha256": "4c6d6bb09628de506cd22d7966c0792c005ccad7725837c179b3cec45cf624f7",
+      "bytes": 181741
+    },
+    {
+      "path": ".artifacts/client-admission-inspect-generation.log",
+      "sha256": "b2780db424e4a4721192d0394b70da43d6f19a9059f1208173d6a5206c242d8b",
+      "bytes": 147
+    },
+    {
+      "path": ".artifacts/client-admission-lint.log",
+      "sha256": "e0aea1a3b5fa68ec88c1f7e8f3d60a583a021f5d10d9b32f3d84785c00f44788",
+      "bytes": 2732
+    },
+    {
+      "path": ".artifacts/client-admission-new-tests.log",
+      "sha256": "67f8ba6ee23fc8804e600cafbbe7253d7f444b049bee9bd96b009d31a368cdd4",
+      "bytes": 941
+    },
+    {
+      "path": ".artifacts/client-admission-pairing.log",
+      "sha256": "7809b8164e9df5228c7d2052be5c8a72c464acdf4e834fdb0d6ae52ab30148b1",
+      "bytes": 708
+    },
+    {
+      "path": ".artifacts/client-admission-public-types-before-v2.log",
+      "sha256": "e2739cbe6a85613a5509c4349b3d4b4f9d475fe69eeb9dd0151ee43cea4a3ce3",
+      "bytes": 5777
+    },
+    {
+      "path": ".artifacts/client-admission-public-types-before.log",
+      "sha256": "6d7680fce471083ea13a20c3842647fb1ed61ff0ea06827e4243fa4277942324",
+      "bytes": 2013
+    },
+    {
+      "path": ".artifacts/client-admission-public-types-build.log",
+      "sha256": "e3b0c44298fc1c149afbf4c8996fb92427ae41e4649b934ca495991b7852b855",
+      "bytes": 0
+    },
+    {
+      "path": ".artifacts/client-admission-purity-tests.log",
+      "sha256": "5dafabc3d696b3928357263b2c8e11a88e344b264ca49e60e6522bdba12ea261",
+      "bytes": 941
+    },
+    {
+      "path": ".artifacts/client-admission-reconnect-tests.log",
+      "sha256": "bad2d3e7121859fe00ffc84d6e030cb9dc0f7d475a791fa476fe69c6f35ff0fa",
+      "bytes": 941
+    },
+    {
+      "path": ".artifacts/client-admission-web.log",
+      "sha256": "b4628f6d199027a251c3c52238df46793ab98708faa2877eff3303a38683d5d4",
+      "bytes": 481
+    }
+  ],
+  "helpers": [
+    {
+      "path": ".artifacts/archive-client-admission-inputs.mjs",
+      "sha256": "b9638b6a6a25648456c337e3d09696acf282868eeff1a9102ccdba940b45f596",
+      "bytes": 1460
+    },
+    {
+      "path": ".artifacts/archive-client-admission-consumers.mjs",
+      "sha256": "5ab6b6305f52eee4bf0799d890c7be3e62ac07340e7442a338a4dd721c548bc4",
+      "bytes": 1007
+    },
+    {
+      "path": ".artifacts/inspect-client-admission-emit.mjs",
+      "sha256": "57f0abefb0cb1b1122a21d18cb644f96c2798d2461ecbad9598310e9b144e886",
+      "bytes": 3001
+    },
+    {
+      "path": ".artifacts/capture-client-admission.mjs",
+      "sha256": "b5f03b89642e4b85fb83286a3c7b61a5f3eba47c838e9c652fa613bda7af63e8",
+      "bytes": 8222
+    }
+  ],
+  "historicalRecords": [
+    {
+      "path": "artifacts/upstream-first/host-description-source.json",
+      "sha256": "2f3f15d244fdfb785f38418e34efe6b2958aba45577a48147fe37fd3454f5818",
+      "bytes": 33070
+    },
+    {
+      "path": ".artifacts/client-admission-before/archive.json",
+      "sha256": "61d2ad4e9876464b5730e0dbe14cc1f2fb2b1fcd205d2bfb6ae5d603d3135e81",
+      "bytes": 27851
+    },
+    {
+      "path": ".artifacts/client-admission-consumers-before/archive.json",
+      "sha256": "62782755bab5c08fa43fcc1076fcd57befae69c13c2e1ca86bd89dc55073809c",
+      "bytes": 1363
+    },
+    {
+      "path": ".artifacts/client-admission-client-emit-residue/manifest.json",
+      "sha256": "3186b86d8fda6da9bdb608d9249e6204c2715214251785f1103a4263d21676f7",
+      "bytes": 2317
+    }
+  ],
+  "checks": [
+    {
+      "id": "client-admission-final-regression",
+      "status": "PASS",
+      "tests": 145,
+      "log": ".artifacts/client-admission-final-tests.log",
+      "detail": "106 existing Gateway tests, 19 admission/policy tests, and 20 bundle-purity tests"
+    },
+    {
+      "id": "client-admission-reconnect-refusal",
+      "status": "PASS",
+      "tests": 19,
+      "log": ".artifacts/client-admission-reconnect-tests.log"
+    },
+    {
+      "id": "client-admission-bundle-purity",
+      "status": "PASS",
+      "tests": 39,
+      "log": ".artifacts/client-admission-purity-tests.log",
+      "detail": "20 purity tests plus 19 then-current admission tests"
+    },
+    {
+      "id": "client-admission-host-build",
+      "status": "PASS",
+      "log": ".artifacts/client-admission-host-build.log"
+    },
+    {
+      "id": "client-admission-client-build",
+      "status": "PASS",
+      "log": ".artifacts/client-admission-final-client-build.log",
+      "detail": "Official Client aggregate before final facade declaration export and reconnect refusal"
+    },
+    {
+      "id": "client-admission-final-package-builds",
+      "status": "PASS",
+      "logs": [
+        ".artifacts/client-admission-final-declarations.log",
+        ".artifacts/client-admission-final-inspect-build.log",
+        ".artifacts/client-admission-final-bundles.log"
+      ]
+    },
+    {
+      "id": "client-admission-built-consumers",
+      "status": "PASS",
+      "tests": 2,
+      "log": ".artifacts/client-admission-final-built-remotes.log"
+    },
+    {
+      "id": "client-admission-authenticated-browser",
+      "status": "PASS",
+      "tests": 2,
+      "log": ".artifacts/client-admission-final-web-v2.log",
+      "browser": "installed Google Chrome",
+      "realHost": true,
+      "realModel": false
+    },
+    {
+      "id": "client-admission-public-types-regression",
+      "status": "PASS",
+      "failureLog": ".artifacts/client-admission-public-types-before-v2.log",
+      "successLog": ".artifacts/client-admission-final-built-remotes.log"
+    },
+    {
+      "id": "client-admission-lint",
+      "status": "PASS",
+      "log": ".artifacts/client-admission-final-lint.log",
+      "finalBrowserTestLog": ".artifacts/client-admission-browser-test-lint.log"
+    },
+    {
+      "id": "client-admission-doc-sync",
+      "status": "PASS",
+      "gates": 34,
+      "log": ".artifacts/client-admission-final-doc-sync.log"
+    }
+  ],
+  "conclusions": {
+    "mandatoryApplicationDiscovery": true,
+    "exactProtocolAdmission": true,
+    "generationOwnedDescriptor": true,
+    "waitingCallerCancellation": true,
+    "lostGenerationCancellation": true,
+    "disconnectedMutationsQueued": false,
+    "publicFacadeTypes": true,
+    "nativeDtoConsumers": false,
+    "priorProtocolNegotiation": false,
+    "capabilityUiAdmission": false,
+    "dedicatedUpgradeUi": false,
+    "mutationIdempotency": false,
+    "phase3Complete": false,
+    "newDesktopInstaller": false,
+    "realModel": false
+  },
+  "observations": [
+    "Standalone generic Gateway compositions remain independent; the shipped API Remotes assembly installs discovery before selecting business namespaces",
+    "Discovery uses the existing authenticated unary carrier; event readiness and retry remain owned by Connection",
+    "Malformed, unsupported, absent-capability and failed discovery responses reject admission; API compatibility does not reuse product or disk versions",
+    "An isolated NodeNext consumer reproduced missing descriptor/error declarations before the facade type export was fixed",
+    "Missing explicit compiler file entries were repaired; four verified source-adjacent emitted files were archived and removed",
+    "Browser protocol constant inlining is restricted to the exact pure subpath; Host and nested runtime imports remain rejected",
+    "Browser download through a shadowing Python CLI and the explicit local Node CLI both failed; only installed Chrome executed the browser checks",
+    "Three temporary declaration-consumer directories left by the first Windows cleanup assertion were verified and archived; subsequent consumers clean up normally"
+  ],
+  "limitations": [
+    "No N/N-1 negotiated subset or older-generation decoder, dedicated compatibility UI, or capability-driven UI admission",
+    "No idempotency ledger, old-data conversion, native companion or real-model qualification",
+    "Only targeted real-Host Chrome checks; full pinned-browser, operating-system and native-device matrices remain unverified",
+    "Prior ACP file-symlink hygiene limitation remains; no new full hygiene PASS is claimed",
+    "No new installer, user-data migration, OS autostart registration, commit, push or publication"
+  ]
+}

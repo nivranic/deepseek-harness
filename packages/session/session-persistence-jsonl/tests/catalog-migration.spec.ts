@@ -90,6 +90,28 @@ describe.each(['none', 'zstd'] as const)('historical catalog publication (%s)', 
     },
   )
 
+  it.skipIf(compression !== 'zstd').each([3, 4])('includes a V%i child recovery record and invalidates parent facts when it changes', async (version) => {
+    const f = await fixture()
+    const path = await f.write('child', [], true, version)
+    const warn = vi.spyOn(f.ctx.logger, 'warn').mockImplementation(() => undefined)
+    expect((await f.read()).find(event => event.type === 'subagent/catalog')?.data).toMatchObject({ mode: 'unknown' })
+    const before = (await f.ctx.sessionPersistence.stat(f.parent))!.revision
+    const original = await readFile(path)
+    const writeIntent = (label: string) => writeFile(`${path}.repair-intent`, JSON.stringify({
+      version: 1, id: 'child', truncateTo: original.length,
+      events: [{ ...f.descriptor, data: { ...f.descriptor.data, label } }],
+    }))
+    await writeIntent('recovered child')
+    expect((await f.ctx.sessionPersistence.stat(f.parent))!.revision).not.toBe(before)
+    expect((await f.read()).find(event => event.type === 'subagent/catalog')?.data)
+      .toMatchObject({ mode: 'continuable', label: 'recovered child' })
+    await writeIntent('updated recovery')
+    expect((await f.read()).find(event => event.type === 'subagent/catalog')?.data)
+      .toMatchObject({ mode: 'continuable', label: 'updated recovery' })
+    expect(await readFile(path)).toEqual(original)
+    warn.mockRestore()
+  })
+
   it('invalidates lightweight revisions on child membership and contents while retaining stable tokens', async () => {
     const f = await fixture()
     const revision = async () => (await f.ctx.sessionPersistence.stat(f.parent))!.revision

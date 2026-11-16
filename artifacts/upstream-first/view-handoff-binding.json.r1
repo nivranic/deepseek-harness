@@ -1,0 +1,16 @@
+{
+  "status": "PASS",
+  "controls": 3,
+  "sourceRecord": {
+    "path": "artifacts/upstream-first/view-handoff-source.json",
+    "sha256": "3f7581574e1ffb23eaa0c45d38214518d5a98ba65fff04f8534a1f9b12eccfd1"
+  },
+  "generator": {
+    "path": "artifacts/upstream-first/write-reports.mjs",
+    "sha256": "d0b2e440f125f99d4af85046e2b2c68ff16c08c67ba2395603b5e33bcad8886a"
+  },
+  "helper": {
+    "path": ".artifacts/check-view-handoff-binding.mjs",
+    "sha256": "919b5481a32d3d3cd305ad14d52bb792245c8c58ea29b90d30b50164e35f210a"
+  }
+}

@@ -1,0 +1,16 @@
+{
+  "status": "PASS",
+  "controls": 3,
+  "sourceRecord": {
+    "path": "artifacts/upstream-first/android-subagent-timeline-source.json",
+    "sha256": "9474e0d8afc8472eeb9c77b56526831388dcb4767fbeee7d39ec7898444dd613"
+  },
+  "generator": {
+    "path": "artifacts/upstream-first/write-reports.mjs",
+    "sha256": "44d6c0e524af26c884da18a532dcfd745c549fb6ba28e94cd34671f34f0d6c16"
+  },
+  "helper": {
+    "path": ".artifacts/check-android-subagent-timeline-binding.mjs",
+    "sha256": "e0cfee70bb99c10bb588345b021292ecae9c82698b7e0582c6947b8bec6e5681"
+  }
+}

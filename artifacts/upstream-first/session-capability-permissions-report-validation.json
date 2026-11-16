@@ -1,0 +1,70 @@
+{
+  "status": "PASS",
+  "scope": "Report bindings and audit for the session capability permissions; workspace/jobs/settings adoption and the remaining specification sections stay open; full Upstream-First objective remains in progress",
+  "gate0": {
+    "validation": "PASS",
+    "gate0": "PASS",
+    "paths": 1938,
+    "components": 129,
+    "specificationCoverage": {
+      "status": "PASS",
+      "numberedSections": 81,
+      "nonEmptySourceLines": 1983,
+      "acceptanceProven": false
+    }
+  },
+  "sourceRecord": {
+    "path": "artifacts/upstream-first/session-capability-permissions-source.json",
+    "sha256": "12ac55025dcd9d98563fc53ba85aef984dd08335454c314e95b4814549a2efc0"
+  },
+  "generator": {
+    "path": "artifacts/upstream-first/write-reports.mjs",
+    "sha256": "7e5ad40b0ef77cb0b7c640d124cce8dc0fb4018cb3b671ba8beb98bce6497866"
+  },
+  "binding": {
+    "path": "artifacts/upstream-first/session-capability-permissions-binding.json",
+    "sha256": "76c20150e952c9262e38d5aa7cb6ad42bd9bda307dff76eafa86820d4653dcac"
+  },
+  "helpers": [
+    {
+      "path": ".artifacts/advance-session-capability-permissions-reports.mjs",
+      "sha256": "96ff66928eebf8726500fe44c4c469a8c1a57255d8c9cbfc80b1c8af3c68107a"
+    },
+    {
+      "path": ".artifacts/capture-session-capability-permissions-validation.mjs",
+      "sha256": "4c250f596c4bd92068662da4640c7c6d3e172310f7694db7cb4831eea4ebc0e7"
+    }
+  ],
+  "reports": [
+    {
+      "path": "IMPLEMENTATION_STATUS.md",
+      "sha256": "c8ae8961299acc0465c7cd5af81c8d4960ea86a07a88cfdda329bd6d170789fb"
+    },
+    {
+      "path": "artifacts/upstream-first/evidence.json",
+      "sha256": "47d6cba2e9de2b84166701e5f3c8b5204cc593fe60ede23cc8c7ed326bc60159"
+    }
+  ],
+  "checks": [
+    {
+      "path": ".artifacts/session-capability-permissions-binding.log",
+      "sha256": "0bfc6312613079f954b74758b6aab0cbb05869ff3522af0c2f66ecc4e6cc16c5"
+    },
+    {
+      "path": ".artifacts/session-capability-permissions-audit-tests.log",
+      "sha256": "2bf0dd477e85c55049ce02e6644a78937c944fb8cc55273317f8ecfeef6a9a05"
+    },
+    {
+      "path": ".artifacts/session-capability-permissions-gate0.log",
+      "sha256": "505d74ef938f5d34d85490d37e0176ba804d93272fcf465ce2544a02c56b3f90"
+    },
+    {
+      "path": ".artifacts/session-capability-permissions-report-diff-check.log",
+      "sha256": "e3b0c44298fc1c149afbf4c8996fb92427ae41e4649b934ca495991b7852b855"
+    },
+    {
+      "path": ".artifacts/session-capability-permissions-report-generation.log",
+      "sha256": "fe010532f71a6341467ae5719b29ac19470895de1d481156335b8f70a3273ed5"
+    }
+  ]
+}

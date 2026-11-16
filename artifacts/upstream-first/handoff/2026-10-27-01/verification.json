@@ -1,0 +1,19 @@
+{
+  "status": "PASS",
+  "checks": 6,
+  "checkDetails": [
+    "HANDOFF.md sha256 recorded in manifest matches the file on disk",
+    "worktree HEAD is 5819fc0e03 on agents/upstream-first, matching state.json",
+    "git status --short shows only the excluded telemetry directories (.glm-router/, .mimosa/ and nested copies); no uncommitted source or tracked modification",
+    "origin/agents/upstream-first received 5819fc0e03 per the gen-81 push record",
+    "predecessor package 2026-09-29-01 exists with LATEST.json predecessor chain intact",
+    "no staged or in-flight edits from the handing-over session: gen-82 implementation has not started (survey artifacts live in the prior session's context only, restated in HANDOFF.md §5)"
+  ],
+  "live": true,
+  "productTestsRun": false,
+  "productTestsBasis": "clean-tree handoff at an already-sealed green HEAD (gen-81 lanes all recorded in its receipt); no new product code exists to test",
+  "tamperRejected": true,
+  "tamperBasis": "hash chaining is manifest-level in this lightweight package; the repository's own seal chain (audit tests + verify-audit + binding tamper controls) owns tamper rejection for product files and remains the authority",
+  "productDiffUnchanged": true,
+  "productDirtyPathsUnchanged": true
+}

@@ -93,6 +93,8 @@ def main() -> None:
         subprocess.run(command, cwd=ROOT, env=None if environment is None else {**os.environ, **environment}, check=True)
     if not expected.is_file():
         raise RuntimeError(f"build did not produce expected wheel: {expected}")
+    if args.package == "runtime":
+        compress_runtime_wheel(expected)
     verify_wheel(expected, args.package, wheel_version, None if args.platform is None else PLATFORMS[args.platform])
     print(expected)
 
@@ -227,6 +229,17 @@ def stage_runtime(destination: Path, version: str, executable: Path, executable_
     resources = executable_name.removeprefix("deepseek-harness-sdk-runtime-").removesuffix(".exe")
     # Wheels materialize interpreter aliases because pip does not restore symlinks.
     shutil.copytree(source_directory / resources, runtime_dir / resources)
+
+
+def compress_runtime_wheel(wheel: Path) -> None:
+    """Apply maximum DEFLATE compression while preserving wheel entries and metadata."""
+    with tempfile.TemporaryDirectory(prefix="dsh-wheel-compression-", dir=wheel.parent) as temporary:
+        compressed = Path(temporary) / wheel.name
+        with zipfile.ZipFile(wheel) as source, zipfile.ZipFile(compressed, "w") as target:
+            target.comment = source.comment
+            for entry in source.infolist():
+                target.writestr(entry, source.read(entry), compress_type=zipfile.ZIP_DEFLATED, compresslevel=9)
+        os.replace(compressed, wheel)
 
 
 def verify_wheel(

@@ -31,7 +31,7 @@ kind: "package-reference"
 
 ### 注册工具
 
-`defineTool` 构建类型化工具定义：面向模型的名称、描述与参数 schema、规范输出声明，以及只返回所声明 JSON 值的 `execute` 主体。模型参数在执行前被校验；无效输入变成普通错误结果。
+`defineTool` 构建包含模型侧参数、规范输出、执行主体与 Host 声明的类型化工具定义。`ctx.tools.descriptors(scope)` 要求每个返回的工具都声明正安全整数 `version`、`risk`、`permissions`、`supportsLite` 与 `supportsRemote`。声明不完整时，整个目录读取以 `ToolDeclarationUnavailableError` 拒绝。描述符包含所选执行器的 `transportDefinitions`，返回冻结、按 id 排序的副本。生成的 [`tool-descriptors.json`](tool-descriptors.json) 记录随产品发布的声明。[API 适配器](../../api/remotes/README.zh.md#use-this-package) 拥有当前声明的 Remote 访问。
 
 规范值属于执行过程；Session 记录渲染后的内容及可选展示元数据。替换或脱敏这些内容不会移除程序化调用方可读取的规范值；需要禁止该访问的策略必须阻止执行或替换该值。
 
@@ -45,6 +45,11 @@ declare const ctx: Context
 ctx.tools.register(defineTool({
   name: 'read_file',
   description: 'Read a file from disk.',
+  version: 1,
+  risk: 'low',
+  permissions: [],
+  supportsLite: false,
+  supportsRemote: true,
   parameters: {
     path: { type: 'string', required: true, description: 'Absolute file path' },
     offset: { type: 'number' },
@@ -63,6 +68,11 @@ ctx.tools.register(defineTool({
 
 统一 schema DSL 支持 `string`、`number`、`integer`、`boolean`、`null`、`array`、`object`、仅供作者使用的 `json` 与恰好匹配一个分支的 `oneOf`；`InferValue` 在 16 层容器内保留精确类型，之后加宽为 `JsonValue`。原始 JSON Schema（`JsonSchemaNode`）是与 subagent、工作流和 MCP 共享的协议级对应类型。
 
+### Lite 工具 schema 投影
+
+同一个目录生成器还会产出 [`lite-tool-schemas.json`](lite-tool-schemas.json)：恰好是 §32 声明携带 `supportsLite: true` 的随产品发布工具，每条只保留面向模型的 `name`、`description` 与 `parameters`——与 `ctx.tools.schemas()` 返回的快照分离值相同。Lite 请求面把这份静态投影作为自己的 tools 数组挂载，而不是现场收割 schema；声明了 `supportsLite` 却收割不到 schema 的工具会使生成器失败。使用 `pnpm run gen-tool-catalog` 再生成。
+
+### 配置呈现模式
 <a id="conditional-tools"></a>
 ### 条件工具
 
@@ -109,12 +119,13 @@ Agent 步骤的并发上限使用 [agent-loop 配置](../agent-loop/README.zh.md
 
 ### 设计理念
 
-注册表在作用域层中持有类型化 `ToolDefinition`，并在请求时把它们投影为面向模型的 `ToolSchema` 集合——`output`、`execute`、`finalizeContent`、`timeoutMs` 与呈现回调绝不会泄漏到协议上。每次调用都运行一条固定流水线：`tools/pre-execute`（可扩展的允许／拒绝／询问）→ 已注册单调守卫 → `tools/execute`（环绕分发包装层）→ `tools/post-execute`（检查／替换、附加上下文）→ 由定义持有的 `finalizeContent` → 仅观测的 `tools/result` 事件。只有 `tools/execute` 视图可以替换必填信号，注册表会在调用主体前重新融合调用方信号。
+注册表在作用域层中持有类型化 `ToolDefinition`，并在请求时把它们投影为面向模型的 `ToolSchema` 集合——`output`、`execute`、`finalizeContent`、`timeoutMs`、呈现回调与五个 §32 声明字段绝不会泄漏到协议上。每次调用都运行一条固定流水线：`tools/pre-execute`（可扩展的允许／拒绝／询问）→ 已注册单调守卫 → `tools/execute`（环绕分发包装层）→ `tools/post-execute`（检查／替换、附加上下文）→ 由定义持有的 `finalizeContent` → 仅观测的 `tools/result` 事件。只有 `tools/execute` 视图可以替换必填信号，注册表会在调用主体前重新融合调用方信号。
 
 ### 源码地图
 
 - [`src/index.ts`](src/index.ts) — 插件入口与公共工具 API；作用域工具服务与执行器选择.
 - [`src/contracts.ts`](src/contracts.ts) — 工具定义、调用结果、守卫与策略决策.
+- [`src/catalog.ts`](src/catalog.ts) 与 [`src/types.ts`](src/types.ts) — 声明投影、完整性失败与 Client 安全的描述符类型。
 - [`src/executor.ts`](src/executor.ts) — 执行器描述与批量输入输出.
 - [`src/pipeline.ts`](src/pipeline.ts) — 共享的 `prepare`、`dispatch`、`complete` 阶段、阶段结果类型与批次入口。
 - [`src/batch.ts`](src/batch.ts) — 并发调度、结果顺序与可选 Session 日志.

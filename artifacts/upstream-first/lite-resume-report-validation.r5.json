@@ -1,0 +1,66 @@
+{
+  "status": "PASS",
+  "scope": "Report bindings and audit for the lite-resume increment: the gen-57 follow-up landing §67's relaunch recovery on the Lite plane (the persistence break fixed both ways — the journal only ever written, never read, so a relaunch cold-opened empty and the first send overwrote the old journal with a fresh-events file, the §46 silent-drop form): the assembly face — LiteChat's top-level seedJournal(store, sessionId) reading a stored journal back as the session's full history (the fold replay restoring the conversation through the constructor's existing first emission with zero rendering changes) while an unreadable journal is quarantined to a cold open, LiteChatViewModel.session constructing through the seeding, and send() branching on folded.lastTurnEnd so a provider-error turn records the existing provider/error event (code+message from the folded errors face, field-aligned with the driver's original event) and a network-error turn records network/error — the fabricated message/completed echo of the user's prompt retired, a failed turn replaying as its error and never as a reply; the storage face — LiteSessionStoring gaining quarantine(id): String? with LiteFileSessionStore's same-directory <id>.litejournal.unavailable-<8-hex-uuid> rename preserving the bytes beside the journal (later loads reading absence, the next save writing a fresh file) while load's fail-loud semantics stay untouched for direct callers (the file-layout knowledge owning the store, the degradation decision owning the caller); the sown session carrying its history so the next whole-file atomic write naturally contains every prior turn (the overwrite loss healing itself through the seeding) — the seeding matching on the session id alone (endpoint and preset changes change the request face, not the history) resting on the connected evidence honestly narrated (emulator-5554 LiteEntryNativeTest 5/5 walking the real filesDir/lite-sessions preset-journal-to-assembler-to-conversation restore chain); the test faces pin the recovery matrix (LiteChatViewModelTest 8→13: the relaunched first-cut seeding, the post-relaunch full-journal save, the provider and network error-turn journal sequences with no fake assistant row and the errors-fold assertions, and the unreadable-journal cold open with quarantine preservation; LiteStoresTest 13→14: the quarantine path keeping the bad-file load throwing, the unavailable-<8-hex> name match, the byte preservation, the next load reading null and the empty id reading null); the gates honestly recorded from log content: typecheck EXIT 0 and lint Found 0 warnings and 0 errors on 3861 files (90 rules, 20 threads, 127.1s — both chained rounds carrying no exit trailer — the zero exits rode the invoking shell, recorded beside the logs), test:docs 17 (148.70s) and doc-sync 37 passed 0 failed 0 skipped (283.20s, zero regeneration diff — the post-round git status matching the pre-round snapshot file for file), traceability 6/6 with the §31 open-list closure rewrite at 1193 chars and candidateEvidence 15 (LiteChat.kt and LiteChatViewModelTest.kt joining the row) and the §67 family row at 401 chars with candidateEvidence 5 while §33 and §32 stay at their gen-57 and gen-54 sealed 900/11 and 1134/14, pairing 942 pairs all consistent (the note trio 2026-10-17-lite-journal-relaunch-resume with its dictionary written ahead, the 941→942 reconciliation honestly recorded), the serial double audit round green at 87 files / 1073 tests on both passes over the curated list reused verbatim from .artifacts/lite-assembly-g2-audit-file-list.txt (87 lines, the gen-54 precedent lineage, neither sealed log carrying an exit trailer), gate0 PASS in both byte-identical forms (1938 paths / 129 components / 81 sections / 1983 lines — honestly recorded unchanged from the captured UPSTREAM_DELTA.json, not the live tree); the android acceptance: the scanner-env gradle round BUILD SUCCESSFUL in 15s with 75 actionable tasks of which 2 executed and 73 up-to-date — the honestly recorded verification form (:app:verifyLiteAssetSources and :app:verifyScannerResources executed, the two verification halves, with every compile/package/assemble task UP-TO-DATE because the real changes compiled and packaged in the implementation rounds before; this round's task graph never reaches :app:assembleRelease) — with BOTH APK faces DRIFT against the lite-preset record's sealed bytes (androidTest 92285a46→be946900 and debug 6c3aff72→032fe726, cross-checked live, this generation's capture becoming the new baseline) and the core XML aggregate reading 83 suites / 539 tests — the reconciliation over gen-57's 533 at +6 (the resume cases with LiteChatViewModelTest 13/0 and LiteStoresTest 14/0) — beside the contract half at 4 suites / 37 tests (aggregate JSON keys named skips — .artifacts/lite-resume-g3-core-results.json); and the adjudicated single-set ruling on the adapter's measured three-source miss stop-point (the gen-53 dwfq-b1ce6281-1 precedent form): the prepare oracle derives the measured eighty replaced prior build outputs — all android (two APKs, one jar, twelve classes, sixty-two XML reports, three binary outputs) — the adapter's generator-side measurement splits them into six chain-resolvable keys (the recompiled LiteChatViewModelTest five members plus LiteChatViewModelTestKt at the deterministic bytes older records hold — this generation's fallback shape the recompiled-classes form of gen-53, gen-55, gen-56 and gen-57, honestly recorded) and seventy-four first-emission keys no archive holds (BOTH APK faces among them: the androidTest's sealed 92285a46 bytes and the debug's sealed 6c3aff72 bytes ride no older archive, beside the repacked jar, the first-emission LiteChatViewModelTest and LiteStoresTest class members and the sixty-two XML reports and three binary outputs sealed only by the prior record itself — the eighth consecutive generation of the same class: gen-51 ninety-four, gen-52 seventy-three, gen-53 sixty-seven, gen-54 sixty-seven, gen-55 sixty-eight, gen-56 sixty-eight, gen-57 seventy, gen-58 seventy-four), so the advance installs the litePresetReplacedBuildOutputs exactly-seventy-four build-output exemption on the demoted lite-preset block, derived and emitted at advance run time from the record, the chain archives and the disk — never transcribed — equal to the eighty-key derivation minus the six fallback keys, the two source-side ledger miss keys resolving through the new before archive at their HEAD bytes (no UnrecoverableInputs set born), and every prior generation's set — the gen-57 liteHttpReplacedBuildOutputs seventy beside the gen-56 liteFactsReplacedBuildOutputs sixty-eight, the gen-55 liteAssemblyReplacedBuildOutputs sixty-eight, the gen-54 litePermissionReplacedBuildOutputs sixty-seven, the gen-53 liteToolsReplacedBuildOutputs sixty-seven, the gen-52 litePersonaReplacedBuildOutputs seventy-three, the gen-51 liteToolReplacedBuildOutputs ninety-four plus liteToolUnrecoverableInputs two, the gen-32 desktopPackageReplacedBuildOutputs six, the gen-33 tornRepairIntentReplacedBuildOutputs three, the gen-48 clientMutationReplacedBuildOutputs two and the gen-46 durableReceiptsReplacedBuildOutputs three — stays exactly as sealed at HEAD; the handoff-turn fabricated completion, the pendingHandoff cross-turn stickiness, the seeded driver-fold smoothing for the first live turn, the dormant RelayClient migration-or-retirement decision, the attribution-header decision, the fact diagnostics projection, the approval ask tier (§38), the tool-call result round-trip (P2) and the §54 network matrix device-side verification all stay open — so no whole-section PASS is granted; full Upstream-First objective remains in progress",
+  "gate0": {
+    "validation": "PASS",
+    "gate0": "PASS",
+    "paths": 1938,
+    "components": 129,
+    "specificationCoverage": {
+      "status": "PASS",
+      "numberedSections": 81,
+      "nonEmptySourceLines": 1983,
+      "acceptanceProven": false
+    }
+  },
+  "sourceRecord": {
+    "path": "artifacts/upstream-first/lite-resume-source.json",
+    "sha256": "0d731dd24d498d66f6e5b68ab56a857d1d216d56ad925bdde4e556c684956f30"
+  },
+  "generator": {
+    "path": "artifacts/upstream-first/write-reports.mjs",
+    "sha256": "2b1a3d2b56236ac0e673b908f90f3f342e425cf528e8f66164c6e1061434fdc9"
+  },
+  "binding": {
+    "path": "artifacts/upstream-first/lite-resume-binding.json",
+    "sha256": "4a352f781f869aa5e99345da7432244e78d811a40a3b6da4b223cf85c143256a"
+  },
+  "helpers": [
+    {
+      "path": ".artifacts/advance-lite-resume-reports.mjs",
+      "sha256": "405999269d7389bc1570c9d5fe91c472db36fe912b2bb1a8149254cfe0f80320"
+    },
+    {
+      "path": ".artifacts/capture-lite-resume-validation.mjs",
+      "sha256": "a11afce2d26a69a1df9d05f54ce45c639a498cec9a4556aad0eaa17fcf41b7be"
+    }
+  ],
+  "reports": [
+    {
+      "path": "IMPLEMENTATION_STATUS.md",
+      "sha256": "78a190b9fa02d6192a3121ed3aeb1c3d3846989e0f90480bce0e0c4661e31470"
+    },
+    {
+      "path": "artifacts/upstream-first/evidence.json",
+      "sha256": "e8a5201797a0a3d23b15ad56aa9564894d716d28f756918859c1a60ed89e40c4"
+    }
+  ],
+  "checks": [
+    {
+      "path": ".artifacts/lite-resume-binding.log",
+      "sha256": "e41e586613f00e8aff368f2d5d6191f75c0c9b455b36bd70ebe539df571b3ad3"
+    },
+    {
+      "path": ".artifacts/lite-resume-audit-final.log",
+      "sha256": "e7663bd01c3dde7fa18a055201abf3fd315d877fd95df1c440fa842e034a01a5"
+    },
+    {
+      "path": ".artifacts/lite-resume-gate0-final.log",
+      "sha256": "505d74ef938f5d34d85490d37e0176ba804d93272fcf465ce2544a02c56b3f90"
+    },
+    {
+      "path": ".artifacts/lite-resume-report-generation.log",
+      "sha256": "fe010532f71a6341467ae5719b29ac19470895de1d481156335b8f70a3273ed5"
+    }
+  ]
+}

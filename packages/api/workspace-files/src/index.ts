@@ -30,6 +30,7 @@ import type {} from '@deepseek-ai/dsh-session'
 import type {} from '@deepseek-ai/dsh-session-persistence'
 import type { SessionId } from '@deepseek-ai/dsh-session/types'
 import { Remote, RemoteError, TypertRemoteService, type TypertLookup } from '@deepseek-ai/dsh-typert-protocol'
+import { WORKSPACE_FILES_REMOTE_CAPABILITIES } from './capabilities.ts'
 import { WorkspaceChangeFeed } from './changes.ts'
 import { searchWorkspace, type SearchLimits } from './search.ts'
 import type {
@@ -210,7 +211,7 @@ export class WorkspaceFiles extends TypertRemoteService {
    * @param config - deployment caps on one page, one listing, or one search.
    */
   constructor(ctx: Context, private readonly config: Config) {
-    super(ctx, 'workspaceFiles')
+    super(ctx, 'workspaceFiles', { capabilities: WORKSPACE_FILES_REMOTE_CAPABILITIES })
     this.feed = new WorkspaceChangeFeed(ctx)
     ctx.inject(['sessions', 'typert'], (scope) => {
       scope.typert.lookups.register('workspaceFileScope', {

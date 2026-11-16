@@ -1,0 +1,17 @@
+[
+  {
+    "id": "desktop-close-to-tray",
+    "label": "Hide to Tray When Closing Window",
+    "checked": false
+  },
+  {
+    "id": "desktop-launch-at-login",
+    "label": "Launch at Login (packaged applications only)",
+    "checked": false,
+    "enabled": false
+  },
+  {
+    "id": "desktop-import-legacy-settings",
+    "label": "Import Legacy Desktop Settings…"
+  }
+]

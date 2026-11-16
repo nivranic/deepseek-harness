@@ -15,14 +15,16 @@ export interface FileUploadProgress {
 /** Browser upload service addressed by one Session identity. */
 export interface FileUploadService {
   /**
-   * Store one file for a Session. Blob and stream bodies use
-   * the background carrier; exact bytes use Remote.
+   * Store one file for a Session. Re-readable bodies previously uploaded by
+   * this Client probe Host storage by digest when supported. Other Blob and
+   * stream uploads use the background carrier; exact bytes use Remote.
    * @param sessionId - Session that owns the staged receipt.
    * @param data - browser Blob, exact bytes, or a one-shot byte stream.
    * @param name - optional display name.
    * @param signal - optional cancellation for the active upload.
    * @param onProgress - optional byte-progress observer for background bodies.
    * @returns the staged receipt and durable file reference, or a business error.
+   * @throws when Host admission fails, the caller cancels, or the active connection is replaced.
    */
   upload(
     sessionId: SessionId,
@@ -42,6 +44,7 @@ export interface FileUploadService {
    * @param signal - optional cancellation for the active upload.
    * @param onProgress - optional byte-progress observer.
    * @returns the staged receipt and normalized image reference, or a business error.
+   * @throws when image staging is unavailable, the caller cancels, or the active connection is replaced.
    */
   uploadImage(
     sessionId: SessionId,

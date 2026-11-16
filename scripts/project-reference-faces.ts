@@ -27,6 +27,17 @@ const WORKSPACE_MANIFESTS = [
  * @param root - Repository root containing both aggregate tsconfigs.
  * @returns Repo-relative diagnostics for every mismatched reference edge.
  */
+/**
+ * The one Client-config edge allowed into a split project's Host leaf: the
+ * remotes client face re-exports ui-deliverables' generated /remote and
+ * /types artifacts, which only the Host leaf builds, while the client leaf's
+ * own reference closure already leads back to remotes — the matching-face
+ * reference would form a project cycle.
+ */
+const CLIENT_CONFIG_HOST_LEAF_EXEMPTIONS: ReadonlySet<string> = new Set([
+  'packages/api/remotes/tsconfig.client.json -> packages/client/ui-deliverables/tsconfig.host.json',
+])
+
 export function collectProjectReferenceFaceViolations(root: string): string[] {
   const splitRoots = splitProjectRoots(root)
   const violations: string[] = []
@@ -48,7 +59,10 @@ export function collectProjectReferenceFaceViolations(root: string): string[] {
           continue
         }
         const expected = resolve(splitRoot, `tsconfig.${face}.json`)
-        if (targetConfig !== expected) {
+        const exempt = face === 'client' && CLIENT_CONFIG_HOST_LEAF_EXEMPTIONS.has(
+          `${repoPath(root, configPath)} -> ${repoPath(root, targetConfig)}`,
+        )
+        if (targetConfig !== expected && !exempt) {
           violations.push(
             `${repoPath(root, configPath)}: Project Reference ${JSON.stringify(reference)} enters split project ${repoPath(root, splitRoot)} from a ${faceLabel(face)} config; reference ${JSON.stringify(repoPath(root, expected))} instead`,
           )

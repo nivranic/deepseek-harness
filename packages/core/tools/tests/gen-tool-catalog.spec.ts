@@ -162,6 +162,7 @@ describe('gen-tool-catalog render', () => {
       {
         pkg: '@deepseek-ai/dsh-tool-demo',
         sources: { demo: 'packages/demo/tool-demo/src/index.ts' },
+        descriptors: [],
         requires: ['ctx.tools'],
         writes: ['tool/result'],
         schemas: [{ name: 'demo', description: 'A demo tool.', parameters: { type: 'object', properties: {} } }],

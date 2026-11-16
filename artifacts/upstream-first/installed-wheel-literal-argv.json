@@ -1,0 +1,44 @@
+{
+  "status": "PASS",
+  "scope": "Installed wheel public dsh entry preserves literal Windows pnpm argv; fixture shim only, no package installation",
+  "runtimeSha256": "30d5a7ff6b8d7594b3d132de3acb53b6bc80743c99f2414471df194553aa1181",
+  "cases": [
+    {
+      "shim": "global",
+      "exitCode": 0,
+      "matches": true,
+      "commandMarkerAbsent": true,
+      "observed": [
+        "--config.ignore-workspace-root-check=true",
+        "add",
+        "file:C:\\Users\\11585\\AppData\\Local\\Temp\\dsh-installed-argv-pk83auc2\\plugin with spaces",
+        "中文 & punctuation",
+        "embedded\"quote",
+        "",
+        "C:\\trailing\\",
+        "%DSH_PLUGIN_LITERAL%",
+        "!DSH_PLUGIN_LITERAL!",
+        "literal&echo unexpected>argument-marker.txt"
+      ]
+    },
+    {
+      "shim": "npm-bin",
+      "exitCode": 0,
+      "matches": true,
+      "commandMarkerAbsent": true,
+      "observed": [
+        "--config.ignore-workspace-root-check=true",
+        "add",
+        "file:C:\\Users\\11585\\AppData\\Local\\Temp\\dsh-installed-argv-pk83auc2\\plugin with spaces",
+        "中文 & punctuation",
+        "embedded\"quote",
+        "",
+        "C:\\trailing\\",
+        "%DSH_PLUGIN_LITERAL%",
+        "!DSH_PLUGIN_LITERAL!",
+        "literal&echo unexpected>argument-marker.txt"
+      ]
+    }
+  ],
+  "capturedAt": "2026-09-14T23:03:01.046094+00:00"
+}

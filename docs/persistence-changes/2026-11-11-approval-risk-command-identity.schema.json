@@ -1,0 +1,38 @@
+{
+  "formatVersion": 2,
+  "roots": [
+    {"key":"event:approval/asked","kind":"event","event":"approval/asked","surface":false,"digest":"7d4b2813a6fc075ed8cbe9a03c0fbe67eaf081a30d3adee73f0f5a47dd8d3a16"},
+    {"key":"event:command/done","kind":"event","event":"command/done","surface":false,"digest":"628f22307154a28661a0e4b2390b8a07709c56d1da1d8f2b09fd62719678e116"},
+    {"key":"event:command/run","kind":"event","event":"command/run","surface":false,"digest":"5fa0af5a3f663880a31ade24fa0bcf9d6b18a416ac4d934487661ed207dec538"}
+  ],
+  "types": [],
+  "nodes": {
+    "0657d3ca5ac4e7bf": {"kind":"primitive","type":"number"},
+    "0a289cbf1c9e18b6": {"kind":"object","properties":[{"name":"callId","type":"4cd48f3e5108bd6e","optional":true},{"name":"escalation","type":"d5c961dac82872d7","optional":true},{"name":"id","type":"4cd48f3e5108bd6e","optional":false},{"name":"reason","type":"4cd48f3e5108bd6e","optional":true},{"name":"risk","type":"5038a85f954ee5d0","optional":true},{"name":"toolName","type":"4cd48f3e5108bd6e","optional":false}],"indices":[]},
+    "1083bc6318627d95": {"kind":"object","properties":[{"name":"clientMutationId","type":"4cd48f3e5108bd6e","optional":true},{"name":"commandId","type":"4cd48f3e5108bd6e","optional":false},{"name":"kind","type":"1ab2ef1296f157ba","optional":false},{"name":"sourceEventSeq","type":"0657d3ca5ac4e7bf","optional":true},{"name":"text","type":"4cd48f3e5108bd6e","optional":true}],"indices":[]},
+    "12a0cfa619ac4a5f": {"kind":"literal","value":"read-only"},
+    "145b32ac4ce49386": {"kind":"literal","value":"moderate"},
+    "187138657e53c570": {"kind":"literal","value":"critical"},
+    "18fce9540bb20897": {"kind":"literal","value":"danger-full-access"},
+    "1ab2ef1296f157ba": {"kind":"union","types":["511801b0a6470d98","a2be0f0cb59f0d4a"]},
+    "437a1c86fb6f6644": {"kind":"literal","value":"high"},
+    "4cd48f3e5108bd6e": {"kind":"primitive","type":"string"},
+    "5038a85f954ee5d0": {"kind":"union","types":["145b32ac4ce49386","187138657e53c570","437a1c86fb6f6644","65f6a6e8bdce8376"]},
+    "511801b0a6470d98": {"kind":"literal","value":"success"},
+    "5fa0af5a3f663880": {"kind":"object","properties":[{"name":"data","type":"c7e7259d4984280e","optional":false},{"name":"ignorable","type":"dacf3d5f3e4ff619","optional":true},{"name":"seq","type":"0657d3ca5ac4e7bf","optional":false},{"name":"time","type":"0657d3ca5ac4e7bf","optional":false},{"name":"type","type":"f1996af2602e6f62","optional":false}],"indices":[]},
+    "628f22307154a286": {"kind":"object","properties":[{"name":"data","type":"1083bc6318627d95","optional":false},{"name":"ignorable","type":"dacf3d5f3e4ff619","optional":true},{"name":"seq","type":"0657d3ca5ac4e7bf","optional":false},{"name":"time","type":"0657d3ca5ac4e7bf","optional":false},{"name":"type","type":"8cdd3fdd295cee53","optional":false}],"indices":[]},
+    "65f6a6e8bdce8376": {"kind":"literal","value":"low"},
+    "68f44f59e91c4139": {"kind":"literal","value":"user"},
+    "7d4b2813a6fc075e": {"kind":"object","properties":[{"name":"data","type":"0a289cbf1c9e18b6","optional":false},{"name":"ignorable","type":"dacf3d5f3e4ff619","optional":true},{"name":"seq","type":"0657d3ca5ac4e7bf","optional":false},{"name":"time","type":"0657d3ca5ac4e7bf","optional":false},{"name":"type","type":"cd186c309e2bef30","optional":false}],"indices":[]},
+    "8cdd3fdd295cee53": {"kind":"literal","value":"command/done"},
+    "a2be0f0cb59f0d4a": {"kind":"literal","value":"error"},
+    "a3edd1efd1fef21b": {"kind":"literal","value":"workspace-write"},
+    "ada310bf0bdb8fed": {"kind":"object","properties":[{"name":"kind","type":"68f44f59e91c4139","optional":false}],"indices":[]},
+    "c7e7259d4984280e": {"kind":"object","properties":[{"name":"args","type":"4cd48f3e5108bd6e","optional":true},{"name":"clientMutationId","type":"4cd48f3e5108bd6e","optional":true},{"name":"commandId","type":"4cd48f3e5108bd6e","optional":false},{"name":"name","type":"4cd48f3e5108bd6e","optional":false},{"name":"source","type":"ada310bf0bdb8fed","optional":false}],"indices":[]},
+    "cd186c309e2bef30": {"kind":"literal","value":"approval/asked"},
+    "d5c961dac82872d7": {"kind":"object","properties":[{"name":"effectiveMode","type":"fab2bb09bc5e3b9d","optional":false},{"name":"requestedMode","type":"fab2bb09bc5e3b9d","optional":false}],"indices":[]},
+    "dacf3d5f3e4ff619": {"kind":"literal","value":true},
+    "f1996af2602e6f62": {"kind":"literal","value":"command/run"},
+    "fab2bb09bc5e3b9d": {"kind":"union","types":["12a0cfa619ac4a5f","18fce9540bb20897","a3edd1efd1fef21b"]}
+  }
+}

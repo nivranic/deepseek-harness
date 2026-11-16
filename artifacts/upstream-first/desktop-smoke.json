@@ -1,0 +1,73 @@
+{
+  "schemaVersion": 1,
+  "status": "PASS",
+  "scope": "Windows official Desktop development build and local UI/process smoke only",
+  "observedAt": "2026-09-14T17:43:49.058037+00:00",
+  "baseSha": "c291e7961a515f6d7af9304e7fd1d257929aef26",
+  "dirtySourceRecord": "artifacts/upstream-first/desktop-smoke-source.json",
+  "launcher": "pnpm run start:desktop",
+  "harnessHome": "task-owned .artifacts/desktop-home",
+  "telemetryDisabled": true,
+  "ui": {
+    "status": "PASS",
+    "scope": "Windows Desktop development runtime, empty isolated home; no model call",
+    "page": "dsh-app://app/index.html",
+    "settingsOpened": true,
+    "darkTheme": true,
+    "lightTheme": true,
+    "settingsClosed": true,
+    "mainBridgeKeys": [
+      "protocolVersion"
+    ],
+    "readyText": "DSH 本地构建\n0.1.5-rc.2-c291e79-dirty\n新会话\n工作区\n暂无会话\n设置\n探索未至之境\n预览版\n选择工作区\n标准模式\n选择一个工作区开始"
+  },
+  "processes": {
+    "status": "PASS",
+    "scope": "Windows Desktop development processes",
+    "shell": {
+      "pid": 35444,
+      "node": "24.18.1",
+      "electron": "44.0.0"
+    },
+    "host": {
+      "pid": 46472,
+      "node": "22.22.1",
+      "electron": null
+    }
+  },
+  "listeningPorts": {
+    "shell": [
+      19222,
+      19229
+    ],
+    "host": [
+      19230
+    ],
+    "address": "127.0.0.1",
+    "purpose": "development inspectors only"
+  },
+  "shutdown": {
+    "method": "close Desktop application window through CDP",
+    "launcherExitCode": 0,
+    "remainingOwnedProcesses": 0
+  },
+  "limitations": [
+    "No packaged runtime or installer tested",
+    "No real model request",
+    "No macOS, iOS or Android execution",
+    "No tray, autostart, updater or restart recovery acceptance",
+    "Development console emitted the existing Electron CSP warning"
+  ],
+  "screenshots": [
+    {
+      "path": "artifacts/upstream-first/desktop-ready.png",
+      "sha256": "55d0f0e429a76eac945a06b180700f9b7f1adbac8178edad46bbe392992a99c9"
+    },
+    {
+      "path": "artifacts/upstream-first/desktop-dark-settings.png",
+      "sha256": "5ac1b06e00ea7546d04411ff3b5ee312edf69325b8eb18fc5dffc217b184fb70"
+    }
+  ],
+  "realModelTested": false,
+  "dirtySourceRecordSha256": "922f190c9fd87bd93a58902d1d7bf7d98ed6d7fb8a6de90b86a8670f9e12c47b"
+}

@@ -752,6 +752,7 @@ describe('fixture session face', () => {
     expect(() => bare.consumeOlder()).toThrow('test session "s1": consumeOlder is not stubbed — supply it on the fixture\'s session face')
     expect(() => bare.loadThrough()).toThrow(/loadThrough is not stubbed/)
     expect(() => bare.rename()).toThrow(/rename is not stubbed/)
+    expect(() => bare.prepareRename()).toThrow(/prepareRename is not stubbed/)
     const submission = bare.beginSubmission()
     expect(submission.requestId).toBe('test-submission-1')
     expect(() => { submission.abandon() }).not.toThrow()

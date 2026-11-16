@@ -1,0 +1,70 @@
+{
+  "status": "PASS",
+  "scope": "Report bindings and audit for the ui-subagent shared-classification adoption; the remaining failure-presenting surfaces remain queue items; full Upstream-First objective remains in progress",
+  "gate0": {
+    "validation": "PASS",
+    "gate0": "PASS",
+    "paths": 1938,
+    "components": 129,
+    "specificationCoverage": {
+      "status": "PASS",
+      "numberedSections": 81,
+      "nonEmptySourceLines": 1983,
+      "acceptanceProven": false
+    }
+  },
+  "sourceRecord": {
+    "path": "artifacts/upstream-first/ui-classification-adoption-source.json",
+    "sha256": "e7c16fa2245efaf84377ba1ff0217a66d65632c0680377997848ba098233ba6a"
+  },
+  "generator": {
+    "path": "artifacts/upstream-first/write-reports.mjs",
+    "sha256": "0859c172ef16531bd01db4f2abb46b199016f2141acf29e3528ae0f8ad83f9a1"
+  },
+  "binding": {
+    "path": "artifacts/upstream-first/ui-classification-adoption-binding.json",
+    "sha256": "321384c5a0a3768469838e2e3548b13f5c7d669e654d7b6b643e3c96d595179e"
+  },
+  "helpers": [
+    {
+      "path": ".artifacts/advance-ui-classification-adoption-reports.mjs",
+      "sha256": "decfe79e9ab86b35de9668e0cf9516aea3b5446ec1960b37008630416c5982b8"
+    },
+    {
+      "path": ".artifacts/capture-ui-classification-adoption-validation.mjs",
+      "sha256": "9ad206d19da0eec65e3444bf9876347eb899d0134abd46ca557a89b12fb7ba3a"
+    }
+  ],
+  "reports": [
+    {
+      "path": "IMPLEMENTATION_STATUS.md",
+      "sha256": "a30493987f86498913ecc0bfe16d7c47269bf74982d86035ac47fe0c1a27fe56"
+    },
+    {
+      "path": "artifacts/upstream-first/evidence.json",
+      "sha256": "cf84ed4485da04bf98268c0f6a9e924e18228a777d6e25074a58511861eceae0"
+    }
+  ],
+  "checks": [
+    {
+      "path": ".artifacts/ui-classification-adoption-binding.log",
+      "sha256": "3a6fb5cca5edf4b576d6cb0462332937f114c0ecbe294cc4aaecda9c4ef3633c"
+    },
+    {
+      "path": ".artifacts/ui-classification-adoption-audit-tests.log",
+      "sha256": "715bd78cd145991f973efb560e9bc5cd973a6db0b554202cc76a0021f527cb9c"
+    },
+    {
+      "path": ".artifacts/ui-classification-adoption-gate0.log",
+      "sha256": "505d74ef938f5d34d85490d37e0176ba804d93272fcf465ce2544a02c56b3f90"
+    },
+    {
+      "path": ".artifacts/ui-classification-adoption-report-diff-check.log",
+      "sha256": "e3b0c44298fc1c149afbf4c8996fb92427ae41e4649b934ca495991b7852b855"
+    },
+    {
+      "path": ".artifacts/ui-classification-adoption-report-generation.log",
+      "sha256": "fe010532f71a6341467ae5719b29ac19470895de1d481156335b8f70a3273ed5"
+    }
+  ]
+}

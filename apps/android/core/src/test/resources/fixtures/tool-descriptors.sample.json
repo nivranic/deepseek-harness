@@ -1,0 +1,12 @@
+{
+  "tools": [
+    { "id": "artifact_create", "version": 1, "risk": "low", "permissions": ["artifact.write"], "supportsLite": true, "supportsRemote": true },
+    { "id": "attachment_read", "version": 1, "risk": "low", "permissions": ["attachment.read"], "supportsLite": true, "supportsRemote": true },
+    { "id": "calculator", "version": 1, "risk": "low", "permissions": [], "supportsLite": true, "supportsRemote": true },
+    { "id": "image_inspect", "version": 1, "risk": "low", "permissions": ["image.read"], "supportsLite": true, "supportsRemote": true },
+    { "id": "run_tests", "version": 1, "risk": "moderate", "permissions": ["tests.run"], "supportsLite": false, "supportsRemote": true },
+    { "id": "url_fetch", "version": 1, "risk": "moderate", "permissions": ["net.fetch"], "supportsLite": true, "supportsRemote": true },
+    { "id": "web_search", "version": 1, "risk": "moderate", "permissions": ["net.search"], "supportsLite": true, "supportsRemote": true },
+    { "id": "apply_patch", "version": 2, "risk": "high", "permissions": ["workspace.write"], "supportsLite": false, "supportsRemote": true }
+  ]
+}

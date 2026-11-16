@@ -28,7 +28,7 @@ Desktop product events use the optional [product analytics service](../product-a
 <a id="conversation-assembly"></a>
 ## Conversation assembly
 
-`UiConversation.events` is the single registry for event Definitions, and `UiConversation.views` is the single registry for target snapshot builders. Both registries reject duplicate keys, preserve registration order, return idempotent disposers, and rebuild existing bindings when their contribution roster changes. `UiConversation.binding(bindingOrSessionId)` returns one identity-stable Conversation binding for the current Session Controller binding. It does not open another event source. A View Definition may declare `toolCallFocus` to translate a tool-call id into its focus identity. Conversation supplies an Inspect callback only while such a target has a visible View entry; Chat consumes this callback without selecting a target.
+`UiConversation.events` is the single registry for event Definitions, and `UiConversation.views` is the single registry for target snapshot builders. Both registries reject duplicate keys, preserve registration order, return idempotent disposers, and rebuild existing bindings when their contribution roster changes. `UiConversation.binding(bindingOrSessionId)` returns one identity-stable Conversation binding for the current Session Controller binding. It does not open another event source. A View Definition may declare `toolCallFocus(callId, location)` to translate a tool-call id and its owning Turn/Step into its focus identity. Conversation supplies an Inspect callback only while such a target has a visible View entry; Chat consumes this callback without selecting a target.
 
 `ConversationBinding.openTurn` is an identity-stable, read-only source of the latest turn number when its start is loaded and it remains open, or `undefined` otherwise. Observed turn changes publish synchronously even when no View is active. Fixed stop input reads this source alongside Session running and pending-interaction state. Unloading the Session binding detaches its event-source subscription.
 
@@ -67,6 +67,8 @@ The existing semantic `DraftSnapshot` retains quote text and clipboard-coordinat
 
 <a id="shell-and-standard-props"></a>
 ## Shell and standard props
+
+Navigation can call `ctx.uiConversation.openView(binding, view, focus)` for an exact retained Session binding. The registered renderer store shares this one-shot request across the header and body; a request before mount waits on that binding and is discarded when the binding ends. Unknown Views and stale bindings are rejected.
 
 The root-scoped `conversation.hero.frame` hoc Slot wraps the scroll body in every phase, so its layers never remount the composer when the home ends. Its owner props carry `hero`, true only for the blank home of a standalone Conversation. Layers keep the scroll body a direct flex item of the body, for example with `display: contents`. On the home, the Conversation root, which paints the background, isolates stacking: a layer decoration at negative `z-index` paints above that background and below all Conversation content, including composer takeovers. Other phases leave the root out of the stacking order, so unportaled Conversation popovers can still rise above AppFrame chrome that floats over the column. Layers own their own input handling. With no occupant, the body is unchanged.
 

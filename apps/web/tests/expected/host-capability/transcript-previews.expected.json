@@ -1,0 +1,26 @@
+[
+  {
+    "metadata": false,
+    "tool": 1,
+    "presented": 1,
+    "prose": 1
+  },
+  {
+    "metadata": true,
+    "tool": 1,
+    "presented": 1,
+    "prose": 1
+  },
+  {
+    "metadata": false,
+    "tool": 1,
+    "presented": 1,
+    "prose": 1
+  },
+  {
+    "metadata": true,
+    "tool": 1,
+    "presented": 1,
+    "prose": 1
+  }
+]

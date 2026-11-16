@@ -1,0 +1,16 @@
+{
+  "status": "PASS",
+  "controls": 3,
+  "sourceRecord": {
+    "path": "artifacts/upstream-first/lite-urlfetch-source.json",
+    "sha256": "6602e65f5315b050703d6de73778ac2e7152159fa3f119e37a8071e42555896f"
+  },
+  "generator": {
+    "path": "artifacts/upstream-first/write-reports.mjs",
+    "sha256": "643afe2ae6bf6e658551adda107e6ef8a768d7b775fad123118c624b6d10492f"
+  },
+  "helper": {
+    "path": ".artifacts/check-lite-urlfetch-binding.mjs",
+    "sha256": "f54966b2849ced1f4cb4084745586456a9f2577eb96ba8854d941b11287f6c12"
+  }
+}

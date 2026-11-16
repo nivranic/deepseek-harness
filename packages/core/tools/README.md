@@ -31,7 +31,7 @@ Mount `dsh-tools` wherever agents call tools: it provides `ctx.tools`, the regis
 
 ### Register a tool
 
-`defineTool` builds a typed tool definition: a model-facing name, description, and parameter schema, a canonical output declaration, and an `execute` body that returns only the declared JSON value. Model arguments are validated before execution; invalid input becomes a normal error result.
+`defineTool` builds a typed tool definition with model-facing parameters, canonical output, an execution body, and Host declarations. `ctx.tools.descriptors(scope)` requires every reported tool to declare a positive safe-integer `version`, `risk`, `permissions`, `supportsLite`, and `supportsRemote`. An incomplete declaration rejects the entire catalog read with `ToolDeclarationUnavailableError`. Descriptors include the selected executor's `transportDefinitions` and return frozen, id-sorted copies. The generated [`tool-descriptors.json`](tool-descriptors.json) records shipped declarations. The [API adapter](../../api/remotes/README.md#use-this-package) owns Remote access to current declarations.
 
 Canonical values belong to execution; the Session records rendered content and optional presentation metadata instead. Replacing or redacting that content does not remove the canonical value available to a programmatic caller; a policy that must deny that access must block execution or replace the value.
 
@@ -45,6 +45,11 @@ declare const ctx: Context
 ctx.tools.register(defineTool({
   name: 'read_file',
   description: 'Read a file from disk.',
+  version: 1,
+  risk: 'low',
+  permissions: [],
+  supportsLite: false,
+  supportsRemote: true,
   parameters: {
     path: { type: 'string', required: true, description: 'Absolute file path' },
     offset: { type: 'number' },
@@ -63,6 +68,11 @@ ctx.tools.register(defineTool({
 
 The unified schema DSL supports `string`, `number`, `integer`, `boolean`, `null`, `array`, `object`, author-only `json`, and exact-one `oneOf`; `InferValue` preserves exact types through 16 container levels before widening to `JsonValue`. A raw JSON Schema (`JsonSchemaNode`) is the wire-level counterpart shared with subagents, workflows, and MCP.
 
+### Lite tool schemas projection
+
+The same catalog generator also emits [`lite-tool-schemas.json`](lite-tool-schemas.json): exactly the shipped tools whose §32 declaration carries `supportsLite: true`, each reduced to its model-facing `name`, `description`, and `parameters` — the same snapshot-separated values `ctx.tools.schemas()` serves. A Lite request face mounts this static projection as its tools array instead of harvesting live schemas; a `supportsLite` declaration without a harvestable schema fails the generator. Regenerate with `pnpm run gen-tool-catalog`.
+
+### Configure the presentation mode
 <a id="conditional-tools"></a>
 ### Conditional tools
 
@@ -109,12 +119,13 @@ This section explains how the package realizes the behavior above; the observabl
 
 ### Design concept
 
-The registry holds typed `ToolDefinition`s in scoped layers and projects them onto the model-facing `ToolSchema` set at request time — `output`, `execute`, `finalizeContent`, `timeoutMs`, and presentation callbacks never leak onto the wire. Built-in executors reuse the shared pipeline: `tools/pre-execute` (extensible allow/deny/ask) → registered monotonic guards → `tools/execute` (around-dispatch wrappers) → `tools/post-execute` (inspect/replace, attach context) → definition-owned `finalizeContent` → the observe-only `tools/result` event. Only the `tools/execute` view may replace the required signal, and the registry re-fuses the caller signal before the body.
+The registry holds typed `ToolDefinition`s in scoped layers and projects them onto the model-facing `ToolSchema` set at request time — `output`, `execute`, `finalizeContent`, `timeoutMs`, presentation callbacks, and the five §32 declaration fields never leak onto the wire. Every call runs a fixed pipeline: `tools/pre-execute` (extensible allow/deny/ask) → registered monotonic guards → `tools/execute` (around-dispatch wrappers) → `tools/post-execute` (inspect/replace, attach context) → definition-owned `finalizeContent` → the observe-only `tools/result` event. Only the `tools/execute` view may replace the required signal, and the registry re-fuses the caller signal before the body.
 
 ### Source map
 
 - [`src/index.ts`](src/index.ts) — Plugin entry and public tool APIs; scoped tool service and executor selection.
 - [`src/contracts.ts`](src/contracts.ts) — Tool definitions, invocation results, guards and decisions.
+- [`src/catalog.ts`](src/catalog.ts) and [`src/types.ts`](src/types.ts) — Declaration projection, completeness failure, and Client-safe descriptor types.
 - [`src/executor.ts`](src/executor.ts) — Executor descriptions and batch input/output.
 - [`src/pipeline.ts`](src/pipeline.ts) — Shared `prepare`, `dispatch`, and `complete` stages, their result types, and the batch entry point.
 - [`src/batch.ts`](src/batch.ts) — Concurrency, ordered results and optional Session logging.

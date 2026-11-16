@@ -1,0 +1,4 @@
+{
+  "meta.title": "API de diagnostic du Host",
+  "meta.description": "Indique si le Host est prêt et recueille des diagnostics sans données sensibles."
+}

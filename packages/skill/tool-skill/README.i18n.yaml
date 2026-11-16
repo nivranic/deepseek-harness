@@ -9,8 +9,8 @@
   en: 223816f8da89cf76
   zh: 7c54534f299141eb
 /deepseek-ai-dsh-tool-skill/summary:
-  en: b4180d01149b73ff
-  zh: 49da5065078a1407
+  en: 60ddf3117a43d3ae
+  zh: ad49acd3b5ca6c4c
 /deepseek-ai-dsh-tool-skill/table-of-contents:
   en: d152484eb41ac6b4
   zh: 09388d293f9be9cb
@@ -24,8 +24,8 @@
   en: 440b17442e431e27
   zh: f8e6d8ef9a954e86
 /deepseek-ai-dsh-tool-skill/use-this-package/what-the-model-gets:
-  en: 30977f5aac156d02
-  zh: 6641d32f1d6033ea
+  en: ee397adc97d0aa74
+  zh: 0121d34b0999a95e
 /deepseek-ai-dsh-tool-skill/use-this-package/observable-success-and-failures:
   en: 22378da498c4a8db
   zh: 821d021a0fc1eff5
@@ -33,14 +33,14 @@
   en: 1aa627255c35178f
   zh: 44d8633ea56765d3
 /deepseek-ai-dsh-tool-skill/understand-the-implementation/design-concept:
-  en: c1faafc87c5bea50
-  zh: a0dc8d1f7365a139
+  en: ee4380c98437d699
+  zh: 25f35ec8c8c47c00
 /deepseek-ai-dsh-tool-skill/understand-the-implementation/source-map:
   en: 509699e3a467df41
   zh: ff7fc30ec4998e5a
 /deepseek-ai-dsh-tool-skill/understand-the-implementation/catalog-lifecycle:
-  en: c5a79c840eec02dc
-  zh: 724d52ed923b9285
+  en: d5b9c97e3a1abe1f
+  zh: 7e6ba4f6004c8b43
 /deepseek-ai-dsh-tool-skill/understand-the-implementation/invocation-boundary:
   en: bb8543ea29cbc451
   zh: b1124fa489bf9ea4
@@ -54,23 +54,14 @@
   en: ed929c61dd301a56
   zh: 376c8d69b6fa7df6
 /deepseek-ai-dsh-tool-skill/model-experience/session-catalog/what-the-model-sees:
-  en: 9bb1b510dc06df35
-  zh: 86992d045c4b62b3
-/deepseek-ai-dsh-tool-skill/model-experience/session-catalog/what-the-model-sees/incomplete-discovery-notice:
-  en: 30bbdd5d61a9e8c3
-  zh: 28f02400b5643331
-/deepseek-ai-dsh-tool-skill/model-experience/session-catalog/what-the-model-sees/initial-empty-incomplete-catalog:
-  en: bfed78cd16e0af12
-  zh: 7291a6e0bf95311f
-/deepseek-ai-dsh-tool-skill/model-experience/session-catalog/what-the-model-sees/empty-incomplete-replacement:
-  en: d71eb7aa26919abb
-  zh: 8f3e4db43aae3c6f
+  en: 946548755f1d09fc
+  zh: 4fb2171a2ee0ff3d
 /deepseek-ai-dsh-tool-skill/model-experience/session-catalog/what-the-model-sees/skill-catalog-template:
   en: 8ca9241e26124ce3
   zh: d083f87eaae40e15
 /deepseek-ai-dsh-tool-skill/model-experience/session-catalog/token-effect:
-  en: 223a393b4d0d67d9
-  zh: d3dc5d22337abecb
+  en: 6a8ebc7abfb876e5
+  zh: d3d9f126bc931162
 /deepseek-ai-dsh-tool-skill/model-experience/session-catalog/kv-cache-effect:
   en: e6e6758c96527e19
   zh: 8f95e36da658c95a

@@ -1,0 +1,66 @@
+{
+  "status": "PASS",
+  "scope": "Report bindings and audit for the device-trust-outlet increment: the section 44 deviceTrustMetadata outlet delivered as machine-checked facts — the spec pinning read the section's remaining provider/relay outlets after their producers with the deviceTrust producer already landed (the device-trust package's durable grants through their whole lifecycle with grantsRevoked events and the revokedAt chains) while egress was zero and the deviceTrustMetadata switch had no producer to gate, the four-candidate survey choosing deviceTrust as the gen-39-isomorphic outlet (providerMetadata needing a semantics ruling, the §56 revision pinned to §42 and blocked by signature material, the too-broad fork/execute clientMutationId); the implementation lands both sides — the producer push through an optional structured owner (the TelemetryOwner local interface with the deviceTrustMetadataAllowed specialization and reportRevocation(revokedAt, deviceCount) converging revokeDevice at deviceCount 1 and revokeAllDevices over its actual-revocation branch, the consent read at the revocation path from the construction-frozen snapshot with the closed gate silent, the revocation RPC behavior unchanged, the payload minimized to revokedAt plus deviceCount with severity info so no deviceId, fingerprint, role or key ever leaves, and a no-op revoke-all emitting nothing) and the outlet side honoring the three-kind promise through the constructor-gate disjunction (url/batch-size/shutdown validations reaching the deviceTrust-only opt-in) with opsEmit created when crash or deviceTrust is on (the per-kind widening gen-39 predicted), the self-draining fiber generalized to non-session outlets and DISABLED keeping the master switch; zero runtime dependencies through the type-only devDep with the tsconfig dual-face references mirroring gen-39 — executed as two parallel lanes green on their first pass with zero rework (five new device-trust cases joining 39 for 44, four new otel cases joining the package family at 69 with zero existing cases rewritten, the integration run 113/113 with tsc -b both 0), with lane A incidentally fixing the device-trust client leaf tsconfig that never referenced the storage/storage-domain projects its own imports use (stale tsbuildinfo masking it, the root solution never building that leaf so CI never exposed it) plus the pnpm-lock three-line companion, the main session's four repair rounds (the note zh switching-line order, the device-trust README Summary 106-to-100 tightening on both faces, the cordis catalog and doc graph regenerations with their pairings, the config-catalog regeneration with its zh mirror including the device-trust Source :61→:76 lag fix), and the audit-scope misstep recorded honestly — the first attempt's packages/client full glob at 410 files including pre-existing baseline reds discarded for the 87-file curated lineage rebuilt from the prior generation's audit log; the documentation evidence keeps the two-file split — doc-quick 17 gates in 62.84s in its own docs log and doc-sync 36 passed 0 failed 0 skipped in 202.00s in its own docsync log, both the post-repair green runs after the first doc-quick round went 15/2 — with the serial double audit round green at 87 files / 1073 tests on both passes with every count asserted from log content (the device-trust spec being an api host face staying off the client lineage), gate0 in both forms, the traceability node --test 6/6 with the section 44 remaining rewritten from 980 to 1482 characters and candidateEvidence 9 to 12, and the lint round sealed in its honestly recorded chained single-trailer form (the build:lib:host plus typecheck:contracts-ready chain with the host-build and tsc client command lines, then the lint chain with the tsx scripts/run-oxlint.ts . command line, one EXIT_CODE=0 trailer for the whole chain, Found 0 warnings and 0 errors in 96.2s on 3851 files, no labelled trailer in the log); the same-round gradle acceptance round (scanner env with -PdshNativeAcceptance over :app:assembleDebug :app:assembleDebugAndroidTest :core:test, BUILD SUCCESSFUL in 1m 44s) replayed WARM with 1 executed of 70 actionable tasks and 69 up-to-date — :core:test reached the graph and stayed UP-TO-DATE, so the still-standing XML reports stay the aggregate's authority — because nothing under apps/android changed this generation (no device lane ran and the emulator stayed off), the empty-derived byte proof compares both APKs byte-identically against the crash-diagnostics-outlet record's builtFiles entries (.artifacts/device-trust-outlet-apk-bytes.log — the fifth consecutive byte-identical generation), the still-standing XML reports aggregate 77 suites / 477 tests with zero failures/errors/skips (.artifacts/device-trust-outlet-core-results.json), and the prepare-side unresolved scan derived ELEVEN replaced prior build outputs (7675 files, 0 reused, 7675 written — the Option A form per the gen-38 precedent: the device-trust eight plus tool-cordis three lib keys all carried at their sealed bytes by the older archives on the prior record's own historicalRecords chain) resolved through the newest-history fallback so the new record's own derivation stays out of the generator and the cumulative allowlist keeps its nine inherited keys while every prior generation's own set (including the adjudicated four-key approvalFactsCompleteReplacedBuildOutputs set with its filter and guard, the gen-32 round-1 repair's atomicDurabilitySupersededSources six-key set with its companion single-key desktopPackageReplacedBuildOutputs set, and the gen-33 three-key tornRepairIntentReplacedBuildOutputs set riding the HEAD content) stays unchanged — the first run's ten-key worktree-incremental pre-measure having been correctly rejected by the allowlist assertion before any archive write with the rerun backfilling the oracle-measured eleven; the provider and relay outlets keep following their producers (relay blocked on section 23; the provider attribution-headers semantics ruling rides its own future generation) and the loader-composition e2e baseline red stays an open channel, so no whole-section PASS is granted; full Upstream-First objective remains in progress",
+  "gate0": {
+    "validation": "PASS",
+    "gate0": "PASS",
+    "paths": 1938,
+    "components": 129,
+    "specificationCoverage": {
+      "status": "PASS",
+      "numberedSections": 81,
+      "nonEmptySourceLines": 1983,
+      "acceptanceProven": false
+    }
+  },
+  "sourceRecord": {
+    "path": "artifacts/upstream-first/device-trust-outlet-source.json",
+    "sha256": "ce61bb46c02584d055abc823059d6fb2ca35ca615e07ebaf012a4e2dae0adcf2"
+  },
+  "generator": {
+    "path": "artifacts/upstream-first/write-reports.mjs",
+    "sha256": "f894eeda03ccc3064a5a33deb23acc81304d0cce6311b88e87bb0c5f548393f3"
+  },
+  "binding": {
+    "path": "artifacts/upstream-first/device-trust-outlet-binding.json",
+    "sha256": "af4a1889e292614334592fe19e252c6b9ae0d5b25a2325809bc1d5748c8449f9"
+  },
+  "helpers": [
+    {
+      "path": ".artifacts/advance-device-trust-outlet-reports.mjs",
+      "sha256": "9ffc6bc4e65084350768d4eb06113d590e567c8e2665509015023f723765c962"
+    },
+    {
+      "path": ".artifacts/capture-device-trust-outlet-validation.mjs",
+      "sha256": "ba0533be2985911fb053351f47ed648b8fdbb555d6815a6a29c93648abec167e"
+    }
+  ],
+  "reports": [
+    {
+      "path": "IMPLEMENTATION_STATUS.md",
+      "sha256": "4a966d592851a5202d43e1f14eec434bb4264eb8a0ca5dacf6480b90388ccb61"
+    },
+    {
+      "path": "artifacts/upstream-first/evidence.json",
+      "sha256": "f2546a7a4426f29c9494e43739aa3fe528b582303c1e6f5620f146add7651152"
+    }
+  ],
+  "checks": [
+    {
+      "path": ".artifacts/device-trust-outlet-binding.log",
+      "sha256": "80299b91a972861e0f273d5dee48b8776f60c30925684f1691d3c323600db90b"
+    },
+    {
+      "path": ".artifacts/device-trust-outlet-audit-final.log",
+      "sha256": "a4fe9d52f23f0a341c22c431f0c0124f1db5a0db7d319e086d7f46d0be61e10b"
+    },
+    {
+      "path": ".artifacts/device-trust-outlet-gate0-final.log",
+      "sha256": "505d74ef938f5d34d85490d37e0176ba804d93272fcf465ce2544a02c56b3f90"
+    },
+    {
+      "path": ".artifacts/device-trust-outlet-report-generation.log",
+      "sha256": "fe010532f71a6341467ae5719b29ac19470895de1d481156335b8f70a3273ed5"
+    }
+  ]
+}

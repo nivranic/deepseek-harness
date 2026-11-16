@@ -1,0 +1,70 @@
+{
+  "status": "PASS",
+  "scope": "Report bindings and audit for the Host selection observation; the remaining specification sections stay open; full Upstream-First objective remains in progress",
+  "gate0": {
+    "validation": "PASS",
+    "gate0": "PASS",
+    "paths": 1938,
+    "components": 129,
+    "specificationCoverage": {
+      "status": "PASS",
+      "numberedSections": 81,
+      "nonEmptySourceLines": 1983,
+      "acceptanceProven": false
+    }
+  },
+  "sourceRecord": {
+    "path": "artifacts/upstream-first/host-selection-observer-source.json",
+    "sha256": "f7295d4ac9724f99d1d9db02ede9a3f7bddc1b235649e449fb21b21a856d8824"
+  },
+  "generator": {
+    "path": "artifacts/upstream-first/write-reports.mjs",
+    "sha256": "0a3259cf24c0e6b1828603141ef4fc22af4e740db1479a28001cd27ec18df87a"
+  },
+  "binding": {
+    "path": "artifacts/upstream-first/host-selection-observer-binding.json",
+    "sha256": "d8f5049b4ac7c320242e319352940f17e11786bac52400965e467eb55f15d155"
+  },
+  "helpers": [
+    {
+      "path": ".artifacts/advance-host-selection-observer-reports.mjs",
+      "sha256": "f375475c8f40b0fb52f60001c628f53599f18a27371b7c0430018fb29e75103e"
+    },
+    {
+      "path": ".artifacts/capture-host-selection-observer-validation.mjs",
+      "sha256": "3c7a1f1a12669a827544739ce2efd5c6f708fa5f0612a808d46ad20a2c8afb37"
+    }
+  ],
+  "reports": [
+    {
+      "path": "IMPLEMENTATION_STATUS.md",
+      "sha256": "794c010cc6b153240b2d1730a25f9f43ba656e82dcc14a43dd2d80d073f09ddf"
+    },
+    {
+      "path": "artifacts/upstream-first/evidence.json",
+      "sha256": "116f9e416be26de3b68bf96e172d917d5a8acf5926b7b1b8fd974549acd443a0"
+    }
+  ],
+  "checks": [
+    {
+      "path": ".artifacts/host-selection-observer-binding.log",
+      "sha256": "75695c498a45c21d356e483b82c1bbb2aab3dd43681ce7f56ca0c7d1d9924515"
+    },
+    {
+      "path": ".artifacts/host-selection-observer-audit-tests.log",
+      "sha256": "ee0e1fcdb5bc5b72827688be120e57d54d811409b58d3a0e069570e2b77ccf8f"
+    },
+    {
+      "path": ".artifacts/host-selection-observer-gate0.log",
+      "sha256": "5427f71ff5b67b500b327d785dcaf84a7af2c6edd24b1833c4c7d83ad2cf37c8"
+    },
+    {
+      "path": ".artifacts/host-selection-observer-report-diff-check.log",
+      "sha256": "e3b0c44298fc1c149afbf4c8996fb92427ae41e4649b934ca495991b7852b855"
+    },
+    {
+      "path": ".artifacts/host-selection-observer-report-generation.log",
+      "sha256": "5867d1d51cd43a59428de2e7fffa15847d7153b11f3b61ecf812224ee2dd2099"
+    }
+  ]
+}

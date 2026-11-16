@@ -1,0 +1,16 @@
+{
+  "status": "PASS",
+  "controls": 3,
+  "sourceRecord": {
+    "path": "artifacts/upstream-first/apple-follow-resume-source.json",
+    "sha256": "ff83393f6f6a979be3c63fdf2ee8b866de68e6a9f9265bf24ac4970271cf70f7"
+  },
+  "generator": {
+    "path": "artifacts/upstream-first/write-reports.mjs",
+    "sha256": "dea367beb3bdb53b2cd87008a282962010d8fcdcd891e3afbfe9eee84f662542"
+  },
+  "helper": {
+    "path": ".artifacts/check-apple-follow-resume-binding.mjs",
+    "sha256": "ca9b9cb245fa695b16787b1d942d4ce53a233772a223d3396738e0dc6ae931d4"
+  }
+}

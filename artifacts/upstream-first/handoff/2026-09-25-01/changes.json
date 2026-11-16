@@ -1,0 +1,342 @@
+{
+  "schemaVersion": 1,
+  "handoffId": "2026-09-25-01",
+  "summary": "Unlike the 2026-09-19-01 handoff, the working tree is now clean: every increment since the checkpoint commit 965d0ac is committed and pushed to origin/agents/upstream-first. This manifest therefore lists the committed range rather than dirty files.",
+  "workingTree": {
+    "trackedModified": 0,
+    "staged": 0,
+    "untracked": [
+      ".glm-router/ (telemetry; excluded by policy, never committed)"
+    ]
+  },
+  "commitRange": {
+    "from": "965d0ac",
+    "to": "5bd766f911",
+    "count": 79
+  },
+  "commitsNewestFirst": [
+    {
+      "sha": "5bd766f9114174e4d78760977391ec62104a7868",
+      "subject": "feat(client): section 35 interrupted-transfer recovery - windowed complete-byte reads with prefix resume"
+    },
+    {
+      "sha": "d580394c3c061830ce3d1eaa878e9e329f5b47cf",
+      "subject": "feat(client): section 28 roster UI presentation and cross-session selected-host persistence"
+    },
+    {
+      "sha": "59cba880b42dbd3d40ee98f616b17705656929fd",
+      "subject": "feat(client): section 28 roster switch composition - saved-host origin into retarget plus stream-carrier adoption"
+    },
+    {
+      "sha": "9387f4187d784152e2b98644f93f193aaa25b014",
+      "subject": "feat(client): section 28 retargetable connection endpoint - validated origin selection replaces the browser HTTP base"
+    },
+    {
+      "sha": "0be888876deaafbe8c58fbe5447263375eefb285",
+      "subject": "feat(client): section 35 binary fact card - suffix-keyed complete-byte preview with hex window and zero-byte state"
+    },
+    {
+      "sha": "0aab7988ff4c0cd610b2684f9cff847dd54594fd",
+      "subject": "feat(client): section 34 unified diff preview - two-gutter hunks with add/remove marks in the shared document registry"
+    },
+    {
+      "sha": "e9df7fa71bbe27e15502439762280da1e0ce96ce",
+      "subject": "feat(gateway): sections 15/16/38 durable retained answers - localStorage replay across client restart"
+    },
+    {
+      "sha": "97e943e5e8f9ce30317c5caf37d296a34703d6fb",
+      "subject": "feat(client): section 10 permission tier on the running-location chip — localized built-ins, humanized host presets"
+    },
+    {
+      "sha": "d3fb398b0bcc80219fc0114d4878821775ec845e",
+      "subject": "feat(diagnostics): section 41 degraded-capable probes — failed-fiber and provider-less degradation with readiness semantics"
+    },
+    {
+      "sha": "8e149e58e0d5ebe21bb6665c1d118470c80de4e8",
+      "subject": "feat(client): section 28 saved-Host roster foundation — descriptor-keyed store, localStorage persistence, generation recording"
+    },
+    {
+      "sha": "4fe1cb83bb748140fe381fe5d2ce9882d71647de",
+      "subject": "feat(telemetry): section 44 default-off enforced at the sessionTelemetry exit — withheld pipeline, DSH_TELEMETRY_CONSENT opt-in"
+    },
+    {
+      "sha": "75011a8de10d76c3a41cd0c23357356557fba204",
+      "subject": "feat(diagnostics): section 43 second bundle content entry — settings-export rows, seam-stripped values, ns-sorted"
+    },
+    {
+      "sha": "c1bf6194358fcd580f2fff57e6f9b74895f7fbbc",
+      "subject": "feat(diagnostics): section 43 first bundle content entry — session-headers rows, header facts only, id-sorted"
+    },
+    {
+      "sha": "cefc99b0213fc091bf8565bdab968a10ba8fd632",
+      "subject": "feat(diagnostics): sections 41/42 crash and last-error recorder — pid-safe boot marker, durable capped crash log, agent-error ring"
+    },
+    {
+      "sha": "d43547a8897eb13b5d82257cbc22a031b2d5bca1",
+      "subject": "feat(telemetry): section 44 typed per-kind consent — five default-off switches resolved on the otel backend"
+    },
+    {
+      "sha": "b7b6b414a2dc84999319725cc1a76c27f1128171",
+      "subject": "feat(diagnostics): section 43 support bundle — producer, sanitizer, manifest, chained checksum, collector validation"
+    },
+    {
+      "sha": "7f7807e8254219c04560e2cdd50c9240395e8fca",
+      "subject": "feat(diagnostics): sections 41/42 host-diagnostics package — health/readiness and sanitized payload"
+    },
+    {
+      "sha": "2715dfed1e8c57d1cfd3e699093c7a0ce08503cd",
+      "subject": "feat(conversation): section 28 composer connection gate — per-state inert posture through Host transitions"
+    },
+    {
+      "sha": "c3f37b903a12946df4c325c5a5f3235782da9d81",
+      "subject": "feat(session): section 26 first-phase handoff — view-location payload codec and open seam"
+    },
+    {
+      "sha": "9ff3ac602a0ebfde6539685828811e76767d1259",
+      "subject": "feat(session): section 25 follow resume — fromSeq suffix snapshots and held-window merge"
+    },
+    {
+      "sha": "a13ead93f42638c1ce476f2422dea8146a51b40a",
+      "subject": "feat(approval): section 38 approval information surface — fact rows and Host-assessed risk tier"
+    },
+    {
+      "sha": "04838b54f6c77644becf3282a9fee657a3bccf1f",
+      "subject": "feat(commands): Host-assessed risk tiers on every command"
+    },
+    {
+      "sha": "584ce0b04f7229a997d8db090908d2f04f80a8a4",
+      "subject": "feat(client): the running-location chip names the Host"
+    },
+    {
+      "sha": "d07a907d70088060deec0a8d6cd5290cdb3df142",
+      "subject": "feat(client): enforce the single design language in stylesheets"
+    },
+    {
+      "sha": "eba95825a4bdcb30cb24e6676e51ac406084f8a8",
+      "subject": "feat(client): phone-tier conversation top bar"
+    },
+    {
+      "sha": "ec13b2eae51c33e675ef0ac4cf58d2524a9ebc4f",
+      "subject": "feat(client): the conversation header shows the Host running location"
+    },
+    {
+      "sha": "c5e41dfb1d056808dacab48fd1db48edfaa99b33",
+      "subject": "test(client): pin the foldable frame-measurement contract"
+    },
+    {
+      "sha": "4cb29304ddfbfe325eb164966acd3262ac174be8",
+      "subject": "feat(client): the frame rides above the on-screen keyboard"
+    },
+    {
+      "sha": "7dc6ef66faa82df2edb54b6b0894c6c4f0ff8706",
+      "subject": "feat(client): the shell respects safe-area insets under viewport-fit=cover"
+    },
+    {
+      "sha": "50d0a2ce92f16f7143912eaf4641c9dd6efec193",
+      "subject": "chore(repo): clear pre-existing duplication and hygiene gate debt"
+    },
+    {
+      "sha": "8f04512fdbeedd171a58045063d893e493962445",
+      "subject": "feat(client): devices settings section consumes the device-trust remote face"
+    },
+    {
+      "sha": "637395409d272c5be8b2ec141fc6c06f28bfebe2",
+      "subject": "feat(api): device identity change confirms instead of retrying"
+    },
+    {
+      "sha": "62bdf089c749e53511796e72985cc6e4e5ff7213",
+      "subject": "feat(android): the client signs every business call with a device admission"
+    },
+    {
+      "sha": "7d25d93915e832f8cf07be4d506e8a1d04901d15",
+      "subject": "feat(api): device admission carries a replay nonce ledger"
+    },
+    {
+      "sha": "279c0174734c094c79ce1af0749cb47aea176c15",
+      "subject": "feat(api): remaining owners declare their device permissions"
+    },
+    {
+      "sha": "ba4c02b20a65f69717ab31e31054d3bafd394050",
+      "subject": "feat(api): declare workspace capabilities' device permissions"
+    },
+    {
+      "sha": "e59a55a32b0e44468e33ffe3c751486eb9048e00",
+      "subject": "feat(api): declare session capabilities' device permissions with read/write splits"
+    },
+    {
+      "sha": "7bc2591b9523639ca4a8770d3630c8e29b20ba0b",
+      "subject": "feat(api): gate business RPC on declared capability permissions via per-request device admission"
+    },
+    {
+      "sha": "56d98437b024bd1a2db96597f1ba8bdeb3b28501",
+      "subject": "test(api): pin the protocol-version interop matrix as one canonical test"
+    },
+    {
+      "sha": "d03527cd61049c5f96a2b80c4a99b72b2059651e",
+      "subject": "feat(client): add the device-revoked Connection state closing section 18"
+    },
+    {
+      "sha": "91e369cf364b19e1f99634b29fbe275ef9e6ba9d",
+      "subject": "feat(api): map device roles onto the section 15 seam through signed admission"
+    },
+    {
+      "sha": "3527bae358f8c1a432022c3c0e2f67b05987da08",
+      "subject": "feat(api): make device-trust grants durable on the storage-domain seam"
+    },
+    {
+      "sha": "f7f75dcc21cefe7b61b43086c8463e7a67ae87bb",
+      "subject": "feat(api): land the device-trust seam — pairing issuance and grants on the gateway"
+    },
+    {
+      "sha": "cb2fde430f9fff0fa77141d26e6895921f924341",
+      "subject": "docs(architecture): decide the link-access takeover — the gateway owns device access"
+    },
+    {
+      "sha": "109d9108f4d6ab247b5e2c7601dda44b79a64cfb",
+      "subject": "feat(android): drive a real classified refusal end to end over the Link fixture"
+    },
+    {
+      "sha": "fc27928644081b1b08cb8111d6f3872258efaacb",
+      "subject": "feat(jobs): thread the shared failure class onto job outcomes and snapshots"
+    },
+    {
+      "sha": "281ed1f4f91171b735223523ba7b14704fa50258",
+      "subject": "feat(ui-conversation): present failed queue actions through the shared classification"
+    },
+    {
+      "sha": "eabe158ec1918f806aea6bfe9d6549a43c3833f9",
+      "subject": "feat(ui-subagent): present catalog failures through the shared classification"
+    },
+    {
+      "sha": "9c8330cdbd14cf2aec87d1a88139e5759fd1bffc",
+      "subject": "feat(android): consume the Gateway failure contract in the shell"
+    },
+    {
+      "sha": "11208cf30ffbdf4e7aa1a572ea97cdbc284ff98a",
+      "subject": "feat(android): close the scanner AAR chain and unlock :app:assembleDebug"
+    },
+    {
+      "sha": "cbf16d0bf48b2f5ee1e836eb049f82803fcf9ca5",
+      "subject": "feat(ui-layout): phone tier renders the sidebar as an overlay drawer"
+    },
+    {
+      "sha": "4064ee4259d3b51f32aa6bfdc6f6c695f3e28518",
+      "subject": "feat(gateway): enforce the diagnostics-only tier for two-generation-old clients"
+    },
+    {
+      "sha": "fb7dcccb9890156d006447a4bf0e16895d1e10c4",
+      "subject": "feat(apple): seal the recovered swift-contract CI evidence"
+    },
+    {
+      "sha": "4b19f7aafcb78de4d1622dad3c334b42972c968f",
+      "subject": "fix(apple): resolve contract fixtures from the package root"
+    },
+    {
+      "sha": "bca20126e25b5dad840d79e60115264fad69afd1",
+      "subject": "fix(apple): drop the wrong initializer label in the mirror dictionary"
+    },
+    {
+      "sha": "d7c8048efa27ebf6beed6c50ed3c3abe01805a01",
+      "subject": "refactor(apple): replace the XCTest bundle with a self-check executable"
+    },
+    {
+      "sha": "653be82461890b08c728a853e783a98830553aaa",
+      "subject": "ci(swift): pass the job count as -j 1 (the fused -j1 is rejected)"
+    },
+    {
+      "sha": "4092794de31b4307e763b3547d98880c6ee9b896",
+      "subject": "ci(swift): serialize the contract build with -j1"
+    },
+    {
+      "sha": "0c895751d32bd60d1b60dfb8012158e88e517d81",
+      "subject": "ci(swift): build the library target before planning the test module"
+    },
+    {
+      "sha": "7d4c3cd220cbb12b369c9482c150028c1df069c1",
+      "subject": "fix(apple): widen the fixture directory lookup to the enclosing test case"
+    },
+    {
+      "sha": "a3ad468de8d0f128d06915cdde15b1220a429b11",
+      "subject": "ci(swift): move the contract lane to macos-15"
+    },
+    {
+      "sha": "e6330e0ad15eb06edc0b789e91f2aa54e94005d0",
+      "subject": "ci(swift): retry the default PATH toolchain with the hardened manifest"
+    },
+    {
+      "sha": "3fe67bbf115c7e8f4349b966ce0564ecbf043786",
+      "subject": "ci(swift): exclude test fixtures from the target and probe a minimal test package"
+    },
+    {
+      "sha": "4f50857d0c9789765479c7a8cf735db88f3fd6d3",
+      "subject": "ci(swift): use the toolchain's actual swift path inside the Xcode app"
+    },
+    {
+      "sha": "c0080d83e3fd65e5913b594321d456f954c49132",
+      "subject": "ci(swift): run the whole toolchain from Xcode 16.2's own swift binary"
+    },
+    {
+      "sha": "74a4d8e8bed7ed0d8ac59954143bc3569bc8b263",
+      "subject": "fix(apple): drop the test-target resources to break the module-emission race"
+    },
+    {
+      "sha": "2b6af3aeef10b8506c8f76e82d8054f23dcdfca7",
+      "subject": "feat(android): migrate the core domain and app shell onto the contract build"
+    },
+    {
+      "sha": "412663d3cdd9f25a49fec634534f9e0b590c6ee6",
+      "subject": "ci(swift): isolate the emit-module failure trigger with three probes"
+    },
+    {
+      "sha": "ab9d6e0ec65fc16b2adbb1f47aa9323496a8dd49",
+      "subject": "ci(swift): bisect the silent emit-module failure with standalone probes"
+    },
+    {
+      "sha": "83421c94f69e1e399234b8c4a5a697f8f12551fc",
+      "subject": "ci(swift): normalize the resource rule and probe failing build products"
+    },
+    {
+      "sha": "420a862fb99a70263754a0caf40559e92ff26cb2",
+      "subject": "ci(swift): run the contract lane on the installed Xcode 16.2 toolchain"
+    },
+    {
+      "sha": "dc9885c6d921e937bce6b2b4cda81807b9cc373e",
+      "subject": "ci(swift): disable the SPM build sandbox and pin the macOS platform floor"
+    },
+    {
+      "sha": "d7feff1dda8be056a08ab59c70d806f7e2d37aca",
+      "subject": "ci(swift): surface the failing emit-module invocation"
+    },
+    {
+      "sha": "11afb0cdba7ffb2edfdd7c8b369687e9379d323d",
+      "subject": "feat(gateway): enforce interaction reply permissions Host-side"
+    },
+    {
+      "sha": "917461d0c1ad19aee996c1698a7a3f850352c696",
+      "subject": "feat(apple): Swift contract package with macOS CI lane"
+    },
+    {
+      "sha": "322bcb30e061d79b8483b806caea46b40014a4a5",
+      "subject": "feat(contract): extend failure classification and adopt it in client surfaces"
+    },
+    {
+      "sha": "5956dadb01758006bd7f1e6a3711b2537e3ee58e",
+      "subject": "fix(audit): admit a committed candidate via ancestry; rebind android contract chain"
+    },
+    {
+      "sha": "8658d8feb958e575960ef458307d6d4ff0399ef8",
+      "subject": "feat(android): Kotlin contract column consuming the sealed failure envelope"
+    },
+    {
+      "sha": "a80e0216bcc4f5b61f61286f050bd7a4611e0953",
+      "subject": "ci: allow workflow_dispatch on the candidate branch"
+    }
+  ],
+  "protectedFilesMainWorkspace": [
+    "E:/Mix/project/deepseek-harness/GOAL_PROGRESS_SUMMARY_2026-09-14.md (untracked, keep as-is)",
+    "E:/Mix/project/deepseek-harness/IMPLEMENTATION_VERIFICATION_V2.md (untracked, keep as-is)"
+  ],
+  "notCarriedByGit": [
+    ".artifacts/ is gitignored: gate logs (six per increment, named <key>-{tests,typecheck,lint,doc-sync,traceability,gate0}.log plus binding/audit-tests/report-generation/report-diff-check), before-archives (.artifacts/<key>-before/ with archive.json manifests, 151 manifests total), seal-chain helpers (.artifacts/{prepare,capture,advance,check-binding,capture-validation}-<key>.mjs), and the perf transform scripts (.artifacts/{alias-history-maps,share-archive-map}.py). Records bind these hashes; cross-machine transfer must copy .artifacts/ wholesale."
+  ]
+}

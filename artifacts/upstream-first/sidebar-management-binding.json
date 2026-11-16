@@ -1,0 +1,16 @@
+{
+  "status": "PASS",
+  "controls": 3,
+  "sourceRecord": {
+    "path": "artifacts/upstream-first/sidebar-management-source.json",
+    "sha256": "c0c30a8ae3644dcad9fbd94afbef82fb95f061a773aea8f450c089a4e5bc924d"
+  },
+  "generator": {
+    "path": "artifacts/upstream-first/write-reports.mjs",
+    "sha256": "e463e9856bc4f6d6ae717c086e6dd8b025cc80b6f94bcf7339f390ce76db5d09"
+  },
+  "helper": {
+    "path": ".artifacts/check-sidebar-management-binding.mjs",
+    "sha256": "ee7b973b12a0f03f930d428523dc1b4e5a5ae53d0290d47dc790d8000afda63c"
+  }
+}

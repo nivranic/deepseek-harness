@@ -1,0 +1,24 @@
+{
+  "refusal": "future/cordis-unavailable: Host activation unavailable (host-half-failed)",
+  "refusalHasNoActivation": true,
+  "hostOnlyRunIndependent": true,
+  "declineWithoutActivation": true,
+  "pendingApprovalRetainedAcrossReconnect": true,
+  "clientActivationRetainedAcrossReconnect": true,
+  "noAutomaticMutationReplay": true,
+  "cancelledStops": 0,
+  "selectionRetainedAcrossLateStop": true,
+  "lateStopAcknowledged": true,
+  "composerDraftRetained": true,
+  "mutations": [
+    "runHostHalf",
+    "runHostHalf",
+    "stopFromPanel",
+    "resolveRequestRun",
+    "runHostHalf",
+    "getClientCode",
+    "settleUserRun",
+    "stopFromPanel",
+    "undefineFromPanel"
+  ]
+}

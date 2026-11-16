@@ -1,0 +1,16 @@
+{
+  "status": "PASS",
+  "controls": 3,
+  "sourceRecord": {
+    "path": "artifacts/upstream-first/unified-diff-preview-source.json",
+    "sha256": "95d5283afb3c0a8194d3a15ebbf20022e9a15d2d556008be7b76fcfbcf8f897e"
+  },
+  "generator": {
+    "path": "artifacts/upstream-first/write-reports.mjs",
+    "sha256": "cddbd0bc8fcb0268865fa7c24957e59aea8adbd2ef47881d6c309422ce60c450"
+  },
+  "helper": {
+    "path": ".artifacts/check-unified-diff-preview-binding.mjs",
+    "sha256": "bc662f150d54318af537135a9964f8fb281519536e055ee30f24eda775c5c642"
+  }
+}

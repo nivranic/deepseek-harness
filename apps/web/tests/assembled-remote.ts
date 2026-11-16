@@ -11,6 +11,7 @@ import { randomUUID } from 'node:crypto'
 import { join } from 'node:path'
 import { ok, RemoteMock } from '@deepseek-ai/dsh-remote-mock'
 import { remoteDefaultResponses } from '@deepseek-ai/dsh-client-test-runtime/src/assembly/remote-default-responses.ts'
+import { FILE_UPLOAD_REMOTE_CAPABILITIES } from '@deepseek-ai/dsh-client-file-upload/capabilities'
 
 interface SessionSummary {
   readonly sessionId: string
@@ -145,6 +146,16 @@ export function createAssembledRemote(options: AssembledRemoteOptions = {}): Ass
   const mock = RemoteMock.create().load(remoteDefaultResponses)
   mock.load({
     unary: {
+      // The real Host's file-upload plugin advertises these staging
+      // capabilities; the built client gates every upload on this admission,
+      // so the assembled world mirrors the Host it stands in for.
+      'host/describe': ok({
+        hostId: 'fixture-host', displayName: 'Fixture Host', productVersion: 'fixture',
+        apiProtocolVersion: 1, sessionFormatVersion: 4, platform: 'linux', arch: 'x64',
+        runtimeMode: 'full',
+        capabilities: FILE_UPLOAD_REMOTE_CAPABILITIES.map(capability => capability.id),
+        transports: ['http'], serverTime: 0,
+      }),
       'settings/describe': ok({
         ...fixture.settingsDescribe.value,
         namespaces: [...fixture.settingsDescribe.value.namespaces, {

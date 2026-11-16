@@ -1,0 +1,66 @@
+{
+  "status": "PASS",
+  "scope": "Report bindings and audit for the session-export-range increment: the gen-81 §35 partial-download/range closure (the deterministic fixed-mtime archive — archive.ts exporting SESSION_LOG_ZIP_MTIME=946684800000 with the post-construction entry.mtime assignment, fflate 0.8.3's ZipDeflate ignoring an options mtime so the recipe was probe-verified byte-identical across a 1.3-second gap — beside the route's three-layer resume contract in index.ts: every success advertising Accept-Ranges: bytes, the plain GET keeping its single-generation streaming with no Content-Length, the HEAD measuring one generation for an exact length report with a null body, and a single well-formed bytes=N-/N-M range measuring once then answering 206 with the sliced second generation — the past-end last byte clamped to L-1, the start at or past the end answered 416 with bytes */L, the suffix ranges, multi-ranges, other units and reversed ends ignored per HTTP as plain 200s, only resume requests and HEAD paying the second generation, the parse and slice living as the pure helpers parseRangeRequest and sliceByteRange, HEAD ignoring Range as HTTP requires for non-GET methods) — beside the route spec's seven-case suite (the determinism double-GET byte-equality with the DOS date/time fields checked through fflate's own local-time encoding against the fixed timestamp, the plain-200 no-length form, the 206 family with bytes=5-, the full-window bytes=0-, the bytes=0-9+bytes=10- resume splice reassembling the whole archive, the past-end clamp and the deep-skip tail, the 416 form, the five ignored forms, the HEAD length report and the range-request mid-generation 500 in its GET and HEAD forms) while the ten existing route-behavior tests keep their sealed semantics untouched (the design revision honestly narrated: the first-round measure-on-every-request form was rejected in review for deadlocking the hanging-fixture cancellation tests through downloads.sessionLog, doubling the flush and attachment-read effects and moving mid-stream failures to an early 500 — the measuring gate narrowed to range and HEAD requests only); the package lane green at 65 tests over 8 spec files with per-file coverage 100 percent; the three rejected alternatives honestly recorded (the whole-archive buffering breaking the bounded-memory streaming invariant, the measure-on-every-request dual pass, the chunked-200-without-Accept-Ranges non-answer); the gates honestly recorded from log content: typecheck EXIT 0 (the build:lib:host chain with the strict client face whose declaration emit re-emits nothing this generation — the zero-key derivation) and lint Found 0 warnings and 0 errors on 3869 files (90 rules, 20 threads, 101.4s — the count unchanged from gen-80: existing TypeScript files modified only), the docs lane green in one combined log (doc-quick 17 passed in 127.84s with doc-sync 37 passed in 209.49s — the config-catalog regeneration and the bilingual README edits landed before the lane), pairing 966 pairs all consistent in its honest direct-round form (the 965→966 reconciliation riding the prose; the note trio 2026-10-27-session-export-range, testing class, beside the re-recorded config-catalog and package-README pairs), the serial double audit round green at 90 files / 1107 tests on both passes over the unchanged lineage list (the session-log-export route spec a host spec outside the client lineage — the count honestly unchanged), gate0 PASS in both byte-identical forms (1938 paths / 129 components / 81 sections / 1983 lines — honestly recorded unchanged from the captured UPSTREAM_DELTA.json, not the live tree; the working-tree whitespace half riding the lane as git diff --check clean); the ledger §34/§35 rewrite narrowing the family row (81 sections kept; §34/§35 at 1879/11 with the widened eleven-entry evidence list — the gen-79 and gen-80 narrations preserved verbatim beside the status clause flipping from open to closed and the appended gen-81 landing; §31 keeping its gen-78 sealed 11411/28, §33 its gen-72 1641/11, §32 its gen-70 6041/25, §23 its gen-61 429/2 and §67 its gen-59 637/8 — honestly recorded); and the zero-key derivation ruling (standing in the gen-66/67/68/71/79 lineage): the prepare oracle derives exactly ZERO replaced prior build outputs over the shared-diff-corpus record (the session-log-export package's lib outputs sitting outside the sealed built-files universe — no generation since gen-50 ever captured that package — and the gen-80 seven-key declaration-emit family replaying byte-identically from disk) with ZERO miss keys and ZERO unrecoverable inputs, so the advance installs no per-record set and demotes the sharedDiffCorpus block with the history-head form keeping its adjudicated seven-key filter, every prior generation's set staying exactly as sealed at HEAD (the gen-80 sharedDiffCorpusReplacedBuildOutputs at exactly its seven, the gen-78 networkMatrixReplacedBuildOutputs at its two, the gen-77 resumeFeedReplacedBuildOutputs at its sixty-five, the gen-76B toolJournalReplacedBuildOutputs at its seventy-one and the rest as sealed); the remaining open channels (the browser dialog itself not orchestrating range resumes on its own, the Phase 8 secure outbound relay and the CI synchronize gap) all stay open — so no whole-section PASS is granted; full Upstream-First objective remains in progress",
+  "gate0": {
+    "validation": "PASS",
+    "gate0": "PASS",
+    "paths": 1938,
+    "components": 129,
+    "specificationCoverage": {
+      "status": "PASS",
+      "numberedSections": 81,
+      "nonEmptySourceLines": 1983,
+      "acceptanceProven": false
+    }
+  },
+  "sourceRecord": {
+    "path": "artifacts/upstream-first/session-export-range-source.json",
+    "sha256": "2e352220810ea6feac078f79f8194fcfa77e80bb82d88029563aace1cfeb1bd3"
+  },
+  "generator": {
+    "path": "artifacts/upstream-first/write-reports.mjs",
+    "sha256": "088d2f527bf43933907f2d672ef10ffe84b669db24216e6c5ce3b84e1de006fa"
+  },
+  "binding": {
+    "path": "artifacts/upstream-first/session-export-range-binding.json",
+    "sha256": "7e92c32f48905c62dbb7867c26c3f3336153dad6faa72e60c8e5d77f77d1d084"
+  },
+  "helpers": [
+    {
+      "path": ".artifacts/advance-session-export-range-reports.mjs",
+      "sha256": "6fb26c973d47f58398394f64d5a8d3380e86480d81473ca46ba63fdc69d9cf49"
+    },
+    {
+      "path": ".artifacts/capture-session-export-range-validation.mjs",
+      "sha256": "874cd8fd2ddd2765839b44f3efe4d8963dc7a83419ac67f332bcabdee1308070"
+    }
+  ],
+  "reports": [
+    {
+      "path": "IMPLEMENTATION_STATUS.md",
+      "sha256": "0af11120ade5530385ba7bb5966878d298aa464256e02ab694742dd77d787e06"
+    },
+    {
+      "path": "artifacts/upstream-first/evidence.json",
+      "sha256": "8597cb9ac4ae5b7d975fc43777772c85246f5e0adf146b1e54852d750b21b209"
+    }
+  ],
+  "checks": [
+    {
+      "path": ".artifacts/session-export-range-binding.log",
+      "sha256": "fc7a87217126599c2b49e8568f1e8ad16a4602adb82d230ea491c9de19f9b890"
+    },
+    {
+      "path": ".artifacts/session-export-range-audit-final.log",
+      "sha256": "ce3f394127c906f49ca1a31f826181866d56248c91b53d7fd28084005e24c2f5"
+    },
+    {
+      "path": ".artifacts/session-export-range-gate0-final.log",
+      "sha256": "7e00efd82bd2a2b91b03ca80537dcc4af46cd09eb318ff58520cb2d7d7d8a48a"
+    },
+    {
+      "path": ".artifacts/session-export-range-report-generation.log",
+      "sha256": "fe010532f71a6341467ae5719b29ac19470895de1d481156335b8f70a3273ed5"
+    }
+  ]
+}

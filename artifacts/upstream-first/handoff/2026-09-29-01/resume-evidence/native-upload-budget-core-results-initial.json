@@ -1,0 +1,65 @@
+{
+  "tests": null,
+  "suites": 7,
+  "failures": null,
+  "errors": null,
+  "skipped": null,
+  "files": [
+    {
+      "path": "apps/android/core/build/test-results/test/TEST-ai.deepseek.dsh.companion.CompanionHostControllerTest.xml",
+      "sha256": "ec3e6f89bf60830caa59d4a398686b8a9e12a7898974a96458af24a0341ccfea",
+      "tests": 8,
+      "failures": 0,
+      "errors": 0,
+      "skipped": 0
+    },
+    {
+      "path": "apps/android/core/build/test-results/test/TEST-ai.deepseek.dsh.companion.NativeFileAttachmentsModelTest.xml",
+      "sha256": "c6e69056bcf034ca480324f3b3a88ae11206b4a990c45e35cd885031d6348215",
+      "tests": 11,
+      "failures": 0,
+      "errors": 0,
+      "skipped": 0
+    },
+    {
+      "path": "apps/android/core/build/test-results/test/TEST-ai.deepseek.dsh.companion.NativeShareAttachmentsModelTest.xml",
+      "sha256": "130c97d33ecf7d11116f519d029ad6e4a0c25470f877db31000bf60d8f3da5ef",
+      "tests": 11,
+      "failures": 0,
+      "errors": 0,
+      "skipped": 0
+    },
+    {
+      "path": "apps/android/core/build/test-results/test/TEST-ai.deepseek.dsh.gateway.NativeGatewayDiagnosticsTest.xml",
+      "sha256": "79f85a0ec4ffa56587cd77c466f39b6d43954985153ac367fd9f08e2623b8331",
+      "tests": 5,
+      "failures": 0,
+      "errors": 0,
+      "skipped": 0
+    },
+    {
+      "path": "apps/android/core/build/test-results/test/TEST-ai.deepseek.dsh.gateway.NativeGatewayProtocolTest.xml",
+      "sha256": "ca8edf1694edfc9936980fda106b8b9341c256a3236cfa909aa88179dced8e49",
+      "tests": 12,
+      "failures": 0,
+      "errors": 0,
+      "skipped": 0
+    },
+    {
+      "path": "apps/android/core/build/test-results/test/TEST-ai.deepseek.dsh.gateway.NativeGatewayUploadBudgetTest.xml",
+      "sha256": "3cad63feaa59a665ce630f1d603bbda8fd0e43afcf674a520b3c613e094f426e",
+      "tests": 7,
+      "failures": 0,
+      "errors": 0,
+      "skipped": 0
+    },
+    {
+      "path": "apps/android/core/build/test-results/test/TEST-ai.deepseek.dsh.gateway.NativeHttpRequestBudgetTest.xml",
+      "sha256": "78b5cd987631d44886e732558d50cfea84bfac506339292e07ee675fecb25cc3",
+      "tests": 3,
+      "failures": 0,
+      "errors": 0,
+      "skipped": 0
+    }
+  ]
+}

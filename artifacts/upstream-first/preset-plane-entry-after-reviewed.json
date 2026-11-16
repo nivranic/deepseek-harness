@@ -1,0 +1,20 @@
+{
+  "status": "PASS",
+  "stage": "after",
+  "scenario": "preset",
+  "checkedSources": [
+    {
+      "path": "scripts/verify-cordis-config.ts",
+      "sha256": "4f6a62ce0368131e47d71b2a7e0dfa19cf780fbde0a29f40ff57f3cb9544ff2a"
+    },
+    {
+      "path": "scripts/verify-profile-compositions.ts",
+      "sha256": "200ffe53886d9e7e364389158f54ded5778e61c600324fc5a649ee1cf15887ea"
+    }
+  ],
+  "invalidCompositionAccepted": false,
+  "exitCode": 1,
+  "fixtureSymlinkMaterialized": true,
+  "command": "node node_modules/tsx/dist/cli.mjs scripts/verify-cordis-config.ts",
+  "sourceRestoredSha256": "28b57c998d65fa7f028a2db097e0f19ac79c8f5525ccfa7cc6ad8b886442f852"
+}

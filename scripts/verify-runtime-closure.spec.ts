@@ -39,11 +39,80 @@ afterEach(() => {
 })
 
 describe('verifyRuntimeClosure', () => {
+  it.each(['consumer', 'bundle'])('accepts a required peer declared by the %s on its dependency path', async (owner) => {
+    const root = fixture({
+      'python/sdk-runtime/package.json': { name: 'runtime', dependencies: { '@scope/bundle': 'workspace:*' } },
+      'python/sdk-runtime/platforms.json': platforms,
+      'preset:minimal': '[]\n',
+    })
+    workspace(root, '@scope/bundle', { dependencies: {
+      '@scope/consumer': 'workspace:*', ...owner === 'bundle' ? { '@scope/provider': 'workspace:*' } : {},
+    } })
+    workspace(root, '@scope/consumer', {
+      peerDependencies: { '@scope/provider': 'workspace:*' },
+      ...owner === 'consumer' ? { dependencies: { '@scope/provider': 'workspace:*' } } : {},
+    })
+    workspace(root, '@scope/provider', {})
+    expect((await verifyRuntimeClosure(root)).failures).toEqual([])
+  })
+
+  it('rejects a shared consumer when only another dependency path supplies its peer', async () => {
+    const root = fixture({
+      'python/sdk-runtime/package.json': { name: 'runtime', dependencies: {
+        '@scope/a': 'workspace:*', '@scope/b': 'workspace:*',
+      } },
+      'python/sdk-runtime/platforms.json': platforms,
+      'preset:minimal': '[]\n',
+    })
+    workspace(root, '@scope/a', { dependencies: { '@scope/shared': 'workspace:*', '@scope/provider': 'workspace:*' } })
+    workspace(root, '@scope/b', { dependencies: { '@scope/shared': 'workspace:*' } })
+    workspace(root, '@scope/shared', { peerDependencies: { '@scope/provider': 'workspace:*' } })
+    workspace(root, '@scope/provider', {})
+    expect((await verifyRuntimeClosure(root)).failures).toEqual(['runtime -> @scope/b -> @scope/shared -> @scope/provider'])
+  })
+
+  it('does not accept an optional peer provider and terminates cyclic dependency traversal', async () => {
+    const root = fixture({
+      'python/sdk-runtime/package.json': { name: 'runtime', dependencies: { '@scope/bundle': 'workspace:*' } },
+      'python/sdk-runtime/platforms.json': platforms,
+      'preset:minimal': '[]\n',
+    })
+    workspace(root, '@scope/bundle', {
+      dependencies: { '@scope/consumer': 'workspace:*' }, optionalDependencies: { '@scope/provider': 'workspace:*' },
+    })
+    workspace(root, '@scope/consumer', {
+      dependencies: { '@scope/bundle': 'workspace:*' }, peerDependencies: { '@scope/provider': 'workspace:*' },
+    })
+    workspace(root, '@scope/provider', {})
+    expect((await verifyRuntimeClosure(root)).failures).toEqual(['runtime -> @scope/bundle -> @scope/consumer -> @scope/provider'])
+  })
+
+  it.each(['apps/cli', 'native/system', 'native/system/packages/linux-x64'])(
+    'traverses runtime dependencies declared by %s', async (directory) => {
+      const manifest = { name: 'runtime', dependencies: { '@scope/application': 'workspace:^' } }
+      const root = fixture({
+        'python/sdk-runtime/package.json': manifest,
+        'python/sdk-runtime/platforms.json': platforms,
+        'packages/bundle/web-app/presets/minimal.patch.yml': '[]\n',
+        [`${directory}/package.json`]: {
+          name: '@scope/application', dependencies: { '@scope/provider': 'workspace:^' },
+        },
+      })
+      workspace(root, '@scope/provider', { peerDependencies: { '@scope/required': 'workspace:^' } })
+      workspace(root, '@scope/required', {})
+      const missing = await verifyRuntimeClosure(root)
+      expect(missing.workspacePackageCount).toBe(2)
+      expect(missing.failures).toEqual(['runtime -> @scope/application -> @scope/provider -> @scope/required'])
+      writeFileSync(join(root, 'python/sdk-runtime/package.json'), JSON.stringify({
+        ...manifest, dependencies: { ...manifest.dependencies, '@scope/required': 'workspace:^' },
+      }))
+      expect((await verifyRuntimeClosure(root)).failures).toEqual([])
+    },
+  )
   it('supplies required workspace peers of the Electron production dependency tree', async () => {
     const root = resolve(import.meta.dirname, '..')
     expect((await verifyRuntimeClosure(root, 'apps/desktop/package.json', false)).failures).toEqual([])
   })
-
   it('checks a private worker closure without requiring application presets', async () => {
     const manifestPath = 'packages/ssh/ssh-helper-runtime/package.json'
     const root = fixture({ [manifestPath]: { name: 'helper', dependencies: { '@scope/worker': 'workspace:^' } } })

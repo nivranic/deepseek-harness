@@ -45,6 +45,7 @@ Office 技能把渲染、转换和重算交给 [Office 工具](../../packages/do
 - `bundled_package_dir() -> Path` 返回已安装模块数据根目录，并校验发布元数据。
 - `bundled_runtime_path() -> Path` 返回当前平台可执行程序，并校验必需伴随文件。
 - `resolve_bundled_launch_args(mode=None) -> tuple[str, ...]` 默认返回可执行程序 argv。显式 `mode="node"` 或 `DSH_RUNTIME_MODE=node` 会选择仅限仓库使用的 Node 载体。
+- `main()` 实现已安装的 `dsh` 控制台命令，并拒绝缺失或空白的 `DSH_HOME`。在 Windows 上，它让打包进程继承标准流，等待其结束并转发完整的 32 位退出状态，包括最高位为 1 的状态码；在 POSIX 上，它替换 Python 进程。
 - `download_office() -> Path` 显式下载或复用 Office sidecar 及其独立 Node。
 - `download_primary_runtime() -> Path` 显式下载或复用创作环境。
 - `resolve_office_launch_args() -> tuple[str, str]` 定位已安装的 Node 和 Kit CLI，不执行下载；资源缺失时抛出含下载指令的 `FileNotFoundError`。
@@ -62,8 +63,10 @@ Python 与打包的 bootstrap 共享资源布局：`<cache>/<identity>/office/`�
 
 ## 构建与分发
 
+闭包检查遍历应用、包、vendor 和原生工作区清单，包括发布的 `dsh` CLI。每个可达的必需工作区 peer，都必须在每条依赖路径上由部署根、消费包自身或其祖先显式声明为必需依赖。仅在另一分支声明或仅列为可选依赖的提供者不满足这一要求。构建命令使用已安装工具，并禁用 pnpm 执行命令前的自动安装，避免 production deploy 状态移除打包工具。
+
 生产部署按工作区锁文件安装固定的依赖图，不重新解析版本。部署允许工作区中不属于运行时闭包的补丁保持未使用；闭包内包的补丁仍必须成功应用。此例外仅用于部署命令，仓库安装仍拒绝未使用的补丁。
 
-在仓库根目录运行 `pnpm exec tsx scripts/build-exe-for-python-sdk.ts`，会校验闭包、构建包、部署无符号链接的文件树、打包所选目标，并把可执行程序及伴随文件同步到本模块。可执行文件使用 Brotli 压缩存储内嵌文件。打包时只保留目标平台的 PTY 预构建文件，并排除运行时资源目录之外的包内 README、CHANGELOG、HISTORY Markdown 文档、source map 和 TypeScript 声明。部署会关闭工作区提升，打包时还会排除部署目录之外的检出依赖和工作区源码树，防止依赖扫描把开发包加入载荷。暂存步骤让使用相同 pnpm 依赖标识的嵌套消费者共享根目录的工作区包，保留服务单例，同时保留不同的对等依赖解析。`scripts/build-python-release.py` 按仓库根版本暂存发布形态的 wheel 包，并将 `deepseek-harness-sdk` 固定到完全相同的运行时版本。
+在仓库根目录运行 `pnpm exec tsx scripts/build-exe-for-python-sdk.ts`，会校验闭包、构建包、部署无符号链接的文件树、打包所选目标，并把可执行程序及伴随文件同步到本模块。可执行文件使用 Brotli 压缩存储内嵌文件。打包时只保留目标平台的 PTY 预构建文件，并排除运行时资源目录之外的包内 README、CHANGELOG、HISTORY Markdown 文档、source map 和 TypeScript 声明。部署会关闭工作区提升，打包时还会排除部署目录之外的检出依赖和工作区源码树，防止依赖扫描把开发包加入载荷。暂存步骤让使用相同 pnpm 依赖标识的嵌套消费者共享根目录的工作区包，保留服务单例，同时保留不同的对等依赖解析。`scripts/build-python-release.py` 按仓库根版本暂存发布形态的 wheel 包，并将 `deepseek-harness-sdk` 固定到完全相同的运行时版本。 runtime wheel 会在发布校验前以 DEFLATE 级别 9 重新压缩，保留解压后的文件字节、RECORD 哈希及执行权限。校验器执行 PyPI 的 100,000,000 字节单文件上限。
 
 已安装 wheel 包冒烟测试会在检出目录外创建干净的虚拟环境，验证分发物与可执行程序的来源，然后覆盖默认及自定义 SDK profile、外部插件、MCP、原生工具、直接 JSON-RPC、检入快照，以及可信运行中的真实提供方。Office 场景会迁移轻量目标载荷、显式下载 sidecar，并使用所需的平台引擎转换 DOCX：使用目标已声明的原生引擎，未声明原生引擎时使用 WASM。另见 [Python 贡献者工作流](../development.zh.md) 与 [installed-wheel 测试决策](../../.agents/notes/implemented/testing/2026-08-23-installed-python-wheel-black-box-ci.zh.md)。

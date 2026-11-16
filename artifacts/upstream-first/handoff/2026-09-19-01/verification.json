@@ -1,0 +1,21 @@
+{
+  "schemaVersion": 1,
+  "status": "PASS",
+  "checkedAt": "2026-09-19T05:26:20.068Z",
+  "scope": "Handover completeness and byte integrity only; no product tests were rerun",
+  "live": true,
+  "checks": 1999,
+  "manifestFiles": 22,
+  "originalSections": 81,
+  "originalNonEmptyLines": 1983,
+  "manualLinks": 106,
+  "originalSpecificationSha256": "4f313ad5a779b497e239654bc6cb3734dbe32210c72adf11286637606f764e80",
+  "existingDirtyFiles": 1487,
+  "sourceRecords": 102,
+  "reportSnapshots": 13,
+  "unsealedChangedFiles": 21,
+  "unsealedAddedFiles": 3,
+  "productAcceptanceProven": false,
+  "failureCount": 0,
+  "failures": []
+}

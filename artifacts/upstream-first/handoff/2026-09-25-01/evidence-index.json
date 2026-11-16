@@ -1,0 +1,35 @@
+{
+  "schemaVersion": 1,
+  "handoffId": "2026-09-25-01",
+  "sourceRecords": {
+    "directory": "artifacts/upstream-first/",
+    "count": 162,
+    "trackedByGit": true,
+    "latest": "artifacts/upstream-first/interrupted-transfer-source.json"
+  },
+  "latestIncrementLogs": {
+    "directory": ".artifacts/ (local only)",
+    "files": [
+      "interrupted-transfer-audit-tests.log",
+      "interrupted-transfer-binding.log",
+      "interrupted-transfer-doc-sync.log",
+      "interrupted-transfer-gate0.log",
+      "interrupted-transfer-lint.log",
+      "interrupted-transfer-report-diff-check.log",
+      "interrupted-transfer-report-generation.log",
+      "interrupted-transfer-tests.log",
+      "interrupted-transfer-traceability.log",
+      "interrupted-transfer-typecheck.log"
+    ]
+  },
+  "beforeArchives": {
+    "manifestCount": 151,
+    "note": "The newest record historicalRecords lists 57; 151 manifests exist on disk. The write-reports shared archivedInputs map is built from ALL manifests because the per-record chain truncated historically (android-contract-before is not in the newest list)."
+  },
+  "reports": {
+    "implementationStatus": "IMPLEMENTATION_STATUS.md (snapshot: report-snapshots/IMPLEMENTATION_STATUS.md)",
+    "traceability": "artifacts/upstream-first/specification-traceability.json (snapshot: report-snapshots/specification-traceability.json)",
+    "evidence": "artifacts/upstream-first/evidence.json",
+    "generator": "artifacts/upstream-first/write-reports.mjs (shared archivedInputs map; ~6 min per generation)"
+  }
+}

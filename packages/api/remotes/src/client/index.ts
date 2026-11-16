@@ -1,8 +1,20 @@
 /** Platform-neutral assembly of generated Host Remote contributions. */
 
 import type { Context } from '@deepseek-ai/cordis'
+import toolCatalogRemote from '@deepseek-ai/dsh-api-remotes/remote'
+export type {} from '@deepseek-ai/dsh-api-remotes/remote'
 import productAnalyticsRemote from '@deepseek-ai/dsh-client-product-analytics/remote'
 export type {} from '@deepseek-ai/dsh-client-product-analytics/remote'
+import hostDescriptionRemote from '@deepseek-ai/dsh-api-host-description/remote'
+export type {} from '@deepseek-ai/dsh-api-host-description/remote'
+import deviceTrustRemote from '@deepseek-ai/dsh-api-device-trust/remote'
+export type {} from '@deepseek-ai/dsh-api-device-trust/remote'
+import nativeRemote from '@deepseek-ai/dsh-api-native-remote/remote'
+export type {} from '@deepseek-ai/dsh-api-native-remote/remote'
+import hostDiagnosticsRemote from '@deepseek-ai/dsh-api-host-diagnostics/remote'
+export type {} from '@deepseek-ai/dsh-api-host-diagnostics/remote'
+export type { DeviceId, DeviceView, DeviceRole, PairingIssuance } from '@deepseek-ai/dsh-api-device-trust/types'
+export type { NativeRemoteInfo, NativePairingPayload } from '@deepseek-ai/dsh-api-native-remote/types'
 import agentPresetsRemote from '@deepseek-ai/dsh-agent-preset-registry/remote'
 import userQuestionsRemote from '@deepseek-ai/dsh-user-questions/remote'
 import commandsRemote from '@deepseek-ai/dsh-commands/remote'
@@ -179,6 +191,7 @@ export type {
   RemoteErrorCode, RemoteErrorDetailsMap, RemoteFailure, RemoteResult,
 } from '@deepseek-ai/dsh-typert-protocol'
 export type { RemoteHostFacts } from '@deepseek-ai/dsh-api-gateway/client'
+export type { HostDescriptor, HostId, HostTransport } from '@deepseek-ai/dsh-api-host-description/types'
 
 declare module '@deepseek-ai/cordis' {
   interface Context {
@@ -199,6 +212,10 @@ export async function apply(ctx: Context): Promise<() => Promise<void>> {
   const disposers: Array<() => Promise<void>> = []
   try {
     for (const contribution of [
+      // Host facts mount first: admission layers describe() them on every reset.
+      hostDescriptionRemote,
+      toolCatalogRemote,
+      deviceTrustRemote, nativeRemote, hostDiagnosticsRemote,
       productAnalyticsRemote, agentPresetsRemote, commandsRemote, agentTeamsRemote, settingsControllerRemote, accountRemote,
       goalsRemote, llmRemote, dynamicRemote, scheduleRemote,
       pluginInventoryRemote, pluginManagerRemote, mcpManagerRemote, pluginMarketRemote, pluginRegistryProbeRemote,

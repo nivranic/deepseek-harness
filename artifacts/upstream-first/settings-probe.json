@@ -1,0 +1,19 @@
+{
+  "status": "PASS",
+  "scope": "actual upstream provider observation on generated JSON fixtures only",
+  "observations": [
+    {
+      "formatVersion": 1,
+      "namespaceLoaded": true,
+      "sourceUnchangedOnRead": true,
+      "metadataPreservedOnWrite": true
+    },
+    {
+      "formatVersion": 2,
+      "namespaceLoaded": true,
+      "sourceUnchangedOnRead": true,
+      "metadataPreservedOnWrite": true
+    }
+  ],
+  "unknownFormatMetadataIsNotACompatibilityCheck": true
+}

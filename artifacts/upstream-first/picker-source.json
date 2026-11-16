@@ -1,0 +1,351 @@
+{
+  "schemaVersion": 1,
+  "baseSha": "c291e7961a515f6d7af9304e7fd1d257929aef26",
+  "capturedAt": "2026-09-15T15:22:42.476Z",
+  "scope": "Adopt upstream pointer-width Koffi UTF-16 decoding and always free the COM path if decoding throws; current Windows Desktop picker acceptance",
+  "sourceFiles": [
+    {
+      "path": "packages/host/directory-picker-native/src/index.ts",
+      "sha256": "fe6bd944a3c303b127286410bcfe252cc1137296fe7a7ce47d22c0deb6feab63",
+      "bytes": 1676
+    },
+    {
+      "path": "packages/host/directory-picker-native/src/native-picker.ts",
+      "sha256": "bc8376b3183a85c65c22527637b3494e1cae8676a1323d6eca976870c97b0de1",
+      "bytes": 4058
+    },
+    {
+      "path": "packages/host/directory-picker-native/src/win32-dialog-bindings.ts",
+      "sha256": "ef920a6c57a277cf13869f65c238e403ba3d98221393653b8212b974dcfb295b",
+      "bytes": 9898
+    },
+    {
+      "path": "packages/host/directory-picker-native/src/win32-dialog-host.ts",
+      "sha256": "a6aa9064d23b19878077015b9d52a8a586e6dcb40ac496bc778021ffe2b2e48e",
+      "bytes": 1795
+    },
+    {
+      "path": "packages/host/directory-picker-native/src/win32-dialog-logic.ts",
+      "sha256": "5aa475eee9a929314af30d17ce72fa2053ca6c4298617f5b580eb9f1743288eb",
+      "bytes": 5891
+    },
+    {
+      "path": "packages/host/directory-picker-native/src/win32-dialog-worker.ts",
+      "sha256": "8ec72de1c597927fdd8cc705b46ec829b1a7734feac8843ca3a29c9cf773e477",
+      "bytes": 2767
+    },
+    {
+      "path": "packages/host/directory-picker-native/src/win32-dialog.ts",
+      "sha256": "618077d3d20c1bcc476d5b7d01b1ca903b7466d57c6c95f37406d697dad8b2ee",
+      "bytes": 6295
+    },
+    {
+      "path": "packages/host/directory-picker-native/tests/built-worker.e2e.ts",
+      "sha256": "c4205931a94b6578f592b1aee244192c2161f40a48107b6ac3442fe1e4aa6bd9",
+      "bytes": 1604
+    },
+    {
+      "path": "packages/host/directory-picker-native/tests/native-picker.spec.ts",
+      "sha256": "5564487e177fb543ef7bd8f3154340f90978964515bd0162d649f49fb94a7b5d",
+      "bytes": 9117
+    },
+    {
+      "path": "packages/host/directory-picker-native/tests/service.spec.ts",
+      "sha256": "fbc0c77f2607c2824c381e1bc3f835f0a600357560fb94096b86ed4a32225694",
+      "bytes": 897
+    },
+    {
+      "path": "packages/host/directory-picker-native/tests/win32-dialog-bindings.spec.ts",
+      "sha256": "6054a2df42458a6b94818119e8cd37a1abac251682b2a0b0e262f442f82897a6",
+      "bytes": 19453
+    },
+    {
+      "path": "packages/host/directory-picker-native/tests/win32-dialog-logic.spec.ts",
+      "sha256": "ca7368a45bbd32c196d5bef17f85ef176fb47bbd1a143eac48de0bd2516eb146",
+      "bytes": 4723
+    },
+    {
+      "path": "packages/host/directory-picker-native/tests/win32-dialog.spec.ts",
+      "sha256": "5dd0d7f0e837995f936b419c73e0b25465b95f5d98f70ec5b19733b072b84eb8",
+      "bytes": 8320
+    },
+    {
+      "path": "packages/host/directory-picker-native/package.json",
+      "sha256": "60a87473e269ac415fc968e36a50a05a0cf6b96914cf0a8ab168de6b81d8e453",
+      "bytes": 1224
+    },
+    {
+      "path": "packages/host/directory-picker-native/tsconfig.json",
+      "sha256": "09c7da8d175804aa06a280a4f20ca6ffe3638156f99ac93fa030627d9b57eef9",
+      "bytes": 314
+    },
+    {
+      "path": "packages/host/directory-picker-native/tsdown.config.ts",
+      "sha256": "74f8e7613624169593335bdd1d4cbd71a1dca1cc05f17430e0f0048b2c0dc8d6",
+      "bytes": 854
+    },
+    {
+      "path": "packages/host/directory-picker-native/README.md",
+      "sha256": "453d717b2dafeb232036c6ecd8cf443eb82328204a9f86de3cf443ad8e9c83f5",
+      "bytes": 7258
+    },
+    {
+      "path": "packages/host/directory-picker-native/README.zh.md",
+      "sha256": "91464631962a987b27030b3e00f9b799fededec61f1fc2ed83cebf4a3c4226e3",
+      "bytes": 6734
+    },
+    {
+      "path": "packages/host/directory-picker-native/README.i18n.yaml",
+      "sha256": "dd01dd2f947e31803fb9d636957af437bf3f37b56e9629529f01ef76d127b597",
+      "bytes": 447
+    },
+    {
+      "path": ".agents/notes/implemented/bug-fix/2026-08-31-win32-picker-path-string-read.md",
+      "sha256": "a174da21dc9f2d041b8b5460fee585675b1aedfac1d2d6c8f2d8e40336b9b965",
+      "bytes": 2247
+    },
+    {
+      "path": ".agents/notes/implemented/bug-fix/2026-08-31-win32-picker-path-string-read.zh.md",
+      "sha256": "2d92603071a9825a5e825adbddb93b3a4cd802caa7857c91f6d67d3d96124152",
+      "bytes": 2066
+    },
+    {
+      "path": ".agents/notes/implemented/bug-fix/2026-08-31-win32-picker-path-string-read.i18n.yaml",
+      "sha256": "ae4693b39b95258114dfab151c3389296e6588b5454b09a516ef19cf3158f6e8",
+      "bytes": 545
+    }
+  ],
+  "artifacts": [
+    {
+      "path": "packages/host/directory-picker-native/lib/index.js",
+      "sha256": "a6b86e580576ce0433ef92ecd8aa152544ec0398ef59390d01933bcd71978191",
+      "bytes": 10991
+    },
+    {
+      "path": "packages/host/directory-picker-native/lib/worker.cjs",
+      "sha256": "1664b9eb8b87d3a6069f8b442f2f2fd1cd0d97437b977c10f80345a819e66cad",
+      "bytes": 10302
+    },
+    {
+      "path": "packages/host/directory-picker-native/lib/types/win32-dialog-bindings.js",
+      "sha256": "57adf5b5ba36de0c6feaf355f71db15eb9fc4f940403ea050f4c40c7f441e067",
+      "bytes": 9647
+    },
+    {
+      "path": "packages/host/directory-picker-native/lib/types/win32-dialog-logic.js",
+      "sha256": "d5d5d55d0958ee7b659fa7493d0c2ac52df19136289e08dfa00feaa3c3857d81",
+      "bytes": 2763
+    },
+    {
+      "path": "packages/host/directory-picker-native/lib/types/win32-dialog-logic.d.ts",
+      "sha256": "74f731ed806b9702c28fe7f8e12137eed2021c1af29fe642ceb97d0b795eab3a",
+      "bytes": 4947
+    }
+  ],
+  "receipts": [
+    {
+      "path": "artifacts/upstream-first/picker-desktop-process.json",
+      "sha256": "d91ab6ee3a13f8956a5b32d4aea1c723dd124d8a9167d975773e8a3e93c0ceb8",
+      "bytes": 363
+    },
+    {
+      "path": "artifacts/upstream-first/picker-unicode-worker.json",
+      "sha256": "54d8393ef0453e72c2e34abd4a2303a5d79f6b732b21eac1f2fb517e26b7cc3b",
+      "bytes": 239
+    },
+    {
+      "path": "artifacts/upstream-first/picker-cancel-worker.json",
+      "sha256": "dcd443ede0e205f10f89e9a38b5d71011ae9950b535c1a6e4dfd92fd230b2a2e",
+      "bytes": 239
+    },
+    {
+      "path": "artifacts/upstream-first/picker-abort-worker.json",
+      "sha256": "da51f0c0250653e66d32a38f9d03ce45f63b3aff7163c9915f5c5852a30b101d",
+      "bytes": 239
+    },
+    {
+      "path": "artifacts/upstream-first/picker-unicode-result.json",
+      "sha256": "12a720a35c40d62542f9af92b236d3f91cee7618081dd13292ea2a058fc3e494",
+      "bytes": 563
+    },
+    {
+      "path": "artifacts/upstream-first/picker-cancel-result.json",
+      "sha256": "71dc44a400906cea393f38be8831729f16bbdfe5ce9b64dcd4eb638188367fc7",
+      "bytes": 423
+    },
+    {
+      "path": "artifacts/upstream-first/picker-abort-result.json",
+      "sha256": "435b9c864371b2d73cd94bf9b16c16c19cc3dcf4242594b4604c1986dc1e961b",
+      "bytes": 462
+    },
+    {
+      "path": "artifacts/upstream-first/picker-desktop-smoke.json",
+      "sha256": "4af8d79f82da36f3746f20512b89ad5d75e752f0d31a8302271f1c41467791f2",
+      "bytes": 2523
+    }
+  ],
+  "screenshots": [
+    {
+      "path": "artifacts/upstream-first/picker-unicode-native.png",
+      "sha256": "39084575a0321d797a20853d9fc67a6e0fd5234a1511aa8cd6f3c76e001d60ea",
+      "bytes": 81277
+    },
+    {
+      "path": "artifacts/upstream-first/picker-unicode-selected-native.png",
+      "sha256": "ac554916bb6a953da217101a3af211f75efcce6919d33c33d67d19552700e2a5",
+      "bytes": 85960
+    },
+    {
+      "path": "artifacts/upstream-first/picker-cancel-native.png",
+      "sha256": "b93105dc30cd7b7e5b93768b18d5e4f17a197aa80ac0d6afb64f090a495ddbe7",
+      "bytes": 55742
+    },
+    {
+      "path": "artifacts/upstream-first/picker-abort-native.png",
+      "sha256": "b93105dc30cd7b7e5b93768b18d5e4f17a197aa80ac0d6afb64f090a495ddbe7",
+      "bytes": 55742
+    }
+  ],
+  "helpers": [
+    {
+      "path": ".artifacts/picker-desktop-live.mjs",
+      "sha256": "5090259448da64cec0dbba72c1ae52025744ea7bb37c0ee856c09dcd38ca2b0d",
+      "bytes": 6287
+    },
+    {
+      "path": ".artifacts/picker-native-ui.ps1",
+      "sha256": "9951b39d13048573a748180a9331565a457067a3928d0038b4ed7ca273bec870",
+      "bytes": 4039
+    },
+    {
+      "path": ".artifacts/picker-desktop-location.json",
+      "sha256": "55306fdeaf3ceddeb05cb5104afe75bddbe4eb6ab621d073c3edf88f6121b233",
+      "bytes": 343
+    },
+    {
+      "path": ".artifacts/desktop-inspector.mjs",
+      "sha256": "a287133d0bce112776788fb7527cf7c132eda3bb35538c25ae499588df53ebd8",
+      "bytes": 2194
+    },
+    {
+      "path": ".artifacts/finalize-picker-desktop.mjs",
+      "sha256": "cc15d08d04fbb00dcfd4732ba4e9b0a478862958dc2034f478675ad03a577d12",
+      "bytes": 2740
+    },
+    {
+      "path": ".artifacts/capture-picker-source.mjs",
+      "sha256": "441ea43a6d58432669eeb84da35b77888825e577fb37a704c9bb4d2292f70e8b",
+      "bytes": 4523
+    }
+  ],
+  "logs": [
+    {
+      "path": ".artifacts/picker-release-before.log",
+      "sha256": "c6365f1cc0655b1ef2e6d1bb99d43a4907f3b46a2a63b41ba4eeb631197697aa",
+      "bytes": 2039
+    },
+    {
+      "path": ".artifacts/picker-unit-after-sandbox.log",
+      "sha256": "ea15c5c0d1a4d885c0db7bf492d674ee617cc8fe853c218f0f80b2804d94f556",
+      "bytes": 2980
+    },
+    {
+      "path": ".artifacts/picker-unit-after.log",
+      "sha256": "5dd4fad64367096f8af9634a4f53b34ac35289151b4395e97d08eb248340f514",
+      "bytes": 953
+    },
+    {
+      "path": ".artifacts/picker-lint.log",
+      "sha256": "e3b0c44298fc1c149afbf4c8996fb92427ae41e4649b934ca495991b7852b855",
+      "bytes": 0
+    },
+    {
+      "path": ".artifacts/picker-pairing.log",
+      "sha256": "439f6dd96ccedf56baf6cbae13f26e63f16adfaaf1939f47433f6cb65489228a",
+      "bytes": 488
+    },
+    {
+      "path": ".artifacts/picker-doc-sync.log",
+      "sha256": "9f22c4d91310d6e76ac8ff08ba314a0073cd98042f1692b57190d6deedf75bed",
+      "bytes": 2947
+    },
+    {
+      "path": ".artifacts/picker-contracts-lint.log",
+      "sha256": "7c358f1dcb3566f94d297259d4466e89af42dae8d89d4c21b31c4b68730570bb",
+      "bytes": 935
+    },
+    {
+      "path": ".artifacts/picker-contracts-lint-host.log",
+      "sha256": "4ff89f87d8ebc62934944bc257bbc1e93faa3c3cda652fb6e55a67c202a6233f",
+      "bytes": 31
+    },
+    {
+      "path": ".artifacts/picker-desktop-start.log",
+      "sha256": "ef6efced95f92c36fc9510ef4efcec9fe09f9e9879aa0ceec21c9f1c252b6bcb",
+      "bytes": 4784
+    }
+  ],
+  "historicalRecords": [
+    {
+      "path": "artifacts/upstream-first/windows-runtime-review-source.json",
+      "sha256": "c764013e5a0bda4d12006bf13fa3486ceeef844b41b30de3247c09c7e6af7688",
+      "bytes": 15266
+    },
+    {
+      "path": "artifacts/upstream-first/helper-fixes-source.json",
+      "sha256": "a91762aaf4ac7d7c71eff1616828357871e629ca3803a4a45f8e7389cec54a6e",
+      "bytes": 11935
+    },
+    {
+      "path": "artifacts/upstream-first/desktop-context-source.json",
+      "sha256": "a76b0e3858d5e0c5dbaf5dfb4fe65e8a4d4668f7c41a5afac7605afb870d47c8",
+      "bytes": 28687
+    }
+  ],
+  "checks": [
+    {
+      "id": "picker-release-before",
+      "status": "FAIL",
+      "expectedRegression": true,
+      "failed": 1,
+      "filteredSkips": 18,
+      "command": "pnpm exec vitest run packages/host/directory-picker-native/tests/win32-dialog-bindings.spec.ts -t 'string decoding throws'",
+      "detail": "Decoder throws before CoTaskMemFree in the upstream implementation; the regression fails before the finally fix."
+    },
+    {
+      "id": "picker-package-tests",
+      "status": "PASS",
+      "passed": 53,
+      "skipped": 1,
+      "command": "pnpm exec vitest run packages/host/directory-picker-native/tests",
+      "detail": "Real Koffi memory covers U+5F00, surrogate pairs, NUL termination and long allocations; fake COM proves decoding-exception release. Actual Windows abort test passes; non-Windows rejection is platform-skipped."
+    },
+    {
+      "id": "picker-desktop-native",
+      "status": "PASS",
+      "tests": 3,
+      "receipt": "artifacts/upstream-first/picker-desktop-smoke.json",
+      "detail": "Real COM selection, cancel and abort through the current Desktop native capability; exact Unicode path and all worker exits observed."
+    },
+    {
+      "id": "picker-doc-sync",
+      "status": "PASS",
+      "passed": 34,
+      "failed": 0,
+      "command": "pnpm run doc-sync",
+      "log": ".artifacts/picker-doc-sync.log"
+    },
+    {
+      "id": "picker-full-lint",
+      "status": "PASS",
+      "command": "pnpm run lint:contracts-ready",
+      "log": ".artifacts/picker-contracts-lint-host.log"
+    }
+  ],
+  "exclusions": [
+    "No restored lstrlenW/RtlMoveMemory or fixed external buffer implementation",
+    "Live Host capability invocation does not cover the renderer workspace-selection flow",
+    "COM release on decoding failure is unit evidence, not live native memory-leak measurement",
+    "No new exe/wheel or installer, real-model, other-platform or OS login qualification"
+  ]
+}

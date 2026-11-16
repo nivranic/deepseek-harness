@@ -32,6 +32,12 @@ A failure point throws directly: `throw new RemoteError(code, message, details)`
 
 A code is a `<domain>/<reason>` string: `session/not-found`, `gateway/cancelled`, `workspace/invalid-path`, `agent-preset/locked`. The prefix follows the wire-namespace style, so the code itself says who owns it, and relaying another domain's code no longer needs an awkward unprefixed name.
 
+HTTP status failures are classified only after the carrier identifies an actual HTTP response. Connection owns the cross-bundle `ConnectionHttpError` marker and numeric status, without depending on Typert. Gateway maps 401/403/503/other statuses to `gateway/authentication-required`, `gateway/permission-denied`, `gateway/host-not-ready`, and `gateway/transport-interrupted`, declared once in its shared error map with `{ endpoint, httpStatus }`. Message text and unmarked exceptions are not evidence of HTTP status. This preserves the single consumer-facing `RemoteError` vocabulary while keeping generic Connection independent of application codes.
+
+Transport loss is classified where Connection dispatches the request or consumes its body, before JSON parsing. A cross-bundle transport marker lets Gateway distinguish that loss from serialization and decoding defects without guessing from exception text. Exhausted logical-stream carrier retries preserve the same `gateway/transport-interrupted` meaning with the stream owner name; HTTP status remains absent unless a response actually supplied it. Caller cancellation and Host business errors retain their existing meanings.
+
+Validation failures carry protocol-owned `RemoteValidationIssue` fields instead of a validator-specific object graph. The shared helper copies code, message and path, omits unrelated metadata, and renders symbol keys as diagnostic strings. This gives cross-language consumers a finite data structure without depending on Zod issue variants or accidentally serializing attached input. Messages retain their owner-provided text; this is not a general secret-redaction mechanism. Generic Connection keeps its dependency direction and copies the same diagnostic fields at its own envelope parser.
+
 ## Code ownership
 
 A code has exactly one declaration site, and the site follows from both who produces it and who can see the declaration — declaration merging only applies where the augmenting file enters the current program, so the home must be a package every producer already sees:
@@ -43,11 +49,25 @@ A code has exactly one declaration site, and the site follows from both who prod
 
 What two domains share is validation logic, not a code. `session/invalid-time-zone` and `subagent/invalid-time-zone` are two codes each declared and thrown by its own domain, and both endpoints canonicalize through `canonicalClientTimeZone()` from `@deepseek-ai/dsh-util-time`; no client branches on this code, so splitting it costs nothing while merging it would recreate the reachability problem.
 
+## Published known-code vocabulary
+
+The protocol package ships [a finite known-code schema](../../../../packages/typert/protocol/remote-error-codes.schema.json) derived from the source declarations, rather than a second hand-maintained code table. Each declared code has one owner and a JSDoc statement of the failure it represents. The repository generator rejects duplicate ownership, missing semantics and declarations whose members cannot be enumerated; documentation gates reject output that differs from those declarations.
+
+The schema is a build-specific recognition artifact for code strings. Its source and TypeScript details annotations retain diagnostic context but do not validate detail payloads. It neither replaces the extensible source map nor turns unknown newer-Host or plugin codes into recognized semantics. Consumers preserve unknown diagnostics and must not infer permission, automatic retry or capability support from schema membership. Native-language consumption and compatibility still require independent qualification.
+
+The packaged failure-envelope schema uses disjoint known-code alternatives and an unknown-code branch that explicitly excludes every known code. Known malformed details cannot fall through as opaque data. Input projection accepts undeclared object fields, preserving diagnostic extensions for consumers that validate without mutation. The generation gate checks shared-code schemas across independent faces and refuses tuple projection while the converter omits cardinality. Schema acceptance grants no capability, permission or retry policy; protocol-version admission remains separate.
+
 ## Discrimination by code
 
 Discrimination always reads `code` and never uses `instanceof`. Client and Host are separately bundled programs, and a worker transport bundles the page half once more, so several copies of the same class exist and prototype identity across copies does not hold. The mechanism layer reads the structural marker plus a string `code` through the protocol's `remoteErrorOf(value)`, and the Gateway client face additionally exports `isRemoteFailure(error)` for a consumer's catch site; both read those fields, never the class — the test does not even require `instanceof Error`, because an Error thrown in another realm fails that too.
 
 Business code usually needs neither function: the `ok: false` branch of `RemoteResult` is already a typed `RemoteFailure`, so `if (result.error.code === 'session/not-found')` narrows `details` to that code's shape with no cast. A site that must propagate the failure writes `throw result.error` — it is a real `Error`, with a working stack and `message`.
+
+Shared Client services propagate that same failure instance when converting a failed `RemoteResult` into a rejected callback. Wrapping its message in a plain `Error` destroys code/details discrimination and the causal chain; operation context belongs to the presenting entry. Unknown newer-Host codes remain opaque diagnostic data and can reach a localized generic failure with explicit retry. Preserving them does not grant capabilities or make their semantics known to this Client.
+
+The internal interaction-result RPC obeys the same failure reconstruction as ordinary calls. Reducing its refusal to a message would hide `gateway/protocol-unsupported` from Connection classification and cause repeated negotiation instead of the upgrade state. `interaction-closed` remains a successful end of local delivery; other Host errors retain their code and details through event-generation shutdown. This does not retain a refused answer for automatic resubmission.
+
+Invalid stream data is a validation failure, not evidence that a socket was lost. Gateway wraps only its wire parsers as `gateway/stream-invalid`, retaining the local cause and stream identity. The logical supervisor does not retry this failure; the event-generation owner classifies it as `fatal` and requires explicit reconnect. A malformed frame therefore cannot drive repeated automatic negotiation, while physical carrier failures keep their existing retry policy.
 
 The client plane does not construct `RemoteError`; the one exception is the Gateway's own client face, which rebuilds an instance from wire data in `invoke()` and folds carrier throws at stream boundaries into the same vocabulary. A test double that needs a failure value takes `RemoteError` from `@deepseek-ai/dsh-client-test-runtime` instead of making a client package import the protocol as a value. Assertions match the code (plus details fields where they matter) with `toMatchObject`: `RemoteError` is an `Error`, its own-key set differs from the former literal, and `toEqual` fails on it.
 

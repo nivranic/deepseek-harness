@@ -1,0 +1,12 @@
+{
+  "approvalOutcome": "cancelled",
+  "decisions": ["cancelled", "rejected"],
+  "lateResult": { "ok": true },
+  "questionResult": { "pending": true, "callId": "expiry-timed-question" },
+  "questionSettlements": 1,
+  "deadlinePreserved": true,
+  "approvalReplayed": true,
+  "questionReplayed": true,
+  "callerAborted": false,
+  "effects": []
+}

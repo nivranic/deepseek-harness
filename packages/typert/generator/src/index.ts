@@ -7,7 +7,7 @@
 
 export { WorkspaceAnalyzer, WorkspaceCaches, TypertAnalysisError } from './analyzer.ts'
 export type { AnalysisMode, DiscoveredTypertPackage, WorkspaceAnalyzerOptions } from './analyzer.ts'
-export { FaceModelEmitter, TypertEmitError } from './emitter.ts'
+export { FaceModelEmitter, TypertEmitError, emitRemoteErrorSchemas } from './emitter.ts'
 export type { ModelEmitResult } from './emitter.ts'
 export * from './cordis-catalog.ts'
 export { TypeGraphRenderer, TypeGraphRenderError } from './renderer.ts'

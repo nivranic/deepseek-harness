@@ -1,0 +1,4 @@
+{
+  "meta.title": "Host diagnostics API",
+  "meta.description": "Report Host readiness and collect sanitized diagnostics."
+}

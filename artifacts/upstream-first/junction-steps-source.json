@@ -1,0 +1,87 @@
+{
+  "schemaVersion": 1,
+  "baseSha": "c291e7961a515f6d7af9304e7fd1d257929aef26",
+  "capturedAt": "2026-09-15T17:29:33.095Z",
+  "scope": "Diagnostic native junction API tracing for the historical same-byte Windows runtime; not current-source packaging acceptance",
+  "artifacts": [
+    {
+      "path": "dist-exe/deepseek-harness-sdk-runtime-win-x64.exe",
+      "sha256": "30d5a7ff6b8d7594b3d132de3acb53b6bc80743c99f2414471df194553aa1181",
+      "bytes": 241331712
+    }
+  ],
+  "installedRuntime": {
+    "path": "C:\\Users\\11585\\AppData\\Local\\Temp\\dsh-wheel-argv-cs_0u46w/venv/Lib/site-packages/deepseek_harness_runtime/runtime/deepseek-harness-sdk-runtime-win-x64.exe",
+    "sha256": "30d5a7ff6b8d7594b3d132de3acb53b6bc80743c99f2414471df194553aa1181",
+    "validation": "The host probe verifies identical repository and installed bytes before starting any case; the repository path retains those bytes."
+  },
+  "receipts": [
+    {
+      "path": "artifacts/upstream-first/junction-steps.json",
+      "sha256": "2b651d883683d2728391dc36aa6f0d8672a0db15ffd08d2a17d5fd57557fd58d",
+      "bytes": 3920
+    }
+  ],
+  "helpers": [
+    {
+      "path": ".artifacts/probe-junction-steps.py",
+      "sha256": "ae7d74db72919b0086cb7378cba5e6b18ecea2f42450be864105941b2481be96",
+      "bytes": 2150
+    },
+    {
+      "path": ".artifacts/probe-runtime-junction-steps.py",
+      "sha256": "99075b68e09eadd30ef1b19d2c3070eac8b81f4da7968b934659d815bf212676",
+      "bytes": 3290
+    },
+    {
+      "path": ".artifacts/capture-junction-steps.mjs",
+      "sha256": "a2aa695dd147a4759334bd4bd7eaae5cfc5c164e87249691e030f9f540f59156",
+      "bytes": 3836
+    }
+  ],
+  "logs": [
+    {
+      "path": ".artifacts/junction-steps-direct-python.log",
+      "sha256": "a58dc60092acee9cc9b12c057398b808d4fc3d89a16c78ab14f7800b5288e816",
+      "bytes": 609
+    },
+    {
+      "path": ".artifacts/junction-steps-repository-runtime.log",
+      "sha256": "59ff8f53865dea46792bc0919c7b3048280230bdd00ef8125667e7a33eb8066b",
+      "bytes": 722
+    },
+    {
+      "path": ".artifacts/junction-steps-installed-runtime.log",
+      "sha256": "5f77c3e11eb26316eef90e707f9dbd6fce3ba20a274964693bc20ad7753a4c3e",
+      "bytes": 556
+    }
+  ],
+  "historicalRecords": [
+    {
+      "path": "artifacts/upstream-first/windows-runtime-review-source.json",
+      "sha256": "c764013e5a0bda4d12006bf13fa3486ceeef844b41b30de3247c09c7e6af7688",
+      "bytes": 15266
+    }
+  ],
+  "checks": [
+    {
+      "id": "installed-native-junction-steps",
+      "status": "FAIL",
+      "command": "python .artifacts/probe-runtime-junction-steps.py",
+      "receipt": "artifacts/upstream-first/junction-steps.json",
+      "detail": "Direct Python and repository runtime create/read the junction. Installed runtime opens the private directory but FSCTL_SET_REPARSE_POINT returns ERROR_ACCESS_DENIED (5). The handle closes. The wrapper also exceeded its 20-second observation deadline and taskkill returned 128; these are retained independently from the native error and final exit 1."
+    }
+  ],
+  "conclusions": {
+    "failingApi": "DeviceIoControl(FSCTL_SET_REPARSE_POINT)",
+    "win32Error": 5,
+    "rootCauseConfirmed": false,
+    "currentSourceRuntimeBuilt": false,
+    "realPluginInstallationPassed": false,
+    "note": "The result localizes the existing pnpm/Node EPERM below Node and Python to the native reparse-point operation. It does not identify a particular ACL, token field, security product, compatibility layer, or driver as the cause."
+  },
+  "exclusions": [
+    "No changes to ACL, token privileges, Developer Mode, antivirus, compatibility settings, registry, or package-manager configuration",
+    "Generated private link directories only; historical runtime bytes preserved; no user profile or product data migration"
+  ]
+}

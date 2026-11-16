@@ -6,6 +6,7 @@
     "tsBuildInfoFile": "lib/tsconfig.host.tsbuildinfo"
   },
   "files": [
+    "src/capabilities.ts",
     "src/index.ts",
     "src/types.ts",
     "src/commands.ts",

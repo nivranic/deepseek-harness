@@ -1,5 +1,6 @@
 - banner:
   - navigation "Session hierarchy": Use the web_fetch tool exactly
+  - button "Continue on another device"
   - button "More actions"
   - button "Open right sidebar"
   - tablist:

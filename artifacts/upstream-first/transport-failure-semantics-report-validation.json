@@ -1,0 +1,70 @@
+{
+  "status": "PASS",
+  "scope": "Report bindings and audit for Identified transport interruptions share an error code; full closed semantics and phases remain unproven; full Upstream-First objective remains in progress",
+  "gate0": {
+    "validation": "PASS",
+    "gate0": "PASS",
+    "paths": 1938,
+    "components": 129,
+    "specificationCoverage": {
+      "status": "PASS",
+      "numberedSections": 81,
+      "nonEmptySourceLines": 1983,
+      "acceptanceProven": false
+    }
+  },
+  "sourceRecord": {
+    "path": "artifacts/upstream-first/transport-failure-semantics-source.json",
+    "sha256": "453268d6a07920647888c1a77d06af2e844b3219b6cc71bbd40d7a22815eb55d"
+  },
+  "generator": {
+    "path": "artifacts/upstream-first/write-reports.mjs",
+    "sha256": "d69d523c808167a405d8c7910d417940b64eb47ada69c84fb71ff794d09544df"
+  },
+  "binding": {
+    "path": "artifacts/upstream-first/transport-failure-semantics-binding.json",
+    "sha256": "50647477383bf8eb4ff36397ecd3e59eca3817a9d502caf89fbf72902aebfcbe"
+  },
+  "helpers": [
+    {
+      "path": ".artifacts/advance-transport-failure-semantics-reports.mjs",
+      "sha256": "a79f611c27e3d3735876e8f9b53c539c2da936425bea0667b8a953671142f947"
+    },
+    {
+      "path": ".artifacts/capture-transport-failure-semantics-validation.mjs",
+      "sha256": "53d820692ea96a2211f34830d5f3df1cbec6b996568d472a53bc4cdd441c3a32"
+    }
+  ],
+  "reports": [
+    {
+      "path": "IMPLEMENTATION_STATUS.md",
+      "sha256": "9dce1c23dc128016d90c72b135901daa0855bd4e0e4c32969f22e601785096a0"
+    },
+    {
+      "path": "artifacts/upstream-first/evidence.json",
+      "sha256": "a8cfb8e05d43e36d9cad218bab4b5083b2fe2d0e911f79eb8b27624418a87263"
+    }
+  ],
+  "checks": [
+    {
+      "path": ".artifacts/transport-failure-semantics-binding.log",
+      "sha256": "3d4f0d24b69d859fa1a12646ba123a7fb1031ca15c4ddf6874629c867fa1a73c"
+    },
+    {
+      "path": ".artifacts/transport-failure-semantics-audit-tests.log",
+      "sha256": "f3652bc892c3f6a681521445b6c926b58ad81c467a1ee433de51d5810630b93f"
+    },
+    {
+      "path": ".artifacts/transport-failure-semantics-gate0.log",
+      "sha256": "5427f71ff5b67b500b327d785dcaf84a7af2c6edd24b1833c4c7d83ad2cf37c8"
+    },
+    {
+      "path": ".artifacts/transport-failure-semantics-report-diff-check.log",
+      "sha256": "e3b0c44298fc1c149afbf4c8996fb92427ae41e4649b934ca495991b7852b855"
+    },
+    {
+      "path": ".artifacts/transport-failure-semantics-report-generation.log",
+      "sha256": "fee38423682f6d1f2e0a50aabd65d5aa82ca06f4423805940cb852603041bf6a"
+    }
+  ]
+}

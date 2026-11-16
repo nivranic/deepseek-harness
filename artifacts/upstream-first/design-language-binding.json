@@ -1,0 +1,16 @@
+{
+  "status": "PASS",
+  "controls": 3,
+  "sourceRecord": {
+    "path": "artifacts/upstream-first/design-language-source.json",
+    "sha256": "9d1869aa83a05610a3301bf6149572956604468cf09278e9d02bc39992ed2994"
+  },
+  "generator": {
+    "path": "artifacts/upstream-first/write-reports.mjs",
+    "sha256": "094aeb924260a8673d4e37c09ebb5a78198ec401a45fab624aca5302478f5032"
+  },
+  "helper": {
+    "path": ".artifacts/check-design-language-binding.mjs",
+    "sha256": "a923a063f4c49d89aab79efb4cd8eaf934f012981c66fae448088528eec20945"
+  }
+}

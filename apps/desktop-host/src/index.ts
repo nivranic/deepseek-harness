@@ -15,6 +15,9 @@ import { installDesktopUpdateTaskControl } from './update-tasks.ts'
 import { installDesktopQuitInspection } from './quit-inspection.ts'
 import { installPlatformSessionPublisher } from './platform-session.ts'
 import { installOperationDiagnostics } from './operation-diagnostics.ts'
+import { applyBuildRevisionStamp } from './build-revision.ts'
+
+export { applyBuildRevisionStamp } from './build-revision.ts'
 import { DesktopAuthenticationEnd, receiveDesktopSecret } from './authentication.ts'
 import * as DesktopAuthentication from '@deepseek-ai/dsh-host-authentication-desktop'
 
@@ -40,6 +43,7 @@ async function main(): Promise<void> {
   }
   const runtimeDir = process.argv[2] as string
   const projectDir = process.argv[3] as string
+  applyBuildRevisionStamp(runtimeDir)
   // Set before the launch-environment snapshot and profile evaluation; empty means the payload sits beside the runtime directory.
   process.env.DSH_PRIMARY_RUNTIME = process.argv[4] || join(runtimeDir, '..', 'runtime', 'primary-runtime')
   const installAnchor = join(runtimeDir, 'node_modules', '@deepseek-ai', 'dsh', 'package.json')

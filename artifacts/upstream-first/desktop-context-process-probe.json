@@ -1,0 +1,15 @@
+{
+  "status": "IN_PROGRESS",
+  "process": {
+    "pid": 46800,
+    "parentPid": 34140,
+    "node": "22.22.1",
+    "electron": null,
+    "cwd": "E:\\Mix\\project\\deepseek-harness\\.worktrees\\upstream-first\\apps\\desktop\\.desktop-build\\development\\project",
+    "home": "E:\\Mix\\project\\deepseek-harness\\.worktrees\\upstream-first\\.artifacts\\desktop-context-home-9cPdpt",
+    "fixtureTokenPresent": true
+  },
+  "inspection": {
+    "roots": 1
+  }
+}

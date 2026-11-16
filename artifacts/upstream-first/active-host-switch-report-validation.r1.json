@@ -1,0 +1,66 @@
+{
+  "status": "PASS",
+  "scope": "Report bindings and audit for the active host switch increment: the section 28 Multi-Host switch-window triple requirement (the specification lines 1104-1108 — visibly show the active Host, disable the Composer while a switch is in flight, never send to Host A a request the UI already shows against Host B; the opening WIP and the continuation instruction wrote the section number as a slip and the generation books the claim as section 28 by line anchor) gains its two client evidence lanes on the already-sealed implementation with no product change (the section 29 outage evidence-lane precedent): the connection lane packages/client/connection/tests/host-switch.client.spec.ts mounts the real Connection plugin with gated dual generation sources (A admitted at once, B held at a gate to widen the switch window) and walks the whole A-ready to retarget(B) to synchronous old-generation retirement inside the call to gate release to new generation established on B cycle, sampling target/generation/state on every flush to prove no observation pairs the new target with the retired Host A generation, none pairs the B generation with another target, no further attempt is addressed to A once the switch began, and the saved-hosts roster's current row is the selected origin's row with each row recording its own origin — the (B, undefined) mid-window shape is itself an observed sample; the ui-conversation lane packages/client/ui-conversation/tests/host-switch.client.spec.ts drives the real createComposerControlSource through the gateway $host facts sequence (A facts, then the no-capability shell written by the getter's actual members, then B facts) pinning prompt true to false to true, interrupt and fileUpload following the current generation's facts (B lacks A's file-upload.stage.v1), the retained A snapshot's current() going false, one subscription flush per migration and snapshot identity between flushes, with the HostDescriptor type taken through the ConnectionHostInfo['descriptor'] declaration merge because ui-conversation has no dsh-api-host-description dependency (the first draft's direct import violated the workspace constraint and was fixed before commit); the mechanism survey concluded the triple holds structurally (retarget flips the routing authority synchronously and retires the old generation inside the call — a published generation implies the controller end-state ready so the reconnecting emission cannot be swallowed by dedup; the no-generation gateway $host shell carries no capabilities so createComposerControlSource answers prompt false and InputBar disables through controlAvailable; the display-B-send-A pairing is excluded in both directions by ordering), which is why this generation changes no product code; the audit client list widened 43/618 to 45/621 with the connection package entering the list for the first time and the serial double round went green on both first passes with no -r1 log, the sealed types-lint round is the post-fix rerun (the first round's 4 TypeScript errors from the ConnectionTargetState snapshot-type misuse plus 7 style errors are honestly recorded in .artifacts/active-host-switch-iteration-notes.log after the rerun overwrote the failed output), typecheck and lint both clean (TYPECHECK_EXIT=0, LINT_EXIT=0, zero outer wrapper), doc-quick, doc-sync and gate0 pass, and traceability section 28 gains the switch-lane sentence with candidateEvidence 22 to 25 (node --test 6/6); the same-round gradle acceptance round (scanner env with -PdshNativeAcceptance, BUILD SUCCESSFUL) executed exactly one task (:app:verifyScannerResources) with every build task UP-TO-DATE because no source changed this generation — no device lane ran and the emulator stayed off, so the empty-derived byte proof compares both APKs byte-identically against the android-follow-foreground record's builtFiles entries, the prepare-side unresolved scan derived an empty replaced-build-output allowlist (7510 files, 0 replaced) and the generator gained no new replaced set, and the still-valid XML reports aggregate 77 suites / 477 tests with zero failures/errors/skips; physical devices, the Swift shell, background/push behaviors and the rest of the section's acceptance stay open; full Upstream-First objective remains in progress",
+  "gate0": {
+    "validation": "PASS",
+    "gate0": "PASS",
+    "paths": 1938,
+    "components": 129,
+    "specificationCoverage": {
+      "status": "PASS",
+      "numberedSections": 81,
+      "nonEmptySourceLines": 1983,
+      "acceptanceProven": false
+    }
+  },
+  "sourceRecord": {
+    "path": "artifacts/upstream-first/active-host-switch-source.json",
+    "sha256": "01077545d67f041d9b0d02a364c4105a48734110b0bc20e01174b306adf82553"
+  },
+  "generator": {
+    "path": "artifacts/upstream-first/write-reports.mjs",
+    "sha256": "b5ff6fee1b25e3597c602a4f04e59db7296858240fec547b905b5b96ef9c71a0"
+  },
+  "binding": {
+    "path": "artifacts/upstream-first/active-host-switch-binding.json",
+    "sha256": "75c9ea899658ca2f08f5579b191204ed0715db62add7cb42751a3aae66f41ed1"
+  },
+  "helpers": [
+    {
+      "path": ".artifacts/advance-active-host-switch-reports.mjs",
+      "sha256": "8f29e393341ca6e2ec932014b6a2df9b74423c34aa5586b3afe929866a83dda1"
+    },
+    {
+      "path": ".artifacts/capture-active-host-switch-validation.mjs",
+      "sha256": "81c320ee69d27078814bb450f5bf119aaaaf8b59c8d85ff2c9404491b8127e33"
+    }
+  ],
+  "reports": [
+    {
+      "path": "IMPLEMENTATION_STATUS.md",
+      "sha256": "67f1d31e7e8307f951fb5a3a0790163257b50448def2e141205f24df36883fcf"
+    },
+    {
+      "path": "artifacts/upstream-first/evidence.json",
+      "sha256": "ec7263506d664120bb8c07729966aea19daf589c06567daf0bb6d39736dc3331"
+    }
+  ],
+  "checks": [
+    {
+      "path": ".artifacts/active-host-switch-binding.log",
+      "sha256": "b006177b057d3558b8ce68c0d312948dbac99ad0d3c93da8db3ee655d5aa40e9"
+    },
+    {
+      "path": ".artifacts/active-host-switch-audit-final.log",
+      "sha256": "eeec5c7666989b443f35c01749c7eb9074937dbfa1b4e1dc5bec4fad8894590b"
+    },
+    {
+      "path": ".artifacts/active-host-switch-gate0-final.log",
+      "sha256": "62f40a480943257252f46658f4305400abce18fa99d44e39988c0b6968133b44"
+    },
+    {
+      "path": ".artifacts/active-host-switch-report-generation.log",
+      "sha256": "fe010532f71a6341467ae5719b29ac19470895de1d481156335b8f70a3273ed5"
+    }
+  ]
+}

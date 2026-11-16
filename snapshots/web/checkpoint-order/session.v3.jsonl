@@ -1,0 +1,9 @@
+{"type":"session","version":3,"id":"{{session:1}}","createdAt":1,"cwd":"{{cwd}}","isSeeded":false,"delegationDepth":0,"agentPreset":"standard"}
+{"type":"turn/start","data":{"turn":1}}
+{"type":"session/title","data":{"title":"Earlier title","messageSeqs":[],"source":{"kind":"user"}}}
+{"type":"turn/end","data":{"turn":1,"reason":{"kind":"completed"}}}
+{"type":"session/end-seed","data":{}}
+{"type":"permission/preset","data":{"preset":"workspace-write"}}
+{"type":"sandbox/mode","data":{"mode":"workspace-write"}}
+{"type":"approval/policy","data":{"policy":"ask"}}
+{"type":"session/title","data":{"title":"Latest title","messageSeqs":[],"source":{"kind":"user"}}}

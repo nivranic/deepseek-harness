@@ -1,0 +1,22 @@
+# Bilingual-pair consistency record for 2026-10-23-facts-export.md (docs/i18n/README.md): per heading
+# section, a hash of its English and Chinese blocks outside code blocks and generated regions.
+# After editing either side, bring the other along and re-record with:
+#   pnpm run verify-translation-pairing --write .agents/notes/implemented/architecture/2026-10-23-facts-export.md
+/agent-note-lite-session-facts-project-into-the-support-export-s-own-device-plane-segment:
+  en: cc3940a088f4b490
+  zh: faa730a0e656ef81
+/agent-note-lite-session-facts-project-into-the-support-export-s-own-device-plane-segment/problem:
+  en: 7760258f4b809a82
+  zh: 21e12ee260a47edd
+/agent-note-lite-session-facts-project-into-the-support-export-s-own-device-plane-segment/decision:
+  en: 1a061f7659a21c7c
+  zh: 233a85eba31c9f93
+/agent-note-lite-session-facts-project-into-the-support-export-s-own-device-plane-segment/alternatives-considered:
+  en: 3b447e521e057890
+  zh: b839b51041c20b29
+/agent-note-lite-session-facts-project-into-the-support-export-s-own-device-plane-segment/consequences:
+  en: 4d5ac1efe473754f
+  zh: 5ba68ab37d603c32
+/agent-note-lite-session-facts-project-into-the-support-export-s-own-device-plane-segment/open-follow-ups:
+  en: 5d6eb2e60e8207a8
+  zh: c23066639779e8ae

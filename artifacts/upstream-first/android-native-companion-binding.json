@@ -1,0 +1,16 @@
+{
+  "status": "PASS",
+  "controls": 3,
+  "sourceRecord": {
+    "path": "artifacts/upstream-first/android-native-companion-source.json",
+    "sha256": "2f2f03ccf7dfb55e1b8695ab1a0d180aa550e33c8fe190baa9403ee2f3ec1baf"
+  },
+  "generator": {
+    "path": "artifacts/upstream-first/write-reports.mjs",
+    "sha256": "3236d6115965f82658540357f69ecfa434042a41155d18b17159f5edc6e2aec8"
+  },
+  "helper": {
+    "path": ".artifacts/check-android-native-companion-binding.mjs",
+    "sha256": "9f69128fb194ebffed46883bf9d8bccdcd8de7140182e8301fa1686c67bff24e"
+  }
+}

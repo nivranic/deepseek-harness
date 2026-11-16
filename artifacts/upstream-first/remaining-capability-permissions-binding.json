@@ -1,0 +1,16 @@
+{
+  "status": "PASS",
+  "controls": 3,
+  "sourceRecord": {
+    "path": "artifacts/upstream-first/remaining-capability-permissions-source.json",
+    "sha256": "54a71eed619158d7bfea7d3a43e6dbb409afeee5f0bcefb3832799ea67f1721e"
+  },
+  "generator": {
+    "path": "artifacts/upstream-first/write-reports.mjs",
+    "sha256": "eaa3e2c38d69219bc1dd8c8101d26a493c5faf80eee42d8653beb37c90806a8e"
+  },
+  "helper": {
+    "path": ".artifacts/check-remaining-capability-permissions-binding.mjs",
+    "sha256": "2cf00bd347701b04e5b5d743bb71b4df37ddd6dbe3f31e41e55069c4d17e6ae7"
+  }
+}

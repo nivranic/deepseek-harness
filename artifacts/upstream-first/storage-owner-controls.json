@@ -1,0 +1,57 @@
+{
+  "schemaVersion": 1,
+  "status": "PASS",
+  "cases": [
+    {
+      "name": "skip-owner",
+      "status": "PASS",
+      "source": "packages/storage/storage/src/close-units.ts",
+      "originalSha256": "af2500ceb286125332fe1ebe56adde60eda3eacaef4e2227bc35a5b3a99f9d9c",
+      "mutatedSha256": "d5d7b9ee1bf001df887b1411de7d315f36367a175ff2d72a27caf9f40e15818c",
+      "command": [
+        "C:\\Program Files\\nodejs\\node.exe",
+        "node_modules/vitest/vitest.mjs",
+        "run",
+        "packages/storage/storage-json/tests",
+        "-t",
+        "drains owner work"
+      ],
+      "exitCode": 1,
+      "log": ".artifacts/storage-owner-control-skip-owner.log"
+    },
+    {
+      "name": "publish-after-close",
+      "status": "PASS",
+      "source": "packages/storage/storage-domain/src/index.ts",
+      "originalSha256": "e29ad88605f01b3feee51c0db633b314fe9e09188db14f12f816be995a6843c4",
+      "mutatedSha256": "38d906b991344b983a4967e39cfeb0c0a72f582c54a19b5e5588db76991d577f",
+      "command": [
+        "C:\\Program Files\\nodejs\\node.exe",
+        "node_modules/vitest/vitest.mjs",
+        "run",
+        "packages/storage/storage-domain/tests/domain.spec.ts",
+        "-t",
+        "joins initialization and refuses a handle"
+      ],
+      "exitCode": 1,
+      "log": ".artifacts/storage-owner-control-publish-after-close.log"
+    },
+    {
+      "name": "hide-cleanup-failure",
+      "status": "PASS",
+      "source": "packages/storage/storage-domain/src/index.ts",
+      "originalSha256": "e29ad88605f01b3feee51c0db633b314fe9e09188db14f12f816be995a6843c4",
+      "mutatedSha256": "1d5e9275205194b142a15c7781d0fed03fa9967868b24386a74f0ceb43c9491a",
+      "command": [
+        "C:\\Program Files\\nodejs\\node.exe",
+        "node_modules/vitest/vitest.mjs",
+        "run",
+        "packages/storage/storage-domain/tests/domain.spec.ts",
+        "-t",
+        "reports initialization cleanup failure"
+      ],
+      "exitCode": 1,
+      "log": ".artifacts/storage-owner-control-hide-cleanup-failure.log"
+    }
+  ]
+}

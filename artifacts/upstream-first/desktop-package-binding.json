@@ -1,0 +1,46 @@
+{
+  "schemaVersion": 1,
+  "status": "PASS",
+  "cases": [
+    {
+      "path": "artifacts/upstream-first/desktop-package-source.json",
+      "status": "PASS",
+      "rejected": "Desktop package source record changed"
+    },
+    {
+      "path": "apps/desktop/src/project-manager.ts",
+      "status": "PASS",
+      "rejected": "Desktop package sourceFiles changed after validation"
+    },
+    {
+      "path": ".artifacts/desktop-package-candidate-inputs/apps/desktop/src/project-manager.ts",
+      "status": "PASS",
+      "rejected": "Desktop package saved input changed"
+    },
+    {
+      "path": ".artifacts/desktop-before-payload-fix/apps/desktop/src/project-manager.ts",
+      "status": "PASS",
+      "rejected": "Desktop payload input archive changed"
+    },
+    {
+      "path": ".artifacts/desktop-before-payload-fix/archive.json",
+      "status": "PASS",
+      "rejected": "Desktop package archives changed after validation"
+    },
+    {
+      "path": "artifacts/upstream-first/desktop-packaged-final.json",
+      "status": "PASS",
+      "rejected": "Desktop package receipts changed after validation"
+    },
+    {
+      "path": "apps/desktop/.desktop-build/targets/win-x64/unsigned-artifacts/win-unpacked/resources/app.asar",
+      "status": "PASS",
+      "rejected": "Desktop package artifacts changed after validation"
+    },
+    {
+      "path": "apps/desktop/lib/main.js",
+      "status": "PASS",
+      "rejected": "Desktop package builtFiles changed after validation"
+    }
+  ]
+}

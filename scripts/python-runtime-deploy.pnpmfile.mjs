@@ -12,12 +12,17 @@ import { pathToFileURL } from 'node:url'
  */
 function updateConfig(config) {
   if (config.allowBuilds === undefined) return config
-  const allowBuilds = Object.fromEntries(Object.entries(config.allowBuilds).map(([key, value]) => {
+  const approvals = new Map()
+  for (const [key, value] of Object.entries(config.allowBuilds)) {
     const marker = key.indexOf('@file:')
-    if (marker < 0 || key.slice(marker + 6).startsWith('//')) return [key, value]
-    const source = resolve(import.meta.dirname, '..', key.slice(marker + 6))
-    return [`${key.slice(0, marker + 1)}${pathToFileURL(source).href}`, value]
-  }))
+    let identity = key
+    if (marker >= 0 && !key.slice(marker + 6).startsWith('//')) {
+      const source = resolve(import.meta.dirname, '..', key.slice(marker + 6))
+      identity = `${key.slice(0, marker + 1)}${pathToFileURL(source).href}`
+    }
+    if (approvals.get(identity) !== false) approvals.set(identity, value)
+  }
+  const allowBuilds = Object.fromEntries(approvals)
   return { ...config, allowBuilds }
 }
 

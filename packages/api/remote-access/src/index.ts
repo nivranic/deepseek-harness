@@ -51,7 +51,7 @@ const OWNER_BASELINE: RemoteAccessBaseline = Object.freeze({ type: 'baseline', o
 /**
  * A binding seen without its resource kind. Method syntax keeps the condition
  * of every kind assignable; each condition is called only with a resource
- * equal to its own binding's resource.
+ * equal to its own binding's resource, or any resource for a Host binding.
  */
 interface ErasedBinding {
   readonly role: { readonly actions: readonly RemoteAccessAction[] }
@@ -185,7 +185,7 @@ export class RemoteAccessService extends TypertRemoteService {
    * The owner is allowed, and so is `remoteAccess/follow`: every Peer reads
    * its own snapshot. Otherwise the action is allowed only when, on every
    * listed resource, some binding of the principal's policy names that
-   * resource, has a role listing the action, and has no condition or a
+   * resource or `host`, has a role listing the action, and has no condition or a
    * condition that allows. `bindings()` is called once per decision.
    * @param request - the caller or recipient, the action, the resources it
    *   touches, and a call's arguments.
@@ -299,12 +299,12 @@ export class RemoteAccessService extends TypertRemoteService {
   }
 
   /** One `bindings()` call; `undefined` after a logged failure. */
-  private bindingsOf(entry: PolicyEntry, principal: Principal, purpose: string): readonly ErasedBinding[] | undefined {
+  private bindingsOf(entry: PolicyEntry, principal: Principal, action?: RemoteAccessAction): readonly ErasedBinding[] | undefined {
     try {
-      return entry.policy.bindings(principal)
+      return entry.policy.bindings(principal, this.ctx, action)
     } catch (error) {
       // A policy failure is contained to this question, so one faulty rule cannot break a shared event stream.
-      this.report(entry, `list bindings for ${purpose}`, error)
+      this.report(entry, `list bindings for ${action ?? 'a snapshot'}`, error)
       return undefined
     }
   }
@@ -319,7 +319,8 @@ export class RemoteAccessService extends TypertRemoteService {
   ): Evaluation {
     let refusal: Refusal | undefined
     for (const binding of bindings) {
-      if (!sameResource(binding.resource, resource) || !binding.role.actions.includes(action)) continue
+      if (binding.resource.kind !== 'host' && !sameResource(binding.resource, resource)) continue
+      if (!binding.role.actions.includes(action)) continue
       if (binding.condition === undefined) return ALLOWED
       let decision: RemoteAccessDecision
       try {
@@ -355,7 +356,7 @@ export class RemoteAccessService extends TypertRemoteService {
   private grantsFor(principal: Principal): readonly RemoteAccessGrant[] {
     const entry = this.policies.get(principal.kind)
     if (entry === undefined) return []
-    const bindings = this.bindingsOf(entry, principal, 'a snapshot')
+    const bindings = this.bindingsOf(entry, principal)
     if (bindings === undefined) return []
     const grants: RemoteAccessGrant[] = []
     const seen: RemoteAccessResource[] = []

@@ -1,0 +1,16 @@
+{
+  "status": "PASS",
+  "controls": 3,
+  "sourceRecord": {
+    "path": "artifacts/upstream-first/android-cursor-resume-source.json",
+    "sha256": "23ea29ea4b0a77b1bc32f734228cbffb37ab211fb10fc83d22ee727f4319481d"
+  },
+  "generator": {
+    "path": "artifacts/upstream-first/write-reports.mjs",
+    "sha256": "6782d1bee567b33f3fb19c1d7ab2b42e9da228fabce5c3072b7d61b4a187e69c"
+  },
+  "helper": {
+    "path": ".artifacts/check-android-cursor-resume-binding.mjs",
+    "sha256": "e13dd67b6e50f15a2537d75276eb9d83f2c2027b420460819415def4ec84fdb2"
+  }
+}

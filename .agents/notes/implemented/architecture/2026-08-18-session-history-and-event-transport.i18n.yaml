@@ -12,8 +12,8 @@
   en: bbe86a1833ab5547
   zh: 987a2ade8b4cb909
 /agent-note-session-history-control-state-and-remote-event-transport/decision/connection-generation-and-physical-connections:
-  en: c4342f89bf96a63b
-  zh: f8749f02bcfccc4e
+  en: db5999c6d4432b57
+  zh: a8c1ac418d7ba91c
 /agent-note-session-history-control-state-and-remote-event-transport/decision/general-remote-stream-model:
   en: fb2c7bcde3b1672a
   zh: a05bd30be07e5413
@@ -27,11 +27,11 @@
   en: d5d0d6a57a4fa581
   zh: 265973b157f957d9
 /agent-note-session-history-control-state-and-remote-event-transport/decision/session-controller:
-  en: f432480a52414d56
-  zh: 15a3f175b69cdb53
+  en: 76ee7b024eaddac7
+  zh: eac1e13503296b79
 /agent-note-session-history-control-state-and-remote-event-transport/decision/session-controller/activation-policy:
-  en: 03e24cdee8519a92
-  zh: 82dc02eb26d7d7f4
+  en: 7e247d633a003f8a
+  zh: 17ee35d9a94c70f8
 /agent-note-session-history-control-state-and-remote-event-transport/decision/session-controller/session-journal:
   en: 4de2965717900b96
   zh: 1d129003824fa6bd
@@ -42,8 +42,8 @@
   en: ce0c3fcff169412d
   zh: 7076182817358dff
 /agent-note-session-history-control-state-and-remote-event-transport/decision/remote-event:
-  en: c76291bf39999882
-  zh: 76f032664fb91ead
+  en: 8f578e153a8f5cc3
+  zh: 53850cfd9de56db0
 /agent-note-session-history-control-state-and-remote-event-transport/decision/api-proxy-s-remaining-boundary:
   en: 457408013eb78636
   zh: 126e9d263225d7c4

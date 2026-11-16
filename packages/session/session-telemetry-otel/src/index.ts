@@ -10,17 +10,23 @@
 
 import { createRequire } from 'node:module'
 import z from '@deepseek-ai/schemastery'
-import type { Context } from '@deepseek-ai/cordis'
+import type { Context, Volatile } from '@deepseek-ai/cordis'
 import type {} from '@deepseek-ai/dsh-command-feedback'
 import type {} from '@deepseek-ai/dsh-message-feedback'
 import { Session, type SessionEvent } from '@deepseek-ai/dsh-session'
 import {
   SessionTelemetryBackend,
   SessionTelemetryCoordinator,
+  TELEMETRY_CONSENT_OFF,
+  TELEMETRY_DATA_KINDS,
+  resolveTelemetryConsent,
+  telemetryKindAllowed,
   type SessionTelemetrySink,
   type SessionTelemetryRecord,
   type SessionTelemetrySeverity,
   type SessionTelemetrySharingStatus,
+  type TelemetryConsent,
+  type TelemetryDataKind,
 } from '@deepseek-ai/dsh-session-telemetry'
 import { APP_IDENTITY } from '@deepseek-ai/dsh-llm'
 import { getOrCreateAnonymousUserId } from '@deepseek-ai/dsh-anonymous-user-id'
@@ -37,6 +43,7 @@ export enum SessionTelemetryMode {
 export const DEFAULT_TELEMETRY_MODE = SessionTelemetryMode.FEEDBACK_ONLY
 
 const DISABLED_FEEDBACK_WARNING = 'OpenTelemetry session upload is DISABLED; this feedback is not uploaded through OpenTelemetry'
+const CONSENT_WITHHELD_WARNING = 'OpenTelemetry session upload is withheld: sessionTelemetry consent is off; this feedback is not uploaded through OpenTelemetry'
 const NON_CANONICAL_EVENT_WARNING = 'session telemetry ignored an event absent from the canonical session log'
 
 /** Only this Session's explicit feedback authorizes replay; fork seeds do not. */
@@ -86,6 +93,15 @@ export interface Config {
   /** Defaults to `FEEDBACK_ONLY`: capture session history only when feedback is explicitly submitted. */
   mode?: SessionTelemetryMode
   /**
+   * Section 44 per-kind telemetry consent: one boolean per data kind, every
+   * kind defaulting to off, no master switch. The `sessionTelemetry` kind
+   * gates new feedback captures; already authorized batches may finish after
+   * consent is withdrawn. `mode` remains the upload policy. The other
+   * kinds reserve the section 44 vocabulary for their exits; this backend
+   * has no channel for them yet, so opting in changes nothing here.
+   */
+  consent?: Volatile<Partial<TelemetryConsent>>
+  /**
    * Explicit SDK HTTP transport settings, including optional routing headers.
    * Ambient credentials are not inherited. URL is required while uploading.
    * Exporter self-observability metering is not supported.
@@ -113,13 +129,29 @@ export interface Config {
  * processor settings use the reporter's accepted option types, which exclude
  * self-observability metering.
  */
-export const Config: z<Config> = z.object({
+export const Config: z<Omit<Config, 'consent'> & { consent?: Partial<TelemetryConsent> }, Config> = z.object({
   mode: z.union(Object.values(SessionTelemetryMode)).default(DEFAULT_TELEMETRY_MODE),
+  consent: buildTelemetryConsentSchema().default(TELEMETRY_CONSENT_OFF).volatile(),
   exporter: z.any(),
   processor: z.any(),
   shutdownTimeoutMillis: z.number(),
   maxRequestBytes: z.number().step(1).min(1).max(4_000_000),
 })
+
+/**
+ * Build one consent-record schema: one boolean per section 44 data kind, every
+ * kind defaulting to off, no master key. The builder runs off the seam's kind
+ * list, so this Config cannot drift from the consent vocabulary.
+ * @returns a fresh schema instance each call.
+ */
+function buildTelemetryConsentSchema() {
+  // Object.fromEntries widens the tuple's entries to a string index; the
+  // assertion restores the per-kind keys the tuple covers by construction.
+  const fields = Object.fromEntries(
+    TELEMETRY_DATA_KINDS.map(kind => [kind, z.boolean().default(false)]),
+  ) as { [K in TelemetryDataKind]: z<boolean> }
+  return z.object(fields)
+}
 
 /** Default outer allowance for the SDK's complete shutdown sequence. */
 export const DEFAULT_SHUTDOWN_TIMEOUT_MILLIS = 3_000
@@ -145,14 +177,20 @@ export class OpenTelemetrySessionBackend extends SessionTelemetryBackend {
   static inject = ['sessions', 'otel']
   static Config = Config
 
-  private readonly provider: SessionLogReporter | undefined
+  private provider: SessionLogReporter | undefined
   private readonly shutdownTimeoutMillis: number
   override readonly sharing: SessionTelemetrySharingStatus
+  private readonly consentRef: Config['consent']
+
+  override get consent(): TelemetryConsent {
+    return resolveTelemetryConsent(this.consentRef?.get())
+  }
 
   constructor(ctx: Context, config: Config) {
     const mode = resolveMode(config.mode)
     super(ctx)
     this.sharing = sharingStatusFor(mode)
+    this.consentRef = config.consent
     if (mode === SessionTelemetryMode.DISABLED) {
       this.provider = undefined
       this.shutdownTimeoutMillis = DEFAULT_SHUTDOWN_TIMEOUT_MILLIS
@@ -161,7 +199,6 @@ export class OpenTelemetrySessionBackend extends SessionTelemetryBackend {
       })
       return
     }
-
     const url = config.exporter?.url
     if (url === undefined || url.length === 0) {
       throw new Error('session-telemetry-otel: exporter.url is required (the full OTLP logs endpoint)')
@@ -186,51 +223,62 @@ export class OpenTelemetrySessionBackend extends SessionTelemetryBackend {
       throw new Error(`session-telemetry-otel: shutdownTimeoutMillis must be a positive finite number no greater than ${MAX_TIMER_DELAY_MILLIS}, got ${String(shutdownTimeoutMillis)}`)
     }
     this.shutdownTimeoutMillis = shutdownTimeoutMillis
-    const { version } = createRequire(import.meta.url)('../package.json') as { version: string }
-    const reporter = ctx.otel.createSessionLogReporter({
-      scope: { name: '@deepseek-ai/dsh-session-telemetry-otel', version },
-      exporter: { ...config.exporter, url },
-      ...(config.processor === undefined ? {} : { processor: config.processor }),
-      ...(config.maxRequestBytes === undefined ? {} : { maxRequestBytes: config.maxRequestBytes }),
-      resourceAttributes: {
-        'service.name': APP_IDENTITY.product,
-        'service.version': APP_IDENTITY.version,
-        'user.id': getOrCreateAnonymousUserId(),
-      },
-      onFailure: (message, error) => { ctx.logger.warn(message, error) },
-    })
-    this.provider = reporter
-    const enqueue: SessionTelemetrySink['emit'] = (record) => {
-      if (record.sourceEvent === undefined) {
-        ctx.logger.warn('Session log record withheld: redaction removed sourceEvent')
-        return
-      }
-      reporter.reportSessionLog({
-        sessionId: record.sourceEvent.sessionId,
-        event: { ...record.sourceEvent.envelope, data: record.body },
-        severityNumber: SEVERITY[record.severity],
-        attributes: record.attributes,
+    let coordinator: SessionTelemetryCoordinator | undefined
+    const captureCoordinator = (): SessionTelemetryCoordinator => {
+      if (coordinator !== undefined) return coordinator
+      const { version } = createRequire(import.meta.url)('../package.json') as { version: string }
+      const reporter = ctx.otel.createSessionLogReporter({
+        scope: { name: '@deepseek-ai/dsh-session-telemetry-otel', version },
+        exporter: { ...config.exporter, url },
+        ...(config.processor === undefined ? {} : { processor: config.processor }),
+        ...(config.maxRequestBytes === undefined ? {} : { maxRequestBytes: config.maxRequestBytes }),
+        resourceAttributes: {
+          'service.name': APP_IDENTITY.product,
+          'service.version': APP_IDENTITY.version,
+          'user.id': getOrCreateAnonymousUserId(),
+        },
+        onFailure: (message, error) => { ctx.logger.warn(message, error) },
       })
+      this.provider = reporter
+      const enqueue: SessionTelemetrySink['emit'] = (record) => {
+        if (record.sourceEvent === undefined) {
+          ctx.logger.warn('Session log record withheld: redaction removed sourceEvent')
+          return
+        }
+        reporter.reportSessionLog({
+          sessionId: record.sourceEvent.sessionId,
+          event: { ...record.sourceEvent.envelope, data: record.body },
+          severityNumber: SEVERITY[record.severity],
+          attributes: record.attributes,
+        })
+      }
+      const backend: SessionTelemetrySink = {
+        emit: enqueue,
+        shutdown: () => this.shutdown(),
+      }
+      coordinator = new SessionTelemetryCoordinator(ctx, backend, {
+        capture: 'on-demand',
+        includeHistory: true,
+      })
+      return coordinator
     }
-    const backend: SessionTelemetrySink = {
-      emit: enqueue,
-      shutdown: () => this.shutdown(),
-    }
-    const coordinator = new SessionTelemetryCoordinator(ctx, backend, {
-      capture: 'on-demand',
-      includeHistory: true,
-    })
+    if (telemetryKindAllowed(this.consent, 'sessionTelemetry')) captureCoordinator()
     ctx.on('session/event', (session, event) => {
       if (!isFeedback(session, event)) return
+      if (!telemetryKindAllowed(this.consent, 'sessionTelemetry')) {
+        ctx.logger.warn(CONSENT_WITHHELD_WARNING)
+        return
+      }
       // Only the canonical appended event authorizes this exact prefix.
       // oxlint-disable-next-line typescript/no-deprecated -- Existing Session history read; migration deferred.
       if (session.eventAt(event.seq) !== event) {
         ctx.logger.warn(NON_CANONICAL_EVENT_WARNING)
         return
       }
-      coordinator.captureSession(session, event.seq)
+      captureCoordinator().captureSession(session, event.seq)
     })
     ctx.on('feedback/committed', (inspection) => {
+      if (!telemetryKindAllowed(this.consent, 'sessionTelemetry')) return
       const snapshot = structuredClone(inspection)
       const committed = snapshot.events.at(-1)
       if (committed === undefined) return
@@ -239,7 +287,7 @@ export class OpenTelemetrySessionBackend extends SessionTelemetryBackend {
         'detached', ctx.sessions.messageProjections,
       )
       // fromRestore appends a lifecycle marker that this submission did not commit.
-      if (isFeedback(session, committed)) coordinator.captureSession(session, committed.seq)
+      if (isFeedback(session, committed)) captureCoordinator().captureSession(session, committed.seq)
     })
   }
 

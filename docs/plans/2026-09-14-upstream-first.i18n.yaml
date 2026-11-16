@@ -1,0 +1,28 @@
+# Bilingual-pair consistency record for 2026-09-14-upstream-first.md (docs/i18n/README.md): per heading
+# section, a hash of its English and Chinese blocks outside code blocks and generated regions.
+# After editing either side, bring the other along and re-record with:
+#   pnpm run verify-translation-pairing --write docs/plans/2026-09-14-upstream-first.md
+/upstream-first-implementation-plan:
+  en: 6c31a20535206b9a
+  zh: efe573ee2cdb454d
+/upstream-first-implementation-plan/summary:
+  en: 67bac6b6cb8cc438
+  zh: fa8ca73424091b17
+/upstream-first-implementation-plan/table-of-contents:
+  en: d5f90ba41fa8c7e5
+  zh: b1dd0cb7cf3298cd
+/upstream-first-implementation-plan/task-1-complete-the-audit:
+  en: 7db356311f89de23
+  zh: 1278029be232fa4e
+/upstream-first-implementation-plan/task-2-converge-desktop:
+  en: 9bd35a857fe85536
+  zh: 7f35d4b303a26f10
+/upstream-first-implementation-plan/task-3-stabilize-shared-apis:
+  en: 4cfff0a12b657242
+  zh: ade7e020b1657b5e
+/upstream-first-implementation-plan/task-4-continue-in-dependency-order:
+  en: af603e850f69b2f4
+  zh: 350462a60e747942
+/upstream-first-implementation-plan/dev-note:
+  en: fef3e39d2e89fbe6
+  zh: 5d3870b58ecc221c

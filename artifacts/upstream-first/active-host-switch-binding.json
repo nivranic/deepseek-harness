@@ -1,0 +1,16 @@
+{
+  "status": "PASS",
+  "controls": 3,
+  "sourceRecord": {
+    "path": "artifacts/upstream-first/active-host-switch-source.json",
+    "sha256": "f786320138c7049c454a77b093f0ce8e36991d01b5903e6ce4c9404644456219"
+  },
+  "generator": {
+    "path": "artifacts/upstream-first/write-reports.mjs",
+    "sha256": "1e86e24069713c4ff8d94120684ecb9068ba55264b65924f94f432664a4bd9d0"
+  },
+  "helper": {
+    "path": ".artifacts/check-active-host-switch-binding.mjs",
+    "sha256": "6efc9d3ce0cf3042b16e71002928e7f47bbaa3e03fd0bd2be66644485749ad04"
+  }
+}

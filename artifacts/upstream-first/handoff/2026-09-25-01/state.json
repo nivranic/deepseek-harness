@@ -1,0 +1,59 @@
+{
+  "schemaVersion": 1,
+  "handoffId": "2026-09-25-01",
+  "predecessorHandoff": "2026-09-19-01",
+  "predecessorHandoffEntrySha256": "6538c89e07a07ab0b5bc695121796f87c3163c0636f4af3fb913e91c401f8686",
+  "taskTimeZone": "Asia/Hong_Kong",
+  "takenOverAt": "2026-09-19",
+  "handedBackAt": "2026-09-25",
+  "userDirectInstructionAtHandback": "这是本对话开始时的需求，按这个要求移交（指 2026-09-19-01/HANDOFF.md 第 17 节协议）",
+  "goalStatus": "paused",
+  "fullGoalComplete": false,
+  "completeRc": false,
+  "worktree": "E:/Mix/project/deepseek-harness/.worktrees/upstream-first",
+  "branch": "agents/upstream-first",
+  "head": "5bd766f9114174e4d78760977391ec62104a7868",
+  "originHead": "5bd766f9114174e4d78760977391ec62104a7868",
+  "remote": "nivranic/deepseek-harness",
+  "workingTree": "clean except untracked .glm-router/ telemetry (never committed, excluded from git add)",
+  "checkpointCommit": "965d0ac",
+  "commitsSinceCheckpoint": 79,
+  "upstreamBaselineSha": "c291e7961a515f6d7af9304e7fd1d257929aef26",
+  "specificationSha256": "4f313ad5a779b497e239654bc6cb3734dbe32210c72adf11286637606f764e80",
+  "sessionWriterVersion": 3,
+  "sourceRecordCount": 162,
+  "conclusionFlagsTrue": 133,
+  "latestSealedRecord": {
+    "key": "interruptedTransfer",
+    "path": "artifacts/upstream-first/interrupted-transfer-source.json",
+    "sha256": "243af43ad9065b0424afbfa90c0c26370e7968796d3db80751356f8458fae684",
+    "commit": "5bd766f9114174e4d78760977391ec62104a7868",
+    "validationReceipt": "artifacts/upstream-first/interrupted-transfer-report-validation.json"
+  },
+  "unsealedIncrement": null,
+  "unsealedSurvey": {
+    "nextIncrement": "mime-inference (specification section 35 remainder)",
+    "codeWritten": false,
+    "finding": "ImageBody derives its Blob mediaType from the path suffix via imageMediaType(path); DocumentContent's bytes variant carries no mediaType channel, so content-based routing needs the content bytes variant to carry an optional mediaType and the seat to rank a sniffed renderer above the plain-text fallback but below an explicit user choice."
+  },
+  "ci": {
+    "workflow": "ci.yml",
+    "trigger": "repository_dispatch via REST POST /repos/nivranic/deepseek-harness/actions/workflows/ci.yml/dispatches {\"ref\":\"agents/upstream-first\"}; expects 204",
+    "lastDispatchAfterCommit": "5bd766f911",
+    "knownFailure": "E2E job fails without DEEPSEEK_API_KEY_EXTERNAL secret (user said e2e 先不管)"
+  },
+  "environment": {
+    "node": "v22.22.1",
+    "pnpm": "11.7.0",
+    "platform": "win32",
+    "notes": [
+      "PowerShell must be pwsh 7, never Windows PowerShell 5.1",
+      "bash heredocs mangle backslashes: write transform scripts as files instead",
+      "use git grep, never grep -r (junction loops through node_modules)",
+      "record generation now ~6 minutes (was ~55 before the shared archivedInputs map)"
+    ]
+  },
+  "localOnlyDirectories": [
+    ".artifacts/ (gitignored): gate logs, before-archives with 151 archive.json manifests, seal-chain helpers, perf transform scripts. Source records bind these hashes; copy .artifacts/ wholesale when transferring across machines."
+  ]
+}

@@ -1,8 +1,8 @@
 /**
  * Verify that the executable deploy manifest supplies every plugin referenced
- * by a shipped agent preset and every required workspace peer in its dependency
- * graph. Frozen deployment preserves the locked peer graph; this check also
- * requires explicit workspace peers so omissions fail before plugin loading.
+ * by a shipped agent preset and a required dependency supplies each workspace peer
+ * on every dependency path. Frozen deployment preserves the locked peer graph;
+ * explicit workspace peers make omissions fail before plugin loading.
  */
 import { globSync } from 'node:fs'
 import { readFile } from 'node:fs/promises'
@@ -39,7 +39,7 @@ export interface RuntimeClosureResult {
 }
 
 /**
- * Check that the runtime manifest contains every shipped-preset plugin and workspace peer.
+ * Check shipped-preset plugins and peer providers along every runtime dependency path.
  * @param root repository root containing the runtime manifest and shipped presets.
  * @param manifestPath runtime manifest path relative to {@link root}.
  * @param includePresets whether this carrier includes the shipped application presets.
@@ -57,16 +57,17 @@ export async function verifyRuntimeClosure(
   const platforms = includePresets ? await loadJson<RuntimePlatformManifest>(resolve(root, 'python/sdk-runtime/platforms.json')) : {}
   const presetPaths = includePresets ? globSync(AGENT_PRESET_GLOB, { cwd: root }).sort() : []
   const targets = Object.keys(platforms).sort()
-  const parents = new Map<string, string | undefined>()
+  const reached = new Set<string>()
   const queue: string[] = []
 
   for (const dependency of Object.keys(runtimeDependencies).sort()) {
     if (!workspace.has(dependency)) continue
-    parents.set(dependency, undefined)
+    reached.add(dependency)
     queue.push(dependency)
   }
 
   const failures: string[] = []
+  const requiredPeers = new Set<string>()
   if (includePresets && presetPaths.length === 0) failures.push(`no agent presets matched ${AGENT_PRESET_GLOB}`)
   if (includePresets && targets.length === 0) failures.push('python/sdk-runtime/platforms.json defines no runtime targets')
   failures.push(...await missingPresetPlugins(root, runtimeDependencies, presetPaths, targets))
@@ -79,18 +80,21 @@ export async function verifyRuntimeClosure(
     const peerMeta = current.manifest.peerDependenciesMeta ?? {}
     for (const peer of Object.keys(peers).sort()) {
       if (!workspace.has(peer) || peerMeta[peer]?.optional === true) continue
-      if (runtimeDependencies[peer]?.startsWith('workspace:') === true) continue
-      failures.push(`${formatChain(runtimeName, packageName, parents)} -> ${peer}`)
+      if (!declaresRequiredDependency(runtimeManifest, peer)) requiredPeers.add(peer)
     }
     const dependencies = {
       ...current.manifest.dependencies,
       ...current.manifest.optionalDependencies,
     }
     for (const dependency of Object.keys(dependencies).sort()) {
-      if (!workspace.has(dependency) || parents.has(dependency)) continue
-      parents.set(dependency, packageName)
+      if (!workspace.has(dependency) || reached.has(dependency)) continue
+      reached.add(dependency)
       queue.push(dependency)
     }
+  }
+
+  for (const peer of [...requiredPeers].sort()) {
+    failures.push(...missingPeerProviders(runtimeName, runtimeDependencies, workspace, peer))
   }
 
   return {
@@ -203,7 +207,14 @@ function isRecord(value: unknown): value is Record<string, unknown> {
 }
 
 async function loadWorkspacePackages(root: string): Promise<Map<string, WorkspacePackage>> {
-  const paths = globSync(['packages/*/*/package.json', 'vendor/*/package.json'], { cwd: root })
+  const paths = globSync([
+    'apps/*/package.json',
+    'packages/*/*/package.json',
+    'vendor/*/package.json',
+    'native/system/package.json',
+    'native/system/packages/*/package.json',
+  ], { cwd: root })
+    .map(path => path.replaceAll('\\', '/'))
     .sort()
     .map(relative => resolve(root, relative))
   const result = new Map<string, WorkspacePackage>()
@@ -222,16 +233,37 @@ async function loadJson<T>(path: string): Promise<T> {
   return JSON.parse(await readFile(path, 'utf8')) as T
 }
 
-function formatChain(
+function declaresRequiredDependency(manifest: PackageManifest, dependency: string): boolean {
+  return manifest.dependencies?.[dependency]?.startsWith('workspace:') === true
+    && manifest.optionalDependencies?.[dependency] === undefined
+}
+
+/** A shared package may resolve its peer differently under two parents; visit both supplied and missing states. */
+function missingPeerProviders(
   runtimeName: string,
-  packageName: string,
-  parents: ReadonlyMap<string, string | undefined>,
-): string {
-  const chain = [packageName]
-  let parent = parents.get(packageName)
-  while (parent !== undefined) {
-    chain.unshift(parent)
-    parent = parents.get(parent)
+  runtimeDependencies: Readonly<Record<string, string>>,
+  workspace: ReadonlyMap<string, WorkspacePackage>,
+  peer: string,
+): string[] {
+  const queue = Object.keys(runtimeDependencies).sort().map(name => ({ name, supplied: false, chain: [runtimeName, name] }))
+  const visited = new Set<string>()
+  const reported = new Set<string>()
+  const failures: string[] = []
+  for (const item of queue) {
+    const current = workspace.get(item.name)
+    if (current === undefined) continue
+    const supplied = item.supplied || declaresRequiredDependency(current.manifest, peer)
+    const key = `${item.name}:${supplied}`
+    if (visited.has(key)) continue
+    visited.add(key)
+    if (!supplied && current.manifest.peerDependencies?.[peer] !== undefined
+      && current.manifest.peerDependenciesMeta?.[peer]?.optional !== true && !reported.has(item.name)) {
+      reported.add(item.name)
+      failures.push([...item.chain, peer].join(' -> '))
+    }
+    for (const name of Object.keys({ ...current.manifest.dependencies, ...current.manifest.optionalDependencies }).sort()) {
+      if (workspace.has(name)) queue.push({ name, supplied, chain: [...item.chain, name] })
+    }
   }
-  return [runtimeName, ...chain].join(' -> ')
+  return failures
 }

@@ -1,0 +1,66 @@
+{
+  "status": "PASS",
+  "scope": "Report bindings and audit for the shared-diff-corpus increment: the gen-80 §34 shared Diff matrix (the pinned eleven-case corpus hosted in ui-primitives — DiffCorpus.ts capturing real structuredPatch context:3 output: singleLineReplace with its double no-newline notes, trailingNewlineAdded, identical at zero hunks, create under the oldText-null rule with oldLines zero, delete with its empty newText at zero new lines, scatteredHunks bridged to one hunk by the context window, farScattered splitting to exactly two hunks across the twenty-line gap, cjkEmoji with the 报告 📊 line surviving, crlf carrying its \\r per line, blankLineChange and blockReplace — each case recording before/after, the prefixed hunk lines, the patch +/- counts and both whole-side content-line counts, the two count families kept side by side) — beside the three consumer specs asserting their own view over the same fixture (ui-primitives diffTotals against the content-line counts; the trajectory promptDiffLines extracted to the pure module src/client/prompt-diff-lines.ts imported by TrajectoryTable — headers kept, the blank meta separator between hunks, the note lines dropped, identical the empty array, the added/removed counts against the patch counts; the documentpreview spec assembling the unified text from the corpus hunks and asserting parseUnifiedDiff's full row sequence — hunk starts, both gutters numbering line by line, the backslash note rows and the add/del counts) — beside the icons sibling repair (the 2026-10-03 commit 98802d5ad8 adding IconOverflowVertical16 without raising the pinned icon-set count from 78 to 79, the stale count honestly fixed and the glyph pinned by name after the stash probe proved the failure predates this increment) and the code-block grammar-lazy-load five-second timeout under full-package parallel load honestly recorded as a host-load transient (single-file reruns green twice, the surface untouched, CI's matrix owning the exhaustive form); the three rejected alternatives honestly recorded (the per-spec self-derivation, the test-time jsdiff generation, the new fixture package); the gates honestly recorded from log content: typecheck EXIT 0 (the build:lib:host chain with the strict client face whose declaration emit re-emits exactly the seven lib/types entries the increment's type surface genuinely changes) and lint Found 0 warnings and 0 errors on 3869 files (90 rules, 20 threads, 72.0s — 3864→3869: the corpus fixture module, the extracted prompt-diff-lines module and the three consumer specs entering the lint face), the docs lane green in one combined log (doc-quick 17 passed in 58.38s with doc-sync 37 passed in 185.71s and the tracked-change list byte-identical around the lane — zero regeneration), pairing 965 pairs all consistent in its honest direct-round form (the 964→965 reconciliation riding the prose; the note trio 2026-10-26-shared-diff-corpus, testing class), the serial double audit round green at 90 files / 1107 tests on both passes over the grown lineage list (the gen-54 87-file list plus the three corpus specs — the ui-primitives and documentpreview packages entering the lineage for the first time; the count honestly moving 1074→1107 with the thirty-three corpus cases), gate0 PASS in both byte-identical forms (1938 paths / 129 components / 81 sections / 1983 lines — honestly recorded unchanged from the captured UPSTREAM_DELTA.json, not the live tree; the working-tree whitespace half riding the lane as git diff --check clean); the ledger §34/§35 rewrite narrowing the family row (81 sections kept; §34/§35 at 1265/9 with the widened nine-entry evidence list — the gen-79 six-lane sentence preserved verbatim beside the appended gen-80 landing, the partial-download resume semantics and the range read window honestly left open with the eof presentation surface already pinned by the existing diff-body spec; §31 keeping its gen-78 sealed 11411/28, §33 its gen-72 1641/11, §32 its gen-70 6041/25, §23 its gen-61 429/2 and §67 its gen-59 637/8 — honestly recorded); and the seven-key derivation ruling (the first non-zero family since gen-75): the prepare oracle derives exactly SEVEN replaced prior build outputs over the file-upload-edge record (the ui-primitives barrel's lib/types/index.d.ts/.js/.maps gaining the DIFF_CORPUS export pair beside the trajectory table's lib/types/client/TrajectoryTable.d.ts/.js/.maps losing its private promptDiffLines implementation to the extracted module — the client typecheck's declaration emit re-emitting exactly the type surface this increment genuinely changes, while every runtime bundle and every android entry replays byte-identically) with ZERO miss keys and ZERO unrecoverable inputs, so the advance installs the sharedDiffCorpusReplacedBuildOutputs set at exactly its seven keys (the first new set since gen-76B) and demotes the fileUploadEdge block with the plain history-head form, every prior generation's set staying exactly as sealed at HEAD (the gen-78 networkMatrixReplacedBuildOutputs at its two, the gen-77 resumeFeedReplacedBuildOutputs at its sixty-five, the gen-76B toolJournalReplacedBuildOutputs at its seventy-one and the rest as sealed); the first-round zero-key assertion failing against the measured seven honestly recorded as the renamed r0 prepare log; the remaining open channels (the partial-download resume semantics and the range read window on the gen-81 ledger, the Phase 8 secure outbound relay and the CI synchronize gap) all stay open — so no whole-section PASS is granted; full Upstream-First objective remains in progress",
+  "gate0": {
+    "validation": "PASS",
+    "gate0": "PASS",
+    "paths": 1938,
+    "components": 129,
+    "specificationCoverage": {
+      "status": "PASS",
+      "numberedSections": 81,
+      "nonEmptySourceLines": 1983,
+      "acceptanceProven": false
+    }
+  },
+  "sourceRecord": {
+    "path": "artifacts/upstream-first/shared-diff-corpus-source.json",
+    "sha256": "21099fa50533680463fa35087608e4d67d34a4680b63b204471c66c8036c8d03"
+  },
+  "generator": {
+    "path": "artifacts/upstream-first/write-reports.mjs",
+    "sha256": "a310e5996592dae7d8e01c34b98545e11c204616cdc7672050ed92a842d17850"
+  },
+  "binding": {
+    "path": "artifacts/upstream-first/shared-diff-corpus-binding.json",
+    "sha256": "ffef31d8f52ac7c9ede3710c57746dc30de5471f37c8cae69490a1c1718d9db9"
+  },
+  "helpers": [
+    {
+      "path": ".artifacts/advance-shared-diff-corpus-reports.mjs",
+      "sha256": "1f476b49048ec798a1ee518a0b957bb0094f3d4081d437d3c0fb965f6c9f6633"
+    },
+    {
+      "path": ".artifacts/capture-shared-diff-corpus-validation.mjs",
+      "sha256": "131ed5c6195fbceaf76c702df2149421c084f4b6c0b9a9e94ad1df60795d8109"
+    }
+  ],
+  "reports": [
+    {
+      "path": "IMPLEMENTATION_STATUS.md",
+      "sha256": "2f13ef2794cf29f92df367efd190a648ad301aee140a00fdf2cb6d5894d126cd"
+    },
+    {
+      "path": "artifacts/upstream-first/evidence.json",
+      "sha256": "b50f5f417869386da4026b18d8dfe7626b4e9a41efbad5fbe0b21e4412d4fee3"
+    }
+  ],
+  "checks": [
+    {
+      "path": ".artifacts/shared-diff-corpus-binding.log",
+      "sha256": "a69edf1b137abebdddcfe7d079a817aad5cb205565942df36d5bc1b2e5dd53d9"
+    },
+    {
+      "path": ".artifacts/shared-diff-corpus-audit-final.log",
+      "sha256": "4a518ae91049f92f0fc9c2e50f5a8d44bea18de01303b3574ff28b1963815a89"
+    },
+    {
+      "path": ".artifacts/shared-diff-corpus-gate0-final.log",
+      "sha256": "7e00efd82bd2a2b91b03ca80537dcc4af46cd09eb318ff58520cb2d7d7d8a48a"
+    },
+    {
+      "path": ".artifacts/shared-diff-corpus-report-generation.log",
+      "sha256": "fe010532f71a6341467ae5719b29ac19470895de1d481156335b8f70a3273ed5"
+    }
+  ]
+}

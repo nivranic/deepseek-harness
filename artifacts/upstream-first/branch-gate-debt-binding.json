@@ -1,0 +1,16 @@
+{
+  "status": "PASS",
+  "controls": 3,
+  "sourceRecord": {
+    "path": "artifacts/upstream-first/branch-gate-debt-source.json",
+    "sha256": "63962384a6620b880c9bd41306b2a2fea93f4866e525d4e577193c919fcf05eb"
+  },
+  "generator": {
+    "path": "artifacts/upstream-first/write-reports.mjs",
+    "sha256": "3b9c4163cc7013e3858d87eaa8f01ef347e53cc6a108d2070c17e097f6800c87"
+  },
+  "helper": {
+    "path": ".artifacts/check-branch-gate-debt-binding.mjs",
+    "sha256": "3447557df0889b050e64f95a1b8d2bfb4d0a750a077dcae6b643e7e88b0149bd"
+  }
+}

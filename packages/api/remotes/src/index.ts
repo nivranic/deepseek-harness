@@ -1,6 +1,6 @@
 /** Host BFF entry and Loader shell for the Remote contribution assembly. */
 
-import { homedir } from 'node:os'
+import { homedir, platform } from 'node:os'
 import type { Context } from '@deepseek-ai/cordis'
 import type { Agent } from '@deepseek-ai/dsh-agent'
 import type {
@@ -8,11 +8,14 @@ import type {
   TypertRemoteEventInvocation,
   TypertRemoteEventOutcome,
   TypertRemoteEventSource,
+  RemoteInteractionOrigin,
+  RemoteInteractionSessionId,
 } from '@deepseek-ai/dsh-api-gateway'
 import { Deque } from '@deepseek-ai/dsh-deque'
 import { carrierKeyOf } from '@deepseek-ai/dsh-scope'
 import { isJsonValue, type JsonValue } from '@deepseek-ai/dsh-util-values'
 import { API_REMOTE_FORWARDED_EVENTS } from './remote-events.ts'
+import { ToolCatalogGateway } from './tool-catalog.ts'
 
 // The owner packages' client-safe `./types` exports carry the cordis `Events`
 // declarations for every allowlisted event. Pulling them into this face is what
@@ -33,14 +36,16 @@ export type {} from '@deepseek-ai/dsh-api-session-controller/types'
 
 export { API_REMOTE_FORWARDED_EVENTS } from './remote-events.ts'
 export type { ApiRemoteForwardedEvent } from './types.ts'
+export type { ToolCatalogGateway } from './tool-catalog.ts'
 
 /** Required Host service: the Gateway owns the physical Remote stream mux. */
 export const inject = ['typertGateway']
 
 /** Host plugin body registering this application's selected Cordis event source. */
 export function apply(ctx: Context): void {
+  ctx.inject(['tools'], (inner) => { inner.plugin(ToolCatalogGateway) })
   ctx.effect(
-    () => ctx.typertGateway.registerRemoteEvents(remoteEventSource(ctx), { home: homedir() }),
+    () => ctx.typertGateway.registerRemoteEvents(remoteEventSource(ctx), { home: homedir(), platform: platform() }),
     'api-remotes: forwarded Cordis event source',
   )
 }
@@ -74,6 +79,9 @@ function remoteEventSource(ctx: Context): TypertRemoteEventSource {
           request,
           { value: agent.ctx, subject: agent, agentId: agent.id },
           next,
+          'interaction' in entry ? {
+            ...entry.interaction, sessionId: String(agent.session.id) as RemoteInteractionSessionId,
+          } : undefined,
         )
       }) as never)
     })
@@ -141,12 +149,14 @@ function forwardWaterfall(
   request: object,
   context: TypertRemoteEventInvocation['context'],
   next: () => unknown,
+  interaction?: RemoteInteractionOrigin,
 ): Promise<unknown> {
   const settled = Promise.withResolvers<unknown>()
   const dispatch: TypertRemoteEventInvocation = {
     event,
     request,
     context,
+    ...(interaction === undefined ? {} : { interaction }),
     resolve: (outcome: TypertRemoteEventOutcome) => {
       if (outcome.kind === 'result') {
         settled.resolve(outcome.value)

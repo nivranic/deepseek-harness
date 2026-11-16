@@ -1,0 +1,16 @@
+{
+  "status": "PASS",
+  "controls": 3,
+  "sourceRecord": {
+    "path": "artifacts/upstream-first/roster-switch-source.json",
+    "sha256": "b55da02be58d2b2b2525deb040c27c178f7a1cfcaf23bac415ae4d6273cf6897"
+  },
+  "generator": {
+    "path": "artifacts/upstream-first/write-reports.mjs",
+    "sha256": "143c2bd85734ea3beca9cdeeacd004e356f21605ad6892ce3a18a1e02838b2b4"
+  },
+  "helper": {
+    "path": ".artifacts/check-roster-switch-binding.mjs",
+    "sha256": "41895f6628189bff1cfd46cdf17288ed0ca803c5252ac5e4abafa411f5dd5c61"
+  }
+}

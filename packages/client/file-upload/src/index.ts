@@ -3,15 +3,17 @@
 import { randomUUID } from 'node:crypto'
 import type { Context } from '@deepseek-ai/cordis'
 import type { Agent } from '@deepseek-ai/dsh-agent'
-import type { ImageAttachmentRef } from '@deepseek-ai/dsh-attachment'
+import { admitEncodedImages, type ImageAttachmentRef } from '@deepseek-ai/dsh-attachment'
 import type {} from '@deepseek-ai/dsh-client-connection'
 import type { CommandFileReceiptResolver } from '@deepseek-ai/dsh-commands'
 import type { Session, SessionEvent, SessionId } from '@deepseek-ai/dsh-session'
+import { FILE_UPLOAD_REMOTE_CAPABILITIES } from './capabilities.ts'
 import { Remote, RemoteError, remoteErrorOf, TypertRemoteService } from '@deepseek-ai/dsh-typert-protocol'
 import { handleFileUploadHttp } from './http-route.ts'
 import { FILE_UPLOAD_PATH } from './protocol.ts'
 import type {
-  EncodedFileUploadRequest, FileUploadReceiptId, FileUploadValue, ImageUploadValue, StagedAttachment,
+  EncodedFileDedupeRequest, EncodedFileUploadRequest, EncodedImageUploadRequest,
+  FileUploadReceiptId, FileUploadValue, ImageUploadValue, StagedAttachment,
 } from './types.ts'
 
 export type * from './types.ts'
@@ -66,7 +68,7 @@ export class FileUploads extends TypertRemoteService {
 
   /** @param ctx - Host context carrying Agent, attachment, command, and Connection services. */
   constructor(ctx: Context) {
-    super(ctx, 'fileUploads')
+    super(ctx, 'fileUploads', { capabilities: FILE_UPLOAD_REMOTE_CAPABILITIES })
     // Commands accept staged files only; an image receipt is unknown to them.
     const resolve: CommandFileReceiptResolver = (agent, receiptId) => {
       const staged = this.resolve(agent, receiptId as FileUploadReceiptId)
@@ -116,6 +118,63 @@ export class FileUploads extends TypertRemoteService {
       data: request.data,
       ...(request.name === undefined ? {} : { name: request.name }),
     }))
+    return { receiptId: this.stage(agent, { type: 'file', attachment: file }), file }
+  }
+
+  /**
+   * Normalize one encoded image and stage its reference for the receiving Session.
+   * Cancellation prevents a receipt; bytes already stored remain content-addressed.
+   * @param agent - receiving Agent resolved from the Remote Agent scope.
+   * @param request - canonical base64 image, declared media type, and optional display name.
+   * @param signal - cancellation checked before storage and receipt publication.
+   * @returns the Session-owned receipt and normalized image reference.
+   */
+  @Remote('uploadImage')
+  async uploadImage(agent: Agent, request: EncodedImageUploadRequest, signal: AbortSignal): Promise<ImageUploadValue> {
+    signal.throwIfAborted()
+    const staged = await this.store(agent, async () => {
+      const refs = await admitEncodedImages(this.ctx.attachments, [request])
+      return {
+        type: 'image' as const,
+        attachment: refs[0] as ImageAttachmentRef,
+        encodedBytes: Buffer.byteLength(request.data, 'base64'),
+      }
+    })
+    signal.throwIfAborted()
+    return { receiptId: this.stage(agent, staged), image: staged.attachment }
+  }
+
+  /**
+   * Stage one already-stored file by digest without re-receiving its bytes.
+   * The digest only locates the object: the Host re-verifies the stored bytes
+   * before issuing a receipt. A missing or corrupt object refuses with
+   * `FILE_DIGEST_NOT_KNOWN` so the caller falls back to a full upload.
+   * @param agent - receiving Agent resolved from the Remote Agent scope.
+   * @param request - lowercase hex digest of the exact bytes and optional display name.
+   * @param signal - caller cancellation before the receipt is staged.
+   * @returns the staged receipt and the durable file reference.
+   */
+  @Remote('uploadDedupe')
+  async uploadDedupe(agent: Agent, request: EncodedFileDedupeRequest, signal: AbortSignal): Promise<FileUploadValue> {
+    signal.throwIfAborted()
+    if (!/^[a-f0-9]{64}$/u.test(request.digest)) {
+      throw new RemoteError(
+        'session/attachment-invalid' as never,
+        'File digest must be a lowercase hex SHA-256.',
+        { reason: 'FILE_DIGEST_INVALID' } as never,
+      )
+    }
+    const file = await this.store(agent, async () => {
+      const existing = await this.ctx.attachments.ensureFileByDigest(request.digest, request.name)
+      if (existing === undefined) {
+        throw new RemoteError(
+          'session/attachment-invalid' as never,
+          `Host stores no intact file with digest ${request.digest}.`,
+          { reason: 'FILE_DIGEST_NOT_KNOWN' } as never,
+        )
+      }
+      return existing
+    })
     return { receiptId: this.stage(agent, { type: 'file', attachment: file }), file }
   }
 

@@ -1,0 +1,70 @@
+{
+  "status": "PASS",
+  "scope": "Report bindings and audit for the scanner AAR chain, the unlocked :app:assembleDebug gate, and the emulator launch smoke; scanner-library device execution, physical devices, and release signing remain unproven; full Upstream-First objective remains in progress",
+  "gate0": {
+    "validation": "PASS",
+    "gate0": "PASS",
+    "paths": 1938,
+    "components": 129,
+    "specificationCoverage": {
+      "status": "PASS",
+      "numberedSections": 81,
+      "nonEmptySourceLines": 1983,
+      "acceptanceProven": false
+    }
+  },
+  "sourceRecord": {
+    "path": "artifacts/upstream-first/scanner-aar-source.json",
+    "sha256": "9656f6bd9ca839df1bb7cc743410b201f2dc28e91c02fc9f16d54df14059da92"
+  },
+  "generator": {
+    "path": "artifacts/upstream-first/write-reports.mjs",
+    "sha256": "95aa07eb825897f78d3234252b1a00a4d2b5e64e8111380bdcf07baccf8bdc22"
+  },
+  "binding": {
+    "path": "artifacts/upstream-first/scanner-aar-binding.json",
+    "sha256": "7114811df733e776cacf6a803c7d8f28cf7b2678dae5f6482c499dc7f618fae6"
+  },
+  "helpers": [
+    {
+      "path": ".artifacts/advance-scanner-aar-reports.mjs",
+      "sha256": "aa9da70484e8efedc0539de728c492613be01ecda48031ec16fed40bf35af558"
+    },
+    {
+      "path": ".artifacts/capture-scanner-aar-validation.mjs",
+      "sha256": "81a8549bf30ad29a03de37d20335713031e03b0adcb04670c6a94f1cdf90e3fc"
+    }
+  ],
+  "reports": [
+    {
+      "path": "IMPLEMENTATION_STATUS.md",
+      "sha256": "b3264e452d9ea81635ab1a1a36c0d4b17ab78d8ddbaced1744d0e6a52b7909b0"
+    },
+    {
+      "path": "artifacts/upstream-first/evidence.json",
+      "sha256": "195556ec773ec8dcb7f0283489cd89449d9e76942f75812aaacb95de349e5b89"
+    }
+  ],
+  "checks": [
+    {
+      "path": ".artifacts/scanner-aar-binding.log",
+      "sha256": "f7f49941a3e6029e94575a60eac91727ea57079831933a5943e68ee8bd11fbea"
+    },
+    {
+      "path": ".artifacts/scanner-aar-audit-tests.log",
+      "sha256": "eb479873b42e32125bf75bd3bf931e121467a084b50eb3e68a49f66d9ae70a72"
+    },
+    {
+      "path": ".artifacts/scanner-aar-gate0.log",
+      "sha256": "505d74ef938f5d34d85490d37e0176ba804d93272fcf465ce2544a02c56b3f90"
+    },
+    {
+      "path": ".artifacts/scanner-aar-report-diff-check.log",
+      "sha256": "e3b0c44298fc1c149afbf4c8996fb92427ae41e4649b934ca495991b7852b855"
+    },
+    {
+      "path": ".artifacts/scanner-aar-report-generation.log",
+      "sha256": "fe010532f71a6341467ae5719b29ac19470895de1d481156335b8f70a3273ed5"
+    }
+  ]
+}

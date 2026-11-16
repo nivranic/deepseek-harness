@@ -1,0 +1,16 @@
+{
+  "status": "PASS",
+  "controls": 3,
+  "sourceRecord": {
+    "path": "artifacts/upstream-first/android-repairing-source.json",
+    "sha256": "77d70d5d96585706e233270e5df45176600af6f92cb15fdc73d491fca224545a"
+  },
+  "generator": {
+    "path": "artifacts/upstream-first/write-reports.mjs",
+    "sha256": "9e5d3eb9480a53bb7c1694f3507c84fde0c90b492852c61c572153805f28415b"
+  },
+  "helper": {
+    "path": ".artifacts/check-android-repairing-binding.mjs",
+    "sha256": "50a7397ab682e60d68e0e3ed12b46759e6973eae31b88bd36358cb7887b9c6b7"
+  }
+}

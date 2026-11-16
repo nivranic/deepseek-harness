@@ -1,0 +1,22 @@
+# Bilingual-pair consistency record for 2026-10-22-lite-attachment-intake.md (docs/i18n/README.md): per heading
+# section, a hash of its English and Chinese blocks outside code blocks and generated regions.
+# After editing either side, bring the other along and re-record with:
+#   pnpm run verify-translation-pairing --write .agents/notes/implemented/architecture/2026-10-22-lite-attachment-intake.md
+/agent-note-a-lite-attachment-intake-keeps-the-bytes-on-the-device:
+  en: 9214ba8749b3c9cc
+  zh: 990abe9b7aed81f2
+/agent-note-a-lite-attachment-intake-keeps-the-bytes-on-the-device/problem:
+  en: 7a11b557eddfe32a
+  zh: 8c489a71eed8b1e6
+/agent-note-a-lite-attachment-intake-keeps-the-bytes-on-the-device/decision:
+  en: a2c06b923a13ae56
+  zh: 8b4e717eeeca3b4a
+/agent-note-a-lite-attachment-intake-keeps-the-bytes-on-the-device/alternatives-considered:
+  en: c577a5e3bd160142
+  zh: 600392d105610b1b
+/agent-note-a-lite-attachment-intake-keeps-the-bytes-on-the-device/consequences:
+  en: 7bb3bfc1878f8f83
+  zh: 03bb3691a575018b
+/agent-note-a-lite-attachment-intake-keeps-the-bytes-on-the-device/open-follow-ups:
+  en: 522938aa18ac7a28
+  zh: 6c814c84344e2400

@@ -1,0 +1,66 @@
+{
+  "status": "PASS",
+  "scope": "Report bindings and audit for the view handoff QR increment: the section 26 QR-rendering clause of the remaining open sentence — the dual-track survey found Track A zero new supply-chain surface (qrcode.react@^4.2.0 already a repo dependency through the ui-settings-devices devDependencies with tsdown inlining it into lib/client.js, the THIRD_PARTY_NOTICES ISC row already present, pure SVG assertable in jsdom with no canvas stub, browser third-party implementations belonging in devDependencies as the packages/client/AGENTS.md written rule, no pnpm catalog, package-dependency-policy governing Host-face value imports only and the web-app manifest registering plugin package names only) and Track B the integration face (the HandoffAction single-click flow of encode/setLink/copy/dress with the title degrade fallback, the ScheduleCatalogAction/HeaderOverflowMenu anchored popover recipe and the pairing-panel svg title assertion precedent). The delivery renders the same copied #dsh-view= fragment link as QRCodeSVG size 200 marginSize 4 in an anchored popover opened by the same click — the repo anchored-panel recipe verbatim (useAnchoredPosition bottom-anchored with the hidden measuring pass, useDismissOnOutsidePointer counting the portaled panel as inside through its ref, Escape closing and refocusing the trigger, createPortal to document.body, the shared card CSS with fixed z-100 --dsw-specific-menu radius 20 and the elevation variables); the trigger keeps its behavior and gains aria-haspopup=\"dialog\" plus aria-expanded, the panel aria-label and the SVG title share the localized scan key, and the clipboard-refusal title degrade fallback is unchanged; the devDependencies grow qrcode.react ^4.2.0, react-dom ^18.2.0 and @types/react-dom ~18.3.0 (the package had no createPortal consumer before); the lane packages/client/ui-view-handoff/tests/handoff.client.spec.tsx grows from five to eight cases (the portaled QR svg-title and aria-expanded case, the Escape close-and-refocus case and the outside-pointer dismissal case) with the serial double round green; the sealed types-lint round is the clean package-level single-pass run recorded as the two labelled trailers and the oxlint summary only (an honest difference from the previous generation's repo-wide log form) with the lane-level rework (the react-dom devDependency addition after the vite resolve failure, the deleted surplus container-svg assertion, the Mimosa compound-command split, the two-step traceability JSON repair and the note format re-records) recorded in .artifacts/view-handoff-qr-iteration-notes.log; the documentation evidence returns to the two-file split — doc-quick 17 gates in its own docs log and doc-sync 36 passed 0 failed in its own docsync log (the first run failed one load-induced documentation-site-checks gate at 20474ms under audit/gradle concurrency, isolated spec re-run 63/63 and whole-gate re-run green) — with the pairing re-records for the README pair and the note trio, the audit serial double round green at 54 files / 685 tests (685 = 682 + the three new cases), gate0 in both forms, and traceability section 26 rewritten with candidateEvidence 16 to 17 (node --test 6/6); the same-round gradle acceptance round (scanner env with -PdshNativeAcceptance, BUILD SUCCESSFUL) replayed WARM with 2 executed of 89 actionable tasks and 87 up-to-date — the same form the previous generation sealed — while :app:assembleRelease, :app:assembleDebug, :app:compileDebugKotlin and the whole :core: chain stayed UP-TO-DATE because nothing under apps/android changed this generation (no device lane ran and the emulator stayed off), the empty-derived byte proof compares both APKs byte-identically against the failure-copy record's builtFiles entries (verified IDENTICAL before and after the round), the prepare-side unresolved scan derived an empty replaced-build-output allowlist (7566 files, 0 replaced) and the generator gained no new replaced set, and the still-valid XML reports aggregate 77 suites / 477 tests with zero failures/errors/skips; the deep links, the platform share routes, physical devices and the section's other requirements stay open; full Upstream-First objective remains in progress",
+  "gate0": {
+    "validation": "PASS",
+    "gate0": "PASS",
+    "paths": 1938,
+    "components": 129,
+    "specificationCoverage": {
+      "status": "PASS",
+      "numberedSections": 81,
+      "nonEmptySourceLines": 1983,
+      "acceptanceProven": false
+    }
+  },
+  "sourceRecord": {
+    "path": "artifacts/upstream-first/view-handoff-qr-source.json",
+    "sha256": "22037e50719a94036863de9b26732559fd41e89be0b0a1a90034c1136c871bde"
+  },
+  "generator": {
+    "path": "artifacts/upstream-first/write-reports.mjs",
+    "sha256": "03cc9fed4163559b7ba6e0aabe3f6d5738e25f5e8db4e800a867e050c16287b1"
+  },
+  "binding": {
+    "path": "artifacts/upstream-first/view-handoff-qr-binding.json",
+    "sha256": "912de5534e42ab246a1904a9f757fdc24c37a218a084311e8bedccee6719cd66"
+  },
+  "helpers": [
+    {
+      "path": ".artifacts/advance-view-handoff-qr-reports.mjs",
+      "sha256": "973b164a27448bdd888ff4fbcd5f647d8b333a9b20829d5bd03d101017646edd"
+    },
+    {
+      "path": ".artifacts/capture-view-handoff-qr-validation.mjs",
+      "sha256": "55e434f81115cfc99ccbc4dfd663465da113a0a2c6e72b9503de33128e99d1a4"
+    }
+  ],
+  "reports": [
+    {
+      "path": "IMPLEMENTATION_STATUS.md",
+      "sha256": "5b832ecb5e8e14139408c0e3a5a19724d9e97fbc486f8cb6764260bb91edd580"
+    },
+    {
+      "path": "artifacts/upstream-first/evidence.json",
+      "sha256": "fbec31e7d1062d9b4db0c1260b961d6413fac722f31ceeffdee3bd89ab88411f"
+    }
+  ],
+  "checks": [
+    {
+      "path": ".artifacts/view-handoff-qr-binding.log",
+      "sha256": "6231d0ef165f6a7327fe267b47c46231720c1590becf278f11382bce3416b52d"
+    },
+    {
+      "path": ".artifacts/view-handoff-qr-audit-final.log",
+      "sha256": "f481b4f12c3de4671fa4da7741d64684ee0cc52a972772643e5a724806fcefc7"
+    },
+    {
+      "path": ".artifacts/view-handoff-qr-gate0-final.log",
+      "sha256": "505d74ef938f5d34d85490d37e0176ba804d93272fcf465ce2544a02c56b3f90"
+    },
+    {
+      "path": ".artifacts/view-handoff-qr-report-generation.log",
+      "sha256": "6616630463c8eb3ffd69d218e03ffc25be7852a2f9e639de6ae42558801b921d"
+    }
+  ]
+}

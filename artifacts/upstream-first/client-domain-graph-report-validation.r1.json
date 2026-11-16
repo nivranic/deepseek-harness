@@ -1,0 +1,66 @@
+{
+  "status": "PASS",
+  "scope": "Report bindings and audit for the client-domain-graph increment: the 37 standing layering violations gen-41 onward carried as notCovered read zero through the contract/ shared layer with assembly staying at apply/index (the gate scripts/verify-client-domain-graph.ts three-layer model — 0=contract/ shared contracts, 1=domain implementations, 2=apply/index assembly; top-level files and contract/ the legal import targets, domains free to import top-level, inter-domain imports and top-level non-assembly domain imports violations) — executed as two parallel lanes with zero production-semantic changes: lane A closed ui-sidebar-documentpreview's 33 violations by moving document/registry/sniff/transfer/languages/lines verbatim into the new src/client/contract/ and collecting the three body-id constants into body-ids.ts (17 inter-domain plus 16 top-level violations re-pointed at contract/*; the four top-level mechanism files — face/store/rpc/TextPreview — staying in place because moving them would create nine fresh violations from the domains that legally import them today; the document domain keeping admission.ts, the bytes domain disappearing, TextPreview keeping its lines re-export so lines.client.spec stays zero-change), and lane B closed ui-conversation's 4 violations by moving resolveSubmitMode into the existing contract/composer-submission.ts (the type contract already there; submission-policy.ts keeping a one-line re-export so both specs stay zero-change) with ComposerContentEditable/DecoratorPortals/keymap moving into the consuming skeleton domain (keymap's '../contract/input.ts' reference staying legal; input never importing skeleton so no reverse edge) — the integration surface's slot-catalog regenerated through gen-client-catalog after the SlotMap directory-segment change made it stale (wrote plus --check up-to-date, both EXIT 0); both lanes green on their first invocation (ui-conversation 36 files / 465 tests; ui-sidebar-documentpreview 46 files / 380 passed with the one pdf-license-bundle npm-pack ETIMEDOUT failure the stash probe pinned as a clean-HEAD-same-failure local host timing baseline — the local lib/ standing since gen-42's build:lib making npm pack 17.2s against the spec's ~5s spawnSync budget — outside the 87-file audit lineage with CI Linux green, deliberately never a green check); the documentation gates took one honest repair round (first runs 16/17 and 32/36, the sidebar-right references at :111/:113 re-pointed at contract/registry and contract/document with the i18n.yaml pairing re-recorded, the reruns green): types-lint 0 warnings 0 errors EXIT 0 in the chained single-trailer form (136.8s over 3855 files), doc-quick 17 gates green in 53.54s, doc-sync 36 passed 0 failed 0 skipped in 134.32s, traceability 6/6 with zero section increment (the hygiene baseline maps to none of the 81 sections, the note trio carrying it), gate0 PASS in both forms (1938 paths / 129 components / 81 sections), and the serial double audit round green at 87 files / 1073 tests on both passes over gen-40's curated lineage (the one touched lineage file, keymap-routing.client.spec.tsx, changing import paths only so the counts stay stable); the android acceptance is recorded honestly: the scanner-env gradle round came back BUILD SUCCESSFUL in 1m 48s with 70 actionable tasks of which 1 executed and 69 up-to-date — the warm-replay form, :app:verifyScannerResources the one executed task with :app:assembleDebug, :app:assembleDebugAndroidTest, :core:compileKotlin, :app:compileDebugKotlin and :core:test all UP-TO-DATE — with both APKs IDENTICAL against the baseline-red-repair record's own builtFiles entries at 6dea1eac/119bdaad (the exact bytes gen-43's rebuild sealed, cross-checked live — the serial prepare-then-gradle rule's first full proof) and the core XML aggregate still reading 77 suites / 477 tests (.artifacts/client-domain-graph-core-results.json); the byte-proof follows the measured IDENTICAL form (.artifacts/client-domain-graph-apk-bytes.log, prior apk records: 2 — the single-generation drift streak gen-43 recorded ends the generation after it happened), the prepare oracle derived exactly fifty-seven replaced prior build outputs (the two lanes' per-package tsc -b verification re-emitting the two ui packages' and the regenerated slot-catalog's lib/types entries past their sealed bytes) through the two-step method — the placeholder empty allowlist rejected before any archive write, the measured 57-key set backfilled, one pass sealing {\"files\":7690,\"reused\":0,\"written\":7690,\"replacedPriorBuildOutputs\":57} — and every old byte is covered by the prior archives on the historicalRecords chain, so the drift resolves through the newest-history fallback and the generator gains no set at all (the Option A derivation, no new ReplacedBuildOutputs or SupersededSources collections, the gen-32 desktopPackageReplacedBuildOutputs set staying exactly six); relayMetadata is still the only class of the five without a producer (blocked on section 23), the section 56 signing/notarization/update-source acceptance stays open on its materials, the CI coverage gap for the client tsdown face and the loader-composition e2e baseline red keep their open channels, and the admitEncodedImages classification ruling stays open — so no whole-section PASS is granted; full Upstream-First objective remains in progress",
+  "gate0": {
+    "validation": "PASS",
+    "gate0": "PASS",
+    "paths": 1938,
+    "components": 129,
+    "specificationCoverage": {
+      "status": "PASS",
+      "numberedSections": 81,
+      "nonEmptySourceLines": 1983,
+      "acceptanceProven": false
+    }
+  },
+  "sourceRecord": {
+    "path": "artifacts/upstream-first/client-domain-graph-source.json",
+    "sha256": "5d77117e724baf40efc85b04a3e2d3d050f1682c8aa3094c2de23014ca3d779c"
+  },
+  "generator": {
+    "path": "artifacts/upstream-first/write-reports.mjs",
+    "sha256": "8336647b2bcd524be796c3ccd7f18b915f27e6db5ba267a31d8574b77f42e0d9"
+  },
+  "binding": {
+    "path": "artifacts/upstream-first/client-domain-graph-binding.json",
+    "sha256": "93e65067ae2ed56f18543749c70d5b2bfe2a589969a5849e5310b9fa6e49c0f9"
+  },
+  "helpers": [
+    {
+      "path": ".artifacts/advance-client-domain-graph-reports.mjs",
+      "sha256": "aa30ffbc2d397af493209b33d7629aeb6fd0f842486c41808f5e553e3e93d676"
+    },
+    {
+      "path": ".artifacts/capture-client-domain-graph-validation.mjs",
+      "sha256": "148fe519b046946530fba0f6fe77ce8f126291b8a05645a1292b5e2ee25c18e7"
+    }
+  ],
+  "reports": [
+    {
+      "path": "IMPLEMENTATION_STATUS.md",
+      "sha256": "6c29718fac0e06fd8a8cb839752ab5b0f8b4c32ef30d2de48994a51f472b0075"
+    },
+    {
+      "path": "artifacts/upstream-first/evidence.json",
+      "sha256": "818bcc1bf9a06d5a838fbb789cead5c3b26b72f5b34fcf4d27c91cefd08a2300"
+    }
+  ],
+  "checks": [
+    {
+      "path": ".artifacts/client-domain-graph-binding.log",
+      "sha256": "ec685ef40c7300c9dcd641323ddd8649e092148f0bf9c0441e54ce6f6990d85d"
+    },
+    {
+      "path": ".artifacts/client-domain-graph-audit-final.log",
+      "sha256": "cf53c1e9b0ec819f72372ed4da89716fa4daaa8f6e982f7ede58508fb9e85934"
+    },
+    {
+      "path": ".artifacts/client-domain-graph-gate0-final.log",
+      "sha256": "7e00efd82bd2a2b91b03ca80537dcc4af46cd09eb318ff58520cb2d7d7d8a48a"
+    },
+    {
+      "path": ".artifacts/client-domain-graph-report-generation.log",
+      "sha256": "fe010532f71a6341467ae5719b29ac19470895de1d481156335b8f70a3273ed5"
+    }
+  ]
+}

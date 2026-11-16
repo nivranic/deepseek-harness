@@ -24,8 +24,9 @@ import SubagentRuntime, {
   type SubagentRunEndInfo,
   type SubagentStartRequest,
 } from '@deepseek-ai/dsh-subagent'
-import { Session, type SessionId, type SessionEvent } from '@deepseek-ai/dsh-session'
+import { Session, SessionLogOffset, type SessionId, type SessionEvent } from '@deepseek-ai/dsh-session'
 import SessionProjectionRegistry from '@deepseek-ai/dsh-session-projection'
+import { remoteMethods } from '@deepseek-ai/dsh-typert-protocol'
 
 function fakeParent(id = 'parent-1'): Agent {
   return { id: brandString<SessionId>(id) } as Agent
@@ -105,6 +106,83 @@ async function start(subagents: SubagentRuntime, provider: string, request: Suba
 }
 
 describe('SubagentRuntime', () => {
+  it('interrupts only the observed local child turn under its direct parent', async () => {
+    const { ctx, subagents } = await service()
+    const { agent: parent } = await ctx.agents.create({ sessionId: brandString<SessionId>('cancel-parent') })
+    const { agent: child } = await ctx.agents.create({ sessionId: brandString<SessionId>('cancel-child') })
+    bindSubagentActivation(ctx, child, parent)
+    const cancel = vi.spyOn(child, 'cancel')
+    const request = { childSessionId: child.id, parentSessionId: parent.id, mode: 'continuable' as const, turnStartSeq: null }
+    expect(subagents.interruptTurnByParent(request)).toEqual({ accepted: true })
+    child.session.append('subagent/descriptor', snapshotSubagentDescriptor({
+      mode: 'continuable', provider: 'fixture', label: 'child',
+    }))
+    const first = child.session.append('turn/start', { turn: 1 })
+    expect(() => subagents.interruptTurnByParent({ ...request, parentSessionId: child.id, turnStartSeq: first.seq }))
+      .toThrow(expect.objectContaining({ code: 'subagent/unauthorized' }))
+    expect(subagents.interruptTurnByParent({ ...request, turnStartSeq: first.seq + 1 })).toEqual({ accepted: true })
+    expect(subagents.interruptTurnByParent(request)).toEqual({ accepted: true })
+    expect(cancel).not.toHaveBeenCalled()
+    expect(subagents.interruptTurnByParent({ ...request, turnStartSeq: first.seq })).toEqual({ accepted: true })
+    expect(cancel).toHaveBeenCalledExactlyOnceWith({ kind: 'user' }, { keepInbox: true })
+    child.session.append('turn/end', { turn: 1, reason: { kind: 'completed' } })
+    child.session.append('turn/start', { turn: 2 })
+    expect(subagents.interruptTurnByParent({ ...request, turnStartSeq: first.seq })).toEqual({ accepted: true })
+    expect(cancel).toHaveBeenCalledTimes(1)
+  })
+
+  it('accepts an inherited active turn without cancelling the child', async () => {
+    const { ctx, subagents } = await service()
+    const { agent: parent } = await ctx.agents.create({ sessionId: brandString<SessionId>('seed-cancel-parent') })
+    const inherited = parent.session.append('turn/start', { turn: 1 })
+    const seed = parent.session.snapshotEvents()
+    const { agent: child } = await ctx.agents.create({
+      sessionId: brandString<SessionId>('seed-cancel-child'), seed,
+      meta: { isSeeded: true }, inheritedEventCount: SessionLogOffset(seed.length),
+    })
+    child.session.append('subagent/descriptor', snapshotSubagentDescriptor({
+      mode: 'continuable', provider: 'fixture', label: 'child',
+    }))
+    bindSubagentActivation(ctx, child, parent)
+    const cancel = vi.spyOn(child, 'cancel')
+    expect(ctx.sessionProjections.snapshot(child.session, ['subagentTiming']).values.subagentTiming?.active?.startSeq).toBe(inherited.seq)
+    expect(subagents.interruptTurnByParent({
+      childSessionId: child.id, parentSessionId: parent.id, mode: 'continuable', turnStartSeq: inherited.seq,
+    })).toEqual({ accepted: true })
+    expect(cancel).not.toHaveBeenCalled()
+  })
+
+  it('rejects missing turn projections and accepts historical timing without a turn address', async () => {
+    const { ctx, subagents } = await service()
+    const { agent: parent } = await ctx.agents.create({ sessionId: brandString<SessionId>('projection-cancel-parent') })
+    const { agent: child } = await ctx.agents.create({ sessionId: brandString<SessionId>('projection-cancel-child') })
+    bindSubagentActivation(ctx, child, parent)
+    const cancel = vi.spyOn(child, 'cancel')
+    const request = { childSessionId: child.id, parentSessionId: parent.id, mode: 'continuable' as const, turnStartSeq: null }
+    const snapshot = ctx.sessionProjections.snapshot(child.session, ['subagentTiming'])
+    const read = vi.spyOn(ctx.sessionProjections, 'snapshot')
+    try {
+      read.mockReturnValue({ ...snapshot, values: {} })
+      expect(() => subagents.interruptTurnByParent(request))
+        .toThrow(expect.objectContaining({ code: 'subagent/delivery-unavailable' }))
+      read.mockReturnValue({ ...snapshot, values: { subagentTiming: { settledMs: 0, active: { since: 1, through: 2 } } } })
+      expect(subagents.interruptTurnByParent(request)).toEqual({ accepted: true })
+      expect(cancel).not.toHaveBeenCalled()
+    } finally {
+      read.mockRestore()
+    }
+  })
+
+  it('advertises only exported controls and keeps provider listing Host-local', async () => {
+    const { subagents } = await service(false)
+    const methods = new Set(remoteMethods(subagents).map(method => method.method))
+    expect(methods.has('list')).toBe(false)
+    expect(subagents.typertRemote.capabilities).toHaveLength(3)
+    for (const capability of subagents.typertRemote.capabilities ?? []) {
+      for (const method of capability.methods) expect(methods.has(method), `${capability.id}: ${method}`).toBe(true)
+    }
+  })
+
   it('resolves Activation roots only for exact live child and root instances', async () => {
     const { ctx, subagents } = await service()
     const root = await ctx.agents.create({ sessionId: brandString<SessionId>('lineage-root') })

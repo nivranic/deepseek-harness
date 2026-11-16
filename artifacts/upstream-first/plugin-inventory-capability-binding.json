@@ -1,0 +1,16 @@
+{
+  "status": "PASS",
+  "controls": 3,
+  "sourceRecord": {
+    "path": "artifacts/upstream-first/plugin-inventory-capability-source.json",
+    "sha256": "35edf3b072c20d2a6564468c118adca1c4a0fa56c6f6f4841fea7981958204ef"
+  },
+  "generator": {
+    "path": "artifacts/upstream-first/write-reports.mjs",
+    "sha256": "78d2972965c22b1f07b587e789811dd3730f262309007cb7ccbcc785cb5a1ec3"
+  },
+  "helper": {
+    "path": ".artifacts/check-plugin-inventory-capability-binding.mjs",
+    "sha256": "9f31ef9093cdfa0e6802754f104d051424af67bb047c5f2336ee3f7e07e0bacb"
+  }
+}

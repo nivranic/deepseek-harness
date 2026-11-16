@@ -8,6 +8,9 @@ import type { UserMessage } from '@deepseek-ai/dsh-session'
 import type { JsonValue } from '@deepseek-ai/dsh-util-values'
 import type { JsonSchemaNode } from './json-schema.ts'
 import type { ToolCallView, ToolResultView } from './presentation.ts'
+import type { RemoteCapabilityPermission } from '@deepseek-ai/dsh-typert-protocol'
+import type { ToolRisk } from './types.ts'
+export type { ToolRisk } from './types.ts'
 
 /** Reserved model-facing program transport name. */
 export const RUN_CODE_NAME = 'run_code'
@@ -27,6 +30,30 @@ export interface ToolOutputDefinition {
 export interface ToolDefinition extends ToolSchema {
   /** Mandatory canonical output declaration. */
   readonly output: ToolOutputDefinition
+  /**
+   * Descriptor schema version of this tool's host-only declaration
+   * (specification §32), a positive integer starting at 1; it advances only
+   * when the declaration semantics change, never for tool-behavior fixes.
+   * Catalog reads require complete declarations for every reported tool.
+   */
+  readonly version?: number
+  /** Host-assessed risk tier (specification §32); see {@link ToolRisk}. */
+  readonly risk?: ToolRisk
+  /**
+   * Extra Remote permissions a device-identified caller needs to COMPLETE one
+   * call of this tool (specification §32), drawn from the Remote capability
+   * permission vocabulary; empty means the call claims nothing beyond the
+   * permission that dispatched the driving prompt.
+   */
+  readonly permissions?: readonly RemoteCapabilityPermission[]
+  /**
+   * Whether a Lite companion may execute this tool locally instead of handing
+   * back to the full runtime (specification §32): the Host declares it, a
+   * client never guesses. False keeps the handoff path.
+   */
+  readonly supportsLite?: boolean
+  /** Whether this tool is reachable and Host-executed when a session runs on the Remote face. */
+  readonly supportsRemote?: boolean
   /**
    * Run one accepted call and return only its canonical lossless-JSON value.
    * Async work must observe or forward `exec.signal` and settle only after its

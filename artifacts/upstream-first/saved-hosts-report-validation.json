@@ -1,0 +1,70 @@
+{
+  "status": "PASS",
+  "scope": "Report bindings and audit for the Saved-Host roster foundation; the remaining specification sections stay open; full Upstream-First objective remains in progress",
+  "gate0": {
+    "validation": "PASS",
+    "gate0": "PASS",
+    "paths": 1938,
+    "components": 129,
+    "specificationCoverage": {
+      "status": "PASS",
+      "numberedSections": 81,
+      "nonEmptySourceLines": 1983,
+      "acceptanceProven": false
+    }
+  },
+  "sourceRecord": {
+    "path": "artifacts/upstream-first/saved-hosts-source.json",
+    "sha256": "a67a92fe544a981b8ce60979ae289e9f86f3cf35175397cf1cda2e4bb551ee35"
+  },
+  "generator": {
+    "path": "artifacts/upstream-first/write-reports.mjs",
+    "sha256": "11cedf79ada7585928e6b44c0fbf03e5a43309a88961b2b86493bf367c9b9edc"
+  },
+  "binding": {
+    "path": "artifacts/upstream-first/saved-hosts-binding.json",
+    "sha256": "257dc221885a9f244d44381dfbedb00283617e8180595cda8be5fddf93cde51a"
+  },
+  "helpers": [
+    {
+      "path": ".artifacts/advance-saved-hosts-reports.mjs",
+      "sha256": "052bcc744f540145232e3dad935c8f518cd1be482b369b18d2e36234d43a363f"
+    },
+    {
+      "path": ".artifacts/capture-saved-hosts-validation.mjs",
+      "sha256": "e76fb6379cad2367d6179975964963d29dbfedf960be5136476bcaf2079eb148"
+    }
+  ],
+  "reports": [
+    {
+      "path": "IMPLEMENTATION_STATUS.md",
+      "sha256": "286a606055f76b43806312b142a572f07b50814345e5585d52450be1776b2757"
+    },
+    {
+      "path": "artifacts/upstream-first/evidence.json",
+      "sha256": "821fca6683d0fe7162153b18b39b80bf8459312b02a0be6aee244e46fe5c65b4"
+    }
+  ],
+  "checks": [
+    {
+      "path": ".artifacts/saved-hosts-binding.log",
+      "sha256": "f525319f35724f12250966bbee6996f6fbf9475ce2328c8d65ab097236ab83ff"
+    },
+    {
+      "path": ".artifacts/saved-hosts-audit-tests.log",
+      "sha256": "6ce49d9a895f058a8f2cb90eb51fbf7bbf8437e7ec61dc3d466ed9d0e690487a"
+    },
+    {
+      "path": ".artifacts/saved-hosts-gate0.log",
+      "sha256": "505d74ef938f5d34d85490d37e0176ba804d93272fcf465ce2544a02c56b3f90"
+    },
+    {
+      "path": ".artifacts/saved-hosts-report-diff-check.log",
+      "sha256": "e3b0c44298fc1c149afbf4c8996fb92427ae41e4649b934ca495991b7852b855"
+    },
+    {
+      "path": ".artifacts/saved-hosts-report-generation.log",
+      "sha256": "fe010532f71a6341467ae5719b29ac19470895de1d481156335b8f70a3273ed5"
+    }
+  ]
+}

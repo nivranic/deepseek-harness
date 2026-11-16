@@ -593,13 +593,11 @@ describe('JsonlSessionPersistence: stored-format refusals', () => {
   })
 
   it('refuses a well-shaped newer-version header at read open with the upgrade direction', async () => {
-    // A header that satisfies the current shape but carries a future version:
-    // stat can parse it, and the open still refuses before handing out a
-    // handle whose every read would fail.
     const id = brandString<SessionId>('future-version')
     const path = generationLogPath(root, '/work', id, 42, 'none')
     await mkdir(dirname(path), { recursive: true })
     await writeFile(path, `${JSON.stringify({ type: 'session', version: 42, id, createdAt: 1, cwd: '/work', delegationDepth: 0 })}\n`)
+    await expect(ctx.sessionPersistence.stat(id)).rejects.toMatchObject({ name: 'SessionFormatUnsupportedError' })
     const failure = await ctx.sessionPersistence.open(id, 'read').then(() => undefined, (error: unknown) => error as Error)
     expect(failure?.name).toBe('SessionFormatUnsupportedError')
     expect(failure?.message).toMatch(/upgrade the harness/)
@@ -1779,6 +1777,25 @@ describe('JsonlSessionPersistence: durability and crash semantics', () => {
     expect(repaired).not.toContain('assistant/chunk')
     const reloaded = await readAll(ctx.sessionPersistence, m.id)
     expect(reloaded.events.map(e => e.seq)).toEqual([0, 1, 2, 3, 4, 5, 6, 7, 8, 9])
+  })
+
+  it('repairs a plain torn tail when optional recovered records are absent', async () => {
+    const header = meta('plain-optional-recovery', '/proj')
+    await writeLog(ctx.sessionPersistence, header, oneTurnLog())
+    const path = rawLogPath(root, header.cwd, header.id)
+    await writeFile(path, '{"type":"turn/start"', { flag: 'a' })
+    const handle = await ctx.sessionPersistence.open(header.id, 'write') as JsonlSessionHandle
+    handle['state'].recoveredTail = undefined
+    const next: SessionEvent[] = [
+      { type: 'turn/start', seq: SessionSeq(6), time: 7, data: { turn: 2 } },
+      { type: 'turn/end', seq: SessionSeq(7), time: 8, data: { turn: 2, reason: { kind: 'completed' } } },
+    ]
+    try {
+      await handle.append(next)
+    } finally {
+      await handle.close()
+    }
+    expect((await readAll(ctx.sessionPersistence, header.id)).events).toEqual([...oneTurnLog(), ...next])
   })
 
   it('a stored open turn is served as stored, with no synthetic closers', async () => {

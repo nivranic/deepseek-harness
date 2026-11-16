@@ -1,0 +1,18 @@
+{
+  "schemaVersion": 1,
+  "status": "PASS",
+  "source": "packages/storage/storage-domain/src/index.ts",
+  "originalSha256": "c97e6087c1c23a04f457491654349cef56f904671d0193c35b0d6f00aeee8e0d",
+  "mutatedSha256": "3ebdb9a06a367b3bd1bd8e736d9a8ba3b25a25ad1d0556b12038210947a54d53",
+  "command": [
+    "C:\\Program Files\\nodejs\\node.exe",
+    "node_modules/vitest/vitest.mjs",
+    "run",
+    "packages/storage/storage-domain/tests/domain.spec.ts",
+    "-t",
+    "joins initialization and refuses a handle"
+  ],
+  "exitCode": 1,
+  "tests": 2,
+  "log": ".artifacts/storage-owner-control-publish-assertion.log"
+}

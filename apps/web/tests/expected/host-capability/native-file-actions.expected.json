@@ -1,0 +1,22 @@
+[
+  {
+    "stage": "unavailable",
+    "native": 0,
+    "preview": 1
+  },
+  {
+    "stage": "available",
+    "native": 1,
+    "preview": 1
+  },
+  {
+    "stage": "refused",
+    "native": 1,
+    "preview": 1
+  },
+  {
+    "stage": "restored",
+    "native": 1,
+    "preview": 1
+  }
+]

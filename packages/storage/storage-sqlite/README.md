@@ -58,6 +58,8 @@ Missing directories and database files are created owner-only (`0o700`/`0o600`);
 
 Every nonempty batch delete uses one transaction, including its version update when needed. A failed transaction preserves data and stamp when SQLite rolls back successfully, including an automatic rollback. A failed `BEGIN` leaves the batch unapplied and permits retry on the same handle. If rollback itself fails, the backend retains a `StorageError` with code `unknown-state` whose cause is an `AggregateError` containing both failures, and rejects further unit reads, writes, and pending or new opens. The transaction outcome is unknown. Close the backend and its domains, then create a new backend to inspect saved state before deciding whether to retry. See [domain versioning](../../../docs/subsystems/storage.md#domain-versioning) for mixed records and downgrade behavior.
 
+Backend close waits for pending opens, drains registered unit owners, and closes every unit before releasing the database. Concurrent closes share one result; cleanup failures are aggregated after all release attempts. New opens reject with `closed`.
+
 -----
 
 <a id="understand-the-implementation"></a>

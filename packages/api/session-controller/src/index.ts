@@ -1,5 +1,6 @@
 /** Session Remote owner: cold reads, explicit Agent commands, and live control state. */
 
+import { SESSION_REMOTE_CAPABILITIES } from './capabilities.ts'
 import { hostname } from 'node:os'
 import { resolve } from 'node:path'
 import type { Agent } from '@deepseek-ai/dsh-agent'
@@ -32,6 +33,7 @@ import { buildModelCatalog, hasProviderApiKey } from './catalog.ts'
 import { SessionSkillCatalog } from './skill-catalog.ts'
 import { SessionMediaReferences } from './media-references.ts'
 import { ArchivedSessionGate } from './archived-session-gate.ts'
+import { installActiveTurnProjection } from './active-turn-projection.ts'
 import type {
   ModelCatalog,
   SessionWorkspacePathApplication,
@@ -39,6 +41,7 @@ import type {
   SessionAttachmentRequest,
   SessionAttachmentValue,
   SessionCancelRequest,
+  SessionCancelTurnRequest,
   SessionCancelValue,
   SessionControlFrame,
   SessionCreateRequest,
@@ -55,6 +58,7 @@ import type {
   SessionProjectionFrame, SessionStateRequest, SessionState, SessionWaitRequest, SessionWaitValue,
   SessionPromptRequest,
   SessionPromptValue,
+  SessionRenameAtRequest,
   SessionRenameRequest,
   SessionRenameValue,
   SessionSearchRequest,
@@ -177,7 +181,7 @@ export class SessionController extends TypertRemoteService {
    * @param internals - host integrations replaceable by direct unit tests.
    */
   constructor(ctx: Context, config: Config, internals: SessionControllerInternals = {}) {
-    super(ctx, 'sessionController', { namespace: 'session' })
+    super(ctx, 'sessionController', { namespace: 'session', capabilities: SESSION_REMOTE_CAPABILITIES })
     this.listWorkSliceMs = SessionController.Config(config).listWorkSliceMs
     this.fileApplications = internals.fileApplications ?? nativeFileApplications
     this.openFileApplication = internals.openFileApplication ?? openNativeFileApplication
@@ -190,6 +194,7 @@ export class SessionController extends TypertRemoteService {
   protected async [Service.init](): Promise<void> {
     const ctx = this.ctx
     ctx.typert.resources.register('session', { resolve: resolveSessionResource })
+    installActiveTurnProjection(ctx)
     this.agents = new ApiSessionAgentController(ctx)
     this.agents.initialize()
     this.commands = new SessionCommandController(ctx, this.agents, process.cwd())
@@ -441,6 +446,17 @@ export class SessionController extends TypertRemoteService {
   }
 
   /**
+   * Rename one Session only against the title revision captured before editing;
+   * an identical user-pinned title returns its original acceptance.
+   * @param request - Session identity, proposed title, and durable editing baseline.
+   * @returns the accepted title and its original durable event sequence.
+   */
+  @Remote('renameAt')
+  renameAt(request: SessionRenameAtRequest): Promise<SessionRenameValue> {
+    return this.commands.renameAt(request)
+  }
+
+  /**
    * Fork one cold-readable exact event prefix into a new Session. An omitted
    * boundary selects the latest completed-turn prefix; an open cut receives
    * synthetic fork closers.
@@ -521,6 +537,17 @@ export class SessionController extends TypertRemoteService {
   @Remote('cancel')
   cancel(request: SessionCancelRequest): SessionCancelValue {
     return this.commands.cancel(request)
+  }
+
+  /**
+   * Cancel one observed Agent turn without arming cancellation for later
+   * work; a stale, absent, or completed target is an accepted no-op.
+   * @param request - Session and observed turn/start sequence, or null for no observed turn.
+   * @returns acceptance whether the target is cancelled or already inactive.
+   */
+  @Remote('cancelTurn')
+  cancelTurn(request: SessionCancelTurnRequest): SessionCancelValue {
+    return this.commands.cancelTurn(request)
   }
 
   /**

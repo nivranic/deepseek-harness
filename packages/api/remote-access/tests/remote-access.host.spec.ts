@@ -200,6 +200,50 @@ describe('RemoteAccessService registrations', () => {
 })
 
 describe('RemoteAccessService.decide', () => {
+  it('grants only listed Host actions across resources and removes them with the binding', async () => {
+    const { ctx, access } = await setup()
+    const policy = new GuestPolicy()
+    access.registerPolicy('test-guest', policy)
+    policy.hold(GUEST, {
+      role: { name: 'host-writer', resource: 'host', actions: ['notes/read', 'notes/write', 'notes/rooms'] },
+      resource: { kind: 'host' },
+    })
+    await expect(call(ctx, GUEST, 'read')).resolves.toBe('read')
+    for (const shelfId of ['r1', 'r2']) {
+      await expect(call(ctx, GUEST, 'write', { request: { shelfId, text: 'hi' } })).resolves.toBe('hi')
+    }
+    await expect(call(ctx, GUEST, 'rooms')).resolves.toEqual(['r1', 'r2'])
+    await expect(call(ctx, GUEST, 'hidden')).rejects.toMatchObject({ code: 'remote-access/denied' })
+    await expect(call(ctx, GUEST, 'write', { request: { shelfId: '', text: 'hi' } }))
+      .rejects.toMatchObject({ code: 'remote-access/denied', details: { reason: 'resource-invalid' } })
+    const stream = await follow(ctx, GUEST)
+    expect(await stream.next()).toEqual({ type: 'baseline', owner: false, grants: [
+      { resource: { kind: 'host' }, actions: ['notes/read', 'notes/rooms', 'notes/write'] },
+    ] })
+    policy.hold(GUEST)
+    access.invalidate(GUEST)
+    expect(await stream.next()).toEqual({ type: 'remove', resource: { kind: 'host' } })
+    await expect(call(ctx, GUEST, 'read')).rejects.toMatchObject({ code: 'remote-access/denied' })
+    await expect(call(ctx, GUEST, 'write', { request: { shelfId: 'r2', text: 'hi' } }))
+      .rejects.toMatchObject({ code: 'remote-access/denied' })
+    await stream.stop()
+  })
+
+  it('evaluates a Host condition against each requested resource', async () => {
+    const { access } = await setup()
+    const condition: RemoteAccessCondition<'host'> = ({ resource }) => resource.kind === 'test-shelf' && resource.id === 'r1'
+      ? { kind: 'allow' }
+      : { kind: 'deny', reason: 'shelf-only' }
+    access.registerPolicy('test-guest', { bindings: () => [{
+      role: { name: 'host-writer', resource: 'host', actions: ['notes/write'] },
+      resource: { kind: 'host' },
+      condition,
+    }] })
+    expect(access.decide(ask(GUEST, 'notes/write', ROOM))).toEqual({ kind: 'allow' })
+    expect(access.decide(ask(GUEST, 'notes/write', ROOM, DESK))).toEqual({ kind: 'deny', reason: 'shelf-only' })
+    expect(access.snapshotFor(GUEST)).toEqual({ type: 'baseline', owner: false, grants: [] })
+  })
+
   it('allows the owner without any policy and refuses a kind without a policy', async () => {
     const { ctx, access } = await setup()
     expect(access.decide(ask(OWNER, 'notes/hidden', ROOM))).toEqual({ kind: 'allow' })

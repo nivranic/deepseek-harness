@@ -1,0 +1,4 @@
+{
+  "meta.title": "ネイティブリモート API",
+  "meta.description": "認証済みの WebSocket セッションでペアリング済みデバイスを接続します。"
+}

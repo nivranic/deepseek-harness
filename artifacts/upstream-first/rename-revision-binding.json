@@ -1,0 +1,16 @@
+{
+  "status": "PASS",
+  "controls": 3,
+  "sourceRecord": {
+    "path": "artifacts/upstream-first/rename-revision-source.json",
+    "sha256": "ca1a2a0a749c5024a0950a6b8af8edd361a7a1dd7889fa3f72e156eb7d0c66eb"
+  },
+  "generator": {
+    "path": "artifacts/upstream-first/write-reports.mjs",
+    "sha256": "c277956a7014ea8bae0c9573131c69697ce5179128e1fefd3273e92204a3ca4e"
+  },
+  "helper": {
+    "path": ".artifacts/check-rename-revision-binding.mjs",
+    "sha256": "2e6878ae29d95321578a0f3dd2dbec940bfc187deabf1fbfd9006a1beb4f88fa"
+  }
+}

@@ -1,0 +1,117 @@
+{
+  "schemaVersion": 1,
+  "status": "FAIL",
+  "scope": "Windows x64 SDK and runtime wheels installed outside the checkout",
+  "startedAt": "2026-09-14T20:53:54.960376+00:00",
+  "root": "C:\\Users\\11585\\AppData\\Local\\Temp\\dsh-installed-wheels-e_lan0lk",
+  "realModelTested": false,
+  "wheels": [
+    {
+      "path": ".artifacts\\python-wheels-final\\deepseek_harness_runtime_bin-0.1.5rc2-py3-none-win_amd64.whl",
+      "sha256": "16b382e9ebb04ac44146e15cf78fec0e576d6fc21602980421d4ef4ce7df3fe0"
+    },
+    {
+      "path": ".artifacts\\python-wheels-final\\deepseek_harness_sdk-0.1.5rc2-py3-none-any.whl",
+      "sha256": "5f0d186098799a25f41dc9e653afeda5dabcf9d9a041c321bb458139adee7a54"
+    }
+  ],
+  "scenarios": [
+    {
+      "scenario": "runner",
+      "status": "PASS",
+      "exitCode": 0,
+      "forced": false,
+      "pid": 41148,
+      "log": ".artifacts/installed-wheel-final-runner.log"
+    },
+    {
+      "scenario": "sdk-default",
+      "status": "PASS",
+      "exitCode": 0,
+      "forced": false,
+      "pid": 58512,
+      "log": ".artifacts/installed-wheel-final-sdk-default.log"
+    },
+    {
+      "scenario": "sdk-custom",
+      "status": "PASS",
+      "exitCode": 0,
+      "forced": false,
+      "pid": 52196,
+      "log": ".artifacts/installed-wheel-final-sdk-custom.log"
+    },
+    {
+      "scenario": "sdk-minimal",
+      "status": "PASS",
+      "exitCode": 0,
+      "forced": false,
+      "pid": 55608,
+      "log": ".artifacts/installed-wheel-final-sdk-minimal.log"
+    },
+    {
+      "scenario": "sdk-minimal-in-history",
+      "status": "PASS",
+      "exitCode": 0,
+      "forced": false,
+      "pid": 29852,
+      "log": ".artifacts/installed-wheel-final-sdk-minimal-in-history.log"
+    },
+    {
+      "scenario": "sdk-fs-search",
+      "status": "PASS",
+      "exitCode": 0,
+      "forced": false,
+      "pid": 48044,
+      "log": ".artifacts/installed-wheel-final-sdk-fs-search.log"
+    },
+    {
+      "scenario": "sdk-spawn-node",
+      "status": "PASS",
+      "exitCode": 0,
+      "forced": false,
+      "pid": 45752,
+      "log": ".artifacts/installed-wheel-final-sdk-spawn-node.log"
+    },
+    {
+      "scenario": "sdk-mcp",
+      "status": "PASS",
+      "exitCode": 0,
+      "forced": false,
+      "pid": 55896,
+      "log": ".artifacts/installed-wheel-final-sdk-mcp.log"
+    },
+    {
+      "scenario": "sdk-snapshot",
+      "status": "PASS",
+      "exitCode": 0,
+      "forced": false,
+      "pid": 57820,
+      "log": ".artifacts/installed-wheel-final-sdk-snapshot.log"
+    },
+    {
+      "scenario": "sdk-restart",
+      "status": "PASS",
+      "exitCode": 0,
+      "forced": false,
+      "pid": 59244,
+      "log": ".artifacts/installed-wheel-final-sdk-restart.log"
+    },
+    {
+      "scenario": "sdk-profile-plugin",
+      "status": "FAIL",
+      "exitCode": 1,
+      "forced": false,
+      "pid": 44184,
+      "log": ".artifacts/installed-wheel-final-sdk-profile-plugin.log"
+    },
+    {
+      "scenario": "direct",
+      "status": "PASS",
+      "exitCode": 0,
+      "forced": false,
+      "pid": 55148,
+      "log": ".artifacts/installed-wheel-final-direct.log"
+    }
+  ],
+  "finishedAt": "2026-09-14T20:56:30.247557+00:00"
+}

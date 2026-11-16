@@ -1,0 +1,16 @@
+{
+  "status": "PASS",
+  "controls": 3,
+  "sourceRecord": {
+    "path": "artifacts/upstream-first/http-failure-semantics-source.json",
+    "sha256": "7a32dca6814904e3ff5fdf25110ef048fff1d0b0d4fe0db09400ff35d283f4b1"
+  },
+  "generator": {
+    "path": "artifacts/upstream-first/write-reports.mjs",
+    "sha256": "ff858a7913f28e3d53499025821e43b2d93de04ece24eb58d683f7c9ca6699ef"
+  },
+  "helper": {
+    "path": ".artifacts/check-http-failure-semantics-binding.mjs",
+    "sha256": "8eb22e8cc3fdc6c3c304b4d2c7ed22f16b1f3a4f63720b051fa6aed3895374d5"
+  }
+}

@@ -1,0 +1,64 @@
+{
+  "status": "PASS",
+  "scope": "Report bindings and audit for Initial and retry authentication phase with fail-closed retry admission; full Upstream-First objective remains in progress",
+  "gate0": {
+    "validation": "PASS",
+    "gate0": "PASS",
+    "paths": 1938,
+    "components": 129
+  },
+  "sourceRecord": {
+    "path": "artifacts/upstream-first/authenticating-phase-source.json",
+    "sha256": "fdd771dff05723de3f41f1de2106b95482a8d14466e4419470ac7069eaf61a02"
+  },
+  "generator": {
+    "path": "artifacts/upstream-first/write-reports.mjs",
+    "sha256": "484f12445b7cd53e34f813069eabf63dedf37622aa3fcf9d30bfd058d2fb6fb6"
+  },
+  "binding": {
+    "path": "artifacts/upstream-first/authenticating-phase-binding.json",
+    "sha256": "50f3ff6d4dd1f53da0beca92a0d18f14b8f4cba6fad9ef3fcb529e7cf228d1dd"
+  },
+  "helpers": [
+    {
+      "path": ".artifacts/advance-authenticating-phase-reports.mjs",
+      "sha256": "86aa51c6fc1339c9c92d60d0a53ee5c666e40523c9c3128986d42e48fb69b8e9"
+    },
+    {
+      "path": ".artifacts/capture-authenticating-phase-validation.mjs",
+      "sha256": "f710f24675c5b69bfc0e48c0d73b22ab468557cb14db71f445a442ca7201b8c0"
+    }
+  ],
+  "reports": [
+    {
+      "path": "IMPLEMENTATION_STATUS.md",
+      "sha256": "f7095ab43a41da3f16c12a0d362d99eb3df4a6f229a244356272c371acd00843"
+    },
+    {
+      "path": "artifacts/upstream-first/evidence.json",
+      "sha256": "7532211ec165b2f1d40048611edf7512863cb624840885771031617857321521"
+    }
+  ],
+  "checks": [
+    {
+      "path": ".artifacts/authenticating-phase-binding.log",
+      "sha256": "2f94e45bd4560227ad7964016ebcbbf8bb138ada369f2536c486a1935c217969"
+    },
+    {
+      "path": ".artifacts/authenticating-phase-audit-tests.log",
+      "sha256": "e6f17607ef95745f7063bdebee77337008ba18c246e67ddede15d06fb0e06e09"
+    },
+    {
+      "path": ".artifacts/authenticating-phase-gate0.log",
+      "sha256": "4b5af3121a7e7caff0e1b6288bdaa7cfef9988842ae06bf02dc0a74852426043"
+    },
+    {
+      "path": ".artifacts/authenticating-phase-report-diff-check.log",
+      "sha256": "e3b0c44298fc1c149afbf4c8996fb92427ae41e4649b934ca495991b7852b855"
+    },
+    {
+      "path": ".artifacts/authenticating-phase-report-generation.log",
+      "sha256": "5867d1d51cd43a59428de2e7fffa15847d7153b11f3b61ecf812224ee2dd2099"
+    }
+  ]
+}

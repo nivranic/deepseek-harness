@@ -1,0 +1,14 @@
+{
+  "observations": [
+    { "stage": "unregistered", "hostRows": 0, "localRows": 1, "runs": 0 },
+    { "stage": "registered", "hostRows": 1, "localRows": 1, "runs": 0 },
+    { "stage": "removed-after-execution", "hostRows": 0, "localRows": 1, "runs": 1 },
+    { "stage": "restored", "hostRows": 1, "localRows": 1, "runs": 1 }
+  ],
+  "draftRetainedAfterRefusal": true,
+  "executionRequests": 2,
+  "handlerRuns": 1,
+  "lateSuccessAcknowledged": true,
+  "commandEvents": ["command/run", "command/done"],
+  "userMessages": 0
+}

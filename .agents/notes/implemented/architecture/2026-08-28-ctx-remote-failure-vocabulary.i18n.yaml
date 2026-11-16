@@ -9,14 +9,17 @@
   en: 990d46f713fb6303
   zh: 592cd6128a9640b1
 /agent-note-one-remote-failure-vocabulary-for-ctx-remote/decision:
-  en: b54b9d98a34eeaa1
-  zh: ac8e3d493b554c2d
+  en: 83b69eb4c057919a
+  zh: 5253b4f1e6a5d611
 /agent-note-one-remote-failure-vocabulary-for-ctx-remote/code-ownership:
   en: cc1d8b88f7349b77
   zh: 70f010e3310e2667
+/agent-note-one-remote-failure-vocabulary-for-ctx-remote/published-known-code-vocabulary:
+  en: 3fbaf70a337f643e
+  zh: 40afe17151ba79a2
 /agent-note-one-remote-failure-vocabulary-for-ctx-remote/discrimination-by-code:
-  en: 8ca8ea2f3236569f
-  zh: ffca80a5157af245
+  en: f5ac88a9090219d4
+  zh: 030932671bc96654
 /agent-note-one-remote-failure-vocabulary-for-ctx-remote/fixed-host-facts:
   en: 0dfb0ca5cf67b296
   zh: baaa890425996fb3

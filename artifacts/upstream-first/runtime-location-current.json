@@ -1,0 +1,127 @@
+{
+  "schemaVersion": 1,
+  "scope": "Same-byte runtime location comparison; generated Node junction fixture only",
+  "artifacts": [
+    {
+      "path": "dist-exe/deepseek-harness-sdk-runtime-win-x64.exe",
+      "sha256": "30d5a7ff6b8d7594b3d132de3acb53b6bc80743c99f2414471df194553aa1181"
+    },
+    {
+      "path": "C:\\Users\\11585\\AppData\\Local\\Temp\\dsh-wheel-argv-cs_0u46w\\venv\\Lib\\site-packages\\deepseek_harness_runtime\\runtime\\deepseek-harness-sdk-runtime-win-x64.exe",
+      "sha256": "30d5a7ff6b8d7594b3d132de3acb53b6bc80743c99f2414471df194553aa1181"
+    },
+    {
+      "path": "C:\\Users\\11585\\AppData\\Local\\Temp\\dsh-runtime-location-o1vpsum5\\runtime.exe",
+      "sha256": "30d5a7ff6b8d7594b3d132de3acb53b6bc80743c99f2414471df194553aa1181"
+    }
+  ],
+  "cases": [
+    {
+      "launcher": "repository",
+      "exitCode": 0,
+      "probe": {
+        "pid": 4932,
+        "execPath": "C:\\Program Files\\nodejs\\node.exe",
+        "node": "22.22.1",
+        "cwd": "C:\\Users\\11585\\AppData\\Local\\Temp\\dsh-runtime-location-o1vpsum5\\home\\profiles\\sdk",
+        "root": "C:\\Users\\11585\\AppData\\Local\\Temp\\dsh-chain-links-MBiqsV",
+        "links": [
+          {
+            "type": "junction",
+            "status": "PASS",
+            "isLink": true,
+            "target": "C:\\Users\\11585\\AppData\\Local\\Temp\\dsh-chain-links-MBiqsV\\target"
+          },
+          {
+            "type": "dir",
+            "status": "FAIL",
+            "code": "EPERM",
+            "errno": -4048,
+            "syscall": "symlink"
+          },
+          {
+            "type": "junction",
+            "status": "PASS",
+            "isLink": true,
+            "target": "C:\\Users\\11585\\AppData\\Local\\Temp\\dsh-chain-links-MBiqsV\\target"
+          }
+        ]
+      }
+    },
+    {
+      "launcher": "installed",
+      "exitCode": 0,
+      "probe": {
+        "pid": 46084,
+        "execPath": "C:\\Program Files\\nodejs\\node.exe",
+        "node": "22.22.1",
+        "cwd": "C:\\Users\\11585\\AppData\\Local\\Temp\\dsh-runtime-location-o1vpsum5\\home\\profiles\\sdk",
+        "root": "C:\\Users\\11585\\AppData\\Local\\Temp\\dsh-chain-links-j8GE9r",
+        "links": [
+          {
+            "type": "junction",
+            "status": "FAIL",
+            "code": "EPERM",
+            "errno": -4048,
+            "syscall": "symlink"
+          },
+          {
+            "type": "dir",
+            "status": "FAIL",
+            "code": "EPERM",
+            "errno": -4048,
+            "syscall": "symlink"
+          },
+          {
+            "type": "junction",
+            "status": "FAIL",
+            "code": "EPERM",
+            "errno": -4048,
+            "syscall": "symlink"
+          }
+        ]
+      }
+    },
+    {
+      "launcher": "standalone-copy",
+      "exitCode": 0,
+      "probe": {
+        "pid": 42632,
+        "execPath": "C:\\Program Files\\nodejs\\node.exe",
+        "node": "22.22.1",
+        "cwd": "C:\\Users\\11585\\AppData\\Local\\Temp\\dsh-runtime-location-o1vpsum5\\home\\profiles\\sdk",
+        "root": "C:\\Users\\11585\\AppData\\Local\\Temp\\dsh-chain-links-FQc356",
+        "links": [
+          {
+            "type": "junction",
+            "status": "FAIL",
+            "code": "EPERM",
+            "errno": -4048,
+            "syscall": "symlink"
+          },
+          {
+            "type": "dir",
+            "status": "FAIL",
+            "code": "EPERM",
+            "errno": -4048,
+            "syscall": "symlink"
+          },
+          {
+            "type": "junction",
+            "status": "FAIL",
+            "code": "EPERM",
+            "errno": -4048,
+            "syscall": "symlink"
+          }
+        ]
+      }
+    }
+  ],
+  "log": {
+    "path": ".artifacts/runtime-location-probe.log",
+    "sha256": "aab3092421f1ebeb8acee452d68f3ef1bb27ff1e0a5f846d7f1e385268a772c6"
+  },
+  "recorderFailure": "Initial recorder refused to overwrite the pre-existing runtime-location-probe.json; this receipt recovers the three completed observations from the saved log.",
+  "realPnpmTested": false,
+  "permissionsChanged": false
+}

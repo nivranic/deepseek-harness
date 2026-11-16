@@ -1,0 +1,16 @@
+{
+  "status": "PASS",
+  "controls": 3,
+  "sourceRecord": {
+    "path": "artifacts/upstream-first/android-follow-window-source.json",
+    "sha256": "3efd08240e31e7fc1a8a59b45c57f172d5aa7192c1ba9ef4c382fb4108d99604"
+  },
+  "generator": {
+    "path": "artifacts/upstream-first/write-reports.mjs",
+    "sha256": "aae7eef8bbbbb7628249df574e56ccae842945c495187a72824b6615f061afec"
+  },
+  "helper": {
+    "path": ".artifacts/check-android-follow-window-binding.mjs",
+    "sha256": "bb404956b8ec45cf96ba1f8c1f7eb6e57b2355f5bb5215209b241f9023fa6661"
+  }
+}

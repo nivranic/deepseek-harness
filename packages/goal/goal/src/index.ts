@@ -5,6 +5,7 @@
  */
 
 import { randomUUID } from 'node:crypto'
+import { GOAL_REMOTE_CAPABILITIES } from './capabilities.ts'
 import { brandString } from '@deepseek-ai/dsh-brand'
 import type { GoalId } from './types.ts'
 import { Context, Service } from '@deepseek-ai/cordis'
@@ -247,7 +248,7 @@ export class GoalService extends TypertRemoteService {
   private goalProjectionHandle!: ProjectionHandle<GoalProjectionState>
 
   constructor(ctx: Context, config: Config = {}) {
-    super(ctx, 'goals')
+    super(ctx, 'goals', { capabilities: GOAL_REMOTE_CAPABILITIES })
     this.resolved = {
       defaultMaxGoalRounds: resolveMaxGoalRounds(config.defaultMaxGoalRounds ?? 256),
     }

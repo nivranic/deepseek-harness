@@ -1,0 +1,16 @@
+{
+  "status": "PASS",
+  "controls": 3,
+  "sourceRecord": {
+    "path": "artifacts/upstream-first/connection-phases-source.json",
+    "sha256": "68c2b82793bb48f62073d56d9fdeaafca6dfcc53e72fcf4d7f08449e43bac855"
+  },
+  "generator": {
+    "path": "artifacts/upstream-first/write-reports.mjs",
+    "sha256": "413249ab2d2816d44411a0c50404953f9b5f5248a392dc1102e0d8bd8c05d0fc"
+  },
+  "helper": {
+    "path": ".artifacts/check-connection-phases-binding.mjs",
+    "sha256": "b82e480cf37f7f8053634078fcc093c7151beed23b5d5e85cdb757b17eb4381d"
+  }
+}

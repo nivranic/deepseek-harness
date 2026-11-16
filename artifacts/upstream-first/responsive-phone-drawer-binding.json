@@ -1,0 +1,16 @@
+{
+  "status": "PASS",
+  "controls": 3,
+  "sourceRecord": {
+    "path": "artifacts/upstream-first/responsive-phone-drawer-source.json",
+    "sha256": "82080d7cc9b712e61acc0640695d57a686bdc7d2e5045f3b9dd2127c30d09862"
+  },
+  "generator": {
+    "path": "artifacts/upstream-first/write-reports.mjs",
+    "sha256": "4ad22483329373ed66377d36eadb6bdaad1ddd7cf748504ec48d1524b785a524"
+  },
+  "helper": {
+    "path": ".artifacts/check-responsive-phone-drawer-binding.mjs",
+    "sha256": "2263d5c246612faeed2533ea9796ee2f10c2db1cbb5e6839544090d6ef3d57cb"
+  }
+}

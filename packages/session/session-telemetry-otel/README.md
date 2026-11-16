@@ -27,7 +27,7 @@ The adapter injects `otel`; the [shared OTel plugin](../../telemetry/otel/README
 <a id="use-this-package"></a>
 ## Use this package
 
-Mount this plugin when a deployment should export session records through OpenTelemetry logs. Choose a mode, give the exporter an endpoint, and decide whether to mount redaction rules on the seam.
+Mount this plugin when a deployment should export session records through OpenTelemetry logs. Choose a mode, enable `consent.sessionTelemetry`, give the exporter an endpoint, and decide whether to mount redaction rules on the seam.
 
 ### Modes
 
@@ -43,10 +43,12 @@ Programmatic TypeScript configuration uses the exported `SessionTelemetryMode` e
 Uploading modes require an exporter URL. Processor settings control the independent Session-log queue; routing headers are explicit `exporter.headers` values.
 
 ```yaml
-- id: sessionTelemetry-otel
+- id: session-telemetry-otel
   name: '@deepseek-ai/dsh-session-telemetry-otel'
   config:
     mode: FEEDBACK_ONLY       # optional; defaults to FEEDBACK_ONLY
+    consent:
+      sessionTelemetry: true
     shutdownTimeoutMillis: 3000 # optional; defaults to 3000
     exporter:                # explicit SDK transport settings
       url: https://collector.example.com/v1/logs
@@ -58,10 +60,13 @@ Uploading modes require an exporter URL. Processor settings control the independ
 | Field | Default | Meaning |
 |---|---|---|
 | `mode` | `FEEDBACK_ONLY` | Sharing policy: `FEEDBACK_ONLY` or `DISABLED` |
+| `consent` | every kind `false` | Five independent booleans; only `sessionTelemetry` enables feedback-authorized log upload. Other fields reserve their backend vocabulary and create no exporter here. Users override composition defaults through the Loader entry's `consent` configuration |
 | `exporter.url` | required in uploading modes | Full OTLP logs endpoint; must parse as `http(s)` |
 | `exporter`, `processor` | — | SDK transport plus byte/count batching; headers/TLS identity are not inherited from the environment. Agent factories own their returned agent settings, including keepAlive |
 | `shutdownTimeoutMillis` | `3,000` | Outer deadline for all queued HTTP requests; remaining queued sends stop at expiry |
 | `maxRequestBytes` | `4,000,000` | Maximum complete OTLP JSON request bytes before gzip; may only be lowered |
+
+Consent changes apply live to subsequent feedback captures. Withdrawing consent does not retract batches already authorized; they may finish sending. Before the first opted-in capture, a backend mounted without consent creates no transport.
 
 Direct `ctx.sessionTelemetry.emit()` calls are no-ops in every mode and cannot bypass feedback authorization. Inherited parent feedback does not authorize a child export: the child needs new feedback of its own. Its authorized prefix then includes inherited context.
 

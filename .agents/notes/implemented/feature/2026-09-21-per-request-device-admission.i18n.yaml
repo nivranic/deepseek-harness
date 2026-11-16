@@ -1,0 +1,19 @@
+# Bilingual-pair consistency record for 2026-09-21-per-request-device-admission.md (docs/i18n/README.md): per heading
+# section, a hash of its English and Chinese blocks outside code blocks and generated regions.
+# After editing either side, bring the other along and re-record with:
+#   pnpm run verify-translation-pairing --write .agents/notes/implemented/feature/2026-09-21-per-request-device-admission.md
+/agent-note-per-request-device-admission-gates-business-rpc-on-declared-capability-permissions:
+  en: ab81adacaa0439ca
+  zh: 2fa2c68595550611
+/agent-note-per-request-device-admission-gates-business-rpc-on-declared-capability-permissions/problem:
+  en: 17a7dc4ab7c6a908
+  zh: 11906c863ff2d193
+/agent-note-per-request-device-admission-gates-business-rpc-on-declared-capability-permissions/decision:
+  en: 575bc55c5ca05ab4
+  zh: b3ca6768261625d7
+/agent-note-per-request-device-admission-gates-business-rpc-on-declared-capability-permissions/alternatives-considered:
+  en: e4db5a52871ae7b3
+  zh: cc12590cce7d50f2
+/agent-note-per-request-device-admission-gates-business-rpc-on-declared-capability-permissions/consequences:
+  en: 49ab544824aee52c
+  zh: 876261f65178bf96

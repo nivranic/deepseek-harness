@@ -1,0 +1,74 @@
+{
+  "status": "PASS",
+  "capturedAt": "2026-09-15T15:22:15.333Z",
+  "scope": "Windows development Desktop native directory-picker capability, called through the live Host inspector; real COM UI and built Node worker",
+  "launcher": "pnpm run start:desktop",
+  "application": {
+    "hostPid": 45212,
+    "node": "22.22.1",
+    "electron": null,
+    "kind": "native",
+    "entry": "E:\\Mix\\project\\deepseek-harness\\.worktrees\\upstream-first\\packages\\host\\directory-picker-native\\lib\\index.js",
+    "entrySha256": "a6b86e580576ce0433ef92ecd8aa152544ec0398ef59390d01933bcd71978191",
+    "shell": {
+      "pid": 31636,
+      "electron": "44.0.0"
+    }
+  },
+  "stages": [
+    {
+      "stage": "unicode",
+      "status": "PASS",
+      "workerPid": 39924,
+      "workerExited": true,
+      "receipt": {
+        "path": "artifacts/upstream-first/picker-unicode-result.json",
+        "sha256": "12a720a35c40d62542f9af92b236d3f91cee7618081dd13292ea2a058fc3e494"
+      },
+      "screenshot": {
+        "path": "artifacts/upstream-first/picker-unicode-selected-native.png",
+        "sha256": "ac554916bb6a953da217101a3af211f75efcce6919d33c33d67d19552700e2a5"
+      }
+    },
+    {
+      "stage": "cancel",
+      "status": "PASS",
+      "workerPid": 37384,
+      "workerExited": true,
+      "receipt": {
+        "path": "artifacts/upstream-first/picker-cancel-result.json",
+        "sha256": "71dc44a400906cea393f38be8831729f16bbdfe5ce9b64dcd4eb638188367fc7"
+      },
+      "screenshot": {
+        "path": "artifacts/upstream-first/picker-cancel-native.png",
+        "sha256": "b93105dc30cd7b7e5b93768b18d5e4f17a197aa80ac0d6afb64f090a495ddbe7"
+      }
+    },
+    {
+      "stage": "abort",
+      "status": "PASS",
+      "workerPid": 45184,
+      "workerExited": true,
+      "receipt": {
+        "path": "artifacts/upstream-first/picker-abort-result.json",
+        "sha256": "435b9c864371b2d73cd94bf9b16c16c19cc3dcf4242594b4604c1986dc1e961b"
+      },
+      "screenshot": {
+        "path": "artifacts/upstream-first/picker-abort-native.png",
+        "sha256": "b93105dc30cd7b7e5b93768b18d5e4f17a197aa80ac0d6afb64f090a495ddbe7"
+      }
+    }
+  ],
+  "unicodePathExact": true,
+  "shutdown": {
+    "launcherExitCode": 0,
+    "shellExited": true,
+    "hostExited": true,
+    "forced": false
+  },
+  "rendererWorkspaceFlowTested": false,
+  "realModelTested": false,
+  "installerTested": false,
+  "otherPlatformsTested": false,
+  "decodeExceptionReleaseEvidence": "Unit regression; no native allocator instrumentation in the Desktop run"
+}

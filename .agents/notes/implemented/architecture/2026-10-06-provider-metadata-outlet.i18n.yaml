@@ -1,0 +1,22 @@
+# Bilingual-pair consistency record for 2026-10-06-provider-metadata-outlet.md (docs/i18n/README.md): per heading
+# section, a hash of its English and Chinese blocks outside code blocks and generated regions.
+# After editing either side, bring the other along and re-record with:
+#   pnpm run verify-translation-pairing --write .agents/notes/implemented/architecture/2026-10-06-provider-metadata-outlet.md
+/agent-note-provider-calls-leave-per-call-metadata-through-the-ops-telemetry-outlet-under-their-own-consent-kind:
+  en: 143788ea32628540
+  zh: fef6a414b4d09249
+/agent-note-provider-calls-leave-per-call-metadata-through-the-ops-telemetry-outlet-under-their-own-consent-kind/problem:
+  en: d1de41511cdb0281
+  zh: ccc05a260abb3d0e
+/agent-note-provider-calls-leave-per-call-metadata-through-the-ops-telemetry-outlet-under-their-own-consent-kind/decision:
+  en: 831b2c96d7a09718
+  zh: 196c958224a0fda3
+/agent-note-provider-calls-leave-per-call-metadata-through-the-ops-telemetry-outlet-under-their-own-consent-kind/alternatives-considered:
+  en: 2b693a50c930c262
+  zh: 5bb6892bd9997ac3
+/agent-note-provider-calls-leave-per-call-metadata-through-the-ops-telemetry-outlet-under-their-own-consent-kind/consequences:
+  en: c5047cad707dc6cb
+  zh: b8eda0861c6d1757
+/agent-note-provider-calls-leave-per-call-metadata-through-the-ops-telemetry-outlet-under-their-own-consent-kind/open-follow-ups:
+  en: 848a4f960b15192b
+  zh: 61817c68cdd7293f

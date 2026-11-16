@@ -1,0 +1,233 @@
+package ai.deepseek.dsh.gateway
+
+import ai.deepseek.dsh.link.*
+import ai.deepseek.dsh.companion.*
+import ai.deepseek.dsh.contract.*
+import kotlinx.coroutines.*
+import kotlinx.coroutines.flow.first
+import kotlinx.serialization.json.*
+
+/** Private-pipe driver for the production Kotlin transport against the real Host.
+ * Output contains results selected by the test; credentials and pairing payloads are never emitted.
+ */
+object NativeGatewayDriver {
+    @JvmStatic fun main(args: Array<String>) = runBlocking {
+        require(args.isEmpty())
+        val config = NativeGatewayConfig(LinkTransportConfig(5000, 5000, 5000, 10000, 0, 0), 32)
+        val store = MemoryLinkCredentialsStore()
+        var client: NativeGatewayClient? = null
+        val modelScope = CoroutineScope(SupervisorJob() + Dispatchers.Default)
+        var interactions: InteractionModel? = null
+        val streams = mutableMapOf<String, Job>()
+        val input = System.`in`.bufferedReader(Charsets.UTF_8)
+        val output = System.out.bufferedWriter(Charsets.UTF_8)
+        suspend fun stopModels() { interactions?.stopWatchingAndAwait(); interactions = null }
+        fun output(id: String, type: String, value: JsonElement = JsonNull) = synchronized(output) {
+            output.write(buildJsonObject { put("id", id); put("type", type); put("value", value) }.toString())
+            output.newLine(); output.flush()
+        }
+        fun failure(id: String, error: Throwable) = output(id, "error", buildJsonObject {
+            put("code", (error as? LinkClientException.Refused)?.code ?: error.javaClass.simpleName)
+            interactions?.connectionSnapshot?.let {
+                put("interactionState", it.state.wire)
+                put("interactionFailure", it.lastFailure?.wire ?: "none")
+            }
+        })
+        try {
+            while (true) {
+                val line = withContext(Dispatchers.IO) { input.readLine() } ?: break
+                val command = Json.parseToJsonElement(line).jsonObject
+                val id = command.text("id")
+                try {
+                    when (command.text("op")) {
+                        "pair" -> {
+                            val next = NativeGatewayClient.pair(NativePairing.parse(command["payload"].toString()),
+                                "Kotlin native test", store, config)
+                            stopModels()
+                            client?.closeAndAwait()
+                            client = next
+                            output(id, "ok")
+                        }
+                        "call" -> output(id, "ok", client!!.call(command.text("method"),
+                            command["args"]!!.jsonObject.mapValues { WireValue.fromJsonElement(it.value) }).toJsonElement())
+                        "toolDescriptors" -> {
+                            val fetched = client!!.toolDescriptors()
+                            if (fetched == null) output(id, "ok")
+                            else output(id, "ok", buildJsonArray {
+                                fetched.forEach { descriptor -> add(buildJsonObject {
+                                    put("id", descriptor.id)
+                                    put("version", descriptor.version)
+                                    put("risk", descriptor.risk.WIRE)
+                                    put("permissions", buildJsonArray { descriptor.permissions.forEach { add(JsonPrimitive(it)) } })
+                                    put("supportsLite", descriptor.supportsLite)
+                                    put("supportsRemote", descriptor.supportsRemote)
+                                }) }
+                            })
+                        }
+                        "open" -> {
+                            check(!streams.containsKey(id))
+                            streams[id] = launch {
+                                try {
+                                    client!!.stream(command.text("endpoint"), command["args"]!!.jsonObject.mapValues {
+                                        WireValue.fromJsonElement(it.value)
+                                    }).collect { output(id, "item", it.toJsonElement()) }
+                                    output(id, "end")
+                                } catch (error: CancellationException) { throw error }
+                                catch (error: Exception) { failure(id, error) }
+                            }
+                        }
+                        "cancel" -> { streams.remove(command.text("streamId"))?.cancelAndJoin(); output(id, "ok") }
+                        "restore" -> {
+                            stopModels()
+                            client?.closeAndAwait()
+                            client = NativeGatewayClient.restore(store, config)
+                            check(client != null)
+                            output(id, "ok")
+                        }
+                        "close" -> {
+                            stopModels()
+                            client?.closeAndAwait()
+                            streams.values.forEach { it.join() }
+                            streams.clear()
+                            output(id, "ok")
+                        }
+                        "watchInteractions" -> {
+                            stopModels()
+                            val model = InteractionModel(client!!, modelScope)
+                            interactions = model
+                            model.startWatching()
+                            withTimeout(15000) { model.clientId.first { it.isNotEmpty() } }
+                            output(id, "ok")
+                        }
+                        "answerQuestion" -> {
+                            val model = checkNotNull(interactions)
+                            val pending = withTimeout(15000) { model.inbox.first { it.isNotEmpty() }.single() }
+                            check(pending.kind == PendingInteraction.Kind.QUESTION && pending.questions.size == 1)
+                            val selected = command["selected"]!!.jsonArray.map { it.jsonPrimitive.content }
+                            val custom = command["custom"]?.jsonPrimitive?.content
+                            model.answerQuestions(pending, listOf(CompanionQuestionAnswer(pending.questions.single().id, selected, custom)))
+                            val refused = model.lastRefusal.value
+                            if (refused != null) {
+                                val code = Regex("^refused ([^: ]+):").find(refused)?.groupValues?.get(1)
+                                    ?: when (refused) {
+                                        "Remote Event stream is not ready." -> "driver/not-ready"
+                                        "Interaction is no longer pending." -> "driver/not-pending"
+                                        "invalid Remote method" -> "driver/invalid-method"
+                                        else -> "driver/local-refusal"
+                                    }
+                                throw LinkClientException.Refused(code, "model reply failed")
+                            }
+                            check(model.inbox.value.isEmpty())
+                            output(id, "ok")
+                        }
+                        "interactionStatus" -> {
+                            val snapshot = checkNotNull(interactions).connectionSnapshot
+                            output(id, "ok", buildJsonObject {
+                                put("state", snapshot.state.wire)
+                                put("attempts", snapshot.attempts)
+                                put("failure", snapshot.lastFailure?.wire ?: "none")
+                            })
+                        }
+                        "readModelFile" -> {
+                            val model = FilesModel(client!!, modelScope)
+                            model.selectSession(command.text("sessionId"))
+                            model.readFile(command.text("path"))
+                            if (model.openFileError.value != null) {
+                                output(id, "error", buildJsonObject { put("code", "driver/file-read-failed") })
+                                continue
+                            }
+                            withTimeout(15000) {
+                                while (checkNotNull(model.openFile.value).hasMore) {
+                                    model.loadMore()
+                                    check(model.openFileError.value == null)
+                                }
+                            }
+                            val file = checkNotNull(model.openFile.value)
+                            output(id, "ok", buildJsonObject {
+                                put("lines", file.loadedLines)
+                                put("digest", LinkSigning.sha256Hex(file.text.toByteArray(Charsets.UTF_8)))
+                            })
+                        }
+                        "observeSession" -> {
+                            val model = SessionModel(client!!, modelScope)
+                            try {
+                                model.openSession(command.text("sessionId"))
+                                val opened = withTimeout(15000) { model.open.first { current ->
+                                    current?.state?.items?.any { it.text.contains("DONE") } == true
+                                } }!!
+                                output(id, "ok", buildJsonObject { put("rows", opened.state.items.size); put("done", true) })
+                            } finally { model.closeAndAwait() }
+                        }
+                        "liteRound" -> {
+                            // The APK-bundled documents ride this driver's own
+                            // classpath (the copyLitePresets/copyToolDescriptors/
+                            // copyLiteToolSchemas test resources), so the round
+                            // assembles from the exact frozen bytes a standalone
+                            // Lite session ships. The endpoint, credential,
+                            // model, and prompt arrive over the private stdin
+                            // pipe; the answer carries the folded state only —
+                            // the credential never reaches the output.
+                            fun bundled(name: String): String =
+                                checkNotNull(NativeGatewayDriver::class.java.classLoader.getResource(name)) { "bundled document missing: $name" }
+                                    .readText(Charsets.UTF_8)
+                            val presets = LitePresetCatalog.fromBundledProjection(
+                                LitePresetDescriptors.parseDocument(bundled("lite-preset-descriptors.json")))
+                            val schemas = LiteToolSchemaCatalog.fromBundledDocuments(
+                                LiteToolSchemas.parseDocument(bundled("lite-tool-schemas.json")),
+                                LiteToolSchemas.parseDocument(bundled("lite-device-tool-schemas.json")))
+                            val declarations = LiteToolCatalog.fromBundledDocuments(
+                                ToolDescriptors.parseDocument(bundled("lite-tool-declarations.json")),
+                                ToolDescriptors.parseDocument(bundled("tool-descriptors.json")))
+                            val preset = presets.default
+                            val state = coroutineScope {
+                                val loop = LiteLoopDriver(
+                                    this,
+                                    LiteHTTPProvider(command.text("endpoint"), command.text("apiKey"), command.text("model"), schemas.tools),
+                                    execute = { _, name, arguments ->
+                                        when (name) {
+                                            "calculator" -> LiteToolExecutors.calculator(arguments)
+                                            else -> LiteToolOutcome(ok = false, text = "no on-device executor mounted: $name")
+                                        }
+                                    },
+                                    toolCatalog = declarations,
+                                )
+                                loop.submit(command.text("prompt"), preset?.assembledSystemPrompt).join()
+                                loop.fold.state
+                            }
+                            output(id, "ok", buildJsonObject {
+                                put("presetId", preset?.id ?: "")
+                                put("systemPrompt", preset?.assembledSystemPrompt ?: "")
+                                put("toolSchemaNames", buildJsonArray { schemas.tools.forEach { add(JsonPrimitive(it.name)) } })
+                                put("conversation", buildJsonArray { state.conversation.forEach { row -> add(buildJsonObject {
+                                    put("role", row.role)
+                                    put("text", row.text)
+                                }) } })
+                                put("toolCalls", buildJsonArray { state.toolCalls.forEach { call -> add(buildJsonObject {
+                                    put("name", call.name)
+                                    put("arguments", call.arguments)
+                                    put("phase", call.phase)
+                                    put("resultText", call.resultText)
+                                }) } })
+                                put("lastTurnEnd", state.lastTurnEnd ?: "")
+                                put("errors", buildJsonArray { state.errors.forEach { failure -> add(buildJsonObject {
+                                    put("kind", failure.kind)
+                                    put("code", failure.code)
+                                    put("message", failure.message)
+                                }) } })
+                                put("pendingHandoff", state.pendingHandoff ?: "")
+                            })
+                        }
+                        else -> error("unknown driver operation")
+                    }
+                } catch (error: Exception) { failure(id, error) }
+            }
+        } finally {
+            withContext(NonCancellable) {
+                stopModels()
+                client?.closeAndAwait()
+                streams.values.forEach { it.cancelAndJoin() }
+                modelScope.cancel()
+            }
+        }
+    }
+}

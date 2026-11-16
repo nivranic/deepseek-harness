@@ -1,0 +1,86 @@
+.action {
+  display: inline-flex;
+  align-items: center;
+  gap: 4px;
+  min-height: 28px;
+  padding: 3px 6px;
+  border: 0;
+  border-radius: var(--dsw-radius-sm);
+  background: transparent;
+  color: var(--dsw-alias-label-tertiary);
+  font-size: 12px;
+  line-height: 18px;
+  cursor: pointer;
+}
+
+@media (hover: hover) {
+  .action:hover {
+    color: var(--dsw-alias-label-secondary);
+  }
+}
+
+.action:focus-visible {
+  color: var(--dsw-alias-label-secondary);
+}
+
+.action svg {
+  flex: none;
+}
+
+.label {
+  white-space: nowrap;
+}
+
+.root {
+  display: inline-flex;
+}
+
+.panel {
+  position: fixed;
+  position-area: none;
+  top: max(16px, calc(anchor(bottom) + 5px));
+  bottom: 16px;
+  left: max(16px, anchor(left));
+  right: 16px;
+  width: max-content;
+  height: fit-content;
+  margin: 0;
+  align-self: start;
+  justify-self: start;
+  position-try-fallbacks: --dsh-handoff-wide, --dsh-handoff-above, --dsh-handoff-window;
+  z-index: 100;
+  box-sizing: border-box;
+  display: flex;
+  align-items: center;
+  justify-content: center;
+  padding: 12px;
+  border: 0;
+  border-radius: var(--dsw-radius-xl);
+  background: var(--dsw-specific-menu);
+  backdrop-filter: var(--dsw-menu-backdrop-filter);
+  --dsh-scrollbar-thumb: var(--dsw-alias-scrollbar-bg-l2);
+  --dsh-scrollbar-thumb-hover: var(--dsw-alias-scrollbar-hover-l2);
+  --dsw-elevation-stroke-color: var(--dsw-alias-border-l1);
+  box-shadow: var(--dsw-elevation-prominent);
+}
+
+@position-try --dsh-handoff-wide {
+  left: 16px;
+  right: 16px;
+  justify-self: safe end;
+}
+
+@position-try --dsh-handoff-above {
+  top: max(16px, var(--dsh-frame-overlay-top, 16px));
+  bottom: max(16px, calc(anchor(top) + 5px));
+  left: 16px;
+  right: 16px;
+  align-self: end;
+  justify-self: safe end;
+}
+
+@position-try --dsh-handoff-window {
+  inset: max(16px, var(--dsh-frame-overlay-top, 16px)) 16px 16px;
+  align-self: safe end;
+  justify-self: safe end;
+}

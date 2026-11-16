@@ -1,0 +1,16 @@
+{
+  "status": "PASS",
+  "controls": 3,
+  "sourceRecord": {
+    "path": "artifacts/upstream-first/apple-roster-swift-source.json",
+    "sha256": "b9ae03cebd2c7862b91b2189c959e548980413a0f585c1b1c66d4b0e3081a90b"
+  },
+  "generator": {
+    "path": "artifacts/upstream-first/write-reports.mjs",
+    "sha256": "edf17323830f2ad45feb3b68035cdc1ec42acb50fd9fdfbb697211663b96af35"
+  },
+  "helper": {
+    "path": ".artifacts/check-apple-roster-swift-binding.mjs",
+    "sha256": "018ea7bd384587451471c4cb1e0ec40364d758dee2eb6ee72b3c66b9313b9b46"
+  }
+}

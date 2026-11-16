@@ -75,6 +75,7 @@ interface DeepSeekDefaultsServer {
   readonly url: string
   readonly requests: JsonObject[]
   readonly paths: string[]
+  readonly activity?: readonly { readonly kind: string; readonly at: number }[]
   close(): Promise<void>
 }
 
@@ -102,12 +103,17 @@ async function deepseekDefaultsServer(
 ): Promise<DeepSeekDefaultsServer> {
   const requests: JsonObject[] = []
   const paths: string[] = []
+  const activity: { kind: string; at: number }[] = []
+  const started = performance.now()
+  const trace = (kind: string): void => { activity.push({ kind, at: Math.round(performance.now() - started) }) }
   const server = createServer((request: IncomingMessage, response: ServerResponse) => {
     let body = ''
     request.setEncoding('utf8')
     request.on('data', (chunk: string) => { body += chunk })
     request.on('end', () => {
       requests.push(JSON.parse(body) as JsonObject)
+      const requestNumber = requests.length
+      trace(`${requestNumber}:request`)
       paths.push(request.url ?? '')
       response.writeHead(200, { 'content-type': 'text/event-stream' })
       let keepAlives = 3
@@ -116,6 +122,7 @@ async function deepseekDefaultsServer(
         if (keepAlives-- > 0
           || (options.waitForTitleRequest === true && !requests.some(isTitleRequest))) {
           response.write(': keep-alive\n\n')
+          trace(`${requestNumber}:keep-alive`)
           timer = setTimeout(write, 60)
           return
         }
@@ -137,8 +144,10 @@ async function deepseekDefaultsServer(
           '',
         ].join('\n\n'))
       }
-      let timer = setTimeout(write, 60)
-      response.once('close', () => { clearTimeout(timer) })
+      let timer: ReturnType<typeof setTimeout> | undefined
+      response.once('close', () => { clearTimeout(timer); trace(`${requestNumber}:close`) })
+      // The first idle deadline includes request setup before this handler runs.
+      write()
     })
   })
   await new Promise<void>(resolve => server.listen(0, '127.0.0.1', resolve))
@@ -148,6 +157,7 @@ async function deepseekDefaultsServer(
     url: `http://127.0.0.1:${address.port}`,
     requests,
     paths,
+    activity,
     close: () => new Promise(resolve => server.close(() => { resolve() })),
   }
 }
@@ -860,7 +870,15 @@ describe('headless stream-json snapshots', () => {
       })
 
       expect(result.stderr).toBe('')
-      expect(server.requests).toHaveLength(2)
+      expect(server.requests, JSON.stringify({
+        requests: server.requests.map(request => ({
+          model: request.model, maxTokens: request.max_tokens, title: isTitleRequest(request),
+        })),
+        activity: server.activity,
+        retries: parseJsonl(result.stdout).filter(record => record.type === 'session_event'
+          && (record.event as JsonObject).type !== 'request/header'
+          && /timeout|retry|attempt/i.test(JSON.stringify(record))),
+      })).toHaveLength(2)
       expect(server.paths).toEqual(['/v1/messages', '/v1/messages'])
       const agentRequest = server.requests.find(request => request.max_tokens === 256_000)
       const titleRequest = server.requests.find(isTitleRequest)

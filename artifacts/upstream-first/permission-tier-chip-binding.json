@@ -1,0 +1,16 @@
+{
+  "status": "PASS",
+  "controls": 3,
+  "sourceRecord": {
+    "path": "artifacts/upstream-first/permission-tier-chip-source.json",
+    "sha256": "c8cb34f81f23cd0b035ffe0f0f9c1c9f74fe60365761bea8a9671f7fdff580a8"
+  },
+  "generator": {
+    "path": "artifacts/upstream-first/write-reports.mjs",
+    "sha256": "c7967a0a7d935df8f5f19a1d1d4c5659365cbb448587e1732dc3856574a5e9a3"
+  },
+  "helper": {
+    "path": ".artifacts/check-permission-tier-chip-binding.mjs",
+    "sha256": "30a5f64c2879470437b979bde24aa621ec5ceae3c660fa2c5085197783e6d9c4"
+  }
+}

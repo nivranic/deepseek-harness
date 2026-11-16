@@ -62,6 +62,8 @@ export interface ToolBatchResult {
 
 /** A plugin owns argument parsing, dispatch, scheduling, cancellation, and logging. */
 export interface ToolExecutor {
+  /** Executor-owned model-call transports included in Host catalogs alongside registered capabilities. */
+  readonly transportDefinitions?: readonly ToolDefinition[]
   /** Guidance registered and disposed with this executor; absent means no executor-owned sections. */
   readonly sections?: readonly ToolPromptSection[]
   /**

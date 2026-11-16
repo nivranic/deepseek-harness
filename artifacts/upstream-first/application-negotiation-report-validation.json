@@ -1,0 +1,40 @@
+{
+  "status": "PASS",
+  "files": [
+    {
+      "path": "artifacts/upstream-first/application-negotiation-source.json",
+      "sha256": "d2463ae04414c808028e1cae4a0a104bfe633d860700178bcc5cd4fbc263d7bc"
+    },
+    {
+      "path": "artifacts/upstream-first/application-negotiation-binding-final.json",
+      "sha256": "216ce18d52237e7726323f9e55301845e5e58a0c5da4ce1af1bc0e363996f2eb"
+    },
+    {
+      "path": "artifacts/upstream-first/write-reports.mjs",
+      "sha256": "408bc91f86c6646d14fe81e5def807408d4e386afc6e07403b622d4d435c9747"
+    },
+    {
+      "path": ".artifacts/check-application-negotiation-binding-final.mjs",
+      "sha256": "71fa606190164038156d09b85244cb36a8ed599b5f50f215c68b1bfb343703ca"
+    },
+    {
+      "path": ".artifacts/negotiation-binding-final.log",
+      "sha256": "04b6243c781d4e5ef8a0e862669733202932437fad1d6f92d476d0ce3ba58640"
+    },
+    {
+      "path": ".artifacts/negotiation-audit-tests.log",
+      "sha256": "8382bd4cbda8b9a8c089b691a8f8e0dceff9c2a0e36e838ac97cbecfd5244e32"
+    },
+    {
+      "path": ".artifacts/negotiation-gate0.log",
+      "sha256": "4b5af3121a7e7caff0e1b6288bdaa7cfef9988842ae06bf02dc0a74852426043"
+    }
+  ],
+  "checks": {
+    "bindingControls": 3,
+    "auditTests": 13,
+    "gate0": "PASS",
+    "diffCheck": "PASS"
+  },
+  "completeGoal": false
+}

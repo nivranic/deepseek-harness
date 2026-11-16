@@ -128,6 +128,9 @@ const NON_SOURCE_DIRECTORIES = new Set([
 /** Glob traversal exclusions corresponding to the non-source path predicate. */
 export const TRANSLATION_SCOPE_GLOB_EXCLUDES = [
   '.agents/notes/archived/**',
+  // Frozen handoff snapshots capture uncommitted bytes verbatim at collection
+  // time; they are evidence, not a maintained translation surface.
+  'artifacts/upstream-first/handoff/**',
   '**/node_modules/**',
   '**/lib/**',
   '**/.pnpm-store/**',

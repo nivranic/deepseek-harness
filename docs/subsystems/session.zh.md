@@ -840,7 +840,7 @@ interface PluginRecord {
 
 `ModelCatalog` 是 `session/modelCatalog` 返回的 Host generation 模型目录：它携带部署默认值、可路由 provider id、成功的 provider 分组与相互隔离的 provider 失败。它不由某个 Session 派生，因此与 Session projection 分开保存。
 
-`SessionOpenWorkspacePathRequest` 携带绝对路径或已按 workspace 解析的 `path`。`SessionOpenWorkspacePathValue` 确认 Host 已接受原生交接。Session-aware Client 会在已知当前 Session cwd 时据此解析相对路径；controller 将路径原样交给打开器，并通过 Session Remote 错误词汇表报告无效请求、取消与打开器失败。 可选的 `action: "reveal"` 选择文件管理器导航；省略时使用默认应用打开。
+`SessionOpenWorkspacePathRequest` 携带由 Host 服务授权并解析的路径；可选的 `action: "reveal"` 选择文件管理器导航。`SessionOpenWorkspacePathValue` 确认原生交接。这些类型用于 Host 本地调用，不属于 Session Remote 命名空间。Client 原生操作通过[声明文件服务](../../packages/client/ui-deliverables/README.zh.md)传递日志中的文件坐标，由该服务负责 Session 授权和文件系统到 Host 的路径验证。
 
 可选的 `application` 指定文件关联应用，不修改系统默认值；`workspacePathApplications({ path })` 在校验 Host 路径后返回当前关联应用、名称、图标和默认项。
 
@@ -971,6 +971,14 @@ workspaceDesktop(): { name: string; available: boolean; fileManager: 'finder' | 
 @Remote('rename') rename(request: SessionRenameRequest): Promise<SessionRenameValue>
 
 /**
+ * Rename one Session only against the title revision captured before editing;
+ * an identical user-pinned title returns its original acceptance.
+ * @param request - Session identity, proposed title, and durable editing baseline.
+ * @returns the accepted title and its original durable event sequence.
+ */
+@Remote('renameAt') renameAt(request: SessionRenameAtRequest): Promise<SessionRenameValue>
+
+/**
  * Fork one cold-readable exact event prefix into a new Session. An omitted
  * boundary selects the latest completed-turn prefix; an open cut receives
  * synthetic fork closers.
@@ -1007,6 +1015,14 @@ workspaceDesktop(): { name: string; available: boolean; fileManager: 'finder' | 
  * @returns acknowledgement that cancellation was requested.
  */
 @Remote('cancel') cancel(request: SessionCancelRequest): SessionCancelValue
+
+/**
+ * Cancel one observed Agent turn without arming cancellation for later
+ * work; a stale, absent, or completed target is an accepted no-op.
+ * @param request - Session and observed turn/start sequence, or null for no observed turn.
+ * @returns acceptance whether the target is cancelled or already inactive.
+ */
+@Remote('cancelTurn') cancelTurn(request: SessionCancelTurnRequest): SessionCancelValue
 
 /**
  * Read one cold-safe, message-aligned Session history page.

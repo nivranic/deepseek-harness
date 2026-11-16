@@ -219,6 +219,13 @@
       name: '@deepseek-ai/dsh-session-telemetry-otel'
       config:
         mode: !!js process.env.DSH_TELEMETRY_MODE || 'FEEDBACK_ONLY'
+        # §44 default-off: every kind stays local until the deployment opts it
+        # in (DSH_TELEMETRY_CONSENT=1 seeds the sessionTelemetry kind as the
+        # composition-layer base; the profile entry may override each kind).
+        # Only sessionTelemetry opens this backend's feedback-authorized
+        # export path; the other consent fields create no exporter here.
+        consent:
+          sessionTelemetry: !!js process.env.DSH_TELEMETRY_CONSENT === '1'
         shutdownTimeoutMillis: 3000
         maxRequestBytes: 4000000
         exporter:

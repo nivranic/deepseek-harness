@@ -1,0 +1,70 @@
+{
+  "status": "PASS",
+  "scope": "Report bindings and audit for the Android Repairing; the remaining specification sections stay open; full Upstream-First objective remains in progress",
+  "gate0": {
+    "validation": "PASS",
+    "gate0": "PASS",
+    "paths": 1938,
+    "components": 129,
+    "specificationCoverage": {
+      "status": "PASS",
+      "numberedSections": 81,
+      "nonEmptySourceLines": 1983,
+      "acceptanceProven": false
+    }
+  },
+  "sourceRecord": {
+    "path": "artifacts/upstream-first/android-repairing-source.json",
+    "sha256": "77d70d5d96585706e233270e5df45176600af6f92cb15fdc73d491fca224545a"
+  },
+  "generator": {
+    "path": "artifacts/upstream-first/write-reports.mjs",
+    "sha256": "9e5d3eb9480a53bb7c1694f3507c84fde0c90b492852c61c572153805f28415b"
+  },
+  "binding": {
+    "path": "artifacts/upstream-first/android-repairing-binding.json",
+    "sha256": "c91a89ea30ae4e7b71041649da32b7ed23c40621e7492bd3aa2d60110c0dc30f"
+  },
+  "helpers": [
+    {
+      "path": ".artifacts/advance-android-repairing-reports.mjs",
+      "sha256": "330940c96bcf4d2852ee1f215f82e3230cf54b7eec124de2d3294e7baea330f9"
+    },
+    {
+      "path": ".artifacts/capture-android-repairing-validation.mjs",
+      "sha256": "9b54026c997f8faef0a99ef70ad992cad344199b1921a602581f9f673d66138a"
+    }
+  ],
+  "reports": [
+    {
+      "path": "IMPLEMENTATION_STATUS.md",
+      "sha256": "b52110c0746eec7b38224633a7e51b41205fa432c48223f80e2d35977e1cf660"
+    },
+    {
+      "path": "artifacts/upstream-first/evidence.json",
+      "sha256": "02c6ba082c6722344a8705ab92d30d0887caf8d87408cbb321809509bd341a7e"
+    }
+  ],
+  "checks": [
+    {
+      "path": ".artifacts/android-repairing-binding.log",
+      "sha256": "b748dda2af48e335400fa5f6517633fac70a60a8bc151aec3de4eef69b5e82e8"
+    },
+    {
+      "path": ".artifacts/android-repairing-audit-tests.log",
+      "sha256": "9f5d1c78961dbc2b643c556f00e7a447c8db2e4315d755300aa7ade40b7f157b"
+    },
+    {
+      "path": ".artifacts/android-repairing-gate0.log",
+      "sha256": "5427f71ff5b67b500b327d785dcaf84a7af2c6edd24b1833c4c7d83ad2cf37c8"
+    },
+    {
+      "path": ".artifacts/android-repairing-report-diff-check.log",
+      "sha256": "e3b0c44298fc1c149afbf4c8996fb92427ae41e4649b934ca495991b7852b855"
+    },
+    {
+      "path": ".artifacts/android-repairing-report-generation.log",
+      "sha256": "5867d1d51cd43a59428de2e7fffa15847d7153b11f3b61ecf812224ee2dd2099"
+    }
+  ]
+}

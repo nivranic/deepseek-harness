@@ -1,0 +1,16 @@
+{
+  "status": "PASS",
+  "controls": 3,
+  "sourceRecord": {
+    "path": "artifacts/upstream-first/binary-fact-card-source.json",
+    "sha256": "62582887e55863a849634d0699d24c4b847f3057f9054ebd97f3c63689f5d855"
+  },
+  "generator": {
+    "path": "artifacts/upstream-first/write-reports.mjs",
+    "sha256": "c444657d782ab8b3eccaafd17b6c65176284135fce0819a7a8ab53bcba585c5c"
+  },
+  "helper": {
+    "path": ".artifacts/check-binary-fact-card-binding.mjs",
+    "sha256": "2e7fdb3ef5099c6204ab11bb532110a63c56a18f7cb9488770d75c371906830a"
+  }
+}

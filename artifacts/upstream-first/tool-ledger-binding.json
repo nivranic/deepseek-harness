@@ -1,0 +1,16 @@
+{
+  "status": "PASS",
+  "controls": 3,
+  "sourceRecord": {
+    "path": "artifacts/upstream-first/tool-ledger-source.json",
+    "sha256": "c0c31d35e0140eb3e1d1b34879e47ae75aeb86cb8726444d25de23478b600033"
+  },
+  "generator": {
+    "path": "artifacts/upstream-first/write-reports.mjs",
+    "sha256": "a082aeb7a675be612698b30cb09f41a86eb056607a7d589761c147746940bf3e"
+  },
+  "helper": {
+    "path": ".artifacts/check-tool-ledger-binding.mjs",
+    "sha256": "976db7a2a5e8f35c8a13c82dcdbeb7d5d6b8d05087c727e98c5a6d0c27413807"
+  }
+}

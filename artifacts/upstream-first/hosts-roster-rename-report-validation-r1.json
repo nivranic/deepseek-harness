@@ -1,0 +1,70 @@
+{
+  "status": "PASS",
+  "scope": "Report bindings and audit for the hosts roster rename increment: the section 28 roster gains a client-chosen row name set and cleared in place by SavedHostsStore.rename, carried across record refreshes and admitted by parseRow, presented customName-first through hostDisplayName with an inline rename flow, and proven in the real-browser hosts-settings lane as a persisted rename-and-reset round-trip with the golden Rename row; the remaining specification sections stay open; full Upstream-First objective remains in progress",
+  "gate0": {
+    "validation": "PASS",
+    "gate0": "PASS",
+    "paths": 1938,
+    "components": 129,
+    "specificationCoverage": {
+      "status": "PASS",
+      "numberedSections": 81,
+      "nonEmptySourceLines": 1983,
+      "acceptanceProven": false
+    }
+  },
+  "sourceRecord": {
+    "path": "artifacts/upstream-first/hosts-roster-rename-source.json",
+    "sha256": "34fafe867f3a4bccc7b84e4113422644937f6ae76295b671a7a9bee069a43995"
+  },
+  "generator": {
+    "path": "artifacts/upstream-first/write-reports.mjs",
+    "sha256": "a05a522ba507e1682dc256779f6e3f0fe4f2b9a2db51346f92f5d65c5da89ea2"
+  },
+  "binding": {
+    "path": "artifacts/upstream-first/hosts-roster-rename-binding.json",
+    "sha256": "004e0ca27ccade60600488a437cee80f0725bcf293fe520703135d1b3ee120b1"
+  },
+  "helpers": [
+    {
+      "path": ".artifacts/advance-hosts-roster-rename-reports.mjs",
+      "sha256": "828410f8fbd0a40080ee0d58d9d8ac6042e036a0e3a3754883f856f6e79e4690"
+    },
+    {
+      "path": ".artifacts/capture-hosts-roster-rename-validation.mjs",
+      "sha256": "8c4f01a4f380540a205096c21730de23956663f4389439ea9a86aa2517c37bc0"
+    }
+  ],
+  "reports": [
+    {
+      "path": "IMPLEMENTATION_STATUS.md",
+      "sha256": "c665be5565e61c148977807dee703706d421d80a318075ca183706323499156b"
+    },
+    {
+      "path": "artifacts/upstream-first/evidence.json",
+      "sha256": "ad63c686607948969d8c00c49a69124fb71e4ff7ab109b7deb8b130baa82e32a"
+    }
+  ],
+  "checks": [
+    {
+      "path": ".artifacts/hosts-roster-rename-binding.log",
+      "sha256": "6fa5925440a19dd96806d4adc1f9eabbd1b061de91651559cf80cb958f0c2247"
+    },
+    {
+      "path": ".artifacts/hosts-roster-rename-audit-final.log",
+      "sha256": "b61e6663867210c7cda2013459637dd542a7b2b6a2e9c2ae56437b6b4be6f497"
+    },
+    {
+      "path": ".artifacts/hosts-roster-rename-gate0-final.log",
+      "sha256": "505d74ef938f5d34d85490d37e0176ba804d93272fcf465ce2544a02c56b3f90"
+    },
+    {
+      "path": ".artifacts/hosts-roster-rename-report-diff-check.log",
+      "sha256": "e3b0c44298fc1c149afbf4c8996fb92427ae41e4649b934ca495991b7852b855"
+    },
+    {
+      "path": ".artifacts/hosts-roster-rename-report-generation.log",
+      "sha256": "fe010532f71a6341467ae5719b29ac19470895de1d481156335b8f70a3273ed5"
+    }
+  ]
+}

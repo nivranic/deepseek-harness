@@ -1,0 +1,22 @@
+# Bilingual-pair consistency record for 2026-09-27-android-camera-attachments.md (docs/i18n/README.md): per heading
+# section, a hash of its English and Chinese blocks outside code blocks and generated regions.
+# After editing either side, bring the other along and re-record with:
+#   pnpm run verify-translation-pairing --write .agents/notes/implemented/architecture/2026-09-27-android-camera-attachments.md
+/agent-note-android-camera-outputs-carry-temporary-file-authority-not-restored-upload-authority:
+  en: b3cc24cbb9020b09
+  zh: 3ccbf2c6b7619f5c
+/agent-note-android-camera-outputs-carry-temporary-file-authority-not-restored-upload-authority/problem:
+  en: 8d128b612779d7ff
+  zh: 88a2fe3883fcf0eb
+/agent-note-android-camera-outputs-carry-temporary-file-authority-not-restored-upload-authority/decision:
+  en: e0f855235d8d7beb
+  zh: ba6717aab408228a
+/agent-note-android-camera-outputs-carry-temporary-file-authority-not-restored-upload-authority/temporary-output-lifetime:
+  en: 042a67b01cf79ce7
+  zh: 3f475e38a2d91e00
+/agent-note-android-camera-outputs-carry-temporary-file-authority-not-restored-upload-authority/alternatives-considered:
+  en: 943c6303fa52b144
+  zh: 8bd1ead01d732cd8
+/agent-note-android-camera-outputs-carry-temporary-file-authority-not-restored-upload-authority/consequences:
+  en: 22648de44fe42638
+  zh: 614d64fb55064c6c

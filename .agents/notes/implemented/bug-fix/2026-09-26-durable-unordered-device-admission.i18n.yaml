@@ -1,0 +1,19 @@
+# Bilingual-pair consistency record for 2026-09-26-durable-unordered-device-admission.md (docs/i18n/README.md): per heading
+# section, a hash of its English and Chinese blocks outside code blocks and generated regions.
+# After editing either side, bring the other along and re-record with:
+#   pnpm run verify-translation-pairing --write .agents/notes/implemented/bug-fix/2026-09-26-durable-unordered-device-admission.md
+/agent-note-durable-device-admission-accepts-fresh-proofs-out-of-order:
+  en: 1ba5fc91e3fc3879
+  zh: 2c3ba583f3abb47d
+/agent-note-durable-device-admission-accepts-fresh-proofs-out-of-order/problem:
+  en: 0c097b782c6bda10
+  zh: d3aa87b40adee236
+/agent-note-durable-device-admission-accepts-fresh-proofs-out-of-order/decision:
+  en: 46ab1ea8ce113caf
+  zh: c4aa1647732cd10a
+/agent-note-durable-device-admission-accepts-fresh-proofs-out-of-order/alternatives-considered:
+  en: 1f407d9128f4a83c
+  zh: 31a594a8f2260f9c
+/agent-note-durable-device-admission-accepts-fresh-proofs-out-of-order/consequences:
+  en: fa4195a2354e7b21
+  zh: 4d9abc98318604ef

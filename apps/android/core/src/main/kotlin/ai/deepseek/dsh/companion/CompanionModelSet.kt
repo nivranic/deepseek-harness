@@ -1,0 +1,72 @@
+package ai.deepseek.dsh.companion
+
+import ai.deepseek.dsh.link.WireValue
+import kotlinx.coroutines.*
+import kotlinx.coroutines.flow.Flow
+import kotlinx.coroutines.flow.emitAll
+import kotlinx.coroutines.flow.flow
+import kotlinx.coroutines.flow.map
+import kotlinx.coroutines.flow.distinctUntilChanged
+import kotlinx.coroutines.flow.collectLatest
+
+/** One connection's disposable UI state. Retiring it cancels model requests and observations;
+ * the process-owned transport remains available for cancellation of a pairing change.
+ * A replacement receives new models rather than cached data from the previous connection.
+ */
+class CompanionModelSet(wire: WireDriving, parent: CoroutineScope,
+                        val inputs: CompanionInputState = CompanionInputState.memory(),
+                        downloadFiles: NativeDownloadFiles? = null,
+                        digestMemory: NativeUploadDigestMemory? = null,
+                        journalStore: NativeJournalStoring? = null) {
+    private val lifetime = SupervisorJob(parent.coroutineContext[Job])
+    private val scope = CoroutineScope(parent.coroutineContext + lifetime)
+    private val ownedWire = object : WireDriving {
+        override suspend fun call(method: String, args: Map<String, WireValue>): WireValue {
+            val request = scope.async { wire.call(method, args) }
+            try { return request.await() }
+            finally { withContext(NonCancellable) { request.cancelAndJoin() } }
+        }
+
+        override fun stream(endpoint: String, payload: Map<String, WireValue>): Flow<WireValue> = flow {
+            lifetime.ensureActive()
+            emitAll(wire.stream(endpoint, payload))
+        }
+    }
+
+    val session = SessionModel(ownedWire, scope, inputs = inputs, journalStore = journalStore)
+    val attachments = NativeFileAttachmentsModel(ownedWire, session, inputs, scope,
+        NativeFileAttachmentLimits(maxFileBytes = 524_288, maxEncodedArgsBytes = 1_048_576, maxFiles = 8),
+        digestMemory = digestMemory)
+    val interactions = InteractionModel(ownedWire, scope, inputs = inputs)
+    val files = FilesModel(ownedWire, scope)
+    val downloads = NativeDownloadsModel(ownedWire, downloadFiles, scope, selected = { files.resource.state.value?.target == it })
+    val subagents = SubagentsModel(ownedWire, scope)
+    val pushes = PushModel(ownedWire, scope)
+
+    init {
+        scope.launch { session.open.map { it?.sessionId to session.selectionGeneration }.distinctUntilChanged().collectLatest {
+            attachments.selectSession(it.first)
+        } }
+        scope.launch { files.resource.state.map { it?.target }.distinctUntilChanged().collectLatest { downloads.select(it) } }
+        scope.launch { session.open.map { it?.sessionId }.distinctUntilChanged().collect { files.selectSession(it) } }
+        scope.launch { session.open.map { it?.sessionId }.distinctUntilChanged().collectLatest { subagents.selectParent(it) } }
+    }
+
+    /** Retire model work without closing the process transport or cancelling a Host task. */
+    fun close() {
+        attachments.close()
+        downloads.close()
+        lifetime.cancel()
+        session.close()
+        interactions.stopWatching()
+        files.stop()
+        subagents.close()
+        pushes.stopWatching()
+    }
+
+    /** Wait for model requests and stream cleanup before publishing a different connection's UI state. */
+    suspend fun closeAndAwait() {
+        close()
+        withContext(NonCancellable) { attachments.closeAndAwait(); subagents.closeAndAwait(); downloads.closeAndAwait(); lifetime.join() }
+    }
+}

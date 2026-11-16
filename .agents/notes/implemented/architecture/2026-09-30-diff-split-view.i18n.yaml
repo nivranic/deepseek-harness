@@ -1,0 +1,22 @@
+# Bilingual-pair consistency record for 2026-09-30-diff-split-view.md (docs/i18n/README.md): per heading
+# section, a hash of its English and Chinese blocks outside code blocks and generated regions.
+# After editing either side, bring the other along and re-record with:
+#   pnpm run verify-translation-pairing --write .agents/notes/implemented/architecture/2026-09-30-diff-split-view.md
+/agent-note-split-view-for-the-section-34-diff-preview:
+  en: 9af51b8a9efe2b55
+  zh: b1395be9f2b8f327
+/agent-note-split-view-for-the-section-34-diff-preview/problem:
+  en: 392e989a3988e86e
+  zh: a4aab0dcab58ee32
+/agent-note-split-view-for-the-section-34-diff-preview/decision:
+  en: d048fcb05b5e2225
+  zh: 2fa9810abd448d8d
+/agent-note-split-view-for-the-section-34-diff-preview/alternatives-considered:
+  en: 05f27f86858c2fdf
+  zh: b311ced7fcf9cbb1
+/agent-note-split-view-for-the-section-34-diff-preview/consequences:
+  en: abdec3930566d581
+  zh: 871d22bd23b02d92
+/agent-note-split-view-for-the-section-34-diff-preview/open-work:
+  en: f3caf0a06f0b3018
+  zh: 04d9d6325925155e

@@ -1,0 +1,66 @@
+{
+  "status": "PASS",
+  "scope": "Report bindings and audit for the view handoff increment: the section 26 first-stage Web handoff — both codec sides (ClientSessions.encodeViewLocation/openViewLocation, with the durable anchor and the fail-loud never-leak-the-request validation), the Android consumption and the Swift contract mirror were already delivered, but the Web itself had neither a capture entry nor a receiving page that acts — this generation delivers both Web ends. The anchor ruling takes the Chat timeline's last turn/start seq (the loadThrough contract's own words — what is copied is exactly the position that will be revealed) and the link ruling builds the current page origin + pathname + #dsh-view=<payload>, because a URL fragment never travels to a server (the minimal real channel carrying a viewing position without carrying transport); QR rendering and a real cross-device delivery channel stay shell work. The delivery is the new package @deepseek-ai/dsh-client-ui-view-handoff on the ui-open-in-app recipe loaded by the web-app profile (packages/client/ui-view-handoff — manifest, tsconfig, tsdown config, README trio, the empty-apply node half, css-modules declarations, the controller, the HandoffAction with its css module, the client index and locales): the generation side takes the conversation.session.header.actions slot at order 20 to inject the 「继续到其他设备」 action, visible only once a Host is admitted (the generation carries a descriptor — the same signal encodeViewLocation's requireConnectedHostId uses) and a last-turn anchor exists; the receiving side consumes the fragment once at apply (read-then-clear, a refresh cannot loop), waitForAdmission defers openViewLocation so the payload can never reach a wrong Host, a failure console.errors and never retries, and a clipboard refusal degrades to the action title carrying the link itself; the lane packages/client/ui-view-handoff/tests/handoff.client.spec.tsx qualifies five cases — the hidden conditions, the encode+copy+copied-dress capture, the clipboard-refusal title degrade, the admission derivation with buildLink, and the one-shot consume with the admission-gated open and no-retry failure — with two consecutive green runs; the ISessions contract face widens the two verbs explicitly (the interface's own widening self-description), TestSessions implements them through the real codec (TEST_HOST_ID=brandString('dsh-test-host'), the calls union widened by two names) and the FixtureSession.loadThrough fail-loud stub reports the requested seq; the sealed types-lint round is the post-fix rerun after an honestly recorded four-pass convergence (references pointed at package roots instead of tsconfig.client.json faces, ../../session should be ../../core/session, the ISessions widening rippled into three implementers, and the root entry's first export-* form pulled client runtime dependencies into the Host face until the empty-apply node half replaced it — the error lists live in .artifacts/view-handoff-iteration-notes.log), typecheck and lint both clean (TYPECHECK_EXIT=0, LINT_EXIT=0), the audit client list widened 46/626 to 47/631 with the serial double round green on both first passes and no -r1 log, doc-quick, doc-sync (the regenerated config-catalog and module-graph with zh mirrors, the client slot catalog regeneration, the Model Experience none entry and the 910-pair translation-pairing re-record) and gate0 pass, and traceability section 26 rewrites the remaining sentence with candidateEvidence 11 to 16 (node --test 6/6); the two inherited hygiene baselines (file-upload admitEncodedImages unclassified — policy requires human review — and the vendor rescope pointing into a sealed artifact snapshot) and the four baseline-red snapshot files (corpus/acp/sdk/headless, stash-probe-pinned HEAD baselines with zero this-increment exposure) are recorded, not modified; the same-round gradle acceptance round (scanner env with -PdshNativeAcceptance, BUILD SUCCESSFUL) executed 47 of 89 actionable tasks because the release pipeline cold-started — an honestly recorded form that is not the one-executed shape of the previous generations — while :app:assembleDebug, :app:compileDebugKotlin and the whole :core: chain stayed UP-TO-DATE because nothing under apps/android changed this generation (no device lane ran and the emulator stayed off), the empty-derived byte proof compares both APKs byte-identically against the header-overflow record's (gen-26) builtFiles entries (the androidTest assembly was not in the round's task graph, so its bytes verify against that record from disk), the prepare-side unresolved scan derived an empty replaced-build-output allowlist (7525 files, 0 replaced) and the generator gained no new replaced set, and the still-valid XML reports aggregate 77 suites / 477 tests with zero failures/errors/skips; deep links, platform share routing, QR rendering, physical devices and the section's other requirements stay open; full Upstream-First objective remains in progress",
+  "gate0": {
+    "validation": "PASS",
+    "gate0": "PASS",
+    "paths": 1938,
+    "components": 129,
+    "specificationCoverage": {
+      "status": "PASS",
+      "numberedSections": 81,
+      "nonEmptySourceLines": 1983,
+      "acceptanceProven": false
+    }
+  },
+  "sourceRecord": {
+    "path": "artifacts/upstream-first/view-handoff-source.json",
+    "sha256": "3f7581574e1ffb23eaa0c45d38214518d5a98ba65fff04f8534a1f9b12eccfd1"
+  },
+  "generator": {
+    "path": "artifacts/upstream-first/write-reports.mjs",
+    "sha256": "d0b2e440f125f99d4af85046e2b2c68ff16c08c67ba2395603b5e33bcad8886a"
+  },
+  "binding": {
+    "path": "artifacts/upstream-first/view-handoff-binding.json",
+    "sha256": "d7ed5d9b3f5cf7ca48fb30b78d9dee44e7d7d1812b26e81992f2ab2e5f05d4ba"
+  },
+  "helpers": [
+    {
+      "path": ".artifacts/advance-view-handoff-reports.mjs",
+      "sha256": "570271612226e2d2cee34bdc096fc2e002d112594d27dec93c4fdedfc4f4bd2f"
+    },
+    {
+      "path": ".artifacts/capture-view-handoff-validation.mjs",
+      "sha256": "a0f45902485c249813dde5e678bd334b5aa747f734b9e321ed4c27272c09bb2d"
+    }
+  ],
+  "reports": [
+    {
+      "path": "IMPLEMENTATION_STATUS.md",
+      "sha256": "c2ac982388edcf71b199445d32168c5839612898610ede9ea5400d682c827a8a"
+    },
+    {
+      "path": "artifacts/upstream-first/evidence.json",
+      "sha256": "4c32ff44b3bb1f0fb4245aeface6fbf3753234f640cd7304e35f55558c976448"
+    }
+  ],
+  "checks": [
+    {
+      "path": ".artifacts/view-handoff-binding.log",
+      "sha256": "2d92d56f38cfe54868dc9f5ef1e8bda2ae60c3e695fcdbd6beb170ed2fb92159"
+    },
+    {
+      "path": ".artifacts/view-handoff-audit-final.log",
+      "sha256": "cbb88902ec4cd82dcd7c542a32cb7b2b4ad079434be75d910a52942701e5732e"
+    },
+    {
+      "path": ".artifacts/view-handoff-gate0-final.log",
+      "sha256": "505d74ef938f5d34d85490d37e0176ba804d93272fcf465ce2544a02c56b3f90"
+    },
+    {
+      "path": ".artifacts/view-handoff-report-generation.log",
+      "sha256": "fe010532f71a6341467ae5719b29ac19470895de1d481156335b8f70a3273ed5"
+    }
+  ]
+}

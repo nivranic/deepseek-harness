@@ -1,0 +1,30 @@
+<?xml version="1.0" encoding="utf-8"?>
+<resources>
+    <string name="native_share_title">接收分享</string>
+    <string name="native_share_count">分享附件：%1$d 项</string>
+    <string name="native_share_host">目标 Host：%1$s（%2$s）</string>
+    <string name="native_share_session">目标会话：%1$s</string>
+    <string name="native_share_draft_only">确认后追加到此会话草稿，保留原有内容。发送消息仍需单独确认。</string>
+    <string name="native_share_choose_target">请选择已配对的 Host 并打开目标会话，再确认添加。</string>
+    <string name="native_share_role_denied">当前设备为只读角色，请选择有消息发送权限的 Host。</string>
+    <string name="native_share_input_unavailable">本地输入暂不可用，请先恢复或重试保存输入。</string>
+    <string name="native_share_capability_unavailable">当前 Host 尚未声明支持此分享内容所需的操作，请刷新连接能力或选择其他 Host。</string>
+    <string name="native_share_wait_operation">请先完成当前附件选择、处理或消息发送，再添加分享内容。</string>
+    <string name="native_share_incoming_rejected">已有一份分享等待处理，未接收新的分享。请处理当前内容后重新分享。</string>
+    <string name="native_share_importing">正在添加分享内容…</string>
+    <string name="native_share_adopted">分享内容已加入草稿，尚未发送。</string>
+    <string name="native_share_save_failed">分享内容已加入草稿，但本地保存失败。请重试保存输入，无需再次添加。</string>
+    <string name="native_share_interrupted">上次分享在应用恢复前已中断，未继续读取或上传。尚未加入草稿的内容请重新分享。</string>
+    <string name="native_share_too_many">一次最多接收 8 项分享附件，请减少数量后重新分享。</string>
+    <string name="native_share_text_too_large">分享文本超过 64 KiB，请缩短后重新分享。</string>
+    <string name="native_share_empty">这份分享没有可添加的文本或附件。</string>
+    <string name="native_share_invalid">无法接收这份分享，请使用可读取的文件、图片或普通文本。</string>
+    <string name="native_share_target_changed">目标 Host 或会话已变化。请核对当前目标后重新确认添加。</string>
+    <string name="native_share_cancelled">分享导入已取消，草稿保持原样。可重新确认添加或关闭这份分享。</string>
+    <string name="native_share_source_too_large">分享附件超过单文件 512 KiB 限制，请选择更小的文件。</string>
+    <string name="native_share_import_failed">分享内容未加入草稿。请检查文件访问权限和连接后明确重试，或重新分享。</string>
+    <string name="native_share_add">添加到草稿</string>
+    <string name="native_share_retry">重新确认添加</string>
+    <string name="native_share_cancel">取消导入</string>
+    <string name="native_share_dismiss">关闭分享</string>
+</resources>

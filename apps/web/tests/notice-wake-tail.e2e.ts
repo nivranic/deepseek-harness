@@ -13,6 +13,7 @@ import { type ToolCallId, createAssistantMessage, createToolResultMessage, creat
 import type { SessionId } from '@deepseek-ai/dsh-session'
 import type { SubagentSettledMessageSource } from '@deepseek-ai/dsh-subagent'
 import { launchWebScaffold, watchConsole, type WebScaffold } from './scaffold.ts'
+import { conversationContextKey } from './support.ts'
 import { connectFreshWorkspace, newEnglishPage } from './support.ts'
 
 /** Settled Turns before the long one, so every work-details mode overflows the viewport. */
@@ -142,7 +143,10 @@ describe('web e2e: notice Turn after a long Detailed Turn', () => {
         session.append('step/end', { turn: LONG_TURN, step })
         session.append('step/start', { turn: LONG_TURN, step: step + 1 })
         await scaffold.ctx.sessions.flush(session)
-        await page.locator(`[data-chat-node-key$="${callId}"]`).waitFor({ state: 'attached', timeout: 15_000 })
+        // Tool rows are step-scoped identities (assembler identityScope 'step'):
+        // the node key carries [turn, step, callId], not the bare call id.
+        const toolRowKey = conversationContextKey('tool-call', JSON.stringify([LONG_TURN, step, callId]))
+        await page.locator(`[data-chat-node-key='${toolRowKey}']`).waitFor({ state: 'attached', timeout: 15_000 })
       }
       session.append('assistant/message', {
         stream: [],

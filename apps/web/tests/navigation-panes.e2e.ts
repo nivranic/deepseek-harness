@@ -114,7 +114,8 @@ describe('web e2e: navigation & panes over a rich seeded session', () => {
       // The inspector's calendar date must not depend on the day the test runs.
       await seedSession(scaffold, raw, SEED_ID, undefined, { createdAt: Date.UTC(2026, 0, 1) })
     }
-    browser = await chromium.launch()
+    const executablePath = process.env.DSH_PLAYWRIGHT_EXECUTABLE_PATH
+    browser = await chromium.launch(executablePath === undefined ? {} : { executablePath })
   }, 120_000)
 
   beforeEach(async () => {

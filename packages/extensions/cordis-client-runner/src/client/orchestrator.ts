@@ -119,6 +119,7 @@ interface RunPlan extends CordisUserRunRequest {
 
 /** Drives Host → Client activation and publishes Plugin-keyed activity. */
 export class CordisRunOrchestrator {
+  private generation = 0
   private readonly requests = new Map<ApprovalRequestId, CordisRunRequest>()
   private readonly activity = new Map<CordisDynamicPluginId, CordisRunActivity>()
   private readonly failures = new Map<CordisDynamicPluginId, CordisRunFailure>()
@@ -287,7 +288,8 @@ export class CordisRunOrchestrator {
     this.requests.delete(requestId)
     this.activity.delete(request.pluginId)
     this.commit()
-    await this.answer(requestId, { ok: false, reason: 'rejected' })
+    const generation = this.generation
+    await this.answer(requestId, { ok: false, reason: 'rejected' }, () => generation === this.generation)
   }
 
   /**
@@ -296,6 +298,16 @@ export class CordisRunOrchestrator {
    */
   startUserRun(request: CordisUserRunRequest): Promise<void> {
     return this.orchestrate(request)
+  }
+
+  /** Discard approvals and attempt ownership when the originating Connection is withdrawn. */
+  reset(): void {
+    this.generation += 1
+    this.requests.clear()
+    this.activity.clear()
+    this.failures.clear()
+    this.inFlight.clear()
+    this.commit()
   }
 
   private observe(fn: () => void): () => void {
@@ -321,7 +333,10 @@ export class CordisRunOrchestrator {
     this.failures.delete(plan.pluginId)
     if (plan.requestId !== undefined) this.requests.delete(plan.requestId)
     this.commit()
-    const attempt = this.drive(plan).finally(() => {
+    const generation = this.generation
+    const current = (): boolean => generation === this.generation
+    const attempt = this.drive(plan, current).finally(() => {
+      if (!current()) return
       this.inFlight.delete(plan.pluginId)
       this.activity.delete(plan.pluginId)
       this.commit()
@@ -330,12 +345,13 @@ export class CordisRunOrchestrator {
     return attempt
   }
 
-  private async drive(plan: RunPlan): Promise<void> {
+  private async drive(plan: RunPlan, current: () => boolean): Promise<void> {
     const started = await this.startHost(plan)
+    if (!current()) return
     if (!started.ok) {
       this.fail(plan, 'host-half-failed', started)
       if (plan.requestId !== undefined) {
-        await this.answer(plan.requestId, { ...started, reason: 'host-half-failed' })
+        await this.answer(plan.requestId, { ...started, reason: 'host-half-failed' }, current)
       }
       return
     }
@@ -345,9 +361,11 @@ export class CordisRunOrchestrator {
     try {
       source = await this.env.host.getClientCode(plan.agentId, plan.pluginId, started.pluginRunId)
     } catch (error) {
-      await this.finishClientFailure(plan, started.pluginRunId, started.startedHere, errorDetails(error), error)
+      if (!current()) return
+      await this.finishClientFailure(plan, started.pluginRunId, started.startedHere, errorDetails(error), current, error)
       return
     }
+    if (!current()) return
     const loaded = await this.env.runner.load({
       pluginId: source.pluginId,
       packageId: source.packageId,
@@ -356,6 +374,7 @@ export class CordisRunOrchestrator {
       name: source.name,
       code: source.code,
     }).catch((error: unknown) => ({ ok: false, cause: 'evaluate', ...errorDetails(error), error }) as const)
+    if (!current()) return
     if (!loaded.ok) {
       await this.finishClientFailure(
         plan,
@@ -365,6 +384,7 @@ export class CordisRunOrchestrator {
           message: `${loaded.cause}: ${loaded.message}`,
           ...loaded.stack === undefined ? {} : { stack: loaded.stack },
         },
+        current,
         loaded.error,
       )
       return
@@ -375,10 +395,10 @@ export class CordisRunOrchestrator {
       ...loaded.waitingFor === undefined ? {} : { waitingFor: loaded.waitingFor },
     }
     if (plan.requestId !== undefined) {
-      await this.answer(plan.requestId, resolution)
+      await this.answer(plan.requestId, resolution, current)
       return
     }
-    await this.settleDirect(plan, resolution)
+    await this.settleDirect(plan, resolution, current)
   }
 
   private async startHost(plan: RunPlan): Promise<DynamicCordisHostHalfResult> {
@@ -401,6 +421,7 @@ export class CordisRunOrchestrator {
     pluginRunId: CordisDynamicPluginRunId,
     startedHere: boolean,
     failure: CordisErrorDetails,
+    current: () => boolean,
     originalError?: unknown,
   ): Promise<void> {
     console.error(
@@ -415,23 +436,26 @@ export class CordisRunOrchestrator {
       startedHere,
       ...failure,
     }
-    if (plan.requestId !== undefined) await this.answer(plan.requestId, resolution)
-    else await this.settleDirect(plan, resolution)
+    if (plan.requestId !== undefined) await this.answer(plan.requestId, resolution, current)
+    else await this.settleDirect(plan, resolution, current)
   }
 
-  private async settleDirect(plan: RunPlan, resolution: DynamicCordisRunResolution): Promise<void> {
+  private async settleDirect(plan: RunPlan, resolution: DynamicCordisRunResolution, current: () => boolean): Promise<void> {
     try {
       const response = await this.env.host.settleUserRun(plan.agentId, plan.pluginId, resolution)
+      if (!current()) return
       if (!response.ok) this.fail(plan, 'client-half-failed', response)
     } catch (error) {
+      if (!current()) return
       this.fail(plan, 'client-half-failed', errorDetails(error))
     }
   }
 
-  private async answer(requestId: ApprovalRequestId, resolution: DynamicCordisRunResolution): Promise<void> {
+  private async answer(requestId: ApprovalRequestId, resolution: DynamicCordisRunResolution, current: () => boolean): Promise<void> {
     try {
       await this.env.host.resolveRequestRun(requestId, resolution)
     } catch (error) {
+      if (!current()) return
       console.error(`[cordis-client-runner] answering run request ${requestId} failed:`, error)
     }
   }

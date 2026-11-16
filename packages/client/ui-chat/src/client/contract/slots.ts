@@ -6,7 +6,7 @@ import type { PendingSubmission } from '@deepseek-ai/dsh-api-session-controller/
 import type { FileAttachmentRef } from '@deepseek-ai/dsh-attachment'
 import type { InboxState } from '@deepseek-ai/dsh-agent/types'
 import type {
-  CommandNode, CompactionSummaryNode, ConversationLocationDataStore, ConversationTurnDataMap,
+  CommandNode, CompactionSummaryNode, ConvViewOwnerProps, ConversationLocationDataStore, ConversationTurnDataMap,
   TextInteractionGesture, TextInteractionSurface,
   ConversationGroupData, GroupSnapshot,
   MessageImageLoader, MessageImageSource, MessageImagesOwnerProps, RenderEntry, TurnLocation, UserTextFacts, UserTextInput,
@@ -26,7 +26,6 @@ import type {} from '@deepseek-ai/dsh-client-ui-session/client'
 import type { createChatStore } from '../stores.ts'
 import type { ChatPresentationPolicy } from '../presentation-policy.ts'
 import type { FlowMotionRows } from '../chat/flow-motion.ts'
-import type { ToolCallId } from './store.ts'
 import type { ChatConversationViewNode, ChatNode, ChatNodeKind } from './chat-nodes.ts'
 import type {
   ChatNodeProcessSource, ChatNodeSource, ChatSnapshot, ChatTurnProcessPresentation,
@@ -240,7 +239,7 @@ export interface ChatNodeOwnerProps {
   groupPart?: string
   cwd?: string | undefined
   openFile: (path: string, options?: OpenFileOptions) => void
-  inspectCall: ((callId: ToolCallId) => void) | undefined
+  inspectCall: ConvViewOwnerProps['inspectCall']
   forkAt: (seq: number) => void
   /** Session-authorized image loader supplied by the Chat view. */
   loadImage: MessageImageLoader

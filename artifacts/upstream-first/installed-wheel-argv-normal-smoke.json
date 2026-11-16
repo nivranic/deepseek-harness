@@ -1,0 +1,31 @@
+{
+  "schemaVersion": 1,
+  "status": "FAIL",
+  "scope": "Windows x64 SDK and runtime wheels installed outside the checkout",
+  "startedAt": "2026-09-14T22:57:18.736158+00:00",
+  "root": "E:\\DevTools\\codex\\visualizations\\2026\\09\\14\\01a0a084-9501-7fe3-8be0-434a574812e1\\dsh-wheel-argv-q19y9tzp",
+  "realModelTested": false,
+  "pnpmVersion": "11.7.0",
+  "location": "normal",
+  "wheels": [
+    {
+      "path": ".artifacts\\python-wheels-argv\\deepseek_harness_runtime_bin-0.1.5rc2-py3-none-win_amd64.whl",
+      "sha256": "fc611bbf9f4a85323e1ae11f3b4c610c484f554120b6d1952e482fdf398607f1"
+    },
+    {
+      "path": ".artifacts\\python-wheels-argv\\deepseek_harness_sdk-0.1.5rc2-py3-none-any.whl",
+      "sha256": "5f0d186098799a25f41dc9e653afeda5dabcf9d9a041c321bb458139adee7a54"
+    }
+  ],
+  "scenarios": [
+    {
+      "scenario": "sdk-profile-plugin",
+      "status": "FAIL",
+      "exitCode": 1,
+      "forced": false,
+      "pid": 51988,
+      "log": ".artifacts/installed-wheel-argv-normal-sdk-profile-plugin.log"
+    }
+  ],
+  "finishedAt": "2026-09-14T22:58:20.380958+00:00"
+}

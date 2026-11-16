@@ -1,0 +1,43 @@
+# Bilingual-pair consistency record for README.md (docs/i18n/README.md): per heading
+# section, a hash of its English and Chinese blocks outside code blocks and generated regions.
+# After editing either side, bring the other along and re-record with:
+#   pnpm run verify-translation-pairing --write packages/client/ui-settings-telemetry/README.md
+/:
+  en: 9baea26a006448ce
+  zh: a1aff63e9495d61e
+/deepseek-ai-dsh-client-ui-settings-telemetry:
+  en: a3dc8c7cbf25abde
+  zh: 538ec2725528625b
+/deepseek-ai-dsh-client-ui-settings-telemetry/summary:
+  en: 337a649179b84ea8
+  zh: d42a54c068842466
+/deepseek-ai-dsh-client-ui-settings-telemetry/table-of-contents:
+  en: d152484eb41ac6b4
+  zh: 09388d293f9be9cb
+/deepseek-ai-dsh-client-ui-settings-telemetry/use-this-package:
+  en: 1c036ce78c75fc2d
+  zh: b67caab086b5b778
+/deepseek-ai-dsh-client-ui-settings-telemetry/use-this-package/data-categories:
+  en: 516a471ceb0609e1
+  zh: 2a3c533110884b60
+/deepseek-ai-dsh-client-ui-settings-telemetry/use-this-package/applying-changes:
+  en: df470da06353c02e
+  zh: 61a7793870f2be42
+/deepseek-ai-dsh-client-ui-settings-telemetry/understand-the-implementation:
+  en: e231b072273a15b7
+  zh: 800d1edbc1c952e9
+/deepseek-ai-dsh-client-ui-settings-telemetry/further-exploration:
+  en: 5fda77f67fff19b5
+  zh: f921b359409cf33f
+/deepseek-ai-dsh-client-ui-settings-telemetry/model-experience:
+  en: ec846656b350fa62
+  zh: f939b127367208f5
+/deepseek-ai-dsh-client-ui-settings-telemetry/model-experience/kv-cache-effect:
+  en: 4ddf239cb383bcdf
+  zh: 9ddc299362df3aba
+/deepseek-ai-dsh-client-ui-settings-telemetry/known-limitations-and-deferred-work:
+  en: 6472b2cb0e6859fe
+  zh: fdb51b77834fbc7c
+/deepseek-ai-dsh-client-ui-settings-telemetry/known-limitations-and-deferred-work/dev-note:
+  en: 0a1253c6f7b5e8b9
+  zh: 9f56528562c7c914

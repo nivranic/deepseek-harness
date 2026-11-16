@@ -1,0 +1,16 @@
+# Bilingual-pair consistency record for guide.md (docs/i18n/README.md): per heading
+# section, a hash of its English and Chinese blocks outside code blocks and generated regions.
+# After editing either side, bring the other along and re-record with:
+#   pnpm run verify-translation-pairing --write docs/upgrade-guide/v0.2.2-alpha.2/native-follow-openings/guide.md
+/:
+  en: 5b9210c9ab402b0c
+  zh: 29aa63a9ba317842
+/native-follow-requests-use-complete-openings:
+  en: 167ac57a50d11b99
+  zh: 940917b6e94ac6db
+/native-follow-requests-use-complete-openings/change:
+  en: 26ac636916da8ae8
+  zh: d6c450344247393c
+/native-follow-requests-use-complete-openings/migration:
+  en: 52a4ed426027af77
+  zh: da33c74d5418e82d

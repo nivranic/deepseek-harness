@@ -1,0 +1,50 @@
+{
+  "status": "PASS",
+  "scope": "Report binding and audit only; two product regressions remain failing",
+  "gate0": {
+    "validation": "PASS",
+    "gate0": "PASS",
+    "paths": 1938,
+    "components": 129
+  },
+  "sourceRecord": {
+    "path": "artifacts/upstream-first/tool-occurrence-source.json",
+    "sha256": "84c79365e7a79a7c9c14ceb429049d693f0ce5219ef2a3c3bb83de40bbb95acb"
+  },
+  "generator": {
+    "path": "artifacts/upstream-first/write-reports.mjs",
+    "sha256": "712ef0d773ed81423a672750673b6e62bc115e6e37fe737e31113923dbf4eb67"
+  },
+  "binding": {
+    "path": "artifacts/upstream-first/tool-occurrence-binding.json",
+    "sha256": "d778c736bcd1e02d6c476158510c22fd4b711abac9183dc06a5a53b026075942"
+  },
+  "reports": [
+    {
+      "path": "IMPLEMENTATION_STATUS.md",
+      "sha256": "49379ea5f1f412168f34726ca08083d1230c63869e22e3010cc622ac8b5febbc"
+    },
+    {
+      "path": "artifacts/upstream-first/evidence.json",
+      "sha256": "ec9940aaaef6508a4c6f5de3d68bbf0b0c0c30769208705cf1c0c2a72ad1fd4f"
+    }
+  ],
+  "checks": [
+    {
+      "path": ".artifacts/tool-occurrence-binding.log",
+      "sha256": "3b8afda67c17d1f7ad65b22fba45f7554dae78844ae6fd8a60e57e30e7ad5da1"
+    },
+    {
+      "path": ".artifacts/tool-occurrence-audit-tests.log",
+      "sha256": "d1591789119f8e78a152d2addedaf2e5f0cbff26fcb1a52ed1cfcdb0a9808c73"
+    },
+    {
+      "path": ".artifacts/tool-occurrence-gate0.log",
+      "sha256": "4b5af3121a7e7caff0e1b6288bdaa7cfef9988842ae06bf02dc0a74852426043"
+    },
+    {
+      "path": ".artifacts/tool-occurrence-report-diff-check.log",
+      "sha256": "e3b0c44298fc1c149afbf4c8996fb92427ae41e4649b934ca495991b7852b855"
+    }
+  ]
+}

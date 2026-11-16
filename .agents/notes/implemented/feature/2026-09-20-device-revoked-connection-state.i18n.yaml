@@ -1,0 +1,19 @@
+# Bilingual-pair consistency record for 2026-09-20-device-revoked-connection-state.md (docs/i18n/README.md): per heading
+# section, a hash of its English and Chinese blocks outside code blocks and generated regions.
+# After editing either side, bring the other along and re-record with:
+#   pnpm run verify-translation-pairing --write .agents/notes/implemented/feature/2026-09-20-device-revoked-connection-state.md
+/agent-note-the-device-revoked-connection-state-closes-the-section-18-state-list:
+  en: c99759920edf56f7
+  zh: 201013c9dc9baf4d
+/agent-note-the-device-revoked-connection-state-closes-the-section-18-state-list/problem:
+  en: e3345c44bda614e3
+  zh: 2f9318aaff9b4017
+/agent-note-the-device-revoked-connection-state-closes-the-section-18-state-list/decision:
+  en: f7102f43b746986a
+  zh: e32e5ad8fae3f23b
+/agent-note-the-device-revoked-connection-state-closes-the-section-18-state-list/alternatives-considered:
+  en: c2257afad400952e
+  zh: f9586ea5db2080a1
+/agent-note-the-device-revoked-connection-state-closes-the-section-18-state-list/consequences:
+  en: 66147a71789c4717
+  zh: 6d2d4563aba3ed45

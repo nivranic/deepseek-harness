@@ -166,7 +166,7 @@ describe('session rename through the assembled browser', () => {
     await runtime.sessions.add({
       id: SID,
       summary: { title: '旧标题', displayTitle: '旧标题', cwd: '/w/alpha' },
-      session: { rename },
+      session: { rename, prepareRename: () => rename },
     })
     await runtime.sessions.retainFor(runtime.ctx, SID, { source: 'mainView' }).ready
     await seedWorkspace(runtime)
@@ -183,6 +183,7 @@ describe('session rename through the assembled browser', () => {
 
     // The dialog seeds from the current title; submit a padded value.
     const input = await view.findByLabelText('会话名称') as HTMLInputElement
+    await waitFor(() => { expect((view.getByRole('button', { name: '重命名' }) as HTMLButtonElement).disabled).toBe(false) })
     expect(input.value).toBe('旧标题')
     fireEvent.change(input, { target: { value: '  分叉  实验记录  ' } })
     fireEvent.click(view.getByRole('button', { name: '重命名' }))
@@ -208,7 +209,7 @@ describe('session rename through the assembled browser', () => {
     await runtime.sessions.add({
       id: SID,
       summary: { title: '旧标题', displayTitle: '旧标题', cwd: '/w/alpha' },
-      session: { rename },
+      session: { rename, prepareRename: () => rename },
     })
     await runtime.sessions.retainFor(runtime.ctx, SID, { source: 'mainView' }).ready
     await seedWorkspace(runtime)
@@ -221,6 +222,7 @@ describe('session rename through the assembled browser', () => {
     fireEvent.click(within(row as HTMLElement).getByLabelText('会话“旧标题”的操作'))
     fireEvent.click(await view.findByRole('menuitem', { name: '重命名' }))
     const input = await view.findByLabelText('会话名称')
+    await waitFor(() => { expect((view.getByRole('button', { name: '重命名' }) as HTMLButtonElement).disabled).toBe(false) })
     fireEvent.change(input, { target: { value: '新名' } })
     fireEvent.click(view.getByRole('button', { name: '重命名' }))
 

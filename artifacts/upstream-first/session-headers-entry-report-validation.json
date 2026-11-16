@@ -1,0 +1,70 @@
+{
+  "status": "PASS",
+  "scope": "Report bindings and audit for the Session-headers entry; the remaining specification sections stay open; full Upstream-First objective remains in progress",
+  "gate0": {
+    "validation": "PASS",
+    "gate0": "PASS",
+    "paths": 1938,
+    "components": 129,
+    "specificationCoverage": {
+      "status": "PASS",
+      "numberedSections": 81,
+      "nonEmptySourceLines": 1983,
+      "acceptanceProven": false
+    }
+  },
+  "sourceRecord": {
+    "path": "artifacts/upstream-first/session-headers-entry-source.json",
+    "sha256": "013a8727fa108600cf23e20c103b79630488031e36f1f9d44b2d9af0f513e99a"
+  },
+  "generator": {
+    "path": "artifacts/upstream-first/write-reports.mjs",
+    "sha256": "731d852ad1f1d60fd33b5ca2b6a8c1a6dd3bef4800561de176781b54e2f27bf0"
+  },
+  "binding": {
+    "path": "artifacts/upstream-first/session-headers-entry-binding.json",
+    "sha256": "f64b7963fe9b98d47315ff99dc924ed0171c0db52254957eeed847d3b4f73e22"
+  },
+  "helpers": [
+    {
+      "path": ".artifacts/advance-session-headers-entry-reports.mjs",
+      "sha256": "bd37d0bd0a9ea62b2133dd3713a1d3532ffe6c2a0e2ce48f6bf4f4b9060628e8"
+    },
+    {
+      "path": ".artifacts/capture-session-headers-entry-validation.mjs",
+      "sha256": "5b90abcf259ae74e6084ce206b4add95934364098e9573052efa8d1b58be5b8a"
+    }
+  ],
+  "reports": [
+    {
+      "path": "IMPLEMENTATION_STATUS.md",
+      "sha256": "7e25a33c8702f9aab746014aa40454b1a5dc26fc9fee2f6bdcf4efad007a4375"
+    },
+    {
+      "path": "artifacts/upstream-first/evidence.json",
+      "sha256": "e9d8dc7f6e57631a6574c284f9d1126ec89b5aa271ecf08736ee90519aee06ac"
+    }
+  ],
+  "checks": [
+    {
+      "path": ".artifacts/sessions-entry-binding.log",
+      "sha256": "c31e13181a2ccf5a1cea46cb697e07a6eb0df851375867f01df1bd070d574838"
+    },
+    {
+      "path": ".artifacts/sessions-entry-audit-tests.log",
+      "sha256": "ec8fb84dcb8afd83ef8dc551c9f1dc7248a2cb891dbbfdaebf9652bba9606505"
+    },
+    {
+      "path": ".artifacts/sessions-entry-gate0.log",
+      "sha256": "505d74ef938f5d34d85490d37e0176ba804d93272fcf465ce2544a02c56b3f90"
+    },
+    {
+      "path": ".artifacts/sessions-entry-report-diff-check.log",
+      "sha256": "e3b0c44298fc1c149afbf4c8996fb92427ae41e4649b934ca495991b7852b855"
+    },
+    {
+      "path": ".artifacts/sessions-entry-report-generation.log",
+      "sha256": "fe010532f71a6341467ae5719b29ac19470895de1d481156335b8f70a3273ed5"
+    }
+  ]
+}

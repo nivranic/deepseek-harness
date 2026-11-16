@@ -1,0 +1,70 @@
+{
+  "status": "PASS",
+  "scope": "Report bindings and audit for Swift contract package mirroring the classification with a macOS CI lane; payload validation, native shell and multi-version qualification remain unproven; full closed semantics and phases remain unproven; full Upstream-First objective remains in progress",
+  "gate0": {
+    "validation": "PASS",
+    "gate0": "PASS",
+    "paths": 1938,
+    "components": 129,
+    "specificationCoverage": {
+      "status": "PASS",
+      "numberedSections": 81,
+      "nonEmptySourceLines": 1983,
+      "acceptanceProven": false
+    }
+  },
+  "sourceRecord": {
+    "path": "artifacts/upstream-first/apple-contract-source.json",
+    "sha256": "6fa608888a9998b22b5c58488c14701b89a06d8bc5873586ba5498ab88cc394c"
+  },
+  "generator": {
+    "path": "artifacts/upstream-first/write-reports.mjs",
+    "sha256": "6ea35b73eb2388a086de4c728bdc14a39b92a8d10da998956e59d92e4dfe8263"
+  },
+  "binding": {
+    "path": "artifacts/upstream-first/apple-contract-binding.json",
+    "sha256": "0f2c5296ad5ba16dd4dbd9334fee0ca64f6f9ac3e2ace198b9aae729446e67fa"
+  },
+  "helpers": [
+    {
+      "path": ".artifacts/advance-apple-contract-reports.mjs",
+      "sha256": "665e696481d70258ac172d5eb968ebc7f487dd69be5e662db68ccd101e62c274"
+    },
+    {
+      "path": ".artifacts/capture-apple-contract-validation.mjs",
+      "sha256": "d6946d2799ee15de203d5c5529a0b89776932ffe7b1eb651502ac18ce775ec96"
+    }
+  ],
+  "reports": [
+    {
+      "path": "IMPLEMENTATION_STATUS.md",
+      "sha256": "23326b541bab019ab9f468d58bd0be2cb70974b63eb15a87269ad6a05ac1fe2c"
+    },
+    {
+      "path": "artifacts/upstream-first/evidence.json",
+      "sha256": "5634e97e38537e1a1de00d115422e281f83b52d4ba1c2a9020a589715e699b40"
+    }
+  ],
+  "checks": [
+    {
+      "path": ".artifacts/apple-contract-binding.log",
+      "sha256": "eb11fcbba9d296b1b1c1cff5d0433b568670a62133fa5721f58fdc8ff7a9aed7"
+    },
+    {
+      "path": ".artifacts/apple-contract-audit-tests.log",
+      "sha256": "d6e9d0880880c54b9f11283fe48118798da2ded65903ef642702dfac571df1fc"
+    },
+    {
+      "path": ".artifacts/apple-contract-gate0.log",
+      "sha256": "505d74ef938f5d34d85490d37e0176ba804d93272fcf465ce2544a02c56b3f90"
+    },
+    {
+      "path": ".artifacts/apple-contract-report-diff-check.log",
+      "sha256": "e3b0c44298fc1c149afbf4c8996fb92427ae41e4649b934ca495991b7852b855"
+    },
+    {
+      "path": ".artifacts/apple-contract-report-generation.log",
+      "sha256": "fe010532f71a6341467ae5719b29ac19470895de1d481156335b8f70a3273ed5"
+    }
+  ]
+}

@@ -1,0 +1,17 @@
+[
+  {
+    "method": "canOpenWorkspacePath",
+    "anonymous": 401,
+    "authenticated": 200
+  },
+  {
+    "method": "openWorkspacePath",
+    "anonymous": 401,
+    "authenticated": 200
+  },
+  {
+    "method": "workspaceDesktop",
+    "anonymous": 401,
+    "authenticated": 404
+  }
+]

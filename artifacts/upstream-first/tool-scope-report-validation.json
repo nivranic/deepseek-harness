@@ -1,0 +1,50 @@
+{
+  "status": "PASS",
+  "scope": "Report bindings and audit; Step-scoped assembly passes, complete Tool UI and recorded-session regression remain outstanding",
+  "gate0": {
+    "validation": "PASS",
+    "gate0": "PASS",
+    "paths": 1938,
+    "components": 129
+  },
+  "sourceRecord": {
+    "path": "artifacts/upstream-first/tool-scope-source.json",
+    "sha256": "8f53b9440690d522f0e6b7ad0d854075c1dbd0834febfb660262e33524b6cb4c"
+  },
+  "generator": {
+    "path": "artifacts/upstream-first/write-reports.mjs",
+    "sha256": "7801e856be4bb1b97d9666df19bfd96d55b73dfb3c1ebc92ada3cd433b80c3e6"
+  },
+  "binding": {
+    "path": "artifacts/upstream-first/tool-scope-binding.json",
+    "sha256": "376d67e1ccb1beb2c3475ec8c48dd628e7ae17fc597bdf62d292516331763d39"
+  },
+  "reports": [
+    {
+      "path": "IMPLEMENTATION_STATUS.md",
+      "sha256": "cf14e07d8f615b330441e0b317be63fd9aa04970d54f9a0b846ff4e4cd1b9945"
+    },
+    {
+      "path": "artifacts/upstream-first/evidence.json",
+      "sha256": "1c7cee170bde87524f87feda72478d05735a7b5c0e630bd2243a4e791950167e"
+    }
+  ],
+  "checks": [
+    {
+      "path": ".artifacts/tool-scope-binding.log",
+      "sha256": "51657a29f158e0b0a47dcadcdb0fbfd4f03b25ea5bbacec8ecab235c24b6bc8c"
+    },
+    {
+      "path": ".artifacts/tool-scope-audit-tests.log",
+      "sha256": "9400d5345e9fbbc51e598ac021a3d1eff2e9ca9d8812782b7143345be1c169b1"
+    },
+    {
+      "path": ".artifacts/tool-scope-gate0.log",
+      "sha256": "4b5af3121a7e7caff0e1b6288bdaa7cfef9988842ae06bf02dc0a74852426043"
+    },
+    {
+      "path": ".artifacts/tool-scope-report-diff-check.log",
+      "sha256": "e3b0c44298fc1c149afbf4c8996fb92427ae41e4649b934ca495991b7852b855"
+    }
+  ]
+}

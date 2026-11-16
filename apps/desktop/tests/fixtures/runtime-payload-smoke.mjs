@@ -156,5 +156,6 @@ try {
 // Natural event-loop drain includes node-pty's worker and console-list helper teardown.
 process.once('beforeExit', () => {
   console.log(JSON.stringify({ node: process.versions.node, platform: process.platform, arch: process.arch,
+    koffi: true, sharp: true, html: true, pty: true }))
     koffi: true, sharp: true, html: true, pty: true, pnpm: true, grep: true, glob: true }))
 })

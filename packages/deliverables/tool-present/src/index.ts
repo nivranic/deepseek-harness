@@ -37,6 +37,11 @@ export function apply(ctx: Context, config: Config): void {
   const pending = new WeakMap<ToolExecution, { session: Session; turn: number; files: PresentedFile[] }>()
   ctx.tools.register(defineTool({
     name: 'present',
+    version: 1,
+    risk: 'moderate',
+    permissions: [],
+    supportsLite: false,
+    supportsRemote: true,
     description: 'Declare existing files as final deliverables for the user. '
       + 'Hosts may show presented files only after your turn ends, so call it once the files are final. '
       + 'If the user needs to review files earlier, such as before a tool call that waits for their answer, link them in your message instead. '

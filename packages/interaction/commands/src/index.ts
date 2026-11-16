@@ -16,11 +16,13 @@ import type { Session, SessionEvent, SessionEventMap } from '@deepseek-ai/dsh-se
 import { TypertRemoteService, Remote } from '@deepseek-ai/dsh-typert-protocol'
 import { brandString } from '@deepseek-ai/dsh-brand'
 import type { CommandDefinitionId, CommandId } from './brand.ts'
+import { COMMAND_REMOTE_CAPABILITIES } from './capabilities.ts'
 import type {
   CommandDescriptor,
   CommandExecution,
   CommandInputDescriptor,
   CommandResult,
+  CommandRisk,
   CommandSubmitAttachment,
 } from './types.ts'
 
@@ -65,6 +67,8 @@ export interface CommandDefinition {
   readonly name: string
   /** Human-readable summary used in discovery UI. */
   readonly description: string
+  /** Host-assessed risk tier (specification §37); the Host owns the classification, clients display it. */
+  readonly risk?: CommandRisk
   /** Optional free-form input hint advertised to capable clients. */
   readonly input?: CommandInputDescriptor
   /**
@@ -207,10 +211,15 @@ function normalizeDefinition(definition: CommandDefinition): RegisteredCommand {
       ...('attachments' in rawInput && rawInput.attachments === true) ? { attachments: true } : {},
     })
   }
+  const RISKS: readonly CommandRisk[] = ['low', 'moderate', 'high', 'critical']
+  if (definition.risk !== undefined && !RISKS.includes(definition.risk)) {
+    throw new TypeError(`command "${definition.name}" risk must be one of ${RISKS.join(', ')}`)
+  }
   const normalized = Object.freeze({
     ...definition.definitionId === undefined ? {} : { definitionId: definition.definitionId },
     name: definition.name,
     description: definition.description,
+    ...definition.risk === undefined ? {} : { risk: definition.risk },
     ...input === undefined ? {} : { input },
     ...definition.recordInput === undefined ? {} : { recordInput: definition.recordInput },
     handler: definition.handler,
@@ -219,6 +228,7 @@ function normalizeDefinition(definition: CommandDefinition): RegisteredCommand {
     ...normalized.definitionId === undefined ? {} : { definitionId: normalized.definitionId },
     name: normalized.name,
     description: normalized.description,
+    ...normalized.risk === undefined ? {} : { risk: normalized.risk },
     ...normalized.input === undefined ? {} : { input: normalized.input },
   })
   return { definition: normalized, descriptor }
@@ -274,7 +284,7 @@ export class CommandRuntime extends TypertRemoteService {
   private readonly fileReceipts: { resolver: CommandFileReceiptResolver | undefined } = { resolver: undefined }
 
   constructor(ctx: Context) {
-    super(ctx, 'commands')
+    super(ctx, 'commands', { capabilities: COMMAND_REMOTE_CAPABILITIES })
   }
 
   /**

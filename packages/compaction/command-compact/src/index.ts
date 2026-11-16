@@ -103,6 +103,7 @@ export function apply(ctx: Context): void {
       definitionId: brandString<CommandDefinitionId>('@deepseek-ai/dsh-command-compact'),
       name: 'compact',
       description: 'Compact older conversation history',
+      risk: 'moderate' as const,
       handler,
     })
   }, 'command-compact lifecycle')

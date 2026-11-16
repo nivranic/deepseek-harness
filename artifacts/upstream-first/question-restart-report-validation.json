@@ -1,0 +1,49 @@
+{
+  "status": "PASS",
+  "gate0": {
+    "validation": "PASS",
+    "gate0": "PASS",
+    "paths": 1938,
+    "components": 129
+  },
+  "sourceRecord": {
+    "path": "artifacts/upstream-first/question-restart-source.json",
+    "sha256": "acd3c4335091893045fadad6fe9c4ec1b9f180721b3c93e5526a2ebce11d153b"
+  },
+  "generator": {
+    "path": "artifacts/upstream-first/write-reports.mjs",
+    "sha256": "f1b6f1283834676923d5670fa9d339d1fe98abea9e337977c3d941d78f2a307a"
+  },
+  "binding": {
+    "path": "artifacts/upstream-first/question-restart-binding.json",
+    "sha256": "ef1ced49bbce07a33a7517af885312adf37f306437aaf2c9c7a20156a876428d"
+  },
+  "reports": [
+    {
+      "path": "IMPLEMENTATION_STATUS.md",
+      "sha256": "76ca214b41e3c491514c40b1d32ffb6cf6ec4060886e4696e70f506eba7b5773"
+    },
+    {
+      "path": "artifacts/upstream-first/evidence.json",
+      "sha256": "903b321930c317d2f0fc10ad5bf01abc055e728c9fca213da2c1bdef974a165a"
+    }
+  ],
+  "checks": [
+    {
+      "path": ".artifacts/question-restart-binding.log",
+      "sha256": "ded2d2d688af3f48c7c1df4d1af5792aa307b0dc74ae194d0e1a5ff75fe789ac"
+    },
+    {
+      "path": ".artifacts/question-restart-audit-tests.log",
+      "sha256": "3d34880d67bc91535d92aa43323790cc503f37891d55f350c197ace4e57af390"
+    },
+    {
+      "path": ".artifacts/question-restart-gate0.log",
+      "sha256": "4b5af3121a7e7caff0e1b6288bdaa7cfef9988842ae06bf02dc0a74852426043"
+    },
+    {
+      "path": ".artifacts/question-restart-report-diff-check.log",
+      "sha256": "e3b0c44298fc1c149afbf4c8996fb92427ae41e4649b934ca495991b7852b855"
+    }
+  ]
+}

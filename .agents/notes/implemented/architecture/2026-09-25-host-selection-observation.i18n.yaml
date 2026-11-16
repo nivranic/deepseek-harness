@@ -1,0 +1,19 @@
+# Bilingual-pair consistency record for 2026-09-25-host-selection-observation.md (docs/i18n/README.md): per heading
+# section, a hash of its English and Chinese blocks outside code blocks and generated regions.
+# After editing either side, bring the other along and re-record with:
+#   pnpm run verify-translation-pairing --write .agents/notes/implemented/architecture/2026-09-25-host-selection-observation.md
+/agent-note-host-selection-observation-and-bookmark-ownership:
+  en: 227b32e3218c7524
+  zh: cd18e8428e1517a2
+/agent-note-host-selection-observation-and-bookmark-ownership/problem:
+  en: 73b3df4f55d70fa1
+  zh: 1483746edd8e3806
+/agent-note-host-selection-observation-and-bookmark-ownership/decision:
+  en: a16945cb9752d784
+  zh: af9feafdcab1e5c9
+/agent-note-host-selection-observation-and-bookmark-ownership/alternatives-considered:
+  en: 25d77621992507e7
+  zh: e74d4c72411f790f
+/agent-note-host-selection-observation-and-bookmark-ownership/consequences:
+  en: dcd92ebdc9658b7c
+  zh: 10a23611f4ebdfde

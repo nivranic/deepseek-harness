@@ -1,0 +1,14 @@
+{
+  "absent": {
+    "cachedHistory": 1,
+    "newHistory": 1,
+    "draft": "Draft survives follow withdrawal",
+    "followReopened": true,
+    "pageRead": false
+  },
+  "restored": {
+    "cachedHistory": 1,
+    "newHistory": 1,
+    "draft": "Draft survives follow withdrawal"
+  }
+}

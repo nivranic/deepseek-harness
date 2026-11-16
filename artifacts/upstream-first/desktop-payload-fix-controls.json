@@ -1,0 +1,39 @@
+{
+  "status": "PASS",
+  "cases": [
+    {
+      "name": "obsolete-build-permission",
+      "status": "PASS",
+      "mutationRejected": true,
+      "exitCode": 1,
+      "source": "apps/desktop/src/project-manager.ts",
+      "originalSha256": "434feefc3c7888d40904667b18b79849249d4e8df49a29c7dc59461833f9a31f",
+      "mutatedSha256": "ba5da1f39879460879bc210c3d6d40bc4c591973e872a6d3857e1276a393ca46",
+      "log": ".artifacts/desktop-payload-control-obsolete-build-permission.log",
+      "command": [
+        "C:\\Program Files\\nodejs\\node.exe",
+        "node_modules/vitest/vitest.mjs",
+        "run",
+        "apps/desktop/tests/project-manager.spec.ts",
+        "-t",
+        "keeps native build permission"
+      ]
+    },
+    {
+      "name": "released-before-contender",
+      "status": "PASS",
+      "mutationRejected": true,
+      "exitCode": 1,
+      "source": "apps/desktop/tests/fixtures/runtime-session-lease.mjs",
+      "originalSha256": "f19c0b4b899d353943fd11c60321130154e9b6b24206dd7a0ae11598a48c7af0",
+      "mutatedSha256": "7dda85e9fff97da10eb62e0124f667d36b8f36b30a4711223ec60b17e50f392e",
+      "log": ".artifacts/desktop-payload-control-released-before-contender.log",
+      "command": [
+        "C:\\Program Files\\nodejs\\node.exe",
+        "--import",
+        "tsx/esm",
+        ".artifacts/run-prepared-desktop-smoke.mjs"
+      ]
+    }
+  ]
+}

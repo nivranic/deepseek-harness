@@ -26,7 +26,10 @@ The packages below provide the Remote layer; the package READMEs own the exhaust
 
 | Package | Role | ctx key |
 |---|---|---|
+| [`host-description/`](host-description/README.md) | Describes authenticated Host identity, independent versions, and live capabilities. | `ctx.hostDescription` / `ctx.remote.host` |
 | [`remotes/`](remotes/README.md) | Chooses which Host capabilities and events the Client can consume. | — |
+| [`gateway/`](gateway/README.md) | Carries typed unary calls, multiplexed streams, and forwarded Host events. | `ctx.typertGateway` / `ctx.remote` |
+| [`native-remote/`](native-remote/README.md) | Opt-in TLS listener with pinned Host identity and signed Gateway device access. | `ctx.nativeRemote` |
 | [`gateway/`](gateway/README.md) | Carries typed unary calls, multiplexed streams with their Client uplinks, and forwarded Host events. | `ctx.typertGateway` / `ctx.remote` |
 | [`remote-access/`](remote-access/README.md) | Decides which Remote methods non-owner Peers may call, filters list results, and streams each Peer's access snapshot. | `ctx.remoteAccess` / `ctx.remote.remoteAccess` |
 | [`job-controller/`](job-controller/README.md) | Streams one background job's observation record to the Client. | `ctx.jobController` / `ctx.remote.job` |

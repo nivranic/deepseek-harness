@@ -15,6 +15,7 @@ import { deriveEventMessage, isAppendSurfaceEvent } from '@deepseek-ai/dsh-sessi
 import type { SessionEvent, SessionId } from '@deepseek-ai/dsh-session/types'
 import type {} from '@deepseek-ai/dsh-session'
 import type { SessionInspection } from '@deepseek-ai/dsh-session-persistence'
+import { MESSAGE_FEEDBACK_REMOTE_CAPABILITIES } from './capabilities.ts'
 import { TypertRemoteService, Remote } from '@deepseek-ai/dsh-typert-protocol'
 import type {
   MessageFeedbackDeleteRequest,
@@ -132,7 +133,7 @@ export class MessageFeedbackService extends TypertRemoteService {
    * @param config - Required note-size policy.
    */
   constructor(ctx: Context, config: Config) {
-    super(ctx, 'messageFeedback')
+    super(ctx, 'messageFeedback', { capabilities: MESSAGE_FEEDBACK_REMOTE_CAPABILITIES })
     if (!Number.isSafeInteger(config.maxNoteBytes) || config.maxNoteBytes < 1) {
       throw new TypeError('message-feedback: maxNoteBytes must be a positive safe integer')
     }

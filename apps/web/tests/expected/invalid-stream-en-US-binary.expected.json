@@ -1,0 +1,11 @@
+{
+  "locale": "en-US",
+  "kind": "binary",
+  "label": "Reconnecting",
+  "action": "Reconnecting, reconnect now",
+  "automaticAttempts": 1,
+  "manualReconnects": 1,
+  "replacementSockets": 2,
+  "draftPreserved": true,
+  "prompts": 0
+}

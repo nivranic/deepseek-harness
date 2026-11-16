@@ -26,6 +26,8 @@ host 侧，cordis 插件装载站在 Node 的模块机制之上——require cac
 
 ### 包成员与模块请求
 
+活动 Loader 解析出的宿主模块标识其资源所属包。受管理的打包可执行文件代理为每个导出子路径记录原始模块 URL；Client Modules 沿该精确 export 找到原始 manifest，不把 `dsh.client` 和相对资源路径复制到代理中。映射错误、匹配不唯一、缺少所属包或循环都会使组合失败。[profile 决策](2026-08-05-profile-plugin-bundles.zh.md) 负责代理创建和安装查找。
+
 [Client 外壳分层 Note](2026-08-15-client-shells-and-dynamic-packages.zh.md)定义当前的静态、动态包集合及其 import 规则。装载机件把每个 `dsh.client` 包视为一个 host graph row；每个包都有一个普通 `lib/client.js` factory bundle，还可有编译器生成的 `lib/client.<name>.js` chunk。包声明携带 Cordis `inject` 边、同步模块表 `external` 请求，以及可选的 `immediately` 预取标记；负责组合的 app 只拥有挂载名册。
 
 Web 内核保持不依赖框架，也不 import 任何动态包实体。Modules 本身是动态图 row，但 host parser 会在 Vite 主模块前送达其 factory。内核调用 `create()` 时，由 HTML 安装的 `__ModuleLoader__` facade 使用该 factory 构造模块系统。其他每个动态图 row 都归属一个 application combo 脚本；React、Cordis 与静态 UI 库的身份由外壳 seed 提供。
@@ -72,6 +74,7 @@ Host 会快照每个已构建插件入口 bundle，并把每个调度阶段的�
 
 样式元信息及 renderer 所有权遵循[模块元信息决定](2026-11-05-client-module-metadata.zh.md)；模块加载保存生产函数而不求值。
 
+可选 Web 路由始终在注入 `webServer` 的子插件中注册。仅有服务可用，并不授权父插件上下文读取该属性。子插件负责路由的释放和替换，父插件保留模块图，因此两种服务加载顺序都能工作，Shell 载体也不依赖 Web server。
 ### 动态图对账
 
 modules 控制器只持有从启动清单创建的 Loader 条目。Host 的完整快照更新模块描述并对账这些条目；其他 Loader 贡献方保留自身所有权。新增模块通过单资源 URL 到达，因为重放启动 batch 可能重复注册现有 factory。移除使用 Loader 删除语义，随后等待已捕获 fiber 清理完毕，再移除未使用的模块记录。已声明及已观察到的传递依赖使共享模块保持存活。Factory revision 的跟踪独立于条目激活，因为下载或物化完成后仍可能没有创建条目。图更新会在任何消费者导入依赖前，使未归属受管条目的陈旧 factory 和失败的到达目标失效，并通知资源消费者；重建帧也会对账因导入失败而缺失的条目。

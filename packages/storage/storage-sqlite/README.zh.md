@@ -58,6 +58,8 @@ kind: "package-reference"
 
 每个非空批量删除都使用一个事务，需要时在该事务内更新版本戳。事务失败时，只要 SQLite 成功回滚，数据与版本戳就保持原状，包括自动回滚的情况。`BEGIN` 失败会使整个批次保持未应用，允许在同一句柄上重试。如果回滚本身失败，后端会保留代码为 `unknown-state` 的 `StorageError`，其 cause 是包含两次失败的 `AggregateError`，并拒绝后续单元读写，以及正在等待或新发起的打开操作。此时事务结果未知。须关闭后端及其领域，再创建新后端检查已存状态，然后决定是否重试。混合记录与降级行为参阅[领域版本](../../../docs/subsystems/storage.zh.md#domain-versioning)。
 
+后端关闭会等待进行中的打开操作，排空已注册的单元 owner，并在释放数据库之前关闭每个单元。并发关闭共享同一个结果；所有释放操作尝试结束后才汇总清理失败。新的打开操作以 `closed` 拒绝。
+
 -----
 
 <a id="understand-the-implementation"></a>

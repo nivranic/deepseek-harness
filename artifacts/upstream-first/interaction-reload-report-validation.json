@@ -1,0 +1,64 @@
+{
+  "status": "PASS",
+  "scope": "Report bindings and audit for Approval/Question page reload before and after Host acceptance; full Upstream-First objective remains in progress",
+  "gate0": {
+    "validation": "PASS",
+    "gate0": "PASS",
+    "paths": 1938,
+    "components": 129
+  },
+  "sourceRecord": {
+    "path": "artifacts/upstream-first/interaction-reload-source.json",
+    "sha256": "37cec8af7faf0a4876ecb05b0563cd325f657381170a9857ecfcafaa6d94e157"
+  },
+  "generator": {
+    "path": "artifacts/upstream-first/write-reports.mjs",
+    "sha256": "522f1a4a1829161216067acb9ebc435a347d98b289a1e28603baac7943d7250b"
+  },
+  "binding": {
+    "path": "artifacts/upstream-first/interaction-reload-binding.json",
+    "sha256": "c2e1d40cbb56fd5f0e4539126e65768e4c48a6e0f20bf1fe0a0f710ce9862730"
+  },
+  "helpers": [
+    {
+      "path": ".artifacts/advance-interaction-reload-reports.mjs",
+      "sha256": "0b9adb174014b98426c05c19e6fd3e62f63ee763b0e46cdce96cc93d9a6ddacc"
+    },
+    {
+      "path": ".artifacts/capture-interaction-reload-validation.mjs",
+      "sha256": "8a4a6617da3fa6eefccd11145565df1f49e7c5106f6f04662ef1d35f41af1f8a"
+    }
+  ],
+  "reports": [
+    {
+      "path": "IMPLEMENTATION_STATUS.md",
+      "sha256": "f6c7bdf09fecdeef8dea5b9f44e35b80a7eccedd14235dd527b119f76271e986"
+    },
+    {
+      "path": "artifacts/upstream-first/evidence.json",
+      "sha256": "9247828d2d7dde2197b4f2ce5003a1003843dbfcba68e69009b76f6bb38a9838"
+    }
+  ],
+  "checks": [
+    {
+      "path": ".artifacts/interaction-reload-binding.log",
+      "sha256": "6bc654b334a91f884f96b1290213e3dd475b91e066dcf7db8a4be07f7cca45e1"
+    },
+    {
+      "path": ".artifacts/interaction-reload-audit-tests.log",
+      "sha256": "6ce82587fa274037758c8d1d744c2dd09655f58052cd2a41f42a73a2fb3a7864"
+    },
+    {
+      "path": ".artifacts/interaction-reload-gate0.log",
+      "sha256": "4b5af3121a7e7caff0e1b6288bdaa7cfef9988842ae06bf02dc0a74852426043"
+    },
+    {
+      "path": ".artifacts/interaction-reload-report-diff-check.log",
+      "sha256": "e3b0c44298fc1c149afbf4c8996fb92427ae41e4649b934ca495991b7852b855"
+    },
+    {
+      "path": ".artifacts/interaction-reload-report-generation.log",
+      "sha256": "5867d1d51cd43a59428de2e7fffa15847d7153b11f3b61ecf812224ee2dd2099"
+    }
+  ]
+}

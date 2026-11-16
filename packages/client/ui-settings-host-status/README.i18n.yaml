@@ -1,0 +1,46 @@
+# Bilingual-pair consistency record for README.md (docs/i18n/README.md): per heading
+# section, a hash of its English and Chinese blocks outside code blocks and generated regions.
+# After editing either side, bring the other along and re-record with:
+#   pnpm run verify-translation-pairing --write packages/client/ui-settings-host-status/README.md
+/:
+  en: ed39d867e1fcc8d0
+  zh: 58acbbe2cb77fb0f
+/deepseek-ai-dsh-client-ui-settings-host-status:
+  en: 66426282bd69f90e
+  zh: b3c3005c3e3045cb
+/deepseek-ai-dsh-client-ui-settings-host-status/summary:
+  en: e20c10396fb75b16
+  zh: dfde177a5c4c5aa0
+/deepseek-ai-dsh-client-ui-settings-host-status/table-of-contents:
+  en: d152484eb41ac6b4
+  zh: 09388d293f9be9cb
+/deepseek-ai-dsh-client-ui-settings-host-status/use-this-package:
+  en: 4be1a11a481dcc3e
+  zh: fe6c9871d20beb34
+/deepseek-ai-dsh-client-ui-settings-host-status/understand-the-implementation:
+  en: 42b15ac6321706aa
+  zh: 4ed0861911abaf5d
+/deepseek-ai-dsh-client-ui-settings-host-status/understand-the-implementation/registration:
+  en: 72d5927822c440a4
+  zh: 1be16c23e5a77621
+/deepseek-ai-dsh-client-ui-settings-host-status/understand-the-implementation/data-plane:
+  en: b2510c294b58440c
+  zh: b24f300a0e6e3a1a
+/deepseek-ai-dsh-client-ui-settings-host-status/understand-the-implementation/rendering:
+  en: 5b988f2787f31073
+  zh: 39145932320351e0
+/deepseek-ai-dsh-client-ui-settings-host-status/further-exploration:
+  en: 8e268842fb49e5c3
+  zh: 783d1e0983f61b3d
+/deepseek-ai-dsh-client-ui-settings-host-status/model-experience:
+  en: 3061726b5a98023e
+  zh: 45364aeee4241d2b
+/deepseek-ai-dsh-client-ui-settings-host-status/model-experience/kv-cache-effect:
+  en: ca75c51c89c2c9b0
+  zh: 2064958b0754647e
+/deepseek-ai-dsh-client-ui-settings-host-status/known-limitations-and-deferred-work:
+  en: 75cf1f1db0995004
+  zh: c0dc1341a4d9643d
+/deepseek-ai-dsh-client-ui-settings-host-status/known-limitations-and-deferred-work/dev-note:
+  en: aa8a88bf1a7b537d
+  zh: 76ef02b6eb82facb

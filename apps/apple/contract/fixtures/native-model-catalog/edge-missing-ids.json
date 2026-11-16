@@ -1,0 +1,22 @@
+{
+  "groups": [
+    { "name": "group without id is dropped" },
+    {
+      "id": "g1",
+      "models": [
+        { "name": "model without id is dropped" },
+        { "id": "m1" },
+        {
+          "id": "m2",
+          "reasoning": {
+            "efforts": [
+              { "name": "effort without id is dropped" },
+              { "id": "e1" }
+            ],
+            "defaultEffort": 7
+          }
+        }
+      ]
+    }
+  ]
+}

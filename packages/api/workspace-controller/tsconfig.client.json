@@ -6,6 +6,7 @@
     "tsBuildInfoFile": "lib/tsconfig.client.tsbuildinfo"
   },
   "files": [
+    "src/capabilities.ts",
     "src/client/index.ts",
     "src/client/model.ts",
     "src/client/service.ts",

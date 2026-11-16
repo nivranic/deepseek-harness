@@ -55,7 +55,7 @@ const record = domain.table('workspaces').get(id) // synchronous, from memory
 domain.table('workspaces').update(id, (r) => ({ ...r, path: newPath }))
 ```
 
-调用方拥有句柄的生命周期，并在功能关闭时用 `domain.close()` 释放它（通常作为其自身的 `ctx.effect` 资源释放函数）；插件卸载时，设施会关闭仍处于打开状态的领域。
+调用方拥有句柄的生命周期，并在功能关闭时用 `domain.close()` 释放它（通常作为其自身的 `ctx.effect` 资源释放函数）。设施或后端关闭也会先排空已接受的领域工作，再释放单元，包括已入队的持久化前置操作。初始化期间关闭会等待清理；有效的初始化以 `closed` 拒绝，不返回句柄。
 
 ### 把领域路由到后端
 
@@ -70,7 +70,7 @@ domain.table('workspaces').update(id, (r) => ({ ...r, path: newPath }))
 
 ### 可观察行为与失败
 
-每次写入都要等后端确认已持久化后才完成，并按写入顺序各发出一次 `domain/changed` 事件。失败携带稳定的 `DomainError` 代码：`already-open`（名称已打开或仍在关闭）、`facet-unsupported`（已路由后端不提供 `kv` 分面）、`invalid-record`（已存记录或全局不符合其 schema，并指明表与键）、`missing-key`（对不存在的记录执行 `update`）与 `closed`（关闭后的任何使用）。`version-mismatch` 等后端失败会原样透传。
+每次写入都要等后端确认已持久化后才完成，并按写入顺序各发出一次 `domain/changed` 事件。失败携带稳定的 `DomainError` 代码：`already-open`（名称已打开或仍在关闭）、`facet-unsupported`（已路由后端不提供 `kv` 分面）、`invalid-record`（已存记录或全局不符合其 schema，并指明表与键）、`missing-key`（对不存在的记录执行 `update`）与 `closed`（关闭后的任何使用）。`version-mismatch` 等后端失败会原样透传。 `table.put(key, value, beforeWrite)` 先占据写入位置，再调用可选的异步前置操作。前置操作在后端 I/O 之前执行；失败时不写入、不发出事件，领域关闭会连同已接受的写入一起等待它结束。它不得等待同一领域的其他写入或关闭；因领域已关闭而被拒绝的写入不会调用它。
 
 -----
 
@@ -92,6 +92,8 @@ domain.table('workspaces').update(id, (r) => ({ ...r, path: newPath }))
 ### 打开顺序
 
 `DomainFacility.open(spec)` 按严格顺序执行，任一步骤失败都会让整个调用失败：拒绝已打开或仍在关闭的名称（`already-open`）；解析路由（`backend-not-found`）；要求 `kv` 分面（`facet-unsupported`）；打开单元（后端 `version-mismatch`／`malformed-medium` 透传）；加载并根据 spec 的 schema 校验每条已存记录与全局（`invalid-record`）；构造领域。调用方持有句柄；设施会在卸载时关闭任何仍打开的领域，已关闭领域的名称只在资源销毁完成后才能重新打开。
+
+`closeAll()` 永久停止新的打开操作，并等待所有正在初始化或活跃的领域。全部 owner 结束后才报告清理失败；初始化失败仍由打开调用方观察，并发关闭调用方也会收到初始化清理失败。参见 [owner 清理](../../../.agents/notes/implemented/bug-fix/2026-09-16-storage-owner-teardown.zh.md)。
 
 ### 源码地图
 

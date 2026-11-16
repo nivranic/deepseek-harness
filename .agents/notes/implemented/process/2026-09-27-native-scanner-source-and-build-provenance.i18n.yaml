@@ -1,0 +1,19 @@
+# Bilingual-pair consistency record for 2026-09-27-native-scanner-source-and-build-provenance.md (docs/i18n/README.md): per heading
+# section, a hash of its English and Chinese blocks outside code blocks and generated regions.
+# After editing either side, bring the other along and re-record with:
+#   pnpm run verify-translation-pairing --write .agents/notes/implemented/process/2026-09-27-native-scanner-source-and-build-provenance.md
+/agent-note-native-scanner-verification-owns-committed-source-and-explicit-build-inputs:
+  en: 15935a08b2743925
+  zh: 1d1b990876efc057
+/agent-note-native-scanner-verification-owns-committed-source-and-explicit-build-inputs/problem:
+  en: 86196123ab4d2ce8
+  zh: 58cbe2c9f904c5fd
+/agent-note-native-scanner-verification-owns-committed-source-and-explicit-build-inputs/decision:
+  en: 43bcac6a084e4261
+  zh: 975fd1c2e0c8fb9f
+/agent-note-native-scanner-verification-owns-committed-source-and-explicit-build-inputs/alternatives-considered:
+  en: e8bbe15f37bcd466
+  zh: 0dba4b6e6ad370b0
+/agent-note-native-scanner-verification-owns-committed-source-and-explicit-build-inputs/consequences:
+  en: 7ef4ec84d55a63bb
+  zh: 5e5885b0f749a74d

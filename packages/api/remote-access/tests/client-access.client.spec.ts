@@ -30,6 +30,28 @@ const GRANTED: Extract<RemoteAccessFrame, { type: 'baseline' }> = {
 }
 
 describe('ClientAccessState', () => {
+  it('applies explicit Host grants to all resources and preserves independent grants after removal', () => {
+    const baseline: Baseline = { type: 'baseline', owner: false, grants: [
+      ...GRANTED.grants,
+      { resource: { kind: 'host' }, actions: ['session/prompt'] },
+    ] }
+    expect(parseInjectedBaseline(JSON.parse(JSON.stringify(baseline)))).toEqual(baseline)
+    const state = new ClientAccessState(baseline)
+    expect(state.owner).toBe(false)
+    expect(state.global('session/prompt').getSnapshot()).toBe(true)
+    expect(state.resource('test-shelf', 's9', 'session/prompt').getSnapshot()).toBe(true)
+    expect(state.resource('test-desk', 'd9', 'session/prompt').getSnapshot()).toBe(true)
+    expect(state.resource('test-shelf', 's9', 'session/delete').getSnapshot()).toBe(false)
+    state.update({ type: 'upsert', grant: { resource: { kind: 'host' }, actions: ['session/fork'] } })
+    expect(state.resource('test-shelf', 's9', 'session/prompt').getSnapshot()).toBe(false)
+    expect(state.resource('test-shelf', 's9', 'session/fork').getSnapshot()).toBe(true)
+    state.update({ type: 'remove', resource: { kind: 'host' } })
+    expect(state.resource('test-shelf', 's9', 'session/fork').getSnapshot()).toBe(false)
+    expect(state.resource('test-shelf', 's1', 'session/fork').getSnapshot()).toBe(true)
+    expect(state.global('session/list').getSnapshot()).toBe(true)
+    expect(state.resource('test-shelf', 's9', 'session/list').getSnapshot()).toBe(false)
+  })
+
   it('answers false without a baseline and after a non-owner stream fails, and true for the owner', () => {
     const state = new ClientAccessState()
     expect(state.global('session/create').getSnapshot()).toBe(false)

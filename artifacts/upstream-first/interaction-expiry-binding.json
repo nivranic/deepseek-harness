@@ -1,0 +1,16 @@
+{
+  "status": "PASS",
+  "controls": 3,
+  "sourceRecord": {
+    "path": "artifacts/upstream-first/interaction-expiry-source.json",
+    "sha256": "cf3a80384c963c87ef4f446b6cbfcb06421ae59fd288bb542ba4db99773f62c9"
+  },
+  "generator": {
+    "path": "artifacts/upstream-first/write-reports.mjs",
+    "sha256": "264ee8c00eea60539c99546fc4a00d3727f97b2f4a4fb70e9764ef885952b726"
+  },
+  "helper": {
+    "path": ".artifacts/check-interaction-expiry-binding.mjs",
+    "sha256": "a9d8763b721cefbd2f5b1d1857ff502434a879b34c0d84b9d7b2500a26c9170f"
+  }
+}

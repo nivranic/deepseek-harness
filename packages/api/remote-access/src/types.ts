@@ -4,6 +4,7 @@
  * @module @deepseek-ai/dsh-api-remote-access/types
  */
 
+import type { Context } from '@deepseek-ai/cordis'
 import type {
   Principal,
   RemoteAccessResource,
@@ -43,7 +44,7 @@ export type RemoteAccessDecision =
 /**
  * Refines one binding for one action on its resource. Called synchronously,
  * only for a binding whose resource matches and whose role lists the action.
- * @param request - the action, the binding's resource, and the named
+ * @param request - the action, the requested resource (`host` for a Host-wide snapshot), and the named
  *   arguments of a concrete call, validated against their Typert-compiled
  *   types with lookup parameters as wire identities; `args` is absent for
  *   events, snapshots, and list filtering, where the condition answers for
@@ -52,7 +53,7 @@ export type RemoteAccessDecision =
  */
 export type RemoteAccessCondition<K extends RemoteAccessResourceKind> = (request: {
   readonly action: RemoteAccessAction
-  readonly resource: RemoteAccessResourceOf<K>
+  readonly resource: K extends 'host' ? RemoteAccessResource : RemoteAccessResourceOf<K>
   readonly args?: Readonly<Record<string, unknown>>
 }) => RemoteAccessDecision
 
@@ -91,9 +92,11 @@ export interface RemoteAccessPolicy<P extends Principal> {
    * List the principal's bindings. Called once per `decide()`, once per
    * `allows()`, and once per snapshot computation; never cached.
    * @param principal - non-owner caller of this policy's kind.
+   * @param context - service-access Context; preserves isolated providers for calls and snapshots.
+   * @param action - requested action; absent during snapshot computation, which excludes event actions.
    * @returns every binding the principal holds now.
    */
-  bindings(principal: P): readonly RemoteAccessBinding[]
+  bindings(principal: P, context: Context, action?: RemoteAccessAction): readonly RemoteAccessBinding[]
   /**
    * Name the reason for a request no binding allows; called only after the
    * decision is already a deny, so it never changes the decision.
@@ -117,6 +120,7 @@ export interface RemoteAccessDeniedDetails {
 
 declare module '@deepseek-ai/dsh-typert-protocol' {
   interface RemoteErrorDetailsMap {
+    /** The non-owner principal lacks access, the resources are invalid, or its policy failed. */
     'remote-access/denied': RemoteAccessDeniedDetails
   }
 }

@@ -84,6 +84,8 @@ export interface TrajectoryCellProps extends HTMLAttributes<HTMLDivElement> {
   resultPreviewMarkdown?: string
   /** Tool call id used to link message source blocks to tool records. */
   callId?: string
+  /** Enclosing model execution for a root or nested Tool record. */
+  callLocation?: { readonly turn: number; readonly step: number }
   /** Recorded tool name; independent of the display summary. */
   toolName?: string
   /** Failed operation or interrupted assistant output. */
@@ -107,14 +109,27 @@ export interface TrajectoryCellProps extends HTMLAttributes<HTMLDivElement> {
 }
 
 /**
+ * Address one tool call without conflating ids reused by another Step.
+ * @param callId - root or nested tool-call id.
+ * @param location - owning Turn and Step.
+ * @returns opaque inspector focus identity.
+ */
+export function trajectoryCallFocus(callId: string, location: { readonly turn: number; readonly step: number }): string {
+  return JSON.stringify([location.turn, location.step, callId])
+}
+
+/**
  * Resolve the identity that survives prepending older projected records.
  * @param cell - Projected trajectory record.
  * @returns Stable identity from the owning event or tool call, with a fixture fallback.
  */
 export function trajectoryRecordId(cell: TrajectoryCellProps): string {
   if (cell.recordId !== undefined) return cell.recordId
-  if (cell.callId !== undefined) return `${cell.kind}\u0000call\u0000${cell.callId}`
+  if (cell.callId !== undefined && cell.callLocation !== undefined) {
+    return JSON.stringify([cell.kind, cell.callLocation.turn, cell.callLocation.step, cell.callId])
+  }
   if (cell.sourceSeq !== undefined) return `${cell.kind}\u0000seq\u0000${cell.sourceSeq}`
+  if (cell.callId !== undefined) return `${cell.kind}\u0000call\u0000${cell.callId}`
   return `${cell.kind}\u0000index\u0000${cell.index}`
 }
 

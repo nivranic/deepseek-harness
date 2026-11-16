@@ -1,0 +1,16 @@
+{
+  "status": "PASS",
+  "controls": 3,
+  "sourceRecord": {
+    "path": "artifacts/upstream-first/subagent-prompt-idempotency-source.json",
+    "sha256": "304345ce238e9a0d6de3052cc4038d88dd0fdca482fa542d7779cb7af143f0dc"
+  },
+  "generator": {
+    "path": "artifacts/upstream-first/write-reports.mjs",
+    "sha256": "6cc586b55311b078484a40d1ddb409f1c42038e8e872a30b2e7be4154998385f"
+  },
+  "helper": {
+    "path": ".artifacts/check-subagent-prompt-idempotency-binding.mjs",
+    "sha256": "719155e43981fe4218fdafb15d799a47271a361154a7f3503730cfa289aea0f9"
+  }
+}

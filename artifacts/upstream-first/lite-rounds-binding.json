@@ -1,0 +1,16 @@
+{
+  "status": "PASS",
+  "controls": 3,
+  "sourceRecord": {
+    "path": "artifacts/upstream-first/lite-rounds-source.json",
+    "sha256": "4f6912a73fb70c6d06614b4c7f88beef27ea813a9313460ba40560b08bd04a72"
+  },
+  "generator": {
+    "path": "artifacts/upstream-first/write-reports.mjs",
+    "sha256": "1a3d8c49d8ad41ff0fedfd4931625003c01b7be740b193ffc65a496e4eb8d959"
+  },
+  "helper": {
+    "path": ".artifacts/check-lite-rounds-binding.mjs",
+    "sha256": "3a7d50452306c8b2bc8a0c9bb127daac1a0cbc5cadb2c7968379355619bf4383"
+  }
+}

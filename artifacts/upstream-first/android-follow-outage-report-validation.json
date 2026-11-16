@@ -1,0 +1,66 @@
+{
+  "status": "PASS",
+  "scope": "Report bindings and audit for the android follow outage increment: the section 25 persisted follow window gains its physical-transport break at the installed state — the new lane apps/web/tests/android-follow-window-outage.e2e.ts (on the persisted-lane skeleton) pairs a device against a real Host, opens a seeded Session, fills an unsent prompt draft, loads one older history page (first follow request with no cursor), appends exactly three records and lets the device display them (moving the persisted cut forward to cursor + 3), destroys the paired device's stream carrier Host-side via the section 29 deterministic primitive gateway.terminateDeviceConnections({ deviceId }) (no adb-reverse removal involved; the idle-stream detection gap stays documented), proves the reopened follow request carries the last applied durable sequence including the pre-outage appends (fromSeq == cursor + 3) with zero appends and zero claims during the outage, appends three more records after reconnection and folds them into the retained page without a gap (windowWithRetry with attempts 2 — the attempt count itself proves the reconnection attempt happened), keeps the unsent draft, the single device grant and zero business mutations, and lands the screenshot as .artifacts/screenshots/android-follow-window/outage.png against the seven-line golden; the whole-window assertions run through a three-step bounded retry ladder covering the two observed re-observation jitter classes (the driver's 40-second per-request timer dropping a slow response while the server-side operation completes, and the Compose scroll verifier scrollToMatchingDescendantOrReturnScrollable bailing with an IllegalStateException after the window facts already matched — deeper history pagination makes the scroll heavier), after which the lane went two consecutive green runs (run-7 and run-8), with the run-5 emulator whole crash honestly preserved as an infrastructure failure (installed state preserved across the restart, crash-path residual Temp lease lock cleared before the rerun; narrated in .artifacts/android-follow-outage-iteration-notes.log); the same-round gradle acceptance round (:app:assembleDebug + :app:assembleDebugAndroidTest + :core:test, scanner env with -PdshNativeAcceptance, BUILD SUCCESSFUL) executed exactly one task (:app:verifyScannerResources) with every build task UP-TO-DATE because no source changed this generation — the acceptance APK bytes verified byte-identical to the installed state, the prepare-side unresolved scan derived an empty replaced-build-output allowlist and the generator gained no new replaced set, and the XML reports still aggregate 77 suites / 477 tests with zero failures/errors/skips; the serial audit double round went 43 files / 618 tests green on both first passes with no -r1 log, typecheck and lint both clean (TYPECHECK_EXIT=0, LINT_EXIT=0), doc-quick, doc-sync and gate0 pass, and traceability section 25 rewrites the boundary sentence and adds the carrier-loss lane sentence with three new candidate evidence paths (28 total); the foreground-push recovery, physical devices, deep links and share routing stay open; full Upstream-First objective remains in progress",
+  "gate0": {
+    "validation": "PASS",
+    "gate0": "PASS",
+    "paths": 1938,
+    "components": 129,
+    "specificationCoverage": {
+      "status": "PASS",
+      "numberedSections": 81,
+      "nonEmptySourceLines": 1983,
+      "acceptanceProven": false
+    }
+  },
+  "sourceRecord": {
+    "path": "artifacts/upstream-first/android-follow-outage-source.json",
+    "sha256": "6346cf76845e44111ba1c6e0f23e08856c8fec96756d347ab337495e4c5e3d01"
+  },
+  "generator": {
+    "path": "artifacts/upstream-first/write-reports.mjs",
+    "sha256": "bdeccc7e922b66b8ad4f7e7e8b942f8c2e1c06db16e84171a692a503088edff3"
+  },
+  "binding": {
+    "path": "artifacts/upstream-first/android-follow-outage-binding.json",
+    "sha256": "ebaf84ac6a63ee17f0f7f59c01b0ba908478831d4514d734747dfe9adf2138e1"
+  },
+  "helpers": [
+    {
+      "path": ".artifacts/advance-android-follow-outage-reports.mjs",
+      "sha256": "74094a4927e34e8224ec2c83b298dfaadc7d6b4bc7185dabe7743d017f41b530"
+    },
+    {
+      "path": ".artifacts/capture-android-follow-outage-validation.mjs",
+      "sha256": "60acd0374b49ab534f4fe09787a22c6f4d11328581eceb75d463aaac6c335827"
+    }
+  ],
+  "reports": [
+    {
+      "path": "IMPLEMENTATION_STATUS.md",
+      "sha256": "bce92ea6d62f7f3e2c05b8bb263ffc37cbd3831b2cfd71f345ce7c901d737ded"
+    },
+    {
+      "path": "artifacts/upstream-first/evidence.json",
+      "sha256": "732382ac4fe8f95567b9d43bc37c86ba178986acb6bc73a579a1deaf5e261901"
+    }
+  ],
+  "checks": [
+    {
+      "path": ".artifacts/android-follow-outage-binding.log",
+      "sha256": "bf8d1079e62e73eee4adf804a54d1e896b5db9a39bc7910e08b3ba38a176cd73"
+    },
+    {
+      "path": ".artifacts/android-follow-outage-audit-final.log",
+      "sha256": "2b76a8ec52854f70e08f4920ecd619c4e221c6ccd46162cdbb676b6f6e8cccd4"
+    },
+    {
+      "path": ".artifacts/android-follow-outage-gate0-final.log",
+      "sha256": "505d74ef938f5d34d85490d37e0176ba804d93272fcf465ce2544a02c56b3f90"
+    },
+    {
+      "path": ".artifacts/android-follow-outage-report-generation.log",
+      "sha256": "fe010532f71a6341467ae5719b29ac19470895de1d481156335b8f70a3273ed5"
+    }
+  ]
+}

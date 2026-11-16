@@ -7,7 +7,9 @@
   },
   "files": [
     "src/access.ts",
+    "src/device-connection.ts",
     "src/index.ts",
+    "src/protocol.ts",
     "src/remote-error-codes.ts",
     "src/stream-protocol.ts",
     "src/stream-server.ts",
@@ -43,6 +45,9 @@
     },
     {
       "path": "../../util/timeout"
+    },
+    {
+      "path": "../device-trust/tsconfig.host.json"
     }
   ]
 }

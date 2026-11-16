@@ -222,7 +222,22 @@
     "verify-official-bundle-catalog": "tsx scripts/gen-official-bundle-catalog.ts --check",
     "gen-provider-data": "tsx packages/llm/llm-pi-ai/scripts/gen-provider-data.ts",
     "verify-provider-data": "tsx packages/llm/llm-pi-ai/scripts/gen-provider-data.ts --check",
-    "verify-product-use": "tsx scripts/verify-product-use.ts"
+    "verify-product-use": "tsx scripts/verify-product-use.ts",
+    "verify-package-invariants": "tsx scripts/verify-package-invariants.ts",
+    "verify-built-package-invariants": "node scripts/verify-built-package-invariants.mjs",
+    "resolve-translation-pairing-conflicts": "tsx scripts/merge-translation-pairing.ts --resolve",
+    "verify-vendored-links": "tsx scripts/verify-vendored-links.ts",
+    "gen-scoped-events": "tsx scripts/gen-scoped-events.ts",
+    "verify-scoped-events": "tsx scripts/gen-scoped-events.ts --check",
+    "test:support-scanner": "node --test scripts/test-support-scanner.test.mjs && node scripts/test-support-scanner.mjs",
+    "gen-lite-preset-catalog": "tsx scripts/gen-lite-preset-catalog.ts",
+    "verify-lite-preset-catalog": "tsx scripts/gen-lite-preset-catalog.ts --check",
+    "gen-remote-error-codes": "tsx scripts/gen-remote-error-codes.ts",
+    "verify-remote-error-codes": "tsx scripts/gen-remote-error-codes.ts --check",
+    "verify-remote-error-model": "tsx scripts/verify-remote-error-model.ts",
+    "gen-remote-error-envelope": "tsx scripts/gen-remote-error-envelope.ts",
+    "verify-remote-error-envelope": "tsx scripts/gen-remote-error-envelope.ts --check && tsx scripts/gen-remote-failure-classes-json.mjs --check",
+    "gen-remote-failure-classes": "tsx scripts/gen-remote-failure-classes-json.mjs"
   },
   "devDependencies": {
     "@deepseek-ai/dsh-hooks-claude-code": "workspace:*",
@@ -311,6 +326,7 @@
     "@deepseek-ai/dsh-experimental-forge": "workspace:*",
     "@deepseek-ai/dsh-experimental-forge-github": "workspace:*",
     "@deepseek-ai/dsh-experimental-forge-session": "workspace:*",
-    "@deepseek-ai/dsh-action-cards": "workspace:*"
+    "@deepseek-ai/dsh-action-cards": "workspace:*",
+    "ajv": "8.20.0"
   }
 }

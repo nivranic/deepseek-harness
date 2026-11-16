@@ -107,6 +107,7 @@ const VIEWER_GLOBAL_ROLE: RemoteAccessRole<'global'> = {
     'session/control',
     'session/list',
     'session/modelCatalog',
+    'tools/list',
     'workspace/follow',
   ],
 }
@@ -124,6 +125,8 @@ const VIEWER_SESSION_READ_ROLE: RemoteAccessRole<'session'> = {
   actions: [
     'commands/list',
     'fileUploads/upload',
+    'fileUploads/uploadDedupe',
+    'fileUploads/uploadImage',
     'goals/get',
     'session/attachment',
     'session/control',

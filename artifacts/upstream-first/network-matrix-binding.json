@@ -1,0 +1,16 @@
+{
+  "status": "PASS",
+  "controls": 3,
+  "sourceRecord": {
+    "path": "artifacts/upstream-first/network-matrix-source.json",
+    "sha256": "f786b98424789853d857f72611543173f4e0ad1e474dd1de2b529043afc9d07e"
+  },
+  "generator": {
+    "path": "artifacts/upstream-first/write-reports.mjs",
+    "sha256": "7fbe613abfb3a33d68f28bb6562a741513dc763520230600e9d818c0b7847e77"
+  },
+  "helper": {
+    "path": ".artifacts/check-network-matrix-binding.mjs",
+    "sha256": "eff9735a82abb353432b5c1511123eeba54edfe85d5162884203a6fe12020443"
+  }
+}

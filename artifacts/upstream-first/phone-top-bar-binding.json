@@ -1,0 +1,16 @@
+{
+  "status": "PASS",
+  "controls": 3,
+  "sourceRecord": {
+    "path": "artifacts/upstream-first/phone-top-bar-source.json",
+    "sha256": "b2eee35146fe741df266aacc9751b7371f32f56a172de18073b502b4e7fd2db1"
+  },
+  "generator": {
+    "path": "artifacts/upstream-first/write-reports.mjs",
+    "sha256": "97a77173b63a757724f2a94d7d1171f765ec423849b6c4e9aed8950319c4e61f"
+  },
+  "helper": {
+    "path": ".artifacts/check-phone-top-bar-binding.mjs",
+    "sha256": "19b5a53bf6960c6cf5fec3ea2fb7445649217c39669c1ef165dbda077ff33495"
+  }
+}

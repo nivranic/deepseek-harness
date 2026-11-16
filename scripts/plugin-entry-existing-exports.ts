@@ -21,6 +21,15 @@ export const EXISTING_PLUGIN_ENTRY_EXPORTS = {
     'agentPresetProjectionDefinition', 'auditRows', 'entryListProblem', 'leakedServices',
   ],
   '@deepseek-ai/dsh-agent-team': ['TeamId', 'TeamMessageId', 'TeamTaskId'],
+  '@deepseek-ai/dsh-api-device-trust': [
+    'DEVICE_TRUST_REMOTE_CAPABILITIES', 'DEVICE_ROLE_PERMISSIONS', 'deviceGrantRecord', 'deviceTrustDomainSpec', 'DeviceId',
+  ],
+  '@deepseek-ai/dsh-api-gateway': ['REMOTE_STREAM_MUX_PATH', 'RemoteStreamMuxServer'],
+  '@deepseek-ai/dsh-api-host-description': ['API_PROTOCOL_VERSION'],
+  '@deepseek-ai/dsh-api-host-diagnostics': [
+    'HOST_DIAGNOSTICS_REMOTE_CAPABILITIES', 'buildSupportBundle', 'diagnosticsBundleEntry',
+    'sanitizeSupportBundleEntry', 'sessionHeadersBundleEntry', 'settingsExportBundleEntry', 'validateSupportBundle',
+  ],
   '@deepseek-ai/dsh-api-remote-access': ['REMOTE_ACCESS_SNAPSHOT_KEY'],
   '@deepseek-ai/dsh-api-remotes': ['API_REMOTE_FORWARDED_EVENTS'],
   '@deepseek-ai/dsh-attachment-local': [
@@ -35,6 +44,7 @@ export const EXISTING_PLUGIN_ENTRY_EXPORTS = {
   '@deepseek-ai/dsh-client-connection': [
     'API_PATH', 'CONNECT_PATH', 'Peer', 'RpcId', 'clientRequestSchema', 'rpcErrorSchema', 'rpcIdSchema',
     'rpcMessageSchema', 'rpcResultSchema', 'serverResponseSchema', 'transportError',
+    'createRpcFetchHandler', 'bridgeConnectionHttp',
   ],
   '@deepseek-ai/dsh-client-hmr': ['EVENTS_ENDPOINT'],
   '@deepseek-ai/dsh-client-locale': ['LOCALE_IDS', 'LOCALE_PREFERENCE_FIELD', 'LOCALE_SETTINGS_NAMESPACE'],
@@ -166,7 +176,7 @@ export const EXISTING_PLUGIN_ENTRY_EXPORTS = {
   ],
   '@deepseek-ai/dsh-session-title': [
     'SessionTitleProviderId', 'fallbackSessionTitle', 'foldSessionTitle', 'normalizeSessionTitle',
-    'titleProjectionDefinition', 'truncateTitleUtf8',
+    'titleProjectionDefinition', 'titleRevisionProjectionDefinition', 'truncateTitleUtf8',
   ],
   '@deepseek-ai/dsh-settings': ['redactSecrets'],
   '@deepseek-ai/dsh-skill': [
@@ -177,7 +187,7 @@ export const EXISTING_PLUGIN_ENTRY_EXPORTS = {
     'DEFAULT_ROOT_PREFIX', 'discoverDefaultRoots', 'encodeSegment', 'isErrno', 'privateRoot', 'saveTextFile',
     'sessionDir', 'sweepSpillRoots',
   ],
-  '@deepseek-ai/dsh-storage': ['BackendRegistry', 'UNIT_NAME_RE', 'storageBackendServiceKey'],
+  '@deepseek-ai/dsh-storage': ['BackendRegistry', 'UNIT_NAME_RE', 'storageBackendServiceKey', 'closeOwnedKvUnits'],
   '@deepseek-ai/dsh-storage-domain': ['DomainFacility', 'defineDomain', 'descriptorOf', 'domainTable'],
   '@deepseek-ai/dsh-storage-json': ['JsonStorageBackend'],
   '@deepseek-ai/dsh-storage-sqlite': ['STORAGE_SQLITE_SCHEMA_VERSION', 'SqliteStorageBackend'],
@@ -227,7 +237,7 @@ export const EXISTING_PLUGIN_ENTRY_EXPORTS = {
     'RUN_CODE_NAME', 'TOOL_ABORTED', 'TOOL_ABORTED_BEFORE_DISPATCH', 'assertObjectJsonSchema',
     'assertSupportedJsonSchema', 'defineTool', 'isJsonSchemaRecord', 'isPlainJsonArray', 'isPlainJsonRecord',
     'parameterSchemaSpecToJsonSchema', 'projectToolSchema', 'validateArgs', 'validateJsonSchemaValue',
-    'valueSchemaSpecToJsonSchema',
+    'valueSchemaSpecToJsonSchema', 'toolDescriptorOf',
   ],
   '@deepseek-ai/dsh-typert-loader': ['TYPERT_HOST_EXPORT', 'validateTypertManifest'],
   '@deepseek-ai/dsh-typert-registry': ['typertEndpoint', 'typertKey', 'typertPackageKey'],

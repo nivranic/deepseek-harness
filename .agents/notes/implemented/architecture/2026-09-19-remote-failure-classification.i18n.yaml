@@ -1,0 +1,46 @@
+# Bilingual-pair consistency record for 2026-09-19-remote-failure-classification.md (docs/i18n/README.md): per heading
+# section, a hash of its English and Chinese blocks outside code blocks and generated regions.
+# After editing either side, bring the other along and re-record with:
+#   pnpm run verify-translation-pairing --write .agents/notes/implemented/architecture/2026-09-19-remote-failure-classification.md
+/agent-note-shared-client-classification-of-remote-failure-codes:
+  en: bcb13c5ce3825d61
+  zh: fa6db88456ec68f8
+/agent-note-shared-client-classification-of-remote-failure-codes/problem:
+  en: 1672423d425a7932
+  zh: 5f6ec40fbd72ab48
+/agent-note-shared-client-classification-of-remote-failure-codes/current-upstream-boundary:
+  en: 844ed4b66b59ccdc
+  zh: 5f27e04f6c545f68
+/agent-note-shared-client-classification-of-remote-failure-codes/decision:
+  en: 7827ea95ba3b0f8c
+  zh: 975bdbef54cba276
+/agent-note-shared-client-classification-of-remote-failure-codes/alternatives-considered:
+  en: 8d462ead91948371
+  zh: c87fba6175100e3e
+/agent-note-shared-client-classification-of-remote-failure-codes/contract:
+  en: 39dca8b129d9a46f
+  zh: 749371ae285039b8
+/agent-note-shared-client-classification-of-remote-failure-codes/persistence:
+  en: 9df6deb0995cb991
+  zh: 8e13aaac7c423a04
+/agent-note-shared-client-classification-of-remote-failure-codes/security:
+  en: a0894d33bb9dcd7b
+  zh: 85b7d6cf5f9d5633
+/agent-note-shared-client-classification-of-remote-failure-codes/compatibility:
+  en: c317b966d7d5dd95
+  zh: e33cc957273a8fb7
+/agent-note-shared-client-classification-of-remote-failure-codes/consequences:
+  en: 706479f2b38bdb9b
+  zh: 3100f43133ca7b20
+/agent-note-shared-client-classification-of-remote-failure-codes/failure-handling:
+  en: 3cea15ba2cf0eeb4
+  zh: 094fed4309993076
+/agent-note-shared-client-classification-of-remote-failure-codes/tests:
+  en: fb9b83669c41937a
+  zh: c7771ab5fcad972c
+/agent-note-shared-client-classification-of-remote-failure-codes/rollout:
+  en: c337779d67125ea9
+  zh: 09ea042b58b9648f
+/agent-note-shared-client-classification-of-remote-failure-codes/rollback:
+  en: 5c1bfa685541d493
+  zh: 799de27e8af7a646

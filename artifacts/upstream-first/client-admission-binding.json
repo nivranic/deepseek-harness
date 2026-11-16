@@ -1,0 +1,31 @@
+{
+  "schemaVersion": 1,
+  "status": "PASS",
+  "cases": [
+    {
+      "path": "artifacts/upstream-first/client-admission-source.json",
+      "status": "PASS",
+      "rejected": "Client admission source record changed"
+    },
+    {
+      "path": "packages/api/gateway/src/client/preparation.ts",
+      "status": "PASS",
+      "rejected": "Client admission sourceFiles changed after validation"
+    },
+    {
+      "path": "packages/api/remotes/src/client/index.ts",
+      "status": "PASS",
+      "rejected": "Client admission sourceFiles changed after validation"
+    },
+    {
+      "path": "packages/api/gateway/lib/client.js",
+      "status": "PASS",
+      "rejected": "Client admission builtFiles changed after validation"
+    },
+    {
+      "path": ".artifacts/client-admission-before/packages/api/remotes/src/client/index.ts",
+      "status": "PASS",
+      "rejected": "Client admission saved input changed"
+    }
+  ]
+}

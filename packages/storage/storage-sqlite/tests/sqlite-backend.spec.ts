@@ -20,7 +20,9 @@ function backendAt(path: string): SqliteStorageBackend {
 const backends: SqliteStorageBackend[] = []
 const dirs: string[] = []
 afterEach(async () => {
-  for (const backend of backends.splice(0)) await backend.close()
+  // Failed owner teardown is retained by close() after the database is released.
+  // The conformance cases assert those rejections before fallback cleanup.
+  await Promise.allSettled(backends.splice(0).map(backend => backend.close()))
   for (const d of dirs.splice(0)) await rm(d, { recursive: true, force: true })
 })
 

@@ -1,0 +1,16 @@
+{
+  "status": "PASS",
+  "controls": 3,
+  "sourceRecord": {
+    "path": "artifacts/upstream-first/time-context-source.json",
+    "sha256": "5ebd6bf32b34d8fd318ecda95cdf3463c4ac36e1b8007e5bcd318d7d4dace2cb"
+  },
+  "generator": {
+    "path": "artifacts/upstream-first/write-reports.mjs",
+    "sha256": "19fad1792cec7a8d9f523a439620b81212911d6ca9ea85670326f24178cd7b76"
+  },
+  "helper": {
+    "path": ".artifacts/check-time-context-binding.mjs",
+    "sha256": "4fafa42701ae29d344e8c2d60405d8904fae845d502ce4769e75e0a973b29f34"
+  }
+}

@@ -2,7 +2,7 @@ import { resolve } from 'node:path'
 import { Context } from '@deepseek-ai/cordis'
 import SessionStore, { SESSION_FORMAT_VERSION, type SessionId, type SessionHeader } from '@deepseek-ai/dsh-session'
 import TypertRegistry from '@deepseek-ai/dsh-typert-registry'
-import { describe, expect, it, vi } from 'vitest'
+import { describe, expect, it, onTestFinished, vi } from 'vitest'
 import WorkspaceFiles from '../src/index.ts'
 import { brandString } from '@deepseek-ai/dsh-brand'
 
@@ -13,6 +13,19 @@ const CAPS = {
   maxEntries: 100,
   search: { maxResults: 100, maxEntries: 1000, graceMs: 3000, timeoutMs: 30000, stderrMaxBytes: 65536 },
 }
+
+it('advertises independent operation support without granting filesystem access', () => {
+  const ctx = new Context()
+  onTestFinished(async () => { await ctx.fiber.dispose() })
+  const service = new WorkspaceFiles(ctx, CAPS)
+  expect(service.typertRemote.capabilities).toEqual([
+    { id: 'workspace-files.stat.v1', methods: ['stat'], requiredPermission: 'view' },
+    { id: 'workspace-files.list.v1', methods: ['list'], requiredPermission: 'view' },
+    { id: 'workspace-files.read-text.v1', methods: ['read'], requiredPermission: 'view' },
+    { id: 'workspace-files.read-bytes.v1', methods: ['readBytes'], requiredPermission: 'view' },
+    { id: 'workspace-files.changes.v1', methods: ['changes'], requiredPermission: 'view' },
+  ])
+})
 
 function header(id: SessionId, cwd?: string): SessionHeader {
   return {

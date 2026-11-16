@@ -52,7 +52,7 @@ export type TypertResourceId<Resource> = Resource extends TypertResource<infer I
  * Merge-extensible resource kinds whose identities a Remote call or forwarded
  * event may carry. The package that owns an identity type declares its kind;
  * the value is that kind's identity type, a string type such as a branded id.
- * `global` names the built-in identity-less resource and is never a kind here.
+ * `global` and `host` name built-in identity-less resources and are never kinds here.
  */
 export interface TypertResourceMap {}
 
@@ -95,14 +95,24 @@ export type RemoteWireArgs<Args extends unknown[]> = { [Index in keyof Args]: Re
 /** Merge-extensible direct Remote method signatures generated for consumers. */
 export interface TypertRemoteMap {}
 
+/** Portable validation diagnostic; validator-specific metadata is not transported. */
+export interface RemoteValidationIssue {
+  /** Validator diagnostic code; this is distinct from the Remote failure code. */
+  readonly code: string
+  /** Human-readable diagnostic supplied by the validating owner. */
+  readonly message: string
+  /** Object keys and array indices; symbol keys use their diagnostic string. */
+  readonly path: readonly (string | number)[]
+}
+
 /**
  * Merge-extensible Remote failure vocabulary: this package declares the
  * universal carrier codes once; the Gateway merges its infrastructure codes
  * and every owner merges its domain codes next to the throwing code.
  */
 export interface RemoteErrorDetailsMap {
-  /** Owner-side business validation refused the request; `issues` carries codec output when one produced it. */
-  'gateway/bad-request': { readonly issues?: readonly object[] }
+  /** Owner-side business validation refused the request; `issues` carries portable diagnostics when a codec produced them. */
+  'gateway/bad-request': { readonly issues?: readonly RemoteValidationIssue[] }
   /** The call was cancelled by the carrier signal or the backend. */
   'gateway/cancelled': {}
   /** Carrier, dispatch, or unclassified Host failure. */
@@ -916,7 +926,7 @@ export interface TypertResourceRegistry {
    * @param kind - merge-declared resource kind.
    * @param declaration - either a default wire field or a resolver, never both.
    * @returns disposer withdrawing the exact registration.
-   * @throws Error when the kind is already registered or is `global`, the built-in resource kind.
+   * @throws Error when the kind is already registered or is a built-in kind (`global` or `host`).
    */
   register(kind: TypertResourceKind, declaration: TypertResourceDeclaration): TypertDisposer
   /**

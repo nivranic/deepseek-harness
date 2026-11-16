@@ -1,0 +1,70 @@
+{
+  "status": "PASS",
+  "scope": "Report bindings and audit for the protocol-version interop matrix; cross-release interop, device-revocation rows, closed error semantics, and change identity confirmation stay open; full Upstream-First objective remains in progress",
+  "gate0": {
+    "validation": "PASS",
+    "gate0": "PASS",
+    "paths": 1938,
+    "components": 129,
+    "specificationCoverage": {
+      "status": "PASS",
+      "numberedSections": 81,
+      "nonEmptySourceLines": 1983,
+      "acceptanceProven": false
+    }
+  },
+  "sourceRecord": {
+    "path": "artifacts/upstream-first/protocol-interop-matrix-source.json",
+    "sha256": "b4e16d3653e7cf6549dd6eb790ac592c351790b74fc18aaefbca7379182144d5"
+  },
+  "generator": {
+    "path": "artifacts/upstream-first/write-reports.mjs",
+    "sha256": "397c22af5fcd4a10ce4722209c331f10b6899f9af05c5a6c6befaed4d3b88da0"
+  },
+  "binding": {
+    "path": "artifacts/upstream-first/protocol-interop-matrix-binding.json",
+    "sha256": "a8446fe1d2a0ba00491fdad37a11c9befee41d462d9ccb38b4029ce59f05ce39"
+  },
+  "helpers": [
+    {
+      "path": ".artifacts/advance-protocol-interop-matrix-reports.mjs",
+      "sha256": "6d077c00cb4f198494700b8d0668a26bd472f88d63607da9b4c35d4ffd6a283d"
+    },
+    {
+      "path": ".artifacts/capture-protocol-interop-matrix-validation.mjs",
+      "sha256": "1e7368058b1aee5d1c1eef88f630ad9ed9563e9100ec305c93e23cab2a05b943"
+    }
+  ],
+  "reports": [
+    {
+      "path": "IMPLEMENTATION_STATUS.md",
+      "sha256": "57c43adb2fc629a238fe8ff2fdbed32afab58e3080f957a601d860806762530e"
+    },
+    {
+      "path": "artifacts/upstream-first/evidence.json",
+      "sha256": "07ab2cfc1c03808de0f57fc13c7f4d377dc1f09dd3c7c9d563685c9ea2803098"
+    }
+  ],
+  "checks": [
+    {
+      "path": ".artifacts/protocol-interop-matrix-binding.log",
+      "sha256": "ab1fe71c82cadc1bac2015068794868935fe74c77edd64411ac3f72a6eac1903"
+    },
+    {
+      "path": ".artifacts/protocol-interop-matrix-audit-tests.log",
+      "sha256": "8e68617ddf74d5f795ffb6c1e2e0cf24ed770f79bbc887b1f8bb7c6921830daf"
+    },
+    {
+      "path": ".artifacts/protocol-interop-matrix-gate0.log",
+      "sha256": "505d74ef938f5d34d85490d37e0176ba804d93272fcf465ce2544a02c56b3f90"
+    },
+    {
+      "path": ".artifacts/protocol-interop-matrix-report-diff-check.log",
+      "sha256": "e3b0c44298fc1c149afbf4c8996fb92427ae41e4649b934ca495991b7852b855"
+    },
+    {
+      "path": ".artifacts/protocol-interop-matrix-report-generation.log",
+      "sha256": "fe010532f71a6341467ae5719b29ac19470895de1d481156335b8f70a3273ed5"
+    }
+  ]
+}

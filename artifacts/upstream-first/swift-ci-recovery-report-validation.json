@@ -1,0 +1,70 @@
+{
+  "status": "PASS",
+  "scope": "Report bindings and audit for the recovered swift-contract macOS CI lane; library importability, payload validation, device and multi-version qualification remain unproven; full Upstream-First objective remains in progress",
+  "gate0": {
+    "validation": "PASS",
+    "gate0": "PASS",
+    "paths": 1938,
+    "components": 129,
+    "specificationCoverage": {
+      "status": "PASS",
+      "numberedSections": 81,
+      "nonEmptySourceLines": 1983,
+      "acceptanceProven": false
+    }
+  },
+  "sourceRecord": {
+    "path": "artifacts/upstream-first/swift-ci-recovery-source.json",
+    "sha256": "a361bf7a387da43be1bd20c6ffa3d317ff0e9d2a57f95664185b863d55f9b041"
+  },
+  "generator": {
+    "path": "artifacts/upstream-first/write-reports.mjs",
+    "sha256": "d80c9341a5236d4402d9365fb201bb091fc413fe7e57f95f80b37b53bb4a299b"
+  },
+  "binding": {
+    "path": "artifacts/upstream-first/swift-ci-recovery-binding.json",
+    "sha256": "32693aac4f8620a38e8306d55d0c856be4cf4b000a6474c9bb03fe2a8e303df9"
+  },
+  "helpers": [
+    {
+      "path": ".artifacts/advance-swift-ci-recovery-reports.mjs",
+      "sha256": "44f86288a19a1f9638f96895f4f946629c0e8e6699271a4d750d08043a30a846"
+    },
+    {
+      "path": ".artifacts/capture-swift-ci-recovery-validation.mjs",
+      "sha256": "8c304a89c41c618a4ea46b475bfb3381e84c3b119f4bc9322d29b7907e25a5bf"
+    }
+  ],
+  "reports": [
+    {
+      "path": "IMPLEMENTATION_STATUS.md",
+      "sha256": "e95c15037ffc045252ce6254948e8a714f134fdf5f2b637e8845a22e0cdebdf9"
+    },
+    {
+      "path": "artifacts/upstream-first/evidence.json",
+      "sha256": "8ba83187054fb165c52766200521dba86bc12fdfe8798330465686ac7ce20b7b"
+    }
+  ],
+  "checks": [
+    {
+      "path": ".artifacts/swift-ci-recovery-binding.log",
+      "sha256": "1dfbc85c4762d24d1e3973af88d4e0d111e49c0ab232a24f02e22930b3dbb78c"
+    },
+    {
+      "path": ".artifacts/swift-ci-recovery-audit-tests.log",
+      "sha256": "268bb643519f038cd48d5d4dddd1f5594172a65d55de3e43c6b5fdbeb34cfc4d"
+    },
+    {
+      "path": ".artifacts/swift-ci-recovery-gate0.log",
+      "sha256": "505d74ef938f5d34d85490d37e0176ba804d93272fcf465ce2544a02c56b3f90"
+    },
+    {
+      "path": ".artifacts/swift-ci-recovery-report-diff-check.log",
+      "sha256": "e3b0c44298fc1c149afbf4c8996fb92427ae41e4649b934ca495991b7852b855"
+    },
+    {
+      "path": ".artifacts/swift-ci-recovery-report-generation.log",
+      "sha256": "fe010532f71a6341467ae5719b29ac19470895de1d481156335b8f70a3273ed5"
+    }
+  ]
+}

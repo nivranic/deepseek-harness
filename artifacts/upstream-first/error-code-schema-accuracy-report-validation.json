@@ -1,0 +1,70 @@
+{
+  "status": "PASS",
+  "scope": "Report bindings and audit for Accurate known-code meaning and immutable historical source selection; full closed semantics and phases remain unproven; full Upstream-First objective remains in progress",
+  "gate0": {
+    "validation": "PASS",
+    "gate0": "PASS",
+    "paths": 1938,
+    "components": 129,
+    "specificationCoverage": {
+      "status": "PASS",
+      "numberedSections": 81,
+      "nonEmptySourceLines": 1983,
+      "acceptanceProven": false
+    }
+  },
+  "sourceRecord": {
+    "path": "artifacts/upstream-first/error-code-schema-accuracy-source.json",
+    "sha256": "e0fd14a01132db75b5e9fc3aac5f89c922add6afc142951c07801f3018db9dac"
+  },
+  "generator": {
+    "path": "artifacts/upstream-first/write-reports.mjs",
+    "sha256": "4cd41656dbcf576fcbd2904bb678d7bc0ffda1327100cf41b1a6b4a697fe9fc1"
+  },
+  "binding": {
+    "path": "artifacts/upstream-first/error-code-schema-accuracy-binding.json",
+    "sha256": "f7d4cf6879a750c9ead70fe2877e567c5e43a70cf150883b7c272a5a615b5fec"
+  },
+  "helpers": [
+    {
+      "path": ".artifacts/advance-error-code-schema-accuracy-reports.mjs",
+      "sha256": "fdf92c02895cd103ae10ccbb5c19af1829425321dfd4ea7e25bed100b37b8086"
+    },
+    {
+      "path": ".artifacts/capture-error-code-schema-accuracy-validation.mjs",
+      "sha256": "a85d8991c506899542df5eb0c42ae16bb07fcc0725d1baa7637554d5d29790d1"
+    }
+  ],
+  "reports": [
+    {
+      "path": "IMPLEMENTATION_STATUS.md",
+      "sha256": "ca901cd29c21f7e8dee0e0fde82240d38fe7477f956129cc04ef1967a51167c8"
+    },
+    {
+      "path": "artifacts/upstream-first/evidence.json",
+      "sha256": "15d4b175080a6ef8199afe44b030bb1be170e7a50735df8cb0a82874c45067ee"
+    }
+  ],
+  "checks": [
+    {
+      "path": ".artifacts/error-code-schema-accuracy-binding.log",
+      "sha256": "8845487863823261cc6c6b3672e17aeb2589bd2fdee9ae71f1b5a9716e506e28"
+    },
+    {
+      "path": ".artifacts/error-code-schema-accuracy-audit-tests.log",
+      "sha256": "c7ce9ecce4d1ab4d6386d8e2bf799406eeb0f01a3f586435bb3878ea8a89885c"
+    },
+    {
+      "path": ".artifacts/error-code-schema-accuracy-gate0.log",
+      "sha256": "5427f71ff5b67b500b327d785dcaf84a7af2c6edd24b1833c4c7d83ad2cf37c8"
+    },
+    {
+      "path": ".artifacts/error-code-schema-accuracy-report-diff-check.log",
+      "sha256": "e3b0c44298fc1c149afbf4c8996fb92427ae41e4649b934ca495991b7852b855"
+    },
+    {
+      "path": ".artifacts/error-code-schema-accuracy-report-generation.log",
+      "sha256": "fee38423682f6d1f2e0a50aabd65d5aa82ca06f4423805940cb852603041bf6a"
+    }
+  ]
+}

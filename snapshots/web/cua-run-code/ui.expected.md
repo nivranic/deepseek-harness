@@ -1,6 +1,7 @@
 - banner:
   - navigation "Session hierarchy": Use cua_run_code to select test.fixture,
   - text: Standard mode
+  - button "Continue on another device"
   - button "More actions"
   - button "Open right sidebar"
   - tablist:

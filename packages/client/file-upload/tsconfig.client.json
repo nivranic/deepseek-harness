@@ -6,6 +6,7 @@
     "tsBuildInfoFile": "lib/tsconfig.client.tsbuildinfo"
   },
   "files": [
+    "src/capabilities.ts",
     "src/client/contract.ts",
     "src/client/index.ts",
     "src/client/runtime.ts",
@@ -13,6 +14,8 @@
     "src/types.ts"
   ],
   "references": [
+    { "path": "../../api/gateway/tsconfig.client.json" },
+    { "path": "../connection/tsconfig.client.json" },
     { "path": "../../../vendor/cordis" },
     { "path": "../../util/brand" },
     { "path": "../../util/crypto" },

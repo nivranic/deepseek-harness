@@ -1,0 +1,16 @@
+{
+  "status": "PASS",
+  "controls": 3,
+  "sourceRecord": {
+    "path": "artifacts/upstream-first/mime-inference-source.json",
+    "sha256": "d34b61c8bfcba14854146eac6d200889786097b6a988d289ad7b2ff268e01493"
+  },
+  "generator": {
+    "path": "artifacts/upstream-first/write-reports.mjs",
+    "sha256": "584a4e4af3aa0559c5d1419c7ee18f33ef38cd91326c71f33e397669dcb29e47"
+  },
+  "helper": {
+    "path": ".artifacts/check-mime-inference-binding.mjs",
+    "sha256": "a0117735f88c68567e1f45b728f056e37f0509e1214719f12427520d67f288c8"
+  }
+}

@@ -1,0 +1,22 @@
+# Bilingual-pair consistency record for 2026-10-06-mutation-idempotency-lanes.md (docs/i18n/README.md): per heading
+# section, a hash of its English and Chinese blocks outside code blocks and generated regions.
+# After editing either side, bring the other along and re-record with:
+#   pnpm run verify-translation-pairing --write .agents/notes/implemented/architecture/2026-10-06-mutation-idempotency-lanes.md
+/agent-note-mutation-retry-settlement-is-pinned-per-write-lane:
+  en: 7d3a16daf555603d
+  zh: 18ed645996d73003
+/agent-note-mutation-retry-settlement-is-pinned-per-write-lane/problem:
+  en: 6d5e99745e80f19b
+  zh: bda2a01afb37cf4c
+/agent-note-mutation-retry-settlement-is-pinned-per-write-lane/decision:
+  en: 87495a3da99b7a4c
+  zh: e94c3b8fcdeb066d
+/agent-note-mutation-retry-settlement-is-pinned-per-write-lane/alternatives-considered:
+  en: b71790b2eb77d0f1
+  zh: 17e1c1707e33641d
+/agent-note-mutation-retry-settlement-is-pinned-per-write-lane/consequences:
+  en: 66796677e5bf63c3
+  zh: 4b6fd0f9ccbf75a6
+/agent-note-mutation-retry-settlement-is-pinned-per-write-lane/open-follow-ups:
+  en: b3dc6177498d974e
+  zh: 8c460621a5f85149

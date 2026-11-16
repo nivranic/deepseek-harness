@@ -1,0 +1,70 @@
+{
+  "status": "PASS",
+  "scope": "Report bindings and audit for the apple roster swift increment: the section 28 native Host roster vocabulary gains its Swift contract mirror, proven by the shared fixture set running through the Kotlin companion suite in gradle parity while the Swift self-check runs on the macOS CI lane; the remaining specification sections stay open; full Upstream-First objective remains in progress",
+  "gate0": {
+    "validation": "PASS",
+    "gate0": "PASS",
+    "paths": 1938,
+    "components": 129,
+    "specificationCoverage": {
+      "status": "PASS",
+      "numberedSections": 81,
+      "nonEmptySourceLines": 1983,
+      "acceptanceProven": false
+    }
+  },
+  "sourceRecord": {
+    "path": "artifacts/upstream-first/apple-roster-swift-source.json",
+    "sha256": "c986fa9f3e0705935f4421323884607462fbd5c0349f1e6ad4ffbf4a4188cd04"
+  },
+  "generator": {
+    "path": "artifacts/upstream-first/write-reports.mjs",
+    "sha256": "fb1febf2a12094538347d240c0f667a7f8bac57040eb77fcb0dee39498441146"
+  },
+  "binding": {
+    "path": "artifacts/upstream-first/apple-roster-swift-binding.json",
+    "sha256": "2a39138b9e61fae1301a678dafc82f8b0817706950d1427dcd43135a7655b993"
+  },
+  "helpers": [
+    {
+      "path": ".artifacts/advance-apple-roster-swift-reports.mjs",
+      "sha256": "ca817d8e6a37507b886c868e89ee8f8175df82f22390b830ee9251c98e2bea33"
+    },
+    {
+      "path": ".artifacts/capture-apple-roster-swift-validation.mjs",
+      "sha256": "64d124353890e67199d8d13a737d59b56c6ad300fc4a1d6a0fd5d6c86095567e"
+    }
+  ],
+  "reports": [
+    {
+      "path": "IMPLEMENTATION_STATUS.md",
+      "sha256": "053e80e87046806f5bf0b9f4f1b709ff29da628f323ec96de3b672a9185bd275"
+    },
+    {
+      "path": "artifacts/upstream-first/evidence.json",
+      "sha256": "31f798177dc82cbc8329354d84c342fe4ab62b2f6d1bc171ce9640788dbdb23d"
+    }
+  ],
+  "checks": [
+    {
+      "path": ".artifacts/apple-roster-swift-binding.log",
+      "sha256": "b533b7501202489de6881cda4aaac7343ca1476f2581b8a4e4d2679a3e4e3c57"
+    },
+    {
+      "path": ".artifacts/apple-roster-swift-audit-final.log",
+      "sha256": "ef4b84e3263a4d4186aa123928ab8c99b0ebc99bd76d3c69f06eaa4e3738f773"
+    },
+    {
+      "path": ".artifacts/apple-roster-swift-gate0-final.log",
+      "sha256": "505d74ef938f5d34d85490d37e0176ba804d93272fcf465ce2544a02c56b3f90"
+    },
+    {
+      "path": ".artifacts/apple-roster-swift-report-diff-check.log",
+      "sha256": "e3b0c44298fc1c149afbf4c8996fb92427ae41e4649b934ca495991b7852b855"
+    },
+    {
+      "path": ".artifacts/apple-roster-swift-report-generation.log",
+      "sha256": "fe010532f71a6341467ae5719b29ac19470895de1d481156335b8f70a3273ed5"
+    }
+  ]
+}

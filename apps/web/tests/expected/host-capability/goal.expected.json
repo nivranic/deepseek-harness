@@ -1,0 +1,11 @@
+{
+  "rejection": "stale goal ref \"capability-goal\" revision 1; current is \"capability-goal\" revision 2 (gateway/internal)",
+  "editRevisions": [1, 2],
+  "changes": ["create", "edit", "edit", "clear"],
+  "mutationCalls": ["/api/goals/edit", "/api/goals/edit", "/api/goals/clear"],
+  "retainedComposerDraft": true,
+  "goalDraftRetainedAfterRefusal": true,
+  "reconnectShowsCurrentGoal": true,
+  "noMutationReplay": true,
+  "goalInitiallySeededAndDisarmed": true
+}

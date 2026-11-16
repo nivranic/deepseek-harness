@@ -1,0 +1,25 @@
+# Bilingual-pair consistency record for 2026-09-27-android-photo-attachments.md (docs/i18n/README.md): per heading
+# section, a hash of its English and Chinese blocks outside code blocks and generated regions.
+# After editing either side, bring the other along and re-record with:
+#   pnpm run verify-translation-pairing --write .agents/notes/implemented/architecture/2026-09-27-android-photo-attachments.md
+/agent-note-android-photos-use-staged-image-receipts-and-one-ordered-attachment-intent:
+  en: 790a184e25f825b8
+  zh: a1903193066ea833
+/agent-note-android-photos-use-staged-image-receipts-and-one-ordered-attachment-intent/problem:
+  en: 8ac5eef4b7767025
+  zh: f36eb5451bf45fd2
+/agent-note-android-photos-use-staged-image-receipts-and-one-ordered-attachment-intent/decision:
+  en: df051ad235bbd7f8
+  zh: 4f66bfb3652ae076
+/agent-note-android-photos-use-staged-image-receipts-and-one-ordered-attachment-intent/receipt-lifetime-and-recovery:
+  en: 9f255647b8cb974c
+  zh: 58e9b060dbb488de
+/agent-note-android-photos-use-staged-image-receipts-and-one-ordered-attachment-intent/alternatives-considered:
+  en: f40feecc30fcc72f
+  zh: 70ec6e7414a7b197
+/agent-note-android-photos-use-staged-image-receipts-and-one-ordered-attachment-intent/build-verification:
+  en: d9710f85f7ff21be
+  zh: 433242cd85de5396
+/agent-note-android-photos-use-staged-image-receipts-and-one-ordered-attachment-intent/consequences:
+  en: 0eb095b65ed92692
+  zh: fb253687231da342

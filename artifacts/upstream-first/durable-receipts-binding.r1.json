@@ -1,0 +1,16 @@
+{
+  "status": "PASS",
+  "controls": 3,
+  "sourceRecord": {
+    "path": "artifacts/upstream-first/durable-receipts-source.json",
+    "sha256": "ae2ed98c43d5d532fa04ea1d6232016e2228595de4448194a3b60de22622c8f8"
+  },
+  "generator": {
+    "path": "artifacts/upstream-first/write-reports.mjs",
+    "sha256": "48030b33db021a665cb661e3cc259f5cd9d24720a25017a3fdaffee7c6d3f0f6"
+  },
+  "helper": {
+    "path": ".artifacts/check-durable-receipts-binding.mjs",
+    "sha256": "5cc6cebeb59f389060ccad175c94867864d9c840e750c818ad22a8c65a0bdb6d"
+  }
+}

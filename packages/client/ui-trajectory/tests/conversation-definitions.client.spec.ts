@@ -390,7 +390,7 @@ describe('Trajectory conversation Definitions', () => {
   })
 
   it('addresses tool-call inspection with the persisted call identity', () => {
-    expect(trajectoryViewDefinition.toolCallFocus?.('call-1')).toBe('call-1')
+    expect(trajectoryViewDefinition.toolCallFocus?.('call-1', { turn: 1, step: 2 })).toBe('[1,2,"call-1"]')
   })
 
   it('preserves developer tool-change content', () => {

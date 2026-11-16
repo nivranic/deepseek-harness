@@ -1,0 +1,22 @@
+# Bilingual-pair consistency record for 2026-10-12-lite-preset-projection.md (docs/i18n/README.md): per heading
+# section, a hash of its English and Chinese blocks outside code blocks and generated regions.
+# After editing either side, bring the other along and re-record with:
+#   pnpm run verify-translation-pairing --write .agents/notes/implemented/architecture/2026-10-12-lite-preset-projection.md
+/agent-note-lite-persona-reuses-the-official-system-prompt-through-a-projected-preset-catalog:
+  en: 7ed257d1ff42e517
+  zh: 42cc9f4e199a3398
+/agent-note-lite-persona-reuses-the-official-system-prompt-through-a-projected-preset-catalog/problem:
+  en: d9622e09dfa83000
+  zh: 45d375ce64150e7d
+/agent-note-lite-persona-reuses-the-official-system-prompt-through-a-projected-preset-catalog/decision:
+  en: 38d2efdfb56adc2f
+  zh: 69dcb8e94ea1d3db
+/agent-note-lite-persona-reuses-the-official-system-prompt-through-a-projected-preset-catalog/alternatives-considered:
+  en: aac4be9beac5216e
+  zh: f14895384add3a69
+/agent-note-lite-persona-reuses-the-official-system-prompt-through-a-projected-preset-catalog/consequences:
+  en: 60112a4c32e0332a
+  zh: fe9d91d927a1c3c6
+/agent-note-lite-persona-reuses-the-official-system-prompt-through-a-projected-preset-catalog/open-follow-ups:
+  en: c714d4d7307c546d
+  zh: 922c17a1e87dbb33

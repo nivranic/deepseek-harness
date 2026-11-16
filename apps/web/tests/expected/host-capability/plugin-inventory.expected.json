@@ -1,0 +1,15 @@
+{
+  "reads": 3,
+  "cancelledReads": 0,
+  "lazyRead": true,
+  "sameMountSnapshotRetainedAcrossReconnect": true,
+  "sameMountSearchRetained": true,
+  "sameMountExpansionRetained": true,
+  "reopenedSearchReset": true,
+  "reopenedExpansionReset": true,
+  "oldMountReplyIgnored": true,
+  "replacementSearchPreserved": true,
+  "replacementExpansionPreserved": true,
+  "composerDraftRetained": true,
+  "realLoaderRows": true
+}

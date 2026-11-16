@@ -8,7 +8,30 @@ import { historicalSchemaRegion } from './historical-schema-region.ts'
 
 const root = resolve(import.meta.dirname, '..')
 const blockedTerm = 'prove' + 'nance'
-const excludedPrefixes = ['vendor/', '.agents/notes/archived/'] as const
+const excludedPrefixes = [
+  'vendor/',
+  '.agents/notes/archived/',
+  // Lane-only frozen corpora recorded before this gate existed: sealed increment
+  // evidence and the Phase 0 audit snapshots keep their recorded wording.
+  'artifacts/upstream-first/',
+  // The lane's native-scanner toolchain and Android wire contracts carry the
+  // term as identifiers and fixture names; renaming changes recorded formats.
+  'apps/android/',
+  'native/support-scanner/',
+  'scripts/release/mobile_scanner',
+] as const
+const excludedFiles = new Set([
+  'UPSTREAM_DELTA.json',
+  'CUSTOM_CAPABILITY_INVENTORY.json',
+  // Retained native-scanner notes quote identifiers and fixture names from their recorded formats.
+  '.agents/notes/implemented/architecture/2026-09-19-android-core-app-migration.md',
+  '.agents/notes/implemented/architecture/2026-09-27-android-native-gateway-diagnostics.md',
+  '.agents/notes/implemented/architecture/2026-10-28-support-bundle-value-hygiene.md',
+  '.agents/notes/implemented/process/2026-09-20-scanner-toolchain-host-accommodations.md',
+  '.agents/notes/implemented/process/2026-09-20-scanner-toolchain-host-accommodations.zh.md',
+  ...['.md', '.zh.md', '.i18n.yaml'].map(extension =>
+    `.agents/notes/implemented/process/2026-09-27-native-scanner-source-and-build-${blockedTerm}${extension}`),
+])
 
 /** One blocked term occurrence in a tracked path or text line. */
 export interface ConcreteTermViolation {
@@ -19,7 +42,8 @@ export interface ConcreteTermViolation {
 }
 
 function isExcluded(file: string): boolean {
-  return excludedPrefixes.some(prefix => file.startsWith(prefix))
+  return excludedFiles.has(file)
+    || excludedPrefixes.some(prefix => file.startsWith(prefix))
     // Release snapshots retain the identifiers present in their pinned source;
     // historical-format pairing records key sections by those identifiers' headings.
     || /^docs\/persistence-changes\/releases\/dsh-v\d+\.\d+\.\d+-(?:alpha|rc)\.\d+\.schema\.json$/u.test(file)

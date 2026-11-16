@@ -1,0 +1,31 @@
+# Bilingual-pair consistency record for README.md (docs/i18n/README.md): per heading
+# section, a hash of its English and Chinese blocks outside code blocks and generated regions.
+# After editing either side, bring the other along and re-record with:
+#   pnpm run verify-translation-pairing --write packages/api/host-diagnostics/README.md
+/:
+  en: 207448e2224165db
+  zh: e1ebe922ee562319
+/deepseek-ai-dsh-api-host-diagnostics:
+  en: 446defe845acf0e5
+  zh: 6505dc27975a4960
+/deepseek-ai-dsh-api-host-diagnostics/summary:
+  en: b3fc555ebdc641c4
+  zh: 12fbebd30949a616
+/deepseek-ai-dsh-api-host-diagnostics/table-of-contents:
+  en: 985bceb03d926712
+  zh: e7c79a45c076d448
+/deepseek-ai-dsh-api-host-diagnostics/support-bundle:
+  en: 35ffbe8a3cb41edb
+  zh: 9c41b343e64d0ef1
+/deepseek-ai-dsh-api-host-diagnostics/model-experience:
+  en: 81a599827030f6fd
+  zh: 026986ed7d90ef00
+/deepseek-ai-dsh-api-host-diagnostics/model-experience/kv-cache-effect:
+  en: 5c544055f637a29c
+  zh: 6761e4747b81079a
+/deepseek-ai-dsh-api-host-diagnostics/known-limitations-and-deferred-work:
+  en: 337f3c2a14a01de0
+  zh: 902ac5de58ddd35e
+/deepseek-ai-dsh-api-host-diagnostics/known-limitations-and-deferred-work/dev-note:
+  en: 6674ca7678832d66
+  zh: e8093b9f3fc3248d

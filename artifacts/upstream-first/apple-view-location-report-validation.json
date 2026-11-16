@@ -1,0 +1,66 @@
+{
+  "status": "PASS",
+  "scope": "Report bindings and audit for the apple view location increment: the Swift half of the section 26 view-location handoff closes as contract-column parity — the §26 first-stage handoff payload dsh-session-view.v1 was previously mirrored byte-for-byte only by the Web Client and the Android core, and the Apple mirror NativeViewLocations.swift now adopts the same grammar: encode hand-builds the ordered ASCII JSON document {\"hostId\":…,\"sessionId\":…,\"anchorSeq\":…} behind the v1 prefix in base64url (a dictionary-ordering encoder would emit different bytes; only quotes and backslashes need escaping in the ASCII range) and decode fails loud at every parse boundary — unknown grammar prefix, non-base64url, undecodable bytes, invalid JSON, a field set other than exactly the three keys, non-string or empty ids, negative, fractional, boolean, -0 and beyond-safe-integer anchors — with the boolean anchor guarded by the CF type id (the NSNumber bridging trap, apple-roster-swift precedent), -0 rejected by sign and zero value together and the base64 bytes restored through ISO-Latin-1 mirroring the browser atob semantics; the shared 1/3/6 fixture set is consumed by the Kotlin NativeViewLocationFixtureTest driving the real codec under the 4096-character caller-side bound and by the Swift self-check section in main.swift so both codecs read and write identical payload bytes; the executed round is the Kotlin JVM suite round (:core:test, XML reports aggregating 75 suites / 467 tests with zero failures/errors/skips, up one suite and two tests through the new fixture test; :core:compileKotlin up-to-date as this increment adds no main-source Kotlin file; no app-compile round and no APK), with the Swift mirror honestly not compiled on this Windows host — the PR-channel swift-contract lane owns that evidence; the audit matrix stays at 43 files / 618 tests with both sealed rounds run serially green from the start (the prior generation's parallel-contention timeout lesson applied up front, so no -r1 process log exists), typecheck and lint are both clean (TYPECHECK_EXIT=0, LINT_EXIT=0), doc-quick, doc-sync and gate0 pass, and traceability section 26 closes the Swift phrase with three new candidate evidence paths; physical devices, the compiled Swift shell, Apple-shell payload consumption, the section 25 follow-resume Swift item, deep links and share routing stay open; full Upstream-First objective remains in progress",
+  "gate0": {
+    "validation": "PASS",
+    "gate0": "PASS",
+    "paths": 1938,
+    "components": 129,
+    "specificationCoverage": {
+      "status": "PASS",
+      "numberedSections": 81,
+      "nonEmptySourceLines": 1983,
+      "acceptanceProven": false
+    }
+  },
+  "sourceRecord": {
+    "path": "artifacts/upstream-first/apple-view-location-source.json",
+    "sha256": "44458545ee46b14d33167f3df9599915f71c3cdce82dc26b86128a0506f611fa"
+  },
+  "generator": {
+    "path": "artifacts/upstream-first/write-reports.mjs",
+    "sha256": "e4f5146ca96d0af1665018535e5d63391e61c79cfdb1ab8ecd33571486d131b7"
+  },
+  "binding": {
+    "path": "artifacts/upstream-first/apple-view-location-binding.json",
+    "sha256": "deee2b23ea55f6e5d63f76d45764c998fadf98d9149bd3775bfeffe0f963e97a"
+  },
+  "helpers": [
+    {
+      "path": ".artifacts/advance-apple-view-location-reports.mjs",
+      "sha256": "6e7245d466a4b6a2845459a65257a63bb2ea513ca25f6962fccd907890716ccd"
+    },
+    {
+      "path": ".artifacts/capture-apple-view-location-validation.mjs",
+      "sha256": "ad353a097c409147fcbbca261c754d66a6a4382ca99d3c5d8501674356577270"
+    }
+  ],
+  "reports": [
+    {
+      "path": "IMPLEMENTATION_STATUS.md",
+      "sha256": "1774c810c8453f84dc4e43639a5dcbfdb028c7553c908bd4b5a53433de999e73"
+    },
+    {
+      "path": "artifacts/upstream-first/evidence.json",
+      "sha256": "924b55268f41522d5acf447742aed0af466bac95c6f2cc2dad8e456134759b53"
+    }
+  ],
+  "checks": [
+    {
+      "path": ".artifacts/apple-view-location-binding.log",
+      "sha256": "168d948c889836928916dec4a00ed8d26b4361c578762a199372f72869c0bf51"
+    },
+    {
+      "path": ".artifacts/apple-view-location-audit-final.log",
+      "sha256": "856e2a93c13badd8efdec1d72e2bd184a51bc88686fd3ae5bca616e91c5695d4"
+    },
+    {
+      "path": ".artifacts/apple-view-location-gate0-final.log",
+      "sha256": "505d74ef938f5d34d85490d37e0176ba804d93272fcf465ce2544a02c56b3f90"
+    },
+    {
+      "path": ".artifacts/apple-view-location-report-generation.log",
+      "sha256": "fe010532f71a6341467ae5719b29ac19470895de1d481156335b8f70a3273ed5"
+    }
+  ]
+}

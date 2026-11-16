@@ -1,0 +1,44 @@
+{
+  "root": "C:\\Users\\11585\\AppData\\Local\\Temp\\dsh-plugin-argv-yEesrd",
+  "args": [
+    "add",
+    "file:./plugin with spaces",
+    "中文 & punctuation",
+    "embedded\"quote",
+    "",
+    "C:\\trailing\\",
+    "literal%DSH_LITERAL_VALUE%",
+    "literal!DSH_LITERAL_VALUE!"
+  ],
+  "outcomes": [
+    {
+      "name": "node-shell",
+      "status": 1,
+      "observed": [
+        "add",
+        "file:./plugin",
+        "with",
+        "spaces",
+        "中文"
+      ],
+      "matches": false,
+      "stderr": "'punctuation' is not recognized as an internal or external command,\r\noperable program or batch file.\r\n"
+    },
+    {
+      "name": "cross-spawn",
+      "status": 0,
+      "observed": [
+        "add",
+        "file:./plugin with spaces",
+        "中文 & punctuation",
+        "embedded\"quote",
+        "",
+        "C:\\trailing\\",
+        "literal%DSH_LITERAL_VALUE%",
+        "literal!DSH_LITERAL_VALUE!"
+      ],
+      "matches": true,
+      "stderr": ""
+    }
+  ]
+}

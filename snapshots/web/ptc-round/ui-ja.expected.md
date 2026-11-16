@@ -1,6 +1,7 @@
 - banner:
   - navigation "セッション階層": "Using ONE run_code program: run"
   - text: PTC モード
+  - button "別のデバイスで続ける"
   - button "その他の操作"
   - button "右サイドバーを開く"
   - tablist:

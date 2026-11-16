@@ -1,0 +1,22 @@
+# Bilingual-pair consistency record for 2026-10-04-approval-ask-risk.md (docs/i18n/README.md): per heading
+# section, a hash of its English and Chinese blocks outside code blocks and generated regions.
+# After editing either side, bring the other along and re-record with:
+#   pnpm run verify-translation-pairing --write .agents/notes/implemented/architecture/2026-10-04-approval-ask-risk.md
+/agent-note-pre-tool-ask-decisions-can-carry-the-37-risk-tier:
+  en: 109282f791500be2
+  zh: d844e44ab1a1ee2d
+/agent-note-pre-tool-ask-decisions-can-carry-the-37-risk-tier/problem:
+  en: a2621ce27d7a6f10
+  zh: 0344aa64044c1446
+/agent-note-pre-tool-ask-decisions-can-carry-the-37-risk-tier/decision:
+  en: acfb1d2754d45fac
+  zh: d1edb0440669dee0
+/agent-note-pre-tool-ask-decisions-can-carry-the-37-risk-tier/alternatives-considered:
+  en: c6db49d7d7cf3e03
+  zh: 56de7aee5ba3cdff
+/agent-note-pre-tool-ask-decisions-can-carry-the-37-risk-tier/consequences:
+  en: c7666a13da5077c0
+  zh: 5a1999547ed5dfe6
+/agent-note-pre-tool-ask-decisions-can-carry-the-37-risk-tier/open-follow-ups:
+  en: 387a61adf202851e
+  zh: 1ffbeb8b073218af

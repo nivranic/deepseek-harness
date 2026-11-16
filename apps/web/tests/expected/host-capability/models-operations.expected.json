@@ -1,0 +1,14 @@
+{
+  "modelsEntryRegistered": true,
+  "readOnlySettingsDisabledCreation": true,
+  "credentialDescriptionRead": true,
+  "credentialControlPresent": true,
+  "discoveryControlPresent": true,
+  "catalogOnlyDiscovery": true,
+  "refusedDraftRetained": true,
+  "reconnectDidNotReplay": true,
+  "explicitSettingsAndKeyPersisted": true,
+  "generations": 3,
+  "settingsWrites": 2,
+  "credentialWrites": ["/api/credentials/set"]
+}

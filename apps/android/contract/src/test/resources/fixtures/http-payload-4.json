@@ -1,0 +1,13 @@
+{
+  "code": "gateway/bad-request",
+  "message": "invalid payload for host.createDirectory",
+  "details": {
+    "issues": [
+      {
+        "code": "custom",
+        "message": "host.createDirectory requires a single non-blank path segment name",
+        "path": []
+      }
+    ]
+  }
+}

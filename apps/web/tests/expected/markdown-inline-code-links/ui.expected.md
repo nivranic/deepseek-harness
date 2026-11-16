@@ -1,5 +1,6 @@
 - banner:
   - navigation "Session hierarchy": Inline code links
+  - button "Continue on another device"
   - button "More actions"
   - tablist:
     - tab "Chat" [selected]

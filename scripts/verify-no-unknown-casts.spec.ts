@@ -181,6 +181,26 @@ describe('unknown assertion inventory', () => {
 })
 
 describe('unknown assertion source discovery', () => {
+  it('preserves frozen handoff evidence while checking live handoff tools and ordinary source', () => {
+    const root = fixture()
+    const frozen = [
+      'artifacts/upstream-first/handoff/2026-09-29-01/uncommitted-files/packages/example/src/input.ts',
+      'artifacts/upstream-first/handoff/2026-09-29-01/resume-evidence/recorded.spec.ts',
+    ]
+    const live = [
+      'artifacts/upstream-first/handoff/2026-09-29-01/verify.mjs',
+      'artifacts/upstream-first/handoff/current/uncommitted-files/source.ts',
+      sourcePath,
+    ]
+    for (const file of [...frozen, ...live]) write(root, file, assertion)
+    git(root, 'add', '.')
+    expect(scanUnknownCasts(root).map(cast => cast.file)).toEqual(live.toSorted())
+    expect(() => verifyNoUnknownCasts(root)).toThrow(`${sourcePath}:1`)
+    for (const file of live) unlinkSync(join(root, file))
+    expect(verifyNoUnknownCasts(root)).toBe(0)
+    for (const file of frozen) expect(readFileSync(join(root, file), 'utf8')).toBe(assertion)
+  })
+
   it('checks tracked source across areas, extensions, tests and root configuration', () => {
     const root = fixture()
     const files = [

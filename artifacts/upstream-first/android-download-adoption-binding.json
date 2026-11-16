@@ -1,0 +1,16 @@
+{
+  "status": "PASS",
+  "controls": 3,
+  "sourceRecord": {
+    "path": "artifacts/upstream-first/android-download-adoption-source.json",
+    "sha256": "f9cee5ccd220afcf95b509d306d3894450ac4c4c0d102888936daa997fa38c46"
+  },
+  "generator": {
+    "path": "artifacts/upstream-first/write-reports.mjs",
+    "sha256": "004e5b87f7fe1d8adbb95cf3bdc9ff6bf2de2e867cf67a6625a32ac44088e03b"
+  },
+  "helper": {
+    "path": ".artifacts/check-android-download-adoption-binding.mjs",
+    "sha256": "cef563c1c09426d631748709caa79e5006c517a982a7ab5cd9476bd62d7abd32"
+  }
+}
