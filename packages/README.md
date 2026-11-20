@@ -44,7 +44,6 @@ Every package lives in exactly one group; new packages join existing groups, and
 | [`shell/`](shell/README.md) | Bash: executor seam, local impl, model-facing tools |
 | [`terminal/`](terminal/README.md) | Persistent PTY service with owner-scoped sessions and a local shell backend |
 | [`ptc-runtime/`](ptc-runtime/README.md) | PTC execution capability family: Service Definition + sandboxed Node provider + PTC mode Consumer |
-| [`code-runtime/`](code-runtime/README.md) | Code execution: the `ctx.codeRuntime` seam, Node-worker TypeScript backend, CPython wire protocol |
 | [`computer-use/`](computer-use/README.md) | Exclusive named desktop-provider registration |
 | [`browser-use/`](browser-use/README.md) | Exclusive named browser-provider registration |
 | [`sandbox/`](sandbox/README.md) | Process-confinement seam; bwrap/Landlock/Seatbelt backends |

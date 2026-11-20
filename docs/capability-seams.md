@@ -16,9 +16,6 @@ flowchart LR
   pkg_artifact["artifact"]
   svc_artifacts["ctx.artifacts<br/>Artifact storage seam"]
   pkg_artifact_local["artifact-local"]
-  pkg_code_runtime["code-runtime"]
-  svc_codeRuntime["ctx.codeRuntime<br/>Code execution seam"]
-  pkg_code_runtime_worker_thread["code-runtime-worker-thread"]
   pkg_runtime_diagnostics_invariants["runtime-diagnostics/invariants"]
   svc_invariants["ctx.invariants<br/>Package invariant registry"]
   pkg_api_link_controller["api/link-controller"]
@@ -364,8 +361,6 @@ flowchart LR
   pkg_client_modules --> svc_clientModules
   pkg_client_product_analytics --> svc_productAnalytics
   pkg_client_ui_plugin_manager --> svc_pluginRegistryProbe
-  pkg_code_runtime --> svc_codeRuntime
-  pkg_code_runtime_worker_thread --> svc_codeRuntime
   pkg_command_feedback --> svc_sessionFeedback
   pkg_commands --> svc_commands
   pkg_compaction --> svc_compaction
@@ -682,7 +677,6 @@ flowchart LR
 | `ctx.linkAccess` | `core` | [`link-access`](../packages/remote/link-access) | - | [`link-settings`](../packages/remote/link-settings) | - | TLS listener with Ed25519 device authentication and a role-gated allowlist dispatching onto the existing Typert gateway surface. |
 | `ctx.linkSettings` | `core` | [`link-settings`](../packages/remote/link-settings) | - | - | - | Owns the `link-settings` entry configuration and applies its enable/approval/name commits live to the link carrier. |
 | `ctx.artifacts` | `seam` | [`artifact`](../packages/artifact/artifact) | [`artifact-local`](../packages/artifact/artifact-local) | - | - | The ctx.artifacts resource channel behind the artifact_create/artifact_read tools: the journal keeps references and status, the backend keeps the bytes. |
-| `ctx.codeRuntime` | `seam` | [`code-runtime`](../packages/code-runtime/code-runtime) | [`code-runtime-worker-thread`](../packages/code-runtime/code-runtime-worker-thread) | - | - | The ctx.codeRuntime seam the PTC runtime bridges: bounded code runs with structured bindings, budgets, and a failure taxonomy. |
 | `ctx.invariants` | `service` | `runtime-diagnostics/invariants` | - | - | - | Loads package-owned invariant installers and mechanically enforces their export, publication, dependency, and bundle wiring. |
 | `ctx.linkController` | `core` | `api/link-controller` | - | - | - | Projects carrier status, pairing issuance, and trusted-device management onto the `link` Remote namespace for local UIs. |
 | `ctx.actionCards` | `service` | [`action-cards`](../packages/experimental/action-cards) | - | [`creation-recommendations`](../packages/experimental/creation-recommendations), [`client-ui-action-cards`](../packages/experimental/client-ui-action-cards) | - | Owns the card tool, card state, user actions and status notices; card kinds register their actions and handlers. |

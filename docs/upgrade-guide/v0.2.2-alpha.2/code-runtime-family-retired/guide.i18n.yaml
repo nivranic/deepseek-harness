@@ -1,0 +1,16 @@
+# Bilingual-pair consistency record for guide.md (docs/i18n/README.md): per heading
+# section, a hash of its English and Chinese blocks outside code blocks and generated regions.
+# After editing either side, bring the other along and re-record with:
+#   pnpm run verify-translation-pairing --write docs/upgrade-guide/v0.2.2-alpha.2/code-runtime-family-retired/guide.md
+/:
+  en: d716b50b6b1b5dfc
+  zh: 54b6abbda79aaf0a
+/the-dsh-code-runtime-family-retired-dsh-ptc-runtime-serves-code-execution:
+  en: c949287ba5230085
+  zh: be9aa2a298bad7bc
+/the-dsh-code-runtime-family-retired-dsh-ptc-runtime-serves-code-execution/change:
+  en: 7809de331012ada4
+  zh: fcdfa32a75201c19
+/the-dsh-code-runtime-family-retired-dsh-ptc-runtime-serves-code-execution/migration:
+  en: d4a30458c1703726
+  zh: 45adb2e7ea3cb58d

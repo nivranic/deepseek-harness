@@ -140,14 +140,6 @@ const SERVICE_ROLES: ServiceRole[] = [
     note: 'The ctx.artifacts resource channel behind the artifact_create/artifact_read tools: the journal keeps references and status, the backend keeps the bytes.',
   },
   {
-    key: 'codeRuntime',
-    pkg: 'code-runtime',
-    title: 'Code execution seam',
-    mode: 'seam',
-    implementations: ['code-runtime-worker-thread'],
-    note: 'The ctx.codeRuntime seam the PTC runtime bridges: bounded code runs with structured bindings, budgets, and a failure taxonomy.',
-  },
-  {
     key: 'invariants',
     pkg: 'runtime-diagnostics/invariants',
     title: 'Package invariant registry',

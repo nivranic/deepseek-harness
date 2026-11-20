@@ -229,11 +229,6 @@ flowchart TD
     pkg_client_ui_workspace["client-ui-workspace"]
     pkg_client_web["client-web"]
   end
-  subgraph group_code_runtime["packages/code-runtime"]
-    pkg_code_runtime["code-runtime"]
-    pkg_code_runtime_python["code-runtime-python"]
-    pkg_code_runtime_worker_thread["code-runtime-worker-thread"]
-  end
   subgraph group_compaction["packages/compaction"]
     pkg_command_compact["command-compact"]
     pkg_compaction["compaction"]
@@ -520,8 +515,6 @@ flowchart TD
   pkg_app_boot --> pkg_launch_environment
   pkg_browser_use --> pkg_brand
   pkg_client_connection --> pkg_scope
-  pkg_code_runtime --> pkg_invariants
-  pkg_code_runtime_python --> pkg_invariants
   pkg_computer_use --> pkg_brand
   pkg_authorization --> pkg_credentials
   pkg_authorization --> pkg_llm
@@ -565,10 +558,6 @@ flowchart TD
   pkg_hmr --> pkg_cmdline
   pkg_desktop_app --> pkg_invariants
   pkg_desktop_app --> pkg_system_prompt
-  pkg_code_runtime_worker_thread --> pkg_code_runtime
-  pkg_code_runtime_worker_thread --> pkg_invariants
-  pkg_code_runtime_worker_thread --> pkg_timeout
-  pkg_code_runtime_worker_thread --> pkg_util_values
   pkg_deliverable_file_references --> pkg_system_prompt
   pkg_experimental_computer_use_cua_driver_mcp --> pkg_computer_use
   pkg_experimental_forge_github --> pkg_experimental_forge
@@ -1722,8 +1711,6 @@ flowchart TD
 | [`app-boot`](../packages/boot/app-boot) | `boot` | [`home-paths`](../packages/util/home-paths), [`launch-environment`](../packages/util/launch-environment) |
 | [`browser-use`](../packages/browser-use/browser-use) | `browser-use` | [`brand`](../packages/util/brand) |
 | [`client-connection`](../packages/client/connection) | `client` | [`scope`](../packages/core/scope) |
-| [`code-runtime`](../packages/code-runtime/code-runtime) | `code-runtime` | [`invariants`](../packages/runtime-diagnostics/invariants) |
-| [`code-runtime-python`](../packages/code-runtime/code-runtime-python) | `code-runtime` | [`invariants`](../packages/runtime-diagnostics/invariants) |
 | [`computer-use`](../packages/computer-use/computer-use) | `computer-use` | [`brand`](../packages/util/brand) |
 | [`authorization`](../packages/credentials/authorization) | `credentials` | [`credentials`](../packages/credentials/credentials), [`llm`](../packages/llm/llm) |
 | [`credentials-local`](../packages/credentials/credentials-local) | `credentials` | [`atomic-write`](../packages/util/atomic-write), [`credentials`](../packages/credentials/credentials), [`home-paths`](../packages/util/home-paths), [`launch-environment`](../packages/util/launch-environment) |
@@ -1749,7 +1736,6 @@ flowchart TD
 | [`attachment-local`](../packages/attachment/attachment-local) | `attachment` | [`attachment`](../packages/attachment/attachment), [`home-paths`](../packages/util/home-paths) |
 | [`hmr`](../packages/boot/hmr) | `boot` | [`app-boot`](../packages/boot/app-boot), [`cmdline`](../packages/boot/cmdline) |
 | [`desktop-app`](../packages/bundle/desktop-app) | `bundle` | [`invariants`](../packages/runtime-diagnostics/invariants), [`system-prompt`](../packages/core/system-prompt) |
-| [`code-runtime-worker-thread`](../packages/code-runtime/code-runtime-worker-thread) | `code-runtime` | [`code-runtime`](../packages/code-runtime/code-runtime), [`invariants`](../packages/runtime-diagnostics/invariants), [`timeout`](../packages/util/timeout), [`util-values`](../packages/util/values) |
 | [`deliverable-file-references`](../packages/deliverables/deliverable-file-references) | `deliverables` | [`system-prompt`](../packages/core/system-prompt) |
 | [`experimental-computer-use-cua-driver-mcp`](../packages/experimental/computer-use-cua-driver-mcp) | `experimental` | [`computer-use`](../packages/computer-use/computer-use) |
 | [`experimental-forge-github`](../packages/experimental/forge-github) | `experimental` | [`experimental-forge`](../packages/experimental/forge), [`subprocess`](../packages/subprocess/subprocess) |

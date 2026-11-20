@@ -133,12 +133,6 @@ Every package below exports a Cordis plugin that a bundle patch can name in a Lo
 | `@deepseek-ai/dsh-client-ui-workflow-run` | no | Durable workflow-run Conversation Node and nested member disclosure for dsh web |
 | `@deepseek-ai/dsh-client-ui-workspace` | no | Workspace picker plugin: one WorkspacePicker registered into the sidebar and empty-state workspace slots |
 
-## code-runtime
-
-| Package | Config | Description |
-|---|---|---|
-| `@deepseek-ai/dsh-code-runtime-worker-thread` | yes | Worker-thread implementation of the DeepSeek Harness code-execution seam |
-
 ## compaction
 
 | Package | Config | Description |
@@ -557,7 +551,6 @@ Every package below exports a Cordis plugin that a bundle patch can name in a Lo
 |---|---|---|
 | `@deepseek-ai/dsh-tool-workflow` | yes | Model-facing workflow tool: run a JavaScript orchestration script over ctx.workflowEngine |
 | `@deepseek-ai/dsh-workflow-ptc` | yes | Workflow orchestration in the shared sandboxed Node PTC runtime |
-| `@deepseek-ai/dsh-workflow-worker-thread` | yes | worker-thread workflow engine: executes model-written orchestration scripts off the host event loop, bridging agent() calls back to ctx.subagents |
 
 ## workspace
 

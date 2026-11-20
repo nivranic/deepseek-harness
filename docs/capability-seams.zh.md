@@ -18,9 +18,6 @@ flowchart LR
   pkg_artifact["artifact"]
   svc_artifacts["ctx.artifacts<br/>Artifact storage seam"]
   pkg_artifact_local["artifact-local"]
-  pkg_code_runtime["code-runtime"]
-  svc_codeRuntime["ctx.codeRuntime<br/>Code execution seam"]
-  pkg_code_runtime_worker_thread["code-runtime-worker-thread"]
   pkg_runtime_diagnostics_invariants["runtime-diagnostics/invariants"]
   svc_invariants["ctx.invariants<br/>Package invariant registry"]
   pkg_api_link_controller["api/link-controller"]
@@ -366,8 +363,6 @@ flowchart LR
   pkg_client_modules --> svc_clientModules
   pkg_client_product_analytics --> svc_productAnalytics
   pkg_client_ui_plugin_manager --> svc_pluginRegistryProbe
-  pkg_code_runtime --> svc_codeRuntime
-  pkg_code_runtime_worker_thread --> svc_codeRuntime
   pkg_command_feedback --> svc_sessionFeedback
   pkg_commands --> svc_commands
   pkg_compaction --> svc_compaction
@@ -684,7 +679,6 @@ flowchart LR
 | `ctx.linkAccess` | `core` | [`link-access`](../packages/remote/link-access) | - | [`link-settings`](../packages/remote/link-settings) | - | 带 Ed25519 设备认证与角色门控 Allowlist 的 TLS 监听器，分发到现有 Typert 网关面。 |
 | `ctx.linkSettings` | `core` | [`link-settings`](../packages/remote/link-settings) | - | - | - | 拥有 `remote` 设置命名空间，并把其启用/审批/名称提交实时应用到 link 载体。 |
 | `ctx.artifacts` | `seam` | [`artifact`](../packages/artifact/artifact) | [`artifact-local`](../packages/artifact/artifact-local) | - | - | artifact_create/artifact_read 工具背后的 ctx.artifacts 资源通道：日志保留引用与状态，后端保留字节。 |
-| `ctx.codeRuntime` | `seam` | [`code-runtime`](../packages/code-runtime/code-runtime) | [`code-runtime-worker-thread`](../packages/code-runtime/code-runtime-worker-thread) | - | - | PTC runtime 桥接的 ctx.codeRuntime seam：带结构化绑定、预算与失败分类的有界代码运行。 |
 | `ctx.invariants` | `service` | `runtime-diagnostics/invariants` | - | - | - | 加载包属不变量安装器，并机械化强制其导出、发布、依赖与 bundle 接线。 |
 | `ctx.linkController` | `core` | `api/link-controller` | - | - | - | 把载体状态、配对签发与受信设备管理投影到面向本地 UI 的 `link` Remote 命名空间。 |
 | `ctx.actionCards` | `service` | [`action-cards`](../packages/experimental/action-cards) | - | [`creation-recommendations`](../packages/experimental/creation-recommendations), [`client-ui-action-cards`](../packages/experimental/client-ui-action-cards) | - | 负责卡片工具、卡片状态、用户操作和状态通知；各卡片种类注册自己的动作和处理器。 |

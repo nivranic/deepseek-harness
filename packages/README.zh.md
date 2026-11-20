@@ -44,7 +44,6 @@ harness 由 `packages/` 下的 npm 包组装而成，按能力系列分组。把
 | [`shell/`](shell/README.zh.md) | Bash：执行器 seam、本地实现、面向模型的工具 |
 | [`terminal/`](terminal/README.zh.md) | 持久 PTY 服务：限定所有者范围的会话与本地 shell 后端 |
 | [`ptc-runtime/`](ptc-runtime/README.zh.md) | PTC 执行能力族：Service Definition + 沙箱 Node 提供方 + PTC mode Consumer |
-| [`code-runtime/`](code-runtime/README.zh.md) | 代码执行：`ctx.codeRuntime` seam、Node worker TypeScript 后端、CPython 线协议 |
 | [`computer-use/`](computer-use/README.zh.md) | 按名称独占注册桌面提供方 |
 | [`browser-use/`](browser-use/README.zh.md) | 按名称独占注册浏览器提供方 |
 | [`sandbox/`](sandbox/README.zh.md) | 进程限制 seam；bwrap、Landlock、Seatbelt 后端 |

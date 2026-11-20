@@ -2973,9 +2973,6 @@ importers:
       '@deepseek-ai/dsh-client-ui-workflow-run':
         specifier: workspace:^
         version: link:../../client/ui-workflow-run
-      '@deepseek-ai/dsh-code-runtime-worker-thread':
-        specifier: workspace:^
-        version: link:../../code-runtime/code-runtime-worker-thread
       '@deepseek-ai/dsh-cordis-client-runner':
         specifier: workspace:^
         version: link:../../extensions/cordis-client-runner
@@ -7430,46 +7427,6 @@ importers:
       zod:
         specifier: 4.4.3
         version: 4.4.3
-
-  packages/code-runtime/code-runtime:
-    devDependencies:
-      '@deepseek-ai/cordis':
-        specifier: workspace:^
-        version: link:../../../vendor/cordis
-      '@deepseek-ai/dsh-invariants':
-        specifier: workspace:^
-        version: link:../../runtime-diagnostics/invariants
-
-  packages/code-runtime/code-runtime-python:
-    devDependencies:
-      '@deepseek-ai/cordis':
-        specifier: workspace:^
-        version: link:../../../vendor/cordis
-      '@deepseek-ai/dsh-invariants':
-        specifier: workspace:^
-        version: link:../../runtime-diagnostics/invariants
-
-  packages/code-runtime/code-runtime-worker-thread:
-    dependencies:
-      '@deepseek-ai/schemastery':
-        specifier: link:../../../vendor/schemastery
-        version: link:../../../vendor/schemastery
-    devDependencies:
-      '@deepseek-ai/cordis':
-        specifier: workspace:^
-        version: link:../../../vendor/cordis
-      '@deepseek-ai/dsh-code-runtime':
-        specifier: workspace:^
-        version: link:../code-runtime
-      '@deepseek-ai/dsh-invariants':
-        specifier: workspace:^
-        version: link:../../runtime-diagnostics/invariants
-      '@deepseek-ai/dsh-timeout':
-        specifier: workspace:^
-        version: link:../../util/timeout
-      '@deepseek-ai/dsh-util-values':
-        specifier: workspace:^
-        version: link:../../util/values
 
   packages/compaction/command-compact:
     devDependencies:
