@@ -17,10 +17,10 @@
     {
       "name": "Official Desktop ownership and build ordering",
       "classification": "Adopt",
-      "status": "IN_PROGRESS",
+      "status": "PASS",
       "owners": ["apps/desktop", "apps/desktop-host", "tsdown.config.ts"],
       "evidence": "UPSTREAM_DELTA.md",
-      "remaining": "Restore the upstream sequential Desktop bundle position and verify the built application; no modification to official app source is required for the identified workspace-order regression."
+      "remaining": "Sequential Desktop bundle ordering restored and verified by complete-build receipts (10/10 steps with both aggregate checks: .artifacts/upstream-first-review/push-build-final.log and the 2026-11-20 rerun after the personal first-run fix). Build evidence only; installed-application acceptance stays open in the release groups."
     },
     {
       "name": "Personal Desktop distribution",
