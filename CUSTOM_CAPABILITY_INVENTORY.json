@@ -26,7 +26,7 @@
       "name": "Personal Desktop distribution",
       "classification": "Adapt",
       "status": "IN_PROGRESS",
-      "owners": ["apps/desktop-user", "scripts/build-desktop-exe.ts", "scripts/build-desktop-release.ts"],
+      "owners": ["apps/desktop-user", "apps/cli", "scripts/build-desktop-exe.ts", "scripts/build-desktop-release.ts"],
       "evidence": "ARCHITECTURE_DECISIONS.md",
       "remaining": "Keep the approved thin shell, isolate home/product/process/install identities, preserve existing shared data, and verify both assembled entry paths."
     },
@@ -106,7 +106,7 @@
       "name": "Local code-runtime family and worker-thread engines",
       "classification": "Migrate",
       "status": "PASS",
-      "owners": ["packages/code-runtime/code-runtime", "packages/code-runtime/code-runtime-python", "packages/code-runtime/code-runtime-worker-thread", "packages/workflow/workflow-worker-thread"],
+      "owners": ["packages/code-runtime/code-runtime", "packages/code-runtime/code-runtime-python", "packages/code-runtime/code-runtime-worker-thread", "packages/code-runtime/README.md", "packages/code-runtime/README.zh.md", "packages/code-runtime/README.i18n.yaml", "packages/workflow/workflow-worker-thread"],
       "evidence": ".artifacts/upstream-first-review/owner-review-code-runtime.md",
       "remaining": "Dispositions recorded (code-runtime and code-runtime-python Delete; both worker-thread packages Migrate to official ptc-runtime-node/workflow-ptc, whose baseline copies are byte-identical to the official master baseline). Both migrations executed 2026-11-20: every package removed with its desktop mounts and dependencies, tsconfig references, generator sections (doc-graph seam, cordis-catalog service page and type exemptions, readme model-experience entries), packages README rows, and the hand-maintained Chinese capability-seams mirror; upgrade guides written for both retirements and every generated catalog refreshed. The dependency-catalog keeps the published registry entries as historical record."
     },
@@ -117,15 +117,95 @@
       "owners": ["apps/relay"],
       "evidence": ".artifacts/upstream-first-review/owner-review-relay.md",
       "remaining": "Prototype only, never a production carrier: zero product wiring today; sole regeneration source for the Android/Apple Noise ports and vectors. README declassification wording and native README tone downgrade pending; production prerequisites (random tokens, peer pin, limits/backpressure) listed in the report."
+    },
+    {
+      "name": "Build and gate scripts on the official base",
+      "classification": "Adapt",
+      "status": "PASS",
+      "owners": ["scripts/check-workspace-constraints.ts","scripts/cordis-config-files.ts","scripts/gen-cordis-catalog.ts","scripts/gen-doc-graphs.ts","scripts/gen-tool-catalog.ts","scripts/run-gates.ts","scripts/translation-pairing.ts","scripts/verify-cordis-config.spec.ts","scripts/verify-cordis-config.ts","scripts/verify-package-readme-model-experience.ts","scripts/verify-repository-references.ts"],
+      "evidence": ".artifacts/upstream-first-review/owner-review-remaining-batches.md",
+      "remaining": "Increments are lane registrations on the official gate set: remote-link catalog entries, the overlay-insert disjointness gate with paired tests, the hygiene hookup for link-contract drift, and the kit/readme exemptions. The constraints gate’s three remote-lane conflicts (family version, workspace protocol, files policy) are the recorded pre-existing hygiene failure, unchanged here."
+    },
+    {
+      "name": "Native link-contract projection tooling",
+      "classification": "Keep",
+      "status": "PASS",
+      "owners": ["scripts/gen-link-contracts.ts","scripts/verify-link-contracts.ts"],
+      "evidence": ".artifacts/upstream-first-review/owner-review-remaining-batches.md",
+      "remaining": "Local-only cross-language contract projection: manifest, Swift, Kotlin, fixtures, and conformance output consumed by the apple-swift and android-kotlin CI lanes; the byte-for-byte drift gate rides the hygiene aggregation."
+    },
+    {
+      "name": "Desktop client and host carrier surfaces",
+      "classification": "Adapt",
+      "status": "PASS",
+      "owners": ["packages/client/ui-desktop","packages/client/ui-settings-general","packages/client/ui-settings-account","packages/client/ui-plugin-manager","packages/client/ui-conversation","packages/experimental/client-ui-cot-translation","packages/experimental/liveshare","packages/extensions/cordis-client-runner","packages/extensions/tool-cordis","packages/preset/agent-preset","packages/test-support/client-runtime","packages/skill/skill-office","packages/host/electron-ipc","packages/host/directory-picker-auto","packages/host/directory-picker-native","packages/host/webserver"],
+      "evidence": ".artifacts/upstream-first-review/owner-review-remaining-batches.md",
+      "remaining": "Official-base packages carrying desktop-shell adaptations (update indicator family, webp illustrations, directory-picker surfaces, office runtime injection, regenerated catalogs). ui-desktop and host/electron-ipc are the only local-only members (Keep at owner level): the desktop half and the desktopGateway carrier the shells hard-require. Three trivial client deltas (ui-plugin-manager orphan assets, ui-conversation, cot-translation) converge to official at the next sync; ui-desktop’s package description lags its rows."
+    },
+    {
+      "name": "Expired temporary model badge",
+      "classification": "Delete",
+      "status": "PASS",
+      "owners": ["packages/client/ui-deepseek-model-label-1017"],
+      "evidence": ".artifacts/upstream-first-review/owner-review-remaining-batches.md",
+      "remaining": "The package self-describes as a temporary 1017 release badge, over a month past its date, mounted only by two web-app patch rows; the official model-selection conversation.input.model.label slot is the replacement path. Execution (unmount, remove package) is separate work."
+    },
+    {
+      "name": "Workspace API surfaces",
+      "classification": "Adapt",
+      "status": "PASS",
+      "owners": ["packages/api/remotes","packages/api/workspace-controller","packages/api/README.md","packages/api/README.zh.md","packages/api/README.i18n.yaml"],
+      "evidence": ".artifacts/upstream-first-review/owner-review-remaining-batches.md",
+      "remaining": "Official controllers with the directory-picker Remote surface (browse verbs and error projections) serving the desktop and web shells; the README triplet follows the family member table."
+    },
+    {
+      "name": "Artifact resource channel",
+      "classification": "Keep",
+      "status": "PASS",
+      "owners": ["packages/artifact/artifact","packages/artifact/artifact-local","packages/artifact/README.md","packages/artifact/README.zh.md","packages/artifact/README.i18n.yaml"],
+      "evidence": ".artifacts/upstream-first-review/owner-review-remaining-batches.md",
+      "remaining": "The chapter-56 resource channel with its own SessionEventMap member and the only mounted ArtifactStore backend (DSH_HOME/artifacts, atomic writes); official deliverables declare existing file paths, a different delivery model, so no migration target exists."
+    },
+    {
+      "name": "Composition bundles",
+      "classification": "Adapt",
+      "status": "PASS",
+      "owners": ["packages/bundle/base","packages/bundle/web-app","packages/bundle/desktop-app"],
+      "evidence": ".artifacts/upstream-first-review/owner-review-remaining-batches.md",
+      "remaining": "base carries the artifact mount rows; web-app carries the desktop-profile conditional rows; desktop-app is the local-only personal composition (Keep at owner level) consumed by the desktop-user shell and CLI."
+    },
+    {
+      "name": "Package invariant registry",
+      "classification": "Experimental",
+      "status": "PASS",
+      "owners": ["packages/runtime-diagnostics/invariants","packages/runtime-diagnostics/README.md","packages/runtime-diagnostics/README.zh.md","packages/runtime-diagnostics/README.i18n.yaml"],
+      "evidence": ".artifacts/upstream-first-review/owner-review-remaining-batches.md",
+      "remaining": "Companion surfaces and dependency edges are complete, but no bundle patch carries a runtime mount row while the README claims the standard composition mounts it; downgraded until the README is fixed or the row is added."
+    },
+    {
+      "name": "Generated documentation projection",
+      "classification": "Adapt",
+      "status": "PASS",
+      "owners": ["docs/capability-seams.md","docs/capability-seams.zh.md","docs/capability-seams.i18n.yaml","docs/config-catalog.md","docs/config-catalog.zh.md","docs/event-producer-consumer.md","docs/event-producer-consumer.zh.md","docs/persistence-catalog.md","docs/persistence-catalog.zh.md","docs/persistence-catalog.i18n.yaml","docs/persistence-schema.json","docs/persistence-changes","docs/subsystems","docs/tool-catalog.md","docs/tool-catalog.zh.md","docs/tool-catalog.i18n.yaml"],
+      "evidence": ".artifacts/upstream-first-review/owner-review-remaining-batches.md",
+      "remaining": "Generated docs follow their generators and local content sources, with zh sides maintained through the pairing flow; subsystems prose is hand-written and persistence-changes history is frozen append-only per the adjacent-migration policy."
+    },
+    {
+      "name": "Repository metadata and decision records",
+      "classification": "Adapt",
+      "status": "PASS",
+      "owners": [".gitignore","AGENTS.md","package.json","pnpm-lock.yaml","pnpm-workspace.yaml","tsconfig.base.json","tsconfig.host.json","tsconfig.client.json","THIRD_PARTY_NOTICES.md",".github/workflows","snapshots/session","packages/README.md","packages/README.zh.md","packages/README.i18n.yaml","packages/util/README.md","packages/util/README.zh.md","packages/util/README.i18n.yaml","packages/remote/README.md","packages/remote/README.zh.md","packages/remote/README.i18n.yaml","vendor/hmr",".agents/notes"],
+      "evidence": ".artifacts/upstream-first-review/owner-review-remaining-batches.md",
+      "remaining": "Local package-structure projections (tsconfig paths, lockfile importers, workspace governance, generated notices, the two native CI lanes, session-snapshot fixtures). vendor/hmr keeps its logged modifications (Keep at owner level); .agents/notes is the decision-record lane (Keep at owner level, archived with its family if a family retires). Two cleanup findings recorded: duplicate .gitignore block, package.json workspaces array drifting from pnpm-workspace.yaml."
     }
   ],
   "ownershipReviewPolicy": "Capability dispositions are current review decisions, not acceptance. Every unreviewed path owner below remains open; a disposition does not imply sourceReviewComplete or Gate 0 PASS.",
   "owners": [
     {
       "owner": ".agents/notes",
-      "classification": null,
-      "status": "IN_PROGRESS",
-      "sourceReviewComplete": false,
+      "classification": "Keep",
+      "status": "PASS",
+      "sourceReviewComplete": true,
       "changedPaths": [
         ".agents/notes/implemented/architecture/2026-08-17-desktop-surface-electron-scheme-bridge.i18n.yaml",
         ".agents/notes/implemented/architecture/2026-08-17-desktop-surface-electron-scheme-bridge.md",
@@ -317,9 +397,9 @@
     },
     {
       "owner": ".github/workflows",
-      "classification": null,
-      "status": "IN_PROGRESS",
-      "sourceReviewComplete": false,
+      "classification": "Adapt",
+      "status": "PASS",
+      "sourceReviewComplete": true,
       "changedPaths": [
         ".github/workflows/android-kotlin.yml",
         ".github/workflows/apple-swift.yml"
@@ -327,36 +407,36 @@
     },
     {
       "owner": ".gitignore",
-      "classification": null,
-      "status": "IN_PROGRESS",
-      "sourceReviewComplete": false,
+      "classification": "Adapt",
+      "status": "PASS",
+      "sourceReviewComplete": true,
       "changedPaths": [
         ".gitignore"
       ]
     },
     {
       "owner": "AGENTS.md",
-      "classification": null,
-      "status": "IN_PROGRESS",
-      "sourceReviewComplete": false,
+      "classification": "Adapt",
+      "status": "PASS",
+      "sourceReviewComplete": true,
       "changedPaths": [
         "AGENTS.md"
       ]
     },
     {
       "owner": "THIRD_PARTY_NOTICES.md",
-      "classification": null,
-      "status": "IN_PROGRESS",
-      "sourceReviewComplete": false,
+      "classification": "Adapt",
+      "status": "PASS",
+      "sourceReviewComplete": true,
       "changedPaths": [
         "THIRD_PARTY_NOTICES.md"
       ]
     },
     {
       "owner": "apps/android",
-      "classification": null,
-      "status": "IN_PROGRESS",
-      "sourceReviewComplete": false,
+      "classification": "Adapt",
+      "status": "PASS",
+      "sourceReviewComplete": true,
       "changedPaths": [
         "apps/android/.gitignore",
         "apps/android/README.i18n.yaml",
@@ -472,9 +552,9 @@
     },
     {
       "owner": "apps/apple",
-      "classification": null,
-      "status": "IN_PROGRESS",
-      "sourceReviewComplete": false,
+      "classification": "Adapt",
+      "status": "PASS",
+      "sourceReviewComplete": true,
       "changedPaths": [
         "apps/apple/.gitignore",
         "apps/apple/Hosts/HostSurface.swift",
@@ -588,9 +668,9 @@
     },
     {
       "owner": "apps/cli",
-      "classification": null,
-      "status": "IN_PROGRESS",
-      "sourceReviewComplete": false,
+      "classification": "Adapt",
+      "status": "PASS",
+      "sourceReviewComplete": true,
       "changedPaths": [
         "apps/cli/composition.md",
         "apps/cli/package.json",
@@ -603,9 +683,9 @@
     },
     {
       "owner": "apps/desktop-user",
-      "classification": null,
-      "status": "IN_PROGRESS",
-      "sourceReviewComplete": false,
+      "classification": "Adapt",
+      "status": "PASS",
+      "sourceReviewComplete": true,
       "changedPaths": [
         "apps/desktop-user/.env.macos.example",
         "apps/desktop-user/.env.windows.example",
@@ -961,9 +1041,9 @@
     },
     {
       "owner": "apps/desktop",
-      "classification": null,
-      "status": "IN_PROGRESS",
-      "sourceReviewComplete": false,
+      "classification": "Adopt",
+      "status": "PASS",
+      "sourceReviewComplete": true,
       "changedPaths": [
         "apps/desktop/installer/strings.nsh"
       ]
@@ -987,99 +1067,99 @@
     },
     {
       "owner": "docs/capability-seams.i18n.yaml",
-      "classification": null,
-      "status": "IN_PROGRESS",
-      "sourceReviewComplete": false,
+      "classification": "Adapt",
+      "status": "PASS",
+      "sourceReviewComplete": true,
       "changedPaths": [
         "docs/capability-seams.i18n.yaml"
       ]
     },
     {
       "owner": "docs/capability-seams.md",
-      "classification": null,
-      "status": "IN_PROGRESS",
-      "sourceReviewComplete": false,
+      "classification": "Adapt",
+      "status": "PASS",
+      "sourceReviewComplete": true,
       "changedPaths": [
         "docs/capability-seams.md"
       ]
     },
     {
       "owner": "docs/capability-seams.zh.md",
-      "classification": null,
-      "status": "IN_PROGRESS",
-      "sourceReviewComplete": false,
+      "classification": "Adapt",
+      "status": "PASS",
+      "sourceReviewComplete": true,
       "changedPaths": [
         "docs/capability-seams.zh.md"
       ]
     },
     {
       "owner": "docs/config-catalog.md",
-      "classification": null,
-      "status": "IN_PROGRESS",
-      "sourceReviewComplete": false,
+      "classification": "Adapt",
+      "status": "PASS",
+      "sourceReviewComplete": true,
       "changedPaths": [
         "docs/config-catalog.md"
       ]
     },
     {
       "owner": "docs/config-catalog.zh.md",
-      "classification": null,
-      "status": "IN_PROGRESS",
-      "sourceReviewComplete": false,
+      "classification": "Adapt",
+      "status": "PASS",
+      "sourceReviewComplete": true,
       "changedPaths": [
         "docs/config-catalog.zh.md"
       ]
     },
     {
       "owner": "docs/event-producer-consumer.md",
-      "classification": null,
-      "status": "IN_PROGRESS",
-      "sourceReviewComplete": false,
+      "classification": "Adapt",
+      "status": "PASS",
+      "sourceReviewComplete": true,
       "changedPaths": [
         "docs/event-producer-consumer.md"
       ]
     },
     {
       "owner": "docs/event-producer-consumer.zh.md",
-      "classification": null,
-      "status": "IN_PROGRESS",
-      "sourceReviewComplete": false,
+      "classification": "Adapt",
+      "status": "PASS",
+      "sourceReviewComplete": true,
       "changedPaths": [
         "docs/event-producer-consumer.zh.md"
       ]
     },
     {
       "owner": "docs/persistence-catalog.i18n.yaml",
-      "classification": null,
-      "status": "IN_PROGRESS",
-      "sourceReviewComplete": false,
+      "classification": "Adapt",
+      "status": "PASS",
+      "sourceReviewComplete": true,
       "changedPaths": [
         "docs/persistence-catalog.i18n.yaml"
       ]
     },
     {
       "owner": "docs/persistence-catalog.md",
-      "classification": null,
-      "status": "IN_PROGRESS",
-      "sourceReviewComplete": false,
+      "classification": "Adapt",
+      "status": "PASS",
+      "sourceReviewComplete": true,
       "changedPaths": [
         "docs/persistence-catalog.md"
       ]
     },
     {
       "owner": "docs/persistence-catalog.zh.md",
-      "classification": null,
-      "status": "IN_PROGRESS",
-      "sourceReviewComplete": false,
+      "classification": "Adapt",
+      "status": "PASS",
+      "sourceReviewComplete": true,
       "changedPaths": [
         "docs/persistence-catalog.zh.md"
       ]
     },
     {
       "owner": "docs/persistence-changes",
-      "classification": null,
-      "status": "IN_PROGRESS",
-      "sourceReviewComplete": false,
+      "classification": "Adapt",
+      "status": "PASS",
+      "sourceReviewComplete": true,
       "changedPaths": [
         "docs/persistence-changes/2026-10-29-artifact-events.i18n.yaml",
         "docs/persistence-changes/2026-10-29-artifact-events.md",
@@ -1092,18 +1172,18 @@
     },
     {
       "owner": "docs/persistence-schema.json",
-      "classification": null,
-      "status": "IN_PROGRESS",
-      "sourceReviewComplete": false,
+      "classification": "Adapt",
+      "status": "PASS",
+      "sourceReviewComplete": true,
       "changedPaths": [
         "docs/persistence-schema.json"
       ]
     },
     {
       "owner": "docs/subsystems",
-      "classification": null,
-      "status": "IN_PROGRESS",
-      "sourceReviewComplete": false,
+      "classification": "Adapt",
+      "status": "PASS",
+      "sourceReviewComplete": true,
       "changedPaths": [
         "docs/subsystems/README.i18n.yaml",
         "docs/subsystems/README.md",
@@ -1130,99 +1210,99 @@
     },
     {
       "owner": "docs/tool-catalog.i18n.yaml",
-      "classification": null,
-      "status": "IN_PROGRESS",
-      "sourceReviewComplete": false,
+      "classification": "Adapt",
+      "status": "PASS",
+      "sourceReviewComplete": true,
       "changedPaths": [
         "docs/tool-catalog.i18n.yaml"
       ]
     },
     {
       "owner": "docs/tool-catalog.md",
-      "classification": null,
-      "status": "IN_PROGRESS",
-      "sourceReviewComplete": false,
+      "classification": "Adapt",
+      "status": "PASS",
+      "sourceReviewComplete": true,
       "changedPaths": [
         "docs/tool-catalog.md"
       ]
     },
     {
       "owner": "docs/tool-catalog.zh.md",
-      "classification": null,
-      "status": "IN_PROGRESS",
-      "sourceReviewComplete": false,
+      "classification": "Adapt",
+      "status": "PASS",
+      "sourceReviewComplete": true,
       "changedPaths": [
         "docs/tool-catalog.zh.md"
       ]
     },
     {
       "owner": "package.json",
-      "classification": null,
-      "status": "IN_PROGRESS",
-      "sourceReviewComplete": false,
+      "classification": "Adapt",
+      "status": "PASS",
+      "sourceReviewComplete": true,
       "changedPaths": [
         "package.json"
       ]
     },
     {
       "owner": "packages/README.i18n.yaml",
-      "classification": null,
-      "status": "IN_PROGRESS",
-      "sourceReviewComplete": false,
+      "classification": "Adapt",
+      "status": "PASS",
+      "sourceReviewComplete": true,
       "changedPaths": [
         "packages/README.i18n.yaml"
       ]
     },
     {
       "owner": "packages/README.md",
-      "classification": null,
-      "status": "IN_PROGRESS",
-      "sourceReviewComplete": false,
+      "classification": "Adapt",
+      "status": "PASS",
+      "sourceReviewComplete": true,
       "changedPaths": [
         "packages/README.md"
       ]
     },
     {
       "owner": "packages/README.zh.md",
-      "classification": null,
-      "status": "IN_PROGRESS",
-      "sourceReviewComplete": false,
+      "classification": "Adapt",
+      "status": "PASS",
+      "sourceReviewComplete": true,
       "changedPaths": [
         "packages/README.zh.md"
       ]
     },
     {
       "owner": "packages/api/README.i18n.yaml",
-      "classification": null,
-      "status": "IN_PROGRESS",
-      "sourceReviewComplete": false,
+      "classification": "Adapt",
+      "status": "PASS",
+      "sourceReviewComplete": true,
       "changedPaths": [
         "packages/api/README.i18n.yaml"
       ]
     },
     {
       "owner": "packages/api/README.md",
-      "classification": null,
-      "status": "IN_PROGRESS",
-      "sourceReviewComplete": false,
+      "classification": "Adapt",
+      "status": "PASS",
+      "sourceReviewComplete": true,
       "changedPaths": [
         "packages/api/README.md"
       ]
     },
     {
       "owner": "packages/api/README.zh.md",
-      "classification": null,
-      "status": "IN_PROGRESS",
-      "sourceReviewComplete": false,
+      "classification": "Adapt",
+      "status": "PASS",
+      "sourceReviewComplete": true,
       "changedPaths": [
         "packages/api/README.zh.md"
       ]
     },
     {
       "owner": "packages/api/link-controller",
-      "classification": null,
-      "status": "IN_PROGRESS",
-      "sourceReviewComplete": false,
+      "classification": "Adapt",
+      "status": "PASS",
+      "sourceReviewComplete": true,
       "changedPaths": [
         "packages/api/link-controller/README.i18n.yaml",
         "packages/api/link-controller/README.md",
@@ -1238,9 +1318,9 @@
     },
     {
       "owner": "packages/api/remotes",
-      "classification": null,
-      "status": "IN_PROGRESS",
-      "sourceReviewComplete": false,
+      "classification": "Adapt",
+      "status": "PASS",
+      "sourceReviewComplete": true,
       "changedPaths": [
         "packages/api/remotes/package.json",
         "packages/api/remotes/src/client/index.ts",
@@ -1249,9 +1329,9 @@
     },
     {
       "owner": "packages/api/session-controller",
-      "classification": null,
-      "status": "IN_PROGRESS",
-      "sourceReviewComplete": false,
+      "classification": "Migrate",
+      "status": "PASS",
+      "sourceReviewComplete": true,
       "changedPaths": [
         "packages/api/session-controller/README.i18n.yaml",
         "packages/api/session-controller/README.md",
@@ -1269,9 +1349,9 @@
     },
     {
       "owner": "packages/api/workspace-controller",
-      "classification": null,
-      "status": "IN_PROGRESS",
-      "sourceReviewComplete": false,
+      "classification": "Adapt",
+      "status": "PASS",
+      "sourceReviewComplete": true,
       "changedPaths": [
         "packages/api/workspace-controller/README.i18n.yaml",
         "packages/api/workspace-controller/README.md",
@@ -1283,36 +1363,36 @@
     },
     {
       "owner": "packages/artifact/README.i18n.yaml",
-      "classification": null,
-      "status": "IN_PROGRESS",
-      "sourceReviewComplete": false,
+      "classification": "Keep",
+      "status": "PASS",
+      "sourceReviewComplete": true,
       "changedPaths": [
         "packages/artifact/README.i18n.yaml"
       ]
     },
     {
       "owner": "packages/artifact/README.md",
-      "classification": null,
-      "status": "IN_PROGRESS",
-      "sourceReviewComplete": false,
+      "classification": "Keep",
+      "status": "PASS",
+      "sourceReviewComplete": true,
       "changedPaths": [
         "packages/artifact/README.md"
       ]
     },
     {
       "owner": "packages/artifact/README.zh.md",
-      "classification": null,
-      "status": "IN_PROGRESS",
-      "sourceReviewComplete": false,
+      "classification": "Keep",
+      "status": "PASS",
+      "sourceReviewComplete": true,
       "changedPaths": [
         "packages/artifact/README.zh.md"
       ]
     },
     {
       "owner": "packages/artifact/artifact-local",
-      "classification": null,
-      "status": "IN_PROGRESS",
-      "sourceReviewComplete": false,
+      "classification": "Keep",
+      "status": "PASS",
+      "sourceReviewComplete": true,
       "changedPaths": [
         "packages/artifact/artifact-local/README.i18n.yaml",
         "packages/artifact/artifact-local/README.md",
@@ -1325,9 +1405,9 @@
     },
     {
       "owner": "packages/artifact/artifact",
-      "classification": null,
-      "status": "IN_PROGRESS",
-      "sourceReviewComplete": false,
+      "classification": "Keep",
+      "status": "PASS",
+      "sourceReviewComplete": true,
       "changedPaths": [
         "packages/artifact/artifact/README.i18n.yaml",
         "packages/artifact/artifact/README.md",
@@ -1344,9 +1424,9 @@
     },
     {
       "owner": "packages/bundle/base",
-      "classification": null,
-      "status": "IN_PROGRESS",
-      "sourceReviewComplete": false,
+      "classification": "Adapt",
+      "status": "PASS",
+      "sourceReviewComplete": true,
       "changedPaths": [
         "packages/bundle/base/cordis.patch.yml",
         "packages/bundle/base/package.json"
@@ -1354,9 +1434,9 @@
     },
     {
       "owner": "packages/bundle/desktop-app",
-      "classification": null,
-      "status": "IN_PROGRESS",
-      "sourceReviewComplete": false,
+      "classification": "Keep",
+      "status": "PASS",
+      "sourceReviewComplete": true,
       "changedPaths": [
         "packages/bundle/desktop-app/README.i18n.yaml",
         "packages/bundle/desktop-app/README.md",
@@ -1371,9 +1451,9 @@
     },
     {
       "owner": "packages/bundle/web-app",
-      "classification": null,
-      "status": "IN_PROGRESS",
-      "sourceReviewComplete": false,
+      "classification": "Adapt",
+      "status": "PASS",
+      "sourceReviewComplete": true,
       "changedPaths": [
         "packages/bundle/web-app/cordis.patch.yml",
         "packages/bundle/web-app/package.json"
@@ -1381,9 +1461,9 @@
     },
     {
       "owner": "packages/client/connection",
-      "classification": null,
-      "status": "IN_PROGRESS",
-      "sourceReviewComplete": false,
+      "classification": "Adopt",
+      "status": "PASS",
+      "sourceReviewComplete": true,
       "changedPaths": [
         "packages/client/connection/src/rpc-host.ts",
         "packages/client/connection/tests/node-half.host.spec.ts"
@@ -1391,9 +1471,9 @@
     },
     {
       "owner": "packages/client/modules",
-      "classification": null,
-      "status": "IN_PROGRESS",
-      "sourceReviewComplete": false,
+      "classification": "Adopt",
+      "status": "PASS",
+      "sourceReviewComplete": true,
       "changedPaths": [
         "packages/client/modules/src/client/index.ts",
         "packages/client/modules/src/client/manifest.ts",
@@ -1404,18 +1484,18 @@
     },
     {
       "owner": "packages/client/ui-conversation",
-      "classification": null,
-      "status": "IN_PROGRESS",
-      "sourceReviewComplete": false,
+      "classification": "Adapt",
+      "status": "PASS",
+      "sourceReviewComplete": true,
       "changedPaths": [
         "packages/client/ui-conversation/tests/conversation-registry.client.spec.ts"
       ]
     },
     {
       "owner": "packages/client/ui-deepseek-model-label-1017",
-      "classification": null,
-      "status": "IN_PROGRESS",
-      "sourceReviewComplete": false,
+      "classification": "Delete",
+      "status": "PASS",
+      "sourceReviewComplete": true,
       "changedPaths": [
         "packages/client/ui-deepseek-model-label-1017/README.i18n.yaml",
         "packages/client/ui-deepseek-model-label-1017/README.md",
@@ -1434,9 +1514,9 @@
     },
     {
       "owner": "packages/client/ui-desktop",
-      "classification": null,
-      "status": "IN_PROGRESS",
-      "sourceReviewComplete": false,
+      "classification": "Keep",
+      "status": "PASS",
+      "sourceReviewComplete": true,
       "changedPaths": [
         "packages/client/ui-desktop/README.i18n.yaml",
         "packages/client/ui-desktop/README.md",
@@ -1470,9 +1550,9 @@
     },
     {
       "owner": "packages/client/ui-plugin-manager",
-      "classification": null,
-      "status": "IN_PROGRESS",
-      "sourceReviewComplete": false,
+      "classification": "Adapt",
+      "status": "PASS",
+      "sourceReviewComplete": true,
       "changedPaths": [
         "packages/client/ui-plugin-manager/src/client/assets.d.ts",
         "packages/client/ui-plugin-manager/src/client/assets/badge-skill-preview.svg",
@@ -1483,18 +1563,18 @@
     },
     {
       "owner": "packages/client/ui-settings-account",
-      "classification": null,
-      "status": "IN_PROGRESS",
-      "sourceReviewComplete": false,
+      "classification": "Adapt",
+      "status": "PASS",
+      "sourceReviewComplete": true,
       "changedPaths": [
         "packages/client/ui-settings-account/src/client/assets.d.ts"
       ]
     },
     {
       "owner": "packages/client/ui-settings-general",
-      "classification": null,
-      "status": "IN_PROGRESS",
-      "sourceReviewComplete": false,
+      "classification": "Adapt",
+      "status": "PASS",
+      "sourceReviewComplete": true,
       "changedPaths": [
         "packages/client/ui-settings-general/package.json",
         "packages/client/ui-settings-general/src/client/AboutSection.module.css",
@@ -1510,9 +1590,9 @@
     },
     {
       "owner": "packages/client/web",
-      "classification": null,
-      "status": "IN_PROGRESS",
-      "sourceReviewComplete": false,
+      "classification": "Delete",
+      "status": "PASS",
+      "sourceReviewComplete": true,
       "changedPaths": [
         "packages/client/web/src/boot.ts",
         "packages/client/web/tests/boot.client.spec.ts"
@@ -1520,27 +1600,27 @@
     },
     {
       "owner": "packages/code-runtime/README.i18n.yaml",
-      "classification": null,
-      "status": "IN_PROGRESS",
-      "sourceReviewComplete": false,
+      "classification": "Delete",
+      "status": "PASS",
+      "sourceReviewComplete": true,
       "changedPaths": [
         "packages/code-runtime/README.i18n.yaml"
       ]
     },
     {
       "owner": "packages/code-runtime/README.md",
-      "classification": null,
-      "status": "IN_PROGRESS",
-      "sourceReviewComplete": false,
+      "classification": "Delete",
+      "status": "PASS",
+      "sourceReviewComplete": true,
       "changedPaths": [
         "packages/code-runtime/README.md"
       ]
     },
     {
       "owner": "packages/code-runtime/README.zh.md",
-      "classification": null,
-      "status": "IN_PROGRESS",
-      "sourceReviewComplete": false,
+      "classification": "Delete",
+      "status": "PASS",
+      "sourceReviewComplete": true,
       "changedPaths": [
         "packages/code-runtime/README.zh.md"
       ]
@@ -1612,36 +1692,36 @@
     },
     {
       "owner": "packages/core/session",
-      "classification": null,
-      "status": "IN_PROGRESS",
-      "sourceReviewComplete": false,
+      "classification": "Keep",
+      "status": "PASS",
+      "sourceReviewComplete": true,
       "changedPaths": [
         "packages/core/session/src/known-event-types.ts"
       ]
     },
     {
       "owner": "packages/experimental/client-ui-cot-translation",
-      "classification": null,
-      "status": "IN_PROGRESS",
-      "sourceReviewComplete": false,
+      "classification": "Adapt",
+      "status": "PASS",
+      "sourceReviewComplete": true,
       "changedPaths": [
         "packages/experimental/client-ui-cot-translation/src/index.ts"
       ]
     },
     {
       "owner": "packages/experimental/liveshare",
-      "classification": null,
-      "status": "IN_PROGRESS",
-      "sourceReviewComplete": false,
+      "classification": "Adapt",
+      "status": "PASS",
+      "sourceReviewComplete": true,
       "changedPaths": [
         "packages/experimental/liveshare/src/endpoint-classification.ts"
       ]
     },
     {
       "owner": "packages/extensions/cordis-client-runner",
-      "classification": null,
-      "status": "IN_PROGRESS",
-      "sourceReviewComplete": false,
+      "classification": "Adapt",
+      "status": "PASS",
+      "sourceReviewComplete": true,
       "changedPaths": [
         "packages/extensions/cordis-client-runner/src/client/api-catalog.ts",
         "packages/extensions/cordis-client-runner/src/client/slot-catalog.ts"
@@ -1649,18 +1729,18 @@
     },
     {
       "owner": "packages/extensions/tool-cordis",
-      "classification": null,
-      "status": "IN_PROGRESS",
-      "sourceReviewComplete": false,
+      "classification": "Adapt",
+      "status": "PASS",
+      "sourceReviewComplete": true,
       "changedPaths": [
         "packages/extensions/tool-cordis/src/api-catalog.ts"
       ]
     },
     {
       "owner": "packages/host/directory-picker-auto",
-      "classification": null,
-      "status": "IN_PROGRESS",
-      "sourceReviewComplete": false,
+      "classification": "Adapt",
+      "status": "PASS",
+      "sourceReviewComplete": true,
       "changedPaths": [
         "packages/host/directory-picker-auto/package.json",
         "packages/host/directory-picker-auto/src/index.ts",
@@ -1670,9 +1750,9 @@
     },
     {
       "owner": "packages/host/directory-picker-native",
-      "classification": null,
-      "status": "IN_PROGRESS",
-      "sourceReviewComplete": false,
+      "classification": "Adapt",
+      "status": "PASS",
+      "sourceReviewComplete": true,
       "changedPaths": [
         "packages/host/directory-picker-native/README.i18n.yaml",
         "packages/host/directory-picker-native/README.md",
@@ -1686,9 +1766,9 @@
     },
     {
       "owner": "packages/host/electron-ipc",
-      "classification": null,
-      "status": "IN_PROGRESS",
-      "sourceReviewComplete": false,
+      "classification": "Keep",
+      "status": "PASS",
+      "sourceReviewComplete": true,
       "changedPaths": [
         "packages/host/electron-ipc/README.i18n.yaml",
         "packages/host/electron-ipc/README.md",
@@ -1702,9 +1782,9 @@
     },
     {
       "owner": "packages/host/webserver",
-      "classification": null,
-      "status": "IN_PROGRESS",
-      "sourceReviewComplete": false,
+      "classification": "Adapt",
+      "status": "PASS",
+      "sourceReviewComplete": true,
       "changedPaths": [
         "packages/host/webserver/README.i18n.yaml",
         "packages/host/webserver/README.md",
@@ -1714,45 +1794,45 @@
     },
     {
       "owner": "packages/preset/agent-preset",
-      "classification": null,
-      "status": "IN_PROGRESS",
-      "sourceReviewComplete": false,
+      "classification": "Adapt",
+      "status": "PASS",
+      "sourceReviewComplete": true,
       "changedPaths": [
         "packages/preset/agent-preset/skills/cordis-composition-reference/references/packages.md"
       ]
     },
     {
       "owner": "packages/remote/README.i18n.yaml",
-      "classification": null,
-      "status": "IN_PROGRESS",
-      "sourceReviewComplete": false,
+      "classification": "Adapt",
+      "status": "PASS",
+      "sourceReviewComplete": true,
       "changedPaths": [
         "packages/remote/README.i18n.yaml"
       ]
     },
     {
       "owner": "packages/remote/README.md",
-      "classification": null,
-      "status": "IN_PROGRESS",
-      "sourceReviewComplete": false,
+      "classification": "Adapt",
+      "status": "PASS",
+      "sourceReviewComplete": true,
       "changedPaths": [
         "packages/remote/README.md"
       ]
     },
     {
       "owner": "packages/remote/README.zh.md",
-      "classification": null,
-      "status": "IN_PROGRESS",
-      "sourceReviewComplete": false,
+      "classification": "Adapt",
+      "status": "PASS",
+      "sourceReviewComplete": true,
       "changedPaths": [
         "packages/remote/README.zh.md"
       ]
     },
     {
       "owner": "packages/remote/device-trust",
-      "classification": null,
-      "status": "IN_PROGRESS",
-      "sourceReviewComplete": false,
+      "classification": "Adapt",
+      "status": "PASS",
+      "sourceReviewComplete": true,
       "changedPaths": [
         "packages/remote/device-trust/README.i18n.yaml",
         "packages/remote/device-trust/README.md",
@@ -1767,9 +1847,9 @@
     },
     {
       "owner": "packages/remote/link-access",
-      "classification": null,
-      "status": "IN_PROGRESS",
-      "sourceReviewComplete": false,
+      "classification": "Adapt",
+      "status": "PASS",
+      "sourceReviewComplete": true,
       "changedPaths": [
         "packages/remote/link-access/README.i18n.yaml",
         "packages/remote/link-access/README.md",
@@ -1788,9 +1868,9 @@
     },
     {
       "owner": "packages/remote/link-client",
-      "classification": null,
-      "status": "IN_PROGRESS",
-      "sourceReviewComplete": false,
+      "classification": "Adapt",
+      "status": "PASS",
+      "sourceReviewComplete": true,
       "changedPaths": [
         "packages/remote/link-client/README.i18n.yaml",
         "packages/remote/link-client/README.md",
@@ -1804,9 +1884,9 @@
     },
     {
       "owner": "packages/remote/link-contracts",
-      "classification": null,
-      "status": "IN_PROGRESS",
-      "sourceReviewComplete": false,
+      "classification": "Adapt",
+      "status": "PASS",
+      "sourceReviewComplete": true,
       "changedPaths": [
         "packages/remote/link-contracts/README.i18n.yaml",
         "packages/remote/link-contracts/README.md",
@@ -1875,9 +1955,9 @@
     },
     {
       "owner": "packages/remote/link-settings",
-      "classification": null,
-      "status": "IN_PROGRESS",
-      "sourceReviewComplete": false,
+      "classification": "Adapt",
+      "status": "PASS",
+      "sourceReviewComplete": true,
       "changedPaths": [
         "packages/remote/link-settings/README.i18n.yaml",
         "packages/remote/link-settings/README.md",
@@ -1891,36 +1971,36 @@
     },
     {
       "owner": "packages/runtime-diagnostics/README.i18n.yaml",
-      "classification": null,
-      "status": "IN_PROGRESS",
-      "sourceReviewComplete": false,
+      "classification": "Experimental",
+      "status": "PASS",
+      "sourceReviewComplete": true,
       "changedPaths": [
         "packages/runtime-diagnostics/README.i18n.yaml"
       ]
     },
     {
       "owner": "packages/runtime-diagnostics/README.md",
-      "classification": null,
-      "status": "IN_PROGRESS",
-      "sourceReviewComplete": false,
+      "classification": "Experimental",
+      "status": "PASS",
+      "sourceReviewComplete": true,
       "changedPaths": [
         "packages/runtime-diagnostics/README.md"
       ]
     },
     {
       "owner": "packages/runtime-diagnostics/README.zh.md",
-      "classification": null,
-      "status": "IN_PROGRESS",
-      "sourceReviewComplete": false,
+      "classification": "Experimental",
+      "status": "PASS",
+      "sourceReviewComplete": true,
       "changedPaths": [
         "packages/runtime-diagnostics/README.zh.md"
       ]
     },
     {
       "owner": "packages/runtime-diagnostics/invariants",
-      "classification": null,
-      "status": "IN_PROGRESS",
-      "sourceReviewComplete": false,
+      "classification": "Experimental",
+      "status": "PASS",
+      "sourceReviewComplete": true,
       "changedPaths": [
         "packages/runtime-diagnostics/invariants/README.i18n.yaml",
         "packages/runtime-diagnostics/invariants/README.md",
@@ -2008,54 +2088,54 @@
     },
     {
       "owner": "packages/skill/skill-office",
-      "classification": null,
-      "status": "IN_PROGRESS",
-      "sourceReviewComplete": false,
+      "classification": "Adapt",
+      "status": "PASS",
+      "sourceReviewComplete": true,
       "changedPaths": [
         "packages/skill/skill-office/tests/visual-intent.e2e.ts"
       ]
     },
     {
       "owner": "packages/test-support/client-runtime",
-      "classification": null,
-      "status": "IN_PROGRESS",
-      "sourceReviewComplete": false,
+      "classification": "Adapt",
+      "status": "PASS",
+      "sourceReviewComplete": true,
       "changedPaths": [
         "packages/test-support/client-runtime/src/sessions.ts"
       ]
     },
     {
       "owner": "packages/util/README.i18n.yaml",
-      "classification": null,
-      "status": "IN_PROGRESS",
-      "sourceReviewComplete": false,
+      "classification": "Adapt",
+      "status": "PASS",
+      "sourceReviewComplete": true,
       "changedPaths": [
         "packages/util/README.i18n.yaml"
       ]
     },
     {
       "owner": "packages/util/README.md",
-      "classification": null,
-      "status": "IN_PROGRESS",
-      "sourceReviewComplete": false,
+      "classification": "Adapt",
+      "status": "PASS",
+      "sourceReviewComplete": true,
       "changedPaths": [
         "packages/util/README.md"
       ]
     },
     {
       "owner": "packages/util/README.zh.md",
-      "classification": null,
-      "status": "IN_PROGRESS",
-      "sourceReviewComplete": false,
+      "classification": "Adapt",
+      "status": "PASS",
+      "sourceReviewComplete": true,
       "changedPaths": [
         "packages/util/README.zh.md"
       ]
     },
     {
       "owner": "packages/util/atomic-write",
-      "classification": null,
-      "status": "IN_PROGRESS",
-      "sourceReviewComplete": false,
+      "classification": "Adapt",
+      "status": "PASS",
+      "sourceReviewComplete": true,
       "changedPaths": [
         "packages/util/atomic-write/src/index.ts"
       ]
@@ -2115,162 +2195,162 @@
     },
     {
       "owner": "pnpm-lock.yaml",
-      "classification": null,
-      "status": "IN_PROGRESS",
-      "sourceReviewComplete": false,
+      "classification": "Adapt",
+      "status": "PASS",
+      "sourceReviewComplete": true,
       "changedPaths": [
         "pnpm-lock.yaml"
       ]
     },
     {
       "owner": "pnpm-workspace.yaml",
-      "classification": null,
-      "status": "IN_PROGRESS",
-      "sourceReviewComplete": false,
+      "classification": "Adapt",
+      "status": "PASS",
+      "sourceReviewComplete": true,
       "changedPaths": [
         "pnpm-workspace.yaml"
       ]
     },
     {
       "owner": "scripts/build-desktop-exe.ts",
-      "classification": null,
-      "status": "IN_PROGRESS",
-      "sourceReviewComplete": false,
+      "classification": "Adapt",
+      "status": "PASS",
+      "sourceReviewComplete": true,
       "changedPaths": [
         "scripts/build-desktop-exe.ts"
       ]
     },
     {
       "owner": "scripts/build-desktop-release.ts",
-      "classification": null,
-      "status": "IN_PROGRESS",
-      "sourceReviewComplete": false,
+      "classification": "Adapt",
+      "status": "PASS",
+      "sourceReviewComplete": true,
       "changedPaths": [
         "scripts/build-desktop-release.ts"
       ]
     },
     {
       "owner": "scripts/check-workspace-constraints.ts",
-      "classification": null,
-      "status": "IN_PROGRESS",
-      "sourceReviewComplete": false,
+      "classification": "Adapt",
+      "status": "PASS",
+      "sourceReviewComplete": true,
       "changedPaths": [
         "scripts/check-workspace-constraints.ts"
       ]
     },
     {
       "owner": "scripts/cordis-config-files.ts",
-      "classification": null,
-      "status": "IN_PROGRESS",
-      "sourceReviewComplete": false,
+      "classification": "Adapt",
+      "status": "PASS",
+      "sourceReviewComplete": true,
       "changedPaths": [
         "scripts/cordis-config-files.ts"
       ]
     },
     {
       "owner": "scripts/gen-cordis-catalog.ts",
-      "classification": null,
-      "status": "IN_PROGRESS",
-      "sourceReviewComplete": false,
+      "classification": "Adapt",
+      "status": "PASS",
+      "sourceReviewComplete": true,
       "changedPaths": [
         "scripts/gen-cordis-catalog.ts"
       ]
     },
     {
       "owner": "scripts/gen-doc-graphs.ts",
-      "classification": null,
-      "status": "IN_PROGRESS",
-      "sourceReviewComplete": false,
+      "classification": "Adapt",
+      "status": "PASS",
+      "sourceReviewComplete": true,
       "changedPaths": [
         "scripts/gen-doc-graphs.ts"
       ]
     },
     {
       "owner": "scripts/gen-link-contracts.ts",
-      "classification": null,
-      "status": "IN_PROGRESS",
-      "sourceReviewComplete": false,
+      "classification": "Keep",
+      "status": "PASS",
+      "sourceReviewComplete": true,
       "changedPaths": [
         "scripts/gen-link-contracts.ts"
       ]
     },
     {
       "owner": "scripts/gen-tool-catalog.ts",
-      "classification": null,
-      "status": "IN_PROGRESS",
-      "sourceReviewComplete": false,
+      "classification": "Adapt",
+      "status": "PASS",
+      "sourceReviewComplete": true,
       "changedPaths": [
         "scripts/gen-tool-catalog.ts"
       ]
     },
     {
       "owner": "scripts/run-gates.ts",
-      "classification": null,
-      "status": "IN_PROGRESS",
-      "sourceReviewComplete": false,
+      "classification": "Adapt",
+      "status": "PASS",
+      "sourceReviewComplete": true,
       "changedPaths": [
         "scripts/run-gates.ts"
       ]
     },
     {
       "owner": "scripts/translation-pairing.ts",
-      "classification": null,
-      "status": "IN_PROGRESS",
-      "sourceReviewComplete": false,
+      "classification": "Adapt",
+      "status": "PASS",
+      "sourceReviewComplete": true,
       "changedPaths": [
         "scripts/translation-pairing.ts"
       ]
     },
     {
       "owner": "scripts/verify-cordis-config.spec.ts",
-      "classification": null,
-      "status": "IN_PROGRESS",
-      "sourceReviewComplete": false,
+      "classification": "Adapt",
+      "status": "PASS",
+      "sourceReviewComplete": true,
       "changedPaths": [
         "scripts/verify-cordis-config.spec.ts"
       ]
     },
     {
       "owner": "scripts/verify-cordis-config.ts",
-      "classification": null,
-      "status": "IN_PROGRESS",
-      "sourceReviewComplete": false,
+      "classification": "Adapt",
+      "status": "PASS",
+      "sourceReviewComplete": true,
       "changedPaths": [
         "scripts/verify-cordis-config.ts"
       ]
     },
     {
       "owner": "scripts/verify-link-contracts.ts",
-      "classification": null,
-      "status": "IN_PROGRESS",
-      "sourceReviewComplete": false,
+      "classification": "Keep",
+      "status": "PASS",
+      "sourceReviewComplete": true,
       "changedPaths": [
         "scripts/verify-link-contracts.ts"
       ]
     },
     {
       "owner": "scripts/verify-package-readme-model-experience.ts",
-      "classification": null,
-      "status": "IN_PROGRESS",
-      "sourceReviewComplete": false,
+      "classification": "Adapt",
+      "status": "PASS",
+      "sourceReviewComplete": true,
       "changedPaths": [
         "scripts/verify-package-readme-model-experience.ts"
       ]
     },
     {
       "owner": "scripts/verify-repository-references.ts",
-      "classification": null,
-      "status": "IN_PROGRESS",
-      "sourceReviewComplete": false,
+      "classification": "Adapt",
+      "status": "PASS",
+      "sourceReviewComplete": true,
       "changedPaths": [
         "scripts/verify-repository-references.ts"
       ]
     },
     {
       "owner": "snapshots/session",
-      "classification": null,
-      "status": "IN_PROGRESS",
-      "sourceReviewComplete": false,
+      "classification": "Adapt",
+      "status": "PASS",
+      "sourceReviewComplete": true,
       "changedPaths": [
         "snapshots/session/cua-native/consent-fixture.mjs",
         "snapshots/session/team-targets/cordis.snapshot.yml",
@@ -2279,45 +2359,45 @@
     },
     {
       "owner": "tsconfig.base.json",
-      "classification": null,
-      "status": "IN_PROGRESS",
-      "sourceReviewComplete": false,
+      "classification": "Adapt",
+      "status": "PASS",
+      "sourceReviewComplete": true,
       "changedPaths": [
         "tsconfig.base.json"
       ]
     },
     {
       "owner": "tsconfig.client.json",
-      "classification": null,
-      "status": "IN_PROGRESS",
-      "sourceReviewComplete": false,
+      "classification": "Adapt",
+      "status": "PASS",
+      "sourceReviewComplete": true,
       "changedPaths": [
         "tsconfig.client.json"
       ]
     },
     {
       "owner": "tsconfig.host.json",
-      "classification": null,
-      "status": "IN_PROGRESS",
-      "sourceReviewComplete": false,
+      "classification": "Adapt",
+      "status": "PASS",
+      "sourceReviewComplete": true,
       "changedPaths": [
         "tsconfig.host.json"
       ]
     },
     {
       "owner": "tsdown.config.ts",
-      "classification": null,
-      "status": "IN_PROGRESS",
-      "sourceReviewComplete": false,
+      "classification": "Adopt",
+      "status": "PASS",
+      "sourceReviewComplete": true,
       "changedPaths": [
         "tsdown.config.ts"
       ]
     },
     {
       "owner": "vendor/hmr",
-      "classification": null,
-      "status": "IN_PROGRESS",
-      "sourceReviewComplete": false,
+      "classification": "Keep",
+      "status": "PASS",
+      "sourceReviewComplete": true,
       "changedPaths": [
         "vendor/hmr/src/index.ts"
       ]

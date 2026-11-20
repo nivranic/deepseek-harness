@@ -176,11 +176,11 @@ pnpm exec vitest run packages/remote/link-access/tests/carrier.spec.ts packages/
 
 ## 6. 审查覆盖缺口与产品阻塞
 
-81 行需求追踪不等于逐个 executable owner 已审查。独立审计得出以下覆盖事实：
+81 行需求追踪不等于逐个 executable owner 已审查。独立审计（2026-10-31）得出以下覆盖事实；**2026-11-20 更新：owner 分类已全量收口**——121/121 owner 带证据归属（88 Adapt、14 Keep、7 Delete、5 Experimental、4 Adopt、3 Migrate），能力组 10→23，证据见 `.artifacts/upstream-first-review/owner-review-{sandbox-shell,code-runtime,relay,remaining-batches}.md`。分类是审查决定，不是 Gate 0 验收：
 
-- `CUSTOM_CAPABILITY_INVENTORY.json` 的 121 个原始 owner 记录仍全部为 `classification: null`、`sourceReviewComplete: false`。
-- 只有 10 个能力组给出了六类 disposition，命名覆盖 18 个原始 owner；其余 103 个没有对应分组 disposition。
-- 45 个变化的 source-bearing owner 加 Relay 中，仅 13 个有能力组映射，32 个没有；构建/gate scripts 还有额外可执行范围。
+- ~~`CUSTOM_CAPABILITY_INVENTORY.json` 的 121 个原始 owner 记录仍全部为 `classification: null`、`sourceReviewComplete: false`。~~ 已全部收口。
+- ~~只有 10 个能力组给出了六类 disposition，命名覆盖 18 个原始 owner；其余 103 个没有对应分组 disposition。~~ 现 23 组全覆盖。
+- ~~45 个变化的 source-bearing owner 加 Relay 中，仅 13 个有能力组映射，32 个没有；构建/gate scripts 还有额外可执行范围。~~ scripts 13 件已批审（11 Adapt＋2 Keep）。
 - 精确基线 → dev、排除 vendor/archived/.worktrees 后为 1,232 个变化路径，全部在 inventory 中；inventory 额外一项是 vendor。路径收全不等于语义审查完成。
 - 81 行状态统计为 40 IN_PROGRESS、18 NOT_STARTED、17 FAIL、4 BLOCKED、1 DEFERRED、1 PASS。不能将报告存在当作 Gate 0 通过。
 
