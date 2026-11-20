@@ -9,7 +9,7 @@ English | [中文](README.zh.md)
 
 ## Summary
 
-The `runtime-diagnostics/` group self-checks a running composition: `invariants` is the registry service that runs package-owned `./invariant` companions — the checks a package ships to verify its own durable relationships between authoritative event streams and mutable snapshots — and reports each failure as an `InvariantError` attributed to the owning package. The standard agent composition mounts it with the core companions, and loading the service alone installs no checks.
+The `runtime-diagnostics/` group self-checks a running composition: `invariants` is the registry service that runs package-owned `./invariant` companions — the checks a package ships to verify its own durable relationships between authoritative event streams and mutable snapshots — and reports each failure as an `InvariantError` attributed to the owning package. No shipped composition mounts the registry: packages declare the dependency edge so their companions load when a composition opts in through a patch row, and loading the service alone installs no checks.
 
 ## Table of Contents
 

@@ -180,7 +180,7 @@
       "status": "PASS",
       "owners": ["packages/runtime-diagnostics/invariants","packages/runtime-diagnostics/README.md","packages/runtime-diagnostics/README.zh.md","packages/runtime-diagnostics/README.i18n.yaml"],
       "evidence": ".artifacts/upstream-first-review/owner-review-remaining-batches.md",
-      "remaining": "Companion surfaces and dependency edges are complete, but no bundle patch carries a runtime mount row while the README claims the standard composition mounts it; downgraded until the README is fixed or the row is added."
+      "remaining": "Companion surfaces and dependency edges are complete; no shipped composition mounts the registry (10+ packages carry the peer edge for opt-in loading). The README claim that the standard composition mounts it is corrected 2026-11-20 to state the opt-in reality; enabling the row in a shipped bundle stays an explicit composition decision."
     },
     {
       "name": "Generated documentation projection",

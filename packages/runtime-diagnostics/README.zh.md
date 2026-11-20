@@ -9,7 +9,7 @@ kind: "package-group"
 
 ## 概述
 
-`runtime-diagnostics/` 组对运行中的组合做自检：`invariants` 是运行包属 `./invariant` 伴侣的注册服务——各包携带这些检查来验证自己权威事件流与可变快照之间的持久关系——每次失败都以归属到所属包的 `InvariantError` 上报。标准 agent 组合随核心伴侣一起挂载它；只加载该服务不会安装任何检查。
+`runtime-diagnostics/` 组对运行中的组合做自检：`invariants` 是运行包属 `./invariant` 伴侣的注册服务——各包携带这些检查来验证自己权威事件流与可变快照之间的持久关系——每次失败都以归属到所属包的 `InvariantError` 上报。没有任何随仓组合挂载该注册服务：各包声明依赖边以便组合经 patch 行显式接入时其伴侣能加载；只加载该服务不会安装任何检查。
 
 ## 目录
 
