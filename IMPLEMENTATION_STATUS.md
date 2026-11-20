@@ -30,7 +30,7 @@ Status: IN_PROGRESS. The review covers the complete external Upstream-First spec
 | Artifact build and aggregate check | PASS | After quarantining obsolete generated Settings files and restoring official bundle ordering, [all 8 artifact steps pass](.artifacts/upstream-first-review/build-artifacts-ordered.log); [both aggregate checks pass](.artifacts/upstream-first-review/build-check-ordered.log). This is build evidence, not installed UI acceptance |
 | Local Web authentication | PASS | [25 focused assertions](.artifacts/upstream-first-review/local-web-auth.log) cover Host/Origin trust, loopback classification, and browser authentication; this is not the complete threat matrix |
 | Documentation quick checks | PASS | [All 21 checks pass](.artifacts/upstream-first-review/docs-quick-after.log) after moving exact Git identities to linked raw evidence; no reference-policy exception or gate disable |
-| Full specification and newer-upstream audit | IN_PROGRESS | Ownership, compatibility, UI, platform, and release findings remain under review |
+| Full specification and newer-upstream audit | IN_PROGRESS | The three priority execution areas now carry evidence-backed dispositions against official `f3803c9697` ([sandbox/shell Adapt + node-spawn Keep](.artifacts/upstream-first-review/owner-review-sandbox-shell.md), [code-runtime family Delete/Migrate](.artifacts/upstream-first-review/owner-review-code-runtime.md), [relay Experimental](.artifacts/upstream-first-review/owner-review-relay.md)); 13 of 121 owners classified, 108 remain open with the remaining compatibility, UI, platform, and release findings |
 
 ## Unresolved requirements
 

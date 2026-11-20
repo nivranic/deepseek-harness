@@ -93,6 +93,30 @@
       "owners": ["apps/apple", "apps/android"],
       "evidence": "IMPLEMENTATION_STATUS.md",
       "remaining": "Do not present full runtime migration or Full Mobile execution as accepted Companion/Lite behavior."
+    },
+    {
+      "name": "Execution isolation and Electron subprocess",
+      "classification": "Adapt",
+      "status": "PASS",
+      "owners": ["packages/sandbox/sandbox", "packages/sandbox/sandbox-local", "packages/sandbox/sandbox-windows-acl", "packages/shell/bash-local", "packages/shell/bash-sandbox", "packages/shell/pwsh-local", "packages/shell/pwsh-sandbox"],
+      "evidence": ".artifacts/upstream-first-review/owner-review-sandbox-shell.md",
+      "remaining": "Reviewed against official f3803c9697: seven packages stay official-base Adapt (single coherent PreparedArgv.runnerEnv seam for the Electron-hosted ACL runner; +140 source lines). Open recorded risks: NODE_OPTIONS/--inspect not scrubbed at spawn; ptc-runtime-node does not merge confined.env (fail-closed, not silent). No action taken on speculation."
+    },
+    {
+      "name": "Local code-runtime family and worker-thread engines",
+      "classification": "Migrate",
+      "status": "PASS",
+      "owners": ["packages/code-runtime/code-runtime", "packages/code-runtime/code-runtime-python", "packages/code-runtime/code-runtime-worker-thread", "packages/workflow/workflow-worker-thread"],
+      "evidence": ".artifacts/upstream-first-review/owner-review-code-runtime.md",
+      "remaining": "Dispositions recorded (code-runtime and code-runtime-python Delete; both worker-thread packages Migrate to official ptc-runtime-node/workflow-ptc, whose baseline copies are byte-identical to f3803c9697). Execution is separate work: npm-published packages need upgrade guides; desktop mounts and generators must move in the same change."
+    },
+    {
+      "name": "Relay prototype",
+      "classification": "Experimental",
+      "status": "PASS",
+      "owners": ["apps/relay"],
+      "evidence": ".artifacts/upstream-first-review/owner-review-relay.md",
+      "remaining": "Prototype only, never a production carrier: zero product wiring today; sole regeneration source for the Android/Apple Noise ports and vectors. README declassification wording and native README tone downgrade pending; production prerequisites (random tokens, peer pin, limits/backpressure) listed in the report."
     }
   ],
   "ownershipReviewPolicy": "Capability dispositions are current review decisions, not acceptance. Every unreviewed path owner below remains open; a disposition does not imply sourceReviewComplete or Gate 0 PASS.",
@@ -946,9 +970,9 @@
     },
     {
       "owner": "apps/relay",
-      "classification": null,
-      "status": "IN_PROGRESS",
-      "sourceReviewComplete": false,
+      "classification": "Experimental",
+      "status": "PASS",
+      "sourceReviewComplete": true,
       "changedPaths": [
         "apps/relay/README.i18n.yaml",
         "apps/relay/README.md",
@@ -1523,9 +1547,9 @@
     },
     {
       "owner": "packages/code-runtime/code-runtime-python",
-      "classification": null,
-      "status": "IN_PROGRESS",
-      "sourceReviewComplete": false,
+      "classification": "Delete",
+      "status": "PASS",
+      "sourceReviewComplete": true,
       "changedPaths": [
         "packages/code-runtime/code-runtime-python/README.i18n.yaml",
         "packages/code-runtime/code-runtime-python/README.md",
@@ -1543,9 +1567,9 @@
     },
     {
       "owner": "packages/code-runtime/code-runtime-worker-thread",
-      "classification": null,
-      "status": "IN_PROGRESS",
-      "sourceReviewComplete": false,
+      "classification": "Migrate",
+      "status": "PASS",
+      "sourceReviewComplete": true,
       "changedPaths": [
         "packages/code-runtime/code-runtime-worker-thread/README.i18n.yaml",
         "packages/code-runtime/code-runtime-worker-thread/README.md",
@@ -1570,9 +1594,9 @@
     },
     {
       "owner": "packages/code-runtime/code-runtime",
-      "classification": null,
-      "status": "IN_PROGRESS",
-      "sourceReviewComplete": false,
+      "classification": "Delete",
+      "status": "PASS",
+      "sourceReviewComplete": true,
       "changedPaths": [
         "packages/code-runtime/code-runtime/README.i18n.yaml",
         "packages/code-runtime/code-runtime/README.md",
@@ -1910,9 +1934,9 @@
     },
     {
       "owner": "packages/sandbox/sandbox-local",
-      "classification": null,
-      "status": "IN_PROGRESS",
-      "sourceReviewComplete": false,
+      "classification": "Adapt",
+      "status": "PASS",
+      "sourceReviewComplete": true,
       "changedPaths": [
         "packages/sandbox/sandbox-local/README.i18n.yaml",
         "packages/sandbox/sandbox-local/README.md",
@@ -1925,9 +1949,9 @@
     },
     {
       "owner": "packages/sandbox/sandbox-windows-acl",
-      "classification": null,
-      "status": "IN_PROGRESS",
-      "sourceReviewComplete": false,
+      "classification": "Adapt",
+      "status": "PASS",
+      "sourceReviewComplete": true,
       "changedPaths": [
         "packages/sandbox/sandbox-windows-acl/README.i18n.yaml",
         "packages/sandbox/sandbox-windows-acl/README.md",
@@ -1938,45 +1962,45 @@
     },
     {
       "owner": "packages/sandbox/sandbox",
-      "classification": null,
-      "status": "IN_PROGRESS",
-      "sourceReviewComplete": false,
+      "classification": "Adapt",
+      "status": "PASS",
+      "sourceReviewComplete": true,
       "changedPaths": [
         "packages/sandbox/sandbox/src/index.ts"
       ]
     },
     {
       "owner": "packages/shell/bash-local",
-      "classification": null,
-      "status": "IN_PROGRESS",
-      "sourceReviewComplete": false,
+      "classification": "Adapt",
+      "status": "PASS",
+      "sourceReviewComplete": true,
       "changedPaths": [
         "packages/shell/bash-local/src/index.ts"
       ]
     },
     {
       "owner": "packages/shell/bash-sandbox",
-      "classification": null,
-      "status": "IN_PROGRESS",
-      "sourceReviewComplete": false,
+      "classification": "Adapt",
+      "status": "PASS",
+      "sourceReviewComplete": true,
       "changedPaths": [
         "packages/shell/bash-sandbox/src/index.ts"
       ]
     },
     {
       "owner": "packages/shell/pwsh-local",
-      "classification": null,
-      "status": "IN_PROGRESS",
-      "sourceReviewComplete": false,
+      "classification": "Adapt",
+      "status": "PASS",
+      "sourceReviewComplete": true,
       "changedPaths": [
         "packages/shell/pwsh-local/src/index.ts"
       ]
     },
     {
       "owner": "packages/shell/pwsh-sandbox",
-      "classification": null,
-      "status": "IN_PROGRESS",
-      "sourceReviewComplete": false,
+      "classification": "Adapt",
+      "status": "PASS",
+      "sourceReviewComplete": true,
       "changedPaths": [
         "packages/shell/pwsh-sandbox/src/index.ts",
         "packages/shell/pwsh-sandbox/tests/sandbox.spec.ts"
@@ -2038,9 +2062,9 @@
     },
     {
       "owner": "packages/util/node-spawn",
-      "classification": null,
-      "status": "IN_PROGRESS",
-      "sourceReviewComplete": false,
+      "classification": "Keep",
+      "status": "PASS",
+      "sourceReviewComplete": true,
       "changedPaths": [
         "packages/util/node-spawn/README.i18n.yaml",
         "packages/util/node-spawn/README.md",
@@ -2059,9 +2083,9 @@
     },
     {
       "owner": "packages/workflow/workflow-worker-thread",
-      "classification": null,
-      "status": "IN_PROGRESS",
-      "sourceReviewComplete": false,
+      "classification": "Migrate",
+      "status": "PASS",
+      "sourceReviewComplete": true,
       "changedPaths": [
         "packages/workflow/workflow-worker-thread/README.i18n.yaml",
         "packages/workflow/workflow-worker-thread/README.md",

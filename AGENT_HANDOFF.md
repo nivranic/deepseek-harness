@@ -184,11 +184,13 @@ pnpm exec vitest run packages/remote/link-access/tests/carrier.spec.ts packages/
 - 精确基线 → dev、排除 vendor/archived/.worktrees 后为 1,232 个变化路径，全部在 inventory 中；inventory 额外一项是 vendor。路径收全不等于语义审查完成。
 - 81 行状态统计为 40 IN_PROGRESS、18 NOT_STARTED、17 FAIL、4 BLOCKED、1 DEFERRED、1 PASS。不能将报告存在当作 Gate 0 通过。
 
-### 优先补审的三个未覆盖执行区域
+### 优先补审的三个未覆盖执行区域（2026-11-20 补审完成）
 
-1. **执行隔离与 Electron 子进程**：`packages/sandbox/{sandbox,sandbox-local,sandbox-windows-acl}`、`packages/shell/{bash-local,bash-sandbox,pwsh-local,pwsh-sandbox}`、`packages/util/node-spawn`。核对 ConfinedArgv.env、环境覆盖顺序、Electron RunAsNode/flags 清理、真实调用者、拒绝执行和 teardown。一次 SearchWorkspace 请求被拒绝，未获得结果；不要声称该调用图已查清。
-2. **恢复的 code-runtime/workflow-worker**：`packages/code-runtime/{code-runtime,code-runtime-python,code-runtime-worker-thread}` 和 `packages/workflow/workflow-worker-thread`，共 65 个变化路径。与官方 ptc-runtime-node/workflow-ptc 的 overlap 需要按生产消费者比较；不能只因名字不同就删除，也不能默认保留为已验收。重点看 Host bridge/subagent、权限、资源与输出上限、取消/关闭、模型可见日志。
-3. **Relay**：`apps/relay` 的 9 个路径包含独立 HTTP service 和手写 Noise；需要核实账号/设备授权、peer 绑定、replay、流量/资源上限、backpressure、重连及两端互操作。当前未建立足以接受该实现的六类归属结论。
+六类归属已入 `CUSTOM_CAPABILITY_INVENTORY.json`（新增三组，13/121 owner 分类，108 仍开放），证据与执行注意见 `.artifacts/upstream-first-review/owner-review-{sandbox-shell,code-runtime,relay}.md`：
+
+1. **执行隔离与 Electron 子进程**＝Adapt×7＋Keep×1：sandbox/shell 七包保持官方基座（git diff f3803c9697 实测＋235/-28，其中源码净增约 +140，性质单一连贯＝`PreparedArgv.runnerEnv` seam，服务 Electron 宿主下 ACL runner 的 RunAsNode 前置，runner 启动被包裹命令前删除该变量）；node-spawn 官方缺席、2 个生产消费者（sandbox-local、directory-picker win32 宿主）＝Keep。环境覆盖序已核（scrubbed 基底→ENV_OVERRIDES<spec.env<dshEnv<runnerEnv；win32 大小写不敏感＋tombstone）。记录未改的两个观察：NODE_OPTIONS/--inspect 无 spawn 侧清理；ptc-runtime-node 未合并 `confined.env`（与 bash/pwsh executor 不对称，预期 fail-closed 非静默）。
+2. **code-runtime 家族与 worker-thread 引擎**＝Delete×2＋Migrate×2：code-runtime 与官方 ptc-runtime 逐字同源（四常量＋抽象类仅改名）且 `ctx.codeRuntime` 全仓零消费者；code-runtime-python 零依赖零挂载；code-runtime-worker-thread 唯一引用＝desktop 挂载行无调用者；workflow-worker-thread＝官方 workflow-ptc 的 fork、本地零启用挂载（desktop 显式 disabled、cli 依赖未用）。官方侧经 `git diff f3803c9697` 验证零改动，同源主张成立。**执行属后续独立改动**：npm 已发布包需升级指引、生成器与挂载同步迁移。
+3. **Relay**＝Experimental：产品组合零接线（Keep 不成立）；Android/Apple 两 native Noise 端口与向量的唯一再生成源（Delete 本轮不成立）；上生产硬缺口＝随机 token＋账号归属、服务端公钥 pin/TLS、body/队列/会话/流上限与背压。README 降级措辞待补。
 
 ### 已报告但未完成的产品要求
 
