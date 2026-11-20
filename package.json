@@ -14,7 +14,9 @@
     "native/system",
     "native/system/packages/*",
     "apps/*",
-    "website"
+    "benchmarks",
+    "website",
+    "python/sdk-runtime"
   ],
   "scripts": {
     "benchmark:npm-resolution": "tsx scripts/benchmark-npm-resolution.ts",

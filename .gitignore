@@ -56,12 +56,3 @@ apps/web/dist/
 worktrees/
 .agents/worktrees/
 .typert-*/
-native/system/test/bin/
-
-# glm-hybrid-router 插件本地运行时产物
-.glm-router/
-
-# 本会话工具的本地运行时产物（不入库，也避免撑爆 git ls-files --others）
-.mimosa/
-.zcode/
-.merge-helpers/
