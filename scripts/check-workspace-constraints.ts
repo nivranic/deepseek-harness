@@ -89,6 +89,8 @@ const appPackageFiles: Readonly<Record<string, readonly string[]>> = {
   // The Electron app shell: its main/preload entries; the packaged exe is an
   // electron-builder artifact, not an npm payload.
   '@deepseek-ai/dsh-desktop': ['lib/*.js'],
+  // The personal Electron shell carries the same main-entry-only payload.
+  '@deepseek-ai/dsh-desktop-user': ['lib/*.js'],
 }
 
 /** The subset of package.json fields this constraint check cares about. */
@@ -194,6 +196,9 @@ const packageFileExtras: Readonly<Record<string, readonly string[]>> = {
   '@deepseek-ai/dsh-experimental-subagent-oar': ['LICENSE-OAR'],
   // CUA publishes its client API and attributed native source for local macOS builds.
   '@deepseek-ai/dsh-cua': ['lib/remote-types.js', 'lib/api.js', 'lib/bridge.js', 'lib/native-client.js', 'lib/protocol.js'],
+  // The link wire vocabulary ships as its own bundle beside the carrier entry
+  // (the reference client and native companions consume it without the server).
+  '@deepseek-ai/dsh-link-access': ['lib/protocol.js'],
   '@deepseek-ai/dsh-experimental-cua-macos': ['native/bin', 'native/Package.swift', 'native/Sources', 'native/tests/swift', 'native/tests/test_swift.py', 'native/LICENSE.cua-driver', 'native/upstream.json', 'native/README.md', 'native/README.zh.md', 'native/protocol.schema.json'],
   '@deepseek-ai/dsh-webhook-github': ['examples/github-review/cordis.yml', 'examples/github-review/github-ready-review-rule.mjs'],
   // Liveshare publishes its built Relay gateway entry and the shared runtime
@@ -338,48 +343,50 @@ export function expectedDshPackageFiles(manifest: PackageManifest, detailFiles: 
       .flatMap(([, target]) => targets(target)).filter(icon => icon.startsWith('./')).map(icon => icon.slice(2)),
   ]
   return [
-    ...new Set(icons),
-    ...[...localeFiles].sort(),
-    ...detailFiles,
-    'lib/index.js',
-    ...manifest.bin ? ['lib/bin.js'] : [],
-    // Worker-thread packages ship a CJS worker entry; the browser worker
-    // bundle is an ES module a page loads with `new Worker(type: 'module')`.
-    // Keyed on the artifact path, like ./client below.
-    ...exportDefault(manifest, './worker') === './lib/worker.cjs' ? ['lib/worker.cjs'] : [],
-    ...exportDefault(manifest, './worker') === './lib/worker.js' ? ['lib/worker.js'] : [],
-    // Only physical browser bundles need a publication entry; a ./client
-    // subpath may instead expose a browser-safe emitted source tree.
-    ...browserClient === './lib/client.js' ? ['lib/client.js'] : [],
-    ...browserClient === './lib/client.browser.js' ? ['lib/client.browser.js'] : [],
-    ...exportCondition(manifest, './client', 'node') === './lib/client.node.js' ? ['lib/client.node.js'] : [],
-    ...exportDefault(manifest, PACKAGE_ASSET_EXPORT) === PACKAGE_ASSET_EXPORT_TARGET ? [PACKAGE_ASSET_FILES_ENTRY] : [],
-    // runtime's shell-held loader subpath ships as its own bundle beside the client half.
-    ...exportDefault(manifest, './loader') === './lib/loader.js' ? ['lib/loader.js'] : [],
-    // A store subpath ships its own bundle (single-entry builds; no shared chunk).
-    ...exportDefault(manifest, './store') === './lib/store/index.js' ? ['lib/store/index.js'] : [],
-    // The link wire vocabulary ships as its own bundle beside the carrier entry
-    // (the reference client and native companions consume it without the server).
-    ...exportDefault(manifest, './protocol') === './lib/protocol.js' ? ['lib/protocol.js'] : [],
-    // A surface bundle's startup row is its own bundle: the Loader imports it
-    // as a row module, so it cannot ride inside the package entry.
-    ...exportDefault(manifest, './startup') === './lib/startup.js' ? ['lib/startup.js'] : [],
-    ...extras,
-    // Subpaths whose runtime default is the tsc-emitted tree (lib/types/*.js —
-    // browser-safe source channels rehomed off src so plain Node can import
-    // them without type stripping) publish the emitted JS alongside the
-    // declarations.
-    ...usesEmittedTreeDefaults(manifest) ? ['lib/types/**/*.js'] : [],
-    'lib/types/**/*.d.ts',
-    ...hasExportPair(manifest, './typert', './lib/typert.host.d.ts', './lib/typert.host.js')
-      ? ['lib/typert.host.js', 'lib/typert.host.d.ts']
-      : [],
-    ...hasExportPair(manifest, './client/typert', './lib/typert.client.d.ts', './lib/typert.client.js')
-      ? ['lib/typert.client.js', 'lib/typert.client.d.ts']
-      : [],
-    ...hasTypertRemoteNavigation(manifest)
-      ? ['lib/typert.remote-client.js', 'lib/typert.remote-client.d.ts']
-      : [],
+    ...new Set([
+      ...icons,
+      ...[...localeFiles].sort(),
+      ...detailFiles,
+      'lib/index.js',
+      ...manifest.bin ? ['lib/bin.js'] : [],
+      // Worker-thread packages ship a CJS worker entry; the browser worker
+      // bundle is an ES module a page loads with `new Worker(type: 'module')`.
+      // Keyed on the artifact path, like ./client below.
+      ...exportDefault(manifest, './worker') === './lib/worker.cjs' ? ['lib/worker.cjs'] : [],
+      ...exportDefault(manifest, './worker') === './lib/worker.js' ? ['lib/worker.js'] : [],
+      // Only physical browser bundles need a publication entry; a ./client
+      // subpath may instead expose a browser-safe emitted source tree.
+      ...browserClient === './lib/client.js' ? ['lib/client.js'] : [],
+      ...browserClient === './lib/client.browser.js' ? ['lib/client.browser.js'] : [],
+      ...exportCondition(manifest, './client', 'node') === './lib/client.node.js' ? ['lib/client.node.js'] : [],
+      ...exportDefault(manifest, PACKAGE_ASSET_EXPORT) === PACKAGE_ASSET_EXPORT_TARGET ? [PACKAGE_ASSET_FILES_ENTRY] : [],
+      // runtime's shell-held loader subpath ships as its own bundle beside the client half.
+      ...exportDefault(manifest, './loader') === './lib/loader.js' ? ['lib/loader.js'] : [],
+      // A store subpath ships its own bundle (single-entry builds; no shared chunk).
+      ...exportDefault(manifest, './store') === './lib/store/index.js' ? ['lib/store/index.js'] : [],
+      // A package-owned invariant companion ships beside the entry: the registry
+      // loads it from the ./invariant subpath when a composition mounts it.
+      ...exportDefault(manifest, './invariant') === './lib/invariant.js' ? ['lib/invariant.js'] : [],
+      // A surface bundle's startup row is its own bundle: the Loader imports it
+      // as a row module, so it cannot ride inside the package entry.
+      ...exportDefault(manifest, './startup') === './lib/startup.js' ? ['lib/startup.js'] : [],
+      ...extras,
+      // Subpaths whose runtime default is the tsc-emitted tree (lib/types/*.js —
+      // browser-safe source channels rehomed off src so plain Node can import
+      // them without type stripping) publish the emitted JS alongside the
+      // declarations.
+      ...usesEmittedTreeDefaults(manifest) ? ['lib/types/**/*.js'] : [],
+      'lib/types/**/*.d.ts',
+      ...hasExportPair(manifest, './typert', './lib/typert.host.d.ts', './lib/typert.host.js')
+        ? ['lib/typert.host.js', 'lib/typert.host.d.ts']
+        : [],
+      ...hasExportPair(manifest, './client/typert', './lib/typert.client.d.ts', './lib/typert.client.js')
+        ? ['lib/typert.client.js', 'lib/typert.client.d.ts']
+        : [],
+      ...hasTypertRemoteNavigation(manifest)
+        ? ['lib/typert.remote-client.js', 'lib/typert.remote-client.d.ts']
+        : [],
+    ]),
   ]
 }
 

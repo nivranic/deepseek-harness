@@ -111,13 +111,8 @@
     "@deepseek-ai/dsh-experimental-plugin-market-bundle": "workspace:*",
     "@deepseek-ai/dsh-personalized-recommendations": "workspace:*",
     "@deepseek-ai/dsh-experimental-forge-bundle": "workspace:*",
-    "@deepseek-ai/cordis-plugin-hmr": "workspace:^",
-    "@deepseek-ai/dsh-hooks-claude-code": "workspace:^",
-    "@deepseek-ai/dsh-hooks-codex": "workspace:^",
-    "@deepseek-ai/dsh-tool-ralph": "workspace:^",
-    "@deepseek-ai/dsh-desktop-app": "workspace:^",
-    "@deepseek-ai/dsh-webhook": "workspace:^",
-    "@deepseek-ai/dsh-webhook-github": "workspace:^"
+    "@deepseek-ai/cordis-plugin-hmr": "workspace:~",
+    "@deepseek-ai/dsh-desktop-app": "workspace:*"
   },
   "devDependencies": {
     "@deepseek-ai/dsh-skill-badge": "workspace:*",
@@ -174,8 +169,8 @@
     "ajv": "^8.20.0",
     "execa": "^10.0.1",
     "ws": "8.21.3",
-    "@deepseek-ai/dsh-experimental-agent-team-profile": "workspace:^",
-    "@deepseek-ai/dsh-host-electron-ipc": "workspace:^"
+    "@deepseek-ai/dsh-experimental-agent-team-profile": "workspace:*",
+    "@deepseek-ai/dsh-host-electron-ipc": "workspace:*"
   },
   "exports": {
     "./profile-boot": {
