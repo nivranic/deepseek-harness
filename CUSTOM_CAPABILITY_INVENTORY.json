@@ -100,7 +100,7 @@
       "status": "PASS",
       "owners": ["packages/sandbox/sandbox", "packages/sandbox/sandbox-local", "packages/sandbox/sandbox-windows-acl", "packages/shell/bash-local", "packages/shell/bash-sandbox", "packages/shell/pwsh-local", "packages/shell/pwsh-sandbox"],
       "evidence": ".artifacts/upstream-first-review/owner-review-sandbox-shell.md",
-      "remaining": "Reviewed against official f3803c9697: seven packages stay official-base Adapt (single coherent PreparedArgv.runnerEnv seam for the Electron-hosted ACL runner; +140 source lines). Open recorded risks: NODE_OPTIONS/--inspect not scrubbed at spawn; ptc-runtime-node does not merge confined.env (fail-closed, not silent). No action taken on speculation."
+      "remaining": "Reviewed against the official master baseline (UPSTREAM_BASELINE.md): seven packages stay official-base Adapt (single coherent PreparedArgv.runnerEnv seam for the Electron-hosted ACL runner; +140 source lines). Open recorded risks: NODE_OPTIONS/--inspect not scrubbed at spawn; ptc-runtime-node does not merge confined.env (fail-closed, not silent). No action taken on speculation."
     },
     {
       "name": "Local code-runtime family and worker-thread engines",
@@ -108,7 +108,7 @@
       "status": "PASS",
       "owners": ["packages/code-runtime/code-runtime", "packages/code-runtime/code-runtime-python", "packages/code-runtime/code-runtime-worker-thread", "packages/workflow/workflow-worker-thread"],
       "evidence": ".artifacts/upstream-first-review/owner-review-code-runtime.md",
-      "remaining": "Dispositions recorded (code-runtime and code-runtime-python Delete; both worker-thread packages Migrate to official ptc-runtime-node/workflow-ptc, whose baseline copies are byte-identical to f3803c9697). Execution is separate work: npm-published packages need upgrade guides; desktop mounts and generators must move in the same change."
+      "remaining": "Dispositions recorded (code-runtime and code-runtime-python Delete; both worker-thread packages Migrate to official ptc-runtime-node/workflow-ptc, whose baseline copies are byte-identical to the official master baseline). Execution is separate work: npm-published packages need upgrade guides; desktop mounts and generators must move in the same change."
     },
     {
       "name": "Relay prototype",

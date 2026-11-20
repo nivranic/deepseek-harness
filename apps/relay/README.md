@@ -4,6 +4,10 @@ English | [中文](README.zh.md)
 
 The self-hostable rendezvous shell of the cross-device plan (chapters 68/69): a zero-dependency Node HTTP service — device registration, reference-only envelope forwarding, draining by poll, the push stream (connect flushes the pending queue, then live envelopes arrive as encrypted frames; a connected device keeps nothing queued), and presence derived from open streams (same-account streams receive device-online/offline frames; the presence endpoint answers the roster's online state). Every rendezvous endpoint is Noise-encrypted; the relay is never a session database, workspace replica, or authority, and the Windows/macOS host keeps full session authority. The protocol is pinned by the Android and Apple rendezvous cores in their lanes; this shell mirrors it for self-hosting.
 
+## Prototype status
+
+This shell is a self-hosting reference, not a product commitment, and never a production carrier: registration tokens are deterministic with no account-ownership proof, clients do not pin the server's static key, and no request body, queue, or stream carries size limits or backpressure. The relay-prototype quarantine ruling bars it from production transport until those gaps close; the Android and Apple lanes consume only its protocol vectors, not this service.
+
 ## Running
 
 ```sh
