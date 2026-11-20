@@ -17,6 +17,14 @@ export interface ProductPackagePolicy {
  */
 export const PRODUCT_PACKAGE_POLICY: Readonly<Record<string, ProductPackagePolicy>> = {
   'packages/core/agent-tool-presentation': { category: 'optional', reason: 'Deprecated selector retained for existing executor configurations.' },
+  'packages/bundle/desktop-app': { category: 'optional', reason: 'Desktop composition bundle installed by the personal desktop application.' },
+  'packages/client/ui-desktop': { category: 'optional', reason: 'Desktop client surface mounted by the desktop composition bundle.' },
+  'packages/host/electron-ipc': { category: 'optional', reason: 'Electron host carrier activated by the installed desktop application.' },
+  'packages/remote/link-access': { category: 'optional', reason: 'Remote link rendezvous transport selected by remote-enabled compositions.' },
+  'packages/remote/link-client': { category: 'optional', reason: 'Remote link client transport selected by remote-enabled compositions.' },
+  'packages/remote/link-contracts': { category: 'optional', reason: 'Remote link protocol contracts shared with the native device lanes.' },
+  'packages/remote/link-settings': { category: 'optional', reason: 'Remote link settings surface selected by remote-enabled compositions.' },
+  'packages/runtime-diagnostics/invariants': { category: 'optional', reason: 'Opt-in diagnostics registry a composition mounts through an explicit patch row.' },
   'packages/browser-use/browser-use': { category: 'optional', reason: 'Service definition used by explicitly selected browser providers.' },
   'packages/computer-use/computer-use': { category: 'optional', reason: 'Service definition used by explicitly selected computer providers.' },
   'packages/lsp/lsp': { category: 'optional', reason: 'Service definition for deployment-configured language servers.' },

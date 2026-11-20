@@ -1,0 +1,6 @@
+{
+  "meta": {
+    "title": "lokaler Artefaktspeicher",
+    "description": "Speichert Sitzungsartefakte im Dateisystem des lokalen Arbeitsbereichs."
+  }
+}

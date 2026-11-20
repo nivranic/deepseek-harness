@@ -1,0 +1,6 @@
+{
+  "meta": {
+    "title": "interface de contrôle de liaison",
+    "description": "Fournit les commandes d'approbation d'appariement et de contrôle de connexion des liaisons distantes."
+  }
+}

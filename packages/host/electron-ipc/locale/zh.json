@@ -1,0 +1,6 @@
+{
+  "meta": {
+    "title": "Electron IPC 宿主通道",
+    "description": "在桌面宿主与渲染进程之间传递受特权保护的调用。"
+  }
+}

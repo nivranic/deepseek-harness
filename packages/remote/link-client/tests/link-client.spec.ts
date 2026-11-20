@@ -155,10 +155,9 @@ describe('LinkClient', () => {
   })
 
   it('rejects malformed, expired, and replayed pairing payloads', async () => {
-    await expect(LinkClient.pair(
-      { ...pairing, v: 2 } as unknown as LinkPairingPayload,
-      { deviceName: 'x' },
-    )).rejects.toMatchObject({ code: 'pairing-unsupported' })
+    const futurePairing: Omit<LinkPairingPayload, 'v'> & { v: number } = { ...pairing, v: 2 }
+    await expect(LinkClient.pair(futurePairing as LinkPairingPayload, { deviceName: 'x' }))
+      .rejects.toMatchObject({ code: 'pairing-unsupported' })
     await expect(LinkClient.pair(
       { ...pairing, expiresAt: Date.now() - 1 },
       { deviceName: 'x' },

@@ -138,7 +138,7 @@ export class LinkClient {
     pairing: LinkPairingPayload,
     options: { readonly deviceName: string; readonly deviceKey?: KeyObject },
   ): Promise<LinkClient> {
-    const wire = pairing as unknown as { readonly v?: number; readonly kind?: string }
+    const wire: { readonly v?: unknown; readonly kind?: unknown } = pairing
     if (wire.v !== LINK_PROTOCOL_VERSION || wire.kind !== 'dsh-link-pairing') {
       throw new LinkError('pairing-unsupported', 'pairing payload speaks an unsupported protocol version')
     }
@@ -511,7 +511,7 @@ function collectText(response: IncomingMessage): Promise<string> {
 function parseHttpResponse(status: number, text: string): LinkHttpResponse {
   let json: unknown
   try {
-    json = JSON.parse(text) as unknown
+    json = JSON.parse(text)
   } catch {
     /* v8 ignore next -- every carrier response is JSON; a non-JSON body means an intermediary answered. */
     json = undefined

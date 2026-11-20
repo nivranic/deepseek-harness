@@ -335,7 +335,7 @@ function collect(response: IncomingMessage): Promise<{ readonly text: string }> 
 function parseResponse(status: number, text: string): CarrierResponse {
   let json: unknown
   try {
-    json = JSON.parse(text) as unknown
+    json = JSON.parse(text)
   } catch {
     json = undefined
   }

@@ -1,0 +1,6 @@
+{
+  "meta": {
+    "title": "interface de controle de enlace",
+    "description": "Fornece comandos de aprovação de pareamento e controle de conexão para links remotos."
+  }
+}

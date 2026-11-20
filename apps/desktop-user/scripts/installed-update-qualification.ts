@@ -93,7 +93,7 @@ export async function readInstalledUpdateRun(path: string): Promise<InstalledUpd
     || typeof row.createdAt !== 'string' || !Number.isFinite(Date.parse(row.createdAt))) {
     throw new Error('installed update: invalid source version, commit, file list, or creation time')
   }
-  return row as unknown as InstalledUpdateRun
+  return row as InstalledUpdateRun & Record<string, unknown>
 }
 
 interface JournalRecord {
@@ -158,7 +158,7 @@ function parseRecord(line: string, sequence: number): JournalRecord {
     || (row.targetVersion !== undefined && (typeof row.targetVersion !== 'string' || valid(row.targetVersion) !== row.targetVersion))) {
     throw new Error('installed update: unsupported or inconsistent journal record; raw input is withheld')
   }
-  return row as unknown as JournalRecord
+  return row as JournalRecord & Record<string, unknown>
 }
 
 /**

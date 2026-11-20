@@ -182,14 +182,5 @@
   },
   "engines": {
     "node": ">=24.9.0"
-  },
-  "dsh": {
-    "configTrees": [
-      {
-        "mount": "config/agent-presets",
-        "path": "../../packages/preset/agent-presets/presets",
-        "scanRoster": true
-      }
-    ]
   }
 }

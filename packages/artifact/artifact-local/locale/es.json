@@ -1,0 +1,6 @@
+{
+  "meta": {
+    "title": "almacén local de artefactos",
+    "description": "Guarda los artefactos de sesión en el sistema de archivos del espacio de trabajo local."
+  }
+}

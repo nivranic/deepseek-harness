@@ -781,7 +781,7 @@ function drain(res: ServerResponse): Promise<void> {
 }
 
 function parseJson(body: Buffer): unknown {
-  return JSON.parse(body.toString('utf8')) as unknown
+  return JSON.parse(body.toString('utf8'))
 }
 
 function stringHeaders(headers: IncomingMessage['headers']): Record<string, string> {

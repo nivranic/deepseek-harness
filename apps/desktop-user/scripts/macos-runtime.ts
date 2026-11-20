@@ -75,7 +75,7 @@ export async function signMacOSRuntime(
     }
   })
   const results = await Promise.allSettled(workers)
-  const errors = results.filter(result => result.status === 'rejected').map(result => result.reason as unknown)
+  const errors = results.filter(result => result.status === 'rejected').map(result => result.reason)
   if (errors.length > 0) throw new AggregateError(errors, 'desktop runtime: native signing failed')
   if (cacheDirectory !== undefined) {
     pruneMacOSSignatureCache(cacheDirectory)

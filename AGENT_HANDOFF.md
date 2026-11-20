@@ -264,4 +264,4 @@ pnpm 为 11.28.5；仓库要求 Node >=24.9。正确 Node24 仍可能输出 SQLi
 
 ## Dev Note
 
-个人首次 profile 的源码与回归层已修复（见 3.2；安装态首跑验收仍待）；完整 owner 分类、平台与发布验收继续待办。
+个人首次 profile 的源码与回归层已修复（见 3.2；安装态首跑验收仍待）；完整 owner 分类已收口（121/121，见 6）；hygiene 门禁 15/24→22/24（余两项＝记录在案的 vendor rescope 不可修与 node-next Windows symlink EPERM 环境边界，CI-Linux 拥有该信号；七灯修复细节见 .merge-helpers/port-notes/2026-11-10-native-remote-peer-port-parked.md 附 11 末条）；平台与发布验收继续待办。

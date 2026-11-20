@@ -1,0 +1,6 @@
+{
+  "meta": {
+    "title": "canal IPC del host de Electron",
+    "description": "Transporta llamadas privilegiadas entre el host de escritorio y el proceso de renderizado."
+  }
+}

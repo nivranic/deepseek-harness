@@ -17,7 +17,8 @@ function apple(command: string, args: string[], input?: string): { stdout: strin
 function digest(bytes: Buffer): string { return createHash('sha256').update(bytes).digest('hex') }
 function plist(xml: string): unknown {
   if (xml.trim() === '') return {}
-  return JSON.parse(apple('/usr/bin/plutil', ['-convert', 'json', '-o', '-', '-'], xml).stdout) as unknown
+  const value: unknown = JSON.parse(apple('/usr/bin/plutil', ['-convert', 'json', '-o', '-', '-'], xml).stdout)
+  return value
 }
 function inspect(path: string): { certificate: string; details: string; entitlements: unknown } {
   const directory = mkdtempSync(join(tmpdir(), 'dsh-signature-policy-'))

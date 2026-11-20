@@ -1,0 +1,6 @@
+{
+  "meta": {
+    "title": "canal de ressources d'artefacts",
+    "description": "Fournit aux clients le téléversement et la lecture des artefacts de session."
+  }
+}

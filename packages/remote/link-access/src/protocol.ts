@@ -251,7 +251,7 @@ export function parseLinkPairRequest(value: unknown): LinkPairRequest {
     || !nonEmptyString(value.code) || !nonEmptyString(value.deviceName) || !nonEmptyString(value.devicePublicKey)) {
     throw new Error('link access: invalid pairing request')
   }
-  return value as unknown as LinkPairRequest
+  return { code: value.code, deviceName: value.deviceName, devicePublicKey: value.devicePublicKey }
 }
 
 /**
@@ -268,5 +268,11 @@ export function parseLinkPairValue(value: unknown): LinkPairValue {
     || value.linkProtocolVersion !== LINK_PROTOCOL_VERSION) {
     throw new Error('link access: invalid pairing response')
   }
-  return value as unknown as LinkPairValue
+  return {
+    deviceId: value.deviceId,
+    hostId: value.hostId,
+    hostName: value.hostName,
+    role: value.role,
+    linkProtocolVersion: value.linkProtocolVersion,
+  }
 }

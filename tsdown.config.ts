@@ -23,9 +23,7 @@ export default defineConfig(({ env }) => {
   const packages = workspacePackageGlobs(globSync(['vendor/*/package.json', 'packages/*/*/package.json'], { cwd: import.meta.dirname }))
   return {
     workspace: [...packages, 'apps/cli', ...client ? [] : ['apps/desktop-host', 'apps/desktop-user']],
-    // `protocol` is the link wire vocabulary shipped beside the carrier entry
-    // (packages without one simply have no match in the glob).
-    entry: client ? '' : ['lib/types/{index,invariant,startup,protocol}.js'],
+    entry: client ? '' : ['lib/types/{index,startup}.js'],
     outDir: 'lib',
     format: ['esm'],
     platform: 'node',

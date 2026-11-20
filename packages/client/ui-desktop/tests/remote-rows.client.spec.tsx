@@ -7,7 +7,7 @@
 
 import { cleanup, fireEvent, render, screen, waitFor } from '@testing-library/react'
 import { afterEach, describe, expect, it, vi } from 'vitest'
-import { bindSnapshotSelector } from '@deepseek-ai/dsh-client-test-runtime'
+import { bindSnapshotSelector, makeTranslate } from '@deepseek-ai/dsh-client-test-runtime'
 import { createSnapshotStore } from '@deepseek-ai/dsh-client-store'
 import type { ConfigFormSnapshot } from '@deepseek-ai/dsh-client-ui-settings/client'
 import type { LinkPairingValue } from '@deepseek-ai/dsh-api-link-controller/types'
@@ -33,20 +33,21 @@ const BASE: Snapshot = {
   writable: true,
 }
 
-const t = (key: keyof typeof zh): string => zh[key]
+const t = makeTranslate(zh)
 
 describe('RemoteToggleRow', () => {
   function renderToggle(state: Partial<Snapshot> = {}, field: 'enabled' | 'allowRemoteApproval' = 'enabled') {
     const store = createSnapshotStore<Snapshot>({ ...BASE, ...state })
     const select = vi.fn()
-    render(<RemoteToggleRow {...({
+    const props: Partial<RemoteToggleRowComponentProps> = {
       select,
       field,
       titleKey: 'accessTitle',
       descriptionKey: 'accessDescription',
       useRemote: bindSnapshotSelector(store),
       t,
-    } as unknown as RemoteToggleRowComponentProps)} />)
+    }
+    render(<RemoteToggleRow {...(props as RemoteToggleRowComponentProps)} />)
     return select
   }
 
@@ -80,14 +81,15 @@ describe('DeviceNameRow', () => {
   function renderName(state: Partial<Snapshot> = {}) {
     const store = createSnapshotStore<Snapshot>({ ...BASE, ...state })
     const commit = vi.fn()
-    render(<DeviceNameRow {...({
+    const props: Partial<DeviceNameRowComponentProps> = {
       commit,
       titleKey: 'deviceNameTitle',
       descriptionKey: 'deviceNameDescription',
       placeholderKey: 'deviceNamePlaceholder',
       useRemote: bindSnapshotSelector(store),
       t,
-    } as unknown as DeviceNameRowComponentProps)} />)
+    }
+    render(<DeviceNameRow {...(props as DeviceNameRowComponentProps)} />)
     return commit
   }
 
@@ -111,14 +113,15 @@ describe('DeviceNameRow', () => {
   it('keeps a local edit across an external re-render and commits on Enter', async () => {
     const store = createSnapshotStore<Snapshot>({ ...BASE })
     const commit = vi.fn()
-    render(<DeviceNameRow {...({
+    const props: Partial<DeviceNameRowComponentProps> = {
       commit,
       titleKey: 'deviceNameTitle',
       descriptionKey: 'deviceNameDescription',
       placeholderKey: 'deviceNamePlaceholder',
       useRemote: bindSnapshotSelector(store),
       t,
-    } as unknown as DeviceNameRowComponentProps)} />)
+    }
+    render(<DeviceNameRow {...(props as DeviceNameRowComponentProps)} />)
     const field = screen.getByLabelText(zh.deviceNameTitle) as HTMLInputElement
     fireEvent.change(field, { target: { value: 'Desk Pro' } })
     store.set({ ...BASE, value: { enabled: true, allowRemoteApproval: false, deviceName: 'External Edit' } })
@@ -132,14 +135,15 @@ describe('DeviceNameRow', () => {
 
   it('renders nothing while the value is not ready', () => {
     const store = createSnapshotStore<Snapshot>({ ...BASE, status: 'loading', value: undefined })
-    render(<DeviceNameRow {...({
+    const props: Partial<DeviceNameRowComponentProps> = {
       commit: vi.fn(),
       titleKey: 'deviceNameTitle',
       descriptionKey: 'deviceNameDescription',
       placeholderKey: 'deviceNamePlaceholder',
       useRemote: bindSnapshotSelector(store),
       t,
-    } as unknown as DeviceNameRowComponentProps)} />)
+    }
+    render(<DeviceNameRow {...(props as DeviceNameRowComponentProps)} />)
     expect(screen.queryByText(zh.deviceNameTitle)).toBeNull()
   })
 
@@ -168,7 +172,7 @@ describe('RemoteDevicesRow', () => {
   function renderDevices(options: {
     enabled?: boolean
     status?: { listening: boolean; endpoint?: string; bindError?: string }
-    devices?: Array<{ deviceId: string; name: string; role: 'observer' | 'controller'; lastSeenAt?: number; revokedAt?: number }>
+    devices?: Array<{ deviceId: string; name: string; role: 'observer' | 'controller'; createdAt: number; lastSeenAt?: number; revokedAt?: number }>
     failing?: boolean
   } = {}) {
     const store = createSnapshotStore<Snapshot>({ ...BASE, value: { enabled: options.enabled ?? true, allowRemoteApproval: false, deviceName: 'Studio Desk' } })
@@ -191,11 +195,12 @@ describe('RemoteDevicesRow', () => {
           : { deviceId, name: 'iPhone', role: 'controller' as const, createdAt: 100, revokedAt: 500 },
       )),
     }
-    render(<RemoteDevicesRow {...({
+    const props: Partial<RemoteDevicesRowComponentProps> = {
       api,
       useRemote: bindSnapshotSelector(store),
       t,
-    } as unknown as RemoteDevicesRowComponentProps)} />)
+    }
+    render(<RemoteDevicesRow {...(props as RemoteDevicesRowComponentProps)} />)
     return api
   }
 
@@ -222,8 +227,8 @@ describe('RemoteDevicesRow', () => {
 
   it('lists devices with their role and revokes on demand', async () => {
     const api = renderDevices({ devices: [
-      { deviceId: 'device-1', name: 'iPhone', role: 'controller' },
-      { deviceId: 'device-2', name: 'iPad', role: 'observer', revokedAt: 400 },
+      { deviceId: 'device-1', name: 'iPhone', role: 'controller', createdAt: 100 },
+      { deviceId: 'device-2', name: 'iPad', role: 'observer', createdAt: 100, revokedAt: 400 },
     ] })
     await waitFor(() => { expect(screen.getByText('iPhone')).not.toBeNull() })
     expect(screen.getByText(`${zh.controller} · ${zh.neverSeen}`)).not.toBeNull()
@@ -237,14 +242,14 @@ describe('RemoteDevicesRow', () => {
   })
 
   it('shows last-seen times, renders nothing while loading, and swallows a failed pairing', async () => {
-    renderDevices({ devices: [{ deviceId: 'device-1', name: 'iPhone', role: 'controller', lastSeenAt: 200 }] })
+    renderDevices({ devices: [{ deviceId: 'device-1', name: 'iPhone', role: 'controller', createdAt: 100, lastSeenAt: 200 }] })
     const seen = new Date(200).toLocaleString()
     await waitFor(() => {
       expect(screen.getByText((_, element) => element?.textContent === `${zh.controller} · ${seen}`)).not.toBeNull()
     })
     cleanup()
     const store = createSnapshotStore<Snapshot>({ ...BASE, status: 'loading', value: undefined })
-    render(<RemoteDevicesRow {...({
+    const loadingProps: Partial<RemoteDevicesRowComponentProps> = {
       api: {
         status: vi.fn(() => Promise.resolve({ listening: true, hostName: 'x', allowRemoteApproval: false, deviceCount: 0 })),
         createPairing: vi.fn(() => Promise.resolve(PAIRING)),
@@ -253,7 +258,8 @@ describe('RemoteDevicesRow', () => {
       },
       useRemote: bindSnapshotSelector(store),
       t,
-    } as unknown as RemoteDevicesRowComponentProps)} />)
+    }
+    render(<RemoteDevicesRow {...(loadingProps as RemoteDevicesRowComponentProps)} />)
     expect(screen.queryByText(zh.devicesTitle)).toBeNull()
     cleanup()
     const failing = {
@@ -262,11 +268,12 @@ describe('RemoteDevicesRow', () => {
       devices: vi.fn(() => Promise.resolve([])),
       revokeDevice: vi.fn(() => Promise.resolve(undefined)),
     }
-    render(<RemoteDevicesRow {...({
+    const failingProps: Partial<RemoteDevicesRowComponentProps> = {
       api: failing,
       useRemote: bindSnapshotSelector(createSnapshotStore<Snapshot>({ ...BASE })),
       t,
-    } as unknown as RemoteDevicesRowComponentProps)} />)
+    }
+    render(<RemoteDevicesRow {...(failingProps as RemoteDevicesRowComponentProps)} />)
     await waitFor(() => { expect(screen.getByText(zh.pairNewDevice)).not.toBeNull() })
     fireEvent.click(screen.getByText(zh.pairNewDevice))
     await waitFor(() => { expect(failing.createPairing).toHaveBeenCalledTimes(1) })

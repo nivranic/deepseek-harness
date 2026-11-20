@@ -1,0 +1,6 @@
+{
+  "meta": {
+    "title": "canal IPC de l'hôte Electron",
+    "description": "Transporte les appels privilégiés entre l'hôte de bureau et le processus de rendu."
+  }
+}

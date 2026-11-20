@@ -11,6 +11,7 @@
 
 import { afterEach, describe, expect, it, vi } from 'vitest'
 import { readNativeUtf16 } from '../src/win32-dialog-bindings.ts'
+import type { Koffi } from '../src/win32-dialog-bindings.ts'
 import { HRESULT_CANCELLED, runFolderDialog } from '../src/win32-dialog-logic.ts'
 
 const E_FAIL = 0x80004005 | 0
@@ -335,7 +336,7 @@ describe('readNativeUtf16 against a real shell item', () => {
   // ArrayBuffer. This pins the replacement against real COM memory on every
   // win32 host, under whatever heap the test runner itself uses.
   it.skipIf(process.platform !== 'win32')('reads the filesystem path of a real GetDisplayName result', async () => {
-    const koffi = (await import('koffi')).default as unknown as import('../src/win32-dialog-bindings.ts').Koffi
+    const koffi = (await import('koffi')).default as Pick<Koffi, 'load' | 'proto' | 'call' | 'decode' | 'sizeof'>
     const ole32 = koffi.load('ole32.dll')
     const shell32 = koffi.load('shell32.dll')
     const kernel32 = koffi.load('kernel32.dll')

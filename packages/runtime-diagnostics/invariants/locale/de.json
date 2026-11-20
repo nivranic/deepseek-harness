@@ -1,0 +1,6 @@
+{
+  "meta": {
+    "title": "Laufzeit-Diagnose-Invarianten",
+    "description": "Deklariert und prüft zwischen Paketen geteilte Laufzeit-Invarianten."
+  }
+}

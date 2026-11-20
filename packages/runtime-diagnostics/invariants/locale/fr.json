@@ -1,0 +1,6 @@
+{
+  "meta": {
+    "title": "invariants de diagnostic d'exécution",
+    "description": "Déclare et vérifie les invariants d'exécution partagés entre paquets."
+  }
+}

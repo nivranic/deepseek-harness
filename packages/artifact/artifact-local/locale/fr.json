@@ -1,0 +1,6 @@
+{
+  "meta": {
+    "title": "stockage local d'artefacts",
+    "description": "Écrit les artefacts de session dans le système de fichiers de l'espace de travail local."
+  }
+}

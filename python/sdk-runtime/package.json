@@ -34,6 +34,7 @@
     "@deepseek-ai/dsh-cmdline": "workspace:*",
     "@deepseek-ai/dsh-command-feedback": "workspace:*",
     "@deepseek-ai/dsh-file-reference": "workspace:*",
+    "@deepseek-ai/dsh-invariants": "workspace:*",
     "@deepseek-ai/dsh-message-feedback": "workspace:*",
     "@deepseek-ai/dsh-native-command": "workspace:*",
     "@deepseek-ai/dsh-ptc-runtime": "workspace:*",

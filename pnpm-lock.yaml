@@ -18443,6 +18443,9 @@ importers:
       '@deepseek-ai/dsh-http-proxy':
         specifier: workspace:*
         version: link:../../packages/util/http-proxy
+      '@deepseek-ai/dsh-invariants':
+        specifier: workspace:*
+        version: link:../../packages/runtime-diagnostics/invariants
       '@deepseek-ai/dsh-jobs':
         specifier: workspace:*
         version: link:../../packages/jobs/jobs

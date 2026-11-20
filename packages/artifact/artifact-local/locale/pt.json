@@ -1,0 +1,6 @@
+{
+  "meta": {
+    "title": "armazenamento local de artefatos",
+    "description": "Salva os artefatos de sessão no sistema de arquivos do espaço de trabalho local."
+  }
+}

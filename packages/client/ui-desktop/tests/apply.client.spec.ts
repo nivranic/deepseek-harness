@@ -121,12 +121,12 @@ async function rowFaces() {
   expect(byId('desktop-remote-approval').options.order).toBe(13)
   expect(byId('desktop-remote-device-name').options.order).toBe(14)
   expect(byId('desktop-remote-devices').options.order).toBe(15)
-  const closeFace = (byId('desktop-close').inject as unknown as () => CloseActionRowInjected)()
-  const launchFace = (byId('desktop-launch-at-login').inject as unknown as () => LaunchAtLoginRowInjected)()
-  const accessFace = (byId('desktop-remote-access').inject as unknown as () => RemoteToggleRowInjected)()
-  const approvalFace = (byId('desktop-remote-approval').inject as unknown as () => RemoteToggleRowInjected)()
-  const deviceNameFace = (byId('desktop-remote-device-name').inject as unknown as () => DeviceNameRowInjected)()
-  const devicesFace = (byId('desktop-remote-devices').inject as unknown as () => RemoteDevicesRowInjected)()
+  const closeFace = (byId('desktop-close').inject as () => CloseActionRowInjected & Record<string, unknown>)()
+  const launchFace = (byId('desktop-launch-at-login').inject as () => LaunchAtLoginRowInjected & Record<string, unknown>)()
+  const accessFace = (byId('desktop-remote-access').inject as () => RemoteToggleRowInjected & Record<string, unknown>)()
+  const approvalFace = (byId('desktop-remote-approval').inject as () => RemoteToggleRowInjected & Record<string, unknown>)()
+  const deviceNameFace = (byId('desktop-remote-device-name').inject as () => DeviceNameRowInjected & Record<string, unknown>)()
+  const devicesFace = (byId('desktop-remote-devices').inject as () => RemoteDevicesRowInjected & Record<string, unknown>)()
   return { ctx, locale, mutate, link, closeFace, launchFace, accessFace, approvalFace, deviceNameFace, devicesFace }
 }
 

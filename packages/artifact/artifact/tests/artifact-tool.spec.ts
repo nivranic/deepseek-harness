@@ -36,7 +36,7 @@ class MemoryArtifactStore extends ArtifactStore {
 /** A parent Agent backed by a real Session — the tool reads `agent.session`. */
 function agentWithSession(id = 'parent-1'): Agent & { session: Session } {
   const session = Session.create(SessionId(id))
-  return { id: SessionId(id), session } as unknown as Agent & { session: Session }
+  return { id: SessionId(id), session } as Agent
 }
 
 /** Mounts the real plugins with the memory channel as the provider; the

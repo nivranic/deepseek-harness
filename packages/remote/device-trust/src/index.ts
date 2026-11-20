@@ -9,7 +9,7 @@
 
 import { createHash, createPublicKey, randomBytes, randomUUID } from 'node:crypto'
 import { join } from 'node:path'
-import type { DatabaseSync } from 'node:sqlite'
+import type { DatabaseSync, SQLOutputValue } from 'node:sqlite'
 import { Context, Service } from '@deepseek-ai/cordis'
 import type { Branded } from '@deepseek-ai/dsh-brand'
 import { resolveDshHome } from '@deepseek-ai/dsh-home-paths'
@@ -94,7 +94,7 @@ export const internals = {
   now: (): number => Date.now(),
 }
 
-interface DeviceRow {
+type DeviceRow = {
   device_id: string
   name: string
   public_key_spki: string
@@ -247,7 +247,8 @@ export class DeviceTrustStore extends Service {
    */
   async devices(): Promise<readonly PairedDevice[]> {
     const db = await this.ready
-    const rows = db.prepare('SELECT * FROM devices ORDER BY created_at, device_id').all() as unknown as DeviceRow[]
+    const rows = db.prepare('SELECT * FROM devices ORDER BY created_at, device_id').all()
+    if (!rows.every(isDeviceRow)) throw new Error('device trust: devices row does not match the stored schema')
     return rows.map(deviceOf)
   }
 
@@ -294,6 +295,15 @@ function DeviceId(value: string): DeviceId {
 
 function hashPairingCode(code: string): string {
   return createHash('sha256').update(code).digest('hex')
+}
+
+/** Guard one stored row read back through node:sqlite against the schema this package writes. */
+function isDeviceRow(row: Record<string, SQLOutputValue>): row is DeviceRow {
+  return typeof row.device_id === 'string' && typeof row.name === 'string'
+    && typeof row.public_key_spki === 'string' && typeof row.role === 'string'
+    && typeof row.created_at === 'number'
+    && (row.last_seen_at === null || typeof row.last_seen_at === 'number')
+    && (row.revoked_at === null || typeof row.revoked_at === 'number')
 }
 
 function deviceOf(row: DeviceRow): PairedDevice {

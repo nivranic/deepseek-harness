@@ -1,0 +1,6 @@
+{
+  "meta": {
+    "title": "Electron-IPC-Host-Kanal",
+    "description": "Überträgt privilegierte Aufrufe zwischen Desktop-Host und Rendererprozess."
+  }
+}

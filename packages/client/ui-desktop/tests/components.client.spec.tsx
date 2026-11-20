@@ -7,7 +7,7 @@
 
 import { cleanup, fireEvent, render, screen } from '@testing-library/react'
 import { afterEach, describe, expect, it, vi } from 'vitest'
-import { bindSnapshotSelector } from '@deepseek-ai/dsh-client-test-runtime'
+import { bindSnapshotSelector, makeTranslate } from '@deepseek-ai/dsh-client-test-runtime'
 import { createSnapshotStore } from '@deepseek-ai/dsh-client-store'
 import type { ConfigFormSnapshot } from '@deepseek-ai/dsh-client-ui-settings/client'
 import { CloseActionRow } from '../src/client/CloseActionRow.tsx'
@@ -30,14 +30,17 @@ const BASE: Snapshot = {
   writable: true,
 }
 
+const t = makeTranslate(zh)
+
 function renderRow(state: Partial<Snapshot> = {}) {
   const store = createSnapshotStore<Snapshot>({ ...BASE, ...state })
   const select = vi.fn()
-  render(<CloseActionRow {...({
+  const props: Partial<CloseActionRowComponentProps> = {
     select,
     useDesktopClose: bindSnapshotSelector(store),
-    t: (key: keyof typeof zh) => zh[key],
-  } as unknown as CloseActionRowComponentProps)} />)
+    t,
+  }
+  render(<CloseActionRow {...(props as CloseActionRowComponentProps)} />)
   return select
 }
 
@@ -88,11 +91,12 @@ describe('LaunchAtLoginRow', () => {
   function renderLaunchRow(state: Partial<Snapshot> = {}) {
     const store = createSnapshotStore<Snapshot>({ ...BASE, ...state })
     const select = vi.fn()
-    render(<LaunchAtLoginRow {...({
+    const props: Partial<LaunchAtLoginRowComponentProps> = {
       select,
       useDesktopLaunch: bindSnapshotSelector(store),
-      t: (key: keyof typeof zh) => zh[key],
-    } as unknown as LaunchAtLoginRowComponentProps)} />)
+      t,
+    }
+    render(<LaunchAtLoginRow {...(props as LaunchAtLoginRowComponentProps)} />)
     return select
   }
 

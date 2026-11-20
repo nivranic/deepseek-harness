@@ -8,7 +8,6 @@ import SessionStore, { SessionId } from '@deepseek-ai/dsh-session'
 import type { Session } from '@deepseek-ai/dsh-session'
 import { describe, expect, it, vi } from 'vitest'
 import type { UserMessage } from '@deepseek-ai/dsh-llm'
-import { ApiSessionAgentController } from '../src/agent.ts'
 import { SessionCommandController } from '../src/commands.ts'
 import type { SessionHandoffSnapshot } from '../src/types.ts'
 
@@ -59,7 +58,7 @@ async function handoffHarness(providers: string[] = ['fixture']): Promise<{
       steer: vi.fn(),
       followup,
       cancel: vi.fn(),
-    } as unknown as Agent
+    } as never
     ctx.agents.register(agent)
     return Promise.resolve(agent)
   })
@@ -74,7 +73,7 @@ async function handoffHarness(providers: string[] = ['fixture']): Promise<{
     serializeImageAdmission: <Value>(_agent: Agent, operation: () => Promise<Value>) => operation(),
     composeAgent: () => Promise.resolve({ setup: () => {} }),
     presetForSession: () => undefined,
-  } as unknown as ApiSessionAgentController
+  } as never
   return { ctx, controller: new SessionCommandController(ctx, agents, '/workspace'), renameTitle, followup }
 }
 

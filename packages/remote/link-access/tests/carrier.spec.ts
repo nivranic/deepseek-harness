@@ -345,7 +345,7 @@ describe('link-access carrier', () => {
   })
 
   it('stops a stream promptly when its client vanishes mid-flight', async () => {
-    const probe = harness.ctx.get('probe') as unknown as { calls: readonly string[] }
+    const probe = harness.ctx.get('probe') as { readonly calls: readonly string[] }
     await streamUntil(harness, device, 'probe/ticks', { args: { count: 10_000 } }, lines => lines.length >= 2)
     // The abort must freeze the server-side iteration well short of the full
     // 10 000 items; poll until the count is stable instead of sleeping fixed
@@ -362,7 +362,7 @@ describe('link-access carrier', () => {
   })
 
   it('aborts an in-flight unary RPC when its client vanishes', async () => {
-    const probe = harness.ctx.get('probe') as unknown as { calls: readonly string[] }
+    const probe = harness.ctx.get('probe') as { readonly calls: readonly string[] }
     const url = new URL(harness.endpoint)
     const path = '/api/probe/slow'
     const body = JSON.stringify({

@@ -3,7 +3,7 @@
 import { Context } from '@deepseek-ai/cordis'
 import SessionStore, { SESSION_FORMAT_VERSION, SessionId } from '@deepseek-ai/dsh-session'
 import type { SessionEvent, SessionHeader } from '@deepseek-ai/dsh-session'
-import { describe, expect, it, vi } from 'vitest'
+import { describe, expect, it } from 'vitest'
 import { ApiSessionAgentController } from '../src/agent.ts'
 import { SessionCommandController } from '../src/commands.ts'
 import { installSessionReadTestServices, testSessionPersistence } from './test-remote.ts'
@@ -23,7 +23,7 @@ async function persistedController(
   }) as never)
   installSessionReadTestServices(ctx)
   ctx.provide('artifacts', artifacts as never)
-  const agents = { resolveAgent: vi.fn() } as unknown as ApiSessionAgentController
+  const agents = new ApiSessionAgentController(ctx)
   return { ctx, controller: new SessionCommandController(ctx, agents, '/workspace'), sessionId }
 }
 
@@ -80,11 +80,7 @@ describe('Session artifact authorization', () => {
     const ctx = new Context()
     await ctx.plugin(SessionStore)
     installSessionReadTestServices(ctx)
-    const controller = new SessionCommandController(
-      ctx,
-      { resolveAgent: vi.fn() } as unknown as ApiSessionAgentController,
-      '/workspace',
-    )
+    const controller = new SessionCommandController(ctx, new ApiSessionAgentController(ctx), '/workspace')
     await expectFailure(controller.artifact({ sessionId: SessionId('missing'), artifactId: 'art-1' }), 'session/not-found')
 
     const { ctx: failing, controller: failingController, sessionId } = await persistedController(

@@ -1,0 +1,6 @@
+{
+  "meta": {
+    "title": "invariantes de diagnóstico en tiempo de ejecución",
+    "description": "Declara y comprueba las invariantes de ejecución compartidas entre paquetes."
+  }
+}

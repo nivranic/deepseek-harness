@@ -119,7 +119,8 @@ function carrierCall(
       response.on('end', () => {
         const text = Buffer.concat(chunks).toString('utf8')
         try {
-          resolve({ status: response.statusCode ?? 0, json: JSON.parse(text) as unknown })
+          const json: unknown = JSON.parse(text)
+          resolve({ status: response.statusCode ?? 0, json })
         } catch {
           resolve({ status: response.statusCode ?? 0, json: undefined })
         }
