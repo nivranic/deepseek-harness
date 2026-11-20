@@ -148,7 +148,7 @@
       "status": "PASS",
       "owners": ["packages/client/ui-deepseek-model-label-1017"],
       "evidence": ".artifacts/upstream-first-review/owner-review-remaining-batches.md",
-      "remaining": "The package self-describes as a temporary 1017 release badge, over a month past its date, mounted only by two web-app patch rows; the official model-selection conversation.input.model.label slot is the replacement path. Execution (unmount, remove package) is separate work."
+      "remaining": "Executed 2026-11-20: the two web-app patch rows, the package, both tsconfig references, and the readme model-experience entry are removed; every affected generated catalog is refreshed (client slot catalog, plugin package list, config and module graphs) and an upgrade guide re-retires the re-introduced badge with a link to the frozen first-removal guide."
     },
     {
       "name": "Workspace API surfaces",
