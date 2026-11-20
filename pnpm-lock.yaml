@@ -954,6 +954,9 @@ importers:
       '@deepseek-ai/dsh-host-electron-ipc':
         specifier: workspace:^
         version: link:../../packages/host/electron-ipc
+      '@deepseek-ai/dsh-official-bundles':
+        specifier: workspace:^
+        version: link:../../packages/util/official-bundles
       electron-updater:
         specifier: ^6.8.9
         version: 6.8.9(supports-color@9.4.0)

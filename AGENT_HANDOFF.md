@@ -111,15 +111,13 @@ pnpm exec vitest run packages/remote/link-access/tests/carrier.spec.ts packages/
 
 该检查只关闭“撤销发生在认证恢复之前”的已证实问题，不保证回滚已提交操作，也不代表所有撤销、关闭和已接收业务操作竞态都已解决。
 
-### 3.2 个人 Desktop 全新 home 首次启动：P1，尚未修复
+### 3.2 个人 Desktop 全新 home 首次启动：已修复（源码与回归层）
 
-独立只读复核发现：`apps/desktop-user/src/main.ts` 已把 `DSH_HOME` 默认切到 `~/.dsh-personal`，但后面仍直接以 `profile: 'desktop'` 调用命名 profile 启动器，没有先初始化该目录，也没有传入已准备的 `resolvedProfile`。
+独立只读复核发现根因：`apps/desktop-user/src/main.ts` 把 `DSH_HOME` 默认切到 `~/.dsh-personal` 后直接以 `profile: 'desktop'` 调用命名 profile 启动器。缺少 profile manifest 时只有存在 shipped template 才能自动初始化（`packages/boot/app-boot/src/profile.ts` 的 `loadProfile`），而 `packages/util/official-bundles/src/bundles.ts` 的模板表刻意没有 `desktop` 行——desktop 应用自持该 profile 的初始 bundle 列表（官方 Desktop 在 Host 启动前经 `DesktopProjectManager.applyRelease` → `createPluginProfile` → `initProfile(dir, WEB_PROFILE.bundles)` 完成同一初始化）。全新 home 下个人版在进入应用前抛错。
 
-来源链为 `apps/cli/src/profile-boot.ts` → `packages/boot/app-boot/src/profile.ts`。缺少 profile manifest 时只有存在 shipped template 才能自动初始化；`packages/util/official-bundles/src/bundles.ts` 的模板表没有 `desktop`。因此旧数据只在 `~/.dsh`、或 override 指向全新绝对目录时，个人版会在进入应用前失败。
+本次修复复用同一共享能力，未创建第二套 profile 语义：新增 `apps/desktop-user/src/first-run.ts`（`createDesktopProfile`：以官方 web 模板 bundle 列表调用共享 `initProfile`），`main.ts` 在 `startGateway` 的动态导入组内于 `runProfile` 前执行；`initProfile` 对 manifest、`cordis.patch.yml`、`pnpm-workspace.yaml` 三件均只在缺席时写入，既有文件与用户数据不被触碰。真实入口回归 `apps/desktop-user/tests/first-run.spec.ts` 三例：空 home 经真实 `loadProfile('dsh desktop-user', 'desktop', anchor, home)` 装载（此前该调用必抛）、`DSH_DESKTOP_USER_HOME` override 同链路、已初始化 profile 与用户 patch 层逐字节不被重写。desktop-user 11/11（8 path + 3 新）通过；lint 0/0；typecheck 五门 5/5；完整 build 见 `.merge-helpers/personal-first-run-build.log`。
 
-该结论由独立代理完成源码追踪，尚未通过真实启动复现；主代理随后的读取和测试被中断，未进一步核实或修复。接手时先读实际源码，再复用共享的应用 profile 初始化/解析能力，明确 bundle 列表和 installation anchor；不要创建第二套 profile 语义，不要回退使用官方 home，也不要复制、搬移或覆盖用户旧数据。
-
-现有 8 个 path 测试只验证路径，不覆盖全新 profile 启动。需要增加空 home 和新 override 的真实入口回归，同时确认现有文件不被覆盖。
+未完成边界：真实打包安装后的首次启动验收、安装态升级后首跑仍开放（个人打包本身仍是 unsigned 源码层验证）；本修复不迁移、不触碰 `~/.dsh` 官方 home 的任何数据。
 
 ### 3.3 浏览器验证没有完成
 
@@ -262,4 +260,4 @@ pnpm 为 11.28.5；仓库要求 Node >=24.9。正确 Node24 仍可能输出 SQLi
 
 ## Dev Note
 
-个人首次 profile、完整 owner 分类、平台与发布验收继续待办。本次提交推送完成后保持暂停。
+个人首次 profile 的源码与回归层已修复（见 3.2；安装态首跑验收仍待）；完整 owner 分类、平台与发布验收继续待办。

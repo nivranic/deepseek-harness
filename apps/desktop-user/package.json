@@ -25,6 +25,7 @@
     "@deepseek-ai/dsh-app-boot": "workspace:^",
     "@deepseek-ai/dsh-desktop-app": "workspace:^",
     "@deepseek-ai/dsh-host-electron-ipc": "workspace:^",
+    "@deepseek-ai/dsh-official-bundles": "workspace:^",
     "electron-updater": "^6.8.9",
     "ws": "^8.21.3"
   },

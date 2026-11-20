@@ -21,7 +21,7 @@ import { app, BrowserWindow, Menu, nativeImage, powerMonitor, protocol, screen, 
 import { dirname, join } from 'node:path'
 import { homedir } from 'node:os'
 import { open, readdir, stat, writeFile } from 'node:fs/promises'
-import { resolvePersonalDshHome } from './paths.ts'
+import { resolveDesktopPaths, resolvePersonalDshHome } from './paths.ts'
 import type { Context } from '@deepseek-ai/cordis'
 import type { DesktopGateway } from '@deepseek-ai/dsh-host-electron-ipc'
 import type {} from '@deepseek-ai/dsh-settings'
@@ -54,7 +54,8 @@ interface DesktopSettings {
 app.name = 'deepseek-harness-desktop'
 
 // Select the personal data root before importing the profile boot graph.
-process.env.DSH_HOME = resolvePersonalDshHome(homedir(), process.env.DSH_DESKTOP_USER_HOME)
+const personalHome = resolvePersonalDshHome(homedir(), process.env.DSH_DESKTOP_USER_HOME)
+process.env.DSH_HOME = personalHome
 
 /**
  * Page-cache warmup for the packaged install: cold-launch file I/O — not CPU
@@ -342,10 +343,16 @@ function hideToTray(window: BrowserWindow): void {
  * `ready` fires — paid back by the boot finishing that much earlier.
  */
 async function startGateway(): Promise<DesktopGateway> {
-  const [{ runProfile }, { loadLayeredEnv }] = await Promise.all([
+  const [{ runProfile }, { loadLayeredEnv }, { createDesktopProfile }] = await Promise.all([
     import('@deepseek-ai/dsh/profile-boot'),
     import('@deepseek-ai/dsh-app-boot'),
+    import('./first-run.ts'),
   ])
+  // First-run initialization, before the named-profile resolution below loads
+  // the directory: the personal home starts empty, and without this step the
+  // boot fails before a window opens. Idempotent by contract — an initialized
+  // profile is untouched, so warm launches pay one existence check.
+  createDesktopProfile(resolveDesktopPaths(personalHome).profile)
   const started = await runProfile({
     environment: loadLayeredEnv('dsh'),
     profile: 'desktop',
