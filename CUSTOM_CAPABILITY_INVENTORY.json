@@ -108,7 +108,7 @@
       "status": "PASS",
       "owners": ["packages/code-runtime/code-runtime", "packages/code-runtime/code-runtime-python", "packages/code-runtime/code-runtime-worker-thread", "packages/workflow/workflow-worker-thread"],
       "evidence": ".artifacts/upstream-first-review/owner-review-code-runtime.md",
-      "remaining": "Dispositions recorded (code-runtime and code-runtime-python Delete; both worker-thread packages Migrate to official ptc-runtime-node/workflow-ptc, whose baseline copies are byte-identical to the official master baseline). Execution is separate work: npm-published packages need upgrade guides; desktop mounts and generators must move in the same change."
+      "remaining": "Dispositions recorded (code-runtime and code-runtime-python Delete; both worker-thread packages Migrate to official ptc-runtime-node/workflow-ptc, whose baseline copies are byte-identical to the official master baseline). workflow-worker-thread migration executed 2026-11-20: package removed with its unused CLI dependency, disabled desktop row, and tsconfig references, upgrade guide written, generated catalogs refreshed; the code-runtime family still awaits its execution (upgrade guides plus generator moves in one change)."
     },
     {
       "name": "Relay prototype",

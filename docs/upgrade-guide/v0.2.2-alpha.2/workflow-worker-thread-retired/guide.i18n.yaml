@@ -1,0 +1,16 @@
+# Bilingual-pair consistency record for guide.md (docs/i18n/README.md): per heading
+# section, a hash of its English and Chinese blocks outside code blocks and generated regions.
+# After editing either side, bring the other along and re-record with:
+#   pnpm run verify-translation-pairing --write docs/upgrade-guide/v0.2.2-alpha.2/workflow-worker-thread-retired/guide.md
+/:
+  en: 287d0208de2a71f2
+  zh: dce9425bbe7c19ff
+/dsh-workflow-worker-thread-retired-dsh-workflow-ptc-serves-the-engine:
+  en: 766cb8f2d7805d64
+  zh: fffbafb164eabdca
+/dsh-workflow-worker-thread-retired-dsh-workflow-ptc-serves-the-engine/change:
+  en: d77727ecf7a43111
+  zh: a8e44574a7a10af0
+/dsh-workflow-worker-thread-retired-dsh-workflow-ptc-serves-the-engine/migration:
+  en: 5d189e6093666396
+  zh: af32cc50af8ece3f

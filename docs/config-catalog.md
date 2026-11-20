@@ -4982,37 +4982,6 @@ export interface Config {
 ```
 <!-- END GENERATED config-catalog:@deepseek-ai/dsh-workflow-ptc -->
 
-<!-- BEGIN GENERATED config-catalog:@deepseek-ai/dsh-workflow-worker-thread -->
-<a id="deepseek-aidsh-workflow-worker-thread"></a>
-
-## `@deepseek-ai/dsh-workflow-worker-thread`
-
-- `inject`: `subagents`
-- `source`: [`packages/workflow/workflow-worker-thread/src/index.ts:32`](../packages/workflow/workflow-worker-thread/src/index.ts)
-
-```ts config-catalog
-/** Plugin config (all optional — `static Config` supplies the defaults). */
-export interface Config {
-  /** The `ctx.subagents` provider children run on (default `spawn`). */
-  provider?: string
-  /** Concurrent `agent()` ceiling; `0` (the default) auto-resolves to `min(16, max(1, cores - 2))`. */
-  maxConcurrentAgents?: number
-  /** Total `agent()` calls one run may start — the runaway-loop backstop (default 1000). */
-  maxTotalAgents?: number
-  /** Items accepted by a single `parallel()`/`pipeline()` call (default 4096). */
-  maxItemsPerCall?: number
-  /** vm timeout for the script's initial synchronous slice, inside the worker (default 5000 ms). */
-  syncTimeoutMs?: number
-  /**
-   * How long after a cancellation an unsettled script may keep running before
-   * the run force-settles `cancelled` and its worker is TERMINATED (default
-   * 5000 ms); also bounds `dispose()`.
-   */
-  disposeGraceMs?: number
-}
-```
-<!-- END GENERATED config-catalog:@deepseek-ai/dsh-workflow-worker-thread -->
-
 <!-- BEGIN GENERATED config-catalog:@deepseek-ai/dsh-working-directory -->
 <a id="deepseek-aidsh-working-directory"></a>
 

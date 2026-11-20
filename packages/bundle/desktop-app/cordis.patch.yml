@@ -382,9 +382,6 @@
 - id: tool-subagent-fork
   disabled: true
 
-- id: workflow-worker-thread
-  disabled: true
-
 - id: tool-workflow
   disabled: true
 
